@@ -17,6 +17,7 @@ from maple.function.calculator.extra_correction.implicit.route2_derivative impor
     fixed_surface_solvation_coordinate_gradient,
     pcm_half_coupling_continuum_coordinate_gradient,
     pcm_half_coupling_energy_density_gradient,
+    pcm_half_coupling_source_gradient,
 )
 from maple.function.calculator.extra_correction.implicit.route2_response import (
     NeutralDensityCoordinates,
@@ -48,6 +49,44 @@ class _MatrixReactionField:
         return (
             self.matrix.T @ np.asarray(field_cotangent).reshape(-1)
         ).reshape(self.atom_count, 4)
+
+
+class _NonlinearReactionField:
+    source_dependent_geometry = True
+    reciprocal_energy_pairing = True
+
+    def __init__(self, matrix: np.ndarray, quadratic: np.ndarray, atom_count: int):
+        self.matrix = np.asarray(matrix, dtype=float)
+        self.quadratic = np.asarray(quadratic, dtype=float).reshape(-1)
+        self.atom_count = atom_count
+        self._source = None
+        self._field = None
+
+    def apply_scf(self, source: np.ndarray) -> np.ndarray:
+        values = np.asarray(source, dtype=float)
+        flat = values.reshape(-1)
+        density_order_field = self.matrix @ flat + self.quadratic * flat**2
+        field = density_to_external_field_order(
+            density_order_field.reshape(self.atom_count, 4)
+        )
+        self._source = np.array(values, copy=True)
+        self._field = np.array(field, copy=True)
+        return field
+
+    def validate_linearization_state(self, source, field) -> None:
+        if self._source is None or not np.array_equal(source, self._source):
+            raise RuntimeError("stale nonlinear source")
+        if not np.array_equal(field, self._field):
+            raise RuntimeError("stale nonlinear field")
+
+    def adjoint(self, field_cotangent: np.ndarray) -> np.ndarray:
+        density_order_cotangent = external_field_to_density_order(field_cotangent)
+        flat_source = self._source.reshape(-1)
+        result = (
+            self.matrix.T @ density_order_cotangent.reshape(-1)
+            + 2.0 * self.quadratic * flat_source * density_order_cotangent.reshape(-1)
+        )
+        return result.reshape(self.atom_count, 4)
 
 
 class _CoordinateDependentMatrixReactionField(_MatrixReactionField):
@@ -350,12 +389,86 @@ def test_pcm_half_coupling_density_gradient_matches_neutral_finite_difference():
         )
 
 
+def test_nonlinear_pcm_half_coupling_source_gradient_includes_map_response():
+    atom_count = 3
+    dimension = 4 * atom_count
+    rng = np.random.default_rng(20260808)
+    matrix = rng.normal(scale=0.05, size=(dimension, dimension))
+    quadratic = rng.normal(scale=0.03, size=dimension)
+    reaction_field = _NonlinearReactionField(matrix, quadratic, atom_count)
+    source = rng.normal(scale=0.1, size=(atom_count, 4))
+    field = reaction_field.apply_scf(source)
+    analytic = pcm_half_coupling_source_gradient(
+        reaction_field,
+        source=source,
+        field=field,
+    )
+    direction = project_neutral_density_tangent(
+        rng.normal(size=(atom_count, 4))
+    )
+
+    def energy(candidate: np.ndarray) -> float:
+        candidate_field = reaction_field.apply_scf(candidate)
+        return 0.5 * float(
+            np.vdot(candidate, external_field_to_density_order(candidate_field))
+        )
+
+    for step in (1.0e-4, 3.0e-5, 1.0e-5):
+        finite_difference = (
+            energy(source + step * direction)
+            - energy(source - step * direction)
+        ) / (2.0 * step)
+        assert finite_difference == pytest.approx(
+            np.vdot(analytic, direction),
+            rel=8.0e-9,
+            abs=8.0e-11,
+        )
+
+    # The finite-difference loop changed the cached state; stale inputs must
+    # fail rather than differentiating an unrelated nonlinear cavity.
+    with pytest.raises(RuntimeError, match="stale nonlinear source"):
+        pcm_half_coupling_source_gradient(
+            reaction_field,
+            source=source,
+            field=field,
+        )
+
+
+def test_pcm_half_coupling_source_gradient_keeps_static_fast_path() -> None:
+    atom_count = 2
+    matrix = np.eye(4 * atom_count)
+    reaction_field = _MatrixReactionField(matrix, atom_count)
+    source = np.arange(8, dtype=float).reshape(atom_count, 4) / 10.0
+    field = reaction_field.apply(source)
+    expected = pcm_half_coupling_energy_density_gradient(
+        reaction_field,
+        reaction_field_values=field,
+    )
+    actual = pcm_half_coupling_source_gradient(
+        reaction_field,
+        source=source,
+        field=field,
+    )
+    np.testing.assert_array_equal(actual, expected)
+
+
 def test_pcm_half_coupling_gradient_requires_reciprocal_pairing():
     reaction_field = _MatrixReactionField(np.eye(8), 2, reciprocal=False)
     with pytest.raises(ValueError, match="reciprocal"):
         pcm_half_coupling_energy_density_gradient(
             reaction_field,
             reaction_field_values=np.zeros((2, 4)),
+        )
+
+    nonlinear = _NonlinearReactionField(np.eye(8), np.zeros(8), 2)
+    nonlinear.reciprocal_energy_pairing = False
+    source = np.zeros((2, 4))
+    field = nonlinear.apply_scf(source)
+    with pytest.raises(ValueError, match="reciprocal"):
+        pcm_half_coupling_source_gradient(
+            nonlinear,
+            source=source,
+            field=field,
         )
 
 

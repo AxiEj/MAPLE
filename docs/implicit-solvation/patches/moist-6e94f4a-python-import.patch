@@ -1,0 +1,15 @@
+diff --git a/include/moist.h b/include/moist.h
+index 5639fab..e83c4e5 100644
+--- a/include/moist.h
++++ b/include/moist.h
+@@ -87,10 +87,6 @@ moist_print_version(int /* unit */) moist_API_SUFFIX__V_0_5;
+ moist_API_ENTRY void moist_API_CALL
+ moist_print_build_header(int /* unit */) moist_API_SUFFIX__V_0_5;
+ 
+-/// Print GEMS header banner to file descriptor (use 6 for stdout, 0 for stderr)
+-moist_API_ENTRY void moist_API_CALL
+-moist_print_gems_header(int /* unit */) moist_API_SUFFIX__V_0_5;
+-
+ /*
+  * Error handle class
+ **/

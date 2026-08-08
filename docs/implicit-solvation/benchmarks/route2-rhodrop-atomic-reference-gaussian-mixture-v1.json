@@ -1,0 +1,155 @@
+{
+  "artifact": "route2-rhodrop-atomic-reference-gaussian-mixture-v1",
+  "claim_boundary": "This is a positive normalized analytic reference used only in the experimental reconstructed-MACE-polar-density level set. It is derived without solvation or experimental fitting and is not a trained MACE electron density, a QM-isosurface validation, a continuum-energy result, or force/PES admission.",
+  "construction": "positive-normalized-spherical-free-atom-hf-gaussian-mixture-v1",
+  "fit_protocol": {
+    "audit_isodensity_e_per_bohr3": 0.001,
+    "candidate_exponent_count": 192,
+    "candidate_exponent_max_bohr2": 500000.0,
+    "candidate_exponent_min_bohr2": 5e-05,
+    "component_count_prune_threshold_e": 1e-10,
+    "experimental_solvation_fit": false,
+    "fit_density_minimum_e_per_bohr3": 1e-12,
+    "kind": "nonnegative-normalized-gaussian-expansion-v1",
+    "mace_output_fit": false,
+    "normalization_row_weight": 1000000.0,
+    "relative_weight_floor_e_per_bohr3": 1e-10
+  },
+  "generator": {
+    "path": "docs/implicit-solvation/benchmarks/generate_route2_rhodrop_atomic_reference_density.py",
+    "sha256": "ff4d8a79ad69405879a740d6af8cd503eb1d998cf500ed0a06482ea062029b98"
+  },
+  "results": [
+    {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.0009763079015980836,
+      "atomic_number": 1,
+      "component_count": 14,
+      "electron_count": 0.9999999999999999,
+      "electron_count_absolute_error": 1.1102230246251565e-16,
+      "fitted_1e-3_isodensity_radius_bohr": 3.155888273293896,
+      "maximum_relative_density_error_at_or_above_1e-3": 0.001608557628056317,
+      "reference_1e-3_isodensity_radius_bohr": 3.156864581195494,
+      "rms_relative_density_error_at_or_above_1e-3": 0.00037236834726755665
+    },
+    {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.02296003050141593,
+      "atomic_number": 6,
+      "component_count": 19,
+      "electron_count": 6.0,
+      "electron_count_absolute_error": 0.0,
+      "fitted_1e-3_isodensity_radius_bohr": 3.896314567115426,
+      "maximum_relative_density_error_at_or_above_1e-3": 0.03547689876614489,
+      "reference_1e-3_isodensity_radius_bohr": 3.87335453661401,
+      "rms_relative_density_error_at_or_above_1e-3": 0.012850126294174362
+    },
+    {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.03996479847114065,
+      "atomic_number": 7,
+      "component_count": 17,
+      "electron_count": 6.999999999999999,
+      "electron_count_absolute_error": 8.881784197001252e-16,
+      "fitted_1e-3_isodensity_radius_bohr": 3.616066321946035,
+      "maximum_relative_density_error_at_or_above_1e-3": 0.08099803000053549,
+      "reference_1e-3_isodensity_radius_bohr": 3.5761015234748945,
+      "rms_relative_density_error_at_or_above_1e-3": 0.018873907427275738
+    },
+    {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.000525794421398107,
+      "atomic_number": 8,
+      "component_count": 23,
+      "electron_count": 8.0,
+      "electron_count_absolute_error": 0.0,
+      "fitted_1e-3_isodensity_radius_bohr": 3.332860666188947,
+      "maximum_relative_density_error_at_or_above_1e-3": 0.0030333925194145008,
+      "reference_1e-3_isodensity_radius_bohr": 3.333386460610345,
+      "rms_relative_density_error_at_or_above_1e-3": 0.0010238586144582975
+    },
+    {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.0017536314547790255,
+      "atomic_number": 16,
+      "component_count": 23,
+      "electron_count": 16.0,
+      "electron_count_absolute_error": 0.0,
+      "fitted_1e-3_isodensity_radius_bohr": 4.181310538138794,
+      "maximum_relative_density_error_at_or_above_1e-3": 0.029540267050801344,
+      "reference_1e-3_isodensity_radius_bohr": 4.179556906684015,
+      "rms_relative_density_error_at_or_above_1e-3": 0.011003188441289594
+    },
+    {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.003972803296947713,
+      "atomic_number": 17,
+      "component_count": 24,
+      "electron_count": 17.0,
+      "electron_count_absolute_error": 0.0,
+      "fitted_1e-3_isodensity_radius_bohr": 3.9532913435735773,
+      "maximum_relative_density_error_at_or_above_1e-3": 0.03722922854283154,
+      "reference_1e-3_isodensity_radius_bohr": 3.9493185402766295,
+      "rms_relative_density_error_at_or_above_1e-3": 0.01392633554852036
+    }
+  ],
+  "runtime_environment": {
+    "numpy": {
+      "linear_algebra": {
+        "available": true,
+        "blas": {
+          "found": true,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.31.188.0"
+        },
+        "lapack": {
+          "found": true,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.31.188.0"
+        }
+      },
+      "version": "2.4.6"
+    },
+    "python": {
+      "implementation": "CPython",
+      "version": "3.11.14"
+    },
+    "scipy": {
+      "linear_algebra": {
+        "available": true,
+        "blas": {
+          "found": true,
+          "has ilp64": false,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.30 DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.30"
+        },
+        "lapack": {
+          "found": true,
+          "has ilp64": false,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.30 DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.30"
+        }
+      },
+      "version": "1.17.1"
+    }
+  },
+  "schema_version": 1,
+  "source": {
+    "artifact": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1",
+    "manifest_path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.json",
+    "manifest_sha256": "9f0b56bbe5bc116d55b10ac3aa7246080e1a17a06001f62b81cd3f66b6c95f81",
+    "table_path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.npz",
+    "table_sha256": "1a63ae8a5d939e00f0a8dba1951a8099dad8ba2a068be61431046c880d7aae28"
+  },
+  "status": "mathematical-kernel-pass-scientific-isosurface-gate-pending",
+  "supported_atomic_numbers": [
+    1,
+    6,
+    7,
+    8,
+    16,
+    17
+  ],
+  "table": {
+    "path": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz",
+    "sha256": "d81363187ce6092b23031f5626e0d794bbad4f44646f1e06e41b1112768fefc6"
+  }
+}

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import numpy as np
 import pytest
 
@@ -12,8 +14,11 @@ from maple.function.calculator.extra_correction.implicit.route2_force_admission 
     LEGACY_MACE_FIELD_PLUS_PCM_FORCE_ENERGY_SEMANTICS,
     NonpolarSmoothnessContract,
     PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT,
+    RhoDropCavityForceGateEvidence,
+    UNSPECIFIED_RHODROP_CAVITY_FORCE_GATE_EVIDENCE,
     evaluate_force_admission,
     fixed_point_condition_screen,
+    require_rhodrop_cavity_force_admission,
 )
 from maple.function.calculator.extra_correction.implicit.route2_response import (
     FixedChargeCoordinates,
@@ -77,6 +82,73 @@ def _zero_feedback_residual(*, atom_count: int = 2) -> _ReducedFeedbackResidual:
         np.zeros((dimension, dimension)),
         atom_count=atom_count,
     )
+
+
+def test_rhodrop_cavity_force_gate_preserves_missing_anchor_and_gate_bc_blockers():
+    evidence = UNSPECIFIED_RHODROP_CAVITY_FORCE_GATE_EVIDENCE
+    assert not evidence.force_admitted
+    failures = set(evidence.failure_reasons)
+    assert "drop-anchor-coordinate-vjp-unverified" in failures
+    assert "efficient-drop-forward-jvp-unavailable" in failures
+    assert "rho-drop-gate-b-component-finite-difference-unverified" in failures
+    assert "rho-drop-gate-c-end-to-end-force-unverified" in failures
+    assert evidence.as_dict()["force_admitted"] is False
+
+
+def test_rhodrop_cavity_force_gate_requires_every_independent_boolean(
+    tmp_path,
+) -> None:
+    gate_names = RhoDropCavityForceGateEvidence._gate_names()
+    values = {name: True for name in gate_names}
+    artifact = tmp_path / "rho-drop-force-evidence.json"
+    artifact.write_text('{"status":"synthetic-complete"}\n', encoding="utf-8")
+    artifact_hash = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    binding_hashes = {
+        name: f"{index + 1:064x}"
+        for index, name in enumerate(
+            RhoDropCavityForceGateEvidence._binding_hash_names()
+        )
+        if name != "evidence_artifact_sha256"
+    }
+    bindings = {
+        "provider_contract_version": 2,
+        **binding_hashes,
+        "evidence_artifact_path": str(artifact),
+        "evidence_artifact_sha256": artifact_hash,
+    }
+    admitted = RhoDropCavityForceGateEvidence(
+        profile_kind="synthetic-rhodrop-complete-v1",
+        evidence="Synthetic control with every independent gate supplied.",
+        **values,
+        **bindings,
+    )
+    assert admitted.force_admitted
+    assert admitted.failure_reasons == ()
+
+    provider_audit = {
+        "profile_kind": admitted.profile_kind,
+        "contract_version": admitted.provider_contract_version,
+        **binding_hashes,
+    }
+    require_rhodrop_cavity_force_admission(admitted, provider_audit)
+    stale_audit = dict(provider_audit)
+    stale_audit["forward_state_sha256"] = "f" * 64
+    with pytest.raises(RuntimeError, match="forward_state_sha256"):
+        require_rhodrop_cavity_force_admission(admitted, stale_audit)
+    wrong_profile_audit = dict(provider_audit)
+    wrong_profile_audit["profile_kind"] = "another-source-dependent-provider"
+    with pytest.raises(RuntimeError, match="profile_kind"):
+        require_rhodrop_cavity_force_admission(admitted, wrong_profile_audit)
+
+    values["anchor_coordinate_vjp_gate_passed"] = False
+    blocked = RhoDropCavityForceGateEvidence(
+        profile_kind="synthetic-rhodrop-missing-anchor-v1",
+        evidence="Synthetic control missing only the anchor coordinate term.",
+        **values,
+        **bindings,
+    )
+    assert not blocked.force_admitted
+    assert blocked.failure_reasons == ("drop-anchor-coordinate-vjp-unverified",)
 
 
 def test_dense_condition_screen_records_exact_small_system_svd_gate():

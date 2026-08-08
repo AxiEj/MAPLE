@@ -16,7 +16,12 @@ from scipy.sparse.linalg import LinearOperator, gmres
 
 
 class ReactionFieldLinearMap(Protocol):
-    """Fixed-cavity density-to-node-field map and its discrete adjoint."""
+    """Local density-to-node-field linearization and its discrete adjoint.
+
+    For a fixed cavity this is the global linear reaction map. For a
+    source-dependent cavity, ``apply`` and ``adjoint`` are respectively the
+    JVP and VJP at the provider's exact cached forward state.
+    """
 
     atom_count: int
 

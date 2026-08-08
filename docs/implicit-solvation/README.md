@@ -97,6 +97,15 @@ extracts the existing ML--SCF/adjoint/energy-ledger orchestration behind an
 internal provider-neutral interface. It does not add a continuum provider,
 change a formula or numerical setting, or promote the current force candidate.
 
+The separate experimental reconstructed-density **rho-DROP CPCM** provider is
+documented in
+[`ROUTE2_RHODROP_CPCM.md`](ROUTE2_RHODROP_CPCM.md). It reuses that engine with
+a source-dependent MOIST surface and a local nonlinear reaction-map JVP/VJP,
+but is admitted only as electrostatics-only research energy. Its fixed
+half-coupling ledger is enforced at the engine boundary; CDS, analytic forces,
+OPT/FREQ/MD, chemical accuracy, and the metadata-only full-functional drive
+remain closed.
+
 The electronic side of that engine is now isolated behind the explicit
 [`ROUTE2_ELECTRONIC_MODEL_ADAPTER.md`](ROUTE2_ELECTRONIC_MODEL_ADAPTER.md)
 contract.  Current released profiles remain MACE-POLAR-bound, but a new

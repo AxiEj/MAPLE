@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from collections.abc import Callable, Hashable
+from collections.abc import Callable, Hashable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Literal, TypedDict, cast
 
@@ -34,7 +34,7 @@ from .route2_derivative import (
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
     pcm_half_coupling_continuum_coordinate_gradient,
-    pcm_half_coupling_energy_density_gradient,
+    pcm_half_coupling_source_gradient,
 )
 from .route2_field_state import ReactionFieldDrive
 from .route2_fixed_point import (
@@ -49,10 +49,13 @@ from .route2_force_admission import (
     ContinuumSmoothnessContract,
     ForceAdmissionPolicy,
     ForcePESValidationContract,
+    RhoDropCavityForceGateEvidence,
     UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT,
     UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT,
+    UNSPECIFIED_RHODROP_CAVITY_FORCE_GATE_EVIDENCE,
     evaluate_force_admission,
     force_energy_semantics_contract,
+    require_rhodrop_cavity_force_admission,
 )
 from .route2_nonuniform_response import (
     molecular_dipole_response_from_density_coefficients,
@@ -78,6 +81,61 @@ SCF_ENERGY_RESIDUAL_SOURCE_FIELD_CONDITIONED_MODEL = (
 )
 SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING = "pcm-half-coupling-v1"
 FROZEN_SOURCE_CONVERGENCE_REASON = "frozen-source-no-fixed-point-v1"
+
+
+def _reaction_field_capability_audit(reaction_field: Any) -> dict[str, Any]:
+    """Return provider-neutral capability flags plus optional state evidence."""
+
+    source_dependent = bool(
+        getattr(reaction_field, "source_dependent_geometry", False)
+    )
+    reciprocal_pairing = bool(
+        getattr(reaction_field, "reciprocal_energy_pairing", False)
+    )
+    capabilities: dict[str, Any] = {
+        "source_dependent_geometry": source_dependent,
+        "reciprocal_energy_pairing": reciprocal_pairing,
+        "reaction_jacobian_self_adjoint": bool(
+            getattr(
+                reaction_field,
+                "reaction_jacobian_self_adjoint",
+                reciprocal_pairing and not source_dependent,
+            )
+        ),
+        "reaction_map_derivative_available": bool(
+            getattr(reaction_field, "reaction_map_derivative_available", True)
+        ),
+        "operational_jvp_efficiency_admitted": bool(
+            getattr(
+                reaction_field,
+                "operational_jvp_efficiency_admitted",
+                not source_dependent,
+            )
+        ),
+        "complete_position_derivative_available": bool(
+            getattr(
+                reaction_field,
+                "complete_position_derivative_available",
+                hasattr(reaction_field, "full_position_derivative_contract_version"),
+            )
+        ),
+    }
+    for name in (
+        "analytic_force_status",
+        "electrostatics_only",
+        "include_cds",
+        "jvp_implementation",
+        "model_drive",
+    ):
+        if hasattr(reaction_field, name):
+            capabilities[name] = getattr(reaction_field, name)
+    provider_audit = getattr(reaction_field, "audit_snapshot", None)
+    if callable(provider_audit):
+        state = provider_audit()
+        if not isinstance(state, Mapping):
+            raise TypeError("Reaction-field audit_snapshot() must return a mapping.")
+        capabilities["provider_state"] = dict(state)
+    return capabilities
 Route2ResponseMode = Literal["frozen", "scf"]
 
 
@@ -428,6 +486,7 @@ class Route2CoupledState:
     cds_result: Any
     history: tuple[Route2SCFHistoryRecord, ...]
     scf_convergence: dict[str, Any] = field(default_factory=dict)
+    reaction_field_capabilities: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.response_mode not in {"frozen", "scf"}:
@@ -478,6 +537,13 @@ class Route2CoupledState:
                 "model_local_field_values_ev",
                 model_field,
             )
+        if not isinstance(self.reaction_field_capabilities, Mapping):
+            raise TypeError("Reaction-field capabilities must be a mapping.")
+        object.__setattr__(
+            self,
+            "reaction_field_capabilities",
+            dict(self.reaction_field_capabilities),
+        )
 
     @property
     def root_density_coefficients(self) -> np.ndarray:
@@ -538,8 +604,38 @@ class Route2ContinuumEngine:
     cds_evaluator: Callable[[Any], Any]
     settings: Route2EngineSettings
     source_space: AtomicL1SourceSpace = ATOMIC_L1_SOURCE_SPACE
+    plugin_continuum_binding: Mapping[str, object] | None = None
+    required_electrostatic_energy_ledger: str | None = None
 
-    def _resolve_electronic_model(self, candidate) -> Route2ElectronicModel:
+    def __post_init__(self) -> None:
+        required = self.required_electrostatic_energy_ledger
+        if required is not None:
+            object.__setattr__(
+                self,
+                "required_electrostatic_energy_ledger",
+                validate_route2_electrostatic_energy_ledger(required),
+            )
+
+    def _select_electrostatic_energy_ledger(self, requested: str) -> str:
+        """Validate one ledger and enforce any provider-profile binding."""
+
+        selected = validate_route2_electrostatic_energy_ledger(requested)
+        required = self.required_electrostatic_energy_ledger
+        if required is not None and selected != required:
+            raise RuntimeError(
+                "This Route-2 engine is bound to electrostatic energy ledger "
+                f"{required!r}; received {selected!r}."
+            )
+        return selected
+
+    def _resolve_electronic_model(
+        self,
+        candidate,
+        *,
+        atoms: Any | None = None,
+        execution_mode: str | None = None,
+        require_force_route: bool = False,
+    ) -> Route2ElectronicModel:
         model = resolve_route2_electronic_model(candidate)
         if model.descriptor.source_space != self.source_space:
             raise TypeError(
@@ -556,6 +652,20 @@ class Route2ContinuumEngine:
                 "operational field-conditioned electronic models; a common "
                 "variational electronic functional requires the separate KKT "
                 "engine."
+            )
+        verify_context = getattr(model, "verify_admission_context", None)
+        if callable(verify_context):
+            if atoms is None or self.plugin_continuum_binding is None:
+                raise TypeError(
+                    "An admitted M0 plug-in requires atoms and an explicit "
+                    "plugin_continuum_binding at the engine boundary."
+                )
+            verify_context(
+                atomic_numbers=np.asarray(atoms.numbers, dtype=int),
+                total_charge_e=self.settings.scf_total_charge_e,
+                continuum_binding=self.plugin_continuum_binding,
+                execution_mode=execution_mode,
+                require_force_route=require_force_route,
             )
         return model
 
@@ -964,7 +1074,7 @@ class Route2ContinuumEngine:
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
     ) -> dict[str, Any]:
-        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
+        selected_energy_ledger = self._select_electrostatic_energy_ledger(
             electrostatic_energy_ledger
         )
         atom_count = len(atoms)
@@ -1357,11 +1467,15 @@ class Route2ContinuumEngine:
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
     ) -> Route2CoupledState:
-        model = self._resolve_electronic_model(electronic_model)
-        settings = self.settings
-        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
+        selected_energy_ledger = self._select_electrostatic_energy_ledger(
             electrostatic_energy_ledger
         )
+        model = self._resolve_electronic_model(
+            electronic_model,
+            atoms=atoms,
+            execution_mode="scf",
+        )
+        settings = self.settings
         energy_residual_source = (
             SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING
             if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1
@@ -2028,6 +2142,9 @@ class Route2ContinuumEngine:
             cds_result=cds_result,
             history=tuple(history),
             scf_convergence=scf_convergence,
+            reaction_field_capabilities=(
+                _reaction_field_capability_audit(reaction_field)
+            ),
         )
 
     def solve_frozen_source_state(
@@ -2050,8 +2167,12 @@ class Route2ContinuumEngine:
         the returned state itself is reusable by either versioned ledger.
         """
 
-        model = self._resolve_electronic_model(electronic_model)
-        validate_route2_electrostatic_energy_ledger(electrostatic_energy_ledger)
+        self._select_electrostatic_energy_ledger(electrostatic_energy_ledger)
+        model = self._resolve_electronic_model(
+            electronic_model,
+            atoms=atoms,
+            execution_mode="frozen",
+        )
         reaction_field = self.reaction_field_factory(atoms)
         density, source_label, source_sha256 = self._initial_source(
             gas_state,
@@ -2110,6 +2231,9 @@ class Route2ContinuumEngine:
                 "fixed_point_applicable": False,
                 "source_label": source_label,
             },
+            reaction_field_capabilities=(
+                _reaction_field_capability_audit(reaction_field)
+            ),
         )
 
     def solvent_correction_force(
@@ -2127,23 +2251,68 @@ class Route2ContinuumEngine:
         force_admission_pes_validation: ForcePESValidationContract = (
             UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT
         ),
+        rho_drop_cavity_force_evidence: RhoDropCavityForceGateEvidence = (
+            UNSPECIFIED_RHODROP_CAVITY_FORCE_GATE_EVIDENCE
+        ),
         electrostatic_energy_ledger: str = (
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
     ) -> tuple[np.ndarray, dict[str, Any]]:
-        model = self._resolve_electronic_model(electronic_model)
+        selected_energy_ledger = self._select_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
+        model = self._resolve_electronic_model(
+            electronic_model,
+            atoms=atoms,
+            execution_mode="scf",
+            require_force_route=True,
+        )
         if not coupled.fixed_point_applicable:
             raise TypeError(
                 "Frozen-source Route-2 states are energy-only; the current "
                 "force adjoint is defined only for learned SCF fixed points."
             )
+        source_dependent_geometry = bool(
+            getattr(
+                coupled.reaction_field,
+                "source_dependent_geometry",
+                False,
+            )
+        )
+        if source_dependent_geometry:
+            provider_audit_callback = getattr(
+                coupled.reaction_field,
+                "audit_snapshot",
+                None,
+            )
+            if not callable(provider_audit_callback):
+                raise TypeError(
+                    "Source-dependent rho-DROP forces require a bound provider "
+                    "audit snapshot."
+                )
+            provider_force_audit = provider_audit_callback()
+            require_rhodrop_cavity_force_admission(
+                rho_drop_cavity_force_evidence,
+                provider_force_audit,
+            )
+            if not getattr(
+                coupled.reaction_field,
+                "complete_position_derivative_available",
+                False,
+            ):
+                status = getattr(
+                    coupled.reaction_field,
+                    "analytic_force_status",
+                    "blocked-missing-complete-position-derivative",
+                )
+                raise NotImplementedError(
+                    "Source-dependent continuum forces are closed until the "
+                    f"complete coordinate VJP is admitted ({status})."
+                )
         if coupled.electronic_model_identity != model.cache_identity:
             raise RuntimeError(
                 "Route-2 derivative model does not own the coupled state."
             )
-        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
-            electrostatic_energy_ledger
-        )
         settings = self.settings
         finite_resolution_policy = settings.scf_finite_resolution_policy
         if (
@@ -2215,9 +2384,10 @@ class Route2ContinuumEngine:
 
         density_response = model.linearize_source_response(atoms, drive)
         if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
-            physical_rhs = pcm_half_coupling_energy_density_gradient(
+            physical_rhs = pcm_half_coupling_source_gradient(
                 coupled.reaction_field,
-                reaction_field_values=field,
+                source=density,
+                field=field,
                 pairing=model.descriptor.source_space.pairing,
             )
         else:
@@ -2354,6 +2524,11 @@ class Route2ContinuumEngine:
             },
             "force_admission": force_admission.as_dict(),
         }
+        if source_dependent_geometry:
+            derivative["rho_drop_cavity_force_admission"] = (
+                rho_drop_cavity_force_evidence.as_dict()
+            )
+            derivative["rho_drop_cavity_provider_state"] = dict(provider_force_audit)
         return (
             total.solvent_correction_forces_hartree_per_angstrom,
             derivative,
@@ -2402,9 +2577,8 @@ class Route2ContinuumEngine:
             "delta_g_solv": total_energy,
         }
 
-    @classmethod
     def energy_components(
-        cls,
+        self,
         gas_state,
         coupled: Route2CoupledState,
         *,
@@ -2412,12 +2586,15 @@ class Route2ContinuumEngine:
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
     ) -> dict[str, float]:
-        return cls.compose_energy_components(
+        selected_energy_ledger = self._select_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
+        return self.compose_energy_components(
             gas_energy_ev=float(gas_state.energy_ev),
             solvent_energy_ev=float(coupled.solvent_state.energy_ev),
             polarization_energy_hartree=(coupled.polarization_energy_hartree),
             cds_energy_hartree=float(coupled.cds_result.energy_hartree),
-            electrostatic_energy_ledger=electrostatic_energy_ledger,
+            electrostatic_energy_ledger=selected_energy_ledger,
         )
 
 

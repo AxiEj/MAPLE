@@ -283,6 +283,70 @@ def pcm_half_coupling_energy_density_gradient(
     return project_neutral_density_tangent(pairing.field_to_density_order(field))
 
 
+def pcm_half_coupling_source_gradient(
+    reaction_field: ReactionFieldLinearMap,
+    *,
+    source: np.ndarray,
+    field: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
+) -> np.ndarray:
+    """Differentiate ``0.5*<c, f(c)>`` for static or source-dependent maps.
+
+    A fixed-cavity reciprocal map retains the existing fast path
+    ``grad_c E = pairing(f)``.  If the provider declares
+    ``source_dependent_geometry = True``, the reaction map is nonlinear and
+    the correct local derivative is instead
+
+    ``0.5*pairing(f) + 0.5*J_f(c).T*pairing(c)``.
+
+    The nonlinear provider must prove that its cached JVP/VJP state belongs to
+    the exact ``source`` and ``field`` supplied here.  This prevents a stale
+    cavity from silently entering the direct PCM ledger.
+    """
+
+    source_values = _validated_block(
+        source,
+        expected_shape=None,
+        name="PCM half-coupling source",
+    )
+    field_values = _validated_block(
+        field,
+        expected_shape=source_values.shape,
+        name="PCM half-coupling field",
+    )
+    if reaction_field.atom_count != source_values.shape[0]:
+        raise ValueError(
+            "Reaction-field atom count does not match the half-coupling source."
+        )
+    if getattr(reaction_field, "reciprocal_energy_pairing", False) is not True:
+        raise ValueError(
+            "The PCM half-coupling source gradient requires a reciprocal "
+            "reaction-field energy pairing."
+        )
+    if getattr(reaction_field, "source_dependent_geometry", False) is not True:
+        return pcm_half_coupling_energy_density_gradient(
+            reaction_field,
+            reaction_field_values=field_values,
+            pairing=pairing,
+        )
+
+    validate_state = getattr(reaction_field, "validate_linearization_state", None)
+    if not callable(validate_state):
+        raise TypeError(
+            "A source-dependent reaction field must validate its exact cached "
+            "source/field linearization state."
+        )
+    validate_state(source_values, field_values)
+    direct = 0.5 * pairing.field_to_density_order(field_values)
+    field_cotangent = pairing.density_to_field_order(source_values)
+    response = 0.5 * _validated_block(
+        reaction_field.adjoint(field_cotangent),
+        expected_shape=source_values.shape,
+        name="nonlinear PCM half-coupling source response",
+    )
+    return project_neutral_density_tangent(direct + response)
+
+
 def fixed_cavity_model_feature_energy_density_gradient(
     reaction_field: ModelFeatureLinearMap,
     *,
@@ -641,4 +705,5 @@ __all__ = [
     "fixed_surface_solvation_coordinate_gradient",
     "pcm_half_coupling_continuum_coordinate_gradient",
     "pcm_half_coupling_energy_density_gradient",
+    "pcm_half_coupling_source_gradient",
 ]

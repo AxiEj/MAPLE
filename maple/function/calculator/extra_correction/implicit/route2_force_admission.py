@@ -15,8 +15,11 @@ fail-closed until a validated bound is supplied.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+import hashlib
 import math
+from pathlib import Path
 
 from ....route2_energy_ledger import (
     LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
@@ -31,6 +34,243 @@ from .route2_thermodynamic_diagnostics import (
 )
 
 FORCE_ADMISSION_CONTRACT_VERSION = 3
+RHODROP_CAVITY_FORCE_ADMISSION_CONTRACT_VERSION = 2
+
+
+@dataclass(frozen=True)
+class RhoDropCavityForceGateEvidence:
+    """Cavity-specific prerequisites layered below the generic force gate.
+
+    This record is intentionally separate from the existing Route-2 force
+    certificate v3, whose archived release evidence must remain stable.  A
+    source-dependent cavity cannot enter that generic gate until every local
+    DROP/source condition, the field and reference-anchor coordinate pieces,
+    and the end-to-end Gate B/C checks below are independently evidenced.
+    """
+
+    profile_kind: str
+    all_projection_points_converged: bool
+    surface_residual_gate_passed: bool
+    minimum_gradient_gate_passed: bool
+    reconstructed_density_nonnegative_gate_passed: bool
+    electron_count_gate_passed: bool
+    cpcm_linear_residual_gate_passed: bool
+    half_coupling_identity_gate_passed: bool
+    reaction_map_jvp_vjp_gate_passed: bool
+    cold_replay_gate_passed: bool
+    branch_stability_gate_passed: bool
+    efficient_jvp_gate_passed: bool
+    field_coordinate_vjp_gate_passed: bool
+    anchor_coordinate_vjp_gate_passed: bool
+    gate_b_component_finite_difference_passed: bool
+    gate_c_end_to_end_force_passed: bool
+    evidence: str
+    provider_contract_version: int | None = None
+    provider_configuration_sha256: str | None = None
+    runtime_sha256: str | None = None
+    drop_parameter_sha256: str | None = None
+    cpcm_parameter_sha256: str | None = None
+    geometry_sha256: str | None = None
+    source_sha256: str | None = None
+    level_set_state_sha256: str | None = None
+    surface_snapshot_sha256: str | None = None
+    operator_sha256: str | None = None
+    forward_state_sha256: str | None = None
+    evidence_artifact_path: str | None = None
+    evidence_artifact_sha256: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.profile_kind.strip():
+            raise ValueError("A rho-DROP force-gate profile kind is required.")
+        if not self.evidence.strip():
+            raise ValueError("rho-DROP force-gate evidence is required.")
+        for name in self._gate_names():
+            if not isinstance(getattr(self, name), bool):
+                raise TypeError(f"rho-DROP force gate {name} must be bool.")
+        if self.provider_contract_version is not None and (
+            not isinstance(self.provider_contract_version, int)
+            or isinstance(self.provider_contract_version, bool)
+            or self.provider_contract_version <= 0
+        ):
+            raise ValueError("rho-DROP provider contract version must be positive.")
+        for name in self._binding_hash_names():
+            value = getattr(self, name)
+            if value is not None and (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(f"rho-DROP binding {name} must be a lowercase SHA256.")
+        path = self.evidence_artifact_path
+        artifact_hash = self.evidence_artifact_sha256
+        if (path is None) != (artifact_hash is None):
+            raise ValueError(
+                "rho-DROP evidence artifact path and SHA256 must be supplied together."
+            )
+        if path is not None:
+            if not isinstance(path, str) or not path.strip():
+                raise ValueError("rho-DROP evidence artifact path must be nonempty.")
+            artifact = Path(path).expanduser().resolve()
+            if not artifact.is_file():
+                raise ValueError(f"rho-DROP evidence artifact does not exist: {artifact}")
+            observed_hash = hashlib.sha256(artifact.read_bytes()).hexdigest()
+            if observed_hash != artifact_hash:
+                raise ValueError("rho-DROP evidence artifact SHA256 does not match.")
+
+    @staticmethod
+    def _gate_names() -> tuple[str, ...]:
+        return (
+            "all_projection_points_converged",
+            "surface_residual_gate_passed",
+            "minimum_gradient_gate_passed",
+            "reconstructed_density_nonnegative_gate_passed",
+            "electron_count_gate_passed",
+            "cpcm_linear_residual_gate_passed",
+            "half_coupling_identity_gate_passed",
+            "reaction_map_jvp_vjp_gate_passed",
+            "cold_replay_gate_passed",
+            "branch_stability_gate_passed",
+            "efficient_jvp_gate_passed",
+            "field_coordinate_vjp_gate_passed",
+            "anchor_coordinate_vjp_gate_passed",
+            "gate_b_component_finite_difference_passed",
+            "gate_c_end_to_end_force_passed",
+        )
+
+    @staticmethod
+    def _binding_hash_names() -> tuple[str, ...]:
+        return (
+            "provider_configuration_sha256",
+            "runtime_sha256",
+            "drop_parameter_sha256",
+            "cpcm_parameter_sha256",
+            "geometry_sha256",
+            "source_sha256",
+            "level_set_state_sha256",
+            "surface_snapshot_sha256",
+            "operator_sha256",
+            "forward_state_sha256",
+            "evidence_artifact_sha256",
+        )
+
+    @property
+    def failure_reasons(self) -> tuple[str, ...]:
+        labels = {
+            "all_projection_points_converged": "drop-projection-convergence-unverified",
+            "surface_residual_gate_passed": "drop-surface-residual-gate-unverified",
+            "minimum_gradient_gate_passed": "drop-minimum-gradient-gate-unverified",
+            "reconstructed_density_nonnegative_gate_passed": (
+                "reconstructed-density-nonnegativity-unverified"
+            ),
+            "electron_count_gate_passed": "reconstructed-electron-count-unverified",
+            "cpcm_linear_residual_gate_passed": "cpcm-linear-residual-unverified",
+            "half_coupling_identity_gate_passed": "pcm-half-coupling-identity-unverified",
+            "reaction_map_jvp_vjp_gate_passed": "reaction-map-jvp-vjp-unverified",
+            "cold_replay_gate_passed": "source-dependent-cavity-cold-replay-unverified",
+            "branch_stability_gate_passed": "drop-branch-stability-unverified",
+            "efficient_jvp_gate_passed": "efficient-drop-forward-jvp-unavailable",
+            "field_coordinate_vjp_gate_passed": "drop-field-coordinate-vjp-unverified",
+            "anchor_coordinate_vjp_gate_passed": "drop-anchor-coordinate-vjp-unverified",
+            "gate_b_component_finite_difference_passed": (
+                "rho-drop-gate-b-component-finite-difference-unverified"
+            ),
+            "gate_c_end_to_end_force_passed": (
+                "rho-drop-gate-c-end-to-end-force-unverified"
+            ),
+        }
+        gate_failures = tuple(
+            labels[name] for name in self._gate_names() if not getattr(self, name)
+        )
+        binding_failures = []
+        if self.provider_contract_version is None:
+            binding_failures.append("rho-drop-provider-contract-unbound")
+        for name in self._binding_hash_names():
+            if getattr(self, name) is None:
+                binding_failures.append(f"rho-drop-{name.replace('_', '-')}-unbound")
+        if self.evidence_artifact_path is None:
+            binding_failures.append("rho-drop-evidence-artifact-path-unbound")
+        return gate_failures + tuple(binding_failures)
+
+    @property
+    def force_admitted(self) -> bool:
+        return not self.failure_reasons
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "contract_version": RHODROP_CAVITY_FORCE_ADMISSION_CONTRACT_VERSION,
+            "profile_kind": self.profile_kind,
+            "provider_contract_version": self.provider_contract_version,
+            **{name: getattr(self, name) for name in self._gate_names()},
+            **{name: getattr(self, name) for name in self._binding_hash_names()},
+            "force_admitted": self.force_admitted,
+            "failure_reasons": list(self.failure_reasons),
+            "evidence": self.evidence,
+            "evidence_artifact_path": self.evidence_artifact_path,
+        }
+
+
+UNSPECIFIED_RHODROP_CAVITY_FORCE_GATE_EVIDENCE = (
+    RhoDropCavityForceGateEvidence(
+        profile_kind="route2-rhodrop-cpcm-operational-v1",
+        all_projection_points_converged=False,
+        surface_residual_gate_passed=False,
+        minimum_gradient_gate_passed=False,
+        reconstructed_density_nonnegative_gate_passed=False,
+        electron_count_gate_passed=False,
+        cpcm_linear_residual_gate_passed=False,
+        half_coupling_identity_gate_passed=False,
+        reaction_map_jvp_vjp_gate_passed=False,
+        cold_replay_gate_passed=False,
+        branch_stability_gate_passed=False,
+        efficient_jvp_gate_passed=False,
+        field_coordinate_vjp_gate_passed=False,
+        anchor_coordinate_vjp_gate_passed=False,
+        gate_b_component_finite_difference_passed=False,
+        gate_c_end_to_end_force_passed=False,
+        evidence=(
+            "No production rho-DROP coordinate-force admission artifact has "
+            "been supplied. Mathematical source/field tests do not substitute "
+            "for the missing anchor term or Gate B/C."
+        ),
+    )
+)
+
+
+def require_rhodrop_cavity_force_admission(
+    evidence: RhoDropCavityForceGateEvidence,
+    provider_audit: Mapping[str, object],
+) -> None:
+    """Fail closed unless every rho-DROP-specific force prerequisite passed."""
+
+    if not isinstance(evidence, RhoDropCavityForceGateEvidence):
+        raise TypeError(
+            "Source-dependent rho-DROP forces require "
+            "RhoDropCavityForceGateEvidence."
+        )
+    if evidence.failure_reasons:
+        raise RuntimeError(
+            "rho-DROP source-dependent cavity forces are not admitted: "
+            + ", ".join(evidence.failure_reasons)
+        )
+    if not isinstance(provider_audit, Mapping):
+        raise TypeError("rho-DROP force admission requires a provider audit mapping.")
+    expected = {
+        "profile_kind": evidence.profile_kind,
+        "contract_version": evidence.provider_contract_version,
+        **{
+            name: getattr(evidence, name)
+            for name in evidence._binding_hash_names()
+            if name != "evidence_artifact_sha256"
+        },
+    }
+    mismatches = tuple(
+        name for name, value in expected.items() if provider_audit.get(name) != value
+    )
+    if mismatches:
+        raise RuntimeError(
+            "rho-DROP force evidence does not bind the current provider state: "
+            + ", ".join(mismatches)
+        )
 
 
 @dataclass(frozen=True)
@@ -755,6 +995,7 @@ def evaluate_force_admission(
 
 __all__ = [
     "FORCE_ADMISSION_CONTRACT_VERSION",
+    "RHODROP_CAVITY_FORCE_ADMISSION_CONTRACT_VERSION",
     "ContinuumSmoothnessContract",
     "DIRECT_PCM_HALF_COUPLING_FORCE_ENERGY_SEMANTICS",
     "FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT",
@@ -771,10 +1012,13 @@ __all__ = [
     "PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT",
     "PYSCF_SMD_CDS_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT",
     "PYSCF_SWIG_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT",
+    "RhoDropCavityForceGateEvidence",
     "UNSPECIFIED_NONPOLAR_SMOOTHNESS_CONTRACT",
     "UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT",
     "UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT",
+    "UNSPECIFIED_RHODROP_CAVITY_FORCE_GATE_EVIDENCE",
     "evaluate_force_admission",
     "force_energy_semantics_contract",
     "fixed_point_condition_screen",
+    "require_rhodrop_cavity_force_admission",
 ]

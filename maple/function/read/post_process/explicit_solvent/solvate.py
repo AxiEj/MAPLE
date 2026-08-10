@@ -483,6 +483,39 @@ def _write_pdb(path: Path, atoms: Atoms) -> None:
         handle.write("END\n")
 
 
+def _solvent_pdb_template_from_arrays(
+    atoms: Atoms,
+    solute_count: int,
+    solute_template: Optional[Sequence[str]] = None,
+) -> list[str]:
+    lines: list[str] = []
+    positions = atoms.get_positions()
+    symbols = atoms.get_chemical_symbols()
+    molecule_ids = atoms.arrays["maple_molecule_id"]
+    resnames = atoms.arrays["maple_resname"]
+    atom_names = atoms.arrays["maple_atom_name"]
+    serial_start = solute_count
+    if solute_template:
+        serials = [
+            int(line[6:11])
+            for line in solute_template
+            if line[:6].strip().upper() in {"ATOM", "HETATM", "HEATOM"}
+            and line[6:11].strip()
+        ]
+        if serials:
+            serial_start = max(serials)
+    for idx in range(solute_count, len(atoms)):
+        x, y, z = positions[idx]
+        resseq = int(molecule_ids[idx]) + 2
+        serial = serial_start + idx - solute_count + 1
+        lines.append(
+            f"HETATM{serial:5d} {str(atom_names[idx]):<4.4s} "
+            f"{str(resnames[idx]):>3.3s} A{resseq:4d}    "
+            f"{x:8.3f}{y:8.3f}{z:8.3f}  1.00  0.00          {symbols[idx]:>2s}"
+        )
+    return lines
+
+
 class ExplicitSolv():
     def __new__(
         cls,
@@ -792,6 +825,28 @@ class ExplicitSolv():
             return WATER_MOLAR_MASS_G_MOL
         return _molecular_weight(first_group_symbols)
 
+    def _template_density_volume(self) -> float:
+        """Effective liquid volume from the actual solvent-molecule boundary.
+
+        Some bundled templates carry a larger CRYST1 envelope than the occupied
+        liquid region.  Use molecule geometric centres for density validation so
+        a visualization/buffer cell is not mistaken for the physical water-box
+        volume.  CRYST1 remains the tiling envelope checked by _template_period().
+        """
+        centers = np.asarray(
+            [
+                self.template.coords[group].mean(axis=0)
+                for group in self.template.groups
+            ],
+            dtype=np.float64,
+        )
+        if len(centers) < 2:
+            return math.nan
+        span = centers.max(axis=0) - centers.min(axis=0)
+        if np.any(span <= 0.0):
+            return math.nan
+        return float(np.prod(span))
+
     def _validate_custom_template_molecules(self) -> None:
         if not self.uses_custom_template:
             return
@@ -873,7 +928,9 @@ class ExplicitSolv():
     def _template_metrics(self) -> TemplateMetrics:
         period = self._template_period()
         molar_mass = self._template_molar_mass()
-        density = _mass_density_g_ml(len(self.template.groups), molar_mass, float(np.prod(period)))
+        density = _mass_density_g_ml(
+            len(self.template.groups), molar_mass, self._template_density_volume()
+        )
         return TemplateMetrics(
             period=period,
             molar_mass_g_mol=molar_mass,
@@ -884,13 +941,22 @@ class ExplicitSolv():
         """Fail closed when a bulk template cannot support the requested density."""
         if self.number is not None or self.density is None:
             return
+        if not math.isfinite(self.template_metrics.density_g_ml):
+            msg = (
+                f"Solvent template {self._template_label()} has no valid "
+                "molecule-center volume for density validation. Provide "
+                "number=<int> for an explicit non-density-targeted count."
+            )
+            self.log_error(msg)
+            raise ValueError(msg)
         rel_error = abs(self.template_metrics.density_g_ml - self.density) / self.density
         if self.uses_custom_template and "density" not in self.params:
             if rel_error <= CUSTOM_TEMPLATE_DENSITY_TOLERANCE:
                 return
             msg = (
                 f"Custom solvent_pdb template {self.data_path} density "
-                f"({self.template_metrics.density_g_ml:.4f} g/mL from CRYST1) differs "
+                f"({self.template_metrics.density_g_ml:.4f} g/mL from molecule-center "
+                "bounds) differs "
                 f"from the default density for explicit='{self.solv_name}' "
                 f"({self.density:.4f} g/mL) by {rel_error:.1%}. "
                 "Refusing to infer the target density from the solvent name for a "
@@ -905,7 +971,8 @@ class ExplicitSolv():
             return
         msg = (
             f"Solvent template {self._template_label()} density "
-            f"({self.template_metrics.density_g_ml:.4f} g/mL from CRYST1) differs "
+            f"({self.template_metrics.density_g_ml:.4f} g/mL from molecule-center "
+            "bounds) differs "
             f"from requested density ({self.density:.4f} g/mL) by "
             f"{rel_error:.1%}; refusing to generate a false-density solvent cluster. "
             "Use a validated bulk template, or provide number=<int> for an explicit "
@@ -1346,6 +1413,7 @@ class ExplicitSolv():
         self.log_info(lines)
 
     def _process(self):
+        solute_template = self.atoms.info.get("pdb_template")
         self.atoms.positions -= self.solute_center
 
         coords, symbols, atom_names, residue_names, tags = self._tile_template_network()
@@ -1372,6 +1440,15 @@ class ExplicitSolv():
         if solvent_symbols:
             self.atoms += Atoms(symbols=solvent_symbols, positions=solvent_positions)
         self._set_nonperiodic_metadata(solvent_tags, solvent_atom_names, solvent_res_names)
+        if solute_template:
+            self.atoms.info["pdb_template"] = (
+                list(solute_template)
+                + _solvent_pdb_template_from_arrays(
+                    self.atoms,
+                    self.solute_count,
+                    solute_template,
+                )
+            )
 
         final_count = len(final_tags)
         self._validate_final_cluster(final_count)
@@ -1396,7 +1473,8 @@ class ExplicitSolv():
             ),
             f"target_number_density={target_density:.8f} molecules/Å^3\n",
             f"actual_number_density={actual_density:.8f} molecules/Å^3\n",
-            f"template_mass_density={self.template_metrics.density_g_ml:.4f} g/mL\n",
+            f"template_mass_density={self.template_metrics.density_g_ml:.4f} "
+            "g/mL (molecule-center bounds)\n",
             f"actual_cluster_mass_density={actual_mass_density:.4f} g/mL\n",
             f"min_solute_solvent_distance={min_solute:.3f} Å\n",
             f"min_solvent_solvent_distance={min_solvent:.3f} Å\n",

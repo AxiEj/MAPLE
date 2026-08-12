@@ -1,0 +1,41 @@
+........................................................................ [  4%]
+.....................s.................................................. [  9%]
+........................................................................ [ 13%]
+........................................................................ [ 18%]
+....................................s..sss.............................. [ 22%]
+........................................................................ [ 27%]
+........................................................................ [ 31%]
+........................................................................ [ 36%]
+............................ssss........................................ [ 40%]
+........................................................................ [ 45%]
+........................................................................ [ 49%]
+........................................................................ [ 54%]
+..s..................................................................... [ 58%]
+..sss.........s......................................................... [ 63%]
+.....................................................s.................. [ 67%]
+......................................................................s. [ 72%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+........................................................................ [ 90%]
+........................................................................ [ 95%]
+........................................................................ [ 99%]
+.......                                                                  [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/route2_vnext/test_mace_polar_real_checkpoint.py:23: set MAPLE_ROUTE2_REAL_MACEPOL=1 in the pinned real-checkpoint job
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:145: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:212: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:229: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:243: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:650: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:756: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:797: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:846: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_route2_moist_drop.py:570: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_cpcm.py:508: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_cpcm.py:541: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_cpcm.py:572: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_profile.py:367: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_solvents.py:277: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_route2_v0_atomic_response_stationary_source.py:148: The repository's default test environment intentionally omits PySCF.
+1575 passed, 16 skipped in 39.56s

@@ -1,0 +1,189 @@
+{
+  "baseline_git_head": "15777aadf92e8a14419e5ff5d8ac6b3cc17aa482",
+  "branch": "refactor/route2-conservative-vnext",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint": {
+    "identifier": "polar-1-m",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "size_bytes": 68133235
+  },
+  "commands": [
+    {
+      "command": "python -m pytest -q -rs tests/route2_vnext",
+      "result": "145 passed, 1 skipped"
+    },
+    {
+      "command": "python -m pytest -q -rs",
+      "result": "1575 passed, 16 skipped"
+    },
+    {
+      "command": "MAPLE_ROUTE2_REAL_MACEPOL=1 MAPLE_ROUTE2_MACE_DEVICE=cuda python -m pytest -q -s --disable-warnings tests/route2_vnext/test_mace_polar_real_checkpoint.py",
+      "result": "1 passed, 73 warnings"
+    },
+    {
+      "command": "PYTHONPATH=<pyscf-2.13.1-archive>:<mace-wheel-archive> python tools/route2_release/run_localjet_fixed_cavity_diagnostic.py --source-npz <hash-bound-mobley_9055303.npz> --atomic-numbers 6 1 1 1 1 --compound-id mobley_9055303 --device cuda --dielectric 78.39 --lebedev-order 15 --tolerance 1e-11 --max-iterations 80",
+      "result": "diagnostic-success"
+    },
+    {
+      "command": "black --check --fast <Phase-3/4/5 Python file list>",
+      "result": "33 files unchanged"
+    },
+    {
+      "command": "pyflakes <Phase-3/4/5 Python file list>",
+      "result": "pass, no output"
+    },
+    {
+      "command": "python -m pip check",
+      "result": "exit 1: shared development environment contains unrelated incompatible packages; see pip-check.log"
+    }
+  ],
+  "coupling_gate": {
+    "diagnostic_coupling": "maple.route2.coupling.exterior-local-l1-jet-diagnostic.v1",
+    "exact_gto_operational_available": false,
+    "production_coupling": "maple.route2.coupling.single-width-same-basis-gto-candidate.v1",
+    "reason": "official checkpoint source is 4-component single-width while receiver is 8-feature two-width; no proven conjugate operator"
+  },
+  "diagnostic_profile": "route2-profile-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
+  "diagnostic_scalar": "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
+  "evidence_status": "negative-gate-and-migration-parity; not release admission",
+  "log_sha256": {
+    "black-current-slice.log": "cf189c8f4bc0e9b7f8b815bada2ef7f02a3a67e918e6e1080add0d5a213be0c4",
+    "mace-real-checkpoint.log": "906e9b53d378513ea5a2135184f563d757c86c99d523520ada17b263a6f51799",
+    "methane-localjet-diagnostic.log": "e9959cc152c5962f75bea33dc5a0f8ae1a46e301b209e14efeb1cf73fd76a4a5",
+    "pip-check.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "pip-check.log": "cccca7aa86d79cd93dd01fd1a228d9457b5949ef7ff8903ab589cb8a19428a72",
+    "pyflakes-current-slice.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pytest-full.log": "a73208ec2d06af2d38fd85e166ca44d843dc3f0ca08df901a0501ad7166cd25f",
+    "pytest-vnext.log": "1e110c45639cf08ce7315a7d41105b4c4685ec46887187f764a69159c849dcc9"
+  },
+  "methane_localjet_diagnostic": {
+    "accuracy_improvement_claim_supported": false,
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "claim_boundary": "disabled local-jet diagnostic; not an admitted scalar, force, or complete solvation free energy",
+    "cold_replay_field_max_abs_eV": 0.0,
+    "cold_replay_response_max_abs": 3.3397312693139725e-12,
+    "complete_delta_g_solv_available": false,
+    "compound_id": "mobley_9055303",
+    "continuum_energy_eV": -0.0643274200423855,
+    "continuum_energy_hartree": -0.0023639890838663105,
+    "continuum_energy_kcal_mol": -1.483425546707858,
+    "coupling_id": "maple.route2.coupling.exterior-local-l1-jet-diagnostic.v1",
+    "dielectric": 78.39,
+    "execution_git_head": "19eea1ca99028f8b432e6f08a5c64d87a58f4011",
+    "geometry_sha256": "9b4fa667136b3205af5b89020efa852e8ba5bd32236a33d5d2aac73d4ffab90d",
+    "half_coupling_error_eV": 1.3877787807814457e-17,
+    "historical_same_localjet_l15_kcal_mol": -1.4834255431954178,
+    "iterations": 7,
+    "lebedev_order": 15,
+    "new_minus_historical_kcal_mol": -3.5124403385822234e-09,
+    "operational_total_energy_eV": -1101.8783064995284,
+    "profile_id": "route2-profile-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
+    "residual_norm": 7.96785980794461e-12,
+    "root_hash": "710d579abfb43cc532375b354f253ed3cf1d66caeb4912192a5f918fbfe66abb",
+    "runtime_seconds": 5.705779298004927,
+    "scalar_id": "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
+    "schema_version": 1,
+    "source_npz_sha256": "e46874b4d31b05ec9a0d301a2fecea151555d4468a0dec70d3d64a365e3db4e0",
+    "source_total_charge_e": 0.0,
+    "status": "diagnostic-success",
+    "surface_size": 430,
+    "topology_hash": "b0b0450b2eed264d8b78c2a3a162a88fbf1de6f41bac3ed0523527a65b67c6d0",
+    "vacuum_energy_eV": -1101.813979079486,
+    "working_tree_clean": true
+  },
+  "real_checkpoint_canary": {
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "exact_gto_operational_available": false,
+    "jvp_vjp_dot_abs_error": 2.554920623752243e-13,
+    "nonuniform_source_delta_l2": 0.00015563605803939204,
+    "position_vjp_directional_abs_error": 2.4787356743549704e-07,
+    "source_total_charge_e": 2.7755575615628914e-17,
+    "uniform_energy_branch_difference_eV": -0.0038528325721927104,
+    "uniform_local_upstream_density_max_abs_error": 0.0,
+    "vacuum_energy_eV": -2075.2161820992624
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "cuda_available": true,
+    "cuda_device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "cuda_runtime": "13.0",
+    "graph_longrange": "0.4.0",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyscf": "2.13.1 (explicit diagnostic PYTHONPATH only; absent from default test sys.path)",
+    "pytest": "9.0.2",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "torch": "2.12.0+cu130"
+  },
+  "scalar_target": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+  "schema_version": 1,
+  "source_files_sha256": {
+    "maple/solvation/api/__init__.py": "9dbea94dbd4c00798ef752948bf36b26930190569b7af34273873e64a9a7cd73",
+    "maple/solvation/api/profiles.py": "d1995ba170733f84a121e5f3fbf57941fd59c906318d1da51923abff27898718",
+    "maple/solvation/api/scalar_registry.py": "f556cba3a5775ff17ffd107121a5d34da58a956d699eeb0f7a8cc9ec42cbe9b3",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "049d50e9c7f4a269a1c2360694f45f0e8710999cc47aff1381bac3d732158ea3",
+    "maple/solvation/continuum/base.py": "1cdfa7f392e37ac56665e358fb0293b3702e499e4baef50980c3df5d874293a2",
+    "maple/solvation/continuum/fixed_topology_cpcm.py": "3634519e6e5759f259a80d5a760ce6841801bccbb249ddcfad95f6c38e622b21",
+    "maple/solvation/continuum/torch_reference_cpcm.py": "4c6ffda0490a794fe02698ea9a1fdc910e23e756ff5f6f0f4339d908314aa9e1",
+    "maple/solvation/coupling/energy.py": "f6d5480daec361ebcfe6fd7a602bf3a8b4d420b91a44e121b4c11264be3f1627",
+    "maple/solvation/coupling/exact_gto.py": "eb51ed2879971c4e8e9d441b9958822899d6bbf5e1cb5244f10651523940a8ff",
+    "maple/solvation/coupling/fixed_point.py": "fcc6bafd5a7e2cef92d77cd97f114f990b7610dff1cdb61043919ca7c902beab",
+    "maple/solvation/coupling/local_jet.py": "560648b0d819e47fcd87051a249514f0240f37d3f33b80b11979d0eb340a6256",
+    "maple/solvation/coupling/operator.py": "0b0627b1b1ca125c92bf174292cc2203d0bf3b8f5bf8bcf9b1d001dcca58e9bc",
+    "maple/solvation/coupling/spaces.py": "c404540279390bbe263c6c6ed2650a64e9bd407b622ca93bc40273458507ab5f",
+    "maple/solvation/coupling/state_equation.py": "5d1ce67f0b0db82d4f5a002cf301dd30c05ed153cfacd814a146ef81a5b00765",
+    "maple/solvation/models/__init__.py": "acc637d506171a6c9909ebd61babfe24486348bd897fc77359f8054abfba2038",
+    "maple/solvation/models/base.py": "809d850e17d201ffb4ece76785e57794cf1d3438d43f671f921f9954bbd722e1",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/mace_polar.py": "df04577b41d545985c5a722e83ef8e746b22be6749f54db86ee3befd2538f8e7",
+    "maple/solvation/surfaces/__init__.py": "3169105c99a34da026c0bfedf10495620a67f2d82d8e5dd0444895d376c534ec",
+    "maple/solvation/surfaces/base.py": "f49af6fa92cca5e8408bfabc2ec20c1969fd815f3da38422406ee050bf8d18f0",
+    "maple/solvation/surfaces/fixed_topology.py": "31c0dd77b64e93666ff759236ec41b204095bc224ec7bf09f623fcfaf9fc1e2a",
+    "tests/route2_vnext/test_api_contracts.py": "77d4f7868c5ab3589a7b51ab1a3c32a15a6286378d6faeecf5c5afa831e222ee",
+    "tests/route2_vnext/test_exact_gto_coupling.py": "20d7da6dad2026de9f1424a41b12c86bdbc2a646550eda6db6f44d9a4d8050d1",
+    "tests/route2_vnext/test_fixed_topology_cpcm.py": "69c0b7714fc75bc89883535a9a07c0ea55ce798ba6ad0ae2aa1e42821298b968",
+    "tests/route2_vnext/test_implicit_adjoint.py": "96f8a8d841c6edbad56f8461d7838c1a4aa41dc7157523c72084c8299b3365a9",
+    "tests/route2_vnext/test_mace_polar_model_adapter.py": "b06d3c0606a4b2e7890705169d17c7c7f56852898e53a5b43c779cac385b1a28",
+    "tests/route2_vnext/test_mace_polar_real_checkpoint.py": "4b7f509fe2166a3f28e4500f74a843ab9e5004ca49a681b70169d77ca006a7b2",
+    "tests/route2_vnext/test_model_contracts.py": "60a121c725eba47b34ec6625ece4429064810f0ebb1f41049870e1001603fcfe",
+    "tests/route2_vnext/test_state_equation.py": "8868736b4bfed7931e2fedd2d6a65c4fcc96a5d1435b695a23e4be97810ca419",
+    "tests/route2_vnext/test_torch_reference_cpcm.py": "59454b0f60c195dfe7268684ed665f5f1c6a473d3b11335d9abfda74a0163115",
+    "tools/route2_release/run_localjet_fixed_cavity_diagnostic.py": "7c773a5fbe442fe916951b9ebd99bd5919692827c19ca7851f1dc41de821ecae"
+  },
+  "test_results": {
+    "full": {
+      "failed": 0,
+      "passed": 1575,
+      "skipped": 16
+    },
+    "real_checkpoint": {
+      "failed": 0,
+      "passed": 1,
+      "warnings": 73
+    },
+    "vnext": {
+      "failed": 0,
+      "passed": 145,
+      "skipped": 1
+    }
+  },
+  "tested_git_head": "19eea1ca99028f8b432e6f08a5c64d87a58f4011",
+  "tested_working_tree_clean": true,
+  "validation_gaps": [
+    "no exact checkpoint-native conjugate source/receiver operator",
+    "no Tier-F real-stack same-scalar force panel",
+    "no independent surface-primitive oracle",
+    "no compatible nonpolar/CDS term in the diagnostic scalar",
+    "shared environment pip check is not clean"
+  ]
+}

@@ -43,6 +43,10 @@ a missing map. The separately named local-jet path remains diagnostic only.
 
 ## Executed real-checkpoint canary
 
+The committed evidence bundle tests clean implementation commit
+`19eea1ca99028f8b432e6f08a5c64d87a58f4011` and is stored under
+`docs/route2/evidence/vnext-mace-polar-gate-19eea1ca/`.
+
 Environment: Python 3.11, Torch 2.12.0+cu130, CUDA, `mace-torch==0.3.16`,
 `graph-longrange==0.4.0`, float64, official `polar-1-m` checkpoint SHA256
 `fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a`.
@@ -84,11 +88,11 @@ converged in seven updates:
 
 | measurement | result |
 | --- | ---: |
-| physical reduced residual norm | `7.968948902175671e-12` |
-| total charge | `-1.734723475976807e-18 e` |
-| C-PCM half-coupling | `-1.4834255467078747 kcal/mol` |
+| physical reduced residual norm | `7.96785980794461e-12` |
+| total charge | `0.0 e` |
+| C-PCM half-coupling | `-1.483425546707858 kcal/mol` |
 | historical same local-jet L15 result | `-1.4834255431954178 kcal/mol` |
-| difference | `-3.51245699237146e-9 kcal/mol` |
+| difference | `-3.5124403385822234e-9 kcal/mol` |
 | half-coupling identity error | `1.3877787807814457e-17 eV` |
 | cold replay field max difference | `0.0 eV` |
 

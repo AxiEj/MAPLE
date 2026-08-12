@@ -1,0 +1,6 @@
+cuequivariance or cuequivariance_torch is not available. Cuequivariance acceleration will be disabled.
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+ROUTE2_MACEPOL_CANARY={"checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a", "exact_gto_operational_available": false, "jvp_vjp_dot_abs_error": 2.554920623752243e-13, "nonuniform_source_delta_l2": 0.00015563605803939204, "position_vjp_directional_abs_error": 2.4787356743549704e-07, "source_total_charge_e": 2.7755575615628914e-17, "uniform_energy_branch_difference_eV": -0.0038528325721927104, "uniform_local_upstream_density_max_abs_error": 0.0, "vacuum_energy_eV": -2075.2161820992624}
+.
+1 passed, 73 warnings in 6.33s
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

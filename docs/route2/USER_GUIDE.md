@@ -75,9 +75,12 @@ strict common variational MACE-continuum functional
 ```
 
 They remain closed because no Tier-F/Tier-H/Tier-M release artifact has passed
-the full same-scalar PES gates. The water canary's one directional derivative
-does not override its rotation/torque failures or the missing multi-geometry,
-Cartesian-FD, loop-work, Hessian, and NVE evidence.
+the full same-scalar PES gates. The original radial-water canary's local
+derivative does not override its rotation/torque failures. The distinct
+fixed-box590 diagnostic now has one-equilibrium-geometry Cartesian and
+orientation evidence, while its preregistered multi-geometry/loop runner still
+must be executed on a clean commit; neither substitutes for the multi-molecule
+PES panel, box convergence, Hessian, NVE, or physical-component validation.
 
 ## Solvation-energy interpretation
 

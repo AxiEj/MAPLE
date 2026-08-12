@@ -112,6 +112,23 @@ differences, topology hashes, and primal/adjoint residuals.  The command fails
 on a dirty tree and refuses to write its artifact inside the repository.  Its
 result remains a disabled diagnostic and cannot alter the capability registry.
 
+The preregistered next-stage water path command is:
+
+```bash
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+python tools/route2_release/run_fixedbox590_water_path_diagnostic.py \
+  --checkpoint "$HOME/.cache/mace/MACEPOLAR1Mmodel" \
+  --device cpu \
+  --output /tmp/route2-fixedbox590-water-path.json
+```
+
+Its contract was committed before execution: seven distorted/equilibrium
+geometries, three internal directions and three central-difference steps per
+geometry, independent cold/multi-start roots, one fixed-topology hash, and a
+four-subinterval-per-edge symmetric-stretch/bend loop evaluated cold and warm
+in both directions. Until a clean-commit run is recorded below, this is an
+implemented evidence procedure, not executed evidence.
+
 ## Result
 
 The one-water local force/symmetry blocker is materially improved and the

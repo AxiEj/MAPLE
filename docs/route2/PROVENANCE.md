@@ -27,6 +27,13 @@ checkpoint and provider identities, writes outside the checkout, and checks
 that HEAD/tree/status remain unchanged before and after capture.  Its output is
 explicitly diagnostic and cannot grant a registry capability.
 
+`tools/route2_release/run_fixedbox590_water_path_diagnostic.py` applies the
+same fail-closed source/checkpoint/runtime binding to the preregistered
+distorted-water and bidirectional-loop panel. It records every geometry,
+energy, force, source/root, topology hash, residual, warning, and raw
+finite-difference/line-integral measurement. Its output also remains external
+to the checkout and capability-neutral.
+
 ## CI and branch protection
 
 `route2-core.yml` is the required lightweight job. It runs without scientific

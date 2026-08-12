@@ -16,15 +16,16 @@ from maple.solvation.release.evidence import (
     write_external_json_artifact,
 )
 
-
 ROOT = Path(__file__).parents[2]
 RUNNER = ROOT / "tools" / "route2_release" / "run_fixedbox590_water_pes_diagnostic.py"
+COMMON = ROOT / "tools" / "route2_release" / "fixedbox590_water_common.py"
+PATH_RUNNER = (
+    ROOT / "tools" / "route2_release" / "run_fixedbox590_water_path_diagnostic.py"
+)
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:
-    return subprocess.check_output(
-        ("git", *arguments), cwd=root, text=True
-    ).strip()
+    return subprocess.check_output(("git", *arguments), cwd=root, text=True).strip()
 
 
 def test_repository_snapshot_requires_clean_tree_and_binds_git_blobs(tmp_path):
@@ -108,8 +109,32 @@ def test_fixedbox590_runner_help_is_dependency_and_checkpoint_free():
     assert "not Tier E/F/H/V/M" in RUNNER.read_text(encoding="utf-8")
 
 
+def test_fixedbox590_path_runner_preregisters_panel_loop_and_stays_disabled():
+    result = subprocess.run(
+        (sys.executable, str(PATH_RUNNER), "--help"),
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--loop-subdivisions" in result.stdout
+    helper = ROOT / "tools" / "route2_release" / "fixedbox590_water_path.py"
+    text = PATH_RUNNER.read_text(encoding="utf-8") + helper.read_text(encoding="utf-8")
+    for requirement in (
+        "PANEL_COEFFICIENTS_A",
+        "closed_loop_work",
+        "reverse_closed_path",
+        "cold_warm_record",
+        '"multi_molecule_pes_panel": False',
+        '"box_convergence": False',
+        '"capabilities": {tier: False',
+    ):
+        assert requirement in text
+
+
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():
-    text = RUNNER.read_text(encoding="utf-8")
+    text = RUNNER.read_text(encoding="utf-8") + COMMON.read_text(encoding="utf-8")
     for relative in (
         "maple/solvation/api/scalar_registry.py",
         "maple/solvation/coupling/energy.py",

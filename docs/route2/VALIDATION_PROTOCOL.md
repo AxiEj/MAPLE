@@ -48,6 +48,16 @@ recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`.
 - forward/reverse, cold/warm closed-loop work
   `<= max(1e-5 eV, 1e-3 sum(abs(F dot dR)))`.
 
+The first fixed-box590 distorted-water path contract is frozen in
+`run_fixedbox590_water_path_diagnostic.py` before executing the real stack. It
+contains equilibrium, symmetric compression/stretch, asymmetric stretch, two
+bends, and one combined distortion. At every geometry the three deterministic
+translation-free water coordinates are checked with `4e-4`, `2e-4`, and
+`1e-4 Angstrom` central differences. A separate symmetric-stretch/bend
+rectangle uses four equal subintervals per edge and composite Simpson
+integration; it is repeated cold and sequential-warm in both directions. This
+is a single-molecule path gate, not the required 20-molecule PES panel.
+
 Root uniqueness is tested with declared multi-start seeds and the actual
 unmixed dimensionless residual. Damping/DIIS convergence alone is not a root
 uniqueness proof.

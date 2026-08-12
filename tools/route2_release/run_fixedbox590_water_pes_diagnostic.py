@@ -21,35 +21,12 @@ from typing import Callable, Sequence
 from ase import Atoms
 import numpy as np
 
-from maple.function.route2_smd_profiles import (
-    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
-)
-from maple.solvation.api.profiles import (
-    DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
-    get_solvation_profile,
-)
-from maple.solvation.continuum import build_water_radial_gto_cpcm_590_candidate
 from maple.solvation.coupling.adjoint import AdjointOptions
-from maple.solvation.coupling.energy import OperationalElectrostaticScalar
-from maple.solvation.coupling.exact_gto import MACE_POLAR_RADIAL_GTO_COUPLING_ID
 from maple.solvation.coupling.fixed_point import (
     FixedPointOptions,
-    roots_numerically_equivalent,
     solve_fixed_point,
 )
-from maple.solvation.coupling.spaces import (
-    LinearChargeCoordinates,
-    MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
-)
-from maple.solvation.coupling.state_equation import (
-    ReducedStateEquation,
-    geometry_sha256,
-)
-from maple.solvation.models import (
-    ElectronicResponseEquationAdapter,
-    VacuumScalarEquationAdapter,
-    build_official_mace_polar_1_m_radial_gto_adapter,
-)
+from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release import (
     RepositorySnapshot,
     canonical_json_sha256,
@@ -59,27 +36,21 @@ from maple.solvation.release import (
     runtime_record,
     write_external_json_artifact,
 )
-
+from fixedbox590_water_common import (
+    COMMON_REQUIRED_SOURCE_PATHS,
+    DEFAULT_CHECKPOINT,
+    build_system,
+    cold_warm_record,
+    identity_record,
+    root_context,
+    water,
+)
 
 SCHEMA_VERSION = "route2-fixedbox40-cpcm590-water-pes-diagnostic-v1"
-DEFAULT_CHECKPOINT = Path.home() / ".cache" / "mace" / "MACEPOLAR1Mmodel"
 DEFAULT_CARTESIAN_STEPS_A = (4.0e-4, 2.0e-4, 1.0e-4)
 DEFAULT_ORIENTATION_COUNT = 6
 RANDOM_SEED = 20260813
-REQUIRED_SOURCE_PATHS = (
-    "maple/solvation/api/profiles.py",
-    "maple/solvation/api/scalar_registry.py",
-    "maple/solvation/api/state_registry.py",
-    "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py",
-    "maple/solvation/coupling/adjoint.py",
-    "maple/solvation/coupling/energy.py",
-    "maple/solvation/coupling/fixed_point.py",
-    "maple/solvation/coupling/linearization.py",
-    "maple/solvation/coupling/state_equation.py",
-    "maple/solvation/models/equation_adapter.py",
-    "maple/solvation/models/mace_polar.py",
-    "maple/solvation/models/mace_polar_feature_vjp.py",
-    "maple/solvation/release/evidence.py",
+REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "tools/route2_release/run_fixedbox590_water_pes_diagnostic.py",
 )
 
@@ -118,17 +89,6 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _water() -> Atoms:
-    return Atoms(
-        "OH2",
-        positions=np.asarray(
-            [[0.0, 0.0, 0.0], [0.9572, 0.0, 0.0], [-0.2390, 0.9266, 0.0]],
-            dtype=float,
-        ),
-        info={"charge": 0, "mult": 1},
-    )
-
-
 def _random_rotation(rng: np.random.Generator) -> np.ndarray:
     matrix = rng.normal(size=(3, 3))
     orthogonal, triangular = np.linalg.qr(matrix)
@@ -146,83 +106,6 @@ def _rotate_radial(values: np.ndarray, rotation: np.ndarray) -> np.ndarray:
         cartesian = result[:, raw_indices][:, (2, 0, 1)]
         result[:, raw_indices] = (cartesian @ rotation.T)[:, (1, 2, 0)]
     return result
-
-
-def _root_context(geometry: Atoms, label: str) -> str:
-    return f"fixedbox40-cpcm590-water-pes-v1/{label}/{geometry_sha256(geometry)}"
-
-
-def _build_system(atoms: Atoms, checkpoint: Path, device: str):
-    profile = get_solvation_profile(
-        DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1
-    )
-    if profile.enabled or profile.capabilities.enabled_tiers:
-        raise RuntimeError("The diagnostic profile must remain completely disabled.")
-    model = build_official_mace_polar_1_m_radial_gto_adapter(
-        checkpoint_path=checkpoint,
-        device=device,
-        long_range_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
-    )
-    continuum = build_water_radial_gto_cpcm_590_candidate(
-        atoms.get_chemical_symbols()
-    )
-    coordinates = LinearChargeCoordinates(
-        len(atoms),
-        total_charge=0.0,
-        source_space=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
-        component_scales=(1.0,) * 8,
-    )
-    equation = ReducedStateEquation(
-        coordinates,
-        ElectronicResponseEquationAdapter(model, MACE_POLAR_RADIAL_GTO_COUPLING_ID),
-        continuum,
-    )
-    scalar = OperationalElectrostaticScalar(
-        equation,
-        VacuumScalarEquationAdapter(model),
-        profile_id=DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
-    )
-    return profile, model, continuum, equation, scalar
-
-
-def _state_record(state, scalar, geometry: Atoms) -> dict[str, object]:
-    evaluated = scalar.evaluate(geometry, state.y)
-    return {
-        "initialization": state.initialization,
-        "iterations": len(state.iterations) - 1,
-        "root_context_id": state.root_context_id,
-        "root_hash": state.root_hash,
-        "primal_tolerance": state.primal_tolerance,
-        "actual_unmixed_residual_norm": state.actual_unmixed_residual_norm,
-        "source": state.source_array().tolist(),
-        "field": state.field_array().tolist(),
-        "vacuum_energy_eV": evaluated.vacuum_energy,
-        "continuum_energy_eV": evaluated.continuum_energy,
-        "total_energy_eV": evaluated.total_energy,
-    }
-
-
-def _cold_warm_record(cold, warm, scalar, atoms: Atoms) -> dict[str, object]:
-    cold_scalar = scalar.evaluate(atoms, cold.y)
-    warm_scalar = scalar.evaluate(atoms, warm.y)
-    source_difference = float(
-        np.linalg.norm(cold.source_array() - warm.source_array())
-    )
-    field_difference = float(np.linalg.norm(cold.field_array() - warm.field_array()))
-    energy_difference = abs(cold_scalar.total_energy - warm_scalar.total_energy)
-    return {
-        "contract": "route2-root-equivalence-v1",
-        "numerically_equivalent": roots_numerically_equivalent(cold, warm),
-        "source_l2_difference": source_difference,
-        "field_l2_difference": field_difference,
-        "energy_abs_difference_eV": energy_difference,
-        "gates": {
-            "source_le_1e-8": source_difference <= 1.0e-8,
-            "energy_le_1e-8_eV": energy_difference <= 1.0e-8,
-        },
-        "cold": _state_record(cold, scalar, atoms),
-        "warm": _state_record(warm, scalar, atoms),
-    }
 
 
 def _orientation_record(
@@ -383,8 +266,7 @@ def _cartesian_record(
             }
         )
     convergence_ratios = [
-        records[index]["rms_error_eV_per_A"]
-        / records[index + 1]["rms_error_eV_per_A"]
+        records[index]["rms_error_eV_per_A"] / records[index + 1]["rms_error_eV_per_A"]
         for index in range(len(records) - 1)
     ]
     return {
@@ -415,12 +297,9 @@ def _translation_record(
     )
     base_forces = np.asarray(base_gradient.forces).reshape(len(atoms), 3)
     forces = np.asarray(gradient.forces).reshape(len(atoms), 3)
-    energy_error = abs(
-        gradient.scalar.total_energy - base_gradient.scalar.total_energy
-    )
+    energy_error = abs(gradient.scalar.total_energy - base_gradient.scalar.total_energy)
     force_error = float(
-        np.linalg.norm(forces - base_forces)
-        / max(np.linalg.norm(base_forces), 1.0)
+        np.linalg.norm(forces - base_forces) / max(np.linalg.norm(base_forces), 1.0)
     )
     net_force = float(np.linalg.norm(np.sum(forces, axis=0)))
     topology_hash = continuum.build_state(
@@ -440,34 +319,6 @@ def _translation_record(
             "net_force_le_1e-5_eV_per_A": net_force <= 1.0e-5,
             "fixed_topology": topology_hash == base_topology_hash,
         },
-    }
-
-
-def _identity_record(model, continuum, equation, scalar) -> dict[str, object]:
-    return {
-        "profile_id": scalar.profile_id,
-        "scalar_id": scalar.scalar_id,
-        "state_equation_id": equation.state_equation_id,
-        "model_provider_id": model.provider_id,
-        "model_profile_id": model.model_profile_id,
-        "model_provenance_sha256": model.provenance_sha256,
-        "model_provenance": model.provenance.metadata(),
-        "model_configuration_sha256": model.configuration_sha256(),
-        "long_range_evaluator_provenance": (
-            model._calculator.long_range_evaluator_provenance
-        ),
-        "continuum_provider_id": continuum.provider_id,
-        "continuum_profile_id": continuum.continuum_profile_id,
-        "cavity_profile_id": continuum.cavity_profile_id,
-        "coupling_id": continuum.coupling_id,
-        "continuum_configuration_contract_id": (
-            continuum.configuration_contract_id
-        ),
-        "continuum_configuration_sha256": continuum.configuration_sha256(),
-        "continuum_provenance_sha256": continuum.provenance_sha256,
-        "continuum_runtime_provenance": dict(continuum.runtime_provenance),
-        "equation_sha256": equation.fingerprint_sha256(),
-        "scalar_sha256": scalar.fingerprint_sha256(),
     }
 
 
@@ -510,8 +361,8 @@ def main() -> None:
     repository = RepositorySnapshot.capture(Path(__file__).parents[2])
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     started = time.perf_counter()
-    atoms = _water()
-    profile, model, continuum, equation, scalar = _build_system(
+    atoms = water()
+    profile, model, continuum, equation, scalar = build_system(
         atoms, checkpoint, args.device
     )
     primal_options = FixedPointOptions(
@@ -533,7 +384,7 @@ def main() -> None:
             scalar_id=scalar.scalar_id,
             profile_id=scalar.profile_id,
             scalar_binding=scalar,
-            root_context_id=_root_context(geometry, label),
+            root_context_id=root_context(geometry, label),
             initial_y=initial_y,
             options=primal_options,
         )
@@ -549,7 +400,7 @@ def main() -> None:
     )
     continuum_state = continuum.build_state(atoms, cold.source)
     sections: dict[str, object] = {
-        "cold_warm": _cold_warm_record(cold, warm, scalar, atoms),
+        "cold_warm": cold_warm_record(cold, warm, scalar, atoms),
     }
     if args.mode in ("orientation", "full"):
         sections["orientations"] = _orientation_record(
@@ -588,7 +439,7 @@ def main() -> None:
         required_paths=REQUIRED_SOURCE_PATHS,
     )
     source_hashes = committed_source_hashes(repository, source_paths)
-    identities = _identity_record(model, continuum, equation, scalar)
+    identities = identity_record(model, continuum, equation, scalar)
     base_state = _base_state_record(
         atoms, cold, base_gradient, continuum_state, continuum
     )

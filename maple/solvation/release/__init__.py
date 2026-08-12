@@ -15,6 +15,15 @@ from .evidence import (
     sha256_file,
     write_external_json_artifact,
 )
+from .pes_validation import (
+    closed_loop_work,
+    closed_rectangular_loop,
+    displace_positions,
+    reverse_closed_path,
+    summarize_directional_derivatives,
+    water_geometry_descriptors,
+    water_vibrational_directions,
+)
 
 __all__ = [
     "RepositorySnapshot",
@@ -25,4 +34,11 @@ __all__ = [
     "runtime_record",
     "sha256_file",
     "write_external_json_artifact",
+    "closed_loop_work",
+    "closed_rectangular_loop",
+    "displace_positions",
+    "reverse_closed_path",
+    "summarize_directional_derivatives",
+    "water_geometry_descriptors",
+    "water_vibrational_directions",
 ]

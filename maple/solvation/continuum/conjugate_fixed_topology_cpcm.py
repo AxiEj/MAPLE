@@ -34,6 +34,7 @@ from maple.solvation.api.capabilities import CapabilityStatus
 from maple.solvation.api.profiles import (
     UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
     WATER_CPCM_194_CONFIGURATION_CONTRACT_ID,
+    WATER_CPCM_590_CONFIGURATION_CONTRACT_ID,
 )
 from maple.solvation.api.scalar_registry import OPERATIONAL_CPCM_ELECTROSTATIC_V1
 from maple.solvation.api.units import HARTREE_TO_EV
@@ -62,6 +63,8 @@ _STATE_CONTRACT = "fixed-topology-radial-gto-cpcm-state-v1"
 WATER_CPCM_DIELECTRIC = 78.39
 WATER_CPCM_LEBEDEV_ORDER = 23
 WATER_CPCM_GRID_POINTS_PER_ATOM = 194
+WATER_CPCM_590_LEBEDEV_ORDER = 41
+WATER_CPCM_590_GRID_POINTS_PER_ATOM = 590
 
 
 def _sha(payload: object) -> str:
@@ -123,6 +126,7 @@ class ConjugateRadialCPCMState:
         if self.continuum_configuration_contract_id not in (
             UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
             WATER_CPCM_194_CONFIGURATION_CONTRACT_ID,
+            WATER_CPCM_590_CONFIGURATION_CONTRACT_ID,
         ):
             raise ValueError(
                 "Radial C-PCM continuum configuration contract is invalid."
@@ -245,6 +249,7 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
         if configuration_contract_id not in (
             UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
             WATER_CPCM_194_CONFIGURATION_CONTRACT_ID,
+            WATER_CPCM_590_CONFIGURATION_CONTRACT_ID,
         ):
             raise ValueError("Unknown radial C-PCM continuum configuration contract.")
         radii = np.asarray(cavity_radii_angstrom, dtype=float)
@@ -274,6 +279,33 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
                     "The water C-PCM profile requires the exact versioned SMD-water "
                     "Coulomb radii policy."
                 )
+        elif configuration_contract_id == WATER_CPCM_590_CONFIGURATION_CONTRACT_ID:
+            if dielectric_value != WATER_CPCM_DIELECTRIC:
+                raise ValueError(
+                    "The high-order water C-PCM profile requires dielectric=78.39 "
+                    "exactly."
+                )
+            if lebedev_order != WATER_CPCM_590_LEBEDEV_ORDER:
+                raise ValueError(
+                    "The high-order water C-PCM profile requires Lebedev order 41 "
+                    "(590 points per atom)."
+                )
+            if any(
+                value is not None
+                for value in (unit_sphere, switching_constant, runtime_version)
+            ):
+                raise ValueError(
+                    "The high-order water C-PCM profile forbids injected angular "
+                    "grids or runtime labels."
+                )
+            expected_radii = smd_water_coulomb_radii(tuple(symbols))
+            if radii.shape != expected_radii.shape or not np.array_equal(
+                radii, expected_radii
+            ):
+                raise ValueError(
+                    "The high-order water C-PCM profile requires the exact versioned "
+                    "SMD-water Coulomb radii policy."
+                )
         surface_provider = FixedTopologyAmplitudeSWIGSurfaceProvider(
             symbols,
             radii,
@@ -288,6 +320,15 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
         ):
             raise RuntimeError(
                 "The pinned water C-PCM grid did not contain 194 points per atom."
+            )
+        if (
+            configuration_contract_id == WATER_CPCM_590_CONFIGURATION_CONTRACT_ID
+            and surface_provider.unit_sphere.shape[0]
+            != WATER_CPCM_590_GRID_POINTS_PER_ATOM
+        ):
+            raise RuntimeError(
+                "The pinned high-order water C-PCM grid did not contain 590 points "
+                "per atom."
             )
         coupling = MACEPolarRadialGTOCoupling()
         configuration = (
@@ -596,12 +637,30 @@ def build_water_radial_gto_cpcm_backend(
     )
 
 
+def build_water_radial_gto_cpcm_590_candidate(
+    symbols: Sequence[str],
+) -> ConjugateRadialGTOFixedTopologyCPCMBackend:
+    """Build the disabled 590-node water continuum candidate without knobs."""
+
+    normalized = tuple(str(symbol) for symbol in symbols)
+    return ConjugateRadialGTOFixedTopologyCPCMBackend(
+        normalized,
+        smd_water_coulomb_radii(normalized),
+        dielectric=WATER_CPCM_DIELECTRIC,
+        lebedev_order=WATER_CPCM_590_LEBEDEV_ORDER,
+        configuration_contract_id=WATER_CPCM_590_CONFIGURATION_CONTRACT_ID,
+    )
+
+
 __all__ = [
     "CONJUGATE_RADIAL_CPCM_PROVIDER_ID",
     "ConjugateRadialCPCMState",
     "ConjugateRadialGTOFixedTopologyCPCMBackend",
     "WATER_CPCM_DIELECTRIC",
     "WATER_CPCM_GRID_POINTS_PER_ATOM",
+    "WATER_CPCM_590_GRID_POINTS_PER_ATOM",
+    "WATER_CPCM_590_LEBEDEV_ORDER",
     "WATER_CPCM_LEBEDEV_ORDER",
     "build_water_radial_gto_cpcm_backend",
+    "build_water_radial_gto_cpcm_590_candidate",
 ]

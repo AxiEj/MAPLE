@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 from types import SimpleNamespace
 
@@ -18,6 +18,8 @@ from maple.solvation.models import (
     MACEPolarLocalFieldModelAdapter,
     MACEPolarRadialGTOModelAdapter,
     MACEPolarReleaseContract,
+    MACE_POLAR_1_M_FIXED_BOX40_CONTRACT,
+    MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
     VacuumScalarEquationAdapter,
     validate_response_linearization,
     validate_source_evaluation,
@@ -170,6 +172,7 @@ def _adapter(tmp_path):
     release = MACEPolarReleaseContract(
         provider_id="maple.route2.model.test-mace-polar.impl.v1",
         model_profile_id="route2-test-mace-polar-model-v1",
+        long_range_evaluator_profile="test-molecular-realspace-v1",
         checkpoint_identifier="test-polar",
         checkpoint_release_url="file://test-polar.model",
         checkpoint_sha256=digest,
@@ -210,6 +213,33 @@ def test_mace_polar_adapter_binds_checkpoint_runtime_and_negative_exact_gto_audi
     assert audit.same_basis_conjugacy is False
     assert "cannot be the adjoint" in audit.reason
     assert len(adapter.configuration_sha256()) == 64
+
+
+def test_fixed_box40_contract_has_a_distinct_fail_closed_model_identity():
+    assert (
+        MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.model_profile_id
+        == MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID
+    )
+    assert (
+        MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.model_profile_id
+        != "mace-polar-route2-source-field-contract-v1"
+    )
+    assert MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.provider_id.endswith(
+        "fixed-box40-local-field.impl.v1"
+    )
+    assert "E/F/H/V/M unadmitted" in (
+        MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.release_status
+    )
+
+
+def test_release_contract_rejects_evaluator_identity_spoof(tmp_path):
+    adapter, calculator = _adapter(tmp_path)
+    wrong = replace(
+        adapter._release_contract,
+        long_range_evaluator_profile="different-evaluator-v1",
+    )
+    with pytest.raises(ValueError, match="long-range evaluator"):
+        MACEPolarLocalFieldModelAdapter(calculator, wrong)
 
 
 def test_mace_polar_model_states_linearization_and_equation_bridges(tmp_path):

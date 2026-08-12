@@ -12,6 +12,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, cast
 
+from maple.solvation.api.profiles import (
+    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID,
+    MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
+)
+
 from .route2_energy_ledger import (
     LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
     PCM_HALF_COUPLING_ONLY_V1,
@@ -79,11 +84,9 @@ DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE = (
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-omp4-v1"
 )
 
-MACEPOL_MOLECULAR_REALSPACE_PROFILE = (
-    "graph-longrange-molecular-realspace-v1"
-)
+MACEPOL_MOLECULAR_REALSPACE_PROFILE = MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID
 MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE = (
-    "graph-longrange-forced-periodic-fixed-box40-v1"
+    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID
 )
 
 

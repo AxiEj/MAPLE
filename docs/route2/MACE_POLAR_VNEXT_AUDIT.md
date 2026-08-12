@@ -51,6 +51,14 @@ The water operational-candidate profile additionally freezes dielectric
 `78.39`, SMD-water Coulomb radii, and 194 Lebedev nodes per atom. Alternate
 dielectric, radii, order, or injected surfaces fail profile binding.
 
+A second, separately identified disabled diagnostic now combines the
+fixed-40-A reciprocal MACE-POLAR evaluator with 590 nodes per atom.  Its one-
+water Cartesian and six-orientation checks materially improve the local
+symmetry/force result; exact measurements and limits are recorded in
+`FIXED_BOX590_WATER_DIAGNOSTIC.md`.  It does not replace or silently change the
+194-node profile, and it remains unadmitted pending the full PES panel and box
+convergence.
+
 ## Executed official-checkpoint evidence
 
 Environment used in the local audit: Python 3.11, Torch 2.12.0+cu130, CUDA,

@@ -11,11 +11,17 @@ from ase.units import kcal, mol
 
 from maple.function.read.filereader.mol2_reader import MOL2Reader
 from maple.solvation.api.profiles import (
+    DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
     OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
     get_solvation_profile,
 )
 from maple.solvation.continuum import (
+    build_water_radial_gto_cpcm_590_candidate,
     build_water_radial_gto_cpcm_backend,
+)
+from maple.function.route2_smd_profiles import (
+    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+    MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
 from maple.solvation.coupling.adjoint import AdjointOptions
 from maple.solvation.coupling.energy import OperationalElectrostaticScalar
@@ -77,12 +83,22 @@ def _rotate_radial_blocks(values: np.ndarray, rotation: np.ndarray) -> np.ndarra
     return rotated
 
 
-def _radial_system(atoms: Atoms):
+def _radial_system(atoms: Atoms, *, high_order_candidate: bool = False):
+    evaluator = (
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+        if high_order_candidate
+        else MACEPOL_MOLECULAR_REALSPACE_PROFILE
+    )
     model = build_official_mace_polar_1_m_radial_gto_adapter(
         device=os.environ.get("MAPLE_ROUTE2_MACE_DEVICE", "cpu"),
         checkpoint_path=os.environ.get("ROUTE2_MACE_CHECKPOINT"),
+        long_range_evaluator_profile=evaluator,
     )
-    continuum = build_water_radial_gto_cpcm_backend(atoms.get_chemical_symbols())
+    continuum = (
+        build_water_radial_gto_cpcm_590_candidate(atoms.get_chemical_symbols())
+        if high_order_candidate
+        else build_water_radial_gto_cpcm_backend(atoms.get_chemical_symbols())
+    )
     coordinates = LinearChargeCoordinates(
         len(atoms),
         total_charge=0.0,
@@ -97,7 +113,11 @@ def _radial_system(atoms: Atoms):
     scalar = OperationalElectrostaticScalar(
         equation,
         VacuumScalarEquationAdapter(model),
-        profile_id=OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
+        profile_id=(
+            DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1
+            if high_order_candidate
+            else OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1
+        ),
     )
     return model, continuum, coordinates, equation, scalar
 

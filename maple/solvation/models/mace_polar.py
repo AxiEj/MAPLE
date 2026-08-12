@@ -19,7 +19,13 @@ from pathlib import Path
 
 import numpy as np
 
-from maple.solvation.api.profiles import LOCAL_JET_DIAGNOSTIC_COUPLING_ID
+from maple.solvation.api.profiles import (
+    LOCAL_JET_DIAGNOSTIC_COUPLING_ID,
+    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID,
+    MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
+    MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
+    MACE_POLAR_MODEL_PROFILE_ID,
+)
 from maple.solvation.coupling.operator import (
     canonical_metadata_sha256,
     source_files_sha256,
@@ -49,7 +55,7 @@ from .base import (
 )
 from .mace_polar_feature_vjp import density_position_vjp_features
 
-OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
+OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID = MACE_POLAR_MODEL_PROFILE_ID
 
 
 def _sha256_file(path: Path) -> str:
@@ -78,6 +84,7 @@ class MACEPolarReleaseContract:
 
     provider_id: str
     model_profile_id: str
+    long_range_evaluator_profile: str
     checkpoint_identifier: str
     checkpoint_release_url: str
     checkpoint_sha256: str
@@ -91,6 +98,7 @@ class MACEPolarReleaseContract:
         for name in (
             "provider_id",
             "model_profile_id",
+            "long_range_evaluator_profile",
             "checkpoint_identifier",
             "checkpoint_release_url",
             "mace_torch_version",
@@ -114,6 +122,7 @@ class MACEPolarReleaseContract:
         return {
             "provider_id": self.provider_id,
             "model_profile_id": self.model_profile_id,
+            "long_range_evaluator_profile": self.long_range_evaluator_profile,
             "checkpoint_identifier": self.checkpoint_identifier,
             "checkpoint_release_url": self.checkpoint_release_url,
             "checkpoint_sha256": self.checkpoint_sha256,
@@ -128,6 +137,7 @@ class MACEPolarReleaseContract:
 OFFICIAL_MACE_POLAR_1_M_CONTRACT = MACEPolarReleaseContract(
     provider_id="maple.route2.model.mace-polar-1-m-local-field.impl.v1",
     model_profile_id=OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID,
+    long_range_evaluator_profile=MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
     checkpoint_identifier="polar-1-m",
     checkpoint_release_url=(
         "https://github.com/ACEsuit/mace-foundations/releases/download/"
@@ -142,6 +152,32 @@ OFFICIAL_MACE_POLAR_1_M_CONTRACT = MACEPolarReleaseContract(
     upstream_commit="unavailable-in-installed-wheel-release-metadata",
     release_status="operational-candidate; exact-gto-and-E/F/H/V/M-unadmitted",
 )
+
+MACE_POLAR_1_M_FIXED_BOX40_CONTRACT = MACEPolarReleaseContract(
+    provider_id="maple.route2.model.mace-polar-1-m-fixed-box40-local-field.impl.v1",
+    model_profile_id=MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
+    long_range_evaluator_profile=(
+        MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID
+    ),
+    checkpoint_identifier=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_identifier,
+    checkpoint_release_url=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_release_url,
+    checkpoint_sha256=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_sha256,
+    checkpoint_size_bytes=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_size_bytes,
+    mace_torch_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.mace_torch_version,
+    graph_longrange_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.graph_longrange_version,
+    upstream_commit=OFFICIAL_MACE_POLAR_1_M_CONTRACT.upstream_commit,
+    release_status=(
+        "experimental fixed-box40 evaluation operator; box convergence and "
+        "E/F/H/V/M unadmitted"
+    ),
+)
+
+_RELEASE_CONTRACT_BY_EVALUATOR = {
+    MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID: OFFICIAL_MACE_POLAR_1_M_CONTRACT,
+    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID: (
+        MACE_POLAR_1_M_FIXED_BOX40_CONTRACT
+    ),
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -243,6 +279,22 @@ def _calculator_source_files(calculator: object) -> tuple[tuple[str, str], ...]:
             continue
         seen.add(path)
         files[f"bound_calculator_mro_{index}_{cls.__name__}"] = path
+    evaluator = getattr(calculator, "_long_range_evaluator", None)
+    if evaluator is not None:
+        try:
+            raw = inspect.getsourcefile(type(evaluator))
+        except (TypeError, OSError):
+            raw = None
+        if raw is None:
+            raise RuntimeError(
+                "MACE-POLAR long-range evaluator source is unavailable for provenance."
+            )
+        path = Path(raw).resolve()
+        if not path.is_file():
+            raise RuntimeError(
+                "MACE-POLAR long-range evaluator source path is unavailable."
+            )
+        files["bound_long_range_evaluator"] = path
     return source_files_sha256(files)
 
 
@@ -328,6 +380,13 @@ class MACEPolarLocalFieldModelAdapter:
             raise ValueError(
                 "MACE-POLAR graph-longrange version does not match release contract."
             )
+        if (
+            getattr(calculator, "long_range_evaluator_profile", None)
+            != release_contract.long_range_evaluator_profile
+        ):
+            raise ValueError(
+                "MACE-POLAR long-range evaluator does not match release contract."
+            )
         dtype = str(getattr(calculator, "dtype", "")).replace("torch.", "")
         if dtype != "float64":
             raise ValueError("Route-2 MACE-POLAR adapter requires float64 inference.")
@@ -360,7 +419,10 @@ class MACEPolarLocalFieldModelAdapter:
             device=str(getattr(calculator, "device", "")),
             domain=domain,
             field_convention=self.field_space.field_convention,
-            coordinate_frame_policy="laboratory Cartesian Angstrom; nonperiodic",
+            coordinate_frame_policy=(
+                "laboratory Cartesian Angstrom input; nonperiodic molecular graph; "
+                f"long-range evaluator={release_contract.long_range_evaluator_profile}"
+            ),
             optimizer_parameter_groups_audited=False,
             optimizer_audit_evidence_sha256=None,
         )
@@ -436,6 +498,9 @@ class MACEPolarLocalFieldModelAdapter:
             ),
             "long_range_evaluator_profile": getattr(
                 self._calculator, "long_range_evaluator_profile", None
+            ),
+            "long_range_evaluator_provenance": getattr(
+                self._calculator, "long_range_evaluator_provenance", None
             ),
             "atomic_numbers": list(self.domain.atomic_numbers),
             "source_space_sha256": self.source_space.metadata_hash(),
@@ -832,7 +897,10 @@ class MACEPolarRadialGTOModelAdapter:
 
 
 def build_official_mace_polar_1_m_adapter(
-    *, device: str = "cpu", checkpoint_path: str | Path | None = None
+    *,
+    device: str = "cpu",
+    checkpoint_path: str | Path | None = None,
+    long_range_evaluator_profile: str = (MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID),
 ) -> MACEPolarLocalFieldModelAdapter:
     """Load the exact official checkpoint in float64 without a solvent sidecar."""
 
@@ -848,6 +916,14 @@ def build_official_mace_polar_1_m_adapter(
             del implicit, solvent
             self.solvent_correction = None
 
+    normalized_evaluator_profile = str(long_range_evaluator_profile).strip().lower()
+    try:
+        release_contract = _RELEASE_CONTRACT_BY_EVALUATOR[normalized_evaluator_profile]
+    except KeyError as exc:
+        raise ValueError(
+            "Unsupported vNext MACE-POLAR long-range evaluator contract: "
+            f"{long_range_evaluator_profile!r}."
+        ) from exc
     if checkpoint_path is not None:
         path = Path(checkpoint_path).expanduser().resolve()
         if not path.is_file():
@@ -855,9 +931,8 @@ def build_official_mace_polar_1_m_adapter(
                 f"The advertised MACE-POLAR checkpoint does not exist: {path}."
             )
         if (
-            path.stat().st_size
-            != OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_size_bytes
-            or _sha256_file(path) != OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_sha256
+            path.stat().st_size != release_contract.checkpoint_size_bytes
+            or _sha256_file(path) != release_contract.checkpoint_sha256
         ):
             raise RuntimeError(
                 "The advertised checkpoint does not match the official "
@@ -867,20 +942,28 @@ def build_official_mace_polar_1_m_adapter(
         device=device,
         model="macepolm",
         implicit="smd",
+        long_range_evaluator_profile=normalized_evaluator_profile,
         solvent="water",
         _implicit_solvent_factory_token=_IMPLICIT_SOLVENT_FACTORY_TOKEN,
     )
-    return MACEPolarLocalFieldModelAdapter(calculator, OFFICIAL_MACE_POLAR_1_M_CONTRACT)
+    if calculator.long_range_evaluator_profile != normalized_evaluator_profile:
+        raise RuntimeError("MACE-POLAR evaluator profile changed during construction.")
+    return MACEPolarLocalFieldModelAdapter(calculator, release_contract)
 
 
 def build_official_mace_polar_1_m_radial_gto_adapter(
-    *, device: str = "cpu", checkpoint_path: str | Path | None = None
+    *,
+    device: str = "cpu",
+    checkpoint_path: str | Path | None = None,
+    long_range_evaluator_profile: str = (MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID),
 ) -> MACEPolarRadialGTOModelAdapter:
     """Load the official checkpoint behind the conjugate radial GTO contract."""
 
     return MACEPolarRadialGTOModelAdapter(
         build_official_mace_polar_1_m_adapter(
-            device=device, checkpoint_path=checkpoint_path
+            device=device,
+            checkpoint_path=checkpoint_path,
+            long_range_evaluator_profile=long_range_evaluator_profile,
         )
     )
 
@@ -890,6 +973,8 @@ __all__ = [
     "MACEPolarLocalFieldModelAdapter",
     "MACEPolarRadialGTOModelAdapter",
     "MACEPolarReleaseContract",
+    "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
+    "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",
     "OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID",
     "build_official_mace_polar_1_m_adapter",

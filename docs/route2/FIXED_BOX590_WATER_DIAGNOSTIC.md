@@ -126,14 +126,47 @@ Its contract was committed before execution: seven distorted/equilibrium
 geometries, three internal directions and three central-difference steps per
 geometry, independent cold/multi-start roots, one fixed-topology hash, and a
 four-subinterval-per-edge symmetric-stretch/bend loop evaluated cold and warm
-in both directions. Until a clean-commit run is recorded below, this is an
-implemented evidence procedure, not executed evidence.
+in both directions.
+
+### Clean-commit distorted-water and closed-loop result
+
+The command above was executed without changing its preregistered panel at Git
+HEAD `241e98b742e83277adb87cf4e05e01c735b00b24`. The full raw JSON, captured
+warnings, command logs, hashes, and a scope-limited manifest are under
+`docs/route2/evidence/fixedbox590-water-path-241e98b7/`.
+
+| measurement | result |
+| --- | ---: |
+| panel geometries | 7 |
+| directional central differences | 63 |
+| largest absolute directional error | `1.8373047201e-5 eV/A` |
+| largest applicable relative directional error | `3.7464585634e-4` |
+| largest primal residual | `9.9280857080e-13` |
+| largest adjoint residual | `3.5360817966e-16` |
+| distinct topology hashes | 1 |
+| cold forward loop work | `7.2197580638e-6 eV` |
+| cold reverse loop work | `-7.2197580638e-6 eV` |
+| warm forward loop work | `7.2197580415e-6 eV` |
+| warm reverse loop work | `-7.2197580850e-6 eV` |
+
+All preregistered directional-FD, panel cold/multi-start root, topology,
+forward/reverse loop-work, work-antisymmetry, and warm path-repeat gates passed.
+The run used CPU float64 and one OpenMP/MKL/OpenBLAS thread, took
+`3195.20 s`, and the external JSON SHA256 was
+`0f5cafad687262cb22e4ec202e0ce315add2c8c90fb6c9e954acc6e69f9e02d8`.
+Seventy-three upstream/runtime warnings were retained verbatim rather than
+suppressed.
+
+This materially closes the **single-water** multi-geometry and loop gate. It
+does not close the required multi-molecule PES panel, 40-Angstrom box-size
+convergence, component-level QM/PCM validation, compatible nonpolar/free-energy
+ledger, Hessian/FREQ/TS/NVE gates, or any public capability. E/F/H/V/M therefore
+remain false.
 
 ## Result
 
-The one-water local force/symmetry blocker is materially improved and the
-returned force is numerically consistent with the declared scalar at that
-geometry.  Tier F remains false because the required multiple geometries,
-distortions, molecules, closed loops in both directions, root-repeat panel,
-topology paths, box convergence, physical component validation, and clean
-source/model/runtime-bound release artifact have not yet been completed.
+The one-water force/symmetry/path blocker is materially improved and the
+returned force is numerically consistent with the declared scalar over the
+executed distorted-water panel. Tier F remains false because the required
+multi-molecule PES panel, box convergence, physical component validation,
+Hessian/NVE evidence, and public integration/admission have not been completed.

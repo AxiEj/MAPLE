@@ -1,0 +1,25 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "python tools/route2_release/run_fixedbox590_water_path_diagnostic.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cpu --output /tmp/route2-fixedbox590-water-path-241e98b7.json"
+	User time (seconds): 2820.15
+	System time (seconds): 374.22
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 53:16.98
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1809440
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 2214
+	Minor (reclaiming a frame) page faults: 183315513
+	Voluntary context switches: 7891
+	Involuntary context switches: 9263
+	Swaps: 0
+	File system inputs: 697504
+	File system outputs: 1080
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

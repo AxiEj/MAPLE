@@ -78,9 +78,10 @@ They remain closed because no Tier-F/Tier-H/Tier-M release artifact has passed
 the full same-scalar PES gates. The original radial-water canary's local
 derivative does not override its rotation/torque failures. The distinct
 fixed-box590 diagnostic now has one-equilibrium-geometry Cartesian and
-orientation evidence, while its preregistered multi-geometry/loop runner still
-must be executed on a clean commit; neither substitutes for the multi-molecule
-PES panel, box convergence, Hessian, NVE, or physical-component validation.
+orientation evidence plus a clean-commit seven-geometry/63-direction and
+bidirectional cold/warm loop audit. Those single-water results do not substitute
+for the multi-molecule PES panel, box convergence, Hessian, NVE, or
+physical-component validation.
 
 ## Solvation-energy interpretation
 

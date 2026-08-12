@@ -1,0 +1,100 @@
+{
+  "artifact_sha256": {
+    "measurements.json": "0f5cafad687262cb22e4ec202e0ce315add2c8c90fb6c9e954acc6e69f9e02d8",
+    "runner.stderr.log": "9e1951ea5fdf1eb6a7b3959e476dbe0815afb43285aaa998c3b6ef96ff80cc98",
+    "runner.stdout.log": "49a448e6cf57d6a1639a508f165120f3bfc94d069ff183feb9753ba7052d72ee"
+  },
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "environment_summary": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "device": "cpu",
+    "dtype": "float64",
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "thread_environment": {
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "PYTHONHASHSEED": "0"
+    }
+  },
+  "evidence_status": "passing-single-water-path-diagnostic; not release admission",
+  "executed_command": "tools/route2_release/run_fixedbox590_water_path_diagnostic.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cpu --output /tmp/route2-fixedbox590-water-path-241e98b7.json",
+  "execution_git_head": "241e98b742e83277adb87cf4e05e01c735b00b24",
+  "execution_git_tree": "637684a392a5492a2d371f4495da6de7c8becd52",
+  "gates": {
+    "all_four_loop_work_gates": true,
+    "all_loop_cold_warm_roots": true,
+    "all_panel_cold_warm_roots": true,
+    "all_panel_directional_force_fd": true,
+    "cold_forward_reverse_antisymmetry_le_1e-10_eV": true,
+    "fixed_topology": true,
+    "loop_aggregate": true,
+    "warm_forward_reverse_antisymmetry_le_1e-8_eV": true,
+    "warm_forward_reverse_repeat": true
+  },
+  "measurement_sha256": "1a580c24b78bdf20f6870e462eed4b4f50fe41974b64e3de660ec46a6b908dbc",
+  "profile_id": "route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1",
+  "raw_summary": {
+    "cold_forward_loop_work_eV": 7.219758063801984e-06,
+    "cold_reverse_loop_work_eV": -7.219758063795045e-06,
+    "directional_fd_measurement_count": 63,
+    "maximum_adjoint_residual": 3.5360817966053695e-16,
+    "maximum_applicable_directional_relative_error": 0.00037464585633928974,
+    "maximum_directional_absolute_error_eV_per_A": 1.837304720098132e-05,
+    "maximum_primal_residual": 9.928085707952682e-13,
+    "panel_geometry_count": 7,
+    "topology_hashes": [
+      "ff7af9e2467b7063552d9912c25d242010ba1cdfafc8ae70fe55242b7b37f8c0"
+    ],
+    "warm_forward_loop_work_eV": 7.2197580415081855e-06,
+    "warm_reverse_loop_work_eV": -7.219758085014183e-06,
+    "warning_count": 73
+  },
+  "remaining_blockers": [
+    "single water molecule only; required 20-molecule PES panel absent",
+    "fixed 40 Angstrom box has no box-size convergence certificate",
+    "electrostatic component has no matched QM/PCM physical validation",
+    "no compatible nonpolar/CDS or complete solvation free energy",
+    "no Hessian/FREQ/TS/NVE evidence",
+    "profile remains disabled with E/F/H/V/M false"
+  ],
+  "runtime_seconds": 3195.195745408986,
+  "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+  "schema_version": "route2-fixedbox590-water-path-evidence-manifest-v1",
+  "scope_limits": {
+    "bidirectional_cold_warm_closed_loop": true,
+    "box_convergence": false,
+    "chemical_accuracy": false,
+    "complete_nonpolar_free_energy": false,
+    "distorted_geometries": true,
+    "multi_molecule_pes_panel": false,
+    "multiple_geometries": true,
+    "single_molecule": true
+  },
+  "state_equation_id": "route2-constrained-mutual-polarization-root-v1",
+  "tested_working_tree_clean": true
+}

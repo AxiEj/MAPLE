@@ -58,6 +58,13 @@ rectangle uses four equal subintervals per edge and composite Simpson
 integration; it is repeated cold and sequential-warm in both directions. This
 is a single-molecule path gate, not the required 20-molecule PES panel.
 
+The clean-commit execution at `241e98b7` passed all of those preregistered
+single-water path gates. Its worst directional errors were `1.84e-5 eV/A`
+absolute and `3.75e-4` relative; cold/warm forward/reverse loop work had
+magnitude `7.22e-6 eV`, and the topology hash was constant. Raw evidence is in
+`evidence/fixedbox590-water-path-241e98b7/`. This does not change the remaining
+multi-molecule, box-convergence, component-physics, Hessian, or NVE gates.
+
 Root uniqueness is tested with declared multi-start seeds and the actual
 unmixed dimensionless residual. Damping/DIIS convergence alone is not a root
 uniqueness proof.

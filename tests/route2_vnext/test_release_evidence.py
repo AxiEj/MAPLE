@@ -22,6 +22,9 @@ COMMON = ROOT / "tools" / "route2_release" / "fixedbox590_water_common.py"
 PATH_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_water_path_diagnostic.py"
 )
+PATH_EVIDENCE = (
+    ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
+)
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:
@@ -144,3 +147,51 @@ def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel
         "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py",
     ):
         assert relative in text
+
+
+def test_fixedbox590_water_path_artifact_is_source_bound_and_capability_closed():
+    measurements = json.loads((PATH_EVIDENCE / "measurements.json").read_text())
+    manifest = json.loads((PATH_EVIDENCE / "manifest.json").read_text())
+    assert measurements["execution_git_head"] == manifest["execution_git_head"]
+    assert measurements["working_tree_clean"] is True
+    assert measurements["capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "M": False,
+        "V": False,
+    }
+    assert all(measurements["gates"].values())
+    assert manifest["evidence_status"].endswith("not release admission")
+    assert manifest["scope_limits"]["multi_molecule_pes_panel"] is False
+    assert manifest["scope_limits"]["box_convergence"] is False
+    assert manifest["raw_summary"]["directional_fd_measurement_count"] == 63
+
+    source_hashes = measurements["source_files_sha256"]
+    assert source_hashes
+    for relative, expected in source_hashes.items():
+        blob = subprocess.run(
+            ("git", "show", f"{measurements['execution_git_head']}:{relative}"),
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert hashlib.sha256(blob).hexdigest() == expected
+
+
+def test_fixedbox590_water_path_artifact_file_hashes_and_raw_gates_close():
+    manifest = json.loads((PATH_EVIDENCE / "manifest.json").read_text())
+    for name, expected in manifest["artifact_sha256"].items():
+        assert (
+            hashlib.sha256((PATH_EVIDENCE / name).read_bytes()).hexdigest() == expected
+        )
+    measurements = json.loads((PATH_EVIDENCE / "measurements.json").read_text())
+    assert len(measurements["measurements"]["topology_hashes"]) == 1
+    assert measurements["measurements"]["maximum_primal_residual"] <= 1.0e-12
+    loop = measurements["measurements"]["closed_loop"]
+    for name in ("cold_forward", "cold_reverse", "warm_forward", "warm_reverse"):
+        assert abs(loop[name]["simpson_work_eV"]) <= loop[name]["gate_threshold_eV"]
+    for geometry in measurements["measurements"]["panel"]:
+        assert geometry["cold_warm"]["numerically_equivalent"] is True
+        for direction in geometry["directional_force_fd"].values():
+            assert direction["all_gates_passed"] is True

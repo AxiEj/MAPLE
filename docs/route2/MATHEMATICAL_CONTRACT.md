@@ -1,0 +1,156 @@
+# Route 2 mathematical contract
+
+This document is the normative mathematical boundary for the conservative
+Route 2 kernel. Implementation capability and executed evidence are recorded
+separately; an equation appearing here does not by itself open a public gate.
+
+## 1. Spaces and the only energy pairing
+
+For nuclear coordinates \(R\in\mathbb R^{3N}\), the electronic source is
+\(c\in\mathcal C_q\), the energy-dual field is \(u\in\mathcal C^*\), and the
+source/field pairing is
+
+\[
+\langle c,u\rangle_Q=c^\mathsf TQ(R)u.
+\]
+
+`Q` owns component order, spherical/Cartesian permutation, signs, gauge, and
+unit conversion. Model and continuum adapters may not repeat those choices.
+The source satisfies the affine charge constraint
+
+\[
+Ac=q_{\rm tot},\qquad c=c_{\rm ref}(R)+T(R)y,\qquad AT=0,
+\]
+
+where \(y\) is dimensionless. Residual and Krylov norms are evaluated in
+\(y\), never in an unscaled concatenation of monopoles and dipoles.
+
+## 2. Operational conservative PES
+
+The production-v1 target uses the state equation
+
+\[
+r(R,y)=T^+\left[c_{\rm ref}+Ty-
+\Pi_q M_\theta\!\left(R,P_R(c_{\rm ref}+Ty)\right)\right]=0.
+\]
+
+The reported scalar is
+
+\[
+\Phi_{\rm op}(R,y)=E_{\rm vac}(R)+
+G_{\rm pcm}(R,c_{\rm ref}+Ty)+G_{\rm np}(R,c_{\rm ref}+Ty).
+\]
+
+For the first force-admitted fixed-topology reciprocal C-PCM profile,
+
+\[
+G_{\rm pcm}(R,c)=\tfrac12\langle c,P_R(c)\rangle_Q,
+\qquad G_{\rm np}=0.
+\]
+
+For the unique admitted root \(y^*(R)\), the reduced PES is
+
+\[
+E_{\rm op}(R)=\Phi_{\rm op}(R,y^*(R)).
+\]
+
+The field-conditioned MACE energy difference is diagnostic only. It is not
+silently added to this half-coupling scalar.
+
+## 3. One adjoint and one force
+
+Define
+
+\[
+\mathcal L(R,y,\lambda)=\Phi_{\rm op}(R,y)-\lambda^\mathsf Tr(R,y).
+\]
+
+The adjoint and total derivative are
+
+\[
+r_y^\mathsf T\lambda=\Phi_y^\mathsf T,
+\qquad
+\nabla_RE_{\rm op}=\Phi_R-\lambda^\mathsf Tr_R,
+\qquad
+F_{\rm Route2}=-\nabla_RE_{\rm op}.
+\]
+
+There is no independently coded force formula. A returned force must bind to
+one scalar ID, state-equation ID, root identity, adjoint solve, and evidence
+artifact.
+
+## 4. Full block reference
+
+Eliminating continuum variables is an implementation choice. The reference
+form supports \(z=(y,\sigma,\ldots)\), a state equation \(g(R,z)=0\), and one
+scalar \(\Phi(R,z)\):
+
+\[
+g_z^\mathsf T\lambda=\Phi_z^\mathsf T,
+\qquad
+\nabla_RE=\Phi_R-\lambda^\mathsf Tg_R.
+\]
+
+A Schur-complement or matrix-free implementation must be numerically
+equivalent to this system and pass independent JVP/VJP tests.
+
+## 5. Source-dependent reaction maps
+
+For a nonlinear/source-dependent map \(f(c)\), the declared operational
+half-coupling is
+
+\[
+G(c)=\tfrac12c^\mathsf TQf(c).
+\]
+
+Its source derivative is
+
+\[
+\nabla_cG=\tfrac12Qf(c)+\tfrac12J_f(c)^\mathsf TQc.
+\]
+
+Both terms are mandatory. If a profile instead represents charging work, it
+must use a separately versioned scalar such as
+
+\[
+G_{\rm chg}(R,c)=\int_0^1\langle c,P_R(\lambda c)\rangle_Q\,d\lambda
+\]
+
+and differentiate that exact integral/quadrature. Charging work and half
+coupling are not interchangeable.
+
+## 6. Coupling adjoint
+
+One operator supplies both directions:
+
+\[
+v_{\rm surface}=B(R)c,\qquad
+f_{\rm model}=B(R)^*\sigma,
+\]
+
+with
+
+\[
+\langle Bc,\sigma\rangle_{\rm surface}
+=\langle c,B^*\sigma\rangle_Q.
+\]
+
+An exact-GTO energy and a local-jet force cannot share a profile ID.
+
+## 7. Optional strict variational capability
+
+Tier V is disabled by default. A model may enter it only if the public
+energy-dual convention satisfies
+
+\[
+D_uE_\theta(R,u)[\delta u]
+=\langle M_\theta(R,u),\delta u\rangle_Q
+\]
+
+over the admitted finite-field domain, together with reciprocity, passivity,
+local invertibility/root uniqueness, sign/gauge/origin, common-checkpoint, and
+full-coordinate-derivative gates. Passing implementation JVP/VJP transpose
+tests is not proof of this physical identity.
+
+Until those gates pass, Route 2 is named an **operational self-consistent
+differentiable surrogate PES**, not a common variational SCRF.

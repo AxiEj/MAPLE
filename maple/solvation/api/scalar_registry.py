@@ -1,0 +1,189 @@
+"""Machine-readable registry of versioned Route-2 scalar definitions."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from types import MappingProxyType
+from typing import Mapping
+
+from .capabilities import CapabilityStatus
+from .state_registry import OPERATIONAL_STATE_EQUATION_ID, VARIATIONAL_STATE_EQUATION_ID
+
+
+OPERATIONAL_CPCM_ELECTROSTATIC_V1 = "route2-operational-cpcm-fixedtopology-electrostatic-v1"
+OPERATIONAL_CPCM_SMDCDS_V1 = "route2-operational-cpcm-fixedtopology-smdcds-v1"
+VARIATIONAL_COMMON_FUNCTIONAL_V1 = "route2-variational-common-functional-v1"
+
+
+@dataclass(frozen=True, slots=True)
+class ScalarDefinition:
+    scalar_id: str
+    exact_formula: str
+    implementation_entry_point: str
+    included_components: tuple[str, ...]
+    excluded_components: tuple[str, ...]
+    source_representation: str
+    field_convention: str
+    continuum_profile: str
+    cavity_profile: str
+    nonpolar_profile: str
+    state_equation_id: str
+    derivative_route: str
+    admitted_capabilities: CapabilityStatus = CapabilityStatus()
+    evidence_artifact_ids: tuple[str, ...] = ()
+    enabled: bool = False
+
+    def __post_init__(self) -> None:
+        for name in (
+            "scalar_id",
+            "exact_formula",
+            "implementation_entry_point",
+            "source_representation",
+            "field_convention",
+            "continuum_profile",
+            "cavity_profile",
+            "nonpolar_profile",
+            "state_equation_id",
+            "derivative_route",
+        ):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string.")
+        for name in ("included_components", "excluded_components", "evidence_artifact_ids"):
+            values = tuple(getattr(self, name))
+            if any(not isinstance(value, str) or not value.strip() for value in values):
+                raise ValueError(f"{name} must contain only non-empty strings.")
+            if len(set(values)) != len(values):
+                raise ValueError(f"{name} entries must be unique.")
+            object.__setattr__(self, name, values)
+        overlap = set(self.included_components) & set(self.excluded_components)
+        if overlap:
+            raise ValueError(f"Components cannot be both included and excluded: {sorted(overlap)}")
+        if not isinstance(self.admitted_capabilities, CapabilityStatus):
+            raise TypeError("admitted_capabilities must be a CapabilityStatus.")
+        if type(self.enabled) is not bool:
+            raise TypeError("enabled must be a bool.")
+        admitted = bool(self.admitted_capabilities.enabled_tiers)
+        if admitted and not self.enabled:
+            raise ValueError("An admitted scalar must be enabled.")
+        if admitted and not self.evidence_artifact_ids:
+            raise ValueError("An admitted scalar requires evidence artifact IDs.")
+        if self.enabled and not self.admitted_capabilities.energy:
+            raise ValueError("An enabled scalar must admit energy capability.")
+        if self.evidence_artifact_ids and not admitted:
+            raise ValueError("Admission evidence cannot be attached without an admitted capability.")
+
+    def as_dict(self) -> dict[str, object]:
+        """Return a JSON-serializable registry record."""
+
+        return {
+            "scalar_id": self.scalar_id,
+            "exact_formula": self.exact_formula,
+            "implementation_entry_point": self.implementation_entry_point,
+            "included_components": list(self.included_components),
+            "excluded_components": list(self.excluded_components),
+            "source_representation": self.source_representation,
+            "field_convention": self.field_convention,
+            "continuum_profile": self.continuum_profile,
+            "cavity_profile": self.cavity_profile,
+            "nonpolar_profile": self.nonpolar_profile,
+            "state_equation_id": self.state_equation_id,
+            "derivative_route": self.derivative_route,
+            "admitted_capabilities": {
+                "E": self.admitted_capabilities.energy,
+                "F": self.admitted_capabilities.conservative_force,
+                "H": self.admitted_capabilities.hessian,
+                "V": self.admitted_capabilities.variational_functional,
+                "M": self.admitted_capabilities.molecular_dynamics,
+            },
+            "evidence_artifact_ids": list(self.evidence_artifact_ids),
+            "enabled": self.enabled,
+        }
+
+
+_COMMON = dict(
+    implementation_entry_point="maple.solvation.coupling.energy:not-implemented-phase1",
+    source_representation="atom-centred net monopoles plus real-spherical l=1 dipoles",
+    field_convention="positive energy-dual field with pairing c^T Q(R) u",
+    continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+    cavity_profile="fixed-topology-amplitude-swig-v1",
+    admitted_capabilities=CapabilityStatus(),
+    evidence_artifact_ids=(),
+    enabled=False,
+)
+
+_SCALAR_ENTRIES = (
+    ScalarDefinition(
+        scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
+        exact_formula=(
+            "E_op(R)=Phi_op(R,y*(R)); Phi_op=E_vac(R)+"
+            "1/2<c_ref(R)+T(R)y,P_R(c_ref(R)+T(R)y)>_Q; G_np=0"
+        ),
+        included_components=("vacuum_energy", "cpcm_half_coupling_electrostatic"),
+        excluded_components=("field_conditioned_model_energy_difference", "nonpolar_smd_cds"),
+        nonpolar_profile="none",
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route="implicit adjoint total derivative of this scalar along y*(R)",
+        **_COMMON,
+    ),
+    ScalarDefinition(
+        scalar_id=OPERATIONAL_CPCM_SMDCDS_V1,
+        exact_formula=(
+            "E_op(R)=Phi_op(R,y*(R)); Phi_op=E_vac(R)+"
+            "1/2<c_ref(R)+T(R)y,P_R(c_ref(R)+T(R)y)>_Q+G_np^SMD-CDS(R,c)"
+        ),
+        included_components=(
+            "vacuum_energy",
+            "cpcm_half_coupling_electrostatic",
+            "fixed_topology_smd_cds",
+        ),
+        excluded_components=("field_conditioned_model_energy_difference",),
+        nonpolar_profile="fixed-topology-smd-derived-cds-v1",
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route="implicit adjoint total derivative; disabled pending same-scalar CDS force gate",
+        **_COMMON,
+    ),
+    ScalarDefinition(
+        scalar_id=VARIATIONAL_COMMON_FUNCTIONAL_V1,
+        exact_formula=(
+            "F_var(R,c)=Gamma_theta(R,c)+G_pcm(R,c)+G_np(R,c); "
+            "Gamma_theta=stat_u[E_theta(R,u)-<c,u>_Q]"
+        ),
+        included_components=("electronic_legendre_functional", "continuum_energy", "declared_nonpolar_energy"),
+        excluded_components=("independently_assembled_response_correction",),
+        nonpolar_profile="profile-defined; electrostatic profile uses none",
+        state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        derivative_route="stationary envelope derivative; disabled until every strict-variational gate passes",
+        **_COMMON,
+    ),
+)
+
+SCALAR_REGISTRY: Mapping[str, ScalarDefinition] = MappingProxyType(
+    {entry.scalar_id: entry for entry in _SCALAR_ENTRIES}
+)
+if len(SCALAR_REGISTRY) != len(_SCALAR_ENTRIES):  # pragma: no cover - import-time invariant
+    raise RuntimeError("Duplicate Route-2 scalar IDs.")
+
+
+def get_scalar_definition(scalar_id: str) -> ScalarDefinition:
+    try:
+        return SCALAR_REGISTRY[scalar_id]
+    except KeyError as exc:
+        raise KeyError(f"Unregistered Route-2 scalar: {scalar_id!r}.") from exc
+
+
+def scalar_registry_manifest() -> dict[str, dict[str, object]]:
+    """Return a detached JSON-serializable snapshot keyed by scalar ID."""
+
+    return {scalar_id: entry.as_dict() for scalar_id, entry in SCALAR_REGISTRY.items()}
+
+
+__all__ = [
+    "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
+    "OPERATIONAL_CPCM_SMDCDS_V1",
+    "SCALAR_REGISTRY",
+    "VARIATIONAL_COMMON_FUNCTIONAL_V1",
+    "ScalarDefinition",
+    "get_scalar_definition",
+    "scalar_registry_manifest",
+]

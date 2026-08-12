@@ -1,0 +1,192 @@
+from __future__ import annotations
+
+from dataclasses import FrozenInstanceError, replace
+
+import pytest
+
+from maple.solvation.api import (
+    ASE_PUBLIC_UNITS,
+    PROFILE_REGISTRY,
+    SCALAR_REGISTRY,
+    STATE_REGISTRY,
+    CapabilityStatus,
+    EnergyComponent,
+    ForceComponent,
+    OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
+    ProvenanceBundle,
+    ProvenanceRecord,
+    Route2Result,
+    RuntimeProvenance,
+    profile_registry_manifest,
+    scalar_registry_manifest,
+)
+
+
+INITIAL_SCALAR_IDS = {
+    "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+    "route2-operational-cpcm-fixedtopology-smdcds-v1",
+    "route2-variational-common-functional-v1",
+}
+
+
+def _provenance() -> ProvenanceBundle:
+    return ProvenanceBundle(
+        model=ProvenanceRecord("model-v1", "model", "1", "1" * 64),
+        continuum=ProvenanceRecord("cpcm-v1", "continuum", "1", "2" * 64),
+        cavity=ProvenanceRecord("fixed-v1", "cavity", "1", "3" * 64),
+        runtime=RuntimeProvenance("3.11", "test", (("maple", "0.1.4"),)),
+    )
+
+
+def _result(**changes) -> Route2Result:
+    values = dict(
+        atom_count=2,
+        profile_id=OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
+        energy_components=(
+            EnergyComponent("vacuum_energy", 1.0),
+            EnergyComponent("cpcm_half_coupling_electrostatic", 0.5),
+        ),
+        provenance=_provenance(),
+        primal_residual=1.0e-12,
+        adjoint_residual=2.0e-12,
+        root_identity="cold-root-1",
+        root_sha256="a" * 64,
+        fail_closed=True,
+    )
+    values.update(changes)
+    return Route2Result(**values)
+
+
+def test_capabilities_default_false_and_variational_disabled():
+    status = CapabilityStatus()
+    assert status.enabled_tiers == ()
+    assert status.variational_functional is False
+    with pytest.raises(ValueError, match="requires energy"):
+        CapabilityStatus(variational_functional=True)
+
+
+def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
+    assert len(PROFILE_REGISTRY) == 3
+    with pytest.raises(TypeError):
+        PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
+    for profile_id, profile in PROFILE_REGISTRY.items():
+        assert profile_id == profile.profile_id
+        assert profile.scalar_id in SCALAR_REGISTRY
+        scalar = SCALAR_REGISTRY[profile.scalar_id]
+        assert profile.state_equation_id == scalar.state_equation_id
+        assert profile.state_equation_id in STATE_REGISTRY
+        assert profile.enabled is False
+        assert profile.capabilities.enabled_tiers == ()
+        assert profile.evidence_artifact_ids == ()
+    manifest = profile_registry_manifest()
+    manifest[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1]["enabled"] = True
+    assert PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1].enabled is False
+
+
+def test_admission_records_cannot_bypass_enablement_or_evidence():
+    base = PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1]
+    with pytest.raises(ValueError, match="must be enabled"):
+        replace(base, capabilities=CapabilityStatus(energy=True))
+    with pytest.raises(ValueError, match="requires evidence"):
+        replace(base, enabled=True, capabilities=CapabilityStatus(energy=True))
+    with pytest.raises(ValueError, match="must admit scalar energy"):
+        replace(base, enabled=True)
+    with pytest.raises(ValueError, match="without an admitted capability"):
+        replace(base, evidence_artifact_ids=("fake-evidence",))
+    scalar = SCALAR_REGISTRY[base.scalar_id]
+    with pytest.raises(ValueError, match="requires evidence"):
+        replace(scalar, enabled=True, admitted_capabilities=CapabilityStatus(energy=True))
+
+
+def test_contracts_and_nested_values_are_immutable():
+    result = _result()
+    with pytest.raises(FrozenInstanceError):
+        result.energy_components = ()
+    mutable_metadata = {"dtype": "float64"}
+    record = ProvenanceRecord("m", "model", "1", "a" * 64, mutable_metadata)
+    mutable_metadata["dtype"] = "float32"
+    assert record.metadata == (("dtype", "float64"),)
+
+
+def test_result_derives_identity_capabilities_and_totals_from_registry_leaves():
+    result = _result()
+    profile = PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1]
+    assert result.scalar_id == profile.scalar_id
+    assert result.state_equation_id == profile.state_equation_id
+    assert result.capabilities is profile.capabilities
+    assert result.total_energy_eV == 1.5
+    assert result.total_forces_eV_per_A is None
+
+
+@pytest.mark.parametrize(
+    "forbidden",
+    (
+        {"scalar_id": "forged"},
+        {"state_equation_id": "forged"},
+        {"capabilities": CapabilityStatus(energy=True)},
+        {"total_energy_eV": 999.0},
+        {"total_forces_eV_per_A": ((0.0, 0.0, 0.0),) * 2},
+        {"closure_tolerance": 1.0},
+    ),
+)
+def test_result_rejects_caller_supplied_identity_capability_total_or_tolerance(forbidden):
+    with pytest.raises(TypeError, match="unexpected keyword argument"):
+        _result(**forbidden)
+
+
+def test_disabled_profile_allows_only_fail_closed_energy_evidence_and_no_force():
+    with pytest.raises(ValueError, match="fail-closed internal evidence"):
+        _result(fail_closed=False)
+    with pytest.raises(ValueError, match="conservative-force admission"):
+        _result(
+            force_components=(
+                ForceComponent("vacuum", ((1.0, 0.0, -1.0), (0.0, 2.0, 0.0))),
+            )
+        )
+    with pytest.raises(ValueError, match="admitted public domain"):
+        _result(admitted_domain=(("dtype", "float64"),))
+
+
+def test_result_rejects_unknown_profile_and_evidence_mismatch():
+    with pytest.raises(KeyError, match="Unregistered Route-2 profile"):
+        _result(profile_id="forged-profile")
+    with pytest.raises(ValueError, match="exactly match"):
+        _result(evidence_artifact_ids=("forged-admission",))
+
+
+def test_result_validates_shape_finiteness_and_provenance():
+    with pytest.raises(ValueError, match="finite"):
+        _result(energy_components=(EnergyComponent("bad", float("nan")),))
+    with pytest.raises(ValueError, match="64 lowercase hexadecimal"):
+        ProvenanceRecord("m", "model", "1", "not-a-digest")
+    with pytest.raises(ValueError, match="kind='model'"):
+        ProvenanceBundle(
+            model=ProvenanceRecord("m", "other", "1", "1" * 64),
+            continuum=ProvenanceRecord("c", "continuum", "1", "2" * 64),
+            cavity=ProvenanceRecord("s", "cavity", "1", "3" * 64),
+            runtime=RuntimeProvenance("3.11", "test"),
+        )
+
+
+def test_scalar_registry_has_unique_complete_state_bound_entries():
+    assert set(SCALAR_REGISTRY) == INITIAL_SCALAR_IDS
+    assert len(SCALAR_REGISTRY) == len({entry.scalar_id for entry in SCALAR_REGISTRY.values()})
+    for scalar_id, entry in SCALAR_REGISTRY.items():
+        assert scalar_id == entry.scalar_id
+        assert entry.exact_formula
+        assert entry.state_equation_id in STATE_REGISTRY
+        assert entry.enabled is False
+        assert entry.admitted_capabilities.enabled_tiers == ()
+        assert entry.evidence_artifact_ids == ()
+        assert not (set(entry.included_components) & set(entry.excluded_components))
+    variational = SCALAR_REGISTRY["route2-variational-common-functional-v1"]
+    assert variational.admitted_capabilities.variational_functional is False
+    manifest = scalar_registry_manifest()
+    assert set(manifest) == INITIAL_SCALAR_IDS
+    assert manifest[variational.scalar_id]["admitted_capabilities"]["V"] is False
+
+
+def test_public_ase_units_are_declared_without_touching_legacy_calculators():
+    assert ASE_PUBLIC_UNITS.energy == "eV"
+    assert ASE_PUBLIC_UNITS.forces == "eV/A"
+    assert ASE_PUBLIC_UNITS.hessian == "eV/A^2"

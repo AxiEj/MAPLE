@@ -1,0 +1,37 @@
+# Route 2 migration ledger
+
+This ledger prevents the rebuild from becoming a cosmetic parallel stack.
+
+## Phase status
+
+| phase | status | evidence |
+| --- | --- | --- |
+| 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
+| 1: contracts and units | in progress | new API package and ASE unit correction not yet complete |
+| 2: coupling operator | in progress | canonical B/B* package work underway |
+| 3: state equation/operational scalar | pending | legacy assets mapped, new kernel not yet admitted |
+| 4: fixed-topology C-PCM | pending | legacy amplitude-SWIG asset retained |
+| 5: MACE-POLAR adapter/canaries | pending | no vNext real-stack evidence |
+| 6: force/MAPLE integration | pending | no vNext Tier F profile |
+| 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
+| 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
+| 9: legacy archive/cleanup | pending | production still uses legacy engine |
+| 10: strict variational | disabled | expected negative until formally proven |
+
+## Asset mapping
+
+| legacy asset | intended destination | rule |
+| --- | --- | --- |
+| `route2_plugin_spaces.py`, `electrostatic_pairing.py` | `solvation/coupling/spaces.py` | consolidate; do not create a third convention |
+| `route2_plugin_contracts.py`, `route2_electronic_model.py` | `solvation/models/` | capability layers plus thin compatibility adapters |
+| `route2_response.py`, `route2_fixed_point.py` | `solvation/coupling/` | separate physical residual from root algorithm |
+| `route2_derivative.py` | `solvation/coupling/adjoint.py`, backend VJPs | one same-scalar derivative route |
+| `route2_fixed_topology_surface.py` | `solvation/surfaces/fixed_topology.py` | preserve fixed cardinality/ownership |
+| `route2_fc_aswig_cpcm.py` | `solvation/continuum/fixed_topology_cpcm.py` | reuse after parity, not duplicate |
+| `gto_field_projection.py`, `gto_galerkin.py` | `solvation/coupling/exact_gto.py` | precision mainline with adjoint identity |
+| `route2_force_admission.py` | `solvation/release/admission.py` | migrate gates; old certificate is not vNext admission |
+| `route2_engine.py` | compatibility shell, then archive | shrink only after end-to-end parity |
+
+Historical exploratory modules remain traceable until the new import graph is
+complete. No production import may point from `maple/solvation` into the future
+`research/route2_legacy` archive.

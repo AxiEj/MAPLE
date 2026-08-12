@@ -27,11 +27,14 @@ The primal/adjoint residual contribution to force uncertainty must be below ten
 percent of the force-FD tolerance.
 
 Current executed real-water evidence is intentionally below admission scope:
-one geometry, one direction, and three step sizes passed the directional gate,
-but the same calculation failed the rotation-force and torque thresholds.
-Consequently it is local derivative evidence only; component Cartesian FD,
-multi-geometry/orientation, loop-work, PES-panel, Hessian, and NVE gates remain
-required.
+the original molecular-realspace/CPCM194 candidate passed one directional test
+but failed rotation/torque.  The separately versioned fixed-box40/CPCM590
+diagnostic then passed all nine Cartesian components at three steps and six
+rigid orientations on one equilibrium water geometry.  It remains local
+evidence only; multiple geometries and molecules, distorted/path structures,
+bidirectional cold/warm loop work, box convergence, the PES panel, Hessian, and
+NVE gates remain required.  Exact measurements and the reproducible command are
+recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`.
 
 ## Symmetry, root, topology, and path gates
 

@@ -84,7 +84,33 @@ with the expected second-order truncation regime.
 
 The largest displaced primal residual was `8.283839033072413e-13`; the base
 adjoint residual was `1.3001749579185527e-16`.  Log SHA256:
-`302cbb6fb15b77a27d785dc9a1cc01686f1c1fc5793c3f66f892fe971a9a1928`.
+`5be65f2f24132952af939384ee22e9f6bd724b082f1e359e60c774b022c2a5ab`.
+
+This second hash is the post-commit clean-tree rerun at Git HEAD
+`23075e2cd634e18480f7d4ef3e5b1c10b36d6c0b`.  The six-orientation clean-tree
+rerun also reproduced the measurements above; its log SHA256 is
+`433f0bfd42a1711ab9a43ef062a40e39b231f2049ad6ad4d750a43271f6f0957`.
+
+## Reproducible diagnostic command
+
+The repository now contains a fail-closed evidence runner.  Run it only from a
+clean checkout and write the generated JSON outside that checkout:
+
+```bash
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+python tools/route2_release/run_fixedbox590_water_pes_diagnostic.py \
+  --checkpoint "$HOME/.cache/mace/MACEPOLAR1Mmodel" \
+  --device cpu \
+  --mode full \
+  --output /tmp/route2-fixedbox590-water-pes.json
+```
+
+The JSON binds Git HEAD/tree, every loaded repository Python source, checkpoint
+bytes, provider/configuration identities, runtime/dependency/hardware metadata,
+raw cold/warm roots, translation/orientation records, all Cartesian finite
+differences, topology hashes, and primal/adjoint residuals.  The command fails
+on a dirty tree and refuses to write its artifact inside the repository.  Its
+result remains a disabled diagnostic and cannot alter the capability registry.
 
 ## Result
 

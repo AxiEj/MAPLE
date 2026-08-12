@@ -1,0 +1,121 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+import pytest
+
+from maple.solvation.release.evidence import (
+    RepositorySnapshot,
+    canonical_json_sha256,
+    collect_loaded_repository_sources,
+    committed_source_hashes,
+    write_external_json_artifact,
+)
+
+
+ROOT = Path(__file__).parents[2]
+RUNNER = ROOT / "tools" / "route2_release" / "run_fixedbox590_water_pes_diagnostic.py"
+
+
+def _git(*arguments: str, root: Path = ROOT) -> str:
+    return subprocess.check_output(
+        ("git", *arguments), cwd=root, text=True
+    ).strip()
+
+
+def test_repository_snapshot_requires_clean_tree_and_binds_git_blobs(tmp_path):
+    repository = tmp_path / "repo"
+    repository.mkdir()
+    subprocess.run(("git", "init", "-q"), cwd=repository, check=True)
+    subprocess.run(
+        ("git", "config", "user.email", "route2@example.invalid"),
+        cwd=repository,
+        check=True,
+    )
+    subprocess.run(
+        ("git", "config", "user.name", "Route 2 Evidence"),
+        cwd=repository,
+        check=True,
+    )
+    source = repository / "kernel.py"
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+    subprocess.run(("git", "add", "kernel.py"), cwd=repository, check=True)
+    subprocess.run(
+        ("git", "commit", "-q", "-m", "baseline"),
+        cwd=repository,
+        check=True,
+    )
+
+    snapshot = RepositorySnapshot.capture(repository)
+    hashes = committed_source_hashes(snapshot, ("kernel.py",))
+    assert hashes == {"kernel.py": hashlib.sha256(b"VALUE = 1\n").hexdigest()}
+    snapshot.assert_unchanged()
+
+    source.write_text("VALUE = 2\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="clean working tree"):
+        RepositorySnapshot.capture(repository)
+    with pytest.raises(RuntimeError, match="does not match Git"):
+        committed_source_hashes(snapshot, ("kernel.py",))
+    with pytest.raises(RuntimeError, match="working-tree state changed"):
+        snapshot.assert_unchanged()
+
+
+def test_external_writer_refuses_to_dirty_checkout(tmp_path):
+    snapshot = RepositorySnapshot.capture(ROOT, require_clean=False)
+    with pytest.raises(ValueError, match="outside the source checkout"):
+        write_external_json_artifact(
+            snapshot, ROOT / "forbidden-evidence.json", {"status": "no"}
+        )
+
+    output = tmp_path / "evidence.json"
+    record = write_external_json_artifact(snapshot, output, {"status": "diagnostic"})
+    assert json.loads(output.read_text()) == {"status": "diagnostic"}
+    assert record["sha256"] == hashlib.sha256(output.read_bytes()).hexdigest()
+
+
+def test_source_collection_rejects_untracked_required_source(tmp_path):
+    with pytest.raises(RuntimeError, match="not tracked"):
+        collect_loaded_repository_sources(
+            ROOT,
+            modules={},
+            required_paths=(tmp_path / "outside.py",),
+        )
+
+
+def test_canonical_json_hash_is_order_independent_and_rejects_nan():
+    assert canonical_json_sha256({"b": 2, "a": 1}) == canonical_json_sha256(
+        {"a": 1, "b": 2}
+    )
+    with pytest.raises(ValueError):
+        canonical_json_sha256({"bad": float("nan")})
+
+
+def test_fixedbox590_runner_help_is_dependency_and_checkpoint_free():
+    result = subprocess.run(
+        (sys.executable, str(RUNNER), "--help"),
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--mode" in result.stdout
+    assert "--output" in result.stdout
+    assert "not Tier E/F/H/V/M" in RUNNER.read_text(encoding="utf-8")
+
+
+def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():
+    text = RUNNER.read_text(encoding="utf-8")
+    for relative in (
+        "maple/solvation/api/scalar_registry.py",
+        "maple/solvation/coupling/energy.py",
+        "maple/solvation/coupling/fixed_point.py",
+        "maple/solvation/coupling/adjoint.py",
+        "maple/solvation/models/mace_polar.py",
+        "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py",
+    ):
+        assert relative in text

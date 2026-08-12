@@ -180,6 +180,8 @@ examples/md/**/*.xyz
 /docs/
 !/docs/
 /docs/*
+!/docs/route2/
+!/docs/route2/**
 !/docs/implicit-solvation/
 !/docs/implicit-solvation/*.md
 !/docs/implicit-solvation/benchmarks/

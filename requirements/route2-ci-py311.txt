@@ -1,0 +1,6 @@
+# Conservative Route 2 lightweight CI, Python 3.11.
+# Scientific native runtimes and Torch/MACE are intentionally separate.
+ase==3.27.0
+numpy==2.4.6
+scipy==1.17.1
+pytest==9.0.2

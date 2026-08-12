@@ -1,0 +1,2379 @@
+{
+  "baseline_git_head": "15777aadf92e8a14419e5ff5d8ac6b3cc17aa482",
+  "counts": {
+    "evidence_artifacts": 132,
+    "production_modules": 111,
+    "tests": 151
+  },
+  "evidence_artifacts": [
+    {
+      "bytes": 9743,
+      "lines": 261,
+      "path": "docs/implicit-solvation/benchmarks/route2-aimnet2-ddpcm-ddcosmo-equation-canary-v1.json",
+      "sha256": "0daf325fe24f384d3f29c61d14216acccb7e7099114aaa6ee41abb254c738847"
+    },
+    {
+      "bytes": 7504,
+      "lines": 215,
+      "path": "docs/implicit-solvation/benchmarks/route2-aimnet2-point-charge-ddpcm-canary-v1.json",
+      "sha256": "a058ed4a74f4533048c22a231995f78d28e6b743eb62f298a8cfdcc064b29bfb"
+    },
+    {
+      "bytes": 12277,
+      "lines": 375,
+      "path": "docs/implicit-solvation/benchmarks/route2-ddpcm-ri-jgp94-acetone-v1.json",
+      "sha256": "f1b7b01eb80b42489c1306b2006f919e5cc79bc295f73c84824626abccbeeeb7"
+    },
+    {
+      "bytes": 25176,
+      "lines": 611,
+      "path": "docs/implicit-solvation/benchmarks/route2-direct-pcm-ddpcm-historical10-diagnostic-v1.json",
+      "sha256": "eae37eee08652b914d08af2e0c700e3da061b08875950fd9c9eb22364a3d11a8"
+    },
+    {
+      "bytes": 10543,
+      "lines": 242,
+      "path": "docs/implicit-solvation/benchmarks/route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json",
+      "sha256": "963bb6507b3c2dcb51ff93a107454956dbb382c71b5e15ba41f86d57d45daa29"
+    },
+    {
+      "bytes": 201368,
+      "lines": 4515,
+      "path": "docs/implicit-solvation/benchmarks/route2-direct-pcm-half-coupling-reledger-v1.json",
+      "sha256": "eb1eb4fe0007857eae73f5d492928a743027e7e6e1acf89ac5f5b0a47545d015"
+    },
+    {
+      "bytes": 33377,
+      "lines": 863,
+      "path": "docs/implicit-solvation/benchmarks/route2-fc-aswig-cpcm-grid-convergence-historical10-v1.json",
+      "sha256": "c57213672ecdfbd000ff78cbb563086891aa187e5809c537563ac6d80b0d5c02"
+    },
+    {
+      "bytes": 42748,
+      "lines": 1088,
+      "path": "docs/implicit-solvation/benchmarks/route2-fc-aswig-cpcm-historical10-experimental-v1.json",
+      "sha256": "97c3f88fdb5c24b5f201012229cf9f51bb9cc6813c06f6c1278a40fa0d1c47af"
+    },
+    {
+      "bytes": 185796,
+      "lines": 4258,
+      "path": "docs/implicit-solvation/benchmarks/route2-fc-aswig-force-v3-release-evidence-v1.json",
+      "sha256": "e1f2056be2bc5c9f2808f81d7267c8fcf39efe89b9b189fd7bb50ea5dd0eb06c"
+    },
+    {
+      "bytes": 1894,
+      "lines": 20,
+      "path": "docs/implicit-solvation/benchmarks/route2-four-molecule-accuracy-prereg-v1-disposition.json",
+      "sha256": "bd9eced8969bbade6c0d7e985a6a7e3122cd5557dc344293efab8d868326ad41"
+    },
+    {
+      "bytes": 4696,
+      "lines": 104,
+      "path": "docs/implicit-solvation/benchmarks/route2-four-molecule-accuracy-prereg-v1.json",
+      "sha256": "e21a03ead130c08d32c0b9d31df7da58921298857ba01099c0af251434076829"
+    },
+    {
+      "bytes": 14786,
+      "lines": 305,
+      "path": "docs/implicit-solvation/benchmarks/route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1-execution-ae427ea7.json",
+      "sha256": "cf3359e803c74eafe4a6c523fa835c0be08f59d95f6575bb1ce8ffdab5b07ca9"
+    },
+    {
+      "bytes": 14295,
+      "lines": 419,
+      "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-acetone-v1.json",
+      "sha256": "9f5d13432ee5a3759bcc45ec6b0e6e845d3eb977d16cd7f3578c9813f3660823"
+    },
+    {
+      "bytes": 11893,
+      "lines": 203,
+      "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+      "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
+    },
+    {
+      "bytes": 92907,
+      "lines": 1846,
+      "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-v1.json",
+      "sha256": "9969c3a9ba07ad349d0ef460f84a84e9b03e5d2b7021a8a7e9bf43c86f2480e8"
+    },
+    {
+      "bytes": 6230,
+      "lines": 175,
+      "path": "docs/implicit-solvation/benchmarks/route2-jgp94-frame-vjp-preflight-v1.json",
+      "sha256": "eefad3ce832bf8ffc1c2db9d29663e151da83e1558a3489e4193a360eaaeafb2"
+    },
+    {
+      "bytes": 176522,
+      "lines": 4354,
+      "path": "docs/implicit-solvation/benchmarks/route2-legacy-exact-gto-confirmation123-diagnostic-v1.json",
+      "sha256": "bb765e8dff28b3c9fc4422052661f2ce076b9160af0564068e250f311cc9d67e"
+    },
+    {
+      "bytes": 27460,
+      "lines": 766,
+      "path": "docs/implicit-solvation/benchmarks/route2-legacy-exact-gto-historical-freesolv12-diagnostic-v1.json",
+      "sha256": "4169192b286bbc8767da122c9c85de7ae9fa22aad20cb728d998dea43ffe8088"
+    },
+    {
+      "bytes": 19874,
+      "lines": 397,
+      "path": "docs/implicit-solvation/benchmarks/route2-legacy-exact-gto-historical-top5-diagnostic-v1.json",
+      "sha256": "12f9cd3a9a9260d206616cbcbf19ab033ad58035a160dd99b43aff4df24c9eb7"
+    },
+    {
+      "bytes": 3747,
+      "lines": 73,
+      "path": "docs/implicit-solvation/benchmarks/route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json",
+      "sha256": "ec758ec0f3a3e759f0bea06ea61a7b7ccb51a0318a24751911e7783436523c52"
+    },
+    {
+      "bytes": 16057,
+      "lines": 375,
+      "path": "docs/implicit-solvation/benchmarks/route2-mace-exact-gto-fixed-geometry-canary-v1.json",
+      "sha256": "350a1a583a1a2f88aebf1c119f58e0f629a71920ddbae364645498c841af9ba1"
+    },
+    {
+      "bytes": 21750,
+      "lines": 651,
+      "path": "docs/implicit-solvation/benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json",
+      "sha256": "518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6"
+    },
+    {
+      "bytes": 2263,
+      "lines": 29,
+      "path": "docs/implicit-solvation/benchmarks/route2-mace-p0-artifact-dispositions-v1.json",
+      "sha256": "ecd4989b6dcf142557e75eaf682be4918a63e9bcd92c33b15ffc7b0e9bed9e91"
+    },
+    {
+      "bytes": 25360,
+      "lines": 657,
+      "path": "docs/implicit-solvation/benchmarks/route2-mace-p0-field-contract-v1.json",
+      "sha256": "786b4701f30bd2881f2db5a0f53fbea74b7dde26072c32577c01afef2e432fd5"
+    },
+    {
+      "bytes": 31042,
+      "lines": 665,
+      "path": "docs/implicit-solvation/benchmarks/route2-mace-p1-water-operational-audit-v1.json",
+      "sha256": "4f745aba02c2fb6584709c58676768d9a54efa3a5cf99392d0f7a23d80b4d0e7"
+    },
+    {
+      "bytes": 25288,
+      "lines": 473,
+      "path": "docs/implicit-solvation/benchmarks/route2-matched-projector-top5-diagnostic-v1.json",
+      "sha256": "7b111950e24898cbc1aebba9ae239f5869d6db54bff2aa1d7aff4c10610e463c"
+    },
+    {
+      "bytes": 5548,
+      "lines": 109,
+      "path": "docs/implicit-solvation/benchmarks/route2-matrix-free-feedback-gain-two-state-v1.json",
+      "sha256": "7683c93ae373341de0dcd8563e48a092a9ff231965c326d68cc21de1830dae48"
+    },
+    {
+      "bytes": 7878,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-aimnet2-multisolvent-pilot-v1.json",
+      "sha256": "68319cc76c9f6f8ceb479625dd3f2a841cd592609b0a564d8978f1e783521d11"
+    },
+    {
+      "bytes": 47708,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-confirmation-selection-v1.json",
+      "sha256": "7b52d379fb5ece0b6244eab6191e918592cedd2e2934849a57a6befa6eba5353"
+    },
+    {
+      "bytes": 7141,
+      "lines": 165,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-fixed-source-pyscf-pcm-family-prereg-v1.json",
+      "sha256": "90d84d89d96d1db14ceb2a2e2d5d4569f9544177ac72ac64b500570ca315da54"
+    },
+    {
+      "bytes": 14330,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-fixed-source-pyscf-pcm-family-v1.json",
+      "sha256": "d387adb6d3e2e1fa082685948911eb45fbf60ba8ff5cc3c313d758df46d8179f"
+    },
+    {
+      "bytes": 9195,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2-execution-e1f8acb1.json",
+      "sha256": "92fba63e4f091c191ca712171804a5e16970a564dda247b185e756d149765832"
+    },
+    {
+      "bytes": 9101,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-pilot-v1-execution-ae427ea7.json",
+      "sha256": "a40c60257644f90beadb6bdb4236772df8dc2bb1f5bc929443efdeb84985a366"
+    },
+    {
+      "bytes": 10970,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-macepolar-response-ablation-v1.json",
+      "sha256": "2d7e7d2ea5356ad97344e77316d1c4c30dae3cfa2642892ff5b1c93cd8168c52"
+    },
+    {
+      "bytes": 1373,
+      "lines": 28,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-macepolar-solvent-diversity-canary-prereg-v1.json",
+      "sha256": "1dc506e646c006e7b1204733d7143b20a017f2978f8cdb701130bf09defa99a7"
+    },
+    {
+      "bytes": 8224,
+      "lines": 170,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-opencosmors24a-fixed-geometry-prereg-v1.json",
+      "sha256": "67924ba47e286d976cf0dc9f93d3dd2f2fa73768b71fd7e9535b1a35fb976234"
+    },
+    {
+      "bytes": 8463,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-opencosmors24a-fixed-geometry-v1.json",
+      "sha256": "13c78bdaf72a61b830a5535882ada87fd32acf196a4aa78a8f9e840a84531125"
+    },
+    {
+      "bytes": 4593,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-pilot-selection-v1.json",
+      "sha256": "689dee172e7d8da3f2e5a501dd1ca905f18cf4dae9f830cabea1cb05e933a069"
+    },
+    {
+      "bytes": 6228,
+      "lines": 159,
+      "path": "docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json",
+      "sha256": "70c34de4b9812f557c123cd124f1b49d4b58e33467e6ba893f4c267b905b9a21"
+    },
+    {
+      "bytes": 21976,
+      "lines": 451,
+      "path": "docs/implicit-solvation/benchmarks/route2-pcmsolver-exact-gto-acetone-v1.json",
+      "sha256": "3c947525f892a291621cff962625b06684b5b6b093160d08462613da98dd5504"
+    },
+    {
+      "bytes": 38577,
+      "lines": 921,
+      "path": "docs/implicit-solvation/benchmarks/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json",
+      "sha256": "d20469a091b84523d3b7417dc3a90696a72c31124ff6e18a54a33e1e62b71d90"
+    },
+    {
+      "bytes": 8990,
+      "lines": 243,
+      "path": "docs/implicit-solvation/benchmarks/route2-protocol.json",
+      "sha256": "034125ffbc422eedb51d865f00982df6f89444b32787ddd631c0da628e817196"
+    },
+    {
+      "bytes": 3302,
+      "lines": 77,
+      "path": "docs/implicit-solvation/benchmarks/route2-pyscf-iswig-discriminator-prereg-v1.json",
+      "sha256": "76ff7457c739d4666a9619f8af0e7c8be9bb844ae383fca2f2fb82c095b6b6f6"
+    },
+    {
+      "bytes": 8917,
+      "lines": 278,
+      "path": "docs/implicit-solvation/benchmarks/route2-pyscf-iswig-discriminator-v1.json",
+      "sha256": "9a5f68ed2e56ceddbd7e887282447c48bf9957dfd702b9b8fb4224d2fa41d63f"
+    },
+    {
+      "bytes": 76975,
+      "lines": 1266,
+      "path": "docs/implicit-solvation/benchmarks/route2-qm-fidelity-v1.json",
+      "sha256": "f81678f34301353385e488d3df54f78e93eb2fe92ee44940c0216c0c38d158a1"
+    },
+    {
+      "bytes": 6471,
+      "lines": 155,
+      "path": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.json",
+      "sha256": "bc85c8375fee448ceb78f7394a23a459e9c17ea6e70f672f3e3937072112736f"
+    },
+    {
+      "bytes": 2505,
+      "lines": 14,
+      "path": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz",
+      "sha256": "d81363187ce6092b23031f5626e0d794bbad4f44646f1e06e41b1112768fefc6"
+    },
+    {
+      "bytes": 528952,
+      "lines": 13091,
+      "path": "docs/implicit-solvation/benchmarks/route2-swig-iefpcm-frozen-source-coverage135-v1.json",
+      "sha256": "811597d01f7fa7f5e331e2f57a5f3ee56283d0d4bbf09bc46245e25ebed9bb4b"
+    },
+    {
+      "bytes": 441772,
+      "lines": 8437,
+      "path": "docs/implicit-solvation/benchmarks/route2-swig-iefpcm-frozen-source-rotation135-v1.json",
+      "sha256": "9f76a1c980cfe724576bf8bea0ee30038ab46704756cb38dc39883b45b3462d3"
+    },
+    {
+      "bytes": 4777,
+      "lines": 73,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-electronic-preflight-20260730.json",
+      "sha256": "c233ccdc69431bec4b8070b8d097761fc5fcdaa049a090312826ebd5a29ad5f4"
+    },
+    {
+      "bytes": 517,
+      "lines": 29,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-geometry-v1.json",
+      "sha256": "992ac7f8b4c3759ca6d9929c6c682618a770b429358ec8c0fad58e6df385b4f4"
+    },
+    {
+      "bytes": 3384,
+      "lines": 55,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-pcm-control-v1.json",
+      "sha256": "3b48a728a271f736650c8b6f7f54075d836984b33ab0ede8752c55d9d903f3d7"
+    },
+    {
+      "bytes": 3394,
+      "lines": 62,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-pcm-prereg-v1.json",
+      "sha256": "4129f6807c253c393874b46c1cbba5009bad97c484a64e4c03ab4a3b87489283"
+    },
+    {
+      "bytes": 4609,
+      "lines": 58,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-continuum-admission-audit-v1.json",
+      "sha256": "86a91c170be526ae08edb3d6df1e284885bcde50b627d712ee0bd68f5732a11b"
+    },
+    {
+      "bytes": 4211,
+      "lines": 49,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-frozen-kkt-prereg-v1.json",
+      "sha256": "e29be67276cf3766d9246c438fdf02cbfa690330a5fd5151af0a015d58fef117"
+    },
+    {
+      "bytes": 3542,
+      "lines": 80,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-prereg-v1.json",
+      "sha256": "b8042d8b3543a63fed7156446961b18967ea52371cd67d1be54fa5f84bfeb629"
+    },
+    {
+      "bytes": 4614,
+      "lines": 102,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-prereg-v2.json",
+      "sha256": "d995730243d3d6deec55ba7166f455dbd404c62327f829f1333b89292810673b"
+    },
+    {
+      "bytes": 3563,
+      "lines": 68,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v1-preflight-reproducibility-audit.json",
+      "sha256": "e696daf378881f048eca83f726a27c5ad8d6d99f148048fef08655cb06b95907"
+    },
+    {
+      "bytes": 6093,
+      "lines": 126,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v1.json",
+      "sha256": "bcf04cf94bff62c8f1101ae37bc5c73559efee981b0fae7dda67a0d8d4d3bcbd"
+    },
+    {
+      "bytes": 66695,
+      "lines": 236,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v1.npz",
+      "sha256": "d5c1766551497ba1fcb89dfe1d9067ab1e2c754bb87ec44cf64da79b8870ee75"
+    },
+    {
+      "bytes": 2432,
+      "lines": 38,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2-reproducibility-audit.json",
+      "sha256": "5e4ff7e80f686126c200e890479fbed0ef74d6ad5431abc7f1e797a32e73c7eb"
+    },
+    {
+      "bytes": 6474,
+      "lines": 137,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.json",
+      "sha256": "6e51af89844fdd4a29ae10e9b3dc1ab5c5437b1d6d93aec894313dedfff9f9d0"
+    },
+    {
+      "bytes": 66640,
+      "lines": 227,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.npz",
+      "sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319"
+    },
+    {
+      "bytes": 4422,
+      "lines": 49,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-reduced-kkt-prereg-v1.json",
+      "sha256": "7b98df9b8270062b6755ef3649cc372022a4ca27bccabc130e9b6d7bafe1bb50"
+    },
+    {
+      "bytes": 6427,
+      "lines": 89,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-source-acetone-prereg-v1.json",
+      "sha256": "5c448020ece45f42b35d9a12a3c5175306ebb2c9194264c899e061e37c8b7cf0"
+    },
+    {
+      "bytes": 10851,
+      "lines": 264,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-source-acetone-v1.json",
+      "sha256": "86fcfa24af125caee6c9e85482c05a3c2215d798928cd4a0cfa1b95c92dc8ce0"
+    },
+    {
+      "bytes": 4424,
+      "lines": 96,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-prereg-v1.json",
+      "sha256": "7fae0d620038677c36e4b7b7eb67d4389b344bc73af0f27a2eb221b5ce233544"
+    },
+    {
+      "bytes": 14750,
+      "lines": 367,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.json",
+      "sha256": "fb385369e00bcd25b69dc8e6aadd169497acdce845fce6f60cbf9bc1584ee25a"
+    },
+    {
+      "bytes": 21009,
+      "lines": 167,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.npz",
+      "sha256": "a606cd7b2bf4a11d37e63ad1563c28fcf984eb8246c6adf07c98a33e5dd60f2b"
+    },
+    {
+      "bytes": 7208,
+      "lines": 96,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-source-acetone-prereg-v1.json",
+      "sha256": "258a5ed6722c2275324eca46c381fd7e3e5d0c45f5b9795d6745089a12dbba2b"
+    },
+    {
+      "bytes": 13458,
+      "lines": 316,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-source-acetone-v1.json",
+      "sha256": "90e8a6f2b6a020cdac8d55cb97fda823bd7e3cf486fbed6ac1f1a63c3cc291ab"
+    },
+    {
+      "bytes": 5412,
+      "lines": 165,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-helper-preflight-v1.json",
+      "sha256": "a982f42216301c3358cfee85589801bfe9d7e6140139a3f21fce9b924e2dbcab"
+    },
+    {
+      "bytes": 4569,
+      "lines": 55,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-preflight-failure-v1.json",
+      "sha256": "fbd5ed5dca45a9550592be58ed6e5cc09306af0f431167e1515f27365fed5130"
+    },
+    {
+      "bytes": 8307,
+      "lines": 98,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-prereg-v1.json",
+      "sha256": "d831001975ab42bf5aebe3a94a2829c4b9ad9ad17f243a8d78ed24eca085d723"
+    },
+    {
+      "bytes": 9509,
+      "lines": 117,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-prereg-v2.json",
+      "sha256": "75be9582c19aea0ba76c6bd75cebc0ca29faff7f68e8fa95ca22dd7d23c78944"
+    },
+    {
+      "bytes": 14811,
+      "lines": 329,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-v2.json",
+      "sha256": "a10a7c7211899143f8bfb1ef22053a247ab0fb840c508ba0532ddc1bb31c6c8f"
+    },
+    {
+      "bytes": 6745,
+      "lines": 65,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-auxiliary-qm-liquid-prereg-v1.json",
+      "sha256": "755fe2774ad1a26ac3b79fb5955b822c4f9473bce9359ff050d481e7c8ad0899"
+    },
+    {
+      "bytes": 4914,
+      "lines": 57,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-bulk-liquid-state-prereg-v1.json",
+      "sha256": "e52d48e3dc60572a00177298c7d8bfe58b8722bd8b53eff0da5a0c63ae1c9f76"
+    },
+    {
+      "bytes": 3985,
+      "lines": 104,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json",
+      "sha256": "5688f9a01e6b2156e29b501415af22d204fe1d0ba85f435444d4d3c7dec79c5d"
+    },
+    {
+      "bytes": 2395,
+      "lines": 35,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-energy-only-fenchel-water-prereg-v1.json",
+      "sha256": "cd6436ec0c35597141c9313ffe476e4224709cf0a9c69f1847b9f288f3d5075e"
+    },
+    {
+      "bytes": 5262,
+      "lines": 121,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-energy-only-fenchel-water-v1.json",
+      "sha256": "507f8234d50a7f9b86016cdbe349298c87cb3c290be859f65424b62f8aa359fe"
+    },
+    {
+      "bytes": 8633,
+      "lines": 109,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-fd-multisolvent-prereg-v1.json",
+      "sha256": "f02377f9d14dd9bd58ef764ee347a7a3678a1c61cab86fd0d3941933ace9c8e7"
+    },
+    {
+      "bytes": 13093,
+      "lines": 291,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-functional-groups-v1.json",
+      "sha256": "ff8f7fa425020968de65026c84fa863d64b25b8b4729d25be1b4f83cffd5306f"
+    },
+    {
+      "bytes": 55398,
+      "lines": 1,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-mace-localized-response-execution-62a8e413.json",
+      "sha256": "a3b498b01dd54b587ac821598578d6746098cdb749744f6ee676b811e5163757"
+    },
+    {
+      "bytes": 12705,
+      "lines": 237,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-mace-localized-response-prereg-v1.json",
+      "sha256": "2257e54a2d65d8ec3bdb796a2d2cdcd75a790296ccf5f1d29d12edfe7971d013"
+    },
+    {
+      "bytes": 14671,
+      "lines": 269,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json",
+      "sha256": "e6521c56520cc3794f47a5f1724b8c99290ccd6903bfc28eef734f2d47e839f4"
+    },
+    {
+      "bytes": 8470,
+      "lines": 182,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json",
+      "sha256": "21e4e607b5c88d498be117f41c37b54b00d96eb953c78874eb1ea39b7a040f20"
+    },
+    {
+      "bytes": 4296,
+      "lines": 49,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-full-response-kkt-prereg-v1.json",
+      "sha256": "6c7159414d55a927ddd0f430f01da164e08239ec9599c090654dc937fe1c71ba"
+    },
+    {
+      "bytes": 2166,
+      "lines": 36,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-preflight-failure-v1.json",
+      "sha256": "3d4493811935aaa78510f0a22a095ee5b6d140809690d51e5f9674a5df8e65f2"
+    },
+    {
+      "bytes": 2591,
+      "lines": 46,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1.json",
+      "sha256": "8330f38b3938af5777b426a15ae31ba37fb1b9d04a31e069429ac5c3d08c2299"
+    },
+    {
+      "bytes": 3426,
+      "lines": 51,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2.json",
+      "sha256": "3d266ce9a07cbe5adcdd0499d754c68dff95c3a6b41c5f68e796de8e1143b74d"
+    },
+    {
+      "bytes": 5325,
+      "lines": 169,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-v2.json",
+      "sha256": "170762e1bc2a119061badb05379f183e9fa3298e154cb827877211ca2df41d21"
+    },
+    {
+      "bytes": 3389,
+      "lines": 52,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json",
+      "sha256": "8cb2deb154661f2ef6c2fd8658b51aa6f46674e4cfd163e6286ec619da9999be"
+    },
+    {
+      "bytes": 6125,
+      "lines": 83,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json",
+      "sha256": "f87905ce36a2c42fe2eb78dccc398ea745302472686985ca4b201f7313ee4f35"
+    },
+    {
+      "bytes": 7908,
+      "lines": 98,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json",
+      "sha256": "d28e05ba010f5e5dd489916cc78f943bdcb172e82e1264be3c7a7cd318083a62"
+    },
+    {
+      "bytes": 38867,
+      "lines": 1293,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-static-mep-acetone-v2.json",
+      "sha256": "c70f7f79c0e3b8bb707bfce8a793e3ae6c2d0e9c863a994273b5a2d8058e73bd"
+    },
+    {
+      "bytes": 5210,
+      "lines": 87,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-xtb-acetone-field-prereg-v1.json",
+      "sha256": "24c353724a77bc496f4760fd9a2b7ea79eb6cab1ac3c56fca4401333335a7c19"
+    },
+    {
+      "bytes": 23417,
+      "lines": 734,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-xtb-acetone-field-v1.json",
+      "sha256": "a82b0e9f8cfdb04585fc682e6f7774648f99eeef3a44e8172a083363233ec07c"
+    },
+    {
+      "bytes": 8953,
+      "lines": 209,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-historical-freesolv10-regression-v1.json",
+      "sha256": "69ceb77397f15c945fb5e2e26f5729ee58f34fc22a0acaadfe9d87a6266b44a8"
+    },
+    {
+      "bytes": 6301,
+      "lines": 73,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-lorentz-nonlocal-dielectric-prereg-v1.json",
+      "sha256": "51a94bd21e51ee32ca0e980b22e898e57f2a79881fb51b09214980da55cd8b2d"
+    },
+    {
+      "bytes": 5242,
+      "lines": 70,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-derivatives-prereg-v1.json",
+      "sha256": "df656090edda145ff659dd7749bd6dcd5666622cd340c01457241e7538245f14"
+    },
+    {
+      "bytes": 36168,
+      "lines": 1505,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-derivatives-v1.json",
+      "sha256": "7cca4b7c99c63e5eb0ca1abde72c6f41cfd06204990654b7ca3f3c852eb0682f"
+    },
+    {
+      "bytes": 7369,
+      "lines": 102,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-prereg-v1.json",
+      "sha256": "86ff3dd6a070a960098dd85b7da3cf6a750c15e5e4860f32b584e64d064097ea"
+    },
+    {
+      "bytes": 8903,
+      "lines": 306,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json",
+      "sha256": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9"
+    },
+    {
+      "bytes": 17092,
+      "lines": 662,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json",
+      "sha256": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0"
+    },
+    {
+      "bytes": 6379,
+      "lines": 77,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-prereg-v1.json",
+      "sha256": "b2036f30e87cd9aab4741eee5e0e091a275e3e6f9582c1d7f07068f5368e095f"
+    },
+    {
+      "bytes": 6314,
+      "lines": 102,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-induced-source-acetone-prereg-v1.json",
+      "sha256": "7279de5aeb9c7d4a0db72f618748e33696a48731de9722267f90613726b119e0"
+    },
+    {
+      "bytes": 3444,
+      "lines": 82,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-induced-source-acetone-v1-execution-erratum.json",
+      "sha256": "facf8a696ee97b9556b0462e2ff17ca240dd74d3bbe5ff2aa8d873fddbd4c13f"
+    },
+    {
+      "bytes": 13148,
+      "lines": 336,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-induced-source-acetone-v1.json",
+      "sha256": "503d268592a16bf2fbb99b1444f8ede65309f5421b443e8f98d2a64f25a94046"
+    },
+    {
+      "bytes": 6475,
+      "lines": 72,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-molecular-cubic-wda-prereg-v1.json",
+      "sha256": "986755429460a1049dcc5eb349aa4e48749cef1dd5b44adcec3e692406d5c2f8"
+    },
+    {
+      "bytes": 4624,
+      "lines": 50,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-molecular-hnc-closure-identity-v1.json",
+      "sha256": "20a7cabb76d554e6b6a8152d8dea3ae6a87657b58ddf98c18d213b95249073eb"
+    },
+    {
+      "bytes": 3521,
+      "lines": 67,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-molecular-moment-acetone-oracle-v1.json",
+      "sha256": "03106e7a30a8dcb37d1f211f4f4f683c0616e930dbae0f8ef2c8064e4f097fac"
+    },
+    {
+      "bytes": 5562,
+      "lines": 62,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-molecular-rism-state-prereg-v1.json",
+      "sha256": "a159089840c1a97faff9f31a054cf441ae9fdd4052b66aed3f80cb3b7e6419a2"
+    },
+    {
+      "bytes": 2293,
+      "lines": 36,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-ordinary-water-surface-tension-iapws-r1-76-2014-v1.json",
+      "sha256": "faa4a1d2a5e468f54d3a817cfc190c454bb43167f806f004cdc45559aea0b681"
+    },
+    {
+      "bytes": 3990,
+      "lines": 42,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-permanent-reference-identifiability-audit-v1.json",
+      "sha256": "338a6772d61b061848bf4a9584b0cc9744888e12d616beda25b2e449d6df2746"
+    },
+    {
+      "bytes": 3441,
+      "lines": 81,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-prereg-v1.json",
+      "sha256": "5325d6ec57a5310848d409a8253dcdd28499a861bbc3538644f533bacd64850d"
+    },
+    {
+      "bytes": 5426,
+      "lines": 122,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.json",
+      "sha256": "9f0b56bbe5bc116d55b10ac3aa7246080e1a17a06001f62b81cd3f66b6c95f81"
+    },
+    {
+      "bytes": 104703,
+      "lines": 401,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.npz",
+      "sha256": "1a63ae8a5d939e00f0a8dba1951a8099dad8ba2a068be61431046c880d7aae28"
+    },
+    {
+      "bytes": 4853,
+      "lines": 69,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-pse3-native-admission-audit-v1.json",
+      "sha256": "3782c3e128a2e3add78624a6955fb007c9d44c8d0f4b7e25193da01fbffc7b4d"
+    },
+    {
+      "bytes": 4857,
+      "lines": 90,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-prereg-v1.json",
+      "sha256": "d36d03fec186c70ae0e73917f22680251033ebb2b52b2da6b84cc1df6130868c"
+    },
+    {
+      "bytes": 16326,
+      "lines": 568,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json",
+      "sha256": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8"
+    },
+    {
+      "bytes": 5749,
+      "lines": 88,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-monopole-acetone-prereg-v1.json",
+      "sha256": "15d46f782aadcf47cae2dc03f3686a69199834dc41bda0c6ff35328a3d1b9ac9"
+    },
+    {
+      "bytes": 9571,
+      "lines": 258,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-monopole-acetone-v1.json",
+      "sha256": "ff8fa4814946ec804584144fb8f6e512ac453498a2a59b0e50cb975f1727908b"
+    },
+    {
+      "bytes": 4462,
+      "lines": 49,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-response-kernel-completion-prereg-v1.json",
+      "sha256": "60c9846afff5168c3b99434f7ef611457180ec4e08b9fbfcf117c53703da6b8f"
+    },
+    {
+      "bytes": 4887,
+      "lines": 99,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-rism1d-cspce-bulk-control-v1.json",
+      "sha256": "4926fa43853df5bdfe6eab6ca766f5c726f35c75c4ef0605abeb71e220bf40a0"
+    },
+    {
+      "bytes": 2508,
+      "lines": 43,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-scalar-response-water-prereg-v1.json",
+      "sha256": "7782352a2ffa48e968387b44aaad781ff3f9c4c113b1c3735ba6ab69997deb05"
+    },
+    {
+      "bytes": 13213,
+      "lines": 450,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-scalar-response-water-v1.json",
+      "sha256": "8cd04614399ba9340246e79fa0ecd3849860e91143bcd73213c67c46dc948fbf"
+    },
+    {
+      "bytes": 16676,
+      "lines": 233,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-solvent-asset-inventory-v1.json",
+      "sha256": "68dae3fb7997dc8164b88be76f1916bef20e8f0f1385cfb047c73d2aaef293a9"
+    },
+    {
+      "bytes": 54814,
+      "lines": 291,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-structured-solvent-admission-v1.json",
+      "sha256": "0caa876afd3a12ef26e173e82542730e27307c29da8b4245e9dd72f3076e0716"
+    },
+    {
+      "bytes": 6434,
+      "lines": 77,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-variational-quadratic-prereg-v1.json",
+      "sha256": "42d7bae526a8391d63a3d14092b4de3386874a32a0b30853b7aa3467fa118d61"
+    },
+    {
+      "bytes": 11202,
+      "lines": 80,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-weighted-density-bridge-prereg-v1.json",
+      "sha256": "28471edab46bc1a48d2fcfd8f0f50e69659243a5ead8ed5ec46097929e0a323c"
+    },
+    {
+      "bytes": 3661,
+      "lines": 61,
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-xtb-cosmo-source-screen-v1.json",
+      "sha256": "531da92624fcd795245e9930348206e4306ac6fb45012257594aeb79768a9b6e"
+    }
+  ],
+  "production_modules": [
+    {
+      "bytes": 3071,
+      "lines": 96,
+      "path": "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py",
+      "sha256": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67"
+    },
+    {
+      "bytes": 19627,
+      "lines": 463,
+      "path": "maple/function/calculator/extra_correction/implicit/gto_density.py",
+      "sha256": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3"
+    },
+    {
+      "bytes": 15970,
+      "lines": 442,
+      "path": "maple/function/calculator/extra_correction/implicit/gto_field_projection.py",
+      "sha256": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e"
+    },
+    {
+      "bytes": 18125,
+      "lines": 514,
+      "path": "maple/function/calculator/extra_correction/implicit/gto_galerkin.py",
+      "sha256": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1"
+    },
+    {
+      "bytes": 27656,
+      "lines": 674,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_atomic_reference_density.py",
+      "sha256": "73ec5d5dffe79a3275ffefe62ccfcf33400705a4ed52a1a366b6c5222f4f02fc"
+    },
+    {
+      "bytes": 11941,
+      "lines": 342,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_body_frame.py",
+      "sha256": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10"
+    },
+    {
+      "bytes": 8672,
+      "lines": 216,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_charging_path_diagnostics.py",
+      "sha256": "49508f0322ac7ea3cab0219e0facd34a27624921541dda9cb68be37ec5dc91f0"
+    },
+    {
+      "bytes": 26201,
+      "lines": 686,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_density_levelset.py",
+      "sha256": "58714be571cda39e97f15905d6fc2644ba7f1595b6f0b5906a74808cea803d14"
+    },
+    {
+      "bytes": 25997,
+      "lines": 709,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_derivative.py",
+      "sha256": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06"
+    },
+    {
+      "bytes": 5193,
+      "lines": 139,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_domain.py",
+      "sha256": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89"
+    },
+    {
+      "bytes": 25351,
+      "lines": 684,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py",
+      "sha256": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1"
+    },
+    {
+      "bytes": 108831,
+      "lines": 2605,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_engine.py",
+      "sha256": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd"
+    },
+    {
+      "bytes": 20226,
+      "lines": 510,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py",
+      "sha256": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953"
+    },
+    {
+      "bytes": 12004,
+      "lines": 306,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py",
+      "sha256": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1"
+    },
+    {
+      "bytes": 5907,
+      "lines": 175,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_feature_response.py",
+      "sha256": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced"
+    },
+    {
+      "bytes": 12018,
+      "lines": 315,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_field_state.py",
+      "sha256": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73"
+    },
+    {
+      "bytes": 10030,
+      "lines": 311,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py",
+      "sha256": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567"
+    },
+    {
+      "bytes": 19337,
+      "lines": 459,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py",
+      "sha256": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9"
+    },
+    {
+      "bytes": 43481,
+      "lines": 1024,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_force_admission.py",
+      "sha256": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b"
+    },
+    {
+      "bytes": 21248,
+      "lines": 552,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py",
+      "sha256": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2"
+    },
+    {
+      "bytes": 17816,
+      "lines": 517,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py",
+      "sha256": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea"
+    },
+    {
+      "bytes": 17437,
+      "lines": 438,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py",
+      "sha256": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a"
+    },
+    {
+      "bytes": 9596,
+      "lines": 228,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py",
+      "sha256": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66"
+    },
+    {
+      "bytes": 44723,
+      "lines": 1124,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_moist_drop.py",
+      "sha256": "60a2c83e418ce025cfa46e0d98e2bcaa488f8262c4177ca2d4ec9500d559949d"
+    },
+    {
+      "bytes": 10067,
+      "lines": 274,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py",
+      "sha256": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b"
+    },
+    {
+      "bytes": 32524,
+      "lines": 830,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py",
+      "sha256": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b"
+    },
+    {
+      "bytes": 30935,
+      "lines": 859,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py",
+      "sha256": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9"
+    },
+    {
+      "bytes": 16498,
+      "lines": 477,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py",
+      "sha256": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173"
+    },
+    {
+      "bytes": 3562,
+      "lines": 117,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_plugin.py",
+      "sha256": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785"
+    },
+    {
+      "bytes": 24028,
+      "lines": 663,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py",
+      "sha256": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f"
+    },
+    {
+      "bytes": 218,
+      "lines": 8,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py",
+      "sha256": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b"
+    },
+    {
+      "bytes": 8395,
+      "lines": 230,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py",
+      "sha256": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52"
+    },
+    {
+      "bytes": 5645,
+      "lines": 161,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py",
+      "sha256": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d"
+    },
+    {
+      "bytes": 10909,
+      "lines": 296,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py",
+      "sha256": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7"
+    },
+    {
+      "bytes": 7395,
+      "lines": 190,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_pminus1.py",
+      "sha256": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466"
+    },
+    {
+      "bytes": 14079,
+      "lines": 386,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_response.py",
+      "sha256": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4"
+    },
+    {
+      "bytes": 41354,
+      "lines": 1007,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_rhodrop_cpcm.py",
+      "sha256": "701b937efc97be9a56a5a37616dac6b691a37eed63d8a3f16f4978f3f47fdc13"
+    },
+    {
+      "bytes": 20178,
+      "lines": 473,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_rhodrop_profile.py",
+      "sha256": "83246350098196be329a3c4a6c1b4ba3141af5e9300ca09d4754830831f300e6"
+    },
+    {
+      "bytes": 10329,
+      "lines": 257,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_root_study.py",
+      "sha256": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45"
+    },
+    {
+      "bytes": 9401,
+      "lines": 197,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_static_surface_mep.py",
+      "sha256": "ed3df89c1a107586a6de1da9158b076f80c1a4448f282e815de6cd9b672dad7c"
+    },
+    {
+      "bytes": 47464,
+      "lines": 1335,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py",
+      "sha256": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e"
+    },
+    {
+      "bytes": 20072,
+      "lines": 503,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_all_atom_solvent_model_source.py",
+      "sha256": "790227d916bc5b80d2af28722b067fc7ad088071710258066cb1afb3ed99d24a"
+    },
+    {
+      "bytes": 28395,
+      "lines": 726,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_frozen_kkt.py",
+      "sha256": "7b9541afcb9fc5b90e10fa87a31fafee4ff5d869966134634d5fcd673fec109b"
+    },
+    {
+      "bytes": 29662,
+      "lines": 749,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_kkt.py",
+      "sha256": "e4471a45f3d4b8beb8d3284f2bf971d19e9c6da49e8e36de8198e53e54d9d7ff"
+    },
+    {
+      "bytes": 15074,
+      "lines": 379,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py",
+      "sha256": "044bdf69a03db6b80f6de0cc30ba30ad7c6ae01cde9a65a868784525ff73046f"
+    },
+    {
+      "bytes": 31800,
+      "lines": 719,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_response.py",
+      "sha256": "9d6f2f3892b57e57ea3db6f70a350fbb81b2a0fad22414c58625f7f2b38bebd3"
+    },
+    {
+      "bytes": 9875,
+      "lines": 256,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_surface.py",
+      "sha256": "45a38c3d8875c0cc1cccf9ddefe82c019300a8af21db82e195e00c3389cc668b"
+    },
+    {
+      "bytes": 35807,
+      "lines": 842,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_response_stationary_source.py",
+      "sha256": "d2a78bab4736dd7e470b3e1a692526b5d627922bd86f237430be3bff3a733bc7"
+    },
+    {
+      "bytes": 15588,
+      "lines": 397,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_auxiliary_ao_grid.py",
+      "sha256": "f13b9346f896ed93b18a20b386715495b706049b25f9eaf25fc638a7c96d92ef"
+    },
+    {
+      "bytes": 9215,
+      "lines": 251,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_auxiliary_qm.py",
+      "sha256": "366a9665c9237472c0b7ff78013ad418878971fe808f6046d9f55b52ec09af01"
+    },
+    {
+      "bytes": 21067,
+      "lines": 535,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_bulk_liquid_state_source.py",
+      "sha256": "25ef636813d15705155ffb7e7f1cb4956b3c5b613eefd9bbcd68dd2942ae8147"
+    },
+    {
+      "bytes": 23427,
+      "lines": 570,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_diffuse_continuum.py",
+      "sha256": "c71e113c6023dbbac954164dcb6758735d9dbf66a4744e182e29464d5c9f123c"
+    },
+    {
+      "bytes": 8953,
+      "lines": 224,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_frozen_density.py",
+      "sha256": "5958e5c528de17d90ddc5affa177ac025cd033671b9a291e2ac455098c45559a"
+    },
+    {
+      "bytes": 6298,
+      "lines": 165,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_frozen_density_embedding.py",
+      "sha256": "acb7d8a6769148bd236b6526a33ffaba43e7ef8c3dd3987203957fcdb20b281e"
+    },
+    {
+      "bytes": 26950,
+      "lines": 620,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_full_response_kkt.py",
+      "sha256": "04081b4a1f34ef54d5488027b04bb47ff2acb2279468d46585d9d481aa7587d0"
+    },
+    {
+      "bytes": 50163,
+      "lines": 1263,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_gfn2_molden_permanent_source.py",
+      "sha256": "bc00ad2fedfb43d17e74a3048a2715bb75d96a3b1b57d76752bc4b23384aab73"
+    },
+    {
+      "bytes": 24559,
+      "lines": 592,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_iso_density_cavity.py",
+      "sha256": "5d8c02be40dac20295b060212c87a838a1eba9f532ccda49e70bb1d3bcc2808b"
+    },
+    {
+      "bytes": 16503,
+      "lines": 425,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_lorentz_dielectric_source.py",
+      "sha256": "7b37d7030ca72ccf5e2d8421c3e4f1d5bbd7e8ee827993330cc9a4ee376bf19b"
+    },
+    {
+      "bytes": 33635,
+      "lines": 818,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_mace_cluster_external_potential.py",
+      "sha256": "23cf329bdf8988f1d47e4d11d836208477d84ee2a3311a3ad29665272d6cca86"
+    },
+    {
+      "bytes": 30818,
+      "lines": 744,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_mace_cluster_rism_bridge.py",
+      "sha256": "9c78f5c5f80abcff7fae970cf25a2f6785db39dd8c3074637b408f9c43764f67"
+    },
+    {
+      "bytes": 5571,
+      "lines": 148,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_mace_mdp_moment_source.py",
+      "sha256": "a4f8467e2a93a64830140232fd20b6c7ce8efcff38ccceb1ed67f2fac69d8e45"
+    },
+    {
+      "bytes": 25232,
+      "lines": 620,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_coexistence_continuation.py",
+      "sha256": "800696436b43246ce5d0f979e87a8e9d254e3eef2cc32abefcb8f175d9af40d8"
+    },
+    {
+      "bytes": 21554,
+      "lines": 547,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_external_potential.py",
+      "sha256": "2121b2c18e58596a3690e47b2b22ef52872303c73504c4bc5491d1b2178ce48c"
+    },
+    {
+      "bytes": 1950,
+      "lines": 53,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_external_potential_contract.py",
+      "sha256": "27f7fdea2cbc83e74fb7ed6ea111eeabd696dc144c518077877873b0f82c43da"
+    },
+    {
+      "bytes": 14701,
+      "lines": 360,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_ideal_gas.py",
+      "sha256": "2eb28cac9076f674504b40f424ac9b671837e2d7226ed1de7c65b5ddfcd0d70b"
+    },
+    {
+      "bytes": 27216,
+      "lines": 671,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_phase_coexistence.py",
+      "sha256": "c9af14bf12380c78834543ea0608d989a500aa96ac74d41cd168a305833193c5"
+    },
+    {
+      "bytes": 45944,
+      "lines": 1104,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_planar_interface.py",
+      "sha256": "d7c102c2d9d8b585d5988e0a297aabe5c816e667a0de7b289c152658422b36fb"
+    },
+    {
+      "bytes": 5270,
+      "lines": 136,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_pure_liquid_external_potential.py",
+      "sha256": "d21dea5e4443ca627f7bd7847eb6e29806b8d7f8bc4bad02c68d006df713ddf5"
+    },
+    {
+      "bytes": 12762,
+      "lines": 323,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_pure_liquid_hnc.py",
+      "sha256": "5fb073746469f967b2d4efab2b991f5581ea1a918197fb8f605770179c0e6cdf"
+    },
+    {
+      "bytes": 8518,
+      "lines": 220,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_rism_state_asset_binding.py",
+      "sha256": "d5cbacae2f651be343b43ddb6541d63fe7bb37c730b840cd2a3479a023031a08"
+    },
+    {
+      "bytes": 18247,
+      "lines": 462,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_rism_state_source.py",
+      "sha256": "40c8d102a495df40a212964299e5d3943f2358c43a358bfef0441c1547226b5b"
+    },
+    {
+      "bytes": 16578,
+      "lines": 445,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_site_bspline.py",
+      "sha256": "93b4f9a308185b15f7be717fbe41d98e4942b6b83d4491649d45e0fff7f99430"
+    },
+    {
+      "bytes": 35618,
+      "lines": 885,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_site_hnc.py",
+      "sha256": "fd16a85f4490c0f4c13427927d3a9820bb718c96518a6c9cd91603d3a9955745"
+    },
+    {
+      "bytes": 11777,
+      "lines": 302,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_so3_quadrature.py",
+      "sha256": "52712d9ae709cae9926fc12868c3b63a35cf8e2124f82d72ea682c6b9883c219"
+    },
+    {
+      "bytes": 18752,
+      "lines": 490,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_stability.py",
+      "sha256": "2536b1ba75d036655132339b7be66a5b6ee4630f77bad568c107e0a02bb67c7b"
+    },
+    {
+      "bytes": 21148,
+      "lines": 528,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_surface_tension_continuation.py",
+      "sha256": "799d5ca7cbb34def67182f3f577885f152827dc55a47d4b0cc5e0dcd6d5068e2"
+    },
+    {
+      "bytes": 10715,
+      "lines": 286,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_thermodynamics.py",
+      "sha256": "f1b41c5097757dd3967d52d8ff3e501293ecedbb1224e712e6649234d515b871"
+    },
+    {
+      "bytes": 60413,
+      "lines": 1467,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_molecular_weighted_density_bridge.py",
+      "sha256": "14d2eb4f2bd602f1f7f80360425e4aaa1669874c2fcb4b8d221d93ed4435fbc6"
+    },
+    {
+      "bytes": 24067,
+      "lines": 585,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_nonlocal_dielectric.py",
+      "sha256": "0ed379b04c31cf6319ce5ba6dfc07d1c71db3993f53cd112511e55e4f622be9d"
+    },
+    {
+      "bytes": 11015,
+      "lines": 294,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_open_bspline.py",
+      "sha256": "d0219ed01de39bc6ff05fda998ad3dff9351f42fbb09048bb7705319b003d458"
+    },
+    {
+      "bytes": 27935,
+      "lines": 698,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_open_diffuse_continuum.py",
+      "sha256": "34cfaf29b4873a8cb8e9d2f5255e67ceaf40c2e6955605c3b861fb3b284b04b4"
+    },
+    {
+      "bytes": 27793,
+      "lines": 684,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_open_iso_density_cavity.py",
+      "sha256": "019985654f560cf241b25a50707bcc6da011e41835b54e7b8663e3af04f22e73"
+    },
+    {
+      "bytes": 20971,
+      "lines": 523,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_open_weighted_density_cavity.py",
+      "sha256": "a25e2a96f7e05641abb967f4b1d615cb13b46d77fe8f89fffacdfd67aabc508a"
+    },
+    {
+      "bytes": 17238,
+      "lines": 450,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_ordinary_water_surface_tension_source.py",
+      "sha256": "f8e45ad0e14bd9454fb78951999b01ffc1c1af0b42df298bd4518d19811c9cd4"
+    },
+    {
+      "bytes": 13283,
+      "lines": 351,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_periodic_bspline.py",
+      "sha256": "558f7efbcbdb63480b7fadc4eab173db884c24e1cb427672d8d5e64f2cf7411b"
+    },
+    {
+      "bytes": 11951,
+      "lines": 315,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_periodic_coulomb.py",
+      "sha256": "77872feca2ad4a20243c1f7162d4de53f90784c931157eddeeb7d3ba226b6699"
+    },
+    {
+      "bytes": 10739,
+      "lines": 255,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_promolecular_density.py",
+      "sha256": "2f2400dc767acf6c9cecb7af7d974aeb8832b09eccbf16c0750315fa8efd69a0"
+    },
+    {
+      "bytes": 38886,
+      "lines": 974,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_pure_solvent_bridge_certificate.py",
+      "sha256": "9bdce1d7be19b8dab21a4dd5c1f0a99fc7ff218df8cb12afc0c7c638ab5a58c1"
+    },
+    {
+      "bytes": 10727,
+      "lines": 279,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_gas_response.py",
+      "sha256": "bb7155648ae710899453a4d5d4b6c59e3d1daec60bc4e33cd90d4f4e4077dce5"
+    },
+    {
+      "bytes": 14494,
+      "lines": 391,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_monopole.py",
+      "sha256": "9baa4bd1e2d213e667027973a241ee194644eb8a3bf7f6a9a54ce4ed1912fe60"
+    },
+    {
+      "bytes": 33929,
+      "lines": 835,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_response_kernel.py",
+      "sha256": "bae7b171a87e20c10c38764a307a90b538348621f4a155856b5735f25318d606"
+    },
+    {
+      "bytes": 21346,
+      "lines": 535,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_bulk.py",
+      "sha256": "72f6d28738061e00e4943e0f612bbad7cac0a7e541bc9e94921f0cc86adb5d68"
+    },
+    {
+      "bytes": 13539,
+      "lines": 358,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_energy_conjugate.py",
+      "sha256": "d51474a34d71258efd859e70aada36959b23a923f61d0eef81f532cd879353ce"
+    },
+    {
+      "bytes": 22447,
+      "lines": 583,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_generation_source.py",
+      "sha256": "046fe015253a7b61c1c959c5e161e315c531b4b47f2df7bb931c91575c78969f"
+    },
+    {
+      "bytes": 37714,
+      "lines": 988,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_molecular_source.py",
+      "sha256": "715ee13543f8385576dabade636eb7d45f9b714fc83324d57211ec380a5156df"
+    },
+    {
+      "bytes": 9533,
+      "lines": 249,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_reciprocal.py",
+      "sha256": "6ee3c1707809340f9a2e0264a2c6b9963e8bece20b19e8873543849513a80da2"
+    },
+    {
+      "bytes": 7233,
+      "lines": 188,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_short_range_source.py",
+      "sha256": "85be89cadc19352f4bc344dee68e176a3fa703ac75eaddb3f641a1e1d0fc3cff"
+    },
+    {
+      "bytes": 8836,
+      "lines": 221,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_rism_thermodynamic_source.py",
+      "sha256": "83b53e665cf7b6f537c48f66b968bd744126c0ecacde54ec323608928e190076"
+    },
+    {
+      "bytes": 8607,
+      "lines": 236,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_scalar_response.py",
+      "sha256": "8cc25b9f191bfc890fb00b80b7ed99bcacf940d93013ff56e271a5be9c04fae5"
+    },
+    {
+      "bytes": 14319,
+      "lines": 377,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_site_hnc.py",
+      "sha256": "20cba7fdaa4c2cc87827e3969ae7da7bc502bf52968d2b3f8c60cc887a39bc7c"
+    },
+    {
+      "bytes": 34935,
+      "lines": 881,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_solvent_asset.py",
+      "sha256": "7d22fabd45a0fa9dc6503bdb13f8ddd58ece9c46bbcd469366cbde9d8af407ae"
+    },
+    {
+      "bytes": 6746,
+      "lines": 169,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_standard_state.py",
+      "sha256": "70b8b86aa30f92e293b506f36ae8d982b82c868561c8c3147154b81ce1322e02"
+    },
+    {
+      "bytes": 11202,
+      "lines": 289,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_structured_solvent.py",
+      "sha256": "bfc6239f60f823c03741f959735d9ab8922c4ee10a0982b1a402fb2f684f8908"
+    },
+    {
+      "bytes": 15850,
+      "lines": 427,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_variational_admission.py",
+      "sha256": "ac8dfe998d600f61795027affe5dc5ebc37e052b5cef93409f4e63ffdc615a87"
+    },
+    {
+      "bytes": 25266,
+      "lines": 630,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_variational_quadratic.py",
+      "sha256": "eb4e08eda8dd281ec5261570659424821bdf4bbdccb2ddbdeb59c5ca15047051"
+    },
+    {
+      "bytes": 21733,
+      "lines": 540,
+      "path": "maple/function/calculator/extra_correction/implicit/route2_v0_weighted_density_cavity.py",
+      "sha256": "358b05ca415216c5bbf3e26341eca7177810249a9e8f19b8220f0ae578fd5b0e"
+    },
+    {
+      "bytes": 7597,
+      "lines": 185,
+      "path": "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py",
+      "sha256": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704"
+    },
+    {
+      "bytes": 2471,
+      "lines": 73,
+      "path": "maple/function/route2_energy_ledger.py",
+      "sha256": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885"
+    },
+    {
+      "bytes": 3744,
+      "lines": 105,
+      "path": "maple/function/route2_model_contracts.py",
+      "sha256": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193"
+    },
+    {
+      "bytes": 28806,
+      "lines": 691,
+      "path": "maple/function/route2_smd_profiles.py",
+      "sha256": "f873b61626e3bc7e9aa662ac0340e49032afe5b1323a14232e2f02ac807f69f1"
+    },
+    {
+      "bytes": 6608,
+      "lines": 214,
+      "path": "maple/function/route2_solvents.py",
+      "sha256": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe"
+    }
+  ],
+  "schema_version": "route2-phase0-inventory-v1",
+  "tests": [
+    {
+      "bytes": 16559,
+      "lines": 464,
+      "path": "tests/solvation/route2_v0_asset_fixture.py",
+      "sha256": "7e8d758a86de71986199a7326b14937628636f71de6ac41477f056683027b9f8"
+    },
+    {
+      "bytes": 9582,
+      "lines": 285,
+      "path": "tests/solvation/test_route2_atomic_reference_density.py",
+      "sha256": "616223f51c64f3bcac93a7a19c084cec1cf9f87bf6048fa3e1d38b03e876cfac"
+    },
+    {
+      "bytes": 4573,
+      "lines": 146,
+      "path": "tests/solvation/test_route2_charging_path_diagnostics.py",
+      "sha256": "0ca9a808f6614f04f909ae7f1b1b45f325ea4b148404ef1561dab968eaa7a38e"
+    },
+    {
+      "bytes": 2237,
+      "lines": 58,
+      "path": "tests/solvation/test_route2_command_examples.py",
+      "sha256": "8cdee1d97f9e9bf21fc0c7e555b523806a9856d0f6862d6542bdb67cba6498fe"
+    },
+    {
+      "bytes": 10448,
+      "lines": 310,
+      "path": "tests/solvation/test_route2_density_levelset.py",
+      "sha256": "fac8b24649a5ffbf714af11dd78e66f0d0481d040ad1faafe079c2962b1cc6eb"
+    },
+    {
+      "bytes": 38916,
+      "lines": 1162,
+      "path": "tests/solvation/test_route2_derivative.py",
+      "sha256": "296e8adb2f0383c48ad896ab9aaf0d38f11ebfb7508a45419c2703d3776b07ca"
+    },
+    {
+      "bytes": 5404,
+      "lines": 148,
+      "path": "tests/solvation/test_route2_direct_pcm_freesolv12_paired_runner.py",
+      "sha256": "93a187a1782138212684f54ac13dc419f43b40126d15a8291adbb4a5691c24d6"
+    },
+    {
+      "bytes": 914,
+      "lines": 32,
+      "path": "tests/solvation/test_route2_domain_reference_contract.py",
+      "sha256": "bdbd9816f0e70ec98f63af38f321a30c5bf812f37f8f44c037188974a40d761b"
+    },
+    {
+      "bytes": 15166,
+      "lines": 408,
+      "path": "tests/solvation/test_route2_electronic_model.py",
+      "sha256": "fecd174b55c55bfea499a53282ecb36ff9f229af13359a8eb1d5d5a01365dda4"
+    },
+    {
+      "bytes": 2076,
+      "lines": 79,
+      "path": "tests/solvation/test_route2_electrostatic_pairing.py",
+      "sha256": "c34dad34808e0885bc2c4e8a3a19a72dd10cf5a1fc293ada03cfc41438ad0cc6"
+    },
+    {
+      "bytes": 16057,
+      "lines": 492,
+      "path": "tests/solvation/test_route2_energy_ledger.py",
+      "sha256": "262d2012c4940001e558ae7e5fd4d842d1aae33e606f69d94f544e0c8e8a75e3"
+    },
+    {
+      "bytes": 7787,
+      "lines": 214,
+      "path": "tests/solvation/test_route2_exact_gto_fixed_geometry_canary_artifact.py",
+      "sha256": "bdcf7f694b83596388c75cdfed66636e23461f2f0c23028d1775f1156681aecf"
+    },
+    {
+      "bytes": 10625,
+      "lines": 282,
+      "path": "tests/solvation/test_route2_fc_aswig_cpcm.py",
+      "sha256": "c76b59ba034dcfe76bf5de48d679bae605496254ffc99654fa3a6e3895df8b48"
+    },
+    {
+      "bytes": 2615,
+      "lines": 69,
+      "path": "tests/solvation/test_route2_fc_aswig_flexible_closed_loop_runner.py",
+      "sha256": "023ac6b009067301eb248c7015759c827ba1f20ab3e54541235d7e4e7051c27d"
+    },
+    {
+      "bytes": 3062,
+      "lines": 88,
+      "path": "tests/solvation/test_route2_fc_aswig_flexible_torsion_runner.py",
+      "sha256": "59e5c39a5f98f1a3362215d8a1c8ce388048ee9976f4b647237ab6f786c064bb"
+    },
+    {
+      "bytes": 4153,
+      "lines": 115,
+      "path": "tests/solvation/test_route2_fc_aswig_force_release_artifact.py",
+      "sha256": "3dcb3efc1bbce5069a640d767408d2981617c82ffc587729e122e0799e7d3912"
+    },
+    {
+      "bytes": 2825,
+      "lines": 95,
+      "path": "tests/solvation/test_route2_fc_aswig_nve_runner.py",
+      "sha256": "71e171dcb9a235a0ea53dfd759c34889c494af01b3a4c14f94a875046878dc83"
+    },
+    {
+      "bytes": 4449,
+      "lines": 138,
+      "path": "tests/solvation/test_route2_fc_aswig_smd_cds.py",
+      "sha256": "b5137560aa0db507e7978e0a9a8a89a23f594d149ff2be9bd8c312617606b703"
+    },
+    {
+      "bytes": 5062,
+      "lines": 161,
+      "path": "tests/solvation/test_route2_feature_response.py",
+      "sha256": "5b23d4bfd0c9b54f2373bb0d92600fc3eda36050208709d285ffa28215bec3ca"
+    },
+    {
+      "bytes": 6048,
+      "lines": 202,
+      "path": "tests/solvation/test_route2_fixed_point.py",
+      "sha256": "d145ae35b80b15d8f1b829f6690ec9aa41cf7e2237dc1eb36f7749659a17969b"
+    },
+    {
+      "bytes": 11544,
+      "lines": 286,
+      "path": "tests/solvation/test_route2_force_admission.py",
+      "sha256": "9b1ca4f54c8bfd35015ae9d3b83c17198bbee5b95d6903a4d9f9a517168cee3f"
+    },
+    {
+      "bytes": 4250,
+      "lines": 112,
+      "path": "tests/solvation/test_route2_frozen_source_direct_pcm_freesolv12_artifact.py",
+      "sha256": "5ee5fdda80741381dc2b702ef5be373878d37bb5e373a34ee4e2ee11e2ede6b1"
+    },
+    {
+      "bytes": 4798,
+      "lines": 171,
+      "path": "tests/solvation/test_route2_input_regression_contract.py",
+      "sha256": "b809040a94ace5133229fc90d678b36866307d4d4950b1ca93a0c54045c1f659"
+    },
+    {
+      "bytes": 8158,
+      "lines": 261,
+      "path": "tests/solvation/test_route2_jgp94_fc_aswig.py",
+      "sha256": "219fcceb9b3a15b9ebe9605a1470a0b8ae2657d43d1115f3ce97a63032c087a0"
+    },
+    {
+      "bytes": 6886,
+      "lines": 231,
+      "path": "tests/solvation/test_route2_jgp94_frame.py",
+      "sha256": "8ea2f3219edf7bc3093a67e2584aafd014649fccebdcc35be3a52aa947e52aad"
+    },
+    {
+      "bytes": 2545,
+      "lines": 87,
+      "path": "tests/solvation/test_route2_jgp94_frame_runner.py",
+      "sha256": "35c61a1c9f5df919f2b16c9332a935a631f083c6e07b5914e2ca64069e106b04"
+    },
+    {
+      "bytes": 5264,
+      "lines": 156,
+      "path": "tests/solvation/test_route2_jgp94_mace_frame.py",
+      "sha256": "8722832b384528481a5a9cafa377d005b72061ac6a76ae8fb45aa51c823cbc6b"
+    },
+    {
+      "bytes": 5365,
+      "lines": 140,
+      "path": "tests/solvation/test_route2_legacy_exact_gto_broad_diagnostics.py",
+      "sha256": "e10a65173806126d1016f60c61db1e0be2892b55dffc40ffdbc06c6695bac7dc"
+    },
+    {
+      "bytes": 4952,
+      "lines": 118,
+      "path": "tests/solvation/test_route2_legacy_exact_gto_historical_top5_diagnostic.py",
+      "sha256": "835fc755db863e661be93fbbfa7e327702329a6ac79257927d02f9759e8b81e3"
+    },
+    {
+      "bytes": 5810,
+      "lines": 156,
+      "path": "tests/solvation/test_route2_mace_p1_water_artifact.py",
+      "sha256": "a4b96ba1256088725bb644d8e2adc98e20d8e9b68ec287b77449c529326cf2fc"
+    },
+    {
+      "bytes": 4215,
+      "lines": 101,
+      "path": "tests/solvation/test_route2_matched_projector_top5_diagnostic.py",
+      "sha256": "c376eea444f2aa7bded18db0faf1d03754fe93ffcb881fe9dc97e4798baed2ed"
+    },
+    {
+      "bytes": 64543,
+      "lines": 1904,
+      "path": "tests/solvation/test_route2_model_field_drive.py",
+      "sha256": "c48824a0a0af82c06a5df4ec0584c2643b9ea3dd09f3994ad8d22df6bcb8b026"
+    },
+    {
+      "bytes": 22431,
+      "lines": 640,
+      "path": "tests/solvation/test_route2_moist_drop.py",
+      "sha256": "aa4848e32e95a0f37b444f404712ab8c342d30e7085d5e5c20c0a210a8ddac92"
+    },
+    {
+      "bytes": 634,
+      "lines": 16,
+      "path": "tests/solvation/test_route2_mol2_reference_contract.py",
+      "sha256": "378f13b4dc72c0b37b95528b458da97103f248f2e513bf613e5446043fb59dd4"
+    },
+    {
+      "bytes": 3462,
+      "lines": 101,
+      "path": "tests/solvation/test_route2_nonuniform_response.py",
+      "sha256": "2aae69b444ef98c221095263b70dec727cf10d23d01217e3eb11535f01883da9"
+    },
+    {
+      "bytes": 15020,
+      "lines": 407,
+      "path": "tests/solvation/test_route2_p1_audit.py",
+      "sha256": "fb282692aa63608dc1fc43808f63e5943fef15903fe2cf8735c3ee614156dbd8"
+    },
+    {
+      "bytes": 22144,
+      "lines": 680,
+      "path": "tests/solvation/test_route2_pcm_response.py",
+      "sha256": "c06b2c586cf4c86fc864b4335a6de2538599ee3472a10e466bdbce40a4f29300"
+    },
+    {
+      "bytes": 22313,
+      "lines": 615,
+      "path": "tests/solvation/test_route2_plugin_contract.py",
+      "sha256": "014af16ee6174d9bcf3e8a3fbf5cf2a74e69697a3c2ddea8c7a6b415140cbcb5"
+    },
+    {
+      "bytes": 10974,
+      "lines": 316,
+      "path": "tests/solvation/test_route2_preregistration_contracts.py",
+      "sha256": "6fb73116a83ec632966c308ea85348b7440b7e52a82e957b68e4f6244707db01"
+    },
+    {
+      "bytes": 10063,
+      "lines": 308,
+      "path": "tests/solvation/test_route2_response.py",
+      "sha256": "b50e62200e41a9599e4c1405458913f4901c6f9886460e19e5283ecd8398284e"
+    },
+    {
+      "bytes": 22585,
+      "lines": 676,
+      "path": "tests/solvation/test_route2_rhodrop_cpcm.py",
+      "sha256": "cacfbef0102f5d5cd17fd32d9f2477063a82075abbba9cb45154b346c276a5cb"
+    },
+    {
+      "bytes": 16540,
+      "lines": 461,
+      "path": "tests/solvation/test_route2_rhodrop_profile.py",
+      "sha256": "4bc0004705abe0d39e251862c8907228849c267c55b80edd33f9d0b207ce5fc9"
+    },
+    {
+      "bytes": 3843,
+      "lines": 121,
+      "path": "tests/solvation/test_route2_root_study.py",
+      "sha256": "6514731ea5c0e29f4b2f3c0f1edef4eac32c7ddae3c760f0e9f9c8247fdb1f83"
+    },
+    {
+      "bytes": 60069,
+      "lines": 1796,
+      "path": "tests/solvation/test_route2_smd.py",
+      "sha256": "cbeaa6fd7ead6a62e3cd79fe93a1b9f26e511a8c20d809bbda89b346e5d2a69f"
+    },
+    {
+      "bytes": 4485,
+      "lines": 147,
+      "path": "tests/solvation/test_route2_smd_reference_contract.py",
+      "sha256": "c04556270c56c015948bd2cddfe7a2a45dde06557412d91bb55d478a67c66bfd"
+    },
+    {
+      "bytes": 9712,
+      "lines": 300,
+      "path": "tests/solvation/test_route2_solvents.py",
+      "sha256": "3f81a0d87c0ab114b63c8f00654a75ab0ed34c183962830fb4b28dbd82494d3b"
+    },
+    {
+      "bytes": 3249,
+      "lines": 77,
+      "path": "tests/solvation/test_route2_source_receiver_contract.py",
+      "sha256": "126e932e605efba8e691770bc428b2e2f735b331c6752ed885608e7b47f84c26"
+    },
+    {
+      "bytes": 2757,
+      "lines": 69,
+      "path": "tests/solvation/test_route2_static_surface_mep.py",
+      "sha256": "e5508a6ebe561e27a473bca294f39c983ff7e6a478aa0f5d217d4ac99396bfe0"
+    },
+    {
+      "bytes": 4487,
+      "lines": 127,
+      "path": "tests/solvation/test_route2_thermodynamic_canary_artifact.py",
+      "sha256": "35cabc6726509f7b83dc45035fd035fb24a8c98b6f0a5340896189748c9939b5"
+    },
+    {
+      "bytes": 18524,
+      "lines": 567,
+      "path": "tests/solvation/test_route2_thermodynamic_diagnostics.py",
+      "sha256": "d9e9f9e173734395dbb50485bfea1565a1eeee62f44c6987a8d186fd39a2dab0"
+    },
+    {
+      "bytes": 5838,
+      "lines": 156,
+      "path": "tests/solvation/test_route2_v0_all_atom_solvent_model_source.py",
+      "sha256": "79d5180cd54953a207af31121da6d97513e79286c95582d1cd6fa2259739be10"
+    },
+    {
+      "bytes": 5501,
+      "lines": 143,
+      "path": "tests/solvation/test_route2_v0_aq_water_pcm_preregistration.py",
+      "sha256": "c94bc0ce6ecb9cecd5358b9317f1e13cb81126f2ba36680a8564ec7d28a74b1a"
+    },
+    {
+      "bytes": 12871,
+      "lines": 369,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_frozen_kkt.py",
+      "sha256": "43810d4c5c56d5e957616bf298cbe1733c5605080ea75aa4d9512ddc6cea7295"
+    },
+    {
+      "bytes": 11020,
+      "lines": 298,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_kkt.py",
+      "sha256": "fef652709d2f61d7ccd45d183234a73b24642861fa0abb7442b7d1f297cd00dc"
+    },
+    {
+      "bytes": 3393,
+      "lines": 101,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_preregistration.py",
+      "sha256": "4a03e581ee2209e92a2b2a20f57581f210926a379cf3f25142aeda75d82a37fc"
+    },
+    {
+      "bytes": 5920,
+      "lines": 151,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_preregistration_v2.py",
+      "sha256": "51a3b695d173b099b42c869861494f38c580a0d920d922e167ed320ec232a0fb"
+    },
+    {
+      "bytes": 3424,
+      "lines": 109,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_response.py",
+      "sha256": "f72a75d970a3c3f497aa9af25d2b68eff18684b6e57e00ac856b62ffd60201ab"
+    },
+    {
+      "bytes": 3644,
+      "lines": 97,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_source_preregistration.py",
+      "sha256": "f0e499f946718fa034311f77e2e2a29464fd40d7b645af69038643f50eddee7c"
+    },
+    {
+      "bytes": 2533,
+      "lines": 65,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_source_result.py",
+      "sha256": "51b6054ed2139756da3f870320b595615b332f1cd9859564656fa1597e088b02"
+    },
+    {
+      "bytes": 2757,
+      "lines": 88,
+      "path": "tests/solvation/test_route2_v0_atomic_displacement_source_runner.py",
+      "sha256": "b31f2eec7942fb663b12f606d5baba0f12dccb6d1adb7a456c9a2a3f62d225d3"
+    },
+    {
+      "bytes": 8590,
+      "lines": 228,
+      "path": "tests/solvation/test_route2_v0_atomic_independent_particle_response.py",
+      "sha256": "e506c6fd5357224a6480e864f98efbe176180795ea3ba9f863bc052927b53838"
+    },
+    {
+      "bytes": 4925,
+      "lines": 130,
+      "path": "tests/solvation/test_route2_v0_atomic_independent_particle_source_preregistration.py",
+      "sha256": "fb1bc629ce8616d1e2421934f99205db600573133b6c94e328652d282ddd0552"
+    },
+    {
+      "bytes": 3254,
+      "lines": 82,
+      "path": "tests/solvation/test_route2_v0_atomic_independent_particle_source_result.py",
+      "sha256": "cff1e5ef606bd4d3db0a65b71d86707baef31a996d0c315e1f47ac215e979a76"
+    },
+    {
+      "bytes": 7571,
+      "lines": 209,
+      "path": "tests/solvation/test_route2_v0_atomic_response_stationary_source.py",
+      "sha256": "8c2a5af246b10960813520d079eebda2bc5da1d9887171ba20f4378ab0ea5060"
+    },
+    {
+      "bytes": 7694,
+      "lines": 184,
+      "path": "tests/solvation/test_route2_v0_atomic_response_stationary_source_preregistration.py",
+      "sha256": "ade5281793a4c2934c671fd02af56fcd9775a6c71ee71206152274041d492cf8"
+    },
+    {
+      "bytes": 3654,
+      "lines": 99,
+      "path": "tests/solvation/test_route2_v0_atomic_response_stationary_source_result.py",
+      "sha256": "8c1319997fa1be898566664dd984895fd9ae0a22d7997fb28275395475bb055e"
+    },
+    {
+      "bytes": 8138,
+      "lines": 207,
+      "path": "tests/solvation/test_route2_v0_auxiliary_ao_grid.py",
+      "sha256": "86b6f0cad5372769711b61891f5dee0d42b9ed3936c5ad49187ac0b31b2ce747"
+    },
+    {
+      "bytes": 5489,
+      "lines": 163,
+      "path": "tests/solvation/test_route2_v0_auxiliary_qm.py",
+      "sha256": "bdd7316796611d5070c7ca6eec030f607926c70a5ea4d56a7ef69b89151e7e84"
+    },
+    {
+      "bytes": 4563,
+      "lines": 113,
+      "path": "tests/solvation/test_route2_v0_auxiliary_qm_liquid_preregistration.py",
+      "sha256": "c7791087da31930f11f3f3c6a8026e505482300430fccb70f4af142bead77d5e"
+    },
+    {
+      "bytes": 8439,
+      "lines": 223,
+      "path": "tests/solvation/test_route2_v0_bulk_liquid_state_source.py",
+      "sha256": "a08bd4473c427b380aaf68ea5d3410dc190797d8f9f9caa22d8bb4494fb27d91"
+    },
+    {
+      "bytes": 4990,
+      "lines": 136,
+      "path": "tests/solvation/test_route2_v0_diffuse_continuum.py",
+      "sha256": "21a9bf18ad757b464d353d8cc3851cec3baf00655e1ce9ad20db20cbb348dc0d"
+    },
+    {
+      "bytes": 1911,
+      "lines": 53,
+      "path": "tests/solvation/test_route2_v0_energy_only_fenchel_water.py",
+      "sha256": "d1f5dbee7592faf83c87ebd72494b1085624fa366d416178e4ffd950da2290c5"
+    },
+    {
+      "bytes": 4054,
+      "lines": 84,
+      "path": "tests/solvation/test_route2_v0_fd_preregistration.py",
+      "sha256": "839a925f52779bf2f33b7e19616b737f54b14ac80f8c69a9233bcba17410b144"
+    },
+    {
+      "bytes": 6206,
+      "lines": 162,
+      "path": "tests/solvation/test_route2_v0_freesolv12_functional_groups.py",
+      "sha256": "712b2e1724548d2217a05bcff78000b4731ffddc369452003735f783fe5ab0a1"
+    },
+    {
+      "bytes": 1987,
+      "lines": 57,
+      "path": "tests/solvation/test_route2_v0_freesolv12_localized_response_artifact.py",
+      "sha256": "e3a63e7c7a9273baa493258200df5708edd150d932f3c8e422aafbe9a42d4cb5"
+    },
+    {
+      "bytes": 3322,
+      "lines": 92,
+      "path": "tests/solvation/test_route2_v0_freesolv12_localized_response_runner.py",
+      "sha256": "44cdc01058d9d846f90163886c1c5f2cb6c4b79d59ab56b7d37e6aba0c19f01a"
+    },
+    {
+      "bytes": 4005,
+      "lines": 105,
+      "path": "tests/solvation/test_route2_v0_freesolv12_zero_field_static_mep_runner.py",
+      "sha256": "29e3116a113f379520d98bc9e52c45372ba694b954cb7db67593de2eda800e8f"
+    },
+    {
+      "bytes": 7569,
+      "lines": 228,
+      "path": "tests/solvation/test_route2_v0_frozen_density.py",
+      "sha256": "d7b7b3e2de6bf8bc9cd0e6688a194a452d2d61ccfddf0544fbfeeec324cf159b"
+    },
+    {
+      "bytes": 5476,
+      "lines": 166,
+      "path": "tests/solvation/test_route2_v0_frozen_density_embedding.py",
+      "sha256": "d54be0f5c9306f34a9687d4911f42c219e1fb7135c766a7f68803fd80096c17f"
+    },
+    {
+      "bytes": 15104,
+      "lines": 409,
+      "path": "tests/solvation/test_route2_v0_full_response_kkt.py",
+      "sha256": "11c3cdf94b8262c06477af4847dbc90d8e97c09802f59a7551248bcd2a2ae11d"
+    },
+    {
+      "bytes": 7706,
+      "lines": 247,
+      "path": "tests/solvation/test_route2_v0_gfn2_molden_permanent_source.py",
+      "sha256": "b0c13fb7a3e29197fd3f2fcb6a3b5dbdfb5b8a84f354980a285a3246dad5ddcd"
+    },
+    {
+      "bytes": 4255,
+      "lines": 112,
+      "path": "tests/solvation/test_route2_v0_gfn2_molden_permanent_source_artifact.py",
+      "sha256": "372936acc5042a301838e2f080765d0938db94a9920e3861e3d6a0272e19c1ce"
+    },
+    {
+      "bytes": 2319,
+      "lines": 77,
+      "path": "tests/solvation/test_route2_v0_gfn2_molden_static_mep.py",
+      "sha256": "37deb9c33860205ec3fb1e494b799a1cc4274a7aa0ac7c7ddf989762c36eb76c"
+    },
+    {
+      "bytes": 7224,
+      "lines": 186,
+      "path": "tests/solvation/test_route2_v0_gfn2_molden_static_mep_runner.py",
+      "sha256": "079ace731ab27e53d83e097aab87a6ae0f98b49fe63cfa97b8e719da387dc8f9"
+    },
+    {
+      "bytes": 3752,
+      "lines": 88,
+      "path": "tests/solvation/test_route2_v0_gfn2_xtb_acetone_field.py",
+      "sha256": "2640e5bcf8f691a2de60d9d9a37b4b8330c5fa7488a62d1cdcee4382dce72f3b"
+    },
+    {
+      "bytes": 7743,
+      "lines": 195,
+      "path": "tests/solvation/test_route2_v0_historical_freesolv10.py",
+      "sha256": "fa0e046780e1a2a575adec49116f14e230844a14ef7110959d06c96aca276150"
+    },
+    {
+      "bytes": 8025,
+      "lines": 230,
+      "path": "tests/solvation/test_route2_v0_iso_density_cavity.py",
+      "sha256": "0587e966c6ebf9e488fb776ca07cc4b82c6dcab4873b448100c1685176dbcff8"
+    },
+    {
+      "bytes": 7919,
+      "lines": 195,
+      "path": "tests/solvation/test_route2_v0_lorentz_dielectric_source.py",
+      "sha256": "3a12ab2f1391a13c820db467e96888864cbd915c0474729b29736b46e6a15f5e"
+    },
+    {
+      "bytes": 3417,
+      "lines": 83,
+      "path": "tests/solvation/test_route2_v0_lorentz_nonlocal_dielectric_preregistration.py",
+      "sha256": "991ffd3eac9bac4d83777ffe655430466e76e90756c5e1bb72375dac2d84c1bf"
+    },
+    {
+      "bytes": 12541,
+      "lines": 329,
+      "path": "tests/solvation/test_route2_v0_mace_cluster_external_potential.py",
+      "sha256": "056b494dba3fffe01eb24179db31ec1eb1f21b90f7ab11f3447bf7d8afe6eb24"
+    },
+    {
+      "bytes": 39064,
+      "lines": 1071,
+      "path": "tests/solvation/test_route2_v0_mace_cluster_rism_bridge.py",
+      "sha256": "d2386eb4ac30c229fef32ecd9543afdf2b9b17423fd012401524fa349bd32790"
+    },
+    {
+      "bytes": 2606,
+      "lines": 58,
+      "path": "tests/solvation/test_route2_v0_mace_cluster_rism_bridge_admission.py",
+      "sha256": "57279c7862a9c591830e46154e4412e1c16cd56408414f98b787ea2132c291d5"
+    },
+    {
+      "bytes": 4675,
+      "lines": 126,
+      "path": "tests/solvation/test_route2_v0_mace_mdp_acetone_derivatives.py",
+      "sha256": "ce7dca9939cf31abd2bc6ae7e901bf9e6dcc1f2491eb3f771ce32b353c6487b1"
+    },
+    {
+      "bytes": 4944,
+      "lines": 128,
+      "path": "tests/solvation/test_route2_v0_mace_mdp_acetone_response.py",
+      "sha256": "f57eddd0dcb334e633c81df02b770a7a95e042981e00314dc5b5ccfa3e4a3f33"
+    },
+    {
+      "bytes": 4667,
+      "lines": 130,
+      "path": "tests/solvation/test_route2_v0_mace_mdp_atomic_map.py",
+      "sha256": "29e2b67845a912c13b8282c7496059add72bd47e46add21b233c17223bf43769"
+    },
+    {
+      "bytes": 2123,
+      "lines": 65,
+      "path": "tests/solvation/test_route2_v0_mace_mdp_induced_source_runner.py",
+      "sha256": "8713587d69e2ab6488cc13eb550cb562579e94f5cad53dbc517f5ff01661a8ba"
+    },
+    {
+      "bytes": 2504,
+      "lines": 78,
+      "path": "tests/solvation/test_route2_v0_mace_mdp_moment_source.py",
+      "sha256": "afa35796a7cae2b6644f14dbd2b84601177bd1a6f68db61004e6c290bc51ff3b"
+    },
+    {
+      "bytes": 4072,
+      "lines": 100,
+      "path": "tests/solvation/test_route2_v0_molecular_cubic_wda_preregistration.py",
+      "sha256": "c549522a70c734a2e1cf8a7579fd9effbe2fff5f112252a0634a5856a0ef787f"
+    },
+    {
+      "bytes": 9207,
+      "lines": 255,
+      "path": "tests/solvation/test_route2_v0_molecular_external_potential.py",
+      "sha256": "31f59514064c9f6ffdbbac95421991b4da3b46da4cd8186b787758eef051f293"
+    },
+    {
+      "bytes": 7437,
+      "lines": 203,
+      "path": "tests/solvation/test_route2_v0_molecular_ideal_gas.py",
+      "sha256": "a99c0888593a8aaebb7a5c553098a534225c80497b258847d4625a3e8fac4ae7"
+    },
+    {
+      "bytes": 16058,
+      "lines": 397,
+      "path": "tests/solvation/test_route2_v0_molecular_phase_coexistence.py",
+      "sha256": "059ad3d698c1961a470faa3022de29f2809e80bfc81058ba4f377efab065ae43"
+    },
+    {
+      "bytes": 19511,
+      "lines": 494,
+      "path": "tests/solvation/test_route2_v0_molecular_planar_interface.py",
+      "sha256": "2e8d7cff8306819f83a8ffdf6562f6c2e04af1301f3987993a2e7f460e93fadd"
+    },
+    {
+      "bytes": 8038,
+      "lines": 215,
+      "path": "tests/solvation/test_route2_v0_molecular_pure_liquid_hnc.py",
+      "sha256": "8439cd94dbc8d48b81a0b68df72a230e6254c3d30cfd29eafc13a27e5f23a14e"
+    },
+    {
+      "bytes": 8720,
+      "lines": 232,
+      "path": "tests/solvation/test_route2_v0_molecular_rism_state_asset_binding.py",
+      "sha256": "0f0326d67b043b5d1d4a8181df03335c93b3a701a68f0eb73592e3a6a6693290"
+    },
+    {
+      "bytes": 12733,
+      "lines": 319,
+      "path": "tests/solvation/test_route2_v0_molecular_rism_state_source.py",
+      "sha256": "096a0c2499bd477a91ebda79c4d3e5741c562dff09b7bb57050374e70ab592ed"
+    },
+    {
+      "bytes": 20656,
+      "lines": 550,
+      "path": "tests/solvation/test_route2_v0_molecular_site_hnc.py",
+      "sha256": "ecf2cf5eef1caaa13a9507afe86063d2b01d1a045e9467874d8110f627ccce00"
+    },
+    {
+      "bytes": 11711,
+      "lines": 331,
+      "path": "tests/solvation/test_route2_v0_molecular_site_matrix_free.py",
+      "sha256": "55401b03f057856c9a82f1409602a531b4d838ca9448eb2878b82d472f7e7912"
+    },
+    {
+      "bytes": 7266,
+      "lines": 217,
+      "path": "tests/solvation/test_route2_v0_molecular_so3_quadrature.py",
+      "sha256": "2a8d2ecad62ed48a3e4792177cf382ba19f7825a2702aac1c81fb46b2e9b7c65"
+    },
+    {
+      "bytes": 4561,
+      "lines": 132,
+      "path": "tests/solvation/test_route2_v0_molecular_stability.py",
+      "sha256": "bb72409c0126d6d67118a5edfbbc405691c6f8a6e4b41d296bf7b64142bf283e"
+    },
+    {
+      "bytes": 21724,
+      "lines": 554,
+      "path": "tests/solvation/test_route2_v0_molecular_weighted_density_bridge.py",
+      "sha256": "dbf585c182584091a82eaab3c9a6f0ddf82ebf7c8668db544963f1f46c4a2b09"
+    },
+    {
+      "bytes": 18452,
+      "lines": 484,
+      "path": "tests/solvation/test_route2_v0_nonlocal_dielectric.py",
+      "sha256": "4e9b80d70c72e7d933077c65b2a12ea7a8f6f52a92ae9a947c76c1999baa2579"
+    },
+    {
+      "bytes": 2382,
+      "lines": 68,
+      "path": "tests/solvation/test_route2_v0_open_bspline.py",
+      "sha256": "ca62fdf729218c42f1c609b8a95ef642f2709ce2aa42e23474991ab1b5d4898a"
+    },
+    {
+      "bytes": 9366,
+      "lines": 248,
+      "path": "tests/solvation/test_route2_v0_open_diffuse_continuum.py",
+      "sha256": "75748a7c83ba70acbed98ecbd7d752256fb501da67ca3bef78ad6ec704223cb7"
+    },
+    {
+      "bytes": 11890,
+      "lines": 314,
+      "path": "tests/solvation/test_route2_v0_open_iso_density_cavity.py",
+      "sha256": "64b6c8397f927bcef0c65e7679b670f7a9388b764132d594b84a5e968fc879a5"
+    },
+    {
+      "bytes": 9191,
+      "lines": 242,
+      "path": "tests/solvation/test_route2_v0_open_weighted_density_cavity.py",
+      "sha256": "a617bf641948c917b01c6c43ab1dbf1696667a7901fffa643d9f139ef053fd7a"
+    },
+    {
+      "bytes": 3655,
+      "lines": 76,
+      "path": "tests/solvation/test_route2_v0_ordinary_water_surface_tension_source.py",
+      "sha256": "9a3dce70786607c259b4568bcfd3f69e35a58aad8b0513c861d13dd8be234ec3"
+    },
+    {
+      "bytes": 3918,
+      "lines": 125,
+      "path": "tests/solvation/test_route2_v0_periodic_bspline.py",
+      "sha256": "0416bb197a0d8fdb1ef61c55e86e4ff5696b8c880236abc91b8dad501fe6a67d"
+    },
+    {
+      "bytes": 7277,
+      "lines": 203,
+      "path": "tests/solvation/test_route2_v0_periodic_coulomb.py",
+      "sha256": "7974e4aaad13b66076c7d509188d2aeaf4367a50495a22a89474f3441c30b6f9"
+    },
+    {
+      "bytes": 1128,
+      "lines": 33,
+      "path": "tests/solvation/test_route2_v0_periodic_coulomb_admission.py",
+      "sha256": "2980c49dc66a19f39cd2f27676938e24a328e5b09eac37bda09a3447e39b6bf2"
+    },
+    {
+      "bytes": 1476,
+      "lines": 43,
+      "path": "tests/solvation/test_route2_v0_permanent_reference_identifiability_audit.py",
+      "sha256": "c18712c2d92a0cf3e24d952d2c0347cded443c4057705620c5a8695a036e0b95"
+    },
+    {
+      "bytes": 1992,
+      "lines": 57,
+      "path": "tests/solvation/test_route2_v0_preregistration.py",
+      "sha256": "3bc1923fd5a57900435f27f90f5769f44d659f750ead79fabf6d27381722038e"
+    },
+    {
+      "bytes": 3783,
+      "lines": 116,
+      "path": "tests/solvation/test_route2_v0_promolecular_density.py",
+      "sha256": "b37647323fd4abf97f7367b3533519f141b7f449b06ae0a547986b5ef5c965be"
+    },
+    {
+      "bytes": 2775,
+      "lines": 67,
+      "path": "tests/solvation/test_route2_v0_promolecular_density_artifact.py",
+      "sha256": "9439cadc2e759cc29123f2a65945bb9054bcb3e0075e1cfda84bdd01a6a4805a"
+    },
+    {
+      "bytes": 2697,
+      "lines": 82,
+      "path": "tests/solvation/test_route2_v0_promolecular_density_preregistration.py",
+      "sha256": "b3f8cb47aa7806bd1bea850ae2af916a8e4bd500db59151bfa1746b841f1945f"
+    },
+    {
+      "bytes": 5336,
+      "lines": 141,
+      "path": "tests/solvation/test_route2_v0_pse3_native_admission_audit.py",
+      "sha256": "badf4a89342da58a462e1bf87dbc0e4598df40db068c055798067c6243db7ba4"
+    },
+    {
+      "bytes": 3673,
+      "lines": 100,
+      "path": "tests/solvation/test_route2_v0_qeq_acetone_qm_field_artifact.py",
+      "sha256": "1a4be25cee8d1c0044fc55ee8676d705cb9269dbf53f93009b4ab2f236d91604"
+    },
+    {
+      "bytes": 2835,
+      "lines": 88,
+      "path": "tests/solvation/test_route2_v0_qeq_gas_response.py",
+      "sha256": "51abaeed84b3bcee8a6ba5396c3c498e0c7beb5218d7dd66c75553f4e0fdf389"
+    },
+    {
+      "bytes": 5645,
+      "lines": 161,
+      "path": "tests/solvation/test_route2_v0_qeq_monopole.py",
+      "sha256": "547cd40e472053862984dc5774e69298e9d095129cf2d3fbc9438fdc16257868"
+    },
+    {
+      "bytes": 5226,
+      "lines": 143,
+      "path": "tests/solvation/test_route2_v0_qeq_monopole_acetone_artifact.py",
+      "sha256": "170c98c1e9e1285ab1edba64afc7d0aff8c1d6a173868f804370700d0a3fafc6"
+    },
+    {
+      "bytes": 11338,
+      "lines": 307,
+      "path": "tests/solvation/test_route2_v0_response_kernel.py",
+      "sha256": "f009d2aefe39447f8a7cbb03867069b5665664aeae43a8e66d4325ff000c58f8"
+    },
+    {
+      "bytes": 5952,
+      "lines": 187,
+      "path": "tests/solvation/test_route2_v0_rism_bulk.py",
+      "sha256": "f8be27f1d16bb2254e335d60da37e17ee7df52bab0382f04248f864a1d03f3c5"
+    },
+    {
+      "bytes": 3113,
+      "lines": 71,
+      "path": "tests/solvation/test_route2_v0_rism_bulk_control_admission.py",
+      "sha256": "297a33419c43e55d2cd2517de1091a452d93de72b932ee9483dc07465e06f0ce"
+    },
+    {
+      "bytes": 9407,
+      "lines": 263,
+      "path": "tests/solvation/test_route2_v0_rism_energy_conjugate.py",
+      "sha256": "d9bad2249e379d21e9b799916815ed358dc5621395c05888e685fc138ece96c1"
+    },
+    {
+      "bytes": 6419,
+      "lines": 185,
+      "path": "tests/solvation/test_route2_v0_rism_generation_source.py",
+      "sha256": "9594fe97f95a520d37e2cde5c462d91555595f0d6ee022f29241c6db9a2b4f92"
+    },
+    {
+      "bytes": 10011,
+      "lines": 315,
+      "path": "tests/solvation/test_route2_v0_rism_molecular_source.py",
+      "sha256": "4cb6b619bb0f4331abf90b47084c8a14d8b353c0a3294da7fb13c85551fee8da"
+    },
+    {
+      "bytes": 5957,
+      "lines": 170,
+      "path": "tests/solvation/test_route2_v0_rism_reciprocal.py",
+      "sha256": "4ad3e197eb917a586411ee777dc86cf5d8d6b5323cddb070c0d2777856b617f2"
+    },
+    {
+      "bytes": 1129,
+      "lines": 33,
+      "path": "tests/solvation/test_route2_v0_rism_reciprocal_admission.py",
+      "sha256": "b27651ba22ec4609ca978cc15efecc0e67d414a62f7a901370368f47888e8e95"
+    },
+    {
+      "bytes": 2428,
+      "lines": 68,
+      "path": "tests/solvation/test_route2_v0_rism_short_range_source.py",
+      "sha256": "437bf58b765614974fbf77358f698c6cd99fc47b1539361a6c69bf2535fe017b"
+    },
+    {
+      "bytes": 5952,
+      "lines": 163,
+      "path": "tests/solvation/test_route2_v0_rism_thermodynamic_source.py",
+      "sha256": "ef8757621e726ce56d1255d5df66a52927672e13f36c49160b06624a93bd9f43"
+    },
+    {
+      "bytes": 8719,
+      "lines": 251,
+      "path": "tests/solvation/test_route2_v0_scalar_response.py",
+      "sha256": "6247565328f1f5a886a31f770a0545f4efd66687ef2214018eaf140845f9522a"
+    },
+    {
+      "bytes": 3436,
+      "lines": 109,
+      "path": "tests/solvation/test_route2_v0_scalar_response_artifact.py",
+      "sha256": "c18746081c4bb7fbf99a93e2c1e6472c2ca6fa22e483f277f7b80347384a4728"
+    },
+    {
+      "bytes": 6002,
+      "lines": 171,
+      "path": "tests/solvation/test_route2_v0_site_hnc.py",
+      "sha256": "cb537d340b87782fc1c133fcfe7f7c4c80517f926510ab9191750de5c5397528"
+    },
+    {
+      "bytes": 8618,
+      "lines": 209,
+      "path": "tests/solvation/test_route2_v0_solvent_asset.py",
+      "sha256": "660c417ed57e367dcefe95daa792c3072fe68237a67ea771258e66e9a9da6f29"
+    },
+    {
+      "bytes": 15275,
+      "lines": 366,
+      "path": "tests/solvation/test_route2_v0_solvent_asset_admission.py",
+      "sha256": "664af841dbffaa7b9cd57c2714ce9a1ce0ab64d07a64235c87d57a78590e21df"
+    },
+    {
+      "bytes": 3240,
+      "lines": 85,
+      "path": "tests/solvation/test_route2_v0_standard_state.py",
+      "sha256": "ba8124a3c73a4c0651591deab8acfecc2cfc3bfc4e96259e7949d54f461f1091"
+    },
+    {
+      "bytes": 15456,
+      "lines": 306,
+      "path": "tests/solvation/test_route2_v0_structured_solvent_admission.py",
+      "sha256": "a47f17b2e0be59dded95589ba20eca7e204f7e6b117419f26885018dd2856955"
+    },
+    {
+      "bytes": 5385,
+      "lines": 163,
+      "path": "tests/solvation/test_route2_v0_structured_solvent_source.py",
+      "sha256": "a6218fecad6ad75af4fcc1cbd255472d917270cb79f1086ecad64522230ebe1e"
+    },
+    {
+      "bytes": 14512,
+      "lines": 363,
+      "path": "tests/solvation/test_route2_v0_variational_admission.py",
+      "sha256": "3fb7736cf43336c2a4f3c4c3ba3ee982ed46da3fee2065d1ae648fe8f6240d2a"
+    },
+    {
+      "bytes": 12278,
+      "lines": 341,
+      "path": "tests/solvation/test_route2_v0_variational_quadratic.py",
+      "sha256": "af336716f12547234970469e5be3db3dfb417d96360c4b191156117053ec886f"
+    },
+    {
+      "bytes": 4879,
+      "lines": 111,
+      "path": "tests/solvation/test_route2_v0_weighted_density_bridge_preregistration.py",
+      "sha256": "e74a4d94bbb16565f9af6029bdbe078c0203756f94fb465ec348c52de814c73a"
+    },
+    {
+      "bytes": 7684,
+      "lines": 206,
+      "path": "tests/solvation/test_route2_v0_weighted_density_cavity.py",
+      "sha256": "2b843528d6e9fab60a86f52ab6fc4098bfc782a1b1aa59a2a5ea2fd23918dc41"
+    }
+  ]
+}

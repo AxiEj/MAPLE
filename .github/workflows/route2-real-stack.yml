@@ -1,0 +1,57 @@
+name: Route 2 real stack
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: route2-real-stack-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  real-stack:
+    runs-on: [self-hosted, linux, x64, route2-real-stack]
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          clean: true
+      - name: Fail closed on missing advertised runtimes
+        shell: bash
+        run: |
+          test -n "${ROUTE2_MACE_CHECKPOINT:-}"
+          test -f "$ROUTE2_MACE_CHECKPOINT"
+          test -n "${PCMSOLVER_LIBRARY:-}"
+          test -f "$PCMSOLVER_LIBRARY"
+          test -n "${MOIST_LIBRARY:-}"
+          test -f "$MOIST_LIBRARY"
+          python - <<'PY'
+          import importlib.util
+          required = ("torch", "mace", "pyscf", "pyddx")
+          missing = [name for name in required if importlib.util.find_spec(name) is None]
+          if missing:
+              raise SystemExit("missing required real-stack modules: " + ", ".join(missing))
+          PY
+          python -m pip check
+      - name: Run complete suite
+        run: |
+          python -m pytest -q -rs \
+            | tee "$RUNNER_TEMP/route2-real-stack-pytest.log"
+      - name: Record exact runtime
+        if: always()
+        run: |
+          python tools/route2_release/capture_runtime.py \
+            --output "$RUNNER_TEMP/route2-real-stack-runtime.json" \
+            --command "python -m pytest -q -rs" \
+            --checkpoint "$ROUTE2_MACE_CHECKPOINT" \
+            --native-library "$PCMSOLVER_LIBRARY" \
+            --native-library "$MOIST_LIBRARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route2-real-stack-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/route2-real-stack-pytest.log
+            ${{ runner.temp }}/route2-real-stack-runtime.json

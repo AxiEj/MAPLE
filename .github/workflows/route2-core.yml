@@ -1,0 +1,37 @@
+name: Route 2 core
+
+on:
+  pull_request:
+  push:
+    branches:
+      - refactor/route2-conservative-vnext
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: route2-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements/route2-ci-py311.txt
+      - name: Install pinned lightweight environment
+        run: |
+          python -m pip install --disable-pip-version-check \
+            -r requirements/route2-ci-py311.txt
+          python -m pip install --disable-pip-version-check --no-deps -e .
+          python -m pip check
+      - name: Compile source
+        run: python -m compileall -q maple
+      - name: Verify Phase 0 evidence and vNext dependency-free contracts
+        run: python -m pytest -q tests/route2_vnext

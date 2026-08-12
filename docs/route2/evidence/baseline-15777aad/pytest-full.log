@@ -1,0 +1,38 @@
+........................................................................ [  4%]
+........................................................................ [  9%]
+..................................s..sss................................ [ 14%]
+........................................................................ [ 19%]
+........................................................................ [ 24%]
+........................................................................ [ 29%]
+..........................ssss.......................................... [ 34%]
+........................................................................ [ 39%]
+........................................................................ [ 44%]
+........................................................................ [ 49%]
+s....................................................................... [ 54%]
+sss.........s........................................................... [ 59%]
+...................................................s.................... [ 64%]
+....................................................................s... [ 69%]
+........................................................................ [ 74%]
+........................................................................ [ 79%]
+........................................................................ [ 84%]
+........................................................................ [ 89%]
+........................................................................ [ 94%]
+........................................................................ [ 99%]
+.....                                                                    [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:145: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:212: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:229: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_fc_aswig_smd_provider.py:243: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:650: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:756: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:797: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_pyddx_pcm_response.py:846: could not import 'pyddx': No module named 'pyddx'
+SKIPPED [1] tests/solvation/test_route2_moist_drop.py:570: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_cpcm.py:508: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_cpcm.py:541: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_cpcm.py:572: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_rhodrop_profile.py:367: requires the separately built pinned MOIST runtime
+SKIPPED [1] tests/solvation/test_route2_solvents.py:277: could not import 'pyscf': No module named 'pyscf'
+SKIPPED [1] tests/solvation/test_route2_v0_atomic_response_stationary_source.py:148: The repository's default test environment intentionally omits PySCF.
+1430 passed, 15 skipped in 50.09s

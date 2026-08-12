@@ -1,0 +1,124 @@
+{
+  "audited_baseline": {
+    "branch_created": "refactor/route2-conservative-vnext",
+    "git_head": "15777aadf92e8a14419e5ff5d8ac6b3cc17aa482",
+    "git_status_porcelain_before_capture": "",
+    "git_tree": "e97904ce23cce34a65353d56419f076fa238a1e9",
+    "repository": "AxiEj/MAPLE",
+    "worktree_clean_before_capture": true
+  },
+  "commands": [
+    {
+      "command": "python -VV",
+      "exit_code": 0,
+      "log": "python-version.log"
+    },
+    {
+      "command": "python -m pip check",
+      "exit_code": 1,
+      "log": "pip-check.log"
+    },
+    {
+      "command": "python -m pip freeze --all | sort",
+      "exit_code": 0,
+      "log": "pip-freeze.txt"
+    },
+    {
+      "command": "python -m pytest --collect-only -q",
+      "exit_code": 0,
+      "log": "pytest-collect.log",
+      "result": "1445 tests collected in 2.10s"
+    },
+    {
+      "command": "python -m pytest -q -rs",
+      "exit_code": 0,
+      "log": "pytest-full.log",
+      "result": "1430 passed, 15 skipped in 50.09s"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "files": {
+    "lscpu.log": {
+      "bytes": 3096,
+      "sha256": "abfee69c036d042feefe9e41fe7ddf6f07c78f86062448fb2e56a7b673ad0c28"
+    },
+    "numpy-config.log": {
+      "bytes": 1597,
+      "sha256": "c94b94aacd3c8a3f44a5758d4a4501ea09a059e7f7e49d40d7f7e6b0c84bac21"
+    },
+    "pip-check.exitcode": {
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "pip-check.log": {
+      "bytes": 1343,
+      "sha256": "cccca7aa86d79cd93dd01fd1a228d9457b5949ef7ff8903ab589cb8a19428a72"
+    },
+    "pip-freeze.txt": {
+      "bytes": 18489,
+      "sha256": "b4d7bdc7b8678739e4dd5f56c61494c37f8f0916c58115b79289d49fab05d066"
+    },
+    "pytest-collect.log": {
+      "bytes": 179716,
+      "sha256": "ae960a82c0e47c5923874669c90717ce7da7c8d6e3eb70dc216d364ba05e4888"
+    },
+    "pytest-full.log": {
+      "bytes": 3509,
+      "sha256": "b1e4b55fbe632e0b9add0498915b329229686557f5ccbbf9362fd6e7a8f302f5"
+    },
+    "python-version.log": {
+      "bytes": 58,
+      "sha256": "9685d6ac6236950aa6953815a3c96b16581c2621e12a7529563ff4be227c2f1d"
+    },
+    "uname.log": {
+      "bytes": 139,
+      "sha256": "61d3afb4ba35f79fe068d7210ec677e41b4867c7ce3232bf1442fb8803bd73a7"
+    }
+  },
+  "generated_at_utc": "2026-08-12T16:06:03.639606+00:00",
+  "known_environment_defects": [
+    "python -m pip check exits nonzero because the shared host environment contains unrelated and conflicting packages; see pip-check.log.",
+    "A fresh core-only venv cannot collect the full baseline suite because legacy MAPLE package imports require torch unconditionally; this is a CI/import-boundary defect, not a passing optional-dependency gate."
+  ],
+  "runtime": {
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "optional_runtime_availability": {
+      "mace": true,
+      "moist": false,
+      "pcmsolver": false,
+      "pyddx": false,
+      "pyscf": false,
+      "torch": true
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": null,
+      "pyscf": null,
+      "pytest": "9.0.2",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]"
+  },
+  "schema_version": "route2-phase0-baseline-evidence-v1",
+  "test_scope": {
+    "chemical_accuracy_evidence": false,
+    "collected": 1445,
+    "passed": 1430,
+    "production_pes_evidence": false,
+    "skipped": 15,
+    "skipped_by_missing_runtime": {
+      "moist": 5,
+      "pyddx": 4,
+      "pyscf": 6
+    }
+  }
+}

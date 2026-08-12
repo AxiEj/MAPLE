@@ -16,6 +16,7 @@ CLI restriction.
 | scalar/profile | E | F | H | V | M | current disposition |
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | target; not implemented/admitted |
+| `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
 | `route2-variational-common-functional-v1` | no | no | no | no | no | disabled pending every strict-variational gate |
 

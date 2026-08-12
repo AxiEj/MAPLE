@@ -10,6 +10,8 @@ from maple.solvation.api import (
     SCALAR_REGISTRY,
     STATE_REGISTRY,
     CapabilityStatus,
+    DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
+    DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     EnergyComponent,
     ForceComponent,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
@@ -21,8 +23,8 @@ from maple.solvation.api import (
     scalar_registry_manifest,
 )
 
-
 INITIAL_SCALAR_IDS = {
+    "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
     "route2-variational-common-functional-v1",
@@ -66,7 +68,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 3
+    assert len(PROFILE_REGISTRY) == 4
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -81,6 +83,11 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     manifest = profile_registry_manifest()
     manifest[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1]["enabled"] = True
     assert PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1].enabled is False
+    diagnostic = PROFILE_REGISTRY[DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1]
+    assert diagnostic.scalar_id == DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1
+    assert diagnostic.coupling_id.endswith("local-l1-jet-diagnostic.v1")
+    assert diagnostic.enabled is False
+    assert diagnostic.capabilities.enabled_tiers == ()
 
 
 def test_admission_records_cannot_bypass_enablement_or_evidence():
@@ -95,7 +102,9 @@ def test_admission_records_cannot_bypass_enablement_or_evidence():
         replace(base, evidence_artifact_ids=("fake-evidence",))
     scalar = SCALAR_REGISTRY[base.scalar_id]
     with pytest.raises(ValueError, match="requires evidence"):
-        replace(scalar, enabled=True, admitted_capabilities=CapabilityStatus(energy=True))
+        replace(
+            scalar, enabled=True, admitted_capabilities=CapabilityStatus(energy=True)
+        )
 
 
 def test_contracts_and_nested_values_are_immutable():
@@ -129,7 +138,9 @@ def test_result_derives_identity_capabilities_and_totals_from_registry_leaves():
         {"closure_tolerance": 1.0},
     ),
 )
-def test_result_rejects_caller_supplied_identity_capability_total_or_tolerance(forbidden):
+def test_result_rejects_caller_supplied_identity_capability_total_or_tolerance(
+    forbidden,
+):
     with pytest.raises(TypeError, match="unexpected keyword argument"):
         _result(**forbidden)
 
@@ -170,7 +181,9 @@ def test_result_validates_shape_finiteness_and_provenance():
 
 def test_scalar_registry_has_unique_complete_state_bound_entries():
     assert set(SCALAR_REGISTRY) == INITIAL_SCALAR_IDS
-    assert len(SCALAR_REGISTRY) == len({entry.scalar_id for entry in SCALAR_REGISTRY.values()})
+    assert len(SCALAR_REGISTRY) == len(
+        {entry.scalar_id for entry in SCALAR_REGISTRY.values()}
+    )
     for scalar_id, entry in SCALAR_REGISTRY.items():
         assert scalar_id == entry.scalar_id
         assert entry.exact_formula
@@ -184,6 +197,18 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
     manifest = scalar_registry_manifest()
     assert set(manifest) == INITIAL_SCALAR_IDS
     assert manifest[variational.scalar_id]["admitted_capabilities"]["V"] is False
+    assert (
+        manifest["route2-operational-cpcm-fixedtopology-electrostatic-v1"][
+            "implementation_entry_point"
+        ]
+        == "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+    )
+    assert manifest["route2-operational-cpcm-fixedtopology-smdcds-v1"][
+        "implementation_entry_point"
+    ].startswith("disabled:")
+    assert manifest["route2-variational-common-functional-v1"][
+        "implementation_entry_point"
+    ].startswith("disabled:")
 
 
 def test_public_ase_units_are_declared_without_touching_legacy_calculators():

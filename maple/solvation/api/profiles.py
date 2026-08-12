@@ -8,19 +8,36 @@ from typing import Mapping
 
 from .capabilities import CapabilityStatus
 from .scalar_registry import (
+    DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     OPERATIONAL_CPCM_ELECTROSTATIC_V1,
     OPERATIONAL_CPCM_SMDCDS_V1,
     SCALAR_REGISTRY,
     VARIATIONAL_COMMON_FUNCTIONAL_V1,
 )
-from .state_registry import OPERATIONAL_STATE_EQUATION_ID, STATE_REGISTRY, VARIATIONAL_STATE_EQUATION_ID
-
+from .state_registry import (
+    OPERATIONAL_STATE_EQUATION_ID,
+    STATE_REGISTRY,
+    VARIATIONAL_STATE_EQUATION_ID,
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-electrostatic-v1"
 )
-OPERATIONAL_CPCM_SMDCDS_PROFILE_V1 = "route2-profile-operational-cpcm-fixedtopology-smdcds-v1"
-VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1 = "route2-profile-variational-common-functional-v1"
+DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1 = (
+    "route2-profile-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
+)
+OPERATIONAL_CPCM_SMDCDS_PROFILE_V1 = (
+    "route2-profile-operational-cpcm-fixedtopology-smdcds-v1"
+)
+VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1 = (
+    "route2-profile-variational-common-functional-v1"
+)
+EXACT_GTO_COUPLING_CANDIDATE_ID = (
+    "maple.route2.coupling.single-width-same-basis-gto-candidate.v1"
+)
+LOCAL_JET_DIAGNOSTIC_COUPLING_ID = (
+    "maple.route2.coupling.exterior-local-l1-jet-diagnostic.v1"
+)
 
 
 def _nonempty_text(value: object, label: str) -> str:
@@ -40,6 +57,7 @@ class SolvationProfile:
     continuum_profile: str
     cavity_profile: str
     nonpolar_profile: str
+    coupling_id: str
     capabilities: CapabilityStatus = CapabilityStatus()
     evidence_artifact_ids: tuple[str, ...] = ()
     enabled: bool = False
@@ -53,11 +71,15 @@ class SolvationProfile:
             "continuum_profile",
             "cavity_profile",
             "nonpolar_profile",
+            "coupling_id",
         ):
             object.__setattr__(self, name, _nonempty_text(getattr(self, name), name))
         if not isinstance(self.capabilities, CapabilityStatus):
             raise TypeError("capabilities must be a CapabilityStatus.")
-        evidence = tuple(_nonempty_text(item, "evidence artifact ID") for item in self.evidence_artifact_ids)
+        evidence = tuple(
+            _nonempty_text(item, "evidence artifact ID")
+            for item in self.evidence_artifact_ids
+        )
         if len(set(evidence)) != len(evidence):
             raise ValueError("evidence_artifact_ids entries must be unique.")
         object.__setattr__(self, "evidence_artifact_ids", evidence)
@@ -71,7 +93,9 @@ class SolvationProfile:
         if self.enabled and not self.capabilities.energy:
             raise ValueError("An enabled profile must admit scalar energy capability.")
         if evidence and not admitted:
-            raise ValueError("Admission evidence cannot be attached without an admitted capability.")
+            raise ValueError(
+                "Admission evidence cannot be attached without an admitted capability."
+            )
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -82,6 +106,7 @@ class SolvationProfile:
             "continuum_profile": self.continuum_profile,
             "cavity_profile": self.cavity_profile,
             "nonpolar_profile": self.nonpolar_profile,
+            "coupling_id": self.coupling_id,
             "capabilities": {
                 "E": self.capabilities.energy,
                 "F": self.capabilities.conservative_force,
@@ -98,6 +123,7 @@ _COMMON = dict(
     model_profile="mace-polar-route2-source-field-contract-v1",
     continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
     cavity_profile="fixed-topology-amplitude-swig-v1",
+    coupling_id=EXACT_GTO_COUPLING_CANDIDATE_ID,
     capabilities=CapabilityStatus(),
     evidence_artifact_ids=(),
     enabled=False,
@@ -110,6 +136,19 @@ _PROFILE_ENTRIES = (
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
         nonpolar_profile="none",
         **_COMMON,
+    ),
+    SolvationProfile(
+        profile_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
+        scalar_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        model_profile="mace-polar-route2-source-field-contract-v1",
+        continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+        cavity_profile="fixed-topology-amplitude-swig-v1",
+        nonpolar_profile="none",
+        coupling_id=LOCAL_JET_DIAGNOSTIC_COUPLING_ID,
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
     ),
     SolvationProfile(
         profile_id=OPERATIONAL_CPCM_SMDCDS_PROFILE_V1,
@@ -128,33 +167,53 @@ _PROFILE_ENTRIES = (
 )
 
 
-def _validated_registry(entries: tuple[SolvationProfile, ...]) -> Mapping[str, SolvationProfile]:
+def _validated_registry(
+    entries: tuple[SolvationProfile, ...],
+) -> Mapping[str, SolvationProfile]:
     registry = {entry.profile_id: entry for entry in entries}
     if len(registry) != len(entries):
         raise RuntimeError("Duplicate Route-2 profile IDs.")
     for entry in entries:
         scalar = SCALAR_REGISTRY.get(entry.scalar_id)
         if scalar is None:
-            raise RuntimeError(f"Profile {entry.profile_id!r} names an unregistered scalar.")
+            raise RuntimeError(
+                f"Profile {entry.profile_id!r} names an unregistered scalar."
+            )
         if entry.state_equation_id not in STATE_REGISTRY:
-            raise RuntimeError(f"Profile {entry.profile_id!r} names an unregistered state equation.")
+            raise RuntimeError(
+                f"Profile {entry.profile_id!r} names an unregistered state equation."
+            )
         if entry.state_equation_id != scalar.state_equation_id:
-            raise RuntimeError(f"Profile {entry.profile_id!r} does not match its scalar state equation.")
+            raise RuntimeError(
+                f"Profile {entry.profile_id!r} does not match its scalar state equation."
+            )
         for name in ("continuum_profile", "cavity_profile", "nonpolar_profile"):
             if getattr(entry, name) != getattr(scalar, name):
-                raise RuntimeError(f"Profile {entry.profile_id!r} does not match scalar field {name!r}.")
-        undeclared = set(entry.capabilities.enabled_tiers) - set(scalar.admitted_capabilities.enabled_tiers)
+                raise RuntimeError(
+                    f"Profile {entry.profile_id!r} does not match scalar field {name!r}."
+                )
+        undeclared = set(entry.capabilities.enabled_tiers) - set(
+            scalar.admitted_capabilities.enabled_tiers
+        )
         if undeclared:
-            raise RuntimeError(f"Profile {entry.profile_id!r} admits scalar-undeclared tiers: {sorted(undeclared)}")
-        unknown_evidence = set(entry.evidence_artifact_ids) - set(scalar.evidence_artifact_ids)
+            raise RuntimeError(
+                f"Profile {entry.profile_id!r} admits scalar-undeclared tiers: {sorted(undeclared)}"
+            )
+        unknown_evidence = set(entry.evidence_artifact_ids) - set(
+            scalar.evidence_artifact_ids
+        )
         if unknown_evidence:
             raise RuntimeError(
                 f"Profile {entry.profile_id!r} names scalar-undeclared evidence: {sorted(unknown_evidence)}"
             )
         if entry.enabled and not scalar.enabled:
-            raise RuntimeError(f"Profile {entry.profile_id!r} cannot enable a disabled scalar.")
+            raise RuntimeError(
+                f"Profile {entry.profile_id!r} cannot enable a disabled scalar."
+            )
         if entry.enabled and not STATE_REGISTRY[entry.state_equation_id].enabled:
-            raise RuntimeError(f"Profile {entry.profile_id!r} cannot enable a disabled state equation.")
+            raise RuntimeError(
+                f"Profile {entry.profile_id!r} cannot enable a disabled state equation."
+            )
     return MappingProxyType(registry)
 
 
@@ -169,15 +228,20 @@ def get_solvation_profile(profile_id: str) -> SolvationProfile:
 
 
 def profile_registry_manifest() -> dict[str, dict[str, object]]:
-    return {profile_id: entry.as_dict() for profile_id, entry in PROFILE_REGISTRY.items()}
+    return {
+        profile_id: entry.as_dict() for profile_id, entry in PROFILE_REGISTRY.items()
+    }
 
 
 __all__ = [
+    "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_SMDCDS_PROFILE_V1",
     "PROFILE_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1",
     "SolvationProfile",
+    "EXACT_GTO_COUPLING_CANDIDATE_ID",
+    "LOCAL_JET_DIAGNOSTIC_COUPLING_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

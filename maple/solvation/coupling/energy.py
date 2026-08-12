@@ -3,22 +3,43 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 
-from maple.solvation.api.scalar_registry import OPERATIONAL_CPCM_ELECTROSTATIC_V1
+from maple.solvation.api.scalar_registry import (
+    OPERATIONAL_CPCM_ELECTROSTATIC_V1,
+    get_scalar_definition,
+)
+from maple.solvation.api.profiles import (
+    OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
+    get_solvation_profile,
+)
 
 from .adjoint import AdjointOptions, AdjointResult, solve_reduced_adjoint
 from .fixed_point import FixedPointState
 from .linearization import ReducedLinearization
 from .metrics import ATOMIC_L1_PAIRING, PairingMetric
-from .state_equation import ContinuumResponseProvider, ReducedStateEquation
+from .spaces import ATOMIC_L1_FIELD_DUAL_SPACE, ATOMIC_L1_SOURCE_SPACE
+from .state_equation import (
+    ContinuumResponseProvider,
+    ReducedStateEquation,
+    geometry_sha256,
+    provider_behavior_sha256,
+)
 
 
 @runtime_checkable
 class VacuumScalarProvider(Protocol):
     """Vacuum scalar and its partial Cartesian derivative."""
+
+    provider_id: str
+    model_profile_id: str
+    provenance_sha256: str
+
+    def configuration_sha256(self) -> str: ...
 
     def evaluate_energy(self, geometry: Any) -> float: ...
     def coordinate_gradient(self, geometry: Any) -> np.ndarray: ...
@@ -39,7 +60,9 @@ def _source_array(
     result = np.asarray(values, dtype=float)
     expected = (atom_count, component_count)
     if result.shape != expected or not np.all(np.isfinite(result)):
-        raise ValueError(f"{name} must be finite with shape {expected}; received {result.shape}.")
+        raise ValueError(
+            f"{name} must be finite with shape {expected}; received {result.shape}."
+        )
     return np.array(result, copy=True)
 
 
@@ -49,6 +72,35 @@ def _source_dual_of_field(field: np.ndarray, metric: PairingMetric) -> np.ndarra
 
 def _field_cotangent_of_source(source: np.ndarray, metric: PairingMetric) -> np.ndarray:
     return np.einsum("ji,nj->ni", metric.block, source)
+
+
+def _validate_continuum_pairing_identity(
+    continuum: ContinuumResponseProvider, metric: PairingMetric
+) -> None:
+    source_space = getattr(continuum, "source_space", None)
+    field_space = getattr(continuum, "field_space", None)
+    if source_space is None or field_space is None:
+        raise TypeError(
+            "Continuum must declare source_space and field_space identities."
+        )
+    if (
+        source_space.components != metric.source_components
+        or source_space.units != metric.source_units
+    ):
+        raise ValueError(
+            "Continuum source-space identity does not match the pairing metric."
+        )
+    if field_space.source_space.metadata_hash() != source_space.metadata_hash():
+        raise ValueError(
+            "Continuum field space is paired with a different source identity."
+        )
+    if field_space.pairing_metric.metadata_hash() != metric.metadata_hash():
+        raise ValueError("Continuum field pairing identity does not match exactly.")
+    if (
+        field_space.components != metric.field_components
+        or field_space.units != metric.field_units
+    ):
+        raise ValueError("Continuum field order/units do not match the pairing metric.")
 
 
 @dataclass(frozen=True)
@@ -84,6 +136,7 @@ def nonlinear_half_coupling(
     their sum is ``Q P_R(c)``.
     """
 
+    _validate_continuum_pairing_identity(continuum, metric)
     values = np.asarray(source, dtype=float)
     if values.ndim != 2 or values.shape[1] != metric.component_count:
         raise ValueError("source must have shape (atom_count, metric.component_count).")
@@ -114,7 +167,9 @@ def nonlinear_half_coupling(
     return HalfCouplingEvaluation(
         energy=float(energy),
         direct_source_gradient=tuple(tuple(float(v) for v in row) for row in direct),
-        response_source_gradient=tuple(tuple(float(v) for v in row) for row in response),
+        response_source_gradient=tuple(
+            tuple(float(v) for v in row) for row in response
+        ),
         total_source_gradient=tuple(tuple(float(v) for v in row) for row in total),
         coordinate_gradient=tuple(float(v) for v in coordinate),
     )
@@ -178,9 +233,139 @@ class OperationalElectrostaticScalar:
     equation: ReducedStateEquation
     vacuum: VacuumScalarProvider
     scalar_id: str = OPERATIONAL_CPCM_ELECTROSTATIC_V1
+    profile_id: str = OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1
     metric: PairingMetric = ATOMIC_L1_PAIRING
+    _construction_fingerprint: str = ""
+
+    def __post_init__(self) -> None:
+        definition = get_scalar_definition(self.scalar_id)
+        profile = get_solvation_profile(self.profile_id)
+        if (
+            profile.scalar_id != self.scalar_id
+            or profile.state_equation_id != self.equation.state_equation_id
+        ):
+            raise ValueError(
+                "Operational scalar/profile/state registry binding is inconsistent."
+            )
+        if definition.implementation_entry_point != (
+            "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+        ):
+            raise ValueError(
+                "Registered scalar is not implemented by OperationalElectrostaticScalar."
+            )
+        if definition.nonpolar_profile != "none":
+            raise ValueError(
+                "OperationalElectrostaticScalar cannot implement a nonpolar scalar."
+            )
+        if self.equation.electronic.model_profile_id != profile.model_profile:
+            raise ValueError(
+                "Electronic model-profile ID does not match the authoritative profile."
+            )
+        if self.equation.continuum.continuum_profile_id != profile.continuum_profile:
+            raise ValueError(
+                "Continuum profile ID does not match the authoritative profile."
+            )
+        if self.equation.continuum.cavity_profile_id != profile.cavity_profile:
+            raise ValueError(
+                "Continuum cavity-profile ID does not match the authoritative profile."
+            )
+        if (
+            getattr(self.equation.continuum, "scalar_id", self.scalar_id)
+            != self.scalar_id
+        ):
+            raise ValueError(
+                "Continuum scalar ID does not match the operational scalar identity."
+            )
+        if (
+            self.equation.electronic.coupling_id != profile.coupling_id
+            or self.equation.continuum.coupling_id != profile.coupling_id
+        ):
+            raise ValueError(
+                "Source/receiver coupling ID does not match the authoritative profile."
+            )
+        if self.vacuum.model_profile_id != profile.model_profile:
+            raise ValueError(
+                "Vacuum model-profile ID does not match the authoritative profile."
+            )
+        if definition.state_equation_id != self.equation.state_equation_id:
+            raise ValueError("Scalar registry and state equation IDs do not match.")
+        if (
+            self.metric.metadata_hash()
+            != self.equation.field_space.pairing_metric.metadata_hash()
+        ):
+            raise ValueError(
+                "Operational scalar metric must equal the equation field pairing."
+            )
+        if (
+            self.equation.source_space.metadata_hash()
+            != self.equation.field_space.source_space.metadata_hash()
+        ):
+            raise ValueError(
+                "Operational scalar source and field identities do not match."
+            )
+        if (
+            self.equation.source_space.metadata_hash()
+            != ATOMIC_L1_SOURCE_SPACE.metadata_hash()
+            or self.equation.field_space.metadata_hash()
+            != ATOMIC_L1_FIELD_DUAL_SPACE.metadata_hash()
+        ):
+            raise ValueError(
+                "Canonical operational scalar requires the exact authoritative "
+                "atomic-l<=1 source/field identities."
+            )
+        for name in ("provider_id", "provenance_sha256"):
+            value = getattr(self.vacuum, name, None)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"vacuum.{name} must be a non-empty stable identity.")
+        digest = self.vacuum.provenance_sha256.lower()
+        if len(digest) != 64 or any(
+            character not in "0123456789abcdef" for character in digest
+        ):
+            raise ValueError(
+                "vacuum.provenance_sha256 must contain 64 hexadecimal digits."
+            )
+        if not callable(getattr(self.vacuum, "configuration_sha256", None)):
+            raise TypeError("vacuum.configuration_sha256 must be callable.")
+        object.__setattr__(
+            self, "_construction_fingerprint", self._current_fingerprint_sha256()
+        )
+
+    def _current_fingerprint_sha256(self) -> str:
+        payload = {
+            "scalar_id": self.scalar_id,
+            "profile_id": self.profile_id,
+            "registry_formula": get_scalar_definition(self.scalar_id).exact_formula,
+            "equation_sha256": self.equation.fingerprint_sha256(),
+            "metric_sha256": self.metric.metadata_hash(),
+            "vacuum": {
+                "provider_id": self.vacuum.provider_id,
+                "model_profile_id": self.vacuum.model_profile_id,
+                "provenance_sha256": self.vacuum.provenance_sha256,
+                "configuration_sha256": self.vacuum.configuration_sha256(),
+                "behavior_sha256": provider_behavior_sha256(
+                    self.vacuum,
+                    (
+                        "configuration_sha256",
+                        "evaluate_energy",
+                        "coordinate_gradient",
+                    ),
+                    label="vacuum",
+                ),
+            },
+        }
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        return hashlib.sha256(encoded).hexdigest()
+
+    def fingerprint_sha256(self) -> str:
+        current = self._current_fingerprint_sha256()
+        if self._construction_fingerprint and current != self._construction_fingerprint:
+            raise ValueError(
+                "Operational scalar/provider configuration drifted after construction."
+            )
+        return current
 
     def evaluate(self, geometry: Any, y: object) -> OperationalScalarEvaluation:
+        self.fingerprint_sha256()
         reduced = self.equation._y(y)
         source = self.equation.coordinates.expand(reduced)
         continuum = reciprocal_linear_half_coupling(
@@ -189,12 +374,20 @@ class OperationalElectrostaticScalar:
         vacuum_energy = float(self.vacuum.evaluate_energy(geometry))
         if not np.isfinite(vacuum_energy):
             raise ValueError("vacuum energy must be finite.")
-        vacuum_gradient = np.asarray(self.vacuum.coordinate_gradient(geometry), dtype=float)
+        vacuum_gradient = np.asarray(
+            self.vacuum.coordinate_gradient(geometry), dtype=float
+        )
         continuum_gradient = continuum.coordinate_gradient_array()
-        if vacuum_gradient.shape != continuum_gradient.shape or not np.all(np.isfinite(vacuum_gradient)):
-            raise ValueError("Vacuum and continuum coordinate gradients must be finite and equally shaped.")
+        if vacuum_gradient.shape != continuum_gradient.shape or not np.all(
+            np.isfinite(vacuum_gradient)
+        ):
+            raise ValueError(
+                "Vacuum and continuum coordinate gradients must be finite and equally shaped."
+            )
         source_gradient = continuum.total_source_gradient_array()
-        reduced_gradient = self.equation.coordinates.reduce_source_cotangent(source_gradient)
+        reduced_gradient = self.equation.coordinates.reduce_source_cotangent(
+            source_gradient
+        )
         direct_coordinate_gradient = vacuum_gradient + continuum_gradient
         return OperationalScalarEvaluation(
             scalar_id=self.scalar_id,
@@ -202,7 +395,9 @@ class OperationalElectrostaticScalar:
             continuum_energy=continuum.energy,
             total_energy=vacuum_energy + continuum.energy,
             reduced_gradient=tuple(float(value) for value in reduced_gradient),
-            direct_coordinate_gradient=tuple(float(value) for value in direct_coordinate_gradient),
+            direct_coordinate_gradient=tuple(
+                float(value) for value in direct_coordinate_gradient
+            ),
         )
 
     def implicit_gradient(
@@ -213,9 +408,50 @@ class OperationalElectrostaticScalar:
         adjoint_options: AdjointOptions = AdjointOptions(),
     ) -> OperationalGradientResult:
         if not state.converged:
-            raise ValueError("Implicit differentiation requires a converged primal state.")
+            raise ValueError(
+                "Implicit differentiation requires a converged primal state."
+            )
         if state.state_equation_id != self.equation.state_equation_id:
-            raise ValueError("Primal state and operational scalar use different state equations.")
+            raise ValueError(
+                "Primal state and operational scalar use different state equations."
+            )
+        if state.geometry_sha256 != geometry_sha256(geometry):
+            raise ValueError("Primal state is bound to a different geometry.")
+        if state.equation_sha256 != self.equation.fingerprint_sha256():
+            raise ValueError(
+                "Primal state is bound to a different provider/equation identity."
+            )
+        if state.scalar_id != self.scalar_id or state.profile_id != self.profile_id:
+            raise ValueError(
+                "Primal state is bound to a different scalar/profile identity."
+            )
+        if state.scalar_sha256 != self.fingerprint_sha256():
+            raise ValueError(
+                "Primal state is bound to a different scalar/vacuum configuration."
+            )
+        current = self.equation.evaluate(geometry, state.y)
+        current_source = np.asarray(current.source)
+        current_field = np.asarray(current.field)
+        current_residual = np.asarray(current.residual)
+        if not np.array_equal(current_source, state.source_array()):
+            raise ValueError(
+                "Stored primal source does not match the bound equation evaluation."
+            )
+        if not np.array_equal(current_field, state.field_array()):
+            raise ValueError(
+                "Stored primal field does not match the bound equation evaluation."
+            )
+        if not np.array_equal(
+            current_residual, np.asarray(state.actual_unmixed_residual)
+        ):
+            raise ValueError(
+                "Stored primal residual does not match the bound equation evaluation."
+            )
+        physical_residual_norm = float(np.linalg.norm(current_residual))
+        if physical_residual_norm > state.primal_tolerance:
+            raise ValueError(
+                "Bound primal state exceeds its recorded physical residual tolerance."
+            )
         scalar = self.evaluate(geometry, state.y)
         linearization = ReducedLinearization.at(self.equation, geometry, state.y)
         adjoint = solve_reduced_adjoint(
@@ -226,7 +462,9 @@ class OperationalElectrostaticScalar:
         )
         direct = np.asarray(scalar.direct_coordinate_gradient)
         if direct.shape != residual_coordinate_pullback.shape:
-            raise ValueError("Scalar and residual coordinate gradients must be equally shaped.")
+            raise ValueError(
+                "Scalar and residual coordinate gradients must be equally shaped."
+            )
         total = direct - residual_coordinate_pullback
         return OperationalGradientResult(
             scalar=scalar,

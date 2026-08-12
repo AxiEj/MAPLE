@@ -9,8 +9,12 @@ from typing import Mapping
 from .capabilities import CapabilityStatus
 from .state_registry import OPERATIONAL_STATE_EQUATION_ID, VARIATIONAL_STATE_EQUATION_ID
 
-
-OPERATIONAL_CPCM_ELECTROSTATIC_V1 = "route2-operational-cpcm-fixedtopology-electrostatic-v1"
+OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
+    "route2-operational-cpcm-fixedtopology-electrostatic-v1"
+)
+DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
+    "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
+)
 OPERATIONAL_CPCM_SMDCDS_V1 = "route2-operational-cpcm-fixedtopology-smdcds-v1"
 VARIATIONAL_COMMON_FUNCTIONAL_V1 = "route2-variational-common-functional-v1"
 
@@ -49,7 +53,11 @@ class ScalarDefinition:
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string.")
-        for name in ("included_components", "excluded_components", "evidence_artifact_ids"):
+        for name in (
+            "included_components",
+            "excluded_components",
+            "evidence_artifact_ids",
+        ):
             values = tuple(getattr(self, name))
             if any(not isinstance(value, str) or not value.strip() for value in values):
                 raise ValueError(f"{name} must contain only non-empty strings.")
@@ -58,7 +66,9 @@ class ScalarDefinition:
             object.__setattr__(self, name, values)
         overlap = set(self.included_components) & set(self.excluded_components)
         if overlap:
-            raise ValueError(f"Components cannot be both included and excluded: {sorted(overlap)}")
+            raise ValueError(
+                f"Components cannot be both included and excluded: {sorted(overlap)}"
+            )
         if not isinstance(self.admitted_capabilities, CapabilityStatus):
             raise TypeError("admitted_capabilities must be a CapabilityStatus.")
         if type(self.enabled) is not bool:
@@ -71,7 +81,9 @@ class ScalarDefinition:
         if self.enabled and not self.admitted_capabilities.energy:
             raise ValueError("An enabled scalar must admit energy capability.")
         if self.evidence_artifact_ids and not admitted:
-            raise ValueError("Admission evidence cannot be attached without an admitted capability.")
+            raise ValueError(
+                "Admission evidence cannot be attached without an admitted capability."
+            )
 
     def as_dict(self) -> dict[str, object]:
         """Return a JSON-serializable registry record."""
@@ -102,7 +114,6 @@ class ScalarDefinition:
 
 
 _COMMON = dict(
-    implementation_entry_point="maple.solvation.coupling.energy:not-implemented-phase1",
     source_representation="atom-centred net monopoles plus real-spherical l=1 dipoles",
     field_convention="positive energy-dual field with pairing c^T Q(R) u",
     continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
@@ -120,10 +131,42 @@ _SCALAR_ENTRIES = (
             "1/2<c_ref(R)+T(R)y,P_R(c_ref(R)+T(R)y)>_Q; G_np=0"
         ),
         included_components=("vacuum_energy", "cpcm_half_coupling_electrostatic"),
-        excluded_components=("field_conditioned_model_energy_difference", "nonpolar_smd_cds"),
+        excluded_components=(
+            "field_conditioned_model_energy_difference",
+            "nonpolar_smd_cds",
+        ),
         nonpolar_profile="none",
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point=(
+            "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+        ),
         derivative_route="implicit adjoint total derivative of this scalar along y*(R)",
+        **_COMMON,
+    ),
+    ScalarDefinition(
+        scalar_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
+        exact_formula=(
+            "E_diag(R)=Phi_diag(R,y*(R)); Phi_diag=E_vac(R)+"
+            "1/2<c_ref(R)+T(R)y,P_R^local-jet(c_ref(R)+T(R)y)>_Q; G_np=0"
+        ),
+        included_components=(
+            "vacuum_energy",
+            "local_jet_cpcm_half_coupling_electrostatic",
+        ),
+        excluded_components=(
+            "checkpoint_native_exact_gto_coupling",
+            "field_conditioned_model_energy_difference",
+            "nonpolar_smd_cds",
+        ),
+        nonpolar_profile="none",
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point=(
+            "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+        ),
+        derivative_route=(
+            "implicit-adjoint diagnostic only; public E/F/H/V/M disabled because "
+            "the local-jet coupling is not the checkpoint-native exact-GTO mainline"
+        ),
         **_COMMON,
     ),
     ScalarDefinition(
@@ -140,6 +183,7 @@ _SCALAR_ENTRIES = (
         excluded_components=("field_conditioned_model_energy_difference",),
         nonpolar_profile="fixed-topology-smd-derived-cds-v1",
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point="disabled:not-implemented-fixedtopology-smdcds-v1",
         derivative_route="implicit adjoint total derivative; disabled pending same-scalar CDS force gate",
         **_COMMON,
     ),
@@ -149,10 +193,15 @@ _SCALAR_ENTRIES = (
             "F_var(R,c)=Gamma_theta(R,c)+G_pcm(R,c)+G_np(R,c); "
             "Gamma_theta=stat_u[E_theta(R,u)-<c,u>_Q]"
         ),
-        included_components=("electronic_legendre_functional", "continuum_energy", "declared_nonpolar_energy"),
+        included_components=(
+            "electronic_legendre_functional",
+            "continuum_energy",
+            "declared_nonpolar_energy",
+        ),
         excluded_components=("independently_assembled_response_correction",),
         nonpolar_profile="profile-defined; electrostatic profile uses none",
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point="disabled:not-implemented-common-functional-v1",
         derivative_route="stationary envelope derivative; disabled until every strict-variational gate passes",
         **_COMMON,
     ),
@@ -161,7 +210,9 @@ _SCALAR_ENTRIES = (
 SCALAR_REGISTRY: Mapping[str, ScalarDefinition] = MappingProxyType(
     {entry.scalar_id: entry for entry in _SCALAR_ENTRIES}
 )
-if len(SCALAR_REGISTRY) != len(_SCALAR_ENTRIES):  # pragma: no cover - import-time invariant
+if len(SCALAR_REGISTRY) != len(
+    _SCALAR_ENTRIES
+):  # pragma: no cover - import-time invariant
     raise RuntimeError("Duplicate Route-2 scalar IDs.")
 
 
@@ -179,6 +230,7 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_SMDCDS_V1",
     "SCALAR_REGISTRY",

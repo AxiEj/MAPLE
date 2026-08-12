@@ -2,15 +2,15 @@
 
 This document mirrors the machine-readable registry in
 `maple.solvation.api.scalar_registry`. Registration defines an identity; it
-does **not** admit a capability. In Phase 1 every `E/F/H/V/M` capability is
-false and every scalar is disabled.
+does **not** admit a capability. Every current `E/F/H/V/M` capability is false
+and every scalar is disabled.
 
 `maple.solvation.api.profiles.PROFILE_REGISTRY` is the sole admission registry.
 Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-The three initial profiles are disabled, have no capabilities, and have empty
+The four current profiles are disabled, have no capabilities, and have empty
 admission evidence.
 
 `Route2Result` accepts only a registered `profile_id`; it derives scalar ID,
@@ -23,14 +23,15 @@ produce only fail-closed internal energy evidence: it cannot publish a result,
 declare an admitted domain, or carry force leaves.
 
 Public ASE units are declared centrally as energy `eV`, forces `eV/A`, and
-Hessian `eV/A^2`. The legacy calculator path is unchanged in this phase.
+Hessian `eV/A^2`. Historical Hartree-reporting jobs use the dispatcher-bound
+non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 
 - Formula: `E_op(R)=Phi_op(R,y*(R))`, where
   `Phi_op=E_vac(R)+1/2<c_ref(R)+T(R)y,P_R(c_ref(R)+T(R)y)>_Q` and `G_np=0`.
-- Implementation entry point: reserved as
-  `maple.solvation.coupling.energy:not-implemented-phase1`.
+- Implementation entry point:
+  `maple.solvation.coupling.energy:OperationalElectrostaticScalar`.
 - Included: vacuum energy; fixed-topology C-PCM half-coupling electrostatics.
 - Excluded: field-conditioned model energy difference; SMD/CDS nonpolar energy.
 - Source: atom-centred net monopoles plus real-spherical `l=1` dipoles.
@@ -41,6 +42,20 @@ Hessian `eV/A^2`. The legacy calculator path is unchanged in this phase.
 - Derivative: implicit-adjoint total derivative of the same scalar along the
   unique admitted root `y*(R)`.
 - Capabilities/evidence: none / none.
+
+## `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1`
+
+- Formula: the same explicit vacuum plus reciprocal C-PCM half-coupling form,
+  but its state equation is driven by the separately identified exterior
+  local-`l<=1`-jet coupling.
+- Purpose: internal numerical comparison with the historical fixed-cavity
+  Route-2 implementation.
+- Excluded: checkpoint-native exact-GTO coupling, field-conditioned model
+  energy difference, and every nonpolar/CDS term.
+- Profile: `route2-profile-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1`.
+- Coupling: `maple.route2.coupling.exterior-local-l1-jet-diagnostic.v1`.
+- Capabilities/evidence: none / none. It is deliberately disabled and is not a
+  released PES, force, or complete solvation-free-energy method.
 
 ## `route2-operational-cpcm-fixedtopology-smdcds-v1`
 

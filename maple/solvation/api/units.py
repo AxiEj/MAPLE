@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+# MAPLE's versioned Hartree/eV conversion is intentionally independent of the
+# ASE runtime CODATA table.  The reciprocal pair is shared by every Route-2
+# boundary so legacy Hartree kernels and public eV results round-trip exactly.
+HARTREE_TO_EV = 27.211386245988
+EV_TO_HARTREE = 1.0 / HARTREE_TO_EV
+
 
 @dataclass(frozen=True, slots=True)
 class UnitContract:
@@ -33,4 +39,9 @@ ASE_PUBLIC_UNITS = UnitContract(
     coordinates="A",
 )
 
-__all__ = ["ASE_PUBLIC_UNITS", "UnitContract"]
+__all__ = [
+    "ASE_PUBLIC_UNITS",
+    "EV_TO_HARTREE",
+    "HARTREE_TO_EV",
+    "UnitContract",
+]

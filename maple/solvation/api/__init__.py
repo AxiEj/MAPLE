@@ -2,6 +2,7 @@
 
 from .capabilities import CapabilityStatus, CapabilityTier
 from .profiles import (
+    DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
     PROFILE_REGISTRY,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_CPCM_SMDCDS_PROFILE_V1,
@@ -13,6 +14,7 @@ from .profiles import (
 from .provenance import ProvenanceBundle, ProvenanceRecord, RuntimeProvenance
 from .result import EnergyComponent, ForceComponent, Route2Result
 from .scalar_registry import (
+    DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     SCALAR_REGISTRY,
     ScalarDefinition,
     get_scalar_definition,
@@ -28,6 +30,8 @@ __all__ = [
     "STATE_REGISTRY",
     "CapabilityStatus",
     "CapabilityTier",
+    "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1",
+    "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "EnergyComponent",
     "ForceComponent",
     "ProvenanceBundle",

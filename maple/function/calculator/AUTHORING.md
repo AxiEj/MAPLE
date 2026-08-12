@@ -13,13 +13,14 @@ have to inherit `CalcABC`. UMA, for example, extends third-party
 **Public methods:**
 - `calculate(self, atoms, properties, system_changes)` — ASE entry point.
 - `get_hessian(self, atoms, delta=0.002)` — returns a `(3N, 3N) np.ndarray`
-  in Hartree / Å². `CalcABC` provides a default that dispatches on
+  in eV / Å². `CalcABC` provides a default that dispatches on
   `self.hessian`.
 - `get_hvp(self, atoms, n)` — optional; required only for the HVP-enabled
   Dimer path (`use_hvp=True`). Returns the 3-tuple `(Hn, forces, energy)` as
   torch tensors: `Hn` is the Hessian–vector product `H·n` flattened to `(3N,)`,
   `forces` is the `(3N,)` force vector, and `energy` is a scalar — all in
-  Hartree units (energy in Hartree, forces in Hartree/Å, `H` in Hartree/Å²).
+  ASE units (energy in eV, forces in eV/Å, `H` in eV/Å²). MAPLE's legacy job
+  layer converts these values through a non-ASE view at the job boundary.
   The HVP-enabled Dimer path unpacks all three; the regular Dimer path can use
   finite-difference forces instead. `CalcABC.get_hvp` raises
   `NotImplementedError` by default — there is **no** shared autograd default,
@@ -33,7 +34,7 @@ instantiated):
 | Attribute | Type | Purpose |
 |---|---|---|
 | `MODEL_NAMES` | `tuple[str, ...]` | Registry routing keys, lowercase. |
-| `MODEL_ENERGY_UNIT` | `'eV'` or `'hartree'` | Declares the backend's `calculate()` energy unit. `_finalize_results` converts to Hartree based on this — **do not multiply by `EV2HARTREE` yourself**. |
+| `MODEL_ENERGY_UNIT` | `'eV'` or `'hartree'` | Declares the backend-native energy unit passed to `_finalize_results`, which converts to public ASE eV — **do not convert it yourself in `calculate()`**. |
 | `SUPPORTED_HESSIAN_MODES` | `tuple[str, ...]` | Subset of `('analytic', 'numerical')`. |
 | `SUPPORTS_CHARGE_MULT` | `bool` | True if the backend honors `atoms.info['charge']` / `atoms.info['mult']`. |
 | `SUPPORTS_PBC` | `bool` | True only when the backend constructs a validated periodic graph / neighbor list. `SetCalculator` and `CalcABC.calculate()` reject periodic atoms for false values. |
@@ -87,22 +88,27 @@ class FooCalculator(CalcABC):
         self._finalize_results(atoms, energy=energy, forces=forces)
 
     def _analytic_hessian(self, atoms) -> np.ndarray:
-        # backend autograd; return np.ndarray (3N, 3N) in Hartree / Å²
+        # Existing private implementations return Hartree/Å²; CalcABC converts
+        # exactly once to public eV/Å². Override ANALYTIC_HESSIAN_UNIT if the
+        # private implementation is already eV/Å².
         ...
 ```
 
 ## Unit contract
 
 - Set `MODEL_ENERGY_UNIT` honestly. ANI 's TorchScript model returns Hartree
-  natively, so ANI declares `'hartree'` and `_finalize_results` skips the
-  conversion. Every other shipped backend declares `'eV'`.
+  natively, so ANI declares `'hartree'` and `_finalize_results` converts it to
+  public eV. Every other shipped backend declares `'eV'`.
 - `_finalize_results` is the **only** path that converts the
-  `calculate()` energy / forces flow to Hartree. **Custom calculators must
-  not multiply by `EV2HARTREE` themselves** for the `calculate()` path.
-- The Hessian path is independent: `_analytic_hessian` must return
-  Hartree / Å² directly (each eV-native backend multiplies by `EV2HARTREE`
-  inside its analytic method); the numerical path inherits Hartree via
-  `numerical_hessian_from_atoms`, which calls back into `calculate()`.
+  `calculate()` energy / forces flow to public ASE eV/eVÅ. **Custom calculators
+  must not perform a second conversion** for the `calculate()` path.
+- The private analytic-Hessian default remains Hartree/Å² for compatibility and
+  is declared by `ANALYTIC_HESSIAN_UNIT`; `CalcABC.get_hessian()` converts it
+  exactly once to public eV/Å². The numerical path differentiates public eV/Å
+  forces and therefore already returns eV/Å².
+- Historical MAPLE job algorithms still operate in Hartree-family units. They
+  receive a private `LegacyHartreeJobView` at the Dispatcher/job boundary; raw
+  ASE calculators and their `results` are never rewritten to Hartree.
 
 ## Implicit solvent
 
@@ -198,9 +204,10 @@ class FooCalculator(CalcABC):
   forward); the rest fail loudly rather than misread a differently-shaped
   forward.
 - Unlike the `calculate()` path, `get_hvp` does **not** route through
-  `_finalize_results`, so the backend converts units itself: an eV-native
-  backend must apply `EV2HARTREE` inside `get_hvp` and return Hartree-unit
-  tensors. ANI is Hartree-native, so its implementation needs no conversion.
+  `_finalize_results`, so the backend must itself return public eV-family
+  tensors. ANI therefore converts its Hartree-native forward to eV before
+  differentiating. The legacy job view converts the full `(Hn, forces, energy)`
+  tuple back to Hartree-family units for the existing Dimer implementation.
 - ANI HVP rejects implicit-solvent runs because solvent HVP is not implemented;
   returning gas-phase HVP in that mode would be a silent mixed-model result.
 

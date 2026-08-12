@@ -3,13 +3,17 @@ from typing import List, Union
 from ase import Atoms
 from ..utility import Molecules
 
-from maple.function.timer import timer
-
 class Dispatcher():
     def __init__(self):
         pass
 
     def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+        from .legacy_units import legacy_hartree_job_calculators
+
+        with legacy_hartree_job_calculators(atoms):
+            return self._dispatch_legacy(commandcontrol, jobtype, atoms, output, extra)
+
+    def _dispatch_legacy(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
 
         """
         Dispatches the job based on the job type.

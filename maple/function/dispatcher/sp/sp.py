@@ -31,6 +31,16 @@ class SinglePoint(JobABC):
         self.verbose = self.params.verbose
 
     def run(self):
+        # ``SinglePoint`` is also a public direct job API in existing MAPLE
+        # integrations, so it owns the same idempotent unit boundary as the
+        # Dispatcher.  If Dispatcher already installed a view, the context
+        # manager recognizes it and performs no second conversion.
+        from ..legacy_units import legacy_hartree_job_calculators
+
+        with legacy_hartree_job_calculators(self.atoms):
+            self._run_legacy()
+
+    def _run_legacy(self):
         if self.is_trajectory:
             self._run_trajectory()
         else:

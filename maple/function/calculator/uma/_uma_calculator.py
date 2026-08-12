@@ -23,7 +23,7 @@ except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
 from ..calculator_base import (
-    EV2HARTREE,
+    HARTREE2EV,
     init_implicit_solvent,
     numerical_hessian_from_atoms,
     reject_implicit_solvent_derivatives,
@@ -389,24 +389,14 @@ class UMACalculator(FAIRChemCalculator):
 
         super().calculate(calc_atoms, properties, system_changes)
 
-        # eV → Hartree: UMA's MODEL_ENERGY_UNIT is 'eV'; equivalent to the
-        # _finalize_results unit step but inlined because UMA does not inherit
-        # CalcABC.
-        if "energy" in self.results:
-            self.results["energy"] *= EV2HARTREE
-        if "free_energy" in self.results:
-            self.results["free_energy"] *= EV2HARTREE
-        if "forces" in self.results:
-            self.results["forces"] *= EV2HARTREE
-
         # Experimental implicit solvation is energy-only. Derivative requests
         # have already failed via reject_implicit_solvent_derivatives().
         if self.solvent_correction is not None:
             calc_atoms.atomic_charges = self.chargecalc(calc_atoms, total_charge=float(charge))
             solvent_energy, _ = self.solvent_correction.get_energy(calc_atoms)
             if "energy" in self.results:
-                self.results["energy"] += solvent_energy.item()
+                self.results["energy"] += solvent_energy.item() * HARTREE2EV
             if "free_energy" in self.results:
-                self.results["free_energy"] += solvent_energy.item()
+                self.results["free_energy"] += solvent_energy.item() * HARTREE2EV
 
         return self.results

@@ -27,9 +27,10 @@ of the contract. Worth stating so we don't re-invent it:
   ASE protocol only: `atoms.get_potential_energy()`, `atoms.get_forces()`,
   `atoms.calc.get_hessian(atoms)`, `atoms.calc.get_hvp(atoms, n)`. There is no
   remaining `calc.get_energy(...)` call anywhere in the dispatcher.
-- **One unit/solvent chokepoint** — `_finalize_results()` converts to Hartree
-  (per `MODEL_ENERGY_UNIT`) and adds the implicit-solvent term. Backends emit raw
-  model outputs only.
+- **One ASE unit/solvent chokepoint** — `_finalize_results()` converts to public
+  eV/eVÅ (per `MODEL_ENERGY_UNIT`) and adds the explicitly converted
+  implicit-solvent term. Backends emit raw model outputs only. Historical
+  Hartree job semantics are supplied by a non-ASE compatibility view.
 
 So the goal of this branch is **finishing the job**, not designing it from zero.
 
@@ -60,7 +61,7 @@ So the goal of this branch is **finishing the job**, not designing it from zero.
 These are **not** bugs; they are flagged so nobody "fixes" them blindly.
 
 - **UMA** does not inherit `CalcABC` (it already extends FAIR-Chem's
-  `FAIRChemCalculator`) and **inlines** the eV→Ha + solvent steps that
+  `FAIRChemCalculator`) and **inlines** the solvent-composition step that
   `_finalize_results` would otherwise own. Treated as a temporary exception by
   project decision. The cost is a second copy of the unit/solvent logic; if UMA
   is ever brought under the protocol, factor `_finalize_results`' body into a
@@ -80,23 +81,25 @@ recommended but not required (UMA proves duck-typing works).
 **Required public surface**
 - `calculate(self, atoms=None, properties=['energy'], system_changes=all_changes)`
   — ASE entry point. Must end by calling `self._finalize_results(...)` (if a
-  `CalcABC` subclass) or by writing `self.results` with Hartree-unit values.
+  `CalcABC` subclass) or by writing `self.results` with ASE eV/eVÅ values.
 - The capability class attributes from §1.
 
 **Optional**
 - `get_hessian(self, atoms, delta=0.002)` — `CalcABC` provides a default that
   dispatches on `self.hessian` (`'analytic'` → `_analytic_hessian`, `'numerical'`
   → shared finite-difference helper).
-- `_analytic_hessian(self, atoms)` — return `(3N, 3N)` ndarray in Hartree/Å². Use
-  `hessian_via_double_autograd(energy_fn, leaf)` so the row-by-row loop is not
-  re-implemented.
+- `_analytic_hessian(self, atoms)` — private default is Hartree/Å² and is
+  converted by `CalcABC.get_hessian`; declare `ANALYTIC_HESSIAN_UNIT='eV'` if
+  returning eV/Å² directly. Use `hessian_via_double_autograd(energy_fn, leaf)`
+  so the row-by-row loop is not re-implemented.
 - `get_hvp(self, atoms, n)` — only for the HVP-enabled Dimer path.
 
 **Unit rule (do not violate)**
 - Declare `MODEL_ENERGY_UNIT` honestly. `_finalize_results` is the **only** place
-  that converts the `calculate()` flow to Hartree. **Never multiply by
-  `EV2HARTREE` yourself in `calculate()`.** The Hessian/HVP paths are separate and
-  *do* convert inside the backend.
+  that converts the `calculate()` flow to public ASE eV/eVÅ. **Never perform a
+  second conversion in `calculate()`.** Hessian/HVP paths separately declare or
+  produce their public eV-family units; the legacy job view supplies Hartree
+  values without mutating the ASE calculator.
 
 **Loading your own model file (`.pt` / `.jpt` / `.model`)**
 - Set `MODEL_PATH_OPTION = 'model_path'` and route it through

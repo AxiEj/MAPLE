@@ -128,20 +128,23 @@ def parse_bool_option(value, *, name='option'):
 
 
 EV2HARTREE = 1.0 / 27.211386245988
+HARTREE2EV = 1.0 / EV2HARTREE
 
 
 def _convert_energy_force_units(energy, forces, *, source_unit):
-    """Convert backend (energy, forces) to Hartree and Hartree/Å.
+    """Convert backend outputs to ASE's public eV and eV/Å units.
 
-    Backends declare MODEL_ENERGY_UNIT honestly. Hartree is a no-op; eV
-    multiplies through by EV2HARTREE.
+    Backends declare ``MODEL_ENERGY_UNIT`` honestly.  The exact reciprocal
+    constants above are MAPLE's versioned conversion contract; do not replace
+    them with a runtime ASE/CODATA value because legacy Hartree job output must
+    round-trip without numerical drift.
     """
-    if source_unit == 'hartree':
-        return energy, forces
     if source_unit == 'eV':
-        energy_ha = energy * EV2HARTREE
-        forces_ha = forces * EV2HARTREE if forces is not None else None
-        return energy_ha, forces_ha
+        return energy, forces
+    if source_unit == 'hartree':
+        energy_ev = energy * HARTREE2EV
+        forces_ev = forces * HARTREE2EV if forces is not None else None
+        return energy_ev, forces_ev
     raise ValueError(
         f"Unknown source_unit: {source_unit!r}; expected 'eV' or 'hartree'."
     )
@@ -247,8 +250,8 @@ def hessian_via_double_autograd(energy_fn, leaf):
     Shared by every CalcABC backend whose ``_analytic_hessian`` builds the
     Hessian one column at a time. ``leaf`` is the position tensor created with
     ``requires_grad=True``; ``energy_fn()`` must return a scalar energy tensor
-    that depends on ``leaf`` **already in the target unit** (eV-native backends
-    multiply by ``EV2HARTREE`` inside ``energy_fn``; ANI is Hartree-native).
+    that depends on ``leaf`` in the backend's historical Hessian unit.  The
+    public ``get_hessian`` boundary below converts that array to eV/Å².
 
     Returns a ``(3N, 3N)`` float ndarray. Polymorphic over ``leaf`` shape —
     ``(N, 3)`` for MACE-style backends and ``(1, N, 3)`` for ANI both flatten to
@@ -266,6 +269,21 @@ def hessian_via_double_autograd(energy_fn, leaf):
     return hessian.detach().cpu().numpy()
 
 
+class _PublicHessianArray(np.ndarray):
+    """Internal marker preventing a second conversion in ``results``."""
+
+
+def _public_hessian(hessian, *, source_unit: str):
+    array = np.asarray(hessian, dtype=float)
+    if source_unit == "hartree":
+        array = array * HARTREE2EV
+    elif source_unit != "eV":
+        raise ValueError(
+            f"Unknown Hessian source unit {source_unit!r}; expected 'eV' or 'hartree'."
+        )
+    return array.view(_PublicHessianArray)
+
+
 def _property_list(properties):
     return ['energy'] if properties is None else properties
 
@@ -274,6 +292,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
     # Protocol attributes — each subclass overrides what's relevant.
     MODEL_NAMES: tuple = ()
     MODEL_ENERGY_UNIT: str = 'eV'
+    # Existing analytic implementations historically differentiate an
+    # explicitly Hartree-scaled energy.  Keep that private convention while
+    # exposing only ASE-standard eV/Å² from get_hessian/results.
+    ANALYTIC_HESSIAN_UNIT: str = 'hartree'
     SUPPORTED_HESSIAN_MODES: tuple = ('numerical',)
     SUPPORTS_CHARGE_MULT: bool = False
     SUPPORTS_PBC: bool = False
@@ -335,14 +357,16 @@ class CalcABC(ase.calculators.calculator.Calculator):
         """Single entry: unit conversion + implicit-solvent + write self.results.
 
         Backends pass the pure model outputs (in the unit declared by
-        MODEL_ENERGY_UNIT). This method converts to Hartree, then optionally
-        adds the implicit-solvent correction, then writes self.results.
+        MODEL_ENERGY_UNIT). This method converts to ASE public units (eV and
+        eV/Å), then optionally adds the Hartree-native implicit-solvent
+        correction after an explicit conversion, then writes self.results.
         """
         source_unit = unit if unit is not None else self.MODEL_ENERGY_UNIT
-        energy_ha, forces_ha = _convert_energy_force_units(
+        energy_ev, forces_ev = _convert_energy_force_units(
             energy, forces, source_unit=source_unit
         )
-        gas_energy_ha = float(energy_ha)
+        gas_energy_ev = float(energy_ev)
+        gas_energy_ha = gas_energy_ev * EV2HARTREE
         structured_solvation_result = None
 
         if getattr(self, 'solvent_correction', None) is not None:
@@ -359,47 +383,59 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 ):
                     solvent_result = self.solvent_correction.evaluate(
                         atoms,
-                        need_forces=forces_ha is not None,
+                        need_forces=forces_ev is not None,
                         calculator=self,
                     )
                 else:
                     solvent_result = self.solvent_correction.evaluate(
                         atoms,
-                        need_forces=forces_ha is not None,
+                        need_forces=forces_ev is not None,
                     )
-                energy_ha = energy_ha + float(solvent_result.energy_hartree)
-                if forces_ha is not None:
+                energy_ev = energy_ev + (
+                    float(solvent_result.energy_hartree) * HARTREE2EV
+                )
+                if forces_ev is not None:
                     if solvent_result.forces_hartree_per_angstrom is None:
                         raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-                    forces_ha = np.asarray(forces_ha) + np.asarray(
+                    forces_ev = np.asarray(forces_ev) + np.asarray(
                         solvent_result.forces_hartree_per_angstrom
-                    )
+                    ) * HARTREE2EV
                 self.solvation_result = solvent_result
                 structured_solvation_result = solvent_result
             else:
-                if forces_ha is not None:
+                if forces_ev is not None:
                     raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
                 solvent_energy = self.implicit_solv_energy(atoms)
                 se = solvent_energy.item() if hasattr(solvent_energy, 'item') else float(solvent_energy)
-                energy_ha = energy_ha + se
+                energy_ev = energy_ev + se * HARTREE2EV
 
         # Sole results-writing chokepoint for every CalcABC backend: clear first
         # so an energy-only call cannot inherit stale forces/hessian from a
         # previous forces/hessian call on the same calculator instance.
         self.results = {}
-        self.results['energy'] = float(energy_ha)
-        self.results['free_energy'] = float(energy_ha)
-        if forces_ha is not None:
-            self.results['forces'] = forces_ha
+        self.results['energy'] = float(energy_ev)
+        self.results['free_energy'] = float(energy_ev)
+        if forces_ev is not None:
+            self.results['forces'] = forces_ev
         if hessian is not None:
-            self.results['hessian'] = hessian
+            if isinstance(hessian, _PublicHessianArray):
+                self.results['hessian'] = np.asarray(hessian)
+            else:
+                # Direct backend forward Hessians predate get_hessian and are
+                # Hartree/Å².  Convert exactly once at the results boundary.
+                self.results['hessian'] = np.asarray(hessian) * HARTREE2EV
         if structured_solvation_result is not None:
             result = structured_solvation_result
             self.results['solvation'] = {
+                # Backward-compatible key plus an explicit role/name.  This is
+                # the additive solvation correction, never the combined ASE
+                # total stored in results['energy'].
                 'energy_hartree': float(result.energy_hartree),
+                'energy_role': 'solvation_correction',
+                'solvation_correction_hartree': float(result.energy_hartree),
                 'delta_g_solv_hartree': float(result.energy_hartree),
                 'gas_energy_hartree': gas_energy_ha,
-                'combined_energy_hartree': float(energy_ha),
+                'combined_energy_hartree': float(energy_ev) * EV2HARTREE,
                 'components_hartree': dict(result.components_hartree),
                 'leaf_components_hartree': dict(result.leaf_components_hartree),
                 'derived_totals_hartree': dict(result.derived_totals_hartree),
@@ -416,11 +452,17 @@ class CalcABC(ase.calculators.calculator.Calculator):
         if mode == 'analytic':
             if getattr(self, 'solvent_correction', None) is not None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            return np.asarray(self._analytic_hessian(atoms))
+            return _public_hessian(
+                self._analytic_hessian(atoms),
+                source_unit=self.ANALYTIC_HESSIAN_UNIT,
+            )
         if mode == 'numerical':
             if getattr(self, 'solvent_correction', None) is not None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            return numerical_hessian_from_atoms(self, atoms, delta)
+            return _public_hessian(
+                numerical_hessian_from_atoms(self, atoms, delta),
+                source_unit="eV",
+            )
         raise ValueError(f"Unknown hessian mode: {mode!r}")
 
     def _analytic_hessian(self, atoms):

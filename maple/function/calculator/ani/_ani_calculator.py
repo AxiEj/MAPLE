@@ -177,6 +177,9 @@ class ANICalculator(CalcABC):
         energy = self.model(species, coords)[0]
         if self.d4:
             energy = energy + self.dftd4(species, coords)
+        from ..calculator_base import HARTREE2EV
+
+        energy = energy * HARTREE2EV
 
         grad = torch.autograd.grad(energy, coords, create_graph=True)[0].squeeze(0)
         grad_vec = grad.view(-1)

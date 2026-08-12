@@ -4,6 +4,7 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
+from maple.function.calculator.calculator_base import EV2HARTREE
 from maple.function.dispatcher.sp.sp import SinglePoint
 
 
@@ -38,11 +39,14 @@ def test_verbose_single_point_requests_energy_and_forces_once(tmp_path):
 
     assert calculator.calculate_calls == 1
     text = output.read_text(encoding="utf-8")
-    assert "Energy: -1.2500000000 Hartree" in text
+    assert f"Energy: {-1.25 * EV2HARTREE:.10f} Hartree" in text
     assert "Gradients (Hartree/Angstrom):" in text
-    assert "-0.10000000" in text
-    assert "0.20000000" in text
-    assert "-0.30000000" in text
+    assert f"{-0.1 * EV2HARTREE:.8f}" in text
+    assert f"{0.2 * EV2HARTREE:.8f}" in text
+    assert f"{-0.3 * EV2HARTREE:.8f}" in text
+    # The direct job boundary must not rewrite public ASE result units.
+    assert calculator.results["energy"] == -1.25
+    np.testing.assert_array_equal(calculator.results["forces"], [[0.1, -0.2, 0.3]])
 
 
 def test_verbose_trajectory_evaluates_each_frame_once(tmp_path):
@@ -60,5 +64,5 @@ def test_verbose_trajectory_evaluates_each_frame_once(tmp_path):
     assert first_calculator.calculate_calls == 1
     assert second_calculator.calculate_calls == 1
     text = output.read_text(encoding="utf-8")
-    assert text.count("Energy: -1.2500000000 Hartree") == 2
+    assert text.count(f"Energy: {-1.25 * EV2HARTREE:.10f} Hartree") == 2
     assert text.count("Gradients (Hartree/Angstrom):") == 2

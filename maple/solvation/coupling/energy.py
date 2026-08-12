@@ -15,14 +15,19 @@ from maple.solvation.api.scalar_registry import (
 )
 from maple.solvation.api.profiles import (
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
+    UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
     get_solvation_profile,
 )
 
 from .adjoint import AdjointOptions, AdjointResult, solve_reduced_adjoint
 from .fixed_point import FixedPointState
 from .linearization import ReducedLinearization
-from .metrics import ATOMIC_L1_PAIRING, PairingMetric
-from .spaces import ATOMIC_L1_FIELD_DUAL_SPACE, ATOMIC_L1_SOURCE_SPACE
+from .metrics import PairingMetric, get_pairing_metric
+from .spaces import (
+    get_coordinate_contract,
+    get_field_dual_space,
+    get_source_space,
+)
 from .state_equation import (
     ContinuumResponseProvider,
     ReducedStateEquation,
@@ -103,6 +108,23 @@ def _validate_continuum_pairing_identity(
         raise ValueError("Continuum field order/units do not match the pairing metric.")
 
 
+def _continuum_metric(
+    continuum: ContinuumResponseProvider,
+    metric: PairingMetric | None,
+) -> PairingMetric:
+    if metric is not None:
+        if not isinstance(metric, PairingMetric):
+            raise TypeError("metric must be a PairingMetric or None.")
+        return metric
+    field_space = getattr(continuum, "field_space", None)
+    inferred = getattr(field_space, "pairing_metric", None)
+    if not isinstance(inferred, PairingMetric):
+        raise TypeError(
+            "metric=None requires a continuum with an authoritative field pairing."
+        )
+    return inferred
+
+
 @dataclass(frozen=True)
 class HalfCouplingEvaluation:
     energy: float
@@ -127,7 +149,7 @@ def nonlinear_half_coupling(
     geometry: Any,
     source: object,
     *,
-    metric: PairingMetric = ATOMIC_L1_PAIRING,
+    metric: PairingMetric | None = None,
 ) -> HalfCouplingEvaluation:
     """Evaluate ``0.5 <c,P_R(c)>_Q`` with direct plus ``J_P.T`` response.
 
@@ -136,6 +158,7 @@ def nonlinear_half_coupling(
     their sum is ``Q P_R(c)``.
     """
 
+    metric = _continuum_metric(continuum, metric)
     _validate_continuum_pairing_identity(continuum, metric)
     values = np.asarray(source, dtype=float)
     if values.ndim != 2 or values.shape[1] != metric.component_count:
@@ -180,7 +203,7 @@ def reciprocal_linear_half_coupling(
     geometry: Any,
     source: object,
     *,
-    metric: PairingMetric = ATOMIC_L1_PAIRING,
+    metric: PairingMetric | None = None,
     reciprocity_tolerance: float = 1.0e-10,
 ) -> HalfCouplingEvaluation:
     """Canonical linear reciprocal half coupling, rejecting broken reciprocity."""
@@ -234,12 +257,21 @@ class OperationalElectrostaticScalar:
     vacuum: VacuumScalarProvider
     scalar_id: str = OPERATIONAL_CPCM_ELECTROSTATIC_V1
     profile_id: str = OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1
-    metric: PairingMetric = ATOMIC_L1_PAIRING
+    metric: PairingMetric | None = None
     _construction_fingerprint: str = ""
 
     def __post_init__(self) -> None:
         definition = get_scalar_definition(self.scalar_id)
         profile = get_solvation_profile(self.profile_id)
+        registered_source = get_source_space(profile.source_space_id)
+        registered_field = get_field_dual_space(profile.field_space_id)
+        registered_metric = get_pairing_metric(profile.pairing_id)
+        registered_coordinates = get_coordinate_contract(profile.coordinate_contract_id)
+        registered_coordinates.validate(self.equation.coordinates)
+        metric = registered_metric if self.metric is None else self.metric
+        if not isinstance(metric, PairingMetric):
+            raise TypeError("metric must be a PairingMetric or None.")
+        object.__setattr__(self, "metric", metric)
         if (
             profile.scalar_id != self.scalar_id
             or profile.state_equation_id != self.equation.state_equation_id
@@ -269,6 +301,19 @@ class OperationalElectrostaticScalar:
             raise ValueError(
                 "Continuum cavity-profile ID does not match the authoritative profile."
             )
+        continuum_configuration_contract_id = getattr(
+            self.equation.continuum,
+            "configuration_contract_id",
+            UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+        )
+        if (
+            continuum_configuration_contract_id
+            != profile.continuum_configuration_contract_id
+        ):
+            raise ValueError(
+                "Continuum physical-configuration contract does not match the "
+                "authoritative profile."
+            )
         if (
             getattr(self.equation.continuum, "scalar_id", self.scalar_id)
             != self.scalar_id
@@ -289,6 +334,10 @@ class OperationalElectrostaticScalar:
             )
         if definition.state_equation_id != self.equation.state_equation_id:
             raise ValueError("Scalar registry and state equation IDs do not match.")
+        if self.metric.metadata_hash() != registered_metric.metadata_hash():
+            raise ValueError(
+                "Operational scalar metric does not match the profile registry."
+            )
         if (
             self.metric.metadata_hash()
             != self.equation.field_space.pairing_metric.metadata_hash()
@@ -305,13 +354,13 @@ class OperationalElectrostaticScalar:
             )
         if (
             self.equation.source_space.metadata_hash()
-            != ATOMIC_L1_SOURCE_SPACE.metadata_hash()
+            != registered_source.metadata_hash()
             or self.equation.field_space.metadata_hash()
-            != ATOMIC_L1_FIELD_DUAL_SPACE.metadata_hash()
+            != registered_field.metadata_hash()
         ):
             raise ValueError(
                 "Canonical operational scalar requires the exact authoritative "
-                "atomic-l<=1 source/field identities."
+                "source/field identities registered by its profile."
             )
         for name in ("provider_id", "provenance_sha256"):
             value = getattr(self.vacuum, name, None)

@@ -316,7 +316,7 @@ def test_states_reject_same_size_wrong_geometry_stale_field_space_and_request():
     "reference_info,current_info",
     (
         ({"charge": 0, "multiplicity": 1}, {"total_charge": 1, "spin": 1}),
-        ({"charge": 0, "multiplicity": 1}, {"charge": 0, "spin": 3}),
+        ({"charge": 0, "multiplicity": 1}, {"charge": 0, "spin": 1.0}),
     ),
 )
 def test_model_state_cache_identity_rejects_same_geometry_different_charge_or_spin(
@@ -359,16 +359,31 @@ def test_model_input_alias_policy_is_explicit_and_conflicts_fail_closed():
         _Atoms(info={"total_charge": 1})
     )
     assert model_input_sha256(_Atoms(info={"mult": 3})) == model_input_sha256(
-        _Atoms(info={"spin": 3, "multiplicity": 3})
+        _Atoms(info={"spin": 1.0, "multiplicity": 3})
     )
     with pytest.raises(ValueError, match="conflicting atoms.info aliases"):
         model_input_sha256(_Atoms(info={"charge": 0, "total_charge": 1}))
+    with pytest.raises(ValueError, match="conflicting atoms.info multiplicity"):
+        model_input_sha256(_Atoms(info={"spin": 0.0, "multiplicity": 3}))
     with pytest.raises(ValueError, match="conflicting atoms.info aliases"):
-        model_input_sha256(_Atoms(info={"spin": 1, "multiplicity": 3}))
-    with pytest.raises(ValueError, match="conflicting atoms.info aliases"):
-        model_input_sha256(_Atoms(info={"mult": 1, "spin": 3}))
-    with pytest.raises(ValueError, match="multiplicity must be positive"):
-        model_input_sha256(_Atoms(info={"spin": 0}))
+        model_input_sha256(_Atoms(info={"mult": 1, "multiplicity": 3}))
+    with pytest.raises(ValueError, match="spin.*non-negative"):
+        model_input_sha256(_Atoms(info={"spin": -0.5}))
+    with pytest.raises(ValueError, match="half-integer"):
+        model_input_sha256(_Atoms(info={"spin": 0.25}))
+
+
+def test_model_input_accepts_maple_reader_spin_quantum_number_contract():
+    singlet_from_reader = _Atoms(info={"charge": 0, "mult": 1, "spin": 0.0})
+    triplet_from_reader = _Atoms(info={"charge": 0, "mult": 3, "spin": 1.0})
+    assert model_input_sha256(singlet_from_reader) == model_input_sha256(
+        _Atoms(info={"charge": 0, "multiplicity": 1})
+    )
+    assert model_input_sha256(triplet_from_reader) == model_input_sha256(
+        _Atoms(info={"charge": 0, "multiplicity": 3})
+    )
+    with pytest.raises(ValueError, match=r"multiplicity must equal 2\*spin\+1"):
+        model_input_sha256(_Atoms(info={"mult": 3, "spin": 0.0}))
 
 
 def test_every_model_entry_enforces_atomic_charge_and_spin_domain():

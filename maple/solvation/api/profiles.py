@@ -23,6 +23,12 @@ from .state_registry import (
 OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-electrostatic-v1"
 )
+OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
+    "route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1"
+)
+DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1 = (
+    "route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1"
+)
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
 )
@@ -37,6 +43,29 @@ EXACT_GTO_COUPLING_CANDIDATE_ID = (
 )
 LOCAL_JET_DIAGNOSTIC_COUPLING_ID = (
     "maple.route2.coupling.exterior-local-l1-jet-diagnostic.v1"
+)
+MACE_POLAR_RADIAL_GTO_COUPLING_ID = "route2-coupling-mace-polar-native-radial-gto-v1"
+ATOMIC_L1_SOURCE_SPACE_ID = "maple.route2.atomic-l1-source-space.v1"
+ATOMIC_L1_FIELD_DUAL_SPACE_ID = "maple.route2.atomic-l1-field-dual-space.v1"
+ATOMIC_L1_PAIRING_ID = "maple.route2.atomic-l1-pairing.v1"
+MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID = (
+    "maple.route2.mace-polar-radial-gto-source-space.v1"
+)
+MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID = (
+    "maple.route2.mace-polar-radial-gto-field-dual-space.v1"
+)
+MACE_POLAR_RADIAL_GTO_PAIRING_ID = "maple.route2.mace-polar-radial-gto-pairing.v1"
+LEGACY_UNBOUND_COORDINATE_CONTRACT_ID = (
+    "maple.route2.legacy-profile-coordinate-scales-unbound.v1"
+)
+MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID = (
+    "maple.route2.mace-polar-radial-gto-linear-charge-coordinates.v1"
+)
+UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration.unbound-diagnostic.v1"
+)
+WATER_CPCM_194_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration.water-eps78p39-smd-radii-" "lebedev194.v1"
 )
 
 
@@ -58,6 +87,11 @@ class SolvationProfile:
     cavity_profile: str
     nonpolar_profile: str
     coupling_id: str
+    source_space_id: str
+    field_space_id: str
+    pairing_id: str
+    coordinate_contract_id: str
+    continuum_configuration_contract_id: str
     capabilities: CapabilityStatus = CapabilityStatus()
     evidence_artifact_ids: tuple[str, ...] = ()
     enabled: bool = False
@@ -72,6 +106,11 @@ class SolvationProfile:
             "cavity_profile",
             "nonpolar_profile",
             "coupling_id",
+            "source_space_id",
+            "field_space_id",
+            "pairing_id",
+            "coordinate_contract_id",
+            "continuum_configuration_contract_id",
         ):
             object.__setattr__(self, name, _nonempty_text(getattr(self, name), name))
         if not isinstance(self.capabilities, CapabilityStatus):
@@ -107,6 +146,13 @@ class SolvationProfile:
             "cavity_profile": self.cavity_profile,
             "nonpolar_profile": self.nonpolar_profile,
             "coupling_id": self.coupling_id,
+            "source_space_id": self.source_space_id,
+            "field_space_id": self.field_space_id,
+            "pairing_id": self.pairing_id,
+            "coordinate_contract_id": self.coordinate_contract_id,
+            "continuum_configuration_contract_id": (
+                self.continuum_configuration_contract_id
+            ),
             "capabilities": {
                 "E": self.capabilities.energy,
                 "F": self.capabilities.conservative_force,
@@ -124,6 +170,11 @@ _COMMON = dict(
     continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
     cavity_profile="fixed-topology-amplitude-swig-v1",
     coupling_id=EXACT_GTO_COUPLING_CANDIDATE_ID,
+    source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+    field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+    pairing_id=ATOMIC_L1_PAIRING_ID,
+    coordinate_contract_id=LEGACY_UNBOUND_COORDINATE_CONTRACT_ID,
+    continuum_configuration_contract_id=(UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID),
     capabilities=CapabilityStatus(),
     evidence_artifact_ids=(),
     enabled=False,
@@ -138,6 +189,44 @@ _PROFILE_ENTRIES = (
         **_COMMON,
     ),
     SolvationProfile(
+        profile_id=OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
+        scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        model_profile="mace-polar-route2-source-field-contract-v1",
+        continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+        cavity_profile="fixed-topology-amplitude-swig-v1",
+        nonpolar_profile="none",
+        coupling_id=MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+        source_space_id=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID,
+        field_space_id=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID,
+        pairing_id=MACE_POLAR_RADIAL_GTO_PAIRING_ID,
+        coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=(WATER_CPCM_194_CONFIGURATION_CONTRACT_ID),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1,
+        scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        model_profile="mace-polar-route2-source-field-contract-v1",
+        continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+        cavity_profile="fixed-topology-amplitude-swig-v1",
+        nonpolar_profile="none",
+        coupling_id=MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+        source_space_id=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID,
+        field_space_id=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID,
+        pairing_id=MACE_POLAR_RADIAL_GTO_PAIRING_ID,
+        coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
         profile_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
         scalar_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
@@ -146,6 +235,13 @@ _PROFILE_ENTRIES = (
         cavity_profile="fixed-topology-amplitude-swig-v1",
         nonpolar_profile="none",
         coupling_id=LOCAL_JET_DIAGNOSTIC_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=LEGACY_UNBOUND_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID
+        ),
         capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
         enabled=False,
@@ -235,13 +331,26 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 
 __all__ = [
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1",
+    "DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1",
+    "OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_SMDCDS_PROFILE_V1",
     "PROFILE_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1",
     "SolvationProfile",
     "EXACT_GTO_COUPLING_CANDIDATE_ID",
     "LOCAL_JET_DIAGNOSTIC_COUPLING_ID",
+    "MACE_POLAR_RADIAL_GTO_COUPLING_ID",
+    "ATOMIC_L1_SOURCE_SPACE_ID",
+    "ATOMIC_L1_FIELD_DUAL_SPACE_ID",
+    "ATOMIC_L1_PAIRING_ID",
+    "MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID",
+    "MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID",
+    "MACE_POLAR_RADIAL_GTO_PAIRING_ID",
+    "LEGACY_UNBOUND_COORDINATE_CONTRACT_ID",
+    "MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID",
+    "UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID",
+    "WATER_CPCM_194_CONFIGURATION_CONTRACT_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

@@ -15,6 +15,7 @@ class ContinuumBackend(Protocol):
     provider_id: str
     continuum_profile_id: str
     cavity_profile_id: str
+    configuration_contract_id: str
     coupling_id: str
     scalar_id: str
 

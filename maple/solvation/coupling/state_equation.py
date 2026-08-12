@@ -21,9 +21,18 @@ from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 
+from maple.solvation.api.profiles import (
+    UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+)
 from maple.solvation.api.state_registry import OPERATIONAL_STATE_EQUATION_ID
 
-from .spaces import AffineChargeCoordinates, FieldDualSpace, SourceSpace
+from .spaces import (
+    AffineChargeCoordinates,
+    FieldDualSpace,
+    LinearChargeCoordinates,
+    ReducedCoordinates,
+    SourceSpace,
+)
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -287,6 +296,7 @@ class ContinuumResponseProvider(Protocol):
     provider_id: str
     continuum_profile_id: str
     cavity_profile_id: str
+    configuration_contract_id: str
     coupling_id: str
     provenance_sha256: str
     source_space: SourceSpace
@@ -333,15 +343,19 @@ class ReducedStateEquation:
     can use this implementation.
     """
 
-    coordinates: AffineChargeCoordinates
+    coordinates: ReducedCoordinates
     electronic: ElectronicResponseProvider
     continuum: ContinuumResponseProvider
     state_equation_id: str = OPERATIONAL_STATE_EQUATION_ID
     _construction_fingerprint: str = ""
 
     def __post_init__(self) -> None:
-        if not isinstance(self.coordinates, AffineChargeCoordinates):
-            raise TypeError("coordinates must be AffineChargeCoordinates.")
+        if not isinstance(
+            self.coordinates, (AffineChargeCoordinates, LinearChargeCoordinates)
+        ):
+            raise TypeError(
+                "coordinates must be a vetted static reduced-coordinate implementation."
+            )
         if (
             not isinstance(self.state_equation_id, str)
             or not self.state_equation_id.strip()
@@ -373,6 +387,14 @@ class ReducedStateEquation:
                 _stable_id(
                     getattr(provider, "cavity_profile_id", None),
                     "continuum.cavity_profile_id",
+                )
+                _stable_id(
+                    getattr(
+                        provider,
+                        "configuration_contract_id",
+                        UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+                    ),
+                    "continuum.configuration_contract_id",
                 )
             source_space = getattr(provider, "source_space", None)
             field_space = getattr(provider, "field_space", None)
@@ -443,6 +465,11 @@ class ReducedStateEquation:
                 "provider_id": self.continuum.provider_id,
                 "continuum_profile_id": self.continuum.continuum_profile_id,
                 "cavity_profile_id": self.continuum.cavity_profile_id,
+                "configuration_contract_id": getattr(
+                    self.continuum,
+                    "configuration_contract_id",
+                    UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+                ),
                 "coupling_id": self.continuum.coupling_id,
                 "provenance_sha256": self.continuum.provenance_sha256,
                 "configuration_sha256": self.continuum.configuration_sha256(),

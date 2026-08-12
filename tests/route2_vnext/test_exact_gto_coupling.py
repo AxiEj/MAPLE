@@ -10,7 +10,12 @@ import pytest
 from ase.units import Bohr, Hartree as ASE_HARTREE_TO_EV
 
 from maple.function.calculator.extra_correction.implicit.gto_density import (
+    gaussian_multipole_potential,
     point_multipole_potential,
+)
+from maple.function.calculator.extra_correction.implicit.gto_field_projection import (
+    ExactGTOFieldProjector,
+    MACEPolarGTOFieldProjectionSpec,
 )
 from maple.function.calculator.extra_correction.implicit.gto_galerkin import (
     AtomCenteredL1GTOBasis,
@@ -29,8 +34,14 @@ from maple.solvation.coupling.exact_gto import (
     EXACT_GTO_COUPLING_PROFILE_ID,
     ExactGTOCouplingAdapter,
     FixedSurfaceGeometry,
+    MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+    MACEPolarRadialFieldTransform,
+    MACEPolarRadialGTOCoupling,
+    OwnedFixedSurfaceGeometry,
     SINGLE_WIDTH_SAME_BASIS_GTO_COUPLING_ID,
     SingleWidthSameBasisGTOCouplingCandidate,
+    embed_mace_polar_learned_source,
+    extract_mace_polar_learned_source_cotangent,
 )
 from maple.solvation.coupling.local_jet import (
     LOCAL_JET_COUPLING_ID,
@@ -45,6 +56,8 @@ from maple.solvation.coupling.operator import (
 from maple.solvation.coupling.spaces import (
     ATOMIC_L1_FIELD_DUAL_SPACE,
     ATOMIC_L1_SOURCE_SPACE,
+    MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
+    MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
 )
 
 
@@ -78,6 +91,52 @@ def _source() -> np.ndarray:
     )
 
 
+def _owned_geometry() -> OwnedFixedSurfaceGeometry:
+    positions = np.asarray([[-0.7, 0.2, 0.3], [0.8, -0.4, 0.1]], dtype=float)
+    parents = np.asarray([0, 0, 1, 1, 0], dtype=np.int64)
+    offsets_bohr = np.asarray(
+        [
+            [3.1, 0.7, -0.4],
+            [-2.6, 2.0, 1.1],
+            [0.8, -3.2, 1.7],
+            [-2.4, -1.9, -2.5],
+            [2.2, 2.6, 1.9],
+        ]
+    )
+    points = positions[parents] / Bohr + offsets_bohr
+    return OwnedFixedSurfaceGeometry(positions, points, parents)
+
+
+def _radial_source() -> np.ndarray:
+    return np.asarray(
+        [
+            [0.35, -0.04, -0.13, 0.21, 0.08, 0.03, -0.02, 0.05],
+            [-0.18, 0.07, 0.11, -0.07, 0.16, -0.06, 0.09, -0.01],
+        ],
+        dtype=float,
+    )
+
+
+def _projection_spec() -> MACEPolarGTOFieldProjectionSpec:
+    return MACEPolarGTOFieldProjectionSpec(
+        receiver_sigmas_angstrom=(1.5, 3.0),
+        receiver_max_l=1,
+        receiver_normalization="receiver",
+        upstream_matrix=np.asarray(
+            [
+                [3.544907808303833, 0.0, 0.0, 0.0],
+                [3.544907808303833, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 5.771474361419678],
+                [0.0, 5.771474361419678, 0.0, 0.0],
+                [0.0, 0.0, 5.771474361419678, 0.0],
+                [0.0, 0.0, 0.0, 11.542948722839355],
+                [0.0, 11.542948722839355, 0.0, 0.0],
+                [0.0, 0.0, 11.542948722839355, 0.0],
+            ]
+        ),
+    )
+
+
 def _rotation() -> np.ndarray:
     axis = np.asarray([1.0, -2.0, 3.0], dtype=float)
     axis /= np.linalg.norm(axis)
@@ -92,6 +151,18 @@ def _rotate_source(source: np.ndarray, rotation: np.ndarray) -> np.ndarray:
     external = ATOMIC_L1_FIELD_DUAL_SPACE.pairing_metric.source_to_field_dual(source)
     external[:, 1:] = external[:, 1:] @ rotation.T
     return ATOMIC_L1_FIELD_DUAL_SPACE.pairing_metric.field_to_source_dual(external)
+
+
+def _rotate_radial_blocks(values: np.ndarray, rotation: np.ndarray) -> np.ndarray:
+    """Rotate both raw real-spherical l=1 radial blocks via Cartesian xyz."""
+
+    rotated = np.array(values, dtype=float, copy=True)
+    for raw_indices in ((2, 3, 4), (5, 6, 7)):
+        raw = rotated[:, raw_indices]
+        cartesian = raw[:, (2, 0, 1)]
+        rotated_cartesian = cartesian @ rotation.T
+        rotated[:, raw_indices] = rotated_cartesian[:, (1, 2, 0)]
+    return rotated
 
 
 @pytest.mark.parametrize(
@@ -407,6 +478,167 @@ def test_exact_and_local_kernels_are_distinct_noninterchangeable_couplings():
         local.apply_source(_geometry(), _source()),
         rtol=1.0e-10,
         atol=1.0e-10,
+    )
+
+
+def test_radial_gto_b_and_bstar_are_one_exact_conjugate_operator():
+    coupling = MACEPolarRadialGTOCoupling()
+    assert coupling.coupling_id == MACE_POLAR_RADIAL_GTO_COUPLING_ID
+    assert coupling.source_space is MACE_POLAR_RADIAL_GTO_SOURCE_SPACE
+    assert coupling.field_space is MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE
+    assert coupling.capabilities.enabled_tiers == ()
+    evidence = validate_adjoint_dot_product(
+        coupling,
+        _owned_geometry(),
+        _radial_source(),
+        np.asarray([0.2, -0.4, 0.1, 0.3, -0.2]),
+        atom_count=2,
+        relative_tolerance=2e-13,
+        absolute_tolerance=2e-12,
+    )
+    assert evidence.passed
+
+
+def test_learned_source_embedding_recovers_the_exact_sigma_1p5_surface_mep():
+    geometry = _owned_geometry()
+    learned = _source()
+    radial = embed_mace_polar_learned_source(learned)
+    coupling = MACEPolarRadialGTOCoupling()
+    expected = (
+        gaussian_multipole_potential(
+            geometry.surface_points_bohr,
+            geometry.atom_positions_angstrom,
+            learned,
+            sigma_angstrom=1.5,
+        )
+        * HARTREE_TO_EV
+    )
+    np.testing.assert_allclose(
+        coupling.apply_source(geometry, radial), expected, rtol=0.0, atol=3e-14
+    )
+    cotangent = np.random.default_rng(93).normal(size=radial.shape)
+    learned_cotangent = extract_mace_polar_learned_source_cotangent(cotangent)
+    direction = np.random.default_rng(94).normal(size=learned.shape)
+    assert np.vdot(
+        cotangent, embed_mace_polar_learned_source(direction)
+    ) == pytest.approx(np.vdot(learned_cotangent, direction), abs=2e-14)
+
+
+def test_radial_field_transform_is_the_exact_checkpoint_projector_and_transpose():
+    spec = _projection_spec()
+    transform = MACEPolarRadialFieldTransform(spec)
+    field = np.random.default_rng(101).normal(size=(3, 8))
+    potentials = np.stack((field[:, 0], field[:, 1]))
+    gradients = np.stack((field[:, (4, 2, 3)], field[:, (7, 5, 6)]))
+    expected = ExactGTOFieldProjector(spec).project_smoothed_fields(
+        potentials,
+        gradients,
+        scalar_potential_gauge_reference_ev=0.0,
+    )
+    np.testing.assert_allclose(
+        transform.to_model_features(field), expected, rtol=0.0, atol=3e-14
+    )
+    assert np.linalg.matrix_rank(transform.matrix) == 8
+    feature_cotangent = np.random.default_rng(102).normal(size=(3, 8))
+    assert np.vdot(transform.jvp(field), feature_cotangent) == pytest.approx(
+        np.vdot(field, transform.vjp(feature_cotangent)), abs=3e-13
+    )
+
+
+def test_radial_gto_total_coordinate_vjp_matches_moving_owned_surface_difference():
+    coupling = MACEPolarRadialGTOCoupling()
+    geometry = _owned_geometry()
+    source = _radial_source()
+    cotangent = np.asarray([0.2, -0.4, 0.1, 0.3, -0.2])
+    analytic = coupling.coordinate_vjp(geometry, source, cotangent)
+    finite_difference = np.empty_like(geometry.atom_positions_angstrom)
+    step = 1.0e-6
+    for atom in range(2):
+        for axis in range(3):
+            plus_positions = geometry.atom_positions_angstrom.copy()
+            minus_positions = geometry.atom_positions_angstrom.copy()
+            plus_points = geometry.surface_points_bohr.copy()
+            minus_points = geometry.surface_points_bohr.copy()
+            plus_positions[atom, axis] += step
+            minus_positions[atom, axis] -= step
+            owned = geometry.surface_parent_atom_indices == atom
+            plus_points[owned, axis] += step / Bohr
+            minus_points[owned, axis] -= step / Bohr
+            plus = OwnedFixedSurfaceGeometry(
+                plus_positions, plus_points, geometry.surface_parent_atom_indices
+            )
+            minus = OwnedFixedSurfaceGeometry(
+                minus_positions, minus_points, geometry.surface_parent_atom_indices
+            )
+            finite_difference[atom, axis] = (
+                np.vdot(coupling.apply_source(plus, source), cotangent)
+                - np.vdot(coupling.apply_source(minus, source), cotangent)
+            ) / (2.0 * step)
+    np.testing.assert_allclose(analytic, finite_difference, rtol=4e-8, atol=2e-8)
+    np.testing.assert_allclose(analytic.sum(axis=0), np.zeros(3), rtol=0.0, atol=3e-12)
+    with pytest.raises(CoordinateDerivativeUnavailable, match="parent atom"):
+        coupling.coordinate_vjp(_geometry(), source, cotangent)
+
+
+def test_radial_gto_rigid_translation_and_rotation_covariance():
+    coupling = MACEPolarRadialGTOCoupling()
+    geometry = _owned_geometry()
+    source = _radial_source()
+    surface_cotangent = np.asarray([0.2, -0.4, 0.1, 0.3, -0.2])
+
+    base_potential = coupling.apply_source(geometry, source)
+    base_field = coupling.apply_adjoint(geometry, surface_cotangent)
+    base_coordinate_vjp = coupling.coordinate_vjp(geometry, source, surface_cotangent)
+
+    shift_angstrom = np.asarray([1.7, -0.8, 0.5])
+    shifted = OwnedFixedSurfaceGeometry(
+        geometry.atom_positions_angstrom + shift_angstrom,
+        geometry.surface_points_bohr + shift_angstrom / Bohr,
+        geometry.surface_parent_atom_indices,
+    )
+    np.testing.assert_allclose(
+        coupling.apply_source(shifted, source),
+        base_potential,
+        rtol=2e-14,
+        atol=2e-13,
+    )
+    np.testing.assert_allclose(
+        coupling.apply_adjoint(shifted, surface_cotangent),
+        base_field,
+        rtol=2e-14,
+        atol=2e-13,
+    )
+    np.testing.assert_allclose(
+        coupling.coordinate_vjp(shifted, source, surface_cotangent),
+        base_coordinate_vjp,
+        rtol=3e-13,
+        atol=3e-12,
+    )
+
+    rotation = _rotation()
+    rotated_geometry = OwnedFixedSurfaceGeometry(
+        geometry.atom_positions_angstrom @ rotation.T,
+        geometry.surface_points_bohr @ rotation.T,
+        geometry.surface_parent_atom_indices,
+    )
+    rotated_source = _rotate_radial_blocks(source, rotation)
+    np.testing.assert_allclose(
+        coupling.apply_source(rotated_geometry, rotated_source),
+        base_potential,
+        rtol=5e-13,
+        atol=5e-12,
+    )
+    np.testing.assert_allclose(
+        coupling.apply_adjoint(rotated_geometry, surface_cotangent),
+        _rotate_radial_blocks(base_field, rotation),
+        rtol=5e-13,
+        atol=5e-12,
+    )
+    np.testing.assert_allclose(
+        coupling.coordinate_vjp(rotated_geometry, rotated_source, surface_cotangent),
+        base_coordinate_vjp @ rotation.T,
+        rtol=8e-13,
+        atol=8e-12,
     )
 
 

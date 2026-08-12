@@ -310,21 +310,30 @@ class ConjugateSurfaceMap:
     derivative of a moving continuum surface.
     """
 
-    source_space = ATOMIC_L1_SOURCE_SPACE
-    field_space = ATOMIC_L1_FIELD_DUAL_SPACE
-
     def __init__(
         self,
         *,
         matrix_builder: MatrixBuilder,
         partial_coordinate_vjp: PartialCoordinateVJP | None = None,
+        source_space: SourceSpace = ATOMIC_L1_SOURCE_SPACE,
+        field_space: FieldDualSpace = ATOMIC_L1_FIELD_DUAL_SPACE,
     ) -> None:
         if not callable(matrix_builder):
             raise TypeError("matrix_builder must be callable.")
         if partial_coordinate_vjp is not None and not callable(partial_coordinate_vjp):
             raise TypeError("partial_coordinate_vjp must be callable or None.")
+        if not isinstance(source_space, SourceSpace):
+            raise TypeError("source_space must be a SourceSpace.")
+        if not isinstance(field_space, FieldDualSpace):
+            raise TypeError("field_space must be a FieldDualSpace.")
+        if field_space.source_space.metadata_hash() != source_space.metadata_hash():
+            raise ValueError(
+                "field_space must be paired with the exact source_space identity."
+            )
         self._matrix_builder = matrix_builder
         self._partial_coordinate_vjp = partial_coordinate_vjp
+        self.source_space = source_space
+        self.field_space = field_space
 
     def matrix(self, geometry: FixedSurfaceGeometryLike) -> np.ndarray:
         positions, _ = validate_fixed_surface_geometry(geometry)
@@ -449,10 +458,17 @@ def validate_adjoint_dot_product(
 
     if relative_tolerance < 0.0 or absolute_tolerance < 0.0:
         raise ValueError("adjoint tolerances must be non-negative.")
-    if operator.source_space is not ATOMIC_L1_SOURCE_SPACE:
-        raise ValueError("operator must use the canonical atomic-l1 source space.")
-    if operator.field_space is not ATOMIC_L1_FIELD_DUAL_SPACE:
-        raise ValueError("operator must use the canonical atomic-l1 field dual space.")
+    if not isinstance(operator.source_space, SourceSpace):
+        raise TypeError("operator.source_space must be a SourceSpace.")
+    if not isinstance(operator.field_space, FieldDualSpace):
+        raise TypeError("operator.field_space must be a FieldDualSpace.")
+    if (
+        operator.field_space.source_space.metadata_hash()
+        != operator.source_space.metadata_hash()
+    ):
+        raise ValueError(
+            "operator field space must be paired with its exact source-space identity."
+        )
     source_values = operator.source_space.validate(source, atom_count=atom_count)
     cotangent = np.asarray(surface_cotangent, dtype=float)
     if cotangent.size == 0 or not np.all(np.isfinite(cotangent)):

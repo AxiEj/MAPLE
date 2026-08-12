@@ -8,10 +8,15 @@ import numpy as np
 import pytest
 from ase import Atoms
 
+from maple.function.calculator.extra_correction.implicit.gto_field_projection import (
+    MACEPolarGTOFieldProjectionSpec,
+)
 from maple.solvation.api.profiles import LOCAL_JET_DIAGNOSTIC_COUPLING_ID
+from maple.solvation.coupling.exact_gto import MACE_POLAR_RADIAL_GTO_COUPLING_ID
 from maple.solvation.models import (
     ElectronicResponseEquationAdapter,
     MACEPolarLocalFieldModelAdapter,
+    MACEPolarRadialGTOModelAdapter,
     MACEPolarReleaseContract,
     VacuumScalarEquationAdapter,
     validate_response_linearization,
@@ -42,7 +47,7 @@ class _FakeMACEPolarCalculator:
     dtype = "float64"
     device = "cpu"
     mace_torch_version = "test-mace-1"
-    graph_longrange_version = "test-graph-1"
+    graph_longrange_version = "0.4.0"
     route2_mace_geometry_frame_policy = "laboratory-v1"
     long_range_evaluator_profile = "test-molecular-realspace-v1"
     atomic_numbers = (1, 6, 8)
@@ -68,13 +73,32 @@ class _FakeMACEPolarCalculator:
             ]
         )
         self.position_source_vector = np.asarray([0.2, -0.1, 0.04, 0.03])
+        self.feature_jacobian = np.asarray(
+            [
+                [0.12, -0.03, 0.02, 0.01, 0.04, -0.02, 0.03, 0.05],
+                [0.04, 0.08, -0.02, 0.03, -0.01, 0.06, 0.02, -0.04],
+                [-0.01, 0.05, 0.09, -0.04, 0.03, 0.01, -0.05, 0.02],
+                [0.02, -0.01, 0.03, 0.07, -0.02, 0.04, 0.06, 0.01],
+            ]
+        )
 
     def route2_gto_field_projection_spec(self):
-        return SimpleNamespace(
+        return MACEPolarGTOFieldProjectionSpec(
             receiver_sigmas_angstrom=(1.5, 3.0),
             receiver_max_l=1,
             receiver_normalization="receiver",
-            upstream_matrix=np.arange(32.0).reshape(8, 4) / 31.0,
+            upstream_matrix=np.asarray(
+                [
+                    [3.544907808303833, 0.0, 0.0, 0.0],
+                    [3.544907808303833, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 5.771474361419678],
+                    [0.0, 5.771474361419678, 0.0, 0.0],
+                    [0.0, 0.0, 5.771474361419678, 0.0],
+                    [0.0, 0.0, 0.0, 11.542948722839355],
+                    [0.0, 11.542948722839355, 0.0, 0.0],
+                    [0.0, 0.0, 11.542948722839355, 0.0],
+                ]
+            ),
         )
 
     def polar_state(
@@ -83,6 +107,7 @@ class _FakeMACEPolarCalculator:
         *,
         node_potential_ev=None,
         node_gradient_ev_per_angstrom=None,
+        model_field_features=None,
         compute_forces=False,
     ):
         positions = np.asarray(atoms.get_positions(), dtype=float)
@@ -90,9 +115,15 @@ class _FakeMACEPolarCalculator:
         if node_potential_ev is not None:
             field[:, 0] = node_potential_ev
             field[:, 1:] = node_gradient_ev_per_angstrom
-        density = 0.05 + field @ self.jacobian.T
+        if model_field_features is not None:
+            features = np.asarray(model_field_features)
+            density = 0.05 + features @ self.feature_jacobian.T
+            field_energy = np.sum(features**2)
+        else:
+            density = 0.05 + field @ self.jacobian.T
+            field_energy = np.sum(field**2)
         density += 0.1 * positions[:, :1] * self.position_source_vector.reshape(1, 4)
-        energy = float(0.5 * np.sum(positions**2) + 0.1 * np.sum(field**2))
+        energy = float(0.5 * np.sum(positions**2) + 0.1 * field_energy)
         forces = -positions if compute_forces else None
         return _State(energy, density, forces), {"fake": True}
 
@@ -101,6 +132,10 @@ class _FakeMACEPolarCalculator:
     ):
         del atoms, node_potential_ev, node_gradient_ev_per_angstrom
         return _Linearization(self.jacobian)
+
+    def linearize_density_response_features(self, atoms, *, model_field_features):
+        del atoms, model_field_features
+        return _Linearization(self.feature_jacobian)
 
     def density_position_vjp(
         self,
@@ -111,6 +146,16 @@ class _FakeMACEPolarCalculator:
         density_cotangent,
     ):
         del node_potential_ev, node_gradient_ev_per_angstrom
+        result = np.zeros((len(atoms), 3))
+        result[:, 0] = 0.1 * (
+            np.asarray(density_cotangent) @ self.position_source_vector
+        )
+        return result
+
+    def density_position_vjp_features(
+        self, atoms, *, model_field_features, density_cotangent
+    ):
+        del model_field_features
         result = np.zeros((len(atoms), 3))
         result[:, 0] = 0.1 * (
             np.asarray(density_cotangent) @ self.position_source_vector
@@ -130,7 +175,7 @@ def _adapter(tmp_path):
         checkpoint_sha256=digest,
         checkpoint_size_bytes=checkpoint.stat().st_size,
         mace_torch_version="test-mace-1",
-        graph_longrange_version="test-graph-1",
+        graph_longrange_version="0.4.0",
         upstream_commit="test-upstream-commit",
         release_status="test-only-unadmitted",
     )
@@ -204,6 +249,52 @@ def test_mace_polar_model_states_linearization_and_equation_bridges(tmp_path):
         vacuum_leaf.coordinate_gradient(atoms),
         -vacuum.forces_eV_per_A.reshape(-1),
     )
+
+
+def test_radial_gto_model_adapter_closes_rectangular_response_and_position_vjp(
+    tmp_path,
+):
+    local, calculator = _adapter(tmp_path)
+    adapter = MACEPolarRadialGTOModelAdapter(local)
+    atoms = _atoms()
+    field = np.arange(16.0).reshape(2, 8) / 37.0
+    state = validate_source_evaluation(
+        adapter, atoms, field, need_fixed_field_forces=True
+    )
+    assert adapter.coupling_id == MACE_POLAR_RADIAL_GTO_COUPLING_ID
+    assert adapter.exact_gto_coupling_available is True
+    assert adapter.exact_gto_operational_available is False
+    assert adapter.variational_functional_admitted is False
+    assert state.source.shape == (2, 8)
+    np.testing.assert_array_equal(state.source[:, (1, 5, 6, 7)], 0.0)
+
+    rng = np.random.default_rng(20260813)
+    direction = rng.normal(size=(2, 8))
+    cotangent = rng.normal(size=(2, 8))
+    jvp, vjp, position_vjp = validate_response_linearization(
+        adapter,
+        atoms,
+        field,
+        field_direction=direction,
+        source_cotangent=cotangent,
+        transpose_atol=2e-12,
+        transpose_rtol=2e-12,
+    )
+    assert np.vdot(jvp, cotangent) == pytest.approx(np.vdot(direction, vjp), abs=2e-12)
+    learned_cotangent = cotangent[:, (0, 2, 3, 4)]
+    expected_position = calculator.density_position_vjp_features(
+        atoms,
+        model_field_features=adapter.field_transform.to_model_features(field),
+        density_cotangent=learned_cotangent,
+    )
+    np.testing.assert_allclose(position_vjp, expected_position, atol=1e-14)
+
+    equation = ElectronicResponseEquationAdapter(
+        adapter, MACE_POLAR_RADIAL_GTO_COUPLING_ID
+    )
+    np.testing.assert_allclose(equation.evaluate_source(atoms, field), state.source)
+    assert equation.coordinate_vjp(atoms, field, cotangent).shape == (6,)
+    assert len(adapter.configuration_sha256()) == 64
 
 
 def test_mace_polar_adapter_fails_closed_on_runtime_or_checkpoint_drift(tmp_path):

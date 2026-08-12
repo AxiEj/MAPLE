@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+from types import MappingProxyType
 
 import numpy as np
 
@@ -45,22 +46,37 @@ class PairingMetric:
     def __post_init__(self) -> None:
         for name in ("scalar_id", "gauge", "field_convention", "energy_unit"):
             object.__setattr__(self, name, _nonempty(getattr(self, name), name=name))
-        for name in ("source_components", "field_components", "source_units", "field_units"):
-            object.__setattr__(self, name, _string_tuple(getattr(self, name), name=name))
+        for name in (
+            "source_components",
+            "field_components",
+            "source_units",
+            "field_units",
+        ):
+            object.__setattr__(
+                self, name, _string_tuple(getattr(self, name), name=name)
+            )
         try:
             permutation = tuple(self.field_to_source_indices)
         except TypeError as exc:
-            raise TypeError("field_to_source_indices must be an iterable of integers.") from exc
+            raise TypeError(
+                "field_to_source_indices must be an iterable of integers."
+            ) from exc
         object.__setattr__(self, "field_to_source_indices", permutation)
 
         size = len(self.source_components)
         if len(self.field_components) != size:
             raise ValueError("source and field component counts must be equal.")
-        if len(set(self.source_components)) != size or len(set(self.field_components)) != size:
+        if (
+            len(set(self.source_components)) != size
+            or len(set(self.field_components)) != size
+        ):
             raise ValueError("source and field component names must be unique.")
         if len(self.source_units) != size or len(self.field_units) != size:
             raise ValueError("component unit metadata must match the component count.")
-        if any(isinstance(index, bool) or not isinstance(index, int) for index in permutation):
+        if any(
+            isinstance(index, bool) or not isinstance(index, int)
+            for index in permutation
+        ):
             raise TypeError("field_to_source_indices must contain only integers.")
         if tuple(sorted(permutation)) != tuple(range(size)):
             raise ValueError("field_to_source_indices must be a complete permutation.")
@@ -82,7 +98,11 @@ class PairingMetric:
 
     def _blocks(self, values: object, *, name: str) -> np.ndarray:
         array = np.asarray(values, dtype=float)
-        if array.ndim < 1 or array.shape[-1] != self.component_count or not np.all(np.isfinite(array)):
+        if (
+            array.ndim < 1
+            or array.shape[-1] != self.component_count
+            or not np.all(np.isfinite(array))
+        ):
             raise ValueError(
                 f"{name} must be finite with trailing dimension {self.component_count}; "
                 f"received {array.shape}."
@@ -122,14 +142,21 @@ class PairingMetric:
         }
 
     def metadata_hash(self) -> str:
-        encoded = json.dumps(self.metadata(), sort_keys=True, separators=(",", ":")).encode()
+        encoded = json.dumps(
+            self.metadata(), sort_keys=True, separators=(",", ":")
+        ).encode()
         return hashlib.sha256(encoded).hexdigest()
 
 
 ATOMIC_L1_PAIRING = PairingMetric(
     scalar_id="maple.route2.atomic-l1-pairing.v1",
     source_components=("net_monopole", "real_l1_m0", "real_l1_m1", "real_l1_m_minus1"),
-    field_components=("potential", "potential_gradient_x", "potential_gradient_y", "potential_gradient_z"),
+    field_components=(
+        "potential",
+        "potential_gradient_x",
+        "potential_gradient_y",
+        "potential_gradient_z",
+    ),
     source_units=("e", "e*angstrom", "e*angstrom", "e*angstrom"),
     field_units=("eV/e", "eV/(e*angstrom)", "eV/(e*angstrom)", "eV/(e*angstrom)"),
     field_to_source_indices=(0, 2, 3, 1),
@@ -137,7 +164,85 @@ ATOMIC_L1_PAIRING = PairingMetric(
     field_convention="positive-energy-dual: pair(c,u)=c^T Q u",
 )
 
+# The official MACE-POLAR-1 receiver contains two radial ``l<=1`` GTO
+# channels.  This layout keeps the physical potential/gradient values (before
+# the checkpoint's diagonal normalization) as the public energy-dual field.
+# Each source component is therefore an ordinary unit-multipole coefficient
+# for the matching radial Gaussian, and the pairing is the identity in this
+# deliberately raw-dual ordering.
+MACE_POLAR_RADIAL_GTO_PAIRING = PairingMetric(
+    scalar_id="maple.route2.mace-polar-radial-gto-pairing.v1",
+    source_components=(
+        "net_monopole_sigma_1p5",
+        "net_monopole_sigma_3p0",
+        "real_l1_m0_sigma_1p5",
+        "real_l1_m1_sigma_1p5",
+        "real_l1_mminus1_sigma_1p5",
+        "real_l1_m0_sigma_3p0",
+        "real_l1_m1_sigma_3p0",
+        "real_l1_mminus1_sigma_3p0",
+    ),
+    field_components=(
+        "potential_sigma_1p5",
+        "potential_sigma_3p0",
+        "potential_gradient_y_sigma_1p5",
+        "potential_gradient_z_sigma_1p5",
+        "potential_gradient_x_sigma_1p5",
+        "potential_gradient_y_sigma_3p0",
+        "potential_gradient_z_sigma_3p0",
+        "potential_gradient_x_sigma_3p0",
+    ),
+    source_units=(
+        "e",
+        "e",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+    ),
+    field_units=(
+        "eV/e",
+        "eV/e",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+    ),
+    field_to_source_indices=tuple(range(8)),
+    gauge="continuum-zero-at-infinity",
+    field_convention=(
+        "positive-energy-dual radial GTO field; checkpoint feature "
+        "normalization is a model-adapter representation transform"
+    ),
+)
+
 AUTHORITATIVE_Q = ATOMIC_L1_PAIRING
 QPairing = PairingMetric
+PAIRING_REGISTRY = MappingProxyType(
+    {
+        metric.scalar_id: metric
+        for metric in (ATOMIC_L1_PAIRING, MACE_POLAR_RADIAL_GTO_PAIRING)
+    }
+)
 
-__all__ = ["ATOMIC_L1_PAIRING", "AUTHORITATIVE_Q", "PairingMetric", "QPairing"]
+
+def get_pairing_metric(metric_id: str) -> PairingMetric:
+    try:
+        return PAIRING_REGISTRY[metric_id]
+    except KeyError as exc:
+        raise KeyError(f"Unregistered Route-2 pairing metric: {metric_id!r}.") from exc
+
+
+__all__ = [
+    "ATOMIC_L1_PAIRING",
+    "AUTHORITATIVE_Q",
+    "MACE_POLAR_RADIAL_GTO_PAIRING",
+    "PAIRING_REGISTRY",
+    "PairingMetric",
+    "QPairing",
+    "get_pairing_metric",
+]

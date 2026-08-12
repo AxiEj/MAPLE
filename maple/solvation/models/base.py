@@ -101,6 +101,24 @@ def _integer_alias(
     return values[0]
 
 
+def _spin_quantum_number(info: Mapping[object, object]) -> float | None:
+    """Read MAPLE's historical ``spin=S`` metadata without guessing units."""
+
+    if "spin" not in info:
+        return None
+    raw = info["spin"]
+    if isinstance(raw, bool) or not isinstance(
+        raw, (int, float, np.integer, np.floating)
+    ):
+        raise TypeError("atoms.info['spin'] for spin quantum number must be numeric.")
+    value = float(raw)
+    if not np.isfinite(value) or value < 0.0 or not (2.0 * value).is_integer():
+        raise ValueError(
+            "atoms.info['spin'] must be a non-negative integer or half-integer S."
+        )
+    return value
+
+
 def _model_charge_and_multiplicity(atoms: object) -> tuple[int, int]:
     raw_info = getattr(atoms, "info", {})
     if raw_info is None:
@@ -110,12 +128,17 @@ def _model_charge_and_multiplicity(atoms: object) -> tuple[int, int]:
     charge = _integer_alias(
         raw_info, ("charge", "total_charge"), default=0, name="total charge"
     )
-    multiplicity = _integer_alias(
-        raw_info,
-        ("mult", "spin", "multiplicity"),
-        default=1,
-        name="spin multiplicity",
+    declared_multiplicity = _integer_alias(
+        raw_info, ("mult", "multiplicity"), default=1, name="spin multiplicity"
     )
+    spin = _spin_quantum_number(raw_info)
+    multiplicity = declared_multiplicity if spin is None else int(2.0 * spin + 1.0)
+    if spin is not None and any(key in raw_info for key in ("mult", "multiplicity")):
+        if multiplicity != declared_multiplicity:
+            raise ValueError(
+                "conflicting atoms.info multiplicity and spin quantum number: "
+                "multiplicity must equal 2*spin+1."
+            )
     if multiplicity < 1:
         raise ValueError("spin multiplicity must be positive.")
     return charge, multiplicity
@@ -141,10 +164,11 @@ def _atomic_numbers(atoms: object) -> tuple[int, ...]:
 def model_input_sha256(atoms: object) -> str:
     """Hash geometry plus the canonical charge/spin model-input identity.
 
-    ``charge`` and ``total_charge`` are equal-priority aliases; ``mult``,
-    ``spin`` and ``multiplicity`` are equal-priority multiplicity aliases.
-    Present aliases must agree.  Missing metadata has explicit neutral-singlet
-    defaults ``total_charge=0`` and ``multiplicity=1``.
+    ``charge`` and ``total_charge`` are equal-priority aliases. ``mult`` and
+    ``multiplicity`` both mean multiplicity ``M``; MAPLE readers historically
+    store ``spin`` as the spin quantum number ``S=(M-1)/2``. Present forms must
+    satisfy ``M=2S+1``. Missing metadata has explicit neutral-singlet defaults
+    ``total_charge=0`` and ``multiplicity=1``.
     """
 
     charge, multiplicity = _model_charge_and_multiplicity(atoms)
@@ -154,7 +178,8 @@ def model_input_sha256(atoms: object) -> str:
         "total_charge": charge,
         "spin_multiplicity": multiplicity,
         "alias_policy": (
-            "charge=total_charge;mult=spin=multiplicity;missing=neutral-singlet"
+            "charge=total_charge;mult=multiplicity=M;spin=S=(M-1)/2;"
+            "missing=neutral-singlet"
         ),
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()

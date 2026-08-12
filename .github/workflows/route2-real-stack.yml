@@ -27,6 +27,8 @@ jobs:
           test -f "$PCMSOLVER_LIBRARY"
           test -n "${MOIST_LIBRARY:-}"
           test -f "$MOIST_LIBRARY"
+          test -n "${MAPLE_ROUTE2_METHANE_MOL2:-}"
+          test -f "$MAPLE_ROUTE2_METHANE_MOL2"
           python - <<'PY'
           import importlib.util
           required = ("torch", "mace", "pyscf", "pyddx")
@@ -37,6 +39,10 @@ jobs:
           python -m pip check
       - name: Run complete suite
         run: |
+          MAPLE_ROUTE2_REAL_MACEPOL=1 \
+          MAPLE_ROUTE2_MACE_DEVICE="${MAPLE_ROUTE2_MACE_DEVICE:-cuda}" \
+          ROUTE2_MACE_CHECKPOINT="$ROUTE2_MACE_CHECKPOINT" \
+          MAPLE_ROUTE2_METHANE_MOL2="$MAPLE_ROUTE2_METHANE_MOL2" \
           python -m pytest -q -rs \
             | tee "$RUNNER_TEMP/route2-real-stack-pytest.log"
       - name: Record exact runtime

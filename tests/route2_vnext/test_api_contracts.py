@@ -11,10 +11,12 @@ from maple.solvation.api import (
     STATE_REGISTRY,
     CapabilityStatus,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
+    DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     EnergyComponent,
     ForceComponent,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
+    OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
     ProvenanceBundle,
     ProvenanceRecord,
     Route2Result,
@@ -68,7 +70,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 4
+    assert len(PROFILE_REGISTRY) == 6
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -88,6 +90,31 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     assert diagnostic.coupling_id.endswith("local-l1-jet-diagnostic.v1")
     assert diagnostic.enabled is False
     assert diagnostic.capabilities.enabled_tiers == ()
+    radial = PROFILE_REGISTRY[OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1]
+    assert (
+        radial.scalar_id
+        == PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1].scalar_id
+    )
+    assert radial.coupling_id.endswith("mace-polar-native-radial-gto-v1")
+    assert radial.source_space_id.endswith("mace-polar-radial-gto-source-space.v1")
+    assert radial.field_space_id.endswith("mace-polar-radial-gto-field-dual-space.v1")
+    assert radial.pairing_id.endswith("mace-polar-radial-gto-pairing.v1")
+    assert radial.coordinate_contract_id.endswith(
+        "mace-polar-radial-gto-linear-charge-coordinates.v1"
+    )
+    assert radial.continuum_configuration_contract_id.endswith(
+        "water-eps78p39-smd-radii-lebedev194.v1"
+    )
+    assert radial.enabled is False
+    diagnostic_radial = PROFILE_REGISTRY[
+        DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1
+    ]
+    assert diagnostic_radial.scalar_id == radial.scalar_id
+    assert diagnostic_radial.coupling_id == radial.coupling_id
+    assert diagnostic_radial.continuum_configuration_contract_id.endswith(
+        "unbound-diagnostic.v1"
+    )
+    assert diagnostic_radial.enabled is False
 
 
 def test_admission_records_cannot_bypass_enablement_or_evidence():

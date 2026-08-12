@@ -114,8 +114,13 @@ class ScalarDefinition:
 
 
 _COMMON = dict(
-    source_representation="atom-centred net monopoles plus real-spherical l=1 dipoles",
-    field_convention="positive energy-dual field with pairing c^T Q(R) u",
+    source_representation=(
+        "profile-bound atom-centred l<=1 electrostatic source; exact component, "
+        "radial-basis, unit, and charge-functional identity is registered by profile"
+    ),
+    field_convention=(
+        "profile-bound positive energy-dual field with pairing c^T Q(R) u"
+    ),
     continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
     cavity_profile="fixed-topology-amplitude-swig-v1",
     admitted_capabilities=CapabilityStatus(),

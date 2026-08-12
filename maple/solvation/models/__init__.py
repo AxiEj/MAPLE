@@ -30,10 +30,12 @@ from .equation_adapter import (
 from .mace_polar import (
     MACEPolarExactGTOCompatibilityAudit,
     MACEPolarLocalFieldModelAdapter,
+    MACEPolarRadialGTOModelAdapter,
     MACEPolarReleaseContract,
     OFFICIAL_MACE_POLAR_1_M_CONTRACT,
     OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID,
     build_official_mace_polar_1_m_adapter,
+    build_official_mace_polar_1_m_radial_gto_adapter,
 )
 
 __all__ = [
@@ -47,6 +49,7 @@ __all__ = [
     "ModelProvenance",
     "MACEPolarExactGTOCompatibilityAudit",
     "MACEPolarLocalFieldModelAdapter",
+    "MACEPolarRadialGTOModelAdapter",
     "MACEPolarReleaseContract",
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",
     "OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID",
@@ -67,4 +70,5 @@ __all__ = [
     "validate_vacuum_evaluation",
     "validate_variational_declaration",
     "build_official_mace_polar_1_m_adapter",
+    "build_official_mace_polar_1_m_radial_gto_adapter",
 ]

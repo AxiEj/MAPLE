@@ -20,7 +20,10 @@ from maple.function.calculator.extra_correction.implicit.route2_pcm_response imp
     FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
 )
 from maple.solvation.api.capabilities import CapabilityStatus
-from maple.solvation.api.profiles import LOCAL_JET_DIAGNOSTIC_COUPLING_ID
+from maple.solvation.api.profiles import (
+    LOCAL_JET_DIAGNOSTIC_COUPLING_ID,
+    UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+)
 from maple.solvation.api.scalar_registry import (
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
 )
@@ -293,6 +296,7 @@ class FixedTopologyCPCMBackend:
     provider_id = CONTINUUM_PROVIDER_ID
     continuum_profile_id = CONTINUUM_PROFILE_ID
     cavity_profile_id = CAVITY_PROFILE_ID
+    configuration_contract_id = UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID
     coupling_id = LOCAL_JET_DIAGNOSTIC_COUPLING_ID
     scalar_id = DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1
     capabilities = CapabilityStatus()

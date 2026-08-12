@@ -329,7 +329,7 @@ def test_linear_root_matches_dense_solution_and_cold_warm_identity():
     )
 
 
-def test_state_kernel_accepts_non_l1_future_source_space():
+def test_state_kernel_accepts_non_l1_space_but_release_solver_requires_profile():
     source_space = SourceSpace(
         scalar_id="test.future-multipole.v1",
         representation="charge plus two generic multipoles",
@@ -416,21 +416,28 @@ def test_state_kernel_accepts_non_l1_future_source_space():
             return np.zeros_like(geometry)
 
     equation = ReducedStateEquation(coordinates, Electronic(), Continuum())
-    state = solve_fixed_point(
-        equation,
-        np.zeros(2),
-        scalar_id=SCALAR_ID,
-        profile_id=PROFILE_ID,
-        scalar_binding=SCALAR_BINDING,
-        root_context_id="future-multipole/test-provider/geometry-zero",
-        options=FixedPointOptions(tolerance=1e-13),
-    )
-    assert state.source_array().shape == (3, 3)
-    assert state.field_array().shape == (3, 3)
+    evaluated = equation.evaluate(np.zeros(2), np.zeros(equation.reduced_dimension))
+    assert np.asarray(evaluated.source).shape == (3, 3)
+    assert np.asarray(evaluated.field).shape == (3, 3)
     assert (
-        abs(np.sum(state.source_array()[:, source_space.charge_component]) - 2.0)
+        abs(
+            source_space.total_charge(
+                evaluated.source, atom_count=coordinates.atom_count
+            )
+            - 2.0
+        )
         <= 1e-12
     )
+    with pytest.raises(ValueError, match="source identity"):
+        solve_fixed_point(
+            equation,
+            np.zeros(2),
+            scalar_id=SCALAR_ID,
+            profile_id=PROFILE_ID,
+            scalar_binding=SCALAR_BINDING,
+            root_context_id="future-multipole/test-provider/geometry-zero",
+            options=FixedPointOptions(tolerance=1e-13),
+        )
 
 
 @pytest.mark.parametrize(

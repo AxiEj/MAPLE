@@ -9,9 +9,14 @@ from typing import Any, Literal, Protocol
 
 import numpy as np
 
-from maple.solvation.api.profiles import get_solvation_profile
+from maple.solvation.api.profiles import (
+    UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+    get_solvation_profile,
+)
 from maple.solvation.api.scalar_registry import get_scalar_definition
 
+from .metrics import get_pairing_metric
+from .spaces import get_coordinate_contract, get_field_dual_space, get_source_space
 from .state_equation import ReducedStateEquation, geometry_sha256
 
 
@@ -373,11 +378,43 @@ def solve_fixed_point(
             "Continuum cavity-profile identity does not match the registry."
         )
     if (
+        getattr(
+            equation.continuum,
+            "configuration_contract_id",
+            UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+        )
+        != profile.continuum_configuration_contract_id
+    ):
+        raise ValueError(
+            "Continuum physical-configuration contract does not match the registry."
+        )
+    if (
         equation.electronic.coupling_id != profile.coupling_id
         or equation.continuum.coupling_id != profile.coupling_id
     ):
         raise ValueError(
             "Source/receiver coupling identity does not match the registry."
+        )
+    registered_source = get_source_space(profile.source_space_id)
+    registered_field = get_field_dual_space(profile.field_space_id)
+    registered_pairing = get_pairing_metric(profile.pairing_id)
+    get_coordinate_contract(profile.coordinate_contract_id).validate(
+        equation.coordinates
+    )
+    if equation.source_space.metadata_hash() != registered_source.metadata_hash():
+        raise ValueError(
+            "State-equation source identity does not match the profile registry."
+        )
+    if equation.field_space.metadata_hash() != registered_field.metadata_hash():
+        raise ValueError(
+            "State-equation field identity does not match the profile registry."
+        )
+    if (
+        equation.field_space.pairing_metric.metadata_hash()
+        != registered_pairing.metadata_hash()
+    ):
+        raise ValueError(
+            "State-equation pairing identity does not match the profile registry."
         )
     if scalar_definition.state_equation_id != equation.state_equation_id:
         raise ValueError("Registered scalar does not bind this state-equation ID.")

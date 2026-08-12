@@ -26,6 +26,13 @@ first-order/non-convergent step trend.
 The primal/adjoint residual contribution to force uncertainty must be below ten
 percent of the force-FD tolerance.
 
+Current executed real-water evidence is intentionally below admission scope:
+one geometry, one direction, and three step sizes passed the directional gate,
+but the same calculation failed the rotation-force and torque thresholds.
+Consequently it is local derivative evidence only; component Cartesian FD,
+multi-geometry/orientation, loop-work, PES-panel, Hessian, and NVE gates remain
+required.
+
 ## Symmetry, root, topology, and path gates
 
 - rigid-translation energy change `<= 1e-6 eV`;
@@ -62,6 +69,9 @@ overlap, reproducible at two accepted displacement sizes.
 - one-geometry FD establishes a local derivative, not a PES;
 - a short NVE test is a diagnostic, not Tier M admission;
 - totals cannot hide wrong components;
+- compare solvation components only under explicit source/receiver, cavity,
+  continuum-equation, and nonpolar identities; an electrostatics-only value
+  cannot be scored against an experimental total solvation free energy;
 - missing optional runtimes are skips only in a generic job and failures in a
   job advertising that runtime;
 - every artifact binds exact source, model, continuum, cavity, runtime, command,

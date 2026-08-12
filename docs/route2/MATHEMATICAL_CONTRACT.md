@@ -57,6 +57,15 @@ E_{\rm op}(R)=\Phi_{\rm op}(R,y^*(R)).
 The field-conditioned MACE energy difference is diagnostic only. It is not
 silently added to this half-coupling scalar.
 
+In the current radial-GTO candidate, the learned checkpoint's four source
+coefficients are embedded into the `(sigma=1.5 Angstrom, l<=1)` block of an
+eight-channel physical space; the independent `sigma=3.0 Angstrom` source block
+is fixed to zero while both receiver-width field blocks drive the model through
+the checkpoint projection transform. This defines one differentiable
+operational state equation and one conjugate continuum operator. It does not
+prove that the learned source is a physically calibrated finite-width density,
+nor that this candidate has passed release admission.
+
 ## 3. One adjoint and one force
 
 Define

@@ -8,11 +8,11 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | --- | --- | --- |
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
-| 2: coupling operator | candidates complete; precision blocked | matrix-free spaces/Q; exact single-width candidate and separately named local-jet diagnostic; all tiers false |
+| 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology C-PCM | backend complete; unadmitted | legacy-parity adapter plus independent Torch continuum-algebra oracle; independent surface-primitive oracle missing |
-| 5: MACE-POLAR adapter/canaries | adapter complete; gate failed | official checkpoint canary passes derivatives, but 4-component source and 8-feature receiver do not provide the required exact conjugate operator |
-| 6: force/MAPLE integration | blocked | no exact checkpoint-native source/receiver coupling; no vNext Tier F profile |
+| 5: MACE-POLAR adapter/canaries | candidate complete; gate failed | the four learned coefficients are embedded in the two-width physical source and the full receiver transform is used; one real directional force gate passes, but rotation/torque and methane component evidence fail |
+| 6: force/MAPLE integration | blocked | same-scalar force is callable internally but no vNext Tier F profile passes the full real-stack PES panel |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | pending | production still uses legacy engine |
@@ -36,7 +36,8 @@ Historical exploratory modules remain traceable until the new import graph is
 complete. No production import may point from `maple/solvation` into the future
 `research/route2_legacy` archive.
 
-The current negative Phase-5 result is documented in
-`MACE_POLAR_VNEXT_AUDIT.md`. It is a physical/interface blocker, not a solver
-tolerance issue; local-jet diagnostic agreement cannot promote the exact-GTO
-production profile.
+The current negative Phase-5/6 result is documented in
+`MACE_POLAR_VNEXT_AUDIT.md`. It is not a solver-tolerance issue: the root and
+adjoint residuals are tight, while symmetry and electrostatic-component checks
+remain outside admission. Neither local-jet migration parity nor one local
+same-scalar derivative promotes the radial profile.

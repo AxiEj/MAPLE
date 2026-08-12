@@ -10,8 +10,9 @@ Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-The four current profiles are disabled, have no capabilities, and have empty
-admission evidence.
+The six current profiles are disabled, have no capabilities, and have empty
+admission evidence. Multiple profiles may share one scalar formula while
+binding different coupling or physical-continuum configuration contracts.
 
 `Route2Result` accepts only a registered `profile_id`; it derives scalar ID,
 state-equation ID, and capabilities from that profile. Callers cannot attach
@@ -42,6 +43,33 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 - Derivative: implicit-adjoint total derivative of the same scalar along the
   unique admitted root `y*(R)`.
 - Capabilities/evidence: none / none.
+
+### Water radial-GTO operational candidate
+
+Profile
+`route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1`
+uses the same scalar entry point and state equation, but binds all of the
+following as one immutable identity:
+
+- the physical two-width `(1.5, 3.0 Angstrom)` radial-GTO source/field space;
+- exact discrete `B/B*` coupling under its authoritative pairing;
+- dimensionless reduced-coordinate contract;
+- water dielectric `78.39`;
+- SMD-water Coulomb radii;
+- a fixed 194-point Lebedev grid per atom.
+
+It is implemented as an internal scalar/gradient candidate, not admitted as E
+or F. A real water directional derivative passed locally, but the preregistered
+rotation-force and torque gates did not both pass. Methane component evidence
+also shows a large electrostatic-magnitude change relative to older,
+nonconjugate point-source/GTO-receiver and local-jet profiles. Therefore this
+profile remains disabled and cannot be published as a solution-phase PES.
+
+Profile
+`route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1`
+uses the same radial algebra with an explicitly unbound injected surface. It is
+only for deterministic synthetic tests and cannot satisfy the water profile's
+physical-configuration identity.
 
 ## `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1`
 

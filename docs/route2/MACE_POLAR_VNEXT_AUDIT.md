@@ -1,68 +1,65 @@
 # MACE-POLAR conservative-vNext audit
 
-## Result
+## Current result
 
-The vNext contracts, reduced state equation, implicit adjoint, fixed-topology
-C-PCM backend, and official MACE-POLAR-1-M adapter are implemented and tested.
-No Route-2 capability is admitted. The current official checkpoint does not
-expose the one exact checkpoint-native conjugate source/receiver operator
-required by the production profile.
+The vNext contracts, constrained state equation, implicit adjoint,
+fixed-topology C-PCM backend, official MACE-POLAR-1-M adapter, and a conjugate
+two-width radial-GTO `B/B*` path are implemented. **No Route-2 capability is
+admitted.** The new path supplies useful same-scalar derivative evidence, but
+it does not yet pass the preregistered symmetry/PES gates and its methane
+electrostatic component is much smaller than older diagnostic profiles.
 
-The unique production-target scalar remains
+The one production-target scalar remains
 
 \[
 E_{\rm op}(R)=E_{\rm vac}(R)
 +\tfrac12\langle c^*(R),P_R(c^*(R))\rangle_Q,
 \]
 
-where \(c^*=c_{\rm ref}+Ty^*\) and \(y^*\) is the unique admitted root of
+where \(c^*=c_{\rm ref}+Ty^*\) and \(y^*\) is the selected root of
 
 \[
 T^+\left[c_{\rm ref}+Ty-
 \Pi_qM_\theta\!\left(R,P_R(c_{\rm ref}+Ty)\right)\right]=0.
 \]
 
-The field-conditioned MACE energy difference and nonpolar/CDS terms are not
-part of this scalar. The total derivative, if eventually admitted, is defined
-only through the matching implicit adjoint. There is no second force formula.
+The field-conditioned MACE energy difference and every nonpolar/CDS term are
+excluded. Its total derivative is computed only by the matching implicit
+adjoint. There is no independently coded force formula.
 
-## Exact-GTO gate outcome
+## Radial-GTO construction and claim boundary
 
-The official checkpoint exposes:
+The official checkpoint exposes a learned one-width source
+`sigma=(1.5 Angstrom), l<=1` with four values per atom and an eight-feature
+two-width receiver `sigma=(1.5, 3.0 Angstrom), l<=1`. The vNext candidate does
+not pretend those native objects are already one four-dimensional conjugate
+space. Instead it defines an explicit physical eight-channel radial-GTO space:
 
-- learned source: one radial width, `sigma=(1.5 Angstrom)`, \(l\leq1\),
-  `normalize=multipoles`, four values per atom;
-- learned receiver: two radial widths, `sigma=(1.5, 3.0 Angstrom)`,
-  \(l\leq1\), `normalize=receiver`, eight features per atom;
-- upstream receiver matrix shape: `(8, 4)`.
+- the four learned coefficients occupy the `sigma=1.5 Angstrom` source block;
+- the independent `sigma=3.0 Angstrom` source coefficients are zero;
+- exact surface evaluation defines `B` in that same physical space;
+- its exact discrete transpose defines `B*`;
+- both physical field-width blocks are transformed to the checkpoint's eight
+  receiver features through the content-addressed upstream projection.
 
-Those spaces cannot be treated as one \(B/B^*\) pair merely because a matrix
-connects their shapes. The current adapter therefore declares
-`exact_gto_operational_available=false`. It does not symmetrize, fit, or invent
-a missing map. The separately named local-jet path remains diagnostic only.
+This is a mathematically explicit operational surrogate construction. It is
+not proof that the learned coefficients are a calibrated finite-width charge
+density, a strict common variational MACE-continuum functional, or an accurate
+solvation model.
 
-## Executed real-checkpoint canary
+The water operational-candidate profile additionally freezes dielectric
+`78.39`, SMD-water Coulomb radii, and 194 Lebedev nodes per atom. Alternate
+dielectric, radii, order, or injected surfaces fail profile binding.
 
-The committed evidence bundle tests clean implementation commit
-`19eea1ca99028f8b432e6f08a5c64d87a58f4011` and is stored under
-`docs/route2/evidence/vnext-mace-polar-gate-19eea1ca/`.
+## Executed official-checkpoint evidence
 
-Environment: Python 3.11, Torch 2.12.0+cu130, CUDA, `mace-torch==0.3.16`,
-`graph-longrange==0.4.0`, float64, official `polar-1-m` checkpoint SHA256
+Environment used in the local audit: Python 3.11, Torch 2.12.0+cu130, CUDA,
+`mace-torch==0.3.16`, `graph-longrange==0.4.0`, float64, official `polar-1-m`
+checkpoint SHA256
 `fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a`.
 
-Command:
-
-```bash
-export PYTHONPATH=/home/axie/.cache/uv/archive-v0/F-d7m2HPEUDaGHp7LnIsM:${PYTHONPATH:-}
-export LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}
-export MAPLE_ROUTE2_REAL_MACEPOL=1
-export MAPLE_ROUTE2_MACE_DEVICE=cuda
-python -m pytest -q -s --disable-warnings \
-  tests/route2_vnext/test_mace_polar_real_checkpoint.py
-```
-
-Observed:
+The earlier source/linearization canary remains recorded in
+`docs/route2/evidence/vnext-mace-polar-gate-19eea1ca/`:
 
 | check | value |
 | --- | ---: |
@@ -73,47 +70,91 @@ Observed:
 | total source charge | `2.7755575615628914e-17 e` |
 | local versus upstream field-conditioned energy branch | `-0.0038528325721927104 eV` |
 
-The last value is deliberate negative evidence: the field-conditioned model
-energy is not silently added to the operational half-coupling scalar.
+The last value is negative conjugacy evidence: it is not added to the
+operational half-coupling scalar.
 
-## Methane fixed-cavity diagnostic
+## Real water same-scalar force audit
 
-A disabled local-jet scalar/profile was added solely so the new kernel can be
-compared with the historical fixed-cavity implementation without borrowing the
-exact-GTO production identity.
+Command:
 
-For FreeSolv `mobley_9055303` (methane), water dielectric 78.39, amplitude-SWIG
-Lebedev order 15, and the official float64 checkpoint, the vNext diagnostic
-converged in seven updates:
+```bash
+export MAPLE_ROUTE2_REAL_MACEPOL=1
+export MAPLE_ROUTE2_MACE_DEVICE=cuda
+python -m pytest -q -s --disable-warnings \
+  tests/route2_vnext/test_mace_polar_real_operational_scalar.py
+```
 
-| measurement | result |
+For one water geometry, the root and adjoint residuals were
+`3.8119194931281014e-13` and `1.5496456060009448e-13`. Cold/warm energy agreed
+exactly and source L2 difference was `9.339417195847146e-13`. The scalar leaves
+were:
+
+| leaf | value |
 | --- | ---: |
-| physical reduced residual norm | `7.96785980794461e-12` |
-| total charge | `0.0 e` |
-| C-PCM half-coupling | `-1.483425546707858 kcal/mol` |
-| historical same local-jet L15 result | `-1.4834255431954178 kcal/mol` |
-| difference | `-3.5124403385822234e-9 kcal/mol` |
-| half-coupling identity error | `1.3877787807814457e-17 eV` |
-| cold replay field max difference | `0.0 eV` |
+| vacuum | `-2079.863671296707 eV` |
+| C-PCM electrostatic half coupling | `-0.017148810303582215 eV` |
+| total operational scalar | `-2079.8808201070105 eV` |
 
-This is numerical migration parity, not an accuracy improvement. The old
-atom-centred SMD-CDS contribution is not included, so this is not a complete
-\(\Delta G_{\rm solv}\). For context only, the earlier rho-DROP methane
-electrostatic result was `-0.23949099688080341 kcal/mol`; it uses a different,
-source-dependent cavity and also lacks an admitted nonpolar term, so the two
-numbers are not interchangeable model-quality scores.
+For one normalized internal direction, the analytic derivative was
+`-0.361775005453125 eV/Angstrom`. Central-difference errors were:
+
+| step (Angstrom) | absolute error (eV/Angstrom) | relative error |
+| ---: | ---: | ---: |
+| `4e-4` | `1.5643755e-5` | `4.32398e-5` |
+| `2e-4` | `1.9200484e-6` | `5.30727e-6` |
+| `1e-4` | `2.7169932e-6` | `7.51012e-6` |
+
+That local same-scalar direction passes. It is not Tier F: the executed
+symmetry audit found rotation-force relative error
+`2.5151882742290786e-4` (threshold `1e-4`) and torque
+`1.0777102111375557e-4 eV` (threshold `1e-4 eV`). Translation energy, net
+force, and topology checks passed. The rotation defect includes contributions
+from the vacuum model and continuum quadrature, so it must not be hidden by
+loosening the gate.
+
+## Methane solvation-component comparison
+
+For the pinned FreeSolv `mobley_9055303` MOL2 geometry, the 194-point radial-GTO
+water candidate produced:
+
+| quantity | result |
+| --- | ---: |
+| root residual | `6.406575415816992e-13` |
+| C-PCM electrostatic component | `-0.056741561355549835 kcal/mol` |
+| frozen gas-source component | `-0.056180124331638936 kcal/mol` |
+| root minus gas source L2 | `9.165360565771093e-4` |
+
+The magnitude collapse is already present at the frozen gas source; it is not
+caused by failure of the outer fixed-point solve.
+
+Comparisons must retain method identity:
+
+| older record | electrostatic (kcal/mol) | relation to new result |
+| --- | ---: | --- |
+| vNext local-jet, 86 nodes/atom | `-1.483425546707858` | different source kernel/grid; new magnitude is `3.825%` |
+| legacy point-source / exact-GTO receiver / PCMSolver | `-1.1554017711374178` | known nonconjugate source/receiver and different backend/cavity; new magnitude is `4.911%` |
+| rho-DROP source-dependent cavity | `-0.239490996880803` | different cavity and incomplete coordinate derivative; not parity evidence |
+
+The legacy record also had a separate CDS term `+2.764796099834587` and total
+ledger `+1.609394328697169 kcal/mol`, versus the experimental total
+`+2.0 kcal/mol`. Those CDS/cavity semantics are incompatible with the new
+electrostatics-only profile. Therefore `-0.05674` cannot be appended to that CDS,
+cannot be scored against `+2.0`, and does **not** show an accuracy improvement.
+It is negative physical-component evidence requiring source-normalization and
+matched QM/C-PCM investigation.
 
 ## Capability decision
 
 | capability | status | reason |
 | --- | --- | --- |
-| scalar energy E | closed | no exact checkpoint-native production coupling/admission artifact |
-| conservative force F | closed | production scalar cannot be assembled under the required coupling identity |
-| Hessian/FREQ H | closed | depends on admitted F |
+| scalar energy E | closed | callable internal scalar lacks release/PES and physical-component admission |
+| conservative force F | closed | one local direction passes; rotation/torque and full panel fail/remain missing |
+| Hessian/FREQ H | closed | depends on admitted F and raw-Hessian gates |
 | strict variational V | closed | energy-source conjugacy/stability not established |
-| MD M | closed | depends on admitted F plus path/NVE gates |
+| MD M | closed | depends on admitted F plus path/loop/NVE gates |
 | OPT/NEB/TS/IRC | closed | no Tier-F profile |
 
-The next scientific step is to obtain or train a model whose response source
-and receiver are one declared energy-conjugate operator, or to establish a new
-formally justified source space. Solver tuning cannot repair this mismatch.
+Next work is not solver tuning. It is a matched source-normalization/basis audit,
+component-level QM/C-PCM reference comparison, and completion of the
+multi-geometry/orientation same-scalar force panel while preserving all current
+negative evidence.

@@ -15,7 +15,9 @@ CLI restriction.
 
 | scalar/profile | E | F | H | V | M | current disposition |
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
-| `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | target; not implemented/admitted |
+| `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
+| `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
+| `route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1` | no | no | no | no | no | synthetic injected-grid diagnostic only |
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
 | `route2-variational-common-functional-v1` | no | no | no | no | no | disabled pending every strict-variational gate |
@@ -45,3 +47,9 @@ Separate paths remain fail-closed:
 
 This file will be updated only when the corresponding evidence artifact is
 source/model/runtime bound and passes every preregistered gate.
+
+The callable water radial-GTO path is deliberately absent from public result
+admission. At the current real-water canary it passed the three central
+directional differences but missed rotation covariance (`2.515e-4` versus
+`1e-4`) and torque (`1.078e-4 eV` versus `1e-4 eV`). It is therefore not a
+conservative-force capability for MAPLE workflows.

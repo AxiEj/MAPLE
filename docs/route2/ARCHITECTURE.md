@@ -66,3 +66,9 @@ A callable method is not a capability. A profile starts with no E/F/H/V/M
 tier. Provider contracts describe what can be computed; release evidence admits
 a bounded profile; the registry exposes only that intersection. Unsupported
 direct calls fail at the provider/adapter boundary as well as the CLI.
+
+Profile identity also includes the continuum's physical-configuration contract,
+not only a backend class name. The water radial-GTO candidate binds dielectric
+`78.39`, SMD-water Coulomb radii, and 194 fixed Lebedev directions per atom.
+Injected grids or altered dielectric/radii/order receive a separate diagnostic
+identity and cannot enter that profile.

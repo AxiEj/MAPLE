@@ -7,12 +7,12 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | phase | status | evidence |
 | --- | --- | --- |
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
-| 1: contracts and units | in progress | new API package and ASE unit correction not yet complete |
-| 2: coupling operator | in progress | canonical B/B* package work underway |
-| 3: state equation/operational scalar | pending | legacy assets mapped, new kernel not yet admitted |
-| 4: fixed-topology C-PCM | pending | legacy amplitude-SWIG asset retained |
-| 5: MACE-POLAR adapter/canaries | pending | no vNext real-stack evidence |
-| 6: force/MAPLE integration | pending | no vNext Tier F profile |
+| 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
+| 2: coupling operator | candidates complete; precision blocked | matrix-free spaces/Q; exact single-width candidate and separately named local-jet diagnostic; all tiers false |
+| 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
+| 4: fixed-topology C-PCM | backend complete; unadmitted | legacy-parity adapter plus independent Torch continuum-algebra oracle; independent surface-primitive oracle missing |
+| 5: MACE-POLAR adapter/canaries | adapter complete; gate failed | official checkpoint canary passes derivatives, but 4-component source and 8-feature receiver do not provide the required exact conjugate operator |
+| 6: force/MAPLE integration | blocked | no exact checkpoint-native source/receiver coupling; no vNext Tier F profile |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | pending | production still uses legacy engine |
@@ -35,3 +35,8 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 Historical exploratory modules remain traceable until the new import graph is
 complete. No production import may point from `maple/solvation` into the future
 `research/route2_legacy` archive.
+
+The current negative Phase-5 result is documented in
+`MACE_POLAR_VNEXT_AUDIT.md`. It is a physical/interface blocker, not a solver
+tolerance issue; local-jet diagnostic agreement cannot promote the exact-GTO
+production profile.

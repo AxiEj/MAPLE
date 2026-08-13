@@ -185,11 +185,22 @@ class _ShardRunner:
                 f"{label}/{name}/{step}/plus",
                 plus_seed,
             )
+            # Consume the plus geometry while its exact single-entry dense
+            # continuum factorization is still cached. Solving minus first and
+            # returning to plus would rebuild the same geometry unnecessarily.
+            plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)
+            plus_topology = self.continuum.surface_provider.build_state(
+                plus
+            ).topology_hash
             minus_state = self.solve(
                 minus,
                 f"{label}/{name}/{step}/minus",
                 minus_seed,
             )
+            minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)
+            minus_topology = self.continuum.surface_provider.build_state(
+                minus
+            ).topology_hash
             maximum_primal = max(
                 maximum_primal,
                 plus_state.actual_unmixed_residual_norm,
@@ -197,17 +208,9 @@ class _ShardRunner:
             )
             plus_seed = plus_state.y_array()
             minus_seed = minus_state.y_array()
-            plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)
-            minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)
             # Fixed-topology identity is a surface property.  Reading it from
             # the surface provider avoids a second dense continuum build at
             # every displaced energy point.
-            plus_topology = self.continuum.surface_provider.build_state(
-                plus
-            ).topology_hash
-            minus_topology = self.continuum.surface_provider.build_state(
-                minus
-            ).topology_hash
             topology_hashes.update((plus_topology, minus_topology))
             samples.append((step, plus_energy, minus_energy))
             displaced.append(

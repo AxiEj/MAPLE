@@ -191,9 +191,17 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
         "panel_directions",
         'aggregate_multi_molecule_pes_panel": False',
         '"capabilities": {tier: False',
+        "plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)",
+        "minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)",
     ):
         assert requirement in text
     assert "(*source_paths, PANEL_ASSET_PATH)" in text
+    assert (
+        text.index("plus_state = self.solve(")
+        < text.index("plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)")
+        < text.index("minus_state = self.solve(")
+        < text.index("minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)")
+    )
     document = PES_PANEL_DOC.read_text(encoding="utf-8")
     assert PES_PANEL_RUNNER.name in document
     assert "has not yet been" in document

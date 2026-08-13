@@ -25,6 +25,8 @@ PATH_RUNNER = (
 BOX_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_water_box_convergence.py"
 )
+PES_PANEL_RUNNER = ROOT / "tools" / "route2_release" / "run_fixedbox590_pes_panel.py"
+PES_PANEL_DOC = ROOT / "docs" / "route2" / "PES_PANEL.md"
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
 )
@@ -160,6 +162,34 @@ def test_fixedbox590_box_runner_preregisters_distinct_sizes_and_stays_disabled()
         '"capabilities": {tier: False',
     ):
         assert requirement in text
+
+
+def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled():
+    result = subprocess.run(
+        (sys.executable, str(PES_PANEL_RUNNER), "--help"),
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--molecule-start" in result.stdout
+    assert "--molecule-stop" in result.stdout
+    text = PES_PANEL_RUNNER.read_text(encoding="utf-8")
+    for requirement in (
+        "PES_PANEL_CONTRACT_VERSION",
+        "PES_PANEL_ASSET_SHA256",
+        "PES_PANEL_DIRECTIONAL_STEPS_A",
+        "panel_geometries",
+        "panel_directions",
+        'aggregate_multi_molecule_pes_panel": False',
+        '"capabilities": {tier: False',
+    ):
+        assert requirement in text
+    document = PES_PANEL_DOC.read_text(encoding="utf-8")
+    assert PES_PANEL_RUNNER.name in document
+    assert "has not yet been" in document
+    assert "not" in document and "optimized transition state" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():

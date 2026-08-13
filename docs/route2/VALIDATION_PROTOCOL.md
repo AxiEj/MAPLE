@@ -37,6 +37,10 @@ multi-molecule PES panel, multi-geometry box convergence, component physics,
 Hessian, and NVE gates remain open. Exact measurements and reproducible
 commands are recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`.
 
+The 20-molecule, 60-base-geometry panel plus real butane-torsion and peroxide
+stretch paths is preregistered in `PES_PANEL.md`. It has not yet been executed,
+so it supplies no force or PES admission evidence at this revision.
+
 ## Symmetry, root, topology, and path gates
 
 - rigid-translation energy change `<= 1e-6 eV`;

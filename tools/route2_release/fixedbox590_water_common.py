@@ -66,11 +66,16 @@ def water() -> Atoms:
     )
 
 
-def root_context(geometry: Atoms, label: str, *, box_length: int = 40) -> str:
+def root_context(
+    geometry: Atoms, label: str, *, box_length: int = 40, system_id: str = "water"
+) -> str:
     if box_length not in DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS:
         raise ValueError(f"Unregistered fixed-box length: {box_length} Angstrom.")
+    normalized_system = str(system_id).strip()
+    if not normalized_system or "/" in normalized_system:
+        raise ValueError("system_id must be a non-empty path-segment identifier.")
     return (
-        f"fixedbox{box_length}-cpcm590-water-pes-v1/"
+        f"fixedbox{box_length}-cpcm590-{normalized_system}-pes-v1/"
         f"{label}/{geometry_sha256(geometry)}"
     )
 
@@ -91,6 +96,22 @@ def build_system(atoms: Atoms, checkpoint: Path, device: str, *, box_length: int
         device=device,
         long_range_evaluator_profile=evaluator_profile,
     )
+    return build_system_with_model(atoms, model, box_length=box_length)
+
+
+def build_system_with_model(atoms: Atoms, model, *, box_length: int = 40):
+    """Build geometry-sized Route-2 operators around one loaded model adapter."""
+
+    try:
+        profile_id = DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS[box_length]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unregistered fixed-box length: {box_length} Angstrom."
+        ) from exc
+    profile = get_solvation_profile(profile_id)
+    if profile.enabled or profile.capabilities.enabled_tiers:
+        raise RuntimeError("The diagnostic profile must remain completely disabled.")
+    model.domain.validate_atoms(atoms)
     continuum = build_water_radial_gto_cpcm_590_candidate(atoms.get_chemical_symbols())
     coordinates = LinearChargeCoordinates(
         len(atoms),
@@ -187,6 +208,7 @@ __all__ = [
     "COMMON_REQUIRED_SOURCE_PATHS",
     "DEFAULT_CHECKPOINT",
     "build_system",
+    "build_system_with_model",
     "cold_warm_record",
     "identity_record",
     "root_context",

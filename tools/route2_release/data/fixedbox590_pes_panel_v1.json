@@ -1,0 +1,1246 @@
+{
+  "declared_checkpoint_domain": {
+    "charge_support": [
+      0,
+      0
+    ],
+    "charged_cases_included": false,
+    "reason": "official MACE-POLAR-1-M vNext adapter declares neutral singlets only; unsupported charged systems are excluded rather than spoofed",
+    "spin_multiplicities": [
+      1
+    ]
+  },
+  "molecules": [
+    {
+      "atomic_numbers": [
+        8,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "H2O",
+      "molecule_id": "water",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          0.119262
+        ],
+        [
+          0.0,
+          0.763239,
+          -0.477047
+        ],
+        [
+          0.0,
+          -0.763239,
+          -0.477047
+        ]
+      ],
+      "scope_tags": [
+        "water",
+        "canary",
+        "hydrogen-bond donor/acceptor"
+      ],
+      "source_record_id": "H2O"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        8,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "CH4O",
+      "molecule_id": "methanol",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          -0.047131,
+          0.664389,
+          0.0
+        ],
+        [
+          -0.047131,
+          -0.758551,
+          0.0
+        ],
+        [
+          -1.092995,
+          0.969785,
+          0.0
+        ],
+        [
+          0.878534,
+          -1.048458,
+          0.0
+        ],
+        [
+          0.437145,
+          1.080376,
+          0.891772
+        ],
+        [
+          0.437145,
+          1.080376,
+          -0.891772
+        ]
+      ],
+      "scope_tags": [
+        "alcohol",
+        "canary",
+        "flexible polar"
+      ],
+      "source_record_id": "CH3OH"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        6,
+        8,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H6O",
+      "molecule_id": "ethanol",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          1.168181,
+          -0.400382,
+          0.0
+        ],
+        [
+          0.0,
+          0.559462,
+          0.0
+        ],
+        [
+          -1.190083,
+          -0.227669,
+          0.0
+        ],
+        [
+          -1.946623,
+          0.381525,
+          0.0
+        ],
+        [
+          0.042557,
+          1.207508,
+          0.886933
+        ],
+        [
+          0.042557,
+          1.207508,
+          -0.886933
+        ],
+        [
+          2.115891,
+          0.1448,
+          0.0
+        ],
+        [
+          1.128599,
+          -1.037234,
+          0.885881
+        ],
+        [
+          1.128599,
+          -1.037234,
+          -0.885881
+        ]
+      ],
+      "scope_tags": [
+        "alcohol",
+        "flexible torsion"
+      ],
+      "source_record_id": "CH3CH2OH"
+    },
+    {
+      "atomic_numbers": [
+        8,
+        6,
+        6,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C3H6O",
+      "molecule_id": "acetone",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          1.405591
+        ],
+        [
+          0.0,
+          0.0,
+          0.17906
+        ],
+        [
+          0.0,
+          1.28549,
+          -0.616342
+        ],
+        [
+          0.0,
+          -1.28549,
+          -0.616342
+        ],
+        [
+          0.0,
+          2.134917,
+          0.066535
+        ],
+        [
+          0.0,
+          -2.134917,
+          0.066535
+        ],
+        [
+          -0.881086,
+          1.331548,
+          -1.264013
+        ],
+        [
+          0.881086,
+          1.331548,
+          -1.264013
+        ],
+        [
+          0.881086,
+          -1.331548,
+          -1.264013
+        ],
+        [
+          -0.881086,
+          -1.331548,
+          -1.264013
+        ]
+      ],
+      "scope_tags": [
+        "ketone",
+        "carbonyl canary"
+      ],
+      "source_record_id": "CH3COCH3"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        6,
+        7,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H3N",
+      "molecule_id": "acetonitrile",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          -1.18693
+        ],
+        [
+          0.0,
+          0.0,
+          0.273874
+        ],
+        [
+          0.0,
+          0.0,
+          1.452206
+        ],
+        [
+          0.0,
+          1.024986,
+          -1.56237
+        ],
+        [
+          0.887664,
+          -0.512493,
+          -1.56237
+        ],
+        [
+          -0.887664,
+          -0.512493,
+          -1.56237
+        ]
+      ],
+      "scope_tags": [
+        "nitrile",
+        "polar canary"
+      ],
+      "source_record_id": "CH3CN"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C6H6",
+      "molecule_id": "benzene",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          1.395248,
+          0.0
+        ],
+        [
+          1.20832,
+          0.697624,
+          0.0
+        ],
+        [
+          1.20832,
+          -0.697624,
+          0.0
+        ],
+        [
+          0.0,
+          -1.395248,
+          0.0
+        ],
+        [
+          -1.20832,
+          -0.697624,
+          0.0
+        ],
+        [
+          -1.20832,
+          0.697624,
+          0.0
+        ],
+        [
+          0.0,
+          2.48236,
+          0.0
+        ],
+        [
+          2.149787,
+          1.24118,
+          0.0
+        ],
+        [
+          2.149787,
+          -1.24118,
+          0.0
+        ],
+        [
+          0.0,
+          -2.48236,
+          0.0
+        ],
+        [
+          -2.149787,
+          -1.24118,
+          0.0
+        ],
+        [
+          -2.149787,
+          1.24118,
+          0.0
+        ]
+      ],
+      "scope_tags": [
+        "aromatic nonpolar anisotropic canary"
+      ],
+      "source_record_id": "C6H6"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "CH4",
+      "molecule_id": "methane",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.629118,
+          0.629118,
+          0.629118
+        ],
+        [
+          -0.629118,
+          -0.629118,
+          0.629118
+        ],
+        [
+          0.629118,
+          -0.629118,
+          -0.629118
+        ],
+        [
+          -0.629118,
+          0.629118,
+          -0.629118
+        ]
+      ],
+      "scope_tags": [
+        "alkane nonpolar control"
+      ],
+      "source_record_id": "CH4"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        6,
+        6,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C4H10",
+      "molecule_id": "trans-butane",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.702581,
+          1.820873,
+          0.0
+        ],
+        [
+          0.702581,
+          0.296325,
+          0.0
+        ],
+        [
+          -0.702581,
+          -0.296325,
+          0.0
+        ],
+        [
+          -0.702581,
+          -1.820873,
+          0.0
+        ],
+        [
+          1.719809,
+          2.22234,
+          0.0
+        ],
+        [
+          -1.719809,
+          -2.22234,
+          0.0
+        ],
+        [
+          0.188154,
+          2.210362,
+          0.883614
+        ],
+        [
+          0.188154,
+          2.210362,
+          -0.883614
+        ],
+        [
+          -0.188154,
+          -2.210362,
+          0.883614
+        ],
+        [
+          -0.188154,
+          -2.210362,
+          -0.883614
+        ],
+        [
+          1.247707,
+          -0.07266,
+          -0.877569
+        ],
+        [
+          1.247707,
+          -0.07266,
+          0.877569
+        ],
+        [
+          -1.247707,
+          0.07266,
+          -0.877569
+        ],
+        [
+          -1.247707,
+          0.07266,
+          0.877569
+        ]
+      ],
+      "scope_tags": [
+        "alkane flexible torsion"
+      ],
+      "source_record_id": "trans-butane"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        8,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H6O",
+      "molecule_id": "dimethyl-ether",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          1.165725,
+          -0.19995
+        ],
+        [
+          0.0,
+          0.0,
+          0.60011
+        ],
+        [
+          0.0,
+          -1.165725,
+          -0.19995
+        ],
+        [
+          0.0,
+          2.017769,
+          0.480203
+        ],
+        [
+          0.891784,
+          1.21432,
+          -0.840474
+        ],
+        [
+          -0.891784,
+          1.21432,
+          -0.840474
+        ],
+        [
+          0.0,
+          -2.017769,
+          0.480203
+        ],
+        [
+          -0.891784,
+          -1.21432,
+          -0.840474
+        ],
+        [
+          0.891784,
+          -1.21432,
+          -0.840474
+        ]
+      ],
+      "scope_tags": [
+        "ether",
+        "flexible polar"
+      ],
+      "source_record_id": "CH3OCH3"
+    },
+    {
+      "atomic_numbers": [
+        8,
+        6,
+        8,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "CH2O2",
+      "molecule_id": "formic-acid",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          -1.040945,
+          -0.436432,
+          0.0
+        ],
+        [
+          0.0,
+          0.423949,
+          0.0
+        ],
+        [
+          1.169372,
+          0.103741,
+          0.0
+        ],
+        [
+          -0.64957,
+          -1.335134,
+          0.0
+        ],
+        [
+          -0.377847,
+          1.452967,
+          0.0
+        ]
+      ],
+      "scope_tags": [
+        "carboxylic acid"
+      ],
+      "source_record_id": "HCOOH"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        8,
+        8,
+        1,
+        6,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H4O2",
+      "molecule_id": "acetic-acid",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.15456,
+          0.0
+        ],
+        [
+          0.166384,
+          1.360084,
+          0.0
+        ],
+        [
+          -1.236449,
+          -0.415036,
+          0.0
+        ],
+        [
+          -1.867646,
+          0.333582,
+          0.0
+        ],
+        [
+          1.073776,
+          -0.892748,
+          0.0
+        ],
+        [
+          2.048189,
+          -0.408135,
+          0.0
+        ],
+        [
+          0.968661,
+          -1.528353,
+          0.881747
+        ],
+        [
+          0.968661,
+          -1.528353,
+          -0.881747
+        ]
+      ],
+      "scope_tags": [
+        "carboxylic acid",
+        "flexible"
+      ],
+      "source_record_id": "CH3COOH"
+    },
+    {
+      "atomic_numbers": [
+        8,
+        6,
+        1,
+        6,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H4O",
+      "molecule_id": "acetaldehyde",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          1.218055,
+          0.36124,
+          0.0
+        ],
+        [
+          0.0,
+          0.464133,
+          0.0
+        ],
+        [
+          -0.477241,
+          1.465295,
+          0.0
+        ],
+        [
+          -0.948102,
+          -0.700138,
+          0.0
+        ],
+        [
+          -0.385946,
+          -1.634236,
+          0.0
+        ],
+        [
+          -1.596321,
+          -0.652475,
+          0.880946
+        ],
+        [
+          -1.596321,
+          -0.652475,
+          -0.880946
+        ]
+      ],
+      "scope_tags": [
+        "aldehyde"
+      ],
+      "source_record_id": "CH3CHO"
+    },
+    {
+      "atomic_numbers": [
+        8,
+        6,
+        7,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H5NO",
+      "molecule_id": "acetamide",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.424546,
+          1.327024,
+          0.008034
+        ],
+        [
+          0.077158,
+          0.149789,
+          -0.004249
+        ],
+        [
+          0.985518,
+          -0.878537,
+          -0.04891
+        ],
+        [
+          -1.371475,
+          -0.288665,
+          -0.000144
+        ],
+        [
+          0.707952,
+          -1.824249,
+          0.169942
+        ],
+        [
+          -1.997229,
+          0.584922,
+          -0.175477
+        ],
+        [
+          -1.560842,
+          -1.03927,
+          -0.771686
+        ],
+        [
+          -1.632113,
+          -0.723007,
+          0.969814
+        ],
+        [
+          1.953133,
+          -0.631574,
+          0.111866
+        ]
+      ],
+      "scope_tags": [
+        "amide",
+        "strong polar"
+      ],
+      "source_record_id": "CH3CONH2"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        6,
+        7,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C2H7N",
+      "molecule_id": "ethylamine",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          1.210014,
+          -0.353598,
+          0.0
+        ],
+        [
+          0.0,
+          0.575951,
+          0.0
+        ],
+        [
+          -1.305351,
+          -0.087478,
+          0.0
+        ],
+        [
+          2.14931,
+          0.208498,
+          0.0
+        ],
+        [
+          1.201796,
+          -0.99776,
+          0.884909
+        ],
+        [
+          1.201796,
+          -0.99776,
+          -0.884909
+        ],
+        [
+          0.034561,
+          1.230963,
+          -0.876478
+        ],
+        [
+          0.034561,
+          1.230963,
+          0.876478
+        ],
+        [
+          -1.372326,
+          -0.69834,
+          0.813132
+        ],
+        [
+          -1.372326,
+          -0.69834,
+          -0.813132
+        ]
+      ],
+      "scope_tags": [
+        "amine",
+        "flexible polar"
+      ],
+      "source_record_id": "CH3CH2NH2"
+    },
+    {
+      "atomic_numbers": [
+        7,
+        6,
+        6,
+        6,
+        6,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C5H5N",
+      "molecule_id": "pyridine",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          1.424672
+        ],
+        [
+          0.0,
+          0.0,
+          -1.386178
+        ],
+        [
+          0.0,
+          1.144277,
+          0.720306
+        ],
+        [
+          0.0,
+          -1.144277,
+          0.720306
+        ],
+        [
+          0.0,
+          -1.196404,
+          -0.672917
+        ],
+        [
+          0.0,
+          1.196404,
+          -0.672917
+        ],
+        [
+          0.0,
+          0.0,
+          -2.473052
+        ],
+        [
+          0.0,
+          2.060723,
+          1.307477
+        ],
+        [
+          0.0,
+          -2.060723,
+          1.307477
+        ],
+        [
+          0.0,
+          -2.155293,
+          -1.183103
+        ],
+        [
+          0.0,
+          2.155293,
+          -1.183103
+        ]
+      ],
+      "scope_tags": [
+        "heteroaromatic"
+      ],
+      "source_record_id": "C5H5N"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        7,
+        1,
+        1,
+        1,
+        8,
+        8
+      ],
+      "charge": 0,
+      "chemical_formula": "CH3NO2",
+      "molecule_id": "nitromethane",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          -0.114282,
+          -1.314565,
+          0.0
+        ],
+        [
+          0.0,
+          0.16648,
+          0.0
+        ],
+        [
+          0.899565,
+          -1.715256,
+          0.0
+        ],
+        [
+          -0.640921,
+          -1.607212,
+          0.904956
+        ],
+        [
+          -0.640921,
+          -1.607212,
+          -0.904956
+        ],
+        [
+          0.066748,
+          0.728232,
+          -1.103775
+        ],
+        [
+          0.066748,
+          0.728232,
+          1.103775
+        ]
+      ],
+      "scope_tags": [
+        "nitro",
+        "strong polar"
+      ],
+      "source_record_id": "CH3NO2"
+    },
+    {
+      "atomic_numbers": [
+        8,
+        8,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "H2O2",
+      "molecule_id": "hydrogen-peroxide",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.734058,
+          -0.05275
+        ],
+        [
+          0.0,
+          -0.734058,
+          -0.05275
+        ],
+        [
+          0.839547,
+          0.880752,
+          0.422001
+        ],
+        [
+          -0.839547,
+          -0.880752,
+          0.422001
+        ]
+      ],
+      "scope_tags": [
+        "peroxide",
+        "torsional/reaction-coordinate"
+      ],
+      "source_record_id": "H2O2"
+    },
+    {
+      "atomic_numbers": [
+        16,
+        6,
+        6,
+        6,
+        6,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "C4H4S",
+      "molecule_id": "thiophene",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          1.189753
+        ],
+        [
+          0.0,
+          1.233876,
+          -0.001474
+        ],
+        [
+          0.0,
+          -1.233876,
+          -0.001474
+        ],
+        [
+          0.0,
+          0.709173,
+          -1.272322
+        ],
+        [
+          0.0,
+          -0.709173,
+          -1.272322
+        ],
+        [
+          0.0,
+          2.275343,
+          0.291984
+        ],
+        [
+          0.0,
+          -2.275343,
+          0.291984
+        ],
+        [
+          0.0,
+          1.321934,
+          -2.167231
+        ],
+        [
+          0.0,
+          -1.321934,
+          -2.167231
+        ]
+      ],
+      "scope_tags": [
+        "sulfur heteroaromatic"
+      ],
+      "source_record_id": "C4H4S"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        16,
+        1,
+        1,
+        1,
+        1
+      ],
+      "charge": 0,
+      "chemical_formula": "CH4S",
+      "molecule_id": "methanethiol",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          -0.047953,
+          1.149519,
+          0.0
+        ],
+        [
+          -0.047953,
+          -0.664856,
+          0.0
+        ],
+        [
+          1.283076,
+          -0.823249,
+          0.0
+        ],
+        [
+          -1.092601,
+          1.461428,
+          0.0
+        ],
+        [
+          0.432249,
+          1.551207,
+          0.892259
+        ],
+        [
+          0.432249,
+          1.551207,
+          -0.892259
+        ]
+      ],
+      "scope_tags": [
+        "thiol",
+        "sulfur polarizable"
+      ],
+      "source_record_id": "CH3SH"
+    },
+    {
+      "atomic_numbers": [
+        6,
+        1,
+        17,
+        17,
+        17
+      ],
+      "charge": 0,
+      "chemical_formula": "CHCl3",
+      "molecule_id": "chloroform",
+      "multiplicity": 1,
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          0.451679
+        ],
+        [
+          0.0,
+          0.0,
+          1.537586
+        ],
+        [
+          0.0,
+          1.681723,
+          -0.083287
+        ],
+        [
+          1.456415,
+          -0.840862,
+          -0.083287
+        ],
+        [
+          -1.456415,
+          -0.840862,
+          -0.083287
+        ]
+      ],
+      "scope_tags": [
+        "halogenated control"
+      ],
+      "source_record_id": "HCCl3"
+    }
+  ],
+  "schema_version": "route2-fixedbox590-pes-panel-geometry-asset-v1",
+  "source": {
+    "ase_version": "3.27.0",
+    "dataset": "ASE G2 collection",
+    "installed_source_file": "ase/collections/g2.json",
+    "selection_policy": "preregistered neutral-singlet functional-diversity subset; exact Cartesian arrays copied into this asset to prevent runtime dataset drift"
+  }
+}

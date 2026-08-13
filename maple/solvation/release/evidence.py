@@ -100,8 +100,7 @@ class RepositorySnapshot:
             raise RuntimeError("Release evidence requires full Git object identities.")
         if require_clean and status:
             raise RuntimeError(
-                "Release evidence requires a clean working tree; status was:\n"
-                + status
+                "Release evidence requires a clean working tree; status was:\n" + status
             )
         return cls(resolved, head, tree, status)
 
@@ -180,9 +179,7 @@ def collect_loaded_repository_sources(
             raise RuntimeError(
                 f"Loaded/required repository Python sources are not tracked: {path}"
             ) from exc
-    tracked = set(
-        str(_run(resolved, "git", "ls-files", "--", "*.py")).splitlines()
-    )
+    tracked = set(str(_run(resolved, "git", "ls-files", "--", "*.py")).splitlines())
     missing = sorted(candidates - tracked)
     if missing:
         raise RuntimeError(
@@ -278,6 +275,12 @@ def _torch_runtime() -> dict[str, object] | None:
         ],
         "default_dtype": str(torch.get_default_dtype()),
         "threads": torch.get_num_threads(),
+        "deterministic_algorithms_enabled": (
+            torch.are_deterministic_algorithms_enabled()
+        ),
+        "deterministic_debug_mode": torch.get_deterministic_debug_mode(),
+        "cudnn_benchmark": torch.backends.cudnn.benchmark,
+        "cudnn_deterministic": torch.backends.cudnn.deterministic,
     }
 
 
@@ -323,6 +326,8 @@ def runtime_record() -> dict[str, object]:
                 "MKL_NUM_THREADS",
                 "OPENBLAS_NUM_THREADS",
                 "CUDA_VISIBLE_DEVICES",
+                "CUBLAS_WORKSPACE_CONFIG",
+                "CUDA_LAUNCH_BLOCKING",
                 "PYTHONHASHSEED",
             )
         },
@@ -347,13 +352,16 @@ def write_external_json_artifact(
             "evidence capture cannot dirty the tested tree."
         )
     destination.parent.mkdir(parents=True, exist_ok=True)
-    serialized = json.dumps(
-        payload,
-        indent=2,
-        sort_keys=True,
-        ensure_ascii=True,
-        allow_nan=False,
-    ) + "\n"
+    serialized = (
+        json.dumps(
+            payload,
+            indent=2,
+            sort_keys=True,
+            ensure_ascii=True,
+            allow_nan=False,
+        )
+        + "\n"
+    )
     temporary = destination.with_name(destination.name + f".tmp-{os.getpid()}")
     temporary.write_text(serialized, encoding="utf-8")
     os.replace(temporary, destination)

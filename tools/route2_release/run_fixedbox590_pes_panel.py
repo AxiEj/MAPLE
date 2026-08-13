@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 import shlex
 import sys
@@ -91,6 +92,45 @@ def _warning_records(captured: list[warnings.WarningMessage]) -> list[dict[str, 
     ]
 
 
+def _configure_numerical_determinism(device: str) -> dict[str, object]:
+    """Fail closed unless an advertised CUDA shard is replay-deterministic."""
+
+    normalized = str(device).strip().lower()
+    if not normalized:
+        raise ValueError("--device must be a non-empty device identifier.")
+    if not normalized.startswith("cuda"):
+        return {
+            "mode": "cpu-runtime-default",
+            "device": normalized,
+            "torch_deterministic_algorithms": False,
+            "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
+        }
+    workspace = os.environ.get("CUBLAS_WORKSPACE_CONFIG")
+    if workspace not in (":4096:8", ":16:8"):
+        raise RuntimeError(
+            "CUDA PES evidence requires CUBLAS_WORKSPACE_CONFIG=:4096:8 or :16:8."
+        )
+    import torch
+
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA PES evidence was requested but CUDA is unavailable.")
+    torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+    if not torch.are_deterministic_algorithms_enabled():
+        raise RuntimeError("PyTorch deterministic algorithms did not remain enabled.")
+    return {
+        "mode": "pytorch-deterministic-cuda-v1",
+        "device": normalized,
+        "torch_deterministic_algorithms": True,
+        "torch_deterministic_debug_mode": torch.get_deterministic_debug_mode(),
+        "cudnn_benchmark": torch.backends.cudnn.benchmark,
+        "cudnn_deterministic": torch.backends.cudnn.deterministic,
+        "cublas_workspace_config": workspace,
+        "cuda_launch_blocking": os.environ.get("CUDA_LAUNCH_BLOCKING"),
+    }
+
+
 class _ShardRunner:
     def __init__(
         self,
@@ -133,6 +173,8 @@ class _ShardRunner:
         topology_hashes = {
             self.continuum.surface_provider.build_state(atoms).topology_hash
         }
+        plus_seed = state.y_array()
+        minus_seed = state.y_array()
         for step in PES_PANEL_DIRECTIONAL_STEPS_A:
             plus = atoms.copy()
             minus = atoms.copy()
@@ -141,18 +183,20 @@ class _ShardRunner:
             plus_state = self.solve(
                 plus,
                 f"{label}/{name}/{step}/plus",
-                state.y_array(),
+                plus_seed,
             )
             minus_state = self.solve(
                 minus,
                 f"{label}/{name}/{step}/minus",
-                state.y_array(),
+                minus_seed,
             )
             maximum_primal = max(
                 maximum_primal,
                 plus_state.actual_unmixed_residual_norm,
                 minus_state.actual_unmixed_residual_norm,
             )
+            plus_seed = plus_state.y_array()
+            minus_seed = minus_state.y_array()
             plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)
             minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)
             # Fixed-topology identity is a surface property.  Reading it from
@@ -175,6 +219,8 @@ class _ShardRunner:
                     "minus_energy_eV": minus_energy,
                     "plus_primal_residual": (plus_state.actual_unmixed_residual_norm),
                     "minus_primal_residual": (minus_state.actual_unmixed_residual_norm),
+                    "plus_iterations": len(plus_state.iterations) - 1,
+                    "minus_iterations": len(minus_state.iterations) - 1,
                     "plus_topology_hash": plus_topology,
                     "minus_topology_hash": minus_topology,
                 }
@@ -356,6 +402,7 @@ def main() -> None:
     if not math.isfinite(args.primal_tolerance) or args.primal_tolerance <= 0.0:
         raise ValueError("--primal-tolerance must be finite and positive.")
     repository = RepositorySnapshot.capture(Path(__file__).parents[2])
+    determinism = _configure_numerical_determinism(args.device)
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     molecules = load_pes_panel()[args.molecule_start : args.molecule_stop]
     started = time.perf_counter()
@@ -448,6 +495,7 @@ def main() -> None:
         "source_files_sha256": source_hashes,
         "checkpoint": checkpoint_record(checkpoint),
         "runtime": runtime_record(),
+        "numerical_determinism": determinism,
         "device": args.device,
         "dtype": "float64",
         "identities": identities,

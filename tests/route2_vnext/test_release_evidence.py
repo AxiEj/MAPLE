@@ -183,6 +183,9 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
         "PES_PANEL_CONTRACT_VERSION",
         "PES_PANEL_ASSET_SHA256",
         "PANEL_ASSET_PATH",
+        "_configure_numerical_determinism",
+        "torch.use_deterministic_algorithms(True)",
+        "CUBLAS_WORKSPACE_CONFIG",
         "PES_PANEL_DIRECTIONAL_STEPS_A",
         "panel_geometries",
         "panel_directions",
@@ -216,6 +219,7 @@ def test_pes_panel_aggregator_recomputes_raw_values_and_cannot_admit_capabilitie
         "energy_difference <= 1.0e-8",
         "CAPABILITIES = {tier: False",
         "sys.exit(2)",
+        '"numerical_determinism": payload.get("numerical_determinism")',
     ):
         assert requirement in text
 

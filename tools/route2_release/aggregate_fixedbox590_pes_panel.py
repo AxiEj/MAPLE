@@ -195,6 +195,7 @@ def _load_shards(paths):
                 .get("version"),
                 "torch": payload.get("runtime", {}).get("torch"),
                 "thread_environment": payload.get("runtime", {}).get("environment"),
+                "numerical_determinism": payload.get("numerical_determinism"),
             }
         )
         for _, payload in payloads

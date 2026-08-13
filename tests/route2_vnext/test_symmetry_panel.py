@@ -7,6 +7,7 @@ import pytest
 
 from maple.solvation.release.symmetry_panel import (
     FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION,
+    PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION,
     SYMMETRY_PANEL_CONTRACT_VERSION,
     SYMMETRY_PANEL_TRANSLATION_A,
     rotate_radial_gto_blocks,
@@ -20,7 +21,9 @@ from maple.solvation.release.symmetry_panel import (
 
 
 def test_loop_point_context_depends_only_on_physical_geometry():
-    assert symmetry_loop_point_label((0.0, -1.0)) == "loop/point/+0.00000000/-1.00000000"
+    assert (
+        symmetry_loop_point_label((0.0, -1.0)) == "loop/point/+0.00000000/-1.00000000"
+    )
     assert symmetry_loop_point_label(np.asarray([0.0, -1.0])) == (
         "loop/point/+0.00000000/-1.00000000"
     )
@@ -116,9 +119,7 @@ def test_rigid_symmetry_fails_force_covariance_and_rejects_rotation_spoof():
         _rigid_record()
     )
     broken = deepcopy(rotations)
-    broken[1]["forces_eV_per_A"] = np.asarray(
-        broken[1]["forces_eV_per_A"]
-    ) + 1.0e-3
+    broken[1]["forces_eV_per_A"] = np.asarray(broken[1]["forces_eV_per_A"]) + 1.0e-3
     summary = summarize_rigid_symmetry(
         positions_A=positions,
         base_energy_eV=energy,
@@ -129,9 +130,7 @@ def test_rigid_symmetry_fails_force_covariance_and_rejects_rotation_spoof():
         permutation_record=permutation,
         rotation_records=broken,
     )
-    assert summary["gates"][
-        "all_rotation_force_covariance_relative_le_1e-4"
-    ] is False
+    assert summary["gates"]["all_rotation_force_covariance_relative_le_1e-4"] is False
     assert summary["all_gates_passed"] is False
 
     broken = deepcopy(rotations)
@@ -169,12 +168,12 @@ def test_symmetry_panel_requires_all_20_records_and_preserves_loop_failure():
                     "base_torque_norm_eV": 0.0,
                     "maximum_rotation_energy_abs_eV": 0.0,
                     "maximum_rotation_force_covariance_relative": 0.0,
-                        "maximum_rotation_source_covariance_relative": 0.0,
-                        "permutation": {
-                            "energy_abs_eV": 0.0,
-                            "force_covariance_relative": 0.0,
-                            "source_covariance_relative": 0.0,
-                        },
+                    "maximum_rotation_source_covariance_relative": 0.0,
+                    "permutation": {
+                        "energy_abs_eV": 0.0,
+                        "force_covariance_relative": 0.0,
+                        "source_covariance_relative": 0.0,
+                    },
                     "maximum_primal_residual": 1.0e-13,
                     "maximum_adjoint_residual": 1.0e-14,
                 },
@@ -207,6 +206,17 @@ def test_symmetry_panel_requires_all_20_records_and_preserves_loop_failure():
     assert high_order_summary["all_gates_passed"] is True
     assert high_order_summary["contract_version"] == (
         FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION
+    )
+    pair_frame = deepcopy(records)
+    for record in pair_frame:
+        record["contract_version"] = PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION
+    pair_frame_summary = summarize_symmetry_panel(
+        pair_frame,
+        contract_version=PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION,
+    )
+    assert pair_frame_summary["all_gates_passed"] is True
+    assert pair_frame_summary["contract_version"] == (
+        PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION
     )
     with pytest.raises(ValueError, match="Unknown symmetry-panel"):
         summarize_symmetry_panel(high_order, contract_version="forged-contract")

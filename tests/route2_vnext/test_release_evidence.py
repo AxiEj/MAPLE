@@ -39,16 +39,19 @@ RESIDUAL_FORCE_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_residual_force_panel.py"
 )
 RESIDUAL_FORCE_AGGREGATOR = (
-    ROOT
-    / "tools"
-    / "route2_release"
-    / "aggregate_fixedbox590_residual_force_panel.py"
+    ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_residual_force_panel.py"
 )
 SYMMETRY_PANEL_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_symmetry_panel.py"
 )
 SYMMETRY_PANEL_AGGREGATOR = (
     ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_symmetry_panel.py"
+)
+PAIRFRAME_SYMMETRY_RUNNER = (
+    ROOT / "tools" / "route2_release" / "run_pairframe110_symmetry_panel.py"
+)
+PAIRFRAME_SYMMETRY_AGGREGATOR = (
+    ROOT / "tools" / "route2_release" / "aggregate_pairframe110_symmetry_panel.py"
 )
 PES_PANEL_DOC = ROOT / "docs" / "route2" / "PES_PANEL.md"
 PES_CARTESIAN_DOC = ROOT / "docs" / "route2" / "CARTESIAN_PANEL.md"
@@ -64,18 +67,10 @@ PES_PANEL_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-pes-panel-f7f68165"
 )
 PES_CARTESIAN_EVIDENCE = (
-    ROOT
-    / "docs"
-    / "route2"
-    / "evidence"
-    / "fixedbox590-cartesian-panel-abb34a05"
+    ROOT / "docs" / "route2" / "evidence" / "fixedbox590-cartesian-panel-abb34a05"
 )
 RESIDUAL_FORCE_EVIDENCE = (
-    ROOT
-    / "docs"
-    / "route2"
-    / "evidence"
-    / "fixedbox590-residual-force-9918dea6"
+    ROOT / "docs" / "route2" / "evidence" / "fixedbox590-residual-force-9918dea6"
 )
 
 
@@ -304,7 +299,9 @@ def test_cartesian_panel_runner_and_aggregator_are_raw_source_bound_and_disabled
         runner.index("plus_state = self.solve(")
         < runner.index("plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)")
         < runner.index("minus_state = self.solve(")
-        < runner.index("minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)")
+        < runner.index(
+            "minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)"
+        )
     )
 
     aggregator = PES_CARTESIAN_AGGREGATOR.read_text(encoding="utf-8")
@@ -350,7 +347,7 @@ def test_residual_force_runner_and_aggregator_are_preregistered_and_disabled():
         "ADJOINT_REFINEMENT_ABSOLUTE_TOLERANCES",
         "summarize_residual_force_refinement",
         "primal_levels[0] = dict(adjoint_levels[-1])",
-        'CAPABILITIES = {tier: False',
+        "CAPABILITIES = {tier: False",
         "repository.assert_unchanged()",
     ):
         assert requirement in runner
@@ -361,7 +358,7 @@ def test_residual_force_runner_and_aggregator_are_preregistered_and_disabled():
         "summarize_residual_force_panel",
         "geometry_sha256(atoms)",
         "committed_source_hashes(repository, source_hashes)",
-        'CAPABILITIES = {tier: False',
+        "CAPABILITIES = {tier: False",
         "sys.exit(2)",
     ):
         assert requirement in aggregator
@@ -374,7 +371,9 @@ def test_residual_force_runner_and_aggregator_are_preregistered_and_disabled():
     assert "E/F/H/V/M remain false" in document
     assert "status=pass" in document
     assert "fixedbox590-residual-force-9918dea6" in document
-    assert "b4c964f17ccac1230ecf00d21709c8a68a39e31735f3cdc80a8c31d7a3291150" in document
+    assert (
+        "b4c964f17ccac1230ecf00d21709c8a68a39e31735f3cdc80a8c31d7a3291150" in document
+    )
 
 
 def test_symmetry_panel_runner_and_aggregator_are_preregistered_and_disabled():
@@ -397,7 +396,7 @@ def test_symmetry_panel_runner_and_aggregator_are_preregistered_and_disabled():
         "closed_loop_work",
         "cold_warm_record",
         "summarize_bidirectional_loop_record",
-        'CAPABILITIES = {tier: False',
+        "CAPABILITIES = {tier: False",
         "repository.assert_unchanged()",
     ):
         assert requirement in runner
@@ -408,7 +407,7 @@ def test_symmetry_panel_runner_and_aggregator_are_preregistered_and_disabled():
         "summarize_symmetry_panel",
         "geometry_sha256(atoms)",
         "committed_source_hashes(repository, source_hashes)",
-        'CAPABILITIES = {tier: False',
+        "CAPABILITIES = {tier: False",
         "sys.exit(2)",
     ):
         assert requirement in aggregator
@@ -418,6 +417,29 @@ def test_symmetry_panel_runner_and_aggregator_are_preregistered_and_disabled():
     assert "20 reference geometries" in document
     assert "E/F/H/V/M" in document
     assert "not matched" in document
+
+
+def test_pairframe_symmetry_entry_reuses_frozen_runner_and_stays_disabled():
+    for command in (PAIRFRAME_SYMMETRY_RUNNER, PAIRFRAME_SYMMETRY_AGGREGATOR):
+        result = subprocess.run(
+            (sys.executable, str(command), "--help"),
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "--output" in result.stdout
+    runner = PAIRFRAME_SYMMETRY_RUNNER.read_text(encoding="utf-8")
+    aggregator = PAIRFRAME_SYMMETRY_AGGREGATOR.read_text(encoding="utf-8")
+    assert "run_symmetry_panel" in runner
+    assert "PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION" in runner
+    assert "build_system_with_model" in runner
+    assert "aggregate_symmetry_panel" in aggregator
+    assert "DIAGNOSTIC_PAIR_FRAME_CPCM_RADIAL_GTO_PROFILE_V1" in aggregator
+    # Thin entries must not fork the numerical gate implementation.
+    assert "class _SymmetryRunner" not in runner
+    assert "summarize_rigid_symmetry" not in aggregator
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():
@@ -547,12 +569,12 @@ def test_fixedbox590_pes_panel_artifact_is_source_bound_and_capability_closed():
     ]
 
     assert len(shards) == 20
-    assert [
-        shard["panel_contract"]["shard_start"] for shard in shards
-    ] == list(range(20))
-    assert [
-        shard["panel_contract"]["shard_stop"] for shard in shards
-    ] == list(range(1, 21))
+    assert [shard["panel_contract"]["shard_start"] for shard in shards] == list(
+        range(20)
+    )
+    assert [shard["panel_contract"]["shard_stop"] for shard in shards] == list(
+        range(1, 21)
+    )
     assert aggregate["status"] == "pass"
     assert aggregate["capabilities"] == {
         "E": False,
@@ -567,12 +589,12 @@ def test_fixedbox590_pes_panel_artifact_is_source_bound_and_capability_closed():
     assert manifest["execution_git_tree"] == aggregate["execution_git_tree"]
     assert manifest["tested_working_tree_clean"] is True
     assert all(shard["working_tree_clean"] is True for shard in shards)
-    assert {
-        shard["execution_git_head"] for shard in shards
-    } == {manifest["execution_git_head"]}
-    assert {
-        shard["checkpoint"]["sha256"] for shard in shards
-    } == {manifest["checkpoint_sha256"]}
+    assert {shard["execution_git_head"] for shard in shards} == {
+        manifest["execution_git_head"]
+    }
+    assert {shard["checkpoint"]["sha256"] for shard in shards} == {
+        manifest["checkpoint_sha256"]
+    }
 
     source_hashes = aggregate["source_files_sha256"]
     assert source_hashes
@@ -596,12 +618,16 @@ def test_fixedbox590_pes_panel_artifact_hashes_and_raw_gates_close():
         sums[name] = expected
 
     for name, expected in sums.items():
-        assert hashlib.sha256((PES_PANEL_EVIDENCE / name).read_bytes()).hexdigest() == expected
+        assert (
+            hashlib.sha256((PES_PANEL_EVIDENCE / name).read_bytes()).hexdigest()
+            == expected
+        )
     assert manifest["aggregate_artifact_sha256"] == sums["aggregate.json"]
     assert manifest["artifact_sha256"]["aggregate.json"] == sums["aggregate.json"]
-    assert manifest["aggregate_measurement_sha256"] == aggregate[
-        "aggregate_measurement_sha256"
-    ]
+    assert (
+        manifest["aggregate_measurement_sha256"]
+        == aggregate["aggregate_measurement_sha256"]
+    )
 
     panel = aggregate["panel_summary"]
     paths = aggregate["path_summary"]
@@ -644,12 +670,12 @@ def test_cartesian_panel_artifact_is_source_bound_and_capability_closed():
     ]
 
     assert len(shards) == 20
-    assert [
-        shard["panel_contract"]["shard_start"] for shard in shards
-    ] == list(range(20))
-    assert [
-        shard["panel_contract"]["shard_stop"] for shard in shards
-    ] == list(range(1, 21))
+    assert [shard["panel_contract"]["shard_start"] for shard in shards] == list(
+        range(20)
+    )
+    assert [shard["panel_contract"]["shard_stop"] for shard in shards] == list(
+        range(1, 21)
+    )
     assert aggregate["status"] == "pass"
     assert aggregate["capabilities"] == {
         "E": False,
@@ -664,12 +690,12 @@ def test_cartesian_panel_artifact_is_source_bound_and_capability_closed():
     assert manifest["execution_git_tree"] == aggregate["execution_git_tree"]
     assert manifest["tested_working_tree_clean"] is True
     assert all(shard["working_tree_clean"] is True for shard in shards)
-    assert {
-        shard["execution_git_head"] for shard in shards
-    } == {manifest["execution_git_head"]}
-    assert {
-        shard["checkpoint"]["sha256"] for shard in shards
-    } == {manifest["checkpoint_sha256"]}
+    assert {shard["execution_git_head"] for shard in shards} == {
+        manifest["execution_git_head"]
+    }
+    assert {shard["checkpoint"]["sha256"] for shard in shards} == {
+        manifest["checkpoint_sha256"]
+    }
 
     source_hashes = aggregate["source_files_sha256"]
     assert source_hashes
@@ -699,9 +725,10 @@ def test_cartesian_panel_artifact_hashes_and_raw_gates_close():
         )
     assert manifest["aggregate_artifact_sha256"] == sums["aggregate.json"]
     assert manifest["artifact_sha256"]["aggregate.json"] == sums["aggregate.json"]
-    assert manifest["aggregate_measurement_sha256"] == aggregate[
-        "aggregate_measurement_sha256"
-    ]
+    assert (
+        manifest["aggregate_measurement_sha256"]
+        == aggregate["aggregate_measurement_sha256"]
+    )
 
     panel = aggregate["cartesian_panel_summary"]
     assert panel["all_gates_passed"] is True
@@ -714,9 +741,7 @@ def test_cartesian_panel_artifact_hashes_and_raw_gates_close():
     assert all(panel["gates"].values())
 
     raw = manifest["raw_summary"]
-    assert raw["maximum_rms_error_eV_per_A"] == pytest.approx(
-        5.893341195090511e-06
-    )
+    assert raw["maximum_rms_error_eV_per_A"] == pytest.approx(5.893341195090511e-06)
     assert raw["maximum_component_error_eV_per_A"] == pytest.approx(
         1.8557801318763723e-05
     )
@@ -728,9 +753,7 @@ def test_cartesian_panel_artifact_hashes_and_raw_gates_close():
     assert raw["maximum_cold_warm_energy_abs_difference_eV"] <= 1.0e-8
     assert raw["maximum_cold_warm_source_relative_difference"] <= 1.0e-8
     assert manifest["scope_limits"]["directional_same_scalar_force_fd"] is True
-    assert (
-        manifest["scope_limits"]["component_resolved_cartesian_force_fd"] is True
-    )
+    assert manifest["scope_limits"]["component_resolved_cartesian_force_fd"] is True
     assert manifest["scope_limits"]["residual_based_force_error_bound"] is False
     assert manifest["scope_limits"]["hessian_frequency_ts_nve"] is False
 
@@ -757,12 +780,12 @@ def test_residual_force_artifact_is_source_bound_and_capability_closed():
     assert manifest["execution_git_tree"] == aggregate["execution_git_tree"]
     assert manifest["tested_working_tree_clean"] is True
     assert all(shard["working_tree_clean"] is True for shard in shards)
-    assert {
-        shard["execution_git_head"] for shard in shards
-    } == {manifest["execution_git_head"]}
-    assert {
-        shard["checkpoint"]["sha256"] for shard in shards
-    } == {manifest["checkpoint_sha256"]}
+    assert {shard["execution_git_head"] for shard in shards} == {
+        manifest["execution_git_head"]
+    }
+    assert {shard["checkpoint"]["sha256"] for shard in shards} == {
+        manifest["checkpoint_sha256"]
+    }
     assert all(
         shard["source_files_sha256"] == aggregate["source_files_sha256"]
         for shard in shards
@@ -790,9 +813,10 @@ def test_residual_force_artifact_hashes_and_raw_gates_close():
             == expected
         )
     assert manifest["aggregate_artifact_sha256"] == sums["aggregate.json"]
-    assert manifest["aggregate_measurement_sha256"] == aggregate[
-        "aggregate_measurement_sha256"
-    ]
+    assert (
+        manifest["aggregate_measurement_sha256"]
+        == aggregate["aggregate_measurement_sha256"]
+    )
     panel = aggregate["residual_force_panel_summary"]
     assert panel["all_gates_passed"] is True
     assert panel["molecule_count"] == 20
@@ -812,9 +836,7 @@ def test_residual_force_artifact_hashes_and_raw_gates_close():
     assert panel["maximum_actual_adjoint_residual_by_level"] == pytest.approx(
         [2.464164043685235e-12, 3.6005901866951495e-13, 4.0331160252416295e-14]
     )
-    assert manifest["scope_limits"][
-        "residual_refinement_force_error_estimate"
-    ] is True
+    assert manifest["scope_limits"]["residual_refinement_force_error_estimate"] is True
     assert manifest["scope_limits"]["rigorous_analytic_upper_bound"] is False
     assert manifest["scope_limits"]["all_panel_symmetry"] is False
     assert manifest["scope_limits"]["complete_nonpolar_free_energy"] is False

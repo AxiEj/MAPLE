@@ -24,8 +24,42 @@ from maple.solvation.models import (
     VacuumScalarEquationAdapter,
     build_official_mace_polar_1_m_radial_gto_adapter,
 )
+from maple.solvation.coupling.state_equation import geometry_sha256
+
+from fixedbox590_water_common import (
+    COMMON_REQUIRED_SOURCE_PATHS,
+    cold_warm_record,
+    identity_record,
+    state_record,
+)
 
 DEFAULT_CHECKPOINT = Path.home() / ".cache" / "mace" / "MACEPOLAR1Mmodel"
+PAIRFRAME110_BOX_LENGTH_A = 40
+PAIRFRAME110_REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
+    "maple/solvation/continuum/pair_frame_ensemble_cpcm.py",
+    "maple/solvation/continuum/pair_frame_geometry.py",
+    "maple/solvation/continuum/pair_frame_state.py",
+    "tools/route2_release/pairframe110_water_common.py",
+    "tools/route2_release/panel_continuum_identity.py",
+)
+
+
+def root_context(
+    geometry,
+    label: str,
+    *,
+    system_id: str = "water",
+    box_length: int | None = None,
+) -> str:
+    if box_length not in (None, PAIRFRAME110_BOX_LENGTH_A):
+        raise ValueError("pair-frame model requires the pinned fixed-box40 adapter.")
+    normalized_system = str(system_id).strip()
+    if not normalized_system or "/" in normalized_system:
+        raise ValueError("system_id must be a non-empty path-segment identifier.")
+    return (
+        f"pairframe-cpcm110-{normalized_system}-pes-v1/"
+        f"{label}/{geometry_sha256(geometry)}"
+    )
 
 
 def build_system(atoms, checkpoint: Path, device: str):
@@ -64,6 +98,12 @@ def build_system_with_model(atoms, model):
 
 __all__ = [
     "DEFAULT_CHECKPOINT",
+    "PAIRFRAME110_BOX_LENGTH_A",
+    "PAIRFRAME110_REQUIRED_SOURCE_PATHS",
     "build_system",
     "build_system_with_model",
+    "cold_warm_record",
+    "identity_record",
+    "root_context",
+    "state_record",
 ]

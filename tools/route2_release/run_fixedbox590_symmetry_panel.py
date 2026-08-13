@@ -62,6 +62,7 @@ from run_fixedbox590_pes_panel import (
     _configure_numerical_determinism,
     _warning_records,
 )
+from panel_continuum_identity import continuum_topology_hash
 
 SCHEMA_VERSION = "route2-fixedbox590-symmetry-panel-shard-v1"
 PANEL_ASSET_PATH = "tools/route2_release/data/fixedbox590_pes_panel_v1.json"
@@ -94,6 +95,7 @@ class _SymmetryRunner:
         max_iterations: int,
         *,
         system_builder=build_system_with_model,
+        root_context_builder=root_context,
         box_length: int = 40,
         contract_version: str = SYMMETRY_PANEL_CONTRACT_VERSION,
     ) -> None:
@@ -103,6 +105,7 @@ class _SymmetryRunner:
         )
         self.box_length = box_length
         self.contract_version = contract_version
+        self.root_context_builder = root_context_builder
         self.primal_options = FixedPointOptions(
             tolerance=1.0e-12,
             max_iterations=max_iterations,
@@ -122,7 +125,7 @@ class _SymmetryRunner:
             scalar_id=self.scalar.scalar_id,
             profile_id=self.scalar.profile_id,
             scalar_binding=self.scalar,
-            root_context_id=root_context(
+            root_context_id=self.root_context_builder(
                 atoms,
                 label,
                 box_length=self.box_length,
@@ -137,7 +140,7 @@ class _SymmetryRunner:
         gradient = self.scalar.implicit_gradient(
             atoms, state, adjoint_options=self.adjoint_options
         )
-        topology = self.continuum.surface_provider.build_state(atoms).topology_hash
+        topology = continuum_topology_hash(self.continuum, atoms)
         return state, gradient, topology
 
     def _rigid(self, atoms, base_state, base_gradient, base_topology):
@@ -352,9 +355,7 @@ class _SymmetryRunner:
     def run(self):
         atoms = panel_geometries(self.molecule)[PES_CARTESIAN_PANEL_VARIANT]
         base_state, base_gradient, base_topology = self.gradient(atoms, "base")
-        rigid, raw_rigid = self._rigid(
-            atoms, base_state, base_gradient, base_topology
-        )
+        rigid, raw_rigid = self._rigid(atoms, base_state, base_gradient, base_topology)
         loop = self._loop(atoms, base_state)
         print(
             f"completed symmetry molecule={self.molecule.molecule_id}",
@@ -397,6 +398,7 @@ def run_symmetry_panel(
     required_source_paths=REQUIRED_SOURCE_PATHS,
     model_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40],
     system_builder=build_system_with_model,
+    root_context_builder=root_context,
     box_length=40,
     output_marker="ROUTE2_FIXEDBOX590_SYMMETRY_PANEL_SHARD",
     artifact_kind="disabled-real-stack-symmetry-loop-panel-shard",
@@ -404,10 +406,7 @@ def run_symmetry_panel(
     if (
         type(args.molecule_start) is not int
         or type(args.molecule_stop) is not int
-        or not 0
-        <= args.molecule_start
-        < args.molecule_stop
-        <= PES_PANEL_MOLECULE_COUNT
+        or not 0 <= args.molecule_start < args.molecule_stop <= PES_PANEL_MOLECULE_COUNT
     ):
         raise ValueError("Molecule shard must satisfy 0 <= start < stop <= 20.")
     if type(args.max_iterations) is not int or args.max_iterations < 1:
@@ -432,6 +431,7 @@ def run_symmetry_panel(
                 shared_model,
                 args.max_iterations,
                 system_builder=system_builder,
+                root_context_builder=root_context_builder,
                 box_length=box_length,
                 contract_version=contract_version,
             )
@@ -501,7 +501,8 @@ def run_symmetry_panel(
     file_record = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
     print(
-        output_marker + "="
+        output_marker
+        + "="
         + json.dumps(
             {
                 "artifact": file_record,

@@ -19,6 +19,12 @@ FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION = (
 FIXEDBOX1202_SYMMETRY_PANEL_SCHEMA_VERSION = (
     "route2-fixedbox1202-symmetry-panel-summary-v1"
 )
+PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION = (
+    "route2-pairframe110-symmetry-panel-contract-v1"
+)
+PAIRFRAME110_SYMMETRY_PANEL_SCHEMA_VERSION = (
+    "route2-pairframe110-symmetry-panel-summary-v1"
+)
 SYMMETRY_PANEL_RANDOM_SEED = 20260813
 SYMMETRY_PANEL_ROTATION_COUNT = 3
 SYMMETRY_PANEL_TRANSLATION_A = (1.7, -0.8, 0.5)
@@ -69,7 +75,9 @@ def symmetry_panel_rotations(molecule_id: str) -> tuple[np.ndarray, ...]:
         f"{SYMMETRY_PANEL_RANDOM_SEED}:{name}".encode("utf-8")
     ).digest()
     seed = int.from_bytes(digest[:8], "little", signed=False)
-    return tuple(_rotation(seed + index) for index in range(SYMMETRY_PANEL_ROTATION_COUNT))
+    return tuple(
+        _rotation(seed + index) for index in range(SYMMETRY_PANEL_ROTATION_COUNT)
+    )
 
 
 def symmetry_panel_permutation(atomic_numbers: object) -> np.ndarray:
@@ -179,9 +187,7 @@ def summarize_rigid_symmetry(
     translation_topology = str(translation_record.get("topology_hash"))
 
     permutation = np.asarray(permutation_record.get("permutation"))
-    permuted_forces = np.asarray(
-        permutation_record.get("forces_eV_per_A"), dtype=float
-    )
+    permuted_forces = np.asarray(permutation_record.get("forces_eV_per_A"), dtype=float)
     permuted_source = np.asarray(permutation_record.get("source"), dtype=float)
     permuted_energy = float(permutation_record.get("energy_eV"))
     if (
@@ -349,6 +355,9 @@ def summarize_symmetry_panel(
         FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION: (
             FIXEDBOX1202_SYMMETRY_PANEL_SCHEMA_VERSION
         ),
+        PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION: (
+            PAIRFRAME110_SYMMETRY_PANEL_SCHEMA_VERSION
+        ),
     }
     try:
         schema_version = schema_by_contract[contract_version]
@@ -456,11 +465,7 @@ def summarize_bidirectional_loop_record(record: Mapping[str, Any]) -> dict[str, 
             raise ValueError("Closed-loop record is missing one traversal.")
         value = float(raw.get("simpson_work_eV"))
         threshold = float(raw.get("gate_threshold_eV"))
-        if (
-            not math.isfinite(value)
-            or not math.isfinite(threshold)
-            or threshold < 0.0
-        ):
+        if not math.isfinite(value) or not math.isfinite(threshold) or threshold < 0.0:
             raise ValueError("Closed-loop work/threshold must be finite.")
         passed = abs(value) <= threshold
         work[name] = {
@@ -498,9 +503,7 @@ def summarize_bidirectional_loop_record(record: Mapping[str, Any]) -> dict[str, 
         <= 1.0e-8,
         "all_loop_cold_warm_roots": cold_roots,
         "warm_forward_reverse_repeat": warm_repeat,
-        "all_primal_residuals_le_1e-12": (
-            maximum_primal <= PRIMAL_RESIDUAL_TOLERANCE
-        ),
+        "all_primal_residuals_le_1e-12": (maximum_primal <= PRIMAL_RESIDUAL_TOLERANCE),
         "all_adjoint_residuals_le_1e-10": (
             maximum_adjoint <= ADJOINT_RESIDUAL_TOLERANCE
         ),
@@ -522,6 +525,8 @@ def summarize_bidirectional_loop_record(record: Mapping[str, Any]) -> dict[str, 
 __all__ = [
     "ADJOINT_RESIDUAL_TOLERANCE",
     "NET_FORCE_TOLERANCE_EV_PER_A",
+    "PAIRFRAME110_SYMMETRY_PANEL_CONTRACT_VERSION",
+    "PAIRFRAME110_SYMMETRY_PANEL_SCHEMA_VERSION",
     "PRIMAL_RESIDUAL_TOLERANCE",
     "RIGID_ENERGY_TOLERANCE_EV",
     "ROTATION_FORCE_RELATIVE_TOLERANCE",

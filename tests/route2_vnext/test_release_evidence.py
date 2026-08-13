@@ -35,8 +35,18 @@ PES_CARTESIAN_RUNNER = (
 PES_CARTESIAN_AGGREGATOR = (
     ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_cartesian_panel.py"
 )
+RESIDUAL_FORCE_RUNNER = (
+    ROOT / "tools" / "route2_release" / "run_fixedbox590_residual_force_panel.py"
+)
+RESIDUAL_FORCE_AGGREGATOR = (
+    ROOT
+    / "tools"
+    / "route2_release"
+    / "aggregate_fixedbox590_residual_force_panel.py"
+)
 PES_PANEL_DOC = ROOT / "docs" / "route2" / "PES_PANEL.md"
 PES_CARTESIAN_DOC = ROOT / "docs" / "route2" / "CARTESIAN_PANEL.md"
+RESIDUAL_FORCE_DOC = ROOT / "docs" / "route2" / "RESIDUAL_FORCE_GATE.md"
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
 )
@@ -304,6 +314,50 @@ def test_cartesian_panel_runner_and_aggregator_are_raw_source_bound_and_disabled
     assert "465 Cartesian components" in document
     assert "central-order-or-ten-percent-error-plateau-v1" in document
     assert "E/F/H/V/M therefore remain false" in document
+
+
+def test_residual_force_runner_and_aggregator_are_preregistered_and_disabled():
+    for command in (RESIDUAL_FORCE_RUNNER, RESIDUAL_FORCE_AGGREGATOR):
+        result = subprocess.run(
+            (sys.executable, str(command), "--help"),
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "--output" in result.stdout
+
+    runner = RESIDUAL_FORCE_RUNNER.read_text(encoding="utf-8")
+    for requirement in (
+        "RESIDUAL_FORCE_CONTRACT_VERSION",
+        "PRIMAL_REFINEMENT_TOLERANCES",
+        "ADJOINT_REFINEMENT_RELATIVE_TOLERANCES",
+        "ADJOINT_REFINEMENT_ABSOLUTE_TOLERANCES",
+        "summarize_residual_force_refinement",
+        "primal_levels[0] = dict(adjoint_levels[-1])",
+        'CAPABILITIES = {tier: False',
+        "repository.assert_unchanged()",
+    ):
+        assert requirement in runner
+
+    aggregator = RESIDUAL_FORCE_AGGREGATOR.read_text(encoding="utf-8")
+    for requirement in (
+        "summarize_residual_force_refinement",
+        "summarize_residual_force_panel",
+        "geometry_sha256(atoms)",
+        "committed_source_hashes(repository, source_hashes)",
+        'CAPABILITIES = {tier: False',
+        "sys.exit(2)",
+    ):
+        assert requirement in aggregator
+
+    document = RESIDUAL_FORCE_DOC.read_text(encoding="utf-8")
+    assert RESIDUAL_FORCE_RUNNER.name in document
+    assert RESIDUAL_FORCE_AGGREGATOR.name in document
+    assert "not a rigorous analytic upper bound" in document
+    assert "5e-5 eV/A" in document
+    assert "E/F/H/V/M remain false" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():

@@ -26,6 +26,14 @@ first-order/non-convergent step trend.
 The primal/adjoint residual contribution to force uncertainty must be below ten
 percent of the force-FD tolerance.
 
+The independently versioned protocol is frozen in
+`RESIDUAL_FORCE_GATE.md`. It uses three primal tolerances and three adjoint
+tolerance pairs, separates the two residual spaces, requires contraction or a
+declared numerical plateau, applies a factor-two tail estimate, and gates both
+RMS and maximum estimated error at `5e-5 eV/Angstrom`. It is an empirical
+a-posteriori residual-refinement estimate, not a rigorous analytic upper bound.
+The real 20-molecule panel has not yet been executed, so this gate remains open.
+
 Current executed real-stack evidence is intentionally below admission scope:
 the original molecular-realspace/CPCM194 candidate passed one directional test
 but failed rotation/torque.  The separately versioned fixed-box40/CPCM590

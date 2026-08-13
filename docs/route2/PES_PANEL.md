@@ -112,3 +112,8 @@ closed-loop scope, the explicit residual-based force-error bound, matched
 component physics, multi-geometry box convergence, Hessian/FREQ/TS/HVP/NVE,
 and public integration/admission remain open. OPT, NEB, TS, FREQ, and MD
 therefore remain unavailable.
+
+The next independent gate has now been preregistered, but not yet run, in
+`RESIDUAL_FORCE_GATE.md`. It estimates primal-root and adjoint-solve force
+errors through separated three-level refinements and cannot enable any
+capability by itself.

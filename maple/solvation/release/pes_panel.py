@@ -14,6 +14,7 @@ from ase import Atoms
 from ase.data import covalent_radii
 
 from maple.solvation.coupling.state_equation import geometry_sha256
+from .residual_force import RESIDUAL_FORCE_ERROR_BUDGET_EV_PER_A
 
 PES_PANEL_SCHEMA_VERSION = "route2-fixedbox590-pes-panel-geometry-asset-v1"
 PES_PANEL_CONTRACT_VERSION = "route2-fixedbox590-pes-panel-contract-v1"
@@ -54,7 +55,6 @@ COLD_WARM_ENERGY_TOLERANCE_EV = 1.0e-8
 COLD_WARM_SOURCE_RELATIVE_TOLERANCE = 1.0e-8
 MAXIMUM_PRIMAL_RESIDUAL = 1.0e-12
 MAXIMUM_ADJOINT_RESIDUAL = 1.0e-10
-RESIDUAL_FORCE_ERROR_BUDGET_EV_PER_A = 5.0e-5
 
 _PANEL_ASSET = (
     Path(__file__).parents[3]

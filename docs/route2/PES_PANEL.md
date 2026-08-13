@@ -98,8 +98,17 @@ The immutable evidence bundle is
 `evidence/fixedbox590-pes-panel-f7f68165/`; its independent aggregate file has
 SHA256 `e087f6297d709f3d383b3bb8bfff7fd75dbcb4e4022020364d6a273f744c3775`.
 
-This closes the preregistered **directional** panel only. The required
-component-resolved Cartesian FD panel, remaining symmetry/loop scope,
-component physics, Hessian/FREQ/TS/HVP/NVE, and public admission gates remain
-open. Its separate pre-execution contract is frozen in `CARTESIAN_PANEL.md`.
-OPT, NEB, TS, FREQ, and MD therefore remain unavailable.
+The separately preregistered component-resolved Cartesian panel was then run
+at clean head `abb34a05`. It passed all 465 Cartesian components and 1395
+component/step comparisons: worst RMS and component errors were
+`5.89334e-6` and `1.85578e-5 eV/Angstrom`, and the lowest observed
+first-to-last central-difference order was `1.94289`. The immutable bundle is
+`evidence/fixedbox590-cartesian-panel-abb34a05/`; details and claim boundaries
+are in `CARTESIAN_PANEL.md`.
+
+Together these artifacts close the preregistered directional and
+component-resolved derivative thresholds. Remaining all-panel symmetry and
+closed-loop scope, the explicit residual-based force-error bound, matched
+component physics, multi-geometry box convergence, Hessian/FREQ/TS/HVP/NVE,
+and public integration/admission remain open. OPT, NEB, TS, FREQ, and MD
+therefore remain unavailable.

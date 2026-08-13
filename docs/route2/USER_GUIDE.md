@@ -9,8 +9,10 @@ MAPLE's public calculator/result API.
 
 Its single-water equilibrium 32/40/48/56-Angstrom box audit passes the frozen
 tail thresholds. Its preregistered 20-molecule directional PES panel also
-passes, but neither result admits energy or force for public use because the
-component-resolved Cartesian and remaining workflow gates are still open.
+passes, as does the 20-reference-geometry, 465-component Cartesian panel. None
+of these results admits energy or force for public use because the residual
+force-error, all-panel symmetry/loop, physical-component, and public workflow
+gates are still open.
 
 The stable public legacy Route-2 inputs remain experimental energy-only paths
 with their historical contracts. They must not be interpreted as the vNext
@@ -86,9 +88,11 @@ fixed-box590 diagnostic now has one-equilibrium-geometry Cartesian and
 orientation evidence plus a clean-commit seven-geometry/63-direction and
 bidirectional cold/warm loop audit, plus a passing equilibrium
 32/40/48/56-Angstrom box-tail audit. It also has a passing source-bound
-20-molecule, 60-base-geometry and 11-path-point directional panel. That does
-not substitute for the component-resolved Cartesian panel, multi-geometry box
-convergence, Hessian, NVE, or physical-component validation.
+20-molecule, 60-base-geometry and 11-path-point directional panel, followed by
+a passing 20-reference-geometry, 465-component Cartesian panel. Those results
+do not substitute for the residual-based force-error bound, all-panel
+symmetry/loop coverage, multi-geometry box convergence, Hessian, NVE,
+physical-component validation, or public workflow admission.
 
 ## Solvation-energy interpretation
 

@@ -1,0 +1,208 @@
+{
+  "aggregate_artifact_sha256": "6e64d1afaa0201dd1ecfd2950e1ea62a267a1bf694d8557f6c8b0573e985dbfe",
+  "aggregate_measurement_sha256": "2c744462aec3554e6c577fd70e2523301b4b8c2f2cc5dad230c757f1775e95ac",
+  "artifact_sha256": {
+    "aggregate.json": "6e64d1afaa0201dd1ecfd2950e1ea62a267a1bf694d8557f6c8b0573e985dbfe",
+    "aggregate.stdout.log": "a2260c44b3c42d74208f73a89ab4927bad3ab9319c23784cf72b107fe8c265f5",
+    "shard-00-01.json": "844e98d085e08a16f34c3aa8ad60a08ba64105e932cebaf123603397c0955968",
+    "shard-00-01.stderr.log": "eb2079467a66626428893548be07f252ace530c64d9e4d0c767c2cb7576205d2",
+    "shard-00-01.stdout.log": "1ce43dbe23c66ac7bed4bdcfa6c8e562fe3e0d19f1b35d732db75e89a69ec007",
+    "shard-01-02.json": "4c4c0ceb59198cb5c6ed2f70b90a6f063f929aeb705b5248719fef7f5c5aabb7",
+    "shard-01-02.stderr.log": "0a8f038e7a6f85054024c6f02d4ef5872d34ba8f8ca4bd68a5cf74f532cd8e4e",
+    "shard-01-02.stdout.log": "1a25e69fdc97232aa34c1582868f35741db5ec770f1ba8be30d15fcf5189b21d",
+    "shard-02-03.json": "fbd26bca0e18673f37ef6dc1bef4b1ad9285f832e091c40969096a299a719646",
+    "shard-02-03.stderr.log": "4876a94888853adb7f7f13fe8c24a0a35f584500b81744833f1aa97eeae6f7a6",
+    "shard-02-03.stdout.log": "d5dd8460b976aab969431a984ed1be5111ae6139001501b8d2a1c54cf55839ed",
+    "shard-03-04.json": "a377fd62f539dbc86c514ef56af051d4c71482707885e644e9ed0a67ae604120",
+    "shard-03-04.stderr.log": "a6f68c60f76f40a7ffb04133ae6f6f03e7965615da201a05f9b643f7eed6e139",
+    "shard-03-04.stdout.log": "7a29d0ecdc768f04154f352a44535f22e2812559d4f579dd7f316288ef94a741",
+    "shard-04-05.json": "0799fac71ecb667733889f8f0d7c0f903c07cd65091c147c3d45f73caf8e1be1",
+    "shard-04-05.stderr.log": "93423b5a7521a319c0391c270f01cdf75dab2a11e0d31d783b6eff9af0eaf794",
+    "shard-04-05.stdout.log": "4817337d2fd667af697745d968d8742bba501c236767c1b293f06c0e694acff4",
+    "shard-05-06.json": "f1b9b620d2a326ad8285d922869d159a3bb2888e8f4d250b988f01d463d5726e",
+    "shard-05-06.stderr.log": "2875c0f6a1257ec031b04f9464042a198753ac6c11906006b7cc27572341eae7",
+    "shard-05-06.stdout.log": "a82e8132a4ad813ad075ac0d7f2eafc3b946045c5058b10cc6674cfa31a2ee11",
+    "shard-06-07.json": "3e3954f9408d6473504e540b7d329a75ea6aa2c84cb3d43aa2f73b102fa5280b",
+    "shard-06-07.stderr.log": "3ce717d5dddbfb6bc837ec2ec7b2517138dcfa5c4c77228452f70bca88e8a27e",
+    "shard-06-07.stdout.log": "b79f5f77efe8a348fcf1a06312abbe4eed13c35fd50b86b5f351a014419cab1e",
+    "shard-07-08.json": "0d59ffdcfafbd60c43f094ea3ba465844d197642bbc199d3d6e47e8194a4b658",
+    "shard-07-08.stderr.log": "b545766bdef8ebe05ac6dbd61672f8f03795adb8cc700f9f6cb9a82377b07823",
+    "shard-07-08.stdout.log": "be31fc425e2dec21bde7f696b408e08aea7422e7865aee475e794bf3594d3f2f",
+    "shard-08-09.json": "90fd47aaedc7f91056e52c20ec3f8cde789176cc61a29d5af02a304249bd3712",
+    "shard-08-09.stderr.log": "cfe94de1aabb182346ad273f9a781fcc32882fe3c972ba88bf3c191e5ee97520",
+    "shard-08-09.stdout.log": "e523beed93b09ac4e85b781d806050e26ece6d19dc5a5581c6c0b72a492bc7b9",
+    "shard-09-10.json": "ba67678b8ee72a3c920307ae7db941978c6ee1a248015192e72ccdfa04ac573c",
+    "shard-09-10.stderr.log": "eab0526e1f0de82e1aa7f5b64071650dd9e74ddd24b7e30c79f441814716b188",
+    "shard-09-10.stdout.log": "bb38c9740728ba0987aea2efc73ac12809cf9fa249ffdbdbcffd991e8e38879b",
+    "shard-10-11.json": "a6b6822082ff442d1564c0d9c48261a0dcb517dface6a3a4bfde8f0ddc4697a9",
+    "shard-10-11.stderr.log": "f7b44da6d01b396c37a6842ca1099878b9410be9e55beaad98c301439669320b",
+    "shard-10-11.stdout.log": "2b6143c38a3ef0be44efb341d7bc38427c0eacfd17f4aa29e17dcb82ea205a17",
+    "shard-11-12.json": "ca2d519c0e22696711ecaf4b37226d1d25a68ebab9302a70a67c0070ae33ee13",
+    "shard-11-12.stderr.log": "af5e9c3003e35f8c3fa9ea4ced1b54f545bae4f1ca67170271d1202780e99251",
+    "shard-11-12.stdout.log": "b48ba129f79acf277e2457165f26b5df8e2fc84e599b3a8369089689207da8d1",
+    "shard-12-13.json": "cc61926ca6271408a68a34cfcccd711ad76cfe9d46d9ab505cbce5737fbaecef",
+    "shard-12-13.stderr.log": "79973837b0d0e57a0a0f65f5fd6e42076dd6135a7ecdaa7d351e3d54664f1709",
+    "shard-12-13.stdout.log": "154034abcbb815ae57235a1d0852e2284aa57aa5ff2e08cdd86ea4b8089f07ed",
+    "shard-13-14.json": "32b15df447f9131eeb82c265c35f05563c9afbfe372d29df68d8ad4dd1ae1686",
+    "shard-13-14.stderr.log": "932e16d0a9d371dc59df7acfb14096198bc14ff45608ff10f718776d9d20da23",
+    "shard-13-14.stdout.log": "31e887033d0ee015f07edfff422ce86c06084a6668e0e507fd2be68a5697f79a",
+    "shard-14-15.json": "1a8b828d6b88bdaa8ec99a50889745083eb93e7c07b46037e023eaac97af5329",
+    "shard-14-15.stderr.log": "5466af4febeec0d39a88ea21efdbff0a79c3beb093473a1dc20d1518c7e9a1cb",
+    "shard-14-15.stdout.log": "f8f417594daaaa6b05be46595c7314e7e761e82e04a17a9e0413f0b8dbb1ae81",
+    "shard-15-16.json": "19e317f2ca561e09fd7809aa832e80859c8d2a6089ff66bd9075969a00260f2c",
+    "shard-15-16.stderr.log": "1c84fcec2975543296e5596767807235adb991f56c2affa8c0c0afa357ed7792",
+    "shard-15-16.stdout.log": "0168947aa879083ad7b7e60f7ee151028ee6cf996ba1fa14e4a37cd28cf97def",
+    "shard-16-17.json": "98a69eb3fc136f2d98d4227bc0d0044888fd4cdc0036e178fd8912acba6ce2ac",
+    "shard-16-17.stderr.log": "71b131224dd4e7a111ed4e668f99e02f944b813356b1e9b633a0b43b25848b91",
+    "shard-16-17.stdout.log": "7094f7a654c2edb6db8a6c59306c708c8569b87baa6f5488a5b0bc7dc5317f23",
+    "shard-17-18.json": "fbeb7598e9bdce61d90220b90e31686df1cbb007ef823667435997566764b88d",
+    "shard-17-18.stderr.log": "d74fd80f6ba9e7dc963db698c0791eb01f5cf7e58f41af3da937a4b38ea37d75",
+    "shard-17-18.stdout.log": "92944f5cef3d09298a5f2edc179f4b0e8ef2a18d2c9240543b453a30ea2ecdad",
+    "shard-18-19.json": "35c0a94f9a3c41f770e638875a1b04f91f3dd5230fb12deeb7037e742163f7e6",
+    "shard-18-19.stderr.log": "eb7b4b6890c38953e986cad8b9f44c2b6fdb53313436d8a69d9ccde248853ae1",
+    "shard-18-19.stdout.log": "b348318309dd4856a15d17ec40ce43bb2deff59d7f56b869f106288389bc568b",
+    "shard-19-20.json": "652300e62b89587cfedeb10f149cc75f8310a30b092a3e1ad764ee098ca10350",
+    "shard-19-20.stderr.log": "68ffd2081641af1e18a2c915acaae35984aaefb62a20183c3aeed3ae77f0a24d",
+    "shard-19-20.stdout.log": "8dd9485895d02647569c65eb15cb95fc7fec97862eaa2724d0cf7e49d4ac1de8"
+  },
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "claim_boundary": "Passing independent raw-value recomputation for the preregistered 20-molecule reference-geometry, component-resolved, same-scalar Cartesian PES panel. This closes that derivative gate only. It does not enable E/F/H/V/M, establish complete solvation free energy or chemical accuracy, or admit Hessian, FREQ, TS, NEB, OPT, or MD.",
+  "coupling_id": "route2-coupling-mace-polar-native-radial-gto-v1",
+  "device": "cuda",
+  "dtype": "float64",
+  "evidence_status": "passing-preregistered-component-resolved-cartesian-panel; not release admission",
+  "execution_git_head": "abb34a057b2ba750607bf5f6b5c38f9171dc7beb",
+  "execution_git_tree": "453a6f96872606df74348800dd4b7265207549d2",
+  "panel_asset_sha256": "ecaa309cb468f17449a78a16e6a79acd0a5a16cf982eb52b3fb8d5d1dcd80ca3",
+  "panel_contract_version": "route2-fixedbox590-cartesian-panel-contract-v1",
+  "profile_id": "route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1",
+  "raw_summary": {
+    "all_gates_passed": true,
+    "component_count": 465,
+    "component_sample_count": 1395,
+    "gates": {
+      "all_adjoint_residuals_le_1e-10": true,
+      "all_cartesian_force_fd": true,
+      "all_cold_warm_roots": true,
+      "all_molecule_topologies_fixed": true,
+      "all_primal_residuals_le_1e-12": true
+    },
+    "geometry_count": 20,
+    "low_error_plateau_count": 0,
+    "maximum_adjoint_residual": 2.4641272982371513e-12,
+    "maximum_cold_warm_energy_abs_difference_eV": 0.0,
+    "maximum_cold_warm_source_relative_difference": 1.4218193745100612e-13,
+    "maximum_component_error_eV_per_A": 1.8557801318763723e-05,
+    "maximum_primal_residual": 9.991550745831306e-13,
+    "maximum_rms_error_eV_per_A": 5.893341195090511e-06,
+    "minimum_observed_first_to_last_order": 1.9428853284937788,
+    "molecule_count": 20,
+    "schema_version": "route2-fixedbox590-cartesian-panel-summary-v1",
+    "step_record_count": 60,
+    "topology_hashes_by_molecule": {
+      "acetaldehyde": [
+        "a9af05b5f90786e3b93545b1021f2d12bd1c10276fbed0664bb04a3ea19806fc"
+      ],
+      "acetamide": [
+        "8a2a4975ed8e4822134448b1d68b00ab4cf04df97a3072ee90abc331fda453bd"
+      ],
+      "acetic-acid": [
+        "006db78cb3f2ddba7c94159292e638987037ee48fbf26a249bcaf236124d46bf"
+      ],
+      "acetone": [
+        "2d6ff238f81a224f7cd7694fa874e6866d22d077297294fdd253f15c7a4d52e5"
+      ],
+      "acetonitrile": [
+        "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+      ],
+      "benzene": [
+        "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+      ],
+      "chloroform": [
+        "245fd10ed3f61f90beb1797afae2689f86c09eda93ab4cef03b1054641246b7e"
+      ],
+      "dimethyl-ether": [
+        "8a2a4975ed8e4822134448b1d68b00ab4cf04df97a3072ee90abc331fda453bd"
+      ],
+      "ethanol": [
+        "8a2a4975ed8e4822134448b1d68b00ab4cf04df97a3072ee90abc331fda453bd"
+      ],
+      "ethylamine": [
+        "2d6ff238f81a224f7cd7694fa874e6866d22d077297294fdd253f15c7a4d52e5"
+      ],
+      "formic-acid": [
+        "245fd10ed3f61f90beb1797afae2689f86c09eda93ab4cef03b1054641246b7e"
+      ],
+      "hydrogen-peroxide": [
+        "3a4573ebab5b0b9c40734a0251ca2a77953fe6dced21eb1df71c452de236926c"
+      ],
+      "methane": [
+        "245fd10ed3f61f90beb1797afae2689f86c09eda93ab4cef03b1054641246b7e"
+      ],
+      "methanethiol": [
+        "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+      ],
+      "methanol": [
+        "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+      ],
+      "nitromethane": [
+        "a9af05b5f90786e3b93545b1021f2d12bd1c10276fbed0664bb04a3ea19806fc"
+      ],
+      "pyridine": [
+        "ee1d3a3bc67df0cd61b9dd7f0d5c7d0b12987909781a7e306b8669b571e5461b"
+      ],
+      "thiophene": [
+        "8a2a4975ed8e4822134448b1d68b00ab4cf04df97a3072ee90abc331fda453bd"
+      ],
+      "trans-butane": [
+        "0be7061d07a08c9873b1ad7ad2bad59c77ae607ccbe725660fe7301475911d80"
+      ],
+      "water": [
+        "ff7af9e2467b7063552d9912c25d242010ba1cdfafc8ae70fe55242b7b37f8c0"
+      ]
+    },
+    "total_shard_runtime_seconds": 35919.27708117198
+  },
+  "remaining_blockers": [
+    "all-panel rotation/translation/permutation covariance and closed-loop gates",
+    "an explicit residual-based force-error bound below ten percent of the finite-difference budget",
+    "matched physical-component validation of the current fixed-box590 radial-GTO profile",
+    "public calculator/workflow integration and admission",
+    "no compatible fixed-topology nonpolar/CDS term or complete solvation free energy",
+    "no admitted Hessian, frequency, TS, HVP, or NVE evidence",
+    "all profiles remain disabled with E/F/H/V/M false"
+  ],
+  "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+  "schema_version": "route2-fixedbox590-cartesian-panel-evidence-manifest-v1",
+  "scope_limits": {
+    "all_panel_symmetry": false,
+    "chemical_accuracy": false,
+    "closed_loop_all_panel": false,
+    "complete_nonpolar_free_energy": false,
+    "component_physics_matched_to_current_profile": false,
+    "component_resolved_cartesian_force_fd": true,
+    "directional_same_scalar_force_fd": true,
+    "hessian_frequency_ts_nve": false,
+    "multiple_geometries_per_molecule": false,
+    "preregistered_20_molecule_reference_geometry_panel": true,
+    "residual_based_force_error_bound": false
+  },
+  "state_equation_id": "route2-constrained-mutual-polarization-root-v1",
+  "tested_working_tree_clean": true,
+  "thresholds": {
+    "adjoint_residual": 1e-10,
+    "cartesian_maximum_error_eV_per_A": 0.002,
+    "cartesian_rms_error_eV_per_A": 0.0005,
+    "cold_warm_energy_abs_difference_eV": 1e-08,
+    "cold_warm_source_relative_difference": 1e-08,
+    "minimum_observed_first_to_last_order": 1.5,
+    "primal_residual": 1e-12
+  }
+}

@@ -1,0 +1,50 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed Cartesian molecule=acetic-acid step=0.0004 atom=0
+completed Cartesian molecule=acetic-acid step=0.0004 atom=1
+completed Cartesian molecule=acetic-acid step=0.0004 atom=2
+completed Cartesian molecule=acetic-acid step=0.0004 atom=3
+completed Cartesian molecule=acetic-acid step=0.0004 atom=4
+completed Cartesian molecule=acetic-acid step=0.0004 atom=5
+completed Cartesian molecule=acetic-acid step=0.0004 atom=6
+completed Cartesian molecule=acetic-acid step=0.0004 atom=7
+completed Cartesian molecule=acetic-acid step=0.0002 atom=0
+completed Cartesian molecule=acetic-acid step=0.0002 atom=1
+completed Cartesian molecule=acetic-acid step=0.0002 atom=2
+completed Cartesian molecule=acetic-acid step=0.0002 atom=3
+completed Cartesian molecule=acetic-acid step=0.0002 atom=4
+completed Cartesian molecule=acetic-acid step=0.0002 atom=5
+completed Cartesian molecule=acetic-acid step=0.0002 atom=6
+completed Cartesian molecule=acetic-acid step=0.0002 atom=7
+completed Cartesian molecule=acetic-acid step=0.0001 atom=0
+completed Cartesian molecule=acetic-acid step=0.0001 atom=1
+completed Cartesian molecule=acetic-acid step=0.0001 atom=2
+completed Cartesian molecule=acetic-acid step=0.0001 atom=3
+completed Cartesian molecule=acetic-acid step=0.0001 atom=4
+completed Cartesian molecule=acetic-acid step=0.0001 atom=5
+completed Cartesian molecule=acetic-acid step=0.0001 atom=6
+completed Cartesian molecule=acetic-acid step=0.0001 atom=7
+completed Cartesian molecule=acetic-acid
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "env CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=0 OMP_NUM_THREADS=6 MKL_NUM_THREADS=6 OPENBLAS_NUM_THREADS=6 CUDA_VISIBLE_DEVICES=0 python tools/route2_release/run_fixedbox590_cartesian_panel.py --device cuda --molecule-start 10 --molecule-stop 11 --output /home/axie/MAPLE/route2-cartesian-evidence-abb34a05/shard-10-11.json"
+	User time (seconds): 1780.09
+	System time (seconds): 170.41
+	Percent of CPU this job got: 118%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 27:32.68
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4177868
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1889749
+	Voluntary context switches: 18843
+	Involuntary context switches: 3941
+	Swaps: 0
+	File system inputs: 544
+	File system outputs: 488
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

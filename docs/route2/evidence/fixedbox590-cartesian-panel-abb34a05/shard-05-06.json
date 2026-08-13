@@ -1,0 +1,3680 @@
+{
+  "argv": [
+    "tools/route2_release/run_fixedbox590_cartesian_panel.py",
+    "--device",
+    "cuda",
+    "--molecule-start",
+    "5",
+    "--molecule-stop",
+    "6",
+    "--output",
+    "/home/axie/MAPLE/route2-cartesian-evidence-abb34a05/shard-05-06.json"
+  ],
+  "artifact_kind": "disabled-real-stack-fixedbox590-cartesian-panel-shard",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": "One preregistered shard of the disabled 20-molecule full-Cartesian same-scalar panel; not aggregate admission, not Tier E/F/H/V/M, not complete solvation free energy, and not chemical-accuracy evidence.",
+  "device": "cuda",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_fixedbox590_cartesian_panel.py --device cuda --molecule-start 5 --molecule-stop 6 --output /home/axie/MAPLE/route2-cartesian-evidence-abb34a05/shard-05-06.json",
+  "execution_git_head": "abb34a057b2ba750607bf5f6b5c38f9171dc7beb",
+  "execution_git_tree": "453a6f96872606df74348800dd4b7265207549d2",
+  "identities": {
+    "cavity_profile_id": "fixed-topology-amplitude-swig-v1",
+    "continuum_configuration_contract_id": "maple.route2.continuum-configuration.water-eps78p39-smd-radii-lebedev590.v1",
+    "continuum_configuration_sha256": "85da7238e2dceab55842eaedd6f080998f2cf8367a7ccf74699a8b80a64b41a6",
+    "continuum_profile_id": "fixed-topology-linear-reciprocal-cpcm-v1",
+    "continuum_provenance_sha256": "d815da730c0034df0ec9e447eb3150a98bb514105fd76fabf2b64e898a15ac95",
+    "continuum_provider_id": "maple.route2.continuum.fixed-topology-radial-gto-cpcm.impl.v1",
+    "continuum_runtime_provenance": {
+      "capabilities": "none-pending-real-stack-gates",
+      "cavity_profile_id": "fixed-topology-amplitude-swig-v1",
+      "configuration_contract_id": "maple.route2.continuum-configuration.water-eps78p39-smd-radii-lebedev590.v1",
+      "configuration_sha256": "85da7238e2dceab55842eaedd6f080998f2cf8367a7ccf74699a8b80a64b41a6",
+      "continuum_profile_id": "fixed-topology-linear-reciprocal-cpcm-v1",
+      "coordinate_derivative": "complete-fixed-topology-bilinear-vjp",
+      "coupling_id": "route2-coupling-mace-polar-native-radial-gto-v1",
+      "provenance_sha256": "d815da730c0034df0ec9e447eb3150a98bb514105fd76fabf2b64e898a15ac95",
+      "provider_id": "maple.route2.continuum.fixed-topology-radial-gto-cpcm.impl.v1",
+      "response": "linear-reciprocal-stationary-cpcm",
+      "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1"
+    },
+    "coupling_id": "route2-coupling-mace-polar-native-radial-gto-v1",
+    "equation_sha256": "292c83d58f53999f1ccec31fe0fcd8e517ca3a4ae831bf6432f9b14b432ff194",
+    "long_range_evaluator_provenance": {
+      "box_length_angstrom": 40.0,
+      "claim_boundary": "This profile changes the long-range evaluation operator for FFF systems from the default real-space path to a forced periodic reciprocal-space path. It is an experimental fixed-box evaluator, not a proof of equivalence to the default evaluator. Results are box- and placement-dependent and require explicit convergence validation.",
+      "coordinate_derivative_policy": "centering-projector VJP and double-sided Hessian pullback",
+      "coordinate_policy": "arithmetic-mean centering in fixed cubic box",
+      "dtype_bridge": true,
+      "equivalent_to_default_evaluator": false,
+      "experimental": true,
+      "graph_longrange_version": "0.4.0",
+      "operator": "graph_longrange forced periodic reciprocal-space evaluator for an FFF molecular graph",
+      "pbc": false,
+      "profile": "graph-longrange-forced-periodic-fixed-box40-v1",
+      "use_pbc_evaluator": true
+    },
+    "model_configuration_sha256": "19c3e9a7969064a21833b9541dbc320b744d29bd8ed99cc672152034bbc49b32",
+    "model_profile_id": "mace-polar-route2-source-field-fixed-box40-contract-v1",
+    "model_provenance": {
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "coordinate_frame_policy": "laboratory Cartesian Angstrom input; nonperiodic molecular graph; long-range evaluator=graph-longrange-forced-periodic-fixed-box40-v1",
+      "device": "cuda",
+      "domain": {
+        "atomic_numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83
+        ],
+        "spin_multiplicities": [
+          1
+        ],
+        "total_charge_range": [
+          0,
+          0
+        ]
+      },
+      "dtype": "float64",
+      "field_convention": "positive-energy-dual radial GTO field; checkpoint feature normalization is a model-adapter representation transform",
+      "inference_code_sha256": "f52a3232db70a5f0ad2e0153dc5c34178d00cbfa64a8803a63e908a4f6594970",
+      "model_family": "MACE-POLAR-1-radial-GTO-response",
+      "model_profile_id": "mace-polar-route2-source-field-fixed-box40-contract-v1",
+      "optimizer_audit_evidence_sha256": null,
+      "optimizer_parameter_groups_audited": false,
+      "provider_id": "maple.route2.model.mace-polar-1-m-fixed-box40-local-field.impl.v1.radial-gto.v1",
+      "upstream_commit": "unavailable-in-installed-wheel-release-metadata",
+      "upstream_version": "mace-torch==0.3.16;graph-longrange==0.4.0"
+    },
+    "model_provenance_sha256": "846a4de5a74dde80233acf4eb30b86e69d7f6609f8da07711f61ab490f3c9b22",
+    "model_provider_id": "maple.route2.model.mace-polar-1-m-fixed-box40-local-field.impl.v1.radial-gto.v1",
+    "profile_id": "route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1",
+    "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+    "scalar_sha256": "27ae9c6e95e5c6af5e353b9ce27fbdcad2781bdeaaad30d253da8924fded25eb",
+    "state_equation_id": "route2-constrained-mutual-polarization-root-v1"
+  },
+  "measurement_sha256": "fc3ef9b740224d3be0a0a77f62abd3baf816d45def484e40347e951386528c78",
+  "measurements": [
+    {
+      "adjoint_residual": 1.1882044834770494e-15,
+      "atomic_numbers": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "cartesian_force_fd": {
+        "all_gates_passed": true,
+        "convergence": {
+          "contract": "central-order-or-ten-percent-error-plateau-v1",
+          "gates": {
+            "central_order_ge_1p5_or_low_error_plateau": true,
+            "terminal_rms_nondivergent": true
+          },
+          "low_error_plateau": false,
+          "minimum_observed_order": 1.5,
+          "observed_first_to_last_order": 2.0026919753842254,
+          "plateau_maximum_eV_per_A": 0.0002,
+          "plateau_rms_eV_per_A": 5e-05,
+          "plateau_spread_factor_limit": 1.5,
+          "terminal_growth_factor_limit": 1.25
+        },
+        "fixed_topology": true,
+        "maximum_displaced_primal_residual": 9.743649509076852e-13,
+        "raw_displaced_components": [
+          {
+            "components": [
+              {
+                "atom": 0,
+                "axis": 0,
+                "minus_energy_eV": -6319.225599408523,
+                "minus_geometry_sha256": "09f27d7c88fb8508d28f487f9d2e3362fd52092f95fb0e7fe987a6bda7835271",
+                "minus_primal_residual": 4.055609229785512e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225599408523,
+                "plus_geometry_sha256": "1bd11a72439238803cb10af3a6909a6317744b534dcbd4947b529673cf31e889",
+                "plus_primal_residual": 4.0589993464948475e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 0,
+                "axis": 1,
+                "minus_energy_eV": -6319.225675864483,
+                "minus_geometry_sha256": "572343387d2561f609fe8311a5a18953adcaf38830166908de0a386b3f61b7fb",
+                "minus_primal_residual": 4.584323047351721e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225521600202,
+                "plus_geometry_sha256": "d3cb53c25a75ecaa7ed4c49065d629117090d09af9600babbf8e6105b02011ad",
+                "plus_primal_residual": 4.585916016521445e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 0,
+                "axis": 2,
+                "minus_energy_eV": -6319.225603301935,
+                "minus_geometry_sha256": "2bf03846e99ca898dca729a54b6fe30bf8f8b83d5f421065af1ab9e07ecb7c85",
+                "minus_primal_residual": 6.602483013832812e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225603301935,
+                "plus_geometry_sha256": "fb6b17ba014a932edee21d2c81fd327bf5ce1f17a572a920af5ad6dd851c5034",
+                "plus_primal_residual": 6.602480034973135e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 0,
+                "minus_energy_eV": -6319.22566563168,
+                "minus_geometry_sha256": "9ceee7a5aca438d021790b79b3456fc52b61b2ea30a10a8570ebd4fbc9ae1fb1",
+                "minus_primal_residual": 4.46336880089038e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225532172084,
+                "plus_geometry_sha256": "8a557c6ae66d26ccbbff586a36efa549f697c64592316d8598008e5e7f4fa9a4",
+                "plus_primal_residual": 4.455526998506152e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 1,
+                "minus_energy_eV": -6319.22563764951,
+                "minus_geometry_sha256": "ada94ee37b81d29980c011f707cbdfcb719cfeefbc47902ff27e0cc3ba187afb",
+                "minus_primal_residual": 4.198108694400637e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2255608304795,
+                "plus_geometry_sha256": "a451864876015c968b973f5d3c5bde6d7d51da53024e6798f59412854f5b41a2",
+                "plus_primal_residual": 4.195923283505643e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256033034,
+                "minus_geometry_sha256": "44363d3a4f8f8d9a921b343ec4aaf384e9f3a2644c198a7dce9cd1d59e252f09",
+                "minus_primal_residual": 6.602466380743192e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256033034,
+                "plus_geometry_sha256": "0155c108edf655268fb0011252849b2c716027a320e60cabf37fad114f8ab28b",
+                "plus_primal_residual": 6.602467238944005e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 0,
+                "minus_energy_eV": -6319.22566563168,
+                "minus_geometry_sha256": "366fa10f962f1dc03fe520988d2f6483affca760f31dc5723dea814bbeed2bee",
+                "minus_primal_residual": 4.4618822597891835e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225532172084,
+                "plus_geometry_sha256": "c21e743a19aa6c22e6bba10b0c2a9e884d05ada29677ee6053448770712b45d6",
+                "plus_primal_residual": 4.455328478082043e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 1,
+                "minus_energy_eV": -6319.2255608304795,
+                "minus_geometry_sha256": "67f3734d570f10c390725b00a85005d35cacb16dcb5aab2d94cb1326c8813682",
+                "minus_primal_residual": 4.1958015765925975e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.22563764951,
+                "plus_geometry_sha256": "7e07330d93bae1e97a1906e89d07042ffd5640918a2e260164b4a4f8a25d4cd3",
+                "plus_primal_residual": 4.199006514458411e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256033034,
+                "minus_geometry_sha256": "32d677897bab5edba061046bb830fc3174243a9bc8e69bbc875d84d568ce958e",
+                "minus_primal_residual": 6.602465617818551e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256033034,
+                "plus_geometry_sha256": "7da49bc257a3221e9749bd206477b5c31dd6fbf8c555334051ef38e996494142",
+                "plus_primal_residual": 6.602464137874132e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 0,
+                "minus_energy_eV": -6319.225599408523,
+                "minus_geometry_sha256": "8eddec48e740eae7a1d83206b70abc66d08c7fa48213b01bda738ced121cb133",
+                "minus_primal_residual": 4.0594799157998234e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225599408523,
+                "plus_geometry_sha256": "5716e96396bb85faac74db9a30af2d59185f5dfc131d3d01ee8e58baec86d3eb",
+                "plus_primal_residual": 4.0582510893900186e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 1,
+                "minus_energy_eV": -6319.225521600202,
+                "minus_geometry_sha256": "8069600458608b15e59fe0227ed29f8c0ab7d04602a50b065144316e891f50d6",
+                "minus_primal_residual": 4.578192834070436e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225675864483,
+                "plus_geometry_sha256": "ee86f673291dceccfc1553f536b69c40647464640b35aa0dc0c707afb063a1e8",
+                "plus_primal_residual": 4.584383893513132e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 2,
+                "minus_energy_eV": -6319.225603301935,
+                "minus_geometry_sha256": "afbca179c1e306f68cbcf8018a1dfb489c8367434df4e1a228fa3f5d598c4ad9",
+                "minus_primal_residual": 6.602478621600485e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225603301935,
+                "plus_geometry_sha256": "fdf995e89083d166a573d57c48a43ef66b7eb76a33b17ea66d0b939b052272d8",
+                "plus_primal_residual": 6.602484584434707e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 0,
+                "minus_energy_eV": -6319.225532172084,
+                "minus_geometry_sha256": "06e549e7e5f82d15815c322e46fb7e01134340295e210602efaf61ed189cd8bc",
+                "minus_primal_residual": 4.4536929844348247e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.22566563168,
+                "plus_geometry_sha256": "199c993e25ec9a9afb10064767ced0717028acc3ee47fe803a8aeee6a88e2b80",
+                "plus_primal_residual": 4.4633383676801096e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 1,
+                "minus_energy_eV": -6319.2255608304795,
+                "minus_geometry_sha256": "e263b48789417b959a18d2fdefd9fbf10b5f7cdb34ca2c0c5a0a3f89d7b27fca",
+                "minus_primal_residual": 4.1958456747185563e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.22563764951,
+                "plus_geometry_sha256": "fc29388548140d841c828d6e22a1ea2b4901c0faef97107d39d55728c0f1536c",
+                "plus_primal_residual": 4.199247761271951e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256033034,
+                "minus_geometry_sha256": "708211997aa51206a6c11aea4e25d06e6e134dd4c8465d39996e52a5f5bad22f",
+                "minus_primal_residual": 6.602466749998153e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256033034,
+                "plus_geometry_sha256": "510244b4d914336443033f8146613bbffc59bee57d35f89724deed696d32a5b0",
+                "plus_primal_residual": 6.602465093307186e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 0,
+                "minus_energy_eV": -6319.225532172084,
+                "minus_geometry_sha256": "8faf102c3ef49fe8a289dab67695f7416307d5a0bad3e2585381fddb17b9012f",
+                "minus_primal_residual": 4.4546911000604254e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.22566563168,
+                "plus_geometry_sha256": "f5e3c349f23907afc7906533f4fd6819357ffa83389a625fa6f9f6a95e3bd5d2",
+                "plus_primal_residual": 4.461981056885765e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 1,
+                "minus_energy_eV": -6319.22563764951,
+                "minus_geometry_sha256": "8a51f2b9d537a444c4640efcadfac48eaf168c6624f622b3473948d6dcc88da6",
+                "minus_primal_residual": 4.1988118912689897e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2255608304795,
+                "plus_geometry_sha256": "b2f91973e31d4cc35597520dbf4c23012939be4d304462033078718d8c374b60",
+                "plus_primal_residual": 4.196418500678817e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256033034,
+                "minus_geometry_sha256": "0e270b01ce4cf951c8b1dfa89f959994623d0379167ccab9da475437f377aa3c",
+                "minus_primal_residual": 6.602466857286931e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256033034,
+                "plus_geometry_sha256": "a7a6381cc2ffcde7592c517bf2c0a57078e3ff712f2abe48ce42cb34a726fd73",
+                "plus_primal_residual": 6.602465092896434e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 0,
+                "minus_energy_eV": -6319.225603961671,
+                "minus_geometry_sha256": "94cbc490765d91316c4d79d6ca7cc2d6c1b294b8f844080a728a4d1532a12f81",
+                "minus_primal_residual": 5.845390931281545e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225603961671,
+                "plus_geometry_sha256": "d7cf4058be6060313568c2d9320693bd6812fc700f78e5f21341a31de7fad70c",
+                "plus_primal_residual": 5.845858144750652e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 1,
+                "minus_energy_eV": -6319.225668629205,
+                "minus_geometry_sha256": "ff3aa235541fb2c441a2fc75da1354cf10736000651ce9bffc6a638982bece36",
+                "minus_primal_residual": 3.0880558477609056e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225534749116,
+                "plus_geometry_sha256": "261cb248b5d85555ba021fa10fc3dabd9ff0d6d8c94a5a21d8835c03730b55e8",
+                "plus_primal_residual": 3.0915433109992985e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256042016415,
+                "minus_geometry_sha256": "c3a4d3eefadac42e94f782fbbb3bde9503fb395cc67909ad682c83b02739eb85",
+                "minus_primal_residual": 6.617079854937135e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256042016415,
+                "plus_geometry_sha256": "63a43c7b94d02d377bdae19fdd96c533faad88d78f3e0feb6a3f86c4ea028954",
+                "plus_primal_residual": 6.617081424961514e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 0,
+                "minus_energy_eV": -6319.225660234567,
+                "minus_geometry_sha256": "31d6b5ff9030b106f0ebdf4576df7653619677003b5e41e040987d1bee5f18e5",
+                "minus_primal_residual": 3.965403154523382e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225544280011,
+                "plus_geometry_sha256": "ffccf7ad35ec7aadd5f43cd2e4ff7c63f28e6a6dacd1378a74e21cef2ac3412a",
+                "plus_primal_residual": 3.9692218140723776e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 1,
+                "minus_energy_eV": -6319.225636867889,
+                "minus_geometry_sha256": "bd4cc7456c827ab3b7c39cd7ff16a2cac486cde36392ace1e4903aedf306e02b",
+                "minus_primal_residual": 5.295333558488016e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225569919197,
+                "plus_geometry_sha256": "8508d113344a973dc3ff274f5e777819a17d5a4a4e2fb144e35937e5219e1833",
+                "plus_primal_residual": 5.295580063781056e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604201637,
+                "minus_geometry_sha256": "1f2459ed2ac6916905fc9c0d3fdf783d0ce828a19173d7d671d4eb74d0284a30",
+                "minus_primal_residual": 6.617071090008813e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604201637,
+                "plus_geometry_sha256": "f8c1047e9d5c18afe61ac47871ab5ac22451cb8295f1347b6c5d4435ae3b6572",
+                "plus_primal_residual": 6.617070823304283e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 0,
+                "minus_energy_eV": -6319.225660234567,
+                "minus_geometry_sha256": "3d8854037c777ebcf5d29a4009756f900f4d614785da9a676a841826cca2c5b5",
+                "minus_primal_residual": 3.9645546983058896e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225544280011,
+                "plus_geometry_sha256": "31965d787e35e700b6022d85e66d7599338e61acbc7b8886b2518d68c2eb57e7",
+                "plus_primal_residual": 3.966948452433812e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 1,
+                "minus_energy_eV": -6319.225569919197,
+                "minus_geometry_sha256": "280988d12ae6fb2599aea8c63f172e76936dc3ee51e779f647505a342bac00d0",
+                "minus_primal_residual": 5.295743857046032e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225636867889,
+                "plus_geometry_sha256": "f8c579aece067c1667645e77973ac6d7abcafed56da714170c9aea830901fcf3",
+                "plus_primal_residual": 5.294052261697303e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604201637,
+                "minus_geometry_sha256": "91df6d0a60ebe8e33042b28cb63c1a0dac9308a9ef1a1db44447770d04f91477",
+                "minus_primal_residual": 6.61707189703491e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604201637,
+                "plus_geometry_sha256": "017e3b64afa9ead38e7fd8d2436f7e4d7bfa596b368ff5249c56b2c064ef9916",
+                "plus_primal_residual": 6.61707117357072e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 0,
+                "minus_energy_eV": -6319.225603961671,
+                "minus_geometry_sha256": "b7063efbcca4a165a1fddd5ba7cb57afe51634e4cc1b4e0f80754e70e2273be9",
+                "minus_primal_residual": 5.846423452874352e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225603961671,
+                "plus_geometry_sha256": "47a93a997a91ad185ff966250387b1837d8b7a4ea14b46970e0c6d93e99f5f07",
+                "plus_primal_residual": 5.845732649116522e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 1,
+                "minus_energy_eV": -6319.225534749116,
+                "minus_geometry_sha256": "da3e30beb189ec91adad6eb1177c2940dc012d0208bdf77dc9f8063c2f27bed8",
+                "minus_primal_residual": 3.087967382988002e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225668629205,
+                "plus_geometry_sha256": "97176edfdf4b2800322043de7aa95a602f00e85ec5520233571d5b83d54dd54e",
+                "plus_primal_residual": 3.0886660332399326e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256042016415,
+                "minus_geometry_sha256": "1509c53d11b96a07e106b79ae9c26216312925a8037ff1a1970386e53b62d41e",
+                "minus_primal_residual": 6.617078494368534e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256042016415,
+                "plus_geometry_sha256": "2b2521134cd9bc1f7952ed2b43096dca34e78f34d1f227de2b1840f7f0e73c0d",
+                "plus_primal_residual": 6.617079730385878e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 0,
+                "minus_energy_eV": -6319.225544280011,
+                "minus_geometry_sha256": "2ce173685230fad14b6515ef6836d2d5ef6e45e49b84b87e3652d3637c1333f5",
+                "minus_primal_residual": 3.967555359373598e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225660234567,
+                "plus_geometry_sha256": "27df38f98da78e0e2315e923f4a70b2bb8c8f581d6ecb85a7f4d02ee51a78e1d",
+                "plus_primal_residual": 3.9646906074936694e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 1,
+                "minus_energy_eV": -6319.225569919197,
+                "minus_geometry_sha256": "8168726152b8bfbfdc40485f17572d2201f157d787b7613b7d764b232247609c",
+                "minus_primal_residual": 5.29491387625222e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225636867889,
+                "plus_geometry_sha256": "af5c55b5ded101a74977e748d6e61688419ba41b561786dca32d265970da4488",
+                "plus_primal_residual": 5.293672204494501e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604201637,
+                "minus_geometry_sha256": "11e743c78e04eeb6636de264aae6ede3cf3dfefbd6306c6c759918dc3b80a7e8",
+                "minus_primal_residual": 6.617073039909229e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604201637,
+                "plus_geometry_sha256": "d729ca43ef4d7a2b29eee235299a8ac4cd00481d6eec0c10092de736b4dc82ee",
+                "plus_primal_residual": 6.617071263181903e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 0,
+                "minus_energy_eV": -6319.225544280011,
+                "minus_geometry_sha256": "373f57af3387d7ecb74b615aa2357239a0313a21e2705133bfeb982a7949a836",
+                "minus_primal_residual": 3.966777163718793e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225660234567,
+                "plus_geometry_sha256": "8c9cc733df74fe9308e0c0d4aec2ca291bec22538d01f3732b05642f0632dc0f",
+                "plus_primal_residual": 3.9655344118357903e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 1,
+                "minus_energy_eV": -6319.225636867889,
+                "minus_geometry_sha256": "af4e1aa40523dc77c44ce5d5e7dce063eaa6d2a64e22b09c2ddbeb4983888119",
+                "minus_primal_residual": 5.295353626933573e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225569919197,
+                "plus_geometry_sha256": "c43256e97b7a9328156e32d67890ccae4357ae46414f1eb5e9e5b3c96e8c96ec",
+                "plus_primal_residual": 5.295160659704877e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604201637,
+                "minus_geometry_sha256": "1dec1e1c6bf007ea79916c56bbec4563ac84d3d57d2ccc60a2de059e44a38005",
+                "minus_primal_residual": 6.61707106350107e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604201637,
+                "plus_geometry_sha256": "4d5c9eb0b4d6bcb3b84a71522f561ef23744ece26b06442bc58812ff1eb95b48",
+                "plus_primal_residual": 6.617071298232022e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              }
+            ],
+            "step_A": 0.0004
+          },
+          {
+            "components": [
+              {
+                "atom": 0,
+                "axis": 0,
+                "minus_energy_eV": -6319.2256031628185,
+                "minus_geometry_sha256": "7d066779ef5517224aa5d310d1e3cea78f9cd838db62975cd317c2ed67945650",
+                "minus_primal_residual": 6.764697189035482e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256031628185,
+                "plus_geometry_sha256": "76fd0d1d550ae775a9d84e187b554b089862258b7a5e4e36a4038e6d62c2b238",
+                "plus_primal_residual": 6.76790448177067e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 0,
+                "axis": 1,
+                "minus_energy_eV": -6319.225641559152,
+                "minus_geometry_sha256": "29a4d82053348024998bcc0751c5992e9c8e00960344d834fd17cf4c0f137c05",
+                "minus_primal_residual": 7.594500948510216e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225564428396,
+                "plus_geometry_sha256": "86b382bbc240f462eaa0b43ae3f60e6ff8dcd6fb4e21c7811e1bf6f639901bbf",
+                "plus_primal_residual": 7.634820561808714e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 0,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604136172,
+                "minus_geometry_sha256": "c994a71ef4c96b4424c2fb6097e59fa0a2bcd27d3e769d0308b282384348cf58",
+                "minus_primal_residual": 3.301241972078221e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604136172,
+                "plus_geometry_sha256": "32e2c80ee9aa054acf068be401defb372972a12d481eabb84a55f848076d4a94",
+                "plus_primal_residual": 3.3012413477288455e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 0,
+                "minus_energy_eV": -6319.225636401164,
+                "minus_geometry_sha256": "e18b402971140160382b2e25914f328fedbc074c01f238e3579697ac2a190e14",
+                "minus_primal_residual": 7.432241836816874e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225569671152,
+                "plus_geometry_sha256": "d39418dd292dd28129f6110b80e1c466bb8868a80bd53cca1cf6b8a8374323ab",
+                "plus_primal_residual": 7.427272386182776e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 1,
+                "minus_energy_eV": -6319.225622326322,
+                "minus_geometry_sha256": "47a52ece042196d8e68f77662253925453d121a12229ad5e6dfc085b4af515dd",
+                "minus_primal_residual": 6.997032553047916e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225583915052,
+                "plus_geometry_sha256": "bd1dea07cc69e8e78722e0e969b8b8d109c96049d253f8ff34f9e155af550ef0",
+                "plus_primal_residual": 6.996532335821119e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604136538,
+                "minus_geometry_sha256": "4e0bd34630d232dc5253693389622d4e1f0f27fe23ac5ee9b5c021bad3434f4a",
+                "minus_primal_residual": 3.301233634523461e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604136538,
+                "plus_geometry_sha256": "7d3e24ceb6dd4b3be7571acbea5bae0fe17222b4950c6542fc67525043a0c18f",
+                "plus_primal_residual": 3.3012343319182923e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 0,
+                "minus_energy_eV": -6319.225636401164,
+                "minus_geometry_sha256": "9ad4e9fd63961d0370fdf41aaa53db4eb9296c12bca67e732a53b0a096c2dfcf",
+                "minus_primal_residual": 7.432608438175773e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225569671152,
+                "plus_geometry_sha256": "18681625445adced39b693263075c3e55a4c0db76599aac0b7d0fe247ce4cfc8",
+                "plus_primal_residual": 7.427563309299508e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 1,
+                "minus_energy_eV": -6319.225583915052,
+                "minus_geometry_sha256": "cce8744fb52d3772ddd165e3cc0f5ee4c06a4996d46a5ecbc24e55a5f756108f",
+                "minus_primal_residual": 6.994703772173134e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225622326322,
+                "plus_geometry_sha256": "652927d3c77e55a775f35f05b55cf1835733d06eb0f362dd9cf07ff030431996",
+                "plus_primal_residual": 6.995248387116593e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604136538,
+                "minus_geometry_sha256": "82dde43dc1a388b5c5f097baa8cd7d65b8f8779d557138ed6846bf75855ba67e",
+                "minus_primal_residual": 3.3012309633542033e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604136538,
+                "plus_geometry_sha256": "f8bf3cd3c25a3f510ce52e2a300ff32e7374477d481dee944492c042df4c7589",
+                "plus_primal_residual": 3.301231479790838e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 0,
+                "minus_energy_eV": -6319.2256031628185,
+                "minus_geometry_sha256": "3d1ea571ea428ab197039d05eb72cdc5e8875f9e472d5d0fe0071f65776c43eb",
+                "minus_primal_residual": 6.765981439419666e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256031628185,
+                "plus_geometry_sha256": "66aeaeec9660366d57cdcb18d1fe299f7a39d45cc7c3f7aa31e9f88486bbaf6e",
+                "plus_primal_residual": 6.764967128520633e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 1,
+                "minus_energy_eV": -6319.225564428396,
+                "minus_geometry_sha256": "99e299c4287937e0380a86f90d8a066307470be5ba1889ee2116bcfcc32b65eb",
+                "minus_primal_residual": 7.634796508715658e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225641559152,
+                "plus_geometry_sha256": "39dfdbe88e2f8cfb2d7c58139ecefd791a62ff649dc74cad7891ff465279a33b",
+                "plus_primal_residual": 7.614840941746976e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604136172,
+                "minus_geometry_sha256": "43335ced34114c34ab32613a4b7a433963a6600a7b3f0dda004ab2d3fb9e8ae7",
+                "minus_primal_residual": 3.301239190579407e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604136172,
+                "plus_geometry_sha256": "553a2bae60235548dddca9e4deb70fb9fc3fef6123d4cf3c99c160f0d4962340",
+                "plus_primal_residual": 3.3012401377086724e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 0,
+                "minus_energy_eV": -6319.225569671152,
+                "minus_geometry_sha256": "9c9c1ff6a3dccb3ad879f28cccf76853a501ed78f6e9fe71b8aea801b877f97b",
+                "minus_primal_residual": 7.428022713874945e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225636401164,
+                "plus_geometry_sha256": "e40495e860ca976ba5350739b6a5c88561a28d9a996ac3abdcee8f3638236bb1",
+                "plus_primal_residual": 7.433585200830351e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 1,
+                "minus_energy_eV": -6319.225583915052,
+                "minus_geometry_sha256": "170bac6f63d5594e276b297032be72540adfe0ca99d4109341a64792476a817d",
+                "minus_primal_residual": 6.994783791759379e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225622326322,
+                "plus_geometry_sha256": "bc2ea3d65219be22c5dc7443ba7a217d67be571a17703cef1d438a0e3f4fc5e6",
+                "plus_primal_residual": 6.996219735297659e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604136538,
+                "minus_geometry_sha256": "c969f2ad2b764f0593f1b6e87375dcd96498cd7117392a7436bb1739e5c96b40",
+                "minus_primal_residual": 3.301236825762313e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604136538,
+                "plus_geometry_sha256": "f0e2cbc9b54c12fc5f6af4ad67f4aeefb712c59bdcb2aa8e5e743bc20009cfaa",
+                "plus_primal_residual": 3.3012319692972073e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 0,
+                "minus_energy_eV": -6319.225569671152,
+                "minus_geometry_sha256": "409994b8646947fbf5e766534bddcaf48965d3ad422428905a3c65f220db6dfd",
+                "minus_primal_residual": 7.427847104819843e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225636401164,
+                "plus_geometry_sha256": "7a65f106f111fbd9b5aa9271fc29a06cd9aacefa82f980af3daed62867da93f4",
+                "plus_primal_residual": 7.431797988710433e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 1,
+                "minus_energy_eV": -6319.225622326322,
+                "minus_geometry_sha256": "fb384d5e03e1e687bd5d0a068ea49a3879475eaa17b50ee4a9dbb6e33893065d",
+                "minus_primal_residual": 6.996915397702185e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225583915052,
+                "plus_geometry_sha256": "411814dc587dfd7a04a835a7ada1342b823a3e6303ddb8ff53a6ee81f1a62288",
+                "plus_primal_residual": 6.993511797989257e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604136538,
+                "minus_geometry_sha256": "66feedcd83f751944e6df20f9dedfabf9c2b0287e33c9322358774a5c48bf06b",
+                "minus_primal_residual": 3.3012348347251703e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604136538,
+                "plus_geometry_sha256": "286c81256f81891fda9bd268d97294be893b41e203ad38ed6d93ed1b863c39de",
+                "plus_primal_residual": 3.3012326785107685e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 0,
+                "minus_energy_eV": -6319.225604301104,
+                "minus_geometry_sha256": "510a4845eec95327c16542036917dc98970ed8a9db10f82b89e27142b0484147",
+                "minus_primal_residual": 9.7434909604923e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604301104,
+                "plus_geometry_sha256": "2f447c09a90bca89cbc5562f06367981e66fb23c1e95b2338030b240b4d55a09",
+                "plus_primal_residual": 9.743390962422178e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 1,
+                "minus_energy_eV": -6319.225637203718,
+                "minus_geometry_sha256": "4d20b48edf193c2bd5092c04ee19911de78195add2118fc71676491f3df11018",
+                "minus_primal_residual": 5.144871570075796e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225570262238,
+                "plus_geometry_sha256": "bff335fb7cf4ab10e965ad3135b5d1429f604b9e7ecea320961f87115188ce4b",
+                "plus_primal_residual": 5.150774612032676e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604361099,
+                "minus_geometry_sha256": "6e1c669515ffe0550edebcce0f44347f3d49c562e0ca814ba8afe05e186f205b",
+                "minus_primal_residual": 3.3085399178577707e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604361099,
+                "plus_geometry_sha256": "a2165052e2e744fc334354fcb810899e64e8801ac9611441c19f27bed4248ffd",
+                "plus_primal_residual": 3.308541531690959e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 0,
+                "minus_energy_eV": -6319.225632864064,
+                "minus_geometry_sha256": "8c65aaef56f681df33cb9d9679b2a086ed5d33be66ed01ea573c94386c65fc81",
+                "minus_primal_residual": 6.609528105307361e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225574885955,
+                "plus_geometry_sha256": "d461d78c52e46ae8ec8b66a7290d87a190ce0a01d365a839844f4dec7358a325",
+                "plus_primal_residual": 6.610513956399701e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 1,
+                "minus_energy_eV": -6319.225620896249,
+                "minus_geometry_sha256": "7a380a5c8ec955a3b1828a138eb068f5d4e18dc5547108deac41adec5ca4ba02",
+                "minus_primal_residual": 8.823905013363551e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225587421899,
+                "plus_geometry_sha256": "e40c9f116a6ab3c0d47176510d370d992863fbaccca944450165e333b18a2e6d",
+                "plus_primal_residual": 8.824582391779159e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604361098,
+                "minus_geometry_sha256": "8c3d1e9ad46f1b84257397cce4fbd2fb8fc3a6f2ccb4449d666645f89e76f2d4",
+                "minus_primal_residual": 3.308540337160103e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604361098,
+                "plus_geometry_sha256": "579a346f0640bf7f26046cba9e447dce59c89311e7484280e0763660dad9a3bf",
+                "plus_primal_residual": 3.3085405207142713e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 0,
+                "minus_energy_eV": -6319.225632864064,
+                "minus_geometry_sha256": "5fcd22da60accc28faf2d26265fdb04d7ce825ec5801566152300487fb0ea959",
+                "minus_primal_residual": 6.608694946319428e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225574885955,
+                "plus_geometry_sha256": "7dea95b2922b4a64aaf829a59d3d3259edeb0d91bdc586ce929c4643f6a3b863",
+                "plus_primal_residual": 6.611714921698296e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 1,
+                "minus_energy_eV": -6319.225587421899,
+                "minus_geometry_sha256": "bd77fa224bb4160a2335ffd7579831ce21829eec3af58cf80016e856a349aba4",
+                "minus_primal_residual": 8.824799182836835e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225620896249,
+                "plus_geometry_sha256": "382d104314658a0993a6d08a5f65f878c0252e1c1a3d168d32e3debcfabe57fa",
+                "plus_primal_residual": 8.824598213474788e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604361098,
+                "minus_geometry_sha256": "a2f15b329cb3e82b3ac7692c2213bfef7ea40988bed37a60fe09db96c7941e07",
+                "minus_primal_residual": 3.3085400148241235e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604361098,
+                "plus_geometry_sha256": "73336e331216bb31554f1c1f6a8803e6eda4eac0a3939363697000ab39d2c3a1",
+                "plus_primal_residual": 3.3085393735813696e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 0,
+                "minus_energy_eV": -6319.225604301104,
+                "minus_geometry_sha256": "7b8eb23e8f6469fe1381acb12973f4dc496f1536ca4f312cf452580aefa3fbbe",
+                "minus_primal_residual": 9.74327478168742e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604301104,
+                "plus_geometry_sha256": "f6001f9643c09af2d9e42b7d60ab8b1e6059cedd69905b43292598fcad1e9e5d",
+                "plus_primal_residual": 9.743649509076852e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 1,
+                "minus_energy_eV": -6319.225570262238,
+                "minus_geometry_sha256": "10ed842437c01af5369ee1ff6b6f9c5caee7c7dfbb3e91d387625bde40b954c1",
+                "minus_primal_residual": 5.151116808822878e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225637203718,
+                "plus_geometry_sha256": "5044970e0ef5eccdcb28ce45a6384253be89472304897c9a3a2aa0c6e3ca5766",
+                "plus_primal_residual": 5.143701137714916e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604361099,
+                "minus_geometry_sha256": "225ff43f2af462966c9d5954d5bb4dfea9f71e75f25e87c716e53589810d5451",
+                "minus_primal_residual": 3.308540404282478e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604361099,
+                "plus_geometry_sha256": "f4c01d3566db39f1140b6361dbd6145590bb426df7d2943d813635e0005871da",
+                "plus_primal_residual": 3.3085410962906344e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 0,
+                "minus_energy_eV": -6319.225574885955,
+                "minus_geometry_sha256": "271427156dc9c4c5f899df41c11ebe07d4efc2d334073496d54ccfc107dd8cdf",
+                "minus_primal_residual": 6.611888030232666e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225632864064,
+                "plus_geometry_sha256": "782370dd10a09a9726a506129f27bb9318feb80687bd457f82d1c89df8ceec01",
+                "plus_primal_residual": 6.609173847499198e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 1,
+                "minus_energy_eV": -6319.225587421899,
+                "minus_geometry_sha256": "c9bb419d5f44e3a8d70be2452156e80a72b2a03f7918375b49a4695e3ffc710d",
+                "minus_primal_residual": 8.824972132839299e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225620896249,
+                "plus_geometry_sha256": "6a0cd58b78124424cb1598cd8858c5e3fa6dbfb8f374f0f9813d0e0fad819552",
+                "plus_primal_residual": 8.824663101346258e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604361098,
+                "minus_geometry_sha256": "80a0802853dc017f3776ea8b4377ac6ef9dcbaabc8a83738722243e6efa7d8e0",
+                "minus_primal_residual": 3.30853580668386e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604361098,
+                "plus_geometry_sha256": "9c3d4e5a02798725d9bc3ac488005e285f5a07b7b51e2830576b21c5e43448da",
+                "plus_primal_residual": 3.308537259146199e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 0,
+                "minus_energy_eV": -6319.225574885955,
+                "minus_geometry_sha256": "5f186dc3217c2c8626a4d904eb729987ac8255f660dc6a409d97673b2aeb3329",
+                "minus_primal_residual": 6.611391780731026e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225632864064,
+                "plus_geometry_sha256": "5c8bae42db3f6e83cd939d4f0e0a4d573fe31db85ab6b8e60be293f464774d0a",
+                "plus_primal_residual": 6.609692514701904e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 1,
+                "minus_energy_eV": -6319.225620896249,
+                "minus_geometry_sha256": "85321fd4e7a3556fc7f9dcf8bc51bf38051c62265b100c5284ac47db88743e17",
+                "minus_primal_residual": 8.824606434623057e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225587421899,
+                "plus_geometry_sha256": "b2f90913de3e3ed609190b9fcf2b43f62ac122abeb905ae46bef8ef50a6f29d0",
+                "plus_primal_residual": 8.823709274240875e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604361098,
+                "minus_geometry_sha256": "9a1da7ad1ef00ba0324400306b1cdd4cf90876dbb04ce5701e4b7310f95815c6",
+                "minus_primal_residual": 3.3085378140207543e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604361098,
+                "plus_geometry_sha256": "e8309c9d66fd0db42c011bdbbcdbead993345469c9cbf5b988bd162f4d3c7e77",
+                "plus_primal_residual": 3.308537330335209e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              }
+            ],
+            "step_A": 0.0002
+          },
+          {
+            "components": [
+              {
+                "atom": 0,
+                "axis": 0,
+                "minus_energy_eV": -6319.2256041013925,
+                "minus_geometry_sha256": "b5879bd385a6f59ed236f0627bf06736e446bfebba85ce99a2baa7e7f0fdf23c",
+                "minus_primal_residual": 3.3613489113532666e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256041013925,
+                "plus_geometry_sha256": "7e361690828098680be136eadfa09feba8222aba0e8d1d9ee4659bce4d6bad16",
+                "plus_primal_residual": 3.374774992787627e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 0,
+                "axis": 1,
+                "minus_energy_eV": -6319.225623341734,
+                "minus_geometry_sha256": "e0a8d1635968a3cbc6c67d70ca821311c9f5d2c976592d9c4a5d1b3015d5bb72",
+                "minus_primal_residual": 3.818585373049211e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225584776528,
+                "plus_geometry_sha256": "6c096e772bc869b0c554cb79d3c8b859b4d51d199aa7ba7b949541bcce38250d",
+                "plus_primal_residual": 3.817564223389414e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 0,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256043447305,
+                "minus_geometry_sha256": "4209553aabdb4e4c77491f345c9fc14d0b9dd2fa1c74bfd55c8ffb7b9c9f646a",
+                "minus_primal_residual": 5.502064333563466e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256043447305,
+                "plus_geometry_sha256": "201847a2d5be1ad01f6effcae5f8c2f445d85047a80d6a49a11556b6e37d9aaa",
+                "plus_primal_residual": 5.502063144886074e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 0,
+                "minus_energy_eV": -6319.225620752243,
+                "minus_geometry_sha256": "610a5c9bfcf5c2b23710bee18a538c9c93a1c82cc2cf9777a7a79c6d33bc5405",
+                "minus_primal_residual": 3.7165789619162664e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225587387212,
+                "plus_geometry_sha256": "6a82900cdf9ac9eedd91c6fd8799a50c69ad6d64c59a09a0e68c56e38d932dc0",
+                "plus_primal_residual": 3.7149774128875644e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 1,
+                "minus_energy_eV": -6319.225613693786,
+                "minus_geometry_sha256": "35c4ee3733abda35851bfaef03a605ef261af4c93352659b05f96d329b842ea1",
+                "minus_primal_residual": 3.4968595177238626e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225594487932,
+                "plus_geometry_sha256": "8f4cd130182caf615c1adf43c248e0bd93d12d0649e86e50da85fdd54209c1cd",
+                "plus_primal_residual": 3.497582872613688e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 1,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256043448215,
+                "minus_geometry_sha256": "3cf98a232b056c2629c660318bf652d620b9497b1edce6c6a5318848d19e2f2f",
+                "minus_primal_residual": 5.502055419133368e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256043448215,
+                "plus_geometry_sha256": "a316c6fd780084afd6a832009d55576760799f47848bb4f070a796d1dc40610f",
+                "plus_primal_residual": 5.502051800376803e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 0,
+                "minus_energy_eV": -6319.225620752243,
+                "minus_geometry_sha256": "c2089c9aa405844c7e0ffb4323763568b2c26fd43530deacb2172bd362e54564",
+                "minus_primal_residual": 3.712355658737288e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225587387212,
+                "plus_geometry_sha256": "18ad3a7502bc03e0a551a0f709ec83d0bf94fcae032c6c4453282418d12ea460",
+                "plus_primal_residual": 3.715184240360407e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 1,
+                "minus_energy_eV": -6319.225594487932,
+                "minus_geometry_sha256": "15bf29c9feee7d122dd22e41c15859441d4f76c3e93ac0903b7768409ded0ef7",
+                "minus_primal_residual": 3.4973801868741867e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225613693786,
+                "plus_geometry_sha256": "db3cc058bd097f7efbf6bc94162cd8400024ec2f137f580fb1c0435d819dbe67",
+                "plus_primal_residual": 3.4971460716868693e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 2,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256043448215,
+                "minus_geometry_sha256": "e17dd4920792f794d7df6bf797252d6e7ad7d6ec90ea9ebf19e7c1dd4d36c512",
+                "minus_primal_residual": 5.502052853804049e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256043448215,
+                "plus_geometry_sha256": "b940a8c32bb30d2500a33ce6427db8909b0bb70dd55533980b5db5958e021d19",
+                "plus_primal_residual": 5.50205186263058e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 0,
+                "minus_energy_eV": -6319.2256041013925,
+                "minus_geometry_sha256": "6cbe1e4d642284a425140241c75ba2e6dac89420d33a1150702096afd87e2333",
+                "minus_primal_residual": 3.3809905370210615e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256041013925,
+                "plus_geometry_sha256": "40b5fd9af13e91ef9eece6e63855c2fd72945c48efbdcd794a3917eb3450fe76",
+                "plus_primal_residual": 3.338952757056613e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 1,
+                "minus_energy_eV": -6319.225584776528,
+                "minus_geometry_sha256": "7507178d555654eb80131a9ff3d530cde214a37b04b4f3a13bbbd50fe2e26a35",
+                "minus_primal_residual": 3.817836316860397e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225623341734,
+                "plus_geometry_sha256": "6af74eb2f7d072269889f043d2f35ea7dbb9b0fb148ba4299d307fa36023b0c4",
+                "plus_primal_residual": 3.821059986911445e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 3,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256043447305,
+                "minus_geometry_sha256": "6d2d6c61c1e51e9eaeeb1f7f47eb2e0cf03162d6503194f5981baf18b4790ac6",
+                "minus_primal_residual": 5.502063246077866e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256043447305,
+                "plus_geometry_sha256": "0d9436bf10984f6e10920d5e1d8a992fa2fce822bfbeaa2039fc89465836ebc2",
+                "plus_primal_residual": 5.502063389166631e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 0,
+                "minus_energy_eV": -6319.225587387212,
+                "minus_geometry_sha256": "9d34de718602afa6c4f574de3338c8aa05e464bbb93108959b8e12dfddaf2627",
+                "minus_primal_residual": 3.715069583285261e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225620752243,
+                "plus_geometry_sha256": "0205ca18ac0bf7861d5e029187143bbbacedc17c28b0c6dd785448f2e8750e06",
+                "plus_primal_residual": 3.7137503343800676e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 1,
+                "minus_energy_eV": -6319.225594487932,
+                "minus_geometry_sha256": "ec5a47c2c5895e41d885ad8f883a36f6ca3dd7e65cb699ce497961278b7c382f",
+                "minus_primal_residual": 3.4983780161412235e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225613693786,
+                "plus_geometry_sha256": "1fba9b6214f1dc0c5e426cc032b250747db254d498719251a1984ba85bd1b431",
+                "plus_primal_residual": 3.498567161747485e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 4,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256043448215,
+                "minus_geometry_sha256": "122097736d9c78e6fccadf2591c0aaf236398600ec42f698375b5920dbbff952",
+                "minus_primal_residual": 5.502050773697249e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256043448215,
+                "plus_geometry_sha256": "73a5aaf5527cf17d286a6b03b5d57836a10013db3491466c6ddd3343c7474e5e",
+                "plus_primal_residual": 5.502052099303677e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 0,
+                "minus_energy_eV": -6319.225587387212,
+                "minus_geometry_sha256": "c3d67f39a93fa814a5d93842bb99429c46efec831f72a7de0f196df3a956b5bb",
+                "minus_primal_residual": 3.7152100100019867e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225620752243,
+                "plus_geometry_sha256": "a6711d1acdb721a453313432c3b4d6b1b994c9d82ed2434b2730c02bf69927fa",
+                "plus_primal_residual": 3.715270370659836e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 1,
+                "minus_energy_eV": -6319.225613693786,
+                "minus_geometry_sha256": "d00bbefd93a66d0940d639509fb9c46cee9cd370147eaf6ef6fc0d4f328c3a72",
+                "minus_primal_residual": 3.497634813515828e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225594487932,
+                "plus_geometry_sha256": "c40d6881090fca1f31b49e1dda95c643d407541873ba5e0f07e153b64ccf068d",
+                "plus_primal_residual": 3.498803084608687e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 5,
+                "axis": 2,
+                "minus_energy_eV": -6319.2256043448215,
+                "minus_geometry_sha256": "4ef252b20deaca38f515db3f6d755ee27f3890422e287566b2204f953d8c2e56",
+                "minus_primal_residual": 5.502051540242864e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256043448215,
+                "plus_geometry_sha256": "86fd1195b3e80ccc8b08163f6edf47625175da09b6ee50e1282d188a5467ac94",
+                "plus_primal_residual": 5.50205175721305e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 0,
+                "minus_energy_eV": -6319.225604385963,
+                "minus_geometry_sha256": "1a16552306304a5069d014ecc2b6c86fecb77205e6a9a729cee557b61a0c6caa",
+                "minus_primal_residual": 4.870706360893403e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604385963,
+                "plus_geometry_sha256": "ad5a5267e36757de247e5ced5d069c090ca2f336b8f2286170edebe426102a03",
+                "plus_primal_residual": 4.872330334614193e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 1,
+                "minus_energy_eV": -6319.225620979392,
+                "minus_geometry_sha256": "aa1df4433bbb9561290cca4b6fc935c8b8c338204dc4b85803fd9fc2e3797492",
+                "minus_primal_residual": 8.575057644248307e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225587508472,
+                "plus_geometry_sha256": "ed5af0fd2c190d8a57b04d813c4462c7d3a8d0c8986556629c8719a1de0e679c",
+                "plus_primal_residual": 8.581099998435506e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 6,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604400962,
+                "minus_geometry_sha256": "0ca7a0155ae341ecf09c05d28f32c3ebca669f118f2482964cfc06448106ca47",
+                "minus_primal_residual": 5.514233139760484e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604400962,
+                "plus_geometry_sha256": "9a9e6b527027990a37c062f7b620920d132f2075d514019cd3f2d5062b906b11",
+                "plus_primal_residual": 5.514232492510265e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 0,
+                "minus_energy_eV": -6319.2256187740195,
+                "minus_geometry_sha256": "1213d033d6469348cf767b392ec2bed971170389aca898755bab93fada25b441",
+                "minus_primal_residual": 3.3046294103636405e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225589784861,
+                "plus_geometry_sha256": "e0a0edd543c608734173b28623c4b77b7a7c06dbd0717bdc91dcb53e3073bdde",
+                "plus_primal_residual": 3.305759203602467e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 1,
+                "minus_energy_eV": -6319.225612719044,
+                "minus_geometry_sha256": "ca3f1e6d866854422298ab5f73532897544c9852c536c2ffaf5283dea9b37a00",
+                "minus_primal_residual": 4.4118986423564367e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225595981868,
+                "plus_geometry_sha256": "e986006d7799762af5dc0d020c95aec99c4ae9696802fceb7e0e3b86450c4f26",
+                "plus_primal_residual": 4.4115269014646267e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 7,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604400962,
+                "minus_geometry_sha256": "2abe1d3bf9ca01578ba4a820f9c6c3ed0bce7ded628106e85bd5ddb642a38a51",
+                "minus_primal_residual": 5.514225766202624e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604400962,
+                "plus_geometry_sha256": "af6f25c8fe08cb13cb15f0b77f2d098e87244169aabc24de6ea0f18b4b9c1519",
+                "plus_primal_residual": 5.514225294884128e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 0,
+                "minus_energy_eV": -6319.2256187740195,
+                "minus_geometry_sha256": "8238d9e9c6cbd344460b72a0a4ef494bb12cd48842ab70b9fe10caedbb341fe1",
+                "minus_primal_residual": 3.30401023368436e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225589784861,
+                "plus_geometry_sha256": "66cd4d1e13169bd81e399b9ad1f8b32c2af2a19bd4590ece358cef50c704e509",
+                "plus_primal_residual": 3.305605521050053e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 1,
+                "minus_energy_eV": -6319.225595981868,
+                "minus_geometry_sha256": "09f4059c7c52a6c035b7281e23db231f109da7d2f537bfca7143bc49e8737017",
+                "minus_primal_residual": 4.412941797736106e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225612719044,
+                "plus_geometry_sha256": "d0c9113880f3a7c66480c9b18a9acabe1f05d6f16c0947a57681e1e095926d6a",
+                "plus_primal_residual": 4.4117728744380674e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 8,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604400962,
+                "minus_geometry_sha256": "ca88f6951db8598058a7c4fcb214303b15f7bd0b297d4741f6cf33d5702fec37",
+                "minus_primal_residual": 5.514225587554341e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604400962,
+                "plus_geometry_sha256": "1e0a94974261bc15cc7f3672d63a8dc04cd697eb37cd3c265a2bcfa9259b0b69",
+                "plus_primal_residual": 5.514225342998092e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 0,
+                "minus_energy_eV": -6319.225604385963,
+                "minus_geometry_sha256": "63808e9bfec389276316adf5b3ac90dbdcc57b23ce3bef7d9a17b841e4b95fea",
+                "minus_primal_residual": 4.871871664552911e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604385963,
+                "plus_geometry_sha256": "64f2e3fcf8da0baf7387dfc4c31e69c81e7d5ecd9a517ed5aa9d4cc36fef1e8d",
+                "plus_primal_residual": 4.871703391726281e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 1,
+                "minus_energy_eV": -6319.225587508472,
+                "minus_geometry_sha256": "5674a61db028afcf646122cd88ca6058bf2aafbc80d392c0044855b2fd1c7fdd",
+                "minus_primal_residual": 8.581780933459543e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225620979392,
+                "plus_geometry_sha256": "327523d9ad5739efd6a1d5b02d2371aa46989b52c665eac21467c721ac77b06b",
+                "plus_primal_residual": 8.577574202081086e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 9,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604400962,
+                "minus_geometry_sha256": "f2a6bc0866be44bd31ecd86648e16d4bb88944d5f0cbbfd8b2c768b153d4fea3",
+                "minus_primal_residual": 5.514232557354622e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604400962,
+                "plus_geometry_sha256": "defbf73fb3178f964ad93b8c1043b9ca53c4cb5dbe01b2b9833f1f12e7ee5b13",
+                "plus_primal_residual": 5.514233554828373e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 0,
+                "minus_energy_eV": -6319.225589784861,
+                "minus_geometry_sha256": "d837b294b10a1405384bfb5ad31534a7042e69e6ce27f467d2af5279361d9ae2",
+                "minus_primal_residual": 3.306002572474998e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256187740195,
+                "plus_geometry_sha256": "f90d79f064051b1cd4ca8c04f523f54682160ce05bf85c29fdf6e1b4b18abf90",
+                "plus_primal_residual": 3.304006828771301e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 1,
+                "minus_energy_eV": -6319.225595981868,
+                "minus_geometry_sha256": "d80cc388ceee5186f52af763050a970fe5de4b610e4553bf41545d38afd2617b",
+                "minus_primal_residual": 4.412867068841391e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225612719044,
+                "plus_geometry_sha256": "d42ff81de0779f91f7dab301f9c64bae144ec559fe0e8330f2a92bf2197eeba4",
+                "plus_primal_residual": 4.411684048021153e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 10,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604400962,
+                "minus_geometry_sha256": "40340d3dfade19ef6691756a59ee2f3fce79b5b789f95bd9d8ac6928b5934edb",
+                "minus_primal_residual": 5.514225860159063e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604400962,
+                "plus_geometry_sha256": "dd02e18cfa445f7e4426f565c0b55167ebace2c5a4d85701746e04e5d29f4437",
+                "plus_primal_residual": 5.514226286366303e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 0,
+                "minus_energy_eV": -6319.225589784861,
+                "minus_geometry_sha256": "85b2dc965c374d5fa697022df245b35bf64f5b63c091fe4e3c56ac8c79349d24",
+                "minus_primal_residual": 3.3052640050582155e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.2256187740195,
+                "plus_geometry_sha256": "706b5055fa82dc5099c1210899530b70859756170bc8bf299276d98f7e51d1f5",
+                "plus_primal_residual": 3.305008279847541e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 1,
+                "minus_energy_eV": -6319.225612719044,
+                "minus_geometry_sha256": "d0dad3182cb4fe1f507bd65a0560ea5d9deb06f1ecbc6b11693158341f0a556b",
+                "minus_primal_residual": 4.4131705890944585e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225595981868,
+                "plus_geometry_sha256": "f8c0afe17f3a9f3cc684b67462b1ee69abb7a5475f347b37609827435f635ecb",
+                "plus_primal_residual": 4.4119772618430905e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              },
+              {
+                "atom": 11,
+                "axis": 2,
+                "minus_energy_eV": -6319.225604400962,
+                "minus_geometry_sha256": "eb424f2196395bb24faf04d3c708255f9031389cf0461f6b389d9beb314bc152",
+                "minus_primal_residual": 5.514225725207067e-13,
+                "minus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+                "plus_energy_eV": -6319.225604400962,
+                "plus_geometry_sha256": "ea7ca758b9fa2da9391d51208f1879fa0335bcd52d6140fa9ef63b7fb9cb8716",
+                "plus_primal_residual": 5.51422587001615e-13,
+                "plus_topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+              }
+            ],
+            "step_A": 0.0001
+          }
+        ],
+        "records": [
+          {
+            "analytic_gradient_eV_per_A": [
+              [
+                -9.584059268338076e-17,
+                0.19282573241339962,
+                -3.5616196801691625e-19
+              ],
+              [
+                0.16682520403444323,
+                0.09602963263775159,
+                -4.047506548155249e-19
+              ],
+              [
+                0.16682520403444306,
+                -0.09602963263775165,
+                4.1582129792095947e-20
+              ],
+              [
+                8.869202220348543e-18,
+                -0.1928257324133996,
+                -5.664360949621245e-19
+              ],
+              [
+                -0.16682520403444323,
+                -0.09602963263775148,
+                5.6306740676905775e-19
+              ],
+              [
+                -0.16682520403444287,
+                0.09602963263775117,
+                3.67706305279156e-19
+              ],
+              [
+                4.7230761552632525e-17,
+                0.16735489546022825,
+                1.1762581915880865e-19
+              ],
+              [
+                0.14494596591122158,
+                0.08368587711585497,
+                1.7212253054286118e-19
+              ],
+              [
+                0.14494596591122166,
+                -0.08368587711585491,
+                1.2572792712481574e-19
+              ],
+              [
+                -3.263430567411493e-17,
+                -0.16735489546022814,
+                6.106128174768596e-20
+              ],
+              [
+                -0.14494596591122158,
+                -0.08368587711585491,
+                2.896861799199639e-20
+              ],
+              [
+                -0.14494596591122177,
+                0.08368587711585505,
+                -3.636269501239926e-20
+              ]
+            ],
+            "error_eV_per_A": [
+              [
+                -9.584059268338076e-17,
+                -4.618029418979042e-06,
+                -3.5616196801691625e-19
+              ],
+              [
+                7.086254972810124e-07,
+                5.844818829744969e-06,
+                -4.047506548155249e-19
+              ],
+              [
+                7.08625497114479e-07,
+                -5.84481882980048e-06,
+                4.1582129792095947e-20
+              ],
+              [
+                8.869202220348543e-18,
+                4.618029419006797e-06,
+                -5.664360949621245e-19
+              ],
+              [
+                -7.086254972810124e-07,
+                -5.8448188296339465e-06,
+                5.6306740676905775e-19
+              ],
+              [
+                -7.086254969201899e-07,
+                5.844818829328635e-06,
+                3.67706305279156e-19
+              ],
+              [
+                4.7230761552632525e-17,
+                4.784873233687481e-06,
+                1.1762581915880865e-19
+              ],
+              [
+                2.7704742131817728e-06,
+                1.24778271187731e-08,
+                1.7212253054286118e-19
+              ],
+              [
+                2.7704742132650395e-06,
+                -1.2477827063261948e-08,
+                1.2572792712481574e-19
+              ],
+              [
+                -3.263430567411493e-17,
+                -4.784873233576459e-06,
+                6.106128174768596e-20
+              ],
+              [
+                -2.7704742131817728e-06,
+                -1.2477827063261948e-08,
+                2.896861799199639e-20
+              ],
+              [
+                -2.770474213376062e-06,
+                1.2477827202039826e-08,
+                -3.636269501239926e-20
+              ]
+            ],
+            "finite_difference_gradient_eV_per_A": [
+              [
+                0.0,
+                0.1928303504428186,
+                0.0
+              ],
+              [
+                0.16682449540894595,
+                0.09602378781892185,
+                0.0
+              ],
+              [
+                0.16682449540894595,
+                -0.09602378781892185,
+                0.0
+              ],
+              [
+                0.0,
+                -0.1928303504428186,
+                0.0
+              ],
+              [
+                -0.16682449540894595,
+                -0.09602378781892185,
+                0.0
+              ],
+              [
+                -0.16682449540894595,
+                0.09602378781892185,
+                0.0
+              ],
+              [
+                0.0,
+                0.16735011058699456,
+                0.0
+              ],
+              [
+                0.1449431954370084,
+                0.08368586463802785,
+                0.0
+              ],
+              [
+                0.1449431954370084,
+                -0.08368586463802785,
+                0.0
+              ],
+              [
+                0.0,
+                -0.16735011058699456,
+                0.0
+              ],
+              [
+                -0.1449431954370084,
+                -0.08368586463802785,
+                0.0
+              ],
+              [
+                -0.1449431954370084,
+                0.08368586463802785,
+                0.0
+              ]
+            ],
+            "gates": {
+              "maximum_le_2e-3_eV_per_A": true,
+              "rms_le_5e-4_eV_per_A": true
+            },
+            "maximum_error_eV_per_A": 5.84481882980048e-06,
+            "relative_frobenius_error": 2.568972866397192e-05,
+            "rms_error_eV_per_A": 2.676032388467368e-06,
+            "step_A": 0.0004
+          },
+          {
+            "analytic_gradient_eV_per_A": [
+              [
+                -9.584059268338076e-17,
+                0.19282573241339962,
+                -3.5616196801691625e-19
+              ],
+              [
+                0.16682520403444323,
+                0.09602963263775159,
+                -4.047506548155249e-19
+              ],
+              [
+                0.16682520403444306,
+                -0.09602963263775165,
+                4.1582129792095947e-20
+              ],
+              [
+                8.869202220348543e-18,
+                -0.1928257324133996,
+                -5.664360949621245e-19
+              ],
+              [
+                -0.16682520403444323,
+                -0.09602963263775148,
+                5.6306740676905775e-19
+              ],
+              [
+                -0.16682520403444287,
+                0.09602963263775117,
+                3.67706305279156e-19
+              ],
+              [
+                4.7230761552632525e-17,
+                0.16735489546022825,
+                1.1762581915880865e-19
+              ],
+              [
+                0.14494596591122158,
+                0.08368587711585497,
+                1.7212253054286118e-19
+              ],
+              [
+                0.14494596591122166,
+                -0.08368587711585491,
+                1.2572792712481574e-19
+              ],
+              [
+                -3.263430567411493e-17,
+                -0.16735489546022814,
+                6.106128174768596e-20
+              ],
+              [
+                -0.14494596591122158,
+                -0.08368587711585491,
+                2.896861799199639e-20
+              ],
+              [
+                -0.14494596591122177,
+                0.08368587711585505,
+                -3.636269501239926e-20
+              ]
+            ],
+            "error_eV_per_A": [
+              [
+                -9.584059268338076e-17,
+                -1.1574020787330497e-06,
+                -3.5616196801691625e-19
+              ],
+              [
+                1.742973599894171e-07,
+                1.4576437620678062e-06,
+                -4.047506548155249e-19
+              ],
+              [
+                1.7429735982288364e-07,
+                -1.4576437621233174e-06,
+                4.1582129792095947e-20
+              ],
+              [
+                8.869202220348543e-18,
+                1.1574020787608053e-06,
+                -5.664360949621245e-19
+              ],
+              [
+                -1.742973599894171e-07,
+                -1.457643761956784e-06,
+                5.6306740676905775e-19
+              ],
+              [
+                -1.742973596285946e-07,
+                1.4576437616514726e-06,
+                3.67706305279156e-19
+              ],
+              [
+                4.7230761552632525e-17,
+                1.1946428984388469e-06,
+                1.1762581915880865e-19
+              ],
+              [
+                6.934156880078479e-07,
+                2.2460117238276567e-09,
+                1.7212253054286118e-19
+              ],
+              [
+                6.934156880911146e-07,
+                -2.2460116683165054e-09,
+                1.2572792712481574e-19
+              ],
+              [
+                -3.263430567411493e-17,
+                -1.1946428983278246e-06,
+                6.106128174768596e-20
+              ],
+              [
+                -6.934156880078479e-07,
+                -2.2460116683165054e-09,
+                2.896861799199639e-20
+              ],
+              [
+                -6.93415688202137e-07,
+                2.2460118070943835e-09,
+                -3.636269501239926e-20
+              ]
+            ],
+            "finite_difference_gradient_eV_per_A": [
+              [
+                0.0,
+                0.19282688981547835,
+                0.0
+              ],
+              [
+                0.16682502973708324,
+                0.09602817499398952,
+                0.0
+              ],
+              [
+                0.16682502973708324,
+                -0.09602817499398952,
+                0.0
+              ],
+              [
+                0.0,
+                -0.19282688981547835,
+                0.0
+              ],
+              [
+                -0.16682502973708324,
+                -0.09602817499398952,
+                0.0
+              ],
+              [
+                -0.16682502973708324,
+                0.09602817499398952,
+                0.0
+              ],
+              [
+                0.0,
+                0.1673537008173298,
+                0.0
+              ],
+              [
+                0.14494527249553357,
+                0.08368587486984325,
+                0.0
+              ],
+              [
+                0.14494527249553357,
+                -0.08368587486984325,
+                0.0
+              ],
+              [
+                0.0,
+                -0.1673537008173298,
+                0.0
+              ],
+              [
+                -0.14494527249553357,
+                -0.08368587486984325,
+                0.0
+              ],
+              [
+                -0.14494527249553357,
+                0.08368587486984325,
+                0.0
+              ]
+            ],
+            "gates": {
+              "maximum_le_2e-3_eV_per_A": true,
+              "rms_le_5e-4_eV_per_A": true
+            },
+            "maximum_error_eV_per_A": 1.4576437621233174e-06,
+            "relative_frobenius_error": 6.4153334072600814e-06,
+            "rms_error_eV_per_A": 6.682739691604868e-07,
+            "step_A": 0.0002
+          },
+          {
+            "analytic_gradient_eV_per_A": [
+              [
+                -9.584059268338076e-17,
+                0.19282573241339962,
+                -3.5616196801691625e-19
+              ],
+              [
+                0.16682520403444323,
+                0.09602963263775159,
+                -4.047506548155249e-19
+              ],
+              [
+                0.16682520403444306,
+                -0.09602963263775165,
+                4.1582129792095947e-20
+              ],
+              [
+                8.869202220348543e-18,
+                -0.1928257324133996,
+                -5.664360949621245e-19
+              ],
+              [
+                -0.16682520403444323,
+                -0.09602963263775148,
+                5.6306740676905775e-19
+              ],
+              [
+                -0.16682520403444287,
+                0.09602963263775117,
+                3.67706305279156e-19
+              ],
+              [
+                4.7230761552632525e-17,
+                0.16735489546022825,
+                1.1762581915880865e-19
+              ],
+              [
+                0.14494596591122158,
+                0.08368587711585497,
+                1.7212253054286118e-19
+              ],
+              [
+                0.14494596591122166,
+                -0.08368587711585491,
+                1.2572792712481574e-19
+              ],
+              [
+                -3.263430567411493e-17,
+                -0.16735489546022814,
+                6.106128174768596e-20
+              ],
+              [
+                -0.14494596591122158,
+                -0.08368587711585491,
+                2.896861799199639e-20
+              ],
+              [
+                -0.14494596591122177,
+                0.08368587711585505,
+                -3.636269501239926e-20
+              ]
+            ],
+            "error_eV_per_A": [
+              [
+                -9.584059268338076e-17,
+                -2.9565584880320017e-07,
+                -3.5616196801691625e-19
+              ],
+              [
+                4.6968101741207136e-08,
+                3.617026464314277e-07,
+                -4.047506548155249e-19
+              ],
+              [
+                4.696810157467368e-08,
+                -3.6170264648693884e-07,
+                4.1582129792095947e-20
+              ],
+              [
+                8.869202220348543e-18,
+                2.9565584883095575e-07,
+                -5.664360949621245e-19
+              ],
+              [
+                -4.6968101741207136e-08,
+                -3.617026463204054e-07,
+                5.6306740676905775e-19
+              ],
+              [
+                -4.696810138038465e-08,
+                3.6170264601509405e-07,
+                3.67706305279156e-19
+              ],
+              [
+                4.7230761552632525e-17,
+                2.942431436836479e-07,
+                1.1762581915880865e-19
+              ],
+              [
+                1.727299712428465e-07,
+                -4.575198539469305e-09,
+                1.7212253054286118e-19
+              ],
+              [
+                1.7272997132611323e-07,
+                4.575198594980456e-09,
+                1.2572792712481574e-19
+              ],
+              [
+                -3.263430567411493e-17,
+                -2.942431435726256e-07,
+                6.106128174768596e-20
+              ],
+              [
+                -1.727299712428465e-07,
+                4.575198594980456e-09,
+                2.896861799199639e-20
+              ],
+              [
+                -1.7272997143713553e-07,
+                -4.575198456202578e-09,
+                -3.636269501239926e-20
+              ]
+            ],
+            "finite_difference_gradient_eV_per_A": [
+              [
+                0.0,
+                0.19282602806924842,
+                0.0
+              ],
+              [
+                0.1668251570663415,
+                0.09602927093510516,
+                0.0
+              ],
+              [
+                0.1668251570663415,
+                -0.09602927093510516,
+                0.0
+              ],
+              [
+                0.0,
+                -0.19282602806924842,
+                0.0
+              ],
+              [
+                -0.1668251570663415,
+                -0.09602927093510516,
+                0.0
+              ],
+              [
+                -0.1668251570663415,
+                0.09602927093510516,
+                0.0
+              ],
+              [
+                0.0,
+                0.16735460121708456,
+                0.0
+              ],
+              [
+                0.14494579318125034,
+                0.08368588169105351,
+                0.0
+              ],
+              [
+                0.14494579318125034,
+                -0.08368588169105351,
+                0.0
+              ],
+              [
+                0.0,
+                -0.16735460121708456,
+                0.0
+              ],
+              [
+                -0.14494579318125034,
+                -0.08368588169105351,
+                0.0
+              ],
+              [
+                -0.14494579318125034,
+                0.08368588169105351,
+                0.0
+              ]
+            ],
+            "gates": {
+              "maximum_le_2e-3_eV_per_A": true,
+              "rms_le_5e-4_eV_per_A": true
+            },
+            "maximum_error_eV_per_A": 3.6170264648693884e-07,
+            "relative_frobenius_error": 1.5996113352763405e-06,
+            "rms_error_eV_per_A": 1.6662902461795348e-07,
+            "step_A": 0.0001
+          }
+        ],
+        "topology_hashes": [
+          "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9"
+        ]
+      },
+      "chemical_formula": "C6H6",
+      "cold_state": {
+        "actual_unmixed_residual_norm": 7.994307595242993e-13,
+        "continuum_energy_eV": -0.015790628264002363,
+        "field": [
+          [
+            0.26638211726993316,
+            0.1637794740626744,
+            -0.042426374669476366,
+            1.5348237004247922e-18,
+            2.85009646092127e-17,
+            -0.008624502029209268,
+            2.617331807015788e-19,
+            8.927727264060326e-18
+          ],
+          [
+            0.26636596967411397,
+            0.16377876052600757,
+            -0.021208786891308007,
+            1.7381116077658243e-18,
+            -0.03676294224050064,
+            -0.004312205580323831,
+            1.9989977555201488e-19,
+            -0.0074701468332416514
+          ],
+          [
+            0.266365969674114,
+            0.16377876052600832,
+            0.021208786891307917,
+            1.3840518358135268e-18,
+            -0.036762942240500626,
+            0.0043122055803238085,
+            2.896852679609707e-19,
+            -0.007470146833241657
+          ],
+          [
+            0.26638211726993416,
+            0.16377947406267487,
+            0.04242637466947642,
+            1.6381617199898169e-18,
+            3.4945191271923415e-17,
+            0.008624502029209266,
+            1.8888834723770898e-19,
+            7.684282897491013e-18
+          ],
+          [
+            0.26636596967411375,
+            0.16377876052600715,
+            0.02120878689130795,
+            2.846030702774449e-19,
+            0.03676294224050064,
+            0.0043122055803238,
+            7.199780051661553e-20,
+            0.007470146833241651
+          ],
+          [
+            0.2663659696741138,
+            0.16377876052600718,
+            -0.021208786891307955,
+            8.673617379884035e-19,
+            0.03676294224050051,
+            -0.004312205580323817,
+            2.0921713797181218e-19,
+            0.007470146833241662
+          ],
+          [
+            0.21286989730582068,
+            0.15163203030225694,
+            -0.05199045454113206,
+            1.57378721599849e-18,
+            1.112662479513249e-17,
+            -0.01332421988998053,
+            2.888382350137164e-19,
+            8.55842089905745e-18
+          ],
+          [
+            0.2128442478109231,
+            0.15163013982715726,
+            -0.025983183900848864,
+            1.2586909596198903e-18,
+            -0.04503220199710697,
+            -0.006661899026635415,
+            2.5283933475540865e-19,
+            -0.011540530018428618
+          ],
+          [
+            0.2128442478109233,
+            0.1516301398271573,
+            0.025983183900848802,
+            8.779496498290823e-19,
+            -0.04503220199710706,
+            0.006661899026635423,
+            2.5199230180815435e-19,
+            -0.011540530018428597
+          ],
+          [
+            0.2128698973058209,
+            0.15163203030225653,
+            0.05199045454113213,
+            -4.573977915173222e-20,
+            3.3237572850258745e-17,
+            0.013324219889980516,
+            1.8973538018496328e-19,
+            1.2004150928487944e-17
+          ],
+          [
+            0.21284424781092187,
+            0.15163013982715778,
+            0.025983183900848833,
+            1.6263032587282567e-19,
+            0.045032201997107044,
+            0.006661899026635447,
+            7.538593230563273e-20,
+            0.011540530018428644
+          ],
+          [
+            0.21284424781092204,
+            0.15163013982715748,
+            -0.025983183900848843,
+            4.0657581468206416e-20,
+            0.045032201997107016,
+            -0.006661899026635418,
+            -3.3881317890172014e-21,
+            0.011540530018428596
+          ]
+        ],
+        "initialization": "cold",
+        "iterations": 22,
+        "primal_tolerance": 1e-12,
+        "root_context_id": "fixedbox40-cpcm590-benzene-pes-v1/cartesian-panel/reference/cdad7e92706675b014a5ca275a628b54a7cbb17685b6bb7ecc43b0dae337bf84",
+        "root_hash": "df830ee47fdec9fd1a81182138bdac1688e8c2fb9d6af922b95d7e06aeacbe86",
+        "source": [
+          [
+            -0.0062454758064858715,
+            1.3010426069826053e-18,
+            -0.004089512468714863,
+            0.0,
+            2.7895820330127004e-18,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.006245401659467505,
+            1.3010426069826053e-18,
+            -0.0020440063126831378,
+            0.0,
+            -0.003540350547237,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.0062454016594674965,
+            1.3010426069826053e-18,
+            0.002044006312683273,
+            0.0,
+            -0.0035403505472369782,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.006245475806485853,
+            1.3010426069826053e-18,
+            0.0040895124687149054,
+            0.0,
+            4.452060009384076e-18,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.006245401659467484,
+            1.3010426069826053e-18,
+            0.002044006312683153,
+            0.0,
+            0.003540350547236964,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.006245401659467517,
+            1.3010426069826053e-18,
+            -0.0020440063126831807,
+            0.0,
+            0.0035403505472368525,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0062453187106358225,
+            1.3010426069826053e-18,
+            0.09814858642693175,
+            0.0,
+            -2.1325467862085067e-18,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.006245480207392513,
+            1.3010426069826053e-18,
+            0.049074282601076366,
+            0.0,
+            0.0849991771026193,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.006245480207392525,
+            1.3010426069826053e-18,
+            -0.04907428260107633,
+            0.0,
+            0.08499917710261924,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.006245318710635811,
+            1.3010426069826053e-18,
+            -0.0981485864269318,
+            0.0,
+            3.40347451456551e-19,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.006245480207392524,
+            1.3010426069826053e-18,
+            -0.04907428260107633,
+            0.0,
+            -0.0849991771026193,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.00624548020739252,
+            1.3010426069826053e-18,
+            0.04907428260107635,
+            0.0,
+            -0.08499917710261924,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_energy_eV": -6319.2256044142505,
+        "vacuum_energy_eV": -6319.209813785987
+      },
+      "cold_warm": {
+        "cold": {
+          "actual_unmixed_residual_norm": 7.994307595242993e-13,
+          "continuum_energy_eV": -0.015790628264002363,
+          "field": [
+            [
+              0.26638211726993316,
+              0.1637794740626744,
+              -0.042426374669476366,
+              1.5348237004247922e-18,
+              2.85009646092127e-17,
+              -0.008624502029209268,
+              2.617331807015788e-19,
+              8.927727264060326e-18
+            ],
+            [
+              0.26636596967411397,
+              0.16377876052600757,
+              -0.021208786891308007,
+              1.7381116077658243e-18,
+              -0.03676294224050064,
+              -0.004312205580323831,
+              1.9989977555201488e-19,
+              -0.0074701468332416514
+            ],
+            [
+              0.266365969674114,
+              0.16377876052600832,
+              0.021208786891307917,
+              1.3840518358135268e-18,
+              -0.036762942240500626,
+              0.0043122055803238085,
+              2.896852679609707e-19,
+              -0.007470146833241657
+            ],
+            [
+              0.26638211726993416,
+              0.16377947406267487,
+              0.04242637466947642,
+              1.6381617199898169e-18,
+              3.4945191271923415e-17,
+              0.008624502029209266,
+              1.8888834723770898e-19,
+              7.684282897491013e-18
+            ],
+            [
+              0.26636596967411375,
+              0.16377876052600715,
+              0.02120878689130795,
+              2.846030702774449e-19,
+              0.03676294224050064,
+              0.0043122055803238,
+              7.199780051661553e-20,
+              0.007470146833241651
+            ],
+            [
+              0.2663659696741138,
+              0.16377876052600718,
+              -0.021208786891307955,
+              8.673617379884035e-19,
+              0.03676294224050051,
+              -0.004312205580323817,
+              2.0921713797181218e-19,
+              0.007470146833241662
+            ],
+            [
+              0.21286989730582068,
+              0.15163203030225694,
+              -0.05199045454113206,
+              1.57378721599849e-18,
+              1.112662479513249e-17,
+              -0.01332421988998053,
+              2.888382350137164e-19,
+              8.55842089905745e-18
+            ],
+            [
+              0.2128442478109231,
+              0.15163013982715726,
+              -0.025983183900848864,
+              1.2586909596198903e-18,
+              -0.04503220199710697,
+              -0.006661899026635415,
+              2.5283933475540865e-19,
+              -0.011540530018428618
+            ],
+            [
+              0.2128442478109233,
+              0.1516301398271573,
+              0.025983183900848802,
+              8.779496498290823e-19,
+              -0.04503220199710706,
+              0.006661899026635423,
+              2.5199230180815435e-19,
+              -0.011540530018428597
+            ],
+            [
+              0.2128698973058209,
+              0.15163203030225653,
+              0.05199045454113213,
+              -4.573977915173222e-20,
+              3.3237572850258745e-17,
+              0.013324219889980516,
+              1.8973538018496328e-19,
+              1.2004150928487944e-17
+            ],
+            [
+              0.21284424781092187,
+              0.15163013982715778,
+              0.025983183900848833,
+              1.6263032587282567e-19,
+              0.045032201997107044,
+              0.006661899026635447,
+              7.538593230563273e-20,
+              0.011540530018428644
+            ],
+            [
+              0.21284424781092204,
+              0.15163013982715748,
+              -0.025983183900848843,
+              4.0657581468206416e-20,
+              0.045032201997107016,
+              -0.006661899026635418,
+              -3.3881317890172014e-21,
+              0.011540530018428596
+            ]
+          ],
+          "initialization": "cold",
+          "iterations": 22,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-benzene-pes-v1/cartesian-panel/reference/cdad7e92706675b014a5ca275a628b54a7cbb17685b6bb7ecc43b0dae337bf84",
+          "root_hash": "df830ee47fdec9fd1a81182138bdac1688e8c2fb9d6af922b95d7e06aeacbe86",
+          "source": [
+            [
+              -0.0062454758064858715,
+              1.3010426069826053e-18,
+              -0.004089512468714863,
+              0.0,
+              2.7895820330127004e-18,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.006245401659467505,
+              1.3010426069826053e-18,
+              -0.0020440063126831378,
+              0.0,
+              -0.003540350547237,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.0062454016594674965,
+              1.3010426069826053e-18,
+              0.002044006312683273,
+              0.0,
+              -0.0035403505472369782,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.006245475806485853,
+              1.3010426069826053e-18,
+              0.0040895124687149054,
+              0.0,
+              4.452060009384076e-18,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.006245401659467484,
+              1.3010426069826053e-18,
+              0.002044006312683153,
+              0.0,
+              0.003540350547236964,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.006245401659467517,
+              1.3010426069826053e-18,
+              -0.0020440063126831807,
+              0.0,
+              0.0035403505472368525,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0062453187106358225,
+              1.3010426069826053e-18,
+              0.09814858642693175,
+              0.0,
+              -2.1325467862085067e-18,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.006245480207392513,
+              1.3010426069826053e-18,
+              0.049074282601076366,
+              0.0,
+              0.0849991771026193,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.006245480207392525,
+              1.3010426069826053e-18,
+              -0.04907428260107633,
+              0.0,
+              0.08499917710261924,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.006245318710635811,
+              1.3010426069826053e-18,
+              -0.0981485864269318,
+              0.0,
+              3.40347451456551e-19,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.006245480207392524,
+              1.3010426069826053e-18,
+              -0.04907428260107633,
+              0.0,
+              -0.0849991771026193,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.00624548020739252,
+              1.3010426069826053e-18,
+              0.04907428260107635,
+              0.0,
+              -0.08499917710261924,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "total_energy_eV": -6319.2256044142505,
+          "vacuum_energy_eV": -6319.209813785987
+        },
+        "contract": "route2-root-equivalence-v1",
+        "energy_abs_difference_eV": 0.0,
+        "field_l2_difference": 1.1704163139854365e-13,
+        "gates": {
+          "energy_le_1e-8_eV": true,
+          "source_relative_le_1e-8": true
+        },
+        "numerically_equivalent": true,
+        "source_l2_difference": 3.263922716304122e-14,
+        "source_relative_difference": 1.350999904263653e-13,
+        "warm": {
+          "actual_unmixed_residual_norm": 8.006105165780799e-13,
+          "continuum_energy_eV": -0.015790628264001152,
+          "field": [
+            [
+              0.2663821172698967,
+              0.16377947406265933,
+              -0.04242637466948836,
+              -9.53122129832007e-15,
+              -1.0074555664534024e-14,
+              -0.008624502029213096,
+              -2.2351336005557026e-15,
+              -2.9390789660962285e-15
+            ],
+            [
+              0.266365969674077,
+              0.1637787605259923,
+              -0.02120878689132207,
+              -9.530628375256991e-15,
+              -0.03676294224050617,
+              -0.00431220558032805,
+              -2.2352733609919996e-15,
+              -0.007470146833243771
+            ],
+            [
+              0.26636596967410076,
+              0.163778760525999,
+              0.021208786891291378,
+              -9.531189111068074e-15,
+              -0.03676294224050897,
+              0.004312205580319009,
+              -2.2350823550623938e-15,
+              -0.007470146833244157
+            ],
+            [
+              0.26638211726994204,
+              0.1637794740626717,
+              0.04242637466946226,
+              -9.532867930369532e-15,
+              -1.0078262280711209e-14,
+              0.008624502029204763,
+              -2.2351632467088565e-15,
+              -2.9455130283635722e-15
+            ],
+            [
+              0.26636596967412385,
+              0.16377876052600548,
+              0.02120878689129304,
+              -9.53128906095585e-15,
+              0.03676294224049143,
+              0.004312205580319275,
+              -2.2351666348406456e-15,
+              0.0074701468332387085
+            ],
+            [
+              0.2663659696741012,
+              0.16377876052600004,
+              -0.021208786891323654,
+              -9.531898924677873e-15,
+              0.03676294224048877,
+              -0.00431220558032833,
+              -2.235108189567285e-15,
+              0.007470146833238308
+            ],
+            [
+              0.21286989730577646,
+              0.15163203030223874,
+              -0.05199045454113524,
+              -7.463093795842708e-15,
+              -8.183951021208113e-15,
+              -0.013324219889982855,
+              -2.0001200741752607e-15,
+              -2.6399069291260097e-15
+            ],
+            [
+              0.2128442478108774,
+              0.15163013982713905,
+              -0.025983183900857104,
+              -7.46094910842026e-15,
+              -0.04503220199710571,
+              -0.006661899026638653,
+              -2.0001569201084663e-15,
+              -0.01154053001842947
+            ],
+            [
+              0.21284424781090958,
+              0.15163013982714924,
+              0.025983183900835243,
+              -7.4630810903485e-15,
+              -0.04503220199711272,
+              0.006661899026630974,
+              -2.000170896152096e-15,
+              -0.011540530018430601
+            ],
+            [
+              0.21286989730584036,
+              0.15163203030225975,
+              0.051990454541125636,
+              -7.46472518129912e-15,
+              -8.180440916674692e-15,
+              0.013324219889977122,
+              -2.0002365412055082e-15,
+              -2.6434000930004864e-15
+            ],
+            [
+              0.21284424781094524,
+              0.15163013982716075,
+              0.025983183900839514,
+              -7.46241447541901e-15,
+              0.04503220199710396,
+              0.006661899026631697,
+              -2.0002064715358807e-15,
+              0.011540530018426528
+            ],
+            [
+              0.21284424781091302,
+              0.15163013982714987,
+              -0.02598318390086145,
+              -7.4624483567369e-15,
+              0.04503220199709689,
+              -0.006661899026639383,
+              -2.0000988983515794e-15,
+              0.011540530018425388
+            ]
+          ],
+          "initialization": "warm",
+          "iterations": 22,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-benzene-pes-v1/cartesian-panel/reference/cdad7e92706675b014a5ca275a628b54a7cbb17685b6bb7ecc43b0dae337bf84",
+          "root_hash": "b506a2520e2e659959d2ab31cc5649820f96eac56fdb4352156362068b7d7ca7",
+          "source": [
+            [
+              -0.006245475806470856,
+              -6.398961222009447e-16,
+              -0.0040895124687096215,
+              3.1381059609000114e-15,
+              3.1408955429330285e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              -0.006245401659467843,
+              -6.398961222009447e-16,
+              -0.0020440063126790507,
+              3.1381059609000114e-15,
+              -0.003540350547232274,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              -0.006245401659468114,
+              -6.398961222009447e-16,
+              0.0020440063126865213,
+              3.1381059609000114e-15,
+              -0.003540350547234189,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              -0.006245475806486773,
+              -6.398961222009447e-16,
+              0.004089512468720478,
+              3.1381059609000114e-15,
+              3.1425580209094745e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              -0.006245401659468445,
+              -6.398961222009447e-16,
+              0.0020440063126876355,
+              3.1381059609000114e-15,
+              0.003540350547242673,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              -0.006245401659468152,
+              -6.398961222009447e-16,
+              -0.0020440063126802906,
+              3.1381059609000114e-15,
+              0.003540350547240577,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              0.006245318710635626,
+              -6.398961222009447e-16,
+              0.09814858642693547,
+              3.1381059609000114e-15,
+              3.135973414113593e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              0.006245480207392333,
+              -6.398961222009447e-16,
+              0.04907428260107979,
+              3.1381059609000114e-15,
+              0.08499917710262297,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              0.006245480207391905,
+              -6.398961222009447e-16,
+              -0.04907428260107312,
+              3.1381059609000114e-15,
+              0.08499917710262225,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              0.006245318710634731,
+              -6.398961222009447e-16,
+              -0.09814858642692759,
+              3.1381059609000114e-15,
+              3.138446308351396e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              0.006245480207391425,
+              -6.398961222009447e-16,
+              -0.0490742826010727,
+              3.1381059609000114e-15,
+              -0.0849991771026152,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ],
+            [
+              0.006245480207391848,
+              -6.398961222009447e-16,
+              0.04907428260107935,
+              3.1381059609000114e-15,
+              -0.08499917710261594,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15,
+              3.1381059609000114e-15
+            ]
+          ],
+          "total_energy_eV": -6319.2256044142505,
+          "vacuum_energy_eV": -6319.209813785987
+        }
+      },
+      "component_count": 36,
+      "forces_eV_per_A": [
+        [
+          9.584059268338076e-17,
+          -0.19282573241339962,
+          3.5616196801691625e-19
+        ],
+        [
+          -0.16682520403444323,
+          -0.09602963263775159,
+          4.047506548155249e-19
+        ],
+        [
+          -0.16682520403444306,
+          0.09602963263775165,
+          -4.1582129792095947e-20
+        ],
+        [
+          -8.869202220348543e-18,
+          0.1928257324133996,
+          5.664360949621245e-19
+        ],
+        [
+          0.16682520403444323,
+          0.09602963263775148,
+          -5.6306740676905775e-19
+        ],
+        [
+          0.16682520403444287,
+          -0.09602963263775117,
+          -3.67706305279156e-19
+        ],
+        [
+          -4.7230761552632525e-17,
+          -0.16735489546022825,
+          -1.1762581915880865e-19
+        ],
+        [
+          -0.14494596591122158,
+          -0.08368587711585497,
+          -1.7212253054286118e-19
+        ],
+        [
+          -0.14494596591122166,
+          0.08368587711585491,
+          -1.2572792712481574e-19
+        ],
+        [
+          3.263430567411493e-17,
+          0.16735489546022814,
+          -6.106128174768596e-20
+        ],
+        [
+          0.14494596591122158,
+          0.08368587711585491,
+          -2.896861799199639e-20
+        ],
+        [
+          0.14494596591122177,
+          -0.08368587711585505,
+          3.636269501239926e-20
+        ]
+      ],
+      "geometry_sha256": "cdad7e92706675b014a5ca275a628b54a7cbb17685b6bb7ecc43b0dae337bf84",
+      "maximum_primal_residual": 9.743649509076852e-13,
+      "molecule_id": "benzene",
+      "positions_A": [
+        [
+          0.0,
+          1.395248,
+          0.0
+        ],
+        [
+          1.20832,
+          0.697624,
+          0.0
+        ],
+        [
+          1.20832,
+          -0.697624,
+          0.0
+        ],
+        [
+          0.0,
+          -1.395248,
+          0.0
+        ],
+        [
+          -1.20832,
+          -0.697624,
+          0.0
+        ],
+        [
+          -1.20832,
+          0.697624,
+          0.0
+        ],
+        [
+          0.0,
+          2.48236,
+          0.0
+        ],
+        [
+          2.149787,
+          1.24118,
+          0.0
+        ],
+        [
+          2.149787,
+          -1.24118,
+          0.0
+        ],
+        [
+          0.0,
+          -2.48236,
+          0.0
+        ],
+        [
+          -2.149787,
+          -1.24118,
+          0.0
+        ],
+        [
+          -2.149787,
+          1.24118,
+          0.0
+        ]
+      ],
+      "scope_tags": [
+        "aromatic nonpolar anisotropic canary"
+      ],
+      "source_record_id": "C6H6",
+      "topology_hash": "afa5efbdaca3c6c865df9eeccec368931c1f2b23fdbf4b14fd47fae92ee47de9",
+      "variant": "reference"
+    }
+  ],
+  "numerical_determinism": {
+    "cublas_workspace_config": ":4096:8",
+    "cuda_launch_blocking": null,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "device": "cuda",
+    "mode": "pytorch-deterministic-cuda-v1",
+    "torch_deterministic_algorithms": true,
+    "torch_deterministic_debug_mode": 2
+  },
+  "panel_contract": {
+    "asset_sha256": "ecaa309cb468f17449a78a16e6a79acd0a5a16cf982eb52b3fb8d5d1dcd80ca3",
+    "cartesian_steps_A": [
+      0.0004,
+      0.0002,
+      0.0001
+    ],
+    "contract_version": "route2-fixedbox590-cartesian-panel-contract-v1",
+    "convergence_contract": "central-order-or-ten-percent-error-plateau-v1",
+    "molecule_count": 20,
+    "shard_molecule_ids": [
+      "benzene"
+    ],
+    "shard_start": 5,
+    "shard_stop": 6,
+    "variant": "reference"
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": "0",
+      "MKL_NUM_THREADS": "6",
+      "OMP_NUM_THREADS": "6",
+      "OPENBLAS_NUM_THREADS": "6",
+      "PYTHONHASHSEED": "0"
+    },
+    "generated_at_utc": "2026-08-13T07:23:19.704712+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 6,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 3684.9716528560093,
+  "schema_version": "route2-fixedbox590-cartesian-panel-shard-v1",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "eecfbbb993ab075301bc613a39f94f30168d521bca4503c29cc12d9a50cc76af",
+    "maple/function/calculator/extra_correction/charge/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/extra_correction/charge/qeq.py": "6f451ab965202f29e0ac6773e5cc221feeb477854e1594f26415e982f5bca25d",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/extra_correction/solvent/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/extra_correction/solvent/gbsa/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/extra_correction/solvent/gbsa/gbsa.py": "41655ff168d772d3890b535365d9e5049b1318e42a2cb6173759568cfedfb88c",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "6648b6ad90e3d477ef6d932e15fb9863d07d655277fdae0ba3fa08d4bd9f60e9",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "5345f7a8d126bae810f1508c84082e2146d103f9ec8b722b93e0e02cede99739",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "4e757009999c0a53676b169f2e66ca6f7fcd6dfecf655ca118c22df26286191f",
+    "maple/solvation/api/state_registry.py": "f39c6f4b143276a309598b73183be8689d7a3b1f14073fb8de74d024db3c0540",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "20cb50bc1d9ba955dcb65af0eb28937189e5fd835b842f26ba9a5a81ada5ba1b",
+    "maple/solvation/continuum/base.py": "44e452cc0c718fb6c443206bc5fc7005e778e0472eeb7ea16bedfe6801e145a8",
+    "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py": "84d09263dcdc87172df3c9b2d0602c9be47f686604833122107f05b9b9818c71",
+    "maple/solvation/continuum/fixed_topology_cpcm.py": "daa4c289db596d68b0758c81e1840ed1dac117da0573885cd3b0cf9431c7bb8d",
+    "maple/solvation/coupling/__init__.py": "1b0d3a51a47d45b53e7aaddccdb4fcac42f91f4833f598830583b25a078805df",
+    "maple/solvation/coupling/adjoint.py": "7e41961c7b18ea578daab066a9f909313d3160d0e192cccbdbeee01083ca7a91",
+    "maple/solvation/coupling/energy.py": "e1778a31c5d25de23a453eefb300588f7c81c288bd46e471dd2b4fb2f745106f",
+    "maple/solvation/coupling/exact_gto.py": "005d54d342742887e00ff754eb0e0b364510c054746e087b30ec32e819935474",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "0ed5987811401393947da190fa1ce96f025e6b5bfaaa239b825a56f44c1e4ad5",
+    "maple/solvation/coupling/linearization.py": "baa48bcaef49963548e727236ff86ca2e69b2b1b41fbf07b84f41bc5e77fa14f",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "0bcce78e126454c9b0475e8c9ca5178ece6234614488a2488abe52d2f643c47e",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "7ea7ccec1315a178879986fe04575d6a9e19b31b23114a89ed5845c9df66db71",
+    "maple/solvation/models/base.py": "24e4ece6e5dfd242b3cf1fb0978007d7cc2c7170cdaafe768398fd331b9bc901",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/fixed_box_evaluator.py": "5716123962697656d251b8366ded61f2efab179ae7d732956ee35db55a0bf229",
+    "maple/solvation/models/mace_polar.py": "b47614df7d58fbdcde1867df9fe18dd7dd2c24b02d06e239ac376629264acb24",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/release/__init__.py": "71815b01f3bd37b5f30ce57a1789e6fb47b57f823f15a653f5d5637885c6e05e",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/pes_panel.py": "64aaf72711c3b4bfd0efea25c63e41395629c3b9d80c07541985e4eca5ccba93",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/surfaces/__init__.py": "3169105c99a34da026c0bfedf10495620a67f2d82d8e5dd0444895d376c534ec",
+    "maple/solvation/surfaces/base.py": "f49af6fa92cca5e8408bfabc2ec20c1969fd815f3da38422406ee050bf8d18f0",
+    "maple/solvation/surfaces/fixed_topology.py": "31c0dd77b64e93666ff759236ec41b204095bc224ec7bf09f623fcfaf9fc1e2a",
+    "tools/route2_release/data/fixedbox590_pes_panel_v1.json": "ecaa309cb468f17449a78a16e6a79acd0a5a16cf982eb52b3fb8d5d1dcd80ca3",
+    "tools/route2_release/fixedbox590_water_common.py": "df2e5938486991701003196e363613654de51ca3b9e3d3b51d9e26e55ae2b07e",
+    "tools/route2_release/run_fixedbox590_cartesian_panel.py": "c166e5073cf4fb9b4bbd62d6429e42152aef3a41e4bec6adf15b402d0093b8f8",
+    "tools/route2_release/run_fixedbox590_pes_panel.py": "3f84de537159f8b4ac66e48f620fda22336b11920e20c02af05df23721cca598"
+  },
+  "status": "diagnostic-shard-success",
+  "validation_scope": {
+    "aggregate_cartesian_pes_panel": false,
+    "charged_systems_supported": false,
+    "chemical_accuracy": false,
+    "complete_nonpolar_free_energy": false,
+    "shard_component_count": 36,
+    "shard_geometry_count": 1
+  },
+  "warnings": [
+    {
+      "category": "UserWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/e3nn/o3/_wigner.py",
+      "lineno": "10",
+      "message": "Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "<frozen importlib._bootstrap>",
+      "lineno": "241",
+      "message": "builtin type SwigPyPacked has no __module__ attribute"
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "<frozen importlib._bootstrap>",
+      "lineno": "241",
+      "message": "builtin type SwigPyObject has no __module__ attribute"
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "UserWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py",
+      "lineno": "226",
+      "message": "Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    }
+  ],
+  "working_tree_clean": true
+}

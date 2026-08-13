@@ -9,10 +9,11 @@ E_op(R) = E_vac(R) + 0.5 <c*(R), P_R(c*(R))>_Q
 G_np = 0
 ```
 
-It does not admit E, F, H, V, or M.  It is one equilibrium water geometry,
-not the required multi-molecule/multi-geometry PES panel; the reciprocal
-MACE-POLAR evaluator is fixed-box and has no box-convergence certificate; the
-radial electrostatic component still lacks physical/chemical validation and a
+It does not admit E, F, H, V, or M. The one-water evidence in this document is
+now supplemented by passing preregistered multi-molecule directional and
+reference-geometry Cartesian panels. The reciprocal MACE-POLAR evaluator is
+still fixed-box with only a one-equilibrium-geometry convergence audit; the
+radial electrostatic component still lacks matched physical validation and a
 compatible nonpolar/free-energy ledger.
 
 ## Why a new identity was required
@@ -157,10 +158,12 @@ The run used CPU float64 and one OpenMP/MKL/OpenBLAS thread, took
 Seventy-three upstream/runtime warnings were retained verbatim rather than
 suppressed.
 
-This materially closes the **single-water** multi-geometry and loop gate. It
-does not close the required multi-molecule PES panel, 40-Angstrom box-size
-convergence, component-level QM/PCM validation, compatible nonpolar/free-energy
-ledger, Hessian/FREQ/TS/NVE gates, or any public capability. E/F/H/V/M therefore
+This materially closes the **single-water** multi-geometry and loop gate.
+Later source-bound 20-molecule directional and component-resolved Cartesian
+panels also passed. They do not close all-panel symmetry/loop behavior, the
+residual-based force-error bound, multi-geometry box convergence,
+component-level QM/PCM validation, a compatible nonpolar/free-energy ledger,
+Hessian/FREQ/TS/NVE gates, or any public capability. E/F/H/V/M therefore
 remain false.
 
 The separately preregistered fixed-box convergence command is:
@@ -190,16 +193,17 @@ had maximum primal/adjoint residuals `3.54206e-13`/`2.43340e-16`.
 
 Raw source/runtime/checkpoint-bound evidence is in
 `evidence/fixedbox590-water-box-convergence-a7fdf2fa/`. This closes only the
-single-water equilibrium box-operator diagnostic. It does not close
-multi-geometry box convergence, the required molecular PES panel, component
-physics, complete solvation free energy, Hessian/FREQ/TS/NVE, or public
-admission; E/F/H/V/M remain false.
+single-water equilibrium box-operator diagnostic. Although the later
+multi-molecule directional and Cartesian PES panels pass, multi-geometry box
+convergence, component physics, complete solvation free energy,
+Hessian/FREQ/TS/NVE, and public admission remain open; E/F/H/V/M remain false.
 
 ## Result
 
 The one-water force/symmetry/path and equilibrium box-choice blockers are
 materially improved, and the returned force is numerically consistent with
-the declared scalar over the executed distorted-water panel. Tier F remains
-false because the required multi-molecule PES panel, multi-geometry box
-convergence, physical component validation, Hessian/NVE evidence, and public
-integration/admission have not been completed.
+the declared scalar over the executed distorted-water panel. The later
+20-molecule directional and 465-component Cartesian panels also pass. Tier F
+remains false because the residual-error estimate, all-panel symmetry/loop,
+multi-geometry box convergence, physical component validation, Hessian/NVE,
+and public integration/admission have not been completed.

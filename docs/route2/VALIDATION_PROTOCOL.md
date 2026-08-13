@@ -38,11 +38,18 @@ points on clean head `f7f68165`. Exact measurements and reproducible commands
 are recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`, `PES_PANEL.md`, and the
 corresponding evidence bundles.
 
-The multi-molecule result closes only the directional thresholds. A
-component-resolved Cartesian panel is still required to establish its RMS,
-maximum-error, and step-convergence thresholds; the broader component physics,
-Hessian, and NVE gates also remain open. Consequently this evidence is not Tier
-F admission.
+The independently aggregated reference-geometry Cartesian panel subsequently
+passed at clean head `abb34a05`: 20 molecules, 465 components, and 1395
+component/step comparisons gave maximum RMS and component errors of
+`5.89334e-6` and `1.85578e-5 eV/Angstrom`. Every molecule had an observed
+first-to-last central-difference order of at least `1.94289`; maximum primal
+and adjoint residuals were `9.99155e-13` and `2.46413e-12`. Raw source-bound
+evidence is in `evidence/fixedbox590-cartesian-panel-abb34a05/`.
+
+These results close the frozen directional and component-resolved derivative
+thresholds, not Tier F. The explicit residual-based force-error estimate,
+all-panel symmetry/loop scope, matched component physics, multi-geometry box
+convergence, public workflow integration, Hessian, and NVE gates remain open.
 
 ## Symmetry, root, topology, and path gates
 
@@ -70,8 +77,10 @@ The clean-commit execution at `241e98b7` passed all of those preregistered
 single-water path gates. Its worst directional errors were `1.84e-5 eV/A`
 absolute and `3.75e-4` relative; cold/warm forward/reverse loop work had
 magnitude `7.22e-6 eV`, and the topology hash was constant. Raw evidence is in
-`evidence/fixedbox590-water-path-241e98b7/`. This does not change the remaining
-multi-molecule, box-convergence, component-physics, Hessian, or NVE gates.
+`evidence/fixedbox590-water-path-241e98b7/`. Later multi-molecule directional
+and reference-geometry Cartesian panels also passed, but all-panel symmetry
+and closed-loop coverage, box convergence beyond one equilibrium geometry,
+component physics, Hessian, and NVE remain open.
 
 ## Fixed-box operator-convergence gate
 

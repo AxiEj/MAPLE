@@ -46,6 +46,13 @@ BOX_EVIDENCE = (
 PES_PANEL_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-pes-panel-f7f68165"
 )
+PES_CARTESIAN_EVIDENCE = (
+    ROOT
+    / "docs"
+    / "route2"
+    / "evidence"
+    / "fixedbox590-cartesian-panel-abb34a05"
+)
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:
@@ -216,7 +223,7 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
     assert PES_PANEL_RUNNER.name in document
     assert "status=pass" in document
     assert "fixedbox590-pes-panel-f7f68165" in document
-    assert "component-resolved Cartesian FD panel" in document
+    assert "component-resolved Cartesian panel" in document
     assert "not" in document and "optimized transition state" in document
     assert "normalized coordinate tangent" in document
 
@@ -291,10 +298,12 @@ def test_cartesian_panel_runner_and_aggregator_are_raw_source_bound_and_disabled
     document = PES_CARTESIAN_DOC.read_text(encoding="utf-8")
     assert PES_CARTESIAN_RUNNER.name in document
     assert PES_CARTESIAN_AGGREGATOR.name in document
-    assert "Before execution" in document
+    assert "status=pass" in document
+    assert "fixedbox590-cartesian-panel-abb34a05" in document
+    assert "6e64d1afaa0201dd1ecfd2950e1ea62a" in document
     assert "465 Cartesian components" in document
     assert "central-order-or-ten-percent-error-plateau-v1" in document
-    assert "cannot enable E/F/H/V/M" in document
+    assert "E/F/H/V/M therefore remain false" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():
@@ -509,4 +518,104 @@ def test_fixedbox590_pes_panel_artifact_hashes_and_raw_gates_close():
     assert raw["maximum_cold_warm_source_relative_difference"] <= 1.0e-8
     assert manifest["scope_limits"]["directional_same_scalar_force_fd"] is True
     assert manifest["scope_limits"]["component_resolved_cartesian_force_fd"] is False
+    assert manifest["scope_limits"]["hessian_frequency_ts_nve"] is False
+
+
+def test_cartesian_panel_artifact_is_source_bound_and_capability_closed():
+    manifest = json.loads((PES_CARTESIAN_EVIDENCE / "manifest.json").read_text())
+    aggregate = json.loads((PES_CARTESIAN_EVIDENCE / "aggregate.json").read_text())
+    shards = [
+        json.loads(path.read_text())
+        for path in sorted(PES_CARTESIAN_EVIDENCE.glob("shard-*.json"))
+    ]
+
+    assert len(shards) == 20
+    assert [
+        shard["panel_contract"]["shard_start"] for shard in shards
+    ] == list(range(20))
+    assert [
+        shard["panel_contract"]["shard_stop"] for shard in shards
+    ] == list(range(1, 21))
+    assert aggregate["status"] == "pass"
+    assert aggregate["capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "M": False,
+        "V": False,
+    }
+    assert manifest["capabilities"] == aggregate["capabilities"]
+    assert manifest["evidence_status"].endswith("not release admission")
+    assert manifest["execution_git_head"] == aggregate["execution_git_head"]
+    assert manifest["execution_git_tree"] == aggregate["execution_git_tree"]
+    assert manifest["tested_working_tree_clean"] is True
+    assert all(shard["working_tree_clean"] is True for shard in shards)
+    assert {
+        shard["execution_git_head"] for shard in shards
+    } == {manifest["execution_git_head"]}
+    assert {
+        shard["checkpoint"]["sha256"] for shard in shards
+    } == {manifest["checkpoint_sha256"]}
+
+    source_hashes = aggregate["source_files_sha256"]
+    assert source_hashes
+    assert all(shard["source_files_sha256"] == source_hashes for shard in shards)
+    for relative, expected in source_hashes.items():
+        blob = subprocess.run(
+            ("git", "show", f"{manifest['execution_git_head']}:{relative}"),
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert hashlib.sha256(blob).hexdigest() == expected
+
+
+def test_cartesian_panel_artifact_hashes_and_raw_gates_close():
+    manifest = json.loads((PES_CARTESIAN_EVIDENCE / "manifest.json").read_text())
+    aggregate = json.loads((PES_CARTESIAN_EVIDENCE / "aggregate.json").read_text())
+    sums = {}
+    for line in (PES_CARTESIAN_EVIDENCE / "SHA256SUMS").read_text().splitlines():
+        expected, name = line.split("  ", 1)
+        sums[name] = expected
+
+    for name, expected in sums.items():
+        assert (
+            hashlib.sha256((PES_CARTESIAN_EVIDENCE / name).read_bytes()).hexdigest()
+            == expected
+        )
+    assert manifest["aggregate_artifact_sha256"] == sums["aggregate.json"]
+    assert manifest["artifact_sha256"]["aggregate.json"] == sums["aggregate.json"]
+    assert manifest["aggregate_measurement_sha256"] == aggregate[
+        "aggregate_measurement_sha256"
+    ]
+
+    panel = aggregate["cartesian_panel_summary"]
+    assert panel["all_gates_passed"] is True
+    assert panel["molecule_count"] == 20
+    assert panel["geometry_count"] == 20
+    assert panel["component_count"] == 465
+    assert panel["component_sample_count"] == 1395
+    assert panel["step_record_count"] == 60
+    assert panel["low_error_plateau_count"] == 0
+    assert all(panel["gates"].values())
+
+    raw = manifest["raw_summary"]
+    assert raw["maximum_rms_error_eV_per_A"] == pytest.approx(
+        5.893341195090511e-06
+    )
+    assert raw["maximum_component_error_eV_per_A"] == pytest.approx(
+        1.8557801318763723e-05
+    )
+    assert raw["minimum_observed_first_to_last_order"] == pytest.approx(
+        1.9428853284937788
+    )
+    assert raw["maximum_primal_residual"] <= 1.0e-12
+    assert raw["maximum_adjoint_residual"] <= 1.0e-10
+    assert raw["maximum_cold_warm_energy_abs_difference_eV"] <= 1.0e-8
+    assert raw["maximum_cold_warm_source_relative_difference"] <= 1.0e-8
+    assert manifest["scope_limits"]["directional_same_scalar_force_fd"] is True
+    assert (
+        manifest["scope_limits"]["component_resolved_cartesian_force_fd"] is True
+    )
+    assert manifest["scope_limits"]["residual_based_force_error_bound"] is False
     assert manifest["scope_limits"]["hessian_frequency_ts_nve"] is False

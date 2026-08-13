@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | one-water Cartesian/orientation, seven-geometry path/loop, equilibrium box-tail, and 20-molecule/60-geometry plus 11-path-point directional gates pass; full Cartesian panel, component physics, H/NVE, and admission remain open |
+| `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | one-water Cartesian/orientation, seven-geometry path/loop, equilibrium box-tail, 20-molecule/60-geometry plus 11-path-point directional gates, and the 20-reference-geometry/465-component Cartesian gate pass; residual-error bound, all-panel symmetry/loop, component physics, workflow integration, H/NVE, and admission remain open |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1` | no | no | no | no | no | synthetic injected-grid diagnostic only |
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |

@@ -1,8 +1,9 @@
 # Route 2 preregistered Cartesian force panel
 
-This contract complements, but does not replace, the already executed
-20-molecule directional panel. It is frozen before its first real-stack run
-and cannot enable E/F/H/V/M by itself.
+This contract complements, but does not replace, the executed 20-molecule
+directional panel. It was frozen before its first real-stack run. The complete
+source-bound run now has `status=pass`, but this evidence cannot enable
+E/F/H/V/M by itself.
 
 ## Scope
 
@@ -72,10 +73,33 @@ Only `aggregate_fixedbox590_cartesian_panel.py`, run at the exact shard Git
 head/tree, may combine all 20 source/checkpoint/runtime-identical shards. A
 failed shard or aggregate exits nonzero and is preserved as negative evidence.
 
+## Executed result
+
+All 20 CUDA/float64 shards were executed from a clean checkout at Git head
+`abb34a057b2ba750607bf5f6b5c38f9171dc7beb`. The independent aggregator
+recomputed all 1395 central differences from raw displaced scalar energies and
+all 465 analytic components from raw forces. It returned `status=pass`.
+
+Across all molecules and step sizes, the maximum Cartesian RMS error was
+`5.893341195090511e-6 eV/Angstrom` and the maximum component error was
+`1.8557801318763723e-5 eV/Angstrom`, respectively about 85 and 108 times
+smaller than the preregistered budgets. Every molecule showed convergent
+central differences; the minimum first-to-last observed order was
+`1.9428853284937788`, and no low-error plateau exception was used. Maximum
+primal and adjoint residuals were `9.991550745831306e-13` and
+`2.4641272982371513e-12`. All cold/warm roots and topology checks passed.
+
+The immutable raw bundle is
+`evidence/fixedbox590-cartesian-panel-abb34a05/`. Its aggregate SHA256 is
+`6e64d1afaa0201dd1ecfd2950e1ea62a267a1bf694d8557f6c8b0573e985dbfe`,
+and its canonical measurement SHA256 is
+`2c744462aec3554e6c577fd70e2523301b4b8c2f2cc5dad230c757f1775e95ac`.
+
 ## Claim boundary
 
-Before execution this document contains no numerical result. Even a passing
-aggregate will establish only the component-resolved same-scalar derivative
-gate for this frozen electrostatic candidate. It will not establish complete
-solvation free energy, chemical accuracy, Hessian/FREQ/TS/HVP/NVE, a strict
-common variational functional, original SMD equivalence, or public admission.
+This closes only the component-resolved same-scalar derivative gate for the
+frozen electrostatic candidate. It does not establish complete solvation free
+energy, chemical accuracy, a residual-based force-error bound, all-panel
+symmetry/closed-loop behavior, matched electrostatic component physics,
+Hessian/FREQ/TS/HVP/NVE, a strict common variational functional, original SMD
+equivalence, or public admission. E/F/H/V/M therefore remain false.

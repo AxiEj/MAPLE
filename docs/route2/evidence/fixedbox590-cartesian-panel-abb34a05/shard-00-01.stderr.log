@@ -1,0 +1,35 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed Cartesian molecule=water step=0.0004 atom=0
+completed Cartesian molecule=water step=0.0004 atom=1
+completed Cartesian molecule=water step=0.0004 atom=2
+completed Cartesian molecule=water step=0.0002 atom=0
+completed Cartesian molecule=water step=0.0002 atom=1
+completed Cartesian molecule=water step=0.0002 atom=2
+completed Cartesian molecule=water step=0.0001 atom=0
+completed Cartesian molecule=water step=0.0001 atom=1
+completed Cartesian molecule=water step=0.0001 atom=2
+completed Cartesian molecule=water
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "env CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=0 OMP_NUM_THREADS=6 MKL_NUM_THREADS=6 OPENBLAS_NUM_THREADS=6 CUDA_VISIBLE_DEVICES=0 python tools/route2_release/run_fixedbox590_cartesian_panel.py --device cuda --molecule-start 0 --molecule-stop 1 --output /home/axie/MAPLE/route2-cartesian-evidence-abb34a05/shard-00-01.json"
+	User time (seconds): 417.89
+	System time (seconds): 28.59
+	Percent of CPU this job got: 107%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 6:54.53
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2366712
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 2392
+	Minor (reclaiming a frame) page faults: 632910
+	Voluntary context switches: 19474
+	Involuntary context switches: 1155
+	Swaps: 0
+	File system inputs: 349480
+	File system outputs: 256
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

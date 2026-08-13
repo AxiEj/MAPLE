@@ -1,0 +1,3 @@
+cuequivariance or cuequivariance_torch is not available. Cuequivariance acceleration will be disabled.
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+ROUTE2_FIXEDBOX590_CARTESIAN_PANEL_SHARD={"artifact": {"bytes": 141870, "path": "/home/axie/MAPLE/route2-cartesian-evidence-abb34a05/shard-02-03.json", "sha256": "fbd26bca0e18673f37ef6dc1bef4b1ad9285f832e091c40969096a299a719646"}, "capabilities": {"E": false, "F": false, "H": false, "M": false, "V": false}, "measurement_sha256": "4263233eca71738bcdb47d321a1f677c1b1937cf82e54dda59079c97303204d7", "runtime_seconds": 1962.5782005439978, "shard_start": 2, "shard_stop": 3}

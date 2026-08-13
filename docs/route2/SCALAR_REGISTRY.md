@@ -77,9 +77,12 @@ keeps the same scalar formula but binds a distinct experimental MACE-POLAR
 fixed-40-A reciprocal evaluation operator and a 590-point Lebedev grid per
 atom.  It was introduced after a fixed-order scan isolated the old rotation
 error to the model/cavity evaluation operators.  This identity is disabled:
-one water geometry and six rigid orientations are evidence for further PES
-testing, not a Tier-E or Tier-F admission, and fixed-box convergence remains
-unproven beyond the separately executed equilibrium-water operator gate.
+its one-water geometry/orientation/path checks, 20-molecule directional panel,
+and 465-component reference-geometry Cartesian panel pass. They are still not
+a Tier-E or Tier-F admission: a residual-based force-error bound, all-panel
+symmetry/loop coverage, matched component physics, public workflow integration,
+and fixed-box convergence beyond the separately executed equilibrium-water
+operator gate remain open.
 
 The otherwise identical disabled `fixedbox32`, `fixedbox48`, and `fixedbox56`
 profiles exist only for a preregistered box-operator convergence audit. They

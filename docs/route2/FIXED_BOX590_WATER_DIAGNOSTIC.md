@@ -178,10 +178,28 @@ identities against the preregistered 48-to-56 tail thresholds in
 `VALIDATION_PROTOCOL.md`; it does not tune a free box parameter under the 40-A
 identity.
 
+The clean-commit CPU/float64 execution at `a7fdf2fa` passed every preregistered
+tail gate. Relative to 56 Angstrom, the 48-Angstrom result changed total energy
+by `2.87123e-6 eV`, the continuum half-coupling by `2.38313e-8 eV`, force RMS
+by `6.78548e-7 eV/Angstrom`, force maximum by `1.24714e-6 eV/Angstrom`, and
+the source by `8.27721e-7` relative. The already used 40-Angstrom operator was
+even closer to the 56-Angstrom finite reference: `2.14385e-7 eV` total-energy
+difference and `3.98917e-7 eV/Angstrom` force RMS difference. All four
+calculations used one surface-topology hash, converged in 23 iterations, and
+had maximum primal/adjoint residuals `3.54206e-13`/`2.43340e-16`.
+
+Raw source/runtime/checkpoint-bound evidence is in
+`evidence/fixedbox590-water-box-convergence-a7fdf2fa/`. This closes only the
+single-water equilibrium box-operator diagnostic. It does not close
+multi-geometry box convergence, the required molecular PES panel, component
+physics, complete solvation free energy, Hessian/FREQ/TS/NVE, or public
+admission; E/F/H/V/M remain false.
+
 ## Result
 
-The one-water force/symmetry/path blocker is materially improved and the
-returned force is numerically consistent with the declared scalar over the
-executed distorted-water panel. Tier F remains false because the required
-multi-molecule PES panel, box convergence, physical component validation,
-Hessian/NVE evidence, and public integration/admission have not been completed.
+The one-water force/symmetry/path and equilibrium box-choice blockers are
+materially improved, and the returned force is numerically consistent with
+the declared scalar over the executed distorted-water panel. Tier F remains
+false because the required multi-molecule PES panel, multi-geometry box
+convergence, physical component validation, Hessian/NVE evidence, and public
+integration/admission have not been completed.

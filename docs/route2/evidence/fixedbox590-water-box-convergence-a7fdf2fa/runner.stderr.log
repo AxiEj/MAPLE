@@ -1,0 +1,32 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed fixed-box convergence size=32 A
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed fixed-box convergence size=40 A
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed fixed-box convergence size=48 A
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed fixed-box convergence size=56 A
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONHASHSEED=0 python tools/route2_release/run_fixedbox590_water_box_convergence.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cpu --output /tmp/route2-fixedbox590-water-box-convergence-a7fdf2fa.json"
+	User time (seconds): 87.14
+	System time (seconds): 20.61
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:47.95
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2301948
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 138
+	Minor (reclaiming a frame) page faults: 13658223
+	Voluntary context switches: 1347
+	Involuntary context switches: 432
+	Swaps: 0
+	File system inputs: 14376
+	File system outputs: 320
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

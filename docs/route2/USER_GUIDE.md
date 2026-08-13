@@ -7,6 +7,9 @@ All ten registry profiles have `E=F=H=V=M=false`. The radial-GTO water path is
 an internal validation candidate; it is deliberately unavailable through
 MAPLE's public calculator/result API.
 
+Its single-water equilibrium 32/40/48/56-Angstrom box audit passes the frozen
+tail thresholds, but this does not admit energy or force for public use.
+
 The stable public legacy Route-2 inputs remain experimental energy-only paths
 with their historical contracts. They must not be interpreted as the vNext
 same-scalar PES described here.
@@ -79,9 +82,10 @@ the full same-scalar PES gates. The original radial-water canary's local
 derivative does not override its rotation/torque failures. The distinct
 fixed-box590 diagnostic now has one-equilibrium-geometry Cartesian and
 orientation evidence plus a clean-commit seven-geometry/63-direction and
-bidirectional cold/warm loop audit. Those single-water results do not substitute
-for the multi-molecule PES panel, box convergence, Hessian, NVE, or
-physical-component validation.
+bidirectional cold/warm loop audit, plus a passing equilibrium
+32/40/48/56-Angstrom box-tail audit. Those single-water results do not
+substitute for the multi-molecule PES panel, multi-geometry box convergence,
+Hessian, NVE, or physical-component validation.
 
 ## Solvation-energy interpretation
 

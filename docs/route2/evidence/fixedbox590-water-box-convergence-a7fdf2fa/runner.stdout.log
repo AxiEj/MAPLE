@@ -1,0 +1,6 @@
+cuequivariance or cuequivariance_torch is not available. Cuequivariance acceleration will be disabled.
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+ROUTE2_FIXEDBOX590_WATER_BOX_CONVERGENCE={"all_gates_passed": true, "artifact": {"bytes": 132908, "path": "/tmp/route2-fixedbox590-water-box-convergence-a7fdf2fa.json", "sha256": "6d70d09be76d8842737e1f81da020807c242ce85c6c5ce2cc065a073bec9fd79"}, "capabilities": {"E": false, "F": false, "H": false, "M": false, "V": false}, "gates": {"tail_continuum_energy_abs_le_1e-4_eV": true, "tail_force_max_le_5e-4_eV_per_A": true, "tail_force_rms_le_1e-4_eV_per_A": true, "tail_source_relative_le_1e-5": true, "tail_total_energy_abs_le_1e-4_eV": true}, "measurement_sha256": "15cf80c3641b2409c448a0154140128d61a074d5e0d5dcc9bdc6c9a66832b771", "runtime_seconds": 106.05647377797868}

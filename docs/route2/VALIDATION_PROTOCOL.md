@@ -30,11 +30,12 @@ Current executed real-water evidence is intentionally below admission scope:
 the original molecular-realspace/CPCM194 candidate passed one directional test
 but failed rotation/torque.  The separately versioned fixed-box40/CPCM590
 diagnostic then passed all nine Cartesian components at three steps and six
-rigid orientations on one equilibrium water geometry.  It remains local
-evidence only; multiple geometries and molecules, distorted/path structures,
-bidirectional cold/warm loop work, box convergence, the PES panel, Hessian, and
-NVE gates remain required.  Exact measurements and the reproducible command are
-recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`.
+rigid orientations on one equilibrium water geometry, followed by its
+seven-geometry force/path audit and the equilibrium 32/40/48/56-Angstrom box
+tail audit. It remains single-molecule evidence only; the required
+multi-molecule PES panel, multi-geometry box convergence, component physics,
+Hessian, and NVE gates remain open. Exact measurements and reproducible
+commands are recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`.
 
 ## Symmetry, root, topology, and path gates
 
@@ -84,6 +85,14 @@ solvation profile. The 56-Angstrom calculation is the finite reference and the
 These thresholds and sizes are frozen before the clean real-stack run. Passing
 one equilibrium-water comparison only admits the box choice for continued
 diagnostics; it is not Tier E/F or multi-geometry/multi-molecule convergence.
+
+The clean `a7fdf2fa` execution passed all five tail gates: 48-to-56 changes
+were `2.87123e-6 eV` total energy, `2.38313e-8 eV` continuum energy,
+`6.78548e-7 eV/Angstrom` force RMS, `1.24714e-6 eV/Angstrom` force maximum,
+and `8.27721e-7` relative source. The 40-to-56 total-energy and force-RMS
+changes were `2.14385e-7 eV` and `3.98917e-7 eV/Angstrom`, respectively. The
+raw artifact is in `evidence/fixedbox590-water-box-convergence-a7fdf2fa/`;
+capabilities remain closed because this is one molecule and one geometry.
 
 Root uniqueness is tested with declared multi-start seeds and the actual
 unmixed dimensionless residual. Damping/DIIS convergence alone is not a root

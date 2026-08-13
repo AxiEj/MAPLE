@@ -79,12 +79,17 @@ atom.  It was introduced after a fixed-order scan isolated the old rotation
 error to the model/cavity evaluation operators.  This identity is disabled:
 one water geometry and six rigid orientations are evidence for further PES
 testing, not a Tier-E or Tier-F admission, and fixed-box convergence remains
-unproven.
+unproven beyond the separately executed equilibrium-water operator gate.
 
 The otherwise identical disabled `fixedbox32`, `fixedbox48`, and `fixedbox56`
 profiles exist only for a preregistered box-operator convergence audit. They
 bind distinct model/evaluator identities; they are not public alternatives and
 must not be selected adaptively after inspecting the result.
+
+The preregistered clean run passed its 48-to-56 tail thresholds and found the
+40-Angstrom scalar within `2.14385e-7 eV` and force RMS within
+`3.98917e-7 eV/Angstrom` of 56 Angstrom on equilibrium water. This is not a
+public profile or a multi-geometry convergence certificate.
 
 ## `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1`
 

@@ -28,6 +28,9 @@ BOX_RUNNER = (
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
 )
+BOX_EVIDENCE = (
+    ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-box-convergence-a7fdf2fa"
+)
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:
@@ -218,3 +221,60 @@ def test_fixedbox590_water_path_artifact_file_hashes_and_raw_gates_close():
         assert geometry["cold_warm"]["numerically_equivalent"] is True
         for direction in geometry["directional_force_fd"].values():
             assert direction["all_gates_passed"] is True
+
+
+def test_fixedbox590_box_artifact_is_source_bound_and_capability_closed():
+    measurements = json.loads((BOX_EVIDENCE / "measurements.json").read_text())
+    manifest = json.loads((BOX_EVIDENCE / "manifest.json").read_text())
+    assert measurements["execution_git_head"] == manifest["execution_git_head"]
+    assert measurements["working_tree_clean"] is True
+    assert measurements["capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "M": False,
+        "V": False,
+    }
+    assert all(measurements["measurements"]["gates"].values())
+    assert manifest["evidence_status"].endswith("not release admission")
+    assert manifest["scope_limits"]["single_geometry"] is True
+    assert manifest["scope_limits"]["multi_geometry_box_convergence"] is False
+    assert manifest["box_lengths_A"] == [32, 40, 48, 56]
+    assert manifest["tail_pair_A"] == [48, 56]
+
+    source_hashes = measurements["source_files_sha256"]
+    assert source_hashes
+    for relative, expected in source_hashes.items():
+        blob = subprocess.run(
+            ("git", "show", f"{measurements['execution_git_head']}:{relative}"),
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert hashlib.sha256(blob).hexdigest() == expected
+
+
+def test_fixedbox590_box_artifact_file_hashes_and_raw_gates_close():
+    manifest = json.loads((BOX_EVIDENCE / "manifest.json").read_text())
+    sums = {}
+    for line in (BOX_EVIDENCE / "SHA256SUMS").read_text().splitlines():
+        expected, name = line.split("  ", 1)
+        sums[name] = expected
+    assert (
+        sums["manifest.json"]
+        == hashlib.sha256((BOX_EVIDENCE / "manifest.json").read_bytes()).hexdigest()
+    )
+    for name, expected in manifest["artifact_sha256"].items():
+        assert (
+            hashlib.sha256((BOX_EVIDENCE / name).read_bytes()).hexdigest() == expected
+        )
+        assert sums[name] == expected
+    raw = manifest["raw_summary"]
+    assert raw["maximum_primal_residual"] <= 1.0e-12
+    assert raw["maximum_adjoint_residual"] <= 1.0e-10
+    assert len(raw["surface_topology_hashes"]) == 1
+    assert raw["tail"]["total_energy_abs_eV"] == pytest.approx(2.871227934519993e-06)
+    assert raw["tail"]["continuum_energy_abs_eV"] == pytest.approx(
+        2.3831270675594984e-08
+    )
+    assert raw["tail"]["force_rms_eV_per_A"] == pytest.approx(6.785481887261842e-07)

@@ -1,0 +1,150 @@
+{
+  "artifact_sha256": {
+    "measurements.json": "6d70d09be76d8842737e1f81da020807c242ce85c6c5ce2cc065a073bec9fd79",
+    "runner.stderr.log": "edd7e884bc5f97e5c9256f6f7b04949e6acf6743555eead32e1db96e86ca170d",
+    "runner.stdout.log": "4fdd65d1ee3119b61a1f447a3fc0373d2cb6467b3733fef811c6fa59ae713ead"
+  },
+  "box_lengths_A": [
+    32,
+    40,
+    48,
+    56
+  ],
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "device": "cpu",
+  "dtype": "float64",
+  "environment_summary": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "thread_environment": {
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "PYTHONHASHSEED": "0"
+    }
+  },
+  "evidence_status": "passing-single-water-single-geometry-box-operator-diagnostic; not release admission",
+  "executed_command": "tools/route2_release/run_fixedbox590_water_box_convergence.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cpu --output /tmp/route2-fixedbox590-water-box-convergence-a7fdf2fa.json",
+  "execution_git_head": "a7fdf2fa66a6653941d3ca731b0858941c9381ea",
+  "execution_git_tree": "4709355269935157a0a8bbe6ea37c4753eb4d1f4",
+  "gates": {
+    "tail_continuum_energy_abs_le_1e-4_eV": true,
+    "tail_force_max_le_5e-4_eV_per_A": true,
+    "tail_force_rms_le_1e-4_eV_per_A": true,
+    "tail_source_relative_le_1e-5": true,
+    "tail_total_energy_abs_le_1e-4_eV": true
+  },
+  "measurement_sha256": "15cf80c3641b2409c448a0154140128d61a074d5e0d5dcc9bdc6c9a66832b771",
+  "raw_summary": {
+    "comparisons_to_56A": [
+      {
+        "box_length_A": 32,
+        "continuum_energy_difference_to_56A_eV": -9.282170339644513e-08,
+        "force_max_difference_to_56A_eV_per_A": 6.0120870120083936e-06,
+        "force_rms_difference_to_56A_eV_per_A": 3.0977456442444355e-06,
+        "source_relative_difference_to_56A": 3.110752798307494e-06,
+        "total_energy_difference_to_56A_eV": -1.1141582945128903e-05
+      },
+      {
+        "box_length_A": 40,
+        "continuum_energy_difference_to_56A_eV": 1.136946602836586e-09,
+        "force_max_difference_to_56A_eV_per_A": 6.973713271574145e-07,
+        "force_rms_difference_to_56A_eV_per_A": 3.989171693961101e-07,
+        "source_relative_difference_to_56A": 8.780528962188775e-08,
+        "total_energy_difference_to_56A_eV": 2.1438518160721287e-07
+      },
+      {
+        "box_length_A": 48,
+        "continuum_energy_difference_to_56A_eV": -2.3831270675594984e-08,
+        "force_max_difference_to_56A_eV_per_A": 1.2471425501203726e-06,
+        "force_rms_difference_to_56A_eV_per_A": 6.785481887261842e-07,
+        "source_relative_difference_to_56A": 8.277206078592439e-07,
+        "total_energy_difference_to_56A_eV": -2.871227934519993e-06
+      },
+      {
+        "box_length_A": 56,
+        "continuum_energy_difference_to_56A_eV": 0.0,
+        "force_max_difference_to_56A_eV_per_A": 0.0,
+        "force_rms_difference_to_56A_eV_per_A": 0.0,
+        "source_relative_difference_to_56A": 0.0,
+        "total_energy_difference_to_56A_eV": 0.0
+      }
+    ],
+    "iterations_by_box": {
+      "32": 23,
+      "40": 23,
+      "48": 23,
+      "56": 23
+    },
+    "maximum_adjoint_residual": 2.4333941391494227e-16,
+    "maximum_primal_residual": 3.5420510710844027e-13,
+    "surface_topology_hashes": [
+      "ff7af9e2467b7063552d9912c25d242010ba1cdfafc8ae70fe55242b7b37f8c0"
+    ],
+    "tail": {
+      "continuum_energy_abs_eV": 2.3831270675594984e-08,
+      "force_max_eV_per_A": 1.2471425501203726e-06,
+      "force_rms_eV_per_A": 6.785481887261842e-07,
+      "source_relative": 8.277206078592439e-07,
+      "total_energy_abs_eV": 2.871227934519993e-06
+    },
+    "warning_count": 256
+  },
+  "remaining_blockers": [
+    "single water molecule and one equilibrium geometry only",
+    "required multi-molecule and distorted-geometry PES panels remain absent",
+    "electrostatic component has no matched QM/PCM physical validation",
+    "no compatible nonpolar/CDS or complete solvation free energy",
+    "no admitted numerical Hessian, FREQ, TS, IRC, path, or NVE workflow evidence",
+    "all profiles remain disabled with E/F/H/V/M false"
+  ],
+  "runtime_seconds": 106.05647377797868,
+  "schema_version": "route2-fixedbox590-water-box-convergence-evidence-manifest-v1",
+  "scope_limits": {
+    "box_operator_convergence": true,
+    "chemical_accuracy": false,
+    "complete_nonpolar_free_energy": false,
+    "multi_geometry_box_convergence": false,
+    "multi_molecule_pes_panel": false,
+    "single_geometry": true,
+    "single_molecule": true
+  },
+  "tail_pair_A": [
+    48,
+    56
+  ],
+  "tested_working_tree_clean": true,
+  "thresholds": {
+    "adjoint_residual": 1e-10,
+    "continuum_energy_abs_eV": 0.0001,
+    "force_max_eV_per_A": 0.0005,
+    "force_rms_eV_per_A": 0.0001,
+    "primal_residual": 1e-12,
+    "source_relative": 1e-05,
+    "total_energy_abs_eV": 0.0001
+  }
+}

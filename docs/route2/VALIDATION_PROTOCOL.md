@@ -32,7 +32,11 @@ tolerance pairs, separates the two residual spaces, requires contraction or a
 declared numerical plateau, applies a factor-two tail estimate, and gates both
 RMS and maximum estimated error at `5e-5 eV/Angstrom`. It is an empirical
 a-posteriori residual-refinement estimate, not a rigorous analytic upper bound.
-The real 20-molecule panel has not yet been executed, so this gate remains open.
+The clean-head 20-molecule execution at `9918dea6` passed: worst estimated RMS
+and component errors were `3.70243e-13` and `1.26565e-12 eV/Angstrom`, versus
+the frozen `5e-5 eV/Angstrom` budget. Raw evidence is in
+`evidence/fixedbox590-residual-force-9918dea6/`. This closes only the empirical
+residual-contribution clause; other Tier-F gates remain open.
 
 Current executed real-stack evidence is intentionally below admission scope:
 the original molecular-realspace/CPCM194 candidate passed one directional test
@@ -55,9 +59,10 @@ and adjoint residuals were `9.99155e-13` and `2.46413e-12`. Raw source-bound
 evidence is in `evidence/fixedbox590-cartesian-panel-abb34a05/`.
 
 These results close the frozen directional and component-resolved derivative
-thresholds, not Tier F. The explicit residual-based force-error estimate,
-all-panel symmetry/loop scope, matched component physics, multi-geometry box
-convergence, public workflow integration, Hessian, and NVE gates remain open.
+thresholds, not Tier F. The subsequent residual-refinement panel at
+`9918dea6` also passed its empirical residual-contribution gate. All-panel
+symmetry/loop scope, matched component physics, multi-geometry box convergence,
+public workflow integration, Hessian, and NVE gates remain open.
 
 ## Symmetry, root, topology, and path gates
 

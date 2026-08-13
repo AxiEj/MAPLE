@@ -78,8 +78,9 @@ fixed-40-A reciprocal evaluation operator and a 590-point Lebedev grid per
 atom.  It was introduced after a fixed-order scan isolated the old rotation
 error to the model/cavity evaluation operators.  This identity is disabled:
 its one-water geometry/orientation/path checks, 20-molecule directional panel,
-and 465-component reference-geometry Cartesian panel pass. They are still not
-a Tier-E or Tier-F admission: a residual-based force-error bound, all-panel
+465-component reference-geometry Cartesian panel, and 20-reference
+residual-refinement panel pass. They are still not
+a Tier-E or Tier-F admission: all-panel
 symmetry/loop coverage, matched component physics, public workflow integration,
 and fixed-box convergence beyond the separately executed equilibrium-water
 operator gate remain open.

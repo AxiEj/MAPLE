@@ -161,7 +161,7 @@ suppressed.
 This materially closes the **single-water** multi-geometry and loop gate.
 Later source-bound 20-molecule directional and component-resolved Cartesian
 panels also passed. They do not close all-panel symmetry/loop behavior, the
-residual-based force-error bound, multi-geometry box convergence,
+multi-geometry box convergence,
 component-level QM/PCM validation, a compatible nonpolar/free-energy ledger,
 Hessian/FREQ/TS/NVE gates, or any public capability. E/F/H/V/M therefore
 remain false.
@@ -204,6 +204,6 @@ The one-water force/symmetry/path and equilibrium box-choice blockers are
 materially improved, and the returned force is numerically consistent with
 the declared scalar over the executed distorted-water panel. The later
 20-molecule directional and 465-component Cartesian panels also pass. Tier F
-remains false because the residual-error estimate, all-panel symmetry/loop,
+remains false because all-panel symmetry/loop,
 multi-geometry box convergence, physical component validation, Hessian/NVE,
 and public integration/admission have not been completed.

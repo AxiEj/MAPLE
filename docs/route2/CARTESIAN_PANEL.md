@@ -99,7 +99,7 @@ and its canonical measurement SHA256 is
 
 This closes only the component-resolved same-scalar derivative gate for the
 frozen electrostatic candidate. It does not establish complete solvation free
-energy, chemical accuracy, a residual-based force-error bound, all-panel
-symmetry/closed-loop behavior, matched electrostatic component physics,
+energy, chemical accuracy, all-panel symmetry/closed-loop behavior, matched
+electrostatic component physics,
 Hessian/FREQ/TS/HVP/NVE, a strict common variational functional, original SMD
 equivalence, or public admission. E/F/H/V/M therefore remain false.

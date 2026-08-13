@@ -90,3 +90,33 @@ python tools/route2_release/aggregate_fixedbox590_residual_force_panel.py \
 
 Thresholds must not be changed after the real panel is observed. Regardless of
 the outcome, E/F/H/V/M remain false until every other admission gate passes.
+
+## Executed result
+
+All 20 source-bound CUDA/float64 shards were executed on clean Git head
+`9918dea67ba0271648a1e298155a0dec1ed6c25b`. The independent aggregator
+reconstructed every molecule result from the six raw force/residual records,
+checked the exact frozen geometry, source ledger, checkpoint, runtime identity,
+and preregistered tolerance sequence, and returned `status=pass`.
+
+The worst panel values were:
+
+- estimated RMS force error: `3.702427949407424e-13 eV/A`;
+- estimated maximum component error: `1.2656542480726785e-12 eV/A`;
+- directly observed release-to-tight maximum change:
+  `3.6060043839825084e-13 eV/A`;
+- maximum measured primal residuals by level:
+  `9.14172e-13`, `9.56272e-14`, `9.82286e-15`;
+- maximum measured adjoint residuals by level:
+  `2.46416e-12`, `3.60059e-13`, `4.03312e-14`.
+
+The maximum estimated component error is about `3.95e7` times below the
+`5e-5 eV/A` budget. The immutable evidence bundle is
+`evidence/fixedbox590-residual-force-9918dea6/`; aggregate SHA256 is
+`b4c964f17ccac1230ecf00d21709c8a68a39e31735f3cdc80a8c31d7a3291150`
+and aggregate-measurement SHA256 is
+`21b364edd09152ed132c327e3ecfb277925f3705340d0aed440db4fdbcf6ebe1`.
+
+This closes the empirical residual-contribution clause in Goal section 11.2
+for the 20 reference geometries. It does not turn the estimate into a rigorous
+analytic theorem and does not close the remaining Tier-F gates.

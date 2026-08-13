@@ -1,0 +1,3 @@
+cuequivariance or cuequivariance_torch is not available. Cuequivariance acceleration will be disabled.
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+ROUTE2_FIXEDBOX590_RESIDUAL_FORCE_SHARD={"artifact": {"bytes": 67697, "path": "/home/axie/MAPLE/route2-residual-force-evidence-9918dea6-full/shard-03-04.json", "sha256": "0952fab85a53cc13d7c7274b1639d7c5ae36ca4f3ee890ec9fc55e9dfc5b775d"}, "capabilities": {"E": false, "F": false, "H": false, "M": false, "V": false}, "measurement_sha256": "f9da514851f5efe797789ac95801ce3e1670acb3ca9145fbf0a3ce55cd16f8c6", "runtime_seconds": 77.43320452599437, "shard_start": 3, "shard_stop": 4}

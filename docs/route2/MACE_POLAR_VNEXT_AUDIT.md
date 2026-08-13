@@ -7,7 +7,7 @@ fixed-topology C-PCM backend, official MACE-POLAR-1-M adapter, and a conjugate
 two-width radial-GTO `B/B*` path are implemented. **No Route-2 capability is
 admitted.** The separately identified fixed-box40/CPCM590 diagnostic passes
 the preregistered directional and component-resolved same-scalar derivative
-panels. It still lacks the residual-error, all-panel symmetry/loop, workflow,
+panels and residual-refinement gate. It still lacks all-panel symmetry/loop, workflow,
 and physical-component gates, and its methane electrostatic component is much
 smaller than older diagnostic profiles.
 
@@ -59,7 +59,7 @@ water Cartesian and six-orientation checks materially improve the local
 symmetry/force result; exact measurements and limits are recorded in
 `FIXED_BOX590_WATER_DIAGNOSTIC.md`.  It does not replace or silently change the
 194-node profile. It remains unadmitted even after its directional and full
-reference-geometry Cartesian panels pass, because the residual-error,
+reference-geometry Cartesian and residual-refinement panels pass, because
 all-panel symmetry/loop, physical-component, multi-geometry box, and public
 workflow gates remain open.
 
@@ -160,13 +160,12 @@ matched QM/C-PCM investigation.
 | capability | status | reason |
 | --- | --- | --- |
 | scalar energy E | closed | callable internal scalar lacks release and physical-component admission |
-| conservative force F | closed | fixed-box diagnostic passes directional and Cartesian panels, but residual-error, all-panel symmetry/loop, and public workflow admission remain open |
+| conservative force F | closed | fixed-box diagnostic passes directional, Cartesian, and residual-refinement panels, but all-panel symmetry/loop and public workflow admission remain open |
 | Hessian/FREQ H | closed | depends on admitted F and raw-Hessian gates |
 | strict variational V | closed | energy-source conjugacy/stability not established |
 | MD M | closed | depends on admitted F plus path/loop/NVE gates |
 | OPT/NEB/TS/IRC | closed | no Tier-F profile |
 
 Next work is not solver tuning. It is a matched source-normalization/basis audit,
-component-level QM/C-PCM reference comparison, the residual-based force-error
-bound, and the remaining all-panel symmetry/workflow gates while preserving
-all current negative evidence.
+component-level QM/C-PCM reference comparison, and the remaining all-panel
+symmetry/workflow gates while preserving all current negative evidence.

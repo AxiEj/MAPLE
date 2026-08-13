@@ -63,6 +63,13 @@ PES_CARTESIAN_EVIDENCE = (
     / "evidence"
     / "fixedbox590-cartesian-panel-abb34a05"
 )
+RESIDUAL_FORCE_EVIDENCE = (
+    ROOT
+    / "docs"
+    / "route2"
+    / "evidence"
+    / "fixedbox590-residual-force-9918dea6"
+)
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:
@@ -358,6 +365,9 @@ def test_residual_force_runner_and_aggregator_are_preregistered_and_disabled():
     assert "not a rigorous analytic upper bound" in document
     assert "5e-5 eV/A" in document
     assert "E/F/H/V/M remain false" in document
+    assert "status=pass" in document
+    assert "fixedbox590-residual-force-9918dea6" in document
+    assert "b4c964f17ccac1230ecf00d21709c8a68a39e31735f3cdc80a8c31d7a3291150" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():
@@ -673,3 +683,88 @@ def test_cartesian_panel_artifact_hashes_and_raw_gates_close():
     )
     assert manifest["scope_limits"]["residual_based_force_error_bound"] is False
     assert manifest["scope_limits"]["hessian_frequency_ts_nve"] is False
+
+
+def test_residual_force_artifact_is_source_bound_and_capability_closed():
+    manifest = json.loads((RESIDUAL_FORCE_EVIDENCE / "manifest.json").read_text())
+    aggregate = json.loads((RESIDUAL_FORCE_EVIDENCE / "aggregate.json").read_text())
+    shards = [
+        json.loads(path.read_text())
+        for path in sorted(RESIDUAL_FORCE_EVIDENCE.glob("shard-*.json"))
+    ]
+    assert len(shards) == 20
+    assert aggregate["status"] == "pass"
+    assert aggregate["capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "M": False,
+        "V": False,
+    }
+    assert manifest["capabilities"] == aggregate["capabilities"]
+    assert manifest["evidence_status"].endswith("not release admission")
+    assert manifest["execution_git_head"] == aggregate["execution_git_head"]
+    assert manifest["execution_git_tree"] == aggregate["execution_git_tree"]
+    assert manifest["tested_working_tree_clean"] is True
+    assert all(shard["working_tree_clean"] is True for shard in shards)
+    assert {
+        shard["execution_git_head"] for shard in shards
+    } == {manifest["execution_git_head"]}
+    assert {
+        shard["checkpoint"]["sha256"] for shard in shards
+    } == {manifest["checkpoint_sha256"]}
+    assert all(
+        shard["source_files_sha256"] == aggregate["source_files_sha256"]
+        for shard in shards
+    )
+    for relative, expected in aggregate["source_files_sha256"].items():
+        blob = subprocess.run(
+            ("git", "show", f"{manifest['execution_git_head']}:{relative}"),
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert hashlib.sha256(blob).hexdigest() == expected
+
+
+def test_residual_force_artifact_hashes_and_raw_gates_close():
+    manifest = json.loads((RESIDUAL_FORCE_EVIDENCE / "manifest.json").read_text())
+    aggregate = json.loads((RESIDUAL_FORCE_EVIDENCE / "aggregate.json").read_text())
+    sums = {}
+    for line in (RESIDUAL_FORCE_EVIDENCE / "SHA256SUMS").read_text().splitlines():
+        expected, name = line.split("  ", 1)
+        sums[name] = expected
+    for name, expected in sums.items():
+        assert (
+            hashlib.sha256((RESIDUAL_FORCE_EVIDENCE / name).read_bytes()).hexdigest()
+            == expected
+        )
+    assert manifest["aggregate_artifact_sha256"] == sums["aggregate.json"]
+    assert manifest["aggregate_measurement_sha256"] == aggregate[
+        "aggregate_measurement_sha256"
+    ]
+    panel = aggregate["residual_force_panel_summary"]
+    assert panel["all_gates_passed"] is True
+    assert panel["molecule_count"] == 20
+    assert all(panel["gates"].values())
+    assert panel["maximum_estimated_rms_error_eV_per_A"] == pytest.approx(
+        3.702427949407424e-13
+    )
+    assert panel["maximum_estimated_component_error_eV_per_A"] == pytest.approx(
+        1.2656542480726785e-12
+    )
+    assert panel[
+        "maximum_observed_release_to_reference_error_eV_per_A"
+    ] == pytest.approx(3.6060043839825084e-13)
+    assert panel["maximum_actual_primal_residual_by_level"] == pytest.approx(
+        [9.14172390425434e-13, 9.562721835217735e-14, 9.822859083946273e-15]
+    )
+    assert panel["maximum_actual_adjoint_residual_by_level"] == pytest.approx(
+        [2.464164043685235e-12, 3.6005901866951495e-13, 4.0331160252416295e-14]
+    )
+    assert manifest["scope_limits"][
+        "residual_refinement_force_error_estimate"
+    ] is True
+    assert manifest["scope_limits"]["rigorous_analytic_upper_bound"] is False
+    assert manifest["scope_limits"]["all_panel_symmetry"] is False
+    assert manifest["scope_limits"]["complete_nonpolar_free_energy"] is False

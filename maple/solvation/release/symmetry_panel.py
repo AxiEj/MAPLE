@@ -28,6 +28,19 @@ PRIMAL_RESIDUAL_TOLERANCE = 1.0e-12
 ADJOINT_RESIDUAL_TOLERANCE = 1.0e-10
 
 
+def symmetry_loop_point_label(coefficient: object) -> str:
+    """Return one solver-context label for a physical loop geometry.
+
+    Cold and warm solves of the same point must use the same context identity;
+    initialization strategy is not part of the state equation.
+    """
+
+    values = np.asarray(coefficient, dtype=float)
+    if values.shape != (2,) or not np.all(np.isfinite(values)):
+        raise ValueError("loop coefficient must be a finite two-vector.")
+    return f"loop/point/{values[0]:+.8f}/{values[1]:+.8f}"
+
+
 def _rotation(seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
     matrix = rng.normal(size=(3, 3))

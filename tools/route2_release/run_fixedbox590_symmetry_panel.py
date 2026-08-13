@@ -44,6 +44,7 @@ from maple.solvation.release import (
     runtime_record,
     summarize_bidirectional_loop_record,
     summarize_rigid_symmetry,
+    symmetry_loop_point_label,
     symmetry_panel_permutation,
     symmetry_panel_rotations,
     write_external_json_artifact,
@@ -234,10 +235,7 @@ class _SymmetryRunner:
                 geometry = self._loop_geometry(atoms, first, second, coefficient)
                 state, gradient, topology = self.gradient(
                     geometry,
-                    (
-                        f"loop/{'warm' if warm else 'cold'}/"
-                        f"{coefficient[0]:+.8f}/{coefficient[1]:+.8f}"
-                    ),
+                    symmetry_loop_point_label(coefficient),
                     previous if warm else None,
                 )
                 values.append((geometry, state, gradient, topology))

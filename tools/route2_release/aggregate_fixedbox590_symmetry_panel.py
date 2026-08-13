@@ -126,19 +126,6 @@ def _raw_record(raw, molecule):
         expected_rotations
     ):
         raise ValueError("Symmetry rotation coverage is incomplete.")
-    rotation_records = []
-    for raw_rotation, expected in zip(raw_rotations, expected_rotations, strict=True):
-        rotation_records.append(
-            {
-                "index": raw_rotation.get("index"),
-                "rotation_matrix": raw_rotation.get("rotation_matrix"),
-                "expected_rotation_matrix": expected.tolist(),
-                "energy_eV": float(base["energy_eV"])
-                + float(raw_rotation.get("energy_abs_eV")),
-                # Preserve the raw force/source arrays in the runner payload by
-                # reading them from the matching private record below.
-            }
-        )
     # Runner summaries intentionally omit large raw rotated arrays. They are
     # retained in `_raw_rigid_records` exclusively for independent recomputation.
     private = raw.get("_raw_rigid_records")

@@ -50,6 +50,7 @@ from .symmetry_panel import (
     summarize_bidirectional_loop_record,
     summarize_rigid_symmetry,
     summarize_symmetry_panel,
+    symmetry_loop_point_label,
     symmetry_panel_permutation,
     symmetry_panel_rotations,
 )
@@ -127,6 +128,7 @@ __all__ = [
     "summarize_bidirectional_loop_record",
     "summarize_rigid_symmetry",
     "summarize_symmetry_panel",
+    "symmetry_loop_point_label",
     "symmetry_panel_permutation",
     "symmetry_panel_rotations",
     "BOX_LENGTHS_A",

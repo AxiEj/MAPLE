@@ -12,9 +12,19 @@ from maple.solvation.release.symmetry_panel import (
     summarize_bidirectional_loop_record,
     summarize_rigid_symmetry,
     summarize_symmetry_panel,
+    symmetry_loop_point_label,
     symmetry_panel_permutation,
     symmetry_panel_rotations,
 )
+
+
+def test_loop_point_context_depends_only_on_physical_geometry():
+    assert symmetry_loop_point_label((0.0, -1.0)) == "loop/point/+0.00000000/-1.00000000"
+    assert symmetry_loop_point_label(np.asarray([0.0, -1.0])) == (
+        "loop/point/+0.00000000/-1.00000000"
+    )
+    with pytest.raises(ValueError, match="finite two-vector"):
+        symmetry_loop_point_label((0.0, np.nan))
 
 
 def _rigid_record(molecule_id="water"):

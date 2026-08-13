@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import shlex
 import sys
 
 import numpy as np
@@ -22,15 +23,20 @@ from maple.solvation.release import (
     PES_PANEL_DIRECTION_NAMES,
     PES_PANEL_DIRECTIONAL_STEPS_A,
     PES_PANEL_VARIANT_NAMES,
+    RepositorySnapshot,
     canonical_json_sha256,
+    collect_loaded_repository_sources,
+    committed_source_hashes,
     load_pes_panel,
     panel_directions,
     panel_geometries,
     panel_paths,
+    runtime_record,
     stretch_tangent,
     summarize_pes_panel,
     summarize_pes_paths,
     torsion_tangent,
+    write_external_json_artifact,
 )
 from maple.solvation.release.evidence import sha256_file
 from maple.solvation.release.pes_validation import summarize_directional_derivatives
@@ -47,13 +53,15 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _raw_direction(record, atoms, direction, topology_hash):
+def _raw_direction(record, atoms, direction, topology_hash, analytic):
     displaced = record.get("displaced_states")
     if not isinstance(displaced, list) or len(displaced) != len(
         PES_PANEL_DIRECTIONAL_STEPS_A
     ):
         raise ValueError("Directional record has incomplete raw displaced states.")
-    analytic = float(record["records"][0]["analytic_eV_per_A"])
+    analytic = float(analytic)
+    if not np.isfinite(analytic):
+        raise ValueError("Analytic raw-force projection must be finite.")
     samples = []
     maximum_primal = 0.0
     topology_hashes = {topology_hash}
@@ -153,17 +161,52 @@ def _load_shards(paths):
             or contract.get("asset_sha256") != PES_PANEL_ASSET_SHA256
         ):
             raise ValueError(f"Shard uses a different PES-panel contract: {path}.")
+        expected_measurement_sha256 = canonical_json_sha256(
+            {
+                "contract": payload["panel_contract"],
+                "measurements": payload.get("measurements"),
+                "path_measurements": payload.get("path_measurements"),
+            }
+        )
+        if payload.get("measurement_sha256") != expected_measurement_sha256:
+            raise ValueError(f"Shard measurement digest is invalid: {path}.")
         payloads.append((path, payload))
     heads = {payload["execution_git_head"] for _, payload in payloads}
     trees = {payload["execution_git_tree"] for _, payload in payloads}
     checkpoints = {payload["checkpoint"]["sha256"] for _, payload in payloads}
-    if len(heads) != 1 or len(trees) != 1 or len(checkpoints) != 1:
-        raise ValueError("All PES shards must share one source tree and checkpoint.")
+    runtime_signatures = {
+        canonical_json_sha256(
+            {
+                "device": payload.get("device"),
+                "dtype": payload.get("dtype"),
+                "platform": payload.get("runtime", {}).get("platform"),
+                "machine": payload.get("runtime", {}).get("machine"),
+                "packages": payload.get("runtime", {}).get("packages"),
+                "numpy_version": payload.get("runtime", {})
+                .get("numpy", {})
+                .get("version"),
+                "torch": payload.get("runtime", {}).get("torch"),
+                "thread_environment": payload.get("runtime", {}).get("environment"),
+            }
+        )
+        for _, payload in payloads
+    }
+    if (
+        len(heads) != 1
+        or len(trees) != 1
+        or len(checkpoints) != 1
+        or len(runtime_signatures) != 1
+    ):
+        raise ValueError(
+            "All PES shards must share one source tree, checkpoint, and numerical "
+            "runtime signature."
+        )
     return payloads
 
 
 def main() -> None:
     args = _parse_args()
+    repository = RepositorySnapshot.capture(Path(__file__).parents[2])
     shards = _load_shards(args.shard)
     base_records = []
     path_records = []
@@ -197,12 +240,17 @@ def main() -> None:
             if raw.get("geometry_sha256") != geometry_sha256(atoms):
                 raise ValueError("Shard base geometry differs from the frozen asset.")
             directions = panel_directions(atoms, molecule.molecule_id)
+            forces = np.asarray(raw.get("forces_eV_per_A"), dtype=float)
+            if forces.shape != (len(atoms), 3) or not np.all(np.isfinite(forces)):
+                raise ValueError("Shard base force array is invalid.")
+            gradient = -forces
             directional = {
                 name: _raw_direction(
                     raw["directional_force_fd"][name],
                     atoms,
                     directions[name],
                     raw["topology_hash"],
+                    float(np.vdot(gradient, directions[name])),
                 )
                 for name in PES_PANEL_DIRECTION_NAMES
             }
@@ -234,11 +282,16 @@ def main() -> None:
                 else stretch_tangent(point.atoms)
             )
             unit_direction = tangent / np.linalg.norm(tangent)
+            forces = np.asarray(raw.get("forces_eV_per_A"), dtype=float)
+            if forces.shape != (len(point.atoms), 3) or not np.all(np.isfinite(forces)):
+                raise ValueError("Shard path force array is invalid.")
+            gradient = -forces
             local = _raw_direction(
                 raw["local_tangent_force_fd"],
                 point.atoms,
                 unit_direction,
                 raw["topology_hash"],
+                float(np.vdot(gradient, unit_direction)),
             )
             path_records.append(
                 {
@@ -272,6 +325,27 @@ def main() -> None:
         panel_summary["all_gates_passed"] and path_summary["all_gates_passed"]
     )
     first_payload = shards[0][1]
+    if (
+        repository.head != first_payload["execution_git_head"]
+        or repository.tree != first_payload["execution_git_tree"]
+    ):
+        raise RuntimeError(
+            "Aggregator checkout must be the exact source tree used by every shard."
+        )
+    if not isinstance(source_hashes, dict) or not source_hashes:
+        raise ValueError("Shard source-file hash ledger is missing.")
+    rebound_shard_sources = committed_source_hashes(repository, source_hashes)
+    if rebound_shard_sources != source_hashes:
+        raise RuntimeError("Shard source-file hashes do not match the exact Git tree.")
+    verifier_paths = collect_loaded_repository_sources(
+        repository.root,
+        required_paths=(
+            "tools/route2_release/aggregate_fixedbox590_pes_panel.py",
+            "maple/solvation/release/pes_panel.py",
+            "maple/solvation/release/pes_validation.py",
+        ),
+    )
+    verifier_hashes = committed_source_hashes(repository, verifier_paths)
     output = {
         "schema_version": SCHEMA_VERSION,
         "status": "pass" if aggregate_passed else "fail",
@@ -283,8 +357,11 @@ def main() -> None:
         "capabilities": CAPABILITIES,
         "execution_git_head": first_payload["execution_git_head"],
         "execution_git_tree": first_payload["execution_git_tree"],
+        "exact_command": shlex.join(sys.argv),
         "checkpoint_sha256": first_payload["checkpoint"]["sha256"],
         "source_files_sha256": source_hashes,
+        "verifier_source_files_sha256": verifier_hashes,
+        "verifier_runtime": runtime_record(),
         "input_artifacts": artifact_records,
         "panel_summary": panel_summary,
         "path_summary": path_summary,
@@ -295,14 +372,15 @@ def main() -> None:
     target = args.output.expanduser().resolve()
     if target.exists():
         raise FileExistsError(f"Refusing to overwrite aggregate artifact: {target}")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n")
+    repository.assert_unchanged()
+    file_record = write_external_json_artifact(repository, target, output)
+    repository.assert_unchanged()
     print(
         "ROUTE2_FIXEDBOX590_PES_PANEL_AGGREGATE="
         + json.dumps(
             {
                 "path": str(target),
-                "sha256": sha256_file(target),
+                "sha256": file_record["sha256"],
                 "status": output["status"],
                 "capabilities": CAPABILITIES,
             },

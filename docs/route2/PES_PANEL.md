@@ -71,7 +71,11 @@ Each artifact binds Git head/tree, loaded-source hashes, checkpoint hash,
 runtime, warning ledger, identities, raw roots, energies, forces, path points,
 and topology hashes. A shard cannot aggregate or enable a capability. Only a
 separate complete-panel verifier may interpret all 20 molecules and both
-paths; failed gates must be preserved rather than retuned.
+paths. The verifier recomputes analytic projections from raw forces, displaced
+geometry hashes from the frozen asset, finite differences from raw energies,
+root/residual gates, and topology coverage; it also requires one exact Git
+tree, checkpoint, device/dtype, package, accelerator, and thread signature.
+Failed gates must be preserved rather than retuned.
 
 ## Current status
 

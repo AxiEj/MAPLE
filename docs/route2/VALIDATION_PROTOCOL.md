@@ -95,6 +95,12 @@ and reference-geometry Cartesian panels also passed, but all-panel symmetry
 and closed-loop coverage, box convergence beyond one equilibrium geometry,
 component physics, Hessian, and NVE remain open.
 
+The first all-panel extension is now preregistered in `SYMMETRY_PANEL.md`:
+every one of the 20 reference molecules receives three frozen rotations, one
+rigid translation, one identical-atom permutation, and one bidirectional
+cold/warm 17-point loop. The real panel has not yet been executed; all
+capabilities stay closed regardless of its eventual result.
+
 ## Fixed-box operator-convergence gate
 
 The fixed-box reciprocal evaluator is a numerical model operator and must not

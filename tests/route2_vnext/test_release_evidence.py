@@ -44,9 +44,16 @@ RESIDUAL_FORCE_AGGREGATOR = (
     / "route2_release"
     / "aggregate_fixedbox590_residual_force_panel.py"
 )
+SYMMETRY_PANEL_RUNNER = (
+    ROOT / "tools" / "route2_release" / "run_fixedbox590_symmetry_panel.py"
+)
+SYMMETRY_PANEL_AGGREGATOR = (
+    ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_symmetry_panel.py"
+)
 PES_PANEL_DOC = ROOT / "docs" / "route2" / "PES_PANEL.md"
 PES_CARTESIAN_DOC = ROOT / "docs" / "route2" / "CARTESIAN_PANEL.md"
 RESIDUAL_FORCE_DOC = ROOT / "docs" / "route2" / "RESIDUAL_FORCE_GATE.md"
+SYMMETRY_PANEL_DOC = ROOT / "docs" / "route2" / "SYMMETRY_PANEL.md"
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
 )
@@ -368,6 +375,49 @@ def test_residual_force_runner_and_aggregator_are_preregistered_and_disabled():
     assert "status=pass" in document
     assert "fixedbox590-residual-force-9918dea6" in document
     assert "b4c964f17ccac1230ecf00d21709c8a68a39e31735f3cdc80a8c31d7a3291150" in document
+
+
+def test_symmetry_panel_runner_and_aggregator_are_preregistered_and_disabled():
+    for command in (SYMMETRY_PANEL_RUNNER, SYMMETRY_PANEL_AGGREGATOR):
+        result = subprocess.run(
+            (sys.executable, str(command), "--help"),
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "--output" in result.stdout
+    runner = SYMMETRY_PANEL_RUNNER.read_text(encoding="utf-8")
+    for requirement in (
+        "SYMMETRY_PANEL_CONTRACT_VERSION",
+        "symmetry_panel_rotations",
+        "symmetry_panel_permutation",
+        "summarize_rigid_symmetry",
+        "closed_loop_work",
+        "cold_warm_record",
+        "summarize_bidirectional_loop_record",
+        'CAPABILITIES = {tier: False',
+        "repository.assert_unchanged()",
+    ):
+        assert requirement in runner
+    aggregator = SYMMETRY_PANEL_AGGREGATOR.read_text(encoding="utf-8")
+    for requirement in (
+        "summarize_rigid_symmetry",
+        "summarize_bidirectional_loop_record",
+        "summarize_symmetry_panel",
+        "geometry_sha256(atoms)",
+        "committed_source_hashes(repository, source_hashes)",
+        'CAPABILITIES = {tier: False',
+        "sys.exit(2)",
+    ):
+        assert requirement in aggregator
+    document = SYMMETRY_PANEL_DOC.read_text(encoding="utf-8")
+    assert SYMMETRY_PANEL_RUNNER.name in document
+    assert SYMMETRY_PANEL_AGGREGATOR.name in document
+    assert "20 reference geometries" in document
+    assert "E/F/H/V/M" in document
+    assert "not matched" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():

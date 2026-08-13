@@ -14,6 +14,7 @@ from .base import (
     array_sha256,
     atom_count,
     model_input_sha256,
+    model_charge_and_multiplicity,
     validate_field_energy_evaluation,
     validate_model_identity,
     validate_response_linearization,
@@ -23,6 +24,11 @@ from .base import (
     validate_variational_declaration,
 )
 from .bundle import ModelCapabilityDeclaration, SoluteModelBundle
+from .field_energy import (
+    FieldEnergyFunctional,
+    GaugeReducedDualityMap,
+    TorchGeometry,
+)
 from .equation_adapter import (
     ElectronicResponseEquationAdapter,
     VacuumScalarEquationAdapter,
@@ -40,6 +46,15 @@ from .mace_polar import (
     build_official_mace_polar_1_m_adapter,
     build_official_mace_polar_1_m_radial_gto_adapter,
 )
+from .mace_polar_variational import (
+    MACEPolarDifferentiableFieldGraph,
+    MACEPolarVariationalFieldEnergy,
+    MACE_POLAR_VARIATIONAL_DUALITY_MAP,
+    MACE_POLAR_VARIATIONAL_DUALITY_MAP_ID,
+    MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID,
+    MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID,
+    build_mace_polar_variational_field_energy,
+)
 
 __all__ = [
     "ElectronicSourceModel",
@@ -47,6 +62,8 @@ __all__ = [
     "ElectronicResponseEquationAdapter",
     "FieldEnergyState",
     "FieldResponsiveModel",
+    "FieldEnergyFunctional",
+    "GaugeReducedDualityMap",
     "ModelDomain",
     "ModelCapabilityDeclaration",
     "ModelProvenance",
@@ -54,20 +71,28 @@ __all__ = [
     "MACEPolarLocalFieldModelAdapter",
     "MACEPolarRadialGTOModelAdapter",
     "MACEPolarReleaseContract",
+    "MACEPolarDifferentiableFieldGraph",
+    "MACEPolarVariationalFieldEnergy",
     "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
     "MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS",
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",
     "OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID",
+    "MACE_POLAR_VARIATIONAL_DUALITY_MAP",
+    "MACE_POLAR_VARIATIONAL_DUALITY_MAP_ID",
+    "MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID",
+    "MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID",
     "SoluteModelBundle",
     "VacuumEnergyModel",
     "VacuumScalarEquationAdapter",
     "VacuumState",
     "VariationalFieldModel",
     "VariationalIdentityDeclaration",
+    "TorchGeometry",
     "array_sha256",
     "atom_count",
     "model_input_sha256",
+    "model_charge_and_multiplicity",
     "validate_model_identity",
     "validate_field_energy_evaluation",
     "validate_response_linearization",
@@ -77,4 +102,5 @@ __all__ = [
     "validate_variational_declaration",
     "build_official_mace_polar_1_m_adapter",
     "build_official_mace_polar_1_m_radial_gto_adapter",
+    "build_mace_polar_variational_field_energy",
 ]

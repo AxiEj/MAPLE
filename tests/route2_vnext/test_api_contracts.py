@@ -25,6 +25,8 @@ from maple.solvation.api import (
     ProvenanceRecord,
     Route2Result,
     RuntimeProvenance,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
     profile_registry_manifest,
     scalar_registry_manifest,
 )
@@ -34,6 +36,7 @@ INITIAL_SCALAR_IDS = {
     "route2-operational-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
     "route2-variational-common-functional-v1",
+    "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
 }
 
 
@@ -74,7 +77,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 12
+    assert len(PROFILE_REGISTRY) == 13
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -164,6 +167,27 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     )
     assert pair_frame.capabilities.enabled_tiers == ()
     assert pair_frame.enabled is False
+    variational = PROFILE_REGISTRY[
+        VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1
+    ]
+    assert (
+        variational.scalar_id
+        == VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1
+    )
+    assert variational.model_profile.endswith("variational-effective-source-v1")
+    assert variational.source_space_id == radial.source_space_id
+    assert variational.field_space_id == radial.field_space_id
+    assert variational.pairing_id == radial.pairing_id
+    assert variational.nonpolar_profile == "none"
+    assert variational.enabled is False
+    assert variational.capabilities.enabled_tiers == ()
+    variational_scalar = SCALAR_REGISTRY[variational.scalar_id]
+    assert "original_four_channel_density_as_variational_source" in (
+        variational_scalar.excluded_components
+    )
+    assert variational_scalar.implementation_entry_point == (
+        "disabled:model-candidate-only; stationary scalar not implemented"
+    )
 
 
 def test_admission_records_cannot_bypass_enablement_or_evidence():

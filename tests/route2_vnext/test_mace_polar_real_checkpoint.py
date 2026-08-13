@@ -11,6 +11,7 @@ from maple.function.calculator.extra_correction.implicit.gto_field_projection im
     ExactGTOFieldProjector,
 )
 from maple.solvation.models import (
+    MACEPolarVariationalFieldEnergy,
     build_official_mace_polar_1_m_adapter,
     build_official_mace_polar_1_m_radial_gto_adapter,
     validate_response_linearization,
@@ -183,6 +184,7 @@ def test_official_checkpoint_radial_gto_transform_and_response_derivatives():
         device=os.environ.get("MAPLE_ROUTE2_MACE_DEVICE", "cpu"),
         checkpoint_path=_checkpoint_path(),
     )
+
     atoms = _water()
     rng = np.random.default_rng(20260813)
     field = rng.normal(scale=0.005, size=(len(atoms), 8))
@@ -276,6 +278,95 @@ def test_official_checkpoint_radial_gto_transform_and_response_derivatives():
                 ),
                 "exact_gto_coupling_available": True,
                 "operational_profile_admitted": False,
+                "variational_functional_admitted": False,
+            },
+            sort_keys=True,
+        )
+    )
+
+
+def test_official_checkpoint_scalar_first_candidate_is_conjugate_and_disabled():
+    base = build_official_mace_polar_1_m_radial_gto_adapter(
+        device=os.environ.get("MAPLE_ROUTE2_MACE_DEVICE", "cpu"),
+        checkpoint_path=_checkpoint_path(),
+    )
+    model = MACEPolarVariationalFieldEnergy(base)
+    atoms = _water()
+    coordinates = model.duality_map.coordinates(atom_count=len(atoms), total_charge=0.0)
+    zero = np.zeros(coordinates.reduced_dimension)
+    zero_source = model.source_from_energy(atoms, zero, total_charge=0.0)
+    original_source = validate_source_evaluation(
+        base,
+        atoms,
+        np.zeros((len(atoms), 8)),
+        need_fixed_field_forces=False,
+    ).source
+    zero_anchor_error = float(np.max(np.abs(zero_source - original_source)))
+    assert zero_anchor_error <= 3.0e-12
+
+    rng = np.random.default_rng(20260814)
+    reduced = rng.normal(scale=5.0e-4, size=coordinates.reduced_dimension)
+    direction = rng.normal(scale=2.0e-3, size=coordinates.reduced_dimension)
+    source = model.source_from_energy(atoms, reduced, total_charge=0.0)
+    field_direction = model.duality_map.lift_field(
+        direction,
+        atom_count=len(atoms),
+        total_charge=0.0,
+    )
+    reverse = model.field_space.pair(
+        source,
+        field_direction,
+        atom_count=len(atoms),
+    )
+    forward = model.energy_directional_derivative(
+        atoms,
+        reduced,
+        direction,
+        total_charge=0.0,
+    )
+    assert reverse == pytest.approx(forward, abs=1.0e-9, rel=1.0e-8)
+
+    cotangent = rng.normal(scale=0.1, size=(len(atoms), 8))
+    jvp = model.source_jvp(
+        atoms,
+        reduced,
+        direction,
+        total_charge=0.0,
+    )
+    vjp = model.source_vjp(
+        atoms,
+        reduced,
+        cotangent,
+        total_charge=0.0,
+    )
+    jvp_vjp_error = abs(float(np.vdot(jvp, cotangent)) - float(np.vdot(direction, vjp)))
+    assert jvp_vjp_error <= 1.0e-9
+    assert np.linalg.norm(source[:, (1, 5, 6, 7)]) > 1.0e-8
+    assert model.source_space.total_charge(
+        source, atom_count=len(atoms)
+    ) == pytest.approx(0.0, abs=2.0e-12)
+    assert model.capabilities.enabled_tiers == ()
+    assert model.variational_functional_admitted is False
+
+    print(
+        "ROUTE2_MACEPOL_VARIATIONAL_CANDIDATE_CANARY="
+        + json.dumps(
+            {
+                "checkpoint_sha256": model.provenance.checkpoint_sha256,
+                "model_configuration_sha256": model.configuration_sha256(),
+                "field_graph_configuration_sha256": (
+                    model._field_graph.configuration_sha256()
+                ),
+                "zero_anchor_max_abs_error": zero_anchor_error,
+                "forward_reverse_ad_abs_error": abs(reverse - forward),
+                "jvp_vjp_dot_abs_error": jvp_vjp_error,
+                "second_radial_source_l2": float(
+                    np.linalg.norm(source[:, (1, 5, 6, 7)])
+                ),
+                "total_charge_e": float(
+                    model.source_space.total_charge(source, atom_count=len(atoms))
+                ),
+                "enabled_tiers": list(model.capabilities.enabled_tiers),
                 "variational_functional_admitted": False,
             },
             sort_keys=True,

@@ -18,6 +18,13 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 9: legacy archive/cleanup | pending | production still uses legacy engine |
 | 10: strict variational | disabled | expected negative until formally proven |
 
+Phase 10 now contains a disabled scalar-first engineering candidate.  Its
+eight-channel effective source is generated from one anchored field-energy
+graph; this closes the earlier 4-to-8 structural rank obstruction only by
+changing the source/model identity.  No capability tier is enabled, and the
+fixed reciprocal continuum, sign/gauge, stability/root, envelope-coordinate,
+rotation, and release evidence remain pending.
+
 ## Asset mapping
 
 | legacy asset | intended destination | rule |

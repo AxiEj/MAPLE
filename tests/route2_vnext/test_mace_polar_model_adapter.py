@@ -26,6 +26,11 @@ from maple.solvation.models import (
     validate_source_evaluation,
     validate_vacuum_evaluation,
 )
+from maple.solvation.models.mace_polar_variational import (
+    MACEPolarDifferentiableFieldGraph,
+    MACEPolarVariationalFieldEnergy,
+    MACE_POLAR_VARIATIONAL_DUALITY_MAP,
+)
 
 
 @dataclass
@@ -144,6 +149,34 @@ class _FakeMACEPolarCalculator:
         del atoms
         return 0.2 * np.asarray(model_field_features, dtype=float)
 
+    def polar_output_torch(
+        self,
+        atoms,
+        *,
+        model_field_features,
+        positions_angstrom=None,
+        **kwargs,
+    ):
+        del kwargs
+        torch = pytest.importorskip("torch")
+        if positions_angstrom is None:
+            positions_angstrom = torch.as_tensor(atoms.positions, dtype=torch.float64)
+        features = model_field_features
+        feature_jacobian = torch.as_tensor(
+            self.feature_jacobian, dtype=features.dtype, device=features.device
+        )
+        position_vector = torch.as_tensor(
+            self.position_source_vector,
+            dtype=features.dtype,
+            device=features.device,
+        )
+        density = 0.05 + features @ feature_jacobian.T
+        density = density + 0.1 * positions_angstrom[:, :1] * position_vector
+        density = density.clone()
+        density[:, 0] -= density[:, 0].mean()
+        energy = 0.5 * torch.sum(positions_angstrom**2) + 0.1 * torch.sum(features**2)
+        return {"energy": energy, "density_coefficients": density}
+
     def density_position_vjp(
         self,
         atoms,
@@ -189,6 +222,39 @@ def _adapter(tmp_path):
     )
     calculator = _FakeMACEPolarCalculator(checkpoint, release)
     return MACEPolarLocalFieldModelAdapter(calculator, release), calculator
+
+
+class _FakeDifferentiableFieldGraph:
+    def __init__(self, calculator):
+        self.calculator = calculator
+
+    def configuration_sha256(self):
+        return "a" * 64
+
+    def __call__(
+        self,
+        atoms,
+        *,
+        model_field_features,
+        positions_angstrom,
+    ):
+        return self.calculator.polar_output_torch(
+            atoms,
+            model_field_features=model_field_features,
+            positions_angstrom=positions_angstrom,
+        )
+
+
+class _AlternateFakeDifferentiableFieldGraph(_FakeDifferentiableFieldGraph):
+    def configuration_sha256(self):
+        return "b" * 64
+
+
+def _variational_adapter(base, calculator):
+    return MACEPolarVariationalFieldEnergy(
+        MACEPolarRadialGTOModelAdapter(base),
+        field_graph=_FakeDifferentiableFieldGraph(calculator),
+    )
 
 
 def _atoms():
@@ -278,6 +344,162 @@ def test_radial_adapter_forward_mode_energy_derivative_uses_same_scalar_graph(
     assert adapter.intrinsic_energy_field_directional_derivative(
         atoms, field, direction
     ) == pytest.approx(expected, abs=1.0e-14)
+
+
+def test_variational_adapter_anchors_zero_field_source_and_fills_all_radial_channels(
+    tmp_path,
+):
+    torch = pytest.importorskip("torch")
+    base, calculator = _adapter(tmp_path)
+    operational = MACEPolarRadialGTOModelAdapter(base)
+    variational = MACEPolarVariationalFieldEnergy(
+        operational,
+        field_graph=_FakeDifferentiableFieldGraph(calculator),
+    )
+    atoms = _atoms()
+    count = len(atoms)
+    total_charge = 0.0
+    zero = np.zeros((count, 8))
+    original_output = calculator.polar_output_torch(
+        atoms,
+        model_field_features=torch.zeros((count, 8), dtype=torch.float64),
+    )
+    original = np.zeros((count, 8))
+    original[:, (0, 2, 3, 4)] = np.asarray(
+        original_output["density_coefficients"].detach().cpu()
+    )
+    anchored = variational.evaluate_source(atoms, zero)
+    np.testing.assert_allclose(anchored, original, atol=3e-14, rtol=0.0)
+
+    field = np.linspace(-0.004, 0.006, count * 8).reshape(count, 8)
+    source = variational.evaluate_source(atoms, field)
+    assert np.linalg.norm(source[:, (1, 5, 6, 7)]) > 1.0e-6
+    assert variational.source_space.total_charge(
+        source, atom_count=count
+    ) == pytest.approx(total_charge, abs=2e-13)
+    assert variational.original_density_observable is operational
+    assert variational.variational_functional_admitted is False
+    assert variational.capabilities.enabled_tiers == ()
+    assert variational.metadata()["capabilities"] == {tier: False for tier in "EFHVM"}
+
+    coordinates = MACE_POLAR_VARIATIONAL_DUALITY_MAP.coordinates(
+        atom_count=count, total_charge=total_charge
+    )
+    reduced = MACE_POLAR_VARIATIONAL_DUALITY_MAP.reduce_field(
+        field, atom_count=count, total_charge=total_charge
+    )
+    direction = np.linspace(0.003, -0.002, coordinates.reduced_dimension)
+    source_direction = variational.source_jvp(
+        atoms, reduced, direction, total_charge=total_charge
+    )
+    source_cotangent = np.linspace(-0.2, 0.3, count * 8).reshape(count, 8)
+    reduced_cotangent = variational.source_vjp(
+        atoms,
+        reduced,
+        source_cotangent,
+        total_charge=total_charge,
+    )
+    assert np.vdot(source_direction, source_cotangent) == pytest.approx(
+        np.vdot(direction, reduced_cotangent), abs=2e-12
+    )
+
+    alternate = MACEPolarVariationalFieldEnergy(
+        operational,
+        field_graph=_AlternateFakeDifferentiableFieldGraph(calculator),
+    )
+    assert alternate.provenance_sha256 != variational.provenance_sha256
+    assert alternate.configuration_sha256() != variational.configuration_sha256()
+
+
+def test_variational_adapter_fails_closed_if_zero_field_density_breaks_charge(
+    tmp_path,
+):
+    pytest.importorskip("torch")
+
+    class BrokenChargeCalculator(_FakeMACEPolarCalculator):
+        def polar_output_torch(self, *args, **kwargs):
+            output = super().polar_output_torch(*args, **kwargs)
+            density = output["density_coefficients"].clone()
+            density[:, 0] += 0.1
+            output["density_coefficients"] = density
+            return output
+
+    checkpoint = tmp_path / "test-polar.model"
+    checkpoint.write_bytes(b"test MACE-POLAR checkpoint bytes\n")
+    digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    release = MACEPolarReleaseContract(
+        provider_id="maple.route2.model.test-mace-polar.impl.v1",
+        model_profile_id="route2-test-mace-polar-model-v1",
+        long_range_evaluator_profile="test-molecular-realspace-v1",
+        checkpoint_identifier="test-polar",
+        checkpoint_release_url="file://test-polar.model",
+        checkpoint_sha256=digest,
+        checkpoint_size_bytes=checkpoint.stat().st_size,
+        mace_torch_version="test-mace-1",
+        graph_longrange_version="0.4.0",
+        upstream_commit="test-upstream-commit",
+        release_status="test-only-unadmitted",
+    )
+    base = MACEPolarLocalFieldModelAdapter(
+        BrokenChargeCalculator(checkpoint, release), release
+    )
+    variational = _variational_adapter(base, base._calculator)
+    with pytest.raises(RuntimeError, match="zero-field density anchor"):
+        variational.evaluate_source(_atoms(), np.zeros((2, 8)))
+
+
+def test_candidate_field_graph_preserves_coordinates_without_touching_legacy_files(
+    tmp_path,
+):
+    from contextlib import contextmanager
+
+    torch = pytest.importorskip("torch")
+    base, calculator = _adapter(tmp_path)
+    atoms = _atoms()
+    captured = {}
+
+    def fake_batch(_atoms_arg):
+        return {"positions": torch.zeros((len(atoms), 3), dtype=torch.float64)}
+
+    def fake_forward(batch, **kwargs):
+        del kwargs
+        captured["positions"] = batch["positions"]
+        return {
+            "energy": torch.sum(batch["positions"] ** 2),
+            "density_coefficients": torch.zeros((len(atoms), 4), dtype=torch.float64),
+        }
+
+    class _Projector:
+        @contextmanager
+        def use_model_field_features(self, values):
+            del values
+            yield
+
+    calculator._batch_dict = fake_batch
+    calculator._model_forward = fake_forward
+    calculator._reaction_projector = _Projector()
+    calculator._long_range_evaluator = SimpleNamespace(
+        is_default=True,
+        profile="test-molecular-realspace-v1",
+    )
+    graph = MACEPolarDifferentiableFieldGraph(calculator)
+    positions = torch.tensor(atoms.positions, dtype=torch.float64, requires_grad=True)
+    output = graph(
+        atoms,
+        model_field_features=torch.zeros((len(atoms), 8), dtype=torch.float64),
+        positions_angstrom=positions,
+    )
+    (gradient,) = torch.autograd.grad(output["energy"], (positions,))
+    torch.testing.assert_close(gradient, 2.0 * positions)
+    assert captured["positions"] is positions
+    assert len(graph.configuration_sha256()) == 64
+    with pytest.raises(ValueError, match="supplied atoms geometry"):
+        graph(
+            atoms,
+            model_field_features=torch.zeros((len(atoms), 8), dtype=torch.float64),
+            positions_angstrom=positions + 0.1,
+        )
+    assert base._calculator is calculator
 
 
 def test_fixed_box40_contract_has_a_distinct_fail_closed_model_identity():

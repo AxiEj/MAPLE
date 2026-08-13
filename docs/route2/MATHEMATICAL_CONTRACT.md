@@ -183,3 +183,11 @@ tests is not proof of this physical identity.
 
 Until those gates pass, Route 2 is named an **operational self-consistent
 differentiable surrogate PES**, not a common variational SCRF.
+
+The separately registered disabled scalar-first candidate does not reuse the
+original four-channel density head as its source.  It defines an anchored
+field energy on the fixed-charge, gauge-reduced two-width radial chart and
+generates a complete eight-channel effective source and all field HVP/mixed
+coordinate derivatives from that single Torch scalar graph.  This is a new
+model identity.  Structural conjugacy of its implementation is necessary but
+does not admit Tier V without the remaining physical and release gates.

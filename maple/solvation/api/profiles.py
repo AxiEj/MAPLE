@@ -13,6 +13,7 @@ from .scalar_registry import (
     OPERATIONAL_CPCM_SMDCDS_V1,
     SCALAR_REGISTRY,
     VARIATIONAL_COMMON_FUNCTIONAL_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
 )
 from .state_registry import (
     OPERATIONAL_STATE_EQUATION_ID,
@@ -55,6 +56,12 @@ OPERATIONAL_CPCM_SMDCDS_PROFILE_V1 = (
 )
 VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1 = (
     "route2-profile-variational-common-functional-v1"
+)
+VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1 = (
+    "route2-profile-variational-macepolar-energygradient-fixedcavity-cpcm-v1"
+)
+MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID = (
+    "mace-polar-route2-variational-effective-source-v1"
 )
 EXACT_GTO_COUPLING_CANDIDATE_ID = (
     "maple.route2.coupling.single-width-same-basis-gto-candidate.v1"
@@ -367,6 +374,24 @@ _PROFILE_ENTRIES = (
         nonpolar_profile="profile-defined; electrostatic profile uses none",
         **_COMMON,
     ),
+    SolvationProfile(
+        profile_id=(VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1),
+        scalar_id=(VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1),
+        state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        model_profile=MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID,
+        continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+        cavity_profile="fixed-topology-amplitude-swig-v1",
+        nonpolar_profile="none",
+        coupling_id=MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+        source_space_id=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID,
+        field_space_id=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID,
+        pairing_id=MACE_POLAR_RADIAL_GTO_PAIRING_ID,
+        coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=WATER_CPCM_194_CONFIGURATION_CONTRACT_ID,
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
 )
 
 
@@ -448,6 +473,8 @@ __all__ = [
     "OPERATIONAL_CPCM_SMDCDS_PROFILE_V1",
     "PROFILE_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1",
+    "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1",
+    "MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID",
     "SolvationProfile",
     "EXACT_GTO_COUPLING_CANDIDATE_ID",
     "LOCAL_JET_DIAGNOSTIC_COUPLING_ID",

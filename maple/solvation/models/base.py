@@ -144,6 +144,12 @@ def _model_charge_and_multiplicity(atoms: object) -> tuple[int, int]:
     return charge, multiplicity
 
 
+def model_charge_and_multiplicity(atoms: object) -> tuple[int, int]:
+    """Return the canonical model charge and spin multiplicity."""
+
+    return _model_charge_and_multiplicity(atoms)
+
+
 def _atomic_numbers(atoms: object) -> tuple[int, ...]:
     getter = getattr(atoms, "get_atomic_numbers", None)
     if not callable(getter):
@@ -874,6 +880,7 @@ __all__ = [
     "array_sha256",
     "atom_count",
     "model_input_sha256",
+    "model_charge_and_multiplicity",
     "require_model_methods",
     "validate_field_energy_evaluation",
     "validate_model_identity",

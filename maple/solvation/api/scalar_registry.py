@@ -17,6 +17,9 @@ DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
 )
 OPERATIONAL_CPCM_SMDCDS_V1 = "route2-operational-cpcm-fixedtopology-smdcds-v1"
 VARIATIONAL_COMMON_FUNCTIONAL_V1 = "route2-variational-common-functional-v1"
+VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1 = (
+    "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -210,6 +213,44 @@ _SCALAR_ENTRIES = (
         derivative_route="stationary envelope derivative; disabled until every strict-variational gate passes",
         **_COMMON,
     ),
+    ScalarDefinition(
+        scalar_id=VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
+        exact_formula=(
+            "candidate equations: M_var=Q^-T dE_anc/du and "
+            "u=grad_Q G_cpcm_fixed(c); G_np=0; the stationary scalar "
+            "F_var=Gamma_anc+G_cpcm_fixed remains unimplemented and disabled"
+        ),
+        included_components=(
+            "macepolar_anchored_field_energy_candidate",
+            "fixed_cavity_reciprocal_cpcm_target",
+        ),
+        excluded_components=(
+            "original_four_channel_density_as_variational_source",
+            "source_dependent_cavity",
+            "nonpolar_smd_cds",
+        ),
+        source_representation=(
+            "complete eight-channel MACE-POLAR field-energy-conjugate effective source"
+        ),
+        field_convention=(
+            "positive energy-dual reduced radial-GTO field; fixed charge and "
+            "constant-potential gauge separated"
+        ),
+        continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+        cavity_profile="fixed-topology-amplitude-swig-v1",
+        nonpolar_profile="none",
+        state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point=(
+            "disabled:model-candidate-only; stationary scalar not implemented"
+        ),
+        derivative_route=(
+            "stationary envelope derivative; disabled pending sign, gauge, "
+            "passivity, root, continuum, coordinate, rotation, and release gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
 )
 
 SCALAR_REGISTRY: Mapping[str, ScalarDefinition] = MappingProxyType(
@@ -240,6 +281,7 @@ __all__ = [
     "OPERATIONAL_CPCM_SMDCDS_V1",
     "SCALAR_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_V1",
+    "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1",
     "ScalarDefinition",
     "get_scalar_definition",
     "scalar_registry_manifest",

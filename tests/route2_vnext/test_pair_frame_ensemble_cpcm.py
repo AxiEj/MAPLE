@@ -6,6 +6,9 @@ import numpy as np
 import pytest
 
 from ase import Atoms
+
+pytest.importorskip("pyscf")
+
 from maple.solvation.continuum import (
     build_pair_frame_water_cpcm_110_candidate,
 )

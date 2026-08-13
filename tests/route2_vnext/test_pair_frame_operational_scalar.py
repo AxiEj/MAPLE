@@ -5,6 +5,10 @@ import hashlib
 from typing import ClassVar
 
 import numpy as np
+import pytest
+
+pytest.importorskip("pyscf")
+
 from maple.solvation.api.profiles import (
     DIAGNOSTIC_PAIR_FRAME_CPCM_RADIAL_GTO_PROFILE_V1,
     MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,

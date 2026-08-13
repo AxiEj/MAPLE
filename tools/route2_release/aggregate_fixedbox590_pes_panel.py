@@ -130,6 +130,13 @@ def _root_record(record):
     energy_difference = abs(
         float(cold.get("total_energy_eV")) - float(warm.get("total_energy_eV"))
     )
+    cold_residual = float(cold.get("actual_unmixed_residual_norm"))
+    warm_residual = float(warm.get("actual_unmixed_residual_norm"))
+    if not all(
+        np.isfinite(value)
+        for value in (energy_difference, cold_residual, warm_residual)
+    ):
+        raise ValueError("Cold/warm energies and residuals must be finite.")
     return {
         "numerically_equivalent": (
             source_relative <= 1.0e-8 and energy_difference <= 1.0e-8
@@ -138,6 +145,7 @@ def _root_record(record):
         "source_relative_difference": source_relative,
         "field_l2_difference": float(np.linalg.norm(cold_field - warm_field)),
         "energy_abs_difference_eV": energy_difference,
+        "maximum_primal_residual": max(cold_residual, warm_residual),
         "gates": {
             "source_relative_le_1e-8": source_relative <= 1.0e-8,
             "energy_le_1e-8_eV": energy_difference <= 1.0e-8,
@@ -263,9 +271,11 @@ def main() -> None:
                     "molecule_id": molecule.molecule_id,
                     "variant": variant,
                     "directional_force_fd": directional,
-                    "cold_warm": _root_record(raw["cold_warm"]),
+                    "cold_warm": (root := _root_record(raw["cold_warm"])),
                     "topology_hash": raw["topology_hash"],
-                    "maximum_primal_residual": maximum_primal,
+                    "maximum_primal_residual": max(
+                        maximum_primal, root["maximum_primal_residual"]
+                    ),
                     "adjoint_residual": float(raw["adjoint_residual"]),
                 }
             )
@@ -293,6 +303,7 @@ def main() -> None:
                 raw["topology_hash"],
                 float(np.vdot(gradient, unit_direction)),
             )
+            root = _root_record(raw["cold_warm"])
             path_records.append(
                 {
                     **{
@@ -310,10 +321,11 @@ def main() -> None:
                             "adjoint_residual",
                         )
                     },
-                    "cold_warm": _root_record(raw["cold_warm"]),
+                    "cold_warm": root,
                     "maximum_primal_residual": max(
                         float(raw["maximum_primal_residual"]),
                         local["maximum_primal_residual"],
+                        root["maximum_primal_residual"],
                     ),
                     "local_tangent_force_fd": local,
                 }

@@ -66,6 +66,26 @@ operational state equation and one conjugate continuum operator. It does not
 prove that the learned source is a physically calibrated finite-width density,
 nor that this candidate has passed release admission.
 
+The disabled ordered-pair-frame candidate evaluates that same half-coupling
+with a distinct rotationally equivariant continuum discretization. For every
+ordered atom pair \((i,j)\), a body frame is formed from
+\(R_j-R_i\) and the nuclear-charge centroid offset from the pair midpoint. Its
+member weight is \(w_{ij}=|(R_j-R_i)\times v_{ij}|^8\), and the declared map is
+
+\[
+P_R^{\rm pf}=\frac{\sum_{i\ne j}w_{ij}\,U_{ij}^{-1}
+P_{U_{ij}R}^{\rm body}U_{ij}}{\sum_{i\ne j}w_{ij}}.
+\]
+
+The coordinate VJP differentiates the member C-PCM operator, body-frame
+rotation, centroid, and normalized weights. This is a new ensemble C-PCM
+discretization, not a claim that one conventional laboratory-fixed Lebedev
+cavity was made exact. Exactly singular members remain in the topology with
+zero weight; because \(w\) and its first derivative vanish there, their bounded
+fallback orientation does not enter the map or force. Fully collinear
+geometries fail closed. It remains diagnostic until the complete real-stack
+panel and component-accuracy gates pass.
+
 ## 3. One adjoint and one force
 
 Define

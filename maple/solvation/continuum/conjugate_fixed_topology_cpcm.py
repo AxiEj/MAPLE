@@ -649,6 +649,39 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
     def _linear_field(self, geometry: Any, direction: object) -> np.ndarray:
         return np.array(self._solve_field(geometry, direction)[-2], copy=True)
 
+    def reaction_field_matrix(self, geometry: Any) -> np.ndarray:
+        """Return the exact dense geometry-local linear reaction map.
+
+        This is an execution view of the same source operator, stationary
+        C-PCM solve, and transpose receiver used by ``evaluate_field``.  It is
+        useful when one geometry is queried for many source directions (for
+        example an equivariant frame ensemble); it does not define another
+        electrostatic kernel.
+        """
+
+        surface, response, _owned, source_operator = self._response_geometry(geometry)
+        response_map = np.column_stack(
+            [
+                response.apply_energy_conjugate(
+                    source_operator[:, column] / HARTREE_TO_EV
+                )
+                for column in range(source_operator.shape[1])
+            ]
+        )
+        matrix = source_operator.T @ response_map
+        expected = surface.atom_count * 8
+        if matrix.shape != (expected, expected) or not np.all(np.isfinite(matrix)):
+            raise RuntimeError("Radial C-PCM reaction-field matrix is invalid.")
+        reciprocity_error = float(np.max(np.abs(matrix - matrix.T)))
+        reciprocity_scale = max(1.0, float(np.max(np.abs(matrix))))
+        if reciprocity_error > 2.0e-12 * reciprocity_scale:
+            raise RuntimeError(
+                "Radial C-PCM reaction-field matrix violates reciprocity."
+            )
+        matrix = np.array(matrix, copy=True)
+        matrix.setflags(write=False)
+        return matrix
+
     def source_jvp(
         self, geometry: Any, source: object, source_direction: object
     ) -> np.ndarray:

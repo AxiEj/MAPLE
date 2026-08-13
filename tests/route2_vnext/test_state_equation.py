@@ -327,6 +327,33 @@ def test_linear_root_matches_dense_solution_and_cold_warm_identity():
             ),
         ),
     )
+    assert not roots_numerically_equivalent(cold, different_context)
+    looser_tolerance = cold.primal_tolerance * 10.0
+    assert not roots_numerically_equivalent(
+        cold,
+        replace(
+            cold,
+            primal_tolerance=looser_tolerance,
+            root_hash=compute_root_hash(
+                state_equation_id=cold.state_equation_id,
+                geometry_digest=cold.geometry_sha256,
+                equation_digest=cold.equation_sha256,
+                scalar_digest=cold.scalar_sha256,
+                scalar_id=cold.scalar_id,
+                profile_id=cold.profile_id,
+                primal_tolerance=looser_tolerance,
+                root_context_id=cold.root_context_id,
+                y=cold.y,
+                source=cold.source,
+                field=cold.field,
+                residual=cold.actual_unmixed_residual,
+                initialization=cold.initialization,
+                converged=cold.converged,
+                residual_norm=cold.actual_unmixed_residual_norm,
+                iterations=cold.iterations,
+            ),
+        ),
+    )
 
 
 def test_state_kernel_accepts_non_l1_space_but_release_solver_requires_profile():

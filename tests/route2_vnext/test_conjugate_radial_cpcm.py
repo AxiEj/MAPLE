@@ -137,6 +137,15 @@ def test_radial_cpcm_source_jvp_vjp_and_energy_derivative():
     ) / (2 * step)
     analytic = np.vdot(provider.evaluate_field(POSITIONS, SOURCE), direction)
     assert analytic == pytest.approx(energy_fd, abs=2e-8)
+    dense = provider.reaction_field_matrix(POSITIONS)
+    np.testing.assert_allclose(
+        (dense @ SOURCE.reshape(-1)).reshape(SOURCE.shape),
+        provider.evaluate_field(POSITIONS, SOURCE),
+        atol=3e-13,
+        rtol=3e-13,
+    )
+    np.testing.assert_allclose(dense, dense.T, atol=2e-14, rtol=0.0)
+    assert not dense.flags.writeable
 
 
 def test_radial_cpcm_complete_bilinear_and_scalar_coordinate_vjps():
@@ -367,8 +376,7 @@ def test_1202_water_factory_binds_distinct_candidate_and_rejects_forgery():
     symbols = ("O", "H", "H")
     provider = build_water_radial_gto_cpcm_1202_candidate(symbols)
     assert (
-        provider.configuration_contract_id
-        == WATER_CPCM_1202_CONFIGURATION_CONTRACT_ID
+        provider.configuration_contract_id == WATER_CPCM_1202_CONFIGURATION_CONTRACT_ID
     )
     assert provider.dielectric == 78.39
     assert provider.surface_provider.lebedev_order == 59

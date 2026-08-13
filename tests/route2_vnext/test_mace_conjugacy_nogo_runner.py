@@ -33,5 +33,7 @@ def test_post_preregistration_ad_crosscheck_is_explicit_and_not_an_fd_relabel():
     assert record["implementation_consistent"] is True
     assert record["absolute_error_eV"] == pytest.approx(6.4390923149e-12)
     assert record["status"] == "post-preregistration-implementation-diagnostic"
+    assert runner.POST_PREREGISTRATION_AD_ABSOLUTE_TOLERANCE_EV == 2.0e-10
+    assert runner.POST_PREREGISTRATION_AD_RELATIVE_TOLERANCE == 5.0e-9
     assert runner.SCHEMA_VERSION.endswith("-v2")
     assert runner.FD_STEPS == (1.0e-2, 3.0e-3, 1.0e-3, 3.0e-4, 1.0e-4)

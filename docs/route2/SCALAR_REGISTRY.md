@@ -10,7 +10,7 @@ Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-The eleven current profiles are disabled, have no capabilities, and have empty
+All current profiles are disabled, have no capabilities, and have empty
 admission evidence. Multiple profiles may share one scalar formula while
 binding different coupling or physical-continuum configuration contracts.
 
@@ -70,6 +70,50 @@ Profile
 uses the same radial algebra with an explicitly unbound injected surface. It is
 only for deterministic synthetic tests and cannot satisfy the water profile's
 physical-configuration identity.
+
+## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`
+
+Profile `route2-profile-diagnostic-ddx-ddpcm194-radialgto-electrostatic-v1`
+binds pyddx/ddX `0.8.0`, ddPCM, dielectric `78.39`, SMD-water Coulomb radii,
+`lmax=8`, and 194 Lebedev points per sphere.  Its full eight-channel source is
+mapped by one linear operator into both ddX source inputs:
+
+\[
+  c \longmapsto (\Psi,\Phi)=(C c,B c).
+\]
+
+`B` evaluates the two finite-width Gaussian monopole/dipole blocks on the
+exposed cavity nodes.  `C` maps their exact integrated monopole/dipole moments
+into ddX's local multipole RHS.  Thus the two widths remain distinct in `B`
+and contribute additively to their matching local coefficients in `C`; this
+does not by itself certify the physical adequacy of a non-compact Gaussian
+density in ddX.  The only public response is the derivative of ddX's same
+half-coupling scalar,
+
+\[
+  G(c)=\tfrac12\langle\Psi,x\rangle,
+  \qquad
+  \nabla_c G=\tfrac12(C^T x-B^T\xi),
+\]
+
+with ddX's forward solution `x` and adjoint cavity cotangent `xi`.  The
+coordinate VJP is the polarization identity applied to the analytic
+fixed-source derivative of that same scalar.  No second receiver model is
+used, and the second radial block is not collapsed into the old four-channel
+point-multipole adapter.
+
+Local real-runtime checks close the half-coupling identity, source directional
+derivative, JVP/VJP dot product, and coordinate directional derivative.  This
+does **not** admit E or F: ddX `0.8.0` exposes only requested solver tolerance,
+not a post-solve algebraic residual, and its finite laboratory-frame
+Lebedev/active-set discretization is not structurally rotation equivariant.
+Increasing the grid to 1202 points reduced but did not eliminate an independent
+methanol rotation drift.  Therefore this is a disabled prerequisite/negative
+canary, not the rotation-controlled continuum requested for release.  The
+ddCOSMO equation has its own disabled scalar identity and is callable under a
+different provider configuration, but it has no registered vNext PES profile
+in this slice.  Neither scalar repairs the original four-to-eight-channel
+MACE source/energy conjugacy obstruction.
 
 Profile
 `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1`

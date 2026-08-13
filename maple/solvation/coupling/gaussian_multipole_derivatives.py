@@ -19,7 +19,7 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
 )
 
 
-def _gaussian_multipole_displacement_gradient(
+def gaussian_multipole_potential_displacement_gradient(
     displacement_bohr: np.ndarray,
     charge: float,
     dipole_bohr: np.ndarray,
@@ -129,7 +129,7 @@ def gaussian_multipole_potential_position_vjp(
     for atom_index, (center, charge, dipole) in enumerate(
         zip(positions_bohr, charges, dipoles_bohr, strict=True)
     ):
-        displacement_gradient = _gaussian_multipole_displacement_gradient(
+        displacement_gradient = gaussian_multipole_potential_displacement_gradient(
             points - center, float(charge), dipole, sigma_bohr=sigma_bohr
         )
         result[atom_index] = (
@@ -163,13 +163,15 @@ def gaussian_multipole_potential_surface_position_vjp(
     for center, charge, dipole in zip(
         positions_bohr, charges, dipoles_bohr, strict=True
     ):
-        result += cotangent[:, None] * _gaussian_multipole_displacement_gradient(
+        displacement_gradient = gaussian_multipole_potential_displacement_gradient(
             points - center, float(charge), dipole, sigma_bohr=sigma_bohr
         )
+        result += cotangent[:, None] * displacement_gradient
     return result
 
 
 __all__ = [
+    "gaussian_multipole_potential_displacement_gradient",
     "gaussian_multipole_potential_position_vjp",
     "gaussian_multipole_potential_surface_position_vjp",
 ]

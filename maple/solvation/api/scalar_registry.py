@@ -15,6 +15,12 @@ OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
 )
+DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1 = (
+    "route2-diagnostic-ddx-ddpcm-radialgto-electrostatic-v1"
+)
+DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1 = (
+    "route2-diagnostic-ddx-ddcosmo-radialgto-electrostatic-v1"
+)
 OPERATIONAL_CPCM_SMDCDS_V1 = "route2-operational-cpcm-fixedtopology-smdcds-v1"
 VARIATIONAL_COMMON_FUNCTIONAL_V1 = "route2-variational-common-functional-v1"
 VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1 = (
@@ -178,6 +184,83 @@ _SCALAR_ENTRIES = (
         **_COMMON,
     ),
     ScalarDefinition(
+        scalar_id=DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1,
+        exact_formula=(
+            "E_diag(R)=Phi_diag(R,y*(R)); Phi_diag=E_vac(R)+"
+            "1/2<c_ref(R)+T(R)y,P_R^ddPCM(c_ref(R)+T(R)y)>_Q; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+        ),
+        included_components=(
+            "vacuum_energy",
+            "ddx_ddpcm_half_coupling_electrostatic",
+        ),
+        excluded_components=(
+            "field_conditioned_model_energy_difference",
+            "nonpolar_smd_cds",
+            "rotation_admission",
+        ),
+        source_representation=(
+            "complete two-width atom-centred radial-GTO l<=1 source mapped "
+            "jointly to ddX psi and exposed-node phi"
+        ),
+        field_convention=(
+            "positive energy-dual radial-GTO field from the derivative of the "
+            "same ddPCM half-coupling scalar"
+        ),
+        continuum_profile="ddx-ddpcm-radial-gto-v1",
+        cavity_profile="ddx-union-of-spheres-exposed-lebedev-v0p8p0",
+        nonpolar_profile="none",
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "implicit-adjoint diagnostic only; finite laboratory-frame quadrature "
+            "is not structurally rotation equivariant"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1,
+        exact_formula=(
+            "E_diag(R)=Phi_diag(R,y*(R)); Phi_diag=E_vac(R)+"
+            "1/2<c_ref(R)+T(R)y,P_R^ddCOSMO(c_ref(R)+T(R)y)>_Q; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+        ),
+        included_components=(
+            "vacuum_energy",
+            "ddx_ddcosmo_half_coupling_electrostatic",
+        ),
+        excluded_components=(
+            "field_conditioned_model_energy_difference",
+            "nonpolar_smd_cds",
+            "rotation_admission",
+            "registered_release_profile",
+        ),
+        source_representation=(
+            "complete two-width atom-centred radial-GTO l<=1 source mapped "
+            "jointly to ddX psi and exposed-node phi"
+        ),
+        field_convention=(
+            "positive energy-dual radial-GTO field from the derivative of the "
+            "same dielectric-scaled ddCOSMO half-coupling scalar"
+        ),
+        continuum_profile="ddx-ddcosmo-radial-gto-v1",
+        cavity_profile="ddx-union-of-spheres-exposed-lebedev-v0p8p0",
+        nonpolar_profile="none",
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "unregistered diagnostic only; finite laboratory-frame quadrature "
+            "is not structurally rotation equivariant"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
         scalar_id=OPERATIONAL_CPCM_SMDCDS_V1,
         exact_formula=(
             "E_op(R)=Phi_op(R,y*(R)); Phi_op=E_vac(R)+"
@@ -278,6 +361,8 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1",
+    "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_SMDCDS_V1",

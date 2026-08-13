@@ -11,12 +11,15 @@ from maple.solvation.api import (
     STATE_REGISTRY,
     CapabilityStatus,
     DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS,
+    DIAGNOSTIC_DDX_DDPCM_194_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_FIXED_BOX48_CPCM_1202_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
     DIAGNOSTIC_PAIR_FRAME_CPCM_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1,
+    DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1,
     EnergyComponent,
     ForceComponent,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
@@ -32,6 +35,8 @@ from maple.solvation.api import (
 )
 
 INITIAL_SCALAR_IDS = {
+    "route2-diagnostic-ddx-ddcosmo-radialgto-electrostatic-v1",
+    "route2-diagnostic-ddx-ddpcm-radialgto-electrostatic-v1",
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
@@ -77,7 +82,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 13
+    assert len(PROFILE_REGISTRY) == 14
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -167,6 +172,28 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     )
     assert pair_frame.capabilities.enabled_tiers == ()
     assert pair_frame.enabled is False
+    ddx = PROFILE_REGISTRY[DIAGNOSTIC_DDX_DDPCM_194_RADIAL_GTO_PROFILE_V1]
+    assert ddx.scalar_id == DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1
+    assert ddx.model_profile == radial.model_profile
+    assert ddx.continuum_profile == "ddx-ddpcm-radial-gto-v1"
+    assert ddx.cavity_profile == "ddx-union-of-spheres-exposed-lebedev-v0p8p0"
+    assert ddx.coupling_id == radial.coupling_id
+    assert ddx.source_space_id == radial.source_space_id
+    assert ddx.field_space_id == radial.field_space_id
+    assert ddx.pairing_id == radial.pairing_id
+    assert ddx.continuum_configuration_contract_id.endswith(
+        "ddx-ddpcm-l8-lebedev194.v1"
+    )
+    assert ddx.capabilities.enabled_tiers == ()
+    assert ddx.enabled is False
+    ddcosmo_scalar = SCALAR_REGISTRY[DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1]
+    assert ddcosmo_scalar.continuum_profile == "ddx-ddcosmo-radial-gto-v1"
+    assert ddcosmo_scalar.enabled is False
+    assert ddcosmo_scalar.admitted_capabilities.enabled_tiers == ()
+    assert all(
+        profile.scalar_id != DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1
+        for profile in PROFILE_REGISTRY.values()
+    )
     variational = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1
     ]

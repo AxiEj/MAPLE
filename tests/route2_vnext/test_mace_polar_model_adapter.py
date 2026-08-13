@@ -242,7 +242,6 @@ def test_radial_adapter_exposes_intrinsic_scalar_gradient_and_dense_source_jacob
         rtol=0.0,
         atol=1.0e-14,
     )
-
     jacobian = adapter.dense_source_jacobian(atoms, field)
     direction = np.linspace(0.003, -0.002, field.size).reshape(field.shape)
     np.testing.assert_allclose(
@@ -254,6 +253,31 @@ def test_radial_adapter_exposes_intrinsic_scalar_gradient_and_dense_source_jacob
     missing_rows = np.asarray([1, 5, 6, 7, 9, 13, 14, 15])
     np.testing.assert_array_equal(jacobian[missing_rows], 0.0)
     assert calculator is base._calculator
+
+
+def test_radial_adapter_forward_mode_energy_derivative_uses_same_scalar_graph(
+    tmp_path, monkeypatch
+):
+    torch = pytest.importorskip("torch")
+    base, calculator = _adapter(tmp_path)
+    adapter = MACEPolarRadialGTOModelAdapter(base)
+    atoms = _atoms()
+    field = np.linspace(-0.008, 0.011, len(atoms) * 8).reshape(len(atoms), 8)
+    direction = np.linspace(0.003, -0.002, field.size).reshape(field.shape)
+
+    def polar_output_torch(atoms_arg, *, model_field_features, **kwargs):
+        del atoms_arg, kwargs
+        return {"energy": 0.1 * torch.sum(model_field_features**2)}
+
+    monkeypatch.setattr(
+        calculator, "polar_output_torch", polar_output_torch, raising=False
+    )
+    expected = float(
+        np.vdot(adapter.intrinsic_energy_field_gradient(atoms, field), direction)
+    )
+    assert adapter.intrinsic_energy_field_directional_derivative(
+        atoms, field, direction
+    ) == pytest.approx(expected, abs=1.0e-14)
 
 
 def test_fixed_box40_contract_has_a_distinct_fail_closed_model_identity():

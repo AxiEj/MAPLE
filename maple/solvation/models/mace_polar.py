@@ -859,6 +859,77 @@ class MACEPolarRadialGTOModelAdapter:
             name="intrinsic_energy_field_gradient",
         )
 
+    def intrinsic_energy_field_directional_derivative(
+        self,
+        atoms: object,
+        field: object,
+        field_direction: object,
+    ) -> float:
+        """Apply a forward-mode JVP to the same checkpoint scalar graph.
+
+        This audit-only implementation deliberately does not call the reverse
+        gradient helper.  It uses Torch's forward-mode JVP on the checkpoint's
+        native feature input, avoiding subtraction cancellation in finite
+        differences of the roughly 2 keV total energy.
+        """
+
+        self.configuration_sha256()
+        self.domain.validate_atoms(atoms)
+        count = atom_count(atoms)
+        values = self.field_space.validate(field, atom_count=count)
+        direction = self.field_space.validate(
+            field_direction,
+            atom_count=count,
+            name="field_direction",
+        )
+        import torch
+
+        features = self.field_transform.to_model_features(values)
+        feature_direction = self.field_transform.jvp(direction)
+        torch_dtype = self._calculator.dtype
+        if not isinstance(torch_dtype, torch.dtype):
+            torch_dtype = getattr(torch, str(torch_dtype), None)
+        if not isinstance(torch_dtype, torch.dtype):
+            raise TypeError("MACE-POLAR calculator dtype is not a Torch dtype.")
+        feature_tensor = torch.tensor(
+            features,
+            dtype=torch_dtype,
+            device=self._calculator.device,
+        )
+        direction_tensor = torch.tensor(
+            feature_direction,
+            dtype=torch_dtype,
+            device=self._calculator.device,
+        )
+
+        def energy_scalar(feature_values):
+            output = self._calculator.polar_output_torch(
+                atoms,
+                model_field_features=feature_values,
+            )
+            energy = output.get("energy")
+            if energy is None or not torch.is_tensor(energy):
+                raise RuntimeError(
+                    "MACE-POLAR did not return a differentiable intrinsic energy."
+                )
+            if not bool(torch.isfinite(energy).all()):
+                raise RuntimeError("MACE-POLAR intrinsic energy is non-finite.")
+            return energy.sum()
+
+        _, directional = torch.autograd.functional.jvp(
+            energy_scalar,
+            (feature_tensor,),
+            (direction_tensor,),
+            create_graph=False,
+            strict=True,
+        )
+        result = float(directional.detach().cpu())
+        if not np.isfinite(result):
+            raise RuntimeError(
+                "MACE-POLAR intrinsic-energy directional derivative is non-finite."
+            )
+        return result
+
     def dense_source_jacobian(self, atoms: object, field: object) -> np.ndarray:
         """Materialize the small real-checkpoint audit Jacobian.
 

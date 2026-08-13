@@ -26,6 +26,9 @@ BOX_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_water_box_convergence.py"
 )
 PES_PANEL_RUNNER = ROOT / "tools" / "route2_release" / "run_fixedbox590_pes_panel.py"
+PES_PANEL_AGGREGATOR = (
+    ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_pes_panel.py"
+)
 PES_PANEL_DOC = ROOT / "docs" / "route2" / "PES_PANEL.md"
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
@@ -193,6 +196,28 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
     assert "has not yet been" in document
     assert "not" in document and "optimized transition state" in document
     assert "normalized coordinate tangent" in document
+
+
+def test_pes_panel_aggregator_recomputes_raw_values_and_cannot_admit_capabilities():
+    result = subprocess.run(
+        (sys.executable, str(PES_PANEL_AGGREGATOR), "--help"),
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    text = PES_PANEL_AGGREGATOR.read_text(encoding="utf-8")
+    for requirement in (
+        "summarize_directional_derivatives",
+        "geometry_sha256(plus)",
+        "geometry_sha256(minus)",
+        "source_relative <= 1.0e-8",
+        "energy_difference <= 1.0e-8",
+        "CAPABILITIES = {tier: False",
+        "sys.exit(2)",
+    ):
+        assert requirement in text
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():

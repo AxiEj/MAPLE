@@ -37,6 +37,7 @@ from maple.solvation.coupling.exact_gto import (
     MACEPolarRadialFieldTransform,
     embed_mace_polar_learned_source,
     extract_mace_polar_learned_source_cotangent,
+    mace_polar_learned_source_embedding_matrix,
 )
 from maple.solvation.coupling.spaces import (
     ATOMIC_L1_FIELD_DUAL_SPACE,
@@ -702,6 +703,7 @@ class MACEPolarRadialGTOModelAdapter:
         calculator = base._calculator
         required = (
             "polar_state",
+            "intrinsic_energy_model_feature_gradient",
             "linearize_density_response_features",
             "route2_gto_field_projection_spec",
         )
@@ -776,6 +778,7 @@ class MACEPolarRadialGTOModelAdapter:
                     self._calculator,
                     (
                         "polar_state",
+                        "intrinsic_energy_model_feature_gradient",
                         "linearize_density_response_features",
                         "route2_gto_field_projection_spec",
                     ),
@@ -815,6 +818,88 @@ class MACEPolarRadialGTOModelAdapter:
         if not isinstance(result, tuple) or len(result) != 2:
             raise TypeError("MACE-POLAR polar_state must return (state, diagnostics).")
         return result[0]
+
+    def intrinsic_energy_ev(self, atoms: object, field: object) -> float:
+        """Return the checkpoint's intrinsic field-conditioned energy.
+
+        This diagnostic scalar deliberately excludes any explicitly assembled
+        ``<source, field>`` term.  It is not part of the operational Route-2
+        scalar and does not imply conjugacy with ``evaluate_source``.
+        """
+
+        value = float(self._state(atoms, field, need_forces=False).energy_ev)
+        if not np.isfinite(value):
+            raise RuntimeError("MACE-POLAR intrinsic energy is non-finite.")
+        return value
+
+    def intrinsic_energy_field_gradient(
+        self, atoms: object, field: object
+    ) -> np.ndarray:
+        """Differentiate intrinsic energy in the public radial field chart.
+
+        The checkpoint differentiates with respect to its native feature
+        tensor ``z=A u``.  Applying the exact transform transpose returns
+        ``A.T @ dE/dz`` without asserting that it equals the learned source.
+        """
+
+        self.configuration_sha256()
+        self.domain.validate_atoms(atoms)
+        count = atom_count(atoms)
+        features = self._features(atoms, field)
+        feature_gradient = np.asarray(
+            self._calculator.intrinsic_energy_model_feature_gradient(
+                atoms,
+                model_field_features=features,
+            ),
+            dtype=float,
+        )
+        return self.field_space.validate(
+            self.field_transform.vjp(feature_gradient),
+            atom_count=count,
+            name="intrinsic_energy_field_gradient",
+        )
+
+    def dense_source_jacobian(self, atoms: object, field: object) -> np.ndarray:
+        """Materialize the small real-checkpoint audit Jacobian.
+
+        Production response remains matrix-free.  This dense method exists
+        only for the preregistered one-molecule Tier-V no-go/reciprocity
+        canary, and fails closed above 64 physical field coordinates.
+        Rows and columns use flattened atom-major radial source/field order.
+        """
+
+        self.configuration_sha256()
+        self.domain.validate_atoms(atoms)
+        count = atom_count(atoms)
+        dimension = count * self.source_space.component_count
+        if dimension > 64:
+            raise ValueError(
+                "Dense MACE-POLAR conjugacy audit is limited to 64 coordinates."
+            )
+        linearization = self._linearization(atoms, field)
+        learned_component_count = 4
+        learned_dimension = count * learned_component_count
+        result = np.zeros((dimension, dimension), dtype=float)
+        embedding = mace_polar_learned_source_embedding_matrix()
+        learned_indices = tuple(
+            int(np.flatnonzero(embedding[:, column])[0])
+            for column in range(learned_component_count)
+        )
+        for learned_row in range(learned_dimension):
+            cotangent = np.zeros((count, learned_component_count), dtype=float)
+            cotangent.reshape(-1)[learned_row] = 1.0
+            feature_cotangent = linearization.vjp(cotangent)
+            radial_cotangent = self.field_transform.vjp(feature_cotangent)
+            atom_index, learned_component = divmod(learned_row, learned_component_count)
+            radial_row = (
+                atom_index * self.source_space.component_count
+                + learned_indices[learned_component]
+            )
+            result[radial_row] = radial_cotangent.reshape(-1)
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError("Dense MACE-POLAR source Jacobian is non-finite.")
+        result.setflags(write=False)
+        return result
 
     def evaluate_vacuum(self, atoms: object, *, need_forces: bool) -> VacuumState:
         self.configuration_sha256()

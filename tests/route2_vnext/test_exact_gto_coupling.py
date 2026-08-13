@@ -42,6 +42,7 @@ from maple.solvation.coupling.exact_gto import (
     SingleWidthSameBasisGTOCouplingCandidate,
     embed_mace_polar_learned_source,
     extract_mace_polar_learned_source_cotangent,
+    mace_polar_learned_source_embedding_matrix,
 )
 from maple.solvation.coupling.local_jet import (
     LOCAL_JET_COUPLING_ID,
@@ -519,6 +520,9 @@ def test_learned_source_embedding_recovers_the_exact_sigma_1p5_surface_mep():
     cotangent = np.random.default_rng(93).normal(size=radial.shape)
     learned_cotangent = extract_mace_polar_learned_source_cotangent(cotangent)
     direction = np.random.default_rng(94).normal(size=learned.shape)
+    embedding = mace_polar_learned_source_embedding_matrix()
+    assert embedding.flags.writeable is False
+    np.testing.assert_array_equal(radial, learned @ embedding.T)
     assert np.vdot(
         cotangent, embed_mace_polar_learned_source(direction)
     ) == pytest.approx(np.vdot(learned_cotangent, direction), abs=2e-14)

@@ -194,6 +194,15 @@ def embed_mace_polar_learned_source(density_coefficients: object) -> np.ndarray:
     return result
 
 
+def mace_polar_learned_source_embedding_matrix() -> np.ndarray:
+    """Return the authoritative one-atom ``4 -> 8`` source embedding ``S``."""
+
+    result = np.zeros((8, 4), dtype=float)
+    result[np.asarray(_LEARNED_SOURCE_INDICES), np.arange(4)] = 1.0
+    result.setflags(write=False)
+    return result
+
+
 def extract_mace_polar_learned_source_cotangent(
     radial_source_cotangent: object,
 ) -> np.ndarray:
@@ -705,4 +714,5 @@ __all__ = [
     "SingleWidthSameBasisGTOCouplingCandidate",
     "embed_mace_polar_learned_source",
     "extract_mace_polar_learned_source_cotangent",
+    "mace_polar_learned_source_embedding_matrix",
 ]

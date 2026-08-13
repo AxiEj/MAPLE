@@ -140,6 +140,10 @@ class _FakeMACEPolarCalculator:
         del atoms, model_field_features
         return _Linearization(self.feature_jacobian)
 
+    def intrinsic_energy_model_feature_gradient(self, atoms, *, model_field_features):
+        del atoms
+        return 0.2 * np.asarray(model_field_features, dtype=float)
+
     def density_position_vjp(
         self,
         atoms,
@@ -214,6 +218,42 @@ def test_mace_polar_adapter_binds_checkpoint_runtime_and_negative_exact_gto_audi
     assert audit.same_basis_conjugacy is False
     assert "cannot be the adjoint" in audit.reason
     assert len(adapter.configuration_sha256()) == 64
+
+
+def test_radial_adapter_exposes_intrinsic_scalar_gradient_and_dense_source_jacobian(
+    tmp_path,
+):
+    base, calculator = _adapter(tmp_path)
+    adapter = MACEPolarRadialGTOModelAdapter(base)
+    atoms = _atoms()
+    field = np.linspace(-0.008, 0.011, len(atoms) * 8).reshape(len(atoms), 8)
+
+    features = adapter.field_transform.to_model_features(field)
+    expected_energy = float(
+        0.5 * np.sum(atoms.positions**2) + 0.1 * np.sum(features**2)
+    )
+    assert adapter.intrinsic_energy_ev(atoms, field) == pytest.approx(
+        expected_energy, rel=0.0, abs=1.0e-14
+    )
+    expected_gradient = adapter.field_transform.vjp(0.2 * features)
+    np.testing.assert_allclose(
+        adapter.intrinsic_energy_field_gradient(atoms, field),
+        expected_gradient,
+        rtol=0.0,
+        atol=1.0e-14,
+    )
+
+    jacobian = adapter.dense_source_jacobian(atoms, field)
+    direction = np.linspace(0.003, -0.002, field.size).reshape(field.shape)
+    np.testing.assert_allclose(
+        (jacobian @ direction.reshape(-1)).reshape(field.shape),
+        adapter.source_jvp(atoms, field, direction),
+        rtol=0.0,
+        atol=2.0e-14,
+    )
+    missing_rows = np.asarray([1, 5, 6, 7, 9, 13, 14, 15])
+    np.testing.assert_array_equal(jacobian[missing_rows], 0.0)
+    assert calculator is base._calculator
 
 
 def test_fixed_box40_contract_has_a_distinct_fail_closed_model_identity():

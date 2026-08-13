@@ -1,0 +1,68 @@
+{
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "claim_boundary": "Clean-tree diagnostic evidence for only the first two members of the frozen 20-molecule symmetry/loop panel. Water passes the frozen gates, but methanol fails the rotation-energy and force-covariance gates. This rejects CPCM1202 as a sufficient or scalable release candidate; it is not a complete panel, complete solvation free energy, chemical-accuracy result, or force admission.",
+  "continuum_configuration_contract_id": "maple.route2.continuum-configuration.water-eps78p39-smd-radii-lebedev1202.v1",
+  "evidence_status": "mixed-two-member-canary-with-failing-methanol; candidate rejected and public admission remains closed",
+  "execution_git_head": "6e997969fd3179c3a9e18056a2d6b4418d3a1fdd",
+  "execution_git_tree": "f42a8fd1de4ff007a22cb526cb7eaa8a57987c78",
+  "panel_contract_version": "route2-fixedbox1202-symmetry-panel-contract-v1",
+  "profile_id": "route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1",
+  "raw_results": {
+    "methanol": {
+      "all_gates_passed": false,
+      "base_net_force_eV_per_A": 1.962615573354719e-17,
+      "base_torque_eV": 5.775934066026486e-05,
+      "closed_loop_gates_passed": true,
+      "maximum_absolute_loop_work_eV": 2.5518333394676865e-07,
+      "maximum_adjoint_residual": 2.316323516123969e-13,
+      "maximum_primal_residual": 6.226682695714834e-13,
+      "rotation_energy_abs_eV": 5.079472884972347e-06,
+      "rotation_energy_threshold_eV": 1e-06,
+      "rotation_force_covariance_relative": 0.00017880747343495252,
+      "rotation_force_covariance_threshold": 0.0001,
+      "rotation_source_covariance_relative": 1.6934783599427846e-06,
+      "runtime_seconds": 1557.4993665850197,
+      "maximum_resident_set_kbytes": 6970040,
+      "measurement_sha256": "f4b70f21662b6e62024752f952d5847f6888272f48001ceecffec7cd31d59ad2",
+      "raw_json_sha256": "30ede98d34bf03873b0f174a52100cf86aaf235d128d3b32eb2ae1388602e4b7"
+    },
+    "water": {
+      "all_gates_passed": true,
+      "base_net_force_eV_per_A": 7.31134864802622e-20,
+      "base_torque_eV": 8.326826479567561e-17,
+      "closed_loop_gates_passed": true,
+      "maximum_absolute_loop_work_eV": 7.050586633625122e-09,
+      "maximum_adjoint_residual": 1.4246633472105274e-16,
+      "maximum_primal_residual": 9.41702628001305e-13,
+      "rotation_energy_abs_eV": 5.280103323457297e-07,
+      "rotation_energy_threshold_eV": 1e-06,
+      "rotation_force_covariance_relative": 4.028642999019362e-05,
+      "rotation_force_covariance_threshold": 0.0001,
+      "rotation_source_covariance_relative": 9.771676433698853e-08,
+      "runtime_seconds": 634.3201515090186,
+      "maximum_resident_set_kbytes": 3293164,
+      "measurement_sha256": "42c375f43074fafbeeff9da8fb258f4dd7101868be354ac116379232d8366867",
+      "raw_json_sha256": "b5421473de28d566368fc14e43e72099c6e3429ea1e1f7402bbc6bb5b32b8c68"
+    }
+  },
+  "rejection_rationale": {
+    "all_panel_execution_stopped_after_preregistered_failure": true,
+    "brute_force_quadrature_increase_is_not_sufficient": true,
+    "methanol_physical_rotation_gate_passed": false,
+    "methanol_loop_work_gate_passed": true,
+    "scaling_is_unsuitable_for_release_panel": true,
+    "water_physical_rotation_gate_passed": true
+  },
+  "remaining_direction": "Replace brute-force angular-order escalation with a separately versioned rotationally covariant or otherwise rotation-controlled fixed-topology continuum; derive and validate its complete coordinate VJP before any force admission.",
+  "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+  "schema_version": "route2-fixedbox1202-symmetry-negative-canary-manifest-v1",
+  "state_equation_id": "route2-constrained-mutual-polarization-root-v1",
+  "tested_working_tree_clean": true
+}

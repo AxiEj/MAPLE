@@ -464,6 +464,18 @@ class MACEPolarRadialGTOCoupling:
         self.configuration_sha256()
         return self._coupling.apply_source(geometry, source)
 
+    def surface_operator(self, geometry: FixedSurfaceGeometryLike) -> np.ndarray:
+        """Return the one matrix used by both the source map and its adjoint.
+
+        Fixed-geometry continuum solvers may retain this immutable matrix while
+        applying many source directions.  This is an execution optimization of
+        the public ``apply_source``/``apply_adjoint`` pair, not a second
+        receiver implementation.
+        """
+
+        self.configuration_sha256()
+        return self._coupling.matrix(geometry)
+
     def apply_adjoint(
         self, geometry: FixedSurfaceGeometryLike, surface_cotangent: np.ndarray
     ) -> np.ndarray:

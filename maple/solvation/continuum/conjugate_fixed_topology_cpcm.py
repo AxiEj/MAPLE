@@ -468,7 +468,9 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
         )
 
     @staticmethod
-    def _make_geometry_cache_key(positions: np.ndarray) -> tuple[tuple[int, ...], bytes]:
+    def _make_geometry_cache_key(
+        positions: np.ndarray,
+    ) -> tuple[tuple[int, ...], bytes]:
         canonical = np.ascontiguousarray(positions, dtype="<f8")
         return canonical.shape, canonical.tobytes(order="C")
 
@@ -521,19 +523,46 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
             surface.surface_points_bohr,
             surface.parent_atom_indices,
         )
-        result = (surface, response, owned)
+        source_operator = self.coupling.surface_operator(owned)
+        source_operator.setflags(write=False)
+        result = (surface, response, owned, source_operator)
         with self._geometry_cache_lock:
             object.__setattr__(self, "_geometry_cache_key", key)
             object.__setattr__(self, "_geometry_cache_value", result)
         return result
 
-    def build_state(self, geometry: Any, source: object) -> ConjugateRadialCPCMState:
-        surface, response, owned = self._response_geometry(geometry)
+    def _solve_field(self, geometry: Any, source: object):
+        surface, response, owned, source_operator = self._response_geometry(geometry)
         values = self.source_space.validate(source, atom_count=surface.atom_count)
-        potential_ev = self.coupling.apply_source(owned, values)
+        potential_ev = source_operator @ values.reshape(-1)
         amplitude_state = response.solve_amplitude_state(potential_ev / HARTREE_TO_EV)
         charge = amplitude_state.physical_surface_charge_e
-        field = self.coupling.apply_adjoint(owned, charge)
+        field = (source_operator.T @ charge).reshape(surface.atom_count, 8)
+        field = self.field_space.validate(
+            field, atom_count=surface.atom_count, name="reaction field"
+        )
+        return (
+            surface,
+            response,
+            owned,
+            values,
+            potential_ev,
+            charge,
+            field,
+            amplitude_state,
+        )
+
+    def build_state(self, geometry: Any, source: object) -> ConjugateRadialCPCMState:
+        (
+            surface,
+            _response,
+            _owned,
+            values,
+            potential_ev,
+            charge,
+            field,
+            amplitude_state,
+        ) = self._solve_field(geometry, source)
         energy_hartree = float(amplitude_state.polarization_energy_hartree)
         energy_ev = energy_hartree * HARTREE_TO_EV
         payload = {
@@ -566,21 +595,18 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
         )
 
     def energy(self, geometry: Any, source: object) -> float:
-        return self.build_state(geometry, source).polarization_energy_ev
+        return float(
+            self._solve_field(geometry, source)[-1].polarization_energy_hartree
+            * HARTREE_TO_EV
+        )
 
     def evaluate_field(self, geometry: Any, source: object) -> np.ndarray:
-        return self.build_state(geometry, source).reaction_field
+        return np.array(self._solve_field(geometry, source)[-2], copy=True)
 
     field = evaluate_field
 
     def _linear_field(self, geometry: Any, direction: object) -> np.ndarray:
-        surface, response, owned = self._response_geometry(geometry)
-        values = self.source_space.validate(
-            direction, atom_count=surface.atom_count, name="source direction"
-        )
-        potential_ev = self.coupling.apply_source(owned, values)
-        charge = response.apply_energy_conjugate(potential_ev / HARTREE_TO_EV)
-        return self.coupling.apply_adjoint(owned, charge)
+        return np.array(self._solve_field(geometry, direction)[-2], copy=True)
 
     def source_jvp(
         self, geometry: Any, source: object, source_direction: object
@@ -612,15 +638,15 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
     def coordinate_vjp(
         self, geometry: Any, source: object, field_cotangent: object
     ) -> np.ndarray:
-        surface, response, owned = self._response_geometry(geometry)
+        surface, response, owned, source_operator = self._response_geometry(geometry)
         values = self.source_space.validate(source, atom_count=surface.atom_count)
         cotangent = self.field_space.validate(
             field_cotangent,
             atom_count=surface.atom_count,
             name="field cotangent",
         )
-        source_potential_ev = self.coupling.apply_source(owned, values)
-        left_potential_ev = self.coupling.apply_source(owned, cotangent)
+        source_potential_ev = source_operator @ values.reshape(-1)
+        left_potential_ev = source_operator @ cotangent.reshape(-1)
         source_charge = response.apply_energy_conjugate(
             source_potential_ev / HARTREE_TO_EV
         )

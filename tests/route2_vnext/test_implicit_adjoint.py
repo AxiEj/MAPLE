@@ -285,6 +285,28 @@ def test_implicit_adjoint_matches_resolved_scalar_finite_difference():
     assert gradient.adjoint.true_residual_norm <= gradient.adjoint.acceptance_tolerance
 
 
+def test_energy_only_entry_is_same_scalar_and_does_not_call_derivatives(monkeypatch):
+    def derivative_must_not_run(*_args, **_kwargs):
+        raise AssertionError("energy-only scalar evaluated a derivative")
+
+    monkeypatch.setattr(
+        LinearReciprocalContinuum, "source_vjp", derivative_must_not_run
+    )
+    monkeypatch.setattr(
+        LinearReciprocalContinuum, "coordinate_vjp", derivative_must_not_run
+    )
+    monkeypatch.setattr(QuadraticVacuum, "coordinate_gradient", derivative_must_not_run)
+    equation, scalar = _system()
+    geometry = np.array([0.3, -0.2, 0.15])
+    y = np.linspace(-0.02, 0.03, equation.reduced_dimension)
+    source = equation.coordinates.expand(y)
+    field = equation.continuum.evaluate_field(geometry, source)
+    expected = scalar.vacuum.evaluate_energy(geometry) + 0.5 * scalar.metric.pair(
+        source, field
+    )
+    assert scalar.evaluate_energy(geometry, y) == pytest.approx(expected, abs=1e-15)
+
+
 def test_implicit_gradient_rejects_wrong_geometry_provider_and_tampered_state():
     equation, scalar = _system()
     geometry = np.array([0.3, -0.2, 0.15])

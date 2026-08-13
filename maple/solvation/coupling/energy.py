@@ -413,6 +413,40 @@ class OperationalElectrostaticScalar:
             )
         return current
 
+    def evaluate_energy(self, geometry: Any, y: object) -> float:
+        """Evaluate only the canonical scalar, without any derivative work.
+
+        Real-stack finite-difference panels require many energy-only displaced
+        roots.  This is not a second ledger: it is the same registered
+        ``E_vac + 0.5<c,P_R(c)>_Q`` entry point, deliberately stopping before
+        source VJP and coordinate VJP evaluation.
+        """
+
+        self.fingerprint_sha256()
+        for declaration in ("fixed_topology", "linear_response", "reciprocal"):
+            if getattr(self.equation.continuum, declaration, False) is not True:
+                raise ValueError(
+                    "Canonical operational energy requires an explicitly "
+                    f"declared {declaration}=True continuum provider."
+                )
+        _validate_continuum_pairing_identity(self.equation.continuum, self.metric)
+        reduced = self.equation._y(y)
+        source = self.equation.coordinates.expand(reduced)
+        field = _source_array(
+            self.equation.continuum.evaluate_field(geometry, source),
+            source.shape[0],
+            self.metric.component_count,
+            "continuum field",
+        )
+        continuum_energy = 0.5 * self.metric.pair(source, field)
+        vacuum_energy = float(self.vacuum.evaluate_energy(geometry))
+        total = vacuum_energy + continuum_energy
+        if not all(
+            np.isfinite(value) for value in (vacuum_energy, continuum_energy, total)
+        ):
+            raise ValueError("Operational scalar energy terms must be finite.")
+        return float(total)
+
     def evaluate(self, geometry: Any, y: object) -> OperationalScalarEvaluation:
         self.fingerprint_sha256()
         reduced = self.equation._y(y)

@@ -26,8 +26,17 @@ OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1 = (
 OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1"
 )
+DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS = MappingProxyType(
+    {
+        box_length: (
+            f"route2-profile-diagnostic-fixedbox{box_length}-cpcm590-"
+            "radialgto-electrostatic-v1"
+        )
+        for box_length in (32, 40, 48, 56)
+    }
+)
 DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1 = (
-    "route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1"
+    DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS[40]
 )
 DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1"
@@ -74,12 +83,22 @@ WATER_CPCM_590_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.water-eps78p39-smd-radii-" "lebedev590.v1"
 )
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
-MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID = (
-    "mace-polar-route2-source-field-fixed-box40-contract-v1"
+MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS = MappingProxyType(
+    {
+        box_length: f"mace-polar-route2-source-field-fixed-box{box_length}-contract-v1"
+        for box_length in (32, 40, 48, 56)
+    }
 )
+MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID = MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS[40]
 MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID = "graph-longrange-molecular-realspace-v1"
+MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS = MappingProxyType(
+    {
+        box_length: f"graph-longrange-forced-periodic-fixed-box{box_length}-v1"
+        for box_length in (32, 40, 48, 56)
+    }
+)
 MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID = (
-    "graph-longrange-forced-periodic-fixed-box40-v1"
+    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS[40]
 )
 
 
@@ -220,23 +239,28 @@ _PROFILE_ENTRIES = (
         evidence_artifact_ids=(),
         enabled=False,
     ),
-    SolvationProfile(
-        profile_id=DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
-        scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
-        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
-        model_profile=MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
-        continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
-        cavity_profile="fixed-topology-amplitude-swig-v1",
-        nonpolar_profile="none",
-        coupling_id=MACE_POLAR_RADIAL_GTO_COUPLING_ID,
-        source_space_id=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID,
-        field_space_id=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID,
-        pairing_id=MACE_POLAR_RADIAL_GTO_PAIRING_ID,
-        coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
-        continuum_configuration_contract_id=(WATER_CPCM_590_CONFIGURATION_CONTRACT_ID),
-        capabilities=CapabilityStatus(),
-        evidence_artifact_ids=(),
-        enabled=False,
+    *(
+        SolvationProfile(
+            profile_id=DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS[box_length],
+            scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
+            state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+            model_profile=MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS[box_length],
+            continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
+            cavity_profile="fixed-topology-amplitude-swig-v1",
+            nonpolar_profile="none",
+            coupling_id=MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+            source_space_id=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID,
+            field_space_id=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID,
+            pairing_id=MACE_POLAR_RADIAL_GTO_PAIRING_ID,
+            coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
+            continuum_configuration_contract_id=(
+                WATER_CPCM_590_CONFIGURATION_CONTRACT_ID
+            ),
+            capabilities=CapabilityStatus(),
+            evidence_artifact_ids=(),
+            enabled=False,
+        )
+        for box_length in (32, 40, 48, 56)
     ),
     SolvationProfile(
         profile_id=DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1,
@@ -364,6 +388,7 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 __all__ = [
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1",
     "DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1",
+    "DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS",
     "DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1",
@@ -382,8 +407,10 @@ __all__ = [
     "MACE_POLAR_RADIAL_GTO_PAIRING_ID",
     "MACE_POLAR_MODEL_PROFILE_ID",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
+    "MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS",
     "MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID",
     "MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID",
+    "MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS",
     "LEGACY_UNBOUND_COORDINATE_CONTRACT_ID",
     "MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID",
     "UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID",

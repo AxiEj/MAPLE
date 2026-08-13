@@ -24,6 +24,17 @@ from .pes_validation import (
     water_geometry_descriptors,
     water_vibrational_directions,
 )
+from .box_convergence import (
+    BOX_LENGTHS_A,
+    MAXIMUM_ADJOINT_RESIDUAL,
+    MAXIMUM_PRIMAL_RESIDUAL,
+    TAIL_CONTINUUM_ENERGY_TOLERANCE_EV,
+    TAIL_FORCE_MAX_TOLERANCE_EV_PER_A,
+    TAIL_FORCE_RMS_TOLERANCE_EV_PER_A,
+    TAIL_SOURCE_RELATIVE_TOLERANCE,
+    TAIL_TOTAL_ENERGY_TOLERANCE_EV,
+    summarize_box_convergence,
+)
 
 __all__ = [
     "RepositorySnapshot",
@@ -41,4 +52,13 @@ __all__ = [
     "summarize_directional_derivatives",
     "water_geometry_descriptors",
     "water_vibrational_directions",
+    "BOX_LENGTHS_A",
+    "MAXIMUM_ADJOINT_RESIDUAL",
+    "MAXIMUM_PRIMAL_RESIDUAL",
+    "TAIL_CONTINUUM_ENERGY_TOLERANCE_EV",
+    "TAIL_FORCE_MAX_TOLERANCE_EV_PER_A",
+    "TAIL_FORCE_RMS_TOLERANCE_EV_PER_A",
+    "TAIL_SOURCE_RELATIVE_TOLERANCE",
+    "TAIL_TOTAL_ENERGY_TOLERANCE_EV",
+    "summarize_box_convergence",
 ]

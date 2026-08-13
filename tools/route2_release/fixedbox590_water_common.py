@@ -8,10 +8,10 @@ from ase import Atoms
 import numpy as np
 
 from maple.function.route2_smd_profiles import (
-    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES,
 )
 from maple.solvation.api.profiles import (
-    DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
+    DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS,
     get_solvation_profile,
 )
 from maple.solvation.continuum import build_water_radial_gto_cpcm_590_candidate
@@ -44,10 +44,13 @@ COMMON_REQUIRED_SOURCE_PATHS = (
     "maple/solvation/coupling/linearization.py",
     "maple/solvation/coupling/state_equation.py",
     "maple/solvation/models/equation_adapter.py",
+    "maple/solvation/models/fixed_box_evaluator.py",
     "maple/solvation/models/mace_polar.py",
     "maple/solvation/models/mace_polar_feature_vjp.py",
     "maple/solvation/release/evidence.py",
     "maple/solvation/release/pes_validation.py",
+    "maple/function/calculator/mace/_macepol_long_range.py",
+    "maple/function/route2_smd_profiles.py",
     "tools/route2_release/fixedbox590_water_common.py",
 )
 
@@ -63,20 +66,30 @@ def water() -> Atoms:
     )
 
 
-def root_context(geometry: Atoms, label: str) -> str:
-    return f"fixedbox40-cpcm590-water-pes-v1/{label}/{geometry_sha256(geometry)}"
-
-
-def build_system(atoms: Atoms, checkpoint: Path, device: str):
-    profile = get_solvation_profile(
-        DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1
+def root_context(geometry: Atoms, label: str, *, box_length: int = 40) -> str:
+    if box_length not in DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS:
+        raise ValueError(f"Unregistered fixed-box length: {box_length} Angstrom.")
+    return (
+        f"fixedbox{box_length}-cpcm590-water-pes-v1/"
+        f"{label}/{geometry_sha256(geometry)}"
     )
+
+
+def build_system(atoms: Atoms, checkpoint: Path, device: str, *, box_length: int = 40):
+    try:
+        profile_id = DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS[box_length]
+        evaluator_profile = MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[box_length]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unregistered fixed-box length: {box_length} Angstrom."
+        ) from exc
+    profile = get_solvation_profile(profile_id)
     if profile.enabled or profile.capabilities.enabled_tiers:
         raise RuntimeError("The diagnostic profile must remain completely disabled.")
     model = build_official_mace_polar_1_m_radial_gto_adapter(
         checkpoint_path=checkpoint,
         device=device,
-        long_range_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+        long_range_evaluator_profile=evaluator_profile,
     )
     continuum = build_water_radial_gto_cpcm_590_candidate(atoms.get_chemical_symbols())
     coordinates = LinearChargeCoordinates(
@@ -93,7 +106,7 @@ def build_system(atoms: Atoms, checkpoint: Path, device: str):
     scalar = OperationalElectrostaticScalar(
         equation,
         VacuumScalarEquationAdapter(model),
-        profile_id=DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
+        profile_id=profile_id,
     )
     return profile, model, continuum, equation, scalar
 

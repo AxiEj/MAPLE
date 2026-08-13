@@ -163,6 +163,21 @@ convergence, component-level QM/PCM validation, compatible nonpolar/free-energy
 ledger, Hessian/FREQ/TS/NVE gates, or any public capability. E/F/H/V/M therefore
 remain false.
 
+The separately preregistered fixed-box convergence command is:
+
+```bash
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+python tools/route2_release/run_fixedbox590_water_box_convergence.py \
+  --checkpoint "$HOME/.cache/mace/MACEPOLAR1Mmodel" \
+  --device cpu \
+  --output /tmp/route2-fixedbox590-water-box-convergence.json
+```
+
+It compares the distinct disabled 32/40/48/56-Angstrom model/profile
+identities against the preregistered 48-to-56 tail thresholds in
+`VALIDATION_PROTOCOL.md`; it does not tune a free box parameter under the 40-A
+identity.
+
 ## Result
 
 The one-water force/symmetry/path blocker is materially improved and the

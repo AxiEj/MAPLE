@@ -10,7 +10,7 @@ Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-The seven current profiles are disabled, have no capabilities, and have empty
+The ten current profiles are disabled, have no capabilities, and have empty
 admission evidence. Multiple profiles may share one scalar formula while
 binding different coupling or physical-continuum configuration contracts.
 
@@ -80,6 +80,11 @@ error to the model/cavity evaluation operators.  This identity is disabled:
 one water geometry and six rigid orientations are evidence for further PES
 testing, not a Tier-E or Tier-F admission, and fixed-box convergence remains
 unproven.
+
+The otherwise identical disabled `fixedbox32`, `fixedbox48`, and `fixedbox56`
+profiles exist only for a preregistered box-operator convergence audit. They
+bind distinct model/evaluator identities; they are not public alternatives and
+must not be selected adaptively after inspecting the result.
 
 ## `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1`
 

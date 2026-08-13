@@ -3,7 +3,7 @@
 ## Current public status
 
 There is currently **no admitted conservative-vNext Route-2 public profile**.
-All seven registry profiles have `E=F=H=V=M=false`. The radial-GTO water path is
+All ten registry profiles have `E=F=H=V=M=false`. The radial-GTO water path is
 an internal validation candidate; it is deliberately unavailable through
 MAPLE's public calculator/result API.
 

@@ -11,17 +11,19 @@ all public E/F/H/V/M capabilities therefore remain closed.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import inspect
 import json
 from pathlib import Path
+from types import MappingProxyType
 
 import numpy as np
 
 from maple.solvation.api.profiles import (
+    MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS,
+    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS,
     LOCAL_JET_DIAGNOSTIC_COUPLING_ID,
-    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID,
     MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
     MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
     MACE_POLAR_MODEL_PROFILE_ID,
@@ -153,31 +155,42 @@ OFFICIAL_MACE_POLAR_1_M_CONTRACT = MACEPolarReleaseContract(
     release_status="operational-candidate; exact-gto-and-E/F/H/V/M-unadmitted",
 )
 
-MACE_POLAR_1_M_FIXED_BOX40_CONTRACT = MACEPolarReleaseContract(
-    provider_id="maple.route2.model.mace-polar-1-m-fixed-box40-local-field.impl.v1",
-    model_profile_id=MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
-    long_range_evaluator_profile=(
-        MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID
-    ),
-    checkpoint_identifier=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_identifier,
-    checkpoint_release_url=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_release_url,
-    checkpoint_sha256=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_sha256,
-    checkpoint_size_bytes=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_size_bytes,
-    mace_torch_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.mace_torch_version,
-    graph_longrange_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.graph_longrange_version,
-    upstream_commit=OFFICIAL_MACE_POLAR_1_M_CONTRACT.upstream_commit,
-    release_status=(
-        "experimental fixed-box40 evaluation operator; box convergence and "
-        "E/F/H/V/M unadmitted"
-    ),
+MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS = MappingProxyType(
+    {
+        box_length: MACEPolarReleaseContract(
+            provider_id=(
+                "maple.route2.model.mace-polar-1-m-"
+                f"fixed-box{box_length}-local-field.impl.v1"
+            ),
+            model_profile_id=MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS[box_length],
+            long_range_evaluator_profile=(
+                MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS[box_length]
+            ),
+            checkpoint_identifier=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_identifier,
+            checkpoint_release_url=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_release_url,
+            checkpoint_sha256=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_sha256,
+            checkpoint_size_bytes=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_size_bytes,
+            mace_torch_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.mace_torch_version,
+            graph_longrange_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.graph_longrange_version,
+            upstream_commit=OFFICIAL_MACE_POLAR_1_M_CONTRACT.upstream_commit,
+            release_status=(
+                f"experimental fixed-box{box_length} evaluation operator; box "
+                "convergence and E/F/H/V/M unadmitted"
+            ),
+        )
+        for box_length in (32, 40, 48, 56)
+    }
 )
+MACE_POLAR_1_M_FIXED_BOX40_CONTRACT = MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS[40]
 
 _RELEASE_CONTRACT_BY_EVALUATOR = {
     MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID: OFFICIAL_MACE_POLAR_1_M_CONTRACT,
-    MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID: (
-        MACE_POLAR_1_M_FIXED_BOX40_CONTRACT
-    ),
+    **{
+        contract.long_range_evaluator_profile: contract
+        for contract in MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS.values()
+    },
 }
+_VNextModelOnlyMACEPolCalculator: type | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -295,6 +308,18 @@ def _calculator_source_files(calculator: object) -> tuple[tuple[str, str], ...]:
                 "MACE-POLAR long-range evaluator source path is unavailable."
             )
         files["bound_long_range_evaluator"] = path
+        for index, cls in enumerate(type(evaluator).__mro__[1:]):
+            try:
+                raw = inspect.getsourcefile(cls)
+            except (TypeError, OSError):
+                continue
+            if raw is None:
+                continue
+            path = Path(raw).resolve()
+            if not path.is_file() or path in seen:
+                continue
+            seen.add(path)
+            files[f"bound_long_range_evaluator_mro_{index}_{cls.__name__}"] = path
     return source_files_sha256(files)
 
 
@@ -469,6 +494,7 @@ class MACEPolarLocalFieldModelAdapter:
                 "MACE-POLAR checkpoint file identity changed after construction."
             )
         source_files = _calculator_source_files(self._calculator)
+        evaluator = getattr(self._calculator, "_long_range_evaluator", None)
         payload = {
             "schema": "route2-mace-polar-local-field-model-adapter-v1",
             "release_contract": self._release_contract.metadata(),
@@ -501,6 +527,10 @@ class MACEPolarLocalFieldModelAdapter:
             ),
             "long_range_evaluator_provenance": getattr(
                 self._calculator, "long_range_evaluator_provenance", None
+            ),
+            "long_range_evaluator_runtime_profile": getattr(evaluator, "profile", None),
+            "long_range_evaluator_runtime_provenance": getattr(
+                evaluator, "provenance", None
             ),
             "atomic_numbers": list(self.domain.atomic_numbers),
             "source_space_sha256": self.source_space.metadata_hash(),
@@ -911,10 +941,17 @@ def build_official_mace_polar_1_m_adapter(
         MACEPolCalculator,
     )
 
-    class _VNextModelOnlyMACEPolCalculator(MACEPolCalculator):
-        def implicit_solv_init(self, implicit: str, solvent: str) -> None:
-            del implicit, solvent
-            self.solvent_correction = None
+    global _VNextModelOnlyMACEPolCalculator
+    if _VNextModelOnlyMACEPolCalculator is None:
+
+        class _ModelOnlyCalculator(MACEPolCalculator):
+            def implicit_solv_init(self, implicit: str, solvent: str) -> None:
+                del implicit, solvent
+                self.solvent_correction = None
+
+        _ModelOnlyCalculator.__name__ = "_VNextModelOnlyMACEPolCalculator"
+        _ModelOnlyCalculator.__qualname__ = "_VNextModelOnlyMACEPolCalculator"
+        _VNextModelOnlyMACEPolCalculator = _ModelOnlyCalculator
 
     normalized_evaluator_profile = str(long_range_evaluator_profile).strip().lower()
     try:
@@ -938,14 +975,47 @@ def build_official_mace_polar_1_m_adapter(
                 "The advertised checkpoint does not match the official "
                 "MACE-POLAR-1-M bytes."
             )
-    calculator = _VNextModelOnlyMACEPolCalculator(
+    construction_profile = normalized_evaluator_profile
+    if normalized_evaluator_profile in {
+        contract.long_range_evaluator_profile
+        for box_length, contract in MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS.items()
+        if box_length != 40
+    }:
+        # Preserve the byte-bound historical evaluator.  Construct through
+        # its validated reciprocal path, then replace only the evaluator
+        # policy with the separately content-addressed vNext diagnostic.
+        construction_profile = (
+            MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.long_range_evaluator_profile
+        )
+    calculator_type = _VNextModelOnlyMACEPolCalculator
+    if calculator_type is None:  # pragma: no cover - guarded above
+        raise RuntimeError("Unable to construct the vNext MACE-POLAR calculator type.")
+    calculator = calculator_type(
         device=device,
         model="macepolm",
         implicit="smd",
-        long_range_evaluator_profile=normalized_evaluator_profile,
+        long_range_evaluator_profile=construction_profile,
         solvent="water",
         _implicit_solvent_factory_token=_IMPLICIT_SOLVENT_FACTORY_TOKEN,
     )
+    if construction_profile != normalized_evaluator_profile:
+        from .fixed_box_evaluator import MACEPolarFixedBoxDiagnosticEvaluator
+
+        evaluator = MACEPolarFixedBoxDiagnosticEvaluator.from_profile(
+            normalized_evaluator_profile
+        )
+        evaluator.configure_model(calculator.model)
+        calculator._long_range_evaluator = evaluator
+        calculator.long_range_evaluator_profile = evaluator.profile
+        calculator.long_range_evaluator_provenance = evaluator.provenance
+        descriptor = calculator.route2_electronic_model_descriptor
+        descriptor_provenance = dict(descriptor.provenance)
+        descriptor_provenance["long_range_evaluator"] = evaluator.provenance
+        calculator.route2_electronic_model_descriptor = replace(
+            descriptor,
+            field_evaluator=evaluator.profile,
+            provenance=descriptor_provenance,
+        )
     if calculator.long_range_evaluator_profile != normalized_evaluator_profile:
         raise RuntimeError("MACE-POLAR evaluator profile changed during construction.")
     return MACEPolarLocalFieldModelAdapter(calculator, release_contract)
@@ -974,6 +1044,7 @@ __all__ = [
     "MACEPolarRadialGTOModelAdapter",
     "MACEPolarReleaseContract",
     "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
+    "MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",
     "OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID",

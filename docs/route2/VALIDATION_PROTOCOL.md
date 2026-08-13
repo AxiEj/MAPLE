@@ -65,6 +65,26 @@ magnitude `7.22e-6 eV`, and the topology hash was constant. Raw evidence is in
 `evidence/fixedbox590-water-path-241e98b7/`. This does not change the remaining
 multi-molecule, box-convergence, component-physics, Hessian, or NVE gates.
 
+## Fixed-box operator-convergence gate
+
+The fixed-box reciprocal evaluator is a numerical model operator and must not
+inherit the 40-Angstrom choice without convergence evidence. The first
+preregistered family is `32/40/48/56 Angstrom`; every size has a distinct
+evaluator ID, model profile, provider/configuration hash, and disabled
+solvation profile. The 56-Angstrom calculation is the finite reference and the
+48-to-56 tail must satisfy, on the same geometry/root/scalar:
+
+- total-energy and continuum-component changes `<= 1e-4 eV`;
+- force RMS change `<= 1e-4 eV/Angstrom`;
+- force maximum change `<= 5e-4 eV/Angstrom`;
+- normalized source change `<= 1e-5`;
+- primal residual `<= 1e-12` for every size;
+- adjoint true residual `<= 1e-10` for every size.
+
+These thresholds and sizes are frozen before the clean real-stack run. Passing
+one equilibrium-water comparison only admits the box choice for continued
+diagnostics; it is not Tier E/F or multi-geometry/multi-molecule convergence.
+
 Root uniqueness is tested with declared multi-start seeds and the actual
 unmixed dimensionless residual. Damping/DIIS convergence alone is not a root
 uniqueness proof.

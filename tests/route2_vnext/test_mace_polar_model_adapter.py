@@ -20,6 +20,7 @@ from maple.solvation.models import (
     MACEPolarReleaseContract,
     MACE_POLAR_1_M_FIXED_BOX40_CONTRACT,
     MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID,
+    MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS,
     VacuumScalarEquationAdapter,
     validate_response_linearization,
     validate_source_evaluation,
@@ -230,6 +231,30 @@ def test_fixed_box40_contract_has_a_distinct_fail_closed_model_identity():
     assert "E/F/H/V/M unadmitted" in (
         MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.release_status
     )
+    assert tuple(MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS) == (32, 40, 48, 56)
+    for box_length, contract in MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS.items():
+        assert contract.model_profile_id.endswith(f"fixed-box{box_length}-contract-v1")
+        assert contract.provider_id.endswith(
+            f"fixed-box{box_length}-local-field.impl.v1"
+        )
+        assert contract.long_range_evaluator_profile.endswith(
+            f"fixed-box{box_length}-v1"
+        )
+        assert "E/F/H/V/M unadmitted" in contract.release_status
+
+
+def test_fixed_box_configuration_hash_binds_runtime_evaluator_identity(tmp_path):
+    adapter, calculator = _adapter(tmp_path)
+    original = adapter.configuration_sha256()
+
+    class _Evaluator:
+        profile = "test-molecular-realspace-v1"
+        provenance = {"operator": "changed-after-adapter-construction"}
+
+    calculator._long_range_evaluator = _Evaluator()
+    with pytest.raises(ValueError, match="configuration drifted"):
+        adapter.configuration_sha256()
+    assert original != ""
 
 
 def test_release_contract_rejects_evaluator_identity_spoof(tmp_path):

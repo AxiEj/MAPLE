@@ -22,6 +22,9 @@ COMMON = ROOT / "tools" / "route2_release" / "fixedbox590_water_common.py"
 PATH_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_water_path_diagnostic.py"
 )
+BOX_RUNNER = (
+    ROOT / "tools" / "route2_release" / "run_fixedbox590_water_box_convergence.py"
+)
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
 )
@@ -131,6 +134,26 @@ def test_fixedbox590_path_runner_preregisters_panel_loop_and_stays_disabled():
         "cold_warm_record",
         '"multi_molecule_pes_panel": False',
         '"box_convergence": False',
+        '"capabilities": {tier: False',
+    ):
+        assert requirement in text
+
+
+def test_fixedbox590_box_runner_preregisters_distinct_sizes_and_stays_disabled():
+    result = subprocess.run(
+        (sys.executable, str(BOX_RUNNER), "--help"),
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    text = BOX_RUNNER.read_text(encoding="utf-8")
+    for requirement in (
+        "BOX_LENGTHS_A",
+        "summarize_box_convergence",
+        "box_operator_convergence",
+        '"multi_geometry_box_convergence": False',
         '"capabilities": {tier: False',
     ):
         assert requirement in text

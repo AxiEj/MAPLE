@@ -8,6 +8,7 @@ from maple.solvation.release.pes_validation import (
     closed_loop_work,
     displace_positions,
     reverse_closed_path,
+    summarize_cartesian_force_differences,
     summarize_directional_derivatives,
     water_geometry_descriptors,
     water_vibrational_directions,
@@ -111,6 +112,54 @@ def test_directional_summary_applies_absolute_and_away_from_zero_relative_gates(
     )
     assert near_zero["records"][0]["relative_gate_applies"] is False
     assert near_zero["all_gates_passed"] is True
+
+
+def test_cartesian_summary_requires_thresholds_and_second_order_or_low_plateau():
+    analytic = np.asarray([[0.4, -0.2, 0.1], [-0.1, 0.3, -0.5]])
+    steps = (4.0e-4, 2.0e-4, 1.0e-4)
+    second_order = summarize_cartesian_force_differences(
+        analytic,
+        tuple((step, analytic + 4.0e2 * step**2) for step in steps),
+    )
+    assert second_order["all_gates_passed"] is True
+    assert second_order["convergence"]["observed_first_to_last_order"] == pytest.approx(
+        2.0
+    )
+
+    plateau = summarize_cartesian_force_differences(
+        analytic,
+        tuple((step, analytic + 1.0e-5) for step in steps),
+    )
+    assert plateau["all_gates_passed"] is True
+    assert plateau["convergence"]["low_error_plateau"] is True
+
+    first_order = summarize_cartesian_force_differences(
+        analytic,
+        tuple((step, analytic + 5.0 * step) for step in steps),
+    )
+    assert first_order["all_gates_passed"] is False
+    assert first_order["convergence"]["observed_first_to_last_order"] == pytest.approx(
+        1.0
+    )
+
+    over_threshold = summarize_cartesian_force_differences(
+        analytic,
+        tuple((step, analytic + 3.0e-3 * (step / steps[-1]) ** 2) for step in steps),
+    )
+    assert over_threshold["all_gates_passed"] is False
+
+
+def test_cartesian_summary_rejects_incomplete_or_misordered_samples():
+    analytic = np.zeros((2, 3))
+    with pytest.raises(ValueError, match="at least three"):
+        summarize_cartesian_force_differences(
+            analytic, ((4.0e-4, analytic), (2.0e-4, analytic))
+        )
+    with pytest.raises(ValueError, match="strictly decreasing"):
+        summarize_cartesian_force_differences(
+            analytic,
+            ((2.0e-4, analytic), (4.0e-4, analytic), (1.0e-4, analytic)),
+        )
 
 
 def test_validation_helpers_reject_nonfinite_or_open_inputs():

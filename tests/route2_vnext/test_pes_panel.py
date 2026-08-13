@@ -18,6 +18,9 @@ from maple.solvation.release.pes_panel import (
     PES_PANEL_STRETCH_CHANGES_A,
     PES_PANEL_TORSION_ANGLES_DEG,
     PES_PANEL_VARIANT_NAMES,
+    PES_CARTESIAN_PANEL_CONTRACT_VERSION,
+    PES_CARTESIAN_PANEL_STEPS_A,
+    PES_CARTESIAN_PANEL_VARIANT,
     bond_direction,
     load_pes_panel,
     panel_directions,
@@ -25,6 +28,7 @@ from maple.solvation.release.pes_panel import (
     panel_paths,
     select_bond,
     stretch_tangent,
+    summarize_cartesian_pes_panel,
     summarize_pes_panel,
     summarize_pes_paths,
     torsion_tangent,
@@ -216,6 +220,59 @@ def test_panel_summary_requires_all_20_by_3_records_and_never_hides_failure():
     assert summary["all_gates_passed"] is False
     with pytest.raises(ValueError, match="exactly 60"):
         summarize_pes_panel(records[:-1])
+
+
+def _cartesian_record(molecule, *, passed=True):
+    return {
+        "molecule_id": molecule.molecule_id,
+        "variant": PES_CARTESIAN_PANEL_VARIANT,
+        "component_count": 3 * len(molecule.atoms),
+        "cartesian_force_fd": {
+            "all_gates_passed": passed,
+            "fixed_topology": passed,
+            "topology_hashes": [f"{molecule.molecule_id:0<64}"[:64]],
+            "maximum_displaced_primal_residual": 1.0e-13,
+            "records": [
+                {
+                    "step_A": step,
+                    "rms_error_eV_per_A": 1.0e-6,
+                    "maximum_error_eV_per_A": 2.0e-6,
+                }
+                for step in PES_CARTESIAN_PANEL_STEPS_A
+            ],
+            "convergence": {"low_error_plateau": True},
+        },
+        "cold_warm": {
+            "numerically_equivalent": passed,
+            "gates": {"source": passed, "energy": passed},
+        },
+        "maximum_primal_residual": 1.0e-13,
+        "adjoint_residual": 1.0e-14,
+    }
+
+
+def test_cartesian_panel_contract_is_reference_only_complete_and_fail_closed():
+    assert PES_CARTESIAN_PANEL_CONTRACT_VERSION.endswith("-v1")
+    assert PES_CARTESIAN_PANEL_VARIANT == "reference"
+    assert PES_CARTESIAN_PANEL_STEPS_A == (4.0e-4, 2.0e-4, 1.0e-4)
+    panel = load_pes_panel()
+    records = [_cartesian_record(molecule) for molecule in panel]
+    summary = summarize_cartesian_pes_panel(records)
+    assert summary["molecule_count"] == 20
+    assert summary["geometry_count"] == 20
+    assert summary["component_count"] == sum(3 * len(item.atoms) for item in panel)
+    assert summary["component_sample_count"] == summary["component_count"] * 3
+    assert summary["step_record_count"] == 60
+    assert summary["maximum_rms_error_eV_per_A"] == pytest.approx(1.0e-6)
+    assert summary["maximum_component_error_eV_per_A"] == pytest.approx(2.0e-6)
+    assert summary["low_error_plateau_count"] == 20
+    assert summary["all_gates_passed"] is True
+
+    failed = deepcopy(records)
+    failed[3]["cartesian_force_fd"]["all_gates_passed"] = False
+    assert summarize_cartesian_pes_panel(failed)["all_gates_passed"] is False
+    with pytest.raises(ValueError, match="exactly 20"):
+        summarize_cartesian_pes_panel(records[:-1])
 
 
 def _path_record(point, *, passed=True):

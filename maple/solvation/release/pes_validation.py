@@ -15,6 +15,13 @@ import numpy as np
 _DIRECTIONAL_ABSOLUTE_TOLERANCE_EV_PER_A = 5.0e-4
 _DIRECTIONAL_RELATIVE_TOLERANCE = 2.0e-3
 _DIRECTIONAL_RELATIVE_FLOOR_EV_PER_A = 1.0e-3
+_CARTESIAN_RMS_TOLERANCE_EV_PER_A = 5.0e-4
+_CARTESIAN_MAXIMUM_TOLERANCE_EV_PER_A = 2.0e-3
+_CARTESIAN_PLATEAU_RMS_EV_PER_A = 5.0e-5
+_CARTESIAN_PLATEAU_MAXIMUM_EV_PER_A = 2.0e-4
+_CARTESIAN_PLATEAU_SPREAD_FACTOR = 1.5
+_CARTESIAN_MINIMUM_OBSERVED_ORDER = 1.5
+_CARTESIAN_TERMINAL_GROWTH_FACTOR = 1.25
 _LOOP_ABSOLUTE_TOLERANCE_EV = 1.0e-5
 _LOOP_RELATIVE_TOLERANCE = 1.0e-3
 
@@ -196,6 +203,129 @@ def summarize_directional_derivatives(
     }
 
 
+def summarize_cartesian_force_differences(
+    analytic_gradient_eV_per_A: object,
+    finite_difference_samples: Sequence[tuple[float, object]],
+) -> dict[str, object]:
+    """Gate full Cartesian gradients at multiple central-difference steps.
+
+    Steps must be supplied in strictly decreasing order.  Above ten percent of
+    the preregistered RMS/maximum error budgets, the first-to-last refinement
+    must show better than first-order behavior (observed order at least 1.5)
+    and the terminal RMS error may not grow by more than 25 percent.  Once all
+    step errors lie below those ten-percent floors, a numerical plateau is
+    accepted explicitly rather than manufacturing an apparent convergence
+    order from roundoff.
+    """
+
+    analytic = np.asarray(analytic_gradient_eV_per_A, dtype=float)
+    if (
+        analytic.ndim != 2
+        or analytic.shape[0] < 1
+        or analytic.shape[1] != 3
+        or not np.all(np.isfinite(analytic))
+    ):
+        raise ValueError("analytic Cartesian gradient must be finite with shape (N, 3).")
+    records: list[dict[str, object]] = []
+    previous_step = math.inf
+    for raw_step, raw_finite_difference in finite_difference_samples:
+        step = float(raw_step)
+        finite_difference = np.asarray(raw_finite_difference, dtype=float)
+        if (
+            not math.isfinite(step)
+            or step <= 0.0
+            or step >= previous_step
+            or finite_difference.shape != analytic.shape
+            or not np.all(np.isfinite(finite_difference))
+        ):
+            raise ValueError(
+                "Cartesian samples require strictly decreasing positive steps and "
+                "finite gradients matching the analytic shape."
+            )
+        previous_step = step
+        error = analytic - finite_difference
+        rms = float(np.sqrt(np.mean(error**2)))
+        maximum = float(np.max(np.abs(error)))
+        records.append(
+            {
+                "step_A": step,
+                "analytic_gradient_eV_per_A": analytic.tolist(),
+                "finite_difference_gradient_eV_per_A": finite_difference.tolist(),
+                "error_eV_per_A": error.tolist(),
+                "rms_error_eV_per_A": rms,
+                "maximum_error_eV_per_A": maximum,
+                "relative_frobenius_error": float(
+                    np.linalg.norm(error)
+                    / max(float(np.linalg.norm(finite_difference)), 1.0e-15)
+                ),
+                "gates": {
+                    "rms_le_5e-4_eV_per_A": (
+                        rms <= _CARTESIAN_RMS_TOLERANCE_EV_PER_A
+                    ),
+                    "maximum_le_2e-3_eV_per_A": (
+                        maximum <= _CARTESIAN_MAXIMUM_TOLERANCE_EV_PER_A
+                    ),
+                },
+            }
+        )
+    if len(records) < 3:
+        raise ValueError("Cartesian force validation requires at least three steps.")
+
+    first = records[0]
+    last = records[-1]
+    first_rms = float(first["rms_error_eV_per_A"])
+    last_rms = float(last["rms_error_eV_per_A"])
+    ratio = float(first["step_A"]) / float(last["step_A"])
+    observed_order = (
+        None
+        if last_rms == 0.0
+        else math.log(max(first_rms, 1.0e-300) / last_rms) / math.log(ratio)
+    )
+    rms_values = [float(record["rms_error_eV_per_A"]) for record in records]
+    low_error_plateau = all(
+        float(record["rms_error_eV_per_A"])
+        <= _CARTESIAN_PLATEAU_RMS_EV_PER_A
+        and float(record["maximum_error_eV_per_A"])
+        <= _CARTESIAN_PLATEAU_MAXIMUM_EV_PER_A
+        for record in records
+    ) and max(rms_values) <= _CARTESIAN_PLATEAU_SPREAD_FACTOR * max(
+        min(rms_values), 1.0e-300
+    )
+    terminal_nondivergent = last_rms <= max(
+        _CARTESIAN_PLATEAU_RMS_EV_PER_A,
+        _CARTESIAN_TERMINAL_GROWTH_FACTOR
+        * float(records[-2]["rms_error_eV_per_A"]),
+    )
+    order_or_plateau = low_error_plateau or (
+        last_rms == 0.0 and first_rms > 0.0
+    ) or (
+        observed_order is not None
+        and observed_order >= _CARTESIAN_MINIMUM_OBSERVED_ORDER
+    )
+    per_step = all(all(record["gates"].values()) for record in records)
+    convergence = {
+        "contract": "central-order-or-ten-percent-error-plateau-v1",
+        "observed_first_to_last_order": observed_order,
+        "minimum_observed_order": _CARTESIAN_MINIMUM_OBSERVED_ORDER,
+        "low_error_plateau": low_error_plateau,
+        "plateau_rms_eV_per_A": _CARTESIAN_PLATEAU_RMS_EV_PER_A,
+        "plateau_maximum_eV_per_A": _CARTESIAN_PLATEAU_MAXIMUM_EV_PER_A,
+        "plateau_spread_factor_limit": _CARTESIAN_PLATEAU_SPREAD_FACTOR,
+        "terminal_growth_factor_limit": _CARTESIAN_TERMINAL_GROWTH_FACTOR,
+        "gates": {
+            "central_order_ge_1p5_or_low_error_plateau": order_or_plateau,
+            "terminal_rms_nondivergent": terminal_nondivergent,
+        },
+    }
+    return {
+        "records": records,
+        "convergence": convergence,
+        "all_gates_passed": per_step
+        and order_or_plateau
+        and terminal_nondivergent,
+    }
+
+
 def _path_arrays(
     positions: Sequence[object], forces: Sequence[object]
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -273,6 +403,7 @@ __all__ = [
     "closed_rectangular_loop",
     "displace_positions",
     "reverse_closed_path",
+    "summarize_cartesian_force_differences",
     "summarize_directional_derivatives",
     "water_geometry_descriptors",
     "water_vibrational_directions",

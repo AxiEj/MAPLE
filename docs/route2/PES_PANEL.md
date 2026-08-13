@@ -101,4 +101,5 @@ SHA256 `e087f6297d709f3d383b3bb8bfff7fd75dbcb4e4022020364d6a273f744c3775`.
 This closes the preregistered **directional** panel only. The required
 component-resolved Cartesian FD panel, remaining symmetry/loop scope,
 component physics, Hessian/FREQ/TS/HVP/NVE, and public admission gates remain
-open. OPT, NEB, TS, FREQ, and MD therefore remain unavailable.
+open. Its separate pre-execution contract is frozen in `CARTESIAN_PANEL.md`.
+OPT, NEB, TS, FREQ, and MD therefore remain unavailable.

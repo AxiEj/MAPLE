@@ -17,6 +17,9 @@ from maple.solvation.coupling.state_equation import geometry_sha256
 
 PES_PANEL_SCHEMA_VERSION = "route2-fixedbox590-pes-panel-geometry-asset-v1"
 PES_PANEL_CONTRACT_VERSION = "route2-fixedbox590-pes-panel-contract-v1"
+PES_CARTESIAN_PANEL_CONTRACT_VERSION = (
+    "route2-fixedbox590-cartesian-panel-contract-v1"
+)
 PES_PANEL_ASSET_SHA256 = (
     "ecaa309cb468f17449a78a16e6a79acd0a5a16cf982eb52b3fb8d5d1dcd80ca3"
 )
@@ -37,6 +40,8 @@ PES_PANEL_ADDITIONAL_PATHS = (
 )
 PES_PANEL_DIRECTION_NAMES = ("seeded-internal", "radial-internal", "bond-stretch")
 PES_PANEL_DIRECTIONAL_STEPS_A = (4.0e-4, 2.0e-4, 1.0e-4)
+PES_CARTESIAN_PANEL_STEPS_A = PES_PANEL_DIRECTIONAL_STEPS_A
+PES_CARTESIAN_PANEL_VARIANT = "reference"
 PES_PANEL_BOND_DISPLACEMENT_A = 0.08
 PES_PANEL_RANDOM_SEED = 20260813
 
@@ -584,6 +589,115 @@ def summarize_pes_paths(records: Sequence[Mapping[str, Any]]) -> dict[str, objec
     }
 
 
+def summarize_cartesian_pes_panel(
+    records: Sequence[Mapping[str, Any]],
+) -> dict[str, object]:
+    """Require one full-Cartesian reference-geometry record per molecule."""
+
+    values = tuple(records)
+    panel = load_pes_panel()
+    if len(values) != PES_PANEL_MOLECULE_COUNT:
+        raise ValueError(
+            f"Cartesian PES panel must contain exactly {PES_PANEL_MOLECULE_COUNT} "
+            "molecule records."
+        )
+    by_id = {str(item.get("molecule_id")): item for item in values}
+    expected_ids = {molecule.molecule_id for molecule in panel}
+    if len(by_id) != len(values) or set(by_id) != expected_ids:
+        raise ValueError("Cartesian PES-panel molecule coverage is incomplete or duplicated.")
+
+    maximum_primal = 0.0
+    maximum_adjoint = 0.0
+    all_cartesian = True
+    all_roots = True
+    all_topologies = True
+    component_count = 0
+    step_record_count = 0
+    maximum_rms_error = 0.0
+    maximum_component_error = 0.0
+    low_error_plateau_count = 0
+    topology_hashes_by_molecule: dict[str, list[str]] = {}
+    for molecule in panel:
+        item = by_id[molecule.molecule_id]
+        if str(item.get("variant")) != PES_CARTESIAN_PANEL_VARIANT:
+            raise ValueError("Cartesian PES panel is frozen to reference geometries.")
+        expected_components = 3 * len(molecule.atoms)
+        if int(item.get("component_count")) != expected_components:
+            raise ValueError("Cartesian component count does not match the molecule.")
+        component_count += expected_components
+        cartesian = item.get("cartesian_force_fd")
+        if not isinstance(cartesian, Mapping):
+            raise ValueError("Every molecule requires a Cartesian force-FD record.")
+        step_records = cartesian.get("records")
+        convergence = cartesian.get("convergence")
+        if (
+            not isinstance(step_records, Sequence)
+            or isinstance(step_records, (str, bytes))
+            or len(step_records) != len(PES_CARTESIAN_PANEL_STEPS_A)
+            or not isinstance(convergence, Mapping)
+        ):
+            raise ValueError("Cartesian force-FD records are incomplete.")
+        if tuple(float(record.get("step_A")) for record in step_records) != (
+            PES_CARTESIAN_PANEL_STEPS_A
+        ):
+            raise ValueError("Cartesian force-FD steps changed from the contract.")
+        step_record_count += len(step_records)
+        maximum_rms_error = max(
+            maximum_rms_error,
+            *(float(record.get("rms_error_eV_per_A")) for record in step_records),
+        )
+        maximum_component_error = max(
+            maximum_component_error,
+            *(
+                float(record.get("maximum_error_eV_per_A"))
+                for record in step_records
+            ),
+        )
+        low_error_plateau_count += bool(convergence.get("low_error_plateau"))
+        all_cartesian &= bool(cartesian.get("all_gates_passed"))
+        all_cartesian &= bool(cartesian.get("fixed_topology"))
+        root = item.get("cold_warm")
+        if not isinstance(root, Mapping):
+            raise ValueError("Every Cartesian molecule requires a cold/warm record.")
+        all_roots &= bool(root.get("numerically_equivalent")) and all(
+            bool(value) for value in root.get("gates", {}).values()
+        )
+        hashes = tuple(str(value) for value in cartesian.get("topology_hashes", ()))
+        if len(hashes) != 1:
+            all_topologies = False
+        topology_hashes_by_molecule[molecule.molecule_id] = sorted(hashes)
+        maximum_primal = max(
+            maximum_primal,
+            float(item.get("maximum_primal_residual")),
+            float(cartesian.get("maximum_displaced_primal_residual")),
+        )
+        maximum_adjoint = max(maximum_adjoint, float(item.get("adjoint_residual")))
+
+    gates = {
+        "all_cartesian_force_fd": all_cartesian,
+        "all_cold_warm_roots": all_roots,
+        "all_primal_residuals_le_1e-12": maximum_primal <= MAXIMUM_PRIMAL_RESIDUAL,
+        "all_adjoint_residuals_le_1e-10": maximum_adjoint <= MAXIMUM_ADJOINT_RESIDUAL,
+        "all_molecule_topologies_fixed": all_topologies,
+    }
+    return {
+        "schema_version": "route2-fixedbox590-cartesian-panel-summary-v1",
+        "molecule_count": PES_PANEL_MOLECULE_COUNT,
+        "geometry_count": len(values),
+        "component_count": component_count,
+        "component_sample_count": component_count * len(PES_CARTESIAN_PANEL_STEPS_A),
+        "step_record_count": step_record_count,
+        "maximum_rms_error_eV_per_A": maximum_rms_error,
+        "maximum_component_error_eV_per_A": maximum_component_error,
+        "low_error_plateau_count": low_error_plateau_count,
+        "maximum_primal_residual": maximum_primal,
+        "maximum_adjoint_residual": maximum_adjoint,
+        "topology_hashes_by_molecule": topology_hashes_by_molecule,
+        "gates": gates,
+        "all_gates_passed": all(gates.values()),
+    }
+
+
 __all__ = [
     "CARTESIAN_MAXIMUM_TOLERANCE_EV_PER_A",
     "CARTESIAN_RMS_TOLERANCE_EV_PER_A",
@@ -595,6 +709,9 @@ __all__ = [
     "MAXIMUM_ADJOINT_RESIDUAL",
     "MAXIMUM_PRIMAL_RESIDUAL",
     "PES_PANEL_ASSET_SHA256",
+    "PES_CARTESIAN_PANEL_CONTRACT_VERSION",
+    "PES_CARTESIAN_PANEL_STEPS_A",
+    "PES_CARTESIAN_PANEL_VARIANT",
     "PES_PANEL_ADDITIONAL_PATHS",
     "PES_PANEL_BOND_DISPLACEMENT_A",
     "PES_PANEL_CONTRACT_VERSION",
@@ -626,6 +743,7 @@ __all__ = [
     "stretch_tangent",
     "summarize_pes_panel",
     "summarize_pes_paths",
+    "summarize_cartesian_pes_panel",
     "torsion_path",
     "torsion_tangent",
 ]

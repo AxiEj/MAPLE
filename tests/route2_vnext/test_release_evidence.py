@@ -29,7 +29,14 @@ PES_PANEL_RUNNER = ROOT / "tools" / "route2_release" / "run_fixedbox590_pes_pane
 PES_PANEL_AGGREGATOR = (
     ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_pes_panel.py"
 )
+PES_CARTESIAN_RUNNER = (
+    ROOT / "tools" / "route2_release" / "run_fixedbox590_cartesian_panel.py"
+)
+PES_CARTESIAN_AGGREGATOR = (
+    ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_cartesian_panel.py"
+)
 PES_PANEL_DOC = ROOT / "docs" / "route2" / "PES_PANEL.md"
+PES_CARTESIAN_DOC = ROOT / "docs" / "route2" / "CARTESIAN_PANEL.md"
 PATH_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-path-241e98b7"
 )
@@ -235,6 +242,59 @@ def test_pes_panel_aggregator_recomputes_raw_values_and_cannot_admit_capabilitie
         '"numerical_determinism": payload.get("numerical_determinism")',
     ):
         assert requirement in text
+
+
+def test_cartesian_panel_runner_and_aggregator_are_raw_source_bound_and_disabled():
+    for command in (PES_CARTESIAN_RUNNER, PES_CARTESIAN_AGGREGATOR):
+        result = subprocess.run(
+            (sys.executable, str(command), "--help"),
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "--output" in result.stdout
+
+    runner = PES_CARTESIAN_RUNNER.read_text(encoding="utf-8")
+    for requirement in (
+        "PES_CARTESIAN_PANEL_CONTRACT_VERSION",
+        "PES_CARTESIAN_PANEL_STEPS_A",
+        "summarize_cartesian_force_differences",
+        "raw_displaced_components",
+        "plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)",
+        "minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)",
+        'aggregate_cartesian_pes_panel": False',
+        '"capabilities": {tier: False',
+    ):
+        assert requirement in runner
+    assert "(*source_paths, PANEL_ASSET_PATH)" in runner
+    assert (
+        runner.index("plus_state = self.solve(")
+        < runner.index("plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)")
+        < runner.index("minus_state = self.solve(")
+        < runner.index("minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)")
+    )
+
+    aggregator = PES_CARTESIAN_AGGREGATOR.read_text(encoding="utf-8")
+    for requirement in (
+        "geometry_sha256(plus)",
+        "geometry_sha256(minus)",
+        "summarize_cartesian_force_differences",
+        "summarize_cartesian_pes_panel",
+        "CAPABILITIES = {tier: False",
+        "sys.exit(2)",
+        '"numerical_determinism": payload.get("numerical_determinism")',
+    ):
+        assert requirement in aggregator
+
+    document = PES_CARTESIAN_DOC.read_text(encoding="utf-8")
+    assert PES_CARTESIAN_RUNNER.name in document
+    assert PES_CARTESIAN_AGGREGATOR.name in document
+    assert "Before execution" in document
+    assert "465 Cartesian components" in document
+    assert "central-order-or-ten-percent-error-plateau-v1" in document
+    assert "cannot enable E/F/H/V/M" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():

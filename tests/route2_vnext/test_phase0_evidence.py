@@ -4,15 +4,11 @@ import hashlib
 import json
 from pathlib import Path
 
-
 BASELINE_SHA = "15777aadf92e8a14419e5ff5d8ac6b3cc17aa482"
 EVIDENCE = (
-    Path(__file__).parents[2]
-    / "docs"
-    / "route2"
-    / "evidence"
-    / "baseline-15777aad"
+    Path(__file__).parents[2] / "docs" / "route2" / "evidence" / "baseline-15777aad"
 )
+WORKFLOWS = Path(__file__).parents[2] / ".github" / "workflows"
 
 
 def _sha256(path: Path) -> str:
@@ -70,3 +66,10 @@ def test_inventory_is_source_bound_and_nonempty():
         for record in inventory[group]:
             assert len(record["sha256"]) == 64
             assert record["bytes"] > 0
+
+
+def test_source_bound_ci_jobs_checkout_complete_git_history():
+    for filename in ("route2-core.yml", "route2-real-stack.yml"):
+        workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
+        assert "fetch-depth: 0" in workflow
+        assert 'git rev-parse --is-shallow-repository)" = false' in workflow

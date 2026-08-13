@@ -18,6 +18,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           clean: true
+          # The complete suite validates release artifacts against historical
+          # Git blobs, so this advertised real-stack job must retain history.
+          fetch-depth: 0
+      - name: Verify source-bound history is available
+        shell: bash
+        run: test "$(git rev-parse --is-shallow-repository)" = false
       - name: Fail closed on missing advertised runtimes
         shell: bash
         run: |

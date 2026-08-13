@@ -20,6 +20,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Source-bound evidence tests read the exact Git blobs recorded by
+          # older artifacts.  A shallow checkout makes those proofs
+          # unverifiable rather than safely skippable.
+          fetch-depth: 0
+      - name: Verify source-bound history is available
+        shell: bash
+        run: test "$(git rev-parse --is-shallow-repository)" = false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

@@ -1,0 +1,34 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed molecule=hydrogen-peroxide variant=reference
+completed molecule=hydrogen-peroxide variant=bond-compressed
+completed molecule=hydrogen-peroxide variant=bond-stretched
+completed path=hydrogen-peroxide-oxygen-oxygen-stretch point=oo-change--0.16-A
+completed path=hydrogen-peroxide-oxygen-oxygen-stretch point=oo-change--0.08-A
+completed path=hydrogen-peroxide-oxygen-oxygen-stretch point=oo-change-+0.00-A
+completed path=hydrogen-peroxide-oxygen-oxygen-stretch point=oo-change-+0.08-A
+completed path=hydrogen-peroxide-oxygen-oxygen-stretch point=oo-change-+0.16-A
+completed path=hydrogen-peroxide-oxygen-oxygen-stretch point=oo-change-+0.32-A
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "env CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=0 OMP_NUM_THREADS=10 MKL_NUM_THREADS=10 OPENBLAS_NUM_THREADS=10 CUDA_VISIBLE_DEVICES=0 python tools/route2_release/run_fixedbox590_pes_panel.py --device cuda --molecule-start 16 --molecule-stop 17 --output /home/axie/MAPLE/route2-pes-evidence-f7f68165/shard-16-17.json"
+	User time (seconds): 743.26
+	System time (seconds): 66.34
+	Percent of CPU this job got: 120%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:11.13
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2615840
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1482516
+	Voluntary context switches: 9559
+	Involuntary context switches: 2681
+	Swaps: 0
+	File system inputs: 352
+	File system outputs: 1440
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

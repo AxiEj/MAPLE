@@ -1,8 +1,8 @@
 # Route 2 preregistered PES panel
 
-This document freezes the first fixed-box40/CPCM590 real-stack PES panel before
-its clean execution. It does **not** admit Tier E/F/H/V/M and it does not claim
-chemical accuracy or a complete experimental solvation free energy.
+This document freezes and records the first fixed-box40/CPCM590 real-stack PES
+panel. It does **not** admit Tier E/F/H/V/M and it does not claim chemical
+accuracy or a complete experimental solvation free energy.
 
 ## Scalar and domain
 
@@ -77,8 +77,28 @@ root/residual gates, and topology coverage; it also requires one exact Git
 tree, checkpoint, device/dtype, package, accelerator, and thread signature.
 Failed gates must be preserved rather than retuned.
 
-## Current status
+## Executed result
 
-The contract and runner are implemented; the complete panel has not yet been
-executed and no result is reported here. Until complete clean evidence passes,
-OPT, NEB, TS, FREQ, and MD remain unavailable for this profile.
+All 20 source-bound CUDA/float64 shards were executed on clean Git head
+`f7f681657435ed114c34d57b43ab792162f825b9`. The independent aggregator
+recomputed every analytic projection from raw forces, every central difference
+from raw displaced energies, all frozen-geometry hashes, cold/warm root gates,
+primal/adjoint residual gates, and topology coverage. It returned `status=pass`.
+
+The aggregate covers 20 molecules, 60 reference/compressed/stretched
+geometries, 180 directional records (540 step samples), and 11 additional path
+geometries (33 step samples). The worst base-geometry errors were
+`2.98256e-5 eV/Angstrom` absolute and `1.25795e-3` relative where the relative
+gate applied. The worst path error was `2.40732e-5 eV/Angstrom`. Maximum primal
+and adjoint residuals were `9.98924e-13` and `2.46415e-12`; maximum cold/warm
+energy and normalized-source differences were `9.09495e-13 eV` and
+`4.29641e-12`.
+
+The immutable evidence bundle is
+`evidence/fixedbox590-pes-panel-f7f68165/`; its independent aggregate file has
+SHA256 `e087f6297d709f3d383b3bb8bfff7fd75dbcb4e4022020364d6a273f744c3775`.
+
+This closes the preregistered **directional** panel only. The required
+component-resolved Cartesian FD panel, remaining symmetry/loop scope,
+component physics, Hessian/FREQ/TS/HVP/NVE, and public admission gates remain
+open. OPT, NEB, TS, FREQ, and MD therefore remain unavailable.

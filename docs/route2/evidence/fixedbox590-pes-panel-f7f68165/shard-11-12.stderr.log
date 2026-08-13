@@ -1,0 +1,28 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed molecule=acetaldehyde variant=reference
+completed molecule=acetaldehyde variant=bond-compressed
+completed molecule=acetaldehyde variant=bond-stretched
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "env CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=0 OMP_NUM_THREADS=10 MKL_NUM_THREADS=10 OPENBLAS_NUM_THREADS=10 CUDA_VISIBLE_DEVICES=0 python tools/route2_release/run_fixedbox590_pes_panel.py --device cuda --molecule-start 11 --molecule-stop 12 --output /home/axie/MAPLE/route2-pes-evidence-f7f68165/shard-11-12.json"
+	User time (seconds): 614.36
+	System time (seconds): 59.47
+	Percent of CPU this job got: 126%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 8:51.86
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3715288
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 969972
+	Voluntary context switches: 7533
+	Involuntary context switches: 1715
+	Swaps: 0
+	File system inputs: 872
+	File system outputs: 1232
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

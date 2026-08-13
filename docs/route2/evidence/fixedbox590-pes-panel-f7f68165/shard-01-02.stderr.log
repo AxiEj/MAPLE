@@ -1,0 +1,28 @@
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+completed molecule=methanol variant=reference
+completed molecule=methanol variant=bond-compressed
+completed molecule=methanol variant=bond-stretched
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+	Command being timed: "env CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=0 OMP_NUM_THREADS=10 MKL_NUM_THREADS=10 OPENBLAS_NUM_THREADS=10 CUDA_VISIBLE_DEVICES=0 python tools/route2_release/run_fixedbox590_pes_panel.py --device cuda --molecule-start 1 --molecule-stop 2 --output /home/axie/MAPLE/route2-pes-evidence-f7f68165/shard-01-02.json"
+	User time (seconds): 526.22
+	System time (seconds): 49.78
+	Percent of CPU this job got: 123%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:47.78
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3253884
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 116
+	Minor (reclaiming a frame) page faults: 1042374
+	Voluntary context switches: 6962
+	Involuntary context switches: 1716
+	Swaps: 0
+	File system inputs: 11672
+	File system outputs: 304
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,3164 @@
+{
+  "argv": [
+    "tools/route2_release/run_fixedbox590_pes_panel.py",
+    "--device",
+    "cuda",
+    "--molecule-start",
+    "4",
+    "--molecule-stop",
+    "5",
+    "--output",
+    "/home/axie/MAPLE/route2-pes-evidence-f7f68165/shard-04-05.json"
+  ],
+  "artifact_kind": "disabled-real-stack-fixedbox590-pes-panel-shard",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": "One preregistered shard of the disabled 20-molecule same-scalar PES panel; not aggregate admission, not Tier E/F/H/V/M, not complete solvation free energy, and not chemical-accuracy evidence.",
+  "device": "cuda",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_fixedbox590_pes_panel.py --device cuda --molecule-start 4 --molecule-stop 5 --output /home/axie/MAPLE/route2-pes-evidence-f7f68165/shard-04-05.json",
+  "execution_git_head": "f7f681657435ed114c34d57b43ab792162f825b9",
+  "execution_git_tree": "fa84f3e846b32a679421aaf24caaac883488a394",
+  "identities": {
+    "cavity_profile_id": "fixed-topology-amplitude-swig-v1",
+    "continuum_configuration_contract_id": "maple.route2.continuum-configuration.water-eps78p39-smd-radii-lebedev590.v1",
+    "continuum_configuration_sha256": "46aa1eaa0d40b85a89f04bafea2c2993a85a9a0b480e12d391681916960057ab",
+    "continuum_profile_id": "fixed-topology-linear-reciprocal-cpcm-v1",
+    "continuum_provenance_sha256": "9d66f7277dddbb03d38776b1c14e14254e13b096d5795b32c6e9d92f470ef6f0",
+    "continuum_provider_id": "maple.route2.continuum.fixed-topology-radial-gto-cpcm.impl.v1",
+    "continuum_runtime_provenance": {
+      "capabilities": "none-pending-real-stack-gates",
+      "cavity_profile_id": "fixed-topology-amplitude-swig-v1",
+      "configuration_contract_id": "maple.route2.continuum-configuration.water-eps78p39-smd-radii-lebedev590.v1",
+      "configuration_sha256": "46aa1eaa0d40b85a89f04bafea2c2993a85a9a0b480e12d391681916960057ab",
+      "continuum_profile_id": "fixed-topology-linear-reciprocal-cpcm-v1",
+      "coordinate_derivative": "complete-fixed-topology-bilinear-vjp",
+      "coupling_id": "route2-coupling-mace-polar-native-radial-gto-v1",
+      "provenance_sha256": "9d66f7277dddbb03d38776b1c14e14254e13b096d5795b32c6e9d92f470ef6f0",
+      "provider_id": "maple.route2.continuum.fixed-topology-radial-gto-cpcm.impl.v1",
+      "response": "linear-reciprocal-stationary-cpcm",
+      "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1"
+    },
+    "coupling_id": "route2-coupling-mace-polar-native-radial-gto-v1",
+    "equation_sha256": "51a95055a2b8740ea24d9a22cf3eb122d330af173f64105f8afe3cb912497cd0",
+    "long_range_evaluator_provenance": {
+      "box_length_angstrom": 40.0,
+      "claim_boundary": "This profile changes the long-range evaluation operator for FFF systems from the default real-space path to a forced periodic reciprocal-space path. It is an experimental fixed-box evaluator, not a proof of equivalence to the default evaluator. Results are box- and placement-dependent and require explicit convergence validation.",
+      "coordinate_derivative_policy": "centering-projector VJP and double-sided Hessian pullback",
+      "coordinate_policy": "arithmetic-mean centering in fixed cubic box",
+      "dtype_bridge": true,
+      "equivalent_to_default_evaluator": false,
+      "experimental": true,
+      "graph_longrange_version": "0.4.0",
+      "operator": "graph_longrange forced periodic reciprocal-space evaluator for an FFF molecular graph",
+      "pbc": false,
+      "profile": "graph-longrange-forced-periodic-fixed-box40-v1",
+      "use_pbc_evaluator": true
+    },
+    "model_configuration_sha256": "19c3e9a7969064a21833b9541dbc320b744d29bd8ed99cc672152034bbc49b32",
+    "model_profile_id": "mace-polar-route2-source-field-fixed-box40-contract-v1",
+    "model_provenance": {
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "coordinate_frame_policy": "laboratory Cartesian Angstrom input; nonperiodic molecular graph; long-range evaluator=graph-longrange-forced-periodic-fixed-box40-v1",
+      "device": "cuda",
+      "domain": {
+        "atomic_numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83
+        ],
+        "spin_multiplicities": [
+          1
+        ],
+        "total_charge_range": [
+          0,
+          0
+        ]
+      },
+      "dtype": "float64",
+      "field_convention": "positive-energy-dual radial GTO field; checkpoint feature normalization is a model-adapter representation transform",
+      "inference_code_sha256": "f52a3232db70a5f0ad2e0153dc5c34178d00cbfa64a8803a63e908a4f6594970",
+      "model_family": "MACE-POLAR-1-radial-GTO-response",
+      "model_profile_id": "mace-polar-route2-source-field-fixed-box40-contract-v1",
+      "optimizer_audit_evidence_sha256": null,
+      "optimizer_parameter_groups_audited": false,
+      "provider_id": "maple.route2.model.mace-polar-1-m-fixed-box40-local-field.impl.v1.radial-gto.v1",
+      "upstream_commit": "unavailable-in-installed-wheel-release-metadata",
+      "upstream_version": "mace-torch==0.3.16;graph-longrange==0.4.0"
+    },
+    "model_provenance_sha256": "846a4de5a74dde80233acf4eb30b86e69d7f6609f8da07711f61ab490f3c9b22",
+    "model_provider_id": "maple.route2.model.mace-polar-1-m-fixed-box40-local-field.impl.v1.radial-gto.v1",
+    "profile_id": "route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1",
+    "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+    "scalar_sha256": "f22e958367cd801dcf4c297b7e2f2f1265d5777a4d6587ba754d2554467d9333",
+    "state_equation_id": "route2-constrained-mutual-polarization-root-v1"
+  },
+  "measurement_sha256": "371222b5c9ceff3f9da04ca5e3f1dc481b5a2f78bdf2d22001c49f930832b173",
+  "measurements": [
+    {
+      "adjoint_residual": 8.956581142484327e-13,
+      "atomic_numbers": [
+        6,
+        6,
+        7,
+        1,
+        1,
+        1
+      ],
+      "chemical_formula": "C2H3N",
+      "cold_state": {
+        "actual_unmixed_residual_norm": 4.499734190720813e-13,
+        "continuum_energy_eV": -0.07058105583182565,
+        "field": [
+          [
+            -0.20955209026895955,
+            -0.040644013759187976,
+            -2.393350898524592e-05,
+            0.13186540870883348,
+            2.8297676701871666e-17,
+            -3.830298350367461e-06,
+            0.042837200456754224,
+            5.9631119486702744e-18
+          ],
+          [
+            0.04856842254119546,
+            0.029276552782098515,
+            -1.1528205739037008e-05,
+            0.20324437360508957,
+            1.6832238727837456e-17,
+            -3.1813180749618183e-06,
+            0.050280301450456914,
+            4.614635496641428e-18
+          ],
+          [
+            0.27374593371884626,
+            0.08598011235419191,
+            -4.592937871367309e-06,
+            0.16327266280469446,
+            1.2454772456427232e-17,
+            -2.4733525900117273e-06,
+            0.0441938644302229,
+            2.9680034471790684e-18
+          ],
+          [
+            -0.23652547614546474,
+            -0.05413127391858859,
+            0.031418612235883915,
+            0.09351465805071295,
+            2.99781900692242e-17,
+            0.003526341331261779,
+            0.03759544286774501,
+            5.800481622797449e-18
+          ],
+          [
+            -0.23649836704595426,
+            -0.0541258394742794,
+            -0.015741744477578094,
+            0.09350833993639798,
+            0.027205277518881545,
+            -0.001768690798144742,
+            0.03759515719960161,
+            0.003055992993588861
+          ],
+          [
+            -0.23649836704595453,
+            -0.05412583947427942,
+            -0.01574174447757808,
+            0.09350833993639787,
+            -0.027205277518881518,
+            -0.0017686907981447372,
+            0.03759515719960165,
+            -0.00305599299358885
+          ]
+        ],
+        "initialization": "cold",
+        "iterations": 23,
+        "primal_tolerance": 1e-12,
+        "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/reference/1780b0423cbd555112907d649be0a9568cdbe6fcfe3fda6bae0ea5537337558e",
+        "root_hash": "cad571f2f814cddd2c44a84fe5f6e6a1c5164166128b43cce104a11d689e0a8b",
+        "source": [
+          [
+            0.009322425723846058,
+            -3.903127820947816e-18,
+            -2.000446696223998e-09,
+            -0.0692608169112147,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.03337167263494694,
+            -3.903127820947816e-18,
+            -1.3514680522759148e-09,
+            -0.22743047804881433,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.07048957592016848,
+            -3.903127820947816e-18,
+            1.0758695012444149e-10,
+            -0.3433830321755576,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.009265400276885927,
+            -3.903127820947816e-18,
+            0.09228645342214917,
+            -0.04362475097330922,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.009265038642244778,
+            -3.903127820947816e-18,
+            -0.0461427991740911,
+            -0.04362424719592041,
+            0.07992169139837864,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.009265038642244795,
+            -3.903127820947816e-18,
+            -0.04614279917409112,
+            -0.043624247195920396,
+            -0.07992169139837875,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_energy_eV": -3612.370925549518,
+        "vacuum_energy_eV": -3612.3003444936858
+      },
+      "cold_warm": {
+        "cold": {
+          "actual_unmixed_residual_norm": 4.499734190720813e-13,
+          "continuum_energy_eV": -0.07058105583182565,
+          "field": [
+            [
+              -0.20955209026895955,
+              -0.040644013759187976,
+              -2.393350898524592e-05,
+              0.13186540870883348,
+              2.8297676701871666e-17,
+              -3.830298350367461e-06,
+              0.042837200456754224,
+              5.9631119486702744e-18
+            ],
+            [
+              0.04856842254119546,
+              0.029276552782098515,
+              -1.1528205739037008e-05,
+              0.20324437360508957,
+              1.6832238727837456e-17,
+              -3.1813180749618183e-06,
+              0.050280301450456914,
+              4.614635496641428e-18
+            ],
+            [
+              0.27374593371884626,
+              0.08598011235419191,
+              -4.592937871367309e-06,
+              0.16327266280469446,
+              1.2454772456427232e-17,
+              -2.4733525900117273e-06,
+              0.0441938644302229,
+              2.9680034471790684e-18
+            ],
+            [
+              -0.23652547614546474,
+              -0.05413127391858859,
+              0.031418612235883915,
+              0.09351465805071295,
+              2.99781900692242e-17,
+              0.003526341331261779,
+              0.03759544286774501,
+              5.800481622797449e-18
+            ],
+            [
+              -0.23649836704595426,
+              -0.0541258394742794,
+              -0.015741744477578094,
+              0.09350833993639798,
+              0.027205277518881545,
+              -0.001768690798144742,
+              0.03759515719960161,
+              0.003055992993588861
+            ],
+            [
+              -0.23649836704595453,
+              -0.05412583947427942,
+              -0.01574174447757808,
+              0.09350833993639787,
+              -0.027205277518881518,
+              -0.0017686907981447372,
+              0.03759515719960165,
+              -0.00305599299358885
+            ]
+          ],
+          "initialization": "cold",
+          "iterations": 23,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/reference/1780b0423cbd555112907d649be0a9568cdbe6fcfe3fda6bae0ea5537337558e",
+          "root_hash": "cad571f2f814cddd2c44a84fe5f6e6a1c5164166128b43cce104a11d689e0a8b",
+          "source": [
+            [
+              0.009322425723846058,
+              -3.903127820947816e-18,
+              -2.000446696223998e-09,
+              -0.0692608169112147,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.03337167263494694,
+              -3.903127820947816e-18,
+              -1.3514680522759148e-09,
+              -0.22743047804881433,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.07048957592016848,
+              -3.903127820947816e-18,
+              1.0758695012444149e-10,
+              -0.3433830321755576,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.009265400276885927,
+              -3.903127820947816e-18,
+              0.09228645342214917,
+              -0.04362475097330922,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.009265038642244778,
+              -3.903127820947816e-18,
+              -0.0461427991740911,
+              -0.04362424719592041,
+              0.07992169139837864,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.009265038642244795,
+              -3.903127820947816e-18,
+              -0.04614279917409112,
+              -0.043624247195920396,
+              -0.07992169139837875,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "total_energy_eV": -3612.370925549518,
+          "vacuum_energy_eV": -3612.3003444936858
+        },
+        "contract": "route2-root-equivalence-v1",
+        "energy_abs_difference_eV": 0.0,
+        "field_l2_difference": 1.2717790334218942e-14,
+        "gates": {
+          "energy_le_1e-8_eV": true,
+          "source_relative_le_1e-8": true
+        },
+        "numerically_equivalent": true,
+        "source_l2_difference": 6.5349281528479806e-15,
+        "source_relative_difference": 1.4188948392244775e-14,
+        "warm": {
+          "actual_unmixed_residual_norm": 4.5110589183191824e-13,
+          "continuum_energy_eV": -0.07058105583182518,
+          "field": [
+            [
+              -0.20955209026896304,
+              -0.040644013759190106,
+              -2.3933508986904357e-05,
+              0.13186540870883215,
+              -1.6038602737578067e-15,
+              -3.830298350705309e-06,
+              0.04283720045675391,
+              -3.2410191067380745e-16
+            ],
+            [
+              0.04856842254119087,
+              0.029276552782095983,
+              -1.1528205740653825e-05,
+              0.2032443736050888,
+              -1.5766196941741084e-15,
+              -3.181318075300269e-06,
+              0.050280301450456755,
+              -3.2891305781421187e-16
+            ],
+            [
+              0.27374593371884026,
+              0.0859801123541893,
+              -4.5929378727037606e-06,
+              0.1632726628046949,
+              -1.3087539949344085e-15,
+              -2.4733525903238724e-06,
+              0.044193864430222836,
+              -3.0306838852758866e-16
+            ],
+            [
+              -0.2365254761454688,
+              -0.054131273918591134,
+              0.031418612235882826,
+              0.09351465805071169,
+              -1.382899871005261e-15,
+              0.0035263413312615426,
+              0.037595442867744716,
+              -3.115251654729756e-16
+            ],
+            [
+              -0.2364983670459574,
+              -0.05412583947428171,
+              -0.015741744477579596,
+              0.09350833993639672,
+              0.027205277518880303,
+              -0.0017686907981450946,
+              0.03759515719960133,
+              0.0030559929935886046
+            ],
+            [
+              -0.23649836704595514,
+              -0.054125839474281366,
+              -0.015741744477579412,
+              0.093508339936397,
+              -0.027205277518882746,
+              -0.0017686907981450737,
+              0.03759515719960138,
+              -0.003055992993589199
+            ]
+          ],
+          "initialization": "warm",
+          "iterations": 23,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/reference/1780b0423cbd555112907d649be0a9568cdbe6fcfe3fda6bae0ea5537337558e",
+          "root_hash": "e055cea0424f63553a8df2bd22d039c5b57c61b97d99a2ead1e9040cd7de72e9",
+          "source": [
+            [
+              0.009322425723848995,
+              -2.719179048593645e-16,
+              -2.0004457547922166e-09,
+              -0.06926081691121354,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.033371672634946684,
+              -2.719179048593645e-16,
+              -1.3514671108441257e-09,
+              -0.2274304780488133,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              -0.07048957592016868,
+              -2.719179048593645e-16,
+              1.0758789155623015e-10,
+              -0.3433830321755574,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009265400276885686,
+              -2.719179048593645e-16,
+              0.09228645342215021,
+              -0.04362475097330827,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009265038642244528,
+              -2.719179048593645e-16,
+              -0.046142799174090074,
+              -0.04362424719591944,
+              0.07992169139837962,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009265038642244412,
+              -2.719179048593645e-16,
+              -0.04614279917408999,
+              -0.043624247195919334,
+              -0.07992169139837761,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ]
+          ],
+          "total_energy_eV": -3612.370925549518,
+          "vacuum_energy_eV": -3612.3003444936858
+        }
+      },
+      "directional_force_fd": {
+        "bond-stretch": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3612.3699251707253,
+              "minus_geometry_sha256": "a272e45e4268a07c57f8ab86050632fac64573b69fa21eb3b2915913ba970843",
+              "minus_iterations": 16,
+              "minus_primal_residual": 3.5589807744583724e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.371906978739,
+              "plus_geometry_sha256": "6c1b0ebf2abcc2da9ea402b03bb8c8309d47de58e5a16df7ce5add614d7cdfad",
+              "plus_iterations": 16,
+              "plus_primal_residual": 3.5481294318653457e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3612.370427729742,
+              "minus_geometry_sha256": "77712db2dc187eeafbbc9c91be2075d7773c1a9a3d89b311632d4c5c25adab2b",
+              "minus_iterations": 15,
+              "minus_primal_residual": 5.887701775449131e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.371418631904,
+              "plus_geometry_sha256": "cdd008ccedc611e42f9ce789f197142c8717f607530523163631ef4ec9687bff",
+              "plus_iterations": 15,
+              "plus_primal_residual": 5.938470461680074e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3612.3706772319188,
+              "minus_geometry_sha256": "ed6928289c7b91a53b34934bbc3f6c4ba8d08a952a19dfd34088fee8f4e3231a",
+              "minus_iterations": 14,
+              "minus_primal_residual": 9.892516582110065e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.3711726827705,
+              "plus_geometry_sha256": "ecbb9bc12616348fdc13d35affae3369f00aab2e87fc67e65af5e4981bc065dc",
+              "plus_iterations": 14,
+              "plus_primal_residual": 9.886097105575903e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 9.892516582110065e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 6.148006299167008e-06,
+              "analytic_eV_per_A": -2.4772538690245587,
+              "finite_difference_eV_per_A": -2.477260017030858,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.4817767440237284e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 1.5357312928010458e-06,
+              "analytic_eV_per_A": -2.4772538690245587,
+              "finite_difference_eV_per_A": -2.4772554047558515,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 6.19932563211988e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 3.8976796856715623e-07,
+              "analytic_eV_per_A": -2.4772538690245587,
+              "finite_difference_eV_per_A": -2.4772542587925273,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.5733870158210503e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        },
+        "radial-internal": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3612.3714887812753,
+              "minus_geometry_sha256": "db07d443b949300e38d032577536f79400d5c1eb69ddbfe9bbe29d50a8e307aa",
+              "minus_iterations": 16,
+              "minus_primal_residual": 3.376631693019978e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.3703574600827,
+              "plus_geometry_sha256": "56d12da6820a5acb03fd1ba0e5a5773cf5c5e35b875e364945c68efb426ad6f8",
+              "plus_iterations": 16,
+              "plus_primal_residual": 3.472468221633347e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3612.371207772869,
+              "minus_geometry_sha256": "07020696f3cc3d216911d65f0d20f45c8bd5e919f3dfd540e3653d89390bf482",
+              "minus_iterations": 15,
+              "minus_primal_residual": 5.783092041802302e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.370642111747,
+              "plus_geometry_sha256": "85166744dc7ee9b5965f9e4cd7de0fb7f729094869208fd9755e324a0a371a63",
+              "plus_iterations": 15,
+              "plus_primal_residual": 5.78514950792079e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3612.371066813029,
+              "minus_geometry_sha256": "be3133d184848ce8323361bf3be667e0c8f4fa22948ad9cf67f910a43674f1d5",
+              "minus_iterations": 14,
+              "minus_primal_residual": 9.637861154416603e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.3707839824024,
+              "plus_geometry_sha256": "fb370c35a8b6f8aff6ec34344958438a9312c0c5b77c725bca1e8e9af3dd6e59",
+              "plus_iterations": 14,
+              "plus_primal_residual": 9.635699684109326e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 9.637861154416603e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 1.7508957115275336e-06,
+              "analytic_eV_per_A": 1.4141532416308054,
+              "finite_difference_eV_per_A": 1.4141514907350938,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.238124573639134e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 4.3667586746565235e-07,
+              "analytic_eV_per_A": 1.4141532416308054,
+              "finite_difference_eV_per_A": 1.414152804954938,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 3.087897332845633e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 1.0925777482739818e-07,
+              "analytic_eV_per_A": 1.4141532416308054,
+              "finite_difference_eV_per_A": 1.4141531323730305,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 7.72602148425449e-08,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        },
+        "seeded-internal": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3612.3710639034944,
+              "minus_geometry_sha256": "7aeb3659c34f065c1437b81dd66cedb508cd48197a0f4a6b5baa86e2720490d8",
+              "minus_iterations": 15,
+              "minus_primal_residual": 6.632484786109697e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.370783492527,
+              "plus_geometry_sha256": "d65dcb0db79445bd3672c34fcd0dde372214b91254dddaacf5347234e307dd64",
+              "plus_iterations": 15,
+              "plus_primal_residual": 6.630117257666126e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3612.3709951892374,
+              "minus_geometry_sha256": "353520fd3f9785b1e2e4fc884e6052d3b2713a56a030892dbfc47b20deeca8e2",
+              "minus_iterations": 15,
+              "minus_primal_residual": 3.316715478596565e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.3708549840453,
+              "plus_geometry_sha256": "30bd620d68f74bda7f1be135bbbaaf8c376bf59c98b7168cafbd6626e9a98eaa",
+              "plus_iterations": 15,
+              "plus_primal_residual": 3.3143468258156465e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3612.3709604850787,
+              "minus_geometry_sha256": "34ce53ac019585106d050d9a16914217057abbb5b6c9d5d9d2793b01ac474dd9",
+              "minus_iterations": 14,
+              "minus_primal_residual": 5.525672113259006e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.3708903825204,
+              "plus_geometry_sha256": "948cf80883e1725634441e2f347e5f9dd4802686ecb7ae8ef8133b2e7888c67a",
+              "plus_iterations": 14,
+              "plus_primal_residual": 5.525231228791962e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 6.632484786109697e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 9.733748926876729e-07,
+              "analytic_eV_per_A": 0.35051273563384466,
+              "finite_difference_eV_per_A": 0.35051370900873735,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.776995214938681e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 2.446422628921141e-07,
+              "analytic_eV_per_A": 0.35051273563384466,
+              "finite_difference_eV_per_A": 0.35051298027610756,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 6.979549307971518e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 5.5922112274231495e-08,
+              "analytic_eV_per_A": 0.35051273563384466,
+              "finite_difference_eV_per_A": 0.35051279155595694,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.595437131580515e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        }
+      },
+      "forces_eV_per_A": [
+        [
+          4.248356498636697e-17,
+          -3.8023319396109616e-05,
+          -0.08748315971899245
+        ],
+        [
+          -7.386272244346288e-19,
+          -3.715003092403317e-06,
+          3.4158828592967616
+        ],
+        [
+          -5.7964336356517825e-19,
+          -9.168422878192547e-07,
+          -3.5426022982558933
+        ],
+        [
+          -1.477151411707288e-18,
+          -0.09514542648781889,
+          0.07142201072996734
+        ],
+        [
+          -0.08248728722763948,
+          0.04759404082629762,
+          0.07139029397407852
+        ],
+        [
+          0.08248728722763944,
+          0.04759404082629759,
+          0.07139029397407856
+        ]
+      ],
+      "geometry_sha256": "1780b0423cbd555112907d649be0a9568cdbe6fcfe3fda6bae0ea5537337558e",
+      "maximum_primal_residual": 9.892516582110065e-13,
+      "molecule_id": "acetonitrile",
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          -1.18693
+        ],
+        [
+          0.0,
+          0.0,
+          0.273874
+        ],
+        [
+          0.0,
+          0.0,
+          1.452206
+        ],
+        [
+          0.0,
+          1.024986,
+          -1.56237
+        ],
+        [
+          0.887664,
+          -0.512493,
+          -1.56237
+        ],
+        [
+          -0.887664,
+          -0.512493,
+          -1.56237
+        ]
+      ],
+      "scope_tags": [
+        "nitrile",
+        "polar canary"
+      ],
+      "source_record_id": "CH3CN",
+      "topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+      "variant": "reference"
+    },
+    {
+      "adjoint_residual": 2.563255812396439e-13,
+      "atomic_numbers": [
+        6,
+        6,
+        7,
+        1,
+        1,
+        1
+      ],
+      "chemical_formula": "C2H3N",
+      "cold_state": {
+        "actual_unmixed_residual_norm": 4.563206736722632e-13,
+        "continuum_energy_eV": -0.07673905800563476,
+        "field": [
+          [
+            -0.20984745490598475,
+            -0.039368773311136834,
+            5.4513423700245555e-06,
+            0.1448889959942791,
+            -1.0462550964485118e-17,
+            8.555073334718566e-07,
+            0.04547723744711446,
+            -1.5178830414797062e-18
+          ],
+          [
+            0.042137420390961515,
+            0.028225050060522196,
+            9.320559401635005e-06,
+            0.21218990795827292,
+            -6.071532165918825e-18,
+            9.866885726927271e-07,
+            0.052494808994113094,
+            -2.358139725155972e-18
+          ],
+          [
+            0.287959941128423,
+            0.09025390848208466,
+            6.306596966092736e-06,
+            0.1681528663719782,
+            -3.0086610286472748e-18,
+            9.715517106977888e-07,
+            0.045933986780919686,
+            -1.179069862577986e-18
+          ],
+          [
+            -0.24678676127263158,
+            -0.0560762140845009,
+            0.03311469503902102,
+            0.09976985765998174,
+            -2.42861286636753e-17,
+            0.0036780494744956763,
+            0.03944746167245036,
+            -2.4868887331386258e-18
+          ],
+          [
+            -0.24679020624014908,
+            -0.05607737360898191,
+            -0.01655285304068405,
+            0.099761391443247,
+            0.028678724010576126,
+            -0.001837916210509421,
+            0.03944719997719152,
+            0.0031847215636042507
+          ],
+          [
+            -0.2467902062401489,
+            -0.056077373608981955,
+            -0.016552853040684077,
+            0.09976139144324692,
+            -0.028678724010576147,
+            -0.0018379162105094148,
+            0.0394471999771915,
+            -0.0031847215636042585
+          ]
+        ],
+        "initialization": "cold",
+        "iterations": 23,
+        "primal_tolerance": 1e-12,
+        "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/bond-compressed/7568e7ea326056e52909e24a92039ea491e44cfdd186866c1d98263a0ae0e71c",
+        "root_hash": "036cfdd76ac9e83fc5eadedc02e4a322476ed10cf7744f145bb3261f907803a2",
+        "source": [
+          [
+            0.010945044686610662,
+            -8.673617379884035e-19,
+            -9.440095494904617e-10,
+            -0.07290610613115897,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.033637479494786925,
+            -8.673617379884035e-19,
+            -1.6650372154630073e-09,
+            -0.2441190361312247,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.0742107616259438,
+            -8.673617379884035e-19,
+            6.581713703290219e-11,
+            -0.33964124455886463,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.00987607873295357,
+            -8.673617379884035e-19,
+            0.08933310872923482,
+            -0.04449475530103181,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.00987607935579633,
+            -8.673617379884035e-19,
+            -0.04466646918775241,
+            -0.044494614866470286,
+            0.07736461302593359,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.009876079355796322,
+            -8.673617379884035e-19,
+            -0.04466646918775244,
+            -0.044494614866470356,
+            -0.07736461302593356,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_energy_eV": -3611.7666373506645,
+        "vacuum_energy_eV": -3611.6898982926587
+      },
+      "cold_warm": {
+        "cold": {
+          "actual_unmixed_residual_norm": 4.563206736722632e-13,
+          "continuum_energy_eV": -0.07673905800563476,
+          "field": [
+            [
+              -0.20984745490598475,
+              -0.039368773311136834,
+              5.4513423700245555e-06,
+              0.1448889959942791,
+              -1.0462550964485118e-17,
+              8.555073334718566e-07,
+              0.04547723744711446,
+              -1.5178830414797062e-18
+            ],
+            [
+              0.042137420390961515,
+              0.028225050060522196,
+              9.320559401635005e-06,
+              0.21218990795827292,
+              -6.071532165918825e-18,
+              9.866885726927271e-07,
+              0.052494808994113094,
+              -2.358139725155972e-18
+            ],
+            [
+              0.287959941128423,
+              0.09025390848208466,
+              6.306596966092736e-06,
+              0.1681528663719782,
+              -3.0086610286472748e-18,
+              9.715517106977888e-07,
+              0.045933986780919686,
+              -1.179069862577986e-18
+            ],
+            [
+              -0.24678676127263158,
+              -0.0560762140845009,
+              0.03311469503902102,
+              0.09976985765998174,
+              -2.42861286636753e-17,
+              0.0036780494744956763,
+              0.03944746167245036,
+              -2.4868887331386258e-18
+            ],
+            [
+              -0.24679020624014908,
+              -0.05607737360898191,
+              -0.01655285304068405,
+              0.099761391443247,
+              0.028678724010576126,
+              -0.001837916210509421,
+              0.03944719997719152,
+              0.0031847215636042507
+            ],
+            [
+              -0.2467902062401489,
+              -0.056077373608981955,
+              -0.016552853040684077,
+              0.09976139144324692,
+              -0.028678724010576147,
+              -0.0018379162105094148,
+              0.0394471999771915,
+              -0.0031847215636042585
+            ]
+          ],
+          "initialization": "cold",
+          "iterations": 23,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/bond-compressed/7568e7ea326056e52909e24a92039ea491e44cfdd186866c1d98263a0ae0e71c",
+          "root_hash": "036cfdd76ac9e83fc5eadedc02e4a322476ed10cf7744f145bb3261f907803a2",
+          "source": [
+            [
+              0.010945044686610662,
+              -8.673617379884035e-19,
+              -9.440095494904617e-10,
+              -0.07290610613115897,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.033637479494786925,
+              -8.673617379884035e-19,
+              -1.6650372154630073e-09,
+              -0.2441190361312247,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.0742107616259438,
+              -8.673617379884035e-19,
+              6.581713703290219e-11,
+              -0.33964124455886463,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.00987607873295357,
+              -8.673617379884035e-19,
+              0.08933310872923482,
+              -0.04449475530103181,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.00987607935579633,
+              -8.673617379884035e-19,
+              -0.04466646918775241,
+              -0.044494614866470286,
+              0.07736461302593359,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.009876079355796322,
+              -8.673617379884035e-19,
+              -0.04466646918775244,
+              -0.044494614866470356,
+              -0.07736461302593356,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "total_energy_eV": -3611.7666373506645,
+          "vacuum_energy_eV": -3611.6898982926587
+        },
+        "contract": "route2-root-equivalence-v1",
+        "energy_abs_difference_eV": 0.0,
+        "field_l2_difference": 1.2355070685958564e-14,
+        "gates": {
+          "energy_le_1e-8_eV": true,
+          "source_relative_le_1e-8": true
+        },
+        "numerically_equivalent": true,
+        "source_l2_difference": 6.634090845210834e-15,
+        "source_relative_difference": 1.4234896683048116e-14,
+        "warm": {
+          "actual_unmixed_residual_norm": 4.586546966177492e-13,
+          "continuum_energy_eV": -0.07673905800563399,
+          "field": [
+            [
+              -0.20984745490598788,
+              -0.03936877331113914,
+              5.451342368414746e-06,
+              0.1448889959942777,
+              -1.585808307585923e-15,
+              8.555073331553441e-07,
+              0.04547723744711405,
+              -3.248201946130791e-16
+            ],
+            [
+              0.042137420390956956,
+              0.02822505006051973,
+              9.320559400077196e-06,
+              0.21218990795827197,
+              -1.5831520122633336e-15,
+              9.86688572373887e-07,
+              0.052494808994112824,
+              -3.2705636159383045e-16
+            ],
+            [
+              0.28795994112841766,
+              0.09025390848208151,
+              6.306596964812334e-06,
+              0.1681528663719779,
+              -1.3029264082572989e-15,
+              9.715517103980798e-07,
+              0.04593398678091944,
+              -3.009474180276639e-16
+            ],
+            [
+              -0.2467867612726355,
+              -0.05607621408450343,
+              0.033114695039019884,
+              0.09976985765998012,
+              -1.3623542398366606e-15,
+              0.003678049474495445,
+              0.03944746167244996,
+              -3.0493863727512616e-16
+            ],
+            [
+              -0.2467902062401522,
+              -0.05607737360898408,
+              -0.0165528530406855,
+              0.09976139144324557,
+              0.028678724010574853,
+              -0.0018379162105097455,
+              0.03944719997719111,
+              0.0031847215636040035
+            ],
+            [
+              -0.24679020624014963,
+              -0.05607737360898345,
+              -0.01655285304068535,
+              0.09976139144324588,
+              -0.02867872401057724,
+              -0.001837916210509729,
+              0.039447199977191136,
+              -0.00318472156360459
+            ]
+          ],
+          "initialization": "warm",
+          "iterations": 23,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/bond-compressed/7568e7ea326056e52909e24a92039ea491e44cfdd186866c1d98263a0ae0e71c",
+          "root_hash": "f2e7be515f5633ce982c2c4f1359a9d01f51daddda2ef39dddfa7e40790d231e",
+          "source": [
+            [
+              0.010945044686613548,
+              -2.680147770384167e-16,
+              -9.44008608058651e-10,
+              -0.0729061061311579,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.03363747949478637,
+              -2.680147770384167e-16,
+              -1.6650362740311959e-09,
+              -0.24411903613122363,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              -0.0742107616259437,
+              -2.680147770384167e-16,
+              6.581807846468475e-11,
+              -0.33964124455886346,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009876078732953309,
+              -2.680147770384167e-16,
+              0.08933310872923544,
+              -0.0444947553010307,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.00987607935579608,
+              -2.680147770384167e-16,
+              -0.044666469187751384,
+              -0.044494614866469155,
+              0.07736461302593438,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.00987607935579602,
+              -2.680147770384167e-16,
+              -0.04466646918775128,
+              -0.04449461486646908,
+              -0.07736461302593241,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ]
+          ],
+          "total_energy_eV": -3611.7666373506645,
+          "vacuum_energy_eV": -3611.6898982926587
+        }
+      },
+      "directional_force_fd": {
+        "bond-stretch": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3611.7613927498946,
+              "minus_geometry_sha256": "a40c6b6c143afb08bd3765a22101a4bbf622863d482c1d5c23a66a537fc15315",
+              "minus_iterations": 16,
+              "minus_primal_residual": 5.823209817357083e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.7718576459097,
+              "plus_geometry_sha256": "4bc922721c22628dd83b21e1badc60512bfe1f54bf6aac8702f53d59d9679a80",
+              "plus_iterations": 16,
+              "plus_primal_residual": 5.793299019609791e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3611.7640180907542,
+              "minus_geometry_sha256": "6a2b2c91f6f70c10d595521ed57428d64361ce973d1b6e21eda6d9709f7fbdbb",
+              "minus_iterations": 15,
+              "minus_primal_residual": 9.469594302281029e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.7692505341934,
+              "plus_geometry_sha256": "df0d9657c8841de149420a1df0d76b8171bcf300aa0ab1a3f7455d0f1d3ebc0b",
+              "plus_iterations": 15,
+              "plus_primal_residual": 9.65306429531669e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3611.7653284805415,
+              "minus_geometry_sha256": "91d1c65358494b60157deee5f0d7d4f05540f3e226d5b009b8c0041a5367ebfa",
+              "minus_iterations": 15,
+              "minus_primal_residual": 4.843410494272113e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.767944701691,
+              "plus_geometry_sha256": "12f694030d3984772fd938088cb5882b77f6ff08a688dd21be08018fa2d228cd",
+              "plus_iterations": 16,
+              "plus_primal_residual": 3.229658124863505e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 9.65306429531669e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 1.522615608173794e-05,
+              "analytic_eV_per_A": -13.081104792640273,
+              "finite_difference_eV_per_A": -13.081120018796355,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.1639795414963984e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 3.805176364224394e-06,
+              "analytic_eV_per_A": -13.081104792640273,
+              "finite_difference_eV_per_A": -13.081108597816637,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.90890969658299e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 9.53910474166264e-07,
+              "analytic_eV_per_A": -13.081104792640273,
+              "finite_difference_eV_per_A": -13.081105746550747,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 7.292277064710628e-08,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        },
+        "radial-internal": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3611.7673880101556,
+              "minus_geometry_sha256": "a60820200def8d4884a7ff6510153fa79955984874d3217fba712598ad9de51e",
+              "minus_iterations": 15,
+              "minus_primal_residual": 8.650579532050905e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.765881805252,
+              "plus_geometry_sha256": "4e2adf12d4377932fab1ac08fee516b45e1482970f126cb0aaf5975e104fe42f",
+              "plus_iterations": 15,
+              "plus_primal_residual": 8.651014031941229e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3611.7670132914154,
+              "minus_geometry_sha256": "2dfe74e8b9a7fe5a2ec1b090c44ef07c75ad1f4bcc7ec356db27645ca0211546",
+              "minus_iterations": 15,
+              "minus_primal_residual": 4.321509049717026e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.766260188432,
+              "plus_geometry_sha256": "fc2f8d06d2619e6dcdab2c153130660c4e27c68fee2714f8afa1b3f958959070",
+              "plus_iterations": 15,
+              "plus_primal_residual": 4.3190957015603814e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3611.7668254737564,
+              "minus_geometry_sha256": "63cf185f5e05679713020b3e49f9d1578f120db2a7fd6505531679e09513617e",
+              "minus_iterations": 14,
+              "minus_primal_residual": 7.204213167143829e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.766448922199,
+              "plus_geometry_sha256": "f0babf5399bbf7e3116fd9503d5e0f5d8cb46f7a7f560fe72c2f83d166e13f94",
+              "plus_iterations": 14,
+              "plus_primal_residual": 7.212767511003722e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 8.651014031941229e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 1.7751571230739671e-06,
+              "analytic_eV_per_A": 1.8827579048601346,
+              "finite_difference_eV_per_A": 1.8827561297030115,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 9.428502688523887e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 4.467264242968838e-07,
+              "analytic_eV_per_A": 1.8827579048601346,
+              "finite_difference_eV_per_A": 1.8827574581337103,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.3727242315093675e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 1.1703459490419732e-07,
+              "analytic_eV_per_A": 1.8827579048601346,
+              "finite_difference_eV_per_A": 1.8827577878255397,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 6.216125922355871e-08,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        },
+        "seeded-internal": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3611.7672185605675,
+              "minus_geometry_sha256": "7c841b89d3d68c7b6113c24301ba2b888eb9e6188bc935e611de81855266e0a9",
+              "minus_iterations": 15,
+              "minus_primal_residual": 6.433614806488186e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.766052687355,
+              "plus_geometry_sha256": "210c3cfc6a471c2f3d16860843bf2c0d63b03a18aaa5d81964f9ae8a7d301a95",
+              "plus_iterations": 15,
+              "plus_primal_residual": 6.331180305728101e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3611.76692838717,
+              "minus_geometry_sha256": "9607098c89d3cd2af79fe73fb001d646d4e05a5c51c9da77aef478307035592b",
+              "minus_iterations": 15,
+              "minus_primal_residual": 3.2156012457980973e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.766345450805,
+              "plus_geometry_sha256": "d32d1cfff2ed6ac30e7d0dc18360472631a5db791bce061a0ba813603a1f066d",
+              "plus_iterations": 15,
+              "plus_primal_residual": 3.2175875887507496e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3611.7667829768197,
+              "minus_geometry_sha256": "cda87b2b3adfced6c974f22aa386d6320c869a9b1b81fffe878487c61963c1b7",
+              "minus_iterations": 14,
+              "minus_primal_residual": 5.36060963464483e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3611.7664915086693,
+              "plus_geometry_sha256": "9c3ce990d45900d4d68eee141cee692dc67519d7d573ea16ac6749770210cf6e",
+              "plus_iterations": 14,
+              "plus_primal_residual": 5.359492902563579e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 6.433614806488186e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 8.068661054849713e-07,
+              "analytic_eV_per_A": 1.4573407085811914,
+              "finite_difference_eV_per_A": 1.4573415154472968,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 5.536561587880948e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 2.0375743137179825e-07,
+              "analytic_eV_per_A": 1.4573407085811914,
+              "finite_difference_eV_per_A": 1.4573409123386227,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.3981452771048937e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 4.3458990184319646e-08,
+              "analytic_eV_per_A": 1.4573407085811914,
+              "finite_difference_eV_per_A": 1.4573407520401815,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.982074722296752e-08,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        }
+      },
+      "forces_eV_per_A": [
+        [
+          -2.85246567132163e-17,
+          -7.856771619338908e-06,
+          -5.697118733803
+        ],
+        [
+          3.1095149284402925e-18,
+          4.1708651632353635e-06,
+          12.80235707477257
+        ],
+        [
+          -5.983100601137325e-19,
+          1.4246416141845463e-06,
+          -8.285203985669416
+        ],
+        [
+          4.565271277159384e-18,
+          -0.5211775347512536,
+          0.3932929331516544
+        ],
+        [
+          -0.4512951091968185,
+          0.2605898980080478,
+          0.39333635577409565
+        ],
+        [
+          0.45129510919681853,
+          0.26058989800804777,
+          0.39333635577409565
+        ]
+      ],
+      "geometry_sha256": "7568e7ea326056e52909e24a92039ea491e44cfdd186866c1d98263a0ae0e71c",
+      "maximum_primal_residual": 9.65306429531669e-13,
+      "molecule_id": "acetonitrile",
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          -1.1303614575050762
+        ],
+        [
+          0.0,
+          0.0,
+          0.2173054575050762
+        ],
+        [
+          0.0,
+          0.0,
+          1.452206
+        ],
+        [
+          0.0,
+          1.024986,
+          -1.56237
+        ],
+        [
+          0.887664,
+          -0.512493,
+          -1.56237
+        ],
+        [
+          -0.887664,
+          -0.512493,
+          -1.56237
+        ]
+      ],
+      "scope_tags": [
+        "nitrile",
+        "polar canary"
+      ],
+      "source_record_id": "CH3CN",
+      "topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+      "variant": "bond-compressed"
+    },
+    {
+      "adjoint_residual": 1.7560678035711535e-12,
+      "atomic_numbers": [
+        6,
+        6,
+        7,
+        1,
+        1,
+        1
+      ],
+      "chemical_formula": "C2H3N",
+      "cold_state": {
+        "actual_unmixed_residual_norm": 4.5268947426377953e-13,
+        "continuum_energy_eV": -0.06988234359440938,
+        "field": [
+          [
+            -0.21755929401257584,
+            -0.04423010726452015,
+            -4.297958990269842e-05,
+            0.12527416354153365,
+            -1.4474099002681484e-17,
+            -5.827007046702716e-06,
+            0.04195229315602362,
+            -1.6466320494623599e-18
+          ],
+          [
+            0.056276127786294684,
+            0.030510657036201996,
+            -3.188463515796986e-05,
+            0.2021724579623453,
+            -7.643625316022806e-18,
+            -5.226530854351365e-06,
+            0.05002367659425771,
+            -2.6698478497455547e-18
+          ],
+          [
+            0.269466540923686,
+            0.08420698112015558,
+            -1.6792668024263437e-05,
+            0.1637288702717411,
+            -3.0086610286472748e-18,
+            -4.3720278871403016e-06,
+            0.044120805560459345,
+            -2.0464316005663896e-18
+          ],
+          [
+            -0.2367580311225677,
+            -0.055204168372731316,
+            0.031191627658046978,
+            0.09196692078628767,
+            2.087089182034596e-18,
+            0.0035457608055407103,
+            0.03730015775958609,
+            -1.1384122811097797e-18
+          ],
+          [
+            -0.2367032799749369,
+            -0.055195637030487306,
+            -0.01564569270845312,
+            0.091974076068224,
+            0.027027861741120776,
+            -0.0017810492006856077,
+            0.03730022851280071,
+            0.003074797277020773
+          ],
+          [
+            -0.23670327997493681,
+            -0.05519563703048731,
+            -0.015645692708453132,
+            0.09197407606822393,
+            -0.02702786174112079,
+            -0.0017810492006856086,
+            0.037300228512800654,
+            -0.0030747972770207746
+          ]
+        ],
+        "initialization": "cold",
+        "iterations": 23,
+        "primal_tolerance": 1e-12,
+        "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/bond-stretched/3901f52f6c05866197cc70fd7b6e4a10342e2b3808ded2abaa6a6cd78bed29c3",
+        "root_hash": "30196415fe633ab418693dea8e0615a510bfce03cf09c7691fb74793379b5918",
+        "source": [
+          [
+            0.009749392410083725,
+            1.734723475976807e-18,
+            -2.9147805919544943e-09,
+            -0.08016933427972886,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.03294353682641793,
+            1.734723475976807e-18,
+            -1.0442893510415626e-09,
+            -0.2180617473254077,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.06975829217894977,
+            1.734723475976807e-18,
+            9.588675282277168e-11,
+            -0.3525742513179012,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.00902236794374485,
+            1.734723475976807e-18,
+            0.09448881767235076,
+            -0.04090493569944898,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.009021497499351626,
+            1.734723475976807e-18,
+            -0.04724362257906812,
+            -0.04090408501829563,
+            0.08182837331694687,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.00902149749935163,
+            1.734723475976807e-18,
+            -0.04724362257906811,
+            -0.040904085018295636,
+            -0.08182837331694684,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_energy_eV": -3612.2034510357903,
+        "vacuum_energy_eV": -3612.1335686921957
+      },
+      "cold_warm": {
+        "cold": {
+          "actual_unmixed_residual_norm": 4.5268947426377953e-13,
+          "continuum_energy_eV": -0.06988234359440938,
+          "field": [
+            [
+              -0.21755929401257584,
+              -0.04423010726452015,
+              -4.297958990269842e-05,
+              0.12527416354153365,
+              -1.4474099002681484e-17,
+              -5.827007046702716e-06,
+              0.04195229315602362,
+              -1.6466320494623599e-18
+            ],
+            [
+              0.056276127786294684,
+              0.030510657036201996,
+              -3.188463515796986e-05,
+              0.2021724579623453,
+              -7.643625316022806e-18,
+              -5.226530854351365e-06,
+              0.05002367659425771,
+              -2.6698478497455547e-18
+            ],
+            [
+              0.269466540923686,
+              0.08420698112015558,
+              -1.6792668024263437e-05,
+              0.1637288702717411,
+              -3.0086610286472748e-18,
+              -4.3720278871403016e-06,
+              0.044120805560459345,
+              -2.0464316005663896e-18
+            ],
+            [
+              -0.2367580311225677,
+              -0.055204168372731316,
+              0.031191627658046978,
+              0.09196692078628767,
+              2.087089182034596e-18,
+              0.0035457608055407103,
+              0.03730015775958609,
+              -1.1384122811097797e-18
+            ],
+            [
+              -0.2367032799749369,
+              -0.055195637030487306,
+              -0.01564569270845312,
+              0.091974076068224,
+              0.027027861741120776,
+              -0.0017810492006856077,
+              0.03730022851280071,
+              0.003074797277020773
+            ],
+            [
+              -0.23670327997493681,
+              -0.05519563703048731,
+              -0.015645692708453132,
+              0.09197407606822393,
+              -0.02702786174112079,
+              -0.0017810492006856086,
+              0.037300228512800654,
+              -0.0030747972770207746
+            ]
+          ],
+          "initialization": "cold",
+          "iterations": 23,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/bond-stretched/3901f52f6c05866197cc70fd7b6e4a10342e2b3808ded2abaa6a6cd78bed29c3",
+          "root_hash": "30196415fe633ab418693dea8e0615a510bfce03cf09c7691fb74793379b5918",
+          "source": [
+            [
+              0.009749392410083725,
+              1.734723475976807e-18,
+              -2.9147805919544943e-09,
+              -0.08016933427972886,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.03294353682641793,
+              1.734723475976807e-18,
+              -1.0442893510415626e-09,
+              -0.2180617473254077,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              -0.06975829217894977,
+              1.734723475976807e-18,
+              9.588675282277168e-11,
+              -0.3525742513179012,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.00902236794374485,
+              1.734723475976807e-18,
+              0.09448881767235076,
+              -0.04090493569944898,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.009021497499351626,
+              1.734723475976807e-18,
+              -0.04724362257906812,
+              -0.04090408501829563,
+              0.08182837331694687,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.00902149749935163,
+              1.734723475976807e-18,
+              -0.04724362257906811,
+              -0.040904085018295636,
+              -0.08182837331694684,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "total_energy_eV": -3612.2034510357903,
+          "vacuum_energy_eV": -3612.1335686921957
+        },
+        "contract": "route2-root-equivalence-v1",
+        "energy_abs_difference_eV": 0.0,
+        "field_l2_difference": 1.2524188085417321e-14,
+        "gates": {
+          "energy_le_1e-8_eV": true,
+          "source_relative_le_1e-8": true
+        },
+        "numerically_equivalent": true,
+        "source_l2_difference": 6.548279302262331e-15,
+        "source_relative_difference": 1.4077253629649876e-14,
+        "warm": {
+          "actual_unmixed_residual_norm": 4.545900901344092e-13,
+          "continuum_energy_eV": -0.0698823435944088,
+          "field": [
+            [
+              -0.21755929401257926,
+              -0.04423010726452243,
+              -4.297958990422865e-05,
+              0.12527416354153212,
+              -1.587759871496397e-15,
+              -5.827007047018204e-06,
+              0.04195229315602333,
+              -3.2886562396916563e-16
+            ],
+            [
+              0.05627612778628951,
+              0.030510657036199477,
+              -3.1884635159499515e-05,
+              0.20217245796234445,
+              -1.5766196941741084e-15,
+              -5.2265308546666625e-06,
+              0.05002367659425744,
+              -3.2963811801706155e-16
+            ],
+            [
+              0.26946654092368083,
+              0.08420698112015246,
+              -1.6792668025539587e-05,
+              0.1637288702717411,
+              -1.3089708353689056e-15,
+              -4.372027887434762e-06,
+              0.04412080556045933,
+              -3.015776105404211e-16
+            ],
+            [
+              -0.23675803112257165,
+              -0.055204168372733675,
+              0.031191627658045937,
+              0.0919669207862862,
+              -1.3646310643988802e-15,
+              0.0035457608055404857,
+              0.037300157759585735,
+              -3.091602494842416e-16
+            ],
+            [
+              -0.23670327997493987,
+              -0.05519563703048963,
+              -0.015645692708454503,
+              0.0919740760682227,
+              0.02702786174111952,
+              -0.0017810492006859369,
+              0.03730022851280034,
+              0.0030747972770205187
+            ],
+            [
+              -0.2367032799749375,
+              -0.05519563703048902,
+              -0.01564569270845432,
+              0.09197407606822286,
+              -0.027027861741121928,
+              -0.0017810492006859252,
+              0.03730022851280035,
+              -0.0030747972770211046
+            ]
+          ],
+          "initialization": "warm",
+          "iterations": 23,
+          "primal_tolerance": 1e-12,
+          "root_context_id": "fixedbox40-cpcm590-acetonitrile-pes-v1/panel/bond-stretched/3901f52f6c05866197cc70fd7b6e4a10342e2b3808ded2abaa6a6cd78bed29c3",
+          "root_hash": "32fecb9813567d299dac6a01a9735dcbcbe3a9fe02b87d8a2ffdd7349d2ce17f",
+          "source": [
+            [
+              0.00974939241008664,
+              -2.714842239903703e-16,
+              -2.9147796505226963e-09,
+              -0.08016933427972774,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.03294353682641774,
+              -2.714842239903703e-16,
+              -1.0442884096097743e-09,
+              -0.21806174732540676,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              -0.06975829217894984,
+              -2.714842239903703e-16,
+              9.588769425456062e-11,
+              -0.35257425131790016,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009022367943744482,
+              -2.714842239903703e-16,
+              0.09448881767235152,
+              -0.04090493569944795,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009021497499351338,
+              -2.714842239903703e-16,
+              -0.04724362257906714,
+              -0.04090408501829463,
+              0.0818283733169477,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ],
+            [
+              0.009021497499351265,
+              -2.714842239903703e-16,
+              -0.04724362257906703,
+              -0.04090408501829453,
+              -0.08182837331694565,
+              9.414317882700036e-16,
+              9.414317882700036e-16,
+              9.414317882700036e-16
+            ]
+          ],
+          "total_energy_eV": -3612.2034510357903,
+          "vacuum_energy_eV": -3612.1335686921957
+        }
+      },
+      "directional_force_fd": {
+        "bond-stretch": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3612.206074079287,
+              "minus_geometry_sha256": "54c706b66411d14657261f3f033b07cd66e2058d09d3895a5bdc520457b3feec",
+              "minus_iterations": 16,
+              "minus_primal_residual": 4.626009334867124e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.20081005513,
+              "plus_geometry_sha256": "26e560ed7e2caa7486dd507d608b4310503b71ecfd1b2ba91213e349d65d0615",
+              "plus_iterations": 16,
+              "plus_primal_residual": 4.630196730172368e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3612.204764799406,
+              "minus_geometry_sha256": "8c998629c15dc05660d324a6494a4e28b994e21042e15b4cca6f80fee6a69e5e",
+              "minus_iterations": 15,
+              "minus_primal_residual": 7.711848230290826e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.2021327878856,
+              "plus_geometry_sha256": "8e473913ce7478de281411508d2f58a148b4b53b436da3abbf79200cf99726c8",
+              "plus_iterations": 15,
+              "plus_primal_residual": 7.721502978911857e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3612.204108478099,
+              "minus_geometry_sha256": "baccad9525d2079aca3680e4f54ceaaa833e3bc4cfbaf8ef72bf3b693aebc256",
+              "minus_iterations": 15,
+              "minus_primal_residual": 3.857473299262661e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.202792472409,
+              "plus_geometry_sha256": "41bfd010bcdbc8e01b5ef6669fd1cdcd60c053e6f06b2249d0790614f90c983a",
+              "plus_iterations": 15,
+              "plus_primal_residual": 3.85855631337052e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 7.721502978911857e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 1.862656276330199e-06,
+              "analytic_eV_per_A": 6.580028333576379,
+              "finite_difference_eV_per_A": 6.580030196232656,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.830771623809034e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 4.6715034329736227e-07,
+              "analytic_eV_per_A": 6.580028333576379,
+              "finite_difference_eV_per_A": 6.580028800726723,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 7.099518215570249e-08,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 1.169948831147849e-07,
+              "analytic_eV_per_A": 6.580028333576379,
+              "finite_difference_eV_per_A": 6.5800284505712625,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.77803004946928e-08,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        },
+        "radial-internal": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3612.203298754641,
+              "minus_geometry_sha256": "e7298f2ffa7692cb7255b2b4a792364644cded2eabd8750fc57827fa4c1ebe5f",
+              "minus_iterations": 16,
+              "minus_primal_residual": 3.506492364898699e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.203598184364,
+              "plus_geometry_sha256": "c077f5e2e6d53ae5a87400f40fdafded791c29f724e9151b8030065a022e4ac5",
+              "plus_iterations": 16,
+              "plus_primal_residual": 3.5023638350290466e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3612.2033755370503,
+              "minus_geometry_sha256": "bed08d20514becd556bb9ac3dd5132e7f74685e65504b3296604b54c6ce900a7",
+              "minus_iterations": 15,
+              "minus_primal_residual": 5.843748282783486e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.203525251387,
+              "plus_geometry_sha256": "e77485a2d3b526b092180444f4dfcc6561468ce3c513d7442205d98877edf883",
+              "plus_iterations": 15,
+              "plus_primal_residual": 5.842255466160998e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3612.203413446847,
+              "minus_geometry_sha256": "f91517b8e8ad46378adf7615fef45c56c68e26ae0210cb495056de7423df0b80",
+              "minus_iterations": 14,
+              "minus_primal_residual": 9.746205612274542e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.2034883039487,
+              "plus_geometry_sha256": "95f190388fca02b0aa093280773e74764c5b280f46833fa0374a8b67cd36870e",
+              "plus_iterations": 14,
+              "plus_primal_residual": 9.741820732323798e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 9.746205612274542e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 1.7541797895925804e-06,
+              "analytic_eV_per_A": -0.37428539997920246,
+              "finite_difference_eV_per_A": -0.37428715415899205,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 4.686721866087418e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 4.416652480965233e-07,
+              "analytic_eV_per_A": -0.37428539997920246,
+              "finite_difference_eV_per_A": -0.37428584164445056,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.180021253692196e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 1.0742594519497217e-07,
+              "analytic_eV_per_A": -0.37428539997920246,
+              "finite_difference_eV_per_A": -0.37428550740514765,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 2.8701604275232675e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        },
+        "seeded-internal": {
+          "all_gates_passed": true,
+          "displaced_states": [
+            {
+              "minus_energy_eV": -3612.2031946593015,
+              "minus_geometry_sha256": "54fb4036c9b7a1c2dc27572fc32522718a5b5cf4a8e02dfa5a5e61b7d240abb6",
+              "minus_iterations": 15,
+              "minus_primal_residual": 7.330462876725656e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.2037034788764,
+              "plus_geometry_sha256": "5e674403916b22c537a364b9f19c9fd2828389467bbf797011474e7fc9cf1c95",
+              "plus_iterations": 15,
+              "plus_primal_residual": 7.330544685309354e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0004
+            },
+            {
+              "minus_energy_eV": -3612.2033233390403,
+              "minus_geometry_sha256": "a1b826459c42851354dfe1c74464b174e37d8aeaf13a1569dfbb04480990165f",
+              "minus_iterations": 15,
+              "minus_primal_residual": 3.6648576435786165e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.2035777491906,
+              "plus_geometry_sha256": "8e10759eaec2001d91c492aac41d4f176b506d22b0ff3910af20609381d45a1c",
+              "plus_iterations": 15,
+              "plus_primal_residual": 3.665231034630006e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0002
+            },
+            {
+              "minus_energy_eV": -3612.203387310312,
+              "minus_geometry_sha256": "1570e1b115d6ab8453d60386510f8c788d4f86bfe9d3fc58c951bbd96fee3bdf",
+              "minus_iterations": 14,
+              "minus_primal_residual": 6.107653851728043e-13,
+              "minus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "plus_energy_eV": -3612.2035145154314,
+              "plus_geometry_sha256": "a63746f654af1594bef22dbeb14effb05f63653f35e0731740b8f5be6e9515d3",
+              "plus_iterations": 14,
+              "plus_primal_residual": 6.109915895212521e-13,
+              "plus_topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+              "step_A": 0.0001
+            }
+          ],
+          "fixed_topology": true,
+          "maximum_primal_residual": 7.330544685309354e-13,
+          "records": [
+            {
+              "absolute_error_eV_per_A": 1.2059993492741228e-06,
+              "analytic_eV_per_A": -0.6360256745759285,
+              "finite_difference_eV_per_A": -0.6360244685765792,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.8961524420171217e-06,
+              "relative_gate_applies": true,
+              "step_A": 0.0004
+            },
+            {
+              "absolute_error_eV_per_A": 2.9877838425562686e-07,
+              "analytic_eV_per_A": -0.6360256745759285,
+              "finite_difference_eV_per_A": -0.6360253757975443,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 4.6975859081247126e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0002
+            },
+            {
+              "absolute_error_eV_per_A": 7.70890506984756e-08,
+              "analytic_eV_per_A": -0.6360256745759285,
+              "finite_difference_eV_per_A": -0.6360255974868778,
+              "gate_passed": true,
+              "gates": {
+                "absolute_le_5e-4_eV_per_A": true,
+                "relative_le_2e-3_away_from_zero": true
+              },
+              "relative_error": 1.2120432102587832e-07,
+              "relative_gate_applies": true,
+              "step_A": 0.0001
+            }
+          ],
+          "topology_hashes": [
+            "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904"
+          ]
+        }
+      },
+      "forces_eV_per_A": [
+        [
+          -8.625281808567104e-17,
+          -0.00010510926783139108,
+          3.223390085163123
+        ],
+        [
+          -4.5865583046875395e-18,
+          6.389526162438879e-06,
+          -6.08217522497983
+        ],
+        [
+          9.104103381466662e-19,
+          -3.7036149827691177e-06,
+          3.5177531941200693
+        ],
+        [
+          1.3085756936562556e-18,
+          0.3714735278970337,
+          -0.21971854651584422
+        ],
+        [
+          0.3216940349758694,
+          -0.185685552270191,
+          -0.2196247538937594
+        ],
+        [
+          -0.3216940349758693,
+          -0.18568555227019098,
+          -0.21962475389375932
+        ]
+      ],
+      "geometry_sha256": "3901f52f6c05866197cc70fd7b6e4a10342e2b3808ded2abaa6a6cd78bed29c3",
+      "maximum_primal_residual": 9.746205612274542e-13,
+      "molecule_id": "acetonitrile",
+      "positions_A": [
+        [
+          0.0,
+          0.0,
+          -1.2434985424949239
+        ],
+        [
+          0.0,
+          0.0,
+          0.3304425424949238
+        ],
+        [
+          0.0,
+          0.0,
+          1.452206
+        ],
+        [
+          0.0,
+          1.024986,
+          -1.56237
+        ],
+        [
+          0.887664,
+          -0.512493,
+          -1.56237
+        ],
+        [
+          -0.887664,
+          -0.512493,
+          -1.56237
+        ]
+      ],
+      "scope_tags": [
+        "nitrile",
+        "polar canary"
+      ],
+      "source_record_id": "CH3CN",
+      "topology_hash": "c41b7165eaaef14224b5763e3fe8aa17e6ffa50107625ba40b15d5ba4ac54904",
+      "variant": "bond-stretched"
+    }
+  ],
+  "numerical_determinism": {
+    "cublas_workspace_config": ":4096:8",
+    "cuda_launch_blocking": null,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "device": "cuda",
+    "mode": "pytorch-deterministic-cuda-v1",
+    "torch_deterministic_algorithms": true,
+    "torch_deterministic_debug_mode": 2
+  },
+  "panel_contract": {
+    "additional_path_contracts": [
+      "trans-butane-central-bond-torsion",
+      "hydrogen-peroxide-oxygen-oxygen-stretch"
+    ],
+    "asset_sha256": "ecaa309cb468f17449a78a16e6a79acd0a5a16cf982eb52b3fb8d5d1dcd80ca3",
+    "contract_version": "route2-fixedbox590-pes-panel-contract-v1",
+    "direction_names": [
+      "seeded-internal",
+      "radial-internal",
+      "bond-stretch"
+    ],
+    "directional_steps_A": [
+      0.0004,
+      0.0002,
+      0.0001
+    ],
+    "molecule_count": 20,
+    "shard_molecule_ids": [
+      "acetonitrile"
+    ],
+    "shard_start": 4,
+    "shard_stop": 5,
+    "variant_names": [
+      "reference",
+      "bond-compressed",
+      "bond-stretched"
+    ]
+  },
+  "path_measurements": [],
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": "0",
+      "MKL_NUM_THREADS": "10",
+      "OMP_NUM_THREADS": "10",
+      "OPENBLAS_NUM_THREADS": "10",
+      "PYTHONHASHSEED": "0"
+    },
+    "generated_at_utc": "2026-08-13T03:27:43.149111+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 485.42674307199195,
+  "schema_version": "route2-fixedbox590-pes-panel-shard-v1",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "eecfbbb993ab075301bc613a39f94f30168d521bca4503c29cc12d9a50cc76af",
+    "maple/function/calculator/extra_correction/charge/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/extra_correction/charge/qeq.py": "6f451ab965202f29e0ac6773e5cc221feeb477854e1594f26415e982f5bca25d",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/extra_correction/solvent/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/extra_correction/solvent/gbsa/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/extra_correction/solvent/gbsa/gbsa.py": "41655ff168d772d3890b535365d9e5049b1318e42a2cb6173759568cfedfb88c",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "6648b6ad90e3d477ef6d932e15fb9863d07d655277fdae0ba3fa08d4bd9f60e9",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "5345f7a8d126bae810f1508c84082e2146d103f9ec8b722b93e0e02cede99739",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "4e757009999c0a53676b169f2e66ca6f7fcd6dfecf655ca118c22df26286191f",
+    "maple/solvation/api/state_registry.py": "f39c6f4b143276a309598b73183be8689d7a3b1f14073fb8de74d024db3c0540",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "20cb50bc1d9ba955dcb65af0eb28937189e5fd835b842f26ba9a5a81ada5ba1b",
+    "maple/solvation/continuum/base.py": "44e452cc0c718fb6c443206bc5fc7005e778e0472eeb7ea16bedfe6801e145a8",
+    "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py": "84d09263dcdc87172df3c9b2d0602c9be47f686604833122107f05b9b9818c71",
+    "maple/solvation/continuum/fixed_topology_cpcm.py": "daa4c289db596d68b0758c81e1840ed1dac117da0573885cd3b0cf9431c7bb8d",
+    "maple/solvation/coupling/__init__.py": "1b0d3a51a47d45b53e7aaddccdb4fcac42f91f4833f598830583b25a078805df",
+    "maple/solvation/coupling/adjoint.py": "7e41961c7b18ea578daab066a9f909313d3160d0e192cccbdbeee01083ca7a91",
+    "maple/solvation/coupling/energy.py": "e1778a31c5d25de23a453eefb300588f7c81c288bd46e471dd2b4fb2f745106f",
+    "maple/solvation/coupling/exact_gto.py": "005d54d342742887e00ff754eb0e0b364510c054746e087b30ec32e819935474",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "0ed5987811401393947da190fa1ce96f025e6b5bfaaa239b825a56f44c1e4ad5",
+    "maple/solvation/coupling/linearization.py": "baa48bcaef49963548e727236ff86ca2e69b2b1b41fbf07b84f41bc5e77fa14f",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "0bcce78e126454c9b0475e8c9ca5178ece6234614488a2488abe52d2f643c47e",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "7ea7ccec1315a178879986fe04575d6a9e19b31b23114a89ed5845c9df66db71",
+    "maple/solvation/models/base.py": "24e4ece6e5dfd242b3cf1fb0978007d7cc2c7170cdaafe768398fd331b9bc901",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/fixed_box_evaluator.py": "5716123962697656d251b8366ded61f2efab179ae7d732956ee35db55a0bf229",
+    "maple/solvation/models/mace_polar.py": "b47614df7d58fbdcde1867df9fe18dd7dd2c24b02d06e239ac376629264acb24",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/release/__init__.py": "dedb19eeada9922d51f2185d998f8897b1c91ed4cc7db917d596b625a130218e",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/pes_panel.py": "126f4a769eaf34ff4b14d1d6947d10cd4cf5f9dc9d7588c4acf0a0f79008982b",
+    "maple/solvation/release/pes_validation.py": "407ba419c16ddfd776f7df7242db94e8529bc9f4e681ded87e186328c981ba33",
+    "maple/solvation/surfaces/__init__.py": "3169105c99a34da026c0bfedf10495620a67f2d82d8e5dd0444895d376c534ec",
+    "maple/solvation/surfaces/base.py": "f49af6fa92cca5e8408bfabc2ec20c1969fd815f3da38422406ee050bf8d18f0",
+    "maple/solvation/surfaces/fixed_topology.py": "31c0dd77b64e93666ff759236ec41b204095bc224ec7bf09f623fcfaf9fc1e2a",
+    "tools/route2_release/data/fixedbox590_pes_panel_v1.json": "ecaa309cb468f17449a78a16e6a79acd0a5a16cf982eb52b3fb8d5d1dcd80ca3",
+    "tools/route2_release/fixedbox590_water_common.py": "df2e5938486991701003196e363613654de51ca3b9e3d3b51d9e26e55ae2b07e",
+    "tools/route2_release/fixedbox590_water_path.py": "22aca6955e20f335fbda353707b8e73793de790388b8195f0e57b6aa5795c75a",
+    "tools/route2_release/run_fixedbox590_pes_panel.py": "3f84de537159f8b4ac66e48f620fda22336b11920e20c02af05df23721cca598"
+  },
+  "status": "diagnostic-shard-success",
+  "validation_scope": {
+    "aggregate_multi_molecule_pes_panel": false,
+    "charged_systems_supported": false,
+    "chemical_accuracy": false,
+    "complete_nonpolar_free_energy": false,
+    "shard_geometry_count": 3,
+    "shard_path_geometry_count": 0
+  },
+  "warnings": [
+    {
+      "category": "UserWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/e3nn/o3/_wigner.py",
+      "lineno": "10",
+      "message": "Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "<frozen importlib._bootstrap>",
+      "lineno": "241",
+      "message": "builtin type SwigPyPacked has no __module__ attribute"
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "<frozen importlib._bootstrap>",
+      "lineno": "241",
+      "message": "builtin type SwigPyObject has no __module__ attribute"
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_script.py",
+      "lineno": "1488",
+      "message": "`torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`."
+    },
+    {
+      "category": "UserWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py",
+      "lineno": "226",
+      "message": "Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    },
+    {
+      "category": "DeprecationWarning",
+      "filename": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/torch/jit/_serialization.py",
+      "lineno": "176",
+      "message": "`torch.jit.load` is deprecated. Please switch to `torch.export`."
+    }
+  ],
+  "working_tree_clean": true
+}

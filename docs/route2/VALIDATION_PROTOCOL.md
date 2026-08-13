@@ -26,20 +26,23 @@ first-order/non-convergent step trend.
 The primal/adjoint residual contribution to force uncertainty must be below ten
 percent of the force-FD tolerance.
 
-Current executed real-water evidence is intentionally below admission scope:
+Current executed real-stack evidence is intentionally below admission scope:
 the original molecular-realspace/CPCM194 candidate passed one directional test
 but failed rotation/torque.  The separately versioned fixed-box40/CPCM590
 diagnostic then passed all nine Cartesian components at three steps and six
 rigid orientations on one equilibrium water geometry, followed by its
 seven-geometry force/path audit and the equilibrium 32/40/48/56-Angstrom box
-tail audit. It remains single-molecule evidence only; the required
-multi-molecule PES panel, multi-geometry box convergence, component physics,
-Hessian, and NVE gates remain open. Exact measurements and reproducible
-commands are recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`.
+tail audit. It subsequently passed the preregistered 20-molecule,
+60-base-geometry directional panel and 11 additional torsion/stretch path
+points on clean head `f7f68165`. Exact measurements and reproducible commands
+are recorded in `FIXED_BOX590_WATER_DIAGNOSTIC.md`, `PES_PANEL.md`, and the
+corresponding evidence bundles.
 
-The 20-molecule, 60-base-geometry panel plus real butane-torsion and peroxide
-stretch paths is preregistered in `PES_PANEL.md`. It has not yet been executed,
-so it supplies no force or PES admission evidence at this revision.
+The multi-molecule result closes only the directional thresholds. A
+component-resolved Cartesian panel is still required to establish its RMS,
+maximum-error, and step-convergence thresholds; the broader component physics,
+Hessian, and NVE gates also remain open. Consequently this evidence is not Tier
+F admission.
 
 ## Symmetry, root, topology, and path gates
 

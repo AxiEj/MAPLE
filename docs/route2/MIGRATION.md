@@ -11,8 +11,8 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology C-PCM | backend complete; unadmitted | legacy-parity adapter plus independent Torch continuum-algebra oracle; independent surface-primitive oracle missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; full gate open | the original 194-node profile retains its rotation/torque failure; a distinct fixed-box40/590-node diagnostic passes one-water Cartesian/orientation, distorted-water path/loop, and equilibrium box-tail gates; the multi-molecule/path panel is preregistered but unexecuted and physical-component admission remains open |
-| 6: force/MAPLE integration | blocked | same-scalar force is callable internally but no vNext Tier F profile passes the full real-stack PES panel |
+| 5: MACE-POLAR adapter/canaries | candidates complete; full gate open | the original 194-node profile retains its rotation/torque failure; the distinct fixed-box40/590-node diagnostic passes one-water Cartesian/orientation, distorted-water path/loop, equilibrium box-tail, and the preregistered 20-molecule directional panel; full Cartesian and physical-component admission remain open |
+| 6: force/MAPLE integration | blocked | same-scalar force is callable internally and the multi-molecule directional panel passes, but the full component-resolved Cartesian, symmetry, and workflow admission gates remain open |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | pending | production still uses legacy engine |

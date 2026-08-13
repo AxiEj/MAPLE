@@ -36,6 +36,9 @@ PATH_EVIDENCE = (
 BOX_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-water-box-convergence-a7fdf2fa"
 )
+PES_PANEL_EVIDENCE = (
+    ROOT / "docs" / "route2" / "evidence" / "fixedbox590-pes-panel-f7f68165"
+)
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:
@@ -204,7 +207,9 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
     )
     document = PES_PANEL_DOC.read_text(encoding="utf-8")
     assert PES_PANEL_RUNNER.name in document
-    assert "has not yet been" in document
+    assert "status=pass" in document
+    assert "fixedbox590-pes-panel-f7f68165" in document
+    assert "component-resolved Cartesian FD panel" in document
     assert "not" in document and "optimized transition state" in document
     assert "normalized coordinate tangent" in document
 
@@ -348,3 +353,100 @@ def test_fixedbox590_box_artifact_file_hashes_and_raw_gates_close():
         2.3831270675594984e-08
     )
     assert raw["tail"]["force_rms_eV_per_A"] == pytest.approx(6.785481887261842e-07)
+
+
+def test_fixedbox590_pes_panel_artifact_is_source_bound_and_capability_closed():
+    manifest = json.loads((PES_PANEL_EVIDENCE / "manifest.json").read_text())
+    aggregate = json.loads((PES_PANEL_EVIDENCE / "aggregate.json").read_text())
+    shards = [
+        json.loads(path.read_text())
+        for path in sorted(PES_PANEL_EVIDENCE.glob("shard-*.json"))
+    ]
+
+    assert len(shards) == 20
+    assert [
+        shard["panel_contract"]["shard_start"] for shard in shards
+    ] == list(range(20))
+    assert [
+        shard["panel_contract"]["shard_stop"] for shard in shards
+    ] == list(range(1, 21))
+    assert aggregate["status"] == "pass"
+    assert aggregate["capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "M": False,
+        "V": False,
+    }
+    assert manifest["capabilities"] == aggregate["capabilities"]
+    assert manifest["evidence_status"].endswith("not release admission")
+    assert manifest["execution_git_head"] == aggregate["execution_git_head"]
+    assert manifest["execution_git_tree"] == aggregate["execution_git_tree"]
+    assert manifest["tested_working_tree_clean"] is True
+    assert all(shard["working_tree_clean"] is True for shard in shards)
+    assert {
+        shard["execution_git_head"] for shard in shards
+    } == {manifest["execution_git_head"]}
+    assert {
+        shard["checkpoint"]["sha256"] for shard in shards
+    } == {manifest["checkpoint_sha256"]}
+
+    source_hashes = aggregate["source_files_sha256"]
+    assert source_hashes
+    assert all(shard["source_files_sha256"] == source_hashes for shard in shards)
+    for relative, expected in source_hashes.items():
+        blob = subprocess.run(
+            ("git", "show", f"{manifest['execution_git_head']}:{relative}"),
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert hashlib.sha256(blob).hexdigest() == expected
+
+
+def test_fixedbox590_pes_panel_artifact_hashes_and_raw_gates_close():
+    manifest = json.loads((PES_PANEL_EVIDENCE / "manifest.json").read_text())
+    aggregate = json.loads((PES_PANEL_EVIDENCE / "aggregate.json").read_text())
+    sums = {}
+    for line in (PES_PANEL_EVIDENCE / "SHA256SUMS").read_text().splitlines():
+        expected, name = line.split("  ", 1)
+        sums[name] = expected
+
+    for name, expected in sums.items():
+        assert hashlib.sha256((PES_PANEL_EVIDENCE / name).read_bytes()).hexdigest() == expected
+    assert manifest["aggregate_artifact_sha256"] == sums["aggregate.json"]
+    assert manifest["artifact_sha256"]["aggregate.json"] == sums["aggregate.json"]
+    assert manifest["aggregate_measurement_sha256"] == aggregate[
+        "aggregate_measurement_sha256"
+    ]
+
+    panel = aggregate["panel_summary"]
+    paths = aggregate["path_summary"]
+    assert panel["all_gates_passed"] is True
+    assert panel["molecule_count"] == 20
+    assert panel["geometry_count"] == 60
+    assert panel["directional_record_count"] == 180
+    assert panel["directional_sample_count"] == 540
+    assert paths["all_gates_passed"] is True
+    assert paths["path_count"] == 2
+    assert paths["path_geometry_count"] == 11
+    assert all(panel["gates"].values())
+    assert all(paths["gates"].values())
+
+    raw = manifest["raw_summary"]
+    assert raw["maximum_base_absolute_error_eV_per_A"] == pytest.approx(
+        2.9825647950509904e-05
+    )
+    assert raw["maximum_base_relative_error_where_applicable"] == pytest.approx(
+        0.001257946545683231
+    )
+    assert raw["maximum_path_absolute_error_eV_per_A"] == pytest.approx(
+        2.4073161528193054e-05
+    )
+    assert raw["maximum_primal_residual"] <= 1.0e-12
+    assert raw["maximum_adjoint_residual"] <= 1.0e-10
+    assert raw["maximum_cold_warm_energy_abs_difference_eV"] <= 1.0e-8
+    assert raw["maximum_cold_warm_source_relative_difference"] <= 1.0e-8
+    assert manifest["scope_limits"]["directional_same_scalar_force_fd"] is True
+    assert manifest["scope_limits"]["component_resolved_cartesian_force_fd"] is False
+    assert manifest["scope_limits"]["hessian_frequency_ts_nve"] is False

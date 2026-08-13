@@ -9,6 +9,11 @@ from .conjugate_fixed_topology_cpcm import (
     build_water_radial_gto_cpcm_backend,
 )
 from .fixed_topology_cpcm import FixedTopologyCPCMBackend, FixedTopologyCPCMState
+from .fixed_reciprocal_functional import (
+    FIXED_RECIPROCAL_CPCM_FUNCTIONAL_PROVIDER_ID,
+    FixedReciprocalCPCMFunctional,
+)
+from .functional import ContinuumEnergyFunctional
 from .pair_frame_ensemble_cpcm import (
     OrderedPairFrameEnsembleRadialGTOCPCMBackend,
     PairFrameCPCMState,
@@ -22,6 +27,9 @@ __all__ = [
     "build_water_radial_gto_cpcm_590_candidate",
     "build_water_radial_gto_cpcm_backend",
     "ContinuumBackend",
+    "ContinuumEnergyFunctional",
+    "FIXED_RECIPROCAL_CPCM_FUNCTIONAL_PROVIDER_ID",
+    "FixedReciprocalCPCMFunctional",
     "FixedTopologyCPCMBackend",
     "FixedTopologyCPCMState",
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend",

@@ -25,7 +25,7 @@ CLI restriction.
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
 | `route2-variational-common-functional-v1` | no | no | no | no | no | disabled pending every strict-variational gate |
-| `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate; original density head is diagnostic only; fixed-cavity/sign/gauge/passivity/root/envelope/rotation/release gates remain open |
+| `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate plus scalar-first fixed reciprocal C-PCM candidate; original density head is diagnostic only; combined stationary scalar/sign/gauge/passivity/root/envelope/rotation/release gates remain open |
 
 The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source

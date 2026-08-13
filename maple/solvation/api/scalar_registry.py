@@ -217,7 +217,8 @@ _SCALAR_ENTRIES = (
         scalar_id=VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
         exact_formula=(
             "candidate equations: M_var=Q^-T dE_anc/du and "
-            "u=grad_Q G_cpcm_fixed(c); G_np=0; the stationary scalar "
+            "u=grad_Q G_cpcm_fixed(c); G_cpcm_fixed=1/2<c,P_R c>_Q; "
+            "G_np=0; the combined stationary scalar "
             "F_var=Gamma_anc+G_cpcm_fixed remains unimplemented and disabled"
         ),
         included_components=(
@@ -241,7 +242,8 @@ _SCALAR_ENTRIES = (
         nonpolar_profile="none",
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
         implementation_entry_point=(
-            "disabled:model-candidate-only; stationary scalar not implemented"
+            "disabled:model and continuum scalar-first candidates only; "
+            "combined stationary scalar not implemented"
         ),
         derivative_route=(
             "stationary envelope derivative; disabled pending sign, gauge, "

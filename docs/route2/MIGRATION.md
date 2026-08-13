@@ -18,12 +18,15 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 9: legacy archive/cleanup | pending | production still uses legacy engine |
 | 10: strict variational | disabled | expected negative until formally proven |
 
-Phase 10 now contains a disabled scalar-first engineering candidate.  Its
-eight-channel effective source is generated from one anchored field-energy
-graph; this closes the earlier 4-to-8 structural rank obstruction only by
-changing the source/model identity.  No capability tier is enabled, and the
-fixed reciprocal continuum, sign/gauge, stability/root, envelope-coordinate,
-rotation, and release evidence remain pending.
+Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
+engineering candidates.  The eight-channel effective source is generated from
+one anchored field-energy graph, while fixed reciprocal C-PCM drive, source
+HVP, and coordinate partial are generated from one Torch continuum scalar and
+match the existing audited response backend.  This closes the earlier 4-to-8
+rank obstruction only by changing the source/model identity and closes the
+continuum half-coupling derivative identity only for the fixed-cavity candidate.
+No combined stationary scalar or capability tier is enabled; sign/gauge,
+stability/root, envelope, rotation, and release evidence remain pending.
 
 ## Asset mapping
 

@@ -179,6 +179,7 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
     for requirement in (
         "PES_PANEL_CONTRACT_VERSION",
         "PES_PANEL_ASSET_SHA256",
+        "PANEL_ASSET_PATH",
         "PES_PANEL_DIRECTIONAL_STEPS_A",
         "panel_geometries",
         "panel_directions",
@@ -186,6 +187,7 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
         '"capabilities": {tier: False',
     ):
         assert requirement in text
+    assert "(*source_paths, PANEL_ASSET_PATH)" in text
     document = PES_PANEL_DOC.read_text(encoding="utf-8")
     assert PES_PANEL_RUNNER.name in document
     assert "has not yet been" in document

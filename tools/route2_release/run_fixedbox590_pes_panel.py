@@ -62,9 +62,9 @@ from fixedbox590_water_common import (
 SCHEMA_VERSION = "route2-fixedbox590-pes-panel-shard-v1"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "maple/solvation/release/pes_panel.py",
-    "tools/route2_release/data/fixedbox590_pes_panel_v1.json",
     "tools/route2_release/run_fixedbox590_pes_panel.py",
 )
+PANEL_ASSET_PATH = "tools/route2_release/data/fixedbox590_pes_panel_v1.json"
 
 
 def _parse_args() -> argparse.Namespace:
@@ -382,7 +382,12 @@ def main() -> None:
     source_paths = collect_loaded_repository_sources(
         repository.root, required_paths=REQUIRED_SOURCE_PATHS
     )
-    source_hashes = committed_source_hashes(repository, source_paths)
+    # collect_loaded_repository_sources intentionally accepts only Python
+    # sources. Bind the frozen JSON geometry asset separately as an exact Git
+    # blob, then store both in the one source-files ledger.
+    source_hashes = committed_source_hashes(
+        repository, (*source_paths, PANEL_ASSET_PATH)
+    )
     payload: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
         "artifact_kind": "disabled-real-stack-fixedbox590-pes-panel-shard",

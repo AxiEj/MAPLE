@@ -132,8 +132,16 @@ def build_system_with_model(atoms: Atoms, model, *, box_length: int = 40):
     return profile, model, continuum, equation, scalar
 
 
-def state_record(state, scalar, geometry: Atoms) -> dict[str, object]:
-    evaluated = scalar.evaluate(geometry, state.y)
+def state_record(
+    state, scalar, geometry: Atoms, *, evaluation=None
+) -> dict[str, object]:
+    evaluated = (
+        scalar.evaluate_energy_components(geometry, state.y)
+        if evaluation is None
+        else evaluation
+    )
+    if evaluated.scalar_id != scalar.scalar_id:
+        raise ValueError("State-record scalar evaluation has the wrong identity.")
     return {
         "initialization": state.initialization,
         "iterations": len(state.iterations) - 1,
@@ -149,9 +157,24 @@ def state_record(state, scalar, geometry: Atoms) -> dict[str, object]:
     }
 
 
-def cold_warm_record(cold, warm, scalar, atoms: Atoms) -> dict[str, object]:
-    cold_scalar = scalar.evaluate(atoms, cold.y)
-    warm_scalar = scalar.evaluate(atoms, warm.y)
+def cold_warm_record(
+    cold, warm, scalar, atoms: Atoms, *, cold_evaluation=None, warm_evaluation=None
+) -> dict[str, object]:
+    cold_scalar = (
+        scalar.evaluate_energy_components(atoms, cold.y)
+        if cold_evaluation is None
+        else cold_evaluation
+    )
+    warm_scalar = (
+        scalar.evaluate_energy_components(atoms, warm.y)
+        if warm_evaluation is None
+        else warm_evaluation
+    )
+    if (
+        cold_scalar.scalar_id != scalar.scalar_id
+        or warm_scalar.scalar_id != scalar.scalar_id
+    ):
+        raise ValueError("Cold/warm scalar evaluation has the wrong identity.")
     cold_source = cold.source_array()
     warm_source = warm.source_array()
     source_difference = float(np.linalg.norm(cold_source - warm_source))
@@ -173,8 +196,8 @@ def cold_warm_record(cold, warm, scalar, atoms: Atoms) -> dict[str, object]:
             "source_relative_le_1e-8": source_relative <= 1.0e-8,
             "energy_le_1e-8_eV": energy_difference <= 1.0e-8,
         },
-        "cold": state_record(cold, scalar, atoms),
-        "warm": state_record(warm, scalar, atoms),
+        "cold": state_record(cold, scalar, atoms, evaluation=cold_scalar),
+        "warm": state_record(warm, scalar, atoms, evaluation=warm_scalar),
     }
 
 

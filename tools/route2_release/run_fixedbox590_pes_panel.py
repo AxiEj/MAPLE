@@ -122,15 +122,17 @@ class _ShardRunner:
             options=self.primal_options,
         )
 
-    def direction_record(self, atoms, variant, gradient, name, direction):
-        analytic_gradient = np.asarray(
-            gradient.gradient.total_coordinate_gradient, dtype=float
-        ).reshape(len(atoms), 3)
+    def direction_record(self, atoms, label, state, analytic_gradient, name, direction):
+        analytic_gradient = np.asarray(analytic_gradient, dtype=float).reshape(
+            len(atoms), 3
+        )
         analytic = float(np.vdot(analytic_gradient, direction))
         samples: list[tuple[float, float, float]] = []
         displaced: list[dict[str, object]] = []
-        maximum_primal = gradient.state.actual_unmixed_residual_norm
-        topology_hashes = {gradient.topology_hash}
+        maximum_primal = state.actual_unmixed_residual_norm
+        topology_hashes = {
+            self.continuum.surface_provider.build_state(atoms).topology_hash
+        }
         for step in PES_PANEL_DIRECTIONAL_STEPS_A:
             plus = atoms.copy()
             minus = atoms.copy()
@@ -138,13 +140,13 @@ class _ShardRunner:
             minus.positions -= step * direction
             plus_state = self.solve(
                 plus,
-                f"panel/{variant}/{name}/{step}/plus",
-                gradient.state.y_array(),
+                f"{label}/{name}/{step}/plus",
+                state.y_array(),
             )
             minus_state = self.solve(
                 minus,
-                f"panel/{variant}/{name}/{step}/minus",
-                gradient.state.y_array(),
+                f"{label}/{name}/{step}/minus",
+                state.y_array(),
             )
             maximum_primal = max(
                 maximum_primal,
@@ -203,11 +205,24 @@ class _ShardRunner:
                 atoms, cold.source
             ).surface.topology_hash
             evaluation = GradientEvaluation(atoms.copy(), cold, gradient, topology)
-            root = cold_warm_record(cold, warm, self.scalar, atoms)
+            warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
+            root = cold_warm_record(
+                cold,
+                warm,
+                self.scalar,
+                atoms,
+                cold_evaluation=gradient.scalar,
+                warm_evaluation=warm_energy,
+            )
             directions = panel_directions(atoms, self.molecule.molecule_id)
             directional = {
                 name: self.direction_record(
-                    atoms, variant, evaluation, name, directions[name]
+                    atoms,
+                    f"panel/{variant}",
+                    evaluation.state,
+                    evaluation.gradient.total_coordinate_gradient,
+                    name,
+                    directions[name],
                 )
                 for name in PES_PANEL_DIRECTION_NAMES
             }
@@ -226,7 +241,9 @@ class _ShardRunner:
                     "atomic_numbers": atoms.numbers.tolist(),
                     "positions_A": atoms.positions.tolist(),
                     "geometry_sha256": geometry_sha256(atoms),
-                    "cold_state": state_record(cold, self.scalar, atoms),
+                    "cold_state": state_record(
+                        cold, self.scalar, atoms, evaluation=gradient.scalar
+                    ),
                     "cold_warm": root,
                     "adjoint_residual": gradient.adjoint.true_residual_norm,
                     "maximum_primal_residual": maximum_primal,
@@ -270,6 +287,15 @@ class _ShardRunner:
             )
         )
         topology = self.continuum.surface_provider.build_state(atoms).topology_hash
+        local_force = self.direction_record(
+            atoms,
+            f"path/{point.path_name}/{point.point_label}",
+            cold,
+            gradient.total_coordinate_gradient,
+            "coordinate-tangent",
+            tangent,
+        )
+        warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
         return (
             {
                 "path_name": point.path_name,
@@ -282,9 +308,18 @@ class _ShardRunner:
                 "atomic_numbers": atoms.numbers.tolist(),
                 "positions_A": atoms.positions.tolist(),
                 "geometry_sha256": geometry_sha256(atoms),
-                "cold_state": state_record(cold, self.scalar, atoms),
-                "cold_warm": cold_warm_record(cold, warm, self.scalar, atoms),
-                "energy_eV": self.scalar.evaluate_energy(atoms, cold.y),
+                "cold_state": state_record(
+                    cold, self.scalar, atoms, evaluation=gradient.scalar
+                ),
+                "cold_warm": cold_warm_record(
+                    cold,
+                    warm,
+                    self.scalar,
+                    atoms,
+                    cold_evaluation=gradient.scalar,
+                    warm_evaluation=warm_energy,
+                ),
+                "energy_eV": gradient.scalar.total_energy,
                 "forces_eV_per_A": np.asarray(gradient.forces)
                 .reshape(len(atoms), 3)
                 .tolist(),
@@ -292,6 +327,7 @@ class _ShardRunner:
                 "analytic_coordinate_derivative_eV_per_coordinate_unit": (
                     analytic_derivative
                 ),
+                "local_tangent_force_fd": local_force,
                 "maximum_primal_residual": max(
                     cold.actual_unmixed_residual_norm,
                     warm.actual_unmixed_residual_norm,

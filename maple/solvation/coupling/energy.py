@@ -79,6 +79,14 @@ def _field_cotangent_of_source(source: np.ndarray, metric: PairingMetric) -> np.
     return np.einsum("ji,nj->ni", metric.block, source)
 
 
+def _half_pairing_energy(
+    source: np.ndarray, field: np.ndarray, metric: PairingMetric
+) -> float:
+    """The one implementation of ``0.5 <source, field>_Q``."""
+
+    return float(0.5 * metric.pair(source, field))
+
+
 def _validate_continuum_pairing_identity(
     continuum: ContinuumResponseProvider, metric: PairingMetric
 ) -> None:
@@ -172,7 +180,7 @@ def nonlinear_half_coupling(
         metric.component_count,
         "continuum field",
     )
-    energy = 0.5 * metric.pair(values, field)
+    energy = _half_pairing_energy(values, field, metric)
     direct = 0.5 * _source_dual_of_field(field, metric)
     field_cotangent = 0.5 * _field_cotangent_of_source(values, metric)
     response = _source_array(
@@ -236,6 +244,16 @@ class OperationalScalarEvaluation:
     total_energy: float
     reduced_gradient: tuple[float, ...]
     direct_coordinate_gradient: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class OperationalEnergyEvaluation:
+    """Derivative-free leaves of the canonical operational scalar."""
+
+    scalar_id: str
+    vacuum_energy: float
+    continuum_energy: float
+    total_energy: float
 
 
 @dataclass(frozen=True)
@@ -413,7 +431,9 @@ class OperationalElectrostaticScalar:
             )
         return current
 
-    def evaluate_energy(self, geometry: Any, y: object) -> float:
+    def evaluate_energy_components(
+        self, geometry: Any, y: object
+    ) -> OperationalEnergyEvaluation:
         """Evaluate only the canonical scalar, without any derivative work.
 
         Real-stack finite-difference panels require many energy-only displaced
@@ -438,14 +458,24 @@ class OperationalElectrostaticScalar:
             self.metric.component_count,
             "continuum field",
         )
-        continuum_energy = 0.5 * self.metric.pair(source, field)
+        continuum_energy = _half_pairing_energy(source, field, self.metric)
         vacuum_energy = float(self.vacuum.evaluate_energy(geometry))
         total = vacuum_energy + continuum_energy
         if not all(
             np.isfinite(value) for value in (vacuum_energy, continuum_energy, total)
         ):
             raise ValueError("Operational scalar energy terms must be finite.")
-        return float(total)
+        return OperationalEnergyEvaluation(
+            scalar_id=self.scalar_id,
+            vacuum_energy=vacuum_energy,
+            continuum_energy=continuum_energy,
+            total_energy=float(total),
+        )
+
+    def evaluate_energy(self, geometry: Any, y: object) -> float:
+        """Return the derivative-free value of the canonical scalar."""
+
+        return self.evaluate_energy_components(geometry, y).total_energy
 
     def evaluate(self, geometry: Any, y: object) -> OperationalScalarEvaluation:
         self.fingerprint_sha256()
@@ -560,6 +590,7 @@ __all__ = [
     "HalfCouplingEvaluation",
     "FixedTopologyReciprocalLinearContinuum",
     "OperationalElectrostaticScalar",
+    "OperationalEnergyEvaluation",
     "OperationalGradientResult",
     "OperationalScalarEvaluation",
     "VacuumScalarProvider",

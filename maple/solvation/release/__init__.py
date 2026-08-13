@@ -51,6 +51,7 @@ from .pes_panel import (
     panel_paths,
     stretch_tangent,
     summarize_pes_panel,
+    summarize_pes_paths,
     torsion_tangent,
 )
 
@@ -94,5 +95,6 @@ __all__ = [
     "panel_paths",
     "stretch_tangent",
     "summarize_pes_panel",
+    "summarize_pes_paths",
     "torsion_tangent",
 ]

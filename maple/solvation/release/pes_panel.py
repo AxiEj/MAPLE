@@ -13,6 +13,8 @@ import numpy as np
 from ase import Atoms
 from ase.data import covalent_radii
 
+from maple.solvation.coupling.state_equation import geometry_sha256
+
 PES_PANEL_SCHEMA_VERSION = "route2-fixedbox590-pes-panel-geometry-asset-v1"
 PES_PANEL_CONTRACT_VERSION = "route2-fixedbox590-pes-panel-contract-v1"
 PES_PANEL_ASSET_SHA256 = (
@@ -432,29 +434,42 @@ def summarize_pes_panel(records: Sequence[Mapping[str, Any]]) -> dict[str, objec
 
     direction_records: list[Mapping[str, Any]] = []
     cold_warm_records: list[Mapping[str, Any]] = []
-    topology_hashes: set[str] = set()
+    topology_hashes_by_molecule: dict[str, set[str]] = {
+        molecule.molecule_id: set() for molecule in load_pes_panel()
+    }
     maximum_primal = 0.0
     maximum_adjoint = 0.0
     for item in values:
         directional = item.get("directional_force_fd")
         if (
             not isinstance(directional, Mapping)
-            or tuple(directional) != PES_PANEL_DIRECTION_NAMES
+            or set(directional) != set(PES_PANEL_DIRECTION_NAMES)
+            or len(directional) != len(PES_PANEL_DIRECTION_NAMES)
         ):
             raise ValueError(
                 "Every geometry must contain all preregistered directions."
             )
-        direction_records.extend(directional.values())
+        for name in PES_PANEL_DIRECTION_NAMES:
+            record = directional[name]
+            if not isinstance(record, Mapping):
+                raise ValueError("Every directional-force record must be a mapping.")
+            direction_records.append(record)
         cold_warm = item.get("cold_warm")
         if not isinstance(cold_warm, Mapping):
             raise ValueError("Every geometry requires a cold/warm record.")
         cold_warm_records.append(cold_warm)
-        topology_hashes.add(_text(item.get("topology_hash"), "topology_hash"))
+        molecule_id = str(item.get("molecule_id"))
+        topology_hashes_by_molecule[molecule_id].add(
+            _text(item.get("topology_hash"), "topology_hash")
+        )
         maximum_primal = max(maximum_primal, float(item.get("maximum_primal_residual")))
         maximum_adjoint = max(maximum_adjoint, float(item.get("adjoint_residual")))
 
     all_directional = all(
-        bool(record.get("all_gates_passed")) for record in direction_records
+        bool(record.get("all_gates_passed"))
+        and bool(record.get("fixed_topology"))
+        and float(record.get("maximum_primal_residual")) <= MAXIMUM_PRIMAL_RESIDUAL
+        for record in direction_records
     )
     all_roots = all(
         bool(record.get("numerically_equivalent"))
@@ -466,8 +481,9 @@ def summarize_pes_panel(records: Sequence[Mapping[str, Any]]) -> dict[str, objec
         "all_cold_warm_roots": all_roots,
         "all_primal_residuals_le_1e-12": maximum_primal <= MAXIMUM_PRIMAL_RESIDUAL,
         "all_adjoint_residuals_le_1e-10": maximum_adjoint <= MAXIMUM_ADJOINT_RESIDUAL,
-        "all_molecule_topologies_fixed": len(topology_hashes)
-        == PES_PANEL_MOLECULE_COUNT,
+        "all_molecule_topologies_fixed": all(
+            len(hashes) == 1 for hashes in topology_hashes_by_molecule.values()
+        ),
     }
     return {
         "schema_version": "route2-fixedbox590-pes-panel-summary-v1",
@@ -478,7 +494,91 @@ def summarize_pes_panel(records: Sequence[Mapping[str, Any]]) -> dict[str, objec
         * len(PES_PANEL_DIRECTIONAL_STEPS_A),
         "maximum_primal_residual": maximum_primal,
         "maximum_adjoint_residual": maximum_adjoint,
-        "topology_hashes": sorted(topology_hashes),
+        "topology_hashes_by_molecule": {
+            molecule_id: sorted(hashes)
+            for molecule_id, hashes in sorted(topology_hashes_by_molecule.items())
+        },
+        "gates": gates,
+        "all_gates_passed": all(gates.values()),
+    }
+
+
+def summarize_pes_paths(records: Sequence[Mapping[str, Any]]) -> dict[str, object]:
+    """Validate every frozen path point and its local same-scalar force gate."""
+
+    values = tuple(records)
+    expected_points = tuple(point for path in panel_paths().values() for point in path)
+    if len(values) != len(expected_points):
+        raise ValueError(
+            f"PES paths must contain exactly {len(expected_points)} records."
+        )
+    by_key = {
+        (str(item.get("path_name")), str(item.get("point_label"))): item
+        for item in values
+    }
+    expected_by_key = {
+        (point.path_name, point.point_label): point for point in expected_points
+    }
+    if len(by_key) != len(values) or set(by_key) != set(expected_by_key):
+        raise ValueError("PES path point coverage is incomplete or duplicated.")
+
+    maximum_primal = 0.0
+    maximum_adjoint = 0.0
+    topology_hashes: dict[str, set[str]] = {
+        name: set() for name in PES_PANEL_ADDITIONAL_PATHS
+    }
+    all_local_force = True
+    all_roots = True
+    for key, expected in expected_by_key.items():
+        item = by_key[key]
+        if (
+            str(item.get("molecule_id")) != expected.molecule_id
+            or str(item.get("coordinate_name")) != expected.coordinate_name
+            or str(item.get("coordinate_unit")) != expected.coordinate_unit
+            or float(item.get("coordinate_value")) != expected.coordinate_value
+            or str(item.get("geometry_sha256")) != geometry_sha256(expected.atoms)
+        ):
+            raise ValueError(f"PES path record {key!r} changed its frozen geometry.")
+        if not math.isfinite(float(item.get("energy_eV"))):
+            raise ValueError("PES path energy must be finite.")
+        local_force = item.get("local_tangent_force_fd")
+        if not isinstance(local_force, Mapping):
+            raise ValueError("Every path point requires a local tangent-force gate.")
+        all_local_force &= bool(local_force.get("all_gates_passed")) and bool(
+            local_force.get("fixed_topology")
+        )
+        cold_warm = item.get("cold_warm")
+        if not isinstance(cold_warm, Mapping):
+            raise ValueError("Every path point requires a cold/warm root record.")
+        all_roots &= bool(cold_warm.get("numerically_equivalent")) and all(
+            bool(value) for value in cold_warm.get("gates", {}).values()
+        )
+        maximum_primal = max(
+            maximum_primal,
+            float(item.get("maximum_primal_residual")),
+            float(local_force.get("maximum_primal_residual")),
+        )
+        maximum_adjoint = max(maximum_adjoint, float(item.get("adjoint_residual")))
+        topology_hashes[key[0]].add(_text(item.get("topology_hash"), "topology_hash"))
+
+    gates = {
+        "all_local_tangent_force_fd": all_local_force,
+        "all_cold_warm_roots": all_roots,
+        "all_primal_residuals_le_1e-12": maximum_primal <= MAXIMUM_PRIMAL_RESIDUAL,
+        "all_adjoint_residuals_le_1e-10": maximum_adjoint <= MAXIMUM_ADJOINT_RESIDUAL,
+        "all_path_topologies_fixed": all(
+            len(hashes) == 1 for hashes in topology_hashes.values()
+        ),
+    }
+    return {
+        "schema_version": "route2-fixedbox590-pes-path-summary-v1",
+        "path_count": len(topology_hashes),
+        "path_geometry_count": len(values),
+        "maximum_primal_residual": maximum_primal,
+        "maximum_adjoint_residual": maximum_adjoint,
+        "topology_hashes_by_path": {
+            name: sorted(hashes) for name, hashes in topology_hashes.items()
+        },
         "gates": gates,
         "all_gates_passed": all(gates.values()),
     }
@@ -525,6 +625,7 @@ __all__ = [
     "stretch_path",
     "stretch_tangent",
     "summarize_pes_panel",
+    "summarize_pes_paths",
     "torsion_path",
     "torsion_tangent",
 ]

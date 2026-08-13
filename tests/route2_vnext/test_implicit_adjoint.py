@@ -304,6 +304,15 @@ def test_energy_only_entry_is_same_scalar_and_does_not_call_derivatives(monkeypa
     expected = scalar.vacuum.evaluate_energy(geometry) + 0.5 * scalar.metric.pair(
         source, field
     )
+    leaves = scalar.evaluate_energy_components(geometry, y)
+    assert leaves.scalar_id == scalar.scalar_id
+    assert leaves.continuum_energy == pytest.approx(
+        0.5 * scalar.metric.pair(source, field), abs=1e-15
+    )
+    assert leaves.vacuum_energy == pytest.approx(
+        scalar.vacuum.evaluate_energy(geometry), abs=1e-15
+    )
+    assert leaves.total_energy == pytest.approx(expected, abs=1e-15)
     assert scalar.evaluate_energy(geometry, y) == pytest.approx(expected, abs=1e-15)
 
 

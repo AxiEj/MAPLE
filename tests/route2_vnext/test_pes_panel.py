@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.pes_panel import (
     PES_PANEL_ADDITIONAL_PATHS,
     PES_PANEL_ASSET_SHA256,
@@ -25,6 +26,7 @@ from maple.solvation.release.pes_panel import (
     select_bond,
     stretch_tangent,
     summarize_pes_panel,
+    summarize_pes_paths,
     torsion_tangent,
 )
 
@@ -168,7 +170,12 @@ def test_path_coverage_is_explicitly_torsional_close_contact_stretched_and_ts_li
 
 def _record(molecule_id, variant, *, passed=True, topology=None):
     direction = {
-        name: {"all_gates_passed": passed} for name in PES_PANEL_DIRECTION_NAMES
+        name: {
+            "all_gates_passed": passed,
+            "fixed_topology": passed,
+            "maximum_primal_residual": 1e-13,
+        }
+        for name in PES_PANEL_DIRECTION_NAMES
     }
     return {
         "molecule_id": molecule_id,
@@ -205,3 +212,43 @@ def test_panel_summary_requires_all_20_by_3_records_and_never_hides_failure():
     assert summary["all_gates_passed"] is False
     with pytest.raises(ValueError, match="exactly 60"):
         summarize_pes_panel(records[:-1])
+
+
+def _path_record(point, *, passed=True):
+    return {
+        "path_name": point.path_name,
+        "molecule_id": point.molecule_id,
+        "point_label": point.point_label,
+        "coordinate_name": point.coordinate_name,
+        "coordinate_value": point.coordinate_value,
+        "coordinate_unit": point.coordinate_unit,
+        "geometry_sha256": geometry_sha256(point.atoms),
+        "energy_eV": -1.0,
+        "local_tangent_force_fd": {
+            "all_gates_passed": passed,
+            "fixed_topology": passed,
+            "maximum_primal_residual": 1e-13,
+        },
+        "cold_warm": {
+            "numerically_equivalent": passed,
+            "gates": {"source": passed, "energy": passed},
+        },
+        "maximum_primal_residual": 1e-13,
+        "adjoint_residual": 1e-14,
+        "topology_hash": f"{point.path_name:0<64}"[:64],
+    }
+
+
+def test_path_summary_requires_every_real_point_and_preserves_failure():
+    points = tuple(point for path in panel_paths().values() for point in path)
+    records = [_path_record(point) for point in points]
+    summary = summarize_pes_paths(records)
+    assert summary["path_count"] == 2
+    assert summary["path_geometry_count"] == 11
+    assert summary["all_gates_passed"] is True
+
+    failed = deepcopy(records)
+    failed[-1]["local_tangent_force_fd"]["all_gates_passed"] = False
+    assert summarize_pes_paths(failed)["all_gates_passed"] is False
+    with pytest.raises(ValueError, match="exactly 11"):
+        summarize_pes_paths(records[:-1])

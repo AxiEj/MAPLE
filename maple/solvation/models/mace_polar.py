@@ -882,7 +882,7 @@ class MACEPolarRadialGTOModelAdapter:
             atom_count=count,
             name="field_direction",
         )
-        import torch
+        torch = __import__("torch")
 
         features = self.field_transform.to_model_features(values)
         feature_direction = self.field_transform.jvp(direction)

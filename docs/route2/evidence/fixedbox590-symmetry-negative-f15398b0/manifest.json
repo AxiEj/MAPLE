@@ -1,0 +1,44 @@
+{
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "claim_boundary": "Negative clean-tree evidence for only the first water member of the frozen 20-molecule symmetry/loop panel. It rejects the CPCM590 profile under the frozen rotation gate; it is not a complete 20-molecule panel, complete solvation free energy, or chemical-accuracy result.",
+  "contract_version": "route2-fixedbox590-symmetry-panel-contract-v1",
+  "evidence_status": "failing-preregistered-water-canary; public admission remains closed",
+  "exact_command": "tools/route2_release/run_fixedbox590_symmetry_panel.py --device cuda --molecule-start 0 --molecule-stop 1 --output /home/axie/MAPLE/route2-symmetry-evidence-f15398b0-canary/shard-00-01.json",
+  "execution_git_head": "f15398b0fff9043660d1775e2faf557f3446da91",
+  "execution_git_tree": "aeb35cd211ba19846b7c98b7deb0e0d570d152e7",
+  "failure_classification": {
+    "loop_context_identity_defect_in_test_harness": true,
+    "loop_work_gate_passed": true,
+    "physical_rotation_gate_passed": false,
+    "rotation_failure_remains_independent_of_context_defect": true,
+    "test_harness_defect_fixed_in_commit": "6881355b8ee191452f7b9b094084180faa6dc308"
+  },
+  "measurement_sha256": "dd3500f68f5b4e89bec60656a013155a716cb7734a1b9fa0ad30bec12aedb953",
+  "profile_id": "route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1",
+  "raw_result": {
+    "base_net_force_eV_per_A": 2.7756441433729464e-17,
+    "base_torque_eV": 3.931373269940187e-19,
+    "maximum_absolute_loop_work_eV": 7.58385200212014e-09,
+    "maximum_adjoint_residual": 2.7926275564224477e-16,
+    "maximum_cold_warm_energy_abs_difference_eV": 4.547473508864641e-13,
+    "maximum_cold_warm_source_relative_difference": 2.764489784070988e-12,
+    "maximum_primal_residual": 9.418405193572322e-13,
+    "rotation_energy_abs_eV": 5.11671260028379e-06,
+    "rotation_energy_threshold_eV": 1e-06,
+    "rotation_force_covariance_relative": 0.0001076440745177286,
+    "rotation_force_covariance_threshold": 0.0001,
+    "rotation_source_covariance_relative": 7.327707348849752e-07
+  },
+  "runtime_seconds": 411.1345096169971,
+  "scalar_id": "route2-operational-cpcm-fixedtopology-electrostatic-v1",
+  "schema_version": "route2-fixedbox590-symmetry-negative-canary-manifest-v1",
+  "state_equation_id": "route2-constrained-mutual-polarization-root-v1",
+  "tested_working_tree_clean": true
+}

@@ -51,6 +51,46 @@ Any missing molecule, changed deterministic transform, nonconverged root,
 topology change, or failed scalar/force gate is retained as a failure. No
 threshold may be changed after observing the real panel.
 
+## First executed canary: retained failure
+
+The clean-tree water member executed at Git `f15398b0` before any remaining
+panel members. It failed the frozen rotation gates:
+
+- maximum energy change: `5.1167126003e-6 eV` (`1e-6 eV` limit);
+- maximum force-covariance relative error: `1.0764407452e-4` (`1e-4` limit).
+
+Translation, permutation, source covariance, residuals, topology, net force,
+torque, and closed-loop work passed. The original runner mistakenly assigned
+different diagnostic context labels to cold and warm solutions of the same
+geometry; their energy/source differences themselves were at most
+`4.5475e-13 eV` and `2.7645e-12`. Commit `6881355b` repaired that test-harness
+identity defect without changing the physical rotation failure. Raw evidence,
+logs, hashes, and a fail-closed manifest are retained under
+`evidence/fixedbox590-symmetry-negative-f15398b0/`.
+
+Exploratory isolation after the failure attributes the dominant error to the
+laboratory-fixed angular quadrature. The failed CPCM590 profile remains frozen.
+A distinct fixed-box48/CPCM1202 candidate is registered for a new clean-tree
+run using the same transformations and thresholds; it has no capability merely
+because it exists.
+
+Its distinct evidence contract is
+`route2-fixedbox1202-symmetry-panel-contract-v1`; only the provider/profile
+identity changes. The 20 molecules, transforms, loop paths, seed, tolerances,
+residual gates, independent recomputation, and fail-closed capability status
+are identical to the failed CPCM590 contract. The dedicated commands are:
+
+```bash
+python tools/route2_release/run_fixedbox1202_symmetry_panel.py \
+  --device cuda --molecule-start 0 --molecule-stop 1 \
+  --output /absolute/path/cpcm1202-symmetry-shard-00-01.json
+
+python tools/route2_release/aggregate_fixedbox1202_symmetry_panel.py \
+  --shard /absolute/path/cpcm1202-symmetry-shard-00-01.json \
+  ... \
+  --output /absolute/path/cpcm1202-symmetry-aggregate.json
+```
+
 ## Execution
 
 After this contract is committed on a clean tree:

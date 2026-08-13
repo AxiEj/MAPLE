@@ -13,6 +13,12 @@ from .pes_panel import PES_PANEL_MOLECULE_COUNT, load_pes_panel
 
 SYMMETRY_PANEL_CONTRACT_VERSION = "route2-fixedbox590-symmetry-panel-contract-v1"
 SYMMETRY_PANEL_SCHEMA_VERSION = "route2-fixedbox590-symmetry-panel-summary-v1"
+FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION = (
+    "route2-fixedbox1202-symmetry-panel-contract-v1"
+)
+FIXEDBOX1202_SYMMETRY_PANEL_SCHEMA_VERSION = (
+    "route2-fixedbox1202-symmetry-panel-summary-v1"
+)
 SYMMETRY_PANEL_RANDOM_SEED = 20260813
 SYMMETRY_PANEL_ROTATION_COUNT = 3
 SYMMETRY_PANEL_TRANSLATION_A = (1.7, -0.8, 0.5)
@@ -331,8 +337,23 @@ def summarize_rigid_symmetry(
     }
 
 
-def summarize_symmetry_panel(records: Sequence[Mapping[str, Any]]) -> dict[str, object]:
+def summarize_symmetry_panel(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    contract_version: str = SYMMETRY_PANEL_CONTRACT_VERSION,
+) -> dict[str, object]:
     """Require one rigid-symmetry and one closed-loop record per molecule."""
+
+    schema_by_contract = {
+        SYMMETRY_PANEL_CONTRACT_VERSION: SYMMETRY_PANEL_SCHEMA_VERSION,
+        FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION: (
+            FIXEDBOX1202_SYMMETRY_PANEL_SCHEMA_VERSION
+        ),
+    }
+    try:
+        schema_version = schema_by_contract[contract_version]
+    except KeyError as exc:
+        raise ValueError("Unknown symmetry-panel contract version.") from exc
 
     panel = load_pes_panel()
     values = tuple(records)
@@ -363,7 +384,7 @@ def summarize_symmetry_panel(records: Sequence[Mapping[str, Any]]) -> dict[str, 
     all_topology = True
     for molecule_id in expected:
         record = by_id[molecule_id]
-        if record.get("contract_version") != SYMMETRY_PANEL_CONTRACT_VERSION:
+        if record.get("contract_version") != contract_version:
             raise ValueError("Symmetry record has the wrong contract version.")
         rigid = record.get("rigid_symmetry")
         loop = record.get("closed_loop")
@@ -413,8 +434,8 @@ def summarize_symmetry_panel(records: Sequence[Mapping[str, Any]]) -> dict[str, 
         "all_molecule_topologies_fixed": all_topology,
     }
     return {
-        "schema_version": SYMMETRY_PANEL_SCHEMA_VERSION,
-        "contract_version": SYMMETRY_PANEL_CONTRACT_VERSION,
+        "schema_version": schema_version,
+        "contract_version": contract_version,
         "molecule_count": len(values),
         "molecule_ids": list(expected),
         "maximum": maximums,

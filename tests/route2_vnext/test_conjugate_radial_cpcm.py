@@ -10,12 +10,14 @@ from maple.solvation.api.profiles import (
     UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
     WATER_CPCM_194_CONFIGURATION_CONTRACT_ID,
     WATER_CPCM_590_CONFIGURATION_CONTRACT_ID,
+    WATER_CPCM_1202_CONFIGURATION_CONTRACT_ID,
 )
 from maple.solvation.api.scalar_registry import OPERATIONAL_CPCM_ELECTROSTATIC_V1
 from maple.solvation.api.units import HARTREE_TO_EV
 from maple.solvation.continuum import (
     ConjugateRadialGTOFixedTopologyCPCMBackend,
     build_water_radial_gto_cpcm_590_candidate,
+    build_water_radial_gto_cpcm_1202_candidate,
     build_water_radial_gto_cpcm_backend,
 )
 from maple.solvation.coupling.exact_gto import MACE_POLAR_RADIAL_GTO_COUPLING_ID
@@ -357,4 +359,25 @@ def test_high_order_water_factory_binds_590_point_candidate_and_rejects_forgery(
             dielectric=78.39,
             lebedev_order=35,
             configuration_contract_id=WATER_CPCM_590_CONFIGURATION_CONTRACT_ID,
+        )
+
+
+def test_1202_water_factory_binds_distinct_candidate_and_rejects_forgery():
+    pytest.importorskip("pyscf")
+    symbols = ("O", "H", "H")
+    provider = build_water_radial_gto_cpcm_1202_candidate(symbols)
+    assert (
+        provider.configuration_contract_id
+        == WATER_CPCM_1202_CONFIGURATION_CONTRACT_ID
+    )
+    assert provider.dielectric == 78.39
+    assert provider.surface_provider.lebedev_order == 59
+    assert provider.surface_provider.unit_sphere.shape == (1202, 4)
+    with pytest.raises(ValueError, match="Lebedev order 59"):
+        ConjugateRadialGTOFixedTopologyCPCMBackend(
+            symbols,
+            smd_water_coulomb_radii(symbols),
+            dielectric=78.39,
+            lebedev_order=41,
+            configuration_contract_id=WATER_CPCM_1202_CONFIGURATION_CONTRACT_ID,
         )

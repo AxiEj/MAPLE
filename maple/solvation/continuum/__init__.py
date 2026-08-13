@@ -4,6 +4,7 @@ from .base import ContinuumBackend
 from .conjugate_fixed_topology_cpcm import (
     ConjugateRadialCPCMState,
     ConjugateRadialGTOFixedTopologyCPCMBackend,
+    build_water_radial_gto_cpcm_1202_candidate,
     build_water_radial_gto_cpcm_590_candidate,
     build_water_radial_gto_cpcm_backend,
 )
@@ -12,6 +13,7 @@ from .fixed_topology_cpcm import FixedTopologyCPCMBackend, FixedTopologyCPCMStat
 __all__ = [
     "ConjugateRadialCPCMState",
     "ConjugateRadialGTOFixedTopologyCPCMBackend",
+    "build_water_radial_gto_cpcm_1202_candidate",
     "build_water_radial_gto_cpcm_590_candidate",
     "build_water_radial_gto_cpcm_backend",
     "ContinuumBackend",

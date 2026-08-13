@@ -87,11 +87,22 @@ def _parse_args() -> argparse.Namespace:
 
 
 class _SymmetryRunner:
-    def __init__(self, molecule, model, max_iterations: int) -> None:
+    def __init__(
+        self,
+        molecule,
+        model,
+        max_iterations: int,
+        *,
+        system_builder=build_system_with_model,
+        box_length: int = 40,
+        contract_version: str = SYMMETRY_PANEL_CONTRACT_VERSION,
+    ) -> None:
         self.molecule = molecule
         self.profile, self.model, self.continuum, self.equation, self.scalar = (
-            build_system_with_model(molecule.atoms, model)
+            system_builder(molecule.atoms, model)
         )
+        self.box_length = box_length
+        self.contract_version = contract_version
         self.primal_options = FixedPointOptions(
             tolerance=1.0e-12,
             max_iterations=max_iterations,
@@ -112,7 +123,10 @@ class _SymmetryRunner:
             profile_id=self.scalar.profile_id,
             scalar_binding=self.scalar,
             root_context_id=root_context(
-                atoms, label, system_id=self.molecule.molecule_id
+                atoms,
+                label,
+                box_length=self.box_length,
+                system_id=self.molecule.molecule_id,
             ),
             initial_y=initial_y,
             options=self.primal_options,
@@ -353,7 +367,7 @@ class _SymmetryRunner:
             "chemical_formula": self.molecule.chemical_formula,
             "scope_tags": list(self.molecule.scope_tags),
             "variant": PES_CARTESIAN_PANEL_VARIANT,
-            "contract_version": SYMMETRY_PANEL_CONTRACT_VERSION,
+            "contract_version": self.contract_version,
             "atomic_numbers": atoms.numbers.tolist(),
             "positions_A": atoms.positions.tolist(),
             "geometry_sha256": geometry_sha256(atoms),
@@ -375,8 +389,18 @@ class _SymmetryRunner:
         }
 
 
-def main() -> None:
-    args = _parse_args()
+def run_symmetry_panel(
+    args,
+    *,
+    schema_version=SCHEMA_VERSION,
+    contract_version=SYMMETRY_PANEL_CONTRACT_VERSION,
+    required_source_paths=REQUIRED_SOURCE_PATHS,
+    model_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40],
+    system_builder=build_system_with_model,
+    box_length=40,
+    output_marker="ROUTE2_FIXEDBOX590_SYMMETRY_PANEL_SHARD",
+    artifact_kind="disabled-real-stack-symmetry-loop-panel-shard",
+) -> None:
     if (
         type(args.molecule_start) is not int
         or type(args.molecule_stop) is not int
@@ -400,12 +424,17 @@ def main() -> None:
         shared_model = build_official_mace_polar_1_m_radial_gto_adapter(
             checkpoint_path=checkpoint,
             device=args.device,
-            long_range_evaluator_profile=(
-                MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40]
-            ),
+            long_range_evaluator_profile=model_evaluator_profile,
         )
         for molecule in molecules:
-            runner = _SymmetryRunner(molecule, shared_model, args.max_iterations)
+            runner = _SymmetryRunner(
+                molecule,
+                shared_model,
+                args.max_iterations,
+                system_builder=system_builder,
+                box_length=box_length,
+                contract_version=contract_version,
+            )
             current = identity_record(
                 runner.model, runner.continuum, runner.equation, runner.scalar
             )
@@ -419,13 +448,13 @@ def main() -> None:
 
     repository.assert_unchanged()
     source_paths = collect_loaded_repository_sources(
-        repository.root, required_paths=REQUIRED_SOURCE_PATHS
+        repository.root, required_paths=required_source_paths
     )
     source_hashes = committed_source_hashes(
         repository, (*source_paths, PANEL_ASSET_PATH)
     )
     contract = {
-        "contract_version": SYMMETRY_PANEL_CONTRACT_VERSION,
+        "contract_version": contract_version,
         "asset_sha256": PES_PANEL_ASSET_SHA256,
         "molecule_count": PES_PANEL_MOLECULE_COUNT,
         "variant": PES_CARTESIAN_PANEL_VARIANT,
@@ -436,10 +465,11 @@ def main() -> None:
         "shard_start": args.molecule_start,
         "shard_stop": args.molecule_stop,
         "shard_molecule_ids": [item.molecule_id for item in molecules],
+        "profile_id": identities["profile_id"],
     }
     payload = {
-        "schema_version": SCHEMA_VERSION,
-        "artifact_kind": "disabled-real-stack-symmetry-loop-panel-shard",
+        "schema_version": schema_version,
+        "artifact_kind": artifact_kind,
         "status": "diagnostic-shard-success",
         "claim_boundary": (
             "One source-bound rigid-symmetry and closed-loop shard for a disabled "
@@ -471,7 +501,7 @@ def main() -> None:
     file_record = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
     print(
-        "ROUTE2_FIXEDBOX590_SYMMETRY_PANEL_SHARD="
+        output_marker + "="
         + json.dumps(
             {
                 "artifact": file_record,
@@ -484,6 +514,10 @@ def main() -> None:
             sort_keys=True,
         )
     )
+
+
+def main() -> None:
+    run_symmetry_panel(_parse_args())
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-The ten current profiles are disabled, have no capabilities, and have empty
+The eleven current profiles are disabled, have no capabilities, and have empty
 admission evidence. Multiple profiles may share one scalar formula while
 binding different coupling or physical-continuum configuration contracts.
 
@@ -77,18 +77,28 @@ keeps the same scalar formula but binds a distinct experimental MACE-POLAR
 fixed-40-A reciprocal evaluation operator and a 590-point Lebedev grid per
 atom.  It was introduced after a fixed-order scan isolated the old rotation
 error to the model/cavity evaluation operators.  This identity is disabled:
-its one-water geometry/orientation/path checks, 20-molecule directional panel,
-465-component reference-geometry Cartesian panel, and 20-reference
-residual-refinement panel pass. They are still not
-a Tier-E or Tier-F admission: all-panel
-symmetry/loop coverage, matched component physics, public workflow integration,
-and fixed-box convergence beyond the separately executed equilibrium-water
-operator gate remain open.
+its original one-water geometry/orientation/path checks, 20-molecule
+directional panel, 465-component reference-geometry Cartesian panel, and 20-reference
+residual-refinement panel pass. A later molecule-ID-bound water rotation canary
+from the frozen all-panel symmetry contract failed: maximum energy change was
+`5.1167126003e-6 eV` and maximum relative force-covariance error was
+`1.0764407452e-4`, against `1e-6 eV` and `1e-4`. The negative clean-tree
+artifact is retained under
+`evidence/fixedbox590-symmetry-negative-f15398b0/`. This profile therefore
+cannot be Tier E or F.
 
 The otherwise identical disabled `fixedbox32`, `fixedbox48`, and `fixedbox56`
 profiles exist only for a preregistered box-operator convergence audit. They
 bind distinct model/evaluator identities; they are not public alternatives and
-must not be selected adaptively after inspecting the result.
+cannot be selected adaptively.
+
+Profile
+`route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1`
+is a separate disabled follow-up candidate. It binds the 48-A reciprocal model
+operator and the fixed Lebedev-order-59, 1202-node-per-atom continuum contract.
+It does not alter, rename, or rescue the failed CPCM590 profile, retains the
+same scalar formula and frozen symmetry thresholds, and has no capability or
+admission evidence.
 
 The preregistered clean run passed its 48-to-56 tail thresholds and found the
 40-Angstrom scalar within `2.14385e-7 eV` and force RMS within

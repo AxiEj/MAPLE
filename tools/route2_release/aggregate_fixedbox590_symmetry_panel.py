@@ -12,6 +12,9 @@ import sys
 import numpy as np
 
 from maple.solvation.coupling.state_equation import geometry_sha256
+from maple.solvation.api.profiles import (
+    DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
+)
 from maple.solvation.release import (
     PES_CARTESIAN_PANEL_VARIANT,
     PES_PANEL_ASSET_SHA256,
@@ -64,17 +67,26 @@ def _runtime_signature(payload):
     )
 
 
-def _load_shards(paths):
+def _load_shards(
+    paths,
+    *,
+    shard_schema_version=SHARD_SCHEMA_VERSION,
+    contract_version=SYMMETRY_PANEL_CONTRACT_VERSION,
+    expected_profile_id=DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
+):
     payloads = []
     for raw in paths:
         path = raw.expanduser().resolve(strict=True)
         payload = json.loads(path.read_text())
         contract = payload.get("panel_contract")
         if (
-            payload.get("schema_version") != SHARD_SCHEMA_VERSION
+            payload.get("schema_version") != shard_schema_version
             or payload.get("capabilities") != CAPABILITIES
             or not isinstance(contract, dict)
-            or contract.get("contract_version") != SYMMETRY_PANEL_CONTRACT_VERSION
+            or contract.get("contract_version") != contract_version
+            or contract.get("profile_id") != expected_profile_id
+            or payload.get("identities", {}).get("profile_id")
+            != expected_profile_id
             or contract.get("asset_sha256") != PES_PANEL_ASSET_SHA256
             or contract.get("variant") != PES_CARTESIAN_PANEL_VARIANT
             or contract.get("rotation_count") != SYMMETRY_PANEL_ROTATION_COUNT
@@ -107,7 +119,7 @@ def _load_shards(paths):
     return payloads
 
 
-def _raw_record(raw, molecule):
+def _raw_record(raw, molecule, *, contract_version=SYMMETRY_PANEL_CONTRACT_VERSION):
     atoms = panel_geometries(molecule)[PES_CARTESIAN_PANEL_VARIANT]
     if (
         raw.get("geometry_sha256") != geometry_sha256(atoms)
@@ -156,17 +168,34 @@ def _raw_record(raw, molecule):
     recomputed_loop = summarize_bidirectional_loop_record(loop)
     return {
         "molecule_id": molecule.molecule_id,
-        "contract_version": SYMMETRY_PANEL_CONTRACT_VERSION,
+        "contract_version": contract_version,
         "geometry_sha256": geometry_sha256(atoms),
         "rigid_symmetry": recomputed_rigid,
         "closed_loop": recomputed_loop,
     }
 
 
-def main():
-    args = _parse_args()
+def aggregate_symmetry_panel(
+    args,
+    *,
+    schema_version=SCHEMA_VERSION,
+    shard_schema_version=SHARD_SCHEMA_VERSION,
+    contract_version=SYMMETRY_PANEL_CONTRACT_VERSION,
+    expected_profile_id=DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
+    verifier_required_paths=(
+        "tools/route2_release/aggregate_fixedbox590_symmetry_panel.py",
+        "maple/solvation/release/symmetry_panel.py",
+        "maple/solvation/release/pes_validation.py",
+    ),
+    output_marker="ROUTE2_FIXEDBOX590_SYMMETRY_PANEL_AGGREGATE",
+):
     repository = RepositorySnapshot.capture(Path(__file__).parents[2])
-    shards = _load_shards(args.shard)
+    shards = _load_shards(
+        args.shard,
+        shard_schema_version=shard_schema_version,
+        contract_version=contract_version,
+        expected_profile_id=expected_profile_id,
+    )
     molecules = {item.molecule_id: item for item in load_pes_panel()}
     records = []
     source_hashes = None
@@ -184,8 +213,10 @@ def main():
             molecule = molecules.get(str(raw.get("molecule_id")))
             if molecule is None:
                 raise ValueError("Symmetry shard contains an unknown molecule.")
-            records.append(_raw_record(raw, molecule))
-    summary = summarize_symmetry_panel(records)
+            records.append(
+                _raw_record(raw, molecule, contract_version=contract_version)
+            )
+    summary = summarize_symmetry_panel(records, contract_version=contract_version)
     first = shards[0][1]
     if (
         repository.head != first["execution_git_head"]
@@ -198,14 +229,10 @@ def main():
         raise RuntimeError("Symmetry shard sources do not match the Git tree.")
     verifier_paths = collect_loaded_repository_sources(
         repository.root,
-        required_paths=(
-            "tools/route2_release/aggregate_fixedbox590_symmetry_panel.py",
-            "maple/solvation/release/symmetry_panel.py",
-            "maple/solvation/release/pes_validation.py",
-        ),
+        required_paths=verifier_required_paths,
     )
     output = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": schema_version,
         "status": "pass" if summary["all_gates_passed"] else "fail",
         "claim_boundary": (
             "Independent raw-value recomputation of the 20-molecule rigid-symmetry "
@@ -233,7 +260,7 @@ def main():
     file_record = write_external_json_artifact(repository, target, output)
     repository.assert_unchanged()
     print(
-        "ROUTE2_FIXEDBOX590_SYMMETRY_PANEL_AGGREGATE="
+        output_marker + "="
         + json.dumps(
             {
                 "path": str(target),
@@ -246,6 +273,10 @@ def main():
     )
     if not summary["all_gates_passed"]:
         sys.exit(2)
+
+
+def main():
+    aggregate_symmetry_panel(_parse_args())
 
 
 if __name__ == "__main__":

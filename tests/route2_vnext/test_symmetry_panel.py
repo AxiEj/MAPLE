@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from maple.solvation.release.symmetry_panel import (
+    FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION,
     SYMMETRY_PANEL_CONTRACT_VERSION,
     SYMMETRY_PANEL_TRANSLATION_A,
     rotate_radial_gto_blocks,
@@ -195,6 +196,20 @@ def test_symmetry_panel_requires_all_20_records_and_preserves_loop_failure():
     assert summarize_symmetry_panel(failed)["all_gates_passed"] is False
     with pytest.raises(ValueError, match="coverage"):
         summarize_symmetry_panel(records[:-1])
+
+    high_order = deepcopy(records)
+    for record in high_order:
+        record["contract_version"] = FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION
+    high_order_summary = summarize_symmetry_panel(
+        high_order,
+        contract_version=FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION,
+    )
+    assert high_order_summary["all_gates_passed"] is True
+    assert high_order_summary["contract_version"] == (
+        FIXEDBOX1202_SYMMETRY_PANEL_CONTRACT_VERSION
+    )
+    with pytest.raises(ValueError, match="Unknown symmetry-panel"):
+        summarize_symmetry_panel(high_order, contract_version="forged-contract")
 
 
 def test_bidirectional_loop_summary_recomputes_work_and_residual_gates():

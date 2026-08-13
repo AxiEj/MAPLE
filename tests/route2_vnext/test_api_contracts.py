@@ -12,6 +12,7 @@ from maple.solvation.api import (
     CapabilityStatus,
     DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS,
     DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
+    DIAGNOSTIC_FIXED_BOX48_CPCM_1202_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1,
     DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
@@ -72,7 +73,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 10
+    assert len(PROFILE_REGISTRY) == 11
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -142,6 +143,16 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
         )
         assert box_profile.enabled is False
         assert box_profile.capabilities.enabled_tiers == ()
+    ultra_high_order = PROFILE_REGISTRY[
+        DIAGNOSTIC_FIXED_BOX48_CPCM_1202_RADIAL_GTO_PROFILE_V1
+    ]
+    assert ultra_high_order.scalar_id == radial.scalar_id
+    assert ultra_high_order.model_profile.endswith("fixed-box48-contract-v1")
+    assert ultra_high_order.continuum_configuration_contract_id.endswith(
+        "water-eps78p39-smd-radii-lebedev1202.v1"
+    )
+    assert ultra_high_order.enabled is False
+    assert ultra_high_order.capabilities.enabled_tiers == ()
 
 
 def test_admission_records_cannot_bypass_enablement_or_evidence():

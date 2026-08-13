@@ -20,6 +20,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import threading
 from typing import Any, Sequence
 
 import numpy as np
@@ -213,6 +214,9 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
         "_configuration_sha256",
         "_configuration_contract_id",
         "_coupling",
+        "_geometry_cache_key",
+        "_geometry_cache_lock",
+        "_geometry_cache_value",
         "_provenance_sha256",
         "_sealed",
         "_surface_provider",
@@ -359,6 +363,9 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
         )
         object.__setattr__(self, "_surface_provider", surface_provider)
         object.__setattr__(self, "_coupling", coupling)
+        object.__setattr__(self, "_geometry_cache_key", None)
+        object.__setattr__(self, "_geometry_cache_lock", threading.RLock())
+        object.__setattr__(self, "_geometry_cache_value", None)
         object.__setattr__(self, "_configuration", configuration)
         object.__setattr__(
             self, "_configuration_contract_id", configuration_contract_id
@@ -460,9 +467,33 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
             **kwargs,
         )
 
+    @staticmethod
+    def _make_geometry_cache_key(positions: np.ndarray) -> tuple[tuple[int, ...], bytes]:
+        canonical = np.ascontiguousarray(positions, dtype="<f8")
+        return canonical.shape, canonical.tobytes(order="C")
+
     def _response_geometry(self, geometry: Any):
+        """Return one exact geometry-local surface/operator snapshot.
+
+        A fixed geometry is queried repeatedly by the nonlinear solve, the
+        scalar ledger, and the adjoint.  The surface, dense C-PCM curvature,
+        and its Cholesky factor depend only on that exact Cartesian geometry,
+        never on the source.  Cache only the most recent immutable-by-contract
+        triple, keyed by raw canonical float64 bytes; no tolerance, nearest-
+        neighbour, or geometry aliasing is permitted.  Single-entry eviction
+        bounds the dense surface-matrix memory across PES paths.
+        """
+
         self.configuration_sha256()
         positions = _positions(geometry, self.symbols)
+        key = self._make_geometry_cache_key(positions)
+        with self._geometry_cache_lock:
+            if key == self._geometry_cache_key:
+                cached = self._geometry_cache_value
+                if cached is None:  # pragma: no cover - invariant guard
+                    raise RuntimeError("C-PCM geometry cache value is missing.")
+                return cached
+
         surface = self.surface_provider.build_state(positions)
         response = self._legacy_response(positions)
         if response.surface_size != surface.candidate_count:
@@ -490,7 +521,11 @@ class ConjugateRadialGTOFixedTopologyCPCMBackend:
             surface.surface_points_bohr,
             surface.parent_atom_indices,
         )
-        return surface, response, owned
+        result = (surface, response, owned)
+        with self._geometry_cache_lock:
+            object.__setattr__(self, "_geometry_cache_key", key)
+            object.__setattr__(self, "_geometry_cache_value", result)
+        return result
 
     def build_state(self, geometry: Any, source: object) -> ConjugateRadialCPCMState:
         surface, response, owned = self._response_geometry(geometry)

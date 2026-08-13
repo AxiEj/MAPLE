@@ -171,6 +171,41 @@ def test_radial_cpcm_complete_bilinear_and_scalar_coordinate_vjps():
     np.testing.assert_allclose(scalar_analytic.sum(axis=0), np.zeros(3), atol=5e-11)
 
 
+def test_radial_cpcm_geometry_cache_is_exact_single_entry_and_source_independent(
+    monkeypatch,
+):
+    provider = backend()
+    calls = 0
+    original = provider._legacy_response
+
+    def counted(positions):
+        nonlocal calls
+        calls += 1
+        return original(positions)
+
+    monkeypatch.setattr(
+        type(provider),
+        "_legacy_response",
+        lambda self, positions: counted(positions),
+    )
+    first = provider.build_state(POSITIONS, SOURCE)
+    second = provider.build_state(POSITIONS.copy(), 0.5 * SOURCE)
+    assert calls == 1
+    assert first.surface.state_hash == second.surface.state_hash
+
+    displaced = POSITIONS.copy()
+    displaced[0, 0] = np.nextafter(displaced[0, 0], np.inf)
+    displaced_state = provider.build_state(displaced, SOURCE)
+    assert calls == 2
+    assert displaced_state.surface.state_hash != first.surface.state_hash
+
+    # Single-entry eviction must rebuild the original geometry rather than
+    # retaining an unbounded PES-path cache of dense surface matrices.
+    replay = provider.build_state(POSITIONS, SOURCE)
+    assert calls == 3
+    assert replay.state_hash == first.state_hash
+
+
 def test_radial_cpcm_cold_replay_and_configuration_are_content_bound():
     first = backend()
     second = backend()

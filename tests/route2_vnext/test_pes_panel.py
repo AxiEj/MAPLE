@@ -151,6 +151,10 @@ def test_path_tangents_match_central_coordinate_differences():
         - np.linalg.norm(minus.positions[1] - minus.positions[0])
     ) / (2.0 * step)
     assert derivative == pytest.approx(1.0, abs=2e-10)
+    assert np.linalg.norm(torsion_tangent(torsion)) != pytest.approx(1.0)
+    assert np.linalg.norm(stretch_tangent(stretch)) == pytest.approx(
+        1.0 / np.sqrt(2.0), abs=2e-15
+    )
 
 
 def test_path_coverage_is_explicitly_torsional_close_contact_stretched_and_ts_like():

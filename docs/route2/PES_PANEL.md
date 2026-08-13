@@ -46,6 +46,12 @@ Two actual coordinate paths—not metadata labels—are additionally frozen:
    containing compressed, stretched, and TS-like geometries. It is **not** an
    optimized transition state and cannot satisfy the TS canary by itself.
 
+Each path point is also checked with the same three Cartesian step sizes along
+its normalized coordinate tangent, so the preregistered force error remains in
+`eV/Angstrom`. The unnormalized tangent and independent generalized derivative
+(`eV/radian` for the torsion, `eV/Angstrom` for O-O stretch) are retained in the
+raw artifact and are never mislabeled as Cartesian force errors.
+
 ## Frozen gates and execution
 
 Thresholds are exactly those in `VALIDATION_PROTOCOL.md`: directional absolute

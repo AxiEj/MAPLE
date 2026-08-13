@@ -192,6 +192,7 @@ def test_fixedbox590_pes_panel_runner_is_sharded_source_bound_and_stays_disabled
     assert PES_PANEL_RUNNER.name in document
     assert "has not yet been" in document
     assert "not" in document and "optimized transition state" in document
+    assert "normalized coordinate tangent" in document
 
 
 def test_runner_source_binding_list_contains_unique_scalar_and_derivative_kernel():

@@ -280,6 +280,10 @@ class _ShardRunner:
             if point.path_name == PES_PANEL_ADDITIONAL_PATHS[0]
             else stretch_tangent(atoms)
         )
+        tangent_norm = float(np.linalg.norm(tangent))
+        if not math.isfinite(tangent_norm) or tangent_norm <= 1.0e-15:
+            raise RuntimeError("Path coordinate tangent is singular.")
+        unit_direction = tangent / tangent_norm
         analytic_derivative = float(
             np.vdot(
                 np.asarray(gradient.total_coordinate_gradient).reshape(len(atoms), 3),
@@ -293,7 +297,7 @@ class _ShardRunner:
             cold,
             gradient.total_coordinate_gradient,
             "coordinate-tangent",
-            tangent,
+            unit_direction,
         )
         warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
         return (
@@ -324,9 +328,11 @@ class _ShardRunner:
                 .reshape(len(atoms), 3)
                 .tolist(),
                 "coordinate_tangent_A_per_coordinate_unit": tangent.tolist(),
+                "coordinate_tangent_norm_A_per_coordinate_unit": tangent_norm,
                 "analytic_coordinate_derivative_eV_per_coordinate_unit": (
                     analytic_derivative
                 ),
+                "normalized_cartesian_direction": unit_direction.tolist(),
                 "local_tangent_force_fd": local_force,
                 "maximum_primal_residual": max(
                     cold.actual_unmixed_residual_norm,

@@ -23,6 +23,7 @@ from maple.solvation.api.profiles import (
     SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID,
 )
 from maple.solvation.api.scalar_registry import (
+    VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
 )
 from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
@@ -102,13 +103,13 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         "_radii_angstrom",
         "_runtime_device",
         "_runtime_dtype",
+        "_scalar_id",
         "_source_radial_order",
         "_surface_lmax",
         "_transition_width_angstrom2",
     )
 
     provider_id = SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID
-    scalar_id = VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
     functional_contract_id = SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID
     continuum_profile_id = SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID
     cavity_profile_id = SMOOTH_HARMONIC_CAVITY_PROFILE_ID
@@ -145,6 +146,9 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         green_radial_quadrature_order: int = 128,
         dtype: object,
         device: object,
+        scalar_id: str = (
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
     ) -> None:
         numbers = tuple(atomic_numbers)
         if not numbers or any(
@@ -179,11 +183,19 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         width = _positive_float(
             transition_width_angstrom2, name="transition_width_angstrom2"
         )
+        normalized_scalar_id = str(scalar_id).strip()
+        if normalized_scalar_id not in {
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+        }:
+            raise ValueError(
+                "The harmonic continuum scalar binding is not preregistered."
+            )
         runtime_dtype = str(dtype)
         runtime_device = str(device)
         configuration_payload = {
             "provider_id": self.provider_id,
-            "scalar_id": self.scalar_id,
+            "scalar_id": normalized_scalar_id,
             "functional_contract_id": self.functional_contract_id,
             "continuum_profile_id": self.continuum_profile_id,
             "cavity_profile_id": self.cavity_profile_id,
@@ -228,6 +240,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         object.__setattr__(self, "_green_radial_order", green_order)
         object.__setattr__(self, "_runtime_dtype", runtime_dtype)
         object.__setattr__(self, "_runtime_device", runtime_device)
+        object.__setattr__(self, "_scalar_id", normalized_scalar_id)
         object.__setattr__(self, "_candidate_configuration_sha256", configuration)
         object.__setattr__(self, "_candidate_provenance_sha256", provenance)
         super().__init__(
@@ -238,6 +251,10 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             device=device,
             expected_atomic_numbers=numbers,
         )
+
+    @property
+    def scalar_id(self) -> str:
+        return self._scalar_id
 
     @property
     def radii_angstrom(self) -> tuple[float, ...]:

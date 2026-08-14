@@ -286,6 +286,11 @@ def _build_common(
         green_radial_quadrature_order=GREEN_RADIAL_QUADRATURE_ORDER,
         dtype=base._calculator.dtype,
         device=base._calculator.device,
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+            if analytic
+            else VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
     )
     common = build_variational_common_functional(
         model,

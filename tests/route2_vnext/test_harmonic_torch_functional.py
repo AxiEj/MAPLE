@@ -10,6 +10,7 @@ import pytest
 from maple.solvation.api import (
     PROFILE_REGISTRY,
     SCALAR_REGISTRY,
+    VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
 )
@@ -283,6 +284,7 @@ def test_pair_axis_section_retains_the_transverse_derivative_at_both_poles():
 
 
 def test_candidate_is_content_addressed_and_fail_closed(functional):
+    torch = pytest.importorskip("torch")
     assert len(functional.configuration_sha256()) == 64
     assert len(functional.provenance_sha256) == 64
     assert functional.capabilities.enabled_tiers == ()
@@ -312,6 +314,23 @@ def test_candidate_is_content_addressed_and_fail_closed(functional):
         == profile.continuum_configuration_contract_id
     )
     assert scalar.enabled is profile.enabled is False
+    analytic_binding = SmoothWeightedHarmonicGalerkinFunctionalCandidate(
+        atomic_numbers=NUMBERS,
+        radii_angstrom=RADII,
+        transition_width_angstrom2=0.18,
+        surface_lmax=1,
+        exposure_lmax=2,
+        exposure_radial_quadrature_order=32,
+        source_radial_quadrature_order=32,
+        green_radial_quadrature_order=32,
+        dtype=torch.float64,
+        device="cpu",
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
+    )
+    assert analytic_binding.scalar_id != functional.scalar_id
+    assert analytic_binding.configuration_sha256() != functional.configuration_sha256()
     with pytest.raises(AttributeError, match="immutable"):
         functional._radii_angstrom = (2.0, 2.0, 2.0)
     with pytest.raises(ValueError, match="distinct"):
@@ -327,6 +346,7 @@ def test_candidate_is_content_addressed_and_fail_closed(functional):
         ({"radii_angstrom": (1.0, 1.0)}, "one value per atom"),
         ({"surface_lmax": 2, "exposure_lmax": 2}, "at least twice"),
         ({"transition_width_angstrom2": 0.0}, "positive"),
+        ({"scalar_id": "unregistered-scalar"}, "not preregistered"),
     ),
 )
 def test_invalid_configuration_fails_closed(kwargs, message):

@@ -162,6 +162,9 @@ physical-configuration identity.
   Ethylamine extends the contiguous two-process coverage to `[0,14)`;
   evidence is retained under
   [`evidence/operational-analytic-harmonic-rigid-ethylamine-4b40b81a/`](evidence/operational-analytic-harmonic-rigid-ethylamine-4b40b81a/README.md).
+  Pyridine extends the contiguous two-process coverage to `[0,15)`;
+  evidence is retained under
+  [`evidence/operational-analytic-harmonic-rigid-pyridine-ce23da3e/`](evidence/operational-analytic-harmonic-rigid-pyridine-ce23da3e/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

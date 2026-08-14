@@ -98,7 +98,12 @@ The acetone shard is the fourth clean two-process pass; its evidence is under
 The acetonitrile shard is the fifth clean two-process pass; its evidence is
 under
 [`evidence/operational-analytic-harmonic-rigid-acetonitrile-cf43e050/`](evidence/operational-analytic-harmonic-rigid-acetonitrile-cf43e050/README.md).
-These five equilibrium molecules remain far short of the complete panel.
+Water was then repeated under the same three-rotation shard contract, with
+evidence under
+[`evidence/operational-analytic-harmonic-rigid-water-bea47120/`](evidence/operational-analytic-harmonic-rigid-water-bea47120/README.md).
+The contiguous frozen range `[0,5)` is therefore complete in two clean
+processes. These five equilibrium molecules remain far short of the complete
+panel.
 Physical components, solvation accuracy, PES/domain, Hessian/FREQ/MD, and
 release gates remain absent, so all capabilities remain false. The result
 supports the new coefficient-space replacement and does not repair or admit

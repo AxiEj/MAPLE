@@ -153,6 +153,15 @@ scientific digest
 All local gates pass, but this remains an incomplete equilibrium-only panel and
 does not change any capability.
 
+Water has also been rerun under this exact three-rotation shard contract, rather
+than being inferred from the earlier single-rotation force-directional canary.
+The two clean runs are retained under
+[`evidence/operational-analytic-harmonic-rigid-water-bea47120/`](evidence/operational-analytic-harmonic-rigid-water-bea47120/README.md)
+and reproduce scientific digest
+`d8802924939ad40814eb81986aef4e76a76ba03fde88880597b5724b8f45480c`.
+Consequently the contiguous frozen rigid-panel range `[0,5)` is now executed
+twice: five of twenty equilibrium molecules, with fifteen still missing.
+
 ## Legacy baseline
 
 At baseline `15777aad`, the old registry contains 20 experimental energy-only

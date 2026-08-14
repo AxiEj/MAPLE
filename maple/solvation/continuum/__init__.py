@@ -24,6 +24,17 @@ from .harmonic_galerkin import (
     radial_gto_source_rotation_matrix,
     real_wigner_matrix,
 )
+from .harmonic_exposure import (
+    HARMONIC_EXPOSURE_MAXIMUM_ALGEBRAIC_DEGREE,
+    SMOOTH_HARMONIC_EXPOSURE_CONTRACT_ID,
+    SMOOTH_HARMONIC_EXPOSURE_PROVIDER_ID,
+    SmoothHarmonicExposureSnapshot,
+    build_smooth_harmonic_exposure,
+    harmonic_multiplication_matrix,
+    project_harmonic_product,
+    smooth_flat_step,
+    smooth_pair_exposure_coefficients,
+)
 from .pair_frame_ensemble_cpcm import (
     OrderedPairFrameEnsembleRadialGTOCPCMBackend,
     PairFrameCPCMState,
@@ -58,9 +69,14 @@ __all__ = [
     "HARMONIC_GALERKIN_COEFFICIENT_CONTRACT_ID",
     "HARMONIC_GALERKIN_CPCM_FUNCTIONAL_PROVIDER_ID",
     "HARMONIC_GALERKIN_STATIONARY_SCALAR_CONTRACT_ID",
+    "HARMONIC_EXPOSURE_MAXIMUM_ALGEBRAIC_DEGREE",
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend",
     "PairFrameCPCMState",
+    "SMOOTH_HARMONIC_EXPOSURE_CONTRACT_ID",
+    "SMOOTH_HARMONIC_EXPOSURE_PROVIDER_ID",
+    "SmoothHarmonicExposureSnapshot",
     "build_pair_frame_water_cpcm_110_candidate",
+    "build_smooth_harmonic_exposure",
     "DDX_CAVITY_PROFILE_ID",
     "DDX_COSMO_PROFILE_ID",
     "DDX_PCM_PROFILE_ID",
@@ -72,5 +88,9 @@ __all__ = [
     "PerAtomHarmonicSpace",
     "radial_gto_source_rotation_matrix",
     "real_wigner_matrix",
+    "harmonic_multiplication_matrix",
+    "project_harmonic_product",
+    "smooth_flat_step",
+    "smooth_pair_exposure_coefficients",
     "build_water_radial_gto_ddpcm_194_candidate",
 ]

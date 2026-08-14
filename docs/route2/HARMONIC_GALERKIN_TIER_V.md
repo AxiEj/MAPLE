@@ -56,27 +56,75 @@ conjugation uses
 
 and preserves the scalar and drive covariance to floating-point/solve error.
 
+## Implemented smooth geometry descriptor
+
+`maple.solvation.continuum.harmonic_exposure` now implements the first
+geometry-dependent part of the global-smoothness branch without introducing a
+surface-point mask:
+
+- `smooth_flat_step` is a compact `C-infinity` switch with exact buried and
+  exposed plateaus;
+- each pair factor is reduced through the invariant one-dimensional integral
+
+  \[
+    k_\ell(d)=2\pi\int_{-1}^{1}
+      s\!\left(\frac{a_i^2+d^2-2a_i d t-a_j^2}{\delta}\right)
+      P_\ell(t)\,dt,
+  \]
+
+  followed by
+
+  \[
+    [e_{ij}]_{\ell m}=k_\ell(d)Y_{\ell m}(\widehat d_{ij});
+  \]
+
+- products are formed only after every factor has a declared finite harmonic
+  bandwidth. The backend rule is exact for the full finite algebraic degree of
+  the product and output test harmonic, so it is coefficient contraction rather
+  than sampling of a raw non-band-limited cavity field;
+- `harmonic_multiplication_matrix` constructs
+  \(P_L M_{e_i}P_L\) in complete real-irrep blocks;
+- `SmoothHarmonicExposureSnapshot` binds atoms, Å coordinates/radii, the
+  transition width in Å², harmonic orders, invariant radial rule, pair states,
+  coefficient arrays, multiplication matrices, implementation source, and
+  fixed topology to immutable SHA-256 identities.
+
+The descriptor has constant dimensions and no active node/coefficient
+deletion. Tests cover arbitrary continuous rotations, rigid translations,
+label permutations, finite-band product commutativity, multiplication-matrix
+covariance, cold replay, content tampering, compact-support screening, and a
+central-difference sweep through pair tangency. The radial quadrature error can
+change only the invariant scalars `k_l(d)`; it cannot select a laboratory
+orientation.
+
+This defines a regularized smooth weighted-overlap cavity descriptor. It is
+not mathematically identical to the sharp union of spheres inside the switching
+layer. The declared smooth domain excludes coincident sphere centres; that
+singular geometry fails closed rather than receiving a body-frame fallback.
+
 ## What this slice does not implement
 
-The snapshot matrices are external inputs. The repository does **not** yet
-assemble them from nuclear geometry by solid-harmonic translations, analytic
-Gaussian source coefficients, or coefficient-space overlap products.
-Consequently this slice does not establish
+The stationary-continuum snapshot matrices are still external inputs. The
+repository now assembles smooth overlap coefficients and their per-sphere
+multiplication matrices from geometry, but it does **not** yet assemble the
+continuum matrix `A(R)` or source map `S(R)` from solid-harmonic translations
+and analytic Gaussian source coefficients. Consequently the combined slice
+does not yet establish
 
 \[
   A(QR)=D(Q)A(R)D(Q)^{-1}
 \]
 
-for a production geometry assembler. It proves only that once covariant
-coefficient matrices are supplied, the finite representation, stationary
-scalar, exact adjoint receiver, and derivative plumbing preserve that
-structure.
+for a complete production continuum assembler. It proves that the exposure
+part is a coefficient-space intertwiner and that, once the remaining covariant
+matrices are supplied, the finite representation, stationary scalar, exact
+adjoint receiver, and derivative plumbing preserve that structure.
 
 It is therefore not:
 
 - a production ddPCM/ddCOSMO implementation;
 - a physical-accuracy result;
-- a moving-cavity coordinate derivative;
+- an analytic moving-cavity coordinate JVP/VJP;
 - a conservative total Route-2 nuclear force;
 - a completed electronic-continuum common functional;
 - a Tier E/F/H/V/M admission.
@@ -119,11 +167,14 @@ fixed-cavity milestone.
 
 ## Next implementation gate
 
-The next continuum PR must provide a geometry-bound assembler whose only
-directional inputs are inter-centre displacement vectors and whose blocks are
-built from solid-harmonic translation/addition formulas or equivalent STF
-tensor contractions. Exposure products must use exact Gaunt/Clebsch-Gordan
-coefficient algebra or another proven covariant projection.
+The next continuum PR must use the smooth descriptor in a geometry-bound
+assembler whose only directional inputs are inter-centre displacement vectors
+and whose Green/source blocks are built from solid-harmonic
+translation/addition formulas or equivalent STF tensor contractions. It must
+then differentiate those blocks and the exposure coefficients from the same
+scalar graph. The current dense exact finite-band contraction is a bounded
+reference; a production implementation may replace it with exact
+Gaunt/Clebsch-Gordan contractions without changing the coefficient contract.
 
 Before any capability is admitted, verify:
 

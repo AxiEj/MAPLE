@@ -11,12 +11,12 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar and current molecular-realspace SO(3) routes closed negative; analytic changed-inference canary positive but unadmitted | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a second clean zero-field counterexample isolates the pinned `graph_longrange` fixed-axis finite-difference feature/energy operators as non-`SO(3)`; the separately identified analytic Gaussian-multipole evaluator passes one clean common-state replay/envelope/rotation canary, but every profile remains unadmitted |
+| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative | a clean official-checkpoint canary rules out retaining the original intrinsic energy and original four-channel source; a second isolates the pinned fixed-axis real-space operator as non-`SO(3)`; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular in a reproducible local-stability canary, so every profile remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
-| 10: strict variational | disabled | original-energy/original-source route is formally ruled out by a real-checkpoint counterexample; the changed-source energy-gradient branch now has one reproducible real-checkpoint common-state/envelope canary but remains unadmitted |
+| 10: strict variational | disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch has a reproducible common-state/envelope canary but fails passivity, local invertibility, feedback-sign, and combined-Hessian gates at the tested real water state |
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from
@@ -54,6 +54,16 @@ measurement digest; evidence is retained under
 [`evidence/variational-analytic-harmonic-water-50809803/`](evidence/variational-analytic-harmonic-water-50809803/README.md).
 This changes the inference/model identity and does not establish checkpoint
 parity, physical accuracy, global passivity/uniqueness, or any release tier.
+
+The follow-up five-start local-stability run at clean head `604ecfa2` found the
+same local root within the frozen tolerances and closed `J_r=I-J_M H_G` to
+`4.81e-17` relative error. It nevertheless records 5 negative, 12 positive,
+and 6 near-zero eigenvalues of the model susceptibility, so passivity and local
+invertibility fail and no combined Legendre Hessian is available. The two cold
+processes have identical scientific measurements under
+[`evidence/variational-analytic-stability-water-604ecfa2/`](evidence/variational-analytic-stability-water-604ecfa2/README.md).
+This closes the current analytic candidate for Tier V without changing the
+separate operational-route target.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

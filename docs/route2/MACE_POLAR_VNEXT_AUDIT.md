@@ -288,6 +288,46 @@ multi-start uniqueness, combined-Hessian stability, physical source quality,
 all-geometry symmetry, PES/loop/NVE panels, solvation accuracy, Hessian/FREQ,
 and public release remain open. `E/F/H/V/M` all remain false.
 
+## Analytic candidate local-stability no-go
+
+The next canary froze five initial reduced fields and materialized, from the
+same scalar graphs, the reduced model susceptibility `J_M`, continuum Hessian
+`H_G`, and state Jacobian. It was executed twice at clean commit
+`604ecfa2035f140750124ada13df55f5bd3a3164`:
+
+```bash
+LD_LIBRARY_PATH=/home/axie/miniconda3/envs/maple/lib:${LD_LIBRARY_PATH:-} \
+python tools/route2_release/run_variational_analytic_stability_water_canary.py \
+  --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel \
+  --device cuda \
+  --output /tmp/route2-variational-analytic-stability-604ecfa2-run1.json
+```
+
+All five Anderson solves converged in 31 or 32 iterations. Their maximum
+reduced-root, source, and field relative differences were respectively
+`3.821619684420472e-10`, `3.821619668205479e-10`, and
+`4.39964064689302e-10`; the maximum scalar difference was
+`4.547473508864641e-13 eV`. The independent identity `J_r=I-J_M H_G` had
+relative Frobenius error `4.8093797227417603e-17`.
+
+This local operational root evidence does not satisfy the common-functional
+stability gate. `J_M` is reciprocal to `1.3495196506404244e-15` relative
+symmetry defect but has 5 eigenvalues below `-1e-12`, 12 above `+1e-12`, and 6
+within `1e-12` of zero. Its extrema are `-0.021567868753146407` and
+`+0.044638953966440714`. Thus the model is neither passive under the declared
+positive energy-dual convention nor locally invertible on the declared
+23-dimensional chart. The feedback nonnegative-spectrum gate fails and a
+combined Legendre Hessian cannot be constructed.
+
+Both clean processes reproduced measurement SHA-256
+`56e7b23760fbd45aadccc9d1579d3d8647ccba9879a30db72f5fff49d9a5e1ff`.
+Raw matrices, eigenvalues, roots, runtime/checkpoint identity, and the exact
+claim boundary are retained under
+[`evidence/variational-analytic-stability-water-604ecfa2/`](evidence/variational-analytic-stability-water-604ecfa2/README.md).
+This is a Tier-V no-go for the current analytic changed-inference candidate on
+its current declared space, not a failure of the separate operational scalar.
+`E/F/H/V/M` remain false.
+
 ## Real water same-scalar force audit
 
 Command:

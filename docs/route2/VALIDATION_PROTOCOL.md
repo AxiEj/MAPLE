@@ -82,6 +82,20 @@ stationary-scalar rotation errors were `2.799424692057073e-9 eV` in energy and
 the inference/model identity and covers only one geometry, direction, and
 rotation, it also admits no `E/F/H/V/M` tier.
 
+The preregistered follow-up local-stability protocol uses five fixed starts,
+the same `2e-10` root tolerance, dense actions from the sealed model and
+continuum scalar graphs, and the independent factorization `J_r=I-J_M H_G`.
+At clean head `604ecfa2`, all starts reached the same local water root within
+the frozen `1e-8` equivalence thresholds and the factorization error was
+`4.8093797227417603e-17`. However, the model susceptibility has both positive
+and negative eigenvalues plus six near-null modes, so passivity and local
+invertibility fail; feedback-sign and combined-Hessian gates also fail. A
+second cold process reproduces measurement SHA-256
+`56e7b23760fbd45aadccc9d1579d3d8647ccba9879a30db72f5fff49d9a5e1ff`.
+The raw evidence is
+`evidence/variational-analytic-stability-water-604ecfa2/`. This is negative
+Tier-V evidence and admits no `E/F/H/V/M` tier.
+
 The independently versioned protocol is frozen in
 `RESIDUAL_FORCE_GATE.md`. It uses three primal tolerances and three adjoint
 tolerance pairs, separates the two residual spaces, requires contraction or a

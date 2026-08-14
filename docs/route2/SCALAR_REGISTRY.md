@@ -309,11 +309,17 @@ public profile or a multi-geometry convergence certificate.
   `7ce9e9c07f40552ea513e0bbd4f29f4e4a5aa6887d7b5888c5647756525fe500`.
   See
   [`evidence/variational-analytic-harmonic-water-50809803/`](evidence/variational-analytic-harmonic-water-50809803/README.md).
+- Stability evidence: five fixed starts reproduce one local water root and
+  `J_r=I-J_M H_G`, but the same-scalar model susceptibility is indefinite and
+  singular. Passivity, local invertibility, feedback-sign, and combined-Hessian
+  gates fail reproducibly. See
+  [`evidence/variational-analytic-stability-water-604ecfa2/`](evidence/variational-analytic-stability-water-604ecfa2/README.md).
 - Profile:
   `route2-profile-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1`.
-- Capabilities/admission evidence: none / none. The canary is one changed-model
-  implementation check, not checkpoint parity, physical validation, global
-  passivity/uniqueness, PES/Hessian/FREQ evidence, or a release panel.
+- Capabilities/admission evidence: none / negative Tier-V stability evidence.
+  The implementation canary is not checkpoint parity or physical validation;
+  the later local spectrum is an explicit no-go for the current candidate on
+  its declared reduced space, not a global operational-PES or accuracy result.
   `E/F/H/V/M` remain false.
 
 See [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md) for the no-grid

@@ -29,7 +29,7 @@ CLI restriction.
 | `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate, fixed reciprocal C-PCM scalar, and their common constrained state/envelope kernel are implemented; a source-bound real-checkpoint water canary passes cold/warm replay and one three-step envelope FD, but the pinned molecular-realspace MACE scalar has a structural `SO(3)` counterexample in its upstream fixed-axis finite-difference long-range operator |
 | `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1` | no | no | no | no | no | complete-irrep coefficient action, exact-adjoint fixed-snapshot scalar, and common-state integration are implemented; the external coefficient snapshot is geometry independent and intentionally has zero continuum coordinate partial; every release gate remains missing |
 | `route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | distinct moving smooth weighted-overlap scalar; its Torch graph reassembles `E`, `K`, `V`, `A=E.T K E`, and `S=E.T V`, and a real-checkpoint water run passes root replay plus a three-step envelope FD; the harmonic continuum alone rotates at roundoff, but the full scalar fails because the current MACE molecular-realspace evaluator is not an exact `SO(3)` intertwiner |
-| `route2-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately identified changed-inference candidate; analytic isotropic Gaussian `l<=1` MACE real-space primitives plus the harmonic continuum are structurally equivariant, and one clean water common-state canary passes exact scientific replay, three-step envelope FD, and one rigid rotation; full-model global symmetry, passivity, uniqueness, physical calibration, PES, Hessian, and release gates remain open |
+| `route2-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately identified changed-inference candidate; one clean water common-state canary passes replay, envelope FD, and one rotation, and five starts find the same local root, but the source-bound reduced susceptibility is indefinite and singular, so passivity, local invertibility, feedback-sign, and combined-Hessian Tier-V gates fail |
 
 The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source
@@ -76,6 +76,19 @@ processes have identical scientific measurement SHA-256
 `7ce9e9c07f40552ea513e0bbd4f29f4e4a5aa6887d7b5888c5647756525fe500`.
 This is evidence for one changed model candidate, not checkpoint parity or a
 global Tier-V theorem; every capability remains `no`.
+
+The subsequent preregistered local-stability canary is retained under
+[`evidence/variational-analytic-stability-water-604ecfa2/`](evidence/variational-analytic-stability-water-604ecfa2/README.md).
+Five deterministic starts agree within the frozen root thresholds and the
+independent residual factorization has relative error
+`4.8093797227417603e-17`. However, the 23-dimensional model susceptibility has
+5 significantly negative, 12 significantly positive, and 6 near-zero
+eigenvalues. It therefore fails passivity and local invertibility; the
+feedback-sign and combined-Hessian gates also fail. Both processes reproduce
+measurement SHA-256
+`56e7b23760fbd45aadccc9d1579d3d8647ccba9879a30db72f5fff49d9a5e1ff`.
+This is negative Tier-V evidence; it does not affect the separate operational
+conservative-PES target, and every capability remains `no`.
 
 ## Legacy baseline
 

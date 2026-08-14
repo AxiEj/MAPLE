@@ -208,15 +208,21 @@ public profile or a multi-geometry convergence certificate.
 - Implemented: immutable scalar-to-response adapters; the constrained
   fixed-charge state `c=M_E(R,u)`, `u=grad_Q G(R,c)`; exact reduced JVP/VJP and
   coordinate pullbacks; deterministic cold/warm roots; stationary ledger; and
-  a fixed-chart envelope-gradient diagnostic. The integration test uses a
-  synthetic same-scalar electronic oracle plus the real fixed C-PCM backend;
-  it is engineering evidence, not checkpoint or chemical evidence.
+  a fixed-chart envelope-gradient diagnostic. Synthetic integration tests use a
+  same-scalar electronic oracle plus the real fixed C-PCM backend. A separate
+  official-checkpoint water canary now converges the changed-source common
+  state and matches one stationary-envelope coordinate direction at three
+  displacement sizes; its source/runtime-bound record is
+  [`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).
 - Excluded: the original four-channel density head as variational source,
   source-dependent cavities, nonpolar terms, and every public workflow.
-- Capabilities/evidence: none / none. Sign, gauge, passivity, root uniqueness
-  over a declared real-model domain, combined-Hessian stability, real-checkpoint
-  envelope derivatives, rotation, and release panels remain open. Therefore
-  `E/F/H/V/M` all remain false.
+- Capabilities/admission evidence: none / none. The linked canary is diagnostic
+  implementation evidence only. It covers one geometry and one direction using
+  a laboratory-grid continuum without structural global `SO(3)` covariance.
+  Passivity, root uniqueness over a declared real-model domain,
+  combined-Hessian stability, harmonic coordinate assembly, rotation, full
+  release panels, and chemical validation remain open. Therefore `E/F/H/V/M`
+  all remain false.
 
 ## `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`
 

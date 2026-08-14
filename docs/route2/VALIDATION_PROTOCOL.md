@@ -53,6 +53,19 @@ first-order/non-convergent step trend.
 The primal/adjoint residual contribution to force uncertainty must be below ten
 percent of the force-FD tolerance.
 
+The disabled changed-source strict-variational candidate has one separate
+real-checkpoint implementation canary at clean head `576550e9`. It solves the
+common state for equilibrium water, replays the root cold/warm, and evaluates
+one translation-free stationary-envelope direction at `5e-4`, `2e-4`, and
+`1e-4 Angstrom`. All three local comparisons pass the directional thresholds,
+and a second cold process reproduces measurement SHA-256
+`62d43c63868270fc74254cf0ddbc182b33af0d158c3fbca1ef6493cdf52ee9fc`.
+The raw record is
+`evidence/variational-common-water-576550e9/`. It is explicitly below
+admission scope: it changes the source identity, samples only one
+geometry/direction, and uses a laboratory-fixed Lebedev continuum without a
+structural global `SO(3)` guarantee. It therefore admits no `E/F/H/V/M` tier.
+
 The independently versioned protocol is frozen in
 `RESIDUAL_FORCE_GATE.md`. It uses three primal tolerances and three adjoint
 tolerance pairs, separates the two residual spaces, requires contraction or a

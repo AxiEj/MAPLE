@@ -1,0 +1,848 @@
+{
+  "argv": [
+    "tools/route2_release/run_variational_common_water_canary.py",
+    "--checkpoint",
+    "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "--device",
+    "cuda",
+    "--output",
+    "/tmp/route2-variational-common-water-576550e9-run1.json"
+  ],
+  "artifact_kind": "disabled-real-checkpoint-changed-source-common-scalar-canary",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "center_root_replay": {
+    "cold": {
+      "actual_unmixed_residual_norm": 1.104397210579806e-10,
+      "continuum_energy_eV": -0.016787299374682672,
+      "converged": true,
+      "coupling_energy_eV": -0.03357459874936536,
+      "field": [
+        [
+          0.17577770139484133,
+          0.09125771291699115,
+          -0.05360352316733016,
+          3.8928058249665254e-18,
+          -0.04153613123921591,
+          -0.00891421376114507,
+          5.122112927587534e-19,
+          -0.0069077433609127225
+        ],
+        [
+          0.12809645036542291,
+          0.08325734628635961,
+          -0.04775882114337306,
+          2.2537296881385146e-18,
+          -0.05369668719539182,
+          -0.00861312008699138,
+          2.561056463793767e-19,
+          -0.009572730722551801
+        ],
+        [
+          0.1281192487007904,
+          0.08326134708866093,
+          -0.06391436610668678,
+          3.380594532207772e-18,
+          -0.03284090124543305,
+          -0.011418776929596699,
+          6.91485245224317e-19,
+          -0.0059508167347509374
+        ]
+      ],
+      "gauge_potential_eV_per_e": 0.1149616344588444,
+      "initialization": "cold",
+      "iteration_history": [
+        {
+          "actual_unmixed_residual_norm": 0.3710254253238588,
+          "history_depth": 0,
+          "iteration": 0,
+          "step_norm": 0.18551271266192929
+        },
+        {
+          "actual_unmixed_residual_norm": 0.18478701605761416,
+          "history_depth": 1,
+          "iteration": 1,
+          "step_norm": 0.09203476506106928
+        },
+        {
+          "actual_unmixed_residual_norm": 0.09239318677599812,
+          "history_depth": 2,
+          "iteration": 2,
+          "step_norm": 0.04601708925330153
+        },
+        {
+          "actual_unmixed_residual_norm": 0.04619389785499984,
+          "history_depth": 3,
+          "iteration": 3,
+          "step_norm": 0.023005045471271163
+        },
+        {
+          "actual_unmixed_residual_norm": 0.02309706789100291,
+          "history_depth": 4,
+          "iteration": 4,
+          "step_norm": 0.01150268790823302
+        },
+        {
+          "actual_unmixed_residual_norm": 0.011548289717737522,
+          "history_depth": 5,
+          "iteration": 5,
+          "step_norm": 0.005750771663565666
+        },
+        {
+          "actual_unmixed_residual_norm": 0.005774433863204401,
+          "history_depth": 6,
+          "iteration": 6,
+          "step_norm": 0.0028756819341338837
+        },
+        {
+          "actual_unmixed_residual_norm": 0.002887192250019776,
+          "history_depth": 6,
+          "iteration": 7,
+          "step_norm": 0.0014378304528581058
+        },
+        {
+          "actual_unmixed_residual_norm": 0.0014435790370433018,
+          "history_depth": 6,
+          "iteration": 8,
+          "step_norm": 0.0007189537866891796
+        },
+        {
+          "actual_unmixed_residual_norm": 0.0007217325399203695,
+          "history_depth": 6,
+          "iteration": 9,
+          "step_norm": 0.0003594362605727102
+        },
+        {
+          "actual_unmixed_residual_norm": 0.0003608502086911249,
+          "history_depth": 6,
+          "iteration": 10,
+          "step_norm": 0.00017964106704228936
+        },
+        {
+          "actual_unmixed_residual_norm": 0.00018048779424094074,
+          "history_depth": 6,
+          "iteration": 11,
+          "step_norm": 8.98813099481951e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 9.024445175173677e-05,
+          "history_depth": 6,
+          "iteration": 12,
+          "step_norm": 4.494089939672333e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 4.512269477424156e-05,
+          "history_depth": 6,
+          "iteration": 13,
+          "step_norm": 2.2470733189725675e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 2.256150485753085e-05,
+          "history_depth": 6,
+          "iteration": 14,
+          "step_norm": 1.1235403769460886e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 1.1280816094685828e-05,
+          "history_depth": 6,
+          "iteration": 15,
+          "step_norm": 5.6177570951572175e-06
+        },
+        {
+          "actual_unmixed_residual_norm": 5.640476165392903e-06,
+          "history_depth": 6,
+          "iteration": 16,
+          "step_norm": 2.8089045865112282e-06
+        },
+        {
+          "actual_unmixed_residual_norm": 2.82021292574917e-06,
+          "history_depth": 6,
+          "iteration": 17,
+          "step_norm": 1.404454672037087e-06
+        },
+        {
+          "actual_unmixed_residual_norm": 1.4100817803543277e-06,
+          "history_depth": 6,
+          "iteration": 18,
+          "step_norm": 7.022303023585622e-07
+        },
+        {
+          "actual_unmixed_residual_norm": 7.050151767753471e-07,
+          "history_depth": 6,
+          "iteration": 19,
+          "step_norm": 3.510848453493746e-07
+        },
+        {
+          "actual_unmixed_residual_norm": 3.525181754671177e-07,
+          "history_depth": 6,
+          "iteration": 20,
+          "step_norm": 1.755485971594249e-07
+        },
+        {
+          "actual_unmixed_residual_norm": 1.7632106912339297e-07,
+          "history_depth": 6,
+          "iteration": 21,
+          "step_norm": 8.780690620647003e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 8.815985199586134e-08,
+          "history_depth": 6,
+          "iteration": 22,
+          "step_norm": 4.390666388295945e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 4.407543895086246e-08,
+          "history_depth": 6,
+          "iteration": 23,
+          "step_norm": 2.195820334187159e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 2.2047720554732895e-08,
+          "history_depth": 6,
+          "iteration": 24,
+          "step_norm": 1.0968677370044958e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 1.1034475239801602e-08,
+          "history_depth": 6,
+          "iteration": 25,
+          "step_norm": 5.4806436560580195e-09
+        },
+        {
+          "actual_unmixed_residual_norm": 5.532724817156245e-09,
+          "history_depth": 6,
+          "iteration": 26,
+          "step_norm": 2.7375502029524032e-09
+        },
+        {
+          "actual_unmixed_residual_norm": 2.7857825386195497e-09,
+          "history_depth": 6,
+          "iteration": 27,
+          "step_norm": 1.3772603990027854e-09
+        },
+        {
+          "actual_unmixed_residual_norm": 1.4069464272505362e-09,
+          "history_depth": 6,
+          "iteration": 28,
+          "step_norm": 6.872473320471769e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 7.287222281144312e-10,
+          "history_depth": 6,
+          "iteration": 29,
+          "step_norm": 3.4397110231769575e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 4.435833335520801e-10,
+          "history_depth": 6,
+          "iteration": 30,
+          "step_norm": 2.232048104818922e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 2.2085804895500148e-10,
+          "history_depth": 6,
+          "iteration": 31,
+          "step_norm": 1.1050351258323362e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 1.104397210579806e-10,
+          "history_depth": 0,
+          "iteration": 32,
+          "step_norm": 0.0
+        }
+      ],
+      "iterations": 32,
+      "model_energy_eV": -2079.8973328901448,
+      "primal_tolerance": 2e-10,
+      "root_context_id": "route2-variational-common-water-canary-v1/equilibrium",
+      "root_hash": "6db76ce5f5496235c0b36bb5c291ef9986689e9df924fa26d8b6b399960e6bbc",
+      "source": [
+        [
+          -0.03442476675717152,
+          -0.0003384531312719645,
+          0.07939179155198947,
+          0.0,
+          0.061541150715337806,
+          0.00022548177619707466,
+          0.0,
+          0.000174500712323872
+        ],
+        [
+          0.017815890907678975,
+          -0.00043317576064441296,
+          -0.016590830256927154,
+          0.0,
+          0.24912588843554168,
+          -0.0003236762543857685,
+          0.0,
+          0.00048120976735133603
+        ],
+        [
+          0.01781346302339128,
+          -0.000432958281982327,
+          0.23707324782884187,
+          0.0,
+          -0.07828910682848403,
+          0.00038542259539761864,
+          0.0,
+          -0.0004338937300289726
+        ]
+      ],
+      "total_energy_eV": -2079.88054559077,
+      "y": [
+        -0.02408802909658527,
+        0.07939179155198947,
+        0.0,
+        0.061541150715337806,
+        0.00022548177619707466,
+        0.0,
+        0.000174500712323872,
+        -0.005933685057634331,
+        -0.02418275172595772,
+        -0.016590830256927154,
+        0.0,
+        0.24912588843554168,
+        -0.0003236762543857685,
+        0.0,
+        0.00048120976735133603,
+        -0.005936112941922027,
+        -0.024182534247295634,
+        0.23707324782884187,
+        0.0,
+        -0.07828910682848403,
+        0.00038542259539761864,
+        0.0,
+        -0.0004338937300289726
+      ]
+    },
+    "contract": "route2-root-equivalence-v1",
+    "energy_abs_difference_eV": 0.0,
+    "gate_passed": true,
+    "numerically_equivalent": true,
+    "source_l2_difference": 0.0,
+    "source_relative_difference": 0.0,
+    "warm": {
+      "actual_unmixed_residual_norm": 1.104397210579806e-10,
+      "continuum_energy_eV": -0.016787299374682672,
+      "converged": true,
+      "coupling_energy_eV": -0.03357459874936536,
+      "field": [
+        [
+          0.17577770139484133,
+          0.09125771291699115,
+          -0.05360352316733016,
+          3.8928058249665254e-18,
+          -0.04153613123921591,
+          -0.00891421376114507,
+          5.122112927587534e-19,
+          -0.0069077433609127225
+        ],
+        [
+          0.12809645036542291,
+          0.08325734628635961,
+          -0.04775882114337306,
+          2.2537296881385146e-18,
+          -0.05369668719539182,
+          -0.00861312008699138,
+          2.561056463793767e-19,
+          -0.009572730722551801
+        ],
+        [
+          0.1281192487007904,
+          0.08326134708866093,
+          -0.06391436610668678,
+          3.380594532207772e-18,
+          -0.03284090124543305,
+          -0.011418776929596699,
+          6.91485245224317e-19,
+          -0.0059508167347509374
+        ]
+      ],
+      "gauge_potential_eV_per_e": 0.1149616344588444,
+      "initialization": "warm",
+      "iteration_history": [
+        {
+          "actual_unmixed_residual_norm": 1.104397210579806e-10,
+          "history_depth": 0,
+          "iteration": 0,
+          "step_norm": 0.0
+        }
+      ],
+      "iterations": 0,
+      "model_energy_eV": -2079.8973328901448,
+      "primal_tolerance": 2e-10,
+      "root_context_id": "route2-variational-common-water-canary-v1/equilibrium",
+      "root_hash": "4604e0ec36dceabe9a6650f55c7b92f9d14ec114edfbc6b0e87e8d5c4ec347b2",
+      "source": [
+        [
+          -0.03442476675717152,
+          -0.0003384531312719645,
+          0.07939179155198947,
+          0.0,
+          0.061541150715337806,
+          0.00022548177619707466,
+          0.0,
+          0.000174500712323872
+        ],
+        [
+          0.017815890907678975,
+          -0.00043317576064441296,
+          -0.016590830256927154,
+          0.0,
+          0.24912588843554168,
+          -0.0003236762543857685,
+          0.0,
+          0.00048120976735133603
+        ],
+        [
+          0.01781346302339128,
+          -0.000432958281982327,
+          0.23707324782884187,
+          0.0,
+          -0.07828910682848403,
+          0.00038542259539761864,
+          0.0,
+          -0.0004338937300289726
+        ]
+      ],
+      "total_energy_eV": -2079.88054559077,
+      "y": [
+        -0.02408802909658527,
+        0.07939179155198947,
+        0.0,
+        0.061541150715337806,
+        0.00022548177619707466,
+        0.0,
+        0.000174500712323872,
+        -0.005933685057634331,
+        -0.02418275172595772,
+        -0.016590830256927154,
+        0.0,
+        0.24912588843554168,
+        -0.0003236762543857685,
+        0.0,
+        0.00048120976735133603,
+        -0.005936112941922027,
+        -0.024182534247295634,
+        0.23707324782884187,
+        0.0,
+        -0.07828910682848403,
+        0.00038542259539761864,
+        0.0,
+        -0.0004338937300289726
+      ]
+    }
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": "This one-water result checks a changed-source scalar-first model, one fixed-topology reciprocal C-PCM scalar, one stationary root, and one coordinate direction. It does not prove global passivity, root uniqueness, SO(3) covariance, a moving-cavity derivative, chemical accuracy, or Route-2 E/F/H/V/M admission.",
+  "decision": {
+    "cold_warm_root_gate_passed": true,
+    "global_so3_guarantee": false,
+    "original_density_head_role": "zero-field-anchor-and-diagnostic-only",
+    "public_force_admitted": false,
+    "same_scalar_real_checkpoint_canary_passed": true,
+    "source_model_identity": "changed-complete-eight-channel-field-energy-gradient-effective-source",
+    "stationary_root_converged": true,
+    "three_step_envelope_directional_gate_passed": true,
+    "tier_v_admitted": false
+  },
+  "device": "cuda",
+  "dtype": "float64",
+  "envelope_directional_derivative": {
+    "admitted": false,
+    "all_steps_passed": true,
+    "continuum_coordinate_gradient_eV_per_A": [
+      [
+        0.0021916294921210497,
+        0.0028383941851828722,
+        3.809571489893228e-19
+      ],
+      [
+        -0.0037822675571156142,
+        0.0006584061371736761,
+        -1.8287543811777365e-19
+      ],
+      [
+        0.0015906380649945648,
+        -0.00349680032235655,
+        -1.6006602898711043e-19
+      ]
+    ],
+    "coordinate_direction": [
+      [
+        0.25552017459374127,
+        0.05599742924093023,
+        0.4954030421230174
+      ],
+      [
+        0.2583582413890081,
+        -0.14798052789691798,
+        -0.565709644145898
+      ],
+      [
+        -0.5138784159827495,
+        0.09198309865598783,
+        0.07030660202288061
+      ]
+    ],
+    "directional_steps": [
+      {
+        "absolute_error_eV_per_A": 2.7915015345103544e-07,
+        "analytic_eV_per_A": -0.1039157969636657,
+        "finite_difference_eV_per_A": -0.10391607611381914,
+        "gate_passed": true,
+        "minus_primal_residual": 1.7539129996487734e-10,
+        "minus_root_hash": "c728ed4a2acd39368e223b333b6358f096cac4d93bb20af3777affef9b53b6c3",
+        "minus_total_energy_eV": -2079.8804927292235,
+        "plus_primal_residual": 1.7542595830896275e-10,
+        "plus_root_hash": "05ad7c1c1476f42493aac6b8d29894490c3db4be777e7b93933b2413e9f43bbf",
+        "plus_total_energy_eV": -2079.8805966452996,
+        "relative_error": 2.686303831808301e-06,
+        "step_A": 0.0005
+      },
+      {
+        "absolute_error_eV_per_A": 4.157446151231703e-09,
+        "analytic_eV_per_A": -0.1039157969636657,
+        "finite_difference_eV_per_A": -0.10391579280621954,
+        "gate_passed": true,
+        "minus_primal_residual": 1.409462807064071e-10,
+        "minus_root_hash": "c233a1851bbe12cced68bd73816220f301cd74b549b681b816385852c957655d",
+        "minus_total_energy_eV": -2079.8805246634915,
+        "plus_primal_residual": 1.4045341480045426e-10,
+        "plus_root_hash": "fdf7aa000607ec26b53cdd99e904f2fb8487bf3b97faef0a219cdbc233c22ce0",
+        "plus_total_energy_eV": -2079.8805662298087,
+        "relative_error": 4.000783588933413e-08,
+        "step_A": 0.0002
+      },
+      {
+        "absolute_error_eV_per_A": 2.9895738047208686e-06,
+        "analytic_eV_per_A": -0.1039157969636657,
+        "finite_difference_eV_per_A": -0.10391280738986097,
+        "gate_passed": true,
+        "minus_primal_residual": 1.4014257509271254e-10,
+        "minus_root_hash": "5e0d8662659b5336222ea27fb89758423f5337ede21ec9d2d9f277560f859486",
+        "minus_total_energy_eV": -2079.880535163709,
+        "plus_primal_residual": 1.4041645453953515e-10,
+        "plus_root_hash": "4045ef21258a53a64d149a98e8223e2f8bb6c015972cf0e5083be6760bc7c9df",
+        "plus_total_energy_eV": -2079.8805559462703,
+        "relative_error": 2.8769194791107433e-05,
+        "step_A": 0.0001
+      }
+    ],
+    "model_coordinate_gradient_eV_per_A": [
+      [
+        0.14199411666878434,
+        0.20246818248480172,
+        -0.00018130359443565473
+      ],
+      [
+        -0.25086044298693266,
+        0.04386902273121622,
+        9.047222475977811e-05
+      ],
+      [
+        0.10886632631815044,
+        -0.24633720521601968,
+        9.083136967587662e-05
+      ]
+    ],
+    "total_coordinate_gradient_eV_per_A": [
+      [
+        0.14418574616090538,
+        0.2053065766699846,
+        -0.00018130359443565435
+      ],
+      [
+        -0.2546427105440483,
+        0.044527428868389896,
+        9.047222475977794e-05
+      ],
+      [
+        0.110456964383145,
+        -0.24983400553837623,
+        9.083136967587646e-05
+      ]
+    ]
+  },
+  "exact_command": "tools/route2_release/run_variational_common_water_canary.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cuda --output /tmp/route2-variational-common-water-576550e9-run1.json",
+  "execution_git_head": "576550e9cfe1011519c7bd93e7ee256972ff2560",
+  "execution_git_tree": "fbdeaa62ad2c865d8e7508d71917d4b907008faf",
+  "geometry": {
+    "atomic_numbers": [
+      8,
+      1,
+      1
+    ],
+    "charge": 0,
+    "formula": "H2O",
+    "multiplicity": 1,
+    "positions_A": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.239,
+        0.9266,
+        0.0
+      ]
+    ]
+  },
+  "identity": {
+    "backend_configuration_sha256": "6ed595040fa1d70a0770c0da65df7a3a3f7de4700976e837c5b44a3bcc1c5310",
+    "cavity_profile_id": "fixed-topology-amplitude-swig-v1",
+    "common_functional_sha256": "9e707b6624cd74260f0f3d1acbbb1bf0cad4517f52a502e47e56d203f3ca5615",
+    "conjugacy_sign": 1,
+    "continuum_configuration_contract_id": "maple.route2.continuum-configuration.water-eps78p39-smd-radii-lebedev194.v1",
+    "continuum_configuration_sha256": "dfcb269db7fb292c55e58e085884d5f4b7ce2626deae713702d8ea70595f20df",
+    "continuum_profile_id": "fixed-topology-linear-reciprocal-cpcm-v1",
+    "continuum_provenance_sha256": "290db83f9ef5d7a64253c402af19d1070cd6084765573d72c00624fcc2b61dfc",
+    "continuum_provider_id": "maple.route2.continuum.fixed-reciprocal-radial-gto-cpcm-functional.impl.v1",
+    "duality_map_sha256": "5ca4c327f53ee19bc6eb8b77ded6ed6e99706c5d13736dacd2f036bd6e720713",
+    "field_graph_configuration_sha256": "0ca189e06a975a5874394cc17a16a449f049e31c7e854362eb8e76a5d904afab",
+    "field_space_sha256": "b0f9441c5f458a545ada801c12f5d082e2377c5dbc19f60d2854a0f49e82aaa6",
+    "model_configuration_sha256": "9b481bd7055cb2221cabb88031019e5c48ea59bd77b59244be5fc18fc4a705e6",
+    "model_profile_id": "mace-polar-route2-variational-effective-source-v1",
+    "model_provenance_sha256": "bfe11063d249d24caa849888dd0fd0eb8f7824542c2f7806f53d866e52238846",
+    "model_provider_id": "maple.route2.model.mace-polar-field-energy-anchored.impl.v1",
+    "pairing_sha256": "8460c72252e9ebff25fef12ba5793d88b800604da54f07e9a4af544b052377ca",
+    "profile_id": "route2-profile-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
+    "scalar_id": "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
+    "source_space_sha256": "aca814119c0f4d54588ab0c8c6c31d92217e47a2dd14e8ccb991d12737576d89",
+    "state_equation_id": "route2-common-functional-stationarity-v1",
+    "state_equation_sha256": "7ba4fe00d3774357c40b098899ffefa422a797272178e7715e965da422bc790b",
+    "total_charge": 0.0
+  },
+  "measurement_sha256": "62d43c63868270fc74254cf0ddbc182b33af0d158c3fbca1ef6493cdf52ee9fc",
+  "protocol": {
+    "continuum_representation": "fixed-topology amplitude-SWIG on a laboratory-fixed 194-point Lebedev rule; not a structural SO(3) representation",
+    "directional_thresholds": {
+      "absolute_eV_per_A": 0.0005,
+      "both_required": true,
+      "relative": 0.002
+    },
+    "fd_steps_A": [
+      0.0005,
+      0.0002,
+      0.0001
+    ],
+    "random_seed": 20260814,
+    "root_context_id": "route2-variational-common-water-canary-v1/equilibrium",
+    "root_options": {
+      "damping": 0.5,
+      "history": 6,
+      "max_iterations": 100,
+      "method": "anderson",
+      "tolerance": 2e-10
+    },
+    "root_replay_thresholds": {
+      "energy_absolute_eV": 1e-08,
+      "source_relative": 1e-08
+    }
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-14T07:24:57.265162+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 90.39051994300098,
+  "schema_version": "route2-variational-common-water-real-checkpoint-canary-v1",
+  "solve_timings_seconds": [
+    {
+      "sign": 1.0,
+      "solve_seconds": 10.334074732993031,
+      "step_A": 0.0005
+    },
+    {
+      "sign": -1.0,
+      "solve_seconds": 10.466054282005643,
+      "step_A": 0.0005
+    },
+    {
+      "sign": 1.0,
+      "solve_seconds": 10.093660769984126,
+      "step_A": 0.0002
+    },
+    {
+      "sign": -1.0,
+      "solve_seconds": 10.32995361200301,
+      "step_A": 0.0002
+    },
+    {
+      "sign": 1.0,
+      "solve_seconds": 9.714080589008518,
+      "step_A": 0.0001
+    },
+    {
+      "sign": -1.0,
+      "solve_seconds": 9.7622230410052,
+      "step_A": 0.0001
+    }
+  ],
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "fffa8563eea7ff42e1cd51034ce0b6f1f9eaac65a06a1832f704956f2cdaf460",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "2e95749ee36ffac7c091f797ec7271ac55db156e3e12295ebc16bd5adcb30172",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "7c1f49469c854aaa5cac6f9bd158add621735b0d38d3a4c3bf708ef0676c2e71",
+    "maple/solvation/api/state_registry.py": "f39c6f4b143276a309598b73183be8689d7a3b1f14073fb8de74d024db3c0540",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "45686e6db9008a4e7fad1495a4b20211e88c12ea7dedc21acab018804147a7d9",
+    "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py": "72910a2c942edef23b185f66755d9d813351d76da7e5256729d64f751a7a1277",
+    "maple/solvation/continuum/fixed_reciprocal_functional.py": "429072aee16f678aa8d1cd2386969e0a14fd2a7691cab70975d28d2e67d4ab3a",
+    "maple/solvation/continuum/fixed_topology_cpcm.py": "daa4c289db596d68b0758c81e1840ed1dac117da0573885cd3b0cf9431c7bb8d",
+    "maple/solvation/continuum/functional.py": "8229c0b670312506c5ecf0798c78dcecc849aaee8833a2e2327037d95958c471",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/coupling/variational_adapters.py": "9f0271be35622b0a6f82aa1edd7266b4cf6458df2a4ef276c79592094753b14e",
+    "maple/solvation/coupling/variational_state.py": "cd7cf9c4685afcf572e15bcd720eab77df7894406e4f54ebcf834e92f01d6049",
+    "maple/solvation/models/__init__.py": "5313d8bd266fdfb18b5510cda4bda8275b66ab2d7f032c11d063ebe519972856",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "bbaf19153e9a35c5bebd65f35930c2f7fb33a0a10b87aa95a1eafdf0a93f28ef",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_variational.py": "85c41193036fc57191e7da4ac9e6ad61a9d3547a696c0e473d34f00f90f0017f",
+    "maple/solvation/release/__init__.py": "34754a8ef368354e085ab5d5e4a22c28d028d4967f405ab9b8fb2d6f1173a4b8",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/surfaces/__init__.py": "3169105c99a34da026c0bfedf10495620a67f2d82d8e5dd0444895d376c534ec",
+    "maple/solvation/surfaces/base.py": "f49af6fa92cca5e8408bfabc2ec20c1969fd815f3da38422406ee050bf8d18f0",
+    "maple/solvation/surfaces/fixed_topology.py": "31c0dd77b64e93666ff759236ec41b204095bc224ec7bf09f623fcfaf9fc1e2a",
+    "tools/route2_release/run_variational_common_water_canary.py": "b8b2855652ed33eebbb4f3c987bafb90fd30e58ebd5a038ce796757e2356adc8"
+  },
+  "status": "same-scalar-canary-passed-not-admitted",
+  "working_tree_clean": true
+}

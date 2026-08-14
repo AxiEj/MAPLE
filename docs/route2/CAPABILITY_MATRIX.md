@@ -26,7 +26,7 @@ CLI restriction.
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
 | `route2-variational-common-functional-v1` | no | no | no | no | no | the current checkpoint's original intrinsic energy plus original four-channel source instantiation is formally ruled out by a source-bound real-checkpoint counterexample; the generic scalar identity remains disabled rather than being reassigned to a changed model |
-| `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate, fixed reciprocal C-PCM scalar, and their common constrained state/envelope kernel are implemented; the original density head is diagnostic only; real-checkpoint sign/gauge/passivity/root-uniqueness/combined-Hessian/envelope/rotation/release gates remain open |
+| `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate, fixed reciprocal C-PCM scalar, and their common constrained state/envelope kernel are implemented; a source-bound real-checkpoint water canary passes cold/warm replay and one three-step envelope FD, but the original density head remains diagnostic and passivity/root-uniqueness/combined-Hessian/structural-rotation/full-panel gates remain open |
 | `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1` | no | no | no | no | no | complete-irrep coefficient action, rectangular weighted product embedding, geometry-assembled Coulomb `K`, `A=E.T K E`, eight-channel `S=E.T V`, exact-adjoint scalar, and fixed-snapshot common-state integration are implemented; the reference is structurally `SO(3)` covariant and `C1` but not generally `C2` at shell tangency; analytic geometry pullback, real-checkpoint stability, physical calibration, and every release gate remain missing |
 
 The first release target is the operational electrostatic profile. Tier V is
@@ -42,6 +42,14 @@ thresholds near `5.23e-10`; both source/energy signs fail. This closes only the
 "retain original energy and original source" route. The separately named
 eight-channel energy-gradient source is a changed model identity and has no
 admitted tier.
+
+The corresponding positive-but-narrow changed-source implementation canary is
+[`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).
+It proves that one real water state of the new scalar converges and that its
+stationary-envelope derivative matches three re-solved finite differences. It
+does not override the `no` entries above: the sampled Lebedev continuum has no
+structural global `SO(3)` guarantee, and the required passivity, uniqueness,
+Hessian, domain, PES, and chemical gates are absent.
 
 ## Legacy baseline
 

@@ -135,6 +135,49 @@ the original energy and original source can both be retained unchanged in one
 scalar. It does not admit the separately defined eight-channel energy-gradient
 effective source, conservative nuclear forces, or any chemical-accuracy claim.
 
+## Changed-source common-stationarity canary
+
+The separately named complete eight-channel energy-gradient source was then
+tested with the fixed reciprocal CPCM194 scalar at clean execution commit
+`576550e9cfe1011519c7bd93e7ee256972ff2560`:
+
+```bash
+python tools/route2_release/run_variational_common_water_canary.py \
+  --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel \
+  --device cuda \
+  --output /tmp/route2-variational-common-water-576550e9-run1.json
+```
+
+The common state converged in 32 Anderson iterations to actual unmixed reduced
+residual `1.104397210579806e-10`. A warm evaluation from the stored root had
+zero source and stationary-energy difference. For one deterministic
+translation-free coordinate direction, the stationary-envelope derivative was
+`-0.1039157969636657 eV/Angstrom`. Three independently re-solved central
+differences gave:
+
+| step (Angstrom) | absolute error (eV/Angstrom) | relative error |
+| ---: | ---: | ---: |
+| `5e-4` | `2.7915015345103544e-7` | `2.686303831808301e-6` |
+| `2e-4` | `4.157446151231703e-9` | `4.000783588933413e-8` |
+| `1e-4` | `2.9895738047208686e-6` | `2.8769194791107433e-5` |
+
+An independent cold process reproduced the complete protocol, geometry,
+identity, roots, envelope measurement, and decision exactly. Both executions
+have measurement SHA-256
+`62d43c63868270fc74254cf0ddbc182b33af0d158c3fbca1ef6493cdf52ee9fc`.
+Raw source/checkpoint/runtime-bound evidence and unfiltered runtime warnings are
+retained under
+[`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).
+
+This closes only a one-geometry implementation canary for the *changed model
+identity*. The original density head is the zero-field anchor and a diagnostic,
+not the returned source. The continuum still uses a conventional
+laboratory-fixed 194-point Lebedev assembly, which has no structural global
+`SO(3)` guarantee. Passivity, root uniqueness over a declared domain, combined
+Hessian stability, harmonic moving-geometry derivatives, full symmetry/PES
+panels, and chemical validation remain open. Therefore `E/F/H/V/M` all remain
+false and no public force was admitted.
+
 ## Real water same-scalar force audit
 
 Command:

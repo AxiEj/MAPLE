@@ -11,12 +11,12 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic scalar assembly complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch now assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance; analytic coordinate derivatives, physical calibration, and all release gates remain missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar route closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX retain nonzero methanol rotation drift; every candidate remains unadmitted |
+| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar route closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a distinct changed-source common-state water canary passes cold/warm replay and one three-step envelope FD; the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX retain nonzero methanol rotation drift; every candidate remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
-| 10: strict variational | disabled | original-energy/original-source route is formally ruled out by a real-checkpoint counterexample; the changed-source energy-gradient branch remains unadmitted |
+| 10: strict variational | disabled | original-energy/original-source route is formally ruled out by a real-checkpoint counterexample; the changed-source energy-gradient branch now has one reproducible real-checkpoint common-state/envelope canary but remains unadmitted |
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from
@@ -29,10 +29,16 @@ The common constrained state and stationary scalar `E-s<c,u>+sG` are now
 implemented by thin scalar-derived adapters over the existing reduced solver.
 Synthetic same-scalar tests with the real fixed C-PCM backend close reduced
 JVP/VJP, coordinate pullback, cold/warm replay, half-coupling ledger, and a
-re-solved envelope finite difference.  The fixed harmonic snapshot also enters
-the same kernel. No capability tier is enabled: real-checkpoint sign/gauge,
-passivity/root uniqueness, combined-Hessian stability, geometry-dependent
-envelope, rotation, and release evidence remain pending.
+re-solved envelope finite difference. The fixed harmonic snapshot also enters
+the same kernel. At clean head `576550e9`, the official checkpoint plus the
+changed eight-channel source converged one water common state, replayed it
+exactly, and matched one envelope direction at all three displacement sizes;
+the raw record is
+[`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).
+No capability tier is enabled: this is one geometry/direction on the
+laboratory-grid continuum, while passivity/root uniqueness, combined-Hessian
+stability, structural rotation, harmonic geometry derivatives, and full
+release evidence remain pending.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

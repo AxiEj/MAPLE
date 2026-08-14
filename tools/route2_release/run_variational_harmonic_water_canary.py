@@ -30,9 +30,13 @@ from ase import Atoms
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 
 from maple.solvation.api.profiles import (
+    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
+    MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
+    VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
 )
 from maple.solvation.api.scalar_registry import (
+    VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
 )
 from maple.solvation.continuum import (
@@ -65,6 +69,14 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
 
 SCHEMA_VERSION = "route2-variational-harmonic-water-real-checkpoint-canary-v1"
 ARTIFACT_KIND = "disabled-real-checkpoint-changed-source-harmonic-common-scalar-canary"
+ANALYTIC_SCHEMA_VERSION = (
+    "route2-variational-analytic-gaussian-multipole-harmonic-water-"
+    "real-checkpoint-canary-v1"
+)
+ANALYTIC_ARTIFACT_KIND = (
+    "disabled-real-checkpoint-analytic-gaussian-multipole-"
+    "changed-source-harmonic-common-scalar-canary"
+)
 DEFAULT_CHECKPOINT = Path.home() / ".cache" / "mace" / "MACEPOLAR1Mmodel"
 RANDOM_SEED = 20260814
 FD_STEPS_ANGSTROM = (5.0e-4, 2.0e-4, 1.0e-4)
@@ -112,6 +124,7 @@ REQUIRED_SOURCE_PATHS = (
     "maple/solvation/coupling/variational_adapters.py",
     "maple/solvation/coupling/variational_state.py",
     "maple/solvation/models/field_energy.py",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py",
     "maple/solvation/models/mace_polar.py",
     "maple/solvation/models/mace_polar_variational.py",
     "maple/solvation/release/evidence.py",
@@ -131,6 +144,18 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cuda")
+    parser.add_argument(
+        "--model-evaluator-profile",
+        choices=(
+            MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
+            MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
+        ),
+        default=MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
+        help=(
+            "Select the original fixed-axis molecular operator or the "
+            "separately identified analytic Gaussian multipole candidate."
+        ),
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -231,10 +256,20 @@ def _configure_determinism(torch) -> None:
     torch.use_deterministic_algorithms(True)
 
 
-def _build_common(atoms: Atoms, checkpoint: Path, device: str):
+def _build_common(
+    atoms: Atoms,
+    checkpoint: Path,
+    device: str,
+    *,
+    model_evaluator_profile: str = MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
+):
+    analytic = (
+        model_evaluator_profile == MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
+    )
     base = build_official_mace_polar_1_m_radial_gto_adapter(
         checkpoint_path=checkpoint,
         device=device,
+        long_range_evaluator_profile=model_evaluator_profile,
     )
     model = MACEPolarVariationalFieldEnergy(base)
     radii = tuple(
@@ -256,9 +291,15 @@ def _build_common(atoms: Atoms, checkpoint: Path, device: str):
         model,
         continuum,
         atoms,
-        scalar_id=VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+            if analytic
+            else VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
         profile_id=(
-            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+            if analytic
+            else VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
         ),
     )
     return base, model, continuum, common
@@ -485,7 +526,21 @@ def main() -> None:
 
     _configure_determinism(torch)
     atoms = _water()
-    base, model, continuum, common = _build_common(atoms, checkpoint, args.device)
+    analytic_model_evaluator = args.model_evaluator_profile == (
+        MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
+    )
+    schema_version = (
+        ANALYTIC_SCHEMA_VERSION if analytic_model_evaluator else SCHEMA_VERSION
+    )
+    artifact_kind = (
+        ANALYTIC_ARTIFACT_KIND if analytic_model_evaluator else ARTIFACT_KIND
+    )
+    base, model, continuum, common = _build_common(
+        atoms,
+        checkpoint,
+        args.device,
+        model_evaluator_profile=args.model_evaluator_profile,
+    )
     center_state, replay = _solve_center(common, atoms)
     envelope, solve_timings = _envelope_record(common, atoms, center_state)
     rotation = _rotation_record(common, atoms, center_state, envelope)
@@ -514,6 +569,15 @@ def main() -> None:
         "duality_map_sha256": model.duality_map.configuration_sha256(),
         "conjugacy_sign": common.conjugacy_sign,
         "total_charge": common.total_charge,
+        "long_range_evaluator_profile": (
+            base.release_contract.long_range_evaluator_profile
+        ),
+        "long_range_symmetry_contract_id": (
+            base.release_contract.long_range_symmetry_contract_id
+        ),
+        "long_range_structural_so3_equivariance_admitted": (
+            base.release_contract.structural_so3_equivariance_admitted
+        ),
     }
     geometry = {
         "formula": atoms.get_chemical_formula(),
@@ -557,6 +621,8 @@ def main() -> None:
             "geometry quadrature and finite-band-exact coefficient contractions; "
             "no laboratory-fixed cavity grid"
         ),
+        "model_evaluator_profile": args.model_evaluator_profile,
+        "model_evaluator_identity_changed_from_upstream": analytic_model_evaluator,
     }
     decision = {
         "stationary_root_converged": bool(center_state.converged),
@@ -576,6 +642,9 @@ def main() -> None:
         ),
         "original_density_head_role": "zero-field-anchor-and-diagnostic-only",
         "continuum_coefficient_architecture_is_so3_equivariant": True,
+        "model_long_range_structural_so3_equivariance_admitted": (
+            base.release_contract.structural_so3_equivariance_admitted
+        ),
         "full_common_scalar_global_so3_admitted": False,
         "tier_v_admitted": False,
         "public_force_admitted": False,
@@ -595,15 +664,21 @@ def main() -> None:
     )
     source_hashes = committed_source_hashes(repository, source_paths)
     payload: dict[str, object] = {
-        "schema_version": SCHEMA_VERSION,
-        "artifact_kind": ARTIFACT_KIND,
+        "schema_version": schema_version,
+        "artifact_kind": artifact_kind,
         "status": (
             "same-scalar-canary-passed-not-admitted"
             if decision["same_scalar_real_checkpoint_canary_passed"]
             else "same-scalar-canary-failed-not-admitted"
         ),
         "claim_boundary": (
-            "This one-water result checks a changed-source scalar-first model, "
+            "This one-water result checks a separately profile-bound "
+            + (
+                "analytic Gaussian multipole inference operator, "
+                if analytic_model_evaluator
+                else "upstream fixed-axis inference operator, "
+            )
+            + "a changed-source scalar-first model, "
             "one smooth weighted harmonic Galerkin scalar, one stationary root, "
             "one coordinate direction, and one rigid rotation. The coefficient "
             "continuum architecture is SO(3)-equivariant, but this finite canary "

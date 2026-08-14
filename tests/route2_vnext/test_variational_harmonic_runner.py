@@ -33,6 +33,8 @@ def test_runner_help_is_checkpoint_free_and_keeps_capabilities_closed():
     assert result.returncode == 0, result.stderr
     assert "--checkpoint" in result.stdout
     assert "--device" in result.stdout
+    assert "--model-evaluator-profile" in result.stdout
+    assert "graph-longrange-analytic-gaussian-multipole-realspace-v1" in result.stdout
     assert "--output" in result.stdout
     assert "does not admit Route-2 E/F/H/V/M" in result.stdout
 
@@ -43,6 +45,8 @@ def test_runner_help_is_checkpoint_free_and_keeps_capabilities_closed():
     assert '"tier_v_admitted": False' in text
     assert '"public_force_admitted": False' in text
     assert "no laboratory-fixed cavity grid" in text
+    assert "ANALYTIC_SCHEMA_VERSION" in text
+    assert "runtime/analytic_gaussian_multipole.py" in text
 
 
 def test_protocol_freezes_harmonic_orders_root_fd_and_rotation_gates():

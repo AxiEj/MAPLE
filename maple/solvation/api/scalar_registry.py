@@ -33,6 +33,10 @@ VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1 = (
 VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
     "route2-variational-macepolar-energygradient-" "smoothharmonicgalerkin-cpcm-v1"
 )
+VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
+    "route2-variational-macepolar-analytic-gaussian-multipole-"
+    "energygradient-smoothharmonicgalerkin-cpcm-v1"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -435,6 +439,57 @@ _SCALAR_ENTRIES = (
         evidence_artifact_ids=(),
         enabled=False,
     ),
+    ScalarDefinition(
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        exact_formula=(
+            "candidate equations: M_var=Q^-T dE_anc^analytic/du and "
+            "u=grad_Q G_harm(R,c); E_anc^analytic uses the separately "
+            "identified analytic isotropic Gaussian l<=1 molecular "
+            "real-space checkpoint evaluator; G_harm=-1/2 (S(R)c)^T "
+            "A(R)^-1 (S(R)c), A=E(R)^T K(R) E(R), S=E(R)^T V(R); "
+            "the eliminated common-stationarity state is disabled"
+        ),
+        included_components=(
+            "macepolar_analytic_gaussian_multipole_anchored_field_energy_candidate",
+            "smooth_weighted_harmonic_galerkin_stationary_electrostatic_target",
+            "same_scalar_moving_geometry_coordinate_derivative",
+        ),
+        excluded_components=(
+            "upstream_fixed_axis_finite_difference_realspace_operator",
+            "original_four_channel_density_as_variational_source",
+            "sharp_union_of_spheres_identity",
+            "nonpolar_smd_cds",
+            "coordinate_hessian",
+        ),
+        source_representation=(
+            "complete eight-channel analytic-evaluator MACE-POLAR "
+            "field-energy-conjugate effective source coupled to complete "
+            "per-atom harmonic coefficient blocks"
+        ),
+        field_convention=(
+            "positive energy-dual reduced radial-GTO field; fixed charge and "
+            "constant-potential gauge separated"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point=(
+            "maple.solvation.coupling.variational_state:" "VariationalCommonFunctional"
+        ),
+        derivative_route=(
+            "same-scalar state and stationary-envelope diagnostic; the "
+            "analytic long-range operator is structurally SO(3) but the "
+            "complete scalar remains disabled pending numerical full-model "
+            "rotation, passivity, root uniqueness, combined-Hessian, physical, "
+            "and release gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
 )
 
 SCALAR_REGISTRY: Mapping[str, ScalarDefinition] = MappingProxyType(
@@ -470,6 +525,7 @@ __all__ = [
     "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1",
     "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1",
     "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
+    "VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "ScalarDefinition",
     "get_scalar_definition",
     "scalar_registry_manifest",

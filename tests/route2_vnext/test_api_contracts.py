@@ -28,6 +28,8 @@ from maple.solvation.api import (
     ProvenanceRecord,
     Route2Result,
     RuntimeProvenance,
+    VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
+    VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
@@ -47,6 +49,8 @@ INITIAL_SCALAR_IDS = {
     "route2-variational-macepolar-energygradient-fixedcavity-"
     "harmonicgalerkin-cpcm-v1",
     "route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1",
+    "route2-variational-macepolar-analytic-gaussian-multipole-"
+    "energygradient-smoothharmonicgalerkin-cpcm-v1",
 }
 
 
@@ -87,7 +91,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 16
+    assert len(PROFILE_REGISTRY) == 17
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -123,6 +127,15 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
         "water-eps78p39-smd-radii-lebedev194.v1"
     )
     assert radial.enabled is False
+    analytic_variational = PROFILE_REGISTRY[
+        VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+    ]
+    assert analytic_variational.scalar_id == (
+        VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+    )
+    assert "analytic-gaussian-multipole" in analytic_variational.model_profile
+    assert analytic_variational.enabled is False
+    assert analytic_variational.capabilities.enabled_tiers == ()
     harmonic = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
     ]

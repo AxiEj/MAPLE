@@ -18,6 +18,11 @@ from maple.solvation.models import (
     validate_source_evaluation,
     validate_vacuum_evaluation,
 )
+from maple.solvation.api.profiles import (
+    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
+    MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
+)
+from maple.solvation.continuum import radial_gto_source_rotation_matrix
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("MAPLE_ROUTE2_REAL_MACEPOL") != "1",
@@ -371,4 +376,65 @@ def test_official_checkpoint_scalar_first_candidate_is_conjugate_and_disabled():
             },
             sort_keys=True,
         )
+    )
+
+
+def test_official_checkpoint_analytic_realspace_candidate_rotation_is_bounded_and_disabled():
+    base = build_official_mace_polar_1_m_radial_gto_adapter(
+        device=os.environ.get("MAPLE_ROUTE2_MACE_DEVICE", "cpu"),
+        checkpoint_path=_checkpoint_path(),
+        long_range_evaluator_profile=(
+            MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
+        ),
+    )
+    model = MACEPolarVariationalFieldEnergy(base)
+    assert model.model_profile_id == (
+        MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID
+    )
+    assert base.release_contract.structural_so3_equivariance_admitted is True
+    assert model.capabilities.enabled_tiers == ()
+    assert model.variational_functional_admitted is False
+
+    atoms = _water()
+    matrix = np.random.default_rng(20260815).normal(size=(3, 3))
+    rotation, triangular = np.linalg.qr(matrix)
+    rotation = rotation @ np.diag(np.where(np.diag(triangular) < 0.0, -1.0, 1.0))
+    if np.linalg.det(rotation) < 0.0:
+        rotation[:, 0] *= -1.0
+    rotated_atoms = atoms.copy()
+    rotated_atoms.positions = atoms.positions @ rotation.T
+
+    reduced, gauge = model.duality_map.decompose_field(
+        np.zeros((len(atoms), 8)), atom_count=len(atoms), total_charge=0.0
+    )
+    assert gauge == 0.0
+    base_energy = model.energy_eV(atoms, reduced, total_charge=0.0, gauge_potential=0.0)
+    rotated_energy = model.energy_eV(
+        rotated_atoms, reduced, total_charge=0.0, gauge_potential=0.0
+    )
+    base_source = model.evaluate_source(atoms, np.zeros((len(atoms), 8)))
+    rotated_source = model.evaluate_source(rotated_atoms, np.zeros((len(atoms), 8)))
+    source_rotation = radial_gto_source_rotation_matrix(rotation, atom_count=len(atoms))
+    expected_source = (source_rotation @ base_source.reshape(-1)).reshape(
+        base_source.shape
+    )
+    base_gradient = model.fixed_field_coordinate_gradient(
+        atoms, reduced, total_charge=0.0
+    )
+    rotated_gradient = model.fixed_field_coordinate_gradient(
+        rotated_atoms, reduced, total_charge=0.0
+    )
+    expected_gradient = base_gradient @ rotation.T
+
+    assert abs(rotated_energy - base_energy) <= 1.0e-8
+    assert (
+        np.linalg.norm(rotated_source - expected_source)
+        / max(np.linalg.norm(expected_source), 1.0e-15)
+        <= 1.0e-7
+    )
+    assert np.max(np.abs(rotated_gradient - expected_gradient)) <= 5.0e-7
+    assert (
+        np.linalg.norm(rotated_gradient - expected_gradient)
+        / max(np.linalg.norm(expected_gradient), 1.0e-15)
+        <= 2.0e-6
     )

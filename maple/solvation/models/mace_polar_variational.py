@@ -19,8 +19,10 @@ import numpy as np
 
 from maple.solvation.api.capabilities import CapabilityStatus
 from maple.solvation.api.profiles import (
+    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
     MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
     MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+    MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
     MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID,
 )
 from maple.solvation.coupling.spaces import (
@@ -41,6 +43,10 @@ from .mace_polar import MACEPolarRadialGTOModelAdapter
 
 MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID = (
     "maple.route2.model.mace-polar-field-energy-anchored.impl.v1"
+)
+MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_PROVIDER_ID = (
+    "maple.route2.model.mace-polar-field-energy-anchored-"
+    "analytic-gaussian-multipole.impl.v1"
 )
 MACE_POLAR_VARIATIONAL_DUALITY_MAP_ID = (
     "maple.route2.duality.mace-polar-radial-gto-fixed-charge.v1"
@@ -277,6 +283,25 @@ class MACEPolarVariationalFieldEnergy(FieldEnergyFunctional):
         for name in required:
             if not callable(getattr(calculator, name, None)):
                 raise TypeError(f"variational adapter requires callable {name}().")
+        analytic_realspace = base.model_profile_id == (
+            MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID
+        )
+        provider_id = (
+            MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_PROVIDER_ID
+            if analytic_realspace
+            else MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID
+        )
+        model_profile_id = (
+            MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID
+            if analytic_realspace
+            else MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID
+        )
+        model_family = (
+            "MACE-POLAR-1-field-energy-conjugate-effective-source-"
+            "analytic-gaussian-multipole-realspace"
+            if analytic_realspace
+            else "MACE-POLAR-1-field-energy-conjugate-effective-source"
+        )
         inference_sha = _hash(
             {
                 "implementation_sha256": _implementation_sha256(),
@@ -295,12 +320,14 @@ class MACEPolarVariationalFieldEnergy(FieldEnergyFunctional):
                     label="mace_polar_variational_field_graph",
                 ),
                 "construction": "vacuum-energy-plus-zero-field-source-anchor-v1",
+                "analytic_gaussian_multipole_realspace": analytic_realspace,
+                "model_profile_id": model_profile_id,
             }
         )
         provenance = ModelProvenance(
-            provider_id=MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID,
-            model_profile_id=MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID,
-            model_family="MACE-POLAR-1-field-energy-conjugate-effective-source",
+            provider_id=provider_id,
+            model_profile_id=model_profile_id,
+            model_family=model_family,
             checkpoint_sha256=base.provenance.checkpoint_sha256,
             upstream_version=base.provenance.upstream_version,
             upstream_commit=base.provenance.upstream_commit,
@@ -597,6 +624,8 @@ __all__ = [
     "MACEPolarDifferentiableFieldGraph",
     "MACE_POLAR_VARIATIONAL_DUALITY_MAP",
     "MACE_POLAR_VARIATIONAL_DUALITY_MAP_ID",
+    "MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID",
+    "MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_PROVIDER_ID",
     "MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID",
     "MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID",
     "build_mace_polar_variational_field_energy",

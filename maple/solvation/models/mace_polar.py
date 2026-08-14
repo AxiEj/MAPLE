@@ -21,6 +21,8 @@ from types import MappingProxyType
 import numpy as np
 
 from maple.solvation.api.profiles import (
+    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
+    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
     MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS,
     MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS,
     LOCAL_JET_DIAGNOSTIC_COUPLING_ID,
@@ -181,6 +183,35 @@ OFFICIAL_MACE_POLAR_1_M_CONTRACT = MACEPolarReleaseContract(
     ),
 )
 
+MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_RELEASE_CONTRACT = MACEPolarReleaseContract(
+    provider_id=(
+        "maple.route2.model.mace-polar-1-m-analytic-gaussian-multipole.impl.v1"
+    ),
+    model_profile_id=MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
+    long_range_evaluator_profile=(MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID),
+    checkpoint_identifier=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_identifier,
+    checkpoint_release_url=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_release_url,
+    checkpoint_sha256=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_sha256,
+    checkpoint_size_bytes=OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_size_bytes,
+    mace_torch_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.mace_torch_version,
+    graph_longrange_version=OFFICIAL_MACE_POLAR_1_M_CONTRACT.graph_longrange_version,
+    upstream_commit=OFFICIAL_MACE_POLAR_1_M_CONTRACT.upstream_commit,
+    release_status=(
+        "changed analytic molecular inference candidate; physical parity and "
+        "E/F/H/V/M unadmitted"
+    ),
+    long_range_symmetry_contract_id=(
+        "analytic-isotropic-gaussian-multipole-pair-kernel-so3-structural-v1"
+    ),
+    structural_so3_equivariance_admitted=True,
+    long_range_symmetry_claim_boundary=(
+        "the molecular real-space Gaussian l<=1 feature and energy operators "
+        "are assembled only from isotropic radial kernels, displacement "
+        "vectors, and Cartesian tensor contractions; this structural claim "
+        "does not admit the complete checkpoint scalar or any public tier"
+    ),
+)
+
 MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS = MappingProxyType(
     {
         box_length: MACEPolarReleaseContract(
@@ -220,6 +251,9 @@ MACE_POLAR_1_M_FIXED_BOX40_CONTRACT = MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS[40]
 
 _RELEASE_CONTRACT_BY_EVALUATOR = {
     MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID: OFFICIAL_MACE_POLAR_1_M_CONTRACT,
+    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID: (
+        MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_RELEASE_CONTRACT
+    ),
     **{
         contract.long_range_evaluator_profile: contract
         for contract in MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS.values()
@@ -530,6 +564,14 @@ class MACEPolarLocalFieldModelAdapter:
             )
         source_files = _calculator_source_files(self._calculator)
         evaluator = getattr(self._calculator, "_long_range_evaluator", None)
+        evaluator_configuration = None
+        evaluator_configuration_method = getattr(
+            evaluator, "configuration_sha256", None
+        )
+        if callable(evaluator_configuration_method):
+            evaluator_configuration = evaluator_configuration_method(
+                self._calculator.model
+            )
         payload = {
             "schema": "route2-mace-polar-local-field-model-adapter-v1",
             "release_contract": self._release_contract.metadata(),
@@ -566,6 +608,9 @@ class MACEPolarLocalFieldModelAdapter:
             "long_range_evaluator_runtime_profile": getattr(evaluator, "profile", None),
             "long_range_evaluator_runtime_provenance": getattr(
                 evaluator, "provenance", None
+            ),
+            "long_range_evaluator_runtime_configuration_sha256": (
+                evaluator_configuration
             ),
             "atomic_numbers": list(self.domain.atomic_numbers),
             "source_space_sha256": self.source_space.metadata_hash(),
@@ -1178,7 +1223,14 @@ def build_official_mace_polar_1_m_adapter(
                 "MACE-POLAR-1-M bytes."
             )
     construction_profile = normalized_evaluator_profile
-    if normalized_evaluator_profile in {
+    if normalized_evaluator_profile == (
+        MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
+    ):
+        # The legacy calculator intentionally accepts only its historical
+        # profiles.  Load the exact checkpoint through the molecular path and
+        # then install the separately identified analytic evaluator.
+        construction_profile = MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID
+    elif normalized_evaluator_profile in {
         contract.long_range_evaluator_profile
         for box_length, contract in MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS.items()
         if box_length != 40
@@ -1201,11 +1253,22 @@ def build_official_mace_polar_1_m_adapter(
         _implicit_solvent_factory_token=_IMPLICIT_SOLVENT_FACTORY_TOKEN,
     )
     if construction_profile != normalized_evaluator_profile:
-        from .fixed_box_evaluator import MACEPolarFixedBoxDiagnosticEvaluator
+        if normalized_evaluator_profile == (
+            MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
+        ):
+            from .runtime.analytic_gaussian_multipole import (
+                MACEPolarAnalyticGaussianMultipoleEvaluator,
+            )
 
-        evaluator = MACEPolarFixedBoxDiagnosticEvaluator.from_profile(
-            normalized_evaluator_profile
-        )
+            evaluator = MACEPolarAnalyticGaussianMultipoleEvaluator.from_profile(
+                normalized_evaluator_profile
+            )
+        else:
+            from .fixed_box_evaluator import MACEPolarFixedBoxDiagnosticEvaluator
+
+            evaluator = MACEPolarFixedBoxDiagnosticEvaluator.from_profile(
+                normalized_evaluator_profile
+            )
         evaluator.configure_model(calculator.model)
         calculator._long_range_evaluator = evaluator
         calculator.long_range_evaluator_profile = evaluator.profile
@@ -1246,6 +1309,7 @@ __all__ = [
     "MACEPolarRadialGTOModelAdapter",
     "MACEPolarReleaseContract",
     "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
+    "MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_RELEASE_CONTRACT",
     "MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",

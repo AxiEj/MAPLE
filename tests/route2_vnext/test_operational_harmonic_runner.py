@@ -23,7 +23,11 @@ def _load_runner():
     )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.path.insert(0, str(RUNNER.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.remove(str(RUNNER.parent))
     return module
 
 

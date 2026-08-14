@@ -24,18 +24,7 @@ from ase import Atoms
 
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 
-from maple.function.calculator.extra_correction.implicit.smd_cds import (
-    smd_water_coulomb_radii,
-)
-from maple.solvation.api.profiles import (
-    MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
-    OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
-)
-from maple.solvation.api.scalar_registry import (
-    OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
-)
 from maple.solvation.continuum import (
-    SmoothWeightedHarmonicGalerkinFunctionalCandidate,
     radial_gto_source_rotation_matrix,
 )
 from maple.solvation.coupling.adjoint import AdjointOptions
@@ -44,10 +33,6 @@ from maple.solvation.coupling.fixed_point import (
     roots_numerically_equivalent,
     solve_fixed_point,
 )
-from maple.solvation.coupling.operational_state import (
-    build_disabled_operational_electrostatic_scalar,
-)
-from maple.solvation.models import build_official_mace_polar_1_m_radial_gto_adapter
 from maple.solvation.release import (
     RepositorySnapshot,
     canonical_json_sha256,
@@ -58,6 +43,19 @@ from maple.solvation.release import (
     write_external_json_artifact,
 )
 
+from operational_analytic_harmonic_common import (
+    COMMON_REQUIRED_SOURCE_PATHS,
+    DEFAULT_CHECKPOINT,
+    EXPOSURE_LMAX,
+    EXPOSURE_RADIAL_QUADRATURE_ORDER,
+    GREEN_RADIAL_QUADRATURE_ORDER,
+    NO_CAPABILITIES,
+    SOURCE_RADIAL_QUADRATURE_ORDER,
+    SURFACE_LMAX,
+    TRANSITION_WIDTH_ANGSTROM2,
+    build_system,
+)
+
 SCHEMA_VERSION = (
     "route2-operational-analytic-original-source-harmonic-water-"
     "real-checkpoint-canary-v1"
@@ -66,11 +64,6 @@ ARTIFACT_KIND = (
     "disabled-real-checkpoint-operational-analytic-original-source-"
     "harmonic-scalar-canary"
 )
-DEFAULT_CHECKPOINT = Path.home() / ".cache" / "mace" / "MACEPOLAR1Mmodel"
-SCALAR_ID = (
-    OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
-)
-PROFILE_ID = OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
 RANDOM_SEED = 20260818
 ROTATION_SEED = 20260819
 ROOT_CONTEXT_ID = "route2-operational-analytic-harmonic-water-canary-v1/equilibrium"
@@ -102,33 +95,7 @@ CONTINUUM_ROTATION_ENERGY_ABSOLUTE_TOLERANCE_EV = 1.0e-10
 CONTINUUM_ROTATION_GRADIENT_ABSOLUTE_TOLERANCE_EV_PER_A = 1.0e-9
 NET_FORCE_TOLERANCE_EV_PER_A = 5.0e-7
 TORQUE_TOLERANCE_EV = 5.0e-7
-SURFACE_LMAX = 1
-EXPOSURE_LMAX = 2
-TRANSITION_WIDTH_ANGSTROM2 = 0.18
-EXPOSURE_RADIAL_QUADRATURE_ORDER = 32
-SOURCE_RADIAL_QUADRATURE_ORDER = 32
-GREEN_RADIAL_QUADRATURE_ORDER = 32
-NO_CAPABILITIES = {tier: False for tier in ("E", "F", "H", "V", "M")}
-REQUIRED_SOURCE_PATHS = (
-    "maple/solvation/api/profiles.py",
-    "maple/solvation/api/scalar_registry.py",
-    "maple/solvation/api/state_registry.py",
-    "maple/solvation/continuum/functional.py",
-    "maple/solvation/continuum/harmonic_torch_functional.py",
-    "maple/solvation/continuum/harmonic_torch_primitives.py",
-    "maple/solvation/coupling/adjoint.py",
-    "maple/solvation/coupling/energy.py",
-    "maple/solvation/coupling/fixed_point.py",
-    "maple/solvation/coupling/operational_state.py",
-    "maple/solvation/coupling/state_equation.py",
-    "maple/solvation/coupling/variational_adapters.py",
-    "maple/solvation/models/equation_adapter.py",
-    "maple/solvation/models/mace_polar.py",
-    "maple/solvation/models/runtime/analytic_gaussian_multipole.py",
-    "maple/solvation/release/evidence.py",
-    "maple/function/calculator/mace/_macepol_calculator.py",
-    "maple/function/calculator/mace/_macepol_long_range.py",
-    "maple/function/calculator/extra_correction/implicit/smd_cds.py",
+REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "tools/route2_release/run_operational_analytic_harmonic_water_canary.py",
 )
 
@@ -213,36 +180,7 @@ def _configure_determinism(torch) -> None:
 
 
 def _build_scalar(atoms: Atoms, checkpoint: Path, device: str):
-    model = build_official_mace_polar_1_m_radial_gto_adapter(
-        checkpoint_path=checkpoint,
-        device=device,
-        long_range_evaluator_profile=(
-            MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
-        ),
-    )
-    radii = tuple(
-        float(value) for value in smd_water_coulomb_radii(atoms.get_chemical_symbols())
-    )
-    continuum = SmoothWeightedHarmonicGalerkinFunctionalCandidate(
-        atomic_numbers=tuple(int(value) for value in atoms.numbers),
-        radii_angstrom=radii,
-        transition_width_angstrom2=TRANSITION_WIDTH_ANGSTROM2,
-        surface_lmax=SURFACE_LMAX,
-        exposure_lmax=EXPOSURE_LMAX,
-        exposure_radial_quadrature_order=EXPOSURE_RADIAL_QUADRATURE_ORDER,
-        source_radial_quadrature_order=SOURCE_RADIAL_QUADRATURE_ORDER,
-        green_radial_quadrature_order=GREEN_RADIAL_QUADRATURE_ORDER,
-        dtype=model._calculator.dtype,
-        device=model._calculator.device,
-        scalar_id=SCALAR_ID,
-    )
-    scalar = build_disabled_operational_electrostatic_scalar(
-        model,
-        continuum,
-        atoms,
-        scalar_id=SCALAR_ID,
-        profile_id=PROFILE_ID,
-    )
+    _, model, continuum, _, scalar = build_system(atoms, checkpoint, device)
     return model, continuum, scalar
 
 

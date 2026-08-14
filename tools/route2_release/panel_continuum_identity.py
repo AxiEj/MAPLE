@@ -6,8 +6,11 @@ from __future__ import annotations
 def continuum_topology_hash(continuum, geometry) -> str:
     """Return the immutable member/surface topology identity at ``geometry``."""
 
+    coefficient_topology = getattr(continuum, "topology_sha256", None)
     diagnostics = getattr(continuum, "frame_diagnostics", None)
-    if callable(diagnostics):
+    if callable(coefficient_topology):
+        value = coefficient_topology()
+    elif callable(diagnostics):
         value = diagnostics(geometry).get("frame_topology_sha256")
     else:
         provider = getattr(continuum, "surface_provider", None)

@@ -286,6 +286,10 @@ def test_pair_axis_section_retains_the_transverse_derivative_at_both_poles():
 def test_candidate_is_content_addressed_and_fail_closed(functional):
     torch = pytest.importorskip("torch")
     assert len(functional.configuration_sha256()) == 64
+    topology_sha256 = functional.topology_sha256()
+    assert len(topology_sha256) == 64
+    functional.debug_geometry_matrices(POSITIONS + np.asarray([0.4, -0.2, 0.7]))
+    assert functional.topology_sha256() == topology_sha256
     assert len(functional.provenance_sha256) == 64
     assert functional.capabilities.enabled_tiers == ()
     assert functional.full_geometry_intertwiner_assembly_available is True
@@ -297,6 +301,7 @@ def test_candidate_is_content_addressed_and_fail_closed(functional):
     assert functional.tier_v_admitted is False
     provenance = dict(functional.runtime_provenance())
     assert provenance["geometry_assembly"] == "same-scalar-E-K-V"
+    assert provenance["coefficient_topology_sha256"] == topology_sha256
     assert provenance["tier_v_admission"] == "disabled"
     assert provenance["capabilities"] == "none"
     profile = PROFILE_REGISTRY[

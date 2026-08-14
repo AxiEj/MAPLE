@@ -92,12 +92,39 @@ def _bounded_order(value: object, *, name: str) -> int:
     return result
 
 
+def _coefficient_topology_payload(
+    *,
+    atomic_numbers: tuple[int, ...],
+    radii_angstrom: tuple[float, ...],
+    surface_lmax: int,
+    exposure_lmax: int,
+) -> dict[str, object]:
+    """Return the geometry-independent coefficient ownership contract."""
+
+    physical_lmax = surface_lmax + exposure_lmax
+    return {
+        "contract": "smooth-harmonic-fixed-coefficient-topology-v1",
+        "provider_id": SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID,
+        "atomic_numbers": atomic_numbers,
+        "radii_angstrom": radii_angstrom,
+        "atom_order": "input-order",
+        "coefficient_order": "atom-major/l-ascending/m-ascending/real-harmonic",
+        "surface_lmax": surface_lmax,
+        "surface_coefficients_per_atom": (surface_lmax + 1) ** 2,
+        "exposure_lmax": exposure_lmax,
+        "physical_lmax": physical_lmax,
+        "physical_coefficients_per_atom": (physical_lmax + 1) ** 2,
+        "active_coefficient_deletion": False,
+    }
+
+
 class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctional):
     """Moving smooth harmonic cavity assembled inside one sealed scalar."""
 
     __slots__ = (
         "_candidate_configuration_sha256",
         "_candidate_provenance_sha256",
+        "_candidate_topology_sha256",
         "_exposure_lmax",
         "_exposure_radial_order",
         "_green_radial_order",
@@ -195,6 +222,14 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             )
         runtime_dtype = str(dtype)
         runtime_device = str(device)
+        topology = _sha(
+            _coefficient_topology_payload(
+                atomic_numbers=numbers,
+                radii_angstrom=radii,
+                surface_lmax=surface_maximum,
+                exposure_lmax=exposure_maximum,
+            )
+        )
         configuration_payload = {
             "provider_id": self.provider_id,
             "scalar_id": normalized_scalar_id,
@@ -212,6 +247,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "exposure_radial_quadrature_order": exposure_order,
             "source_radial_quadrature_order": source_order,
             "green_radial_quadrature_order": green_order,
+            "coefficient_topology_sha256": topology,
             "source_space_sha256": MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash(),
             "field_space_sha256": MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.metadata_hash(),
             "pairing_sha256": MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
@@ -243,6 +279,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         object.__setattr__(self, "_runtime_dtype", runtime_dtype)
         object.__setattr__(self, "_runtime_device", runtime_device)
         object.__setattr__(self, "_scalar_id", normalized_scalar_id)
+        object.__setattr__(self, "_candidate_topology_sha256", topology)
         object.__setattr__(self, "_candidate_configuration_sha256", configuration)
         object.__setattr__(self, "_candidate_provenance_sha256", provenance)
         super().__init__(
@@ -280,6 +317,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         return self._candidate_provenance_sha256
 
     def configuration_sha256(self) -> str:
+        topology = self.topology_sha256()
         current = _sha(
             {
                 "provider_id": self.provider_id,
@@ -298,6 +336,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                 "exposure_radial_quadrature_order": self._exposure_radial_order,
                 "source_radial_quadrature_order": self._source_radial_order,
                 "green_radial_quadrature_order": self._green_radial_order,
+                "coefficient_topology_sha256": topology,
                 "source_space_sha256": MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash(),
                 "field_space_sha256": MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.metadata_hash(),
                 "pairing_sha256": MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
@@ -323,6 +362,21 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         )
         if expected_provenance != self._candidate_provenance_sha256:
             raise RuntimeError("smooth harmonic functional provenance drifted.")
+        return current
+
+    def topology_sha256(self) -> str:
+        """Return the fixed coefficient dimension/owner/order identity."""
+
+        current = _sha(
+            _coefficient_topology_payload(
+                atomic_numbers=self._expected_atomic_numbers,
+                radii_angstrom=self._radii_angstrom,
+                surface_lmax=self._surface_lmax,
+                exposure_lmax=self._exposure_lmax,
+            )
+        )
+        if current != self._candidate_topology_sha256:
+            raise RuntimeError("smooth harmonic coefficient topology drifted.")
         return current
 
     def _assemble_torch(self, positions: Any):
@@ -403,6 +457,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                     "provider_id": self.provider_id,
                     "provenance_sha256": self.provenance_sha256,
                     "configuration_sha256": self.configuration_sha256(),
+                    "coefficient_topology_sha256": self.topology_sha256(),
                     "stationary_scalar": "-1/2 (S c)^T A^-1 (S c)",
                     "geometry_assembly": "same-scalar-E-K-V",
                     "angular_quadrature": "finite-band-exact-contractions-only",

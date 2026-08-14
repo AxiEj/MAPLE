@@ -215,8 +215,7 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
         variational_scalar.excluded_components
     )
     assert variational_scalar.implementation_entry_point == (
-        "disabled:model and continuum scalar-first candidates only; "
-        "combined stationary scalar not implemented"
+        "maple.solvation.coupling.variational_state:VariationalCommonFunctional"
     )
 
 

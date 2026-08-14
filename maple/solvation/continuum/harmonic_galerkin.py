@@ -351,6 +351,7 @@ class FixedHarmonicGalerkinCPCMCandidate(ContinuumEnergyFunctional):
     scalar_first = True
     reciprocal = True
     linear_response = True
+    fixed_topology = True
     fixed_cavity_descriptor = True
     source_dependent_geometry = False
     electrostatics_only = True

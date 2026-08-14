@@ -305,8 +305,8 @@ _SCALAR_ENTRIES = (
         exact_formula=(
             "candidate equations: M_var=Q^-T dE_anc/du and "
             "u=grad_Q G_cpcm_fixed(c); G_cpcm_fixed=1/2<c,P_R c>_Q; "
-            "G_np=0; the combined stationary scalar "
-            "F_var=Gamma_anc+G_cpcm_fixed remains unimplemented and disabled"
+            "G_np=0; L_s(R,c,u)=E_anc(R,u)-s<c,u>_Q+sG_cpcm_fixed(R,c); "
+            "the eliminated common-stationarity state is implemented but disabled"
         ),
         included_components=(
             "macepolar_anchored_field_energy_candidate",
@@ -329,8 +329,7 @@ _SCALAR_ENTRIES = (
         nonpolar_profile="none",
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
         implementation_entry_point=(
-            "disabled:model and continuum scalar-first candidates only; "
-            "combined stationary scalar not implemented"
+            "maple.solvation.coupling.variational_state:" "VariationalCommonFunctional"
         ),
         derivative_route=(
             "stationary envelope derivative; disabled pending sign, gauge, "
@@ -348,8 +347,8 @@ _SCALAR_ENTRIES = (
             "candidate equations: M_var=Q^-T dE_anc/du and "
             "u=grad_Q G_harm(c); G_harm=-1/2 (S c)^T A^-1 (S c), "
             "with complete per-atom harmonic irreps and S^dagger as receiver; "
-            "the geometry-dependent intertwiner assembly and combined stationary "
-            "scalar remain unimplemented and disabled"
+            "L_s(R,c,u)=E_anc(R,u)-s<c,u>_Q+sG_harm(R,c); the eliminated "
+            "common-stationarity state is implemented but disabled"
         ),
         included_components=(
             "macepolar_anchored_field_energy_candidate",
@@ -375,13 +374,12 @@ _SCALAR_ENTRIES = (
         nonpolar_profile="none",
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
         implementation_entry_point=(
-            "disabled:coefficient-space stationary scalar reference only; "
-            "geometry intertwiner assembly and combined state equation missing"
+            "maple.solvation.coupling.variational_state:" "VariationalCommonFunctional"
         ),
         derivative_route=(
-            "same-scalar autograd inside a fixed external coefficient snapshot; "
-            "disabled pending analytic geometry assembly, sign, gauge, passivity, "
-            "root, coordinate, rotation, and release gates"
+            "same-scalar state and stationary-envelope diagnostic; disabled "
+            "pending sign, gauge, passivity, root uniqueness, analytic coordinate "
+            "assembly, rotation, and release gates"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),

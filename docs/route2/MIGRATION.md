@@ -25,8 +25,14 @@ HVP, and coordinate partial are generated from one Torch continuum scalar and
 match the existing audited response backend.  This closes the earlier 4-to-8
 rank obstruction only by changing the source/model identity and closes the
 continuum half-coupling derivative identity only for the fixed-cavity candidate.
-No combined stationary scalar or capability tier is enabled; sign/gauge,
-stability/root, envelope, rotation, and release evidence remain pending.
+The common constrained state and stationary scalar `E-s<c,u>+sG` are now
+implemented by thin scalar-derived adapters over the existing reduced solver.
+Synthetic same-scalar tests with the real fixed C-PCM backend close reduced
+JVP/VJP, coordinate pullback, cold/warm replay, half-coupling ledger, and a
+re-solved envelope finite difference.  The fixed harmonic snapshot also enters
+the same kernel. No capability tier is enabled: real-checkpoint sign/gauge,
+passivity/root uniqueness, combined-Hessian stability, geometry-dependent
+envelope, rotation, and release evidence remain pending.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

@@ -316,7 +316,9 @@ def test_registry_keeps_harmonic_candidate_distinct_and_disabled():
     assert profile.capabilities.enabled_tiers == ()
     assert scalar.admitted_capabilities.enabled_tiers == ()
     assert "geometry_intertwiner_assembly" in scalar.excluded_components
-    assert scalar.implementation_entry_point.startswith("disabled:")
+    assert scalar.implementation_entry_point == (
+        "maple.solvation.coupling.variational_state:VariationalCommonFunctional"
+    )
 
 
 @pytest.mark.parametrize(

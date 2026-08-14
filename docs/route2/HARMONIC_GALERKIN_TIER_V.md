@@ -256,8 +256,14 @@ This slice is not:
 - a calibrated or accuracy-validated solvent model;
 - an analytic moving-cavity coordinate pullback;
 - a conservative total Route-2 nuclear force;
-- a completed electronic-continuum common stationary functional;
+- a real-checkpoint-admitted electronic-continuum common functional;
 - an admitted Tier E/F/H/V/M profile.
+
+The generic disabled common-stationarity kernel is implemented and accepts a
+fixed external harmonic snapshot. Its present test uses a synthetic
+same-scalar electronic oracle. That proves software composition only; it does
+not establish the real checkpoint's sign, stability, unique root, coordinate
+envelope, or Tier V admission.
 
 The registered scalar/profile remain distinct disabled identities:
 
@@ -280,10 +286,9 @@ Before any admission, the implementation still needs:
 1. analytic or scalar-AD coordinate JVP/VJP of exposure, `E`, `K`, and `S`;
 2. force/energy directional derivatives across the full declared geometry
    domain, with explicit tangency/Hessian guards;
-3. integration with the scalar-first eight-channel electronic model and its
-   gauge/charge section;
-4. common stationarity, sign, passivity, root uniqueness, and combined-Hessian
-   gates;
+3. real-checkpoint sign and gauge validation of the integrated scalar-first
+   eight-channel model/common-state kernel;
+4. passivity, root uniqueness, and combined-Hessian gates;
 5. real-checkpoint component and PES panels;
 6. clean source/model/runtime-bound release evidence.
 

@@ -160,6 +160,27 @@ def test_scalar_generated_coordinate_partial_matches_backend_and_finite_differen
     np.testing.assert_allclose(analytic.sum(axis=0), np.zeros(3), atol=8e-11)
 
 
+def test_scalar_generated_mixed_coordinate_drive_vjp_matches_finite_difference():
+    functional = _functional()
+    rng = np.random.default_rng(20260815)
+    field_cotangent = rng.normal(scale=0.08, size=SOURCE.shape)
+    coordinate_direction = rng.normal(size=POSITIONS.shape)
+    coordinate_direction /= np.linalg.norm(coordinate_direction)
+
+    analytic = functional.mixed_coordinate_source_vjp(
+        POSITIONS, SOURCE, field_cotangent
+    )
+    assert analytic.shape == POSITIONS.shape
+    step = 1.0e-5
+    drive_fd = (
+        functional.drive(POSITIONS + step * coordinate_direction, SOURCE)
+        - functional.drive(POSITIONS - step * coordinate_direction, SOURCE)
+    ) / (2.0 * step)
+    assert np.vdot(analytic, coordinate_direction) == pytest.approx(
+        np.vdot(field_cotangent, drive_fd), abs=2e-7
+    )
+
+
 @pytest.mark.parametrize(
     "positions",
     [
@@ -196,6 +217,16 @@ def test_derivative_surface_is_final_and_cannot_be_hand_coded():
                 return source.sum()
 
             def drive(self, *args, **kwargs):
+                return None
+
+    with pytest.raises(TypeError, match="final"):
+
+        class BadMixedCoordinateVJP(ContinuumEnergyFunctional):
+            def _energy_torch(self, positions, source):
+                del positions
+                return source.sum()
+
+            def mixed_coordinate_source_vjp(self, *args, **kwargs):
                 return None
 
     assert callable(_torch)

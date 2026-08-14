@@ -191,3 +191,16 @@ generates a complete eight-channel effective source and all field HVP/mixed
 coordinate derivatives from that single Torch scalar graph.  This is a new
 model identity.  Structural conjugacy of its implementation is necessary but
 does not admit Tier V without the remaining physical and release gates.
+
+The disabled implementation composes such a scalar-first model with a
+scalar-first fixed continuum through
+
+\[
+L_s(R,c,u)=E(R,u)-s\langle c,u\rangle_Q+sG(R,c),
+\]
+
+and reuses the charge-constrained reduced fixed-point solver for
+`c=M_E(R,u)`, `u=grad_Q G(R,c)`. Its envelope derivative is exposed only as an
+unadmitted diagnostic. Synthetic composition and finite-difference tests do
+not replace the real-checkpoint sign, passivity, root-uniqueness,
+combined-Hessian, coordinate, symmetry, or release gates.

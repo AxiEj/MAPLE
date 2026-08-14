@@ -195,6 +195,29 @@ public profile or a multi-geometry convergence certificate.
   [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).
   This negative result does not transfer capability to a changed-source model.
 
+## `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1`
+
+- Stationary scalar:
+
+  \[
+    L_s(R,c,u)=E_{\rm anc}(R,u)-s\langle c,u\rangle_Q+sG_{\rm cpcm}(R,c),
+  \]
+
+  with `G_np=0`, a complete eight-channel energy-gradient effective source,
+  and the fixed reciprocal C-PCM drive generated from the continuum scalar.
+- Implemented: immutable scalar-to-response adapters; the constrained
+  fixed-charge state `c=M_E(R,u)`, `u=grad_Q G(R,c)`; exact reduced JVP/VJP and
+  coordinate pullbacks; deterministic cold/warm roots; stationary ledger; and
+  a fixed-chart envelope-gradient diagnostic. The integration test uses a
+  synthetic same-scalar electronic oracle plus the real fixed C-PCM backend;
+  it is engineering evidence, not checkpoint or chemical evidence.
+- Excluded: the original four-channel density head as variational source,
+  source-dependent cavities, nonpolar terms, and every public workflow.
+- Capabilities/evidence: none / none. Sign, gauge, passivity, root uniqueness
+  over a declared real-model domain, combined-Hessian stability, real-checkpoint
+  envelope derivatives, rotation, and release panels remain open. Therefore
+  `E/F/H/V/M` all remain false.
+
 ## `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`
 
 - Target continuum scalar:
@@ -212,8 +235,11 @@ public profile or a multi-geometry convergence certificate.
   Coulomb `K`, `A=E.T K E`, eight-channel Gaussian `S=E.T V`, and same-scalar
   drive/HVP/JVP/VJP generation. Nested, intersecting, tangent, and separated
   spheres are covered without a laboratory grid.
-- Excluded: analytic coordinate pullback, combined electronic-continuum
-  stationarity, source-dependent cavity, and every nonpolar term.
+- Implemented in addition: the same disabled common-stationarity kernel can
+  eliminate the electronic/continuum state for a fixed external harmonic
+  snapshot. This is covered only by a synthetic electronic oracle.
+- Excluded: analytic geometry-dependent harmonic assembly and its coordinate
+  pullback, source-dependent cavity, and every nonpolar term.
 - Scientific boundary: this is a regularized weighted multi-shell conductor
   reference, not the exact sharp union boundary or a production ddPCM/ddCOSMO
   backend. It is structurally rotation covariant and `C1`, but not generally
@@ -223,8 +249,9 @@ public profile or a multi-geometry convergence certificate.
 - Capabilities/evidence: none / none. The entry point remains explicitly
   disabled. Its complete eight-channel energy-gradient effective source is a
   new model identity rather than the original four-channel density head. It
-  still requires sign/gauge, passivity/root, combined stationarity,
-  coordinate/envelope, rotation, and release gates.
+  still requires real-checkpoint sign/gauge, passivity/root uniqueness,
+  combined-Hessian, geometry-dependent coordinate/envelope, rotation, and
+  release gates.
 
 See [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md) for the no-grid
 decision and the moving-cavity contract split.

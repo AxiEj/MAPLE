@@ -71,6 +71,47 @@ uses the same radial algebra with an explicitly unbound injected surface. It is
 only for deterministic synthetic tests and cannot satisfy the water profile's
 physical-configuration identity.
 
+## `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1`
+
+- Operational root:
+
+  \[
+    c^*=M_{\rm orig}^{\rm analytic}(R,u^*),
+    \qquad
+    u^*=\nabla_c^QG_{\rm harm}(R,c^*).
+  \]
+
+- Unique scalar:
+
+  \[
+    E_{\rm op}(R)=E_{\rm vac}^{\rm analytic}(R)
+      +G_{\rm harm}(R,c^*(R)),
+    \qquad
+    G_{\rm harm}=-\tfrac12(Sc)^TA^{-1}(Sc)
+      =\tfrac12\langle c,u\rangle_Q.
+  \]
+
+- Model identity: the separately content-addressed analytic isotropic Gaussian
+  multipole evaluator with the original learned four-channel density head.
+  Those four outputs occupy only the `sigma=1.5` source block; the second
+  radial block is not invented and the density head is not called a
+  field-energy gradient.
+- Continuum/cavity identity: the smooth weighted-overlap harmonic Galerkin
+  scalar with fixed complete irrep dimensions and no laboratory-fixed surface
+  grid. Its drive and coordinate pullbacks are generated from the same scalar.
+- Excluded: the checkpoint field-conditioned energy difference, the changed
+  eight-channel variational effective source, sharp-union identity, CDS, and
+  every public workflow.
+- Derivative: the existing operational implicit adjoint differentiates this
+  exact scalar along the constrained root. The builder is deliberately named
+  `build_disabled_operational_electrostatic_scalar` and rejects admitted
+  registry entries.
+- Profile:
+  `route2-profile-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1`.
+- Capabilities/evidence: none / synthetic implementation tests only. No real
+  checkpoint force, rotation, physical-component, solvation-energy, PES, or
+  release gate has passed; `E/F/H/V/M` remain false.
+
 ## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`
 
 Profile `route2-profile-diagnostic-ddx-ddpcm194-radialgto-electrostatic-v1`

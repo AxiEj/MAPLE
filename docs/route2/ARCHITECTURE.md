@@ -82,6 +82,15 @@ guarantee, regardless of Lebedev order. The disabled reference now composes a
 rectangular smooth-exposure product embedding `E`, the full-shell Coulomb
 operator `K`, `A=E.T K E`, and the eight-channel Gaussian `S=E.T V` with the
 receiver exactly `S.T`. The exact shell kernel is `C1` but not generally `C2`
-at tangency, and no coordinate pullback or capability is enabled. The full
-construction and its fail-closed boundaries are documented in
+at tangency. The smooth Torch candidate now generates its fixed-source
+coordinate partial and mixed drive/coordinate pullback from that scalar, but
+no capability is enabled. The full construction and its fail-closed boundaries
+are documented in
 [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md).
+
+The same continuum scalar also has a separately named operational research
+profile. That profile retains the original MACE density response rather than
+claiming electronic energy/source conjugacy, excludes the field-conditioned
+model energy difference, and uses the existing fixed-point adjoint to
+differentiate `E_vac+G_harm`. It is not Tier V and remains fully disabled until
+its own real-checkpoint force, symmetry, physical, and release panels pass.

@@ -9,7 +9,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
-| 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
+| 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; a separate closed analytic-evaluator/original-source plus smooth-harmonic profile now reuses the same kernel |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative | a clean official-checkpoint canary rules out retaining the original intrinsic energy and original four-channel source; a second isolates the pinned fixed-axis real-space operator as non-`SO(3)`; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular in a reproducible local-stability canary, so every profile remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
@@ -64,6 +64,17 @@ processes have identical scientific measurements under
 [`evidence/variational-analytic-stability-water-604ecfa2/`](evidence/variational-analytic-stability-water-604ecfa2/README.md).
 This closes the current analytic candidate for Tier V without changing the
 separate operational-route target.
+
+That operational target now has its own registry identity instead of reusing a
+Tier-V scalar. It keeps the original four-channel density response, embeds it
+only in the first radial-GTO block, drives it with the derivative of the smooth
+harmonic continuum scalar, and defines exactly
+`E_vac + G_harm = E_vac + 1/2<c,u>_Q` along the operational root. A thin
+fail-closed builder binds the model, continuum, charge coordinates, root, and
+implicit adjoint. Synthetic tests close the scalar ledger and a re-solved
+coordinate finite difference. No real-checkpoint force, symmetry, physical,
+accuracy, or workflow gate has yet been executed for this profile, so all
+capabilities remain false.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

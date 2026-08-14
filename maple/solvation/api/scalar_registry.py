@@ -12,6 +12,10 @@ from .state_registry import OPERATIONAL_STATE_EQUATION_ID, VARIATIONAL_STATE_EQU
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
 )
+OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
+    "route2-operational-macepolar-analytic-gaussian-multipole-"
+    "smoothharmonicgalerkin-cpcm-v1"
+)
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
 )
@@ -167,6 +171,51 @@ _SCALAR_ENTRIES = (
         ),
         derivative_route="implicit adjoint total derivative of this scalar along y*(R)",
         **_COMMON,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        exact_formula=(
+            "E_op(R)=E_vac^analytic(R)+G_harm(R,c*(R)); "
+            "c*=M_orig^analytic(R,u*), u*=grad_Q G_harm(R,c*); "
+            "G_harm=-1/2 (S(R)c)^T A(R)^-1 (S(R)c)="
+            "1/2<c,grad_Q G_harm(R,c)>_Q; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.energy:OperationalElectrostaticScalar"
+        ),
+        included_components=(
+            "macepolar_analytic_gaussian_multipole_vacuum_energy",
+            "smooth_weighted_harmonic_galerkin_half_coupling_electrostatic",
+        ),
+        excluded_components=(
+            "field_conditioned_model_energy_difference",
+            "energy_gradient_variational_effective_source",
+            "sharp_union_of_spheres_identity",
+            "nonpolar_smd_cds",
+        ),
+        source_representation=(
+            "original four-channel MACE-POLAR density head embedded in the "
+            "sigma=1.5 radial-GTO block; sigma=3.0 source block is zero before "
+            "the fixed-total-charge affine projection"
+        ),
+        field_convention=(
+            "positive energy-dual eight-channel radial-GTO field with pairing "
+            "c^T Q u; constant-potential gauge is separated from the reduced root"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "implicit adjoint total derivative of this operational scalar; "
+            "disabled pending real-checkpoint root, force, rotation, physical, "
+            "and release gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
     ),
     ScalarDefinition(
         scalar_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
@@ -519,6 +568,7 @@ __all__ = [
     "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
+    "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_CPCM_SMDCDS_V1",
     "SCALAR_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_V1",

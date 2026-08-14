@@ -277,12 +277,20 @@ class ScalarFirstElectronicResponseAdapter:
         reduced, _ = self._functional.duality_map.decompose_field(
             field, atom_count=count, total_charge=charge
         )
-        return self._functional.mixed_coordinate_field_vjp(
-            geometry,
-            reduced,
-            source_cotangent,
-            total_charge=charge,
+        result = np.asarray(
+            self._functional.mixed_coordinate_field_vjp(
+                geometry,
+                reduced,
+                source_cotangent,
+                total_charge=charge,
+            ),
+            dtype=float,
         )
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise ValueError(
+                "electronic scalar mixed coordinate VJP must be finite (N,3)."
+            )
+        return result.reshape(-1).copy()
 
 
 class ScalarFirstContinuumResponseAdapter:
@@ -488,9 +496,18 @@ class ScalarFirstContinuumResponseAdapter:
         field_cotangent: np.ndarray,
     ) -> np.ndarray:
         self.configuration_sha256()
-        return self._functional.mixed_coordinate_source_vjp(
-            geometry, source, field_cotangent
+        result = np.asarray(
+            self._functional.mixed_coordinate_source_vjp(
+                geometry, source, field_cotangent
+            ),
+            dtype=float,
         )
+        count = np.asarray(source).shape[0]
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise ValueError(
+                "continuum scalar mixed coordinate VJP must be finite (N,3)."
+            )
+        return result.reshape(-1).copy()
 
 
 __all__ = [

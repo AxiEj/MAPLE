@@ -24,6 +24,8 @@ from maple.solvation.api import (
     ForceComponent,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
+    OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
+    OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     ProvenanceBundle,
     ProvenanceRecord,
     Route2Result,
@@ -44,6 +46,8 @@ INITIAL_SCALAR_IDS = {
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
+    "route2-operational-macepolar-analytic-gaussian-multipole-"
+    "smoothharmonicgalerkin-cpcm-v1",
     "route2-variational-common-functional-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-"
@@ -91,7 +95,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 17
+    assert len(PROFILE_REGISTRY) == 18
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -127,6 +131,19 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
         "water-eps78p39-smd-radii-lebedev194.v1"
     )
     assert radial.enabled is False
+    operational_harmonic = PROFILE_REGISTRY[
+        OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+    ]
+    assert operational_harmonic.scalar_id == (
+        OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+    )
+    assert "analytic-gaussian-multipole" in operational_harmonic.model_profile
+    assert operational_harmonic.continuum_profile.startswith("smooth-weighted-harmonic")
+    assert operational_harmonic.cavity_profile.startswith(
+        "smooth-weighted-overlap-harmonic"
+    )
+    assert operational_harmonic.enabled is False
+    assert operational_harmonic.capabilities.enabled_tiers == ()
     analytic_variational = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
     ]

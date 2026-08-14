@@ -108,9 +108,16 @@ physical-configuration identity.
   registry entries.
 - Profile:
   `route2-profile-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1`.
-- Capabilities/evidence: none / synthetic implementation tests only. No real
-  checkpoint force, rotation, physical-component, solvation-energy, PES, or
-  release gate has passed; `E/F/H/V/M` remain false.
+- Evidence: one source-bound official-checkpoint water canary passes cold/warm
+  root replay, the exact half-coupling identity, three re-solved operational
+  force finite differences, translation/torque checks, and one rigid rotation.
+  The harmonic continuum rotates at float64 roundoff; the complete operational
+  scalar has `2.77e-9 eV` rotation-energy error and `7.86e-8` relative
+  force-covariance error. Both processes reproduce the same scientific digest
+  under
+  [`evidence/operational-analytic-harmonic-water-fa6f0200/`](evidence/operational-analytic-harmonic-water-fa6f0200/README.md).
+- Capabilities: none. This is not physical-component, solvation-accuracy,
+  PES/domain, Hessian/FREQ/MD, or release evidence; `E/F/H/V/M` remain false.
 
 ## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`
 

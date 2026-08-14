@@ -92,5 +92,8 @@ The same continuum scalar also has a separately named operational research
 profile. That profile retains the original MACE density response rather than
 claiming electronic energy/source conjugacy, excludes the field-conditioned
 model energy difference, and uses the existing fixed-point adjoint to
-differentiate `E_vac+G_harm`. It is not Tier V and remains fully disabled until
-its own real-checkpoint force, symmetry, physical, and release panels pass.
+differentiate `E_vac+G_harm`. One source-bound water canary now passes its
+root, force directional, translation/torque, and rotation gates, with the
+harmonic continuum at roundoff covariance. It is not Tier V and remains fully
+disabled until physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and
+release panels pass.

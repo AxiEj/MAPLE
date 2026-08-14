@@ -72,8 +72,16 @@ harmonic continuum scalar, and defines exactly
 `E_vac + G_harm = E_vac + 1/2<c,u>_Q` along the operational root. A thin
 fail-closed builder binds the model, continuum, charge coordinates, root, and
 implicit adjoint. Synthetic tests close the scalar ledger and a re-solved
-coordinate finite difference. No real-checkpoint force, symmetry, physical,
-accuracy, or workflow gate has yet been executed for this profile, so all
+coordinate finite difference. A subsequent source-bound official-checkpoint
+water canary passes cold/warm replay, all three re-solved force differences,
+net-force/torque gates, and one rigid rotation; the harmonic continuum alone
+rotates at roundoff and the complete operational force has `7.86e-8` relative
+covariance error. Both processes reproduce measurement SHA-256
+`586024051151be3e3c63171e73bab34b6ce43459d4232c8070daadcd204b4547`
+under
+[`evidence/operational-analytic-harmonic-water-fa6f0200/`](evidence/operational-analytic-harmonic-water-fa6f0200/README.md).
+This is still only one water state; physical components, solvation accuracy,
+PES/domain, Hessian/FREQ/MD, and release gates remain absent, so all
 capabilities remain false.
 
 The negative original-source decision is source/model/runtime bound under

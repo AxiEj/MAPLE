@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; synthetic root/adjoint/FD closure is implemented, but no real-checkpoint release evidence or capability exists yet |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; one source-bound water run passes root replay, scalar identity, three force FDs, net-force/torque, and one rotation, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -90,6 +90,21 @@ measurement SHA-256
 `56e7b23760fbd45aadccc9d1579d3d8647ccba9879a30db72f5fff49d9a5e1ff`.
 This is negative Tier-V evidence; it does not affect the separate operational
 conservative-PES target, and every capability remains `no`.
+
+The separate original-source operational target now has positive but narrow
+real-checkpoint evidence under
+[`evidence/operational-analytic-harmonic-water-fa6f0200/`](evidence/operational-analytic-harmonic-water-fa6f0200/README.md).
+For one water geometry, its exact operational scalar converges and replays,
+all three implicit-force finite differences pass, and the second radial source
+block remains exactly zero. The coefficient-space continuum has zero recorded
+rotation-energy error and `1.8214596497756474e-17 eV/Angstrom` maximum
+coordinate-gradient covariance error. The complete model/root/force chain has
+`2.7694113668985665e-9 eV` rotation-energy error and
+`7.857995561759406e-8` relative force-covariance error. Both clean processes
+reproduce measurement SHA-256
+`586024051151be3e3c63171e73bab34b6ce43459d4232c8070daadcd204b4547`.
+This validates one canary, not a public PES or solvation model; every
+capability remains `no`, and the legacy laboratory-grid route remains failed.
 
 ## Legacy baseline
 

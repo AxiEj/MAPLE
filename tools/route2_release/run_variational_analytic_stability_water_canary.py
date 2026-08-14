@@ -314,8 +314,10 @@ def _stability_record(common, atoms: Atoms, primary):
         atom_count=len(atoms),
         total_charge=common.total_charge,
     )
-    if abs(gauge) > 1.0e-14:
-        raise RuntimeError("stability canary requires the zero-gauge section.")
+    if not math.isfinite(gauge):
+        raise RuntimeError("stability canary produced a non-finite gauge potential.")
+    if common.total_charge != 0.0:
+        raise RuntimeError("the preregistered water stability canary must be neutral.")
     dimension = coordinates.reduced_dimension
     sign = common.conjugacy_sign
 
@@ -368,6 +370,15 @@ def _stability_record(common, atoms: Atoms, primary):
     )
     return (
         {
+            "gauge_reduction": {
+                "identity": "u=W xi+kappa g",
+                "constant_potential_eV_per_e": float(gauge),
+                "total_charge_e": common.total_charge,
+                "constant_potential_coupling_energy_eV": float(
+                    common.total_charge * gauge
+                ),
+                "reduced_fixed_charge_tangent_used": True,
+            },
             "state_residual_factorization": {
                 "identity": "J_r=I-J_M H_G",
                 "absolute_frobenius_error": absolute,

@@ -47,6 +47,8 @@ def test_help_is_checkpoint_free_and_all_capabilities_remain_closed():
     assert '"global_root_uniqueness_proven": False' in text
     assert '"public_force_admitted": False' in text
     assert '"tier_v_admitted": False' in text
+    assert "stability canary requires the zero-gauge section" not in text
+    assert '"reduced_fixed_charge_tangent_used": True' in text
 
 
 def test_protocol_thresholds_and_five_start_vectors_are_preregistered():

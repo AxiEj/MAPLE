@@ -1,0 +1,1150 @@
+{
+  "argv": [
+    "tools/route2_release/run_mace_conjugacy_nogo.py",
+    "--checkpoint",
+    "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "--device",
+    "cuda",
+    "--output",
+    "/tmp/route2-mace-conjugacy-nogo-d17c35ac-run2.json"
+  ],
+  "artifact_kind": "disabled-real-checkpoint-tier-v-conjugacy-nogo-canary",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": "A material missing-subspace witness proves that the original checkpoint intrinsic energy and original four-channel source cannot both be retained in one scalar at the tested state. Absence at two states would not prove global conjugacy, passivity, uniqueness, conservative force, or production readiness.",
+  "decision": {
+    "forward_reverse_ad_consistent_for_all_states": true,
+    "frozen_energy_fd_gate_passed_for_all_states": false,
+    "no_go_witness_detected": true,
+    "original_energy_original_source_common_scalar": "formally-ruled-out-by-counterexample",
+    "tier_v_admitted": false
+  },
+  "device": "cuda",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_mace_conjugacy_nogo.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cuda --output /tmp/route2-mace-conjugacy-nogo-d17c35ac-run2.json",
+  "execution_git_head": "d17c35acb3de71e9780741d57b476de3f589d9d7",
+  "execution_git_tree": "e9a2181516387787848b98611c1e7e5959e1114d",
+  "field_space": {
+    "components": [
+      "potential_sigma_1p5",
+      "potential_sigma_3p0",
+      "potential_gradient_y_sigma_1p5",
+      "potential_gradient_z_sigma_1p5",
+      "potential_gradient_x_sigma_1p5",
+      "potential_gradient_y_sigma_3p0",
+      "potential_gradient_z_sigma_3p0",
+      "potential_gradient_x_sigma_3p0"
+    ],
+    "field_convention": "positive-energy-dual radial GTO field; checkpoint feature normalization is a model-adapter representation transform",
+    "gauge": "continuum-zero-at-infinity",
+    "pairing_metric": {
+      "energy_unit": "eV",
+      "field_components": [
+        "potential_sigma_1p5",
+        "potential_sigma_3p0",
+        "potential_gradient_y_sigma_1p5",
+        "potential_gradient_z_sigma_1p5",
+        "potential_gradient_x_sigma_1p5",
+        "potential_gradient_y_sigma_3p0",
+        "potential_gradient_z_sigma_3p0",
+        "potential_gradient_x_sigma_3p0"
+      ],
+      "field_convention": "positive-energy-dual radial GTO field; checkpoint feature normalization is a model-adapter representation transform",
+      "field_to_source_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "field_units": [
+        "eV/e",
+        "eV/e",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)",
+        "eV/(e*angstrom)"
+      ],
+      "gauge": "continuum-zero-at-infinity",
+      "scalar_id": "maple.route2.mace-polar-radial-gto-pairing.v1",
+      "source_components": [
+        "net_monopole_sigma_1p5",
+        "net_monopole_sigma_3p0",
+        "real_l1_m0_sigma_1p5",
+        "real_l1_m1_sigma_1p5",
+        "real_l1_mminus1_sigma_1p5",
+        "real_l1_m0_sigma_3p0",
+        "real_l1_m1_sigma_3p0",
+        "real_l1_mminus1_sigma_3p0"
+      ],
+      "source_units": [
+        "e",
+        "e",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom"
+      ]
+    },
+    "representation": "physical Gaussian-smoothed potentials and Cartesian gradients for the official MACE-POLAR sigma=1.5 and 3.0 angstrom receiver channels",
+    "scalar_id": "maple.route2.mace-polar-radial-gto-field-dual-space.v1",
+    "source_space": {
+      "charge_component": 0,
+      "charge_weights": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "components": [
+        "net_monopole_sigma_1p5",
+        "net_monopole_sigma_3p0",
+        "real_l1_m0_sigma_1p5",
+        "real_l1_m1_sigma_1p5",
+        "real_l1_mminus1_sigma_1p5",
+        "real_l1_m0_sigma_3p0",
+        "real_l1_m1_sigma_3p0",
+        "real_l1_mminus1_sigma_3p0"
+      ],
+      "representation": "atom-centred physical unit multipoles in the official MACE-POLAR sigma=1.5 and 3.0 angstrom radial GTO channels",
+      "scalar_id": "maple.route2.mace-polar-radial-gto-source-space.v1",
+      "units": [
+        "e",
+        "e",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom",
+        "e*angstrom"
+      ]
+    },
+    "units": [
+      "eV/e",
+      "eV/e",
+      "eV/(e*angstrom)",
+      "eV/(e*angstrom)",
+      "eV/(e*angstrom)",
+      "eV/(e*angstrom)",
+      "eV/(e*angstrom)",
+      "eV/(e*angstrom)"
+    ]
+  },
+  "field_space_sha256": "b0f9441c5f458a545ada801c12f5d082e2377c5dbc19f60d2854a0f49e82aaa6",
+  "field_transform": {
+    "contract": "physical-radial-field-to-native-feature-linear-map-v1",
+    "field_space_sha256": "b0f9441c5f458a545ada801c12f5d082e2377c5dbc19f60d2854a0f49e82aaa6",
+    "gauge": "continuum-zero-at-infinity; no atom-mean subtraction",
+    "matrix_sha256": "28c3a559fbfd7866f455e021746f7435bf9b69b2ce778cf92d435d95691debf3",
+    "projection_spec": {
+      "contract_version": 1,
+      "feature_layout": "graph-longrange-0.4.0-l0-radial-first-l1-radial-cartesian-v1",
+      "graph_longrange_version": "0.4.0",
+      "receiver_max_l": 1,
+      "receiver_normalization": "receiver",
+      "receiver_sigmas_angstrom": [
+        1.5,
+        3.0
+      ],
+      "upstream_matrix_sha256": "6b529e271d99c63e73dd4ea45c0ed192c2a44ee4e916241867b076a32875d649",
+      "upstream_matrix_shape": [
+        8,
+        4
+      ]
+    },
+    "source_space_sha256": "aca814119c0f4d54588ab0c8c6c31d92217e47a2dd14e8ccb991d12737576d89",
+    "transform_id": "maple.route2.model-field.mace-polar-radial-gto-to-native-features.v1"
+  },
+  "field_transform_sha256": "f36fd9273be5d3d1e7ec7621a2a09ee1d95b9b336d2f51d7c7d08f6062ae9b7a",
+  "geometry": {
+    "atomic_numbers": [
+      1,
+      1,
+      8
+    ],
+    "charge": 0,
+    "formula": "H2O",
+    "multiplicity": 1,
+    "positions_A": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.239,
+        0.9266,
+        0.0
+      ]
+    ]
+  },
+  "measurement_sha256": "d89b620ed31cfdc0dfd7a89d03551251008458fe62e60c4eacda020255ab6909",
+  "model_configuration_sha256": "eadeb7b72def751e069ef0e11df55452c89d829713b5b279810d7ccd8a8e1fc8",
+  "model_profile_id": "mace-polar-route2-source-field-contract-v1",
+  "model_provenance_sha256": "51470491f8c820629270520e1480e28e92429d988666c31dd2cef9a79ba6b907",
+  "model_provider_id": "maple.route2.model.mace-polar-1-m-local-field.impl.v1.radial-gto.v1",
+  "pairing_sha256": "8460c72252e9ebff25fef12ba5793d88b800604da54f07e9a4af544b052377ca",
+  "protocol": {
+    "fd_steps": [
+      0.01,
+      0.003,
+      0.001,
+      0.0003,
+      0.0001
+    ],
+    "field_scale": 0.005,
+    "field_seed": 20260814,
+    "post_preregistration_ad_crosscheck": {
+      "absolute_eV": 2e-10,
+      "not_a_replacement_for_frozen_fd_gate": true,
+      "purpose": "implementation consistency after central differences of the roughly 2 keV total energy showed cancellation",
+      "relative": 5e-09
+    },
+    "scalar_semantics": "checkpoint intrinsic field-conditioned energy only; no explicit source-field coupling assembled",
+    "signs_audited": [
+      -1,
+      1
+    ],
+    "state_ids": [
+      "zero-field",
+      "nonzero-deterministic-field"
+    ],
+    "thresholds": {
+      "contract_version": "route2-mace-conjugacy-nogo-v1",
+      "decision": "no-go iff the gauge-reduced projection of the intrinsic-energy field gradient onto ker(S.T Q) is not numerically zero",
+      "energy_directional_fd_absolute_eV": 2e-07,
+      "energy_directional_fd_relative": 2e-06,
+      "gauge_reduced_reciprocity_relative": 1e-09,
+      "jvp_vjp_dot_absolute": 1e-10,
+      "jvp_vjp_dot_relative": 1e-09,
+      "vector_zero_absolute": 1e-10,
+      "vector_zero_relative": 1e-09
+    }
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-14T06:13:43.491888+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 12.01240981099545,
+  "schema_version": "route2-mace-conjugacy-nogo-real-checkpoint-v2",
+  "source_embedding": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "source_embedding_sha256": "b74a77de17230eb09aa4b8953106339106c0c6cdc75de85752fd9da95505efd5",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "fffa8563eea7ff42e1cd51034ce0b6f1f9eaac65a06a1832f704956f2cdaf460",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "2e95749ee36ffac7c091f797ec7271ac55db156e3e12295ebc16bd5adcb30172",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "01f964c9a160ee32978882e0a796ce1dd63b5433dbfb41ad5b254410b1ed9b60",
+    "maple/solvation/api/state_registry.py": "f39c6f4b143276a309598b73183be8689d7a3b1f14073fb8de74d024db3c0540",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "5313d8bd266fdfb18b5510cda4bda8275b66ab2d7f032c11d063ebe519972856",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "bbaf19153e9a35c5bebd65f35930c2f7fb33a0a10b87aa95a1eafdf0a93f28ef",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_variational.py": "85c41193036fc57191e7da4ac9e6ad61a9d3547a696c0e473d34f00f90f0017f",
+    "maple/solvation/release/__init__.py": "34754a8ef368354e085ab5d5e4a22c28d028d4967f405ab9b8fb2d6f1173a4b8",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "tools/route2_release/run_mace_conjugacy_nogo.py": "f26adcbc2152b3f106e484d747d30e9b9d1a967977e7b02fe998982d667320ee"
+  },
+  "source_space": {
+    "charge_component": 0,
+    "charge_weights": [
+      1.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "components": [
+      "net_monopole_sigma_1p5",
+      "net_monopole_sigma_3p0",
+      "real_l1_m0_sigma_1p5",
+      "real_l1_m1_sigma_1p5",
+      "real_l1_mminus1_sigma_1p5",
+      "real_l1_m0_sigma_3p0",
+      "real_l1_m1_sigma_3p0",
+      "real_l1_mminus1_sigma_3p0"
+    ],
+    "representation": "atom-centred physical unit multipoles in the official MACE-POLAR sigma=1.5 and 3.0 angstrom radial GTO channels",
+    "scalar_id": "maple.route2.mace-polar-radial-gto-source-space.v1",
+    "units": [
+      "e",
+      "e",
+      "e*angstrom",
+      "e*angstrom",
+      "e*angstrom",
+      "e*angstrom",
+      "e*angstrom",
+      "e*angstrom"
+    ]
+  },
+  "source_space_sha256": "aca814119c0f4d54588ab0c8c6c31d92217e47a2dd14e8ccb991d12737576d89",
+  "states": {
+    "nonzero-deterministic-field": {
+      "analysis": {
+        "atom_count": 3,
+        "claim_boundary": "A nonzero witness is a decisive counterexample at this state; a zero witness at finitely many states is not a global proof.",
+        "component_count": 8,
+        "contract_version": "route2-mace-conjugacy-nogo-v1",
+        "direct": {
+          "-1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.5971727059605246,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 1.4114641974841917,
+              "threshold": 5.230873918197368e-10
+            },
+            "gauge_direction_absolute": 0.0007071036028527466,
+            "gauge_direction_threshold": 5.230873918197368e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.5971722873247803,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 1.4114632080060074,
+              "threshold": 5.230873918197368e-10
+            },
+            "sign": -1
+          },
+          "1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.5822751350293335,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 1.3762526283870478,
+              "threshold": 5.230873918197368e-10
+            },
+            "gauge_direction_absolute": 0.0007071036028527327,
+            "gauge_direction_threshold": 5.230873918197368e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.5822747056827415,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 1.3762516135929408,
+              "threshold": 5.230873918197368e-10
+            },
+            "sign": 1
+          }
+        },
+        "energy_gradient_l2": 0.4230873918197368,
+        "gauge_energy_directional_derivative": -0.001732043022272832,
+        "gauge_reduced_reciprocity": {
+          "absolute_frobenius": 0.16249492215239533,
+          "reciprocal": false,
+          "reduced_dimension": 23,
+          "relative_frobenius": 1.2569246696603205,
+          "susceptibility_frobenius": 0.1292797620053945,
+          "tolerance": 1e-09
+        },
+        "gauge_source_directional_derivative": -2.7755575615628914e-17,
+        "gauge_source_response_l2": 0.0038820949579396547,
+        "intrinsic_stationarity": {
+          "-1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.4231144729710974,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 1.0000640084102816,
+              "threshold": 5.230873918197368e-10
+            },
+            "gauge_direction_absolute": 0.0007097320552987129,
+            "gauge_direction_threshold": 5.230873918197368e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.4231138777185395,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 1.0000626014845035,
+              "threshold": 5.230873918197368e-10
+            },
+            "sign": -1
+          },
+          "1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.4230603160120217,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 0.9999360042198406,
+              "threshold": 5.230873918197368e-10
+            },
+            "gauge_direction_absolute": 0.0007044751504067795,
+            "gauge_direction_threshold": 5.230873918197368e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.4230597294696745,
+              "numerically_zero": false,
+              "reference_l2": 0.4230873918197368,
+              "relative_l2": 0.999934617881324,
+              "threshold": 5.230873918197368e-10
+            },
+            "sign": 1
+          }
+        },
+        "learned_component_count": 4,
+        "missing_subspace": {
+          "full": {
+            "absolute_l2": 0.31428849519096846,
+            "numerically_zero": false,
+            "reference_l2": 0.4230873918197368,
+            "relative_l2": 0.7428453347172211,
+            "threshold": 5.230873918197368e-10
+          },
+          "full_dimension": 12,
+          "full_projected_gradient": [
+            0.03358873946944008,
+            -0.06093529624553387,
+            0.0,
+            -0.2779953962788068,
+            0.0421094741991385,
+            0.015675967530746328,
+            0.0,
+            -0.03558231436402959,
+            0.017766935914721473,
+            -0.025287093253019203,
+            0.0,
+            0.11141973856403273
+          ],
+          "gauge_reduced": {
+            "absolute_l2": 0.3096212958015978,
+            "numerically_zero": false,
+            "reference_l2": 0.4230873918197368,
+            "relative_l2": 0.7318140454857065,
+            "threshold": 5.230873918197368e-10
+          },
+          "gauge_reduced_dimension": 11,
+          "gauge_reduced_projected_gradient": [
+            0.015675967530746328,
+            0.0,
+            -0.03558231436402959,
+            0.1629344064833859,
+            -0.1471126029286673,
+            0.1714551412130843,
+            -0.06093529624553387,
+            0.0,
+            -0.025287093253019203,
+            0.0,
+            0.11141973856403273
+          ],
+          "no_go_witness_detected": true,
+          "per_atom_full_l2": [
+            0.2865706790651963,
+            0.05731531096359463,
+            0.11562637778060035
+          ]
+        },
+        "no_go_witness_detected": true,
+        "source_l2": 0.41088544108059394,
+        "total_charge": -2.7755575615628914e-17
+      },
+      "capabilities": {
+        "E": false,
+        "F": false,
+        "H": false,
+        "M": false,
+        "V": false
+      },
+      "constant_potential_source_delta_l2": 3.882130948214624e-06,
+      "constant_potential_step": 0.001,
+      "dense_jvp_max_abs_error": 6.999258811424269e-12,
+      "field": [
+        [
+          0.00014362398610265865,
+          0.00110665765598472,
+          0.00081440167271012,
+          0.0001514925360709409,
+          0.0005411280670250613,
+          -0.002127536905976585,
+          -0.0019895362571917237,
+          0.0012064280484246368
+        ],
+        [
+          -0.00036417967211420897,
+          -0.00043348654162014307,
+          -0.0013463197646979574,
+          0.00013242543317040068,
+          0.0008448759487681057,
+          0.0008849437850544273,
+          0.00032113473927300527,
+          0.00029461448759570953
+        ],
+        [
+          0.00011423540089712585,
+          0.0018964435536986508,
+          -0.0018190744964187177,
+          0.0002549022188656661,
+          -0.0005204961074918316,
+          0.0011754170454050493,
+          1.0457499375073933e-06,
+          -0.0006016065242567804
+        ]
+      ],
+      "field_l2": 0.005,
+      "intrinsic_energy_directional_ad": {
+        "absolute_error_eV": 6.448251654855852e-12,
+        "forward_mode_eV": 0.05446047727880778,
+        "implementation_consistent": true,
+        "relative_error": 1.1840240807740885e-10,
+        "reverse_mode_eV": 0.05446047727235953,
+        "status": "post-preregistration-implementation-diagnostic"
+      },
+      "intrinsic_energy_directional_fd": [
+        {
+          "absolute_error_eV": 5.946414511348586e-07,
+          "analytic_eV": 0.05446047727235953,
+          "finite_difference_eV": 0.054459882630908396,
+          "gate_passed": false,
+          "relative_error": 1.0918770472043925e-05,
+          "step": 0.01
+        },
+        {
+          "absolute_error_eV": 3.8674880681321966e-07,
+          "analytic_eV": 0.05446047727235953,
+          "finite_difference_eV": 0.054460864021166344,
+          "gate_passed": false,
+          "relative_error": 7.101407841471425e-06,
+          "step": 0.003
+        },
+        {
+          "absolute_error_eV": 2.179845241589984e-06,
+          "analytic_eV": 0.05446047727235953,
+          "finite_difference_eV": 0.05445829742711794,
+          "gate_passed": false,
+          "relative_error": 4.0026186893083406e-05,
+          "step": 0.001
+        },
+        {
+          "absolute_error_eV": 5.392835019053799e-06,
+          "analytic_eV": 0.05446047727235953,
+          "finite_difference_eV": 0.054465870107378585,
+          "gate_passed": false,
+          "relative_error": 9.901310689468307e-05,
+          "step": 0.0003
+        },
+        {
+          "absolute_error_eV": 1.9426338267403143e-05,
+          "analytic_eV": 0.05446047727235953,
+          "finite_difference_eV": 0.054479903610626934,
+          "gate_passed": false,
+          "relative_error": 0.0003565780586956437,
+          "step": 0.0001
+        }
+      ],
+      "intrinsic_energy_directional_fd_gate_interpretation": "The frozen v1 FD threshold is retained. Failure is reported without aborting only when independent forward/reverse AD agrees; the FD result is not relabelled as a pass.",
+      "intrinsic_energy_directional_fd_gate_passed": false,
+      "intrinsic_energy_eV": -2075.216374430801,
+      "intrinsic_energy_field_gradient": [
+        [
+          0.030705646964823727,
+          -0.03358873946944008,
+          -0.0006706623156529111,
+          0.0,
+          0.2504020465909965,
+          -0.06093529624553387,
+          0.0,
+          -0.2779953962788068
+        ],
+        [
+          0.04090416123577434,
+          -0.0421094741991385,
+          -0.03036004694313311,
+          0.0,
+          0.03535214613430387,
+          0.015675967530746328,
+          0.0,
+          -0.03558231436402959
+        ],
+        [
+          0.02012329836042916,
+          -0.017766935914721473,
+          0.049023516414941064,
+          0.0,
+          -0.09964086528785787,
+          -0.025287093253019203,
+          0.0,
+          0.11141973856403273
+        ]
+      ],
+      "original_embedded_source": [
+        [
+          0.057211553358655944,
+          0.0,
+          -0.132108259735067,
+          0.0,
+          0.10868013104524127,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.14988124256842056,
+          0.0,
+          0.0689179767477821,
+          0.0,
+          -0.08353256858549218,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.20709279592707652,
+          0.0,
+          -0.21716286325694506,
+          0.0,
+          0.10977623135198844,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_jacobian_frobenius": 0.12928947614190614,
+      "source_jacobian_sha256": "b8ad036cfc172b0a515e681613da910ac02d289dc0b1f195abf253ab30513d74",
+      "source_jvp_vjp": {
+        "absolute_error": 6.074455174975846e-13,
+        "gate_passed": true,
+        "jvp_dot": -0.0024707949168644673,
+        "relative_error": 2.45850237650827e-10,
+        "vjp_dot": -0.0024707949162570218
+      }
+    },
+    "zero-field": {
+      "analysis": {
+        "atom_count": 3,
+        "claim_boundary": "A nonzero witness is a decisive counterexample at this state; a zero witness at finitely many states is not a global proof.",
+        "component_count": 8,
+        "contract_version": "route2-mace-conjugacy-nogo-v1",
+        "direct": {
+          "-1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.5971660750245534,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 1.4110010109768891,
+              "threshold": 5.232215784247474e-10
+            },
+            "gauge_direction_absolute": 0.0007109277990860995,
+            "gauge_direction_threshold": 5.232215784247474e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.5971656518436865,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 1.4110000110730836,
+              "threshold": 5.232215784247474e-10
+            },
+            "sign": -1
+          },
+          "1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.5825796053242354,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 1.3765356849067731,
+              "threshold": 5.232215784247474e-10
+            },
+            "gauge_direction_absolute": 0.0007109277990860578,
+            "gauge_direction_threshold": 5.232215784247474e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.5825791715478732,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 1.3765346599676296,
+              "threshold": 5.232215784247474e-10
+            },
+            "sign": 1
+          }
+        },
+        "energy_gradient_l2": 0.42322157842474745,
+        "gauge_energy_directional_derivative": -0.0017414103517207624,
+        "gauge_reduced_reciprocity": {
+          "absolute_frobenius": 0.1626844721070022,
+          "reciprocal": false,
+          "reduced_dimension": 23,
+          "relative_frobenius": 1.257394768828687,
+          "susceptibility_frobenius": 0.1293821766560626,
+          "tolerance": 1e-09
+        },
+        "gauge_source_directional_derivative": -2.7755575615628914e-17,
+        "gauge_source_response_l2": 0.0038819062780713724,
+        "intrinsic_stationarity": {
+          "-1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.42322157842474745,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 1.0,
+              "threshold": 5.232215784247474e-10
+            },
+            "gauge_direction_absolute": 0.0007109277990860717,
+            "gauge_direction_threshold": 5.232215784247474e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.4232209813159068,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 0.999998589134224,
+              "threshold": 5.232215784247474e-10
+            },
+            "sign": -1
+          },
+          "1": {
+            "all_allowed_directions_zero": false,
+            "full": {
+              "absolute_l2": 0.42322157842474745,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 1.0,
+              "threshold": 5.232215784247474e-10
+            },
+            "gauge_direction_absolute": 0.0007109277990860717,
+            "gauge_direction_threshold": 5.232215784247474e-10,
+            "gauge_direction_zero": false,
+            "gauge_reduced": {
+              "absolute_l2": 0.4232209813159068,
+              "numerically_zero": false,
+              "reference_l2": 0.42322157842474745,
+              "relative_l2": 0.999998589134224,
+              "threshold": 5.232215784247474e-10
+            },
+            "sign": 1
+          }
+        },
+        "learned_component_count": 4,
+        "missing_subspace": {
+          "full": {
+            "absolute_l2": 0.31436131226185854,
+            "numerically_zero": false,
+            "reference_l2": 0.42322157842474745,
+            "relative_l2": 0.7427818624748,
+            "threshold": 5.232215784247474e-10
+          },
+          "full_dimension": 12,
+          "full_projected_gradient": [
+            0.03356348571686583,
+            -0.0607217879223115,
+            0.0,
+            -0.2779555649834305,
+            0.04216946914263985,
+            0.015654011621390747,
+            0.0,
+            -0.035594877367907334,
+            0.017759025698907027,
+            -0.025635645931997776,
+            0.0,
+            0.1117462241027186
+          ],
+          "gauge_reduced": {
+            "absolute_l2": 0.3096925106791458,
+            "numerically_zero": false,
+            "reference_l2": 0.42322157842474745,
+            "relative_l2": 0.7317502851150391,
+            "threshold": 5.232215784247474e-10
+          },
+          "gauge_reduced_dimension": 11,
+          "gauge_reduced_projected_gradient": [
+            0.015654011621390747,
+            0.0,
+            -0.035594877367907334,
+            0.16287721246333303,
+            -0.14707275244537424,
+            0.17148319588910704,
+            -0.0607217879223115,
+            0.0,
+            -0.025635645931997776,
+            0.0,
+            0.1117462241027186
+          ],
+          "no_go_witness_detected": true,
+          "per_atom_full_l2": [
+            0.2864837503370941,
+            0.057361202065952674,
+            0.11601632616722615
+          ]
+        },
+        "no_go_witness_detected": true,
+        "source_l2": 0.4109582149144261,
+        "total_charge": -2.7755575615628914e-17
+      },
+      "capabilities": {
+        "E": false,
+        "F": false,
+        "H": false,
+        "M": false,
+        "V": false
+      },
+      "constant_potential_source_delta_l2": 3.880741237147029e-06,
+      "constant_potential_step": 0.001,
+      "dense_jvp_max_abs_error": 1.0063713751229386e-11,
+      "field": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "field_l2": 0.0,
+      "intrinsic_energy_directional_ad": {
+        "absolute_error_eV": 1.4236033185621721e-10,
+        "forward_mode_eV": 0.05434686728755946,
+        "implementation_consistent": true,
+        "relative_error": 2.6194763187169927e-09,
+        "reverse_mode_eV": 0.05434686714519913,
+        "status": "post-preregistration-implementation-diagnostic"
+      },
+      "intrinsic_energy_directional_fd": [
+        {
+          "absolute_error_eV": 4.832912453914262e-07,
+          "analytic_eV": 0.05434686714519913,
+          "finite_difference_eV": 0.05434638385395374,
+          "gate_passed": false,
+          "relative_error": 8.892715822978565e-06,
+          "step": 0.01
+        },
+        {
+          "absolute_error_eV": 4.4529710422486213e-07,
+          "analytic_eV": 0.05434686714519913,
+          "finite_difference_eV": 0.054346421848094906,
+          "gate_passed": false,
+          "relative_error": 8.193611290144045e-06,
+          "step": 0.003
+        },
+        {
+          "absolute_error_eV": 2.0128397009919197e-06,
+          "analytic_eV": 0.05434686714519913,
+          "finite_difference_eV": 0.05434887998490012,
+          "gate_passed": false,
+          "relative_error": 3.703553231549853e-05,
+          "step": 0.001
+        },
+        {
+          "absolute_error_eV": 5.287323792277365e-06,
+          "analytic_eV": 0.05434686714519913,
+          "finite_difference_eV": 0.05435215446899141,
+          "gate_passed": false,
+          "relative_error": 9.727901026064847e-05,
+          "step": 0.0003
+        },
+        {
+          "absolute_error_eV": 2.2307503371767068e-05,
+          "analytic_eV": 0.05434686714519913,
+          "finite_difference_eV": 0.054324559641827364,
+          "gate_passed": false,
+          "relative_error": 0.00041046530450721035,
+          "step": 0.0001
+        }
+      ],
+      "intrinsic_energy_directional_fd_gate_interpretation": "The frozen v1 FD threshold is retained. Failure is reported without aborting only when independent forward/reverse AD agrees; the FD result is not relabelled as a pass.",
+      "intrinsic_energy_directional_fd_gate_passed": false,
+      "intrinsic_energy_eV": -2075.2161820992624,
+      "intrinsic_energy_field_gradient": [
+        [
+          0.030677704052767346,
+          -0.03356348571686583,
+          -0.000789608695654484,
+          0.0,
+          0.25034369967443915,
+          -0.0607217879223115,
+          0.0,
+          -0.2779555649834305
+        ],
+        [
+          0.040961350536556224,
+          -0.04216946914263985,
+          -0.030341713750986803,
+          0.0,
+          0.035305749037055696,
+          0.015654011621390747,
+          0.0,
+          -0.035594877367907334
+        ],
+        [
+          0.020111515617368375,
+          -0.017759025698907027,
+          0.04935427459220759,
+          0.0,
+          -0.09997245418447026,
+          -0.025635645931997776,
+          0.0,
+          0.1117462241027186
+        ]
+      ],
+      "original_embedded_source": [
+        [
+          0.05723192590449509,
+          0.0,
+          -0.1320256817673794,
+          0.0,
+          0.10864058231870527,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.14999671056200492,
+          0.0,
+          0.06892563312105704,
+          0.0,
+          -0.08351550859346157,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.20722863646650005,
+          0.0,
+          -0.21716334478964627,
+          0.0,
+          0.10976967678757488,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_jacobian_frobenius": 0.12939188216030356,
+      "source_jacobian_sha256": "18a515b3dc03325c178596cd402a96725e64c97be95bfd9d8cbfc23b6dd23834",
+      "source_jvp_vjp": {
+        "absolute_error": 2.8104801472195184e-12,
+        "gate_passed": true,
+        "jvp_dot": -0.0024621093703281706,
+        "relative_error": 1.1414928101413998e-09,
+        "vjp_dot": -0.0024621093731386507
+      }
+    }
+  },
+  "status": "no-go-witness-detected",
+  "working_tree_clean": true
+}

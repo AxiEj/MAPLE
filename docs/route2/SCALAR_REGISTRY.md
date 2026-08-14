@@ -187,7 +187,13 @@ public profile or a multi-geometry convergence certificate.
 - State equation: `route2-common-functional-stationarity-v1`.
 - Derivative: stationary envelope derivative.
 - Capabilities/evidence: none / none. In particular `V=false`; this scalar is
-  disabled until every strict common-variational gate passes.
+  disabled until every strict common-variational gate passes. For the current
+  official MACE-POLAR-1-M checkpoint, the instantiation that retains both the
+  original intrinsic field-conditioned energy and the original four-channel
+  source is formally ruled out by the source-bound real-checkpoint
+  counterexample in
+  [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).
+  This negative result does not transfer capability to a changed-source model.
 
 ## `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`
 
@@ -215,8 +221,10 @@ public profile or a multi-geometry convergence certificate.
 - Profile:
   `route2-profile-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`.
 - Capabilities/evidence: none / none. The entry point remains explicitly
-  disabled until model-side conjugacy and every continuum/root/coordinate/
-  rotation/release gate passes.
+  disabled. Its complete eight-channel energy-gradient effective source is a
+  new model identity rather than the original four-channel density head. It
+  still requires sign/gauge, passivity/root, combined stationarity,
+  coordinate/envelope, rotation, and release gates.
 
 See [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md) for the no-grid
 decision and the moving-cavity contract split.

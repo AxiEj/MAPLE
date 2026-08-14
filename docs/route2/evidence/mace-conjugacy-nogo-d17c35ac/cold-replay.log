@@ -1,0 +1,8 @@
+/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/e3nn/o3/_wigner.py:10: UserWarning: Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False.
+  _Jd, _W3j_flat, _W3j_indices = torch.load(os.path.join(os.path.dirname(__file__), 'constants.pt'))
+/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py:226: UserWarning: Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False.
+  torch.load(f=model_path, map_location=device)
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+cuequivariance or cuequivariance_torch is not available. Cuequivariance acceleration will be disabled.
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+ROUTE2_MACE_CONJUGACY_NOGO={"artifact": {"bytes": 47375, "path": "/tmp/route2-mace-conjugacy-nogo-d17c35ac-run3.json", "sha256": "95d46a0d09427aadf53666448d74dd414739113beda19c3a68ece81082b7cf47"}, "capabilities": {"E": false, "F": false, "H": false, "M": false, "V": false}, "decision": {"forward_reverse_ad_consistent_for_all_states": true, "frozen_energy_fd_gate_passed_for_all_states": false, "no_go_witness_detected": true, "original_energy_original_source_common_scalar": "formally-ruled-out-by-counterexample", "tier_v_admitted": false}, "measurement_sha256": "d89b620ed31cfdc0dfd7a89d03551251008458fe62e60c4eacda020255ab6909", "runtime_seconds": 10.481324731983477}

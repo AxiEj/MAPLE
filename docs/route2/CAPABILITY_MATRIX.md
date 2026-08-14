@@ -25,7 +25,7 @@ CLI restriction.
 | `route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1` | no | no | no | no | no | synthetic injected-grid diagnostic only |
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
-| `route2-variational-common-functional-v1` | no | no | no | no | no | disabled pending every strict-variational gate |
+| `route2-variational-common-functional-v1` | no | no | no | no | no | the current checkpoint's original intrinsic energy plus original four-channel source instantiation is formally ruled out by a source-bound real-checkpoint counterexample; the generic scalar identity remains disabled rather than being reassigned to a changed model |
 | `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate plus scalar-first fixed reciprocal C-PCM candidate; original density head is diagnostic only; combined stationary scalar/sign/gauge/passivity/root/envelope/rotation/release gates remain open |
 | `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1` | no | no | no | no | no | complete-irrep coefficient action, rectangular weighted product embedding, geometry-assembled Coulomb `K`, `A=E.T K E`, eight-channel `S=E.T V`, and one exact-adjoint stationary scalar are implemented; the reference is structurally `SO(3)` covariant and `C1` but not generally `C2` at shell tangency; analytic coordinate pullback, combined model-continuum stationarity, physical calibration, and every release gate remain missing |
 
@@ -33,6 +33,15 @@ The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source
 identity, reciprocity, stability, invertibility, and full coordinate derivative
 are independently proven.
+
+The decisive current negative artifact is
+[`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).
+At clean commit `d17c35ac`, both tested field states have a gauge-reduced
+missing-radial witness relative magnitude above `0.731`, versus numerical-zero
+thresholds near `5.23e-10`; both source/energy signs fail. This closes only the
+"retain original energy and original source" route. The separately named
+eight-channel energy-gradient source is a changed model identity and has no
+admitted tier.
 
 ## Legacy baseline
 

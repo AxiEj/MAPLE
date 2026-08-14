@@ -11,12 +11,12 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic scalar assembly complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch now assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance; analytic coordinate derivatives, physical calibration, and all release gates remain missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; admission gate open | the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX also retain nonzero methanol rotation drift; a preliminary dirty-tree pair-frame/CPCM110 methanol run meets local thresholds but is not release evidence; every candidate remains unadmitted |
+| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar route closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX retain nonzero methanol rotation drift; every candidate remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
-| 10: strict variational | disabled | expected negative until formally proven |
+| 10: strict variational | disabled | original-energy/original-source route is formally ruled out by a real-checkpoint counterexample; the changed-source energy-gradient branch remains unadmitted |
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from
@@ -27,6 +27,15 @@ rank obstruction only by changing the source/model identity and closes the
 continuum half-coupling derivative identity only for the fixed-cavity candidate.
 No combined stationary scalar or capability tier is enabled; sign/gauge,
 stability/root, envelope, rotation, and release evidence remain pending.
+
+The negative original-source decision is source/model/runtime bound under
+[`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).
+At both zero and deterministic nonzero field, more than `73%` of the
+intrinsic-energy gradient norm survives projection into the gauge-reduced
+missing source-dual subspace. A cold replay reproduced the complete protocol,
+states, decision, and measurement digest exactly. This result is a formal
+counterexample to the original common-scalar claim, not an admission of the
+new eight-channel effective source.
 
 The harmonic Tier-V branch additionally contains a dependency-light,
 geometry-bound smooth weighted-overlap conductor reference. It replaces raw

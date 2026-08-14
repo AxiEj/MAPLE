@@ -1,0 +1,31 @@
+/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/e3nn/o3/_wigner.py:10: UserWarning: Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False.
+  _Jd, _W3j_flat, _W3j_indices = torch.load(os.path.join(os.path.dirname(__file__), 'constants.pt'))
+/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py:226: UserWarning: Environment variable TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD detected, since the`weights_only` argument was not explicitly passed to `torch.load`, forcing weights_only=False.
+  torch.load(f=model_path, map_location=device)
+WARNING:root:Default dtype float64 does not match model dtype float32, converting models to float64.
+cuequivariance or cuequivariance_torch is not available. Cuequivariance acceleration will be disabled.
+Using MACE-Polar model for MACECalculator with /home/axie/.cache/mace/MACEPOLAR1Mmodel
+ROUTE2_MACE_CONJUGACY_NOGO={"artifact": {"bytes": 47374, "path": "/tmp/route2-mace-conjugacy-nogo-d17c35ac-run2.json", "sha256": "3fcc90a01f6fb76d1ddf9a60ad296c8d07602baea9ed24c76a56a5af60b77bb6"}, "capabilities": {"E": false, "F": false, "H": false, "M": false, "V": false}, "decision": {"forward_reverse_ad_consistent_for_all_states": true, "frozen_energy_fd_gate_passed_for_all_states": false, "no_go_witness_detected": true, "original_energy_original_source_common_scalar": "formally-ruled-out-by-counterexample", "tier_v_admitted": false}, "measurement_sha256": "d89b620ed31cfdc0dfd7a89d03551251008458fe62e60c4eacda020255ab6909", "runtime_seconds": 12.01240981099545}
+	Command being timed: "python tools/route2_release/run_mace_conjugacy_nogo.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cuda --output /tmp/route2-mace-conjugacy-nogo-d17c35ac-run2.json"
+	User time (seconds): 13.44
+	System time (seconds): 1.83
+	Percent of CPU this job got: 116%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:13.13
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2100764
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 2753
+	Minor (reclaiming a frame) page faults: 427129
+	Voluntary context switches: 8330
+	Involuntary context switches: 176
+	Swaps: 0
+	File system inputs: 660072
+	File system outputs: 104
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

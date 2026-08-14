@@ -5,7 +5,10 @@
 The vNext contracts, constrained state equation, implicit adjoint,
 fixed-topology C-PCM backend, official MACE-POLAR-1-M adapter, and a conjugate
 two-width radial-GTO `B/B*` path are implemented. **No Route-2 capability is
-admitted.** The separately identified fixed-box40/CPCM590 diagnostic passes
+admitted.** A source/model/runtime-bound real-checkpoint canary now formally
+rules out retaining both the original intrinsic field-conditioned energy and
+the original four-channel source as one common scalar on the full eight-channel
+field space. The separately identified fixed-box40/CPCM590 diagnostic passes
 the preregistered directional and component-resolved same-scalar derivative
 panels and residual-refinement gate. It still lacks all-panel symmetry/loop, workflow,
 and physical-component gates, and its methane electrostatic component is much
@@ -85,6 +88,53 @@ The earlier source/linearization canary remains recorded in
 The last value is negative conjugacy evidence: it is not added to the
 operational half-coupling scalar.
 
+## Real-checkpoint common-scalar no-go
+
+At clean execution commit
+`d17c35acb3de71e9780741d57b476de3f589d9d7`, the official checkpoint was
+audited at zero field and at a deterministic nonzero eight-channel field. The
+exact command was:
+
+```bash
+python tools/route2_release/run_mace_conjugacy_nogo.py \
+  --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel \
+  --device cuda \
+  --output /tmp/route2-mace-conjugacy-nogo-d17c35ac-run2.json
+```
+
+The original four-channel learned source is embedded in the first-width block;
+the second-width source block is identically zero. The intrinsic-energy field
+gradient nevertheless has a material component in the missing source-dual
+subspace:
+
+| measurement | zero field | nonzero field |
+| --- | ---: | ---: |
+| intrinsic-energy gradient L2 | `0.4232215784` | `0.4230873918` |
+| full missing-block witness L2 | `0.3143613123` | `0.3142884952` |
+| full relative witness | `0.7427818625` | `0.7428453347` |
+| gauge-reduced witness L2 | `0.3096925107` | `0.3096212958` |
+| gauge-reduced relative witness | `0.7317502851` | `0.7318140455` |
+| numerical-zero threshold | `5.2322e-10` | `5.2309e-10` |
+| reduced reciprocity defect | `1.2573947688` | `1.2569246697` |
+
+Both signs fail the direct conjugacy and intrinsic-stationarity identities.
+Forward/reverse AD directional checks agree to `1.4236e-10 eV` and
+`6.4483e-12 eV`, respectively. The original frozen central-difference gate
+fails because differences of the roughly 2-keV total energy are
+cancellation-limited; that result remains recorded as a failure and is not
+relabelled.
+
+The complete `protocol`, `states`, `decision`, and measurement digest replayed
+exactly in a second cold process. The primary measurement digest is
+`d89b620ed31cfdc0dfd7a89d03551251008458fe62e60c4eacda020255ab6909`.
+The source/checkpoint/runtime-bound artifacts and warnings are retained under
+[`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).
+
+One material counterexample is sufficient to disprove the global claim that
+the original energy and original source can both be retained unchanged in one
+scalar. It does not admit the separately defined eight-channel energy-gradient
+effective source, conservative nuclear forces, or any chemical-accuracy claim.
+
 ## Real water same-scalar force audit
 
 Command:
@@ -162,10 +212,13 @@ matched QM/C-PCM investigation.
 | scalar energy E | closed | callable internal scalar lacks release and physical-component admission |
 | conservative force F | closed | fixed-box diagnostic passes directional, Cartesian, and residual-refinement panels, but all-panel symmetry/loop and public workflow admission remain open |
 | Hessian/FREQ H | closed | depends on admitted F and raw-Hessian gates |
-| strict variational V | closed | energy-source conjugacy/stability not established |
+| strict variational V | closed | original-energy/original-source route formally ruled out by a real-checkpoint counterexample; the changed-source candidate remains unadmitted |
 | MD M | closed | depends on admitted F plus path/loop/NVE gates |
 | OPT/NEB/TS/IRC | closed | no Tier-F profile |
 
-Next work is not solver tuning. It is a matched source-normalization/basis audit,
-component-level QM/C-PCM reference comparison, and the remaining all-panel
-symmetry/workflow gates while preserving all current negative evidence.
+Next work is not solver tuning or another attempt to retain the original source
+inside a common functional. The optional strict branch must use the separately
+identified energy-gradient effective source and pass its sign/gauge,
+passivity/root, envelope-coordinate, and release gates. The operational branch
+still requires a matched source-normalization/basis audit, component-level
+QM/C-PCM comparison, and the remaining all-panel symmetry/workflow gates.

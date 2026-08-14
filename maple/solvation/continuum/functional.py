@@ -32,6 +32,24 @@ def _source_values(source_space: SourceSpace, source: object) -> np.ndarray:
     return source_space.validate(source, atom_count=values.shape[0])
 
 
+def _torch_device_matches(actual: Any, configured: object) -> bool:
+    """Match an allocated device to a possibly index-free Torch request.
+
+    ``torch.tensor(..., device="cuda")`` reports an allocated device such as
+    ``cuda:0`` even though ``torch.device("cuda") != torch.device("cuda:0")``.
+    An omitted index deliberately means the current device, so constrain the
+    index only when the configuration supplied one explicitly.
+    """
+
+    torch = _torch()
+    actual_device = torch.device(actual)
+    configured_device = torch.device(configured)
+    return actual_device.type == configured_device.type and (
+        configured_device.index is None
+        or actual_device.index == configured_device.index
+    )
+
+
 class ContinuumEnergyFunctional:
     """Base class whose derivatives are sealed to one Torch scalar graph."""
 
@@ -206,7 +224,7 @@ class ContinuumEnergyFunctional:
             or positions.dtype != source.dtype
             or positions.device != source.device
             or positions.dtype != self._dtype()
-            or positions.device != torch.device(self._torch_device)
+            or not _torch_device_matches(positions.device, self._torch_device)
             or not bool(torch.isfinite(positions).all())
             or not bool(torch.isfinite(source).all())
         ):

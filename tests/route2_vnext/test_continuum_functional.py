@@ -16,7 +16,7 @@ from maple.solvation.continuum import (
     ConjugateRadialGTOFixedTopologyCPCMBackend,
     FixedReciprocalCPCMFunctional,
 )
-from maple.solvation.continuum.functional import _torch
+from maple.solvation.continuum.functional import _torch, _torch_device_matches
 
 ROOT = Path(__file__).resolve().parents[2]
 SIX_POINT_SPHERE = np.asarray(
@@ -53,6 +53,17 @@ def _backend():
 def _functional():
     torch = pytest.importorskip("torch")
     return FixedReciprocalCPCMFunctional(_backend(), dtype=torch.float64, device="cpu")
+
+
+def test_index_free_torch_device_request_matches_allocated_device():
+    torch = pytest.importorskip("torch")
+    assert _torch_device_matches(torch.device("cpu"), "cpu")
+    assert _torch_device_matches(torch.device("cpu:0"), "cpu")
+    assert _torch_device_matches(torch.device("cuda:0"), "cuda")
+    assert _torch_device_matches(torch.device("cuda:1"), "cuda")
+    assert _torch_device_matches(torch.device("cuda:0"), "cuda:0")
+    assert not _torch_device_matches(torch.device("cuda:1"), "cuda:0")
+    assert not _torch_device_matches(torch.device("cpu"), "cuda")
 
 
 def test_continuum_functional_contract_imports_without_torch():

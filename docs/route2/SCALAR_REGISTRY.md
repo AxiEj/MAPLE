@@ -116,12 +116,15 @@ physical-configuration identity.
   force-covariance error. Both processes reproduce the same scientific digest
   under
   [`evidence/operational-analytic-harmonic-water-fa6f0200/`](evidence/operational-analytic-harmonic-water-fa6f0200/README.md).
-  A separately preregistered methanol shard then passes cold/warm replay,
-  translation, identical-atom permutation, and three rigid rotations in two
-  clean processes. Its maximum rotation-energy and relative force-covariance
-  errors are `2.8617250791285187e-9 eV` and
-  `5.000913075374153e-8`, respectively. Evidence is retained under
-  [`evidence/operational-analytic-harmonic-rigid-methanol-93c98598/`](evidence/operational-analytic-harmonic-rigid-methanol-93c98598/README.md).
+  Separately preregistered methanol and ethanol shards then pass cold/warm
+  replay, translation, identical-atom permutation, and three rigid rotations
+  each in two clean processes. Their maximum rotation-energy errors are
+  `2.8617250791285187e-9 eV` and `1.9072103896178305e-9 eV`; their maximum
+  relative force-covariance errors are `5.000913075374153e-8` and
+  `4.7353129839838976e-8`, respectively. Evidence is retained under
+  [`evidence/operational-analytic-harmonic-rigid-methanol-93c98598/`](evidence/operational-analytic-harmonic-rigid-methanol-93c98598/README.md)
+  and
+  [`evidence/operational-analytic-harmonic-rigid-ethanol-538f9f4d/`](evidence/operational-analytic-harmonic-rigid-ethanol-538f9f4d/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

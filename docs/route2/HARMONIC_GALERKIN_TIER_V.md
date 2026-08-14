@@ -102,22 +102,52 @@ not mathematically identical to the sharp union of spheres inside the switching
 layer. The declared smooth domain excludes coincident sphere centres; that
 singular geometry fails closed rather than receiving a body-frame fallback.
 
+## Implemented eight-channel source intertwiner
+
+`maple.solvation.continuum.harmonic_gaussian_source` now assembles the
+geometry-dependent source map `S(R)` for the authoritative two-width,
+eight-channel radial-GTO space:
+
+- the `1.5 Å` and `3.0 Å` widths are declared once with the canonical source
+  space rather than copied from a legacy adapter;
+- Gaussian monopole coefficients use invariant one-dimensional radial
+  integrals;
+- dipole columns are analytic derivatives of those monopole coefficients with
+  respect to the source centre. Angular derivatives use exact real `SO(3)` Lie
+  algebra generators, not finite-difference rotations;
+- the raw potential coefficients are contracted with the smooth exposure
+  multiplication operator;
+- the receiver is exactly `S(R).T` under the declared identity radial pairing.
+  There is no separately implemented receiver physics.
+
+The raw source operator agrees with an independent high-order projection of the
+legacy analytic Gaussian point kernel. Dipole columns agree with source-centre
+finite differences, while arbitrary continuous rotations satisfy
+
+\[
+  S(QR)D_c(Q)=D(Q)S(R)
+\]
+
+to floating-point/invariant-quadrature error. The public continuum package now
+resolves adapters lazily, so importing this dependency-light source module does
+not execute the legacy exact-GTO adapter or load Torch.
+
 ## What this slice does not implement
 
 The stationary-continuum snapshot matrices are still external inputs. The
-repository now assembles smooth overlap coefficients and their per-sphere
-multiplication matrices from geometry, but it does **not** yet assemble the
-continuum matrix `A(R)` or source map `S(R)` from solid-harmonic translations
-and analytic Gaussian source coefficients. Consequently the combined slice
-does not yet establish
+repository now assembles smooth overlap coefficients, their per-sphere
+multiplication matrices, and the full eight-channel Gaussian source map
+`S(R)` from geometry. It does **not** yet assemble the continuum Green matrix
+`A(R)` from solid-harmonic translations. Consequently the combined slice does
+not yet establish
 
 \[
   A(QR)=D(Q)A(R)D(Q)^{-1}
 \]
 
-for a complete production continuum assembler. It proves that the exposure
-part is a coefficient-space intertwiner and that, once the remaining covariant
-matrices are supplied, the finite representation, stationary scalar, exact
+for a complete production continuum assembler. It proves the exposure and
+source-map intertwining identities and that, once the remaining covariant Green
+matrix is supplied, the finite representation, stationary scalar, exact
 adjoint receiver, and derivative plumbing preserve that structure.
 
 It is therefore not:
@@ -167,14 +197,15 @@ fixed-cavity milestone.
 
 ## Next implementation gate
 
-The next continuum PR must use the smooth descriptor in a geometry-bound
-assembler whose only directional inputs are inter-centre displacement vectors
-and whose Green/source blocks are built from solid-harmonic
-translation/addition formulas or equivalent STF tensor contractions. It must
-then differentiate those blocks and the exposure coefficients from the same
-scalar graph. The current dense exact finite-band contraction is a bounded
-reference; a production implementation may replace it with exact
-Gaunt/Clebsch-Gordan contractions without changing the coefficient contract.
+The next continuum PR must use the smooth descriptor and source map in a
+geometry-bound Green-operator assembler whose only directional inputs are
+inter-centre displacement vectors and whose blocks are built from
+solid-harmonic translation/addition formulas or equivalent STF tensor
+contractions. It must then differentiate those blocks, the source map, and the
+exposure coefficients from the same scalar graph. The current dense exact
+finite-band contraction is a bounded reference; a production implementation
+may replace it with exact Gaunt/Clebsch-Gordan contractions without changing
+the coefficient contract.
 
 Before any capability is admitted, verify:
 

@@ -734,6 +734,7 @@ ATOMIC_L1_FIELD_DUAL_SPACE = FieldDualSpace(
     source_space=ATOMIC_L1_SOURCE_SPACE,
     pairing_metric=ATOMIC_L1_PAIRING,
 )
+MACE_POLAR_RADIAL_GTO_SIGMAS_ANGSTROM = (1.5, 3.0)
 MACE_POLAR_RADIAL_GTO_SOURCE_SPACE = SourceSpace(
     scalar_id="maple.route2.mace-polar-radial-gto-source-space.v1",
     representation=(
@@ -940,6 +941,7 @@ __all__ = [
     "LEGACY_UNBOUND_COORDINATE_CONTRACT",
     "MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT",
     "MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE",
+    "MACE_POLAR_RADIAL_GTO_SIGMAS_ANGSTROM",
     "MACE_POLAR_RADIAL_GTO_SOURCE_SPACE",
     "ReducedCoordinates",
     "ReducedCoordinateContract",

@@ -8,14 +8,14 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | --- | --- | --- |
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
-| 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; single-width/local-jet remain separate diagnostics; all tiers false |
+| 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch now has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic geometry assembly in progress; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the new fixed-dimensional `C-infinity` harmonic exposure/multiplication descriptor passes coefficient covariance and smoothness tests, but Green/source translation blocks and coordinate derivatives remain missing; no release candidate passes every residual/rotation/smoothness gate |
 | 5: MACE-POLAR adapter/canaries | candidates complete; admission gate open | the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX also retain nonzero methanol rotation drift; a preliminary dirty-tree pair-frame/CPCM110 methanol run meets local thresholds but is not release evidence; every candidate remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
-| 9: legacy archive/cleanup | pending | production still uses legacy engine |
+| 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
 | 10: strict variational | disabled | expected negative until formally proven |
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
@@ -32,9 +32,10 @@ The harmonic Tier-V branch additionally contains a dependency-light
 geometry-bound smooth weighted-overlap descriptor. It replaces raw
 laboratory-grid mask sampling with invariant one-dimensional pair coefficients
 and exact declared-finite-band products. This closes only the exposure
-intertwiner subproblem. The continuum Green operator, eight-channel Gaussian
-source map, analytic coordinate pullback, combined stationary solve, and all
-admission panels remain open.
+intertwiner subproblem. Its eight-channel Gaussian source map and exact
+transpose receiver are also assembled covariantly from geometry. The continuum
+Green operator, analytic coordinate pullback, combined stationary solve, and
+all admission panels remain open.
 
 ## Asset mapping
 

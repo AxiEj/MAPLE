@@ -8,6 +8,7 @@ continuum surface operator.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 import hashlib
 import json
 import math
@@ -223,6 +224,69 @@ def real_wigner_matrix(rotation: object, *, lmax: int) -> np.ndarray:
     return result
 
 
+@lru_cache(maxsize=HARMONIC_GALERKIN_MAXIMUM_LMAX + 1)
+def real_wigner_generators(*, lmax: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return exact real Lie-algebra generators for active ``x/y/z`` rotations.
+
+    Each retained ``l`` block is obtained from the analytic angular-momentum
+    matrices and the same complex-to-real Condon-Shortley basis convention as
+    :func:`_real_harmonic_design`.  No finite-difference rotation is used.
+    """
+
+    maximum = _bounded_lmax(lmax)
+    dimension = (maximum + 1) ** 2
+    generators = [np.zeros((dimension, dimension), dtype=float) for _ in range(3)]
+    for ell in range(maximum + 1):
+        width = 2 * ell + 1
+        orders = np.arange(-ell, ell + 1)
+        raising = np.zeros((width, width), dtype=complex)
+        for column, order in enumerate(orders[:-1]):
+            raising[column + 1, column] = math.sqrt(
+                ell * (ell + 1) - order * (order + 1)
+            )
+        lowering = raising.T
+        angular_momentum = (
+            0.5 * (raising + lowering),
+            (lowering - raising) / (2.0j),
+            np.diag(orders),
+        )
+        complex_to_real = np.zeros((width, width), dtype=complex)
+        complex_to_real[ell, ell] = 1.0
+        for order in range(1, ell + 1):
+            complex_to_real[ell + order, ell - order] = 1.0 / math.sqrt(2.0)
+            complex_to_real[ell + order, ell + order] = (-1) ** order / math.sqrt(2.0)
+            complex_to_real[ell - order, ell - order] = 1.0j / math.sqrt(2.0)
+            complex_to_real[ell - order, ell + order] = (
+                -1.0j * ((-1) ** order) / math.sqrt(2.0)
+            )
+        section = slice(ell * ell, (ell + 1) * (ell + 1))
+        for axis, operator in enumerate(angular_momentum):
+            block = complex_to_real @ (1.0j * operator) @ complex_to_real.conj().T
+            if np.max(np.abs(block.imag)) > 5.0e-14:
+                raise RuntimeError(
+                    "real harmonic generator acquired an imaginary part."
+                )
+            generators[axis][section, section] = block.real
+    tolerance = 5.0e-14 * (maximum + 1)
+    for generator in generators:
+        if not np.allclose(
+            generator + generator.T,
+            np.zeros_like(generator),
+            atol=tolerance,
+            rtol=0.0,
+        ):
+            raise RuntimeError("real harmonic generator lost skew symmetry.")
+        generator.setflags(write=False)
+    if not np.allclose(
+        generators[0] @ generators[1] - generators[1] @ generators[0],
+        generators[2],
+        atol=tolerance,
+        rtol=0.0,
+    ):
+        raise RuntimeError("real harmonic generators violate the SO(3) algebra.")
+    return tuple(generators)  # type: ignore[return-value]
+
+
 def radial_gto_source_rotation_matrix(
     rotation: object, *, atom_count: int
 ) -> np.ndarray:
@@ -248,5 +312,6 @@ __all__ = [
     "HARMONIC_GALERKIN_MAXIMUM_LMAX",
     "PerAtomHarmonicSpace",
     "radial_gto_source_rotation_matrix",
+    "real_wigner_generators",
     "real_wigner_matrix",
 ]

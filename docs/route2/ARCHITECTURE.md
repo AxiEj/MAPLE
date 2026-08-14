@@ -79,7 +79,7 @@ The Tier-V continuum target is a fixed-dimensional per-atom spherical-harmonic
 Galerkin representation with analytic/covariant operator assembly and one
 stationary scalar. A finite laboratory-frame point mask is not a structural
 `SO(3)` guarantee, regardless of Lebedev order. The first disabled algebraic
-reference and its geometry-bound `C-infinity` harmonic exposure descriptor,
-their exact claim boundaries, and the pending Green/source operator-assembly
-gate are documented in
+reference, its geometry-bound `C-infinity` harmonic exposure descriptor, and
+its eight-channel Gaussian source/transpose-receiver intertwiner, their exact
+claim boundaries, and the pending Green-operator assembly gate are documented in
 [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md).

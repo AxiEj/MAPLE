@@ -38,6 +38,7 @@ from .harmonic_coefficients import (
     HARMONIC_GALERKIN_COEFFICIENT_CONTRACT_ID,
     PerAtomHarmonicSpace,
     radial_gto_source_rotation_matrix,
+    real_wigner_generators,
     real_wigner_matrix,
 )
 
@@ -511,5 +512,6 @@ __all__ = [
     "HARMONIC_GALERKIN_STATIONARY_SCALAR_CONTRACT_ID",
     "PerAtomHarmonicSpace",
     "radial_gto_source_rotation_matrix",
+    "real_wigner_generators",
     "real_wigner_matrix",
 ]

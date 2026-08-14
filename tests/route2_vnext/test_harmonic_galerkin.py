@@ -6,6 +6,7 @@ import sys
 
 import numpy as np
 import pytest
+from scipy.linalg import expm
 
 from maple.solvation.api import (
     PROFILE_REGISTRY,
@@ -18,6 +19,7 @@ from maple.solvation.continuum import (
     FixedHarmonicGalerkinSnapshot,
     PerAtomHarmonicSpace,
     radial_gto_source_rotation_matrix,
+    real_wigner_generators,
     real_wigner_matrix,
 )
 from maple.solvation.release.symmetry_panel import rotate_radial_gto_blocks
@@ -125,6 +127,55 @@ def test_l1_harmonic_block_matches_the_independent_cartesian_vector_action():
     )
     expected = cartesian_to_harmonic @ rotation @ cartesian_to_harmonic.T
     np.testing.assert_allclose(l1_block, expected, atol=2e-15, rtol=0.0)
+
+
+@pytest.mark.parametrize("lmax", (0, 1, 2, 4, 6))
+def test_real_wigner_generators_exponentiate_to_the_rotation_action(lmax):
+    generators = real_wigner_generators(lmax=lmax)
+    angle = 0.137
+    rotations = (
+        np.asarray(
+            [
+                [1.0, 0.0, 0.0],
+                [0.0, np.cos(angle), -np.sin(angle)],
+                [0.0, np.sin(angle), np.cos(angle)],
+            ]
+        ),
+        np.asarray(
+            [
+                [np.cos(angle), 0.0, np.sin(angle)],
+                [0.0, 1.0, 0.0],
+                [-np.sin(angle), 0.0, np.cos(angle)],
+            ]
+        ),
+        np.asarray(
+            [
+                [np.cos(angle), -np.sin(angle), 0.0],
+                [np.sin(angle), np.cos(angle), 0.0],
+                [0.0, 0.0, 1.0],
+            ]
+        ),
+    )
+    dimension = (lmax + 1) ** 2
+    for generator, rotation in zip(generators, rotations, strict=True):
+        np.testing.assert_allclose(
+            generator + generator.T,
+            np.zeros((dimension, dimension)),
+            atol=2e-15,
+            rtol=0.0,
+        )
+        np.testing.assert_allclose(
+            expm(angle * generator),
+            real_wigner_matrix(rotation, lmax=lmax),
+            atol=2e-13,
+            rtol=0.0,
+        )
+    np.testing.assert_allclose(
+        generators[0] @ generators[1] - generators[1] @ generators[0],
+        generators[2],
+        atol=3e-14,
+        rtol=0.0,
+    )
 
 
 def test_radial_source_rotation_matches_authoritative_raw_l1_convention():

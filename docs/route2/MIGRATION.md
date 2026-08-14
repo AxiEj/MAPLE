@@ -12,7 +12,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; a separate closed analytic-evaluator/original-source plus smooth-harmonic profile now reuses the same kernel |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative | a clean official-checkpoint canary rules out retaining the original intrinsic energy and original four-channel source; a second isolates the pinned fixed-axis real-space operator as non-`SO(3)`; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular in a reproducible local-stability canary, so every profile remains unadmitted |
-| 6: force/MAPLE integration | blocked | same-scalar force is callable internally; source-bound analytic-harmonic water, methanol, ethanol, and acetone canaries pass their frozen local symmetry gates, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
+| 6: force/MAPLE integration | blocked | same-scalar force is callable internally; source-bound analytic-harmonic water, methanol, ethanol, acetone, and acetonitrile canaries pass their frozen local symmetry gates, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
@@ -95,7 +95,10 @@ under
 [`evidence/operational-analytic-harmonic-rigid-ethanol-538f9f4d/`](evidence/operational-analytic-harmonic-rigid-ethanol-538f9f4d/README.md).
 The acetone shard is the fourth clean two-process pass; its evidence is under
 [`evidence/operational-analytic-harmonic-rigid-acetone-371a2b60/`](evidence/operational-analytic-harmonic-rigid-acetone-371a2b60/README.md).
-These four equilibrium molecules remain far short of the complete panel.
+The acetonitrile shard is the fifth clean two-process pass; its evidence is
+under
+[`evidence/operational-analytic-harmonic-rigid-acetonitrile-cf43e050/`](evidence/operational-analytic-harmonic-rigid-acetonitrile-cf43e050/README.md).
+These five equilibrium molecules remain far short of the complete panel.
 Physical components, solvation accuracy, PES/domain, Hessian/FREQ/MD, and
 release gates remain absent, so all capabilities remain false. The result
 supports the new coefficient-space replacement and does not repair or admit

@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; source-bound water, methanol, ethanol, and acetone canaries pass their frozen local symmetry gates, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; source-bound water, methanol, ethanol, acetone, and acetonitrile canaries pass their frozen local symmetry gates, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -142,6 +142,16 @@ errors are `6.936716090422124e-9 eV`, `2.0250564002461316e-8`,
 `6.218784064316717e-9`, and `3.212899614059117e-8`, respectively. All frozen
 local gates pass, but the remaining sixteen molecules and every broader PES
 gate remain unexecuted; every capability remains `no`.
+
+The fifth equilibrium shard, acetonitrile, is retained under
+[`evidence/operational-analytic-harmonic-rigid-acetonitrile-cf43e050/`](evidence/operational-analytic-harmonic-rigid-acetonitrile-cf43e050/README.md).
+Its maximum rotation-energy, relative force, source, and field covariance
+errors are `1.7384991224389523e-8 eV`, `1.7558870386345935e-8`,
+`3.395228677265498e-9`, and `8.92400703128298e-9`; both clean runs reproduce
+scientific digest
+`2f01bb45ffa23f1dba09ee15123e71dbae0f742b607ff231758423487cfde616`.
+All local gates pass, but this remains an incomplete equilibrium-only panel and
+does not change any capability.
 
 ## Legacy baseline
 

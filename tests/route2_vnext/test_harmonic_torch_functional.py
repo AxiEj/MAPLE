@@ -7,6 +7,12 @@ import sys
 import numpy as np
 import pytest
 
+from maple.solvation.api import (
+    PROFILE_REGISTRY,
+    SCALAR_REGISTRY,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+)
 from maple.solvation.continuum import (
     SmoothWeightedHarmonicGalerkinFunctionalCandidate,
     build_smooth_harmonic_exposure,
@@ -284,13 +290,28 @@ def test_candidate_is_content_addressed_and_fail_closed(functional):
     assert functional.moving_cavity_coordinate_derivative_available is True
     assert functional.derivatives_generated_from_same_scalar is True
     assert functional.laboratory_fixed_surface_grid is False
-    assert functional.registered_scalar is False
+    assert functional.registered_scalar is True
     assert functional.tier_v_rotation_admitted is False
     assert functional.tier_v_admitted is False
     provenance = dict(functional.runtime_provenance())
     assert provenance["geometry_assembly"] == "same-scalar-E-K-V"
     assert provenance["tier_v_admission"] == "disabled"
     assert provenance["capabilities"] == "none"
+    profile = PROFILE_REGISTRY[
+        VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+    ]
+    scalar = SCALAR_REGISTRY[
+        VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+    ]
+    assert functional.scalar_id == scalar.scalar_id == profile.scalar_id
+    assert functional.continuum_profile_id == profile.continuum_profile
+    assert functional.cavity_profile_id == profile.cavity_profile
+    assert functional.coupling_id == profile.coupling_id
+    assert (
+        functional.configuration_contract_id
+        == profile.continuum_configuration_contract_id
+    )
+    assert scalar.enabled is profile.enabled is False
     with pytest.raises(AttributeError, match="immutable"):
         functional._radii_angstrom = (2.0, 2.0, 2.0)
     with pytest.raises(ValueError, match="distinct"):

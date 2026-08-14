@@ -16,16 +16,19 @@ from maple.solvation.api.profiles import (
     MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
 )
 from maple.solvation.api.scalar_registry import (
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
 )
 from maple.solvation.continuum import (
     FixedHarmonicGalerkinCPCMCandidate,
     FixedHarmonicGalerkinSnapshot,
     FixedReciprocalCPCMFunctional,
     PerAtomHarmonicSpace,
+    SmoothWeightedHarmonicGalerkinFunctionalCandidate,
     build_water_radial_gto_cpcm_backend,
 )
 from maple.solvation.coupling.fixed_point import (
@@ -144,6 +147,22 @@ def _harmonic_continuum():
     )
     return FixedHarmonicGalerkinCPCMCandidate(
         snapshot,
+        dtype=torch.float64,
+        device="cpu",
+    )
+
+
+def _smooth_harmonic_continuum():
+    torch = pytest.importorskip("torch")
+    return SmoothWeightedHarmonicGalerkinFunctionalCandidate(
+        atomic_numbers=(1, 1),
+        radii_angstrom=(1.2, 1.2),
+        transition_width_angstrom2=0.18,
+        surface_lmax=1,
+        exposure_lmax=2,
+        exposure_radial_quadrature_order=16,
+        source_radial_quadrature_order=16,
+        green_radial_quadrature_order=16,
         dtype=torch.float64,
         device="cpu",
     )
@@ -277,6 +296,49 @@ def test_harmonic_candidate_uses_the_same_disabled_common_stationarity_kernel():
     assert scalar.residual_norm <= state.primal_tolerance
     assert common.capabilities.enabled_tiers == ()
     assert common.envelope_coordinate_gradient(atoms, state).admitted is False
+
+
+def test_smooth_harmonic_candidate_closes_the_common_stationary_envelope():
+    atoms = _atoms()
+    common = build_variational_common_functional(
+        _model(),
+        _smooth_harmonic_continuum(),
+        atoms,
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        profile_id=(
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+        ),
+    )
+    state = common.solve_state(
+        atoms,
+        root_context_id="synthetic-smooth-harmonic-common-state-v1",
+        options=_options(),
+    )
+    assert state.converged
+    envelope = common.envelope_coordinate_gradient(atoms, state)
+    assert envelope.admitted is False
+    direction = np.asarray([[0.3, -0.2, 0.1], [-0.3, 0.2, -0.1]])
+    direction /= np.linalg.norm(direction)
+    analytic = np.vdot(envelope.total_coordinate_gradient_eV_per_A, direction)
+    step = 3.0e-5
+    energies = []
+    for sign in (1.0, -1.0):
+        displaced = atoms.copy()
+        displaced.positions += sign * step * direction
+        displaced_state = common.solve_state(
+            displaced,
+            root_context_id=f"synthetic-smooth-harmonic-common-state-v1/{sign:+.0f}",
+            initial_y=state.y,
+            options=_options(),
+        )
+        assert displaced_state.converged
+        energies.append(
+            common.evaluate_state(displaced, displaced_state).total_energy_eV
+        )
+    finite_difference = (energies[0] - energies[1]) / (2.0 * step)
+    assert analytic == pytest.approx(finite_difference, abs=2.0e-8)
 
 
 def test_cold_warm_roots_scalar_ledger_and_stationary_envelope_close():

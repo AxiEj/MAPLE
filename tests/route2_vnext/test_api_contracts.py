@@ -30,6 +30,8 @@ from maple.solvation.api import (
     RuntimeProvenance,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     profile_registry_manifest,
     scalar_registry_manifest,
 )
@@ -44,6 +46,7 @@ INITIAL_SCALAR_IDS = {
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-"
     "harmonicgalerkin-cpcm-v1",
+    "route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1",
 }
 
 
@@ -84,7 +87,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 15
+    assert len(PROFILE_REGISTRY) == 16
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -120,6 +123,17 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
         "water-eps78p39-smd-radii-lebedev194.v1"
     )
     assert radial.enabled is False
+    harmonic = PROFILE_REGISTRY[
+        VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+    ]
+    assert (
+        harmonic.scalar_id
+        == VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+    )
+    assert harmonic.continuum_profile.startswith("smooth-weighted-harmonic")
+    assert harmonic.cavity_profile.startswith("smooth-weighted-overlap-harmonic")
+    assert harmonic.enabled is False
+    assert harmonic.capabilities.enabled_tiers == ()
     diagnostic_radial = PROFILE_REGISTRY[
         DIAGNOSTIC_RADIAL_GTO_CPCM_ELECTROSTATIC_PROFILE_V1
     ]

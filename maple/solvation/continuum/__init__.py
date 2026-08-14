@@ -163,10 +163,6 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_weighted_galerkin",
         "build_smooth_weighted_harmonic_galerkin",
     ),
-    "SMOOTH_HARMONIC_GALERKIN_DIAGNOSTIC_SCALAR_ID": (
-        "harmonic_torch_functional",
-        "SMOOTH_HARMONIC_GALERKIN_DIAGNOSTIC_SCALAR_ID",
-    ),
     "SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID": (
         "harmonic_torch_functional",
         "SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID",

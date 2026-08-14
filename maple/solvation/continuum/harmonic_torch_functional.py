@@ -16,6 +16,15 @@ from typing import Any
 import numpy as np
 
 from maple.solvation.api.capabilities import CapabilityStatus
+from maple.solvation.api.profiles import (
+    MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+    SMOOTH_HARMONIC_CAVITY_PROFILE_ID,
+    SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID,
+    SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID,
+)
+from maple.solvation.api.scalar_registry import (
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+)
 from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
 from maple.solvation.coupling.spaces import (
     MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
@@ -37,10 +46,6 @@ SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID = (
 SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID = (
     "maple.route2.continuum.smooth-harmonic-galerkin-same-scalar.v1"
 )
-SMOOTH_HARMONIC_GALERKIN_DIAGNOSTIC_SCALAR_ID = (
-    "route2-diagnostic-variational-smooth-harmonic-galerkin-cpcm-v1"
-)
-
 _MINIMUM_RELATIVE_BASIS_SINGULAR_VALUE = 1.0e-10
 _MAXIMUM_REFERENCE_CONDITION_NUMBER = 1.0e12
 
@@ -103,10 +108,12 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     )
 
     provider_id = SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID
-    scalar_id = SMOOTH_HARMONIC_GALERKIN_DIAGNOSTIC_SCALAR_ID
+    scalar_id = VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
     functional_contract_id = SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID
-    continuum_profile_id = "smooth-weighted-harmonic-galerkin-cpcm-candidate-v1"
-    cavity_profile_id = "smooth-weighted-overlap-harmonic-cavity-candidate-v1"
+    continuum_profile_id = SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID
+    cavity_profile_id = SMOOTH_HARMONIC_CAVITY_PROFILE_ID
+    coupling_id = MACE_POLAR_RADIAL_GTO_COUPLING_ID
+    configuration_contract_id = SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
     capabilities = CapabilityStatus()
     scalar_first = True
     reciprocal = True
@@ -121,7 +128,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     moving_cavity_coordinate_derivative_available = True
     derivatives_generated_from_same_scalar = True
     laboratory_fixed_surface_grid = False
-    registered_scalar = False
+    registered_scalar = True
     tier_v_rotation_admitted = False
     tier_v_admitted = False
 
@@ -180,6 +187,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "functional_contract_id": self.functional_contract_id,
             "continuum_profile_id": self.continuum_profile_id,
             "cavity_profile_id": self.cavity_profile_id,
+            "coupling_id": self.coupling_id,
+            "configuration_contract_id": self.configuration_contract_id,
             "atomic_numbers": numbers,
             "radii_angstrom": radii,
             "transition_width_angstrom2": width,
@@ -259,6 +268,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                 "functional_contract_id": self.functional_contract_id,
                 "continuum_profile_id": self.continuum_profile_id,
                 "cavity_profile_id": self.cavity_profile_id,
+                "coupling_id": self.coupling_id,
+                "configuration_contract_id": self.configuration_contract_id,
                 "atomic_numbers": self._expected_atomic_numbers,
                 "radii_angstrom": self._radii_angstrom,
                 "transition_width_angstrom2": self._transition_width_angstrom2,
@@ -377,7 +388,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                     "geometry_assembly": "same-scalar-E-K-V",
                     "angular_quadrature": "finite-band-exact-contractions-only",
                     "laboratory_fixed_surface_grid": False,
-                    "registered_scalar": False,
+                    "registered_scalar": True,
                     "tier_v_admission": "disabled",
                     "capabilities": "none",
                 }.items()
@@ -386,7 +397,6 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
 
 
 __all__ = [
-    "SMOOTH_HARMONIC_GALERKIN_DIAGNOSTIC_SCALAR_ID",
     "SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID",
     "SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID",
     "SmoothWeightedHarmonicGalerkinFunctionalCandidate",

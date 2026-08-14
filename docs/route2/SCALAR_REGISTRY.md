@@ -237,27 +237,53 @@ public profile or a multi-geometry convergence certificate.
   no independently coded response receiver.
 - Implemented: immutable/content-addressed coefficient snapshots, symmetric
   positive-definite stationary solve, complete finite `SO(3)` coefficient
-  action, rectangular smooth-exposure product embedding `E`, physical-shell
-  Coulomb `K`, `A=E.T K E`, eight-channel Gaussian `S=E.T V`, and same-scalar
-  drive/HVP/JVP/VJP generation. Nested, intersecting, tangent, and separated
-  spheres are covered without a laboratory grid.
+  action, and same-scalar drive/HVP/JVP/VJP generation from externally frozen
+  `A` and `S` matrices.
 - Implemented in addition: the same disabled common-stationarity kernel can
   eliminate the electronic/continuum state for a fixed external harmonic
   snapshot. This is covered only by a synthetic electronic oracle.
-- Excluded: analytic geometry-dependent harmonic assembly and its coordinate
-  pullback, source-dependent cavity, and every nonpolar term.
-- Scientific boundary: this is a regularized weighted multi-shell conductor
-  reference, not the exact sharp union boundary or a production ddPCM/ddCOSMO
-  backend. It is structurally rotation covariant and `C1`, but not generally
-  `C2` at shell tangency; no force/Hessian/frequency capability follows.
+- Excluded: geometry-dependent harmonic assembly and its coordinate pullback,
+  source-dependent cavity, and every nonpolar term.
+- Scientific boundary: this fixed external coefficient snapshot is a common-
+  state plumbing target. Its zero continuum coordinate partial is not a moving-
+  cavity force.
 - Profile:
   `route2-profile-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`.
 - Capabilities/evidence: none / none. The entry point remains explicitly
   disabled. Its complete eight-channel energy-gradient effective source is a
   new model identity rather than the original four-channel density head. It
-  still requires real-checkpoint sign/gauge, passivity/root uniqueness,
-  combined-Hessian, geometry-dependent coordinate/envelope, rotation, and
-  release gates.
+  still requires every real-checkpoint, physical, rotation, and release gate.
+
+## `route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1`
+
+- Stationary continuum scalar:
+
+  \[
+    G(R,c)=-\frac12(S(R)c)^T A(R)^{-1}(S(R)c),
+    \quad A=E^TKE,\quad S=E^TV.
+  \]
+
+- Cavity/operator identity: smooth weighted-overlap harmonic coefficients,
+  rectangular product embedding `E`, physical-shell Coulomb `K`, and complete
+  two-width eight-channel Gaussian source map `V`. The receiver is generated
+  only from the same scalar.
+- Derivative route: `harmonic_torch_functional` reassembles the complete
+  `R->E,K,V->G` path inside one sealed Torch graph. Source response, fixed-
+  source coordinate partial, and mixed drive/coordinate pullback cannot be
+  overridden independently.
+- Executed synthetic evidence: matrix-by-matrix parity with the independent
+  NumPy/SciPy reference; source and coordinate directional derivatives; mixed
+  pullback; rotation/translation/permutation covariance; exact polar-axis
+  derivative regression; and one re-solved synthetic common-state envelope
+  finite difference.
+- Scientific boundary: this is a regularized weighted multi-shell conductor
+  candidate, not the exact sharp union boundary or production ddPCM/ddCOSMO.
+  It is `C1` but not generally `C2` at shell tangency.
+- Profile:
+  `route2-profile-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1`.
+- Capabilities/evidence: none / none. It remains disabled pending real-
+  checkpoint root/replay/envelope/rotation evidence, passivity and uniqueness,
+  combined-Hessian/domain gates, physical calibration, and all release panels.
 
 See [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md) for the no-grid
 decision and the moving-cavity contract split.

@@ -11,7 +11,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar route closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a distinct changed-source common-state water canary passes cold/warm replay and one three-step envelope FD; the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX retain nonzero methanol rotation drift; every candidate remains unadmitted |
+| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar and current molecular-realspace SO(3) routes closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a second clean zero-field counterexample isolates the pinned `graph_longrange` fixed-axis finite-difference feature/energy operators as non-`SO(3)`; a distinct changed-source common-state water canary passes replay and envelope FD, but every profile remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
@@ -35,10 +35,15 @@ changed eight-channel source converged one water common state, replayed it
 exactly, and matched one envelope direction at all three displacement sizes;
 the raw record is
 [`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).
-No capability tier is enabled: this is one geometry/direction on the
-laboratory-grid continuum, while passivity/root uniqueness, combined-Hessian
-stability, a real-checkpoint common-state run with the harmonic continuum, and
-full release evidence remain pending.
+No capability tier is enabled. A later real-checkpoint common-state run with
+the moving harmonic continuum converged, replayed its root, and passed the
+same-scalar envelope directional check. Its harmonic continuum energy and
+coordinate partial rotated at float64 roundoff, but its complete model-plus-
+continuum scalar failed rotation. The subsequent model-only counterexample
+under
+[`evidence/mace-realspace-so3-nogo-6da676cd/`](evidence/mace-realspace-so3-nogo-6da676cd/README.md)
+locates the first broken primitive in the pinned molecular-realspace MACE path,
+not in the harmonic continuum.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

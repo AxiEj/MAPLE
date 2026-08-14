@@ -178,6 +178,62 @@ Hessian stability, harmonic moving-geometry derivatives, full symmetry/PES
 panels, and chemical validation remain open. Therefore `E/F/H/V/M` all remain
 false and no public force was admitted.
 
+## Molecular-realspace model `SO(3)` no-go
+
+The later smooth harmonic-Galerkin common-scalar canary removed the
+laboratory-fixed cavity grid. Its continuum-only rotation check passed at
+float64 roundoff, but the complete scalar still failed. A dedicated zero-field
+model-only canary was therefore executed at clean commit
+`6da676cdef27c9f1d72b8fa84a49be326e13adb2`:
+
+```bash
+python tools/route2_release/run_mace_realspace_so3_nogo.py \
+  --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel \
+  --device cuda \
+  --output /tmp/route2-mace-realspace-so3-nogo-6da676cd-run1.json
+```
+
+The exact zero-field results were:
+
+| measurement | value |
+| --- | ---: |
+| anchored scalar rotation drift | `-8.888361298886593e-5 eV` |
+| local interaction-energy drift | `+1.4868177800053672e-9 eV` |
+| electron-energy drift | `-4.337914875582327e-5 eV` |
+| electrostatic-energy drift | `-4.5505951146815327e-5 eV` |
+| energy-gradient source covariance relative error | `1.573371208574198e-4` |
+| fixed-field coordinate-gradient relative error | `1.2075108741020767e-3` |
+| fixed-field coordinate-gradient maximum error | `3.092120585912461e-4 eV/Angstrom` |
+
+The runner then bypassed the Route-2 continuum and external-field transform.
+It took the first checkpoint source entering the molecular real-space module,
+rotated that source exactly in the declared `l=0+1` representation, and called
+the pinned upstream primitives directly. The isolated feature covariance
+relative error was `2.1280691879188778e-2`, and the isolated real-space
+Coulomb energy drift was `-5.3144358972190275e-5`.
+
+The first broken operator is
+`graph_longrange.realspace_electrostatics.RealSpaceFiniteDifferenceElectrostaticFeatures`.
+In `graph-longrange==0.4.0`, both this feature operator and the corresponding
+energy operator represent vector multipoles using scalar charges displaced
+along fixed laboratory `x/y/z` axes (`0.1 Angstrom` for features and
+`0.02 Angstrom` for energy). A finite fixed-axis stencil is not closed under a
+continuous `SO(3)` orbit. Increasing the continuum Lebedev order, changing the
+eight-channel field transform, or choosing a molecular body frame cannot repair
+this model-side structural defect.
+
+The primary and cold process replay have identical measurement SHA-256
+`8774134e8dfdbf540f62a17b6fafbd2778f61b2ffb42af6d79d951c3265112dd`.
+The JSON, unfiltered logs, checkpoint/runtime identity, repository sources, and
+exact installed upstream Python source hashes are retained under
+[`evidence/mace-realspace-so3-nogo-6da676cd/`](evidence/mace-realspace-so3-nogo-6da676cd/README.md).
+
+This closes the current molecular-realspace evaluator for strict Tier V. It
+does not rule out a separately versioned, analytic Gaussian-multipole evaluator
+using the same frozen checkpoint weights. Such an evaluator would be a changed
+inference profile and must revalidate parity, component physics, passivity,
+stationary-root stability, and every force/PES gate. `E/F/H/V/M` remain false.
+
 ## Real water same-scalar force audit
 
 Command:

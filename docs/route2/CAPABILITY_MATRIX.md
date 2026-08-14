@@ -26,9 +26,9 @@ CLI restriction.
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
 | `route2-variational-common-functional-v1` | no | no | no | no | no | the current checkpoint's original intrinsic energy plus original four-channel source instantiation is formally ruled out by a source-bound real-checkpoint counterexample; the generic scalar identity remains disabled rather than being reassigned to a changed model |
-| `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate, fixed reciprocal C-PCM scalar, and their common constrained state/envelope kernel are implemented; a source-bound real-checkpoint water canary passes cold/warm replay and one three-step envelope FD, but the original density head remains diagnostic and passivity/root-uniqueness/combined-Hessian/structural-rotation/full-panel gates remain open |
+| `route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1` | no | no | no | no | no | scalar-first complete eight-channel effective-source candidate, fixed reciprocal C-PCM scalar, and their common constrained state/envelope kernel are implemented; a source-bound real-checkpoint water canary passes cold/warm replay and one three-step envelope FD, but the pinned molecular-realspace MACE scalar has a structural `SO(3)` counterexample in its upstream fixed-axis finite-difference long-range operator |
 | `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1` | no | no | no | no | no | complete-irrep coefficient action, exact-adjoint fixed-snapshot scalar, and common-state integration are implemented; the external coefficient snapshot is geometry independent and intentionally has zero continuum coordinate partial; every release gate remains missing |
-| `route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | distinct moving smooth weighted-overlap scalar; its Torch graph reassembles `E`, `K`, `V`, `A=E.T K E`, and `S=E.T V` and passes independent matrix parity, coordinate/mixed finite differences, and roundoff-level synthetic rotation covariance; the reference is `C1` but not generally `C2` at shell tangency; real-checkpoint common-state stability, physical calibration, and every release gate remain missing |
+| `route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | distinct moving smooth weighted-overlap scalar; its Torch graph reassembles `E`, `K`, `V`, `A=E.T K E`, and `S=E.T V`, and a real-checkpoint water run passes root replay plus a three-step envelope FD; the harmonic continuum alone rotates at roundoff, but the full scalar fails because the current MACE molecular-realspace evaluator is not an exact `SO(3)` intertwiner |
 
 The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source
@@ -43,6 +43,17 @@ thresholds near `5.23e-10`; both source/energy signs fail. This closes only the
 "retain original energy and original source" route. The separately named
 eight-channel energy-gradient source is a changed model identity and has no
 admitted tier.
+
+The model-level rotational counterexample is retained separately under
+[`evidence/mace-realspace-so3-nogo-6da676cd/`](evidence/mace-realspace-so3-nogo-6da676cd/README.md).
+At exact zero external field, the anchored checkpoint scalar drifts by
+`8.888361298886593e-5 eV`, its energy-gradient source has relative covariance
+error `1.573371208574198e-4`, and its fixed-field coordinate gradient has
+relative covariance error `1.2075108741020767e-3`. With the checkpoint source
+rotated exactly, the isolated upstream real-space feature operator still has
+relative covariance error `2.1280691879188778e-2`. Therefore neither changing
+the continuum nor changing the eight-channel field transform can admit the
+current model profile.
 
 The corresponding positive-but-narrow changed-source implementation canary is
 [`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).

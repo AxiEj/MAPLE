@@ -295,11 +295,17 @@ This slice is not:
 - a real-checkpoint-admitted electronic-continuum common functional;
 - an admitted Tier E/F/H/V/M profile.
 
-The generic disabled common-stationarity kernel is implemented and accepts a
-fixed external harmonic snapshot. Its present test uses a synthetic
-same-scalar electronic oracle. That proves software composition only; it does
-not establish the real checkpoint's sign, stability, unique root, coordinate
-envelope, or Tier V admission.
+The generic disabled common-stationarity kernel is implemented for both a
+fixed external harmonic snapshot and the moving smooth scalar. A real-
+checkpoint water run converges, cold/warm replays its root, and passes a
+three-step stationary-envelope directional derivative. The harmonic continuum
+alone has roundoff-level rotation errors, but the complete scalar fails its
+rotation gate. The separate model-only evidence under
+[`evidence/mace-realspace-so3-nogo-6da676cd/`](evidence/mace-realspace-so3-nogo-6da676cd/README.md)
+shows that the pinned molecular-realspace MACE evaluator is the first broken
+operator: it uses fixed laboratory-axis finite-difference multipole stencils.
+Thus the harmonic continuum implementation is not promoted, and the current
+model profile cannot supply the structural `SO(3)` premise required by Tier V.
 
 The registered scalar/profile remain distinct disabled identities:
 
@@ -319,13 +325,13 @@ receiver, or empirical diagonal regularizer.
 
 Before any admission, the implementation still needs:
 
-1. analytic or scalar-AD coordinate JVP/VJP of exposure, `E`, `K`, and `S`;
-2. force/energy directional derivatives across the full declared geometry
+1. a separately identified structurally `SO(3)` electronic inference profile;
+2. real-checkpoint sign, gauge, and zero-field-anchor validation for that new
+   model profile;
+3. force/energy directional derivatives across the full declared geometry
    domain, with explicit tangency/Hessian guards;
-3. real-checkpoint sign and gauge validation of the integrated scalar-first
-   eight-channel model/common-state kernel;
 4. passivity, root uniqueness, and combined-Hessian gates;
 5. real-checkpoint component and PES panels;
-6. clean source/model/runtime-bound release evidence.
+6. clean source/model/runtime-bound positive release evidence.
 
 Tier V remains fail closed until every model and continuum gate passes.

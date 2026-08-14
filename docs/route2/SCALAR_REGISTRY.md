@@ -135,6 +135,9 @@ physical-configuration identity.
   these records close the contiguous frozen range `[0,5)` in two clean
   processes. The water shard is retained under
   [`evidence/operational-analytic-harmonic-rigid-water-bea47120/`](evidence/operational-analytic-harmonic-rigid-water-bea47120/README.md).
+  Benzene extends the contiguous two-process coverage to `[0,6)`; evidence is
+  retained under
+  [`evidence/operational-analytic-harmonic-rigid-benzene-97552baa/`](evidence/operational-analytic-harmonic-rigid-benzene-97552baa/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

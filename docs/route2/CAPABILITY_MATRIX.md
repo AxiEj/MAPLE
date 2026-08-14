@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; source-bound water, methanol, ethanol, acetone, and acetonitrile canaries pass their frozen local symmetry gates, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; the contiguous frozen rigid-panel range `[0,6)` passes in two clean processes per molecule, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -161,6 +161,15 @@ and reproduce scientific digest
 `d8802924939ad40814eb81986aef4e76a76ba03fde88880597b5724b8f45480c`.
 Consequently the contiguous frozen rigid-panel range `[0,5)` is now executed
 twice: five of twenty equilibrium molecules, with fifteen still missing.
+
+Benzene extends this range to `[0,6)`. Its two clean runs are retained under
+[`evidence/operational-analytic-harmonic-rigid-benzene-97552baa/`](evidence/operational-analytic-harmonic-rigid-benzene-97552baa/README.md)
+and reproduce scientific digest
+`8f16ef863f5299eb3c7d4ace639c42d804058749740fe6713ced7477cff2f527`.
+Its maximum rotation-energy and relative force-covariance errors are
+`4.2611645767465234e-8 eV` and `5.356119997094117e-8`. Six of twenty
+equilibrium molecules are now complete under this contract; fourteen remain,
+and every public capability stays closed.
 
 ## Legacy baseline
 

@@ -11,7 +11,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar and current molecular-realspace SO(3) routes closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a second clean zero-field counterexample isolates the pinned `graph_longrange` fixed-axis finite-difference feature/energy operators as non-`SO(3)`; a distinct changed-source common-state water canary passes replay and envelope FD, but every profile remains unadmitted |
+| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar and current molecular-realspace SO(3) routes closed negative; analytic changed-inference canary positive but unadmitted | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a second clean zero-field counterexample isolates the pinned `graph_longrange` fixed-axis finite-difference feature/energy operators as non-`SO(3)`; the separately identified analytic Gaussian-multipole evaluator passes one clean common-state replay/envelope/rotation canary, but every profile remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
@@ -44,6 +44,16 @@ under
 [`evidence/mace-realspace-so3-nogo-6da676cd/`](evidence/mace-realspace-so3-nogo-6da676cd/README.md)
 locates the first broken primitive in the pinned molecular-realspace MACE path,
 not in the harmonic continuum.
+
+A separately versioned analytic Gaussian-multipole runtime now replaces only
+those two fixed-axis molecular operators. Its exact isotropic pair primitives
+are structurally `SO(3)` equivariant, and the clean official-checkpoint water
+common-state canary at `50809803` passes root replay, three envelope finite
+differences, and one rigid rotation. The two runs have the same scientific
+measurement digest; evidence is retained under
+[`evidence/variational-analytic-harmonic-water-50809803/`](evidence/variational-analytic-harmonic-water-50809803/README.md).
+This changes the inference/model identity and does not establish checkpoint
+parity, physical accuracy, global passivity/uniqueness, or any release tier.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

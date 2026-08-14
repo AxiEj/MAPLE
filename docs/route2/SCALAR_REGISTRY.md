@@ -281,9 +281,40 @@ public profile or a multi-geometry convergence certificate.
   It is `C1` but not generally `C2` at shell tangency.
 - Profile:
   `route2-profile-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1`.
-- Capabilities/evidence: none / none. It remains disabled pending real-
-  checkpoint root/replay/envelope/rotation evidence, passivity and uniqueness,
-  combined-Hessian/domain gates, physical calibration, and all release panels.
+- Capabilities/evidence: none / negative rotation evidence. The original
+  molecular-realspace checkpoint profile passes one root/replay/envelope water
+  canary, and its harmonic continuum rotates at roundoff, but the full scalar
+  fails because the pinned fixed-axis model evaluator is not an exact `SO(3)`
+  intertwiner. Passivity, uniqueness, combined-Hessian/domain gates, physical
+  calibration, and all release panels also remain open.
+
+## `route2-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1`
+
+- Model scalar: separately identified anchored MACE-POLAR field-energy graph
+  using analytic isotropic Gaussian `l<=1` molecular real-space feature and
+  energy primitives. Checkpoint bytes are unchanged, but inference is changed.
+- Model source: complete eight-channel derivative of that same scalar. The
+  original four-channel density head is only the zero-field anchor and a
+  diagnostic observable.
+- Continuum scalar: the same smooth weighted harmonic-Galerkin
+  `G(R,c)=-1/2 (S(R)c)^T A(R)^-1(S(R)c)` implementation, explicitly bound to
+  this combined scalar identity in its content hash.
+- Structural scope: the replaced long-range pair primitives and the harmonic
+  continuum coefficient assembly are exact finite `SO(3)` intertwiners in
+  exact arithmetic. The complete checkpoint graph is not globally certified by
+  this statement.
+- Executed evidence: clean official-checkpoint water root/cold replay, three
+  re-solved envelope finite differences, and one rigid rotation; two processes
+  reproduce scientific measurement SHA-256
+  `7ce9e9c07f40552ea513e0bbd4f29f4e4a5aa6887d7b5888c5647756525fe500`.
+  See
+  [`evidence/variational-analytic-harmonic-water-50809803/`](evidence/variational-analytic-harmonic-water-50809803/README.md).
+- Profile:
+  `route2-profile-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1`.
+- Capabilities/admission evidence: none / none. The canary is one changed-model
+  implementation check, not checkpoint parity, physical validation, global
+  passivity/uniqueness, PES/Hessian/FREQ evidence, or a release panel.
+  `E/F/H/V/M` remain false.
 
 See [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md) for the no-grid
 decision and the moving-cavity contract split.

@@ -1,0 +1,922 @@
+{
+  "argv": [
+    "tools/route2_release/run_variational_harmonic_water_canary.py",
+    "--checkpoint",
+    "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "--device",
+    "cuda",
+    "--model-evaluator-profile",
+    "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+    "--output",
+    "/tmp/route2-variational-analytic-harmonic-50809803-run2.json"
+  ],
+  "artifact_kind": "disabled-real-checkpoint-analytic-gaussian-multipole-changed-source-harmonic-common-scalar-canary",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "center_root_replay": {
+    "cold": {
+      "actual_unmixed_residual_norm": 1.720697910222882e-10,
+      "continuum_energy_eV": -0.01700524306563489,
+      "converged": true,
+      "coupling_energy_eV": -0.03401048613126978,
+      "field": [
+        [
+          0.17928910031619258,
+          0.09309561127083964,
+          -0.054155044355499726,
+          2.1391670301859764e-18,
+          -0.041968127416680885,
+          -0.009005917978575048,
+          3.267743819399542e-19,
+          -0.006979653297923016
+        ],
+        [
+          0.1310090163323748,
+          0.08499636299167732,
+          -0.048473865464227966,
+          1.4391085781606025e-18,
+          -0.054438175528840456,
+          -0.008712017544874466,
+          2.9277570441679858e-19,
+          -0.009704197858397018
+        ],
+        [
+          0.13103604250688897,
+          0.08500134968777319,
+          -0.06480962363937287,
+          1.9070998602738793e-18,
+          -0.03335376921753724,
+          -0.011570110396059409,
+          3.1416644165924986e-19,
+          -0.0060147815481524005
+        ]
+      ],
+      "gauge_potential_eV_per_e": 0.11740458051762441,
+      "initialization": "cold",
+      "iteration_history": [
+        {
+          "actual_unmixed_residual_norm": 0.371095178865181,
+          "history_depth": 0,
+          "iteration": 0,
+          "step_norm": 0.18554758943259025
+        },
+        {
+          "actual_unmixed_residual_norm": 0.18480445134523535,
+          "history_depth": 1,
+          "iteration": 1,
+          "step_norm": 0.09203494873729622
+        },
+        {
+          "actual_unmixed_residual_norm": 0.09240170248093124,
+          "history_depth": 2,
+          "iteration": 2,
+          "step_norm": 0.04601698009527376
+        },
+        {
+          "actual_unmixed_residual_norm": 0.046198002580564446,
+          "history_depth": 3,
+          "iteration": 3,
+          "step_norm": 0.02300478881352386
+        },
+        {
+          "actual_unmixed_residual_norm": 0.023099131889535066,
+          "history_depth": 4,
+          "iteration": 4,
+          "step_norm": 0.011502574857436566
+        },
+        {
+          "actual_unmixed_residual_norm": 0.011549307106638675,
+          "history_depth": 5,
+          "iteration": 5,
+          "step_norm": 0.0057506887908064805
+        },
+        {
+          "actual_unmixed_residual_norm": 0.005774952576378561,
+          "history_depth": 6,
+          "iteration": 6,
+          "step_norm": 0.002875680964029477
+        },
+        {
+          "actual_unmixed_residual_norm": 0.002887419369345164,
+          "history_depth": 6,
+          "iteration": 7,
+          "step_norm": 0.0014379610995828033
+        },
+        {
+          "actual_unmixed_residual_norm": 0.0014435267349124353,
+          "history_depth": 6,
+          "iteration": 8,
+          "step_norm": 0.0007188048866966509
+        },
+        {
+          "actual_unmixed_residual_norm": 0.0007217584329075807,
+          "history_depth": 6,
+          "iteration": 9,
+          "step_norm": 0.0003594098052926592
+        },
+        {
+          "actual_unmixed_residual_norm": 0.00036086658196339994,
+          "history_depth": 6,
+          "iteration": 10,
+          "step_norm": 0.00017969570687511775
+        },
+        {
+          "actual_unmixed_residual_norm": 0.00018042996728357498,
+          "history_depth": 6,
+          "iteration": 11,
+          "step_norm": 8.9844858581317e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 9.021469621142598e-05,
+          "history_depth": 6,
+          "iteration": 12,
+          "step_norm": 4.492241496638297e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 4.5107072049841625e-05,
+          "history_depth": 6,
+          "iteration": 13,
+          "step_norm": 2.246095735467904e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 2.255351382105291e-05,
+          "history_depth": 6,
+          "iteration": 14,
+          "step_norm": 1.1230451301872593e-05
+        },
+        {
+          "actual_unmixed_residual_norm": 1.1276762377166229e-05,
+          "history_depth": 6,
+          "iteration": 15,
+          "step_norm": 5.615229954131196e-06
+        },
+        {
+          "actual_unmixed_residual_norm": 5.638382223859005e-06,
+          "history_depth": 6,
+          "iteration": 16,
+          "step_norm": 2.807615155123588e-06
+        },
+        {
+          "actual_unmixed_residual_norm": 2.819191953439177e-06,
+          "history_depth": 6,
+          "iteration": 17,
+          "step_norm": 1.4038085281573309e-06
+        },
+        {
+          "actual_unmixed_residual_norm": 1.4095958472952442e-06,
+          "history_depth": 6,
+          "iteration": 18,
+          "step_norm": 7.019041785157823e-07
+        },
+        {
+          "actual_unmixed_residual_norm": 7.047978805086301e-07,
+          "history_depth": 6,
+          "iteration": 19,
+          "step_norm": 3.5095204681058127e-07
+        },
+        {
+          "actual_unmixed_residual_norm": 3.523989401700397e-07,
+          "history_depth": 6,
+          "iteration": 20,
+          "step_norm": 1.7547602323963698e-07
+        },
+        {
+          "actual_unmixed_residual_norm": 1.7619946999583962e-07,
+          "history_depth": 6,
+          "iteration": 21,
+          "step_norm": 8.77380115681321e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 8.80997350867089e-08,
+          "history_depth": 6,
+          "iteration": 22,
+          "step_norm": 4.386900641587373e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 4.404986691262308e-08,
+          "history_depth": 6,
+          "iteration": 23,
+          "step_norm": 2.1934502601334594e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 2.202493348826879e-08,
+          "history_depth": 6,
+          "iteration": 24,
+          "step_norm": 1.0967251328220804e-08
+        },
+        {
+          "actual_unmixed_residual_norm": 1.1012466743501648e-08,
+          "history_depth": 6,
+          "iteration": 25,
+          "step_norm": 5.4836256910947475e-09
+        },
+        {
+          "actual_unmixed_residual_norm": 5.506233323037547e-09,
+          "history_depth": 6,
+          "iteration": 26,
+          "step_norm": 2.7418128105770044e-09
+        },
+        {
+          "actual_unmixed_residual_norm": 2.7531166360749387e-09,
+          "history_depth": 6,
+          "iteration": 27,
+          "step_norm": 1.3709064245050892e-09
+        },
+        {
+          "actual_unmixed_residual_norm": 1.3765583237320448e-09,
+          "history_depth": 6,
+          "iteration": 28,
+          "step_norm": 6.854531774014144e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 6.882791312153255e-10,
+          "history_depth": 6,
+          "iteration": 29,
+          "step_norm": 3.4272657483985764e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 3.441395934407688e-10,
+          "history_depth": 6,
+          "iteration": 30,
+          "step_norm": 1.7136329703061271e-10
+        },
+        {
+          "actual_unmixed_residual_norm": 1.720697910222882e-10,
+          "history_depth": 0,
+          "iteration": 31,
+          "step_norm": 0.0
+        }
+      ],
+      "iterations": 31,
+      "model_energy_eV": -2079.8978973895387,
+      "primal_tolerance": 2e-10,
+      "root_context_id": "route2-variational-harmonic-water-canary-v1/equilibrium",
+      "root_hash": "1f5eb797acfa481cd2edc1ee4dbfec8ece314c5ce6afe4929af3d17b2f676a11",
+      "source": [
+        [
+          -0.0344292834903281,
+          -0.00034406397063001595,
+          0.079376826835448,
+          0.0,
+          0.06152955671258489,
+          0.000226744264708383,
+          0.0,
+          0.0001754749151909075
+        ],
+        [
+          0.017829865911081023,
+          -0.00044027781805741975,
+          -0.016592120653541667,
+          0.0,
+          0.24915846443063727,
+          -0.0003281531396775269,
+          0.0,
+          0.0004981462384161241
+        ],
+        [
+          0.0178240472504009,
+          -0.000440287882466351,
+          0.23709595941237016,
+          0.0,
+          -0.07829478199550707,
+          0.0004010838426435191,
+          0.0,
+          -0.00044249579722461347
+        ]
+      ],
+      "total_energy_eV": -2079.8808921464733,
+      "y": [
+        -0.024096756020882223,
+        0.079376826835448,
+        0.0,
+        0.06152955671258489,
+        0.000226744264708383,
+        0.0,
+        0.0001754749151909075,
+        -0.005922826139171182,
+        -0.024192969868309627,
+        -0.016592120653541667,
+        0.0,
+        0.24915846443063727,
+        -0.0003281531396775269,
+        0.0,
+        0.0004981462384161241,
+        -0.005928644799851307,
+        -0.02419297993271856,
+        0.23709595941237016,
+        0.0,
+        -0.07829478199550707,
+        0.0004010838426435191,
+        0.0,
+        -0.00044249579722461347
+      ]
+    },
+    "contract": "route2-root-equivalence-v1",
+    "energy_abs_difference_eV": 0.0,
+    "gate_passed": true,
+    "numerically_equivalent": true,
+    "source_l2_difference": 0.0,
+    "source_relative_difference": 0.0,
+    "warm": {
+      "actual_unmixed_residual_norm": 1.720697910222882e-10,
+      "continuum_energy_eV": -0.01700524306563489,
+      "converged": true,
+      "coupling_energy_eV": -0.03401048613126978,
+      "field": [
+        [
+          0.17928910031619258,
+          0.09309561127083964,
+          -0.054155044355499726,
+          2.1391670301859764e-18,
+          -0.041968127416680885,
+          -0.009005917978575048,
+          3.267743819399542e-19,
+          -0.006979653297923016
+        ],
+        [
+          0.1310090163323748,
+          0.08499636299167732,
+          -0.048473865464227966,
+          1.4391085781606025e-18,
+          -0.054438175528840456,
+          -0.008712017544874466,
+          2.9277570441679858e-19,
+          -0.009704197858397018
+        ],
+        [
+          0.13103604250688897,
+          0.08500134968777319,
+          -0.06480962363937287,
+          1.9070998602738793e-18,
+          -0.03335376921753724,
+          -0.011570110396059409,
+          3.1416644165924986e-19,
+          -0.0060147815481524005
+        ]
+      ],
+      "gauge_potential_eV_per_e": 0.11740458051762441,
+      "initialization": "warm",
+      "iteration_history": [
+        {
+          "actual_unmixed_residual_norm": 1.720697910222882e-10,
+          "history_depth": 0,
+          "iteration": 0,
+          "step_norm": 0.0
+        }
+      ],
+      "iterations": 0,
+      "model_energy_eV": -2079.8978973895387,
+      "primal_tolerance": 2e-10,
+      "root_context_id": "route2-variational-harmonic-water-canary-v1/equilibrium",
+      "root_hash": "28ecaf80a650bd9ec2aa8cfc4eccdd68cc1ebe8f0aa0ac9523d95fc393822248",
+      "source": [
+        [
+          -0.0344292834903281,
+          -0.00034406397063001595,
+          0.079376826835448,
+          0.0,
+          0.06152955671258489,
+          0.000226744264708383,
+          0.0,
+          0.0001754749151909075
+        ],
+        [
+          0.017829865911081023,
+          -0.00044027781805741975,
+          -0.016592120653541667,
+          0.0,
+          0.24915846443063727,
+          -0.0003281531396775269,
+          0.0,
+          0.0004981462384161241
+        ],
+        [
+          0.0178240472504009,
+          -0.000440287882466351,
+          0.23709595941237016,
+          0.0,
+          -0.07829478199550707,
+          0.0004010838426435191,
+          0.0,
+          -0.00044249579722461347
+        ]
+      ],
+      "total_energy_eV": -2079.8808921464733,
+      "y": [
+        -0.024096756020882223,
+        0.079376826835448,
+        0.0,
+        0.06152955671258489,
+        0.000226744264708383,
+        0.0,
+        0.0001754749151909075,
+        -0.005922826139171182,
+        -0.024192969868309627,
+        -0.016592120653541667,
+        0.0,
+        0.24915846443063727,
+        -0.0003281531396775269,
+        0.0,
+        0.0004981462384161241,
+        -0.005928644799851307,
+        -0.02419297993271856,
+        0.23709595941237016,
+        0.0,
+        -0.07829478199550707,
+        0.0004010838426435191,
+        0.0,
+        -0.00044249579722461347
+      ]
+    }
+  },
+  "checkpoint": {
+    "bytes": 68133235,
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "role": "mace-polar-1-m-official-checkpoint",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": "This one-water result checks a separately profile-bound analytic Gaussian multipole inference operator, a changed-source scalar-first model, one smooth weighted harmonic Galerkin scalar, one stationary root, one coordinate direction, and one rigid rotation. The coefficient continuum architecture is SO(3)-equivariant, but this finite canary does not prove global passivity, root uniqueness, combined-Hessian stability, sharp-union equivalence, chemical accuracy, or Route-2 E/F/H/V/M admission.",
+  "decision": {
+    "cold_warm_root_gate_passed": true,
+    "continuum_coefficient_architecture_is_so3_equivariant": true,
+    "full_common_scalar_global_so3_admitted": false,
+    "model_long_range_structural_so3_equivariance_admitted": true,
+    "original_density_head_role": "zero-field-anchor-and-diagnostic-only",
+    "public_force_admitted": false,
+    "rigid_rotation_gate_passed": true,
+    "same_scalar_real_checkpoint_canary_passed": true,
+    "source_model_identity": "changed-complete-eight-channel-field-energy-gradient-effective-source",
+    "stationary_root_converged": true,
+    "three_step_envelope_directional_gate_passed": true,
+    "tier_v_admitted": false
+  },
+  "device": "cuda",
+  "dtype": "float64",
+  "envelope_directional_derivative": {
+    "admitted": false,
+    "all_steps_passed": true,
+    "continuum_coordinate_gradient_eV_per_A": [
+      [
+        0.0020523589908789967,
+        0.002650907336116743,
+        -2.620578015264044e-19
+      ],
+      [
+        -0.003663506658606875,
+        0.0007179158510796576,
+        4.7240359974476117e-20
+      ],
+      [
+        0.0016111476677278785,
+        -0.0033688231871963994,
+        2.1481744155192835e-19
+      ]
+    ],
+    "coordinate_direction": [
+      [
+        0.25552017459374127,
+        0.05599742924093023,
+        0.4954030421230174
+      ],
+      [
+        0.2583582413890081,
+        -0.14798052789691798,
+        -0.565709644145898
+      ],
+      [
+        -0.5138784159827495,
+        0.09198309865598783,
+        0.07030660202288061
+      ]
+    ],
+    "directional_steps": [
+      {
+        "absolute_error_eV_per_A": 1.5331551746211591e-07,
+        "analytic_eV_per_A": -0.1037072884830142,
+        "finite_difference_eV_per_A": -0.10370713516749674,
+        "gate_passed": true,
+        "minus_primal_residual": 1.7562424113355994e-10,
+        "minus_root_hash": "a149dba1a77f8639172a7844238fbc0e57d807e60675d008f7d462d5b078b5df",
+        "minus_total_energy_eV": -2079.880839389273,
+        "plus_primal_residual": 1.7562709146650732e-10,
+        "plus_root_hash": "6f9e648ed2739c1d1c1c79084da8c096e3d83ec11e53f69a5572576743ed765a",
+        "plus_total_energy_eV": -2079.8809430964084,
+        "relative_error": 1.4783485298357486e-06,
+        "step_A": 0.0005
+      },
+      {
+        "absolute_error_eV_per_A": 2.5758885538462728e-08,
+        "analytic_eV_per_A": -0.1037072884830142,
+        "finite_difference_eV_per_A": -0.10370726272412867,
+        "gate_passed": true,
+        "minus_primal_residual": 1.405000392115404e-10,
+        "minus_root_hash": "c741cfb33f83991782a8a129460e1590890cad999712608fae1bf2edcb19ceaa",
+        "minus_total_energy_eV": -2079.880871260439,
+        "plus_primal_residual": 1.4050102353685894e-10,
+        "plus_root_hash": "afd69b48f9faa13939161de8ec73ff7e746f2a5cb9b060b38c041f8df2e9cc5f",
+        "plus_total_energy_eV": -2079.880912743344,
+        "relative_error": 2.483806675042099e-07,
+        "step_A": 0.0002
+      },
+      {
+        "absolute_error_eV_per_A": 6.432123125788003e-09,
+        "analytic_eV_per_A": -0.1037072884830142,
+        "finite_difference_eV_per_A": -0.10370728205089108,
+        "gate_passed": true,
+        "minus_primal_residual": 1.405002459206037e-10,
+        "minus_root_hash": "dd826a2dd12318fad4a30ee51ce1d190114b755dcf6579a3410b29f31a62ad2d",
+        "minus_total_energy_eV": -2079.8808817395993,
+        "plus_primal_residual": 1.4050082703468885e-10,
+        "plus_root_hash": "f5ef640af0a23ce614370c85a40447c5f55b416cd8a9e1be91176a4892638f22",
+        "plus_total_energy_eV": -2079.8809024810557,
+        "relative_error": 6.202190048427979e-08,
+        "step_A": 0.0001
+      }
+    ],
+    "model_coordinate_gradient_eV_per_A": [
+      [
+        0.14214630839976547,
+        0.20265767043794006,
+        -1.1629503745254935e-18
+      ],
+      [
+        -0.25091133477589755,
+        0.043761111581235315,
+        5.173728647176544e-19
+      ],
+      [
+        0.10876502637613206,
+        -0.2464187820191754,
+        6.455775098078391e-19
+      ]
+    ],
+    "total_coordinate_gradient_eV_per_A": [
+      [
+        0.14419866739064446,
+        0.2053085777740568,
+        -1.4250081760518979e-18
+      ],
+      [
+        -0.25457484143450443,
+        0.04447902743231497,
+        5.646132246921305e-19
+      ],
+      [
+        0.11037617404385994,
+        -0.24978760520637178,
+        8.603949513597675e-19
+      ]
+    ]
+  },
+  "exact_command": "tools/route2_release/run_variational_harmonic_water_canary.py --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cuda --model-evaluator-profile graph-longrange-analytic-gaussian-multipole-realspace-v1 --output /tmp/route2-variational-analytic-harmonic-50809803-run2.json",
+  "execution_git_head": "508098034faaad28beceb5d7ee6243aa04bddca1",
+  "execution_git_tree": "61ccd1c544e24548a55c93e756275ed9025c552e",
+  "geometry": {
+    "atomic_numbers": [
+      8,
+      1,
+      1
+    ],
+    "cavity_radii_A": [
+      1.52,
+      1.2,
+      1.2
+    ],
+    "charge": 0,
+    "formula": "H2O",
+    "multiplicity": 1,
+    "positions_A": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.239,
+        0.9266,
+        0.0
+      ]
+    ]
+  },
+  "identity": {
+    "cavity_profile_id": "smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+    "common_functional_sha256": "008bc0b1b08e63e8ca26e5220e62d4a059e6989fee725b400e2e7438e8998fc2",
+    "conjugacy_sign": 1,
+    "continuum_configuration_contract_id": "maple.route2.continuum-configuration.smooth-weighted-harmonic-galerkin.v1",
+    "continuum_configuration_sha256": "6d94250729c8e3c7bbb5a16b1be65e96f4e1d8a9e7ae2e891893bac7a4c95139",
+    "continuum_functional_contract_id": "maple.route2.continuum.smooth-harmonic-galerkin-same-scalar.v1",
+    "continuum_geometry_assembly": "same-scalar-E-K-V",
+    "continuum_profile_id": "smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+    "continuum_provenance_sha256": "da96a651690633a18852bdcd82acc2204eb45d29afe577cc357fd26211d466d2",
+    "continuum_provider_id": "maple.route2.continuum.smooth-harmonic-galerkin-torch-functional.impl.v1",
+    "duality_map_sha256": "5ca4c327f53ee19bc6eb8b77ded6ed6e99706c5d13736dacd2f036bd6e720713",
+    "field_graph_configuration_sha256": "6b932c381a438166184adf7e4ac1f1100ec402718891e885dd85d267e7dc85ba",
+    "field_space_sha256": "b0f9441c5f458a545ada801c12f5d082e2377c5dbc19f60d2854a0f49e82aaa6",
+    "long_range_evaluator_profile": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+    "long_range_structural_so3_equivariance_admitted": true,
+    "long_range_symmetry_contract_id": "analytic-isotropic-gaussian-multipole-pair-kernel-so3-structural-v1",
+    "model_configuration_sha256": "3544378ca2165caa81525c65f3d4850f90dd7ed2b012682e9f71d3977b355547",
+    "model_profile_id": "mace-polar-route2-variational-effective-source-analytic-gaussian-multipole-v1",
+    "model_provenance_sha256": "5a0580d27f1c9a5c09a388a606bf598a67895340d4992bcb54496ece1986002f",
+    "model_provider_id": "maple.route2.model.mace-polar-field-energy-anchored-analytic-gaussian-multipole.impl.v1",
+    "pairing_sha256": "8460c72252e9ebff25fef12ba5793d88b800604da54f07e9a4af544b052377ca",
+    "profile_id": "route2-profile-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1",
+    "scalar_id": "route2-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1",
+    "source_space_sha256": "aca814119c0f4d54588ab0c8c6c31d92217e47a2dd14e8ccb991d12737576d89",
+    "state_equation_id": "route2-common-functional-stationarity-v1",
+    "state_equation_sha256": "9d1133c286b0ff1944f741afdbb2b05cee1aea86715787bbca06f378ac14845b",
+    "total_charge": 0.0
+  },
+  "measurement_sha256": "7ce9e9c07f40552ea513e0bbd4f29f4e4a5aa6887d7b5888c5647756525fe500",
+  "protocol": {
+    "continuum_representation": "fixed-dimensional complete real-harmonic irreps; invariant 1D geometry quadrature and finite-band-exact coefficient contractions; no laboratory-fixed cavity grid",
+    "directional_thresholds": {
+      "absolute_eV_per_A": 0.0005,
+      "both_required": true,
+      "relative": 0.002
+    },
+    "fd_steps_A": [
+      0.0005,
+      0.0002,
+      0.0001
+    ],
+    "harmonic_configuration": {
+      "cavity_identity": "regularized-smooth-weighted-overlap-not-sharp-union",
+      "exposure_lmax": 2,
+      "exposure_radial_quadrature_order": 32,
+      "green_radial_quadrature_order": 32,
+      "source_radial_quadrature_order": 32,
+      "surface_lmax": 1,
+      "transition_width_A2": 0.18
+    },
+    "model_evaluator_identity_changed_from_upstream": true,
+    "model_evaluator_profile": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+    "random_seed": 20260814,
+    "root_context_id": "route2-variational-harmonic-water-canary-v1/equilibrium",
+    "root_options": {
+      "damping": 0.5,
+      "history": 6,
+      "max_iterations": 100,
+      "method": "anderson",
+      "tolerance": 2e-10
+    },
+    "root_replay_thresholds": {
+      "energy_absolute_eV": 1e-08,
+      "source_relative": 1e-08
+    }
+  },
+  "rigid_rotation": {
+    "common_stationary_check": {
+      "actual_unmixed_residual_norm": 1.9448741900787086e-10,
+      "center_total_energy_eV": -2079.8808921464733,
+      "converged": true,
+      "energy_absolute_error_eV": 2.799424692057073e-09,
+      "field_relative_error": 2.7812389718986214e-09,
+      "gate_passed": true,
+      "gradient_max_absolute_error_eV_per_A": 1.9196180839342603e-08,
+      "gradient_relative_error": 8.198584915195558e-08,
+      "rotated_total_energy_eV": -2079.8808921492728,
+      "source_relative_error": 7.89339570981596e-09,
+      "thresholds": {
+        "energy_absolute_eV": 1e-08,
+        "field_relative": 1e-07,
+        "gradient_max_absolute_eV_per_A": 5e-07,
+        "gradient_relative": 2e-06,
+        "source_relative": 1e-07
+      }
+    },
+    "continuum_structural_check": {
+      "center_energy_eV": -0.01700524306563489,
+      "energy_absolute_error_eV": 0.0,
+      "gate_passed": true,
+      "gradient_max_absolute_error_eV_per_A": 7.806255641895632e-18,
+      "rotated_energy_eV": -0.01700524306563489,
+      "thresholds": {
+        "energy_absolute_eV": 1e-10,
+        "gradient_max_absolute_eV_per_A": 1e-09
+      }
+    },
+    "gate_passed": true,
+    "rotation_matrix": [
+      [
+        -0.3351649509537984,
+        -0.4866864488438398,
+        -0.8067222298684413
+      ],
+      [
+        0.24376825303591115,
+        0.7822960626425053,
+        -0.5732276242347831
+      ],
+      [
+        0.9100777408902813,
+        -0.38877907722227817,
+        -0.14355951605601058
+      ]
+    ],
+    "rotation_seed": 20260815
+  },
+  "rotation_solve_seconds": 7.677310176019091,
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-14T10:05:23.263339+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 283.6377293940168,
+  "schema_version": "route2-variational-analytic-gaussian-multipole-harmonic-water-real-checkpoint-canary-v1",
+  "solve_timings_seconds": [
+    {
+      "sign": 1.0,
+      "solve_seconds": 31.726043405011296,
+      "step_A": 0.0005
+    },
+    {
+      "sign": -1.0,
+      "solve_seconds": 31.43694036299712,
+      "step_A": 0.0005
+    },
+    {
+      "sign": 1.0,
+      "solve_seconds": 32.72927914198954,
+      "step_A": 0.0002
+    },
+    {
+      "sign": -1.0,
+      "solve_seconds": 30.60285061900504,
+      "step_A": 0.0002
+    },
+    {
+      "sign": 1.0,
+      "solve_seconds": 28.657835467980476,
+      "step_A": 0.0001
+    },
+    {
+      "sign": -1.0,
+      "solve_seconds": 28.747876023990102,
+      "step_A": 0.0001
+    }
+  ],
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "246c0b829f1e4330b8c1e213a6a4563d80a2fe4ca26c3f78ac859e7a80bd4d09",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "1ba89d4e28fa99d82d7c10c2bcb29b61833774fdcd99352de3effd5c5cbaea57",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "84d463511b0c4124617dc7dcb9d69cf675f76247e4cb62a34b5a7e8ed55f1e14",
+    "maple/solvation/api/state_registry.py": "f39c6f4b143276a309598b73183be8689d7a3b1f14073fb8de74d024db3c0540",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "b38177fe0e3a82f70671f24e8c15ca6351e6cc398f7f36b9072f9eb0003049fe",
+    "maple/solvation/continuum/functional.py": "8229c0b670312506c5ecf0798c78dcecc849aaee8833a2e2327037d95958c471",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/continuum/harmonic_exposure.py": "66f1225f037fd87dd284dbc17f7d9e2acedac298423ffef2d26c9d20494dd83d",
+    "maple/solvation/continuum/harmonic_galerkin.py": "72586dda314e2cd319cf6b2501e084d6c99c761e1fb02dbf2949f625009c5dec",
+    "maple/solvation/continuum/harmonic_gaussian_source.py": "bb967ba33690df127a9a551474fe819e15728299b0556229c864acde13764cc8",
+    "maple/solvation/continuum/harmonic_single_layer.py": "327ba90e5625d5addd35f93c38bdd5213e087c74498d7e7624e3a14002a31762",
+    "maple/solvation/continuum/harmonic_torch_functional.py": "1d2e5ff07eb01cea90da078650fd1af9749489b2d70506063994b8d33599811c",
+    "maple/solvation/continuum/harmonic_torch_primitives.py": "85c79292a6dbf3909a39dd710f8ffc84663c4ec4d0e803ba0637332c65b23ff9",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/coupling/variational_adapters.py": "9f0271be35622b0a6f82aa1edd7266b4cf6458df2a4ef276c79592094753b14e",
+    "maple/solvation/coupling/variational_state.py": "cd7cf9c4685afcf572e15bcd720eab77df7894406e4f54ebcf834e92f01d6049",
+    "maple/solvation/models/__init__.py": "f1be7768f34940b0a7ce38bc305be0fd50f00f8c5470179197e8728adcc7eace",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/models/runtime/__init__.py": "64a17adc6d4e8e229b927a4fb2c257b43bb4cb2b4a07223e7c7976b4978bff61",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py": "d892e4986aebd34a3df9b1614e7845903785afa519415e465167dbb9380b70ad",
+    "maple/solvation/release/__init__.py": "34754a8ef368354e085ab5d5e4a22c28d028d4967f405ab9b8fb2d6f1173a4b8",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "tools/route2_release/run_variational_harmonic_water_canary.py": "60d762f6268af54ccf5fceebb1fe184c9cea089ffc5aa6ca2fcd3e66834d4b04"
+  },
+  "status": "same-scalar-canary-passed-not-admitted",
+  "working_tree_clean": true
+}

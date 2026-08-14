@@ -234,6 +234,60 @@ using the same frozen checkpoint weights. Such an evaluator would be a changed
 inference profile and must revalidate parity, component physics, passivity,
 stationary-root stability, and every force/PES gate. `E/F/H/V/M` remain false.
 
+## Analytic Gaussian-multipole changed-inference canary
+
+The separately identified analytic candidate was subsequently implemented
+without changing checkpoint bytes. It replaces only the pinned molecular
+real-space feature and Coulomb-energy stencils with the exact value, gradient,
+and Hessian of the isotropic Gaussian-smoothed Coulomb kernel. Raw checkpoint
+`l=1` order is converted once at the source/receiver boundary; all internal
+contractions are Cartesian. The analytic primitives rotate at float64
+roundoff, but this is a changed inference profile, not parity with the original
+fixed-axis operator.
+
+At clean commit `508098034faaad28beceb5d7ee6243aa04bddca1`, the analytic
+model candidate was coupled to the smooth harmonic common scalar and executed
+twice:
+
+```bash
+python tools/route2_release/run_variational_harmonic_water_canary.py \
+  --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel \
+  --device cuda \
+  --model-evaluator-profile \
+    graph-longrange-analytic-gaussian-multipole-realspace-v1 \
+  --output /tmp/route2-variational-analytic-harmonic-50809803-run1.json
+```
+
+The center state converged in 31 Anderson iterations to actual unmixed residual
+`1.720697910222882e-10`; warm replay had zero source and energy difference.
+For the deterministic envelope direction, the analytic derivative was
+`-0.1037072884830142 eV/Angstrom`. Re-solved central differences gave:
+
+| step (Angstrom) | absolute error (eV/Angstrom) | relative error |
+| ---: | ---: | ---: |
+| `5e-4` | `1.5331551746211591e-7` | `1.4783485298357486e-6` |
+| `2e-4` | `2.5758885538462728e-8` | `2.483806675042099e-7` |
+| `1e-4` | `6.432123125788003e-9` | `6.202190048427979e-8` |
+
+For one deterministic proper rotation, the harmonic continuum energy error was
+exactly zero and its coordinate-gradient maximum error was
+`7.806255641895632e-18 eV/Angstrom`. The complete stationary scalar had energy
+error `2.799424692057073e-9 eV`, source relative error
+`7.89339570981596e-9`, and coordinate-gradient relative error
+`8.198584915195558e-8`. The remaining complete-model error is below this
+canary's frozen thresholds but is not claimed to be structural roundoff for the
+entire checkpoint graph.
+
+Both clean processes reproduced the scientific measurement SHA-256
+`7ce9e9c07f40552ea513e0bbd4f29f4e4a5aa6887d7b5888c5647756525fe500`.
+The bound JSON and claim boundary are retained under
+[`evidence/variational-analytic-harmonic-water-50809803/`](evidence/variational-analytic-harmonic-water-50809803/README.md).
+
+This closes only one changed-model implementation canary. Passivity,
+multi-start uniqueness, combined-Hessian stability, physical source quality,
+all-geometry symmetry, PES/loop/NVE panels, solvation accuracy, Hessian/FREQ,
+and public release remain open. `E/F/H/V/M` all remain false.
+
 ## Real water same-scalar force audit
 
 Command:

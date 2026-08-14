@@ -71,6 +71,17 @@ admission scope: it changes the source identity, samples only one
 geometry/direction, and uses a laboratory-fixed Lebedev continuum without a
 structural global `SO(3)` guarantee. It therefore admits no `E/F/H/V/M` tier.
 
+The separately identified analytic Gaussian-multipole model evaluator is
+tracked by a second, still-disabled protocol. At clean head `50809803`, the
+analytic-model plus smooth-harmonic common scalar converged one water state,
+replayed its scientific measurement exactly in a second process, passed the
+same three envelope steps, and passed one proper-rotation check. The complete
+stationary-scalar rotation errors were `2.799424692057073e-9 eV` in energy and
+`8.198584915195558e-8` relative in the coordinate gradient. The raw record is
+`evidence/variational-analytic-harmonic-water-50809803/`. Because this changes
+the inference/model identity and covers only one geometry, direction, and
+rotation, it also admits no `E/F/H/V/M` tier.
+
 The independently versioned protocol is frozen in
 `RESIDUAL_FORCE_GATE.md`. It uses three primal tolerances and three adjoint
 tolerance pairs, separates the two residual spaces, requires contraction or a

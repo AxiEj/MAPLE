@@ -29,6 +29,11 @@ must not be replaced by random-rotation evidence alone:
 - `A=E.T K E` is symmetric, raw `K` is positive definite, `E` has full column
   rank, and `A` is positive definite without eigenvalue clipping;
 - source/receiver is exactly the same stored `S/S.T` pair;
+- the differentiable candidate independently matches NumPy `E`, `K`, `V`,
+  `A`, and `S`, while coordinate partials and mixed pullbacks come only from
+  the sealed stationary scalar and match multi-step central differences;
+- rotation tests include an exactly polar pair axis so a pair-section branch
+  cannot silently erase transverse derivatives;
 - coincident centres, full-burial rank loss, nonfinite state, excessive
   condition number, or content-hash drift fail closed;
 - nested, intersecting, tangent, and separated regimes retain fixed dimensions;

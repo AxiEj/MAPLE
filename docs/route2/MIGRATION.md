@@ -10,7 +10,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints |
-| 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic scalar assembly complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch now assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance; analytic coordinate derivatives, physical calibration, and all release gates remain missing |
+| 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar route closed negative | a clean official-checkpoint canary formally rules out retaining the original intrinsic energy and original four-channel source in one eight-channel scalar; a distinct changed-source common-state water canary passes cold/warm replay and one three-step envelope FD; the original 194-node and fixed-box40/CPCM590 paths fail rotation gates; CPCM1202 and finite-grid ddX retain nonzero methanol rotation drift; every candidate remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally; preliminary pair-frame methanol errors meet local thresholds, but the complete clean 20-molecule PES/symmetry/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
@@ -37,8 +37,8 @@ the raw record is
 [`evidence/variational-common-water-576550e9/`](evidence/variational-common-water-576550e9/README.md).
 No capability tier is enabled: this is one geometry/direction on the
 laboratory-grid continuum, while passivity/root uniqueness, combined-Hessian
-stability, structural rotation, harmonic geometry derivatives, and full
-release evidence remain pending.
+stability, a real-checkpoint common-state run with the harmonic continuum, and
+full release evidence remain pending.
 
 The negative original-source decision is source/model/runtime bound under
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).
@@ -58,9 +58,12 @@ separated spheres; the retained matrices are `A=E.T K E` and `S=E.T V`, with
 the receiver exactly `S.T`. A square exposure sandwich is locked out because
 it cancels from the stationary energy whenever it is invertible. The resulting
 reference is structurally rotation covariant and `C1`, but the exact shell
-kernel is not generally `C2` at tangency. Analytic coordinate pullback,
-combined electronic-continuum stationarity, physical calibration, and all
-admission panels remain open.
+kernel is not generally `C2` at tangency. A sealed Torch candidate now
+reassembles `E`, `K`, and `V` inside the stationary scalar and generates its
+coordinate partial and mixed pullback from that graph; it matches the
+independent NumPy matrices, finite differences, and rotation covariance in
+synthetic tests. Combined electronic-continuum stationarity on a real
+checkpoint, physical calibration, and all admission panels remain open.
 
 ## Asset mapping
 

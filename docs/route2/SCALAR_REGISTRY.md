@@ -153,6 +153,9 @@ physical-configuration identity.
   Acetic acid extends the contiguous two-process coverage to `[0,11)`;
   evidence is retained under
   [`evidence/operational-analytic-harmonic-rigid-acetic-acid-c51d7154/`](evidence/operational-analytic-harmonic-rigid-acetic-acid-c51d7154/README.md).
+  Acetaldehyde extends the contiguous two-process coverage to `[0,12)`;
+  evidence is retained under
+  [`evidence/operational-analytic-harmonic-rigid-acetaldehyde-857af1b8/`](evidence/operational-analytic-harmonic-rigid-acetaldehyde-857af1b8/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

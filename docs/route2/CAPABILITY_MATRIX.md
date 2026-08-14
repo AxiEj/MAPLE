@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; the contiguous frozen rigid-panel range `[0,12)` passes in two clean processes per molecule, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; the contiguous frozen rigid-panel range `[0,13)` passes in two clean processes per molecule, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -224,6 +224,15 @@ and reproduce scientific digest
 Its maximum rotation-energy and relative force-covariance errors are
 `5.841684469487518e-9 eV` and `2.376488400904626e-8`. Twelve of twenty
 equilibrium molecules are complete; eight remain and no capability changes.
+
+Acetamide extends the contiguous range to `[0,13)`. Its two clean runs are
+retained under
+[`evidence/operational-analytic-harmonic-rigid-acetamide-ab1c7799/`](evidence/operational-analytic-harmonic-rigid-acetamide-ab1c7799/README.md)
+and reproduce scientific digest
+`3327e6e070d3ab83dd0e68c8461d6f09088d2f2fa7c423906dd03a4cd8941de7`.
+Its maximum rotation-energy and relative force-covariance errors are
+`3.928107616957277e-9 eV` and `4.6556222143172366e-8`. Thirteen of twenty
+equilibrium molecules are complete; seven remain and no capability changes.
 
 ## Legacy baseline
 

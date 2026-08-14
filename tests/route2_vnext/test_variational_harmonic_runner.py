@@ -76,3 +76,19 @@ def test_directional_gate_requires_absolute_and_relative_thresholds():
     )
     assert absolute_only["relative_error"] > runner.DIRECTIONAL_RELATIVE_TOLERANCE
     assert absolute_only["gate_passed"] is False
+
+
+def test_rotation_wall_time_is_excluded_from_measurement_hash():
+    runner = _load_runner()
+    first, first_seconds = runner._split_rotation_timing(
+        {"gate_passed": True, "energy_error_eV": 1.0e-12, "solve_seconds": 2.0}
+    )
+    second, second_seconds = runner._split_rotation_timing(
+        {"gate_passed": True, "energy_error_eV": 1.0e-12, "solve_seconds": 9.0}
+    )
+    assert first == second
+    assert first_seconds == 2.0
+    assert second_seconds == 9.0
+    assert "solve_seconds" not in first
+    with pytest.raises(ValueError, match="solve_seconds"):
+        runner._split_rotation_timing({"gate_passed": True})

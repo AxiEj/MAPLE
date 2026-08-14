@@ -213,6 +213,21 @@ def _directional_error(analytic: float, finite_difference: float) -> dict[str, o
     }
 
 
+def _split_rotation_timing(
+    record: dict[str, object],
+) -> tuple[dict[str, object], float]:
+    """Keep nondeterministic wall time outside the scientific measurement."""
+
+    measured = dict(record)
+    try:
+        solve_seconds = float(measured.pop("solve_seconds"))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("rotation record must contain finite solve_seconds.") from exc
+    if not math.isfinite(solve_seconds) or solve_seconds < 0.0:
+        raise ValueError("rotation solve_seconds must be finite and nonnegative.")
+    return measured, solve_seconds
+
+
 def _iteration_record(state) -> list[dict[str, object]]:
     return [
         {
@@ -548,7 +563,9 @@ def main() -> None:
     )
     center_state, replay = _solve_center(common, atoms)
     envelope, solve_timings = _envelope_record(common, atoms, center_state)
-    rotation = _rotation_record(common, atoms, center_state, envelope)
+    rotation, rotation_solve_seconds = _split_rotation_timing(
+        _rotation_record(common, atoms, center_state, envelope)
+    )
     identity = {
         "scalar_id": common.scalar_id,
         "profile_id": common.profile_id,
@@ -705,7 +722,7 @@ def main() -> None:
         **measured,
         "measurement_sha256": canonical_json_sha256(measured),
         "solve_timings_seconds": solve_timings,
-        "rotation_solve_seconds": rotation["solve_seconds"],
+        "rotation_solve_seconds": rotation_solve_seconds,
         "runtime_seconds": time.perf_counter() - started,
     }
     repository.assert_unchanged()

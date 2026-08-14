@@ -125,6 +125,9 @@ physical-configuration identity.
   [`evidence/operational-analytic-harmonic-rigid-methanol-93c98598/`](evidence/operational-analytic-harmonic-rigid-methanol-93c98598/README.md)
   and
   [`evidence/operational-analytic-harmonic-rigid-ethanol-538f9f4d/`](evidence/operational-analytic-harmonic-rigid-ethanol-538f9f4d/README.md).
+  The subsequent acetone shard passes the same local gates in two clean
+  processes; evidence is retained under
+  [`evidence/operational-analytic-harmonic-rigid-acetone-371a2b60/`](evidence/operational-analytic-harmonic-rigid-acetone-371a2b60/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

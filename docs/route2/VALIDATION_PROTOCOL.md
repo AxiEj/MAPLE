@@ -14,6 +14,33 @@ requires a new admission-contract version before blind evaluation.
 | reciprocal linear C-PCM half coupling | relative error `<= 1e-10` |
 | synthetic raw Hessian antisymmetry | relative Frobenius `<= 1e-8` |
 
+## Harmonic-Galerkin structural gates
+
+The disabled coefficient-space continuum reference has additional gates that
+must not be replaced by random-rotation evidence alone:
+
+- every per-atom space contains complete `l=0..L` irreps with fixed dimension;
+- the exposure product map is rectangular with product bandwidth
+  `P >= L + L_e`; incomplete bandwidth fails closed;
+- the pair-axis Coulomb block commutes with its complete `SO(2)` stabilizer and
+  is independent of the transverse section used to map `+z` to the pair axis;
+- `K(QR)=D_P K(R) D_P.T`, `E(QR)D_L=D_P E(R)`, and
+  `S(QR)D_c=D_L S(R)` hold to floating-point/invariant-quadrature error;
+- `A=E.T K E` is symmetric, raw `K` is positive definite, `E` has full column
+  rank, and `A` is positive definite without eigenvalue clipping;
+- source/receiver is exactly the same stored `S/S.T` pair;
+- coincident centres, full-burial rank loss, nonfinite state, excessive
+  condition number, or content-hash drift fail closed;
+- nested, intersecting, tangent, and separated regimes retain fixed dimensions;
+- the exact shell `l=0` block is `C1` but has the expected second-derivative
+  jump at tangency; no Tier H/FREQ domain may cross such an event without a
+  separately versioned smoother physical kernel.
+
+Increasing harmonic order or invariant radial quadrature may improve physical
+accuracy. It must not systematically improve rotation covariance; such a trend
+would indicate that a laboratory-frame approximation has leaked into the
+mathematical operator. See `HARMONIC_GALERKIN_TIER_V.md`.
+
 ## Real-stack same-scalar force gates
 
 Use float64, at least three displacement sizes, multiple directions,

@@ -94,6 +94,10 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_exposure",
         "harmonic_multiplication_matrix",
     ),
+    "harmonic_weighted_basis_operator": (
+        "harmonic_exposure",
+        "harmonic_weighted_basis_operator",
+    ),
     "project_harmonic_product": (
         "harmonic_exposure",
         "project_harmonic_product",
@@ -122,6 +126,42 @@ _EXPORTS: dict[str, tuple[str, str]] = {
     "gaussian_harmonic_source_operator": (
         "harmonic_gaussian_source",
         "gaussian_harmonic_source_operator",
+    ),
+    "COULOMB_EV_ANGSTROM_PER_E2": (
+        "harmonic_single_layer",
+        "COULOMB_EV_ANGSTROM_PER_E2",
+    ),
+    "HARMONIC_SINGLE_LAYER_CONTRACT_ID": (
+        "harmonic_single_layer",
+        "HARMONIC_SINGLE_LAYER_CONTRACT_ID",
+    ),
+    "HARMONIC_SINGLE_LAYER_PROVIDER_ID": (
+        "harmonic_single_layer",
+        "HARMONIC_SINGLE_LAYER_PROVIDER_ID",
+    ),
+    "canonical_harmonic_cross_block": (
+        "harmonic_single_layer",
+        "canonical_harmonic_cross_block",
+    ),
+    "harmonic_single_layer_operator": (
+        "harmonic_single_layer",
+        "harmonic_single_layer_operator",
+    ),
+    "SMOOTH_WEIGHTED_HARMONIC_GALERKIN_CONTRACT_ID": (
+        "harmonic_weighted_galerkin",
+        "SMOOTH_WEIGHTED_HARMONIC_GALERKIN_CONTRACT_ID",
+    ),
+    "SMOOTH_WEIGHTED_HARMONIC_GALERKIN_PROVIDER_ID": (
+        "harmonic_weighted_galerkin",
+        "SMOOTH_WEIGHTED_HARMONIC_GALERKIN_PROVIDER_ID",
+    ),
+    "SmoothWeightedHarmonicGalerkinAssembly": (
+        "harmonic_weighted_galerkin",
+        "SmoothWeightedHarmonicGalerkinAssembly",
+    ),
+    "build_smooth_weighted_harmonic_galerkin": (
+        "harmonic_weighted_galerkin",
+        "build_smooth_weighted_harmonic_galerkin",
     ),
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend": (
         "pair_frame_ensemble_cpcm",

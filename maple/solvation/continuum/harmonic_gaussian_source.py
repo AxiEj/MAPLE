@@ -2,8 +2,10 @@
 
 The map is built from invariant one-dimensional Gaussian-potential integrals,
 complete real harmonic irreps, and analytic SO(3) Lie-algebra derivatives.
-No surface-point sampling or independently implemented receiver is used.  The
-receiver is exactly the transpose of the weighted source map.
+No surface-point sampling or independently implemented receiver is used.  A
+rectangular product-band embedding represents ``e(u) Y_lm(u)`` exactly before
+the potential is tested.  The receiver is exactly the transpose of that
+weighted source map.
 
 This module closes the harmonic ``S(R)`` source/intertwiner subproblem only.
 It does not assemble the continuum Green operator ``A(R)`` and does not expose
@@ -37,13 +39,17 @@ from .harmonic_coefficients import (
     _real_harmonic_design,
     real_wigner_generators,
 )
-from .harmonic_exposure import SmoothHarmonicExposureSnapshot, _legendre_rule
+from .harmonic_exposure import (
+    SmoothHarmonicExposureSnapshot,
+    _legendre_rule,
+    harmonic_weighted_basis_operator,
+)
 
 HARMONIC_GAUSSIAN_SOURCE_CONTRACT_ID = (
-    "maple.route2.coupling.radial-gto-to-harmonic-potential.v1"
+    "maple.route2.coupling.radial-gto-to-weighted-harmonic-test-basis.v2"
 )
 HARMONIC_GAUSSIAN_SOURCE_PROVIDER_ID = (
-    "maple.route2.coupling.harmonic-gaussian-source.impl.v1"
+    "maple.route2.coupling.harmonic-gaussian-source.impl.v2"
 )
 
 
@@ -307,13 +313,14 @@ def gaussian_harmonic_source_operator(
 
 @dataclass(frozen=True, slots=True, init=False)
 class HarmonicGaussianSourceSnapshot:
-    """Immutable exposed radial-GTO source map and exact transpose receiver."""
+    """Immutable weighted-test radial-GTO map and exact transpose receiver."""
 
     exposure: SmoothHarmonicExposureSnapshot
     radial_quadrature_order: int
     configuration_sha256: str
     provenance_sha256: str
     state_sha256: str
+    _weighted_basis_values: tuple[float, ...]
     _raw_source_values: tuple[float, ...]
     _source_values: tuple[float, ...]
 
@@ -329,13 +336,36 @@ class HarmonicGaussianSourceSnapshot:
         order = _positive_int(radial_quadrature_order, name="radial_quadrature_order")
         if order > 4096:
             raise ValueError("radial_quadrature_order exceeds the bounded contract.")
+        physical_lmax = _bounded_lmax(exposure.surface_lmax + exposure.exposure_lmax)
+        physical_space = PerAtomHarmonicSpace(
+            atom_count=exposure.atom_count, lmax=physical_lmax
+        )
+        basis_dimension = exposure.surface_space.single_atom_dimension
+        physical_dimension = physical_space.single_atom_dimension
+        weighted_basis = np.zeros(
+            (physical_space.dimension, exposure.surface_space.dimension),
+            dtype=float,
+        )
+        for atom, coefficients in enumerate(exposure.exposure_coefficients):
+            physical_section = slice(
+                atom * physical_dimension, (atom + 1) * physical_dimension
+            )
+            basis_section = slice(atom * basis_dimension, (atom + 1) * basis_dimension)
+            weighted_basis[physical_section, basis_section] = (
+                harmonic_weighted_basis_operator(
+                    coefficients,
+                    exposure_lmax=exposure.exposure_lmax,
+                    basis_lmax=exposure.surface_lmax,
+                    product_lmax=physical_lmax,
+                )
+            )
         raw = gaussian_harmonic_source_operator(
             positions_angstrom=exposure.positions_angstrom,
             radii_angstrom=exposure.radii_angstrom,
-            surface_lmax=exposure.surface_lmax,
+            surface_lmax=physical_lmax,
             radial_quadrature_order=order,
         )
-        weighted = exposure.global_multiplication_operator @ raw
+        weighted = weighted_basis.T @ raw
         configuration = _sha(
             {
                 "contract_id": HARMONIC_GAUSSIAN_SOURCE_CONTRACT_ID,
@@ -343,6 +373,11 @@ class HarmonicGaussianSourceSnapshot:
                 "coefficient_contract_id": (HARMONIC_GALERKIN_COEFFICIENT_CONTRACT_ID),
                 "exposure_configuration_sha256": exposure.configuration_sha256,
                 "surface_space_sha256": exposure.surface_space.metadata_sha256(),
+                "physical_charge_space_sha256": physical_space.metadata_sha256(),
+                "physical_charge_lmax": physical_lmax,
+                "weighted_basis": (
+                    "rectangular-exact-product-band-embedding-transpose-test"
+                ),
                 "source_space_sha256": (
                     MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash()
                 ),
@@ -370,6 +405,7 @@ class HarmonicGaussianSourceSnapshot:
                 "configuration_sha256": configuration,
                 "provenance_sha256": provenance,
                 "exposure_state_sha256": exposure.state_sha256,
+                "weighted_basis_operator_sha256": _array_sha256(weighted_basis),
                 "raw_source_operator_sha256": _array_sha256(raw),
                 "source_operator_sha256": _array_sha256(weighted),
             }
@@ -379,6 +415,11 @@ class HarmonicGaussianSourceSnapshot:
         object.__setattr__(self, "configuration_sha256", configuration)
         object.__setattr__(self, "provenance_sha256", provenance)
         object.__setattr__(self, "state_sha256", state)
+        object.__setattr__(
+            self,
+            "_weighted_basis_values",
+            tuple(float(value) for value in weighted_basis.flat),
+        )
         object.__setattr__(
             self, "_raw_source_values", tuple(float(value) for value in raw.flat)
         )
@@ -395,14 +436,36 @@ class HarmonicGaussianSourceSnapshot:
         return self.exposure.surface_lmax
 
     @property
+    def exposure_lmax(self) -> int:
+        return self.exposure.exposure_lmax
+
+    @property
     def surface_space(self) -> PerAtomHarmonicSpace:
         return self.exposure.surface_space
+
+    @property
+    def physical_charge_lmax(self) -> int:
+        return self.exposure.surface_lmax + self.exposure.exposure_lmax
+
+    @property
+    def physical_charge_space(self) -> PerAtomHarmonicSpace:
+        return PerAtomHarmonicSpace(
+            atom_count=self.atom_count, lmax=self.physical_charge_lmax
+        )
+
+    @property
+    def weighted_basis_operator(self) -> np.ndarray:
+        return _readonly(
+            np.asarray(self._weighted_basis_values, dtype=float).reshape(
+                self.physical_charge_space.dimension, self.surface_space.dimension
+            )
+        )
 
     @property
     def raw_source_operator(self) -> np.ndarray:
         return _readonly(
             np.asarray(self._raw_source_values, dtype=float).reshape(
-                self.surface_space.dimension, self.atom_count * 8
+                self.physical_charge_space.dimension, self.atom_count * 8
             )
         )
 
@@ -450,10 +513,32 @@ class HarmonicGaussianSourceSnapshot:
         raw = gaussian_harmonic_source_operator(
             positions_angstrom=self.exposure.positions_angstrom,
             radii_angstrom=self.exposure.radii_angstrom,
-            surface_lmax=self.surface_lmax,
+            surface_lmax=self.physical_charge_lmax,
             radial_quadrature_order=self.radial_quadrature_order,
         )
-        weighted = self.exposure.global_multiplication_operator @ raw
+        basis_dimension = self.surface_space.single_atom_dimension
+        physical_dimension = self.physical_charge_space.single_atom_dimension
+        weighted_basis = np.zeros(
+            (
+                self.physical_charge_space.dimension,
+                self.surface_space.dimension,
+            ),
+            dtype=float,
+        )
+        for atom, coefficients in enumerate(self.exposure.exposure_coefficients):
+            physical_section = slice(
+                atom * physical_dimension, (atom + 1) * physical_dimension
+            )
+            basis_section = slice(atom * basis_dimension, (atom + 1) * basis_dimension)
+            weighted_basis[physical_section, basis_section] = (
+                harmonic_weighted_basis_operator(
+                    coefficients,
+                    exposure_lmax=self.exposure.exposure_lmax,
+                    basis_lmax=self.surface_lmax,
+                    product_lmax=self.physical_charge_lmax,
+                )
+            )
+        weighted = weighted_basis.T @ raw
         expected_configuration = _sha(
             {
                 "contract_id": HARMONIC_GAUSSIAN_SOURCE_CONTRACT_ID,
@@ -461,6 +546,13 @@ class HarmonicGaussianSourceSnapshot:
                 "coefficient_contract_id": (HARMONIC_GALERKIN_COEFFICIENT_CONTRACT_ID),
                 "exposure_configuration_sha256": (self.exposure.configuration_sha256),
                 "surface_space_sha256": self.surface_space.metadata_sha256(),
+                "physical_charge_space_sha256": (
+                    self.physical_charge_space.metadata_sha256()
+                ),
+                "physical_charge_lmax": self.physical_charge_lmax,
+                "weighted_basis": (
+                    "rectangular-exact-product-band-embedding-transpose-test"
+                ),
                 "source_space_sha256": (
                     MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash()
                 ),
@@ -488,6 +580,9 @@ class HarmonicGaussianSourceSnapshot:
                 "configuration_sha256": expected_configuration,
                 "provenance_sha256": expected_provenance,
                 "exposure_state_sha256": self.exposure.state_sha256,
+                "weighted_basis_operator_sha256": _array_sha256(
+                    self.weighted_basis_operator
+                ),
                 "raw_source_operator_sha256": _array_sha256(self.raw_source_operator),
                 "source_operator_sha256": _array_sha256(self.source_operator),
             }
@@ -496,6 +591,7 @@ class HarmonicGaussianSourceSnapshot:
             self.configuration_sha256 != expected_configuration
             or self.provenance_sha256 != expected_provenance
             or self.state_sha256 != expected_state
+            or not np.array_equal(weighted_basis, self.weighted_basis_operator)
             or not np.array_equal(raw, self.raw_source_operator)
             or not np.array_equal(weighted, self.source_operator)
         ):

@@ -131,7 +131,7 @@ def test_raw_operator_matches_independent_point_kernel_projection():
     actual = (snapshot.raw_source_operator @ SOURCE.reshape(-1)).reshape(
         len(POSITIONS), -1
     )
-    expected = _direct_projected_potential(SOURCE, lmax=snapshot.surface_lmax)
+    expected = _direct_projected_potential(SOURCE, lmax=snapshot.physical_charge_lmax)
     np.testing.assert_allclose(actual, expected, atol=2.5e-11, rtol=0.0)
 
 
@@ -178,10 +178,15 @@ def test_dipole_columns_are_analytic_source_center_derivatives():
 
 def test_weighted_source_map_is_one_exact_adjoint_pair():
     snapshot = _snapshot()
-    expected = (
-        snapshot.exposure.global_multiplication_operator @ snapshot.raw_source_operator
-    )
+    expected = snapshot.weighted_basis_operator.T @ snapshot.raw_source_operator
     np.testing.assert_allclose(snapshot.source_operator, expected, atol=0.0, rtol=0.0)
+    assert snapshot.weighted_basis_operator.shape == (
+        snapshot.physical_charge_space.dimension,
+        snapshot.surface_space.dimension,
+    )
+    assert snapshot.physical_charge_lmax == (
+        snapshot.exposure_lmax + snapshot.surface_lmax
+    )
     surface_cotangent = np.linspace(-0.03, 0.04, snapshot.surface_space.dimension)
     source_direction = np.linspace(-0.02, 0.01, SOURCE.size).reshape(SOURCE.shape)
     source_image = snapshot.apply_source(source_direction)
@@ -200,13 +205,20 @@ def test_geometry_assembled_source_map_is_so3_covariant():
     rotation = _rotation(101)
     rotated = _snapshot(POSITIONS @ rotation.T)
     surface_rotation = base.surface_space.representation_matrix(rotation)
+    physical_rotation = base.physical_charge_space.representation_matrix(rotation)
     source_rotation = radial_gto_source_rotation_matrix(
         rotation, atom_count=len(POSITIONS)
     )
     np.testing.assert_allclose(
         rotated.raw_source_operator @ source_rotation,
-        surface_rotation @ base.raw_source_operator,
-        atol=3e-11,
+        physical_rotation @ base.raw_source_operator,
+        atol=5e-11,
+        rtol=0.0,
+    )
+    np.testing.assert_allclose(
+        rotated.weighted_basis_operator @ surface_rotation,
+        physical_rotation @ base.weighted_basis_operator,
+        atol=5e-11,
         rtol=0.0,
     )
     np.testing.assert_allclose(
@@ -243,6 +255,7 @@ def test_source_snapshot_is_translation_invariant_immutable_and_bound():
     assert translated.state_sha256 != base.state_sha256
     assert base.source_operator.flags.writeable is False
     assert base.raw_source_operator.flags.writeable is False
+    assert base.weighted_basis_operator.flags.writeable is False
     assert base.coordinate_derivative_available is False
     assert base.tier_v_admitted is False
     base.validate()

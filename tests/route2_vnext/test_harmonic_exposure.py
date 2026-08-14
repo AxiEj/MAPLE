@@ -11,6 +11,7 @@ from maple.solvation.continuum import (
     SmoothHarmonicExposureSnapshot,
     build_smooth_harmonic_exposure,
     harmonic_multiplication_matrix,
+    harmonic_weighted_basis_operator,
     project_harmonic_product,
     real_wigner_matrix,
     smooth_flat_step,
@@ -191,6 +192,83 @@ def test_multiplication_matrix_is_symmetric_and_covariant():
         atol=4e-12,
         rtol=0.0,
     )
+
+
+def test_rectangular_weighted_basis_is_the_exact_finite_product_and_covariant():
+    from maple.solvation.continuum.harmonic_coefficients import (
+        _real_harmonic_design,
+    )
+
+    basis_lmax = 2
+    exposure_lmax = 4
+    product_lmax = basis_lmax + exposure_lmax
+    coefficients = project_harmonic_product(
+        (
+            _pair_coefficients(np.asarray([1.92, -0.21, 0.55])),
+            _pair_coefficients(np.asarray([-0.44, 2.05, -0.36])),
+        ),
+        lmax=exposure_lmax,
+    )
+    operator = harmonic_weighted_basis_operator(
+        coefficients,
+        exposure_lmax=exposure_lmax,
+        basis_lmax=basis_lmax,
+    )
+    assert operator.shape == ((product_lmax + 1) ** 2, (basis_lmax + 1) ** 2)
+
+    rng = np.random.default_rng(73)
+    directions = rng.normal(size=(40, 3))
+    directions /= np.linalg.norm(directions, axis=1)[:, None]
+    exposure_design = _real_harmonic_design(directions, lmax=exposure_lmax)
+    basis_design = _real_harmonic_design(directions, lmax=basis_lmax)
+    product_design = _real_harmonic_design(directions, lmax=product_lmax)
+    basis_coefficients = rng.normal(size=(basis_lmax + 1) ** 2)
+    expected = (exposure_design @ coefficients) * (basis_design @ basis_coefficients)
+    actual = product_design @ operator @ basis_coefficients
+    np.testing.assert_allclose(actual, expected, atol=2e-13, rtol=0.0)
+
+    rotation = _rotation(79)
+    exposure_rotation = real_wigner_matrix(rotation, lmax=exposure_lmax)
+    basis_rotation = real_wigner_matrix(rotation, lmax=basis_lmax)
+    product_rotation = real_wigner_matrix(rotation, lmax=product_lmax)
+    rotated = harmonic_weighted_basis_operator(
+        exposure_rotation @ coefficients,
+        exposure_lmax=exposure_lmax,
+        basis_lmax=basis_lmax,
+    )
+    np.testing.assert_allclose(
+        rotated @ basis_rotation,
+        product_rotation @ operator,
+        atol=9e-12,
+        rtol=0.0,
+    )
+
+
+def test_constant_weight_rectangular_operator_is_the_exact_irrep_embedding():
+    exposure_lmax = 4
+    basis_lmax = 2
+    product_lmax = exposure_lmax + basis_lmax
+    constant = np.zeros((exposure_lmax + 1) ** 2)
+    constant[0] = np.sqrt(4.0 * np.pi)
+    operator = harmonic_weighted_basis_operator(
+        constant,
+        exposure_lmax=exposure_lmax,
+        basis_lmax=basis_lmax,
+    )
+    expected = np.zeros(((product_lmax + 1) ** 2, (basis_lmax + 1) ** 2))
+    expected[: (basis_lmax + 1) ** 2] = np.eye((basis_lmax + 1) ** 2)
+    np.testing.assert_allclose(operator, expected, atol=2e-13, rtol=0.0)
+
+
+def test_incomplete_weighted_product_bandwidth_fails_closed():
+    coefficients = _pair_coefficients(np.asarray([1.92, -0.21, 0.55]))
+    with pytest.raises(ValueError, match=r"exposure_lmax \+ basis_lmax"):
+        harmonic_weighted_basis_operator(
+            coefficients,
+            exposure_lmax=4,
+            basis_lmax=2,
+            product_lmax=5,
+        )
 
 
 def test_snapshot_is_fixed_dimensional_content_addressed_and_cold_replayable():

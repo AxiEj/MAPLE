@@ -309,6 +309,48 @@ def harmonic_multiplication_matrix(
     return _readonly(result)
 
 
+def harmonic_weighted_basis_operator(
+    exposure_coefficients: object,
+    *,
+    exposure_lmax: int,
+    basis_lmax: int,
+    product_lmax: int | None = None,
+) -> np.ndarray:
+    """Expand ``e(u) * f(u)`` into its complete product bandwidth.
+
+    Unlike :func:`harmonic_multiplication_matrix`, this operator is
+    rectangular.  That distinction is physical: an invertible square
+    ``P_L M_e P_L`` only changes coordinates and cancels from a stationary
+    ``M K M``/``M v`` solve.  The rectangular map embeds the weighted charge
+    basis into the larger space that exactly contains the finite product.
+    """
+
+    exposure_maximum = _bounded_lmax(exposure_lmax)
+    basis_maximum = _bounded_lmax(basis_lmax)
+    required_product = exposure_maximum + basis_maximum
+    if product_lmax is None:
+        product_maximum = required_product
+    else:
+        product_maximum = _bounded_lmax(product_lmax)
+        if product_maximum < required_product:
+            raise ValueError(
+                "product_lmax must be at least exposure_lmax + basis_lmax "
+                "to retain the complete weighted basis product."
+            )
+    coefficients = _coefficient_vector(
+        exposure_coefficients,
+        lmax=exposure_maximum,
+        name="exposure_coefficients",
+    )
+    required_degree = exposure_maximum + basis_maximum + product_maximum
+    directions, weights = _finite_band_sphere_rule(required_degree)
+    exposure_design = _real_harmonic_design(directions, lmax=exposure_maximum)
+    basis_design = _real_harmonic_design(directions, lmax=basis_maximum)
+    product_design = _real_harmonic_design(directions, lmax=product_maximum)
+    exposure = exposure_design @ coefficients
+    return _readonly(product_design.T @ ((weights * exposure)[:, None] * basis_design))
+
+
 def _assemble_exposure(
     *,
     positions: np.ndarray,
@@ -708,6 +750,7 @@ __all__ = [
     "SmoothHarmonicExposureSnapshot",
     "build_smooth_harmonic_exposure",
     "harmonic_multiplication_matrix",
+    "harmonic_weighted_basis_operator",
     "project_harmonic_product",
     "smooth_flat_step",
     "smooth_pair_exposure_coefficients",

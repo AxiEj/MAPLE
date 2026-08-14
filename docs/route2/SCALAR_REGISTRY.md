@@ -202,13 +202,16 @@ public profile or a multi-geometry convergence certificate.
   no independently coded response receiver.
 - Implemented: immutable/content-addressed coefficient snapshots, symmetric
   positive-definite stationary solve, complete finite `SO(3)` coefficient
-  action, explicit `A -> D A D^T` and `S -> D S D_c^T` conjugation, and
-  same-scalar drive/HVP/JVP/VJP generation.
-- Excluded: the geometry-dependent solid-harmonic/intertwiner assembler,
-  moving-cavity derivative, source-dependent cavity, and every nonpolar term.
-- Scientific boundary: this is an algebraic fixed-cavity reference, not a
-  production ddPCM/ddCOSMO backend and not proof that geometry-generated
-  matrices satisfy covariance.
+  action, rectangular smooth-exposure product embedding `E`, physical-shell
+  Coulomb `K`, `A=E.T K E`, eight-channel Gaussian `S=E.T V`, and same-scalar
+  drive/HVP/JVP/VJP generation. Nested, intersecting, tangent, and separated
+  spheres are covered without a laboratory grid.
+- Excluded: analytic coordinate pullback, combined electronic-continuum
+  stationarity, source-dependent cavity, and every nonpolar term.
+- Scientific boundary: this is a regularized weighted multi-shell conductor
+  reference, not the exact sharp union boundary or a production ddPCM/ddCOSMO
+  backend. It is structurally rotation covariant and `C1`, but not generally
+  `C2` at shell tangency; no force/Hessian/frequency capability follows.
 - Profile:
   `route2-profile-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`.
 - Capabilities/evidence: none / none. The entry point remains explicitly

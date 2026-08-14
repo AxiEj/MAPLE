@@ -76,10 +76,12 @@ identity and cannot enter that profile.
 ## Strict rotation-controlled continuum branch
 
 The Tier-V continuum target is a fixed-dimensional per-atom spherical-harmonic
-Galerkin representation with analytic/covariant operator assembly and one
-stationary scalar. A finite laboratory-frame point mask is not a structural
-`SO(3)` guarantee, regardless of Lebedev order. The first disabled algebraic
-reference, its geometry-bound `C-infinity` harmonic exposure descriptor, and
-its eight-channel Gaussian source/transpose-receiver intertwiner, their exact
-claim boundaries, and the pending Green-operator assembly gate are documented in
+Galerkin representation with covariant operator assembly and one stationary
+scalar. A finite laboratory-frame point mask is not a structural `SO(3)`
+guarantee, regardless of Lebedev order. The disabled reference now composes a
+rectangular smooth-exposure product embedding `E`, the full-shell Coulomb
+operator `K`, `A=E.T K E`, and the eight-channel Gaussian `S=E.T V` with the
+receiver exactly `S.T`. The exact shell kernel is `C1` but not generally `C2`
+at tangency, and no coordinate pullback or capability is enabled. The full
+construction and its fail-closed boundaries are documented in
 [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md).

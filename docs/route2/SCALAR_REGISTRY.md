@@ -138,6 +138,9 @@ physical-configuration identity.
   Benzene extends the contiguous two-process coverage to `[0,6)`; evidence is
   retained under
   [`evidence/operational-analytic-harmonic-rigid-benzene-97552baa/`](evidence/operational-analytic-harmonic-rigid-benzene-97552baa/README.md).
+  Methane extends the contiguous two-process coverage to `[0,7)`; evidence is
+  retained under
+  [`evidence/operational-analytic-harmonic-rigid-methane-817501b5/`](evidence/operational-analytic-harmonic-rigid-methane-817501b5/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

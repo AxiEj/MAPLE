@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; one source-bound water run passes root replay, scalar identity, three force FDs, net-force/torque, and one rotation, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; source-bound water and methanol canaries pass their frozen local symmetry gates, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -105,6 +105,22 @@ reproduce measurement SHA-256
 `586024051151be3e3c63171e73bab34b6ce43459d4232c8070daadcd204b4547`.
 This validates one canary, not a public PES or solvation model; every
 capability remains `no`, and the legacy laboratory-grid route remains failed.
+
+The preregistered methanol rigid-symmetry shard is retained under
+[`evidence/operational-analytic-harmonic-rigid-methanol-93c98598/`](evidence/operational-analytic-harmonic-rigid-methanol-93c98598/README.md).
+Across three proper rotations its maximum energy error is
+`2.8617250791285187e-9 eV`, maximum relative force-covariance error is
+`5.000913075374153e-8`, source-covariance error is
+`2.592598170552474e-9`, and field-covariance error is
+`4.269092690650618e-9`. Translation and identical-atom permutation gates also
+pass, and an independent clean replay reproduces the scientific digest
+`2bd5b02b6376faa39789cd9b081985f6805903a9ce227044842bf57af666ccfe`.
+Relative to the failed CPCM1202 methanol record, the measured energy, force,
+and source rotation errors are smaller by factors of approximately `1775`,
+`3575`, and `653`. This comparison changes both model-evaluator and continuum
+identities, so it supports the replacement route only. It is not evidence that
+the old finite Lebedev/SWiG route was repaired, and every capability remains
+`no` while the broader frozen panel is incomplete.
 
 ## Legacy baseline
 

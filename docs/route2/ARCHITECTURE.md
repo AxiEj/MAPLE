@@ -92,8 +92,10 @@ The same continuum scalar also has a separately named operational research
 profile. That profile retains the original MACE density response rather than
 claiming electronic energy/source conjugacy, excludes the field-conditioned
 model energy difference, and uses the existing fixed-point adjoint to
-differentiate `E_vac+G_harm`. One source-bound water canary now passes its
-root, force directional, translation/torque, and rotation gates, with the
-harmonic continuum at roundoff covariance. It is not Tier V and remains fully
-disabled until physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and
-release panels pass.
+differentiate `E_vac+G_harm`. Source-bound water and methanol canaries now pass
+their frozen local rotation gates; water additionally passes three force
+directional checks, while methanol passes translation and identical-atom
+permutation checks. The harmonic continuum is the coefficient-space
+replacement for, not a repair of, the failed finite laboratory-grid route.
+The profile is not Tier V and remains fully disabled until physical-component,
+accuracy, complete PES/domain, Hessian/FREQ/MD, and release panels pass.

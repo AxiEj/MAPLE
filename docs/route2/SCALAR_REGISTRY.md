@@ -108,7 +108,7 @@ physical-configuration identity.
   registry entries.
 - Profile:
   `route2-profile-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1`.
-- Evidence: one source-bound official-checkpoint water canary passes cold/warm
+- Evidence: a source-bound official-checkpoint water canary passes cold/warm
   root replay, the exact half-coupling identity, three re-solved operational
   force finite differences, translation/torque checks, and one rigid rotation.
   The harmonic continuum rotates at float64 roundoff; the complete operational
@@ -116,6 +116,14 @@ physical-configuration identity.
   force-covariance error. Both processes reproduce the same scientific digest
   under
   [`evidence/operational-analytic-harmonic-water-fa6f0200/`](evidence/operational-analytic-harmonic-water-fa6f0200/README.md).
+  A separately preregistered methanol shard then passes cold/warm replay,
+  translation, identical-atom permutation, and three rigid rotations in two
+  clean processes. Its maximum rotation-energy and relative force-covariance
+  errors are `2.8617250791285187e-9 eV` and
+  `5.000913075374153e-8`, respectively. Evidence is retained under
+  [`evidence/operational-analytic-harmonic-rigid-methanol-93c98598/`](evidence/operational-analytic-harmonic-rigid-methanol-93c98598/README.md).
+  This supports replacement of the finite laboratory-grid route; it does not
+  rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,
   PES/domain, Hessian/FREQ/MD, or release evidence; `E/F/H/V/M` remain false.
 

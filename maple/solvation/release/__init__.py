@@ -105,6 +105,11 @@ from .pes_panel import (
     summarize_pes_paths,
     torsion_tangent,
 )
+from .variational_stability import (
+    VariationalStabilityThresholds,
+    dense_matrix_from_action,
+    variational_stability_diagnostic,
+)
 
 __all__ = [
     "RepositorySnapshot",
@@ -193,4 +198,7 @@ __all__ = [
     "summarize_pes_panel",
     "summarize_pes_paths",
     "torsion_tangent",
+    "VariationalStabilityThresholds",
+    "dense_matrix_from_action",
+    "variational_stability_diagnostic",
 ]

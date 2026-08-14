@@ -219,6 +219,9 @@ def _adapter(tmp_path):
         graph_longrange_version="0.4.0",
         upstream_commit="test-upstream-commit",
         release_status="test-only-unadmitted",
+        long_range_symmetry_contract_id="test-so3-unadmitted-v1",
+        structural_so3_equivariance_admitted=False,
+        long_range_symmetry_claim_boundary="test evaluator has no SO3 proof",
     )
     calculator = _FakeMACEPolarCalculator(checkpoint, release)
     return MACEPolarLocalFieldModelAdapter(calculator, release), calculator
@@ -439,6 +442,9 @@ def test_variational_adapter_fails_closed_if_zero_field_density_breaks_charge(
         graph_longrange_version="0.4.0",
         upstream_commit="test-upstream-commit",
         release_status="test-only-unadmitted",
+        long_range_symmetry_contract_id="test-so3-unadmitted-v1",
+        structural_so3_equivariance_admitted=False,
+        long_range_symmetry_claim_boundary="test evaluator has no SO3 proof",
     )
     base = MACEPolarLocalFieldModelAdapter(
         BrokenChargeCalculator(checkpoint, release), release
@@ -446,6 +452,23 @@ def test_variational_adapter_fails_closed_if_zero_field_density_breaks_charge(
     variational = _variational_adapter(base, base._calculator)
     with pytest.raises(RuntimeError, match="zero-field density anchor"):
         variational.evaluate_source(_atoms(), np.zeros((2, 8)))
+
+
+def test_release_and_variational_metadata_keep_structural_so3_closed(tmp_path):
+    base, calculator = _adapter(tmp_path)
+    variational = _variational_adapter(base, calculator)
+
+    release = base.release_contract.metadata()
+    assert release["long_range_symmetry_contract_id"] == "test-so3-unadmitted-v1"
+    assert release["structural_so3_equivariance_admitted"] is False
+    assert "no SO3 proof" in release["long_range_symmetry_claim_boundary"]
+
+    metadata = variational.metadata()
+    assert metadata["long_range_symmetry_contract_id"] == (
+        release["long_range_symmetry_contract_id"]
+    )
+    assert metadata["structural_so3_equivariance_admitted"] is False
+    assert metadata["capabilities"] == {tier: False for tier in "EFHVM"}
 
 
 def test_candidate_field_graph_preserves_coordinates_without_touching_legacy_files(

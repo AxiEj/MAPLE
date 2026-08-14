@@ -562,6 +562,7 @@ class MACEPolarVariationalFieldEnergy(FieldEnergyFunctional):
         )
 
     def metadata(self) -> dict[str, object]:
+        release_contract = self._base.release_contract
         return {
             "provider_id": self.provider_id,
             "model_profile_id": self.model_profile_id,
@@ -570,6 +571,15 @@ class MACEPolarVariationalFieldEnergy(FieldEnergyFunctional):
             "duality_map_sha256": self.duality_map.configuration_sha256(),
             "source_definition": "complete-eight-channel-energy-gradient-effective-source",
             "original_density_coefficients_role": "diagnostic-observable-only",
+            "long_range_symmetry_contract_id": (
+                release_contract.long_range_symmetry_contract_id
+            ),
+            "structural_so3_equivariance_admitted": (
+                release_contract.structural_so3_equivariance_admitted
+            ),
+            "long_range_symmetry_claim_boundary": (
+                release_contract.long_range_symmetry_claim_boundary
+            ),
             "capabilities": {tier: False for tier in "EFHVM"},
         }
 

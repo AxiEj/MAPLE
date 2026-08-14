@@ -96,6 +96,9 @@ class MACEPolarReleaseContract:
     graph_longrange_version: str
     upstream_commit: str
     release_status: str
+    long_range_symmetry_contract_id: str
+    structural_so3_equivariance_admitted: bool
+    long_range_symmetry_claim_boundary: str
 
     def __post_init__(self) -> None:
         for name in (
@@ -108,8 +111,14 @@ class MACEPolarReleaseContract:
             "graph_longrange_version",
             "upstream_commit",
             "release_status",
+            "long_range_symmetry_contract_id",
+            "long_range_symmetry_claim_boundary",
         ):
             object.__setattr__(self, name, _text(getattr(self, name), name))
+        if type(self.structural_so3_equivariance_admitted) is not bool:
+            raise TypeError(
+                "structural_so3_equivariance_admitted must be exactly bool."
+            )
         digest = str(self.checkpoint_sha256).lower()
         if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
             raise ValueError("checkpoint_sha256 must contain 64 hexadecimal digits.")
@@ -134,6 +143,13 @@ class MACEPolarReleaseContract:
             "graph_longrange_version": self.graph_longrange_version,
             "upstream_commit": self.upstream_commit,
             "release_status": self.release_status,
+            "long_range_symmetry_contract_id": (self.long_range_symmetry_contract_id),
+            "structural_so3_equivariance_admitted": (
+                self.structural_so3_equivariance_admitted
+            ),
+            "long_range_symmetry_claim_boundary": (
+                self.long_range_symmetry_claim_boundary
+            ),
         }
 
 
@@ -154,6 +170,15 @@ OFFICIAL_MACE_POLAR_1_M_CONTRACT = MACEPolarReleaseContract(
     graph_longrange_version="0.4.0",
     upstream_commit="unavailable-in-installed-wheel-release-metadata",
     release_status="operational-candidate; exact-gto-and-E/F/H/V/M-unadmitted",
+    long_range_symmetry_contract_id=(
+        "graph-longrange-molecular-realspace-fixed-axis-fd-so3-unadmitted-v1"
+    ),
+    structural_so3_equivariance_admitted=False,
+    long_range_symmetry_claim_boundary=(
+        "graph_longrange==0.4.0 represents l=1 sources and receivers through "
+        "finite scalar displacements along fixed laboratory x/y/z axes; this "
+        "is a smooth approximation, not an exact finite SO(3) intertwiner"
+    ),
 )
 
 MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS = MappingProxyType(
@@ -177,6 +202,15 @@ MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS = MappingProxyType(
             release_status=(
                 f"experimental fixed-box{box_length} evaluation operator; box "
                 "convergence and E/F/H/V/M unadmitted"
+            ),
+            long_range_symmetry_contract_id=(
+                "graph-longrange-fixed-cubic-reciprocal-grid-so3-unadmitted-v1"
+            ),
+            structural_so3_equivariance_admitted=False,
+            long_range_symmetry_claim_boundary=(
+                "the forced reciprocal evaluator uses a fixed cubic box and "
+                "finite laboratory-frame reciprocal lattice; box convergence "
+                "does not provide a structural global SO(3) guarantee"
             ),
         )
         for box_length in (32, 40, 48, 56)
@@ -548,6 +582,12 @@ class MACEPolarLocalFieldModelAdapter:
             )
         return current
 
+    @property
+    def release_contract(self) -> MACEPolarReleaseContract:
+        """Return the immutable checkpoint/evaluator admission contract."""
+
+        return self._release_contract
+
     def _state(
         self, atoms: object, field: np.ndarray | None, *, need_forces: bool
     ) -> object:
@@ -767,6 +807,12 @@ class MACEPolarRadialGTOModelAdapter:
     @property
     def field_transform(self) -> MACEPolarRadialFieldTransform:
         return self._field_transform
+
+    @property
+    def release_contract(self) -> MACEPolarReleaseContract:
+        """Return the immutable contract inherited from the base adapter."""
+
+        return self._base.release_contract
 
     def _current_configuration_sha256(self) -> str:
         return _hash(

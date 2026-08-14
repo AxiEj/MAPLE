@@ -72,3 +72,12 @@ not only a backend class name. The water radial-GTO candidate binds dielectric
 `78.39`, SMD-water Coulomb radii, and 194 fixed Lebedev directions per atom.
 Injected grids or altered dielectric/radii/order receive a separate diagnostic
 identity and cannot enter that profile.
+
+## Strict rotation-controlled continuum branch
+
+The Tier-V continuum target is a fixed-dimensional per-atom spherical-harmonic
+Galerkin representation with analytic/covariant operator assembly and one
+stationary scalar. A finite laboratory-frame point mask is not a structural
+`SO(3)` guarantee, regardless of Lebedev order. The first disabled algebraic
+reference, its exact claim boundary, and the pending geometry-assembly gate are
+documented in [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md).

@@ -42,6 +42,8 @@ INITIAL_SCALAR_IDS = {
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
     "route2-variational-common-functional-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
+    "route2-variational-macepolar-energygradient-fixedcavity-"
+    "harmonicgalerkin-cpcm-v1",
 }
 
 
@@ -82,7 +84,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 14
+    assert len(PROFILE_REGISTRY) == 15
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():

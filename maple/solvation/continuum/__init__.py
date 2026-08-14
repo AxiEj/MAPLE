@@ -14,6 +14,16 @@ from .fixed_reciprocal_functional import (
     FixedReciprocalCPCMFunctional,
 )
 from .functional import ContinuumEnergyFunctional
+from .harmonic_galerkin import (
+    FixedHarmonicGalerkinCPCMCandidate,
+    FixedHarmonicGalerkinSnapshot,
+    HARMONIC_GALERKIN_COEFFICIENT_CONTRACT_ID,
+    HARMONIC_GALERKIN_CPCM_FUNCTIONAL_PROVIDER_ID,
+    HARMONIC_GALERKIN_STATIONARY_SCALAR_CONTRACT_ID,
+    PerAtomHarmonicSpace,
+    radial_gto_source_rotation_matrix,
+    real_wigner_matrix,
+)
 from .pair_frame_ensemble_cpcm import (
     OrderedPairFrameEnsembleRadialGTOCPCMBackend,
     PairFrameCPCMState,
@@ -43,6 +53,11 @@ __all__ = [
     "FixedReciprocalCPCMFunctional",
     "FixedTopologyCPCMBackend",
     "FixedTopologyCPCMState",
+    "FixedHarmonicGalerkinCPCMCandidate",
+    "FixedHarmonicGalerkinSnapshot",
+    "HARMONIC_GALERKIN_COEFFICIENT_CONTRACT_ID",
+    "HARMONIC_GALERKIN_CPCM_FUNCTIONAL_PROVIDER_ID",
+    "HARMONIC_GALERKIN_STATIONARY_SCALAR_CONTRACT_ID",
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend",
     "PairFrameCPCMState",
     "build_pair_frame_water_cpcm_110_candidate",
@@ -54,5 +69,8 @@ __all__ = [
     "DDX_WATER_194_CONFIGURATION_CONTRACT_ID",
     "RadialGTODDXBackend",
     "RadialGTODDXState",
+    "PerAtomHarmonicSpace",
+    "radial_gto_source_rotation_matrix",
+    "real_wigner_matrix",
     "build_water_radial_gto_ddpcm_194_candidate",
 ]

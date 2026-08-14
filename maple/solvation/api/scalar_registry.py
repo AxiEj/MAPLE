@@ -26,6 +26,10 @@ VARIATIONAL_COMMON_FUNCTIONAL_V1 = "route2-variational-common-functional-v1"
 VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1 = (
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1"
 )
+VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1 = (
+    "route2-variational-macepolar-energygradient-fixedcavity-"
+    "harmonicgalerkin-cpcm-v1"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -336,6 +340,53 @@ _SCALAR_ENTRIES = (
         evidence_artifact_ids=(),
         enabled=False,
     ),
+    ScalarDefinition(
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        exact_formula=(
+            "candidate equations: M_var=Q^-T dE_anc/du and "
+            "u=grad_Q G_harm(c); G_harm=-1/2 (S c)^T A^-1 (S c), "
+            "with complete per-atom harmonic irreps and S^dagger as receiver; "
+            "the geometry-dependent intertwiner assembly and combined stationary "
+            "scalar remain unimplemented and disabled"
+        ),
+        included_components=(
+            "macepolar_anchored_field_energy_candidate",
+            "fixed_external_harmonic_galerkin_stationary_electrostatic_target",
+        ),
+        excluded_components=(
+            "original_four_channel_density_as_variational_source",
+            "geometry_intertwiner_assembly",
+            "moving_cavity_coordinate_derivative",
+            "source_dependent_cavity",
+            "nonpolar_smd_cds",
+        ),
+        source_representation=(
+            "complete eight-channel MACE-POLAR field-energy-conjugate effective "
+            "source coupled to complete per-atom harmonic coefficient blocks"
+        ),
+        field_convention=(
+            "positive energy-dual reduced radial-GTO field; fixed charge and "
+            "constant-potential gauge separated"
+        ),
+        continuum_profile="fixed-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="fixed-external-harmonic-coefficient-cavity-v1",
+        nonpolar_profile="none",
+        state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        implementation_entry_point=(
+            "disabled:coefficient-space stationary scalar reference only; "
+            "geometry intertwiner assembly and combined state equation missing"
+        ),
+        derivative_route=(
+            "same-scalar autograd inside a fixed external coefficient snapshot; "
+            "disabled pending analytic geometry assembly, sign, gauge, passivity, "
+            "root, coordinate, rotation, and release gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
 )
 
 SCALAR_REGISTRY: Mapping[str, ScalarDefinition] = MappingProxyType(
@@ -369,6 +420,7 @@ __all__ = [
     "SCALAR_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_V1",
     "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1",
+    "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1",
     "ScalarDefinition",
     "get_scalar_definition",
     "scalar_registry_manifest",

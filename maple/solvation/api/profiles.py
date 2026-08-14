@@ -15,6 +15,7 @@ from .scalar_registry import (
     SCALAR_REGISTRY,
     VARIATIONAL_COMMON_FUNCTIONAL_V1,
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_V1,
+    VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1,
 )
 from .state_registry import (
     OPERATIONAL_STATE_EQUATION_ID,
@@ -64,6 +65,10 @@ VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1 = (
 VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1 = (
     "route2-profile-variational-macepolar-energygradient-fixedcavity-cpcm-v1"
 )
+VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_PROFILE_V1 = (
+    "route2-profile-variational-macepolar-energygradient-fixedcavity-"
+    "harmonicgalerkin-cpcm-v1"
+)
 MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID = (
     "mace-polar-route2-variational-effective-source-v1"
 )
@@ -109,6 +114,15 @@ PAIR_FRAME_WATER_CPCM_110_CONFIGURATION_CONTRACT_ID = (
 DDX_WATER_DDPCM_194_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.water-eps78p39-smd-radii-"
     "ddx-ddpcm-l8-lebedev194.v1"
+)
+FIXED_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID = (
+    "fixed-harmonic-galerkin-cpcm-candidate-v1"
+)
+FIXED_EXTERNAL_HARMONIC_CAVITY_PROFILE_ID = (
+    "fixed-external-harmonic-coefficient-cavity-v1"
+)
+FIXED_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration.fixed-harmonic-galerkin-unbound.v1"
 )
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
 MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS = MappingProxyType(
@@ -420,6 +434,30 @@ _PROFILE_ENTRIES = (
         evidence_artifact_ids=(),
         enabled=False,
     ),
+    SolvationProfile(
+        profile_id=(
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_PROFILE_V1
+        ),
+        scalar_id=(
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
+        model_profile=MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID,
+        continuum_profile=FIXED_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID,
+        cavity_profile=FIXED_EXTERNAL_HARMONIC_CAVITY_PROFILE_ID,
+        nonpolar_profile="none",
+        coupling_id=MACE_POLAR_RADIAL_GTO_COUPLING_ID,
+        source_space_id=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE_ID,
+        field_space_id=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID,
+        pairing_id=MACE_POLAR_RADIAL_GTO_PAIRING_ID,
+        coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            FIXED_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
 )
 
 
@@ -503,6 +541,7 @@ __all__ = [
     "PROFILE_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1",
     "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_CPCM_PROFILE_V1",
+    "VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_FIXEDCAVITY_HARMONIC_GALERKIN_CPCM_PROFILE_V1",
     "MACE_POLAR_VARIATIONAL_EFFECTIVE_SOURCE_MODEL_PROFILE_ID",
     "SolvationProfile",
     "EXACT_GTO_COUPLING_CANDIDATE_ID",
@@ -528,6 +567,9 @@ __all__ = [
     "WATER_CPCM_1202_CONFIGURATION_CONTRACT_ID",
     "PAIR_FRAME_WATER_CPCM_110_CONFIGURATION_CONTRACT_ID",
     "DDX_WATER_DDPCM_194_CONFIGURATION_CONTRACT_ID",
+    "FIXED_EXTERNAL_HARMONIC_CAVITY_PROFILE_ID",
+    "FIXED_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID",
+    "FIXED_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

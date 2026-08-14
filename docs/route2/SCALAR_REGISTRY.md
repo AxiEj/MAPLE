@@ -189,6 +189,35 @@ public profile or a multi-geometry convergence certificate.
 - Capabilities/evidence: none / none. In particular `V=false`; this scalar is
   disabled until every strict common-variational gate passes.
 
+## `route2-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`
+
+- Target continuum scalar:
+
+  \[
+    G(c)=-\frac12(Sc)^T A^{-1}(Sc),
+  \]
+
+  on fixed complete per-atom real-spherical-harmonic coefficient blocks.
+- Receiver: the exact metric adjoint of the same source operator `S`; there is
+  no independently coded response receiver.
+- Implemented: immutable/content-addressed coefficient snapshots, symmetric
+  positive-definite stationary solve, complete finite `SO(3)` coefficient
+  action, explicit `A -> D A D^T` and `S -> D S D_c^T` conjugation, and
+  same-scalar drive/HVP/JVP/VJP generation.
+- Excluded: the geometry-dependent solid-harmonic/intertwiner assembler,
+  moving-cavity derivative, source-dependent cavity, and every nonpolar term.
+- Scientific boundary: this is an algebraic fixed-cavity reference, not a
+  production ddPCM/ddCOSMO backend and not proof that geometry-generated
+  matrices satisfy covariance.
+- Profile:
+  `route2-profile-variational-macepolar-energygradient-fixedcavity-harmonicgalerkin-cpcm-v1`.
+- Capabilities/evidence: none / none. The entry point remains explicitly
+  disabled until model-side conjugacy and every continuum/root/coordinate/
+  rotation/release gate passes.
+
+See [HARMONIC_GALERKIN_TIER_V.md](HARMONIC_GALERKIN_TIER_V.md) for the no-grid
+decision and the moving-cavity contract split.
+
 ## Capability labels
 
 | label | meaning | Phase-1 admission |

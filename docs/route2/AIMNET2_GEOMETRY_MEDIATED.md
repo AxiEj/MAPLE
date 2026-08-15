@@ -272,6 +272,19 @@ bond-stretched direction records closed. No threshold or radius was changed.
 This event-distance result blocks a pass of the current-profile v2 full panel;
 it is not evidence that the local analytic force is mismatched.
 
+The complete seventeen-shard contract has now been executed twice from the
+same clean source tree and independently aggregated from raw records
+([negative aggregate](evidence/aimnet2-geometry-mediated-pes-panel-v2-cd8769d4/README.md)).
+Every primary/replay scientific measurement SHA is identical. Water and
+hydrogen peroxide pass all gates; the other fifteen molecule IDs are retained
+as failures. Across the complete panel, replay, stationarity, reciprocity,
+hard-neighbor, and exact-stratum gates all pass. Four molecules fail the
+point/source-shell event guard, ethylamine fails the independent sphere-
+tangency guard, and fourteen molecules lack a demonstrated refinement or
+low-error plateau over the frozen three-step window. This negative result does
+not authorize selecting one favorable step, lowering a guard, or changing a
+radius. A broader coordinate-step study must be a new versioned diagnostic.
+
 ## Bidirectional loop and straight-segment event contract
 
 The water reference geometry also has a separate explicit-scalar loop harness.
@@ -442,7 +455,7 @@ unsupported upstream.
 | harmonic-point structural continuum rotation | passes synthetic and real water canaries |
 | harmonic-point full rigid-rotation gate | passes current real water canary |
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
-| harmonic-point distorted-geometry PES harness | exact v2 17-shard H/C/N/O contract implemented; water passes two clean processes, methanol reproducibly fails the frozen point/source-shell event guard, remaining 15 shards absent |
+| harmonic-point distorted-geometry PES harness | complete v2 17-shard H/C/N/O panel captured twice and independently aggregated; water and hydrogen peroxide pass, while 15 shards fail one or more frozen derivative/event gates; full panel negative |
 | harmonic sphere-pair tangency identity/margin | implemented and required by the v2 shard and loop contracts |
 | harmonic water bidirectional loop/event harness | passes two clean source-bound processes on the frozen local water path; no task admission |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
@@ -464,11 +477,12 @@ coordinate derivative and passes cavity/profile compatibility gates.
 ## Remaining admission gates
 
 1. Recover the exact upstream release identity of the local checkpoint.
-2. Treat the reproducible methanol point/source-shell guard failure as a block
-   on the current-profile v2 full panel. The remaining fifteen shards may be
-   run to map the diagnostic domain, but cannot erase that failure. Any smooth
-   source/cavity replacement must be a newly derived, versioned profile with
-   fresh evidence rather than a relaxed threshold. Also expand explicit
+2. Treat the complete reproducible v2 panel as negative for the current
+   profile. Preserve the four point/source-shell failures, the ethylamine
+   sphere-tangency failure, and the small-step convergence-window failures.
+   A broader finite-difference scan or any smooth source/cavity replacement
+   must be a newly derived, versioned profile with fresh evidence rather than
+   a relaxed threshold. Also expand explicit
    cutoff/source-shell/sphere-tangency trial-step panels beyond the retained
    water loop. The legacy float32 arm remains a negative control, and the
    pyddx arm still has both derivative and laboratory-grid rotation failures.

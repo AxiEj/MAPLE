@@ -215,8 +215,15 @@ point/source-shell event guard at the bond-stretched geometry: its minimum
 margin is `0.015511399564898554 angstrom`, below the frozen `0.02 angstrom`
 guard, even though every numerical derivative and convergence gate passes
 ([negative bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md)).
-The other fifteen H/C/N/O shards remain unexecuted. No full-panel claim is
-possible for the current profile.
+All seventeen H/C/N/O shards have now been executed twice and independently
+aggregated with identical scientific measurement hashes
+([negative aggregate](evidence/aimnet2-geometry-mediated-pes-panel-v2-cd8769d4/README.md)).
+Only water and hydrogen peroxide pass every v2 gate. Four molecules fail the
+point/source-shell event guard, ethylamine fails the independent sphere-
+tangency guard, and fourteen molecules do not demonstrate a refinement or
+low-error plateau over the frozen `4e-4`, `2e-4`, `1e-4 Angstrom` scan. This is
+a complete negative panel, not a basis for selecting one favorable step or
+relaxing an event guard.
 
 The separate frozen water loop has also been captured in two clean processes
 with identical raw forward/reverse records and measurement SHA. Its forward

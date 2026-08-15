@@ -115,8 +115,14 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   Methanol reproducibly fails the bond-stretched point/source-shell event
   guard despite all numerical derivative gates passing
   ([negative bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md));
-  the other fifteen shards are absent, and the current-profile full panel is
-  therefore negative.
+  the complete seventeen-shard panel has now been executed twice with all
+  scientific measurement hashes replaying exactly
+  ([negative aggregate](evidence/aimnet2-geometry-mediated-pes-panel-v2-cd8769d4/README.md)).
+  Only water and hydrogen peroxide pass every v2 gate. Four molecules fail the
+  point/source-shell guard, ethylamine fails the separate sphere-tangency
+  guard, and fourteen molecules lack a demonstrated refinement/plateau window
+  over the frozen three small coordinate steps. The current-profile full panel
+  is therefore negative without changing any radius, step, or threshold.
   A water-only bidirectional force-work and straight-segment event harness is
   retained in two clean processes with identical raw records and measurement
   SHA; its reciprocity/charge-FD operands and segment certificates are

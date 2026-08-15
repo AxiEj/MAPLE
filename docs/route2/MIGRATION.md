@@ -214,8 +214,12 @@ Water passes two clean v2 processes
 while methanol reproducibly fails the bond-stretched point/source-shell event
 guard with all numerical derivative gates still positive
 ([negative bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md)).
-The remaining fifteen shards are not yet v2 evidence, and the current-profile
-full panel is already fail-closed. A separate water
+The full seventeen-shard v2 panel has now been captured in two independent
+clean-process sets and aggregated from raw records
+([negative aggregate](evidence/aimnet2-geometry-mediated-pes-panel-v2-cd8769d4/README.md)).
+Only water and hydrogen peroxide pass every gate; topology-event and
+small-step convergence-window failures keep the current profile fail-closed.
+A separate water
 bidirectional-loop reducer and conservative straight-trial event certificate
 pass two clean processes with identical raw measurements under
 [`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).

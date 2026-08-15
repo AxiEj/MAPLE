@@ -81,7 +81,7 @@ physical-configuration identity.
     u^*=\nabla_c^QG_{\rm harm}(R,c^*).
   \]
 
-- Unique scalar:
+- Frozen scalar for this profile (not a scalar uniquely implied by its root):
 
   \[
     E_{\rm op}(R)=E_{\rm vac}^{\rm analytic}(R)
@@ -184,6 +184,32 @@ physical-configuration identity.
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,
   PES/domain, Hessian/FREQ/MD, or release evidence; `E/F/H/V/M` remain false.
+
+This earlier candidate still represents the fixed-point coordinates in the
+eight-channel radial chart. Its frozen evidence is retained, but it is not
+reused as proof for the newer unchanged-checkpoint `C4/Sigma/U8` branch below.
+
+## Separated source4/native-field8 operational ledgers
+
+The state equation
+`route2-separated-source-boundary-nativefield-root-v1` uses the original
+four-channel checkpoint source, a geometry-sized harmonic boundary state, and
+the checkpoint-native eight-channel receiver as different spaces. It registers
+two disabled scalar identities:
+
+- `route2-operational-macepolar-source4-nativefield8-`
+  `smoothharmonicgalerkin-cpcm-phi0-v1`: vacuum energy plus the signed
+  stationary continuum energy;
+- `route2-operational-macepolar-source4-nativefield8-`
+  `smoothharmonicgalerkin-cpcm-externalenthalpy-phi1-v1`: intrinsic
+  field-conditioned checkpoint energy plus continuum self energy.
+
+The fixed point does not select between these ledgers. `Phi0` omits an
+explicit internal solute polarization cost; `Phi1` remains an external-
+enthalpy candidate until the applied-field sign and energy semantics are
+verified. Neither scalar has a public profile or any capability. Their full
+contract and claim boundary are in
+[SEPARATED_OPERATIONAL_ROUTE.md](SEPARATED_OPERATIONAL_ROUTE.md).
 
 ## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`
 

@@ -7,7 +7,11 @@ from types import MappingProxyType
 from typing import Mapping
 
 from .capabilities import CapabilityStatus
-from .state_registry import OPERATIONAL_STATE_EQUATION_ID, VARIATIONAL_STATE_EQUATION_ID
+from .state_registry import (
+    OPERATIONAL_STATE_EQUATION_ID,
+    SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+    VARIATIONAL_STATE_EQUATION_ID,
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
@@ -15,6 +19,14 @@ OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
 OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
     "route2-operational-macepolar-analytic-gaussian-multipole-"
     "smoothharmonicgalerkin-cpcm-v1"
+)
+OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
+    "route2-operational-macepolar-source4-nativefield8-"
+    "smoothharmonicgalerkin-cpcm-phi0-v1"
+)
+OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
+    "route2-operational-macepolar-source4-nativefield8-"
+    "smoothharmonicgalerkin-cpcm-externalenthalpy-phi1-v1"
 )
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
@@ -212,6 +224,89 @@ _SCALAR_ENTRIES = (
             "implicit adjoint total derivative of this operational scalar; "
             "disabled pending real-checkpoint root, force, rotation, physical, "
             "and release gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        exact_formula=(
+            "Phi0(R,y*)=E_vac(R)-1/2 (B_R c*)^T A_R^-1(B_R c*); "
+            "c*=c_ref+Ty*, A_R sigma*=B_R c*, u*=L_R sigma*, "
+            "c*=Pi_q M_orig(R,u*)"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.separated_ledgers:FrozenVacuumContinuumLedger"
+        ),
+        included_components=(
+            "macepolar_vacuum_energy",
+            "smooth_harmonic_continuum_stationary_energy",
+        ),
+        excluded_components=(
+            "field_conditioned_intrinsic_energy",
+            "solute_internal_polarization_cost",
+            "nonpolar_smd_cds",
+            "strict_common_functional_claim",
+        ),
+        source_representation=(
+            "original four-channel MACE-POLAR source; no artificial second-radial "
+            "source coefficients"
+        ),
+        field_convention=(
+            "separate eight-channel native radial receiver u=L sigma; no L=B* assertion"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "implicit adjoint of this frozen ledger only; all public capabilities "
+            "disabled pending source/MEP, ledger, root, PES, and release gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
+        ),
+        exact_formula=(
+            "Phi1(R,y*)=E_intrinsic_theta(R,L_R sigma*)+"
+            "1/2 sigma*^T A_R sigma*; c*=c_ref+Ty*, "
+            "A_R sigma*=B_R c*, c*=Pi_q M_orig(R,L_R sigma*)"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.separated_ledgers:ExternalEnthalpyOperationalLedger"
+        ),
+        included_components=(
+            "macepolar_intrinsic_field_conditioned_energy",
+            "continuum_polarization_self_energy",
+        ),
+        excluded_components=(
+            "explicit_checkpoint_uniform_field_work_term",
+            "nonpolar_smd_cds",
+            "strict_common_functional_claim",
+            "original_source_energy_conjugacy_claim",
+        ),
+        source_representation=(
+            "original four-channel MACE-POLAR source; no artificial second-radial "
+            "source coefficients"
+        ),
+        field_convention=(
+            "separate eight-channel native radial receiver u=L sigma; ledger sign "
+            "is frozen to A sigma=B c and requires a separate external-enthalpy audit"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "implicit adjoint of this explicitly selected operational ledger; "
+            "not a common-stationarity or Tier-V claim"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -569,6 +664,8 @@ __all__ = [
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
+    "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
+    "OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_CPCM_SMDCDS_V1",
     "SCALAR_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_V1",

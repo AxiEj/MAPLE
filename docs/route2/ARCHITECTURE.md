@@ -31,8 +31,11 @@ never imports from `research/`.
 - `continuum`: continuum state, scalar, field, JVP/VJP, coordinate VJP; no
   model-name branching.
 - `surfaces`: topology/geometry state and derivatives; no fixed-point logic.
-- `coupling`: the single source/receiver operator, constrained coordinates,
+- `coupling`: constrained coordinates, source/boundary/receiver operators,
   physical residual, numerical root solver, adjoint, and scalar composition.
+  Operational plugins may use categorically distinct source `C`, continuum
+  coefficient `Sigma`, and native receiver `U` spaces; square source/field
+  duality is not imposed on them.
 - `release`: evaluates evidence; it cannot manufacture provider capability.
 
 ## Migration rule
@@ -101,3 +104,10 @@ coefficient-space replacement for, not a repair of, the failed finite
 laboratory-grid route. The profile is not Tier V and remains fully disabled
 until physical-component, accuracy, complete PES/domain, Hessian/FREQ/MD, and
 release panels pass.
+
+The unchanged-checkpoint operational branch now has a separate `C4/Sigma/U8`
+contract and two disabled energy ledgers. This prevents the original
+four-channel source from being padded into an artificial eight-channel source
+space and prevents a fixed point from being described as uniquely defining an
+energy. See
+[SEPARATED_OPERATIONAL_ROUTE.md](SEPARATED_OPERATIONAL_ROUTE.md).

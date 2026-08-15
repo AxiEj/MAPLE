@@ -82,6 +82,13 @@ from .conjugacy import (
     analyze_mace_polar_conjugacy,
     tolerance_contract,
 )
+from .coupled_conjugacy import (
+    COUPLED_CONJUGACY_CONTRACT_VERSION,
+    COUPLED_CONJUGACY_RELATIVE_TOLERANCE,
+    COUPLED_CURL_RELATIVE_TOLERANCE,
+    CoupledConjugacyAuditResult,
+    analyze_coupled_conjugacy,
+)
 from .pes_panel import (
     PES_CARTESIAN_PANEL_CONTRACT_VERSION,
     PES_CARTESIAN_PANEL_STEPS_A,
@@ -109,6 +116,21 @@ from .variational_stability import (
     VariationalStabilityThresholds,
     dense_matrix_from_action,
     variational_stability_diagnostic,
+)
+from .root_well_posedness import (
+    DEFAULT_CERTIFICATE_MARGIN,
+    DEFAULT_LOCAL_SINGULAR_VALUE_FLOOR,
+    ROOT_WELL_POSEDNESS_CONTRACT_VERSION,
+    RootWellPosednessCertificate,
+    certify_root_well_posedness,
+    dense_state_map_jacobian,
+)
+from .source_mep import (
+    SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION,
+    SourceElectrostaticObservables,
+    SourceMEPComparison,
+    compare_source_mep_to_reference,
+    source_electrostatic_observables,
 )
 
 __all__ = [
@@ -173,9 +195,14 @@ __all__ = [
     "JVP_VJP_DOT_ABSOLUTE_TOLERANCE",
     "JVP_VJP_DOT_RELATIVE_TOLERANCE",
     "MACEPolarConjugacyNoGoResult",
+    "COUPLED_CONJUGACY_CONTRACT_VERSION",
+    "COUPLED_CONJUGACY_RELATIVE_TOLERANCE",
+    "COUPLED_CURL_RELATIVE_TOLERANCE",
+    "CoupledConjugacyAuditResult",
     "VECTOR_ZERO_ABSOLUTE_TOLERANCE",
     "VECTOR_ZERO_RELATIVE_TOLERANCE",
     "analyze_mace_polar_conjugacy",
+    "analyze_coupled_conjugacy",
     "tolerance_contract",
     "PES_PANEL_ASSET_SHA256",
     "PES_CARTESIAN_PANEL_CONTRACT_VERSION",
@@ -201,4 +228,15 @@ __all__ = [
     "VariationalStabilityThresholds",
     "dense_matrix_from_action",
     "variational_stability_diagnostic",
+    "DEFAULT_CERTIFICATE_MARGIN",
+    "DEFAULT_LOCAL_SINGULAR_VALUE_FLOOR",
+    "ROOT_WELL_POSEDNESS_CONTRACT_VERSION",
+    "RootWellPosednessCertificate",
+    "certify_root_well_posedness",
+    "dense_state_map_jacobian",
+    "SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION",
+    "SourceElectrostaticObservables",
+    "SourceMEPComparison",
+    "compare_source_mep_to_reference",
+    "source_electrostatic_observables",
 ]

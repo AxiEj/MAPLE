@@ -58,6 +58,12 @@ from .mace_polar_variational import (
     MACE_POLAR_VARIATIONAL_FIELD_ENERGY_PROVIDER_ID,
     build_mace_polar_variational_field_energy,
 )
+from .mace_polar_separated import (
+    MACE_POLAR_NATIVE_SEMANTICS_CONTRACT,
+    MACE_POLAR_SEPARATED_RESPONSE_PROVIDER_ID,
+    MACEPolarOriginalSourceNativeFieldAdapter,
+    NativeSemanticsCanary,
+)
 
 __all__ = [
     "ElectronicSourceModel",
@@ -72,16 +78,20 @@ __all__ = [
     "ModelProvenance",
     "MACEPolarExactGTOCompatibilityAudit",
     "MACEPolarLocalFieldModelAdapter",
+    "MACEPolarOriginalSourceNativeFieldAdapter",
     "MACEPolarRadialGTOModelAdapter",
     "MACEPolarReleaseContract",
     "MACEPolarDifferentiableFieldGraph",
     "MACEPolarVariationalFieldEnergy",
     "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
+    "MACE_POLAR_NATIVE_SEMANTICS_CONTRACT",
+    "MACE_POLAR_SEPARATED_RESPONSE_PROVIDER_ID",
     "MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_RELEASE_CONTRACT",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
     "MACE_POLAR_FIXED_BOX_RELEASE_CONTRACTS",
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",
     "OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID",
+    "NativeSemanticsCanary",
     "MACE_POLAR_VARIATIONAL_DUALITY_MAP",
     "MACE_POLAR_VARIATIONAL_DUALITY_MAP_ID",
     "MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID",

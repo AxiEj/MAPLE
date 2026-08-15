@@ -20,6 +20,9 @@ from maple.function.read.filereader.mol2_reader import MOL2Reader
 import maple.solvation.continuum.fixed_topology_cpcm
 import maple.solvation.coupling.exact_gto
 import maple.solvation.coupling.gaussian_multipole_derivatives
+import maple.solvation.coupling.separated_operators
+import maple.solvation.coupling.separated_state
+import maple.solvation.release.source_mep
 
 assert "torch" not in optional_corrections.__dict__
 assert "GBSA" not in optional_corrections.__dict__

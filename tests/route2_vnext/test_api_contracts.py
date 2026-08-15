@@ -26,6 +26,8 @@ from maple.solvation.api import (
     OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     ProvenanceBundle,
     ProvenanceRecord,
     Route2Result,
@@ -48,6 +50,8 @@ INITIAL_SCALAR_IDS = {
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
     "route2-operational-macepolar-analytic-gaussian-multipole-"
     "smoothharmonicgalerkin-cpcm-v1",
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     "route2-variational-common-functional-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-"

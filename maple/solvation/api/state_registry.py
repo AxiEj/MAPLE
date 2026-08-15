@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
 
-
 OPERATIONAL_STATE_EQUATION_ID = "route2-constrained-mutual-polarization-root-v1"
+SEPARATED_OPERATIONAL_STATE_EQUATION_ID = (
+    "route2-separated-source-boundary-nativefield-root-v1"
+)
 VARIATIONAL_STATE_EQUATION_ID = "route2-common-functional-stationarity-v1"
 
 
@@ -25,7 +27,9 @@ class StateEquationDefinition:
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string.")
         constraints = tuple(self.constraints)
-        if not constraints or any(not isinstance(item, str) or not item.strip() for item in constraints):
+        if not constraints or any(
+            not isinstance(item, str) or not item.strip() for item in constraints
+        ):
             raise ValueError("constraints must contain non-empty strings.")
         if len(set(constraints)) != len(constraints):
             raise ValueError("state constraints must be unique.")
@@ -42,6 +46,20 @@ _STATE_ENTRIES = (
         ),
         coordinates="dimensionless reduced source coordinates y",
         constraints=("A c = q_tot", "A T = 0", "unique smooth admitted root"),
+    ),
+    StateEquationDefinition(
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        exact_formula=(
+            "c=c_ref+Ty; A_R sigma=B_R c; u=L_R sigma; "
+            "r(R,y)=y-T_plus[Pi_q M_theta(R,u)-c_ref]=0"
+        ),
+        coordinates="dimensionless reduced original-source coordinates y",
+        constraints=(
+            "source C, continuum Sigma, and native field U are distinct spaces",
+            "A c = q_tot and A T = 0",
+            "unique smooth admitted root",
+            "no operational assertion that L_R equals B_R adjoint",
+        ),
     ),
     StateEquationDefinition(
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
@@ -64,11 +82,14 @@ def get_state_equation(state_equation_id: str) -> StateEquationDefinition:
     try:
         return STATE_REGISTRY[state_equation_id]
     except KeyError as exc:
-        raise KeyError(f"Unregistered Route-2 state equation: {state_equation_id!r}.") from exc
+        raise KeyError(
+            f"Unregistered Route-2 state equation: {state_equation_id!r}."
+        ) from exc
 
 
 __all__ = [
     "OPERATIONAL_STATE_EQUATION_ID",
+    "SEPARATED_OPERATIONAL_STATE_EQUATION_ID",
     "STATE_REGISTRY",
     "VARIATIONAL_STATE_EQUATION_ID",
     "StateEquationDefinition",

@@ -26,6 +26,10 @@ from maple.solvation.models import (
     validate_source_evaluation,
     validate_vacuum_evaluation,
 )
+from maple.solvation.models.mace_polar_separated import (
+    MACEPolarOriginalSourceNativeFieldAdapter,
+    NativeSemanticsCanary,
+)
 from maple.solvation.models.mace_polar_variational import (
     MACEPolarDifferentiableFieldGraph,
     MACEPolarVariationalFieldEnergy,
@@ -70,7 +74,25 @@ class _FakeMACEPolarCalculator:
         }
         source_basis = SimpleNamespace(sigmas=(1.5,), max_l=1, normalize="multipoles")
         self.model = SimpleNamespace(
-            coulomb_energy=SimpleNamespace(density_basis=source_basis)
+            coulomb_energy=SimpleNamespace(density_basis=source_basis),
+            field_irreps=SimpleNamespace(dim=8),
+            potential_irreps=SimpleNamespace(dim=16),
+            field_feature_norms=np.asarray([20.0, 20.0] + [0.5] * 6),
+            field_norm_factor=1.0,
+            field_si=False,
+            include_electrostatic_self_interaction=True,
+            add_local_electron_energy=True,
+            num_recursion_steps=2,
+            field_dependent_charges_maps=(object(), object()),
+            interactions=(object(), object()),
+            _fixedpoint_update_config={
+                "type": "AgnosticEmbeddedOneBodyVariableUpdate",
+                "potential_embedding_cls": (
+                    "AgnosticChargeBiasedLinearPotentialEmbedding"
+                ),
+                "nonlinearity_cls": "MLPNonLinearity",
+            },
+            _field_readout_config={"type": "OneBodyMLPFieldReadout"},
         )
         self.jacobian = np.asarray(
             [
@@ -679,3 +701,61 @@ def test_mace_polar_adapter_fails_closed_on_runtime_or_checkpoint_drift(tmp_path
     checkpoint.write_bytes(checkpoint.read_bytes() + b"tampered")
     with pytest.raises(RuntimeError, match="checkpoint file identity changed"):
         adapter.configuration_sha256()
+
+
+def test_native_semantics_canary_reads_checkpoint_spaces_without_paper_defaults(
+    tmp_path,
+):
+    local, _ = _adapter(tmp_path)
+    radial = MACEPolarRadialGTOModelAdapter(local)
+    canary = NativeSemanticsCanary.from_adapter(radial)
+    assert canary.source_sigmas_angstrom == (1.5,)
+    assert canary.receiver_sigmas_angstrom == (1.5, 3.0)
+    assert canary.source_component_count == 4
+    assert canary.receiver_component_count == 8
+    assert canary.spin_channel_count == 2
+    assert canary.recursion_steps == canary.response_update_module_count == 2
+    assert canary.source_receiver_spaces_distinct is True
+    assert canary.separated_operational_contract_complete is True
+    assert canary.applied_field_energy_sign_verified is False
+    assert canary.intrinsic_energy_is_complete_external_enthalpy is False
+    assert len(canary.configuration_sha256()) == 64
+    assert "does not select Phi0 versus Phi1" in canary.as_dict()["claim_boundary"]
+
+
+def test_original_source4_native_field8_adapter_has_rectangular_exact_jvp_vjp(
+    tmp_path,
+):
+    local, _ = _adapter(tmp_path)
+    radial = MACEPolarRadialGTOModelAdapter(local)
+    adapter = MACEPolarOriginalSourceNativeFieldAdapter(radial)
+    atoms = _atoms()
+    field = np.linspace(-0.01, 0.02, len(atoms) * 8).reshape(len(atoms), 8)
+    source = adapter.evaluate_source(atoms, field)
+    assert source.shape == (len(atoms), 4)
+    np.testing.assert_allclose(
+        source,
+        radial.evaluate_source(atoms, field, need_fixed_field_forces=False).source[
+            :, (0, 2, 3, 4)
+        ],
+        rtol=0.0,
+        atol=0.0,
+    )
+    rng = np.random.default_rng(20260815)
+    direction = rng.normal(size=field.shape)
+    cotangent = rng.normal(size=source.shape)
+    jvp = adapter.field_jvp(atoms, field, direction)
+    vjp = adapter.field_vjp(atoms, field, cotangent)
+    assert float(np.vdot(jvp, cotangent)) == pytest.approx(
+        float(np.vdot(direction, vjp)), rel=2.0e-13, abs=2.0e-14
+    )
+    dense = adapter.dense_source_jacobian(atoms, field)
+    np.testing.assert_allclose(
+        (dense @ direction.reshape(-1)).reshape(source.shape),
+        jvp,
+        rtol=0.0,
+        atol=2.0e-14,
+    )
+    assert adapter.coordinate_vjp(atoms, field, cotangent).shape == (len(atoms), 3)
+    assert adapter.variational_functional_admitted is False
+    assert adapter.capabilities == ()

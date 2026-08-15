@@ -1,0 +1,75 @@
+{
+  "artifact_id": "route2-mace-original-source-farfield-four-prereg-v1",
+  "status": "frozen-before-far-field-execution",
+  "claim_boundary": {
+    "can_establish": [
+      "whether the unchanged original four-channel source preserves total charge, molecular dipole, traceless quadrupole, and deterministic far-field MEP shells on the frozen four-case QM panel",
+      "a necessary precondition for one separately named fixed radial-embedding research experiment"
+    ],
+    "cannot_establish": [
+      "that the cavity-near-field defect is radial-only",
+      "that a radial embedding will pass held-out cavity-surface MEP or fixed-source PCM gates",
+      "an operational energy ledger",
+      "a conservative force or public E/F/H/V/M capability",
+      "a strict common variational functional"
+    ]
+  },
+  "parent_bindings": {
+    "frozen_four_case_preregistration_sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+    "near_field_source_gate_run1_sha256": "fb6f5f175348b51b99f55147f5df75782f8b2ccbbb86ba16aaae7c2fdb0f0748",
+    "near_field_source_measurement_sha256": "ff40c7c426cbcb59ab28378f29a1ed5675da98d4063fba20423b0247d997649b",
+    "mace_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "pyscf_python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+  },
+  "panel": {
+    "compound_ids": [
+      "mobley_3034976",
+      "mobley_3053621",
+      "mobley_352111",
+      "mobley_3867265"
+    ],
+    "charge": 0,
+    "spin_multiplicity": 1,
+    "checkpoint_reference": "frozen omegaB97M-V/def2-TZVPD closed-shell gas checkpoints; no new SCF",
+    "source": "official MACE-POLAR-1 M original four-channel zero-native-field source",
+    "source_gaussian_width_angstrom": 1.5
+  },
+  "multipole_convention": {
+    "origin": "nuclear-charge centroid",
+    "quadrupole": "traceless Q_ij = integral rho(r) [3 x_i x_j - |x|^2 delta_ij] dr about the declared origin",
+    "dipole_unit": "e angstrom",
+    "quadrupole_unit": "e angstrom^2"
+  },
+  "far_field_rule": {
+    "polar_order": 8,
+    "azimuthal_count": 17,
+    "points_per_shell": 136,
+    "shell_offsets_beyond_maximum_nuclear_extent_angstrom": [
+      8.0,
+      12.0,
+      16.0
+    ],
+    "integration": "Gauss-Legendre cosine by uniform azimuth; diagnostic reference sampling only"
+  },
+  "thresholds": {
+    "total_charge_absolute_tolerance_e": 1e-08,
+    "dipole_absolute_tolerance_e_angstrom": 0.05,
+    "dipole_relative_tolerance": 0.1,
+    "quadrupole_absolute_tolerance_e_angstrom2": 0.25,
+    "quadrupole_relative_tolerance": 0.2,
+    "far_field_absolute_rms_tolerance_hartree_per_e": 2e-05,
+    "far_field_relative_rms_tolerance": 0.15
+  },
+  "decision_rule": {
+    "panel_pass": "all four cases pass charge, dipole, quadrupole, and every far-field shell",
+    "on_pass": "authorize exactly one separately named fixed radial-embedding research experiment; this remains necessary-only evidence and requires independent held-out cavity-near-field tests",
+    "on_fail": "do not authorize radial embedding; route the production goal to a scalar-first field head or an independent variational polarization model",
+    "capabilities": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "V": false,
+      "M": false
+    }
+  }
+}

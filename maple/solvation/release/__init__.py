@@ -157,6 +157,13 @@ from .harmonic_surface_mep import (
     HarmonicSurfaceMEPProjection,
     HarmonicSurfaceMEPProjector,
 )
+from .farfield_source import (
+    FAR_FIELD_SOURCE_CONTRACT_VERSION,
+    FarFieldShellComparison,
+    FarFieldSourceComparison,
+    FarFieldSourceThresholds,
+    compare_far_field_source_to_reference,
+)
 
 __all__ = [
     "RepositorySnapshot",
@@ -285,4 +292,9 @@ __all__ = [
     "HARMONIC_SURFACE_MEP_PROJECTION_CONTRACT_VERSION",
     "HarmonicSurfaceMEPProjection",
     "HarmonicSurfaceMEPProjector",
+    "FAR_FIELD_SOURCE_CONTRACT_VERSION",
+    "FarFieldShellComparison",
+    "FarFieldSourceComparison",
+    "FarFieldSourceThresholds",
+    "compare_far_field_source_to_reference",
 ]

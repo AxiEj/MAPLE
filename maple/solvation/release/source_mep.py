@@ -19,7 +19,7 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     gaussian_multipole_potential,
 )
 
-SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION = "route2-source-mep-physical-gate-v1"
+SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION = "route2-source-mep-physical-gate-v2"
 CONTINUUM_ACTIVE_SOURCE_CONTRACT_VERSION = (
     "route2-continuum-active-source-a-inverse-gate-v2"
 )
@@ -84,20 +84,51 @@ class SourceElectrostaticObservables:
     molecular_dipole_e_angstrom: tuple[float, float, float]
     traceless_quadrupole_e_angstrom2: tuple[tuple[float, float, float], ...]
     sampled_mep_hartree_per_e: tuple[float, ...]
+    multipole_origin_angstrom: tuple[float, float, float] = (0.0, 0.0, 0.0)
     contract_version: str = SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION
 
     def __post_init__(self) -> None:
-        values = np.asarray(
-            (
-                self.total_charge_e,
-                *self.molecular_dipole_e_angstrom,
-                *np.asarray(self.traceless_quadrupole_e_angstrom2).reshape(-1),
-                *self.sampled_mep_hartree_per_e,
-            ),
-            dtype=float,
-        )
-        if not np.all(np.isfinite(values)):
+        if self.contract_version != SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION:
+            raise ValueError("source electrostatic contract version is unsupported.")
+        charge = float(self.total_charge_e)
+        dipole = np.asarray(self.molecular_dipole_e_angstrom, dtype=float)
+        quadrupole = np.asarray(self.traceless_quadrupole_e_angstrom2, dtype=float)
+        mep = np.asarray(self.sampled_mep_hartree_per_e, dtype=float)
+        origin = np.asarray(self.multipole_origin_angstrom, dtype=float)
+        if (
+            not np.isfinite(charge)
+            or dipole.shape != (3,)
+            or quadrupole.shape != (3, 3)
+            or mep.ndim != 1
+            or mep.size < 1
+            or origin.shape != (3,)
+            or not np.all(np.isfinite(dipole))
+            or not np.all(np.isfinite(quadrupole))
+            or not np.all(np.isfinite(mep))
+            or not np.all(np.isfinite(origin))
+        ):
             raise ValueError("source electrostatic observables must be finite.")
+        object.__setattr__(self, "total_charge_e", charge)
+        object.__setattr__(
+            self,
+            "molecular_dipole_e_angstrom",
+            tuple(float(value) for value in dipole),
+        )
+        object.__setattr__(
+            self,
+            "traceless_quadrupole_e_angstrom2",
+            tuple(tuple(float(value) for value in row) for row in quadrupole),
+        )
+        object.__setattr__(
+            self,
+            "sampled_mep_hartree_per_e",
+            tuple(float(value) for value in mep),
+        )
+        object.__setattr__(
+            self,
+            "multipole_origin_angstrom",
+            tuple(float(value) for value in origin),
+        )
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -108,6 +139,7 @@ class SourceElectrostaticObservables:
                 list(row) for row in self.traceless_quadrupole_e_angstrom2
             ],
             "sampled_mep_hartree_per_e": list(self.sampled_mep_hartree_per_e),
+            "multipole_origin_angstrom": list(self.multipole_origin_angstrom),
         }
 
 
@@ -357,6 +389,7 @@ def source_electrostatic_observables(
     source4: object,
     evaluation_points_bohr: object,
     sigma_angstrom: float = 1.5,
+    multipole_origin_angstrom: object | None = None,
 ) -> SourceElectrostaticObservables:
     """Compute charge, molecular multipoles, and a sampled Gaussian MEP."""
 
@@ -372,12 +405,25 @@ def source_electrostatic_observables(
         raise ValueError("evaluation_points_bohr must be finite with shape (M,3).")
     if not np.isfinite(sigma_angstrom) or sigma_angstrom <= 0.0:
         raise ValueError("sigma_angstrom must be finite and positive.")
+    if multipole_origin_angstrom is None:
+        origin = np.zeros(3, dtype=float)
+    else:
+        origin = np.asarray(multipole_origin_angstrom, dtype=float)
+        if origin.shape != (3,) or not np.all(np.isfinite(origin)):
+            raise ValueError(
+                "multipole_origin_angstrom must be finite with shape (3,)."
+            )
+        origin = np.array(origin, copy=True)
+    relative_positions = positions - origin[None, :]
     charges, atomic_dipoles = cartesian_multipoles(source)
-    molecular_dipole = np.sum(charges[:, None] * positions + atomic_dipoles, axis=0)
+    molecular_dipole = np.sum(
+        charges[:, None] * relative_positions + atomic_dipoles,
+        axis=0,
+    )
     identity = np.eye(3)
     quadrupole = np.zeros((3, 3))
     for position, charge, dipole in zip(
-        positions, charges, atomic_dipoles, strict=True
+        relative_positions, charges, atomic_dipoles, strict=True
     ):
         radius2 = float(np.vdot(position, position))
         quadrupole += charge * (3.0 * np.outer(position, position) - radius2 * identity)
@@ -398,6 +444,7 @@ def source_electrostatic_observables(
             tuple(float(value) for value in row) for row in quadrupole
         ),
         sampled_mep_hartree_per_e=tuple(float(value) for value in mep),
+        multipole_origin_angstrom=tuple(float(value) for value in origin),
     )
 
 

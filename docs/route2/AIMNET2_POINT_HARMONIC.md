@@ -160,6 +160,11 @@ Synthetic tests currently establish:
 - conservative straight-trial-segment certificates based on pair-relative
   displacement rather than endpoint hashes alone.
 
+The release audit does not trust the runtime's reciprocity boolean. It
+recomputes bilinear symmetry, apply/adjoint equality, charge-direction finite
+differences, maxima, thresholds, the source-gradient half-coupling error, and
+the charge-gauge VJP gate from the recorded raw operands.
+
 The opt-in SHA256-bound real AIMNet2 water canary now has two explicit
 precision arms:
 

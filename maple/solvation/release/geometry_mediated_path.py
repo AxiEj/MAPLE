@@ -28,6 +28,7 @@ from .geometry_mediated import (
     GEOMETRY_MEDIATED_REPLAY_GRADIENT_TOLERANCE_EV_PER_A,
     GEOMETRY_MEDIATED_REPLAY_SOURCE_TOLERANCE,
     geometry_mediated_trial_step_guard,
+    summarize_geometry_mediated_reciprocity_audit,
 )
 from .geometry_mediated_panel import (
     aimnet2_geometry_mediated_pes_molecule,
@@ -226,6 +227,10 @@ def _point_summary(
     if continuum_topology.get("coefficient_count") != stationarity["state_dimension"]:
         raise ValueError("water-loop topology and stationarity dimensions disagree.")
     reciprocity = _mapping(raw.get("reciprocity"), name="reciprocity audit")
+    reciprocity_summary = summarize_geometry_mediated_reciprocity_audit(
+        reciprocity,
+        reaction_field=reaction,
+    )
 
     return {
         "coefficient": list(coefficient),
@@ -239,7 +244,7 @@ def _point_summary(
         "model_topology": model_topology,
         "continuum_topology": continuum_topology,
         "stationarity": stationarity,
-        "reciprocity_gate_passed": reciprocity.get("gate_passed") is True,
+        "reciprocity": reciprocity_summary,
     }
 
 
@@ -386,7 +391,7 @@ def summarize_aimnet2_geometry_mediated_water_loop(
             point["stationarity"]["gate_passed"] is True for point in all_points
         ),
         "all_reciprocity_metric_charge_gauge_audits": all(
-            point["reciprocity_gate_passed"] is True for point in all_points
+            point["reciprocity"]["gate_passed"] is True for point in all_points
         ),
         "fixed_model_topology": len(model_hashes) == 1,
         "fixed_continuum_topology": len(continuum_hashes) == 1,
@@ -404,6 +409,7 @@ def summarize_aimnet2_geometry_mediated_water_loop(
         ),
     }
     stationarity_records = [point["stationarity"] for point in all_points]
+    reciprocity_records = [point["reciprocity"] for point in all_points]
     return {
         "schema_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION,
         "contract_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
@@ -443,6 +449,38 @@ def summarize_aimnet2_geometry_mediated_water_loop(
         ),
         "maximum_surface_condition_number": max(
             float(record["surface_condition_number"]) for record in stationarity_records
+        ),
+        "maximum_reciprocity_absolute_error_eV": max(
+            float(record["maximum_reciprocity_absolute_error_eV"])
+            for record in reciprocity_records
+        ),
+        "maximum_reciprocity_relative_error": max(
+            float(record["maximum_reciprocity_relative_error"])
+            for record in reciprocity_records
+        ),
+        "maximum_apply_adjoint_absolute_error_eV": max(
+            float(record["maximum_apply_adjoint_absolute_error_eV"])
+            for record in reciprocity_records
+        ),
+        "maximum_apply_adjoint_relative_error": max(
+            float(record["maximum_apply_adjoint_relative_error"])
+            for record in reciprocity_records
+        ),
+        "maximum_charge_fd_absolute_error_eV_per_e": max(
+            float(record["maximum_charge_fd_absolute_error_eV_per_e"])
+            for record in reciprocity_records
+        ),
+        "maximum_charge_fd_relative_error": max(
+            float(record["maximum_charge_fd_relative_error"])
+            for record in reciprocity_records
+        ),
+        "maximum_source_gradient_half_error_eV_per_source_unit": max(
+            float(record["source_gradient_half_error_eV_per_source_unit"])
+            for record in reciprocity_records
+        ),
+        "maximum_charge_gauge_vjp_norm_eV_per_A": max(
+            float(record["charge_gauge_vjp_norm_eV_per_A"])
+            for record in reciprocity_records
         ),
         "minimum_neighbor_cutoff_margin_A": (
             min(float(value) for value in neighbor_margins if value is not None)

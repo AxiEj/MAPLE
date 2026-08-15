@@ -27,6 +27,7 @@ from .geometry_mediated import (
     GEOMETRY_MEDIATED_REPLAY_GRADIENT_TOLERANCE_EV_PER_A,
     GEOMETRY_MEDIATED_REPLAY_SOURCE_TOLERANCE,
     summarize_geometry_mediated_directional_audit,
+    summarize_geometry_mediated_reciprocity_audit,
 )
 from .pes_panel import (
     PES_PANEL_DIRECTION_NAMES,
@@ -303,10 +304,11 @@ def _geometry_record(
     reciprocity = _mapping(
         raw.get("reciprocity_metric_charge_gauge"), name="reciprocity audit"
     )
-    if reciprocity.get("gate_passed") is not True:
-        reciprocity_gate = False
-    else:
-        reciprocity_gate = True
+    reciprocity_summary = summarize_geometry_mediated_reciprocity_audit(
+        reciprocity,
+        reaction_field=reaction_field,
+    )
+    reciprocity_gate = reciprocity_summary["gate_passed"] is True
     replay = _replay_summary(
         _mapping(raw.get("deterministic_replay"), name="deterministic replay")
     )
@@ -425,6 +427,7 @@ def _geometry_record(
         "total_energy_eV": energy,
         "deterministic_replay": replay,
         "stationarity": stationarity,
+        "reciprocity_metric_charge_gauge": reciprocity_summary,
         "reciprocity_metric_charge_gauge_gate_passed": reciprocity_gate,
         "directional_force_fd": audits,
         "minimum_neighbor_cutoff_margin_A": min(neighbor_margins),
@@ -471,6 +474,13 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
         )
         for summary in summaries
     )
+    reciprocity_summaries = [
+        _mapping(
+            summary["reciprocity_metric_charge_gauge"],
+            name="reciprocity summary",
+        )
+        for summary in summaries
+    ]
     maximum_directional_error = max(
         float(record["absolute_error_eV_per_A"])
         for audit in directional
@@ -540,6 +550,34 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
         "directional_sample_count": len(directional)
         * len(PES_PANEL_DIRECTIONAL_STEPS_A),
         "maximum_surface_condition_number": maximum_condition,
+        "maximum_reciprocity_absolute_error_eV": max(
+            float(summary["maximum_reciprocity_absolute_error_eV"])
+            for summary in reciprocity_summaries
+        ),
+        "maximum_reciprocity_relative_error": max(
+            float(summary["maximum_reciprocity_relative_error"])
+            for summary in reciprocity_summaries
+        ),
+        "maximum_apply_adjoint_absolute_error_eV": max(
+            float(summary["maximum_apply_adjoint_absolute_error_eV"])
+            for summary in reciprocity_summaries
+        ),
+        "maximum_apply_adjoint_relative_error": max(
+            float(summary["maximum_apply_adjoint_relative_error"])
+            for summary in reciprocity_summaries
+        ),
+        "maximum_charge_fd_absolute_error_eV_per_e": max(
+            float(summary["maximum_charge_fd_absolute_error_eV_per_e"])
+            for summary in reciprocity_summaries
+        ),
+        "maximum_charge_fd_relative_error": max(
+            float(summary["maximum_charge_fd_relative_error"])
+            for summary in reciprocity_summaries
+        ),
+        "maximum_charge_gauge_vjp_norm_eV_per_A": max(
+            float(summary["charge_gauge_vjp_norm_eV_per_A"])
+            for summary in reciprocity_summaries
+        ),
         "maximum_directional_absolute_error_eV_per_A": maximum_directional_error,
         "minimum_neighbor_cutoff_margin_A": minimum_neighbor_margin,
         "minimum_continuum_event_margin_A": minimum_continuum_margin,
@@ -620,6 +658,33 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
         ),
         "maximum_surface_condition_number": max(
             float(summary["maximum_surface_condition_number"]) for summary in summaries
+        ),
+        "maximum_reciprocity_absolute_error_eV": max(
+            float(summary["maximum_reciprocity_absolute_error_eV"])
+            for summary in summaries
+        ),
+        "maximum_reciprocity_relative_error": max(
+            float(summary["maximum_reciprocity_relative_error"])
+            for summary in summaries
+        ),
+        "maximum_apply_adjoint_absolute_error_eV": max(
+            float(summary["maximum_apply_adjoint_absolute_error_eV"])
+            for summary in summaries
+        ),
+        "maximum_apply_adjoint_relative_error": max(
+            float(summary["maximum_apply_adjoint_relative_error"])
+            for summary in summaries
+        ),
+        "maximum_charge_fd_absolute_error_eV_per_e": max(
+            float(summary["maximum_charge_fd_absolute_error_eV_per_e"])
+            for summary in summaries
+        ),
+        "maximum_charge_fd_relative_error": max(
+            float(summary["maximum_charge_fd_relative_error"]) for summary in summaries
+        ),
+        "maximum_charge_gauge_vjp_norm_eV_per_A": max(
+            float(summary["maximum_charge_gauge_vjp_norm_eV_per_A"])
+            for summary in summaries
         ),
         "maximum_directional_absolute_error_eV_per_A": max(
             float(summary["maximum_directional_absolute_error_eV_per_A"])

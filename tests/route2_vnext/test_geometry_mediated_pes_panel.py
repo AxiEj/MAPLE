@@ -7,6 +7,8 @@ import json
 import numpy as np
 import pytest
 
+from _geometry_mediated_records import synthetic_reciprocity_record
+
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.geometry_mediated_panel import (
     AIMNET2_GEOMETRY_MEDIATED_PES_EXCLUDED_MOLECULES,
@@ -134,7 +136,7 @@ def _records(molecule_index: int = 0):
                     "gradient_difference_norm_eV_per_A": 0.0,
                     "gate_passed": True,
                 },
-                "reciprocity_metric_charge_gauge": {"gate_passed": True},
+                "reciprocity_metric_charge_gauge": synthetic_reciprocity_record(),
                 "stationarity": _stationarity(len(atoms)),
                 "directions": directions,
             }
@@ -215,6 +217,15 @@ def test_aimnet2_pes_shard_fails_closed_on_coverage_geometry_and_dishonest_gate(
     with pytest.raises(ValueError, match="disagrees"):
         summarize_aimnet2_geometry_mediated_pes_shard(
             molecule_index=0, records=dishonest_stationarity
+        )
+
+    dishonest_reciprocity = deepcopy(records)
+    dishonest_reciprocity[0]["reciprocity_metric_charge_gauge"]["bilinear_records"][0][
+        "left_P_right_eV"
+    ] += 1.0e-3
+    with pytest.raises(ValueError, match="disagrees"):
+        summarize_aimnet2_geometry_mediated_pes_shard(
+            molecule_index=0, records=dishonest_reciprocity
         )
 
 

@@ -7,6 +7,8 @@ import json
 import numpy as np
 import pytest
 
+from _geometry_mediated_records import synthetic_reciprocity_record
+
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.geometry_mediated_path import (
     AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_AMPLITUDES_A,
@@ -81,7 +83,7 @@ def _point(coefficient, *, margin: float = 1.0):
         "model_topology": _model_topology(margin=margin),
         "continuum_topology": _continuum_topology(margin=margin),
         "stationarity": _stationarity(),
-        "reciprocity": {"gate_passed": True},
+        "reciprocity": synthetic_reciprocity_record(),
     }
 
 
@@ -213,6 +215,19 @@ def test_water_loop_rejects_dishonest_stationarity_gate():
     forward = _records()
     reverse = _records(reverse=True)
     forward[0]["stationarity"]["absolute_residual_eV_per_e"] = 1.0
+    with pytest.raises(ValueError, match="disagrees"):
+        summarize_aimnet2_geometry_mediated_water_loop(
+            forward_records=forward,
+            reverse_records=reverse,
+        )
+
+
+def test_water_loop_recomputes_reciprocity_instead_of_trusting_boolean_gate():
+    forward = _records()
+    reverse = _records(reverse=True)
+    forward[0]["reciprocity"]["charge_directional_fd_records"][0][
+        "finite_difference_eV_per_e"
+    ] += 1.0e-3
     with pytest.raises(ValueError, match="disagrees"):
         summarize_aimnet2_geometry_mediated_water_loop(
             forward_records=forward,

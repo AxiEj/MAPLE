@@ -14,6 +14,18 @@ import math
 
 import numpy as np
 
+from maple.solvation.coupling.geometry_mediated import (
+    GEOMETRY_MEDIATED_CHARGE_FD_ABSOLUTE_TOLERANCE_EV_PER_E,
+    GEOMETRY_MEDIATED_CHARGE_FD_RELATIVE_TOLERANCE,
+    GEOMETRY_MEDIATED_CHARGE_FD_STEPS_E,
+    GEOMETRY_MEDIATED_GAUGE_VJP_TOLERANCE_EV_PER_A,
+    GEOMETRY_MEDIATED_RECIPROCITY_ABSOLUTE_TOLERANCE_EV,
+    GEOMETRY_MEDIATED_RECIPROCITY_PROBES,
+    GEOMETRY_MEDIATED_RECIPROCITY_RELATIVE_TOLERANCE,
+    GEOMETRY_MEDIATED_RECIPROCITY_SEED,
+    GEOMETRY_MEDIATED_SOURCE_GRADIENT_RECIPROCITY_RELATIVE_TOLERANCE,
+)
+
 from .pes_validation import summarize_cartesian_force_differences
 
 GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION = (
@@ -134,6 +146,214 @@ def _continuum_margin_status(
         )
     )
     return applicable, available, passed
+
+
+def _finite_scalar(value: object, *, name: str, nonnegative: bool = False) -> float:
+    if isinstance(value, bool):
+        raise TypeError(f"{name} must be numeric.")
+    result = float(value)
+    if not math.isfinite(result) or (nonnegative and result < 0.0):
+        qualifier = "finite and non-negative" if nonnegative else "finite"
+        raise ValueError(f"{name} must be {qualifier}.")
+    return result
+
+
+def _relative_pair(first: float, second: float, *, floor: float = 1.0e-15) -> float:
+    return abs(first - second) / max(abs(first), abs(second), floor)
+
+
+def _assert_recomputed_float(
+    raw: object,
+    expected: float,
+    *,
+    name: str,
+) -> None:
+    value = _finite_scalar(raw, name=name, nonnegative=True)
+    if not math.isclose(value, expected, rel_tol=1.0e-13, abs_tol=1.0e-15):
+        raise ValueError(f"{name} disagrees with raw reciprocity measurements.")
+
+
+def summarize_geometry_mediated_reciprocity_audit(
+    record: Mapping[str, object],
+    *,
+    reaction_field: object,
+) -> dict[str, object]:
+    """Recompute the metric, adjoint, charge-FD, and gauge audit gate."""
+
+    seed = record.get("seed")
+    requested = record.get("requested_probe_count")
+    effective = record.get("effective_probe_count")
+    if seed != GEOMETRY_MEDIATED_RECIPROCITY_SEED:
+        raise ValueError("reciprocity seed changed from the scalar contract.")
+    if requested != GEOMETRY_MEDIATED_RECIPROCITY_PROBES or effective != requested:
+        raise ValueError("reciprocity probe coverage changed from the scalar contract.")
+    bilinear = record.get("bilinear_records")
+    charge_fd = record.get("charge_directional_fd_records")
+    if (
+        not isinstance(bilinear, Sequence)
+        or isinstance(bilinear, (str, bytes))
+        or len(bilinear) != GEOMETRY_MEDIATED_RECIPROCITY_PROBES
+        or not isinstance(charge_fd, Sequence)
+        or isinstance(charge_fd, (str, bytes))
+        or len(charge_fd)
+        != GEOMETRY_MEDIATED_RECIPROCITY_PROBES
+        * len(GEOMETRY_MEDIATED_CHARGE_FD_STEPS_E)
+    ):
+        raise ValueError("reciprocity raw-record coverage is incomplete.")
+
+    reciprocity_absolute: list[float] = []
+    reciprocity_relative: list[float] = []
+    adjoint_absolute: list[float] = []
+    adjoint_relative: list[float] = []
+    for expected_probe, raw in enumerate(bilinear):
+        if not isinstance(raw, Mapping) or raw.get("probe_index") != expected_probe:
+            raise ValueError("bilinear reciprocity probe ordering is invalid.")
+        left = _finite_scalar(raw.get("left_P_right_eV"), name="left P right")
+        right = _finite_scalar(raw.get("right_P_left_eV"), name="right P left")
+        adjoint = _finite_scalar(raw.get("apply_adjoint_eV"), name="apply adjoint")
+        rec_abs = abs(left - right)
+        rec_rel = _relative_pair(left, right)
+        adj_abs = abs(left - adjoint)
+        adj_rel = _relative_pair(left, adjoint)
+        _assert_recomputed_float(
+            raw.get("reciprocity_absolute_error_eV"),
+            rec_abs,
+            name="reciprocity absolute error",
+        )
+        _assert_recomputed_float(
+            raw.get("reciprocity_relative_error"),
+            rec_rel,
+            name="reciprocity relative error",
+        )
+        _assert_recomputed_float(
+            raw.get("apply_adjoint_absolute_error_eV"),
+            adj_abs,
+            name="apply-adjoint absolute error",
+        )
+        _assert_recomputed_float(
+            raw.get("apply_adjoint_relative_error"),
+            adj_rel,
+            name="apply-adjoint relative error",
+        )
+        reciprocity_absolute.append(rec_abs)
+        reciprocity_relative.append(rec_rel)
+        adjoint_absolute.append(adj_abs)
+        adjoint_relative.append(adj_rel)
+
+    charge_absolute: list[float] = []
+    charge_relative: list[float] = []
+    expected_charge_records = tuple(
+        (probe, step)
+        for probe in range(GEOMETRY_MEDIATED_RECIPROCITY_PROBES)
+        for step in GEOMETRY_MEDIATED_CHARGE_FD_STEPS_E
+    )
+    for raw, (expected_probe, expected_step) in zip(
+        charge_fd, expected_charge_records, strict=True
+    ):
+        if (
+            not isinstance(raw, Mapping)
+            or raw.get("probe_index") != expected_probe
+            or _finite_scalar(raw.get("step_e"), name="charge FD step") != expected_step
+        ):
+            raise ValueError("charge-direction FD probe/step ordering is invalid.")
+        analytic = _finite_scalar(raw.get("analytic_eV_per_e"), name="charge analytic")
+        finite_difference = _finite_scalar(
+            raw.get("finite_difference_eV_per_e"), name="charge finite difference"
+        )
+        absolute = abs(analytic - finite_difference)
+        relative = _relative_pair(analytic, finite_difference, floor=1.0e-12)
+        _assert_recomputed_float(
+            raw.get("absolute_error_eV_per_e"),
+            absolute,
+            name="charge FD absolute error",
+        )
+        _assert_recomputed_float(
+            raw.get("relative_error"),
+            relative,
+            name="charge FD relative error",
+        )
+        charge_absolute.append(absolute)
+        charge_relative.append(relative)
+
+    maxima = {
+        "maximum_reciprocity_absolute_error_eV": max(reciprocity_absolute),
+        "maximum_reciprocity_relative_error": max(reciprocity_relative),
+        "maximum_apply_adjoint_absolute_error_eV": max(adjoint_absolute),
+        "maximum_apply_adjoint_relative_error": max(adjoint_relative),
+        "maximum_charge_fd_absolute_error_eV_per_e": max(charge_absolute),
+        "maximum_charge_fd_relative_error": max(charge_relative),
+    }
+    for name, expected in maxima.items():
+        _assert_recomputed_float(record.get(name), expected, name=name)
+
+    source_gradient_error = _finite_scalar(
+        record.get("source_gradient_half_error_eV_per_source_unit"),
+        name="source-gradient reciprocity error",
+        nonnegative=True,
+    )
+    gauge_norm = _finite_scalar(
+        record.get("charge_gauge_vjp_norm_eV_per_A"),
+        name="charge-gauge VJP norm",
+        nonnegative=True,
+    )
+    field = np.asarray(reaction_field, dtype=float)
+    if field.ndim != 2 or field.shape[0] < 2 or not np.all(np.isfinite(field)):
+        raise ValueError("reaction_field must be a finite two-dimensional array.")
+    thresholds = record.get("thresholds")
+    expected_thresholds = {
+        "reciprocity_absolute_eV": (
+            GEOMETRY_MEDIATED_RECIPROCITY_ABSOLUTE_TOLERANCE_EV
+        ),
+        "reciprocity_relative": GEOMETRY_MEDIATED_RECIPROCITY_RELATIVE_TOLERANCE,
+        "charge_fd_absolute_eV_per_e": (
+            GEOMETRY_MEDIATED_CHARGE_FD_ABSOLUTE_TOLERANCE_EV_PER_E
+        ),
+        "charge_fd_relative": GEOMETRY_MEDIATED_CHARGE_FD_RELATIVE_TOLERANCE,
+        "charge_gauge_vjp_norm_eV_per_A": (
+            GEOMETRY_MEDIATED_GAUGE_VJP_TOLERANCE_EV_PER_A
+        ),
+    }
+    if not isinstance(thresholds, Mapping) or set(thresholds) != set(
+        expected_thresholds
+    ):
+        raise ValueError("reciprocity threshold schema changed from the contract.")
+    if any(
+        _finite_scalar(thresholds[name], name=f"reciprocity threshold {name}")
+        != expected
+        for name, expected in expected_thresholds.items()
+    ):
+        raise ValueError("reciprocity thresholds changed from the scalar contract.")
+    source_gradient_threshold = (
+        GEOMETRY_MEDIATED_SOURCE_GRADIENT_RECIPROCITY_RELATIVE_TOLERANCE
+        * max(1.0, float(np.linalg.norm(field)))
+    )
+    gate = (
+        source_gradient_error <= source_gradient_threshold
+        and maxima["maximum_reciprocity_absolute_error_eV"]
+        <= GEOMETRY_MEDIATED_RECIPROCITY_ABSOLUTE_TOLERANCE_EV
+        and maxima["maximum_reciprocity_relative_error"]
+        <= GEOMETRY_MEDIATED_RECIPROCITY_RELATIVE_TOLERANCE
+        and maxima["maximum_apply_adjoint_absolute_error_eV"]
+        <= GEOMETRY_MEDIATED_RECIPROCITY_ABSOLUTE_TOLERANCE_EV
+        and maxima["maximum_apply_adjoint_relative_error"]
+        <= GEOMETRY_MEDIATED_RECIPROCITY_RELATIVE_TOLERANCE
+        and maxima["maximum_charge_fd_absolute_error_eV_per_e"]
+        <= GEOMETRY_MEDIATED_CHARGE_FD_ABSOLUTE_TOLERANCE_EV_PER_E
+        and maxima["maximum_charge_fd_relative_error"]
+        <= GEOMETRY_MEDIATED_CHARGE_FD_RELATIVE_TOLERANCE
+        and gauge_norm <= GEOMETRY_MEDIATED_GAUGE_VJP_TOLERANCE_EV_PER_A
+    )
+    if record.get("gate_passed") is not gate:
+        raise ValueError("reciprocity gate disagrees with raw measurements.")
+    return {
+        "seed": seed,
+        "probe_count": requested,
+        **maxima,
+        "source_gradient_half_error_eV_per_source_unit": source_gradient_error,
+        "source_gradient_threshold_eV_per_source_unit": source_gradient_threshold,
+        "charge_gauge_vjp_norm_eV_per_A": gauge_norm,
+        "gate_passed": gate,
+    }
 
 
 def geometry_mediated_coordinate_direction(atom_count: int) -> np.ndarray:
@@ -973,6 +1193,7 @@ __all__ = [
     "geometry_mediated_coordinate_direction",
     "geometry_mediated_rotations",
     "geometry_mediated_trial_step_guard",
+    "summarize_geometry_mediated_reciprocity_audit",
     "summarize_geometry_mediated_cartesian_audit",
     "summarize_geometry_mediated_directional_audit",
     "summarize_geometry_mediated_rotation_audit",

@@ -234,6 +234,12 @@ def main() -> None:
                 "minimum_sphere_tangency_margin_A": summary[
                     "minimum_sphere_tangency_margin_A"
                 ],
+                "maximum_reciprocity_absolute_error_eV": summary[
+                    "maximum_reciprocity_absolute_error_eV"
+                ],
+                "maximum_charge_fd_absolute_error_eV_per_e": summary[
+                    "maximum_charge_fd_absolute_error_eV_per_e"
+                ],
                 "capabilities": NO_CAPABILITIES,
                 "runtime_seconds": payload["runtime_seconds"],
             },

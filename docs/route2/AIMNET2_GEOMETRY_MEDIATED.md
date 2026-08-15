@@ -261,6 +261,9 @@ python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
 ```
 
 This is a water-only local diagnostic and cannot by itself open OPT or MD.
+The release reducer recomputes every bilinear reciprocity, apply/adjoint, and
+charge-direction finite-difference error from the raw operands; it rejects a
+boolean gate that disagrees with those measurements.
 
 ## Fixed-geometry response no-go
 

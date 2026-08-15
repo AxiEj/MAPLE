@@ -121,8 +121,10 @@ from .geometry_mediated import (
     geometry_mediated_admission_decision,
     geometry_mediated_coordinate_direction,
     geometry_mediated_rotations,
+    geometry_mediated_trial_step_guard,
     summarize_geometry_mediated_cartesian_audit,
     summarize_geometry_mediated_directional_audit,
+    summarize_geometry_mediated_reciprocity_audit,
     summarize_geometry_mediated_rotation_audit,
 )
 from .geometry_mediated_panel import (
@@ -254,8 +256,10 @@ __all__ = [
     "geometry_mediated_admission_decision",
     "geometry_mediated_coordinate_direction",
     "geometry_mediated_rotations",
+    "geometry_mediated_trial_step_guard",
     "summarize_geometry_mediated_cartesian_audit",
     "summarize_geometry_mediated_directional_audit",
+    "summarize_geometry_mediated_reciprocity_audit",
     "summarize_geometry_mediated_rotation_audit",
     "AIMNET2_GEOMETRY_MEDIATED_PES_EXCLUDED_MOLECULES",
     "AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS",

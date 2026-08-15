@@ -18,6 +18,7 @@ from maple.function.dispatcher.irc.preflight import (
     IRCPreflightParams,
     validate_irc_transition_state,
 )
+from maple.function.dispatcher.irc.path import finalize_irc_branch
 from maple.function.read.command_control import CommandControl
 
 WATER_MASSES_AMU = np.array([15.999, 1.008, 1.008])
@@ -86,6 +87,8 @@ def test_irc_preflight_selects_the_projected_first_order_saddle_mode():
         np.zeros(rigid.rigid_rank),
         abs=2.0e-14,
     )
+    sign_pivot = int(np.argmax(np.abs(result.negative_mode_mass_weighted)))
+    assert result.negative_mode_mass_weighted[sign_pivot] > 0.0
 
 
 @pytest.mark.parametrize(
@@ -209,6 +212,12 @@ def test_command_control_exposes_the_shared_irc_preflight_defaults():
     assert command.params["transition_state_imaginary_threshold_cm1"] == (
         pytest.approx(50.0)
     )
+    assert command.params["step_length_bohr"] == pytest.approx(0.10)
+    assert command.params["max_steps"] == 50
+    assert command.params["f_max_th"] == pytest.approx(2.0e-3)
+    assert command.params["f_rms_th"] == pytest.approx(5.0e-4)
+    assert command.params["path_energy_tolerance_hartree"] == pytest.approx(1.0e-7)
+    assert command.params["require_converged_endpoints"] is True
 
 
 @pytest.mark.parametrize(
@@ -222,6 +231,17 @@ def test_command_control_exposes_the_shared_irc_preflight_defaults():
         (
             "#irc(method=gs,transition_state_imaginary_threshold_cm1=0)",
             "finite positive",
+        ),
+        ("#irc(method=gs,max_steps=0)", "max_steps"),
+        ("#irc(method=gs,step_length_bohr=0)", "step_length_bohr"),
+        ("#irc(method=gs,f_max_th=0)", "f_max_th"),
+        (
+            "#irc(method=gs,path_energy_tolerance_hartree=0)",
+            "path_energy_tolerance_hartree",
+        ),
+        (
+            "#irc(method=gs,require_converged_endpoints=1)",
+            "require_converged_endpoints",
         ),
     ],
 )
@@ -298,19 +318,95 @@ def test_every_irc_integrator_uses_the_shared_projected_preflight_mode(
 
     def _fake_one_side(**kwargs):
         observed_modes.append(np.array(kwargs["v_neg_mw"], copy=True))
-        return {"side": kwargs["forward"]}
+        direction = "forward" if kwargs["forward"] else "backward"
+        displaced = atoms.get_positions().copy()
+        displaced[0, 0] = 0.1 if kwargs["forward"] else -0.1
+        return finalize_irc_branch(
+            title=f"{direction.upper()} IRC",
+            direction=direction,
+            records=[
+                {
+                    "E": -0.1,
+                    "maxG": 0.0,
+                    "rmsG": 0.0,
+                    "x": displaced,
+                }
+            ],
+            transition_state_energy_hartree=kwargs["E_ts"],
+            termination_reason="force_converged",
+            iterations_attempted=0,
+            maximum_force_threshold_hartree_per_A=integrator.p.f_max_th,
+            rms_force_threshold_hartree_per_A=integrator.p.f_rms_th,
+        )
 
     monkeypatch.setattr(integrator, "_one_side", _fake_one_side)
-    monkeypatch.setattr(
-        integrator,
-        "_merge_and_mark_ts",
-        lambda forward, backward: {"forward": forward, "backward": backward},
-    )
 
     result = integrator.run()
 
     assert len(observed_modes) == 2
     assert observed_modes[0] == pytest.approx(expected_mode)
     assert observed_modes[1] == pytest.approx(expected_mode)
-    assert result["summary"]["forward"]["side"] is True
-    assert result["summary"]["backward"]["side"] is False
+    assert result["summary"]["converged"] is True
+    assert result["summary"]["ts_index"] == 2
+    assert result["summary"]["records"][1]["point_kind"] == "transition_state"
+    assert result["summary"]["records"][1]["x"] == pytest.approx(atoms.get_positions())
+
+
+@pytest.mark.parametrize(
+    ("module_name", "class_name", "params_name"),
+    [
+        ("gs", "GS", "GSParams"),
+        ("lqa", "LQA", "LQAParams"),
+        ("hpc", "HPC", "HPCParams"),
+        ("eulerpc", "EulerPC", "EulerPCParams"),
+    ],
+)
+def test_every_irc_integrator_accepts_a_converged_initial_displacement(
+    tmp_path,
+    monkeypatch,
+    module_name,
+    class_name,
+    params_name,
+):
+    module = importlib.import_module(
+        f"maple.function.dispatcher.irc.algorithm.{module_name}"
+    )
+    integrator_class = getattr(module, class_name)
+    params_class = getattr(module, params_name)
+    atoms = Atoms("H2", positions=[[-0.4, 0.0, 0.0], [0.4, 0.0, 0.0]])
+    atoms.calc = _ZeroLegacyCalculator()
+    integrator = integrator_class(
+        atoms,
+        output=str(tmp_path / f"{module_name}.out"),
+        params=params_class(write_traj=False, print_each=False),
+    )
+    integrator._D = np.ones(6)
+    integrator._step_len_mw = 0.1
+    if hasattr(integrator, "_step_len_umw"):
+        integrator._step_len_umw = 0.1
+
+    def _zero_energy_forces(q_mw):
+        atoms.set_positions(np.asarray(q_mw).reshape(-1, 3))
+        return -0.1, np.zeros(6)
+
+    monkeypatch.setattr(integrator, "_energy_forces_from_mw", _zero_energy_forces)
+    monkeypatch.setattr(integrator, "_get_hessian_cart", lambda: np.eye(6))
+    monkeypatch.setattr(
+        integrator,
+        "_micro_step",
+        lambda: pytest.fail("macro propagation must not run after initial convergence"),
+    )
+
+    branch = integrator._one_side(
+        forward=True,
+        sign=1.0,
+        q_ts_cart=atoms.get_positions().reshape(-1).copy(),
+        v_neg_mw=np.array([1.0, 0.0, 0.0, -1.0, 0.0, 0.0]),
+        E_ts=0.0,
+    )
+
+    assert branch["status"]["converged"] is True
+    assert branch["status"]["termination_reason"] == "force_converged"
+    assert branch["status"]["iterations_attempted"] == 0
+    assert branch["status"]["accepted_macro_steps"] == 0
+    assert len(branch["records"]) == 1

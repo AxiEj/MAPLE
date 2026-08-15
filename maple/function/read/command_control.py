@@ -37,14 +37,8 @@ class CommandControl:
         "sp": {},
         "opt": {},
         "ts": {},
-        "irc": {
-            "method": "gs",
-            "target_mode": 1,
-            "stationarity_tolerance_ev_per_a": 1.0e-3,
-            "hessian_symmetry_relative_tolerance": 1.0e-6,
-            "rigid_mode_tolerance_cm1": 5.0,
-            "transition_state_imaginary_threshold_cm1": 50.0,
-        },
+        # Method-specific IRC defaults are owned by irc.parameters dataclasses.
+        "irc": {"method": "gs"},
         "scan": {},
         "freq": {
             "method": "mw",
@@ -103,6 +97,7 @@ class CommandControl:
         "md": {"nve", "nvt", "npt"},
     }
     GLOBAL_PARAMS = {
+        "model",
         "model_options",
         "device",
         "gpuid",
@@ -204,7 +199,7 @@ class CommandControl:
         ),
     }
 
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "md"}
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "irc", "md"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
@@ -225,6 +220,7 @@ class CommandControl:
         params: Dict[str, Any] = {}
         task: Optional[str] = None
         seen_keys = set()
+        irc_inline_keys: List[str] = []
         log_lines = ["Parsing # commands...\n"]
 
         for raw in settings_lines:
@@ -249,12 +245,35 @@ class CommandControl:
                     raise ValueError(f"Multiple tasks defined: '{task}' and '{key}'.")
 
                 task = key
-                params.update(cls.DEFAULTS.get(key, {}))
+                if task == "irc":
+                    for default_key, default_value in cls.DEFAULTS["irc"].items():
+                        params.setdefault(default_key, default_value)
+                else:
+                    params.update(cls.DEFAULTS.get(key, {}))
                 log_lines.append(f"Task set to '{task}'\n")
 
                 inline_md_keys = set()
                 if paren_val:
-                    cls._parse_nested(params, paren_val)
+                    inline_params: Dict[str, Any] = {}
+                    cls._parse_nested(
+                        inline_params,
+                        paren_val,
+                        reject_duplicates=(task == "irc"),
+                    )
+                    if task == "irc":
+                        from ..dispatcher.irc.parameters import (
+                            normalize_irc_parameter_mapping,
+                        )
+
+                        try:
+                            inline_params = normalize_irc_parameter_mapping(
+                                inline_params
+                            )
+                        except ValueError as exc:
+                            cls._log_error(output_path, str(exc))
+                            raise
+                        irc_inline_keys.extend(inline_params)
+                    params.update(inline_params)
                     if task == "md":
                         inline_md_keys = {
                             kv.split("=", 1)[0].strip().lower()
@@ -306,6 +325,14 @@ class CommandControl:
             params.update(cls.DEFAULTS.get("sp", {}))
             log_lines.append("No task specified. Defaulting to 'sp'.\n")
 
+        if task == "irc":
+            cls._canonicalize_irc_explicit_params(
+                params,
+                inline_keys=irc_inline_keys,
+                flat_keys=seen_keys,
+                output_path=output_path,
+            )
+
         cls._normalize_params(params)
         cls._normalize_method_flags(params, task, output_path)
         cls._validate(params, task, output_path)
@@ -318,14 +345,62 @@ class CommandControl:
         return key.strip().replace("\ufeff", "").lower()
 
     @staticmethod
-    def _parse_nested(target: Dict[str, Any], inner: str) -> None:
+    def _parse_nested(
+        target: Dict[str, Any],
+        inner: str,
+        *,
+        reject_duplicates: bool = False,
+    ) -> None:
         for kv in inner.split(","):
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(v.strip())
+                key = CommandControl._normalize_key(k)
+                value = CommandControl._auto_cast(v.strip())
             else:
-                target[CommandControl._normalize_key(kv)] = True
+                key = CommandControl._normalize_key(kv)
+                value = True
+            if reject_duplicates and key in target:
+                raise ValueError(f"Duplicate nested parameter: '{key}'.")
+            target[key] = value
+
+    @classmethod
+    def _canonicalize_irc_explicit_params(
+        cls,
+        params: Dict[str, Any],
+        *,
+        inline_keys: List[str],
+        flat_keys: set[str],
+        output_path: Optional[str],
+    ) -> None:
+        """Canonicalize legacy IRC aliases without confusing defaults as input."""
+
+        from ..dispatcher.irc.parameters import (
+            IRC_PARAMETER_ALIASES,
+            irc_parameter_names,
+        )
+
+        method = str(params.get("method") or "gs").lower()
+        recognized = irc_parameter_names(method) | {"method"}
+        sources: Dict[str, str] = {}
+        for origin, keys in (("inline", inline_keys), ("flat", sorted(flat_keys))):
+            for raw_key in keys:
+                canonical = IRC_PARAMETER_ALIASES.get(raw_key, raw_key)
+                if canonical not in recognized:
+                    continue
+                previous = sources.get(canonical)
+                if previous is not None:
+                    msg = (
+                        f"IRC parameter '{canonical}' was supplied more than once "
+                        f"({previous} and {origin} key '{raw_key}')."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                sources[canonical] = f"{origin} key '{raw_key}'"
+
+        for alias, canonical in IRC_PARAMETER_ALIASES.items():
+            if alias in params:
+                params[canonical] = params.pop(alias)
 
     @classmethod
     def _parse_pbc(cls, inner: str, output_path: Optional[str]) -> List[float]:
@@ -482,6 +557,13 @@ class CommandControl:
         if task == "freq":
             allowed.update(cls.DEFAULTS["freq"])
             return allowed
+        if task == "irc":
+            from ..dispatcher.irc.parameters import irc_parameter_names
+
+            method = str(params.get("method") or "gs").lower()
+            allowed.add("method")
+            allowed.update(irc_parameter_names(method))
+            return allowed
 
         method = str(params.get("method") or "lbfgs").lower()
         method_params = cls.OPT_METHOD_PARAMS.get(method)
@@ -498,6 +580,14 @@ class CommandControl:
     def _validate_unknown_params(
         cls, params: Dict[str, Any], task: str, output_path: Optional[str]
     ) -> None:
+        if task == "irc" and "level" in params:
+            msg = (
+                "IRC does not use the geometry-optimization level= table; "
+                "set f_max_th and f_rms_th explicitly in #irc(...)."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
         allowed = cls._allowed_task_params(task, params)
         if allowed is not None:
             context = task.upper()
@@ -641,35 +731,31 @@ class CommandControl:
             raise ValueError(msg)
 
     @classmethod
-    def _validate_irc_preflight_params(
+    def _validate_irc_params(
         cls,
         params: Dict[str, Any],
         output_path: Optional[str],
     ) -> None:
-        from ..dispatcher.irc.preflight import (
-            IRCPreflightParams,
-            validate_irc_preflight_params,
+        from dataclasses import fields
+
+        from ..dispatcher.irc.parameters import (
+            IRC_METHOD_PARAM_TYPES,
+            irc_params_from_mapping,
+            validate_irc_params,
         )
 
-        preflight = IRCPreflightParams(
-            target_mode=params.get("target_mode"),
-            stationarity_tolerance_ev_per_a=params.get(
-                "stationarity_tolerance_ev_per_a"
-            ),
-            hessian_symmetry_relative_tolerance=params.get(
-                "hessian_symmetry_relative_tolerance"
-            ),
-            rigid_mode_tolerance_cm1=params.get("rigid_mode_tolerance_cm1"),
-            transition_state_imaginary_threshold_cm1=params.get(
-                "transition_state_imaginary_threshold_cm1"
-            ),
-        )
+        method = str(params.get("method") or "gs").lower()
+        if method not in IRC_METHOD_PARAM_TYPES:
+            return
+        shared = irc_params_from_mapping(method, params)
         try:
-            validate_irc_preflight_params(preflight)
+            validate_irc_params(shared, method)
         except ValueError as exc:
-            msg = f"IRC preflight parameter error: {exc}"
+            msg = f"IRC parameter error: {exc}"
             cls._log_error(output_path, msg)
             raise ValueError(msg) from exc
+        for field in fields(type(shared)):
+            params[field.name] = getattr(shared, field.name)
 
     @classmethod
     def _validate_solvation(
@@ -1250,7 +1336,7 @@ class CommandControl:
             cls._validate_frequency_params(params, output_path)
 
         if task == "irc":
-            cls._validate_irc_preflight_params(params, output_path)
+            cls._validate_irc_params(params, output_path)
 
         if task == "sp":
             if "verbosity" in params:

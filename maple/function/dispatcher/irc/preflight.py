@@ -183,6 +183,12 @@ def validate_irc_transition_state(
         analysis.modes_mass_weighted[:, mode_index],
         copy=True,
     )
+    # Eigenvectors are defined only up to sign.  Canonicalize the run-local
+    # forward/backward labels so deterministic replays do not reverse solely
+    # because an eigensolver selected -v instead of v.
+    sign_pivot = int(np.argmax(np.abs(negative_mode)))
+    if negative_mode[sign_pivot] < 0.0:
+        negative_mode *= -1.0
     negative_mode.setflags(write=False)
     negative_eigenvalue = float(
         analysis.eigenvalues_eV_per_A2_amu[mode_index] / HARTREE2EV

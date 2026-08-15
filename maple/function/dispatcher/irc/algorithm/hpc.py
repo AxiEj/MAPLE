@@ -8,8 +8,8 @@ Intrinsic Reaction Coordinate (IRC) integrator using Hessian-based Predictor-Cor
 - Hessian updated by BFGS/Bofill (optional periodic full recalculation)
 - Forward and backward paths from the TS geometry, starting along the
   lowest negative eigenmode of the mass-weighted Hessian
-- Path merge with the lower-energy endpoint set as dE=0 and the TS
-  marked at the maximum energy point
+- Deterministic endpoint-to-TS-to-endpoint merge with the exact validated TS
+  inserted once and the lower endpoint energy used only as the dE reference
 
 Units:
 - Cartesian coordinates: Å
@@ -18,16 +18,29 @@ Units:
 - Mass-weighted coordinates: sqrt(amu) * Å (via masses_D)
 """
 
-import os
 from collections import deque
-from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple
 
 import numpy as np
 from ase import Atoms
 
-from ..preflight import IRCPreflightParams, validate_irc_transition_state
-from .logger import log_info, log_error
+from ..path import (
+    assemble_irc_path,
+    enforce_irc_path_admission,
+    finalize_irc_branch,
+    irc_force_criteria_satisfied,
+    make_irc_record,
+    render_irc_path_summary,
+    write_irc_trajectories,
+)
+from ..parameters import (
+    HPCParams,
+    apply_irc_parameter_overrides,
+    select_irc_parameter_overrides,
+    validate_irc_params,
+)
+from ..preflight import validate_irc_transition_state
+from .logger import log_info
 
 # =============================== Utilities ===============================
 BOHR_TO_ANG = 0.529177210903
@@ -77,21 +90,6 @@ def masses_D(atoms: Atoms) -> np.ndarray:
     m = to_f64(atoms.get_masses())
     m = np.where(m > 0.0, m, 1.0)
     return v1(1.0 / np.sqrt(np.repeat(m, 3)))
-
-
-def write_xyz(path: str, atoms_list: List[Atoms], energies: Optional[List[float]] = None):
-    """Write a list of structures to an XYZ file."""
-    with open(path, "w") as f:
-        for i, at in enumerate(atoms_list):
-            pos = at.get_positions()
-            symbols = at.get_chemical_symbols()
-            f.write(f"{len(symbols)}\n")
-            if energies is not None and i < len(energies):
-                f.write(f"Image {i}  Energy = {energies[i]:.10f}\n")
-            else:
-                f.write(f"Image {i}\n")
-            for s, (x, y, z) in zip(symbols, pos):
-                f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
 
 def _norm(v: np.ndarray) -> float:
@@ -188,39 +186,6 @@ class DWI:
         return e_dwi, g_dwi
 
 
-# =============================== Parameters ===============================
-@dataclass
-class HPCParams(IRCPreflightParams):
-    # HPC step length in Bohr
-    step_length_bohr: float = 0.10
-
-    # Number of macro steps per direction
-    max_steps: int = 50
-
-    # LQA predictor integration sub-steps
-    euler_n: int = 5000
-
-    # Recalculate Hessian every N micro-steps (None = never)
-    hessian_recalc: Optional[int] = None
-
-    # Hessian update method: "bfgs" or "bofill"
-    hessian_update: str = "bofill"
-
-    # DWI / mBS corrector controls
-    dwi_n: int = 4
-    mbs_max_k: int = 15
-    mbs_points: int = 20
-    mbs_tol: float = 1e-5
-
-    # Convergence on forces in Cartesian space (Eh/Å)
-    f_max_th: float = 2e-3
-    f_rms_th: float = 5e-4
-
-    # Output controls
-    print_each: bool = True
-    write_traj: bool = True
-
-
 # ================================== HPC ===================================
 class HPC:
     """
@@ -242,45 +207,11 @@ class HPC:
         self.output = output
         self.p = params if params is not None else HPCParams()
 
-        # Parse optional dict overrides, supporting both {"hpc": {...}}
-        # and flat dict style. Keep backward compatibility aliases.
         if isinstance(paras, dict):
-            low = {k.lower(): v for k, v in paras.items()}
-            sub = None
-            for key in ("hpc", "irc"):
-                if key in low and isinstance(low[key], dict):
-                    sub = low[key]
-                    break
-            if sub is None:
-                sub = low
-            sub_low = {k.lower(): v for k, v in sub.items()}
-
-            # Aliases / compatibility mapping
-            aliases = {
-                "sd_len_bohr": "step_length_bohr",
-                "steplength_bohr": "step_length_bohr",
-                "max_points": "max_steps",
-                "euler_n": "euler_n",
-                "hessian_update": "hessian_update",
-                "dwi_n": "dwi_n",
-                "mbs_max_k": "mbs_max_k",
-                "mbs_points": "mbs_points",
-                "mbs_tol": "mbs_tol",
-                "hessian_recalc": "hessian_recalc",
-                "target_mode": "target_mode",
-                "f_max_th": "f_max_th",
-                "f_rms_th": "f_rms_th",
-                "tol_maxf": "f_max_th",       # backward compatibility
-                "tol_rmsf": "f_rms_th",       # backward compatibility
-                "print_each": "print_each",
-                "write_traj": "write_traj",
-            }
-
-            for k, v in sub_low.items():
-                if k in aliases:
-                    setattr(self.p, aliases[k], v)
-                elif hasattr(self.p, k):
-                    setattr(self.p, k, v)
+            apply_irc_parameter_overrides(
+                self.p,
+                select_irc_parameter_overrides(paras, "hpc"),
+            )
 
         # Internal state for HPC integration
         self._D: Optional[np.ndarray] = None  # mass-weight scaling vector
@@ -305,6 +236,7 @@ class HPC:
                 "summary": {...}
             }
         """
+        validate_irc_params(self.p, "hpc")
         # Prepare mass weights once at TS geometry
         self._D = masses_D(self.atoms)
         self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
@@ -312,10 +244,11 @@ class HPC:
 
         # Validate the first-order saddle and select its projected reaction mode.
         H_cart_ts = self._get_hessian_cart()
+        F_ts_cart = to_f64(self.atoms.get_forces()).reshape(-1)
         preflight = validate_irc_transition_state(
             self.atoms,
             H_cart_ts,
-            self.atoms.get_forces(),
+            F_ts_cart.reshape(-1, 3),
             self.p,
         )
         eigval = preflight.negative_eigenvalue_hartree_per_A2_amu
@@ -332,11 +265,16 @@ class HPC:
             self.output,
         )
 
-        # Reference TS energy
+        # Exact validated TS record; it must appear once in the full path.
         E_ts = float(self.atoms.get_potential_energy(force_consistent=True))
-
-        # Store original TS Cartesian positions, reused for both directions
-        R_ts_cart = self.atoms.get_positions().copy().reshape(-1)
+        R_ts = self.atoms.get_positions().copy()
+        R_ts_cart = R_ts.reshape(-1)
+        transition_state_record = make_irc_record(
+            energy_hartree=E_ts,
+            forces_hartree_per_A=F_ts_cart,
+            positions_angstrom=R_ts,
+            point_kind="transition_state",
+        )
 
         # Forward and backward HPC-IRC
         forward_log = self._one_side(
@@ -354,10 +292,36 @@ class HPC:
             E_ts=E_ts,
         )
 
-        merged = self._merge_and_mark_ts(forward_log, backward_log)
+        merged = assemble_irc_path(
+            method_label="HPC",
+            forward=forward_log,
+            backward=backward_log,
+            transition_state_record=transition_state_record,
+            path_energy_tolerance_hartree=self.p.path_energy_tolerance_hartree,
+        )
+        log_info(render_irc_path_summary(merged), self.output)
 
         if self.p.write_traj:
-            self._write_trajs(forward_log, backward_log)
+            paths = write_irc_trajectories(
+                template_atoms=self.atoms,
+                output=self.output,
+                forward=forward_log,
+                backward=backward_log,
+                summary=merged,
+            )
+            log_info(
+                [
+                    f"\n[INFO] HPC-IRC forward trajectory written to: {paths['forward']}\n",
+                    f"[INFO] HPC-IRC backward trajectory written to: {paths['backward']}\n",
+                    f"[INFO] HPC-IRC full trajectory written to: {paths['full']}\n",
+                ],
+                self.output,
+            )
+
+        enforce_irc_path_admission(
+            merged,
+            require_converged_endpoints=self.p.require_converged_endpoints,
+        )
 
         return {"forward": forward_log, "backward": backward_log, "summary": merged}
 
@@ -730,9 +694,24 @@ class HPC:
         )
 
         # Macro steps
-        for it in range(1, p.max_steps + 1):
+        initial_converged = irc_force_criteria_satisfied(
+            maximum_force_hartree_per_A=maxF0,
+            rms_force_hartree_per_A=rmsF0,
+            maximum_force_threshold_hartree_per_A=p.f_max_th,
+            rms_force_threshold_hartree_per_A=p.f_rms_th,
+        )
+        termination_reason = (
+            "force_converged" if initial_converged else "maximum_steps"
+        )
+        if initial_converged:
+            self._print_hurray()
+        iterations_attempted = 0
+        macro_steps = range(0) if initial_converged else range(1, p.max_steps + 1)
+        for it in macro_steps:
+            iterations_attempted = it
             dx, _ = self._micro_step()
             if _norm(dx) <= 1e-12:
+                termination_reason = "step_too_small"
                 log_info(
                     [f"[INFO] {title}: step too small at step {it}, stopping.\n"],
                     self.output,
@@ -757,104 +736,25 @@ class HPC:
             )
 
             # Convergence in terms of Cartesian forces
-            if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
+            if irc_force_criteria_satisfied(
+                maximum_force_hartree_per_A=maxF,
+                rms_force_hartree_per_A=rmsF,
+                maximum_force_threshold_hartree_per_A=p.f_max_th,
+                rms_force_threshold_hartree_per_A=p.f_rms_th,
+            ):
+                termination_reason = "force_converged"
                 self._print_hurray()
                 break
 
-        return {"title": title, "records": records, "E_ts": E_ts}
-
-    # --------------------------- Merge & summary ----------------------------
-    def _merge_and_mark_ts(self, f: Dict, b: Dict) -> Dict:
-        fR, bR = f["records"], b["records"]
-        if not fR or not bR:
-            log_error(["[ERROR] HPC-IRC: One path side is empty.\n"], self.output)
-            raise RuntimeError("HPC-IRC: one path side is empty.")
-
-        Ef_end, Eb_end = fR[-1]["E"], bR[-1]["E"]
-        if Ef_end <= Eb_end:
-            first, second = fR, bR
-        else:
-            first, second = bR, fR
-
-        merged = []
-        # Reverse first (to go from minimum to TS), then append second
-        for k in range(len(first) - 1, -1, -1):
-            merged.append(first[k])
-        for k in range(0, len(second)):
-            merged.append(second[k])
-
-        # Find TS index as maximum energy point
-        E_list = [rec["E"] for rec in merged]
-        ts_idx = int(np.argmax(E_list))
-        E_ref = float(min(Ef_end, Eb_end))
-
-        log_info(
-            [
-                "\n---------------------------------------------------------------\n",
-                "                       HPC-IRC PATH SUMMARY           \n",
-                "---------------------------------------------------------------\n",
-                "All forces are in Eh/Å.\n\n",
-                "Step        E(Eh)      dE(kcal/mol)  max(|G|)   RMS(G) \n",
-            ],
-            self.output,
-        )
-
-        rows = []
-        for i, rec in enumerate(merged, start=1):
-            dE_kcal = (rec["E"] - E_ref) * KCAL_PER_EH
-            line = (
-                f"{i:4d}  {rec['E']:14.6f}  {dE_kcal:12.6f}    "
-                f"{rec['maxG']:8.6f}  {rec['rmsG']:8.6f}"
-            )
-            if i - 1 == ts_idx:
-                line += " <= TS"
-            rows.append(line + "\n")
-        log_info(rows, self.output)
-
-        return {
-            "E_ref": E_ref,
-            "ts_index": ts_idx + 1,  # 1-based
-            "merged_rows": rows,
-        }
-
-    # --------------------------- Trajectories -----------------------------
-    def _write_trajs(self, f: Dict, b: Dict):
-        """Write full, forward, and backward trajectories as XYZ files."""
-        base, _ = os.path.splitext(self.output)
-        full_path = base + "_full.xyz"
-        fwd_path = base + "_forward.xyz"
-        bwd_path = base + "_backward.xyz"
-
-        # Forward
-        f_atoms, f_E = [], []
-        for rec in f["records"]:
-            a = self.atoms.copy()
-            a.set_positions(rec["x"])
-            f_atoms.append(a)
-            f_E.append(rec["E"])
-        write_xyz(fwd_path, f_atoms, f_E)
-
-        # Backward
-        b_atoms, b_E = [], []
-        for rec in b["records"]:
-            a = self.atoms.copy()
-            a.set_positions(rec["x"])
-            b_atoms.append(a)
-            b_E.append(rec["E"])
-        write_xyz(bwd_path, b_atoms, b_E)
-
-        # Full (concatenate forward then backward)
-        full_atoms = f_atoms + b_atoms
-        full_E = f_E + b_E
-        write_xyz(full_path, full_atoms, full_E)
-
-        log_info(
-            [
-                f"\n[INFO] HPC-IRC forward trajectory written to: {fwd_path}\n",
-                f"[INFO] HPC-IRC backward trajectory written to: {bwd_path}\n",
-                f"[INFO] HPC-IRC full trajectory written to: {full_path}\n",
-            ],
-            self.output,
+        return finalize_irc_branch(
+            title=title,
+            direction="forward" if forward else "backward",
+            records=records,
+            transition_state_energy_hartree=E_ts,
+            termination_reason=termination_reason,
+            iterations_attempted=iterations_attempted,
+            maximum_force_threshold_hartree_per_A=p.f_max_th,
+            rms_force_threshold_hartree_per_A=p.f_rms_th,
         )
 
     # ----------------------------- Printing ------------------------------

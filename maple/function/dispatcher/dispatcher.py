@@ -7,7 +7,7 @@ class Dispatcher():
     def __init__(self):
         pass
 
-    def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> object:
         from .legacy_units import legacy_hartree_job_calculators
 
         # FREQ consumes the public ASE Hessian boundary (eV/Angstrom**2).
@@ -18,7 +18,7 @@ class Dispatcher():
         with legacy_hartree_job_calculators(atoms):
             return self._dispatch(commandcontrol, jobtype, atoms, output, extra)
 
-    def _dispatch(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    def _dispatch(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> object:
 
         """
         Dispatches the job based on the job type.
@@ -32,7 +32,8 @@ class Dispatcher():
 
         self.output = output
         self.commandcontrol = commandcontrol
-        self.set_throshould(atoms)
+        if jobtype != "irc":
+            self.set_throshould(atoms)
         if jobtype == 'opt':
             from .optimization import Optimization
 
@@ -108,7 +109,7 @@ class Dispatcher():
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For IRC job, only one Atoms object is allowed.')
             irc = IRC(output=output, atoms=atoms, method=commandcontrol.params.get('method'), params=commandcontrol.params)
-            irc.run()
+            return irc.run()
 
         elif jobtype == 'md':
             from .md.ensemble.nve import NVE

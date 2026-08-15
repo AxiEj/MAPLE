@@ -11,9 +11,9 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; a separate closed analytic-evaluator/original-source plus smooth-harmonic profile now reuses the same kernel |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
-| 5: solute-model adapters/canaries | MACE-POLAR candidates complete with the original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative; AIMNet2 geometry-mediated candidates implemented and unadmitted | the MACE evidence boundaries are unchanged; one AIMNet2 adapter binds geometry-dependent NQE monopoles and their coordinate VJP without pretending the model accepts a reaction field. It composes either the reused pyddx atomic-l1 map or the reused smooth-harmonic `E/K` kernel plus a new exact point-monopole source map. The legacy float32 runtime remains a derivative negative control; the source-bound official-Python float64 reconstruction passes one-water harmonic directional/full-Cartesian/rotation prerequisites, but all public task gates remain closed |
+| 5: solute-model adapters/canaries | MACE-POLAR candidates complete with the original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative; AIMNet2 geometry-mediated candidates implemented and unadmitted | the MACE evidence boundaries are unchanged; one AIMNet2 adapter binds geometry-dependent NQE monopoles and their coordinate VJP without pretending the model accepts a reaction field. It composes either the reused pyddx atomic-l1 map or the reused smooth-harmonic `E/K` kernel plus a new exact point-monopole source map. The legacy float32 runtime remains a derivative negative control; the source-bound official-Python float64 reconstruction passes one-water harmonic directional/full-Cartesian/rotation prerequisites and now supplies parity-gated internal second-order response primitives, but all public task gates remain closed |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally and all twenty frozen equilibrium rigid-panel molecules pass twice; distorted-geometry, Cartesian-FD, loop-work, matched-component accuracy, public calculator/workflow, and admission gates remain open |
-| 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
+| 7: Hessian/FREQ/TS | local HVP implementation complete; admission pending | the complete weak-scalar HVP is assembled from the sealed continuum joint Hessian and AIMNet2 intrinsic/charge response; one source-bound water canary passes total-gradient FD, symmetry, translations, and event guards. No vNext Tier H profile, stationary-point frequency, TS, or IRC evidence exists |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
 | 10: strict variational | disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch has a reproducible common-state/envelope canary but fails passivity, local invertibility, feedback-sign, and combined-Hessian gates at the tested real water state |
@@ -219,9 +219,15 @@ full panel is already fail-closed. A separate water
 bidirectional-loop reducer and conservative straight-trial event certificate
 pass two clean processes with identical raw measurements under
 [`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).
-This is only a local water-path diagnostic. SMD-CDS, broader domain/event
-evidence, public OPT, Hessian/FREQ, and MD remain open gates; details are in
-`AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
+The complete weak-scalar HVP has also been implemented without adding a second
+continuum formula: the sealed harmonic scalar supplies one joint `(R,c)` HVP,
+the source-bound AIMNet2 graph supplies `J_q h`, `H_E h`, and fixed-cotangent
+`D_R[J_q^T v][h]`, and the coupling layer owns the four-term composition. Two
+clean water executions reproduce the same raw scientific measurement under
+[`evidence/aimnet2-geometry-mediated-hvp-water-2b119022/`](evidence/aimnet2-geometry-mediated-hvp-water-2b119022/README.md).
+These remain local water diagnostics. SMD-CDS, broader domain/event-free `C2`
+evidence, public OPT, Tier-H/FREQ/TS/IRC, and MD remain open gates; details are
+in `AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
 
 The current negative Phase-5/6 result is documented in
 `MACE_POLAR_VNEXT_AUDIT.md`. It is not a solver-tolerance issue: the root and

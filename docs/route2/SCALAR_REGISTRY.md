@@ -84,7 +84,10 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   by the analytic point-monopole Laplace-addition-theorem source map.
 - Included: geometry-dependent AIMNet2 charge chain rule, exact-adjoint
   harmonic receiver, measured dense stationarity residual, and structural
-  `SO(3)` coefficient intertwiners.
+  `SO(3)` coefficient intertwiners. The research-only second-order surface
+  composes a parity-gated AIMNet2 `J_q h`, intrinsic `H_E h`, fixed-cotangent
+  `D_R[J_q^T v][h]`, and the sealed continuum joint `(R,c)` HVP into the
+  complete weak-scalar HVP.
 - Excluded: finite-dielectric solvent parameterization, CDS/nonpolar and
   standard-state terms, fixed-geometry mutual polarization, and all public
   Hessian/FREQ/TS/MD claims.
@@ -93,7 +96,9 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   CPU research runtime rebuilds the official `aimnet==0.2.0` wB97M-D3 Python
   architecture, verifies its source/configuration hashes, loads unchanged
   checkpoint weights, and evaluates the same input/topology semantics in
-  float64. It is not a public ASE calculator and has no HVP.
+  float64. It is not a public ASE calculator; its inherited public Hessian/HVP
+  methods remain disabled, while the separate Route-2 second-order response is
+  diagnostic-only.
 - Capability/evidence: none. Synthetic scalar/derivative/symmetry gates pass;
   the real water rigid-rotation gate passes for both precision arms. The
   float32 directional/full-Cartesian gates fail, while the float64 local
@@ -117,8 +122,14 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   SHA; its reciprocity/charge-FD operands and segment certificates are
   independently recomputed
   ([bundle](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md)).
-  This isolates precision and closes one local water-loop diagnostic but does
-  not supply full-domain, HVP, physical-solvent, workflow, or release evidence.
+  A separate complete-HVP water canary closes the four-term ledger, three-step
+  charge-JVP/contracted-Hessian/total-gradient finite differences, bilinear
+  symmetry, three translations, and local event guards in two identical clean
+  processes
+  ([bundle](evidence/aimnet2-geometry-mediated-hvp-water-2b119022/README.md)).
+  These isolate precision and close local water diagnostics but do not supply
+  full-domain `C2`, stationary-point/FREQ/TS/IRC, physical-solvent, workflow,
+  or release evidence.
   It remains a conductor reference, not an admitted water ddPCM model.
 - Full contract and literature boundary:
   [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).

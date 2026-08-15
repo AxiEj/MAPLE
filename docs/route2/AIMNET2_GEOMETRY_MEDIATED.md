@@ -107,14 +107,21 @@ control rather than hidden by selecting a favorable finite-difference step.
 3. loads the unchanged local checkpoint state dictionary, allowing only its
    known unused misspelled sentinel buffer;
 4. converts the complete Python forward and coordinate contract to float64;
-5. exposes only the same-forward energy/charge state and `J_q^T v` research
-   primitives.
+5. exposes the same-forward energy/charge state and `J_q^T v`, plus a separate
+   diagnostic second-order graph for `J_q h`, `H_E h`, and the fixed-cotangent
+   contracted charge Hessian `D_R[J_q^T v][h]`.
 
 It is CPU-only, not registered as an ASE calculator, rejects public
-`calculate()`, and supplies no Hessian/HVP. It changes numerical precision and
-execution graph, not weights, input semantics, neighbor policy, or charge
-projection. Agreement with the historical float32 graph is tested separately;
-that agreement is a reconstruction check, not chemical-accuracy evidence.
+`calculate()`, and rejects the inherited public Hessian/HVP entry points. The
+second-order method is a Route-2 research primitive only. It deep-copies the
+source-bound upstream graph, replaces the embedded first-order-only DFT-D3
+call by identity, and reapplies the same upstream DFT-D3 module with
+`hessian=True`. Every call must reproduce the ordinary graph's energy,
+charges, intrinsic gradient, and charge VJP within fixed tolerances before any
+second-order tensor is returned. It changes numerical precision and execution
+graph, not weights, input semantics, neighbor policy, or charge projection.
+Agreement with the historical float32 graph is tested separately; that
+agreement is a reconstruction check, not chemical-accuracy evidence.
 
 The opt-in real-checkpoint test uses the SHA256-bound AIMNet2 asset and
 `pyddx==0.8.0`. It verifies the reciprocity/metric/gauge audit, then deliberately
@@ -167,11 +174,14 @@ rotations and passes the complete rigid-rotation gate. The legacy float32 arm
 remains negative for both the directional and full-Cartesian energy-difference
 gates. The source-bound float64 arm passes those local one-water derivative
 gates with central-difference refinement, while using the same checkpoint
-weights and topology. This is a precision-isolation result, not force or task
-admission: broader geometry/chemistry, closed-loop, event, HVP, and release
-panels remain absent. The branch is also a conductor reference without
-finite-dielectric solvent parameterization, so it must not be presented as an
-admitted water ddPCM replacement. See
+weights and topology. A separate source-bound water HVP canary now closes the
+complete local weak-scalar HVP ledger, finite-difference response, bilinear
+symmetry, and all three translational zero modes. This remains a
+precision/implementation result, not force or task admission: broader
+geometry/chemistry, a complete event-free `C2` domain, stationary-point
+Hessians, and workflow panels are absent. The branch is also a conductor
+reference without finite-dielectric solvent parameterization, so it must not
+be presented as an admitted water ddPCM replacement. See
 [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md) for the addition
 theorem, parent functional, topology events, executed tests, and claim
 boundary.
@@ -288,6 +298,62 @@ artifacts, exact commands, hashes, and claim boundary are in
 This closes only the frozen water-loop diagnostic, not a force or workflow
 admission gate.
 
+## Complete local weak-scalar HVP
+
+For the smooth-harmonic arm, the sealed scalar now exposes the diagnostic
+action
+
+```text
+H_F h = H_E h
+      + (G_RR h + G_Rc J_c h)
+      + J_c^T (G_cR h + G_cc J_c h)
+      + D_R[J_c^T v][h],
+v = G_c(R,c_A(R)).
+```
+
+The continuum `RR/Rc/cR/cc` action is produced by one Torch HVP of the exact
+sealed `G(R,c)` graph. The final AIMNet2 term holds the center cotangent `v`
+fixed; the geometry dependence of `v` is already owned by the continuum joint
+HVP and its `J_c^T` pullback. This prevents both omission and double counting.
+The pyddx arm has no equivalent sealed joint-scalar HVP interface and therefore
+fails closed instead of substituting coordinate finite differences or an
+independent second derivative.
+
+The source-bound runner freezes the water-loop center, two orthonormal internal
+directions, all three rigid translations, and central steps `(4e-4, 2e-4,
+1e-4) angstrom`. Its pure reducer recomputes:
+
+- the four-term component ledger;
+- `J_q h` from displaced charges;
+- `D_R[J_q^T v][h]` from displaced VJPs with the center `v` fixed;
+- the complete HVP from finite differences of the total scalar gradient;
+- `u^T H v = v^T H u`;
+- the three translational charge-JVP and total-HVP zero modes;
+- stationarity, reciprocity, gauge, topology identity, and conservative
+  center-to-stencil event guards.
+
+Two independent clean processes at commit `2b119022` reproduce scientific
+measurement SHA-256
+`01009ee3f5f829da5906cf051f4bc6b110d8c28300ff31467a6dc663943b88a6`.
+The three smallest-step errors are `2.203106592738926e-8 e/angstrom` for the
+charge JVP, `5.08769444399133e-7 eV/angstrom^2` for the fixed-cotangent charge
+Hessian, and `3.391279860294818e-5 eV/angstrom^2` for the complete HVP. The
+bilinear-symmetry error is `3.552713678800501e-15 eV/angstrom^2`; all three
+translation HVP norms are exactly zero. Raw operands, exact commands, hashes,
+and the admission boundary are retained in
+[`evidence/aimnet2-geometry-mediated-hvp-water-2b119022/`](evidence/aimnet2-geometry-mediated-hvp-water-2b119022/README.md).
+
+Analytical PCM Hessians and response corrections are established methodology
+([Garcia-Rates et al., 2019](https://onlinelibrary.wiley.com/doi/abs/10.1002/jcc.25833)),
+but that literature precedent does not admit this implementation. Recent
+surface-point-charge PCM Hessian work also identifies discretization-induced
+solvation-potential discontinuities as a stability problem and derives a
+Gaussian-charge alternative
+([Hashimoto and Nakai, 2026](https://www.sciencedirect.com/science/article/abs/pii/S0009261426002198)).
+That result reinforces the event/source-regularity boundary here; it does not
+provide an AIMNet2 Gaussian width or justify silently changing the point-charge
+model.
+
 ## Fixed-geometry response no-go
 
 At fixed `R`, the unmodified deterministic model always returns the same
@@ -322,7 +388,8 @@ unsupported upstream.
 | SMD-CDS/nonpolar and standard-state terms | excluded |
 | public single-point E/F | disabled |
 | solution-phase OPT/NEB/TS | disabled pending full PES/release gates |
-| Hessian/HVP/FREQ | absent |
+| complete local weak-scalar HVP | implemented for the sealed harmonic-point research arm; one source-bound water canary passes; diagnostic only |
+| Tier H / FREQ/TS/IRC | disabled; full-domain event-free `C2`, stationary-point, and workflow evidence absent |
 | MD/NVE | absent |
 | strict variational tier | not applicable/proven |
 
@@ -346,11 +413,13 @@ coordinate derivative and passes cavity/profile compatibility gates.
    physical-configuration profiles instead of the current unbound diagnostic.
 4. Add a same-scalar nonpolar provider before making total solvation-free-energy
    or multi-solvent claims.
-5. Add force-domain, optimization, Hessian/FREQ, and NVE evidence before any
-   corresponding MAPLE workflow is enabled.
-6. For Hessian/FREQ/TS/IRC, implement the complete HVP including the contracted
-   AIMNet2 charge Hessian `D_R[J_q^T v][h]`, PCM `RR/Rq/qR/qq` blocks, mixed
-   adjointness, and a full `C2` event-free displacement neighborhood.
+5. Add force-domain, optimization, broad Hessian/FREQ, and NVE evidence before
+   any corresponding MAPLE workflow is enabled.
+6. For Hessian/FREQ/TS/IRC, extend the implemented complete local HVP from the
+   water canary to a broad event-free `C2` domain; add mixed-block adjointness,
+   force-FD/HVP closure, Hessian symmetry, stationary-point translational and
+   rotational modes, conditioning, and FREQ/TS/IRC path panels. The current
+   methanol event-guard failure remains a profile-level block.
 
 No fitting, radius tuning, response tempering, calibration, or experimental
 label use is part of this candidate.

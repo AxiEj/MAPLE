@@ -1,0 +1,3391 @@
+{
+  "admission_boundary": {
+    "continuum_capabilities": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "M": false,
+      "V": false
+    },
+    "freq_admitted": false,
+    "irc_admitted": false,
+    "md_admitted": false,
+    "model_variational_functional_admitted": false,
+    "opt_admitted": false,
+    "route2_public_ase_admitted": false,
+    "runtime_public_ase_calculator": false,
+    "runtime_public_hessian": false,
+    "runtime_public_hvp": false,
+    "ts_admitted": false
+  },
+  "aimnet_runtime": "reconstructed-python-float64",
+  "argv": [
+    "tools/route2_release/run_aimnet2_geometry_mediated_hvp.py",
+    "--checkpoint",
+    "/home/axie/MAPLE/MAPLE-fork/maple/function/calculator/model/aimnet2.pt",
+    "--device",
+    "cpu",
+    "--output",
+    "/tmp/maple-route2-hvp-2b119022-a.lOAZM9/measurements.json"
+  ],
+  "artifact_kind": "disabled-aimnet2-reconstructed-float64-geometry-mediated-smooth-harmonic-water-complete-hvp",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "center_record": {
+    "atomic_numbers": [
+      8,
+      1,
+      1
+    ],
+    "continuum_fixed_source_gradient_eV_per_A": [
+      [
+        -5.130944459535322e-16,
+        5.190292640122607e-15,
+        -2.172595380423211
+      ],
+      [
+        3.3208072922616905e-16,
+        -1.7965489840539943,
+        1.086297690211606
+      ],
+      [
+        1.8101371672736306e-16,
+        1.796548984053989,
+        1.0862976902116053
+      ]
+    ],
+    "continuum_topology": {
+      "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+      "coefficient_count": 12,
+      "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+      "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+      "minimum_point_source_shell_margin_angstrom": 0.23143498173741572,
+      "minimum_sphere_tangency_margin_angstrom": 0.6485650182625842,
+      "point_source_relations": [
+        [
+          0,
+          0,
+          "self"
+        ],
+        [
+          0,
+          1,
+          "inside"
+        ],
+        [
+          0,
+          2,
+          "inside"
+        ],
+        [
+          1,
+          0,
+          "inside"
+        ],
+        [
+          1,
+          1,
+          "self"
+        ],
+        [
+          1,
+          2,
+          "outside"
+        ],
+        [
+          2,
+          0,
+          "inside"
+        ],
+        [
+          2,
+          1,
+          "outside"
+        ],
+        [
+          2,
+          2,
+          "self"
+        ]
+      ],
+      "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+      "sphere_pair_relations": [
+        [
+          0,
+          1,
+          "intersecting"
+        ],
+        [
+          0,
+          2,
+          "intersecting"
+        ],
+        [
+          1,
+          2,
+          "intersecting"
+        ]
+      ],
+      "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+    },
+    "energy": {
+      "continuum_energy_eV": -0.54547237587567,
+      "total_energy_eV": -2081.586346969525,
+      "vacuum_energy_eV": -2081.0408745936493
+    },
+    "geometry_sha256": "53431fc879fd8713ca5938d72b73771e0cdc7eda3d9d4776c4106788c575a943",
+    "intrinsic_gradient_eV_per_A": [
+      [
+        0.0,
+        1.1102230246251565e-15,
+        0.6842097291883658
+      ],
+      [
+        0.0,
+        0.34873562237290834,
+        -0.3421048645796303
+      ],
+      [
+        0.0,
+        -0.34873562237290945,
+        -0.3421048645796314
+      ]
+    ],
+    "model_topology": {
+      "active_pairs_by_graph": {
+        "long_range_effective": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "short_range": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+      "minimum_cutoff_margin_angstrom": 3.473522,
+      "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+    },
+    "positions_A": [
+      [
+        0.0,
+        0.0,
+        0.119262
+      ],
+      [
+        0.0,
+        0.763239,
+        -0.477047
+      ],
+      [
+        0.0,
+        -0.763239,
+        -0.477047
+      ]
+    ],
+    "reaction_field": [
+      [
+        1.1967868590740218,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        -0.38464904833156915,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        -0.3846490483315643,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "reciprocity": {
+      "bilinear_records": [
+        {
+          "apply_adjoint_absolute_error_eV": 4.440892098500626e-16,
+          "apply_adjoint_eV": -3.6160883836429525,
+          "apply_adjoint_relative_error": 1.228092797341071e-16,
+          "left_P_right_eV": -3.616088383642953,
+          "probe_index": 0,
+          "reciprocity_absolute_error_eV": 8.881784197001252e-16,
+          "reciprocity_relative_error": 2.4561855946821417e-16,
+          "right_P_left_eV": -3.616088383642954
+        },
+        {
+          "apply_adjoint_absolute_error_eV": 1.3322676295501878e-15,
+          "apply_adjoint_eV": 3.5034711358497375,
+          "apply_adjoint_relative_error": 3.802707594526985e-16,
+          "left_P_right_eV": 3.503471135849736,
+          "probe_index": 1,
+          "reciprocity_absolute_error_eV": 4.440892098500626e-16,
+          "reciprocity_relative_error": 1.267569198175662e-16,
+          "right_P_left_eV": 3.5034711358497366
+        },
+        {
+          "apply_adjoint_absolute_error_eV": 6.661338147750939e-16,
+          "apply_adjoint_eV": -0.7116603435893767,
+          "apply_adjoint_relative_error": 9.360277283617311e-16,
+          "left_P_right_eV": -0.7116603435893774,
+          "probe_index": 2,
+          "reciprocity_absolute_error_eV": 1.9984014443252818e-15,
+          "reciprocity_relative_error": 2.8080831850851933e-15,
+          "right_P_left_eV": -0.7116603435893754
+        },
+        {
+          "apply_adjoint_absolute_error_eV": 1.7763568394002505e-15,
+          "apply_adjoint_eV": -1.795962349044296,
+          "apply_adjoint_relative_error": 9.890835631078345e-16,
+          "left_P_right_eV": -1.7959623490442977,
+          "probe_index": 3,
+          "reciprocity_absolute_error_eV": 8.881784197001252e-16,
+          "reciprocity_relative_error": 4.945417815539173e-16,
+          "right_P_left_eV": -1.7959623490442969
+        }
+      ],
+      "charge_directional_fd_records": [
+        {
+          "absolute_error_eV_per_e": 2.765843110097421e-13,
+          "analytic_eV_per_e": -0.1741343384841211,
+          "finite_difference_eV_per_e": -0.17413433848384452,
+          "probe_index": 0,
+          "relative_error": 1.5883387126139006e-12,
+          "step_e": 0.001
+        },
+        {
+          "absolute_error_eV_per_e": 6.671330154972566e-13,
+          "analytic_eV_per_e": -0.1741343384841211,
+          "finite_difference_eV_per_e": -0.17413433848478824,
+          "probe_index": 0,
+          "relative_error": 3.8311399193418416e-12,
+          "step_e": 0.0003
+        },
+        {
+          "absolute_error_eV_per_e": 2.1084523016412504e-12,
+          "analytic_eV_per_e": -0.1741343384841211,
+          "finite_difference_eV_per_e": -0.17413433848201265,
+          "probe_index": 0,
+          "relative_error": 1.2108193708350723e-11,
+          "step_e": 0.0001
+        },
+        {
+          "absolute_error_eV_per_e": 6.106226635438361e-16,
+          "analytic_eV_per_e": 0.2460172103557195,
+          "finite_difference_eV_per_e": 0.2460172103557201,
+          "probe_index": 1,
+          "relative_error": 2.4820323044104407e-15,
+          "step_e": 0.001
+        },
+        {
+          "absolute_error_eV_per_e": 3.1394331578837864e-13,
+          "analytic_eV_per_e": 0.2460172103557195,
+          "finite_difference_eV_per_e": 0.24601721035540555,
+          "probe_index": 1,
+          "relative_error": 1.276103063417571e-12,
+          "step_e": 0.0003
+        },
+        {
+          "absolute_error_eV_per_e": 1.1663447985199582e-12,
+          "analytic_eV_per_e": 0.2460172103557195,
+          "finite_difference_eV_per_e": 0.24601721035688584,
+          "probe_index": 1,
+          "relative_error": 4.740907340701878e-12,
+          "step_e": 0.0001
+        },
+        {
+          "absolute_error_eV_per_e": 4.4853010194856324e-14,
+          "analytic_eV_per_e": 0.5981652464229108,
+          "finite_difference_eV_per_e": 0.598165246422866,
+          "probe_index": 2,
+          "relative_error": 7.49843132196026e-14,
+          "step_e": 0.001
+        },
+        {
+          "absolute_error_eV_per_e": 8.182343691487404e-14,
+          "analytic_eV_per_e": 0.5981652464229108,
+          "finite_difference_eV_per_e": 0.598165246422829,
+          "probe_index": 2,
+          "relative_error": 1.3679069020506714e-13,
+          "step_e": 0.0003
+        },
+        {
+          "absolute_error_eV_per_e": 2.8821389719269064e-13,
+          "analytic_eV_per_e": 0.5981652464229108,
+          "finite_difference_eV_per_e": 0.598165246423199,
+          "probe_index": 2,
+          "relative_error": 4.818298938564223e-13,
+          "step_e": 0.0001
+        },
+        {
+          "absolute_error_eV_per_e": 1.4588330543574557e-13,
+          "analytic_eV_per_e": 1.2250167972559163,
+          "finite_difference_eV_per_e": 1.2250167972560622,
+          "probe_index": 3,
+          "relative_error": 1.1908677967723568e-13,
+          "step_e": 0.001
+        },
+        {
+          "absolute_error_eV_per_e": 3.907985046680551e-14,
+          "analytic_eV_per_e": 1.2250167972559163,
+          "finite_difference_eV_per_e": 1.2250167972558772,
+          "probe_index": 3,
+          "relative_error": 3.1901481313844714e-14,
+          "step_e": 0.0003
+        },
+        {
+          "absolute_error_eV_per_e": 1.5194512315019892e-12,
+          "analytic_eV_per_e": 1.2250167972559163,
+          "finite_difference_eV_per_e": 1.2250167972543968,
+          "probe_index": 3,
+          "relative_error": 1.2403513444922692e-12,
+          "step_e": 0.0001
+        }
+      ],
+      "charge_gauge_vjp_norm_eV_per_A": 0.0,
+      "effective_probe_count": 4,
+      "gate_passed": true,
+      "maximum_apply_adjoint_absolute_error_eV": 1.7763568394002505e-15,
+      "maximum_apply_adjoint_relative_error": 9.890835631078345e-16,
+      "maximum_charge_fd_absolute_error_eV_per_e": 2.1084523016412504e-12,
+      "maximum_charge_fd_relative_error": 1.2108193708350723e-11,
+      "maximum_reciprocity_absolute_error_eV": 1.9984014443252818e-15,
+      "maximum_reciprocity_relative_error": 2.8080831850851933e-15,
+      "requested_probe_count": 4,
+      "seed": 20260815,
+      "source_gradient_half_error_eV_per_source_unit": 3.387999773988765e-16,
+      "thresholds": {
+        "charge_fd_absolute_eV_per_e": 5e-06,
+        "charge_fd_relative": 5e-05,
+        "charge_gauge_vjp_norm_eV_per_A": 1e-07,
+        "reciprocity_absolute_eV": 1e-08,
+        "reciprocity_relative": 1e-08
+      }
+    },
+    "source": [
+      [
+        -0.6898444297632524,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.3449222148816262,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.3449222148816262,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "source_response_gradient_eV_per_A": [
+      [
+        0.0,
+        -6.245004513516506e-16,
+        0.518991218595998
+      ],
+      [
+        0.0,
+        0.10944101016714476,
+        -0.25949560929799925
+      ],
+      [
+        0.0,
+        -0.10944101016714414,
+        -0.25949560929799875
+      ]
+    ],
+    "stationarity": {
+      "absolute_residual_eV_per_e": 2.8867763194343613e-15,
+      "capability_admitted": false,
+      "gate_passed": true,
+      "relative_residual": 5.5902832147861765e-16,
+      "state_dimension": 12,
+      "surface_condition_number": 107.08433946218663,
+      "thresholds": {
+        "absolute_residual_eV_per_e": 1e-10,
+        "relative_residual": 1e-10,
+        "surface_condition_number": 1000000000000.0
+      }
+    },
+    "total_gradient_eV_per_A": [
+      [
+        -5.130944459535322e-16,
+        5.676015213396113e-15,
+        -0.9693944326388473
+      ],
+      [
+        3.3208072922616905e-16,
+        -1.3383723515139412,
+        0.4846972163339764
+      ],
+      [
+        1.8101371672736306e-16,
+        1.3383723515139354,
+        0.4846972163339751
+      ]
+    ]
+  },
+  "checkpoint": {
+    "bytes": 11613188,
+    "resolved_path": "/home/axie/MAPLE/MAPLE-fork/maple/function/calculator/model/aimnet2.pt",
+    "role": "aimnet2-wb97m-d3-local-sha256-bound-checkpoint",
+    "sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  },
+  "claim_boundary": "This one-water artifact validates a complete weak-scalar HVP ledger, central finite differences of the charge JVP, fixed-cotangent charge Hessian, and total-gradient HVP, bilinear symmetry, all three rigid translations, stationarity, reciprocity, and local event guards on one fixed graph/cavity stratum. It is not a global C2 proof, a full H/C/N/O domain panel, finite-dielectric or nonpolar validation, a stationary-point frequency calculation, fixed-R mutual polarization, chemical-accuracy evidence, or Tier H, FREQ/TS/IRC, MD, public ASE, or any E/F/H/V/M admission.",
+  "continuum_kind": "harmonic-point",
+  "contract_version": "route2-aimnet2-geometry-mediated-hvp-water-contract-v1",
+  "device": "cpu",
+  "direction_records": [
+    {
+      "continuum_joint_position_hvp_eV_per_A2": [
+        [
+          -0.03566139045371186,
+          2.4620517892720732,
+          -1.6263134115734146
+        ],
+        [
+          -0.8899886021846518,
+          -0.3605030534132708,
+          1.600537511414096
+        ],
+        [
+          0.9256499926383637,
+          -2.101548735858802,
+          0.02577590015931841
+        ]
+      ],
+      "continuum_joint_source_hvp": [
+        [
+          -0.37873760237819853,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.3336032085039884,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.017341152020253103,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+      "continuum_source_response_pullback_eV_per_A2": [
+        [
+          0.0,
+          -0.1937883752874825,
+          0.09169055405765969
+        ],
+        [
+          0.0,
+          0.11622921008593562,
+          -0.12154748320494466
+        ],
+        [
+          0.0,
+          0.07755916520154685,
+          0.029856929147284987
+        ]
+      ],
+      "contracted_source_hessian_eV_per_A2": [
+        [
+          0.008518819774345342,
+          -0.8934241608107629,
+          0.9844479710695051
+        ],
+        [
+          0.05104253948341955,
+          1.3783816736650445,
+          -0.7642955328455845
+        ],
+        [
+          -0.059561359257764894,
+          -0.48495751285428157,
+          -0.2201524382239205
+        ]
+      ],
+      "coordinate_direction": [
+        [
+          0.006525285616665543,
+          -0.174541902353037,
+          0.48989090520227263
+        ],
+        [
+          0.3824118358098572,
+          -0.2886117159360114,
+          -0.329159475097302
+        ],
+        [
+          -0.38893712142652276,
+          0.46315361828904844,
+          -0.16073143010497068
+        ]
+      ],
+      "diagnostic_only": true,
+      "intrinsic_energy_hvp_eV_per_A2": [
+        [
+          0.011230747554102319,
+          -20.133812950092285,
+          17.02682761891042
+        ],
+        [
+          0.1706052190176387,
+          9.477957219709571,
+          -16.299687718527398
+        ],
+        [
+          -0.1818359665717409,
+          10.655855730382713,
+          -0.7271399003830199
+        ]
+      ],
+      "label": "seeded-internal",
+      "model_charge_tangent_residual_e_per_A": 2.0816681711721685e-17,
+      "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+      "model_standard_decomposed_charge_max_absolute_error_e": 0.0,
+      "model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A": 0.0,
+      "model_standard_decomposed_energy_absolute_error_eV": 4.306457412894815e-10,
+      "model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09,
+      "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+      "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "source": [
+        [
+          -0.6898444297632524,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_gradient_cotangent": [
+        [
+          1.1967868590740216,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.384649048331569,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.3846490483315641,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_position_jvp": [
+        [
+          0.18913169848880593,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.14156013261968944,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.04757156586911646,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "tier_h_admitted": false,
+      "total_hvp_eV_per_A2": [
+        [
+          -0.0159118231252642,
+          -18.758973696918456,
+          16.47665273246417
+        ],
+        [
+          -0.6683408436835936,
+          10.61206505004728,
+          -15.584993223163831
+        ],
+        [
+          0.684252666808858,
+          8.146908646871177,
+          -0.891659509300337
+        ]
+      ]
+    },
+    {
+      "continuum_joint_position_hvp_eV_per_A2": [
+        [
+          -0.008732967534994104,
+          0.6029214809524217,
+          -9.191218338106241
+        ],
+        [
+          -0.2179455559781636,
+          -6.786188209097578,
+          4.788427534398197
+        ],
+        [
+          0.22667852351315762,
+          6.183266728145157,
+          4.402790803708045
+        ]
+      ],
+      "continuum_joint_source_hvp": [
+        [
+          8.747454266219801,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0644297484784717,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.7336026805505469,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+      "continuum_source_response_pullback_eV_per_A2": [
+        [
+          0.0,
+          -0.04745601807760308,
+          3.165751736445579
+        ],
+        [
+          0.0,
+          0.6912982020610747,
+          -1.6014142622801146
+        ],
+        [
+          0.0,
+          -0.6438421839834716,
+          -1.5643374741654643
+        ]
+      ],
+      "contracted_source_hessian_eV_per_A2": [
+        [
+          0.0020861378532713738,
+          -0.21878687544340836,
+          2.647298045306269
+        ],
+        [
+          0.012499592263253888,
+          0.3657954821347291,
+          -1.390275476631245
+        ],
+        [
+          -0.014585730116525262,
+          -0.14700860669132082,
+          -1.2570225686750243
+        ]
+      ],
+      "coordinate_direction": [
+        [
+          0.0015979496795234715,
+          -0.042742830477200885,
+          0.4656148914526546
+        ],
+        [
+          0.09364722195725227,
+          0.5929346818399706,
+          -0.2534302625905332
+        ],
+        [
+          -0.09524517163677573,
+          -0.5501918513627696,
+          -0.2121846288621214
+        ]
+      ],
+      "diagnostic_only": true,
+      "intrinsic_energy_hvp_eV_per_A2": [
+        [
+          0.0027502504118826973,
+          -4.930484555191929,
+          49.06541067532315
+        ],
+        [
+          0.041778792694989644,
+          35.5026454727395,
+          -26.439453122909
+        ],
+        [
+          -0.044529043106872335,
+          -30.572160917547578,
+          -22.625957552414153
+        ]
+      ],
+      "label": "orthogonal-radial-internal",
+      "model_charge_tangent_residual_e_per_A": 2.7755575615628914e-17,
+      "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+      "model_standard_decomposed_charge_max_absolute_error_e": 0.0,
+      "model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A": 0.0,
+      "model_standard_decomposed_energy_absolute_error_eV": 4.306457412894815e-10,
+      "model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09,
+      "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+      "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "source": [
+        [
+          -0.6898444297632524,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_gradient_cotangent": [
+        [
+          1.1967868590740216,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.384649048331569,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.3846490483315641,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_position_jvp": [
+        [
+          0.3083147284859956,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.16566559613819384,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.14264913234780174,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "tier_h_admitted": false,
+      "total_hvp_eV_per_A2": [
+        [
+          -0.003896579269840033,
+          -4.593805967760518,
+          45.68724211896876
+        ],
+        [
+          -0.16366717101992004,
+          29.773550947837727,
+          -24.642715327422167
+        ],
+        [
+          0.16756375028976003,
+          -25.179744980077217,
+          -21.04452679154659
+        ]
+      ]
+    },
+    {
+      "continuum_joint_position_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_joint_source_hvp": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+      "continuum_source_response_pullback_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "contracted_source_hessian_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "coordinate_direction": [
+        [
+          0.5773502691896258,
+          0.0,
+          0.0
+        ],
+        [
+          0.5773502691896258,
+          0.0,
+          0.0
+        ],
+        [
+          0.5773502691896258,
+          0.0,
+          0.0
+        ]
+      ],
+      "diagnostic_only": true,
+      "intrinsic_energy_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "label": "translation-x",
+      "model_charge_tangent_residual_e_per_A": 0.0,
+      "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+      "model_standard_decomposed_charge_max_absolute_error_e": 0.0,
+      "model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A": 0.0,
+      "model_standard_decomposed_energy_absolute_error_eV": 4.306457412894815e-10,
+      "model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09,
+      "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+      "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "source": [
+        [
+          -0.6898444297632524,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_gradient_cotangent": [
+        [
+          1.1967868590740216,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.384649048331569,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.3846490483315641,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_position_jvp": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "tier_h_admitted": false,
+      "total_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "continuum_joint_position_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_joint_source_hvp": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+      "continuum_source_response_pullback_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "contracted_source_hessian_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "coordinate_direction": [
+        [
+          0.0,
+          0.5773502691896258,
+          0.0
+        ],
+        [
+          0.0,
+          0.5773502691896258,
+          0.0
+        ],
+        [
+          0.0,
+          0.5773502691896258,
+          0.0
+        ]
+      ],
+      "diagnostic_only": true,
+      "intrinsic_energy_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "label": "translation-y",
+      "model_charge_tangent_residual_e_per_A": 0.0,
+      "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+      "model_standard_decomposed_charge_max_absolute_error_e": 0.0,
+      "model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A": 0.0,
+      "model_standard_decomposed_energy_absolute_error_eV": 4.306457412894815e-10,
+      "model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09,
+      "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+      "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "source": [
+        [
+          -0.6898444297632524,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_gradient_cotangent": [
+        [
+          1.1967868590740216,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.384649048331569,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.3846490483315641,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_position_jvp": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "tier_h_admitted": false,
+      "total_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "continuum_joint_position_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_joint_source_hvp": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+      "continuum_source_response_pullback_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "contracted_source_hessian_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "coordinate_direction": [
+        [
+          0.0,
+          0.0,
+          0.5773502691896258
+        ],
+        [
+          0.0,
+          0.0,
+          0.5773502691896258
+        ],
+        [
+          0.0,
+          0.0,
+          0.5773502691896258
+        ]
+      ],
+      "diagnostic_only": true,
+      "intrinsic_energy_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "label": "translation-z",
+      "model_charge_tangent_residual_e_per_A": 0.0,
+      "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+      "model_standard_decomposed_charge_max_absolute_error_e": 0.0,
+      "model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A": 0.0,
+      "model_standard_decomposed_energy_absolute_error_eV": 4.306457412894815e-10,
+      "model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09,
+      "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+      "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+      "source": [
+        [
+          -0.6898444297632524,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3449222148816262,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_gradient_cotangent": [
+        [
+          1.1967868590740216,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.384649048331569,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.3846490483315641,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "source_position_jvp": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "tier_h_admitted": false,
+      "total_hvp_eV_per_A2": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    }
+  ],
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_aimnet2_geometry_mediated_hvp.py --checkpoint /home/axie/MAPLE/MAPLE-fork/maple/function/calculator/model/aimnet2.pt --device cpu --output /tmp/maple-route2-hvp-2b119022-a.lOAZM9/measurements.json",
+  "execution_git_head": "2b11902290ed9ccf884410cd30773fa0bb9abcf7",
+  "execution_git_tree": "1dd9124f395e4b2fdd9484ea5a416a0cbb47f564",
+  "finite_difference_records": [
+    {
+      "minus": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "continuum_topology": {
+          "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+          "coefficient_count": 12,
+          "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+          "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+          "minimum_point_source_shell_margin_angstrom": 0.23139412239613677,
+          "minimum_sphere_tangency_margin_angstrom": 0.6483993241215948,
+          "point_source_relations": [
+            [
+              0,
+              0,
+              "self"
+            ],
+            [
+              0,
+              1,
+              "inside"
+            ],
+            [
+              0,
+              2,
+              "inside"
+            ],
+            [
+              1,
+              0,
+              "inside"
+            ],
+            [
+              1,
+              1,
+              "self"
+            ],
+            [
+              1,
+              2,
+              "outside"
+            ],
+            [
+              2,
+              0,
+              "inside"
+            ],
+            [
+              2,
+              1,
+              "outside"
+            ],
+            [
+              2,
+              2,
+              "self"
+            ]
+          ],
+          "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+          "sphere_pair_relations": [
+            [
+              0,
+              1,
+              "intersecting"
+            ],
+            [
+              0,
+              2,
+              "intersecting"
+            ],
+            [
+              1,
+              2,
+              "intersecting"
+            ]
+          ],
+          "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+        },
+        "fixed_source_cotangent_vjp_eV_per_A": [
+          [
+            -3.4604058535616844e-06,
+            0.0003572472026481671,
+            0.5185980944441482
+          ],
+          [
+            -2.0311430755992795e-05,
+            0.10888894026529129,
+            -0.2591903461575066
+          ],
+          [
+            2.377183660955448e-05,
+            -0.10924618746793946,
+            -0.25940774828664154
+          ]
+        ],
+        "geometry_sha256": "570f59da7ca024add64ee8bf88cf0d715dff8e4c78c1ae9334e29f8c26b51f8c",
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.473221261204224,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "positions_A": [
+          [
+            -2.6101142466662173e-06,
+            6.98167609412148e-05,
+            0.1190660436379191
+          ],
+          [
+            -0.0001529647343239429,
+            0.7633544446863744,
+            -0.47691533620996107
+          ],
+          [
+            0.0001555748485706091,
+            -0.7634242614473156,
+            -0.476982707427958
+          ]
+        ],
+        "source": [
+          [
+            -0.6899200650650722,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449788091329839,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449412559320883,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_gradient_eV_per_A": [
+          [
+            4.8591454522942405e-06,
+            0.007508474549271976,
+            -0.9759835149695828
+          ],
+          [
+            0.00026811334553325457,
+            -1.3426069986608153,
+            0.4909307386367953
+          ],
+          [
+            -0.000272972490986548,
+            1.3350985241267777,
+            0.48505277635461524
+          ]
+        ]
+      },
+      "plus": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "continuum_topology": {
+          "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+          "coefficient_count": 12,
+          "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+          "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+          "minimum_point_source_shell_margin_angstrom": 0.23126917965226013,
+          "minimum_sphere_tangency_margin_angstrom": 0.6485243201432862,
+          "point_source_relations": [
+            [
+              0,
+              0,
+              "self"
+            ],
+            [
+              0,
+              1,
+              "inside"
+            ],
+            [
+              0,
+              2,
+              "inside"
+            ],
+            [
+              1,
+              0,
+              "inside"
+            ],
+            [
+              1,
+              1,
+              "self"
+            ],
+            [
+              1,
+              2,
+              "outside"
+            ],
+            [
+              2,
+              0,
+              "inside"
+            ],
+            [
+              2,
+              1,
+              "outside"
+            ],
+            [
+              2,
+              2,
+              "self"
+            ]
+          ],
+          "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+          "sphere_pair_relations": [
+            [
+              0,
+              1,
+              "intersecting"
+            ],
+            [
+              0,
+              2,
+              "intersecting"
+            ],
+            [
+              1,
+              2,
+              "intersecting"
+            ]
+          ],
+          "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+        },
+        "fixed_source_cotangent_vjp_eV_per_A": [
+          [
+            3.354597051060537e-06,
+            -0.000357489798167715,
+            0.519385648544623
+          ],
+          [
+            2.0522335525105893e-05,
+            0.10999164289270737,
+            -0.25980177947464805
+          ],
+          [
+            -2.387693257616643e-05,
+            -0.10963415309453965,
+            -0.259583869069975
+          ]
+        ],
+        "geometry_sha256": "d2e4f64041e70afa077d603c0013386466fbbe201d77f1eeb7e940126a431ed6",
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4738226734587334,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "positions_A": [
+          [
+            2.6101142466662173e-06,
+            -6.98167609412148e-05,
+            0.11945795636208091
+          ],
+          [
+            0.0001529647343239429,
+            0.7631235553136256,
+            -0.4771786637900389
+          ],
+          [
+            -0.0001555748485706091,
+            -0.7630537385526844,
+            -0.477111292572042
+          ]
+        ],
+        "source": [
+          [
+            -0.6897687595074484,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.344865561028003,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.34490319847944545,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_gradient_eV_per_A": [
+          [
+            -7.868476129284067e-06,
+            -0.0074986997670208055,
+            -0.9628022065842998
+          ],
+          [
+            -0.00026655525500868406,
+            -1.3341170462803555,
+            0.4784627538498866
+          ],
+          [
+            0.000274423731137524,
+            1.3416157460761389,
+            0.48433945273441326
+          ]
+        ]
+      },
+      "step_A": 0.0004
+    },
+    {
+      "minus": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "continuum_topology": {
+          "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+          "coefficient_count": 12,
+          "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+          "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+          "minimum_point_source_shell_margin_angstrom": 0.23141457221825057,
+          "minimum_sphere_tangency_margin_angstrom": 0.6484821576956052,
+          "point_source_relations": [
+            [
+              0,
+              0,
+              "self"
+            ],
+            [
+              0,
+              1,
+              "inside"
+            ],
+            [
+              0,
+              2,
+              "inside"
+            ],
+            [
+              1,
+              0,
+              "inside"
+            ],
+            [
+              1,
+              1,
+              "self"
+            ],
+            [
+              1,
+              2,
+              "outside"
+            ],
+            [
+              2,
+              0,
+              "inside"
+            ],
+            [
+              2,
+              1,
+              "outside"
+            ],
+            [
+              2,
+              2,
+              "self"
+            ]
+          ],
+          "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+          "sphere_pair_relations": [
+            [
+              0,
+              1,
+              "intersecting"
+            ],
+            [
+              0,
+              2,
+              "intersecting"
+            ],
+            [
+              1,
+              2,
+              "intersecting"
+            ]
+          ],
+          "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+        },
+        "fixed_source_cotangent_vjp_eV_per_A": [
+          [
+            -1.7169867918260544e-06,
+            0.00017865436223848952,
+            0.5187944924931598
+          ],
+          [
+            -1.0182128162437906e-05,
+            0.10916515435384883,
+            -0.25934286376505944
+          ],
+          [
+            1.1899114954263958e-05,
+            -0.10934380871608732,
+            -0.2594516287281003
+          ]
+        ],
+        "geometry_sha256": "9c79a4c64348f69b1a63b0b5faea351026ba8357ab274fd53422d2e40e7fafbb",
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.473371638766829,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "positions_A": [
+          [
+            -1.3050571233331086e-06,
+            3.49083804706074e-05,
+            0.11916402181895955
+          ],
+          [
+            -7.648236716197144e-05,
+            0.7632967223431872,
+            -0.47698116810498054
+          ],
+          [
+            7.778742428530455e-05,
+            -0.7633316307236578,
+            -0.477014853713979
+          ]
+        ],
+        "source": [
+          [
+            -0.6898822517461113,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.344950519457803,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449317322883083,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_gradient_eV_per_A": [
+          [
+            2.806083373123212e-06,
+            0.0037530163899779506,
+            -0.9726893708042591
+          ],
+          [
+            0.0001338626696646604,
+            -1.3404922021914292,
+            0.48781409759674355
+          ],
+          [
+            -0.00013666875304339029,
+            1.3367391858358695,
+            0.48487527320023915
+          ]
+        ]
+      },
+      "plus": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "continuum_topology": {
+          "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+          "coefficient_count": 12,
+          "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+          "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+          "minimum_point_source_shell_margin_angstrom": 0.23135209418439528,
+          "minimum_sphere_tangency_margin_angstrom": 0.6485446490489154,
+          "point_source_relations": [
+            [
+              0,
+              0,
+              "self"
+            ],
+            [
+              0,
+              1,
+              "inside"
+            ],
+            [
+              0,
+              2,
+              "inside"
+            ],
+            [
+              1,
+              0,
+              "inside"
+            ],
+            [
+              1,
+              1,
+              "self"
+            ],
+            [
+              1,
+              2,
+              "outside"
+            ],
+            [
+              2,
+              0,
+              "inside"
+            ],
+            [
+              2,
+              1,
+              "outside"
+            ],
+            [
+              2,
+              2,
+              "self"
+            ]
+          ],
+          "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+          "sphere_pair_relations": [
+            [
+              0,
+              1,
+              "intersecting"
+            ],
+            [
+              0,
+              2,
+              "intersecting"
+            ],
+            [
+              1,
+              2,
+              "intersecting"
+            ]
+          ],
+          "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+        },
+        "fixed_source_cotangent_vjp_eV_per_A": [
+          [
+            1.69053450355885e-06,
+            -0.0001787150111057234,
+            0.5191882711470386
+          ],
+          [
+            1.0234854467526523e-05,
+            0.10971650668437405,
+            -0.25964858158955473
+          ],
+          [
+            -1.1925388971085374e-05,
+            -0.10953779167326833,
+            -0.2595396895574839
+          ]
+        ],
+        "geometry_sha256": "5bbfcacac496f9674c693b3e54432c5690e0a5b328c1d20295fa432097dc8642",
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.473672344898911,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "positions_A": [
+          [
+            1.3050571233331086e-06,
+            -3.49083804706074e-05,
+            0.11935997818104047
+          ],
+          [
+            7.648236716197144e-05,
+            0.7631812776568128,
+            -0.47711283189501946
+          ],
+          [
+            -7.778742428530455e-05,
+            -0.7631463692763422,
+            -0.477079146286021
+          ]
+        ],
+        "source": [
+          [
+            -0.689806599041862,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3448938954048948,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449127036369672,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_gradient_eV_per_A": [
+          [
+            -3.5584162473371283e-06,
+            -0.0037505725972548504,
+            -0.966098708871325
+          ],
+          [
+            -0.00013347315843420464,
+            -1.3362473368581904,
+            0.4815801002057085
+          ],
+          [
+            0.0001370315746757686,
+            1.3399979094266254,
+            0.4845186086510649
+          ]
+        ]
+      },
+      "step_A": 0.0002
+    },
+    {
+      "minus": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "continuum_topology": {
+          "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+          "coefficient_count": 12,
+          "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+          "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+          "minimum_point_source_shell_margin_angstrom": 0.23142478201586114,
+          "minimum_sphere_tangency_margin_angstrom": 0.6485235846054066,
+          "point_source_relations": [
+            [
+              0,
+              0,
+              "self"
+            ],
+            [
+              0,
+              1,
+              "inside"
+            ],
+            [
+              0,
+              2,
+              "inside"
+            ],
+            [
+              1,
+              0,
+              "inside"
+            ],
+            [
+              1,
+              1,
+              "self"
+            ],
+            [
+              1,
+              2,
+              "outside"
+            ],
+            [
+              2,
+              0,
+              "inside"
+            ],
+            [
+              2,
+              1,
+              "outside"
+            ],
+            [
+              2,
+              2,
+              "self"
+            ]
+          ],
+          "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+          "sphere_pair_relations": [
+            [
+              0,
+              1,
+              "intersecting"
+            ],
+            [
+              0,
+              2,
+              "intersecting"
+            ],
+            [
+              1,
+              2,
+              "intersecting"
+            ]
+          ],
+          "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+        },
+        "fixed_source_cotangent_vjp_eV_per_A": [
+          [
+            -8.551881028097208e-07,
+            8.933481678616295e-05,
+            0.518892814638295
+          ],
+          [
+            -5.0976610839646815e-06,
+            0.10930312710889062,
+            -0.25941920811381886
+          ],
+          [
+            5.952849186774403e-06,
+            -0.10939246192567678,
+            -0.2594736065244761
+          ]
+        ],
+        "geometry_sha256": "bf3ba1e336503ba46ddbcd83baa9ef27fc8916e14cb39d3dbdca527359ec0379",
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4734468214248957,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "positions_A": [
+          [
+            -6.525285616665543e-07,
+            1.74541902353037e-05,
+            0.11921301090947978
+          ],
+          [
+            -3.824118358098572e-05,
+            0.7632678611715936,
+            -0.4770140840524903
+          ],
+          [
+            3.889371214265228e-05,
+            -0.7632853153618289,
+            -0.4770309268569895
+          ]
+        ],
+        "source": [
+          [
+            -0.6898633418423371,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449363690323103,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449269728100269,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_gradient_eV_per_A": [
+          [
+            1.4971263503229581e-06,
+            0.0018762027501009193,
+            -0.971042002466076
+          ],
+          [
+            6.688274110789277e-05,
+            -1.3394329165997851,
+            0.4862556876287059
+          ],
+          [
+            -6.837986746079699e-05,
+            1.337556713790893,
+            0.48478631483736995
+          ]
+        ]
+      },
+      "plus": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "continuum_topology": {
+          "cavity_topology_sha256": "fd284237ed4849a63512e1ef4b0ac1844e7655334fa45418890bfd3858856442",
+          "coefficient_count": 12,
+          "coefficient_topology_sha256": "cf302703383afa283a7bf374c5a08af4486de4ac6527cc0d05b5bb3146fefcbf",
+          "configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+          "minimum_point_source_shell_margin_angstrom": 0.2313935413337277,
+          "minimum_sphere_tangency_margin_angstrom": 0.6485548286174037,
+          "point_source_relations": [
+            [
+              0,
+              0,
+              "self"
+            ],
+            [
+              0,
+              1,
+              "inside"
+            ],
+            [
+              0,
+              2,
+              "inside"
+            ],
+            [
+              1,
+              0,
+              "inside"
+            ],
+            [
+              1,
+              1,
+              "self"
+            ],
+            [
+              1,
+              2,
+              "outside"
+            ],
+            [
+              2,
+              0,
+              "inside"
+            ],
+            [
+              2,
+              1,
+              "outside"
+            ],
+            [
+              2,
+              2,
+              "self"
+            ]
+          ],
+          "point_source_topology_sha256": "51070fc4271b2ed042fbb4d374a748ebfd5d3376f2b8518a51b10aa35172d4c2",
+          "sphere_pair_relations": [
+            [
+              0,
+              1,
+              "intersecting"
+            ],
+            [
+              0,
+              2,
+              "intersecting"
+            ],
+            [
+              1,
+              2,
+              "intersecting"
+            ]
+          ],
+          "sphere_pair_topology_sha256": "fd9ff6d037c032db7c282eeb3fc3f473ace3c20ed1daa1bfa28e9039f6186506"
+        },
+        "fixed_source_cotangent_vjp_eV_per_A": [
+          [
+            8.485750252652816e-07,
+            -8.934997900347796e-05,
+            0.5190897041656903
+          ],
+          [
+            5.110842667287545e-06,
+            0.10957880340125656,
+            -0.2595720671718076
+          ],
+          [
+            -5.9594176925528265e-06,
+            -0.10948945342225308,
+            -0.2595176369938827
+          ]
+        ],
+        "geometry_sha256": "cab7cb9b629d9f7d28a2fd954a8c64754bceaf1a2d449d39495205da98b07c9e",
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4735971744915393,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "positions_A": [
+          [
+            6.525285616665543e-07,
+            -1.74541902353037e-05,
+            0.11931098909052024
+          ],
+          [
+            3.824118358098572e-05,
+            0.7632101388284064,
+            -0.4770799159475097
+          ],
+          [
+            -3.889371214265228e-05,
+            -0.7631926846381711,
+            -0.4770630731430105
+          ]
+        ],
+        "source": [
+          [
+            -0.6898255154995326,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449080570058041,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3449174584937285,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "total_gradient_eV_per_A": [
+          [
+            -1.6852095911948965e-06,
+            -0.0018755920927371744,
+            -0.9677466718126646
+          ],
+          [
+            -6.678536405924102e-05,
+            -1.337310498721652,
+            0.4831386889001263
+          ],
+          [
+            6.847057365279513e-05,
+            1.3391860908020121,
+            0.48460798293436735
+          ]
+        ]
+      },
+      "step_A": 0.0001
+    }
+  ],
+  "identity": {
+    "continuum_configuration_sha256": "0fe70a89a1ea6e44cd7318619de7ca8b6d0cdf8b98d1f9ef52bd92ab47e7e15e",
+    "continuum_provenance_sha256": "428f844ba01c37f647e3e06323c06744cea7ab89cf6621746fc6b6c53fcd965b",
+    "continuum_provider_id": "maple.route2.continuum.smooth-harmonic-point-l0-functional.impl.v1",
+    "field_space_sha256": "a851270534b7a2b74e810e5a54d1ea581925e4b50fac73caac6175fea66d34ec",
+    "model_configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+    "model_provenance_sha256": "3a4d2e210f4f51e90e1dac5fbe2300a20dc2b06aac57873617062a29fbfe3167",
+    "model_provider_id": "maple.route2.model.aimnet2-geometry-mediated-float64.impl.v1",
+    "model_runtime": {
+      "aimnet_package_version": "0.2.0",
+      "aimnet_runtime_files_sha256": {
+        "__init__.py": "bb18b97049cb5f783f0bb9d49f11b050b845fb0c8d214c1c6142260d8867a0a0",
+        "config.py": "0232457935c9e08aae689d778de70a872b5ecf409b1d138ace5c3271f63b9360",
+        "constants.py": "4fa79bfc21b9764c6e520db65dff16885d22181f892e82cdcc7abd47c491ceb4",
+        "dftd3_data.pt": "83d1d0ff69de90cb3ded49c80c8151786106f2aea7eb3425abe625e4b1909ce2",
+        "kernels/__init__.py": "7d692e675f0fde3bfea8d1815ea4fee2dceb41e6e6d3e993cb742e2843ef39be",
+        "kernels/conv_sv_2d_sp_wp.py": "b67d5a342f602f91514785c13be20a00ab9c5840f2995729d518e5668a069e12",
+        "models/__init__.py": "fdc6de2603dfdf9c505bb9e26f5ce7d15784be04f12b8997464c18178ef6b5db",
+        "models/aimnet2.py": "a6fcfb549ab3906165f1721a2de1332078f63c5d17dd276fe6d67887e1a9658f",
+        "models/aimnet2_dftd3_wb97m.yaml": "1a4f3af7fd914085f3947c1135b7ec6a2e2ef703d7de803220d2b523bd5e0452",
+        "models/base.py": "f22ed8577cff74cc63e7b51897e231565733732f61f8377db9bf616b8d73bf37",
+        "models/utils.py": "4670c83ab1c37459526c60b9da0298252a76d2a79feffb571e1d99987c221d0f",
+        "modules/__init__.py": "23ef617aa45d9d77b2a4c523cde43a6381004ccffd9f8345c820ba3a6e87d95c",
+        "modules/aev.py": "c283deaa5a4cb3f9faccec6b04c457848ab421a07629e639c3b89391458efdd7",
+        "modules/core.py": "e95b05a9add7534c3b785ea1743af3f5e269cb20afa228ff5f55d929a5aa239a",
+        "modules/lr.py": "fe31354eede1dc4d8042ff5f0faab8d1b719b03a347e2227e2c7cdd912ac076f",
+        "nbops.py": "4a6f78489e719aa8cac37d6b7ac09dfdcda6368aa8aec4984f88c299f51c7c50",
+        "ops.py": "5e06d7cb2fe7e231ec336282b505bdf1236f082c55389c2ace5f2abc5165ecda"
+      },
+      "architecture_configuration": "models/aimnet2_dftd3_wb97m.yaml",
+      "architecture_configuration_sha256": "1a4f3af7fd914085f3947c1135b7ec6a2e2ef703d7de803220d2b523bd5e0452",
+      "checkpoint_state_dict_policy": "unchanged-legacy-state-dict; expected unused sentinel buffer impemented_species only",
+      "checkpoint_weights_changed": false,
+      "coordinate_dtype": "torch.float64",
+      "negative_control": false,
+      "package_versions": {
+        "aimnet": "0.2.0",
+        "nvalchemi-toolkit-ops": "0.3.1",
+        "pyyaml": "6.0.3",
+        "torch": "2.12.0+cu130",
+        "warp-lang": "1.13.0"
+      },
+      "parameter_dtype": "torch.float64",
+      "public_ase_calculator": false,
+      "public_hessian": false,
+      "public_hvp": false,
+      "route2_public_ase_admitted": false,
+      "runtime_kind": "aimnet-reconstructed-float64-runtime-v2",
+      "second_order_coordinate_graph": "frozen-deep-copy-with-embedded-dftd3-replaced-by-identity; source-bound-upstream-dftd3-reapplied-with-hessian-true",
+      "second_order_standard_forward_parity_tolerances": {
+        "charge_absolute_e": 1e-10,
+        "charge_tangent_absolute_e_per_A": 1e-10,
+        "charge_vjp_absolute_eV_per_A": 1e-10,
+        "energy_absolute_eV": 1e-08,
+        "intrinsic_gradient_absolute_eV_per_A": 1e-07
+      }
+    },
+    "pairing_sha256": "878e74e7f34235b66761a6750dc62c50d6b443abf276c988260dcbfafd3b27c9",
+    "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+    "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+    "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+    "source_space_sha256": "659df66e9f083686fc46e630cadbbc2c2bc86f58a70052cfc53d550b95e1124d"
+  },
+  "measurement_sha256": "01009ee3f5f829da5906cf051f4bc6b110d8c28300ff31467a6dc663943b88a6",
+  "protocol": {
+    "aimnet_runtime": "reconstructed-python-float64",
+    "continuum": {
+      "exposure_lmax": 2,
+      "exposure_radial_quadrature_order": 32,
+      "finite_dielectric_parameterization": false,
+      "green_radial_quadrature_order": 32,
+      "model": "smooth-weighted-harmonic-conductor-reference",
+      "point_source_map": "analytic-Laplace-addition-theorem",
+      "post_solve_residual_available": true,
+      "radii_A": [
+        1.52,
+        1.2,
+        1.2
+      ],
+      "surface_lmax": 1,
+      "transition_width_A2": 0.18
+    },
+    "continuum_kind": "harmonic-point",
+    "finite_difference_target": "total-scalar-gradient",
+    "fixed_geometry_mutual_polarization": false,
+    "fixed_source_cotangent_in_contracted_charge_hessian_fd": true,
+    "hvp_formula": "H_E h + (G_RR h + G_Rc J_c h) + J_c^T(G_cR h + G_cc J_c h) + D_R[J_c^T v][h]",
+    "outer_charge_fixed_point": false
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": null,
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-15T08:18:15.497193+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": false,
+      "deterministic_debug_mode": 0,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 1,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 18.564666341990232,
+  "schema_version": "route2-aimnet2-geometry-mediated-hvp-water-artifact-v1",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/aimnet/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/aimnet/_aimnet2_calculator.py": "86f04a8fabd288c2687c624bcfe9def43a8d4207cd33ed06dd860fe9c2d18b7f",
+    "maple/function/calculator/aimnet/_aimnet2_float64_source.py": "c672d69d2290c957835802505bdf85f505affa4385bd04a3c427c490b21e51b4",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "134ac20977888df0dd4a8cec960f2c59d60c7e05792a589c16dfdae8253807a6",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "b3b0987fbe01632d6f4d38a576caf5b193737f8a9c4ec995a8d066c9187e3749",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "40e1f722ed8748d80edf47078bc4b70cf772235cd7193f1734f39d9e8baf4fbb",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "f336a28b34b9159cdb9acd30efefa1d06103220336acd35e4524299ff1ed89d2",
+    "maple/solvation/api/state_registry.py": "f1d0e3a09cfed6577531d3548e68c9373a15e27aa0c7dc16c7a32d90f887fc84",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "012afbcb148f35c2a4811c0e2ccab9335ac6af8b8c72c4f0c738b8820a9dd832",
+    "maple/solvation/continuum/atomic_l1_pyddx.py": "1387c27e5f8c4ed1c72b124755d05388321ff8944868563e4384d5bd5d51cfe8",
+    "maple/solvation/continuum/functional.py": "65bc2c387a1a83ddade810ccd84f21e9433dd355bb7319657bf12942395142f8",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/continuum/harmonic_exposure.py": "66f1225f037fd87dd284dbc17f7d9e2acedac298423ffef2d26c9d20494dd83d",
+    "maple/solvation/continuum/harmonic_point_source.py": "a74720760c7e377904b324d03b1a54d11d0f8f8cc1c37a23c347bd64053ece55",
+    "maple/solvation/continuum/harmonic_point_torch_functional.py": "e70b5b4fa78704a67f849a9d3662035b04e24d178a60aaa2ceef46acf7f60dd5",
+    "maple/solvation/continuum/harmonic_single_layer.py": "a36fca095a57bc61251898e752cd3c80018b0af69a2318bec9fbd165164411dc",
+    "maple/solvation/continuum/harmonic_torch_functional.py": "542e2fc5983d458fe9e77089137d457a4b2c9500aaa851adc264b43bde41cc94",
+    "maple/solvation/continuum/harmonic_torch_primitives.py": "063e0d4227fbdba87a94693e6422c4e97bef93ede8fa4473e1b0aba60da70988",
+    "maple/solvation/coupling/__init__.py": "3bc4dd8ec81a8c84fb0bd9f1714d132e6bf6acd71710bb73889d68169bf112ae",
+    "maple/solvation/coupling/adjoint.py": "7e41961c7b18ea578daab066a9f909313d3160d0e192cccbdbeee01083ca7a91",
+    "maple/solvation/coupling/energy.py": "e1778a31c5d25de23a453eefb300588f7c81c288bd46e471dd2b4fb2f745106f",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/geometry_mediated.py": "50347e5b4186011ecf901cb91e64039032bb06e9916a832e1e7167bfab46819a",
+    "maple/solvation/coupling/linearization.py": "baa48bcaef49963548e727236ff86ca2e69b2b1b41fbf07b84f41bc5e77fa14f",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "6f8e85c79ef6a3c36b920233c2cff6c310075ef69f31ecd817cbbf77199f8085",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "0cc3c20c154ada5466bb51f6a82138b9d626b5f96133e00709351e2dae94cbff",
+    "maple/solvation/models/aimnet2.py": "64d762c32754df472dd344b717557fff034eb78e7ac9b7d6f59e91bf56c9d62f",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/release/__init__.py": "6ab1e3e67e513ed55869525516b1d1b51e80ee48e386c82c08336104cc1ffadf",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/evidence.py": "c757a03d54193a74856bcad25bd40c1a035f6c0892097e2cfc5a12000626c0e8",
+    "maple/solvation/release/geometry_mediated.py": "83b33524505b4105bace7eafe233c04e2ac2047bbe342faffdb0c81cd6346b4b",
+    "maple/solvation/release/geometry_mediated_hessian.py": "fe1a4e1f529be18adbbffdc1092ff881447c4ac967b0c1994ab30fa389f32e89",
+    "maple/solvation/release/geometry_mediated_panel.py": "35f2f11878f1334ef5e47aeab11abd4019a34c35a81c1cda48bb342959271c19",
+    "maple/solvation/release/geometry_mediated_path.py": "2143ba2a888269840895066800d3ca01071b44968182e5da7c3f22c1b349e341",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "tools/route2_release/aimnet2_geometry_mediated_common.py": "3788e69310c467f0eeebc8f56cd5c8892e5ddb8f8cc4bb491a52a45ed58c9a7f",
+    "tools/route2_release/run_aimnet2_geometry_mediated_hvp.py": "bcd15df9fa0aa593115e7466a69a9627a561047337442266f216644683c5e28a"
+  },
+  "status": "diagnostic-hvp-gates-passed-not-admitted",
+  "summary": {
+    "bilinear_symmetry": {
+      "absolute_error_eV_per_A2": 3.552713678800501e-15,
+      "first_dot_H_second_eV_per_A2": 14.294605083745521,
+      "second_dot_H_first_eV_per_A2": 14.294605083745525
+    },
+    "capabilities": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "M": false,
+      "V": false
+    },
+    "center": {
+      "center_event_guard": {
+        "gate_passed": true,
+        "neighbor_cutoff": {
+          "center_margin_A": 3.473522,
+          "certified_segment_lower_bound_A": 3.473522,
+          "gate_passed": true,
+          "guard_A": 0.02,
+          "trial_margin_A": 3.473522
+        },
+        "point_source_shell": {
+          "applicable": true,
+          "center_margin_A": 0.23143498173741572,
+          "certified_segment_lower_bound_A": 0.23143498173741572,
+          "gate_passed": true,
+          "guard_A": 0.02,
+          "margins_available": true,
+          "trial_margin_A": 0.23143498173741572
+        },
+        "relative_displacement_bound_A": 0.0,
+        "same_continuum_topology": true,
+        "same_model_topology": true,
+        "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+        "sphere_tangency": {
+          "applicable": true,
+          "center_margin_A": 0.6485650182625842,
+          "certified_segment_lower_bound_A": 0.6485650182625842,
+          "gate_passed": true,
+          "guard_A": 0.02,
+          "margins_available": true,
+          "trial_margin_A": 0.6485650182625842
+        },
+        "straight_segment_only": true
+      },
+      "continuum_energy_eV": -0.54547237587567,
+      "geometry_sha256": "53431fc879fd8713ca5938d72b73771e0cdc7eda3d9d4776c4106788c575a943",
+      "gradient_ledger_max_absolute_error_eV_per_A": 0.0,
+      "reciprocity": {
+        "charge_gauge_vjp_norm_eV_per_A": 0.0,
+        "gate_passed": true,
+        "maximum_apply_adjoint_absolute_error_eV": 1.7763568394002505e-15,
+        "maximum_apply_adjoint_relative_error": 9.890835631078345e-16,
+        "maximum_charge_fd_absolute_error_eV_per_e": 2.1084523016412504e-12,
+        "maximum_charge_fd_relative_error": 1.2108193708350723e-11,
+        "maximum_reciprocity_absolute_error_eV": 1.9984014443252818e-15,
+        "maximum_reciprocity_relative_error": 2.8080831850851933e-15,
+        "probe_count": 4,
+        "seed": 20260815,
+        "source_gradient_half_error_eV_per_source_unit": 3.387999773988765e-16,
+        "source_gradient_threshold_eV_per_source_unit": 1.3146134666954478e-09
+      },
+      "source_total_charge_e": 0.0,
+      "stationarity": {
+        "absolute_residual_eV_per_e": 2.8867763194343613e-15,
+        "capability_admitted": false,
+        "gate_passed": true,
+        "relative_residual": 5.5902832147861765e-16,
+        "state_dimension": 12,
+        "surface_condition_number": 107.08433946218663
+      },
+      "total_energy_eV": -2081.586346969525,
+      "vacuum_energy_eV": -2081.0408745936493
+    },
+    "central_convergence_ratios": {
+      "charge_jvp": [
+        0.2499983688611362,
+        0.2500141296382527
+      ],
+      "contracted_charge_hessian": [
+        0.25000074111299014,
+        0.2499992055148294
+      ],
+      "total_hvp": [
+        0.2614502854154945,
+        0.24218186095067906
+      ]
+    },
+    "conductor_reference_only": true,
+    "diagnostic_gates_passed": true,
+    "direction_records": [
+      {
+        "component_ledger_max_absolute_error_eV_per_A2": 0.0,
+        "component_norms": {
+          "continuum_joint_position_hvp_eV_per_A2": 4.179189867015273,
+          "continuum_joint_source_hvp": 1.3864488467811238,
+          "continuum_source_response_pullback_eV_per_A2": 0.28487009736981256,
+          "contracted_source_hessian_eV_per_A2": 2.1310336906441183,
+          "intrinsic_energy_hvp_eV_per_A2": 34.13111580104285,
+          "total_hvp_eV_per_A2": 32.35690698108939
+        },
+        "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+        "diagnostic_only": true,
+        "label": "seeded-internal",
+        "model_parity": {
+          "charge_max_absolute_error_e": 0.0,
+          "charge_tangent_residual_e_per_A": 2.0816681711721685e-17,
+          "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+          "energy_absolute_error_eV": 4.306457412894815e-10,
+          "intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09
+        },
+        "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+        "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+        "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "source_cotangent_max_absolute_error_eV_per_e": 2.220446049250313e-16,
+        "source_tangent_residual_e_per_A": 2.0816681711721685e-17,
+        "tier_h_admitted": false
+      },
+      {
+        "component_ledger_max_absolute_error_eV_per_A2": 0.0,
+        "component_norms": {
+          "continuum_joint_position_hvp_eV_per_A2": 14.544404817252918,
+          "continuum_joint_source_hvp": 8.842462311028749,
+          "continuum_source_response_pullback_eV_per_A2": 3.991032631415335,
+          "contracted_source_hessian_eV_per_A2": 3.274876711743772,
+          "intrinsic_energy_hvp_eV_per_A2": 76.40550656783698,
+          "total_hvp_eV_per_A2": 68.40395781924478
+        },
+        "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+        "diagnostic_only": true,
+        "label": "orthogonal-radial-internal",
+        "model_parity": {
+          "charge_max_absolute_error_e": 0.0,
+          "charge_tangent_residual_e_per_A": 2.7755575615628914e-17,
+          "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+          "energy_absolute_error_eV": 4.306457412894815e-10,
+          "intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09
+        },
+        "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+        "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+        "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "source_cotangent_max_absolute_error_eV_per_e": 2.220446049250313e-16,
+        "source_tangent_residual_e_per_A": 2.7755575615628914e-17,
+        "tier_h_admitted": false
+      },
+      {
+        "component_ledger_max_absolute_error_eV_per_A2": 0.0,
+        "component_norms": {
+          "continuum_joint_position_hvp_eV_per_A2": 0.0,
+          "continuum_joint_source_hvp": 0.0,
+          "continuum_source_response_pullback_eV_per_A2": 0.0,
+          "contracted_source_hessian_eV_per_A2": 0.0,
+          "intrinsic_energy_hvp_eV_per_A2": 0.0,
+          "total_hvp_eV_per_A2": 0.0
+        },
+        "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+        "diagnostic_only": true,
+        "label": "translation-x",
+        "model_parity": {
+          "charge_max_absolute_error_e": 0.0,
+          "charge_tangent_residual_e_per_A": 0.0,
+          "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+          "energy_absolute_error_eV": 4.306457412894815e-10,
+          "intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09
+        },
+        "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+        "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+        "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "source_cotangent_max_absolute_error_eV_per_e": 2.220446049250313e-16,
+        "source_tangent_residual_e_per_A": 0.0,
+        "tier_h_admitted": false
+      },
+      {
+        "component_ledger_max_absolute_error_eV_per_A2": 0.0,
+        "component_norms": {
+          "continuum_joint_position_hvp_eV_per_A2": 0.0,
+          "continuum_joint_source_hvp": 0.0,
+          "continuum_source_response_pullback_eV_per_A2": 0.0,
+          "contracted_source_hessian_eV_per_A2": 0.0,
+          "intrinsic_energy_hvp_eV_per_A2": 0.0,
+          "total_hvp_eV_per_A2": 0.0
+        },
+        "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+        "diagnostic_only": true,
+        "label": "translation-y",
+        "model_parity": {
+          "charge_max_absolute_error_e": 0.0,
+          "charge_tangent_residual_e_per_A": 0.0,
+          "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+          "energy_absolute_error_eV": 4.306457412894815e-10,
+          "intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09
+        },
+        "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+        "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+        "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "source_cotangent_max_absolute_error_eV_per_e": 2.220446049250313e-16,
+        "source_tangent_residual_e_per_A": 0.0,
+        "tier_h_admitted": false
+      },
+      {
+        "component_ledger_max_absolute_error_eV_per_A2": 0.0,
+        "component_norms": {
+          "continuum_joint_position_hvp_eV_per_A2": 0.0,
+          "continuum_joint_source_hvp": 0.0,
+          "continuum_source_response_pullback_eV_per_A2": 0.0,
+          "contracted_source_hessian_eV_per_A2": 0.0,
+          "intrinsic_energy_hvp_eV_per_A2": 0.0,
+          "total_hvp_eV_per_A2": 0.0
+        },
+        "continuum_second_order_behavior_sha256": "43dc3306cf11afce80b210e19902d390d09463d52480f48775d69130de3d42e9",
+        "diagnostic_only": true,
+        "label": "translation-z",
+        "model_parity": {
+          "charge_max_absolute_error_e": 0.0,
+          "charge_tangent_residual_e_per_A": 0.0,
+          "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+          "energy_absolute_error_eV": 4.306457412894815e-10,
+          "intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09
+        },
+        "model_second_order_behavior_sha256": "bc5e47e3aaa9feb8623d8e96aff1140646073338bbdd94c958071cbfe7526a0d",
+        "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "scalar_fingerprint_sha256": "1e8bda09609b43bdd4201de177c33a323fde809b2174c976b05a06bb223aedad",
+        "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1",
+        "source_cotangent_max_absolute_error_eV_per_e": 2.220446049250313e-16,
+        "source_tangent_residual_e_per_A": 0.0,
+        "tier_h_admitted": false
+      }
+    ],
+    "finite_dielectric_parameterization": false,
+    "finite_difference_error_norms": {
+      "charge_jvp_e_per_A": [
+        3.524794331122906e-07,
+        8.81192833351706e-08,
+        2.203106592738926e-08
+      ],
+      "contracted_charge_hessian_eV_per_A2": [
+        8.140312848327802e-06,
+        2.035084244973546e-06,
+        5.08769444399133e-07
+      ],
+      "total_hvp_eV_per_A2": [
+        0.0005355905410854544,
+        0.00014003029983263116,
+        3.391279860294818e-05
+      ]
+    },
+    "finite_difference_records": [
+      {
+        "charge_jvp_error_norm_e_per_A": 3.524794331122906e-07,
+        "contracted_charge_hessian_error_norm_eV_per_A2": 8.140312848327802e-06,
+        "minus_segment_guard": {
+          "gate_passed": true,
+          "neighbor_cutoff": {
+            "center_margin_A": 3.473522,
+            "certified_segment_lower_bound_A": 3.4727851881208243,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "trial_margin_A": 3.473221261204224
+          },
+          "point_source_shell": {
+            "applicable": true,
+            "center_margin_A": 0.23143498173741572,
+            "certified_segment_lower_bound_A": 0.2309580493127369,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.23139412239613677
+          },
+          "relative_displacement_bound_A": 0.00043607308339988393,
+          "same_continuum_topology": true,
+          "same_model_topology": true,
+          "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+          "sphere_tangency": {
+            "applicable": true,
+            "center_margin_A": 0.6485650182625842,
+            "certified_segment_lower_bound_A": 0.647963251038195,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.6483993241215948
+          },
+          "straight_segment_only": true
+        },
+        "plus_segment_guard": {
+          "gate_passed": true,
+          "neighbor_cutoff": {
+            "center_margin_A": 3.473522,
+            "certified_segment_lower_bound_A": 3.4730859269166,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "trial_margin_A": 3.4738226734587334
+          },
+          "point_source_shell": {
+            "applicable": true,
+            "center_margin_A": 0.23143498173741572,
+            "certified_segment_lower_bound_A": 0.23083310656886025,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.23126917965226013
+          },
+          "relative_displacement_bound_A": 0.00043607308339988393,
+          "same_continuum_topology": true,
+          "same_model_topology": true,
+          "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+          "sphere_tangency": {
+            "applicable": true,
+            "center_margin_A": 0.6485650182625842,
+            "certified_segment_lower_bound_A": 0.6480882470598863,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.6485243201432862
+          },
+          "straight_segment_only": true
+        },
+        "step_A": 0.0004,
+        "total_hvp_error_norm_eV_per_A2": 0.0005355905410854544
+      },
+      {
+        "charge_jvp_error_norm_e_per_A": 8.81192833351706e-08,
+        "contracted_charge_hessian_error_norm_eV_per_A2": 2.035084244973546e-06,
+        "minus_segment_guard": {
+          "gate_passed": true,
+          "neighbor_cutoff": {
+            "center_margin_A": 3.473522,
+            "certified_segment_lower_bound_A": 3.473153602225129,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "trial_margin_A": 3.473371638766829
+          },
+          "point_source_shell": {
+            "applicable": true,
+            "center_margin_A": 0.23143498173741572,
+            "certified_segment_lower_bound_A": 0.23119653567655055,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.23141457221825057
+          },
+          "relative_displacement_bound_A": 0.0002180365417000185,
+          "same_continuum_topology": true,
+          "same_model_topology": true,
+          "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+          "sphere_tangency": {
+            "applicable": true,
+            "center_margin_A": 0.6485650182625842,
+            "certified_segment_lower_bound_A": 0.6482641211539052,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.6484821576956052
+          },
+          "straight_segment_only": true
+        },
+        "plus_segment_guard": {
+          "gate_passed": true,
+          "neighbor_cutoff": {
+            "center_margin_A": 3.473522,
+            "certified_segment_lower_bound_A": 3.4733039634583,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "trial_margin_A": 3.473672344898911
+          },
+          "point_source_shell": {
+            "applicable": true,
+            "center_margin_A": 0.23143498173741572,
+            "certified_segment_lower_bound_A": 0.23113405764269526,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.23135209418439528
+          },
+          "relative_displacement_bound_A": 0.0002180365417000185,
+          "same_continuum_topology": true,
+          "same_model_topology": true,
+          "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+          "sphere_tangency": {
+            "applicable": true,
+            "center_margin_A": 0.6485650182625842,
+            "certified_segment_lower_bound_A": 0.6483266125072153,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.6485446490489154
+          },
+          "straight_segment_only": true
+        },
+        "step_A": 0.0002,
+        "total_hvp_error_norm_eV_per_A2": 0.00014003029983263116
+      },
+      {
+        "charge_jvp_error_norm_e_per_A": 2.203106592738926e-08,
+        "contracted_charge_hessian_error_norm_eV_per_A2": 5.08769444399133e-07,
+        "minus_segment_guard": {
+          "gate_passed": true,
+          "neighbor_cutoff": {
+            "center_margin_A": 3.473522,
+            "certified_segment_lower_bound_A": 3.473337803154046,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "trial_margin_A": 3.4734468214248957
+          },
+          "point_source_shell": {
+            "applicable": true,
+            "center_margin_A": 0.23143498173741572,
+            "certified_segment_lower_bound_A": 0.23131576374501117,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.23142478201586114
+          },
+          "relative_displacement_bound_A": 0.00010901827084996669,
+          "same_continuum_topology": true,
+          "same_model_topology": true,
+          "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+          "sphere_tangency": {
+            "applicable": true,
+            "center_margin_A": 0.6485650182625842,
+            "certified_segment_lower_bound_A": 0.6484145663345566,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.6485235846054066
+          },
+          "straight_segment_only": true
+        },
+        "plus_segment_guard": {
+          "gate_passed": true,
+          "neighbor_cutoff": {
+            "center_margin_A": 3.473522,
+            "certified_segment_lower_bound_A": 3.47341298172915,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "trial_margin_A": 3.4735971744915393
+          },
+          "point_source_shell": {
+            "applicable": true,
+            "center_margin_A": 0.23143498173741572,
+            "certified_segment_lower_bound_A": 0.23128452306287772,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.2313935413337277
+          },
+          "relative_displacement_bound_A": 0.00010901827084996669,
+          "same_continuum_topology": true,
+          "same_model_topology": true,
+          "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+          "sphere_tangency": {
+            "applicable": true,
+            "center_margin_A": 0.6485650182625842,
+            "certified_segment_lower_bound_A": 0.6484458103465537,
+            "gate_passed": true,
+            "guard_A": 0.02,
+            "margins_available": true,
+            "trial_margin_A": 0.6485548286174037
+          },
+          "straight_segment_only": true
+        },
+        "step_A": 0.0001,
+        "total_hvp_error_norm_eV_per_A2": 3.391279860294818e-05
+      }
+    ],
+    "fixed_graph_cavity_stratum_only": true,
+    "freq_ts_irc_admitted": false,
+    "gates": {
+      "all_hvp_component_ledgers": true,
+      "all_stencil_segments_event_guarded": true,
+      "all_stencils_same_stratum": true,
+      "center_event_guard": true,
+      "center_reciprocity_metric_and_charge_gauge": true,
+      "center_scalar_and_gradient_ledgers": true,
+      "center_stationarity": true,
+      "central_second_order_convergence": true,
+      "charge_jvp_finite_difference": true,
+      "complete_hvp_total_gradient_finite_difference": true,
+      "contracted_charge_hessian_finite_difference": true,
+      "diagnostic_only_admission_flags": true,
+      "fixed_total_charge_tangent": true,
+      "hessian_bilinear_symmetry": true,
+      "model_second_order_forward_parity": true,
+      "three_translation_source_jvp_zero_modes": true,
+      "three_translation_total_hvp_zero_modes": true
+    },
+    "maximum_component_ledger_error_eV_per_A2": 0.0,
+    "maximum_source_tangent_residual_e_per_A": 2.7755575615628914e-17,
+    "md_admitted": false,
+    "model_parity_maxima": {
+      "charge_max_absolute_error_e": 0.0,
+      "charge_tangent_residual_e_per_A": 2.7755575615628914e-17,
+      "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+      "energy_absolute_error_eV": 4.306457412894815e-10,
+      "intrinsic_gradient_max_absolute_error_eV_per_A": 1.4042003115832813e-09
+    },
+    "schema_version": "route2-aimnet2-geometry-mediated-hvp-water-summary-v1",
+    "thresholds": {
+      "bilinear_symmetry_eV_per_A2": 2e-08,
+      "central_convergence_max_ratio": 0.45,
+      "charge_jvp_fd_e_per_A": 5e-08,
+      "contracted_charge_hessian_fd_eV_per_A2": 1e-06,
+      "total_hvp_fd_eV_per_A2": 5e-05,
+      "translation_source_jvp_e_per_A": 1e-10,
+      "translation_total_hvp_eV_per_A2": 2e-08
+    },
+    "tier_h_admitted": false,
+    "translation_zero_modes": {
+      "source_jvp_norms_e_per_A": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "total_hvp_norms_eV_per_A2": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "water_only": true,
+    "workflow_admission": {
+      "freq": false,
+      "irc": false,
+      "md": false,
+      "opt": false,
+      "public_ase_hvp": false,
+      "ts": false
+    }
+  },
+  "working_tree_clean": true
+}

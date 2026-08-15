@@ -46,6 +46,12 @@ MACE-POLAR fixed-point model or implies electronic mutual polarization. See
 [AIMNET2_GEOMETRY_MEDIATED.md](AIMNET2_GEOMETRY_MEDIATED.md) and
 [AIMNET2_POINT_HARMONIC.md](AIMNET2_POINT_HARMONIC.md).
 
+Its second-order diagnostic preserves the same ownership. The AIMNet2 adapter
+owns only `J_q h`, `H_E h`, and fixed-cotangent `D_R[J_q^T v][h]`; the sealed
+continuum scalar owns one joint `(R,c)` HVP; the coupling layer owns the
+four-term weak-scalar composition; and `release` recomputes evidence from raw
+operands. The pyddx arm has no sealed joint-HVP contract and fails closed.
+
 ## Migration rule
 
 The legacy `route2_engine.py` remains a compatibility shell while behavior is
@@ -62,6 +68,17 @@ migrated. Correct assets are wrapped or moved in small commits:
 
 No new module may become a second monolithic engine. Files above roughly 600
 lines require a documented single-responsibility reason.
+
+Two AIMNet2 diagnostic files currently cross that guide for explicit audit
+reasons, not because they are engines. `_aimnet2_float64_source.py` is the one
+source/version/checkpoint-bound reconstruction boundary, including the
+ordinary/second-order parity gate that cannot be separated from runtime
+identity. `release/geometry_mediated_hessian.py` is a pure, side-effect-free
+raw-record schema validator and reducer; its length is the explicit center,
+five-direction, six-endpoint, topology, and admission validation contract. It
+does not solve physics, call AIMNet2/Torch, or expose a capability. Further
+physics or workflow behavior must go in a new owned module rather than expand
+either file.
 
 ## Public unit boundary
 

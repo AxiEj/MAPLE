@@ -151,6 +151,9 @@ Synthetic tests currently establish:
 - NumPy/Torch source-operator parity;
 - source-direction finite differences, apply/adjoint reciprocity, mixed
   coordinate/source adjointness, and full coordinate finite differences;
+- a sealed joint `(R,c)` HVP whose two outputs are
+  `(G_RR h + G_Rc dc, G_cR h + G_cc dc)`, with exact quadratic and
+  finite-difference cross-checks and a final-method override guard;
 - translation, proper-rotation, same-element permutation, net-force, and
   torque identities;
 - a complete synthetic AIMNet2-charge chain rule through the registered
@@ -187,16 +190,19 @@ precision arms:
 
 The float64 result isolates a numerical precision blocker; it does not admit a
 force capability. The reconstruction is CPU-only, source/version/SHA-bound,
-not a public ASE calculator, and has no HVP. A preregistered sharded harness now
-exists for all seventeen H/C/N/O molecules in MAPLE's frozen PES asset. Each
-shard recomputes three geometry variants by three internal directions by three
-steps, including replay, reciprocity, stationarity, hard-neighbor,
-point/source-shell, and sphere-tangency event-distance gates. The remaining
-S/Cl asset controls are explicitly excluded by the local checkpoint contract.
-Until all seventeen clean v2 shards and explicit event-trial panels beyond the
-local water path are captured, there is no broader-domain or
-distorted-geometry claim. Neither arm supplies finite-dielectric, nonpolar,
-optimization, Hessian, or NVE evidence.
+not a public ASE calculator, and rejects public Hessian/HVP entry points. A
+separate Route-2 research method now exposes the parity-gated AIMNet2 charge
+JVP, intrinsic-energy HVP, and fixed-cotangent contracted charge Hessian for
+composition by the weak scalar. A preregistered sharded harness exists for all
+seventeen H/C/N/O molecules in MAPLE's frozen PES asset. Each shard recomputes
+three geometry variants by three internal directions by three steps, including
+replay, reciprocity, stationarity, hard-neighbor, point/source-shell, and
+sphere-tangency event-distance gates. The remaining S/Cl asset controls are
+explicitly excluded by the local checkpoint contract. Until all seventeen
+clean v2 shards and explicit event-trial panels beyond the local water path are
+captured, there is no broader-domain or distorted-geometry claim. Neither arm
+supplies finite-dielectric, nonpolar, optimization, Tier-H/FREQ, or NVE
+evidence.
 
 The historical v1 water shard remains immutable
 ([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md)).
@@ -220,6 +226,20 @@ operands, and every straight segment has certified hard-neighbor,
 point/source-shell, and sphere-tangency margins. The retained bundle is
 [`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).
 This water-only local result does not admit force, optimization, or MD.
+
+The complete local weak-scalar HVP has additionally been captured twice from a
+clean source-bound commit. The reducer recomputes all four coordinate-space
+terms, charge JVP and contracted-charge-Hessian finite differences, the HVP
+finite difference of the total scalar gradient, bilinear symmetry, all three
+rigid translations, and every center-to-stencil topology/event guard. At the
+smallest `1e-4 angstrom` step, the charge-JVP, contracted-charge-Hessian, and
+complete-HVP errors are `2.203106592738926e-8 e/angstrom`,
+`5.08769444399133e-7 eV/angstrom^2`, and
+`3.391279860294818e-5 eV/angstrom^2`; the two independent executions have the
+same scientific measurement SHA. The retained bundle is
+[`evidence/aimnet2-geometry-mediated-hvp-water-2b119022/`](evidence/aimnet2-geometry-mediated-hvp-water-2b119022/README.md).
+This proves only one local implementation canary. It does not override the
+negative methanol event/domain result or admit Tier H, FREQ, TS, or IRC.
 
 Run both continuum arms explicitly:
 
@@ -253,6 +273,11 @@ python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
   --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-loop.json
+
+python tools/route2_release/run_aimnet2_geometry_mediated_hvp.py \
+  --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
+  --device cpu \
+  --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-hvp.json
 ```
 
 All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false. The
@@ -260,8 +285,10 @@ reproducible methanol event-distance failure already blocks force admission for
 this profile; running the remaining shards can map scope but cannot convert
 that negative result into a pass. Explicit cutoff/source-shell/tangency panels
 beyond the retained local loop also remain required for any future profile.
-Hessian tasks additionally require the complete AIMNet2 contracted
-charge Hessian and continuum `RR/Rq/qR/qq` HVP blocks on a full event-free `C2`
-neighborhood.  Finite-dielectric physics and a separately derived same-scalar
-nonpolar term are later, independent model-definition tasks; neither may be
-inferred from this conductor diagnostic.
+The complete AIMNet2 contracted charge Hessian and continuum `RR/Rq/qR/qq`
+blocks now exist for the sealed harmonic research scalar and pass the retained
+water canary. Hessian tasks still require broad force-FD/HVP closure, mixed
+adjointness, stationary-point rigid modes, conditioning, and a full event-free
+`C2` neighborhood. Finite-dielectric physics and a separately derived
+same-scalar nonpolar term are later, independent model-definition tasks;
+neither may be inferred from this conductor diagnostic.

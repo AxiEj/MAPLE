@@ -127,9 +127,16 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   symmetry, three translations, and local event guards in two identical clean
   processes
   ([bundle](evidence/aimnet2-geometry-mediated-hvp-water-2b119022/README.md)).
+  A second source-bound water bundle uses a guarded SciPy hybrid root in exact
+  internal coordinates, assembles the complete `9 x 9` Cartesian Hessian,
+  closes all-column total-gradient finite differences over a four-step scan,
+  and verifies three translations, three stationary rotations, and a
+  correctly mass-weighted three-mode vibrational subspace in two identical
+  clean processes
+  ([bundle](evidence/aimnet2-geometry-mediated-frequency-water-f79d5051/README.md)).
   These isolate precision and close local water diagnostics but do not supply
-  full-domain `C2`, stationary-point/FREQ/TS/IRC, physical-solvent, workflow,
-  or release evidence.
+  broad event-free `C2`, multi-stationary-point/FREQ/TS/IRC,
+  physical-solvent, workflow, or release evidence.
   It remains a conductor reference, not an admitted water ddPCM model.
 - Full contract and literature boundary:
   [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).

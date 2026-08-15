@@ -52,6 +52,18 @@ continuum scalar owns one joint `(R,c)` HVP; the coupling layer owns the
 four-term weak-scalar composition; and `release` recomputes evidence from raw
 operands. The pyddx arm has no sealed joint-HVP contract and fails closed.
 
+Stationary-water Hessian evidence keeps numerical roles separate rather than
+creating another engine. `geometry_mediated_stationary.py` owns only the exact
+water internal-coordinate map and root-trace/event reduction;
+`geometry_mediated_frequency_records.py` validates raw center/HVP/FD records;
+`geometry_mediated_frequency.py` owns dense-Hessian, rigid-mode, and
+normal-mode gates; and the runner only orchestrates the real stack. The
+calculator-independent
+`maple/function/dispatcher/frequency/normal_modes.py` supplies the reusable,
+unit-explicit `eV/angstrom^2` mass-weighting and rigid/vibrational subspaces.
+No Route-2 module imports or reuses the legacy frequency driver's incorrect
+projection/unit path as scientific evidence.
+
 ## Migration rule
 
 The legacy `route2_engine.py` remains a compatibility shell while behavior is

@@ -241,6 +241,20 @@ same scientific measurement SHA. The retained bundle is
 This proves only one local implementation canary. It does not override the
 negative methanol event/domain result or admit Tier H, FREQ, TS, or IRC.
 
+A separate stationary-water canary now reuses SciPy's hybrid root solver over
+the exact two-bond/one-angle coordinate map, with every consecutive solver
+trial guarded against neighbor, point/source-shell, and sphere-tangency
+events. At the root it assembles all nine Cartesian HVP columns, checks them
+against total-gradient central differences at four decreasing steps, verifies
+Hessian symmetry and all six nonlinear-water rigid modes, and diagonalizes the
+three-dimensional vibrational block only after correct mass weighting. Two
+clean processes reproduce scientific measurement SHA
+`126327853eb0caadcf5e98b41992030789bbdf0f7ddf23cec9c4c31ed98b99a4`
+([bundle](evidence/aimnet2-geometry-mediated-frequency-water-f79d5051/README.md)).
+The reported `1638.23`, `2629.63`, and `2831.33 cm^-1` values are local
+implementation diagnostics for the conductor-reference scalar, not physical
+water-solvent frequencies or an accuracy claim.
+
 Run both continuum arms explicitly:
 
 ```bash
@@ -278,6 +292,11 @@ python tools/route2_release/run_aimnet2_geometry_mediated_hvp.py \
   --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-hvp.json
+
+python tools/route2_release/run_aimnet2_geometry_mediated_frequency.py \
+  --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
+  --device cpu \
+  --output /absolute/path/outside/the-repository/aimnet2-harmonic-water-frequency.json
 ```
 
 All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false. The
@@ -287,8 +306,10 @@ that negative result into a pass. Explicit cutoff/source-shell/tangency panels
 beyond the retained local loop also remain required for any future profile.
 The complete AIMNet2 contracted charge Hessian and continuum `RR/Rq/qR/qq`
 blocks now exist for the sealed harmonic research scalar and pass the retained
-water canary. Hessian tasks still require broad force-FD/HVP closure, mixed
-adjointness, stationary-point rigid modes, conditioning, and a full event-free
-`C2` neighborhood. Finite-dielectric physics and a separately derived
-same-scalar nonpolar term are later, independent model-definition tasks;
-neither may be inferred from this conductor diagnostic.
+water canaries. One stationary water Hessian now also passes all-column
+force-FD/HVP closure, symmetry, rigid-mode, and mass-weighted-subspace checks.
+Hessian tasks still require broad chemistry/stationary-point coverage, mixed
+adjointness, conditioning panels, and full event-free `C2` neighborhoods.
+Finite-dielectric physics and a separately derived same-scalar nonpolar term
+are later, independent model-definition tasks; neither may be inferred from
+this conductor diagnostic.

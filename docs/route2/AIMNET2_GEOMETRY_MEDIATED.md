@@ -176,10 +176,13 @@ gates. The source-bound float64 arm passes those local one-water derivative
 gates with central-difference refinement, while using the same checkpoint
 weights and topology. A separate source-bound water HVP canary now closes the
 complete local weak-scalar HVP ledger, finite-difference response, bilinear
-symmetry, and all three translational zero modes. This remains a
-precision/implementation result, not force or task admission: broader
-geometry/chemistry, a complete event-free `C2` domain, stationary-point
-Hessians, and workflow panels are absent. The branch is also a conductor
+symmetry, and all three translational zero modes. A second source-bound water
+canary now finds one guarded stationary point, assembles all nine Cartesian
+HVP columns, closes all-column gradient finite differences, and verifies three
+stationary rotational zero modes plus the correctly mass-weighted three-mode
+vibrational subspace. These remain precision/implementation results, not force
+or task admission: broader geometry/chemistry, a complete event-free `C2`
+domain, and workflow panels are absent. The branch is also a conductor
 reference without finite-dielectric solvent parameterization, so it must not
 be presented as an admitted water ddPCM replacement. See
 [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md) for the addition
@@ -354,6 +357,43 @@ That result reinforces the event/source-regularity boundary here; it does not
 provide an AIMNet2 Gaussian width or justify silently changing the point-charge
 model.
 
+## Stationary-water dense Hessian canary
+
+The research runner reuses SciPy's MINPACK hybrid root solver in the exact
+three-dimensional internal-coordinate space of nonlinear water. It does not
+introduce a MAPLE optimizer or a public calculator adapter. Every consecutive
+root trial must retain model/cavity topology and pass the same conservative
+straight-segment event certificate used elsewhere on this branch.
+
+At the converged geometry, the reducer reconstructs a `9 x 9` Hessian from the
+complete weak-scalar HVP, checks every column against total-gradient central
+differences at `(8e-4, 4e-4, 2e-4, 1e-4) angstrom`, and requires an explicit
+second-order window before the smallest step approaches the numerical floor.
+It then forms
+
+```text
+H_mw = M^-1/2 H_cart M^-1/2
+```
+
+before constructing the translation/rotation projector in the same
+mass-weighted space. This ordering and the public `eV/angstrom^2` input unit are
+explicit; the legacy MAPLE frequency driver is not used as evidence because
+its historical implementation applies the rigid projector before
+mass-weighting and uses a Hartree-based frequency factor on the public
+eV-valued Hessian boundary.
+
+Two clean processes at source commit `f79d5051` reproduce measurement SHA-256
+`126327853eb0caadcf5e98b41992030789bbdf0f7ddf23cec9c4c31ed98b99a4`.
+The Cartesian gradient norm is `5.375312708523219e-12 eV/angstrom`, Hessian
+symmetry error is `1.2434497875801753e-14 eV/angstrom^2`, the largest
+stationary rotation-HVP norm is `6.719144789488478e-9 eV/angstrom^2`, and the
+smallest-step all-column FD Frobenius error is
+`4.074765566486307e-5 eV/angstrom^2`. The three implementation frequencies are
+`1638.2321451446662`, `2629.6268042951565`, and
+`2831.3349242547506 cm^-1`. They are not physical solvent predictions or an
+accuracy panel. Raw operands and hashes are retained in
+[`evidence/aimnet2-geometry-mediated-frequency-water-f79d5051/`](evidence/aimnet2-geometry-mediated-frequency-water-f79d5051/README.md).
+
 ## Fixed-geometry response no-go
 
 At fixed `R`, the unmodified deterministic model always returns the same
@@ -389,7 +429,8 @@ unsupported upstream.
 | public single-point E/F | disabled |
 | solution-phase OPT/NEB/TS | disabled pending full PES/release gates |
 | complete local weak-scalar HVP | implemented for the sealed harmonic-point research arm; one source-bound water canary passes; diagnostic only |
-| Tier H / FREQ/TS/IRC | disabled; full-domain event-free `C2`, stationary-point, and workflow evidence absent |
+| stationary-water dense Hessian / local normal modes | one source-bound guarded water canary passes symmetry, all-column gradient FD, six rigid modes, and a three-mode mass-weighted subspace; diagnostic only |
+| Tier H / FREQ/TS/IRC | disabled; broad event-free `C2`, multi-stationary-point, TS/IRC, physical-solvent, and workflow evidence absent |
 | MD/NVE | absent |
 | strict variational tier | not applicable/proven |
 
@@ -416,10 +457,11 @@ coordinate derivative and passes cavity/profile compatibility gates.
 5. Add force-domain, optimization, broad Hessian/FREQ, and NVE evidence before
    any corresponding MAPLE workflow is enabled.
 6. For Hessian/FREQ/TS/IRC, extend the implemented complete local HVP from the
-   water canary to a broad event-free `C2` domain; add mixed-block adjointness,
-   force-FD/HVP closure, Hessian symmetry, stationary-point translational and
-   rotational modes, conditioning, and FREQ/TS/IRC path panels. The current
-   methanol event-guard failure remains a profile-level block.
+   water canaries to a broad event-free `C2` domain; add mixed-block
+   adjointness, multi-molecule/stationary-point force-FD/HVP closure,
+   conditioning, and FREQ/TS/IRC path panels. The local water Hessian,
+   translational/rotational modes, and mass-weighted subspace now pass, but the
+   current methanol event-guard failure remains a profile-level block.
 
 No fitting, radius tuning, response tempering, calibration, or experimental
 label use is part of this candidate.

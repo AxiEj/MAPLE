@@ -79,6 +79,16 @@ residual-squared energies, and solver damping are not accepted repairs. A fixed
 quadratic correction would be a separately named new model and is not
 implemented here.
 
+The clean official-checkpoint water audit at commit `0246e887` now closes this
+last loophole negatively. The relative coupled-curl defects are
+`0.2081259719` at zero field and `0.2085410719` at a deterministic
+continuum-active nonzero field, against `1e-9`; two processes reproduce the
+same scientific measurement digest. Fixed-charge response leakage is below
+`8.7e-17`. Evidence is retained under
+[`evidence/mace-coupled-conjugacy-terminal-0246e887/`](evidence/mace-coupled-conjugacy-terminal-0246e887/README.md).
+This terminal result applies to unchanged-checkpoint Tier V, not to the
+operational state/ledger research branch.
+
 ## Physical and root gates
 
 Source validation is deliberately decomposed into charge, molecular dipole,

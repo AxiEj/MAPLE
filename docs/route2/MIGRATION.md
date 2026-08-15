@@ -18,6 +18,18 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
 | 10: strict variational | disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch has a reproducible common-state/envelope canary but fails passivity, local invertibility, feedback-sign, and combined-Hessian gates at the tested real water state |
 
+The final coupling-active-space audit removes the remaining quotient-space
+loophole for the original source. Using the actual harmonic `B` and `L`, the
+official analytic-evaluator checkpoint has relative coupled-curl defects
+`0.2081259719` at zero field and `0.2085410719` at a deterministic nonzero
+continuum-active field. Both clean processes reproduce measurement SHA-256
+`d9de1ad9e3af971e96e5566bc0ece207fe3e4a671fd353d4b1d5e7df028fb7c0`
+under
+[`evidence/mace-coupled-conjugacy-terminal-0246e887/`](evidence/mace-coupled-conjugacy-terminal-0246e887/README.md).
+The original-source Tier-V route is therefore terminally closed even after the
+actual continuum quotient; the separated operational route remains a distinct
+disabled research candidate.
+
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from
 one anchored field-energy graph, while fixed reciprocal C-PCM drive, source

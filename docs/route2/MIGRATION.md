@@ -8,7 +8,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | --- | --- | --- |
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
-| 2: coupling operator | mathematical implementation complete; unchanged original-source physical route closed negative | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; an additional disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original four-channel source fails all four frozen QM/PCMSolver fixed-source cases, while a radial-repair branch is not yet authorized; all tiers false |
+| 2: coupling operator | mathematical implementation complete; unchanged original-source physical route closed negative; one radial-repair research branch authorized | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; an additional disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original four-channel source fails all four frozen QM/PCMSolver fixed-source cases, while a later preregistered four-case charge/dipole/quadrupole/far-field panel passes the necessary condition for one separately named fixed radial-embedding experiment; all tiers false |
 | 3: state equation/operational scalar | kernel complete; both unchanged-source ledgers closed | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy ledgers are distinct disabled scalars rather than one supposedly root-implied energy; the field replay closes `Phi1Delta` as complete external enthalpy, and the source physical audit prevents either ledger from advancing on the unchanged source |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), native-injection complete-enthalpy, and analytic changed-inference Tier-V stability routes closed negative | clean official-checkpoint canaries rule out retaining the original energy/source common scalar, isolate the pinned fixed-axis real-space operator as non-`SO(3)`, and prove that direct native-field injection omits the upstream explicit field work; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular, so every profile remains unadmitted |
@@ -52,9 +52,18 @@ Both runs reproduce measurement SHA-256
 evidence is retained under
 [`evidence/mace-original-source-pcmsolver-four-1d40c93b/`](evidence/mace-original-source-pcmsolver-four-1d40c93b/README.md).
 This terminates both unchanged-source separated ledgers before matched energy
-decomposition or force admission. It does not authorize a radial embedding;
-quadrupole and far-field point-charge gates must first isolate a radial-only
-defect under a separately named profile.
+decomposition or force admission.
+
+The preregistered follow-up at clean head `9c1d4fb9` evaluates total charge,
+dipole, traceless quadrupole, and three deterministic far-field QM-MEP shells
+from the frozen checkpoint density. All four cases pass the thresholds frozen
+before execution; two processes reproduce measurement SHA-256
+`dc9cce0f1ced9c34af1ab67bdae329d4521f2e67b780a1adcad6b7dd645d97d8`.
+Evidence is retained under
+[`evidence/mace-original-source-farfield-four-9c1d4fb9/`](evidence/mace-original-source-farfield-four-9c1d4fb9/README.md).
+This authorizes exactly one separately named fixed radial-embedding **research**
+experiment. It is only a necessary condition: it does not prove that the
+near-field defect is radial-only, select a ledger, or admit any capability.
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from

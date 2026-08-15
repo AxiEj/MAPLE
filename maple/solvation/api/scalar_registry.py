@@ -223,7 +223,9 @@ _SCALAR_ENTRIES = (
         derivative_route=(
             "implicit adjoint total derivative exists internally; disabled and "
             "scientifically stopped because the unchanged original source failed "
-            "the frozen four-case matched QM/PCMSolver physical gate"
+            "the frozen four-case matched QM/PCMSolver physical gate; the later "
+            "far-field pass authorizes only a separately identified radial-source "
+            "research profile"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),

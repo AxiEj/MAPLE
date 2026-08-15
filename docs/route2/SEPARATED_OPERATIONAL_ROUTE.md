@@ -157,9 +157,19 @@ the near-field observables, but area-weighted surface-MEP relative errors are
 This closes the unchanged original four-channel source as a full quantitative
 PCM source for the separated profile. Consequently neither `Phi0` nor
 `Phi1Delta` proceeds to ledger, force, PES, or public admission on this source
-identity. A fixed radial embedding would be a separately named model change
-and remains unauthorized until quadrupole and far-field test-charge evidence
-shows that the missing physics is radial-only.
+identity.
+
+A later preregistered four-case checkpoint audit passes charge, dipole,
+traceless-quadrupole, and all three far-field MEP shell gates. Both clean runs
+reproduce measurement SHA-256
+`dc9cce0f1ced9c34af1ab67bdae329d4521f2e67b780a1adcad6b7dd645d97d8`;
+the raw evidence is
+[`evidence/mace-original-source-farfield-four-9c1d4fb9/`](evidence/mace-original-source-farfield-four-9c1d4fb9/README.md).
+This satisfies a necessary low-multipole/far-field precondition and therefore
+authorizes exactly one separately named, fixed, symmetry-preserving radial-
+embedding research experiment. It does **not** prove that the near-field defect
+is radial-only; the new profile must still pass held-out cavity-surface MEP and
+fixed-source PCM-energy gates before any ledger is evaluated.
 
 For `r(y)=y-F(y)`, the root diagnostic records:
 
@@ -179,14 +189,15 @@ coupled-curl gate, and the same source fails the matched quantitative PCM
 source gate. It does **not** establish:
 
 - a unified variational functional for the original checkpoint;
-- a repaired source/MEP model;
+- a validated repaired source/MEP model (one fixed radial-embedding experiment
+  is now authorized but not yet executed/admitted);
 - an admitted `Phi0` or `Phi1Delta` ledger (`Phi1Delta` additionally fails
   complete-enthalpy semantics for the current native-injection branch);
 - a globally unique smooth root;
 - distorted-geometry PES, Cartesian finite differences, or closed-loop work;
 - a public conservative force or any solvation-accuracy claim.
 
-The current separated source identity terminates here. Any radial embedding,
-scalar-first field head, or independent variational polarization model must
-receive a new profile/hash and rerun its own gates; earlier evidence cannot be
-silently inherited.
+The current separated source identity terminates here. The authorized radial
+embedding, any scalar-first field head, or any independent variational
+polarization model must receive a new profile/hash and rerun its own gates;
+earlier force or ledger evidence cannot be silently inherited.

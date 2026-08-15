@@ -44,3 +44,9 @@ separately named fixed radial embedding remains only a possible research
 branch; it is not authorized until independent quadrupole and far-field
 point-charge gates show that the missing physics is radial-only.  No
 `E/F/H/V/M` capability is admitted.
+
+The later preregistered follow-up under
+[`../mace-original-source-farfield-four-9c1d4fb9/`](../mace-original-source-farfield-four-9c1d4fb9/README.md)
+passes the necessary low-multipole/far-field condition and authorizes one new
+fixed radial-embedding research profile.  It does not alter this artifact's
+negative unchanged-source decision or admit a ledger/capability.

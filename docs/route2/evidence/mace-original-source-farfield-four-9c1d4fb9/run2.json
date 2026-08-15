@@ -1,0 +1,763 @@
+{
+  "aggregate": {
+    "case_pass_count": 4,
+    "maximum_dipole_relative_l2_error": 0.09466400522274811,
+    "maximum_far_field_shell_relative_l2_error": 0.14262072643100593,
+    "maximum_quadrupole_relative_frobenius_error": 0.35842617172295177,
+    "record_count": 4
+  },
+  "artifact_kind": "disabled-original-source-far-field-terminal-audit",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": {
+    "can_establish": [
+      "whether the unchanged original four-channel source preserves total charge, molecular dipole, traceless quadrupole, and deterministic far-field MEP shells on the frozen four-case QM panel",
+      "a necessary precondition for one separately named fixed radial-embedding research experiment"
+    ],
+    "cannot_establish": [
+      "that the cavity-near-field defect is radial-only",
+      "that a radial embedding will pass held-out cavity-surface MEP or fixed-source PCM gates",
+      "an operational energy ledger",
+      "a conservative force or public E/F/H/V/M capability",
+      "a strict common variational functional"
+    ]
+  },
+  "decision": {
+    "far_field_necessary_precondition_passed": true,
+    "fixed_radial_embedding_research_authorized": true,
+    "original_four_channel_quantitative_pcm_source_admitted": false,
+    "public_capability_admitted": false,
+    "radial_embedding_authorization_scope": "one separately named fixed symmetry-preserving research profile; held-out cavity-near-field evidence still mandatory",
+    "scalar_first_or_independent_polarization_branch_required": false,
+    "separated_phi0_ledger_evaluation_authorized": false,
+    "separated_phi1_delta_ledger_evaluation_authorized": false
+  },
+  "device": "cuda",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_mace_original_source_farfield_panel.py --asset-root /home/axie/MAPLE/MAPLE-implicitsolv-route2 --pyscf-python /home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cuda --output /tmp/route2-mace-original-source-farfield-9c1d4fb9-run2.json",
+  "execution_git_head": "9c1d4fb961a7d1b06372d6dcd86c165e582394c9",
+  "execution_git_tree": "5b9c0e68d18975b483bd365812a5382935a0e453",
+  "external_assets": {
+    "asset_root": "/home/axie/MAPLE/MAPLE-implicitsolv-route2",
+    "far_field_preregistration": {
+      "artifact_id": "route2-mace-original-source-farfield-four-prereg-v1",
+      "path": "/home/axie/MAPLE/MAPLE-route2-conservative-vnext/docs/route2/preregistrations/mace-original-source-farfield-four-v1.json",
+      "sha256": "a1d6bd40e3801a6e79056b1796f2fadf8527777a78172353a4b152418ab3141b"
+    },
+    "mace_checkpoint": {
+      "bytes": 68133235,
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "near_field_source_evidence": {
+      "measurement_sha256": "ff40c7c426cbcb59ab28378f29a1ed5675da98d4063fba20423b0247d997649b",
+      "path": "/home/axie/MAPLE/MAPLE-route2-conservative-vnext/docs/route2/evidence/mace-original-source-pcmsolver-four-1d40c93b/run1.json",
+      "sha256": "fb6f5f175348b51b99f55147f5df75782f8b2ccbbb86ba16aaae7c2fdb0f0748"
+    },
+    "pyscf_python": {
+      "path": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+      "sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+    }
+  },
+  "measurement_sha256": "dc9cce0f1ced9c34af1ab67bdae329d4521f2e67b780a1adcad6b7dd645d97d8",
+  "protocol": {
+    "far_field_rule": {
+      "azimuthal_count": 17,
+      "integration": "Gauss-Legendre cosine by uniform azimuth; diagnostic reference sampling only",
+      "points_per_shell": 136,
+      "polar_order": 8,
+      "shell_offsets_beyond_maximum_nuclear_extent_angstrom": [
+        8.0,
+        12.0,
+        16.0
+      ]
+    },
+    "multipole_convention": {
+      "dipole_unit": "e angstrom",
+      "origin": "nuclear-charge centroid",
+      "quadrupole": "traceless Q_ij = integral rho(r) [3 x_i x_j - |x|^2 delta_ij] dr about the declared origin",
+      "quadrupole_unit": "e angstrom^2"
+    },
+    "reference": "frozen omegaB97M-V/def2-TZVPD closed-shell gas checkpoints; no new SCF",
+    "source": "official MACE-POLAR-1 M original four-channel zero-native-field source",
+    "threshold_provenance": "frozen in the bound preregistration before this execution",
+    "thresholds": {
+      "contract_version": "route2-original-source-far-field-gate-v1",
+      "dipole_absolute_tolerance_e_angstrom": 0.05,
+      "dipole_relative_tolerance": 0.1,
+      "far_field_absolute_rms_tolerance_hartree_per_e": 2e-05,
+      "far_field_relative_rms_tolerance": 0.15,
+      "quadrupole_absolute_tolerance_e_angstrom2": 0.25,
+      "quadrupole_relative_tolerance": 0.2,
+      "total_charge_absolute_tolerance_e": 1e-08
+    }
+  },
+  "records": [
+    {
+      "asset_sha256": {
+        "frozen_qm_surface_mep": "41bd88ba7c65e172a2de47ecd2a3dbb9b17291f52f4ad04f9716d58da6dbd829",
+        "mol2": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "projection_result": "d0a0c3ecf51f5cd91f80a44c7a0de8da0e0043d63b495126ead9501465d1b913",
+        "qm_checkpoint": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "atom_count": 8,
+      "case_passed": true,
+      "class": "hydrogen-bonding carboxylic acid",
+      "comparison": {
+        "capability_admitted": false,
+        "case_passed": true,
+        "charge_gate_passed": true,
+        "claim_boundary": "A pass is only a necessary precondition for one separately named fixed radial-embedding research experiment; it does not prove that the cavity-near-field defect is radial-only.",
+        "contract_version": "route2-original-source-far-field-gate-v1",
+        "dipole_allowed_error_l2_e_angstrom": 0.14347913443338076,
+        "dipole_error_l2_e_angstrom": 0.014570677291338846,
+        "dipole_gate_passed": true,
+        "dipole_reference_l2_e_angstrom": 0.9347913443338075,
+        "dipole_relative_l2_error": 0.015587090509190422,
+        "far_field_mep_gate_passed": true,
+        "quadrupole_allowed_error_frobenius_e_angstrom2": 0.47005084245813933,
+        "quadrupole_error_frobenius_e_angstrom2": 0.39435990523340625,
+        "quadrupole_gate_passed": true,
+        "quadrupole_reference_frobenius_e_angstrom2": 1.1002542122906966,
+        "quadrupole_relative_frobenius_error": 0.35842617172295177,
+        "shell_comparisons": [
+          {
+            "allowed_error_rms_hartree_per_e": 0.0004453134951558244,
+            "error_rms_hartree_per_e": 6.778023654932221e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 10.041246134585158,
+            "reference_rms_hartree_per_e": 0.0028354233010388294,
+            "relative_l2_error": 0.023904803393725797
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 0.0002373821405317488,
+            "error_rms_hartree_per_e": 2.797844015201399e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 14.041246134585158,
+            "reference_rms_hartree_per_e": 0.0014492142702116587,
+            "relative_l2_error": 0.019305937518768513
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 0.00015164943864433346,
+            "error_rms_hartree_per_e": 1.550417969515478e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 18.04124613458516,
+            "reference_rms_hartree_per_e": 0.0008776629242955564,
+            "relative_l2_error": 0.017665300955488107
+          }
+        ],
+        "total_charge_absolute_error_e": 4.163336342344337e-17,
+        "total_charge_allowed_error_e": 1e-08
+      },
+      "compound_id": "mobley_3034976",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "multipole_origin_angstrom": [
+        -1.4939687499520058,
+        0.6671249999785681,
+        1.074124999965493
+      ],
+      "name": "acetic acid",
+      "predicted_dipole_e_angstrom": [
+        0.702433853647964,
+        0.2325459766914552,
+        -0.5944254174469097
+      ],
+      "predicted_total_charge_e": -4.163336342344337e-17,
+      "predicted_traceless_quadrupole_e_angstrom2": [
+        [
+          -0.015770213892149054,
+          -0.2016555673215905,
+          0.7575424973779622
+        ],
+        [
+          -0.2016555673215905,
+          0.4913169611896592,
+          -0.21984693096578606
+        ],
+        [
+          0.7575424973779622,
+          -0.21984693096578606,
+          -0.4755467472975101
+        ]
+      ],
+      "qm_density": {
+        "density_binding_residual_e": 0.0,
+        "density_sha256": "51c47f461e6675c4c9e1c300e545f6f36ad9a25c9a649ded86b5d145e1f6a749",
+        "electron_count_e": 32.0,
+        "mo_orthonormality_inf": 5.487528843517953e-12,
+        "occupation_sum_e": 32.0
+      },
+      "qm_dipole_e_angstrom": [
+        0.6933307453573664,
+        0.2296870643711492,
+        -0.583413393267732
+      ],
+      "qm_total_charge_e": 0.0,
+      "qm_traceless_quadrupole_e_angstrom2": [
+        [
+          0.07716498362712525,
+          0.005960039291676645,
+          0.6004150137697863
+        ],
+        [
+          0.005960039291676645,
+          0.42300835873950354,
+          -0.16496671077901065
+        ],
+        [
+          0.6004150137697863,
+          -0.16496671077901065,
+          -0.5001733423666288
+        ]
+      ],
+      "reference_far_field_mep_sha256": "765f40de4e415d6939b0a0797e0f8ceac688d0521a47acde0714122c14a343e1",
+      "reference_points_sha256": "dc54ba704f8890c7ec5c7b11a5e29f0c82aa0fbe068765fd1561d6df69bd384b"
+    },
+    {
+      "asset_sha256": {
+        "frozen_qm_surface_mep": "b4916b9abe6a667dbebf9b6bf0691d0ba2b9e4bd37a98b8f6f7d29cb5a077f8d",
+        "mol2": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "projection_result": "c1a786cfdd11e5b2e6caf3406599eb29575520dfd303addcc66a29999124bd65",
+        "qm_checkpoint": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "atom_count": 12,
+      "case_passed": true,
+      "class": "weakly-polar aromatic hydrocarbon",
+      "comparison": {
+        "capability_admitted": false,
+        "case_passed": true,
+        "charge_gate_passed": true,
+        "claim_boundary": "A pass is only a necessary precondition for one separately named fixed radial-embedding research experiment; it does not prove that the cavity-near-field defect is radial-only.",
+        "contract_version": "route2-original-source-far-field-gate-v1",
+        "dipole_allowed_error_l2_e_angstrom": 0.05001958151931443,
+        "dipole_error_l2_e_angstrom": 1.8536650466501934e-05,
+        "dipole_gate_passed": true,
+        "dipole_reference_l2_e_angstrom": 0.0001958151931442629,
+        "dipole_relative_l2_error": 0.09466400522274811,
+        "far_field_mep_gate_passed": true,
+        "quadrupole_allowed_error_frobenius_e_angstrom2": 1.0572754664981956,
+        "quadrupole_error_frobenius_e_angstrom2": 0.5757613657115865,
+        "quadrupole_gate_passed": true,
+        "quadrupole_reference_frobenius_e_angstrom2": 4.036377332490978,
+        "quadrupole_relative_frobenius_error": 0.14264309758083638,
+        "shell_comparisons": [
+          {
+            "allowed_error_rms_hartree_per_e": 7.088349921444205e-05,
+            "error_rms_hartree_per_e": 4.832422411476028e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 10.481046613042519,
+            "reference_rms_hartree_per_e": 0.0003392233280962803,
+            "relative_l2_error": 0.14245548614228742
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 3.927111822795977e-05,
+            "error_rms_hartree_per_e": 1.831857030406359e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 14.481046613042519,
+            "reference_rms_hartree_per_e": 0.0001284741215197318,
+            "relative_l2_error": 0.14258568252790207
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 2.926860094718279e-05,
+            "error_rms_hartree_per_e": 8.812630667242127e-06,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 18.48104661304252,
+            "reference_rms_hartree_per_e": 6.17906729812186e-05,
+            "relative_l2_error": 0.14262072643100593
+          }
+        ],
+        "total_charge_absolute_error_e": 3.642919299551295e-17,
+        "total_charge_allowed_error_e": 1e-08
+      },
+      "compound_id": "mobley_3053621",
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "multipole_origin_angstrom": [
+        1.8424523808931914,
+        -1.0574999999660273,
+        1.2816428571016836
+      ],
+      "name": "benzene",
+      "predicted_dipole_e_angstrom": [
+        -0.0001483075919727489,
+        -6.07969793706975e-05,
+        7.796137631665284e-05
+      ],
+      "predicted_total_charge_e": 3.642919299551295e-17,
+      "predicted_traceless_quadrupole_e_angstrom2": [
+        [
+          0.4262370624839837,
+          -1.790751065309592,
+          -0.05784076096479518
+        ],
+        [
+          -1.790751065309592,
+          -1.835133973932196,
+          -0.10297591540617348
+        ],
+        [
+          -0.05784076096479518,
+          -0.10297591540617348,
+          1.4088969114482115
+        ]
+      ],
+      "qm_density": {
+        "density_binding_residual_e": 0.0,
+        "density_sha256": "9e74c38d573c82ddcc2c5c55cf06defc2528667c6ed99fbc587198c03759c014",
+        "electron_count_e": 42.0,
+        "mo_orthonormality_inf": 8.413092444925496e-11,
+        "occupation_sum_e": 42.0
+      },
+      "qm_dipole_e_angstrom": [
+        -0.00016192044417974514,
+        -6.293089330775247e-05,
+        9.036073422813303e-05
+      ],
+      "qm_total_charge_e": 0.0,
+      "qm_traceless_quadrupole_e_angstrom2": [
+        [
+          0.49699598623630076,
+          -2.0887429669494035,
+          -0.06754287605822468
+        ],
+        [
+          -2.0887429669494035,
+          -2.1403415549234635,
+          -0.12014966891852316
+        ],
+        [
+          -0.06754287605822468,
+          -0.12014966891852316,
+          1.6433455686871545
+        ]
+      ],
+      "reference_far_field_mep_sha256": "617d7a9db53d29204c94acdaf7e6f7c344e2779ac46c057d611126f969ba810c",
+      "reference_points_sha256": "0c4ecbc35072f498e655e77be10ae3fefb6fb5d85ae8ad15fbd1d9954d1c1bc7"
+    },
+    {
+      "asset_sha256": {
+        "frozen_qm_surface_mep": "ee1dbfa127101796b154cbc4749d1aec22494baaea3666b9264c9eff33f468bb",
+        "mol2": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "projection_result": "e3c89b54c6fbbb25ece9ab3fd5b6b9a3e61fa9c605d65533c29084cd15b53fe7",
+        "qm_checkpoint": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "atom_count": 20,
+      "case_passed": true,
+      "class": "flexible multihetero diester",
+      "comparison": {
+        "capability_admitted": false,
+        "case_passed": true,
+        "charge_gate_passed": true,
+        "claim_boundary": "A pass is only a necessary precondition for one separately named fixed radial-embedding research experiment; it does not prove that the cavity-near-field defect is radial-only.",
+        "contract_version": "route2-original-source-far-field-gate-v1",
+        "dipole_allowed_error_l2_e_angstrom": 0.08944007574132977,
+        "dipole_error_l2_e_angstrom": 0.004983774898140491,
+        "dipole_gate_passed": true,
+        "dipole_reference_l2_e_angstrom": 0.3944007574132976,
+        "dipole_relative_l2_error": 0.012636321823585974,
+        "far_field_mep_gate_passed": true,
+        "quadrupole_allowed_error_frobenius_e_angstrom2": 2.680136643160318,
+        "quadrupole_error_frobenius_e_angstrom2": 0.5025113371545646,
+        "quadrupole_gate_passed": true,
+        "quadrupole_reference_frobenius_e_angstrom2": 12.150683215801589,
+        "quadrupole_relative_frobenius_error": 0.04135663223456144,
+        "shell_comparisons": [
+          {
+            "allowed_error_rms_hartree_per_e": 0.0001688502892673736,
+            "error_rms_hartree_per_e": 3.781233984774395e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 12.549775383277955,
+            "reference_rms_hartree_per_e": 0.0009923352617824907,
+            "relative_l2_error": 0.0381044000994414
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 9.729428462652513e-05,
+            "error_rms_hartree_per_e": 1.4740306843249265e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 16.549775383277954,
+            "reference_rms_hartree_per_e": 0.0005152952308435009,
+            "relative_l2_error": 0.028605556506161433
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 6.756994293120278e-05,
+            "error_rms_hartree_per_e": 7.510072452522659e-06,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 20.549775383277954,
+            "reference_rms_hartree_per_e": 0.00031713295287468516,
+            "relative_l2_error": 0.02368114818862819
+          }
+        ],
+        "total_charge_absolute_error_e": 1.4297590889000844e-14,
+        "total_charge_allowed_error_e": 1e-08
+      },
+      "compound_id": "mobley_352111",
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "multipole_origin_angstrom": [
+        -2.7911538460641796,
+        -0.2949487179392426,
+        -2.0968846153172516
+      ],
+      "name": "2-acetoxyethyl acetate",
+      "predicted_dipole_e_angstrom": [
+        0.14081929755357853,
+        -0.25755433082328477,
+        0.26400200557771597
+      ],
+      "predicted_total_charge_e": -8.673617379884035e-17,
+      "predicted_traceless_quadrupole_e_angstrom2": [
+        [
+          -7.811876355676555,
+          -4.802088176469519,
+          2.7577856611840303
+        ],
+        [
+          -4.802088176469519,
+          3.289783680292256,
+          1.6094686404206684
+        ],
+        [
+          2.7577856611840303,
+          1.6094686404206684,
+          4.522092675384296
+        ]
+      ],
+      "qm_density": {
+        "density_binding_residual_e": 1.4210854715202004e-14,
+        "density_sha256": "e5b9c4fb75c13667b849735533de9bdebbbbff7692566a084ea6a32a07348e46",
+        "electron_count_e": 77.99999999999999,
+        "mo_orthonormality_inf": 5.343787912170939e-12,
+        "occupation_sum_e": 78.0
+      },
+      "qm_dipole_e_angstrom": [
+        0.14194601847530197,
+        -0.2603544899620801,
+        0.26003619910269643
+      ],
+      "qm_total_charge_e": 1.4210854715202004e-14,
+      "qm_traceless_quadrupole_e_angstrom2": [
+        [
+          -7.531246948516714,
+          -4.590031270601951,
+          2.7786287043361764
+        ],
+        [
+          -4.590031270601951,
+          3.2252105197928937,
+          1.4827609897436898
+        ],
+        [
+          2.7786287043361764,
+          1.4827609897436898,
+          4.30603642872382
+        ]
+      ],
+      "reference_far_field_mep_sha256": "bd89213d6aea8aed428740e48b1b6e9d28bd33dd27e3d0d1d0c472c54d825d72",
+      "reference_points_sha256": "c28660ff96d50b9342d85be7c04e17d375dadaf9d6d7b674ebc3688d42e9ce49"
+    },
+    {
+      "asset_sha256": {
+        "frozen_qm_surface_mep": "3cbd917e8e4898934dea21abea77bf1bdb0577e90cc105f826968473489121cb",
+        "mol2": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "projection_result": "a64d8c0df5c42e1190100294bd4a37ef0bebff918527164a4ad2c339c2c25905",
+        "qm_checkpoint": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "atom_count": 10,
+      "case_passed": true,
+      "class": "strongly-dipolar ketone",
+      "comparison": {
+        "capability_admitted": false,
+        "case_passed": true,
+        "charge_gate_passed": true,
+        "claim_boundary": "A pass is only a necessary precondition for one separately named fixed radial-embedding research experiment; it does not prove that the cavity-near-field defect is radial-only.",
+        "contract_version": "route2-original-source-far-field-gate-v1",
+        "dipole_allowed_error_l2_e_angstrom": 0.11503166146149862,
+        "dipole_error_l2_e_angstrom": 0.01968086917152118,
+        "dipole_gate_passed": true,
+        "dipole_reference_l2_e_angstrom": 0.6503166146149861,
+        "dipole_relative_l2_error": 0.03026351892173792,
+        "far_field_mep_gate_passed": true,
+        "quadrupole_allowed_error_frobenius_e_angstrom2": 0.835942597838139,
+        "quadrupole_error_frobenius_e_angstrom2": 0.17273260603706533,
+        "quadrupole_gate_passed": true,
+        "quadrupole_reference_frobenius_e_angstrom2": 2.9297129891906946,
+        "quadrupole_relative_frobenius_error": 0.0589588832333986,
+        "shell_comparisons": [
+          {
+            "allowed_error_rms_hartree_per_e": 0.00031351026673602815,
+            "error_rms_hartree_per_e": 6.76534377676812e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 10.126828694237325,
+            "reference_rms_hartree_per_e": 0.001956735111573521,
+            "relative_l2_error": 0.0345746531390635
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 0.0001700995225082033,
+            "error_rms_hartree_per_e": 3.167740013779117e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 14.126828694237325,
+            "reference_rms_hartree_per_e": 0.001000663483388022,
+            "relative_l2_error": 0.031656396644492914
+          },
+          {
+            "allowed_error_rms_hartree_per_e": 0.00011098200359684384,
+            "error_rms_hartree_per_e": 1.87331140114619e-05,
+            "passed": true,
+            "point_count": 136,
+            "radius_angstrom": 18.126828694237325,
+            "reference_rms_hartree_per_e": 0.0006065466906456257,
+            "relative_l2_error": 0.03088486723342244
+          }
+        ],
+        "total_charge_absolute_error_e": 1.9081958235744878e-17,
+        "total_charge_allowed_error_e": 1e-08
+      },
+      "compound_id": "mobley_3867265",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "multipole_origin_angstrom": [
+        -0.07981249999743596,
+        -0.2990937499903915,
+        2.0019687499356857
+      ],
+      "name": "acetone",
+      "predicted_dipole_e_angstrom": [
+        -0.10497032038191453,
+        0.5762245418288177,
+        -0.324029035580946
+      ],
+      "predicted_total_charge_e": 1.9081958235744878e-17,
+      "predicted_traceless_quadrupole_e_angstrom2": [
+        [
+          1.1235375462635346,
+          0.3820529575067566,
+          -0.12201344988182833
+        ],
+        [
+          0.3820529575067566,
+          -1.4648041753478807,
+          1.6649395124827067
+        ],
+        [
+          -0.12201344988182833,
+          1.6649395124827067,
+          0.3412666290843458
+        ]
+      ],
+      "qm_density": {
+        "density_binding_residual_e": 0.0,
+        "density_sha256": "e1b9aca12c3a7237fa9020bd542163310499edd5d18338049b80c6d8568a56b3",
+        "electron_count_e": 32.0,
+        "mo_orthonormality_inf": 1.0043371057196852e-11,
+        "occupation_sum_e": 32.0
+      },
+      "qm_dipole_e_angstrom": [
+        -0.09767462557674596,
+        0.5593310353681447,
+        -0.3170491438826767
+      ],
+      "qm_total_charge_e": 0.0,
+      "qm_traceless_quadrupole_e_angstrom2": [
+        [
+          1.0219492321616286,
+          0.4023350413448816,
+          -0.07324483392556469
+        ],
+        [
+          0.4023350413448816,
+          -1.384429403284513,
+          1.605665708732581
+        ],
+        [
+          -0.07324483392556469,
+          1.605665708732581,
+          0.36248017112288433
+        ]
+      ],
+      "reference_far_field_mep_sha256": "bbfc7385db179cb9ea86c61dc45ddbc6f798de3cc0af341ca837bf9d100b3063",
+      "reference_points_sha256": "6601ea16680e1bf7ac9ac3a6a4fafb415afe3cb283a881e1ddbee07b41ec02b6"
+    }
+  ],
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-15T07:48:56.711173+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 12.900302230962552,
+  "schema_version": "route2-mace-original-source-farfield-four-v1",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/read/__init__.py": "5615628ff768f6ddcc27e2c9c6a43bad348f221feab8bebe1a4da6fd63353b75",
+    "maple/function/read/filereader/__init__.py": "971f78d2130e9232397dc76bf1ff211b575504f81bb0a737df6b1d959eb6c3f2",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
+    "maple/function/read/filereader/post_reader.py": "6b8e81de5b8fdef6058acda2751cbf76f4ac3e9d352e9504e48add22c526ebb5",
+    "maple/function/read/filereader/xyz_reader.py": "48acccbfe74267f6c438926d4e390db336217c988b0b21c6af89fb251b61c456",
+    "maple/function/read/filereader/xyz_traj_reader.py": "f8fce59ab621d031762e24d243b7bf74b1d1849a22b633639397f71df5c9a25d",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/function/utility/__init__.py": "cdb04f9be9a33f57ee5c372fe559c9b01c34e73bc32b119c8488fffd4b9fb935",
+    "maple/function/utility/molecules.py": "febb630b2cbba5be36fe314b6832a1f3b4a45b7150750fcc4ffa306328631b4f",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "3ac224d0afd3af273dcfb8e4c8fc4e0da9eeee496f47bf069667f05cfe32e9e9",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "72fb6c768f9abb0ea202147cc54673db88f82b00856ae93ef9d10d7e34733672",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "f4cfe546d6154567f5eb1d7908594005bb716de0e21444eb89e9e20c40f20aba",
+    "maple/solvation/api/state_registry.py": "524f9eec7392da9770bdfc4bc0ab634c12ccf5062d4c7edd5914bd88068b0987",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "b38177fe0e3a82f70671f24e8c15ca6351e6cc398f7f36b9072f9eb0003049fe",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/separated_operators.py": "0e2b597252c6e0d9ca5836625b39fbceffaece7b4014d77fa9d8b241f2e204ec",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "bbd0e2c10688853a2db9bc6e250fe2a5761bc8543787165d0b4ba8d2966f33f8",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_separated.py": "cc12a9047404cfdf0493cb4d37908338cd4c284623f3734c74f26dfaaee7b110",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/models/runtime/__init__.py": "64a17adc6d4e8e229b927a4fb2c257b43bb4cb2b4a07223e7c7976b4978bff61",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py": "d892e4986aebd34a3df9b1614e7845903785afa519415e465167dbb9380b70ad",
+    "maple/solvation/release/__init__.py": "0f097ac3315e94134d50a3f403369dc52b792d1ccdd3f0cd506a3db1cee7d7ba",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
+    "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+    "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/root_well_posedness.py": "943cab8cc9f235852cdf257d95619ec8fba6410b7d3a391cd7779e271ac03302",
+    "maple/solvation/release/source_mep.py": "d1f1eedae9a150e1b66a14b0ee2f8fa88ae560a00aa3442a5c45838778126224",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "tools/route2_release/qm_checkpoint_farfield.py": "4e866707ef0118da9b5844456713111987b82f81df3db6f375bf6d8946bc5e4d",
+    "tools/route2_release/run_mace_original_source_farfield_panel.py": "17a374caaf5dcbf9c713850a60cd30ee1b13801ded011a783eb0268df18d5030"
+  },
+  "status": "far-field-pass-radial-embedding-research-authorized",
+  "working_tree_clean": true
+}

@@ -61,8 +61,10 @@ normal-mode gates; and the runner only orchestrates the real stack. The
 calculator-independent
 `maple/function/dispatcher/frequency/normal_modes.py` supplies the reusable,
 unit-explicit `eV/angstrom^2` mass-weighting and rigid/vibrational subspaces.
-No Route-2 module imports or reuses the legacy frequency driver's incorrect
-projection/unit path as scientific evidence.
+The public molecular FREQ driver now reuses that same pure kernel and validates
+its raw ASE-unit Hessian boundary, but no Route-2 calculator is thereby
+admitted: the retained research runner still owns its source-bound scalar,
+event-domain, HVP, and evidence checks independently.
 
 ## Migration rule
 

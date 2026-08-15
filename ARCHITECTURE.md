@@ -177,6 +177,39 @@ class SomeAlgorithm(JobABC):
 |--------|---------------------------|-------------------|
 | MW     | `frequency/frequency.py`  | `FrequencyParams` |
 
+FREQ is a molecular, minimum-only harmonic/RRHO workflow:
+
+- the calculator must provide finite forces in ASE `eV/Å` and a Cartesian
+  `get_hessian()` result in ASE `eV/Å²`;
+- FREQ bypasses the private legacy-Hartree job view, mass-weights first as
+  `H_mw = M^-1/2 H_cart M^-1/2`, and reuses the calculator-independent
+  `frequency/normal_modes.py` kernel;
+- the raw Hessian must satisfy a reported symmetry-defect gate (default
+  relative tolerance `1e-6`) before bounded symmetrization, and must have a
+  small operator residual in the mass-metric rigid-body subspace. Projection
+  cannot hide broken translation/rotation invariance;
+- periodic systems and ASE constraints fail closed until periodic phonon and
+  reduced-coordinate Hessian contracts exist;
+- the geometry must pass the configurable force gate (default maximum force
+  component `1e-3 eV/Å`, input key `stationarity_tolerance_ev_per_a`), and
+  every vibrational mode used by RRHO must be
+  strictly positive;
+- `method=mw` and `ilowfreq=0` are the only admitted choices. The historical
+  `nonmw`/`both` modes and ad hoc low-frequency formulas are disabled rather
+  than retained as alternate scientific results;
+- `symmetry_number` is explicit, and electronic spin entropy uses the input
+  multiplicity (`atoms.info["mult"]`, default singlet).
+
+The thermochemistry follows the ideal-gas rigid-rotor/harmonic-oscillator
+contract used by ASE and is regression-tested against ASE `IdealGasThermo` for
+monatomic, linear, nonlinear, and open-shell cases. See the official
+[ASE vibrational-data documentation](https://wiki.fysik.dtu.dk/ase/ase/vibrations/modes.html)
+and [ASE thermochemistry documentation](https://wiki.fysik.dtu.dk/ase/ase/thermochemistry/thermochemistry.html).
+Grimme's quasi-RRHO treatment is a distinct published model
+([DOI:10.1002/chem.201200497](https://doi.org/10.1002/chem.201200497)); MAPLE
+does not claim it until its parameters, energy/entropy terms, and validation
+contract are implemented explicitly.
+
 ### 4.5 Others
 
 - **Single Point (`sp`)**: `sp/sp.py`

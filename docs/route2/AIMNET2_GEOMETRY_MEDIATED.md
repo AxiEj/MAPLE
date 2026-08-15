@@ -377,10 +377,13 @@ H_mw = M^-1/2 H_cart M^-1/2
 
 before constructing the translation/rotation projector in the same
 mass-weighted space. This ordering and the public `eV/angstrom^2` input unit are
-explicit; the legacy MAPLE frequency driver is not used as evidence because
-its historical implementation applies the rigid projector before
-mass-weighting and uses a Hartree-based frequency factor on the public
-eV-valued Hessian boundary.
+explicit. The retained canary does not use the public MAPLE FREQ workflow as
+evidence: at that source revision the historical driver projected before
+mass-weighting, its normal-mode class had an ambiguous direct-call unit
+boundary, and its main Dispatcher path instead supplied a private Hartree
+view. The current public molecular FREQ driver has since migrated to the shared
+ASE-unit `normal_modes.py` kernel. That infrastructure repair does not alter
+this source-bound artifact and does not open any Route-2 capability flag.
 
 Two clean processes at source commit `f79d5051` reproduce measurement SHA-256
 `126327853eb0caadcf5e98b41992030789bbdf0f7ddf23cec9c4c31ed98b99a4`.

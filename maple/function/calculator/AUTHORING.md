@@ -106,9 +106,12 @@ class FooCalculator(CalcABC):
   is declared by `ANALYTIC_HESSIAN_UNIT`; `CalcABC.get_hessian()` converts it
   exactly once to public eV/Å². The numerical path differentiates public eV/Å
   forces and therefore already returns eV/Å².
-- Historical MAPLE job algorithms still operate in Hartree-family units. They
-  receive a private `LegacyHartreeJobView` at the Dispatcher/job boundary; raw
-  ASE calculators and their `results` are never rewritten to Hartree.
+- Historical MAPLE job algorithms still operate in Hartree-family units and
+  receive a private `LegacyHartreeJobView` at the Dispatcher/job boundary.
+  FREQ is the first migrated exception: it receives the raw calculator,
+  requires public `get_forces()` in eV/Å and `get_hessian()` in eV/Å², and
+  rejects a legacy view. Raw ASE calculators and their `results` are never
+  rewritten to Hartree.
 
 ## Implicit solvent
 

@@ -49,10 +49,10 @@ from maple.solvation.release import (
     write_external_json_artifact,
 )
 
-SCHEMA_VERSION = "route2-matched-qm-pcmsolver-decomposition-run-v1"
+SCHEMA_VERSION = "route2-matched-qm-pcmsolver-decomposition-run-v2"
 PREREGISTRATION_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
-    "route2-matched-qm-pcmsolver-four-prereg-v1.json"
+    "route2-matched-qm-pcmsolver-four-prereg-v2.json"
 )
 INHERITED_PREREGISTRATION_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
@@ -186,7 +186,7 @@ def _validate_preregistration(
     preregistration = _load_json(preregistration_path, name="preregistration")
     if (
         preregistration.get("protocol_id")
-        != "route2-matched-qm-pcmsolver-four-prereg-v1"
+        != "route2-matched-qm-pcmsolver-four-prereg-v2"
         or preregistration.get("status") != "frozen-before-execution"
     ):
         raise RuntimeError("matched decomposition preregistration identity is invalid.")
@@ -428,9 +428,13 @@ def _run_case(
                     expected_points = np.asarray(
                         frozen["surface_points_bohr"], dtype=np.float64
                     )
-                surface_replay_error = float(np.max(np.abs(points - expected_points)))
-                if surface_replay_error > float(gates["surface_replay_abs_bohr_max"]):
-                    raise RuntimeError(f"{case_id} PCMSolver surface replay failed.")
+                legacy_surface_drift = float(np.max(np.abs(points - expected_points)))
+                if legacy_surface_drift > float(
+                    gates["legacy_surface_diagnostic_abs_bohr_max"]
+                ):
+                    raise RuntimeError(
+                        f"{case_id} legacy surface continuity diagnostic failed."
+                    )
                 symmetry = response_symmetry_defect(session, surface_size=len(points))
                 if symmetry["relative_defect"] > float(
                     gates["response_symmetry_relative_max"]
@@ -664,7 +668,8 @@ def _run_case(
             "gas_ledger": _file_record(gas_ledger, role="frozen gas ledger"),
             "pcm_input": _file_record(pcm_input, role="frozen parsed PCMSolver input"),
             "frozen_surface": _file_record(
-                frozen_surface, role="frozen source-gate surface"
+                frozen_surface,
+                role="legacy ASE-coordinate source-gate surface diagnostic",
             ),
             "frozen_gas_mep": _file_record(
                 frozen_gas_mep, role="frozen gas-density surface MEP"
@@ -691,7 +696,7 @@ def _run_case(
         },
         "diagnostics": {
             "gas_checkpoint_replay_abs_hartree": gas_replay_error,
-            "surface_replay_abs_bohr": surface_replay_error,
+            "legacy_surface_diagnostic_abs_bohr": legacy_surface_drift,
             "response_symmetry": symmetry,
             "half_coupling_abs_hartree": response.half_coupling_residual_hartree,
             "solvent_energy_directional_derivative": derivative,

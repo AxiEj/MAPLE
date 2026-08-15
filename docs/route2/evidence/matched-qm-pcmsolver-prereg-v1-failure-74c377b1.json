@@ -1,0 +1,42 @@
+{
+  "artifact_id": "route2-matched-qm-pcmsolver-prereg-v1-failure-74c377b1",
+  "case_id": "mobley_3034976",
+  "claim_boundary": "This is a geometry-convention failure record, not an electrostatic energy, source accuracy, ledger, force, or production result.",
+  "command": "OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 MKL_NUM_THREADS=8 python tools/route2_release/run_matched_qm_pcmsolver_decomposition.py --asset-root <frozen-asset-root> --pcmsolver-library <pinned-libpcm.so.1> --output-dir <external-canary-dir> --case-id mobley_3034976",
+  "decision": "Do not relax or rewrite preregistration v1. Supersede it with a separately hashed protocol that makes the PySCF checkpoint geometry authoritative for both QM and PCMSolver, treats the old ASE surface only as a bounded continuity diagnostic, and content-addresses the newly generated exact surface.",
+  "diagnosis": {
+    "ase_bohr_to_angstrom": 0.5291772105638411,
+    "bohr_constant_relative_difference": 6.730427403454055e-10,
+    "cause": "The inherited source-panel cavity was built from MOL2 coordinates converted with ASE CODATA-2014, while the gas checkpoint stores the same decimal Angstrom geometry through the PySCF Bohr constant. Replaying PCMSolver at the checkpoint coordinates is physically consistent with the QM density but is not bitwise identical to the inherited ASE-coordinate surface.",
+    "checkpoint_vs_mol2_geometry_max_abs_angstrom": 1.7849095534927528e-09,
+    "pyscf_bohr_to_angstrom": 0.52917721092
+  },
+  "exit_code": 1,
+  "failure": {
+    "error_message": "mobley_3034976 PCMSolver surface replay failed.",
+    "error_type": "RuntimeError",
+    "observed_surface_replay_abs_bohr": 6.439067945507304e-09,
+    "phase": "legacy frozen-surface replay before AO cache and PCM SCF",
+    "registered_surface_replay_abs_bohr_max": 1e-12
+  },
+  "git_head": "74c377b1b3e12bee3845ad00d2402c30ed924949",
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-matched-qm-pcmsolver-four-prereg-v1.json",
+    "protocol_id": "route2-matched-qm-pcmsolver-four-prereg-v1",
+    "sha256": "db77822037e7571268f97651f4789714cdbb6afdd2928c2b40309bb0f5eae4da"
+  },
+  "schema_version": 1,
+  "scientific_result": {
+    "capabilities_admitted": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "M": false,
+      "V": false
+    },
+    "matched_decomposition_measured": false,
+    "pcm_scf_started": false,
+    "reference_case_created": false
+  },
+  "status": "failed-closed-before-pcm-scf"
+}

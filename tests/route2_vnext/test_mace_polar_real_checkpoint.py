@@ -18,6 +18,12 @@ from maple.solvation.models import (
     validate_source_evaluation,
     validate_vacuum_evaluation,
 )
+from maple.solvation.models.applied_potential import (
+    build_mace_polar_applied_potential_completion,
+)
+from maple.solvation.models.mace_polar_separated import (
+    MACEPolarOriginalSourceNativeFieldAdapter,
+)
 from maple.solvation.api.profiles import (
     MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
     MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
@@ -46,6 +52,17 @@ def _water() -> Atoms:
         ),
         info={"charge": 0, "mult": 1},
     )
+
+
+def _uniform_radial_field(atoms: Atoms, gradient: np.ndarray) -> np.ndarray:
+    centred = atoms.positions - np.mean(atoms.positions, axis=0, keepdims=True)
+    potential = centred @ np.asarray(gradient, dtype=float)
+    result = np.zeros((len(atoms), 8), dtype=float)
+    result[:, 0] = result[:, 1] = potential
+    result[:, 2] = result[:, 5] = gradient[1]
+    result[:, 3] = result[:, 6] = gradient[2]
+    result[:, 4] = result[:, 7] = gradient[0]
+    return result
 
 
 def test_official_mace_polar_checkpoint_sign_nonuniform_response_and_derivatives():
@@ -178,6 +195,96 @@ def test_official_mace_polar_checkpoint_sign_nonuniform_response_and_derivatives
                 ),
                 "uniform_energy_branch_difference_eV": energy_branch_difference,
                 "exact_gto_operational_available": False,
+            },
+            sort_keys=True,
+        )
+    )
+
+
+def test_applied_work_completion_replays_official_uniform_energy_and_force():
+    radial = build_official_mace_polar_1_m_radial_gto_adapter(
+        device=os.environ.get("MAPLE_ROUTE2_MACE_DEVICE", "cpu"),
+        checkpoint_path=_checkpoint_path(),
+    )
+    response = MACEPolarOriginalSourceNativeFieldAdapter(radial)
+    completion = build_mace_polar_applied_potential_completion(response)
+    atoms = _water()
+    gradient = np.asarray([0.006, -0.004, 0.003])
+    field = _uniform_radial_field(atoms, gradient)
+
+    calculator = radial._calculator
+    import torch
+
+    batch = calculator._batch_dict(atoms)
+    batch["external_field"] = torch.tensor(
+        gradient.reshape(1, 3),
+        dtype=calculator.dtype,
+        device=calculator.device,
+    )
+    upstream = calculator._model_forward(
+        batch,
+        compute_force=True,
+        compute_stress=False,
+        compute_hessian=False,
+    )
+    upstream_energy = float(upstream["energy"].sum().detach().cpu())
+    components = completion.components_ev(atoms, field)
+    completed_energy = components["complete_energy_ev"]
+    energy_abs_error = abs(completed_energy - upstream_energy)
+    assert energy_abs_error <= 2.0e-10
+
+    rng = np.random.default_rng(20260815)
+    direction = rng.normal(size=(len(atoms), 3))
+    direction /= np.linalg.norm(direction)
+    step = 2.0e-4
+    plus = atoms.copy()
+    minus = atoms.copy()
+    plus.positions += step * direction
+    minus.positions -= step * direction
+    fixed_field_finite_difference = (
+        completion.evaluate_energy_ev(plus, field)
+        - completion.evaluate_energy_ev(minus, field)
+    ) / (2.0 * step)
+    fixed_field_analytic = float(
+        np.vdot(completion.fixed_field_coordinate_gradient(atoms, field), direction)
+    )
+    fixed_field_abs_error = abs(
+        fixed_field_finite_difference - fixed_field_analytic
+    )
+    assert fixed_field_finite_difference == pytest.approx(
+        fixed_field_analytic, rel=3.0e-5, abs=3.0e-6
+    )
+    finite_difference = (
+        completion.evaluate_energy_ev(
+            plus, _uniform_radial_field(plus, gradient)
+        )
+        - completion.evaluate_energy_ev(
+            minus, _uniform_radial_field(minus, gradient)
+        )
+    ) / (2.0 * step)
+    upstream_directional = -float(
+        np.vdot(np.asarray(upstream["forces"].detach().cpu()), direction)
+    )
+    uniform_force_directional_abs_error = abs(
+        finite_difference - upstream_directional
+    )
+    assert finite_difference == pytest.approx(
+        upstream_directional, rel=2.0e-5, abs=2.0e-6
+    )
+    print(
+        "ROUTE2_APPLIED_WORK_CANARY="
+        + json.dumps(
+            {
+                "checkpoint_sha256": radial.provenance.checkpoint_sha256,
+                "explicit_applied_work_eV": components["explicit_applied_work_ev"],
+                "uniform_energy_abs_error_eV": energy_abs_error,
+                "fixed_field_coordinate_directional_abs_error_eV_per_A": (
+                    fixed_field_abs_error
+                ),
+                "uniform_force_directional_abs_error_eV_per_A": (
+                    uniform_force_directional_abs_error
+                ),
+                "capabilities": {tier: False for tier in "EFHVM"},
             },
             sort_keys=True,
         )

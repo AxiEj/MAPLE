@@ -336,6 +336,12 @@ def test_radial_adapter_exposes_intrinsic_scalar_gradient_and_dense_source_jacob
         rtol=0.0,
         atol=1.0e-14,
     )
+    np.testing.assert_allclose(
+        adapter.intrinsic_energy_fixed_field_coordinate_gradient(atoms, field),
+        atoms.positions,
+        rtol=0.0,
+        atol=0.0,
+    )
     jacobian = adapter.dense_source_jacobian(atoms, field)
     direction = np.linspace(0.003, -0.002, field.size).reshape(field.shape)
     np.testing.assert_allclose(
@@ -759,6 +765,10 @@ def test_original_source4_native_field8_adapter_has_rectangular_exact_jvp_vjp(
     np.testing.assert_array_equal(
         adapter.conditioned_raw_energy_field_gradient(atoms, field),
         adapter.intrinsic_energy_field_gradient(atoms, field),
+    )
+    np.testing.assert_array_equal(
+        adapter.conditioned_raw_energy_fixed_field_coordinate_gradient(atoms, field),
+        radial.intrinsic_energy_fixed_field_coordinate_gradient(atoms, field),
     )
     rng = np.random.default_rng(20260815)
     direction = rng.normal(size=field.shape)

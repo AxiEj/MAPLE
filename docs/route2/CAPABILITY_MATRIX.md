@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; the contiguous frozen rigid-panel range `[0,19)` passes in two clean processes per molecule, but physical-component, accuracy, PES/domain, Hessian/FREQ/MD, and release gates remain absent |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; all twenty frozen equilibrium rigid-panel molecules pass in two clean processes per molecule, but distorted-geometry, Cartesian-FD, closed-loop, physical-component, accuracy, Hessian/FREQ/MD, and release gates remain absent |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -287,6 +287,19 @@ and reproduce scientific digest
 Its maximum rotation-energy and relative force-covariance errors are
 `6.270056474022567e-9 eV` and `2.3666944175900336e-8`. Nineteen of twenty
 equilibrium molecules are complete; one remains and no capability changes.
+
+Chloroform completes the contiguous range `[0,20)`. Its two clean runs are
+retained under
+[`evidence/operational-analytic-harmonic-rigid-chloroform-920c1b0f/`](evidence/operational-analytic-harmonic-rigid-chloroform-920c1b0f/README.md)
+and reproduce scientific digest
+`99020fbf5d3a893fd3820e682004aaaf4ea0fb7cade9bb7df74550aa9ba921dd`.
+Its maximum rotation-energy and relative force-covariance errors are
+`3.2669049687683582e-9 eV` and `2.1676643473015314e-8`. Across the complete
+twenty-molecule equilibrium panel, the respective maxima are
+`4.2611645767465234e-8 eV` (benzene) and `6.934036634982884e-8` (pyridine).
+This closes the frozen equilibrium rigid panel only; all distorted-geometry,
+Cartesian-FD, loop-work, accuracy, Hessian, workflow, and release gates remain
+open, so no capability changes.
 
 ## Legacy baseline
 

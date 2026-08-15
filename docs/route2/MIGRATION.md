@@ -8,7 +8,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | --- | --- | --- |
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
-| 2: coupling operator | mathematical implementation complete; unchanged source and one fixed-radial repair are both closed negative for quantitative PCM | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; a disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original source fails all four frozen QM/PCMSolver cases, and its one authorized universal fixed-radial experiment also fails all four despite better distant MEPs; all tiers false |
+| 2: coupling operator | mathematical implementation complete; the original source, its one fixed-radial repair, and an unchanged MACE-MDP permanent-source alternative are closed negative for quantitative PCM | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; a disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original source and radial repair fail their frozen QM/PCMSolver gates, while unchanged MACE-MDP atomic q/p passes only `3/4` under an all-case gate; all tiers false |
 | 3: state equation/operational scalar | kernel complete; both unchanged-source ledgers closed | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy ledgers are distinct disabled scalars rather than one supposedly root-implied energy; the field replay closes `Phi1Delta` as complete external enthalpy, and the source physical audit prevents either ledger from advancing on the unchanged source |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), native-injection complete-enthalpy, and analytic changed-inference Tier-V stability routes closed negative | clean official-checkpoint canaries rule out retaining the original energy/source common scalar, isolate the pinned fixed-axis real-space operator as non-`SO(3)`, and prove that direct native-field injection omits the upstream explicit field work; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular, so every profile remains unadmitted |
@@ -16,7 +16,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
-| 10: strict variational | disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch has a reproducible common-state/envelope canary but fails passivity, local invertibility, feedback-sign, and combined-Hessian gates at the tested real water state |
+| 10: strict variational | disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch fails passivity, local invertibility, feedback-sign, and combined-Hessian gates; the untrained MACE-MDP independent-polarization alternative is stopped before KKT construction because its unchanged permanent source fails the frozen all-case quantitative PCM gate |
 
 The final coupling-active-space audit removes the remaining quotient-space
 loophole for the original source. Using the actual harmonic `B` and `L`, the
@@ -77,6 +77,22 @@ evidence is retained under
 The radial-repair branch is terminally closed; no additional radial patch,
 ledger, or force work is authorized on this source. The next model branch must
 be scalar-first or an independent variational polarization model.
+
+The first independently sourced alternative was then preregistered before
+execution at clean head `64837473`. The frozen MACE-MDP atomic permanent
+charges and dipoles, used without radial fitting or rescaling, pass three of
+the four identical QM/PCMSolver fixed-source cases. The flexible diester
+2-acetoxyethyl acetate misses the inherited `1 kcal/mol` per-case budget by
+reporting `1.8238626327 kcal/mol`; the frozen contract requires all four cases.
+Both cold executions reproduce scientific measurement SHA-256
+`9c3801fb87c5bc7e3fe1396bf31afad41cc397288fe6b9e6f2824ebf6910664c`;
+evidence is retained under
+[`evidence/mace-mdp-permanent-source-terminal-64837473/`](evidence/mace-mdp-permanent-source-terminal-64837473/README.md).
+The already favorable MACE-MDP polarizability evidence therefore remains a
+research coefficient only. No KKT scalar, source patch, ledger, or force is
+authorized for this exact candidate; a successor requires a newly trained
+scalar-first permanent-source/passive-polarization head or another
+independently source-validated variational model.
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from

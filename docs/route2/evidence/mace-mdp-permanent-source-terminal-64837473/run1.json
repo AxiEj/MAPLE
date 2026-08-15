@@ -1,0 +1,519 @@
+{
+  "aggregate": {
+    "case_pass_count": 3,
+    "maximum_dipole_relative_l2_error": 0.036103867966070964,
+    "maximum_polarization_energy_absolute_error_kcal_per_mol": 1.8238626327341645,
+    "maximum_surface_mep_area_weighted_relative_l2_error": 0.5947660374548218,
+    "mean_polarization_energy_absolute_error_kcal_per_mol": 0.9419085578663388,
+    "record_count": 4
+  },
+  "artifact_kind": "disabled-independent-polarization-source-terminal-audit",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "This artifact is a necessary permanent-source falsifier for a new MACE-MDP-based independent quadratic polarization model. It does not turn MACE-MDP into an energy model, admit a KKT scalar, select a solvation ledger, or admit E/F/H/V/M.",
+  "decision": {
+    "additional_source_patch_authorized": false,
+    "broader_static_mep_panel_authorized": false,
+    "independent_variational_polarization_kkt_authorized": false,
+    "mace_mdp_permanent_source_necessary_gate_passed": false,
+    "public_capability_admitted": false
+  },
+  "device": "cpu",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_mace_mdp_permanent_source_pcmsolver_panel.py --asset-root /home/axie/MAPLE/MAPLE-implicitsolv-route2 --pcmsolver-library /home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1 --checkpoint /home/axie/.cache/mace/MACE-MDP.model --device cpu --output /tmp/route2-mace-mdp-permanent-source-64837473-run1.json",
+  "execution_git_head": "64837473053d39bfae5b61788d7a4edce5d4502b",
+  "execution_git_tree": "a4eeb3e2f092b9dd78d90bbecb9dc6e00537be88",
+  "external_assets": {
+    "asset_root": "/home/axie/MAPLE/MAPLE-implicitsolv-route2",
+    "mace_mdp_checkpoint": {
+      "bytes": 51716861,
+      "resolved_path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "pcmsolver_library": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    },
+    "preregistration": {
+      "artifact_id": "route2-mace-mdp-permanent-source-pcmsolver-four-prereg-v1",
+      "path": "/home/axie/MAPLE/MAPLE-route2-conservative-vnext/docs/route2/preregistrations/mace-mdp-permanent-source-pcmsolver-four-v1.json",
+      "sha256": "0ff3dc83941e02005c9e00fd47e16c21296da4593846a2ceb1fe6734424a22c0"
+    }
+  },
+  "measurement_sha256": "9c3801fb87c5bc7e3fe1396bf31afad41cc397288fe6b9e6f2824ebf6910664c",
+  "protocol": {
+    "continuum": "PCMSolver bbd992d54ebeace528cf236dede1f0c56641defb IEFPCM, explicit water dielectric 78.355, SMD intrinsic Coulomb spheres, probe radius 0, no added spheres",
+    "fixed_source_energy_error_budget_kcal_per_mol": 1.0,
+    "geometry_atol_angstrom": 1e-08,
+    "reference": "frozen total QM MEP on identical PCMSolver cavity",
+    "source": "unchanged frozen MACE-MDP atom-resolved permanent charges and dipoles",
+    "source_representation": "exterior point multipoles through l<=1",
+    "surface_replay_atol_bohr": 1e-12,
+    "threshold_provenance": "inherited unchanged from the earlier frozen representation-feasibility preregistration; not fitted to these source results",
+    "total_charge_atol_e": 1e-08
+  },
+  "records": [
+    {
+      "asset_sha256": {
+        "mol2": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "pcm_input": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "projection_result": "d0a0c3ecf51f5cd91f80a44c7a0de8da0e0043d63b495126ead9501465d1b913",
+        "qm_checkpoint": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12",
+        "qm_surface_mep": "41bd88ba7c65e172a2de47ecd2a3dbb9b17291f52f4ad04f9716d58da6dbd829",
+        "surface_points": "8a6389d36816f0666b2c7a4986fdce5cd1dd8619c6c69f119fc2a9b848e05ac3"
+      },
+      "atom_count": 8,
+      "case_passed": true,
+      "charge_gate_passed": true,
+      "class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "dipole_relative_l2_error": 0.0012179234501627503,
+      "error_response_norm_sqrt_hartree": 0.06026090844786363,
+      "fixed_source_energy_gate_passed": true,
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "mace_mdp_model_input_sha256": "520f27b8dc84e3ef8e1f05c924b8e18c1905233e985a08a8f6eb8f13f38ebdaf",
+      "mace_mdp_polarizability_bohr3": [
+        [
+          36.22763833331222,
+          5.745923016810044,
+          -3.127292798995327
+        ],
+        [
+          5.745923016810044,
+          32.77434766690372,
+          1.7665144294154131
+        ],
+        [
+          -3.127292798995328,
+          1.7665144294154171,
+          34.80803235726699
+        ]
+      ],
+      "mace_mdp_polarizability_eigenvalues_bohr3": [
+        27.077387243896943,
+        35.826842027467684,
+        40.90578908611829
+      ],
+      "mace_mdp_state_sha256": "f332b73df7102e086445a847a744157fa24680691ded3b6c09453457ab96cfbc",
+      "name": "acetic acid",
+      "polarization_energy_absolute_error_kcal_per_mol": 0.7640562416000839,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 8.214417292841679,
+      "predicted_dipole_e_angstrom": [
+        0.6931921150201117,
+        0.22954104382359353,
+        -0.5822928346263686
+      ],
+      "predicted_polarization_energy_hartree": -0.016285612236806284,
+      "predicted_polarization_energy_kcal_per_mol": -10.219375969513898,
+      "predicted_total_charge_e": 0.0,
+      "qm_density": {
+        "checkpoint_density_binding_residual_e": 0.0,
+        "checkpoint_mo_orthonormality_inf": 5.487528843517953e-12,
+        "checkpoint_occupation_sum_e": 32.0,
+        "source": "checkpoint:scf/mo_coeff+scf/mo_occ"
+      },
+      "qm_dipole_e_angstrom": [
+        0.6933307453573596,
+        0.22968706437114494,
+        -0.5834133932677396
+      ],
+      "qm_polarization_energy_hartree": -0.017503213361858387,
+      "qm_polarization_energy_kcal_per_mol": -10.983432211113982,
+      "qm_total_charge_e": 0.0,
+      "reference_response_norm_sqrt_hartree": 0.1871000446919155,
+      "surface_mep_area_weighted_relative_l2_error": 0.25635842491640676,
+      "surface_mep_relative_l2_error": 0.2678374146787379,
+      "surface_replay_max_abs_error_bohr": 0.0,
+      "total_charge_absolute_error_e": 0.0
+    },
+    {
+      "asset_sha256": {
+        "mol2": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "pcm_input": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "projection_result": "c1a786cfdd11e5b2e6caf3406599eb29575520dfd303addcc66a29999124bd65",
+        "qm_checkpoint": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079",
+        "qm_surface_mep": "b4916b9abe6a667dbebf9b6bf0691d0ba2b9e4bd37a98b8f6f7d29cb5a077f8d",
+        "surface_points": "34616c0bed07e4e3e656e73cf6737a4ff80fa0c2b2b0266d73d16182d34b1c27"
+      },
+      "atom_count": 12,
+      "case_passed": true,
+      "charge_gate_passed": true,
+      "class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "dipole_relative_l2_error": 0.036103867966070964,
+      "error_response_norm_sqrt_hartree": 0.04696363869134552,
+      "fixed_source_energy_gate_passed": true,
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "mace_mdp_model_input_sha256": "8ab167e998ba5406f65d291af989d16985c7139c4d15179fa9611ac073a8c202",
+      "mace_mdp_polarizability_bohr3": [
+        [
+          72.43959059539054,
+          -14.886199630704349,
+          -0.47610182984541966
+        ],
+        [
+          -14.886199630704347,
+          53.67481229352665,
+          -0.8697023187489338
+        ],
+        [
+          -0.4761018298454197,
+          -0.8697023187489356,
+          80.62191619321281
+        ]
+      ],
+      "mace_mdp_polarizability_eigenvalues_bohr3": [
+        45.43301094246904,
+        80.64788694708326,
+        80.65542119257772
+      ],
+      "mace_mdp_state_sha256": "8b29442e87e4b802b9adcf31e7e968f22d33e43eb1f493741c3ab048999412ad",
+      "name": "benzene",
+      "polarization_energy_absolute_error_kcal_per_mol": 0.8946333000649167,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 3.6384405252976775,
+      "predicted_dipole_e_angstrom": [
+        -0.0001669503095966951,
+        -6.019538109603768e-05,
+        8.621370092196969e-05
+      ],
+      "predicted_polarization_energy_hartree": -0.006423705667246824,
+      "predicted_polarization_energy_kcal_per_mol": -4.0309361647902096,
+      "predicted_total_charge_e": -4.336808689942018e-18,
+      "qm_density": {
+        "checkpoint_density_binding_residual_e": 0.0,
+        "checkpoint_mo_orthonormality_inf": 8.693867847853198e-11,
+        "checkpoint_occupation_sum_e": 42.0,
+        "source": "checkpoint:scf/mo_coeff+scf/mo_occ"
+      },
+      "qm_dipole_e_angstrom": [
+        -0.0001619204441734001,
+        -6.2930893310455e-05,
+        9.036073421967296e-05
+      ],
+      "qm_polarization_energy_hartree": -0.004998016754102294,
+      "qm_polarization_energy_kcal_per_mol": -3.1363028647252924,
+      "qm_total_charge_e": 0.0,
+      "reference_response_norm_sqrt_hartree": 0.09998016557400066,
+      "surface_mep_area_weighted_relative_l2_error": 0.5947660374548218,
+      "surface_mep_relative_l2_error": 0.7168738567585138,
+      "surface_replay_max_abs_error_bohr": 0.0,
+      "total_charge_absolute_error_e": 4.336808689942018e-18
+    },
+    {
+      "asset_sha256": {
+        "mol2": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "pcm_input": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "projection_result": "e3c89b54c6fbbb25ece9ab3fd5b6b9a3e61fa9c605d65533c29084cd15b53fe7",
+        "qm_checkpoint": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b",
+        "qm_surface_mep": "ee1dbfa127101796b154cbc4749d1aec22494baaea3666b9264c9eff33f468bb",
+        "surface_points": "006675ac11e220e7278893467d3c4ca330b8ec02746cfb63d17125d3774bf239"
+      },
+      "atom_count": 20,
+      "case_passed": false,
+      "charge_gate_passed": true,
+      "class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "dipole_relative_l2_error": 0.005008711916512388,
+      "error_response_norm_sqrt_hartree": 0.08561500219664414,
+      "fixed_source_energy_gate_passed": false,
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "mace_mdp_model_input_sha256": "1b1d68173c42d2c4a0fbd9d3084d88ce8a8822743e933c932f112f9f278f2f22",
+      "mace_mdp_polarizability_bohr3": [
+        [
+          98.37747949030994,
+          13.390466450264057,
+          6.426202275932783
+        ],
+        [
+          13.390466450264055,
+          92.1673318183523,
+          -3.6598550946871367
+        ],
+        [
+          6.426202275932785,
+          -3.659855094687145,
+          80.56200672656695
+        ]
+      ],
+      "mace_mdp_polarizability_eigenvalues_bohr3": [
+        74.04718150695135,
+        87.76093709518598,
+        109.2986994330919
+      ],
+      "mace_mdp_state_sha256": "7939335dfa80e6cb9723e8828ca69249566f973078ff3870b7abea25562dad99",
+      "name": "2-acetoxyethyl acetate",
+      "polarization_energy_absolute_error_kcal_per_mol": 1.8238626327341645,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 13.128718480664798,
+      "predicted_dipole_e_angstrom": [
+        0.14094540584307957,
+        -0.2605203320429284,
+        0.2617313784629689
+      ],
+      "predicted_polarization_energy_hartree": -0.01740769666927074,
+      "predicted_polarization_energy_kcal_per_mol": -10.923494581584059,
+      "predicted_total_charge_e": 1.734723475976807e-18,
+      "qm_density": {
+        "checkpoint_density_binding_residual_e": 1.4210854715202004e-14,
+        "checkpoint_mo_orthonormality_inf": 5.343787912170939e-12,
+        "checkpoint_occupation_sum_e": 78.0,
+        "source": "checkpoint:scf/mo_coeff+scf/mo_occ"
+      },
+      "qm_dipole_e_angstrom": [
+        0.14194601847522162,
+        -0.26035448996208715,
+        0.26003619910269654
+      ],
+      "qm_polarization_energy_hartree": -0.02031420678285472,
+      "qm_polarization_energy_kcal_per_mol": -12.747357214318225,
+      "qm_total_charge_e": 1.4210854715202004e-14,
+      "reference_response_norm_sqrt_hartree": 0.20156491154392284,
+      "surface_mep_area_weighted_relative_l2_error": 0.40521145854160523,
+      "surface_mep_relative_l2_error": 0.4522791124902558,
+      "surface_replay_max_abs_error_bohr": 0.0,
+      "total_charge_absolute_error_e": 1.4209119991726027e-14
+    },
+    {
+      "asset_sha256": {
+        "mol2": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "pcm_input": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "projection_result": "a64d8c0df5c42e1190100294bd4a37ef0bebff918527164a4ad2c339c2c25905",
+        "qm_checkpoint": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+        "qm_surface_mep": "3cbd917e8e4898934dea21abea77bf1bdb0577e90cc105f826968473489121cb",
+        "surface_points": "3576e4ad68d34ad5424c768bc3dbe3ec7ddfd9f4f3caa4db04ab9d69702e50bb"
+      },
+      "atom_count": 10,
+      "case_passed": true,
+      "charge_gate_passed": true,
+      "class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "dipole_relative_l2_error": 0.0019031854490187737,
+      "error_response_norm_sqrt_hartree": 0.056474121036464806,
+      "fixed_source_energy_gate_passed": true,
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "mace_mdp_model_input_sha256": "6281f53ff5bff1490d36956205df0f7b121fd0ded99d72edb830f51dd73de853",
+      "mace_mdp_polarizability_bohr3": [
+        [
+          36.905898997635774,
+          0.8876925817469359,
+          4.436610841831118
+        ],
+        [
+          0.8876925817469359,
+          45.9880541355774,
+          -0.48503781460525397
+        ],
+        [
+          4.436610841831118,
+          -0.4850378146052551,
+          43.79636563006934
+        ]
+      ],
+      "mace_mdp_polarizability_eigenvalues_bohr3": [
+        34.64389156992711,
+        45.9521682246169,
+        46.094258968738515
+      ],
+      "mace_mdp_state_sha256": "0052bec12f85d1365bac8a6548375c11ca2f896b3a9765a8d0b82117f88f6371",
+      "name": "acetone",
+      "polarization_energy_absolute_error_kcal_per_mol": 0.28508205706618966,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 6.1573182957065695,
+      "predicted_dipole_e_angstrom": [
+        -0.09731520309731044,
+        0.5581792379950091,
+        -0.31677343925811663
+      ],
+      "predicted_polarization_energy_hartree": -0.01013252734515403,
+      "predicted_polarization_energy_kcal_per_mol": -6.358256905287584,
+      "predicted_total_charge_e": -6.938893903907228e-18,
+      "qm_density": {
+        "checkpoint_density_binding_residual_e": 0.0,
+        "checkpoint_mo_orthonormality_inf": 1.0043371057196852e-11,
+        "checkpoint_occupation_sum_e": 32.0,
+        "source": "checkpoint:scf/mo_coeff+scf/mo_occ"
+      },
+      "qm_dipole_e_angstrom": [
+        -0.0976746255767469,
+        0.5593310353681447,
+        -0.3170491438826788
+      ],
+      "qm_polarization_energy_hartree": -0.010586834521140225,
+      "qm_polarization_energy_kcal_per_mol": -6.6433389623537735,
+      "qm_total_charge_e": 0.0,
+      "reference_response_norm_sqrt_hartree": 0.14551174881184148,
+      "surface_mep_area_weighted_relative_l2_error": 0.35406379790223247,
+      "surface_mep_relative_l2_error": 0.395908678278785,
+      "surface_replay_max_abs_error_bohr": 0.0,
+      "total_charge_absolute_error_e": 6.938893903907228e-18
+    }
+  ],
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-15T08:31:13.854414+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 12.959798202035017,
+  "schema_version": "route2-mace-mdp-permanent-source-pcmsolver-four-v1",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/read/__init__.py": "5615628ff768f6ddcc27e2c9c6a43bad348f221feab8bebe1a4da6fd63353b75",
+    "maple/function/read/filereader/__init__.py": "971f78d2130e9232397dc76bf1ff211b575504f81bb0a737df6b1d959eb6c3f2",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
+    "maple/function/read/filereader/post_reader.py": "6b8e81de5b8fdef6058acda2751cbf76f4ac3e9d352e9504e48add22c526ebb5",
+    "maple/function/read/filereader/xyz_reader.py": "48acccbfe74267f6c438926d4e390db336217c988b0b21c6af89fb251b61c456",
+    "maple/function/read/filereader/xyz_traj_reader.py": "f8fce59ab621d031762e24d243b7bf74b1d1849a22b633639397f71df5c9a25d",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/function/utility/__init__.py": "cdb04f9be9a33f57ee5c372fe559c9b01c34e73bc32b119c8488fffd4b9fb935",
+    "maple/function/utility/molecules.py": "febb630b2cbba5be36fe314b6832a1f3b4a45b7150750fcc4ffa306328631b4f",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "3ac224d0afd3af273dcfb8e4c8fc4e0da9eeee496f47bf069667f05cfe32e9e9",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "72fb6c768f9abb0ea202147cc54673db88f82b00856ae93ef9d10d7e34733672",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "dd28c5d33752e6ae0ee8251b6f286cb2d670e9943b81643c021dc580ce1365c5",
+    "maple/solvation/api/state_registry.py": "524f9eec7392da9770bdfc4bc0ab634c12ccf5062d4c7edd5914bd88068b0987",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "b38177fe0e3a82f70671f24e8c15ca6351e6cc398f7f36b9072f9eb0003049fe",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/separated_operators.py": "0e2b597252c6e0d9ca5836625b39fbceffaece7b4014d77fa9d8b241f2e204ec",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "ef629a6ae54759ec58b09d06ab01394c5e0ae0d18a226fb85a248c7549c1cd4f",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_mdp.py": "ba957da754ced111435519ccac4862f0fa71905d9f710ea53b6c1b48cf140a61",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_separated.py": "cc12a9047404cfdf0493cb4d37908338cd4c284623f3734c74f26dfaaee7b110",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/release/__init__.py": "6d32e901fb27e2ef1ee2813df4d89015fe3afcb95faf0ec1a30b77677415f1b2",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
+    "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+    "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/radial_embedding.py": "55c27af3df5ddc0f91c2cc44e8f165354c1f038f1f7209f03bbc75574dff51a8",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/root_well_posedness.py": "943cab8cc9f235852cdf257d95619ec8fba6410b7d3a391cd7779e271ac03302",
+    "maple/solvation/release/source_mep.py": "d1f1eedae9a150e1b66a14b0ee2f8fa88ae560a00aa3442a5c45838778126224",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "tools/route2_release/run_mace_mdp_permanent_source_pcmsolver_panel.py": "8332371a043c0baa5097b875fe7294f76728bde98d69498e5415f26a4be59236"
+  },
+  "status": "mace-mdp-permanent-source-fails-frozen-four-case-gate",
+  "working_tree_clean": true
+}

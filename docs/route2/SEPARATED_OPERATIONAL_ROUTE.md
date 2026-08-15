@@ -180,6 +180,21 @@ Evidence is retained under
 Per the frozen termination rule, no further radial patch is authorized and no
 ledger or force work proceeds on either the original or repaired source.
 
+An independently identified MACE-MDP alternative was also tested under a
+frozen all-four-case rule before any KKT or force construction. Its unchanged
+atomic permanent charges and dipoles pass acetic acid, benzene, and acetone,
+but 2-acetoxyethyl acetate has a fixed-source polarization-energy error of
+`1.8238626327 kcal/mol`, above the inherited `1 kcal/mol` limit. Both cold
+executions reproduce measurement SHA-256
+`9c3801fb87c5bc7e3fe1396bf31afad41cc397288fe6b9e6f2824ebf6910664c`;
+evidence is retained under
+[`evidence/mace-mdp-permanent-source-terminal-64837473/`](evidence/mace-mdp-permanent-source-terminal-64837473/README.md).
+Because the preregistration requires `4/4`, the unchanged MACE-MDP permanent
+source is also terminally rejected. Its previously audited polarizability and
+induced-response coefficients do not by themselves define a complete energy
+model and may be retained only as research/distillation targets. No source
+patch, KKT scalar, ledger, or force work proceeds on that candidate.
+
 For `r(y)=y-F(y)`, the root diagnostic records:
 
 - `sigma_min(I-J_F)` for a local implicit branch;
@@ -192,21 +207,25 @@ with an externally evidenced invariant domain and a uniform domain bound.
 
 ## Claim boundary
 
-This change establishes modular contracts, hashes, and two terminal negative
-decisions for the unchanged checkpoint: original-source Tier V fails the
-coupled-curl gate, and the same source fails the matched quantitative PCM
-source gate. It does **not** establish:
+This change establishes modular contracts, hashes, two terminal negative
+decisions for the unchanged checkpoint, and a third terminal source decision
+for the unchanged MACE-MDP alternative: original-source Tier V fails the
+coupled-curl gate, both original/fixed-radial MACE-POLAR source identities fail
+their matched quantitative PCM gates, and MACE-MDP q/p fails its frozen
+all-case gate. It does **not** establish:
 
 - a unified variational functional for the original checkpoint;
 - a validated repaired source/MEP model (the single authorized fixed-radial
-  experiment has now failed its matched PCMSolver energy gate);
+  experiment and the unchanged MACE-MDP alternative have failed their matched
+  PCMSolver energy gates);
 - an admitted `Phi0` or `Phi1Delta` ledger (`Phi1Delta` additionally fails
   complete-enthalpy semantics for the current native-injection branch);
 - a globally unique smooth root;
 - distorted-geometry PES, Cartesian finite differences, or closed-loop work;
 - a public conservative force or any solvation-accuracy claim.
 
-The current separated source identity terminates here. The authorized radial
-embedding, any scalar-first field head, or any independent variational
-polarization model must receive a new profile/hash and rerun its own gates;
-earlier force or ledger evidence cannot be silently inherited.
+The current separated source identities terminate here. A newly trained
+scalar-first field/source head or a different independently source-validated
+variational polarization model must receive a new profile/hash and rerun its
+own gates; earlier force, response-coefficient, or ledger evidence cannot be
+silently inherited.

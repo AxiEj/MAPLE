@@ -7,6 +7,10 @@ import subprocess
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+PREREGISTRATION_V3 = (
+    REPO_ROOT / "docs/implicit-solvation/benchmarks/"
+    "route2-matched-qm-pcmsolver-four-prereg-v3.json"
+)
 PREREGISTRATION_V2 = (
     REPO_ROOT / "docs/implicit-solvation/benchmarks/"
     "route2-matched-qm-pcmsolver-four-prereg-v2.json"
@@ -18,6 +22,10 @@ PREREGISTRATION_V1 = (
 V1_FAILURE_EVIDENCE = (
     REPO_ROOT / "docs/route2/evidence/"
     "matched-qm-pcmsolver-prereg-v1-failure-74c377b1.json"
+)
+V2_FAILURE_EVIDENCE = (
+    REPO_ROOT / "docs/route2/evidence/"
+    "matched-qm-pcmsolver-prereg-v2-repeat-failure-7ed4a56b.json"
 )
 INHERITED = (
     REPO_ROOT / "docs/implicit-solvation/benchmarks/"
@@ -35,12 +43,12 @@ def _sha256(path: Path) -> str:
 
 
 def _payload() -> dict[str, object]:
-    return json.loads(PREREGISTRATION_V2.read_text(encoding="utf-8"))
+    return json.loads(PREREGISTRATION_V3.read_text(encoding="utf-8"))
 
 
 def test_preregistration_freezes_source_independent_matched_reference() -> None:
     payload = _payload()
-    assert payload["protocol_id"] == "route2-matched-qm-pcmsolver-four-prereg-v2"
+    assert payload["protocol_id"] == "route2-matched-qm-pcmsolver-four-prereg-v3"
     assert payload["status"] == "frozen-before-execution"
     assert payload["case_ids"] == [
         "mobley_3053621",
@@ -59,7 +67,11 @@ def test_preregistration_freezes_source_independent_matched_reference() -> None:
     assert continuum["dielectric"] == 78.355
     assert continuum["nonpolar_terms_included"] is False
     assert continuum["standard_state_terms_included"] is False
-    assert "complete v2 panel twice" in payload["execution_contract"]["repeat_policy"]
+    assert "complete v3 panel twice" in payload["execution_contract"]["repeat_policy"]
+    assert (
+        "tolerance-bounded replay auditor"
+        in payload["execution_contract"]["repeat_policy"]
+    )
     assert (
         "checkpoint atom_coords()"
         in payload["reference_protocol"]["coordinate_authority"]
@@ -108,10 +120,36 @@ def test_numerical_gates_cover_energy_pairing_scf_and_replay() -> None:
     assert gates["electron_count_abs_e_max"] <= 1.0e-8
     assert gates["orbital_gradient_inf_max"] <= 1.0e-6
     assert gates["all_scf_states_converged"] is True
+    assert gates["repeat_energy_abs_eV_max"] <= 1.0e-8
+    assert gates["repeat_pcm_density_inf_max"] <= 1.0e-8
+    assert gates["repeat_boundary_mep_inf_hartree_per_e_max"] <= 1.0e-10
+    assert gates["repeat_asc_inf_e_max"] <= 1.0e-10
+    assert gates["repeat_polarization_energy_abs_hartree_max"] <= 1.0e-10
+
+
+def test_v3_supersedes_but_does_not_rewrite_failed_v2() -> None:
+    payload = _payload()
+    superseded = payload["supersedes_failed_protocol"]
+    assert superseded["path"] == str(PREREGISTRATION_V2.relative_to(REPO_ROOT))
+    assert superseded["sha256"] == _sha256(PREREGISTRATION_V2)
+    assert superseded["failure_evidence_path"] == str(
+        V2_FAILURE_EVIDENCE.relative_to(REPO_ROOT)
+    )
+    assert superseded["failure_evidence_sha256"] == _sha256(V2_FAILURE_EVIDENCE)
+
+    failure = json.loads(V2_FAILURE_EVIDENCE.read_text(encoding="utf-8"))
+    assert failure["status"] == "failed-closed-bitwise-repeat-only"
+    assert failure["failure"]["scientific_payload_sha256_equal"] is False
+    assert all(failure["exact_identity_checks"].values())
+    assert (
+        failure["observed_numerical_repeat_differences"]["maximum_energy_abs_eV"]
+        < 1.0e-8
+    )
+    assert failure["preregistration"]["sha256"] == _sha256(PREREGISTRATION_V2)
 
 
 def test_v2_supersedes_but_does_not_rewrite_failed_v1() -> None:
-    payload = _payload()
+    payload = json.loads(PREREGISTRATION_V2.read_text(encoding="utf-8"))
     superseded = payload["supersedes_failed_protocol"]
     assert superseded["path"] == str(PREREGISTRATION_V1.relative_to(REPO_ROOT))
     assert superseded["sha256"] == _sha256(PREREGISTRATION_V1)

@@ -1,0 +1,398 @@
+{
+  "case_ids": [
+    "mobley_3053621",
+    "mobley_3867265",
+    "mobley_3034976",
+    "mobley_352111"
+  ],
+  "cases": [
+    {
+      "case_id": "mobley_3053621",
+      "class": "weakly-polar aromatic hydrocarbon",
+      "frozen_gas_mep": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-12/work/qm-surface-mep.npz",
+        "role": "frozen gas-density surface MEP",
+        "sha256": "b4916b9abe6a667dbebf9b6bf0691d0ba2b9e4bd37a98b8f6f7d29cb5a077f8d"
+      },
+      "frozen_surface": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-12/work/surface.npz",
+        "role": "legacy ASE-coordinate PCMSolver surface diagnostic",
+        "sha256": "34616c0bed07e4e3e656e73cf6737a4ff80fa0c2b2b0266d73d16182d34b1c27"
+      },
+      "gas_checkpoint": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/qm-gas/gas.chk",
+        "role": "frozen gas PySCF checkpoint",
+        "sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "gas_ledger": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/qm-gas/gas.json",
+        "role": "frozen gas PySCF ledger",
+        "sha256": "0cda3a519997078670b4c4290011c32f108ff37d401843ed715f5ba5bcffceff"
+      },
+      "mol2": {
+        "path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3053621.mol2",
+        "role": "frozen molecular structure",
+        "sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a"
+      },
+      "name": "benzene",
+      "pcm_input": {
+        "path": ".omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3053621/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+        "role": "frozen parsed PCMSolver input",
+        "sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4"
+      },
+      "pcm_input_ledger": null,
+      "projection_result": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-12/result.json",
+        "role": "frozen GTO/PCM projection result",
+        "sha256": "c1a786cfdd11e5b2e6caf3406599eb29575520dfd303addcc66a29999124bd65"
+      }
+    },
+    {
+      "case_id": "mobley_3867265",
+      "class": "strongly-dipolar ketone",
+      "frozen_gas_mep": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-12/work/qm-surface-mep.npz",
+        "role": "frozen gas-density surface MEP",
+        "sha256": "3cbd917e8e4898934dea21abea77bf1bdb0577e90cc105f826968473489121cb"
+      },
+      "frozen_surface": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-12/work/surface.npz",
+        "role": "legacy ASE-coordinate PCMSolver surface diagnostic",
+        "sha256": "3576e4ad68d34ad5424c768bc3dbe3ec7ddfd9f4f3caa4db04ab9d69702e50bb"
+      },
+      "gas_checkpoint": {
+        "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+        "role": "frozen gas PySCF checkpoint",
+        "sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "gas_ledger": {
+        "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.json",
+        "role": "frozen gas PySCF ledger",
+        "sha256": "4143e5bfb6e603ea74acb7b0498dfd92c0bf4fdad104c798d57c4badecdc6213"
+      },
+      "mol2": {
+        "path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3867265.mol2",
+        "role": "frozen molecular structure",
+        "sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1"
+      },
+      "name": "acetone",
+      "pcm_input": {
+        "path": ".omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3867265/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+        "role": "frozen parsed PCMSolver input",
+        "sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8"
+      },
+      "pcm_input_ledger": null,
+      "projection_result": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-12/result.json",
+        "role": "frozen GTO/PCM projection result",
+        "sha256": "a64d8c0df5c42e1190100294bd4a37ef0bebff918527164a4ad2c339c2c25905"
+      }
+    },
+    {
+      "case_id": "mobley_3034976",
+      "class": "hydrogen-bonding carboxylic acid",
+      "frozen_gas_mep": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-12/work/qm-surface-mep.npz",
+        "role": "frozen gas-density surface MEP",
+        "sha256": "41bd88ba7c65e172a2de47ecd2a3dbb9b17291f52f4ad04f9716d58da6dbd829"
+      },
+      "frozen_surface": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-12/work/surface.npz",
+        "role": "legacy ASE-coordinate PCMSolver surface diagnostic",
+        "sha256": "8a6389d36816f0666b2c7a4986fdce5cd1dd8619c6c69f119fc2a9b848e05ac3"
+      },
+      "gas_checkpoint": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/qm-gas/gas.chk",
+        "role": "frozen gas PySCF checkpoint",
+        "sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "gas_ledger": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/qm-gas/gas.json",
+        "role": "frozen gas PySCF ledger",
+        "sha256": "462f88665dd1a8f1cf909005d4f4edcb51cf52e6227d743d5c37097df93d4538"
+      },
+      "mol2": {
+        "path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3034976.mol2",
+        "role": "frozen molecular structure",
+        "sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697"
+      },
+      "name": "acetic acid",
+      "pcm_input": {
+        "path": ".omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3034976/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+        "role": "frozen parsed PCMSolver input",
+        "sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0"
+      },
+      "pcm_input_ledger": null,
+      "projection_result": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-12/result.json",
+        "role": "frozen GTO/PCM projection result",
+        "sha256": "d0a0c3ecf51f5cd91f80a44c7a0de8da0e0043d63b495126ead9501465d1b913"
+      }
+    },
+    {
+      "case_id": "mobley_352111",
+      "class": "flexible multihetero diester",
+      "frozen_gas_mep": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-12/work/qm-surface-mep.npz",
+        "role": "frozen gas-density surface MEP",
+        "sha256": "ee1dbfa127101796b154cbc4749d1aec22494baaea3666b9264c9eff33f468bb"
+      },
+      "frozen_surface": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-12/work/surface.npz",
+        "role": "legacy ASE-coordinate PCMSolver surface diagnostic",
+        "sha256": "006675ac11e220e7278893467d3c4ca330b8ec02746cfb63d17125d3774bf239"
+      },
+      "gas_checkpoint": {
+        "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/pyscf_smd_2acetoxyethyl_acetate_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+        "role": "frozen gas PySCF checkpoint",
+        "sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "gas_ledger": {
+        "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/pyscf_smd_2acetoxyethyl_acetate_wb97mv_def2tzvpd_g3_n50x194sg1.gas.json",
+        "role": "frozen gas PySCF ledger",
+        "sha256": "3859f0031523ed9d6580db1715fb0a3b6fdfbf0b83983a4d2db53763840f53df"
+      },
+      "mol2": {
+        "path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_352111.mol2",
+        "role": "frozen molecular structure",
+        "sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df"
+      },
+      "name": "2-acetoxyethyl acetate",
+      "pcm_input": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/pcm-input/@route2-smd-intrinsic.pcm",
+        "role": "frozen parsed PCMSolver input",
+        "sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2"
+      },
+      "pcm_input_ledger": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/pcm-input/pcm-input.json",
+        "role": "frozen PCM input ledger",
+        "sha256": "aa9b614381e48d696480a563460de072beb95107e5db58bba4ada2801cc961c3"
+      },
+      "projection_result": {
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-12/result.json",
+        "role": "frozen GTO/PCM projection result",
+        "sha256": "e3c89b54c6fbbb25ece9ab3fd5b6b9a3e61fa9c605d65533c29084cd15b53fe7"
+      }
+    }
+  ],
+  "claim_boundary": {
+    "can_establish": [
+      "source-independent fixed-geometry matched electrostatic QM/PCMSolver decomposition",
+      "a future quantitative-source and operational-ledger reference identity",
+      "tolerance-bounded numerical replay under an exact scientific identity"
+    ],
+    "cannot_establish": [
+      "fitness of any ML source",
+      "selection or admission of Phi0/Phi1Delta",
+      "total experimental solvation free energy",
+      "CDS or standard-state contribution",
+      "force, Hessian, frequency, optimization, transition-state, or MD capability"
+    ]
+  },
+  "continuum_protocol": {
+    "cavity": "frozen SMD intrinsic Coulomb radii in parsed per-case GEPOL input",
+    "commit": "bbd992d54ebeace528cf236dede1f0c56641defb",
+    "dielectric": 78.355,
+    "implementation": "PCMSolver",
+    "inside_dielectric": 1.0,
+    "legacy_surface_role": "The inherited ASE-coordinate surface is a bounded continuity diagnostic only. The generated PySCF-coordinate PCMSolver surface is the content-addressed reference topology.",
+    "library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "matrix_symmetrization_required": true,
+    "method": "IEFPCM",
+    "nonpolar_terms_included": false,
+    "probe_radius_angstrom": 0.0,
+    "standard_state_terms_included": false,
+    "target_tessera_area_angstrom2": 0.28
+  },
+  "decision_rule": "This runner creates reference components only. Both complete v3 runs must pass the frozen replay auditor. A source must independently pass the complete physical source gate before any Phi0/Phi1Delta comparison may consume these references.",
+  "execution_contract": {
+    "output_policy": "external directory only; each case writes PCM checkpoint, exact surface, AO density, PCM boundary state, and immutable JSON; full panel required for panel status",
+    "repeat_audit": {
+      "exact_identity": [
+        "repository head/tree",
+        "runtime and source graph",
+        "PCMSolver library",
+        "method and continuum identities",
+        "geometry",
+        "surface points and areas",
+        "vacuum density identity"
+      ],
+      "implementation": "tools/route2_release/audit_matched_qm_pcmsolver_replay.py",
+      "tolerance_bounded": [
+        "five energy fields",
+        "AO PCM density",
+        "boundary MEP",
+        "apparent surface charge",
+        "polarization energy"
+      ]
+    },
+    "repeat_policy": "execute the complete v3 panel twice; require exact method/runtime/source/geometry/cavity/topology identity and pass the preregistered tolerance-bounded replay auditor; raw floating-point hashes are retained as artifact identities but are not required to match",
+    "runtime": {
+      "integral_batch_size": 16,
+      "max_memory_mb": 8000,
+      "numpy_version": "2.4.6",
+      "pcmsolver_library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "pyscf_version": "2.13.1",
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "threads": 8
+    },
+    "source_sha256": {
+      "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+      "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+      "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+      "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+      "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+      "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+      "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+      "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+      "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+      "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+      "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+      "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+      "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+      "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+      "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+      "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+      "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+      "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+      "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+      "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+      "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+      "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+      "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+      "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+      "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+      "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+      "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+      "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+      "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+      "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+      "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+      "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+      "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+      "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+      "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+      "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+      "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+      "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+      "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+      "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+      "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+      "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+      "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+      "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+      "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+      "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+      "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+      "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+      "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+      "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+      "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+      "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+      "maple/solvation/api/__init__.py": "3ac224d0afd3af273dcfb8e4c8fc4e0da9eeee496f47bf069667f05cfe32e9e9",
+      "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+      "maple/solvation/api/profiles.py": "72fb6c768f9abb0ea202147cc54673db88f82b00856ae93ef9d10d7e34733672",
+      "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+      "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+      "maple/solvation/api/scalar_registry.py": "dd28c5d33752e6ae0ee8251b6f286cb2d670e9943b81643c021dc580ce1365c5",
+      "maple/solvation/api/state_registry.py": "524f9eec7392da9770bdfc4bc0ab634c12ccf5062d4c7edd5914bd88068b0987",
+      "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+      "maple/solvation/continuum/__init__.py": "b38177fe0e3a82f70671f24e8c15ca6351e6cc398f7f36b9072f9eb0003049fe",
+      "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+      "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+      "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+      "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+      "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+      "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+      "maple/solvation/reference/__init__.py": "fbe8a1b70c7fab480bb67d545ecc2665dbd9ae1ae93b8ab8df530248047a510b",
+      "maple/solvation/reference/pyscf_pcmsolver.py": "ab203e1fc2345af079150127368040ceaa404878c2c75bb91206031701a9d2ba",
+      "maple/solvation/reference/replay.py": "97a8989fd2d1ac260868bd1f39f10b4755dcd899c599f509e4793f3825d4bd07",
+      "maple/solvation/release/__init__.py": "01d6bcc28049365d49de53eaff3ee6d3e0f5230510ca2771ea788159e8525792",
+      "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+      "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+      "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
+      "maple/solvation/release/electrostatic_decomposition.py": "433cf54c271f269745fd16e4e6170140db3340de462b540d3c94a865fe0cfd42",
+      "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+      "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
+      "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+      "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",
+      "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+      "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+      "maple/solvation/release/radial_embedding.py": "55c27af3df5ddc0f91c2cc44e8f165354c1f038f1f7209f03bbc75574dff51a8",
+      "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+      "maple/solvation/release/root_well_posedness.py": "943cab8cc9f235852cdf257d95619ec8fba6410b7d3a391cd7779e271ac03302",
+      "maple/solvation/release/source_mep.py": "d1f1eedae9a150e1b66a14b0ee2f8fa88ae560a00aa3442a5c45838778126224",
+      "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+      "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+      "tools/route2_release/audit_matched_qm_pcmsolver_replay.py": "3391722532176c3ba6fc1433aff2f36dbf836c02d031cd9558ecdef77a8abafa",
+      "tools/route2_release/run_matched_qm_pcmsolver_decomposition.py": "e17d5a99f2f8c3c8086abbd028211518ecc321256a6ccf8e549d84dce5971207"
+    }
+  },
+  "inherited_asset_contract": {
+    "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+    "protocol_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+    "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
+  },
+  "numerical_gates": {
+    "all_scf_states_converged": true,
+    "checkpoint_density_binding_inf_max": 1e-09,
+    "decomposition_closure_abs_hartree_max": 1e-10,
+    "electron_count_abs_e_max": 1e-08,
+    "gas_checkpoint_replay_abs_hartree_max": 1e-09,
+    "geometry_replay_abs_angstrom_max": 1e-08,
+    "half_coupling_abs_hartree_max": 1e-12,
+    "legacy_surface_diagnostic_abs_bohr_max": 1e-08,
+    "orbital_gradient_inf_max": 1e-06,
+    "repeat_asc_inf_e_max": 1e-10,
+    "repeat_boundary_mep_inf_hartree_per_e_max": 1e-10,
+    "repeat_energy_abs_eV_max": 1e-08,
+    "repeat_pcm_density_inf_max": 1e-08,
+    "repeat_polarization_energy_abs_hartree_max": 1e-10,
+    "response_symmetry_relative_max": 1e-12,
+    "solvent_energy_fd_abs_hartree_max": 1e-08,
+    "solvent_energy_fd_step": 0.0001
+  },
+  "protocol_id": "route2-matched-qm-pcmsolver-four-prereg-v3",
+  "reference_protocol": {
+    "basis": "def2-tzvpd",
+    "bohr_to_angstrom": 0.529177210903,
+    "charge": 0,
+    "coordinate_authority": "The frozen PySCF checkpoint atom_coords() are authoritative and are passed unchanged to both AO integrals and PCMSolver; this makes the QM density and continuum operator exactly co-geometric.",
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "implementation": "PySCF",
+    "maximum_memory_mb": 8000,
+    "maximum_scf_cycles": 100,
+    "nonlocal_atom_grid": [
+      50,
+      194
+    ],
+    "nonlocal_prune": "sg1_prune",
+    "pcm_state": "self-consistent PySCF density driven by the exact PCMSolver surface-charge response; no PySCF-native PCM discretization",
+    "polarized_density_vacuum_evaluation": "single non-reoptimized vacuum-functional evaluation at the converged PCM density",
+    "pyscf_version": "2.13.1",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0,
+    "vacuum_state": "frozen converged gas checkpoint; exact same functional replay required"
+  },
+  "schema_version": 1,
+  "scientific_question": "For the frozen four-case chemistry panel, what are the solute distortion, continuum stabilization, and total electrostatic solvation components when the same omegaB97M-V/def2-TZVPD density is self-consistently coupled to the exact frozen symmetric PCMSolver IEFPCM cavity/operator?",
+  "status": "frozen-before-execution",
+  "supersedes_failed_protocol": {
+    "failure_evidence_path": "docs/route2/evidence/matched-qm-pcmsolver-prereg-v2-repeat-failure-7ed4a56b.json",
+    "failure_evidence_sha256": "3baa0d478aaba7a047d780a17cab69a891a5b5e9cbe264a0b65ecc0d778c2695",
+    "path": "docs/implicit-solvation/benchmarks/route2-matched-qm-pcmsolver-four-prereg-v2.json",
+    "reason": "v2 required bitwise scientific-payload equality across multithreaded converged SCF runs; two complete executions preserved exact scientific identity and topology but differed by at most 6.74e-11 eV in energy and 4.63e-10 in the AO density infinity norm.",
+    "sha256": "e93e28f55725ce9b7f70dac24a51084b9c3fb92ee6453420a8932b1bdbf28d01"
+  }
+}

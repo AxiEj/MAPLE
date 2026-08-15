@@ -1,0 +1,124 @@
+{
+  "artifact_id": "route2-matched-qm-pcmsolver-prereg-v2-repeat-failure-7ed4a56b",
+  "capabilities_admitted": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "This records failure of bitwise replay, not failure of the matched electrostatic calculation. It admits no ML source, ledger, energy, force, Hessian, frequency, TS, optimization, or MD capability.",
+  "decision": "Do not rewrite v2 or treat raw hashes as equal. Supersede it with a frozen v3 protocol requiring exact scientific identity and surface topology plus solver-tolerance-bounded numerical replay.",
+  "exact_identity_checks": {
+    "cavity_profile_id": true,
+    "continuum_configuration_sha256": true,
+    "continuum_equation_id": true,
+    "continuum_protocol_sha256": true,
+    "continuum_provenance_sha256": true,
+    "geometry_sha256": true,
+    "pcmsolver_library_sha256": true,
+    "reference_method_id": true,
+    "reference_protocol_sha256": true,
+    "repository_head": true,
+    "repository_tree": true,
+    "runtime": true,
+    "source_sha256": true,
+    "topology_sha256": true,
+    "vacuum_density_sha256": true
+  },
+  "failure": {
+    "cause": "Multithreaded floating-point reductions lead to numerically converged but not bitwise-identical PCM SCF densities and last-bit energy values.",
+    "registered_requirement": "identical scientific_payload_sha256 across two complete panel executions",
+    "scientific_payload_sha256_equal": false
+  },
+  "git_head": "7ed4a56b6e0bf47abc112a6a7d011b1894a0f737",
+  "observed_numerical_repeat_differences": {
+    "maximum_asc_inf_e": 3.237991472171409e-14,
+    "maximum_boundary_mep_inf_hartree_per_e": 7.283063041541027e-14,
+    "maximum_energy_abs_eV": 6.730260793119669e-11,
+    "maximum_pcm_density_inf": 4.6245507423492427e-10,
+    "per_case": {
+      "mobley_3034976": {
+        "asc_inf_e": 1.3875185722600492e-14,
+        "boundary_mep_inf_hartree_per_e": 4.618527782440651e-14,
+        "energy_abs_eV": {
+          "continuum_stabilization_energy_eV": 9.094947017729282e-13,
+          "pcm_electrostatic_total_energy_eV": 1.2732925824820995e-11,
+          "polarized_density_vacuum_energy_eV": 1.1823431123048067e-11,
+          "solute_distortion_energy_eV": 1.1823431123048067e-11,
+          "total_electrostatic_solvation_energy_eV": 1.2732925824820995e-11
+        },
+        "pcm_density_inf": 3.378577972945607e-11,
+        "surface_areas_exact": true,
+        "surface_points_exact": true
+      },
+      "mobley_3053621": {
+        "asc_inf_e": 8.692374077468035e-15,
+        "boundary_mep_inf_hartree_per_e": 3.8191672047105385e-14,
+        "energy_abs_eV": {
+          "continuum_stabilization_energy_eV": 0.0,
+          "pcm_electrostatic_total_energy_eV": 2.1827872842550278e-11,
+          "polarized_density_vacuum_energy_eV": 2.1827872842550278e-11,
+          "solute_distortion_energy_eV": 2.1827872842550278e-11,
+          "total_electrostatic_solvation_energy_eV": 2.1827872842550278e-11
+        },
+        "pcm_density_inf": 2.7895735721372716e-10,
+        "surface_areas_exact": true,
+        "surface_points_exact": true
+      },
+      "mobley_352111": {
+        "asc_inf_e": 3.237991472171409e-14,
+        "boundary_mep_inf_hartree_per_e": 7.283063041541027e-14,
+        "energy_abs_eV": {
+          "continuum_stabilization_energy_eV": 0.0,
+          "pcm_electrostatic_total_energy_eV": 6.730260793119669e-11,
+          "polarized_density_vacuum_energy_eV": 6.730260793119669e-11,
+          "solute_distortion_energy_eV": 6.730260793119669e-11,
+          "total_electrostatic_solvation_energy_eV": 6.730260793119669e-11
+        },
+        "pcm_density_inf": 4.6245507423492427e-10,
+        "surface_areas_exact": true,
+        "surface_points_exact": true
+      },
+      "mobley_3867265": {
+        "asc_inf_e": 6.468783841917514e-15,
+        "boundary_mep_inf_hartree_per_e": 2.4868995751603507e-14,
+        "energy_abs_eV": {
+          "continuum_stabilization_energy_eV": 1.8189894035458565e-12,
+          "pcm_electrostatic_total_energy_eV": 1.546140993013978e-11,
+          "polarized_density_vacuum_energy_eV": 1.3642420526593924e-11,
+          "solute_distortion_energy_eV": 1.3642420526593924e-11,
+          "total_electrostatic_solvation_energy_eV": 1.546140993013978e-11
+        },
+        "pcm_density_inf": 1.0065502598077813e-10,
+        "surface_areas_exact": true,
+        "surface_points_exact": true
+      }
+    }
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-matched-qm-pcmsolver-four-prereg-v2.json",
+    "protocol_id": "route2-matched-qm-pcmsolver-four-prereg-v2",
+    "sha256": "e93e28f55725ce9b7f70dac24a51084b9c3fb92ee6453420a8932b1bdbf28d01"
+  },
+  "runs": [
+    {
+      "elapsed_seconds": 558.4406737420359,
+      "label": "run1",
+      "panel_complete": true,
+      "result_json_sha256": "95d855fba88e3d130a1c9347e81b0a2c64980aef63e1dc61dfb3aa79ed5e4348",
+      "scientific_payload_sha256": "2a0b34abcafc2334cbe0ece8e356a3a3cda06ecf518861cc552d85e27804a218",
+      "status": "pass-complete-matched-electrostatic-reference-panel"
+    },
+    {
+      "elapsed_seconds": 543.9485040680156,
+      "label": "run2",
+      "panel_complete": true,
+      "result_json_sha256": "cb0f983c997b6672731d1119e753160d2cdf7bead29c7d546aa35ebde2d335b1",
+      "scientific_payload_sha256": "8094cfb11881b48802d276bb52bd574f9cf3aa762e2a8e7191fb638f261c364c",
+      "status": "pass-complete-matched-electrostatic-reference-panel"
+    }
+  ],
+  "schema_version": 1,
+  "status": "failed-closed-bitwise-repeat-only"
+}

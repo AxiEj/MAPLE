@@ -49,10 +49,10 @@ from maple.solvation.release import (
     write_external_json_artifact,
 )
 
-SCHEMA_VERSION = "route2-matched-qm-pcmsolver-decomposition-run-v2"
+SCHEMA_VERSION = "route2-matched-qm-pcmsolver-decomposition-run-v3"
 PREREGISTRATION_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
-    "route2-matched-qm-pcmsolver-four-prereg-v2.json"
+    "route2-matched-qm-pcmsolver-four-prereg-v3.json"
 )
 INHERITED_PREREGISTRATION_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
@@ -67,8 +67,10 @@ NO_CAPABILITIES = {tier: False for tier in ("E", "F", "H", "V", "M")}
 REQUIRED_SOURCE_PATHS = (
     "maple/function/calculator/extra_correction/implicit/pcmsolver.py",
     "maple/solvation/reference/pyscf_pcmsolver.py",
+    "maple/solvation/reference/replay.py",
     "maple/solvation/release/electrostatic_decomposition.py",
     "maple/solvation/release/evidence.py",
+    "tools/route2_release/audit_matched_qm_pcmsolver_replay.py",
     "tools/route2_release/run_matched_qm_pcmsolver_decomposition.py",
 )
 
@@ -186,7 +188,7 @@ def _validate_preregistration(
     preregistration = _load_json(preregistration_path, name="preregistration")
     if (
         preregistration.get("protocol_id")
-        != "route2-matched-qm-pcmsolver-four-prereg-v2"
+        != "route2-matched-qm-pcmsolver-four-prereg-v3"
         or preregistration.get("status") != "frozen-before-execution"
     ):
         raise RuntimeError("matched decomposition preregistration identity is invalid.")
@@ -537,6 +539,7 @@ def _run_case(
                         response.total_surface_mep_hartree_per_e
                     ),
                     apparent_surface_charge_e=response.apparent_surface_charge_e,
+                    ao_density_matrix=pcm_density,
                     polarization_energy_hartree=np.asarray(
                         response.polarization_energy_hartree
                     ),

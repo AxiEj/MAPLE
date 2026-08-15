@@ -14,6 +14,7 @@ from maple.solvation.release.field_semantics import (
     audit_zero_field_baseline,
 )
 from maple.solvation.release.source_mep import (
+    ContinuumReferenceValidationBinding,
     compare_continuum_active_source_to_reference,
 )
 
@@ -159,6 +160,21 @@ class _Continuum:
         return self.source_to_boundary @ np.asarray(source).reshape(-1)
 
 
+def _continuum_validation(
+    continuum: _Continuum, *, validated: bool = True
+) -> ContinuumReferenceValidationBinding:
+    return ContinuumReferenceValidationBinding(
+        validation_identity="test-independent-continuum-reference-v1",
+        validation_evidence_sha256=_digest("continuum-reference-evidence"),
+        geometry_sha256=continuum.geometry_sha256,
+        continuum_configuration_sha256=continuum.continuum_configuration_sha256,
+        continuum_provenance_sha256=continuum.provenance_sha256,
+        topology_sha256=continuum.topology_sha256,
+        cavity_profile_id=continuum.cavity_profile_id,
+        validated_for_source_gate=validated,
+    )
+
+
 def test_continuum_active_source_gate_uses_A_inverse_energy_norm_and_bound():
     continuum = _Continuum()
     source = np.asarray([[0.2, -0.1, 0.05, 0.03]])
@@ -169,6 +185,7 @@ def test_continuum_active_source_gate_uses_A_inverse_energy_norm_and_bound():
         reference_boundary_rhs=reference_rhs,
         reference_identity="test-qm-boundary-projection-v1",
         reference_artifact_sha256=_digest("qm-reference"),
+        continuum_reference_validation=_continuum_validation(continuum),
         fixed_source_energy_error_budget_eV=1.0e-4,
     )
     assert exact.a_inverse_rhs_distance_sqrt_eV == 0.0
@@ -182,6 +199,7 @@ def test_continuum_active_source_gate_uses_A_inverse_energy_norm_and_bound():
         reference_boundary_rhs=reference_rhs,
         reference_identity="test-qm-boundary-projection-v1",
         reference_artifact_sha256=_digest("qm-reference"),
+        continuum_reference_validation=_continuum_validation(continuum),
         fixed_source_energy_error_budget_eV=1.0e-8,
     )
     assert (
@@ -189,3 +207,36 @@ def test_continuum_active_source_gate_uses_A_inverse_energy_norm_and_bound():
         <= perturbed.fixed_source_energy_error_upper_bound_eV + 1.0e-15
     )
     assert perturbed.case_passed is False
+
+
+def test_continuum_active_source_gate_requires_independent_continuum_validation():
+    continuum = _Continuum()
+    source = np.asarray([[0.2, -0.1, 0.05, 0.03]])
+    reference_rhs = continuum.source_rhs(source)
+    unvalidated = compare_continuum_active_source_to_reference(
+        continuum=continuum,
+        predicted_source=source,
+        reference_boundary_rhs=reference_rhs,
+        reference_identity="test-qm-boundary-projection-v1",
+        reference_artifact_sha256=_digest("qm-reference"),
+        continuum_reference_validation=_continuum_validation(
+            continuum, validated=False
+        ),
+        fixed_source_energy_error_budget_eV=1.0e-4,
+    )
+    assert unvalidated.metric_within_budget is True
+    assert unvalidated.continuum_reference_validated_for_source_gate is False
+    assert unvalidated.case_passed is False
+
+    mismatched = _continuum_validation(continuum)
+    object.__setattr__(mismatched, "topology_sha256", _digest("other-topology"))
+    with pytest.raises(ValueError, match="continuum.topology_sha256"):
+        compare_continuum_active_source_to_reference(
+            continuum=continuum,
+            predicted_source=source,
+            reference_boundary_rhs=reference_rhs,
+            reference_identity="test-qm-boundary-projection-v1",
+            reference_artifact_sha256=_digest("qm-reference"),
+            continuum_reference_validation=mismatched,
+            fixed_source_energy_error_budget_eV=1.0e-4,
+        )

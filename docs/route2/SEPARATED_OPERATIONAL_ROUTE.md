@@ -135,6 +135,13 @@ cavity, and reference artifact SHA. No reference is inferred by the code, and
 no total-solvation comparison may be mixed with an electrostatic-only
 component.
 
+Symmetry and positive definiteness of `A` make this metric legal but do not by
+themselves validate the continuum as a quantitative reference. A case can pass
+only when a separate validation artifact is bound to the exact geometry,
+continuum configuration/provenance, topology, and cavity identity. An
+internally converged but unvalidated continuum may report diagnostics, but it
+cannot admit or reject the source.
+
 For `r(y)=y-F(y)`, the root diagnostic records:
 
 - `sigma_min(I-J_F)` for a local implicit branch;

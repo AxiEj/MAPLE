@@ -21,7 +21,10 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
 
 SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION = "route2-source-mep-physical-gate-v1"
 CONTINUUM_ACTIVE_SOURCE_CONTRACT_VERSION = (
-    "route2-continuum-active-source-a-inverse-gate-v1"
+    "route2-continuum-active-source-a-inverse-gate-v2"
+)
+CONTINUUM_REFERENCE_VALIDATION_CONTRACT_VERSION = (
+    "route2-continuum-reference-validation-binding-v1"
 )
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -166,6 +169,74 @@ class SourceMEPComparison:
 
 
 @dataclass(frozen=True, slots=True)
+class ContinuumReferenceValidationBinding:
+    """Bind independent continuum evidence to one exact operator identity.
+
+    Symmetry and positive definiteness make the ``A^-1`` metric mathematically
+    legal, but do not establish that the continuum is a quantitatively trusted
+    QM/PCM reference.  Keeping that decision in a separate artifact prevents
+    an internally self-consistent but physically unsuitable operator from
+    rejecting or admitting a source.
+    """
+
+    validation_identity: str
+    validation_evidence_sha256: str
+    geometry_sha256: str
+    continuum_configuration_sha256: str
+    continuum_provenance_sha256: str
+    topology_sha256: str
+    cavity_profile_id: str
+    validated_for_source_gate: bool
+    contract_version: str = CONTINUUM_REFERENCE_VALIDATION_CONTRACT_VERSION
+
+    def __post_init__(self) -> None:
+        for name in (
+            "validation_identity",
+            "cavity_profile_id",
+            "contract_version",
+        ):
+            object.__setattr__(self, name, _text(getattr(self, name), name=name))
+        for name in (
+            "validation_evidence_sha256",
+            "geometry_sha256",
+            "continuum_configuration_sha256",
+            "continuum_provenance_sha256",
+            "topology_sha256",
+        ):
+            object.__setattr__(self, name, _digest(getattr(self, name), name=name))
+        if type(self.validated_for_source_gate) is not bool:
+            raise TypeError("validated_for_source_gate must be exactly bool.")
+
+    @property
+    def content_sha256(self) -> str:
+        return hashlib.sha256(
+            json.dumps(self.as_dict(), sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+
+    def validate_continuum_identity(self, continuum: object) -> None:
+        expected = {
+            "geometry_sha256": getattr(continuum, "geometry_sha256", None),
+            "continuum_configuration_sha256": getattr(
+                continuum, "continuum_configuration_sha256", None
+            ),
+            "continuum_provenance_sha256": getattr(
+                continuum, "provenance_sha256", None
+            ),
+            "topology_sha256": getattr(continuum, "topology_sha256", None),
+            "cavity_profile_id": getattr(continuum, "cavity_profile_id", None),
+        }
+        for name, value in expected.items():
+            if getattr(self, name) != value:
+                raise ValueError(
+                    "continuum-reference validation binding does not match "
+                    f"continuum.{name}."
+                )
+
+    def as_dict(self) -> dict[str, object]:
+        return {field: getattr(self, field) for field in self.__dataclass_fields__}
+
+
+@dataclass(frozen=True, slots=True)
 class ContinuumActiveSourceComparison:
     """One matched QM/source case in the continuum energy metric.
 
@@ -177,6 +248,10 @@ class ContinuumActiveSourceComparison:
 
     reference_identity: str
     reference_artifact_sha256: str
+    continuum_reference_validation_identity: str
+    continuum_reference_validation_evidence_sha256: str
+    continuum_reference_validation_binding_sha256: str
+    continuum_reference_validated_for_source_gate: bool
     geometry_sha256: str
     continuum_configuration_sha256: str
     continuum_provenance_sha256: str
@@ -193,14 +268,22 @@ class ContinuumActiveSourceComparison:
     reference_fixed_source_energy_eV: float
     fixed_source_energy_absolute_error_eV: float
     fixed_source_energy_error_upper_bound_eV: float
+    metric_within_budget: bool
     case_passed: bool
     contract_version: str = CONTINUUM_ACTIVE_SOURCE_CONTRACT_VERSION
 
     def __post_init__(self) -> None:
-        for name in ("reference_identity", "cavity_profile_id", "contract_version"):
+        for name in (
+            "reference_identity",
+            "continuum_reference_validation_identity",
+            "cavity_profile_id",
+            "contract_version",
+        ):
             object.__setattr__(self, name, _text(getattr(self, name), name=name))
         for name in (
             "reference_artifact_sha256",
+            "continuum_reference_validation_evidence_sha256",
+            "continuum_reference_validation_binding_sha256",
             "geometry_sha256",
             "continuum_configuration_sha256",
             "continuum_provenance_sha256",
@@ -233,8 +316,22 @@ class ContinuumActiveSourceComparison:
             object.__setattr__(self, name, value)
         if self.fixed_source_energy_error_budget_eV <= 0.0:
             raise ValueError("fixed-source energy error budget must be positive.")
-        if type(self.case_passed) is not bool:
-            raise TypeError("case_passed must be exactly bool.")
+        for name in (
+            "continuum_reference_validated_for_source_gate",
+            "metric_within_budget",
+            "case_passed",
+        ):
+            if type(getattr(self, name)) is not bool:
+                raise TypeError(f"{name} must be exactly bool.")
+        expected_case_passed = bool(
+            self.continuum_reference_validated_for_source_gate
+            and self.metric_within_budget
+        )
+        if self.case_passed is not expected_case_passed:
+            raise ValueError(
+                "case_passed must require both a validated reference continuum "
+                "and an in-budget source metric."
+            )
         if (
             self.fixed_source_energy_absolute_error_eV
             > self.fixed_source_energy_error_upper_bound_eV + 2.0e-12
@@ -248,7 +345,8 @@ class ContinuumActiveSourceComparison:
             "capability_admitted": False,
             "claim_boundary": (
                 "A case pass is matched electrostatic source evidence only; it "
-                "does not select an operational ledger or admit E/F/H/V/M."
+                "requires an independently validated reference continuum, does "
+                "not select an operational ledger, and does not admit E/F/H/V/M."
             ),
         }
 
@@ -358,6 +456,7 @@ def compare_continuum_active_source_to_reference(
     reference_boundary_rhs: object,
     reference_identity: str,
     reference_artifact_sha256: str,
+    continuum_reference_validation: ContinuumReferenceValidationBinding,
     fixed_source_energy_error_budget_eV: float,
 ) -> ContinuumActiveSourceComparison:
     """Compare ``B c`` with a directly projected QM boundary RHS.
@@ -370,7 +469,15 @@ def compare_continuum_active_source_to_reference(
 
     The accepted distance is derived from the caller's preregistered energy
     budget rather than from an arbitrary coefficient-space RMSE threshold.
+    Passing additionally requires an independent validation artifact bound to
+    the exact continuum identity.  SPD alone is deliberately insufficient.
     """
+
+    if not isinstance(
+        continuum_reference_validation, ContinuumReferenceValidationBinding
+    ):
+        raise TypeError("continuum_reference_validation must be a validation binding.")
+    continuum_reference_validation.validate_continuum_identity(continuum)
 
     source_rhs = getattr(continuum, "source_rhs", None)
     if not callable(source_rhs):
@@ -423,13 +530,29 @@ def compare_continuum_active_source_to_reference(
     reference_energy = -0.5 * float(np.vdot(reference_rhs, reference_solution))
     energy_error = abs(predicted_energy - reference_energy)
     relative_rhs = _relative_l2(predicted_rhs, reference_rhs)
-    case_passed = bool(
+    metric_within_budget = bool(
         distance <= maximum_distance + 2.0e-15 and energy_error <= budget + 2.0e-12
+    )
+    case_passed = bool(
+        continuum_reference_validation.validated_for_source_gate
+        and metric_within_budget
     )
 
     return ContinuumActiveSourceComparison(
         reference_identity=reference_identity,
         reference_artifact_sha256=reference_artifact_sha256,
+        continuum_reference_validation_identity=(
+            continuum_reference_validation.validation_identity
+        ),
+        continuum_reference_validation_evidence_sha256=(
+            continuum_reference_validation.validation_evidence_sha256
+        ),
+        continuum_reference_validation_binding_sha256=(
+            continuum_reference_validation.content_sha256
+        ),
+        continuum_reference_validated_for_source_gate=(
+            continuum_reference_validation.validated_for_source_gate
+        ),
         geometry_sha256=_digest(
             getattr(continuum, "geometry_sha256", None),
             name="continuum.geometry_sha256",
@@ -461,14 +584,17 @@ def compare_continuum_active_source_to_reference(
         reference_fixed_source_energy_eV=reference_energy,
         fixed_source_energy_absolute_error_eV=energy_error,
         fixed_source_energy_error_upper_bound_eV=upper_bound,
+        metric_within_budget=metric_within_budget,
         case_passed=case_passed,
     )
 
 
 __all__ = [
     "CONTINUUM_ACTIVE_SOURCE_CONTRACT_VERSION",
+    "CONTINUUM_REFERENCE_VALIDATION_CONTRACT_VERSION",
     "SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION",
     "ContinuumActiveSourceComparison",
+    "ContinuumReferenceValidationBinding",
     "SourceElectrostaticObservables",
     "SourceMEPComparison",
     "compare_continuum_active_source_to_reference",

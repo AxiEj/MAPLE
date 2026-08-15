@@ -127,8 +127,10 @@ from .root_well_posedness import (
 )
 from .source_mep import (
     CONTINUUM_ACTIVE_SOURCE_CONTRACT_VERSION,
+    CONTINUUM_REFERENCE_VALIDATION_CONTRACT_VERSION,
     SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION,
     ContinuumActiveSourceComparison,
+    ContinuumReferenceValidationBinding,
     SourceElectrostaticObservables,
     SourceMEPComparison,
     compare_continuum_active_source_to_reference,
@@ -149,6 +151,11 @@ from .field_semantics import (
     audit_uniform_field_replay,
     audit_zero_field_baseline,
     build_unverified_mace_polar_field_semantics_manifest,
+)
+from .harmonic_surface_mep import (
+    HARMONIC_SURFACE_MEP_PROJECTION_CONTRACT_VERSION,
+    HarmonicSurfaceMEPProjection,
+    HarmonicSurfaceMEPProjector,
 )
 
 __all__ = [
@@ -266,11 +273,16 @@ __all__ = [
     "audit_charging_path",
     "build_unverified_mace_polar_field_semantics_manifest",
     "CONTINUUM_ACTIVE_SOURCE_CONTRACT_VERSION",
+    "CONTINUUM_REFERENCE_VALIDATION_CONTRACT_VERSION",
     "SOURCE_MEP_DIAGNOSTIC_CONTRACT_VERSION",
     "ContinuumActiveSourceComparison",
+    "ContinuumReferenceValidationBinding",
     "SourceElectrostaticObservables",
     "SourceMEPComparison",
     "compare_continuum_active_source_to_reference",
     "compare_source_mep_to_reference",
     "source_electrostatic_observables",
+    "HARMONIC_SURFACE_MEP_PROJECTION_CONTRACT_VERSION",
+    "HarmonicSurfaceMEPProjection",
+    "HarmonicSurfaceMEPProjector",
 ]

@@ -75,6 +75,14 @@ from .mace_mdp import (
     build_mace_mdp_moment_adapter,
     build_mace_mdp_moment_state,
 )
+from .passive_polarization import (
+    PASSIVE_QUADRATIC_CONSTRUCTION_ID,
+    PASSIVE_QUADRATIC_FIELD_ENERGY_PROVIDER_ID,
+    PassiveHeadTensors,
+    PassiveQuadraticFieldEnergy,
+    PassiveQuadraticPointCertificate,
+    TrainedPassivePolarizationHead,
+)
 
 __all__ = [
     "ElectronicSourceModel",
@@ -123,6 +131,12 @@ __all__ = [
     "VariationalIdentityDeclaration",
     "TorchGeometry",
     "POLARIZABILITY_BOHR3_PER_EANGSTROM2_PER_VOLT",
+    "PASSIVE_QUADRATIC_CONSTRUCTION_ID",
+    "PASSIVE_QUADRATIC_FIELD_ENERGY_PROVIDER_ID",
+    "PassiveHeadTensors",
+    "PassiveQuadraticFieldEnergy",
+    "PassiveQuadraticPointCertificate",
+    "TrainedPassivePolarizationHead",
     "array_sha256",
     "atom_count",
     "model_input_sha256",

@@ -34,6 +34,13 @@ CLI restriction.
 | `route2-variational-macepolar-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | distinct moving smooth weighted-overlap scalar; its Torch graph reassembles `E`, `K`, `V`, `A=E.T K E`, and `S=E.T V`, and a real-checkpoint water run passes root replay plus a three-step envelope FD; the harmonic continuum alone rotates at roundoff, but the full scalar fails because the current MACE molecular-realspace evaluator is not an exact `SO(3)` intertwiner |
 | `route2-variational-macepolar-analytic-gaussian-multipole-energygradient-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately identified changed-inference candidate; one clean water common-state canary passes replay, envelope FD, and one rotation, and five starts find the same local root, but the source-bound reduced susceptibility is indefinite and singular, so passivity, local invertibility, feedback-sign, and combined-Hessian Tier-V gates fail |
 
+`maple.route2.models.passive-quadratic-field-energy.v1` is an untrained
+provider contract rather than a scalar/profile row. It fixes the reduced-field
+scalar to `E0+m0.xi-0.5||C xi||^2`, seals every derivative to that graph, and
+therefore guarantees pointwise `-H=C.T C`. It cannot be registered or admitted
+until a new content-addressed, optimizer-audited, source-validated trained head
+exists; it changes none of the `no` entries above.
+
 The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source
 identity, reciprocity, stability, invertibility, and full coordinate derivative

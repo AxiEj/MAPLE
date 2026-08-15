@@ -16,7 +16,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
-| 10: strict variational | disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch fails passivity, local invertibility, feedback-sign, and combined-Hessian gates; the untrained MACE-MDP independent-polarization alternative is stopped before KKT construction because its unchanged permanent source fails the frozen all-case quantitative PCM gate |
+| 10: strict variational | structural successor contract implemented; scientific capability disabled | original-energy/original-source route is formally ruled out; the changed-source analytic branch fails passivity, local invertibility, feedback-sign, and combined-Hessian gates; the untrained MACE-MDP alternative stops at its permanent-source gate; a model-independent scalar-first wrapper now fixes `E=E0+m0.xi-0.5||C xi||^2`, derives all response/coordinate derivatives from the same graph, and structurally guarantees `-H=C.T C`, but no trained source-validated head exists and all tiers remain false |
 
 The final coupling-active-space audit removes the remaining quotient-space
 loophole for the original source. Using the actual harmonic `B` and `L`, the

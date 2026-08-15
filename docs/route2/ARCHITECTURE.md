@@ -111,3 +111,12 @@ four-channel source from being padded into an artificial eight-channel source
 space and prevents a fixed point from being described as uniquely defining an
 energy. See
 [SEPARATED_OPERATIONAL_ROUTE.md](SEPARATED_OPERATIONAL_ROUTE.md).
+
+The successor strict-model boundary is a separately documented, untrained
+scalar-first passive-polarization contract. A trained head may emit only a
+vacuum scalar, permanent reduced-source covector, and response factor; the
+framework fixes `E=E0+m0.xi-0.5||C xi||^2` and derives every response and
+coordinate derivative from that scalar. This structurally enforces
+`-H=C.T C` but does not admit chemistry, a root, or any capability without a
+new checkpoint and all source/stability/PES gates. See
+[SCALAR_FIRST_PASSIVE_POLARIZATION.md](SCALAR_FIRST_PASSIVE_POLARIZATION.md).

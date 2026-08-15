@@ -27,6 +27,74 @@ Public ASE units are declared centrally as energy `eV`, forces `eV/A`, and
 Hessian `eV/A^2`. Historical Hartree-reporting jobs use the dispatcher-bound
 non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 
+## `route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1`
+
+- Exact scalar:
+
+  \[
+    E(R)=E_{\mathrm{AIMNet2}}(R)
+      +\tfrac12\langle c(R),P_Rc(R)\rangle_Q,
+    \qquad c(R)=[q_{\mathrm{AIMNet2}}(R),0,0,0].
+  \]
+
+- Implementation entry point:
+  `maple.solvation.coupling.geometry_mediated:GeometryMediatedElectrostaticScalar`.
+- State equation: direct geometry-mediated source map
+  `route2-geometry-mediated-source-map-v1`; there is no fixed-geometry
+  electronic self-consistency variable.
+- Included: the checkpoint-bound AIMNet2 vacuum energy, model-native
+  coordinate response of its NQE charges, and ddPCM electrostatics through the
+  existing pyddx forward, adjoint, and coordinate-VJP implementation.
+- Excluded: continuum-field-conditioned AIMNet2 energy or charge response,
+  mutual electronic polarization, CDS/nonpolar terms, thermochemical and
+  standard-state corrections, and every Hessian/FREQ/TS/MD claim.
+- Derivative: the gradient of the same scalar, split into AIMNet2 intrinsic,
+  ddPCM fixed-source coordinate, and AIMNet2 charge-position response terms.
+  Fixed-geometry direct/adjoint agreement at the physical source is not treated
+  as sufficient: fixed-total-charge random bilinear reciprocity, apply/adjoint
+  dot products, three charge-direction finite differences, and `J_q^T 1=0`
+  are checked in the registered metric before assembly.
+- Profile:
+  `route2-profile-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1`.
+- Capability/evidence: none / negative local admission canary. The hash-bound
+  real water metric/gauge audit passes, but its fixed-stratum three-step
+  coordinate differences do not exhibit an admissible numerical window, and
+  all three frozen rotations change the exposed laboratory-grid cavity active
+  set. Unresolved upstream release identity, absent measured pyddx residual,
+  omitted nonpolar physics, and absent domain/HVP/NVE validation keep
+  `E/F/H/V/M` false.
+- Full contract and literature boundary:
+  [`AIMNET2_GEOMETRY_MEDIATED.md`](AIMNET2_GEOMETRY_MEDIATED.md).
+
+## `route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-cpcm-electrostatic-v1`
+
+- Exact scalar:
+
+  \[
+    E(R)=E_{\mathrm{AIMNet2}}(R)
+    -\tfrac12(S_Rc(R))^T A_R^{-1}(S_Rc(R)),
+    \quad A_R=E_R^TK_RE_R,\quad S_R=E_R^TV_{\rm point,R}.
+  \]
+
+- Model/state: the same unmodified, field-independent AIMNet2
+  `c(R)=[q_NQE(R),0,0,0]` and direct geometry-mediated source-map identity as
+  the pyddx arm; no fixed-geometry electronic variable exists.
+- Continuum: the existing smooth weighted harmonic exposure, Coulomb
+  single-layer, rank/SPD gates, and sealed stationary scalar, specialized only
+  by the analytic point-monopole Laplace-addition-theorem source map.
+- Included: geometry-dependent AIMNet2 charge chain rule, exact-adjoint
+  harmonic receiver, measured dense stationarity residual, and structural
+  `SO(3)` coefficient intertwiners.
+- Excluded: finite-dielectric solvent parameterization, CDS/nonpolar and
+  standard-state terms, fixed-geometry mutual polarization, and all public
+  Hessian/FREQ/TS/MD claims.
+- Capability/evidence: none. Synthetic scalar/derivative/symmetry gates pass;
+  the real water rigid-rotation gate passes while the real three-step
+  full-energy directional gate remains negative. This is a conductor
+  reference, not an admitted water ddPCM model.
+- Full contract and literature boundary:
+  [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).
+
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 
 - Formula: `E_op(R)=Phi_op(R,y*(R))`, where

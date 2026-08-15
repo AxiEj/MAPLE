@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
 
-
 OPERATIONAL_STATE_EQUATION_ID = "route2-constrained-mutual-polarization-root-v1"
 VARIATIONAL_STATE_EQUATION_ID = "route2-common-functional-stationarity-v1"
+GEOMETRY_MEDIATED_SOURCE_MAP_ID = "route2-geometry-mediated-source-map-v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,7 +25,9 @@ class StateEquationDefinition:
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string.")
         constraints = tuple(self.constraints)
-        if not constraints or any(not isinstance(item, str) or not item.strip() for item in constraints):
+        if not constraints or any(
+            not isinstance(item, str) or not item.strip() for item in constraints
+        ):
             raise ValueError("constraints must contain non-empty strings.")
         if len(set(constraints)) != len(constraints):
             raise ValueError("state constraints must be unique.")
@@ -35,6 +37,19 @@ class StateEquationDefinition:
 
 
 _STATE_ENTRIES = (
+    StateEquationDefinition(
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        exact_formula=(
+            "c(R)=[q_model(R),0,0,0]; dc/dR is the model-native "
+            "fixed-total-charge coordinate response"
+        ),
+        coordinates="Cartesian solute geometry R; no electronic fixed-point variable",
+        constraints=(
+            "A c(R) = q_tot",
+            "source is independent of the continuum reaction field",
+            "atom identity and order remain fixed",
+        ),
+    ),
     StateEquationDefinition(
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
         exact_formula=(
@@ -64,10 +79,13 @@ def get_state_equation(state_equation_id: str) -> StateEquationDefinition:
     try:
         return STATE_REGISTRY[state_equation_id]
     except KeyError as exc:
-        raise KeyError(f"Unregistered Route-2 state equation: {state_equation_id!r}.") from exc
+        raise KeyError(
+            f"Unregistered Route-2 state equation: {state_equation_id!r}."
+        ) from exc
 
 
 __all__ = [
+    "GEOMETRY_MEDIATED_SOURCE_MAP_ID",
     "OPERATIONAL_STATE_EQUATION_ID",
     "STATE_REGISTRY",
     "VARIATIONAL_STATE_EQUATION_ID",

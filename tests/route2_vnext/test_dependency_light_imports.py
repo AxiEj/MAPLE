@@ -18,8 +18,12 @@ import maple.function.calculator.extra_correction as optional_corrections
 import maple.function.read as read_package
 from maple.function.read.filereader.mol2_reader import MOL2Reader
 import maple.solvation.continuum.fixed_topology_cpcm
+import maple.solvation.continuum.atomic_l1_pyddx
 import maple.solvation.coupling.exact_gto
 import maple.solvation.coupling.gaussian_multipole_derivatives
+import maple.solvation.coupling.geometry_mediated
+import maple.solvation.models.aimnet2
+import maple.solvation.release.geometry_mediated
 
 assert "torch" not in optional_corrections.__dict__
 assert "GBSA" not in optional_corrections.__dict__

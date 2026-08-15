@@ -35,6 +35,17 @@ never imports from `research/`.
   physical residual, numerical root solver, adjoint, and scalar composition.
 - `release`: evaluates evidence; it cannot manufacture provider capability.
 
+The direct AIMNet2 geometry-mediated diagnostic is a separate state identity
+from the mutual-polarization root. It composes a field-independent
+`c(R)=[q_NQE(R),0,0,0]` model adapter with either the existing pyddx
+atomic-`l<=1` map or the fixed-dimensional smooth-harmonic point-monopole
+conductor, and differentiates one registered scalar. The harmonic provider
+reuses the common `E/K` assembly and sealed functional rather than duplicating
+a continuum engine. Neither branch routes an AIMNet2 source through the
+MACE-POLAR fixed-point model or implies electronic mutual polarization. See
+[AIMNET2_GEOMETRY_MEDIATED.md](AIMNET2_GEOMETRY_MEDIATED.md) and
+[AIMNET2_POINT_HARMONIC.md](AIMNET2_POINT_HARMONIC.md).
+
 ## Migration rule
 
 The legacy `route2_engine.py` remains a compatibility shell while behavior is

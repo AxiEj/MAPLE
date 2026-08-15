@@ -86,6 +86,64 @@ fallback orientation does not enter the map or force. Fully collinear
 geometries fail closed. It remains diagnostic until the complete real-stack
 panel and component-accuracy gates pass.
 
+### 2.1 Direct geometry-mediated source diagnostic
+
+The separately registered AIMNet2 diagnostic has no electronic fixed-point
+coordinate. Its state map is
+
+\[
+c_{\rm gm}(R)=[q_{\rm NQE}(R),0,0,0],
+\]
+
+and its electrostatic scalar is
+
+\[
+E_{\rm gm}(R)=E_{\rm AIMNet2}(R)+
+\tfrac12\langle c_{\rm gm}(R),P_Rc_{\rm gm}(R)\rangle_Q.
+\]
+
+For \(G_{\rm pcm}(R,c)=\tfrac12\langle c,P_Rc\rangle_Q\), the required
+derivative is
+
+\[
+\nabla_RE_{\rm gm}=\nabla_RE_{\rm AIMNet2}
++\partial_RG_{\rm pcm}|_c
++(D_Rc_{\rm gm})^\mathsf T\nabla_cG_{\rm pcm}.
+\]
+
+This requires self-adjointness in the authoritative metric:
+
+\[
+\langle u,P_Rw\rangle_Q=\langle w,P_Ru\rangle_Q.
+\]
+
+Only then is
+
+\[
+\nabla_cG_{\rm pcm}=Q P_Rc
+\]
+
+in source-dual coordinates, so the AIMNet2 charge-position VJP receives the
+full reaction-potential cotangent rather than one half. Without reciprocity the
+gradient is the symmetrized operator
+\(\tfrac12 Q(P_R+P_R^\dagger)c\). The scalar therefore rejects a provider unless
+random fixed-charge-tangent bilinear probes, apply/adjoint dot products, charge
+directional finite differences, and the charge-gauge identity
+\((D_Rq)^\mathsf T\mathbf 1=0\) pass. The half-coupling energy identity by
+itself is insufficient because an antisymmetric component contributes zero to
+\(c^\mathsf T P_Rc\).
+
+The last term is mandatory; freezing AIMNet2 charges while moving the geometry
+defines a different scalar. Conversely, this coordinate response is not an
+electronic susceptibility because AIMNet2 receives no reaction-field input.
+No energy/charge-head conjugacy is required for this explicit-map construction.
+At fixed geometry, however, nontrivial PCM-to-charge response is impossible
+without defining a new model input/graph/forward rule. The registered
+diagnostic excludes nonpolar/CDS and every public capability, and it is `C1`
+only within a fixed AIMNet2-neighbor/pyddx-cavity stratum. History-dependent or
+minimum-over-discrete-topology selection is not a single smooth PES at branch
+crossings.
+
 ## 3. One adjoint and one force
 
 Define

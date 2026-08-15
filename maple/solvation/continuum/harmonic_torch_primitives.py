@@ -26,6 +26,7 @@ from .harmonic_coefficients import (
     real_wigner_matrix,
 )
 from .harmonic_exposure import HARMONIC_EXPOSURE_MAXIMUM_ALGEBRAIC_DEGREE
+from .harmonic_point_source import POINT_SOURCE_SHELL_EVENT_TOLERANCE_ANGSTROM
 from .harmonic_single_layer import COULOMB_EV_ANGSTROM_PER_E2
 
 
@@ -469,6 +470,77 @@ def _assemble_single_layer(
     if operator.shape != (len(radii) * dimension, len(radii) * dimension):
         raise RuntimeError("harmonic single-layer assembly has an invalid shape.")
     return operator
+
+
+def _point_monopole_coefficients(
+    displacement: Any,
+    *,
+    target_radius: float,
+    lmax: int,
+):
+    """Differentiable exact point-charge potential on one target sphere."""
+
+    torch = _torch()
+    distance = torch.linalg.vector_norm(displacement)
+    distance_value = float(distance.detach().cpu())
+    if distance_value <= 1.0e-12:
+        result = displacement.new_zeros(((lmax + 1) ** 2,))
+        result[0] = COULOMB_EV_ANGSTROM_PER_E2 * math.sqrt(4.0 * np.pi) / target_radius
+        return result
+    if (
+        abs(distance_value - target_radius)
+        <= POINT_SOURCE_SHELL_EVENT_TOLERANCE_ANGSTROM
+    ):
+        raise ValueError("point source lies on a target sphere event surface.")
+
+    direction = displacement / distance
+    harmonics = _torch_real_harmonic_design(direction[None, :], lmax=lmax)[0]
+    blocks = []
+    for ell in range(lmax + 1):
+        radial = (
+            distance**ell / target_radius ** (ell + 1)
+            if distance_value < target_radius
+            else target_radius**ell / distance ** (ell + 1)
+        )
+        section = slice(ell * ell, (ell + 1) * (ell + 1))
+        blocks.append(
+            COULOMB_EV_ANGSTROM_PER_E2
+            * 4.0
+            * np.pi
+            * radial
+            / (2 * ell + 1)
+            * harmonics[section]
+        )
+    return torch.cat(blocks)
+
+
+def _assemble_point_l0_source(
+    positions: Any,
+    *,
+    radii: tuple[float, ...],
+    lmax: int,
+):
+    """Map atomic ``[q,0,0,0]`` sources to raw boundary coefficients."""
+
+    torch = _torch()
+    rows = []
+    dimension = (lmax + 1) ** 2
+    for target, target_radius in enumerate(radii):
+        row_blocks = []
+        for source in range(len(radii)):
+            displacement = positions[source] - positions[target]
+            distance = float(torch.linalg.vector_norm(displacement).detach().cpu())
+            if target != source and distance <= 1.0e-12:
+                raise ValueError("distinct point-source centres must not coincide.")
+            block = positions.new_zeros((dimension, 4))
+            block[:, 0] = _point_monopole_coefficients(
+                displacement,
+                target_radius=target_radius,
+                lmax=lmax,
+            )
+            row_blocks.append(block)
+        rows.append(torch.cat(tuple(row_blocks), dim=1))
+    return torch.cat(tuple(rows), dim=0)
 
 
 def _gaussian_kernel(radius_angstrom: Any, *, sigma_angstrom: float):

@@ -226,7 +226,7 @@ https://github.com/ClickFF/MAPLE
 
 - [ASE](https://wiki.fysik.dtu.dk/ase/)
 - [PyTorch](https://pytorch.org/)
-- [AIMNet2](https://github.com/isayevlab/AIMNet2)
+- [AIMNet2 / AIMNetCentral](https://github.com/isayevlab/aimnetcentral)
 - [FAIR-Chem](https://github.com/FAIR-Chem/fairchem)
 
 **Version**: 0.1.4<br>

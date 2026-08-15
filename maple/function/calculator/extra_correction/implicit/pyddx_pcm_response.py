@@ -16,7 +16,9 @@ physical factor.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import importlib
+import json
 import math
 from typing import Any, Literal
 
@@ -33,6 +35,124 @@ from .route2_derivative import (
 
 TESTED_PYDDX_VERSION = "0.8.0"
 _SUPPORTED_CONTINUUM_MODELS = frozenset({"pcm", "cosmo"})
+_LEBEDEV_DIRECTION_CACHE: dict[tuple[int, str, int, float], np.ndarray] = {}
+
+
+def _canonical_json_sha256(value: object) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def _lebedev_directions(
+    runtime: "_PyDDXRuntime",
+    *,
+    n_lebedev: int,
+    lmax: int,
+    eta: float,
+) -> np.ndarray:
+    """Recover pyddx's version-pinned laboratory-frame candidate directions."""
+
+    key = (id(runtime.module.Model), runtime.version, n_lebedev, eta)
+    cached = _LEBEDEV_DIRECTION_CACHE.get(key)
+    if cached is not None:
+        return cached
+    model = runtime.module.Model(
+        "pcm",
+        np.zeros((3, 1), dtype=float),
+        np.ones(1, dtype=float),
+        2.0,
+        eta=eta,
+        shift=0.0,
+        lmax=lmax,
+        n_lebedev=n_lebedev,
+        enable_fmm=False,
+        n_proc=1,
+        enable_force=False,
+    )
+    cavity = getattr(model, "cavity", None)
+    radii = np.asarray(getattr(model, "sphere_radii", None), dtype=float)
+    points = np.asarray(cavity, dtype=float)
+    if points.shape != (3, n_lebedev) or radii.shape != (1,):
+        raise RuntimeError(
+            "pyddx laboratory-frame Lebedev candidates are unavailable for "
+            "cavity-topology provenance."
+        )
+    directions = (points.T / radii[0]).copy()
+    if not np.allclose(np.linalg.norm(directions, axis=1), 1.0, rtol=0.0, atol=2.0e-14):
+        raise RuntimeError("pyddx Lebedev candidate directions are not normalized.")
+    directions.setflags(write=False)
+    _LEBEDEV_DIRECTION_CACHE[key] = directions
+    return directions
+
+
+def _cavity_topology_record(
+    runtime: "_PyDDXRuntime",
+    model: object,
+    *,
+    n_lebedev: int,
+    lmax: int,
+    eta: float,
+) -> tuple[str, tuple[tuple[int, int], ...]] | None:
+    """Bind each exposed cavity node to its sphere and Lebedev candidate."""
+
+    raw_cavity = getattr(model, "cavity", None)
+    raw_centres = getattr(model, "sphere_centres", None)
+    raw_radii = getattr(model, "sphere_radii", None)
+    if raw_cavity is None or raw_centres is None or raw_radii is None:
+        return None
+    cavity = np.asarray(raw_cavity, dtype=float).T
+    centres = np.asarray(raw_centres, dtype=float).T
+    radii = np.asarray(raw_radii, dtype=float)
+    if (
+        cavity.ndim != 2
+        or cavity.shape[1] != 3
+        or centres.ndim != 2
+        or centres.shape[1] != 3
+        or radii.shape != (len(centres),)
+        or not np.all(np.isfinite(cavity))
+        or not np.all(np.isfinite(centres))
+        or not np.all(np.isfinite(radii))
+        or np.any(radii <= 0.0)
+    ):
+        raise RuntimeError("pyddx cavity arrays violate the version-pinned layout.")
+    directions = _lebedev_directions(
+        runtime,
+        n_lebedev=n_lebedev,
+        lmax=lmax,
+        eta=eta,
+    )
+    active: list[tuple[int, int]] = []
+    for point in cavity:
+        radius_errors = np.abs(np.linalg.norm(point[None, :] - centres, axis=1) - radii)
+        owner = int(np.argmin(radius_errors))
+        owner_scale = max(1.0, float(radii[owner]))
+        if radius_errors[owner] > 2.0e-12 * owner_scale:
+            raise RuntimeError("pyddx cavity node cannot be assigned to one sphere.")
+        tied = np.flatnonzero(radius_errors <= 2.0e-12 * owner_scale)
+        if tied.size != 1:
+            raise RuntimeError("pyddx cavity node has ambiguous sphere ownership.")
+        direction = (point - centres[owner]) / radii[owner]
+        direction_errors = np.linalg.norm(directions - direction, axis=1)
+        candidate = int(np.argmin(direction_errors))
+        if direction_errors[candidate] > 2.0e-12:
+            raise RuntimeError(
+                "pyddx cavity node cannot be assigned to one Lebedev candidate."
+            )
+        active.append((owner, candidate))
+    active_tuple = tuple(sorted(active))
+    if len(set(active_tuple)) != len(active_tuple):
+        raise RuntimeError("pyddx cavity topology contains duplicate active nodes.")
+    digest = _canonical_json_sha256(
+        {
+            "schema": "route2-pyddx-exposed-lebedev-topology-v1",
+            "pyddx_version": runtime.version,
+            "n_spheres": len(centres),
+            "n_lebedev": n_lebedev,
+            "active_sphere_candidate_pairs": [list(pair) for pair in active_tuple],
+        }
+    )
+    return digest, active_tuple
 
 
 @dataclass(frozen=True)
@@ -173,25 +293,19 @@ class PyDDXReactionFieldLinearMap:
             or not isinstance(lmax, (int, np.integer))
             or int(lmax) < 1
         ):
-            raise ValueError(
-                f"{method_label} lmax must be an integer of at least 1."
-            )
+            raise ValueError(f"{method_label} lmax must be an integer of at least 1.")
         if (
             isinstance(n_lebedev, bool)
             or not isinstance(n_lebedev, (int, np.integer))
             or int(n_lebedev) <= 0
         ):
-            raise ValueError(
-                f"{method_label} n_lebedev must be a positive integer."
-            )
+            raise ValueError(f"{method_label} n_lebedev must be a positive integer.")
         if (
             isinstance(n_proc, bool)
             or not isinstance(n_proc, (int, np.integer))
             or int(n_proc) <= 0
         ):
-            raise ValueError(
-                f"{method_label} n_proc must be a positive integer."
-            )
+            raise ValueError(f"{method_label} n_proc must be a positive integer.")
         tolerance = float(solver_tolerance)
         if not math.isfinite(tolerance) or tolerance <= 0.0:
             raise ValueError(
@@ -199,9 +313,7 @@ class PyDDXReactionFieldLinearMap:
             )
         eta_value = float(eta)
         if not math.isfinite(eta_value) or not 0.0 <= eta_value <= 1.0:
-            raise ValueError(
-                f"{method_label} eta must be finite and lie in [0, 1]."
-            )
+            raise ValueError(f"{method_label} eta must be finite and lie in [0, 1].")
 
         runtime = _load_pyddx_runtime() if _runtime is None else _runtime
         version = _require_tested_pyddx_version(runtime.version)
@@ -262,6 +374,15 @@ class PyDDXReactionFieldLinearMap:
         self._solver_tolerance = tolerance
         self._eta = eta_value
         self.atom_count = positions.shape[0]
+        topology = _cavity_topology_record(
+            runtime,
+            model,
+            n_lebedev=int(n_lebedev),
+            lmax=int(lmax),
+            eta=eta_value,
+        )
+        self._cavity_topology_sha256 = None if topology is None else topology[0]
+        self._cavity_active_node_pairs = () if topology is None else topology[1]
         self._scf_state = None
         self._scf_state_has_adjoint_solution = False
         self._scf_state_creations = 0
@@ -286,6 +407,9 @@ class PyDDXReactionFieldLinearMap:
             "shift": 0.0,
             "enable_fmm": False,
             "n_proc": self._n_proc,
+            "n_cav": int(getattr(self._model, "n_cav", -1)),
+            "cavity_topology_sha256": self._cavity_topology_sha256,
+            "cavity_active_node_count": len(self._cavity_active_node_pairs),
             "scf_state_reuse": "pyddx.State.update_problem warm start",
             "scf_state_creations": self._scf_state_creations,
             "scf_state_updates": self._scf_state_updates,
@@ -300,6 +424,22 @@ class PyDDXReactionFieldLinearMap:
     @property
     def cavity_radii_angstrom(self) -> np.ndarray:
         return self._radii_angstrom.copy()
+
+    @property
+    def cavity_topology_sha256(self) -> str:
+        if self._cavity_topology_sha256 is None:
+            raise RuntimeError(
+                "pyddx cavity topology is unavailable from this runtime model."
+            )
+        return self._cavity_topology_sha256
+
+    @property
+    def cavity_active_node_pairs(self) -> tuple[tuple[int, int], ...]:
+        if self._cavity_topology_sha256 is None:
+            raise RuntimeError(
+                "pyddx cavity topology is unavailable from this runtime model."
+            )
+        return self._cavity_active_node_pairs
 
     def _validated_density(self, values: np.ndarray, *, name: str) -> np.ndarray:
         return _validated_density_block(
@@ -562,9 +702,7 @@ class PyDDXReactionFieldLinearMap:
         """
 
         return (
-            self._coordinate_energy_gradient_hartree_per_bohr(
-                density_coefficients
-            )
+            self._coordinate_energy_gradient_hartree_per_bohr(density_coefficients)
             * Hartree
             / Bohr
         )

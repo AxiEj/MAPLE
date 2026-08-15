@@ -11,6 +11,7 @@ from typing import Protocol
 import numpy as np
 
 from maple.solvation.api.profiles import (
+    GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
     LEGACY_UNBOUND_COORDINATE_CONTRACT_ID,
     MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
 )
@@ -862,6 +863,12 @@ LEGACY_UNBOUND_COORDINATE_CONTRACT = ReducedCoordinateContract(
     implementation_contract=None,
     component_scales=None,
 )
+GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT = ReducedCoordinateContract(
+    contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+    source_space=ATOMIC_L1_SOURCE_SPACE,
+    implementation_contract=None,
+    component_scales=None,
+)
 MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT = ReducedCoordinateContract(
     contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
     source_space=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
@@ -875,6 +882,7 @@ COORDINATE_CONTRACT_REGISTRY = MappingProxyType(
         contract.contract_id: contract
         for contract in (
             LEGACY_UNBOUND_COORDINATE_CONTRACT,
+            GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT,
             MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT,
         )
     }
@@ -939,6 +947,7 @@ __all__ = [
     "FieldDualSpace",
     "LinearChargeCoordinates",
     "LEGACY_UNBOUND_COORDINATE_CONTRACT",
+    "GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT",
     "MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT",
     "MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE",
     "MACE_POLAR_RADIAL_GTO_SIGMAS_ANGSTROM",

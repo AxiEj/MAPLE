@@ -1,0 +1,334 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from ase import Atoms
+import numpy as np
+import pytest
+
+_ENABLED = os.environ.get("MAPLE_ROUTE2_REAL_AIMNET2") == "1"
+
+
+@pytest.mark.skipif(
+    not _ENABLED,
+    reason="set MAPLE_ROUTE2_REAL_AIMNET2=1 for the real checkpoint canary",
+)
+def test_real_aimnet2_pyddx_geometry_mediated_directional_derivative():
+    checkpoint_raw = os.environ.get("MAPLE_ROUTE2_AIMNET2_CHECKPOINT")
+    assert checkpoint_raw, (
+        "MAPLE_ROUTE2_REAL_AIMNET2=1 requires " "MAPLE_ROUTE2_AIMNET2_CHECKPOINT"
+    )
+    checkpoint = Path(checkpoint_raw).resolve()
+    assert checkpoint.is_file(), f"missing AIMNet2 checkpoint: {checkpoint}"
+
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("pyddx")
+    from maple.function.calculator.aimnet._aimnet2_calculator import (
+        AIMNet2Calculator,
+    )
+    from maple.function.calculator.extra_correction.implicit.smd_cds import (
+        route2_coulomb_radii,
+    )
+    from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
+    from maple.function.route2_solvents import route2_solvent_spec
+    from maple.solvation.continuum.atomic_l1_pyddx import (
+        AtomicL1PyDDXPCMBackend,
+    )
+    from maple.solvation.coupling.geometry_mediated import (
+        GeometryMediatedElectrostaticScalar,
+    )
+    from maple.solvation.models.aimnet2 import (
+        AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
+        AIMNet2GeometryMediatedModelAdapter,
+    )
+    from maple.solvation.release.geometry_mediated import (
+        GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
+        geometry_mediated_admission_decision,
+        geometry_mediated_coordinate_direction,
+        geometry_mediated_rotations,
+        summarize_geometry_mediated_directional_audit,
+        summarize_geometry_mediated_rotation_audit,
+    )
+
+    torch.set_num_threads(1)
+    atoms = Atoms(
+        "OHH",
+        positions=[
+            [0.0, 0.0, 0.0],
+            [0.9572, 0.0, 0.0],
+            [-0.2399872, 0.927297, 0.0],
+        ],
+        info={"charge": 0, "mult": 1},
+    )
+    calculator = AIMNet2Calculator(
+        device=torch.device("cpu"),
+        model="aimnet2",
+        model_path=str(checkpoint),
+        coulomb_method="simple",
+    )
+    model = AIMNet2GeometryMediatedModelAdapter(calculator)
+    assert model.provenance.checkpoint_sha256 == AIMNET2_WB97M_D3_CHECKPOINT_SHA256
+    radii = route2_coulomb_radii(
+        atoms.get_chemical_symbols(),
+        solvent="water",
+        profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+    )
+    dielectric = float(route2_solvent_spec("water").descriptors.dielectric)
+    continuum = AtomicL1PyDDXPCMBackend(
+        atoms,
+        radii,
+        dielectric=dielectric,
+        lmax=7,
+        n_lebedev=302,
+        solver_tolerance=1.0e-12,
+    )
+    scalar = GeometryMediatedElectrostaticScalar(model, continuum)
+    result = scalar.evaluate(atoms)
+
+    assert result.reciprocity_audit.gate_passed is True
+    assert result.reciprocity_audit.charge_gauge_vjp_norm_eV_per_A <= 1.0e-7
+
+    direction = geometry_mediated_coordinate_direction(len(atoms))
+    samples = []
+    for step in GEOMETRY_MEDIATED_COORDINATE_STEPS_A:
+        plus = atoms.copy()
+        minus = atoms.copy()
+        plus.positions += step * direction
+        minus.positions -= step * direction
+        samples.append(
+            {
+                "step_A": step,
+                "plus_energy_eV": scalar.evaluate_energy(plus),
+                "minus_energy_eV": scalar.evaluate_energy(minus),
+                "plus_model_topology": model.neighbor_topology(plus).as_dict(),
+                "minus_model_topology": model.neighbor_topology(minus).as_dict(),
+                "plus_continuum_topology": continuum.topology_state(plus),
+                "minus_continuum_topology": continuum.topology_state(minus),
+            }
+        )
+    directional = summarize_geometry_mediated_directional_audit(
+        analytic_gradient_eV_per_A=result.total_gradient_eV_per_A,
+        direction=direction,
+        center_model_topology=model.neighbor_topology(atoms).as_dict(),
+        center_continuum_topology=continuum.topology_state(atoms),
+        samples=samples,
+        reciprocity_audit=result.reciprocity_audit.as_dict(),
+    )
+    assert directional["topology"]["all_stencils_same_stratum"] is True
+    assert directional["reciprocity_metric_charge_gauge_gate_passed"] is True
+    assert directional["gate_passed"] is False
+    assert len(directional["records"]) == 3
+    assert result.reciprocity_gradient_error_eV_per_source_unit <= 1.0e-10
+    assert np.max(np.abs(result.continuum_fixed_source_gradient_eV_per_A)) > 0.0
+    assert np.max(np.abs(result.source_response_gradient_eV_per_A)) > 0.0
+    assert scalar.continuum.fixed_topology is False
+    assert scalar.continuum.capabilities.enabled_tiers == ()
+
+    rotations = []
+    for rotation in geometry_mediated_rotations():
+        rotated = atoms.copy()
+        rotated.positions = atoms.positions @ rotation.T
+        rotated_result = scalar.evaluate(rotated)
+        rotations.append(
+            {
+                "rotation_matrix": rotation.tolist(),
+                "energy_eV": rotated_result.energy.total_energy_eV,
+                "forces_eV_per_A": rotated_result.forces_eV_per_A.tolist(),
+                "source": rotated_result.source.tolist(),
+                "model_topology": model.neighbor_topology(rotated).as_dict(),
+                "continuum_topology": continuum.topology_state(rotated),
+            }
+        )
+    rotation_audit = summarize_geometry_mediated_rotation_audit(
+        positions_A=atoms.positions,
+        base_energy_eV=result.energy.total_energy_eV,
+        base_forces_eV_per_A=result.forces_eV_per_A,
+        base_source=result.source,
+        base_model_topology=model.neighbor_topology(atoms).as_dict(),
+        base_continuum_topology=continuum.topology_state(atoms),
+        rotation_records=rotations,
+    )
+    assert rotation_audit["all_rotation_topologies_match"] is False
+    assert rotation_audit["gate_passed"] is False
+    decision = geometry_mediated_admission_decision(
+        deterministic_replay_passed=True,
+        directional_audit=directional,
+        rotation_audit=rotation_audit,
+        post_solve_residual_available=False,
+    )
+    assert decision["local_diagnostic_gates_passed"] is False
+    assert decision["public_energy_admitted"] is False
+    assert decision["public_force_admitted"] is False
+    assert decision["opt_admitted"] is False
+
+
+@pytest.mark.skipif(
+    not _ENABLED,
+    reason="set MAPLE_ROUTE2_REAL_AIMNET2=1 for the real checkpoint canary",
+)
+def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
+    checkpoint_raw = os.environ.get("MAPLE_ROUTE2_AIMNET2_CHECKPOINT")
+    assert checkpoint_raw, (
+        "MAPLE_ROUTE2_REAL_AIMNET2=1 requires " "MAPLE_ROUTE2_AIMNET2_CHECKPOINT"
+    )
+    checkpoint = Path(checkpoint_raw).resolve()
+    assert checkpoint.is_file(), f"missing AIMNet2 checkpoint: {checkpoint}"
+
+    torch = pytest.importorskip("torch")
+    from maple.function.calculator.aimnet._aimnet2_calculator import (
+        AIMNet2Calculator,
+    )
+    from maple.function.calculator.extra_correction.implicit.smd_cds import (
+        route2_coulomb_radii,
+    )
+    from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
+    from maple.solvation.api import (
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
+    )
+    from maple.solvation.continuum import (
+        SmoothPointChargeHarmonicGalerkinFunctionalCandidate,
+    )
+    from maple.solvation.coupling.geometry_mediated import (
+        GeometryMediatedElectrostaticScalar,
+    )
+    from maple.solvation.models.aimnet2 import (
+        AIMNet2GeometryMediatedModelAdapter,
+    )
+    from maple.solvation.release.geometry_mediated import (
+        GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
+        geometry_mediated_admission_decision,
+        geometry_mediated_coordinate_direction,
+        geometry_mediated_rotations,
+        summarize_geometry_mediated_directional_audit,
+        summarize_geometry_mediated_rotation_audit,
+    )
+
+    torch.set_num_threads(1)
+    atoms = Atoms(
+        "OHH",
+        positions=[
+            [0.0, 0.0, 0.0],
+            [0.9572, 0.0, 0.0],
+            [-0.2399872, 0.927297, 0.0],
+        ],
+        info={"charge": 0, "mult": 1},
+    )
+    calculator = AIMNet2Calculator(
+        device=torch.device("cpu"),
+        model="aimnet2",
+        model_path=str(checkpoint),
+        coulomb_method="simple",
+    )
+    model = AIMNet2GeometryMediatedModelAdapter(calculator)
+    radii = route2_coulomb_radii(
+        atoms.get_chemical_symbols(),
+        solvent="water",
+        profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+    )
+    continuum = SmoothPointChargeHarmonicGalerkinFunctionalCandidate(
+        atomic_numbers=tuple(int(value) for value in atoms.numbers),
+        radii_angstrom=tuple(float(value) for value in radii),
+        transition_width_angstrom2=0.18,
+        surface_lmax=1,
+        exposure_lmax=2,
+        exposure_radial_quadrature_order=32,
+        green_radial_quadrature_order=32,
+        dtype=torch.float64,
+        device="cpu",
+    )
+    scalar = GeometryMediatedElectrostaticScalar(
+        model,
+        continuum,
+        scalar_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1
+        ),
+        profile_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1
+        ),
+    )
+    result = scalar.evaluate(atoms)
+    assert result.reciprocity_audit.gate_passed is True
+
+    # The continuum itself is structurally covariant for an invariant point-l0
+    # source.  The full audit below additionally measures the real float32
+    # AIMNet2 checkpoint rather than hiding its small numerical frame drift.
+    continuum_energy = continuum.energy_eV(atoms, result.source)
+    continuum_gradient = continuum.coordinate_partial(atoms, result.source)
+    rotation_records = []
+    for rotation in geometry_mediated_rotations():
+        rotated = atoms.copy()
+        rotated.positions = atoms.positions @ rotation.T
+        assert continuum.energy_eV(rotated, result.source) == pytest.approx(
+            continuum_energy, abs=2.0e-13
+        )
+        np.testing.assert_allclose(
+            continuum.coordinate_partial(rotated, result.source),
+            continuum_gradient @ rotation.T,
+            atol=5.0e-13,
+            rtol=0.0,
+        )
+        rotated_result = scalar.evaluate(rotated)
+        rotation_records.append(
+            {
+                "rotation_matrix": rotation.tolist(),
+                "energy_eV": rotated_result.energy.total_energy_eV,
+                "forces_eV_per_A": rotated_result.forces_eV_per_A.tolist(),
+                "source": rotated_result.source.tolist(),
+                "model_topology": model.neighbor_topology(rotated).as_dict(),
+                "continuum_topology": continuum.topology_state(rotated),
+            }
+        )
+    rotation = summarize_geometry_mediated_rotation_audit(
+        positions_A=atoms.positions,
+        base_energy_eV=result.energy.total_energy_eV,
+        base_forces_eV_per_A=result.forces_eV_per_A,
+        base_source=result.source,
+        base_model_topology=model.neighbor_topology(atoms).as_dict(),
+        base_continuum_topology=continuum.topology_state(atoms),
+        rotation_records=rotation_records,
+    )
+    assert rotation["all_rotation_topologies_match"] is True
+    assert rotation["gate_passed"] is True
+
+    direction = geometry_mediated_coordinate_direction(len(atoms))
+    samples = []
+    for step in GEOMETRY_MEDIATED_COORDINATE_STEPS_A:
+        plus = atoms.copy()
+        minus = atoms.copy()
+        plus.positions += step * direction
+        minus.positions -= step * direction
+        samples.append(
+            {
+                "step_A": step,
+                "plus_energy_eV": scalar.evaluate_energy(plus),
+                "minus_energy_eV": scalar.evaluate_energy(minus),
+                "plus_model_topology": model.neighbor_topology(plus).as_dict(),
+                "minus_model_topology": model.neighbor_topology(minus).as_dict(),
+                "plus_continuum_topology": continuum.topology_state(plus),
+                "minus_continuum_topology": continuum.topology_state(minus),
+            }
+        )
+    directional = summarize_geometry_mediated_directional_audit(
+        analytic_gradient_eV_per_A=result.total_gradient_eV_per_A,
+        direction=direction,
+        center_model_topology=model.neighbor_topology(atoms).as_dict(),
+        center_continuum_topology=continuum.topology_state(atoms),
+        samples=samples,
+        reciprocity_audit=result.reciprocity_audit.as_dict(),
+    )
+    assert directional["topology"]["all_stencils_same_stratum"] is True
+    assert directional["gate_passed"] is False
+
+    decision = geometry_mediated_admission_decision(
+        deterministic_replay_passed=True,
+        directional_audit=directional,
+        rotation_audit=rotation,
+        post_solve_residual_available=True,
+    )
+    assert decision["rotation_topology_gate_passed"] is True
+    assert decision["local_diagnostic_gates_passed"] is False
+    assert decision["public_energy_admitted"] is False
+    assert decision["public_force_admitted"] is False
+    assert decision["opt_admitted"] is False

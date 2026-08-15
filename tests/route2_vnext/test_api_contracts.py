@@ -10,6 +10,10 @@ from maple.solvation.api import (
     SCALAR_REGISTRY,
     STATE_REGISTRY,
     CapabilityStatus,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS,
     DIAGNOSTIC_DDX_DDPCM_194_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
@@ -41,6 +45,9 @@ from maple.solvation.api import (
 )
 
 INITIAL_SCALAR_IDS = {
+    "route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1",
+    "route2-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-cpcm-electrostatic-v1",
     "route2-diagnostic-ddx-ddcosmo-radialgto-electrostatic-v1",
     "route2-diagnostic-ddx-ddpcm-radialgto-electrostatic-v1",
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
@@ -95,7 +102,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 18
+    assert len(PROFILE_REGISTRY) == 20
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -232,6 +239,36 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     )
     assert ddx.capabilities.enabled_tiers == ()
     assert ddx.enabled is False
+    geometry_mediated = PROFILE_REGISTRY[
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1
+    ]
+    assert geometry_mediated.scalar_id == (
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1
+    )
+    assert geometry_mediated.state_equation_id.endswith(
+        "geometry-mediated-source-map-v1"
+    )
+    assert geometry_mediated.model_profile.endswith("geometry-mediated-neutral-hcno-v1")
+    assert geometry_mediated.continuum_profile == "ddx-ddpcm-atomic-l1-v1"
+    assert geometry_mediated.nonpolar_profile == "none"
+    assert geometry_mediated.capabilities.enabled_tiers == ()
+    assert geometry_mediated.enabled is False
+    harmonic_geometry_mediated = PROFILE_REGISTRY[
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1
+    ]
+    assert harmonic_geometry_mediated.scalar_id == (
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1
+    )
+    assert harmonic_geometry_mediated.model_profile == geometry_mediated.model_profile
+    assert harmonic_geometry_mediated.coupling_id == geometry_mediated.coupling_id
+    assert harmonic_geometry_mediated.continuum_profile.startswith(
+        "smooth-weighted-harmonic"
+    )
+    assert harmonic_geometry_mediated.cavity_profile.startswith(
+        "smooth-weighted-overlap-harmonic"
+    )
+    assert harmonic_geometry_mediated.capabilities.enabled_tiers == ()
+    assert harmonic_geometry_mediated.enabled is False
     ddcosmo_scalar = SCALAR_REGISTRY[DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1]
     assert ddcosmo_scalar.continuum_profile == "ddx-ddcosmo-radial-gto-v1"
     assert ddcosmo_scalar.enabled is False

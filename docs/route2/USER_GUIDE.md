@@ -3,7 +3,7 @@
 ## Current public status
 
 There is currently **no admitted conservative-vNext Route-2 public profile**.
-All ten registry profiles have `E=F=H=V=M=false`. The radial-GTO water path is
+Every registry profile has `E=F=H=V=M=false`. The radial-GTO water path is
 an internal validation candidate; it is deliberately unavailable through
 MAPLE's public calculator/result API.
 
@@ -77,6 +77,8 @@ numerical FREQ or HVP
 MD
 fixed-topology SMD-derived CDS
 multi-solvent vNext profiles
+geometry-mediated AIMNet2/ddPCM (diagnostic only)
+geometry-mediated AIMNet2/smooth-harmonic conductor (diagnostic only)
 rho-DROP forces
 strict common variational MACE-continuum functional
 ```

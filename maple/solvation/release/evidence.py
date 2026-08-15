@@ -222,11 +222,18 @@ def committed_source_hashes(
     return result
 
 
-def checkpoint_record(path: str | Path) -> dict[str, object]:
+def checkpoint_record(
+    path: str | Path,
+    *,
+    role: str = "mace-polar-1-m-official-checkpoint",
+) -> dict[str, object]:
     resolved = Path(path).expanduser().resolve(strict=True)
     stat = resolved.stat()
+    normalized_role = str(role).strip()
+    if not normalized_role:
+        raise ValueError("checkpoint role must be non-empty.")
     return {
-        "role": "mace-polar-1-m-official-checkpoint",
+        "role": normalized_role,
         "resolved_path": str(resolved),
         "bytes": stat.st_size,
         "sha256": sha256_file(resolved),

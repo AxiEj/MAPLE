@@ -110,6 +110,16 @@ from .variational_stability import (
     dense_matrix_from_action,
     variational_stability_diagnostic,
 )
+from .geometry_mediated import (
+    GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION,
+    GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
+    GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A,
+    geometry_mediated_admission_decision,
+    geometry_mediated_coordinate_direction,
+    geometry_mediated_rotations,
+    summarize_geometry_mediated_directional_audit,
+    summarize_geometry_mediated_rotation_audit,
+)
 
 __all__ = [
     "RepositorySnapshot",
@@ -201,4 +211,12 @@ __all__ = [
     "VariationalStabilityThresholds",
     "dense_matrix_from_action",
     "variational_stability_diagnostic",
+    "GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION",
+    "GEOMETRY_MEDIATED_COORDINATE_STEPS_A",
+    "GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A",
+    "geometry_mediated_admission_decision",
+    "geometry_mediated_coordinate_direction",
+    "geometry_mediated_rotations",
+    "summarize_geometry_mediated_directional_audit",
+    "summarize_geometry_mediated_rotation_audit",
 ]

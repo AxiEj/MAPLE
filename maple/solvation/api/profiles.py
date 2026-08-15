@@ -8,6 +8,8 @@ from typing import Mapping
 
 from .capabilities import CapabilityStatus
 from .scalar_registry import (
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     OPERATIONAL_CPCM_ELECTROSTATIC_V1,
@@ -21,6 +23,7 @@ from .scalar_registry import (
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
 )
 from .state_registry import (
+    GEOMETRY_MEDIATED_SOURCE_MAP_ID,
     OPERATIONAL_STATE_EQUATION_ID,
     STATE_REGISTRY,
     VARIATIONAL_STATE_EQUATION_ID,
@@ -28,6 +31,13 @@ from .state_registry import (
 
 OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-electrostatic-v1"
+)
+DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1 = (
+    "route2-profile-diagnostic-aimnet2-geometry-mediated-" "ddx-ddpcm-electrostatic-v1"
+)
+DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1 = (
+    "route2-profile-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-cpcm-electrostatic-v1"
 )
 OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1"
@@ -96,6 +106,9 @@ EXACT_GTO_COUPLING_CANDIDATE_ID = (
 LOCAL_JET_DIAGNOSTIC_COUPLING_ID = (
     "maple.route2.coupling.exterior-local-l1-jet-diagnostic.v1"
 )
+AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID = (
+    "maple.route2.coupling.aimnet2-point-l0-geometry-mediated.v1"
+)
 MACE_POLAR_RADIAL_GTO_COUPLING_ID = "route2-coupling-mace-polar-native-radial-gto-v1"
 ATOMIC_L1_SOURCE_SPACE_ID = "maple.route2.atomic-l1-source-space.v1"
 ATOMIC_L1_FIELD_DUAL_SPACE_ID = "maple.route2.atomic-l1-field-dual-space.v1"
@@ -109,6 +122,9 @@ MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID = (
 MACE_POLAR_RADIAL_GTO_PAIRING_ID = "maple.route2.mace-polar-radial-gto-pairing.v1"
 LEGACY_UNBOUND_COORDINATE_CONTRACT_ID = (
     "maple.route2.legacy-profile-coordinate-scales-unbound.v1"
+)
+GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID = (
+    "maple.route2.geometry-mediated-direct-source.v1"
 )
 MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID = (
     "maple.route2.mace-polar-radial-gto-linear-charge-coordinates.v1"
@@ -152,6 +168,9 @@ SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.smooth-weighted-harmonic-galerkin.v1"
 )
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
+AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID = (
+    "aimnet2-route2-geometry-mediated-neutral-hcno-v1"
+)
 MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID = (
     "mace-polar-route2-analytic-gaussian-multipole-realspace-contract-v1"
 )
@@ -289,6 +308,50 @@ _COMMON = dict(
 )
 
 _PROFILE_ENTRIES = (
+    SolvationProfile(
+        profile_id=DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1,
+        scalar_id=(DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        model_profile=AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID,
+        continuum_profile="ddx-ddpcm-atomic-l1-v1",
+        cavity_profile="ddx-union-of-spheres-exposed-lebedev-v0p8p0",
+        nonpolar_profile="none",
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1
+        ),
+        scalar_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1
+        ),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        model_profile=AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID,
+        continuum_profile=SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID,
+        cavity_profile=SMOOTH_HARMONIC_CAVITY_PROFILE_ID,
+        nonpolar_profile="none",
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
     SolvationProfile(
         profile_id=OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
         scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
@@ -635,6 +698,8 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1",
+    "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1",
     "DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1",
     "DIAGNOSTIC_FIXED_BOX48_CPCM_1202_RADIAL_GTO_PROFILE_V1",
@@ -656,6 +721,7 @@ __all__ = [
     "MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID",
     "SolvationProfile",
     "EXACT_GTO_COUPLING_CANDIDATE_ID",
+    "AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID",
     "LOCAL_JET_DIAGNOSTIC_COUPLING_ID",
     "MACE_POLAR_RADIAL_GTO_COUPLING_ID",
     "ATOMIC_L1_SOURCE_SPACE_ID",
@@ -665,6 +731,7 @@ __all__ = [
     "MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID",
     "MACE_POLAR_RADIAL_GTO_PAIRING_ID",
     "MACE_POLAR_MODEL_PROFILE_ID",
+    "AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID",
     "MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
     "MACE_POLAR_FIXED_BOX_MODEL_PROFILE_IDS",
@@ -673,6 +740,7 @@ __all__ = [
     "MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID",
     "MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS",
     "LEGACY_UNBOUND_COORDINATE_CONTRACT_ID",
+    "GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID",
     "MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID",
     "UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID",
     "WATER_CPCM_194_CONFIGURATION_CONTRACT_ID",

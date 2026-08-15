@@ -24,6 +24,14 @@ from .base import (
     validate_variational_declaration,
 )
 from .bundle import ModelCapabilityDeclaration, SoluteModelBundle
+from .aimnet2 import (
+    AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
+    AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES,
+    AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT,
+    AIMNet2CheckpointContract,
+    AIMNet2GeometryMediatedModelAdapter,
+    AIMNet2NeighborTopologyState,
+)
 from .field_energy import (
     FieldEnergyFunctional,
     GaugeReducedDualityMap,
@@ -60,6 +68,12 @@ from .mace_polar_variational import (
 )
 
 __all__ = [
+    "AIMNET2_WB97M_D3_CHECKPOINT_SHA256",
+    "AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES",
+    "AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT",
+    "AIMNet2CheckpointContract",
+    "AIMNet2GeometryMediatedModelAdapter",
+    "AIMNet2NeighborTopologyState",
     "ElectronicSourceModel",
     "ElectronicSourceState",
     "ElectronicResponseEquationAdapter",

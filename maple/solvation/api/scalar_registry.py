@@ -7,7 +7,19 @@ from types import MappingProxyType
 from typing import Mapping
 
 from .capabilities import CapabilityStatus
-from .state_registry import OPERATIONAL_STATE_EQUATION_ID, VARIATIONAL_STATE_EQUATION_ID
+from .state_registry import (
+    GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+    OPERATIONAL_STATE_EQUATION_ID,
+    VARIATIONAL_STATE_EQUATION_ID,
+)
+
+DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1 = (
+    "route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1"
+)
+DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1 = (
+    "route2-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-cpcm-electrostatic-v1"
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
@@ -153,6 +165,101 @@ _COMMON = dict(
 )
 
 _SCALAR_ENTRIES = (
+    ScalarDefinition(
+        scalar_id=(DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1),
+        exact_formula=(
+            "E_gm(R)=E_AIMNet2(R)+1/2<c_AIMNet2(R),"
+            "P_R(c_AIMNet2(R))>_Q; "
+            "c_AIMNet2(R)=[q_NQE(R),0,0,0]; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated:"
+            "GeometryMediatedElectrostaticScalar"
+        ),
+        included_components=(
+            "aimnet2_vacuum_energy",
+            "geometry_dependent_aimnet2_nqe_point_charge_source",
+            "ddx_ddpcm_half_coupling_electrostatic",
+            "complete_first_derivative_charge_chain_rule",
+        ),
+        excluded_components=(
+            "fixed_geometry_electronic_mutual_polarization",
+            "field_conditioned_model_energy_difference",
+            "nonpolar_smd_cds",
+            "standard_state_correction",
+            "hessian_frequency_ts_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred monopoles embedded "
+            "as [q,0,0,0] in the atomic l<=1 source space"
+        ),
+        field_convention=(
+            "positive energy-dual atom-centred potential/Cartesian-gradient field "
+            "with pairing c^T Q u"
+        ),
+        continuum_profile="ddx-ddpcm-atomic-l1-v1",
+        cavity_profile="ddx-union-of-spheres-exposed-lebedev-v0p8p0",
+        nonpolar_profile="none",
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "direct same-scalar chain rule: AIMNet2 intrinsic gradient plus fixed-"
+            "source ddPCM coordinate partial plus (D_R c)^T grad_c G_pcm; "
+            "diagnostic only"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1
+        ),
+        exact_formula=(
+            "E_gm_harm(R)=E_AIMNet2(R)-1/2(S_R c_AIMNet2(R))^T "
+            "A_R^-1(S_R c_AIMNet2(R)); "
+            "c_AIMNet2(R)=[q_NQE(R),0,0,0]; "
+            "A_R=E_R^T K_R E_R; S_R=E_R^T V_point,R; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated:"
+            "GeometryMediatedElectrostaticScalar"
+        ),
+        included_components=(
+            "aimnet2_vacuum_energy",
+            "geometry_dependent_aimnet2_nqe_point_charge_source",
+            "smooth_weighted_harmonic_conductor_electrostatic_scalar",
+            "complete_first_derivative_charge_chain_rule",
+            "structural_so3_coefficient_intertwiners",
+        ),
+        excluded_components=(
+            "fixed_geometry_electronic_mutual_polarization",
+            "field_conditioned_model_energy_difference",
+            "finite_dielectric_solvent_parameterization",
+            "nonpolar_smd_cds",
+            "standard_state_correction",
+            "hessian_frequency_ts_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred point monopoles "
+            "mapped analytically to complete real-harmonic boundary data"
+        ),
+        field_convention=(
+            "positive energy-dual atom-centred potential/Cartesian-gradient field "
+            "with pairing c^T Q u; l=1 source components are identically zero"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "direct same-scalar chain rule through an analytic point-source map, "
+            "fixed-dimensional harmonic Galerkin solve, and AIMNet2 charge VJP; "
+            "disabled conductor-reference diagnostic only"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
     ScalarDefinition(
         scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
         exact_formula=(
@@ -564,6 +671,8 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1",
+    "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",

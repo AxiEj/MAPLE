@@ -58,18 +58,20 @@ def _sha(payload: object) -> str:
     ).hexdigest()
 
 
-def _implementation_sha256() -> tuple[tuple[str, str], ...]:
+def _implementation_sha256(
+    source_files: tuple[str, ...],
+) -> tuple[tuple[str, str], ...]:
     continuum = Path(__file__).resolve().parent
     files = {
         "functional.py": continuum / "functional.py",
         "harmonic_coefficients.py": continuum / "harmonic_coefficients.py",
         "harmonic_exposure.py": continuum / "harmonic_exposure.py",
-        "harmonic_gaussian_source.py": continuum / "harmonic_gaussian_source.py",
         "harmonic_single_layer.py": continuum / "harmonic_single_layer.py",
         "harmonic_torch_functional.py": Path(__file__),
         "harmonic_torch_primitives.py": continuum / "harmonic_torch_primitives.py",
         "harmonic_weighted_galerkin.py": continuum / "harmonic_weighted_galerkin.py",
     }
+    files.update({name: continuum / name for name in source_files})
     return tuple(
         (name, hashlib.sha256(path.read_bytes()).hexdigest())
         for name, path in sorted(files.items())
@@ -94,6 +96,7 @@ def _bounded_order(value: object, *, name: str) -> int:
 
 def _coefficient_topology_payload(
     *,
+    provider_id: str,
     atomic_numbers: tuple[int, ...],
     radii_angstrom: tuple[float, ...],
     surface_lmax: int,
@@ -104,7 +107,7 @@ def _coefficient_topology_payload(
     physical_lmax = surface_lmax + exposure_lmax
     return {
         "contract": "smooth-harmonic-fixed-coefficient-topology-v1",
-        "provider_id": SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID,
+        "provider_id": provider_id,
         "atomic_numbers": atomic_numbers,
         "radii_angstrom": radii_angstrom,
         "atom_order": "input-order",
@@ -160,6 +163,19 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     registered_scalar = True
     tier_v_rotation_admitted = False
     tier_v_admitted = False
+    _source_space_contract = MACE_POLAR_RADIAL_GTO_SOURCE_SPACE
+    _field_space_contract = MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE
+    _pairing_contract = MACE_POLAR_RADIAL_GTO_PAIRING
+    _accepted_scalar_ids = frozenset(
+        {
+            OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+        }
+    )
+    _source_implementation_files = ("harmonic_gaussian_source.py",)
+    _source_radial_quadrature_required = True
+    _geometry_quadrature = "invariant-one-dimensional"
 
     def __init__(
         self,
@@ -170,7 +186,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         surface_lmax: int,
         exposure_lmax: int,
         exposure_radial_quadrature_order: int = 96,
-        source_radial_quadrature_order: int = 128,
+        source_radial_quadrature_order: int | None = 128,
         green_radial_quadrature_order: int = 128,
         dtype: object,
         device: object,
@@ -200,10 +216,21 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             exposure_radial_quadrature_order,
             name="exposure_radial_quadrature_order",
         )
-        source_order = _bounded_order(
-            source_radial_quadrature_order,
-            name="source_radial_quadrature_order",
-        )
+        if self._source_radial_quadrature_required:
+            if source_radial_quadrature_order is None:
+                raise ValueError(
+                    "source_radial_quadrature_order is required for this source map."
+                )
+            source_order: int | None = _bounded_order(
+                source_radial_quadrature_order,
+                name="source_radial_quadrature_order",
+            )
+        else:
+            if source_radial_quadrature_order is not None:
+                raise ValueError(
+                    "source_radial_quadrature_order is not used by this source map."
+                )
+            source_order = None
         green_order = _bounded_order(
             green_radial_quadrature_order,
             name="green_radial_quadrature_order",
@@ -212,11 +239,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             transition_width_angstrom2, name="transition_width_angstrom2"
         )
         normalized_scalar_id = str(scalar_id).strip()
-        if normalized_scalar_id not in {
-            OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
-            VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
-            VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
-        }:
+        if normalized_scalar_id not in self._accepted_scalar_ids:
             raise ValueError(
                 "The harmonic continuum scalar binding is not preregistered."
             )
@@ -224,6 +247,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         runtime_device = str(device)
         topology = _sha(
             _coefficient_topology_payload(
+                provider_id=self.provider_id,
                 atomic_numbers=numbers,
                 radii_angstrom=radii,
                 surface_lmax=surface_maximum,
@@ -248,16 +272,16 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "source_radial_quadrature_order": source_order,
             "green_radial_quadrature_order": green_order,
             "coefficient_topology_sha256": topology,
-            "source_space_sha256": MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash(),
-            "field_space_sha256": MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.metadata_hash(),
-            "pairing_sha256": MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
+            "source_space_sha256": self._source_space_contract.metadata_hash(),
+            "field_space_sha256": self._field_space_contract.metadata_hash(),
+            "pairing_sha256": self._pairing_contract.metadata_hash(),
             "runtime_dtype": runtime_dtype,
             "runtime_device": runtime_device,
             "assembly": "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)",
             "angular_quadrature": "finite-band-exact-contractions-only",
-            "geometry_quadrature": "invariant-one-dimensional",
+            "geometry_quadrature": self._geometry_quadrature,
             "derivative_route": "sealed-same-scalar-autograd",
-            "implementation_sha256": _implementation_sha256(),
+            "implementation_sha256": self._implementation_sha256(),
             "capabilities": "none",
         }
         configuration = _sha(configuration_payload)
@@ -265,7 +289,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             {
                 "provider_id": self.provider_id,
                 "configuration_sha256": configuration,
-                "implementation_sha256": _implementation_sha256(),
+                "implementation_sha256": self._implementation_sha256(),
                 "tier_v_admission": "disabled",
             }
         )
@@ -283,9 +307,9 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         object.__setattr__(self, "_candidate_configuration_sha256", configuration)
         object.__setattr__(self, "_candidate_provenance_sha256", provenance)
         super().__init__(
-            source_space=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
-            field_space=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
-            pairing=MACE_POLAR_RADIAL_GTO_PAIRING,
+            source_space=self._source_space_contract,
+            field_space=self._field_space_contract,
+            pairing=self._pairing_contract,
             dtype=dtype,
             device=device,
             expected_atomic_numbers=numbers,
@@ -316,6 +340,9 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         self.configuration_sha256()
         return self._candidate_provenance_sha256
 
+    def _implementation_sha256(self) -> tuple[tuple[str, str], ...]:
+        return _implementation_sha256(self._source_implementation_files)
+
     def configuration_sha256(self) -> str:
         topology = self.topology_sha256()
         current = _sha(
@@ -337,16 +364,16 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                 "source_radial_quadrature_order": self._source_radial_order,
                 "green_radial_quadrature_order": self._green_radial_order,
                 "coefficient_topology_sha256": topology,
-                "source_space_sha256": MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash(),
-                "field_space_sha256": MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.metadata_hash(),
-                "pairing_sha256": MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
+                "source_space_sha256": self._source_space_contract.metadata_hash(),
+                "field_space_sha256": self._field_space_contract.metadata_hash(),
+                "pairing_sha256": self._pairing_contract.metadata_hash(),
                 "runtime_dtype": self._runtime_dtype,
                 "runtime_device": self._runtime_device,
                 "assembly": "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)",
                 "angular_quadrature": "finite-band-exact-contractions-only",
-                "geometry_quadrature": "invariant-one-dimensional",
+                "geometry_quadrature": self._geometry_quadrature,
                 "derivative_route": "sealed-same-scalar-autograd",
-                "implementation_sha256": _implementation_sha256(),
+                "implementation_sha256": self._implementation_sha256(),
                 "capabilities": "none",
             }
         )
@@ -356,7 +383,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             {
                 "provider_id": self.provider_id,
                 "configuration_sha256": current,
-                "implementation_sha256": _implementation_sha256(),
+                "implementation_sha256": self._implementation_sha256(),
                 "tier_v_admission": "disabled",
             }
         )
@@ -369,6 +396,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
 
         current = _sha(
             _coefficient_topology_payload(
+                provider_id=self.provider_id,
                 atomic_numbers=self._expected_atomic_numbers,
                 radii_angstrom=self._radii_angstrom,
                 surface_lmax=self._surface_lmax,
@@ -378,6 +406,16 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         if current != self._candidate_topology_sha256:
             raise RuntimeError("smooth harmonic coefficient topology drifted.")
         return current
+
+    def _assemble_raw_source_torch(self, positions: Any):
+        if self._source_radial_order is None:
+            raise RuntimeError("Gaussian source quadrature order is unavailable.")
+        return _assemble_gaussian_source(
+            positions,
+            radii=self._radii_angstrom,
+            lmax=self.physical_lmax,
+            radial_order=self._source_radial_order,
+        )
 
     def _assemble_torch(self, positions: Any):
         weighted_basis = _assemble_weighted_basis(
@@ -394,12 +432,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             lmax=self.physical_lmax,
             radial_order=self._green_radial_order,
         )
-        raw_source = _assemble_gaussian_source(
-            positions,
-            radii=self._radii_angstrom,
-            lmax=self.physical_lmax,
-            radial_order=self._source_radial_order,
-        )
+        raw_source = self._assemble_raw_source_torch(positions)
         surface = weighted_basis.T @ raw_single_layer @ weighted_basis
         surface = 0.5 * (surface + surface.T)
         source_operator = weighted_basis.T @ raw_source
@@ -450,6 +483,50 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             for name, matrix in zip(names, matrices)
         }
 
+    def stationarity_audit(self, geometry: object, source: object) -> dict[str, object]:
+        """Measure the dense stationary solve residual; never admit a tier."""
+
+        values = self.source_space.validate(
+            source,
+            atom_count=len(self._radii_angstrom),
+            name="stationarity audit source",
+        )
+        positions = self._positions_tensor(
+            geometry,
+            atom_count=len(self._radii_angstrom),
+            requires_grad=False,
+        )
+        source_tensor = self._source_tensor(values, requires_grad=False)
+        _, _, _, surface, source_operator = self._assemble_torch(positions)
+        right_hand_side = source_operator @ source_tensor.reshape(-1)
+        state = _torch().linalg.solve(surface, right_hand_side)
+        residual = surface @ state - right_hand_side
+        absolute = float(_torch().linalg.vector_norm(residual).detach().cpu())
+        right_norm = float(_torch().linalg.vector_norm(right_hand_side).detach().cpu())
+        relative = absolute / max(right_norm, np.finfo(float).tiny)
+        condition = float(_torch().linalg.cond(surface).detach().cpu())
+        gate = (
+            np.isfinite(absolute)
+            and np.isfinite(relative)
+            and np.isfinite(condition)
+            and absolute <= 1.0e-10
+            and relative <= 1.0e-10
+            and condition <= _MAXIMUM_REFERENCE_CONDITION_NUMBER
+        )
+        return {
+            "state_dimension": int(surface.shape[0]),
+            "absolute_residual_eV_per_e": absolute,
+            "relative_residual": relative,
+            "surface_condition_number": condition,
+            "thresholds": {
+                "absolute_residual_eV_per_e": 1.0e-10,
+                "relative_residual": 1.0e-10,
+                "surface_condition_number": _MAXIMUM_REFERENCE_CONDITION_NUMBER,
+            },
+            "gate_passed": gate,
+            "capability_admitted": False,
+        }
+
     def runtime_provenance(self) -> tuple[tuple[str, object], ...]:
         return tuple(
             sorted(
@@ -461,6 +538,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                     "stationary_scalar": "-1/2 (S c)^T A^-1 (S c)",
                     "geometry_assembly": "same-scalar-E-K-V",
                     "angular_quadrature": "finite-band-exact-contractions-only",
+                    "geometry_quadrature": self._geometry_quadrature,
                     "laboratory_fixed_surface_grid": False,
                     "registered_scalar": True,
                     "tier_v_admission": "disabled",

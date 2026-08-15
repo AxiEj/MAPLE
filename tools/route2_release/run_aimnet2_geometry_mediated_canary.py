@@ -1,0 +1,452 @@
+#!/usr/bin/env python3
+"""Capture a disabled AIMNet2 geometry-mediated continuum diagnostic.
+
+The runner supports the finite-grid pyddx ddPCM branch and the structurally
+SO(3)-controlled smooth harmonic point-charge conductor branch.  It records
+positive and negative gate evidence without admitting E/F/H/V/M, OPT,
+FREQ/TS/IRC, or MD.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import shlex
+import sys
+import time
+
+import numpy as np
+from ase import Atoms
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+
+from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
+from maple.function.calculator.extra_correction.implicit.smd_cds import (
+    route2_coulomb_radii,
+)
+from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
+from maple.function.route2_solvents import route2_solvent_spec
+from maple.solvation.api import (
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
+)
+from maple.solvation.continuum.atomic_l1_pyddx import AtomicL1PyDDXPCMBackend
+from maple.solvation.continuum.harmonic_point_torch_functional import (
+    SmoothPointChargeHarmonicGalerkinFunctionalCandidate,
+)
+from maple.solvation.coupling.geometry_mediated import (
+    GeometryMediatedElectrostaticScalar,
+)
+from maple.solvation.models.aimnet2 import AIMNet2GeometryMediatedModelAdapter
+from maple.solvation.release import (
+    RepositorySnapshot,
+    canonical_json_sha256,
+    checkpoint_record,
+    collect_loaded_repository_sources,
+    committed_source_hashes,
+    runtime_record,
+    write_external_json_artifact,
+)
+from maple.solvation.release.geometry_mediated import (
+    GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION,
+    GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
+    geometry_mediated_admission_decision,
+    geometry_mediated_coordinate_direction,
+    geometry_mediated_rotations,
+    summarize_geometry_mediated_directional_audit,
+    summarize_geometry_mediated_rotation_audit,
+)
+
+SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v2"
+NO_CAPABILITIES = {tier: False for tier in ("E", "F", "H", "V", "M")}
+COMMON_REQUIRED_SOURCE_PATHS = (
+    "maple/function/calculator/aimnet/_aimnet2_calculator.py",
+    "maple/solvation/api/profiles.py",
+    "maple/solvation/api/scalar_registry.py",
+    "maple/solvation/api/state_registry.py",
+    "maple/solvation/coupling/geometry_mediated.py",
+    "maple/solvation/coupling/metrics.py",
+    "maple/solvation/models/aimnet2.py",
+    "maple/solvation/release/evidence.py",
+    "maple/solvation/release/geometry_mediated.py",
+    "tools/route2_release/run_aimnet2_geometry_mediated_canary.py",
+)
+CONTINUUM_REQUIRED_SOURCE_PATHS = {
+    "ddpcm": (
+        "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py",
+        "maple/solvation/continuum/atomic_l1_pyddx.py",
+    ),
+    "harmonic-point": (
+        "maple/solvation/continuum/functional.py",
+        "maple/solvation/continuum/harmonic_coefficients.py",
+        "maple/solvation/continuum/harmonic_exposure.py",
+        "maple/solvation/continuum/harmonic_point_source.py",
+        "maple/solvation/continuum/harmonic_point_torch_functional.py",
+        "maple/solvation/continuum/harmonic_single_layer.py",
+        "maple/solvation/continuum/harmonic_torch_functional.py",
+        "maple/solvation/continuum/harmonic_torch_primitives.py",
+    ),
+}
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Capture a disabled AIMNet2 geometry-mediated continuum canary; "
+            "this never admits Route-2 capabilities."
+        )
+    )
+    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    parser.add_argument(
+        "--continuum",
+        choices=("ddpcm", "harmonic-point"),
+        default="ddpcm",
+    )
+    parser.add_argument("--output", type=Path, required=True)
+    return parser.parse_args()
+
+
+def _water() -> Atoms:
+    return Atoms(
+        "OHH",
+        positions=np.asarray(
+            [
+                [0.0, 0.0, 0.0],
+                [0.9572, 0.0, 0.0],
+                [-0.2399872, 0.927297, 0.0],
+            ]
+        ),
+        info={"charge": 0, "mult": 1},
+    )
+
+
+def _build(atoms: Atoms, checkpoint: Path, device: str, continuum_kind: str):
+    import torch
+
+    torch.manual_seed(20260815)
+    torch.set_num_threads(1)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(20260815)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+    calculator = AIMNet2Calculator(
+        device=torch.device(device),
+        model="aimnet2",
+        model_path=str(checkpoint),
+        coulomb_method="simple",
+    )
+    model = AIMNet2GeometryMediatedModelAdapter(calculator)
+    radii = route2_coulomb_radii(
+        atoms.get_chemical_symbols(),
+        solvent="water",
+        profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+    )
+    if continuum_kind == "ddpcm":
+        dielectric = float(route2_solvent_spec("water").descriptors.dielectric)
+        continuum = AtomicL1PyDDXPCMBackend(
+            atoms,
+            radii,
+            dielectric=dielectric,
+            lmax=7,
+            n_lebedev=302,
+            n_proc=1,
+            solver_tolerance=1.0e-12,
+            eta=0.1,
+        )
+        scalar = GeometryMediatedElectrostaticScalar(model, continuum)
+        protocol = {
+            "model": "ddPCM",
+            "dielectric": dielectric,
+            "radii_A": np.asarray(radii, dtype=float).tolist(),
+            "lmax": 7,
+            "n_lebedev": 302,
+            "solver_tolerance": 1.0e-12,
+            "eta": 0.1,
+            "post_solve_residual_available": False,
+        }
+    elif continuum_kind == "harmonic-point":
+        continuum = SmoothPointChargeHarmonicGalerkinFunctionalCandidate(
+            atomic_numbers=tuple(int(value) for value in atoms.numbers),
+            radii_angstrom=tuple(float(value) for value in radii),
+            transition_width_angstrom2=0.18,
+            surface_lmax=1,
+            exposure_lmax=2,
+            exposure_radial_quadrature_order=32,
+            green_radial_quadrature_order=32,
+            dtype=torch.float64,
+            device=device,
+        )
+        scalar = GeometryMediatedElectrostaticScalar(
+            model,
+            continuum,
+            scalar_id=(
+                DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1
+            ),
+            profile_id=(
+                DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1
+            ),
+        )
+        protocol = {
+            "model": "smooth-weighted-harmonic-conductor-reference",
+            "finite_dielectric_parameterization": False,
+            "radii_A": np.asarray(radii, dtype=float).tolist(),
+            "transition_width_A2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+            "point_source_map": "analytic-Laplace-addition-theorem",
+            "post_solve_residual_available": True,
+        }
+    else:  # pragma: no cover - argparse closes this branch
+        raise ValueError(f"unsupported continuum kind: {continuum_kind}")
+    return model, continuum, scalar, protocol
+
+
+def _topologies(model, continuum, atoms: Atoms):
+    return model.neighbor_topology(atoms).as_dict(), continuum.topology_state(atoms)
+
+
+def _replay(first, second) -> dict[str, object]:
+    energy_error = abs(first.energy.total_energy_eV - second.energy.total_energy_eV)
+    source_error = float(np.linalg.norm(first.source - second.source))
+    gradient_error = float(
+        np.linalg.norm(first.total_gradient_eV_per_A - second.total_gradient_eV_per_A)
+    )
+    return {
+        "energy_absolute_error_eV": energy_error,
+        "source_difference_norm": source_error,
+        "gradient_difference_norm_eV_per_A": gradient_error,
+        "gate_passed": (
+            energy_error <= 1.0e-10
+            and source_error <= 1.0e-10
+            and gradient_error <= 1.0e-9
+        ),
+    }
+
+
+def main() -> None:
+    args = _parse_args()
+    repository = RepositorySnapshot.capture(REPOSITORY_ROOT)
+    checkpoint = args.checkpoint.expanduser().resolve(strict=True)
+    started = time.perf_counter()
+    atoms = _water()
+    model, continuum, scalar, continuum_protocol = _build(
+        atoms, checkpoint, args.device, args.continuum
+    )
+
+    first = scalar.evaluate(atoms)
+    second = scalar.evaluate(atoms)
+    replay = _replay(first, second)
+    center_model_topology, center_continuum_topology = _topologies(
+        model, continuum, atoms
+    )
+    direction = geometry_mediated_coordinate_direction(len(atoms))
+    directional_samples: list[dict[str, object]] = []
+    for step in GEOMETRY_MEDIATED_COORDINATE_STEPS_A:
+        plus = atoms.copy()
+        minus = atoms.copy()
+        plus.positions += step * direction
+        minus.positions -= step * direction
+        plus_model_topology, plus_continuum_topology = _topologies(
+            model, continuum, plus
+        )
+        minus_model_topology, minus_continuum_topology = _topologies(
+            model, continuum, minus
+        )
+        directional_samples.append(
+            {
+                "step_A": step,
+                "plus_energy_eV": scalar.evaluate_energy(plus),
+                "minus_energy_eV": scalar.evaluate_energy(minus),
+                "plus_model_topology": plus_model_topology,
+                "minus_model_topology": minus_model_topology,
+                "plus_continuum_topology": plus_continuum_topology,
+                "minus_continuum_topology": minus_continuum_topology,
+            }
+        )
+    directional = summarize_geometry_mediated_directional_audit(
+        analytic_gradient_eV_per_A=first.total_gradient_eV_per_A,
+        direction=direction,
+        center_model_topology=center_model_topology,
+        center_continuum_topology=center_continuum_topology,
+        samples=directional_samples,
+        reciprocity_audit=first.reciprocity_audit.as_dict(),
+    )
+
+    rotation_records: list[dict[str, object]] = []
+    for rotation in geometry_mediated_rotations():
+        rotated = atoms.copy()
+        rotated.positions = atoms.positions @ rotation.T
+        result = scalar.evaluate(rotated)
+        model_topology, continuum_topology = _topologies(model, continuum, rotated)
+        rotation_records.append(
+            {
+                "rotation_matrix": rotation.tolist(),
+                "energy_eV": result.energy.total_energy_eV,
+                "forces_eV_per_A": result.forces_eV_per_A.tolist(),
+                "source": result.source.tolist(),
+                "model_topology": model_topology,
+                "continuum_topology": continuum_topology,
+            }
+        )
+    rotation = summarize_geometry_mediated_rotation_audit(
+        positions_A=atoms.positions,
+        base_energy_eV=first.energy.total_energy_eV,
+        base_forces_eV_per_A=first.forces_eV_per_A,
+        base_source=first.source,
+        base_model_topology=center_model_topology,
+        base_continuum_topology=center_continuum_topology,
+        rotation_records=rotation_records,
+    )
+    stationarity = (
+        continuum.stationarity_audit(atoms, first.source)
+        if args.continuum == "harmonic-point"
+        else None
+    )
+    post_solve_residual_available = bool(
+        stationarity is not None and stationarity["gate_passed"] is True
+    )
+    decision = geometry_mediated_admission_decision(
+        deterministic_replay_passed=bool(replay["gate_passed"]),
+        directional_audit=directional,
+        rotation_audit=rotation,
+        # pyddx 0.8.0 reports only the requested tolerance.  The harmonic
+        # branch records its actual dense stationary residual.
+        post_solve_residual_available=post_solve_residual_available,
+    )
+
+    measured = {
+        "protocol": {
+            "audit_schema_version": GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION,
+            "coordinate_steps_A": list(GEOMETRY_MEDIATED_COORDINATE_STEPS_A),
+            "coordinate_direction": direction.tolist(),
+            "rotation_matrices": [
+                rotation_matrix.tolist()
+                for rotation_matrix in geometry_mediated_rotations()
+            ],
+            "continuum": continuum_protocol,
+        },
+        "geometry": {
+            "formula": atoms.get_chemical_formula(),
+            "atomic_numbers": atoms.numbers.tolist(),
+            "positions_A": atoms.positions.tolist(),
+            "charge": 0,
+            "multiplicity": 1,
+        },
+        "identity": {
+            "scalar_id": scalar.scalar_id,
+            "profile_id": scalar.profile_id,
+            "scalar_fingerprint_sha256": scalar.fingerprint_sha256(),
+            "model_provider_id": model.provider_id,
+            "model_configuration_sha256": model.configuration_sha256(),
+            "model_provenance_sha256": model.provenance_sha256,
+            "continuum_provider_id": continuum.provider_id,
+            "continuum_configuration_sha256": continuum.configuration_sha256(),
+            "continuum_provenance_sha256": continuum.provenance_sha256,
+            "source_space_sha256": model.source_space.metadata_hash(),
+            "field_space_sha256": model.field_space.metadata_hash(),
+            "pairing_sha256": continuum.pairing.metadata_hash(),
+            "center_model_topology": center_model_topology,
+            "center_continuum_topology": center_continuum_topology,
+        },
+        "center": {
+            "vacuum_energy_eV": first.energy.vacuum_energy_eV,
+            "continuum_energy_eV": first.energy.continuum_energy_eV,
+            "total_energy_eV": first.energy.total_energy_eV,
+            "source": first.source.tolist(),
+            "reaction_field": first.reaction_field.tolist(),
+            "forces_eV_per_A": first.forces_eV_per_A.tolist(),
+            "gradient_components_eV_per_A": {
+                "intrinsic": first.intrinsic_gradient_eV_per_A.tolist(),
+                "continuum_fixed_source": (
+                    first.continuum_fixed_source_gradient_eV_per_A.tolist()
+                ),
+                "source_response": first.source_response_gradient_eV_per_A.tolist(),
+                "total": first.total_gradient_eV_per_A.tolist(),
+            },
+        },
+        "deterministic_replay": replay,
+        "reciprocity_metric_charge_gauge": first.reciprocity_audit.as_dict(),
+        "stationarity": stationarity,
+        "coordinate_directional": directional,
+        "rigid_rotation": rotation,
+        "decision": decision,
+    }
+
+    repository.assert_unchanged()
+    source_paths = collect_loaded_repository_sources(
+        repository.root,
+        required_paths=(
+            COMMON_REQUIRED_SOURCE_PATHS
+            + CONTINUUM_REQUIRED_SOURCE_PATHS[args.continuum]
+        ),
+    )
+    source_hashes = committed_source_hashes(repository, source_paths)
+    payload: dict[str, object] = {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_kind": (
+            "disabled-aimnet2-geometry-mediated-ddpcm-real-stack-canary"
+            if args.continuum == "ddpcm"
+            else "disabled-aimnet2-geometry-mediated-harmonic-point-real-stack-canary"
+        ),
+        "status": (
+            "diagnostic-gates-passed-not-admitted"
+            if decision["local_diagnostic_gates_passed"]
+            else "diagnostic-gates-failed-not-admitted"
+        ),
+        "claim_boundary": (
+            "This one-water artifact audits the explicit geometry map "
+            "R->q_AIMNet2(R), the selected continuum half-coupling under the "
+            "registered metric, "
+            "charge-gauge response, one three-step coordinate direction, hard "
+            "neighbor/continuum strata, and three rigid rotations. The harmonic "
+            "arm is a conductor reference without a finite-dielectric solvent "
+            "parameterization. It is not fixed-R "
+            "mutual polarization, chemical-accuracy evidence, a global C1 proof, "
+            "or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
+        ),
+        "capabilities": NO_CAPABILITIES,
+        "exact_command": shlex.join(sys.argv),
+        "argv": list(sys.argv),
+        "execution_git_head": repository.head,
+        "execution_git_tree": repository.tree,
+        "working_tree_clean": repository.clean,
+        "source_files_sha256": source_hashes,
+        "checkpoint": checkpoint_record(
+            checkpoint,
+            role="aimnet2-wb97m-d3-local-sha256-bound-checkpoint",
+        ),
+        "runtime": runtime_record(),
+        "device": args.device,
+        "continuum_kind": args.continuum,
+        "dtype": model.dtype,
+        **measured,
+        "measurement_sha256": canonical_json_sha256(measured),
+        "runtime_seconds": time.perf_counter() - started,
+    }
+    repository.assert_unchanged()
+    artifact = write_external_json_artifact(repository, args.output, payload)
+    repository.assert_unchanged()
+    print(
+        "ROUTE2_AIMNET2_GEOMETRY_MEDIATED_CANARY="
+        + json.dumps(
+            {
+                "artifact": artifact,
+                "measurement_sha256": payload["measurement_sha256"],
+                "status": payload["status"],
+                "decision": decision,
+                "capabilities": NO_CAPABILITIES,
+                "runtime_seconds": payload["runtime_seconds"],
+            },
+            sort_keys=True,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

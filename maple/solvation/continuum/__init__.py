@@ -11,6 +11,23 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS: dict[str, tuple[str, str]] = {
+    "ATOMIC_L1_DDX_CAVITY_PROFILE_ID": (
+        "atomic_l1_pyddx",
+        "ATOMIC_L1_DDX_CAVITY_PROFILE_ID",
+    ),
+    "ATOMIC_L1_DDX_PCM_PROFILE_ID": (
+        "atomic_l1_pyddx",
+        "ATOMIC_L1_DDX_PCM_PROFILE_ID",
+    ),
+    "ATOMIC_L1_DDX_PROVIDER_ID": (
+        "atomic_l1_pyddx",
+        "ATOMIC_L1_DDX_PROVIDER_ID",
+    ),
+    "AtomicL1PyDDXPCMBackend": (
+        "atomic_l1_pyddx",
+        "AtomicL1PyDDXPCMBackend",
+    ),
+    "AtomicL1PyDDXState": ("atomic_l1_pyddx", "AtomicL1PyDDXState"),
     "ContinuumBackend": ("base", "ContinuumBackend"),
     "ConjugateRadialCPCMState": (
         "conjugate_fixed_topology_cpcm",
@@ -174,6 +191,42 @@ _EXPORTS: dict[str, tuple[str, str]] = {
     "SmoothWeightedHarmonicGalerkinFunctionalCandidate": (
         "harmonic_torch_functional",
         "SmoothWeightedHarmonicGalerkinFunctionalCandidate",
+    ),
+    "HARMONIC_POINT_SOURCE_CONTRACT_ID": (
+        "harmonic_point_source",
+        "HARMONIC_POINT_SOURCE_CONTRACT_ID",
+    ),
+    "HARMONIC_POINT_SOURCE_PROVIDER_ID": (
+        "harmonic_point_source",
+        "HARMONIC_POINT_SOURCE_PROVIDER_ID",
+    ),
+    "HarmonicPointSourceTopology": (
+        "harmonic_point_source",
+        "HarmonicPointSourceTopology",
+    ),
+    "point_l0_harmonic_source_operator": (
+        "harmonic_point_source",
+        "point_l0_harmonic_source_operator",
+    ),
+    "point_monopole_harmonic_coefficients": (
+        "harmonic_point_source",
+        "point_monopole_harmonic_coefficients",
+    ),
+    "point_source_topology": (
+        "harmonic_point_source",
+        "point_source_topology",
+    ),
+    "SMOOTH_POINT_HARMONIC_GALERKIN_FUNCTIONAL_CONTRACT_ID": (
+        "harmonic_point_torch_functional",
+        "SMOOTH_POINT_HARMONIC_GALERKIN_FUNCTIONAL_CONTRACT_ID",
+    ),
+    "SMOOTH_POINT_HARMONIC_GALERKIN_PROVIDER_ID": (
+        "harmonic_point_torch_functional",
+        "SMOOTH_POINT_HARMONIC_GALERKIN_PROVIDER_ID",
+    ),
+    "SmoothPointChargeHarmonicGalerkinFunctionalCandidate": (
+        "harmonic_point_torch_functional",
+        "SmoothPointChargeHarmonicGalerkinFunctionalCandidate",
     ),
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend": (
         "pair_frame_ensemble_cpcm",

@@ -75,6 +75,16 @@ from .mace_mdp import (
     build_mace_mdp_moment_adapter,
     build_mace_mdp_moment_state,
 )
+from .mace_mdp_polar_hybrid import (
+    MACE_MDP_PERMANENT_SOURCE_PROVIDER_ID,
+    MACE_MDP_POLAR_HYBRID_CONTRACT,
+    MACE_MDP_POLAR_HYBRID_PROFILE_ID,
+    MACE_MDP_POLAR_HYBRID_PROVIDER_ID,
+    MACE_MDPPermanentSourceAdapter,
+    PermanentAnchoredInducedSourceModel,
+    PermanentInducedSourceAnchor,
+    build_mace_mdp_anchored_mace_polar_hybrid,
+)
 from .passive_polarization import (
     PASSIVE_QUADRATIC_CONSTRUCTION_ID,
     PASSIVE_QUADRATIC_FIELD_ENERGY_PROVIDER_ID,
@@ -118,6 +128,11 @@ __all__ = [
     "MACE_MDP_MOMENT_PROVIDER_ID",
     "MACE_MDPMomentAdapter",
     "MACE_MDPMomentState",
+    "MACE_MDP_PERMANENT_SOURCE_PROVIDER_ID",
+    "MACE_MDP_POLAR_HYBRID_CONTRACT",
+    "MACE_MDP_POLAR_HYBRID_PROFILE_ID",
+    "MACE_MDP_POLAR_HYBRID_PROVIDER_ID",
+    "MACE_MDPPermanentSourceAdapter",
     "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
     "MACE_POLAR_NATIVE_SEMANTICS_CONTRACT",
     "MACE_POLAR_SEPARATED_RESPONSE_PROVIDER_ID",
@@ -127,6 +142,8 @@ __all__ = [
     "OFFICIAL_MACE_POLAR_1_M_CONTRACT",
     "OFFICIAL_MACE_POLAR_MODEL_PROFILE_ID",
     "NativeSemanticsCanary",
+    "PermanentAnchoredInducedSourceModel",
+    "PermanentInducedSourceAnchor",
     "MACE_POLAR_VARIATIONAL_DUALITY_MAP",
     "MACE_POLAR_VARIATIONAL_DUALITY_MAP_ID",
     "MACE_POLAR_VARIATIONAL_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID",
@@ -170,5 +187,6 @@ __all__ = [
     "build_mace_polar_variational_field_energy",
     "build_mace_mdp_moment_adapter",
     "build_mace_mdp_moment_state",
+    "build_mace_mdp_anchored_mace_polar_hybrid",
     "bind_passive_training_run",
 ]

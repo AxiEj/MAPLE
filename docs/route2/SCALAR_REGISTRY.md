@@ -56,13 +56,18 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   are checked in the registered metric before assembly.
 - Profile:
   `route2-profile-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1`.
-- Capability/evidence: none / negative local admission canary. The hash-bound
-  real water metric/gauge audit passes, but the legacy float32 graph's
-  fixed-stratum directional and full-Cartesian coordinate differences do not
-  exhibit an admissible numerical window, and all three frozen rotations
-  change the exposed laboratory-grid cavity active set. Unresolved checkpoint
-  release identity, absent measured pyddx residual, omitted nonpolar physics,
-  and absent domain/loop/HVP/NVE validation keep `E/F/H/V/M` false.
+- Capability/evidence: none / negative local admission canaries. The hash-bound
+  real-water metric/gauge audit passes. In the source-bound float64 arm, the
+  pinned adaptive derivative converges and agrees with the analytic gradient,
+  but the version-pinned ddX reconstruction gives only
+  `5.826261813812086e-9 A` of center active-set clearance, sampled displacements
+  change cavity stratum, and all three frozen rotations change the exposed
+  laboratory-grid active set
+  ([bundle](evidence/aimnet2-geometry-mediated-pyddx-adaptive-water-a816f733/README.md)).
+  The legacy float32 graph separately lacks an admissible fixed-step numerical
+  window. Unresolved checkpoint release identity, absent measured pyddx
+  residual, omitted nonpolar physics, and absent domain/loop/HVP/NVE validation
+  keep `E/F/H/V/M` false.
 - Full contract and literature boundary:
   [`AIMNET2_GEOMETRY_MEDIATED.md`](AIMNET2_GEOMETRY_MEDIATED.md).
 

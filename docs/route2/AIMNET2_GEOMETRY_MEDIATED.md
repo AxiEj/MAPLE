@@ -172,6 +172,18 @@ bound of the quintic switch. A zero or sub-guard clearance is retained as
 negative evidence. This local bound is not a global cavity-smoothness or `C1`
 proof. The artifact always leaves all capabilities false.
 
+The retained two-process real-water result is
+[`evidence/aimnet2-geometry-mediated-pyddx-adaptive-water-a816f733/`](evidence/aimnet2-geometry-mediated-pyddx-adaptive-water-a816f733/README.md).
+Both executions reproduce measurement SHA256
+`6fad81d35b8da5926e0f9117baed0f6e88d295729fd3ab3d56df9016a595061c`.
+The adaptive derivative itself converges and agrees with the analytic gradient
+to `3.190291369137288e-7 eV/angstrom`, while the center active-set clearance is
+only `5.826261813812086e-9 angstrom`. The adaptive stencil changes cavity
+stratum, all three fixed rotations change the laboratory-grid active set, and
+pyddx still supplies no measured post-solve algebraic residual. The correct
+admission result is therefore negative even though the local numerical
+derivative and reciprocity checks pass.
+
 ## Structurally rotational harmonic branch
 
 The separately registered smooth-harmonic diagnostic replaces the laboratory

@@ -1,0 +1,4965 @@
+{
+  "aimnet_runtime": "reconstructed-python-float64",
+  "argv": [
+    "tools/route2_release/run_aimnet2_geometry_mediated_canary.py",
+    "--checkpoint",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route1/maple/function/calculator/model/aimnet2.pt",
+    "--aimnet-runtime",
+    "reconstructed-python-float64",
+    "--continuum",
+    "ddpcm",
+    "--device",
+    "cpu",
+    "--output",
+    "/tmp/aimnet2-gm-pyddx-adaptive-run2-a816.json"
+  ],
+  "artifact_kind": "disabled-aimnet2-reconstructed-python-float64-geometry-mediated-ddpcm-real-stack-canary",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "center": {
+    "continuum_energy_eV": -0.28600155818070033,
+    "forces_eV_per_A": [
+      [
+        -0.26017453684437297,
+        -0.2873549157087586,
+        5.275876529710749e-19
+      ],
+      [
+        0.19901549568884355,
+        0.1010918742156751,
+        -1.3844318430676819e-18
+      ],
+      [
+        0.06115904119190924,
+        0.1862630415221875,
+        3.3861580989250744e-18
+      ]
+    ],
+    "gradient_components_eV_per_A": {
+      "continuum_fixed_source": [
+        [
+          0.4083707389215723,
+          0.5248200192991999,
+          -5.275876529710749e-19
+        ],
+        [
+          -0.25494665517145076,
+          -0.22015903639819345,
+          1.3844318430676819e-18
+        ],
+        [
+          -0.15342408375012162,
+          -0.30466098290100635,
+          -3.3861580989250744e-18
+        ]
+      ],
+      "intrinsic": [
+        [
+          0.005169989882350734,
+          -0.038254250966538006,
+          0.0
+        ],
+        [
+          -0.06281903168769842,
+          0.05232123605276426,
+          0.0
+        ],
+        [
+          0.05764904176896801,
+          -0.014066985115330333,
+          0.0
+        ]
+      ],
+      "source_response": [
+        [
+          -0.15336619195955,
+          -0.19921085262390326,
+          0.0
+        ],
+        [
+          0.11875019117030564,
+          0.0667459261297541,
+          0.0
+        ],
+        [
+          0.034616000789244365,
+          0.13246492649414918,
+          0.0
+        ]
+      ],
+      "total": [
+        [
+          0.26017453684437297,
+          0.2873549157087586,
+          -5.275876529710749e-19
+        ],
+        [
+          -0.19901549568884355,
+          -0.1010918742156751,
+          1.3844318430676819e-18
+        ],
+        [
+          -0.06115904119190924,
+          -0.1862630415221875,
+          -3.3861580989250744e-18
+        ]
+      ]
+    },
+    "reaction_field": [
+      [
+        0.39626541316985925,
+        -0.7290161657448982,
+        -0.9415568721719562,
+        -1.647674983529406e-17
+      ],
+      [
+        -0.4279870622152925,
+        -0.9488385780365766,
+        -0.6745698305492339,
+        -1.659311179589056e-17
+      ],
+      [
+        -0.42818856066093575,
+        -0.41472094435611845,
+        -1.0872805004377106,
+        1.1393873821831212e-18
+      ]
+    ],
+    "source": [
+      [
+        -0.6938811079627745,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.347002501187651,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.34687860677512344,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "total_energy_eV": -2081.3322658836973,
+    "vacuum_energy_eV": -2081.046264325517
+  },
+  "checkpoint": {
+    "bytes": 11613188,
+    "resolved_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/maple/function/calculator/model/aimnet2.pt",
+    "role": "aimnet2-wb97m-d3-local-sha256-bound-checkpoint",
+    "sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  },
+  "claim_boundary": "This one-water artifact audits the explicit geometry map R->q_AIMNet2(R), the selected continuum half-coupling under the registered metric, charge-gauge response, one pinned adaptive directional trace, one three-step coordinate direction, a three-step full Cartesian panel, hard neighbor/continuum strata and event clearances, and three rigid rotations. The harmonic arm is a conductor reference without a finite-dielectric solvent parameterization. It is not fixed-R mutual polarization, chemical-accuracy evidence, a global C1 proof, or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission.",
+  "continuum_kind": "ddpcm",
+  "coordinate_cartesian": {
+    "component_count": 9,
+    "convergence": {
+      "contract": "central-order-or-ten-percent-error-plateau-v1",
+      "gates": {
+        "central_order_ge_1p5_or_low_error_plateau": true,
+        "terminal_rms_nondivergent": true
+      },
+      "low_error_plateau": false,
+      "minimum_observed_order": 1.5,
+      "observed_first_to_last_order": 1.7325851345971597,
+      "plateau_maximum_eV_per_A": 0.0002,
+      "plateau_rms_eV_per_A": 5e-05,
+      "plateau_spread_factor_limit": 1.5,
+      "terminal_growth_factor_limit": 1.25
+    },
+    "gate_passed": false,
+    "raw_displaced_components": [
+      {
+        "components": [
+          {
+            "atom": 0,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.3324961366657,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.3319756418837,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 0,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.3325263967513,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.331951562792,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 0,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.457320531163265e-10
+            },
+            "minus_energy_eV": -2081.3322661567986,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.457320531163265e-10
+            },
+            "plus_energy_eV": -2081.3322661567986,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.0015114046210858e-07
+            },
+            "minus_energy_eV": -2081.332039885844,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4864797511586305,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.0015114046210858e-07
+            },
+            "plus_energy_eV": -2081.3324380604768,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4848985867431708,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.3728390236833682e-08
+            },
+            "minus_energy_eV": -2081.3321626621414,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4850767306385313,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 3.718039999799818e-10
+            },
+            "plus_energy_eV": -2081.332364845043,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.486301442144824,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.96406576146236e-11
+            },
+            "minus_energy_eV": -2081.3322659637897,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856889625797347,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.96406576146236e-11
+            },
+            "plus_energy_eV": -2081.3322659637897,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856889625797347,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.284308799055827e-07
+            },
+            "minus_energy_eV": -2081.3322008089403,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4848985867431708,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 7.652081138519909e-08
+            },
+            "plus_energy_eV": -2081.332323134133,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4864797511586305,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 3.718039999799818e-10
+            },
+            "minus_energy_eV": -2081.332054548355,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.486301442144824,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.3728390236833682e-08
+            },
+            "plus_energy_eV": -2081.3324271951346,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4850767306385313,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.96406576146236e-11
+            },
+            "minus_energy_eV": -2081.332265961741,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856889625797347,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.96406576146236e-11
+            },
+            "plus_energy_eV": -2081.332265961741,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856889625797347,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          }
+        ],
+        "step_A": 0.001
+      },
+      {
+        "components": [
+          {
+            "atom": 0,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.3323884805236,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.3321282873753,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 0,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.332402843953,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.3321154715186,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 0,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.332265952437,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.332265952437,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 9.717665556089916e-08
+            },
+            "minus_energy_eV": -2081.332159635751,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4860845529380313,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.0015114046210858e-07
+            },
+            "plus_energy_eV": -2081.3323586694714,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4852939706818225,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.2768002247633056e-08
+            },
+            "minus_energy_eV": -2081.332214805198,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4853830632622516,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.000435656705523e-09
+            },
+            "plus_energy_eV": -2081.33231589714,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485995419077987,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.1755258952916848e-09
+            },
+            "minus_energy_eV": -2081.332265904184,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485689210217123,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.1755258952916848e-09
+            },
+            "plus_energy_eV": -2081.332265904184,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485689210217123,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.1367955347196812e-07
+            },
+            "minus_energy_eV": -2081.332234326109,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4852939706818225,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 8.778480686606995e-08
+            },
+            "plus_energy_eV": -2081.3322954852365,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4860845529380313,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.000435656705523e-09
+            },
+            "minus_energy_eV": -2081.3321664885366,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485995419077987,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.2768002247633056e-08
+            },
+            "plus_energy_eV": -2081.3323527687267,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4853830632622516,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.1755258952916848e-09
+            },
+            "minus_energy_eV": -2081.3322659032083,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485689210217123,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 1.1755258952916848e-09
+            },
+            "plus_energy_eV": -2081.3322659032083,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485689210217123,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          }
+        ],
+        "step_A": 0.0005
+      },
+      {
+        "components": [
+          {
+            "atom": 0,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.332329051505,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.3321989646215,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 0,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.3323360433474,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.332192361069,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 0,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "minus_energy_eV": -2081.3322659008822,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "plus_energy_eV": -2081.3322659008822,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 3.276358518429093e-08
+            },
+            "minus_energy_eV": -2081.3322144450945,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485886930591761,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 6.216950050188911e-11
+            },
+            "plus_energy_eV": -2081.3323139544327,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485491639457596,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 8.850849045044844e-09
+            },
+            "minus_energy_eV": -2081.3322404775486,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4855361909068803,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 3.580902949221689e-09
+            },
+            "plus_energy_eV": -2081.3322910235815,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485842368822572,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 1,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.909704547579061e-09
+            },
+            "minus_energy_eV": -2081.332265888819,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892721264767,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.909704547579061e-09
+            },
+            "plus_energy_eV": -2081.332265888819,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892721264767,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 0,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 6.216950050188911e-11
+            },
+            "minus_energy_eV": -2081.3322503476434,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485491639457596,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 3.276358518429093e-08
+            },
+            "plus_energy_eV": -2081.3322809288766,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485886930591761,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 1,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 3.580902949221689e-09
+            },
+            "minus_energy_eV": -2081.3322177541563,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.485842368822572,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 8.850849045044844e-09
+            },
+            "plus_energy_eV": -2081.332310888502,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4855361909068803,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          },
+          {
+            "atom": 2,
+            "axis": 2,
+            "continuum_event_guard_applicable": true,
+            "continuum_event_guard_passed": false,
+            "continuum_event_margin_available": true,
+            "minus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.909704547579061e-09
+            },
+            "minus_energy_eV": -2081.3322658885745,
+            "minus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892721264767,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "neighbor_cutoff_guard_passed": true,
+            "plus_continuum_topology": {
+              "cavity_active_node_count": 540,
+              "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+              "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+              "minimum_cavity_active_set_clearance_angstrom": 2.909704547579061e-09
+            },
+            "plus_energy_eV": -2081.3322658885745,
+            "plus_model_topology": {
+              "active_pairs_by_graph": {
+                "long_range_effective": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ],
+                "short_range": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              },
+              "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+              "minimum_cutoff_margin_angstrom": 3.4856892721264767,
+              "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+            },
+            "same_model_and_cavity_stratum": true,
+            "sphere_tangency_guard_applicable": false,
+            "sphere_tangency_guard_passed": true,
+            "sphere_tangency_margin_available": false
+          }
+        ],
+        "step_A": 0.00025
+      }
+    ],
+    "reciprocity_metric_charge_gauge_gate_passed": true,
+    "records": [
+      {
+        "analytic_gradient_eV_per_A": [
+          [
+            0.26017453684437297,
+            0.2873549157087586,
+            -5.275876529710749e-19
+          ],
+          [
+            -0.19901549568884355,
+            -0.1010918742156751,
+            1.3844318430676819e-18
+          ],
+          [
+            -0.06115904119190924,
+            -0.1862630415221875,
+            -3.3861580989250744e-18
+          ]
+        ],
+        "error_eV_per_A": [
+          [
+            -7.285415301938603e-05,
+            -6.206403634456681e-05,
+            -5.275876529710749e-19
+          ],
+          [
+            7.182064338132066e-05,
+            -4.2352785710464413e-07,
+            1.3844318430676819e-18
+          ],
+          [
+            3.5550473189080445e-06,
+            6.034840355909066e-05,
+            -3.3861580989250744e-18
+          ]
+        ],
+        "finite_difference_gradient_eV_per_A": [
+          [
+            0.26024739099739236,
+            0.28741697974510316,
+            0.0
+          ],
+          [
+            -0.19908731633222487,
+            -0.101091450687818,
+            0.0
+          ],
+          [
+            -0.06116259623922815,
+            -0.1863233899257466,
+            0.0
+          ]
+        ],
+        "gates": {
+          "maximum_le_2e-3_eV_per_A": true,
+          "rms_le_5e-4_eV_per_A": true
+        },
+        "maximum_error_eV_per_A": 7.285415301938603e-05,
+        "relative_frobenius_error": 0.0002744260114863844,
+        "rms_error_eV_per_A": 4.4687339226967914e-05,
+        "step_A": 0.001
+      },
+      {
+        "analytic_gradient_eV_per_A": [
+          [
+            0.26017453684437297,
+            0.2873549157087586,
+            -5.275876529710749e-19
+          ],
+          [
+            -0.19901549568884355,
+            -0.1010918742156751,
+            1.3844318430676819e-18
+          ],
+          [
+            -0.06115904119190924,
+            -0.1862630415221875,
+            -3.3861580989250744e-18
+          ]
+        ],
+        "error_eV_per_A": [
+          [
+            -1.86114342582977e-05,
+            -1.7518577467456886e-05,
+            -5.275876529710749e-19
+          ],
+          [
+            1.8224802726868328e-05,
+            6.759928185273711e-08,
+            1.3844318430676819e-18
+          ],
+          [
+            8.646190002153942e-08,
+            1.7148542093253782e-05,
+            -3.3861580989250744e-18
+          ]
+        ],
+        "finite_difference_gradient_eV_per_A": [
+          [
+            0.26019314827863127,
+            0.28737243428622605,
+            0.0
+          ],
+          [
+            -0.19903372049157042,
+            -0.10109194181495695,
+            0.0
+          ],
+          [
+            -0.061159127653809264,
+            -0.18628019006428076,
+            0.0
+          ]
+        ],
+        "gates": {
+          "maximum_le_2e-3_eV_per_A": true,
+          "rms_le_5e-4_eV_per_A": true
+        },
+        "maximum_error_eV_per_A": 1.86114342582977e-05,
+        "relative_frobenius_error": 7.323613271559386e-05,
+        "rms_error_eV_per_A": 1.1923431726901127e-05,
+        "step_A": 0.0005
+      },
+      {
+        "analytic_gradient_eV_per_A": [
+          [
+            0.26017453684437297,
+            0.2873549157087586,
+            -5.275876529710749e-19
+          ],
+          [
+            -0.19901549568884355,
+            -0.1010918742156751,
+            1.3844318430676819e-18
+          ],
+          [
+            -0.06115904119190924,
+            -0.1862630415221875,
+            -3.3861580989250744e-18
+          ]
+        ],
+        "error_eV_per_A": [
+          [
+            7.698978364834019e-07,
+            -9.641443855401555e-06,
+            -5.275876529710749e-19
+          ],
+          [
+            3.1808508648423217e-06,
+            1.9174530864474182e-07,
+            1.3844318430676819e-18
+          ],
+          [
+            3.425216950229959e-06,
+            5.649800578738651e-06,
+            -3.3861580989250744e-18
+          ]
+        ],
+        "finite_difference_gradient_eV_per_A": [
+          [
+            0.2601737669465365,
+            0.287364557152614,
+            0.0
+          ],
+          [
+            -0.1990186765397084,
+            -0.10109206596098375,
+            0.0
+          ],
+          [
+            -0.06116246640885947,
+            -0.18626869132276624,
+            0.0
+          ]
+        ],
+        "gates": {
+          "maximum_le_2e-3_eV_per_A": true,
+          "rms_le_5e-4_eV_per_A": true
+        },
+        "maximum_error_eV_per_A": 9.641443855401555e-06,
+        "relative_frobenius_error": 2.4854824286241574e-05,
+        "rms_error_eV_per_A": 4.0463580129254755e-06,
+        "step_A": 0.00025
+      }
+    ],
+    "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+    "topology": {
+      "all_continuum_event_guards_passed": false,
+      "all_continuum_event_margins_available": true,
+      "all_neighbor_cutoff_guards_passed": true,
+      "all_sphere_tangency_guards_passed": true,
+      "all_sphere_tangency_margins_available": false,
+      "all_stencils_same_stratum": true,
+      "center_continuum_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+      "center_model_topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f",
+      "continuum_event_guard_applicable": true,
+      "sphere_tangency_guard_applicable": false
+    }
+  },
+  "coordinate_directional": {
+    "raw": [
+      {
+        "minus_continuum_topology": {
+          "cavity_active_node_count": 540,
+          "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 8.144091909614685e-10
+        },
+        "minus_energy_eV": -2081.3321657461865,
+        "minus_model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4861009304696404,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "plus_continuum_topology": {
+          "cavity_active_node_count": 540,
+          "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 2.742113485296346e-11
+        },
+        "plus_energy_eV": -2081.332349034737,
+        "plus_model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4852766978332115,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "step_A": 0.001
+      },
+      {
+        "minus_continuum_topology": {
+          "cavity_active_node_count": 540,
+          "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 1.647276125199222e-08
+        },
+        "minus_energy_eV": -2081.3322179428724,
+        "minus_model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.485895231317997,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "plus_continuum_topology": {
+          "cavity_active_node_count": 540,
+          "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 1.1635500623650413e-09
+        },
+        "plus_energy_eV": -2081.3323095779174,
+        "plus_model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.485483114902093,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "step_A": 0.0005
+      },
+      {
+        "minus_continuum_topology": {
+          "cavity_active_node_count": 540,
+          "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 1.0249999952804956e-08
+        },
+        "minus_energy_eV": -2081.3322424466683,
+        "minus_model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.485792291959789,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "plus_continuum_topology": {
+          "cavity_active_node_count": 540,
+          "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 1.9159884972703584e-10
+        },
+        "plus_energy_eV": -2081.3322882609386,
+        "plus_model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4855862337396255,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "step_A": 0.00025
+      }
+    ],
+    "summary": {
+      "analytic_directional_eV_per_A": -0.09163081812857457,
+      "convergence": {
+        "gate_passed": true,
+        "low_error_plateau": true,
+        "refinement_observed": true,
+        "terminal_nondivergent": true
+      },
+      "gate_passed": false,
+      "reciprocity_metric_charge_gauge_gate_passed": true,
+      "records": [
+        {
+          "absolute_error_eV_per_A": 1.3457115532550246e-05,
+          "analytic_eV_per_A": -0.09163081812857457,
+          "continuum_event_guard_applicable": true,
+          "continuum_event_guard_passed": false,
+          "continuum_event_margin_available": true,
+          "finite_difference_eV_per_A": -0.09164427524410712,
+          "gate_passed": false,
+          "neighbor_cutoff_guard_passed": true,
+          "numerical_gate_passed": true,
+          "relative_error": 0.0001468407655219638,
+          "relative_gate_applies": true,
+          "same_model_and_cavity_stratum": true,
+          "sphere_tangency_guard_applicable": false,
+          "sphere_tangency_guard_passed": true,
+          "sphere_tangency_margin_available": false,
+          "step_A": 0.001
+        },
+        {
+          "absolute_error_eV_per_A": 4.22688117793224e-06,
+          "analytic_eV_per_A": -0.09163081812857457,
+          "continuum_event_guard_applicable": true,
+          "continuum_event_guard_passed": false,
+          "continuum_event_margin_available": true,
+          "finite_difference_eV_per_A": -0.0916350450097525,
+          "gate_passed": false,
+          "neighbor_cutoff_guard_passed": true,
+          "numerical_gate_passed": true,
+          "relative_error": 4.612734328315529e-05,
+          "relative_gate_applies": true,
+          "same_model_and_cavity_stratum": true,
+          "sphere_tangency_guard_applicable": false,
+          "sphere_tangency_guard_passed": true,
+          "sphere_tangency_margin_available": false,
+          "step_A": 0.0005
+        },
+        {
+          "absolute_error_eV_per_A": 2.277370181796856e-06,
+          "analytic_eV_per_A": -0.09163081812857457,
+          "continuum_event_guard_applicable": true,
+          "continuum_event_guard_passed": false,
+          "continuum_event_margin_available": true,
+          "finite_difference_eV_per_A": -0.09162854075839277,
+          "gate_passed": false,
+          "neighbor_cutoff_guard_passed": true,
+          "numerical_gate_passed": true,
+          "relative_error": 2.485437575396789e-05,
+          "relative_gate_applies": true,
+          "same_model_and_cavity_stratum": true,
+          "sphere_tangency_guard_applicable": false,
+          "sphere_tangency_guard_passed": true,
+          "sphere_tangency_margin_available": false,
+          "step_A": 0.00025
+        }
+      ],
+      "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+      "topology": {
+        "all_continuum_event_guards_passed": false,
+        "all_continuum_event_margins_available": true,
+        "all_neighbor_cutoff_guards_passed": true,
+        "all_sphere_tangency_guards_passed": true,
+        "all_sphere_tangency_margins_available": false,
+        "all_stencils_same_stratum": true,
+        "center_continuum_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+        "center_model_topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f",
+        "continuum_event_guard_applicable": true,
+        "sphere_tangency_guard_applicable": false
+      }
+    }
+  },
+  "coordinate_directional_adaptive": {
+    "raw": {
+      "protocol": {
+        "atol_eV_per_A": 0.0005,
+        "implementation": "scipy.differentiate.derivative",
+        "initial_step_A": 0.0064,
+        "maxiter": 8,
+        "order": 4,
+        "rtol": 0.002,
+        "scipy_version": "1.17.1",
+        "step_direction": 0,
+        "step_factor": 2.0
+      },
+      "samples": [
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 539,
+            "cavity_topology_sha256": "58304d3129b5f1c5102e61558d7fa78a8ec55d3903637d1a1b0935d4f396640f",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 1.3825131335368844e-06
+          },
+          "displacement_A": -0.0064,
+          "displacement_hex": "-0x1.a36e2eb1c432dp-8",
+          "energy_eV": -2081.331327661815,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.4883072000272417,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              0.0011751785906861096,
+              -0.0002448792426600913,
+              -0.0019379924942468907
+            ],
+            [
+              0.9548223542005047,
+              -3.500854501883284e-05,
+              -0.002685218946788612
+            ],
+            [
+              -0.23878473279119072,
+              0.927576887787679,
+              0.004623211441035503
+            ]
+          ]
+        },
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 539,
+            "cavity_topology_sha256": "58304d3129b5f1c5102e61558d7fa78a8ec55d3903637d1a1b0935d4f396640f",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 2.774967514804249e-07
+          },
+          "displacement_A": -0.0032,
+          "displacement_hex": "-0x1.a36e2eb1c432dp-9",
+          "energy_eV": -2081.3318852089164,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.4870031601519247,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              0.0005875892953430548,
+              -0.00012243962133004564,
+              -0.0009689962471234454
+            ],
+            [
+              0.9560111771002524,
+              -1.750427250941642e-05,
+              -0.001342609473394306
+            ],
+            [
+              -0.23938596639559537,
+              0.9274369438938395,
+              0.0023116057205177514
+            ]
+          ]
+        },
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 539,
+            "cavity_topology_sha256": "58304d3129b5f1c5102e61558d7fa78a8ec55d3903637d1a1b0935d4f396640f",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 7.27351403138327e-08
+          },
+          "displacement_A": -0.0016,
+          "displacement_hex": "-0x1.a36e2eb1c432dp-10",
+          "energy_eV": -2081.3320974724243,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.4863474533016743,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              0.0002937946476715274,
+              -6.121981066502282e-05,
+              -0.0004844981235617227
+            ],
+            [
+              0.9566055885501262,
+              -8.75213625470821e-06,
+              -0.000671304736697153
+            ],
+            [
+              -0.2396865831977977,
+              0.9273669719469197,
+              0.0011558028602588757
+            ]
+          ]
+        },
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 540,
+            "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+          },
+          "displacement_A": 0.0,
+          "displacement_hex": "0x0.0p+0",
+          "energy_eV": -2081.3322658836973,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.9572,
+              0.0,
+              0.0
+            ],
+            [
+              -0.2399872,
+              0.927297,
+              0.0
+            ]
+          ]
+        },
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 539,
+            "cavity_topology_sha256": "b43b2cd107669701df9955e7a655d482a5ca0ee4515aac046059bb2d43e6eddd",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 1.1715975833982886e-06
+          },
+          "displacement_A": 0.0016,
+          "displacement_hex": "0x1.a36e2eb1c432dp-10",
+          "energy_eV": -2081.3323908111925,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.4850286817336107,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              -0.0002937946476715274,
+              6.121981066502282e-05,
+              0.0004844981235617227
+            ],
+            [
+              0.9577944114498739,
+              8.75213625470821e-06,
+              0.000671304736697153
+            ],
+            [
+              -0.24028781680220232,
+              0.9272270280530803,
+              -0.0011558028602588757
+            ]
+          ]
+        },
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 539,
+            "cavity_topology_sha256": "b43b2cd107669701df9955e7a655d482a5ca0ee4515aac046059bb2d43e6eddd",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 4.405549782355385e-06
+          },
+          "displacement_A": 0.0032,
+          "displacement_hex": "0x1.a36e2eb1c432dp-9",
+          "energy_eV": -2081.3324726134806,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.484365623417966,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              -0.0005875892953430548,
+              0.00012243962133004564,
+              0.0009689962471234454
+            ],
+            [
+              0.9583888228997477,
+              1.750427250941642e-05,
+              0.001342609473394306
+            ],
+            [
+              -0.24058843360440466,
+              0.9271570561061606,
+              -0.0023116057205177514
+            ]
+          ]
+        },
+        {
+          "continuum_topology": {
+            "cavity_active_node_count": 539,
+            "cavity_topology_sha256": "b43b2cd107669701df9955e7a655d482a5ca0ee4515aac046059bb2d43e6eddd",
+            "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+            "minimum_cavity_active_set_clearance_angstrom": 1.1925256388949761e-05
+          },
+          "displacement_A": 0.0064,
+          "displacement_hex": "0x1.a36e2eb1c432dp-8",
+          "energy_eV": -2081.332508268984,
+          "model_topology": {
+            "active_pairs_by_graph": {
+              "long_range_effective": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "short_range": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ]
+            },
+            "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+            "minimum_cutoff_margin_angstrom": 3.4830321777758844,
+            "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+          },
+          "positions_A": [
+            [
+              -0.0011751785906861096,
+              0.0002448792426600913,
+              0.0019379924942468907
+            ],
+            [
+              0.9595776457994954,
+              3.500854501883284e-05,
+              0.002685218946788612
+            ],
+            [
+              -0.2411896672088093,
+              0.9270171122123211,
+              -0.004623211441035503
+            ]
+          ]
+        }
+      ],
+      "schema_version": "route2-geometry-mediated-adaptive-directional-audit-v1",
+      "scipy_result": {
+        "derivative_eV_per_A": -0.09163049909943766,
+        "error_estimate_eV_per_A": 4.7343462483695475e-07,
+        "iterations": 2,
+        "nfev": 7,
+        "status": 0,
+        "success": true,
+        "x_A": 0.0
+      }
+    },
+    "summary": {
+      "absolute_error_eV_per_A": 3.190291369137288e-07,
+      "adaptive_convergence_gate_passed": true,
+      "adaptive_directional_eV_per_A": -0.09163049909943766,
+      "analytic_agreement_gate_passed": true,
+      "analytic_directional_eV_per_A": -0.09163081812857457,
+      "capabilities": {
+        "E": false,
+        "F": false,
+        "H": false,
+        "M": false,
+        "V": false
+      },
+      "freq_ts_irc_admitted": false,
+      "gate_passed": false,
+      "md_admitted": false,
+      "opt_admitted": false,
+      "protocol": {
+        "atol_eV_per_A": 0.0005,
+        "implementation": "scipy.differentiate.derivative",
+        "initial_step_A": 0.0064,
+        "maxiter": 8,
+        "order": 4,
+        "rtol": 0.002,
+        "scipy_version": "1.17.1",
+        "step_direction": 0,
+        "step_factor": 2.0
+      },
+      "reciprocity_metric_charge_gauge_gate_passed": true,
+      "relative_error": 3.481691577031765e-06,
+      "relative_gate_applies": true,
+      "schema_version": "route2-geometry-mediated-adaptive-directional-audit-v1",
+      "scipy_result": {
+        "derivative_eV_per_A": -0.09163049909943766,
+        "error_estimate_eV_per_A": 4.7343462483695475e-07,
+        "iterations": 2,
+        "nfev": 7,
+        "status": 0,
+        "success": true,
+        "x_A": 0.0
+      },
+      "scipy_result_recomputed": true,
+      "topology": {
+        "all_continuum_event_guards_passed": false,
+        "all_continuum_event_margins_available": true,
+        "all_neighbor_cutoff_guards_passed": true,
+        "all_samples_same_stratum": false,
+        "all_segment_guards_passed": false,
+        "center_continuum_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+        "center_model_topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f",
+        "continuum_event_guard_applicable": true,
+        "continuum_event_margin_fields": [
+          "minimum_cavity_active_set_clearance_angstrom"
+        ],
+        "records": [
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": -0.008144288101774545
+            },
+            "displacement_A": -0.0064,
+            "displacement_hex": "-0x1.a36e2eb1c432dp-8",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.477544998834892,
+            "relative_displacement_bound_A": 0.008144293928036358,
+            "same_model_and_cavity_stratum": false
+          },
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": -0.004072141137756338
+            },
+            "displacement_A": -0.0032,
+            "displacement_hex": "-0x1.a36e2eb1c432dp-9",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.4816171457989102,
+            "relative_displacement_bound_A": 0.004072146964018152,
+            "same_model_and_cavity_stratum": false
+          },
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": -0.0020360676557472563
+            },
+            "displacement_A": -0.0016,
+            "displacement_hex": "-0x1.a36e2eb1c432dp-10",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.4836532192809195,
+            "relative_displacement_bound_A": 0.00203607348200907,
+            "same_model_and_cavity_stratum": false
+          },
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+            },
+            "displacement_A": 0.0,
+            "displacement_hex": "0x0.0p+0",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.4856892927629284,
+            "relative_displacement_bound_A": 0.0,
+            "same_model_and_cavity_stratum": true
+          },
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": -0.0020360676557472563
+            },
+            "displacement_A": 0.0016,
+            "displacement_hex": "0x1.a36e2eb1c432dp-10",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.482992608251602,
+            "relative_displacement_bound_A": 0.00203607348200907,
+            "same_model_and_cavity_stratum": false
+          },
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": -0.004072141137756338
+            },
+            "displacement_A": 0.0032,
+            "displacement_hex": "0x1.a36e2eb1c432dp-9",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.480293476453948,
+            "relative_displacement_bound_A": 0.004072146964018152,
+            "same_model_and_cavity_stratum": false
+          },
+          {
+            "continuum_event_guard_passed": false,
+            "continuum_event_segment_lower_bounds_A": {
+              "minimum_cavity_active_set_clearance_angstrom": -0.008144288101774545
+            },
+            "displacement_A": 0.0064,
+            "displacement_hex": "0x1.a36e2eb1c432dp-8",
+            "gate_passed": false,
+            "neighbor_cutoff_guard_passed": true,
+            "neighbor_cutoff_segment_lower_bound_A": 3.474887883847848,
+            "relative_displacement_bound_A": 0.008144293928036358,
+            "same_model_and_cavity_stratum": false
+          }
+        ],
+        "sample_count": 7
+      }
+    }
+  },
+  "decision": {
+    "adaptive_directional_gate_passed": false,
+    "cartesian_metric_topology_gate_passed": false,
+    "deterministic_replay_passed": true,
+    "directional_metric_topology_gate_passed": false,
+    "hessian_freq_ts_irc_admitted": false,
+    "local_diagnostic_gates_passed": false,
+    "md_admitted": false,
+    "opt_admitted": false,
+    "post_solve_residual_available": false,
+    "public_energy_admitted": false,
+    "public_force_admitted": false,
+    "rotation_topology_gate_passed": false,
+    "tier_f_prerequisites_passed": false,
+    "tier_v_mutual_polarization_admitted": false
+  },
+  "deterministic_replay": {
+    "energy_absolute_error_eV": 0.0,
+    "gate_passed": true,
+    "gradient_difference_norm_eV_per_A": 0.0,
+    "source_difference_norm": 0.0
+  },
+  "device": "cpu",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_aimnet2_geometry_mediated_canary.py --checkpoint /home/axie/MAPLE/MAPLE-implicitsolv-route1/maple/function/calculator/model/aimnet2.pt --aimnet-runtime reconstructed-python-float64 --continuum ddpcm --device cpu --output /tmp/aimnet2-gm-pyddx-adaptive-run2-a816.json",
+  "execution_git_head": "a816f73365623800a8f1c68058ee34b9fe982eaf",
+  "execution_git_tree": "f8fff2ae6cd0fd0336ba0f0df52ec7361cf30cc9",
+  "geometry": {
+    "atomic_numbers": [
+      8,
+      1,
+      1
+    ],
+    "charge": 0,
+    "formula": "H2O",
+    "multiplicity": 1,
+    "positions_A": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.2399872,
+        0.927297,
+        0.0
+      ]
+    ]
+  },
+  "identity": {
+    "center_continuum_topology": {
+      "cavity_active_node_count": 540,
+      "cavity_topology_sha256": "a30d824f4f442943e41582cf9766d8a6899efbb619fd4af6f037e8771fe8b2ef",
+      "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+      "minimum_cavity_active_set_clearance_angstrom": 5.826261813812086e-09
+    },
+    "center_model_topology": {
+      "active_pairs_by_graph": {
+        "long_range_effective": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "short_range": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+      "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+      "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+    },
+    "continuum_configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+    "continuum_provenance_sha256": "fef1d8bd9f583a33a3bbb234523378c7c3e964b529c0478857585ade58270bbe",
+    "continuum_provider_id": "maple.route2.continuum.ddx-atomic-l1.impl.v1",
+    "field_space_sha256": "a851270534b7a2b74e810e5a54d1ea581925e4b50fac73caac6175fea66d34ec",
+    "model_configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+    "model_provenance_sha256": "3a4d2e210f4f51e90e1dac5fbe2300a20dc2b06aac57873617062a29fbfe3167",
+    "model_provider_id": "maple.route2.model.aimnet2-geometry-mediated-float64.impl.v1",
+    "model_runtime": {
+      "aimnet_package_version": "0.2.0",
+      "aimnet_runtime_files_sha256": {
+        "__init__.py": "bb18b97049cb5f783f0bb9d49f11b050b845fb0c8d214c1c6142260d8867a0a0",
+        "config.py": "0232457935c9e08aae689d778de70a872b5ecf409b1d138ace5c3271f63b9360",
+        "constants.py": "4fa79bfc21b9764c6e520db65dff16885d22181f892e82cdcc7abd47c491ceb4",
+        "dftd3_data.pt": "83d1d0ff69de90cb3ded49c80c8151786106f2aea7eb3425abe625e4b1909ce2",
+        "kernels/__init__.py": "7d692e675f0fde3bfea8d1815ea4fee2dceb41e6e6d3e993cb742e2843ef39be",
+        "kernels/conv_sv_2d_sp_wp.py": "b67d5a342f602f91514785c13be20a00ab9c5840f2995729d518e5668a069e12",
+        "models/__init__.py": "fdc6de2603dfdf9c505bb9e26f5ce7d15784be04f12b8997464c18178ef6b5db",
+        "models/aimnet2.py": "a6fcfb549ab3906165f1721a2de1332078f63c5d17dd276fe6d67887e1a9658f",
+        "models/aimnet2_dftd3_wb97m.yaml": "1a4f3af7fd914085f3947c1135b7ec6a2e2ef703d7de803220d2b523bd5e0452",
+        "models/base.py": "f22ed8577cff74cc63e7b51897e231565733732f61f8377db9bf616b8d73bf37",
+        "models/utils.py": "4670c83ab1c37459526c60b9da0298252a76d2a79feffb571e1d99987c221d0f",
+        "modules/__init__.py": "23ef617aa45d9d77b2a4c523cde43a6381004ccffd9f8345c820ba3a6e87d95c",
+        "modules/aev.py": "c283deaa5a4cb3f9faccec6b04c457848ab421a07629e639c3b89391458efdd7",
+        "modules/core.py": "e95b05a9add7534c3b785ea1743af3f5e269cb20afa228ff5f55d929a5aa239a",
+        "modules/lr.py": "fe31354eede1dc4d8042ff5f0faab8d1b719b03a347e2227e2c7cdd912ac076f",
+        "nbops.py": "4a6f78489e719aa8cac37d6b7ac09dfdcda6368aa8aec4984f88c299f51c7c50",
+        "ops.py": "5e06d7cb2fe7e231ec336282b505bdf1236f082c55389c2ace5f2abc5165ecda"
+      },
+      "architecture_configuration": "models/aimnet2_dftd3_wb97m.yaml",
+      "architecture_configuration_sha256": "1a4f3af7fd914085f3947c1135b7ec6a2e2ef703d7de803220d2b523bd5e0452",
+      "checkpoint_state_dict_policy": "unchanged-legacy-state-dict; expected unused sentinel buffer impemented_species only",
+      "checkpoint_weights_changed": false,
+      "coordinate_dtype": "torch.float64",
+      "negative_control": false,
+      "package_versions": {
+        "aimnet": "0.2.0",
+        "nvalchemi-toolkit-ops": "0.3.1",
+        "pyyaml": "6.0.3",
+        "torch": "2.12.0+cu130",
+        "warp-lang": "1.13.0"
+      },
+      "parameter_dtype": "torch.float64",
+      "public_ase_calculator": false,
+      "public_hessian": false,
+      "public_hvp": false,
+      "route2_public_ase_admitted": false,
+      "runtime_kind": "aimnet-reconstructed-float64-runtime-v2",
+      "second_order_coordinate_graph": "frozen-deep-copy-with-embedded-dftd3-replaced-by-identity; source-bound-upstream-dftd3-reapplied-with-hessian-true",
+      "second_order_standard_forward_parity_tolerances": {
+        "charge_absolute_e": 1e-10,
+        "charge_tangent_absolute_e_per_A": 1e-10,
+        "charge_vjp_absolute_eV_per_A": 1e-10,
+        "energy_absolute_eV": 1e-08,
+        "intrinsic_gradient_absolute_eV_per_A": 1e-07
+      }
+    },
+    "pairing_sha256": "878e74e7f34235b66761a6750dc62c50d6b443abf276c988260dcbfafd3b27c9",
+    "profile_id": "route2-profile-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1",
+    "scalar_fingerprint_sha256": "df51349010593bc6d9f02d0bd1b5ce958b1b6122b532eea001f43ce0cb74efbc",
+    "scalar_id": "route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1",
+    "source_space_sha256": "659df66e9f083686fc46e630cadbbc2c2bc86f58a70052cfc53d550b95e1124d"
+  },
+  "measurement_sha256": "6fad81d35b8da5926e0f9117baed0f6e88d295729fd3ab3d56df9016a595061c",
+  "protocol": {
+    "audit_schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+    "cartesian_component_count": 9,
+    "continuum": {
+      "dielectric": 78.355,
+      "eta": 0.1,
+      "lmax": 7,
+      "model": "ddPCM",
+      "n_lebedev": 302,
+      "post_solve_residual_available": false,
+      "radii_A": [
+        1.52,
+        1.2,
+        1.2
+      ],
+      "solver_tolerance": 1e-12
+    },
+    "coordinate_direction": [
+      [
+        -0.18362165479470463,
+        0.03826238166563926,
+        0.3028113272260767
+      ],
+      [
+        0.3715071561711558,
+        0.005470085159192631,
+        0.41956546043572057
+      ],
+      [
+        -0.1878855013764512,
+        -0.04373246682483186,
+        -0.7223767876617972
+      ]
+    ],
+    "coordinate_steps_A": [
+      0.001,
+      0.0005,
+      0.00025
+    ],
+    "rotation_matrices": [
+      [
+        [
+          0.4533868309579021,
+          0.6964744525723685,
+          -0.5562047450606388
+        ],
+        [
+          0.14451546425771397,
+          0.5583292263827628,
+          0.8169355883772005
+        ],
+        [
+          0.8795201317220249,
+          -0.4507680244658498,
+          0.15248778972372506
+        ]
+      ],
+      [
+        [
+          0.5417596467504906,
+          -0.5309569119878347,
+          0.6515989892296692
+        ],
+        [
+          0.7008580671858482,
+          0.7132992178953291,
+          -0.0014816917456187406
+        ],
+        [
+          -0.46399833492513837,
+          0.4574811289684578,
+          0.758562167409135
+        ]
+      ],
+      [
+        [
+          -0.3828146623097619,
+          -0.9058289485645935,
+          0.18145757152300454
+        ],
+        [
+          -0.19448434633839234,
+          -0.11299742054237619,
+          -0.9743754009518599
+        ],
+        [
+          0.9031216824714106,
+          -0.4082958472641286,
+          -0.13291248156917423
+        ]
+      ]
+    ]
+  },
+  "reciprocity_metric_charge_gauge": {
+    "bilinear_records": [
+      {
+        "apply_adjoint_absolute_error_eV": 2.4424906541753444e-14,
+        "apply_adjoint_eV": -2.6889096499166567,
+        "apply_adjoint_relative_error": 9.083572794091567e-15,
+        "left_P_right_eV": -2.688909649916681,
+        "probe_index": 0,
+        "reciprocity_absolute_error_eV": 2.4424906541753444e-14,
+        "reciprocity_relative_error": 9.083572794091567e-15,
+        "right_P_left_eV": -2.6889096499166567
+      },
+      {
+        "apply_adjoint_absolute_error_eV": 7.327471962526033e-14,
+        "apply_adjoint_eV": 2.543824786679191,
+        "apply_adjoint_relative_error": 2.880493971478123e-14,
+        "left_P_right_eV": 2.5438247866791177,
+        "probe_index": 1,
+        "reciprocity_absolute_error_eV": 7.327471962526033e-14,
+        "reciprocity_relative_error": 2.880493971478123e-14,
+        "right_P_left_eV": 2.543824786679191
+      },
+      {
+        "apply_adjoint_absolute_error_eV": 3.5860203695392556e-14,
+        "apply_adjoint_eV": -0.6692594132565057,
+        "apply_adjoint_relative_error": 5.358191903630123e-14,
+        "left_P_right_eV": -0.6692594132564699,
+        "probe_index": 2,
+        "reciprocity_absolute_error_eV": 3.5860203695392556e-14,
+        "reciprocity_relative_error": 5.358191903630123e-14,
+        "right_P_left_eV": -0.6692594132565057
+      },
+      {
+        "apply_adjoint_absolute_error_eV": 9.547918011776346e-15,
+        "apply_adjoint_eV": -1.0220580903815124,
+        "apply_adjoint_relative_error": 9.341854540002039e-15,
+        "left_P_right_eV": -1.0220580903815029,
+        "probe_index": 3,
+        "reciprocity_absolute_error_eV": 9.547918011776346e-15,
+        "reciprocity_relative_error": 9.341854540002039e-15,
+        "right_P_left_eV": -1.0220580903815124
+      }
+    ],
+    "charge_directional_fd_records": [
+      {
+        "absolute_error_eV_per_e": 3.6387559632089506e-12,
+        "analytic_eV_per_e": -0.09062962128553453,
+        "finite_difference_eV_per_e": -0.09062962128189578,
+        "probe_index": 0,
+        "relative_error": 4.014974256313852e-11,
+        "step_e": 0.001
+      },
+      {
+        "absolute_error_eV_per_e": 2.7443783356950746e-11,
+        "analytic_eV_per_e": -0.09062962128553453,
+        "finite_difference_eV_per_e": -0.09062962125809075,
+        "probe_index": 0,
+        "relative_error": 3.028125128150687e-10,
+        "step_e": 0.0003
+      },
+      {
+        "absolute_error_eV_per_e": 1.58789648097013e-11,
+        "analytic_eV_per_e": -0.09062962128553453,
+        "finite_difference_eV_per_e": -0.09062962126965557,
+        "probe_index": 0,
+        "relative_error": 1.752072289883413e-10,
+        "step_e": 0.0001
+      },
+      {
+        "absolute_error_eV_per_e": 1.6067702723887578e-12,
+        "analytic_eV_per_e": 0.12810122929348938,
+        "finite_difference_eV_per_e": 0.1281012292918826,
+        "probe_index": 1,
+        "relative_error": 1.2542973094407458e-11,
+        "step_e": 0.001
+      },
+      {
+        "absolute_error_eV_per_e": 1.0405287742543123e-11,
+        "analytic_eV_per_e": 0.12810122929348938,
+        "finite_difference_eV_per_e": 0.1281012292830841,
+        "probe_index": 1,
+        "relative_error": 8.122707174576631e-11,
+        "step_e": 0.0003
+      },
+      {
+        "absolute_error_eV_per_e": 1.5684953336148055e-11,
+        "analytic_eV_per_e": 0.12810122929348938,
+        "finite_difference_eV_per_e": 0.12810122930917434,
+        "probe_index": 1,
+        "relative_error": 1.22441864303208e-10,
+        "step_e": 0.0001
+      },
+      {
+        "absolute_error_eV_per_e": 5.356270982304068e-12,
+        "analytic_eV_per_e": 0.3119311609158243,
+        "finite_difference_eV_per_e": 0.31193116092118056,
+        "probe_index": 2,
+        "relative_error": 1.7171323847499485e-11,
+        "step_e": 0.001
+      },
+      {
+        "absolute_error_eV_per_e": 3.476902099563972e-11,
+        "analytic_eV_per_e": 0.3119311609158243,
+        "finite_difference_eV_per_e": 0.31193116088105527,
+        "probe_index": 2,
+        "relative_error": 1.1146376300962846e-10,
+        "step_e": 0.0003
+      },
+      {
+        "absolute_error_eV_per_e": 1.9816925878046732e-11,
+        "analytic_eV_per_e": 0.3119311609158243,
+        "finite_difference_eV_per_e": 0.3119311609356412,
+        "probe_index": 2,
+        "relative_error": 6.352980516151585e-11,
+        "step_e": 0.0001
+      },
+      {
+        "absolute_error_eV_per_e": 4.3333114874144485e-12,
+        "analytic_eV_per_e": 0.6386080992846176,
+        "finite_difference_eV_per_e": 0.6386080992889509,
+        "probe_index": 3,
+        "relative_error": 6.785556732273381e-12,
+        "step_e": 0.001
+      },
+      {
+        "absolute_error_eV_per_e": 8.92230733740007e-12,
+        "analytic_eV_per_e": 0.6386080992846176,
+        "finite_difference_eV_per_e": 0.6386080992935399,
+        "probe_index": 3,
+        "relative_error": 1.3971491040076648e-11,
+        "step_e": 0.0003
+      },
+      {
+        "absolute_error_eV_per_e": 7.823630632231016e-12,
+        "analytic_eV_per_e": 0.6386080992846176,
+        "finite_difference_eV_per_e": 0.638608099276794,
+        "probe_index": 3,
+        "relative_error": 1.2251067033122839e-11,
+        "step_e": 0.0001
+      }
+    ],
+    "charge_gauge_vjp_norm_eV_per_A": 0.0,
+    "effective_probe_count": 4,
+    "gate_passed": true,
+    "maximum_apply_adjoint_absolute_error_eV": 7.327471962526033e-14,
+    "maximum_apply_adjoint_relative_error": 5.358191903630123e-14,
+    "maximum_charge_fd_absolute_error_eV_per_e": 3.476902099563972e-11,
+    "maximum_charge_fd_relative_error": 3.028125128150687e-10,
+    "maximum_reciprocity_absolute_error_eV": 7.327471962526033e-14,
+    "maximum_reciprocity_relative_error": 5.358191903630123e-14,
+    "requested_probe_count": 4,
+    "seed": 20260815,
+    "source_gradient_half_error_eV_per_source_unit": 0.0,
+    "thresholds": {
+      "charge_fd_absolute_eV_per_e": 5e-06,
+      "charge_fd_relative": 5e-05,
+      "charge_gauge_vjp_norm_eV_per_A": 1e-07,
+      "reciprocity_absolute_eV": 1e-08,
+      "reciprocity_relative": 1e-08
+    }
+  },
+  "rigid_rotation": {
+    "raw": [
+      {
+        "continuum_topology": {
+          "cavity_active_node_count": 536,
+          "cavity_topology_sha256": "46c7551f9ca255c3e3d1e103a8e1b1c8f3e7a81ff8c012c93e51f2d804b5bf9c",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 1.7082694526493472e-08
+        },
+        "energy_eV": -2081.3321682949127,
+        "forces_eV_per_A": [
+          [
+            -0.3161405274037701,
+            -0.19745743042805458,
+            -0.0975190272707126
+          ],
+          [
+            0.1617385653416386,
+            0.08620799676850627,
+            0.12875839452845989
+          ],
+          [
+            0.15440196206213175,
+            0.11124943364863492,
+            -0.031239367215910578
+          ]
+        ],
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "rotation_matrix": [
+          [
+            0.4533868309579021,
+            0.6964744525723685,
+            -0.5562047450606388
+          ],
+          [
+            0.14451546425771397,
+            0.5583292263827628,
+            0.8169355883772005
+          ],
+          [
+            0.8795201317220249,
+            -0.4507680244658498,
+            0.15248778972372506
+          ]
+        ],
+        "source": [
+          [
+            -0.6938811079627744,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3470025011876508,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3468786067751236,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      {
+        "continuum_topology": {
+          "cavity_active_node_count": 531,
+          "cavity_topology_sha256": "88af8716a84b72b835f14cd0d4eecfa1cfaabcc83da1415969075720180672e7",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 3.577262234411905e-06
+        },
+        "energy_eV": -2081.3321600767467,
+        "forces_eV_per_A": [
+          [
+            0.012145902122076103,
+            -0.3849584625289146,
+            -0.011878622074464142
+          ],
+          [
+            0.05205019324277088,
+            0.21235409737843527,
+            -0.04440145315131107
+          ],
+          [
+            -0.0641960954230545,
+            0.17260436515957325,
+            0.05628007522486561
+          ]
+        ],
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "rotation_matrix": [
+          [
+            0.5417596467504906,
+            -0.5309569119878347,
+            0.6515989892296692
+          ],
+          [
+            0.7008580671858482,
+            0.7132992178953291,
+            -0.0014816917456187406
+          ],
+          [
+            -0.46399833492513837,
+            0.4574811289684578,
+            0.758562167409135
+          ]
+        ],
+        "source": [
+          [
+            -0.6938811079627741,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3470025011876509,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3468786067751232,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      {
+        "continuum_topology": {
+          "cavity_active_node_count": 534,
+          "cavity_topology_sha256": "4181b3adace3ee5a8f42ec0ac1d2a03b51c6e6eaa7759f7d8df62361bafe201d",
+          "configuration_sha256": "c6b066827e04c3aea0c8df217fdf4fe91a52949ccaa08e054cb17a3da9002526",
+          "minimum_cavity_active_set_clearance_angstrom": 2.7425734549808572e-06
+        },
+        "energy_eV": -2081.3320442932854,
+        "forces_eV_per_A": [
+          [
+            0.3594952720616007,
+            0.08265007385303545,
+            -0.1161693409335931
+          ],
+          [
+            -0.1720845612180944,
+            -0.050912703083765116,
+            0.13844561023963997
+          ],
+          [
+            -0.18741071083623112,
+            -0.03173737076563232,
+            -0.022276269240563053
+          ]
+        ],
+        "model_topology": {
+          "active_pairs_by_graph": {
+            "long_range_effective": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "short_range": [
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          "configuration_sha256": "bfb03c3169e1c77359d5a3b0d1f345a8e9beaecc6b2ee7cad24d92f63e80e5db",
+          "minimum_cutoff_margin_angstrom": 3.4856892927629284,
+          "topology_sha256": "0ad29c857525a13cd2587d6d2de9e7ba1adf3fcf01d8bfab38ed8685823eb72f"
+        },
+        "rotation_matrix": [
+          [
+            -0.3828146623097619,
+            -0.9058289485645935,
+            0.18145757152300454
+          ],
+          [
+            -0.19448434633839234,
+            -0.11299742054237619,
+            -0.9743754009518599
+          ],
+          [
+            0.9031216824714106,
+            -0.4082958472641286,
+            -0.13291248156917423
+          ]
+        ],
+        "source": [
+          [
+            -0.6938811079627745,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3470025011876509,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.3468786067751236,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      }
+    ],
+    "summary": {
+      "all_continuum_event_margins_available": true,
+      "all_rotation_topologies_match": false,
+      "all_sphere_tangency_margins_available": false,
+      "base_net_force_norm_eV_per_A": 4.6589009013317046e-11,
+      "base_torque_norm_eV": 0.004648199214996138,
+      "continuum_event_guard_applicable": true,
+      "gate_passed": false,
+      "records": [
+        {
+          "continuum_event_guard_applicable": true,
+          "continuum_event_guard_passed": false,
+          "continuum_event_margin_available": true,
+          "energy_absolute_error_eV": 9.758878468346666e-05,
+          "force_covariance_relative_error": 0.009825909184301115,
+          "gate_passed": false,
+          "index": 0,
+          "neighbor_cutoff_guard_passed": true,
+          "numerical_gate_passed": false,
+          "rotation_matrix": [
+            [
+              0.4533868309579021,
+              0.6964744525723685,
+              -0.5562047450606388
+            ],
+            [
+              0.14451546425771397,
+              0.5583292263827628,
+              0.8169355883772005
+            ],
+            [
+              0.8795201317220249,
+              -0.4507680244658498,
+              0.15248778972372506
+            ]
+          ],
+          "same_model_and_cavity_stratum": false,
+          "source_covariance_relative_error": 3.5176168906229456e-16,
+          "sphere_tangency_guard_applicable": false,
+          "sphere_tangency_guard_passed": true,
+          "sphere_tangency_margin_available": false
+        },
+        {
+          "continuum_event_guard_applicable": true,
+          "continuum_event_guard_passed": false,
+          "continuum_event_margin_available": true,
+          "energy_absolute_error_eV": 0.00010580695061435108,
+          "force_covariance_relative_error": 0.010731003583671125,
+          "gate_passed": false,
+          "index": 1,
+          "neighbor_cutoff_guard_passed": true,
+          "numerical_gate_passed": false,
+          "rotation_matrix": [
+            [
+              0.5417596467504906,
+              -0.5309569119878347,
+              0.6515989892296692
+            ],
+            [
+              0.7008580671858482,
+              0.7132992178953291,
+              -0.0014816917456187406
+            ],
+            [
+              -0.46399833492513837,
+              0.4574811289684578,
+              0.758562167409135
+            ]
+          ],
+          "same_model_and_cavity_stratum": false,
+          "source_covariance_relative_error": 4.888139061297773e-16,
+          "sphere_tangency_guard_applicable": false,
+          "sphere_tangency_guard_passed": true,
+          "sphere_tangency_margin_available": false
+        },
+        {
+          "continuum_event_guard_applicable": true,
+          "continuum_event_guard_passed": false,
+          "continuum_event_margin_available": true,
+          "energy_absolute_error_eV": 0.00022159041191116557,
+          "force_covariance_relative_error": 0.014147779512453858,
+          "gate_passed": false,
+          "index": 2,
+          "neighbor_cutoff_guard_passed": true,
+          "numerical_gate_passed": false,
+          "rotation_matrix": [
+            [
+              -0.3828146623097619,
+              -0.9058289485645935,
+              0.18145757152300454
+            ],
+            [
+              -0.19448434633839234,
+              -0.11299742054237619,
+              -0.9743754009518599
+            ],
+            [
+              0.9031216824714106,
+              -0.4082958472641286,
+              -0.13291248156917423
+            ]
+          ],
+          "same_model_and_cavity_stratum": false,
+          "source_covariance_relative_error": 2.355164330305417e-16,
+          "sphere_tangency_guard_applicable": false,
+          "sphere_tangency_guard_passed": true,
+          "sphere_tangency_margin_available": false
+        }
+      ],
+      "rigid_body_gate_passed": false,
+      "schema_version": "route2-aimnet2-geometry-mediated-admission-audit-v2",
+      "sphere_tangency_guard_applicable": false
+    }
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": null,
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-15T14:40:08.844720+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": false,
+      "deterministic_debug_mode": 0,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 1,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 12.63657760899514,
+  "schema_version": "route2-aimnet2-geometry-mediated-real-stack-canary-v5",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/aimnet/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/aimnet/_aimnet2_calculator.py": "86f04a8fabd288c2687c624bcfe9def43a8d4207cd33ed06dd860fe9c2d18b7f",
+    "maple/function/calculator/aimnet/_aimnet2_float64_source.py": "c672d69d2290c957835802505bdf85f505affa4385bd04a3c427c490b21e51b4",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "b38fa655bc76c8a06943c23892a7325713ff0bf960438895e9e089c14e6d0f35",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/dispatcher/__init__.py": "cf3ff4251a13d4f689437d3e380adc8568d1acc6bf83aa28938b86a0ecf314eb",
+    "maple/function/dispatcher/dispatcher.py": "c420f96fd6482fb6219128046f16643851c7ca66ba7ef381f4ee942dc18cb758",
+    "maple/function/dispatcher/frequency/__init__.py": "8d80297503289eae1f91b03cd943c7b8ca70a3ff192562868e3d60ec71f1c68d",
+    "maple/function/dispatcher/frequency/domain.py": "2303d7b760191723bf3eb504c69f75fb9225b40c32c1b648e600a8c0c409af6d",
+    "maple/function/dispatcher/frequency/frequency.py": "6eef07c4f05144b68729a08d69c7599ee68fea22079ebbbcad92a80f2433bdf3",
+    "maple/function/dispatcher/frequency/normal_modes.py": "7402d61ae2258f8285db277319a4049e850ef40959fa1ec7282f4f3308c9037a",
+    "maple/function/dispatcher/frequency/reporting.py": "00d30b954267212c22f44a378bfa42b624ac047c29be9aaaf9407168322a0c27",
+    "maple/function/dispatcher/frequency/stationary_points.py": "d7dd180e8780b344095bbb346ffd118cd73c6f8596c76fdfc9475978bf731894",
+    "maple/function/dispatcher/frequency/thermochemistry.py": "6d758b1b8db22f2820c18d8ca1a042b0dcfee84644532619e91c257392f26426",
+    "maple/function/dispatcher/jobABC.py": "ae58dd3bf6b49c5f4eb0238a5b05e39b52cce541a4c52c24e0c7edf5c6c74e57",
+    "maple/function/dispatcher/legacy_units.py": "5bcfd8d2de10273030d9044db9658ba8fa61b0220dc57544c471f40fb1aee047",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/function/timer/__init__.py": "b358d96cea89667684e50c33e5d1f6017bfe646df3021280e313e5e9cd607ffd",
+    "maple/function/timer/timer.py": "82f976c861fef27c6375bc2526b7fe80a4f73ea467dd795f610c1d3eeb0b0e5a",
+    "maple/function/utility/__init__.py": "cdb04f9be9a33f57ee5c372fe559c9b01c34e73bc32b119c8488fffd4b9fb935",
+    "maple/function/utility/molecules.py": "febb630b2cbba5be36fe314b6832a1f3b4a45b7150750fcc4ffa306328631b4f",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "b3b0987fbe01632d6f4d38a576caf5b193737f8a9c4ec995a8d066c9187e3749",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "40e1f722ed8748d80edf47078bc4b70cf772235cd7193f1734f39d9e8baf4fbb",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "f336a28b34b9159cdb9acd30efefa1d06103220336acd35e4524299ff1ed89d2",
+    "maple/solvation/api/state_registry.py": "f1d0e3a09cfed6577531d3548e68c9373a15e27aa0c7dc16c7a32d90f887fc84",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "012afbcb148f35c2a4811c0e2ccab9335ac6af8b8c72c4f0c738b8820a9dd832",
+    "maple/solvation/continuum/atomic_l1_pyddx.py": "4d1fa79692c30e926a2509b872ba139dbc6ffbc20be1b82b3d1191a5f02ee5b6",
+    "maple/solvation/continuum/functional.py": "65bc2c387a1a83ddade810ccd84f21e9433dd355bb7319657bf12942395142f8",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/continuum/harmonic_exposure.py": "66f1225f037fd87dd284dbc17f7d9e2acedac298423ffef2d26c9d20494dd83d",
+    "maple/solvation/continuum/harmonic_point_source.py": "a74720760c7e377904b324d03b1a54d11d0f8f8cc1c37a23c347bd64053ece55",
+    "maple/solvation/continuum/harmonic_point_torch_functional.py": "e70b5b4fa78704a67f849a9d3662035b04e24d178a60aaa2ceef46acf7f60dd5",
+    "maple/solvation/continuum/harmonic_single_layer.py": "a36fca095a57bc61251898e752cd3c80018b0af69a2318bec9fbd165164411dc",
+    "maple/solvation/continuum/harmonic_torch_functional.py": "542e2fc5983d458fe9e77089137d457a4b2c9500aaa851adc264b43bde41cc94",
+    "maple/solvation/continuum/harmonic_torch_primitives.py": "063e0d4227fbdba87a94693e6422c4e97bef93ede8fa4473e1b0aba60da70988",
+    "maple/solvation/coupling/__init__.py": "3bc4dd8ec81a8c84fb0bd9f1714d132e6bf6acd71710bb73889d68169bf112ae",
+    "maple/solvation/coupling/adjoint.py": "7e41961c7b18ea578daab066a9f909313d3160d0e192cccbdbeee01083ca7a91",
+    "maple/solvation/coupling/energy.py": "e1778a31c5d25de23a453eefb300588f7c81c288bd46e471dd2b4fb2f745106f",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/geometry_mediated.py": "50347e5b4186011ecf901cb91e64039032bb06e9916a832e1e7167bfab46819a",
+    "maple/solvation/coupling/linearization.py": "baa48bcaef49963548e727236ff86ca2e69b2b1b41fbf07b84f41bc5e77fa14f",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/spaces.py": "6f8e85c79ef6a3c36b920233c2cff6c310075ef69f31ecd817cbbf77199f8085",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "0cc3c20c154ada5466bb51f6a82138b9d626b5f96133e00709351e2dae94cbff",
+    "maple/solvation/models/aimnet2.py": "64d762c32754df472dd344b717557fff034eb78e7ac9b7d6f59e91bf56c9d62f",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/release/__init__.py": "b8f807ec83ad472ef5e40d1ac9549871d7a1487c4087e736b61339cec86d574c",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/evidence.py": "c757a03d54193a74856bcad25bd40c1a035f6c0892097e2cfc5a12000626c0e8",
+    "maple/solvation/release/geometry_mediated.py": "046288890130b1aacfa0f3ae0c55515989edec10f66d1bb2b7f1e2c3b6dfc7e1",
+    "maple/solvation/release/geometry_mediated_adaptive.py": "303e426991d8365921e4f42144c2cca26d7b68f0e384390264b6fcacb0a9df91",
+    "maple/solvation/release/geometry_mediated_frequency.py": "98b25d3019b27c0fc81de5aee4412b6adb544ccdcc2ac5f9be960455f65f5e49",
+    "maple/solvation/release/geometry_mediated_frequency_records.py": "e7e64f9c5ee9de2dc78d18249696b277e36b1c265c99be29d75d387f2548329b",
+    "maple/solvation/release/geometry_mediated_hessian.py": "fe1a4e1f529be18adbbffdc1092ff881447c4ac967b0c1994ab30fa389f32e89",
+    "maple/solvation/release/geometry_mediated_panel.py": "1bbbd19f2259086190016828c6590d6d30831f8f5722537c73d0c18ccd967407",
+    "maple/solvation/release/geometry_mediated_path.py": "2143ba2a888269840895066800d3ca01071b44968182e5da7c3f22c1b349e341",
+    "maple/solvation/release/geometry_mediated_stationary.py": "f8c470fd65299bf6ad038f48131531e296d85b17ca93cbd832bde6f25405858e",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "tools/route2_release/aimnet2_geometry_mediated_common.py": "3788e69310c467f0eeebc8f56cd5c8892e5ddb8f8cc4bb491a52a45ed58c9a7f",
+    "tools/route2_release/run_aimnet2_geometry_mediated_canary.py": "ee9a4e2c20ee8aa168ca1658db4fd447cdcf115317bed4ac10364b9704e17846"
+  },
+  "stationarity": null,
+  "status": "diagnostic-gates-failed-not-admitted",
+  "working_tree_clean": true
+}

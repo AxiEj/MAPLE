@@ -199,9 +199,17 @@ rather than inferred from the half-coupling identity. AIMNet2 hard-neighbor
 graphs, pyddx exposed nodes, and harmonic point-source plus unordered
 sphere-pair strata receive separate rigid-invariant/event-sensitive hashes and
 independent event margins. The runner now records one frozen
-direction and every Cartesian component at three decreasing steps. The
-harmonic float64 one-water derivative/rotation prerequisites pass; the legacy
-float32 derivative arm and the pyddx rotation arm remain negative. A second,
+direction and every Cartesian component at three decreasing steps. It also
+records and independently replays every abscissa requested by the pinned SciPy
+adaptive derivative. The pyddx arm reconstructs the version-pinned ddX
+regularized active set, requires exact equality with exposed nodes, and reports
+a conservative event clearance. The real-water float64 derivative is
+numerically consistent, but its `5.826e-9 A` active-set clearance, adaptive
+stratum changes, frozen rotations, and missing measured post-solve residual
+keep the pyddx profile negative
+([bundle](evidence/aimnet2-geometry-mediated-pyddx-adaptive-water-a816f733/README.md)).
+The harmonic float64 one-water derivative/rotation prerequisites pass, while
+the legacy float32 derivative arm remains negative. A second,
 sharded runner reuses the existing frozen PES asset for exactly the seventeen
 H/C/N/O molecules within the local contract and recomputes three variants by
 three internal directions by three steps; its v2 full-panel reducer rejects

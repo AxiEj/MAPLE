@@ -59,7 +59,7 @@ from aimnet2_geometry_mediated_common import (
     verify_route2_checkpoint,
 )
 
-SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v4"
+SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v5"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "maple/solvation/release/geometry_mediated_adaptive.py",
     "tools/route2_release/run_aimnet2_geometry_mediated_canary.py",
@@ -338,13 +338,19 @@ def main() -> None:
         "deterministic_replay": replay,
         "reciprocity_metric_charge_gauge": first.reciprocity_audit.as_dict(),
         "stationarity": stationarity,
-        "coordinate_directional": directional,
+        "coordinate_directional": {
+            "raw": directional_samples,
+            "summary": directional,
+        },
         "coordinate_directional_adaptive": {
             "raw": adaptive_samples,
             "summary": adaptive_directional,
         },
         "coordinate_cartesian": cartesian,
-        "rigid_rotation": rotation,
+        "rigid_rotation": {
+            "raw": rotation_records,
+            "summary": rotation,
+        },
         "decision": decision,
     }
 

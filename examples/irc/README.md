@@ -1,4 +1,8 @@
-# IRC starting-point contract
+# Generic IRC examples and admission boundary
+
+These examples exercise MAPLE's **generic molecular IRC infrastructure**. They
+are not part of the AIMNet2/pyddx Route-2 evidence set, and success here cannot
+open any Route-2 OPT, FREQ/TS/IRC, or MD gate.
 
 The `gs`, `lqa`, `hpc`, and `eulerpc` examples all start from the retained
 ANI-1xnr transition-state geometry in `../ts/neb/inp1_nebts_ts.xyz`.
@@ -16,11 +20,18 @@ mass-metric rigid/vibrational decomposition used by public FREQ. The start must
 have exactly one robust imaginary vibrational mode; the projected eigenvector
 defines the forward/backward initial directions.
 
-This is a starting-point admission only. Converged trajectories still require
-step-size/convergence studies, endpoint optimization, and an independent check
-that the two branches connect the intended minima. Old generated `.out` and
-trajectory files under the method directories predate this shared preflight
-and are not current validation artifacts.
+After preflight, the common path contract inserts the exact TS once, writes a
+deterministic endpoint-to-TS-to-endpoint full trajectory, records why each leg
+stopped, and by default rejects a run unless both maximum and RMS force
+thresholds pass. The retained defaults are `max_steps=50`,
+`f_max_th=2e-3 Hartree/Angstrom`, and
+`f_rms_th=5e-4 Hartree/Angstrom`; the explicit fail-closed TS/path energy
+tolerance is `path_energy_tolerance_hartree=1e-7`.
+
+This still does not prove endpoint minimum identity, chemical connectivity, or
+step-size convergence. Old generated `.out` and trajectory files under the
+method directories predate the shared starting-point and path contracts and
+are not current validation artifacts.
 
 See [the stationary-point validation contract](../../docs/STATIONARY_POINT_VALIDATION.md)
-and the [ORCA IRC reference](https://www.faccts.de/docs/orca/6.1/manual/contents/structurereactivity/irc.html).
+and the [IRC path and termination contract](../../docs/IRC_PATH_VALIDATION.md).

@@ -215,7 +215,8 @@ defaults are:
 the admitted first-order-saddle contract. Passing this preflight validates the
 starting point and projected downhill mode only; it is not evidence that the
 entire numerical path, endpoints, or chemical connectivity are correct. See
-the [stationary-point validation contract](docs/STATIONARY_POINT_VALIDATION.md).
+the [stationary-point validation contract](docs/STATIONARY_POINT_VALIDATION.md)
+and [IRC path and termination contract](docs/IRC_PATH_VALIDATION.md).
 
 ### UMA Options
 

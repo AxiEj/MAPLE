@@ -50,7 +50,8 @@ or excessive rigid-subspace residual stops before path integration.
 This preflight certifies the **IRC starting point and direction only**. It does
 not by itself validate the GS/LQA/HPC/EulerPC propagation formulas, step-size
 convergence, endpoint optimization, reaction connectivity, or a complete
-minimum-energy path. Those remain separate path-level validation obligations.
+minimum-energy path. Those remain separate path-level validation obligations
+defined in the [IRC path and termination contract](IRC_PATH_VALIDATION.md).
 
 The current thermochemistry implementation is the ideal-gas,
 rigid-rotor/harmonic-oscillator model for minima. MAPLE therefore withholds ZPE,
@@ -76,8 +77,8 @@ Both modes retain the existing force-stationarity, Hessian-symmetry, and rigid
 invariance gates. Periodic phonons and constrained-coordinate Hessians remain
 outside this molecular contract.
 
-An opt-in real-checkpoint canary replays the retained ANI-1xnr transition-state
-geometry:
+An opt-in generic real-checkpoint canary replays the retained ANI-1xnr
+transition-state geometry:
 
 ```bash
 MAPLE_REAL_ANI1XNR_CHECKPOINT=/absolute/path/to/ani1xnr.pt \
@@ -86,7 +87,8 @@ MAPLE_REAL_ANI1XNR_CHECKPOINT=/absolute/path/to/ani1xnr.pt \
 
 The two opt-in tests cover the public FREQ report and the private
 Hartree-to-public-ASE IRC preflight boundary. The checkpoint is supplied
-externally rather than redistributed by this repository test.
+externally rather than redistributed by this repository test. This ANI canary
+is not AIMNet2/pyddx Route-2 evidence and cannot alter Route-2 admission.
 
 ## References
 

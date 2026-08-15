@@ -127,6 +127,8 @@ def test_public_pyddx_ci_is_exactly_pinned_and_cannot_pass_by_skip():
     assert "expected_tests = 29" in workflow
     assert '"skipped": 0' in workflow
     assert "cannot pass by skip" in workflow
+    assert "::error title=optional-runtime" in workflow
+    assert "pytest_status=${PIPESTATUS[0]}" in workflow
     assert "--junitxml" in workflow
     assert "tools/route2_release/capture_runtime.py" in workflow
     assert "route2-pyddx-pip-freeze.txt" in workflow

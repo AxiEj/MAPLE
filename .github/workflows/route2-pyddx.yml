@@ -95,7 +95,8 @@ jobs:
       - name: Run pinned PySCF and pyddx canaries without skips
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          set +e
           python -m pytest -q -rs \
             --junitxml="$RUNNER_TEMP/route2-pyddx-junit.xml" \
             tests/solvation/test_route2_v0_atomic_response_stationary_source.py::test_pyscf_atomic_reference_keeps_atomic_metric_count_and_same_source_dual \
@@ -115,25 +116,53 @@ jobs:
             tests/route2_vnext/test_pair_frame_ensemble_cpcm.py \
             tests/route2_vnext/test_pair_frame_operational_scalar.py \
             | tee "$RUNNER_TEMP/route2-pyddx-pytest.log"
-          python - "$RUNNER_TEMP/route2-pyddx-junit.xml" <<'PY'
+          pytest_status=${PIPESTATUS[0]}
+          set -e
+          python - "$RUNNER_TEMP/route2-pyddx-junit.xml" "$pytest_status" <<'PY'
           from pathlib import Path
           import sys
           import xml.etree.ElementTree as ET
 
           report = Path(sys.argv[1])
+          pytest_status = int(sys.argv[2])
+          if not report.is_file():
+              print("::error title=optional-runtime pytest::JUnit report missing")
+              raise SystemExit(pytest_status or 1)
           root = ET.parse(report).getroot()
           suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
           totals = {
               key: sum(int(suite.attrib.get(key, "0")) for suite in suites)
               for key in ("tests", "failures", "errors", "skipped")
           }
+          for case in root.iter("testcase"):
+              outcome = next(
+                  (
+                      child
+                      for child in case
+                      if child.tag in {"failure", "error", "skipped"}
+                  ),
+                  None,
+              )
+              if outcome is None:
+                  continue
+              node = f"{case.attrib.get('classname', '')}::{case.attrib.get('name', '')}"
+              detail = (outcome.attrib.get("message") or outcome.text or "").strip()
+              detail = detail.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(
+                  f"::error title=optional-runtime {outcome.tag}::{node}: {detail}"
+              )
           expected_tests = 29
-          if totals != {
+          expected = {
               "tests": expected_tests,
               "failures": 0,
               "errors": 0,
               "skipped": 0,
-          }:
+          }
+          if pytest_status != 0 or totals != expected:
+              print(
+                  "::error title=optional-runtime summary::"
+                  f"pytest_status={pytest_status}; totals={totals!r}; expected={expected!r}"
+              )
               raise SystemExit(
                   "pinned optional-runtime canaries must execute exactly and "
                   f"cannot pass by skip: {totals!r}"

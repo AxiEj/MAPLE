@@ -164,6 +164,12 @@ from .farfield_source import (
     FarFieldSourceThresholds,
     compare_far_field_source_to_reference,
 )
+from .radial_embedding import (
+    RADIAL_EMBEDDING_SELECTION_CONTRACT_VERSION,
+    RadialEmbeddingCandidateMetric,
+    RadialEmbeddingSelection,
+    select_fixed_radial_embedding,
+)
 
 __all__ = [
     "RepositorySnapshot",
@@ -297,4 +303,8 @@ __all__ = [
     "FarFieldSourceComparison",
     "FarFieldSourceThresholds",
     "compare_far_field_source_to_reference",
+    "RADIAL_EMBEDDING_SELECTION_CONTRACT_VERSION",
+    "RadialEmbeddingCandidateMetric",
+    "RadialEmbeddingSelection",
+    "select_fixed_radial_embedding",
 ]

@@ -1,0 +1,92 @@
+{
+  "artifact_id": "route2-mace-original-source-fixed-radial-embedding-prereg-v1",
+  "status": "frozen-before-transfer-execution",
+  "created_utc": "2026-08-15T08:00:15Z",
+  "claim_boundary": "This is one terminal low-capacity radial-source research experiment. It changes only the fixed radial representation of the unchanged official MACE-POLAR four-channel source. It cannot reopen the original 1.5-A source profile, select an energy ledger, or admit E/F/H/V/M.",
+  "input_evidence": {
+    "original_source_pcm_negative_artifact": {
+      "path": "docs/route2/evidence/mace-original-source-pcmsolver-four-1d40c93b/run1.json",
+      "sha256": "fb6f5f175348b51b99f55147f5df75782f8b2ccbbb86ba16aaae7c2fdb0f0748"
+    },
+    "far_field_necessary_gate_artifact": {
+      "path": "docs/route2/evidence/mace-original-source-farfield-four-9c1d4fb9/run1.json",
+      "sha256": "771d800632c9597dc23141fad97add5ccdd2009f5f924bb7fe74f79e57022633"
+    },
+    "frozen_static_mep_manifest": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json",
+      "sha256": "21e4e607b5c88d498be117f41c37b54b00d96eb953c78874eb1ea39b7a040f20"
+    },
+    "frozen_static_mep_asset_root": ".omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e",
+    "matched_pcmsolver_preregistration": {
+      "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+      "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
+    }
+  },
+  "model_and_map": {
+    "checkpoint": "official-unmodified-MACE-POLAR-1-M",
+    "learned_source": "unchanged atom-centred four-channel q/raw-l1 source",
+    "research_profile_id": "route2-research-macepolar-original-source-fixed-radial-embedding-v1",
+    "research_coupling_id": "maple.route2.coupling.macepolar-original-source-fixed-radial-research.v1",
+    "broad_sigma_angstrom": 1.5,
+    "constraints": [
+      "one universal mixture for all elements and atoms",
+      "one universal mixture for l=0 and every l=1 component",
+      "strictly positive convex weights summing to one",
+      "each atom-centred monopole and dipole is exactly preserved",
+      "no geometry, root, cavity, solvent, or experimental-label dependence"
+    ]
+  },
+  "candidate_grid": {
+    "baseline_candidate_id": "baseline-sigma-1p50",
+    "narrow_sigmas_angstrom": [0.25, 0.5, 0.75, 1.0, 1.25],
+    "narrow_weights": [0.25, 0.5, 0.75, 1.0],
+    "candidate_count": 21,
+    "construction": "baseline is the single 1.5-A primitive; weight 1.0 is a single narrow primitive; all other candidates mix the narrow primitive with 1.5 A"
+  },
+  "selection": {
+    "training_compound_ids": [
+      "mobley_9055303",
+      "mobley_1636752",
+      "mobley_7015518",
+      "mobley_6973347",
+      "mobley_4883284",
+      "mobley_2198613",
+      "mobley_8578590",
+      "mobley_8048190"
+    ],
+    "heldout_from_selection_compound_ids": [
+      "mobley_3053621",
+      "mobley_3867265",
+      "mobley_7532833",
+      "mobley_3034976"
+    ],
+    "blindness_note": "The held-out records are excluded from parameter selection but their historical point-multipole outcomes already exist; this is not a prospectively blind test.",
+    "objective": "mean over training compounds of squared quadrature-weighted relative L2 MEP error",
+    "tie_break": "smaller fixed embedding distance from the original 1.5-A representation, then lexical candidate ID",
+    "forbidden_selection_inputs": [
+      "held-out MEP",
+      "PCMSolver polarization energy",
+      "FreeSolv or MNSol labels",
+      "any solvation total or CDS/SMD term"
+    ]
+  },
+  "admission_gates": {
+    "minimum_training_relative_improvement": 0.05,
+    "heldout_objective_must_be_strictly_below_baseline": true,
+    "maximum_per_heldout_weighted_rmse_ratio_to_baseline": 1.05,
+    "matched_pcmsolver_case_count": 4,
+    "maximum_absolute_fixed_source_energy_error_kcal_per_mol_per_case": 1.0,
+    "all_matched_pcmsolver_cases_must_pass": true
+  },
+  "terminal_decision": {
+    "failure": "Close this radial-embedding branch and transition to a scalar-first or independent variational polarization model. Do not add element-specific, geometry-dependent, or energy-fitted patches.",
+    "success": "Freeze the selected map as a new source profile. This authorizes ledger decomposition work only; it does not inherit original-profile force evidence or admit any capability."
+  },
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "V": false,
+    "M": false
+  }
+}

@@ -223,13 +223,22 @@ sphere-tangency topology and margin fails closed. Earlier `v1` evidence remains
 source-bound to its execution commit and does not retroactively satisfy this
 stronger event contract.
 
-The water shard has been captured twice from execution commit `5244de8c` with
-identical measurement SHA.  All 27 central differences pass; the maximum
-absolute error is `5.866424167422224e-05 eV/angstrom`, the minimum
-point/source-shell margin is `0.11773221132261891 angstrom`, and the maximum
-stationary condition number is `150.593715831781`.  This is one positive shard,
-not the seventeen-molecule panel.  Raw measurements and the cold replay are in
+The earlier water v1 shard remains immutable under
 [`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
+Water has now also been rerun twice under v2 with identical raw measurements;
+all 27 central differences and the independent sphere-tangency gates pass
+([v2 bundle](evidence/aimnet2-geometry-mediated-pes-water-v2-02c21b52/README.md)).
+
+The next frozen shard, methanol, is retained as a reproducible negative v2
+result
+([bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md)).
+All numerical derivative, reciprocity, stationarity, replay, neighbor, sphere-
+tangency, and same-stratum checks pass, but the bond-stretched geometry lies
+only `0.015511399564898554 angstrom` from a point/source-shell event, below the
+preregistered `0.02 angstrom` guard. The reducer therefore fails all three
+bond-stretched direction records closed. No threshold or radius was changed.
+This event-distance result blocks a pass of the current-profile v2 full panel;
+it is not evidence that the local analytic force is mismatched.
 
 ## Bidirectional loop and straight-segment event contract
 
@@ -305,7 +314,7 @@ unsupported upstream.
 | harmonic-point structural continuum rotation | passes synthetic and real water canaries |
 | harmonic-point full rigid-rotation gate | passes current real water canary |
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
-| harmonic-point distorted-geometry PES harness | exact 17-shard H/C/N/O contract implemented; water passes two clean processes, remaining 16 shards absent |
+| harmonic-point distorted-geometry PES harness | exact v2 17-shard H/C/N/O contract implemented; water passes two clean processes, methanol reproducibly fails the frozen point/source-shell event guard, remaining 15 shards absent |
 | harmonic sphere-pair tangency identity/margin | implemented and required by the v2 shard and loop contracts |
 | harmonic water bidirectional loop/event harness | passes two clean source-bound processes on the frozen local water path; no task admission |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
@@ -325,13 +334,14 @@ coordinate derivative and passes cavity/profile compatibility gates.
 ## Remaining admission gates
 
 1. Recover the exact upstream release identity of the local checkpoint.
-2. Execute all seventeen preregistered distorted-geometry H/C/N/O v2 shards,
-   then expand explicit cutoff/source-shell/sphere-tangency trial-step panels
-   beyond the now-retained water loop. One equilibrium-water float64
-   directional and Cartesian panel and one local water loop are positive, but
-   neither is a domain or workflow gate. The legacy float32 arm remains a
-   negative control, and the pyddx arm still has both derivative and
-   laboratory-grid rotation failures.
+2. Treat the reproducible methanol point/source-shell guard failure as a block
+   on the current-profile v2 full panel. The remaining fifteen shards may be
+   run to map the diagnostic domain, but cannot erase that failure. Any smooth
+   source/cavity replacement must be a newly derived, versioned profile with
+   fresh evidence rather than a relaxed threshold. Also expand explicit
+   cutoff/source-shell/sphere-tangency trial-step panels beyond the retained
+   water loop. The legacy float32 arm remains a negative control, and the
+   pyddx arm still has both derivative and laboratory-grid rotation failures.
 3. Bind solvent dielectric, radii, grid, and solver choices to separately named
    physical-configuration profiles instead of the current unbound diagnostic.
 4. Add a same-scalar nonpolar provider before making total solvation-free-energy

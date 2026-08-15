@@ -103,9 +103,15 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   reuses MAPLE's frozen PES asset (three variants, three directions, three
   steps per molecule) and requires all raw shards for aggregation; S/Cl
   controls remain explicitly excluded by the local checkpoint domain. The
-  water shard passes two clean processes with identical measurement SHA; the
-  other sixteen shards are absent
-  ([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md)).
+  historical v1 water shard remains immutable
+  ([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md));
+  water passes the v2 sphere-tangency contract in two clean processes
+  ([v2 bundle](evidence/aimnet2-geometry-mediated-pes-water-v2-02c21b52/README.md)).
+  Methanol reproducibly fails the bond-stretched point/source-shell event
+  guard despite all numerical derivative gates passing
+  ([negative bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md));
+  the other fifteen shards are absent, and the current-profile full panel is
+  therefore negative.
   A water-only bidirectional force-work and straight-segment event harness is
   retained in two clean processes with identical raw records and measurement
   SHA; its reciprocity/charge-FD operands and segment certificates are

@@ -198,13 +198,19 @@ local water path are captured, there is no broader-domain or
 distorted-geometry claim. Neither arm supplies finite-dielectric, nonpolar,
 optimization, Hessian, or NVE evidence.
 
-The water shard has been executed in two clean processes with identical raw
-measurement SHA; all 27 central differences and all replay, reciprocity,
-stationarity, neighbor, and point/source-shell event gates pass.  The retained
-bundle is
-[`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
-The other sixteen H/C/N/O shards remain unexecuted, so no full-panel claim is
-made.
+The historical v1 water shard remains immutable
+([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md)).
+Water has also been executed in two clean v2 processes with identical raw
+measurements; all 27 central differences and the new sphere-tangency evidence
+pass
+([v2 bundle](evidence/aimnet2-geometry-mediated-pes-water-v2-02c21b52/README.md)).
+Methanol has been executed twice and reproducibly fails the v2
+point/source-shell event guard at the bond-stretched geometry: its minimum
+margin is `0.015511399564898554 angstrom`, below the frozen `0.02 angstrom`
+guard, even though every numerical derivative and convergence gate passes
+([negative bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md)).
+The other fifteen H/C/N/O shards remain unexecuted. No full-panel claim is
+possible for the current profile.
 
 The separate frozen water loop has also been captured in two clean processes
 with identical raw forward/reverse records and measurement SHA. Its forward
@@ -249,9 +255,11 @@ python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-loop.json
 ```
 
-All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false. Before
-force admission, all seventeen v2 distorted-geometry shards and explicit
-cutoff/source-shell/tangency panels beyond the retained local loop must pass.
+All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false. The
+reproducible methanol event-distance failure already blocks force admission for
+this profile; running the remaining shards can map scope but cannot convert
+that negative result into a pass. Explicit cutoff/source-shell/tangency panels
+beyond the retained local loop also remain required for any future profile.
 Hessian tasks additionally require the complete AIMNet2 contracted
 charge Hessian and continuum `RR/Rq/qR/qq` HVP blocks on a full event-free `C2`
 neighborhood.  Finite-dielectric physics and a separately derived same-scalar

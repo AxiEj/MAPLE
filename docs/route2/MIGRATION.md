@@ -207,9 +207,15 @@ H/C/N/O molecules within the local contract and recomputes three variants by
 three internal directions by three steps; its v2 full-panel reducer rejects
 partial or reordered shards and requires sphere-tangency evidence. The S/Cl
 controls remain explicit exclusions.
-The water shard is preserved in two clean-process executions under
-[`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md);
-the remaining sixteen shards are not yet v2 evidence. A separate water
+The historical v1 water shard remains preserved under
+[`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
+Water passes two clean v2 processes
+([bundle](evidence/aimnet2-geometry-mediated-pes-water-v2-02c21b52/README.md)),
+while methanol reproducibly fails the bond-stretched point/source-shell event
+guard with all numerical derivative gates still positive
+([negative bundle](evidence/aimnet2-geometry-mediated-pes-methanol-v2-02c21b52/README.md)).
+The remaining fifteen shards are not yet v2 evidence, and the current-profile
+full panel is already fail-closed. A separate water
 bidirectional-loop reducer and conservative straight-trial event certificate
 pass two clean processes with identical raw measurements under
 [`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).

@@ -102,6 +102,21 @@ class VibrationalAnalysis:
     modes_cartesian_per_sqrt_amu: np.ndarray
 
 
+def rigid_body_hessian_residual_cm1(analysis: VibrationalAnalysis) -> float:
+    """Return the raw Hessian's operator residual on the rigid subspace."""
+
+    rigid_basis = np.concatenate(
+        (
+            analysis.subspaces.translation_basis_mass_weighted,
+            analysis.subspaces.rotation_basis_mass_weighted,
+        ),
+        axis=1,
+    )
+    residual = analysis.mass_weighted_hessian_eV_per_A2_amu @ rigid_basis
+    residual_eigenvalue = float(np.linalg.norm(residual, ord=2))
+    return np.sqrt(residual_eigenvalue) * EV_PER_ANGSTROM2_AMU_TO_WAVENUMBER_CM1
+
+
 def rigid_body_subspaces(
     masses_amu: object,
     positions_angstrom: object,
@@ -314,5 +329,6 @@ __all__ = [
     "VibrationalAnalysis",
     "analyze_cartesian_hessian",
     "mass_weighted_basis_to_cartesian",
+    "rigid_body_hessian_residual_cm1",
     "rigid_body_subspaces",
 ]

@@ -37,7 +37,14 @@ class CommandControl:
         "sp": {},
         "opt": {},
         "ts": {},
-        "irc": {"method": "gs"},
+        "irc": {
+            "method": "gs",
+            "target_mode": 1,
+            "stationarity_tolerance_ev_per_a": 1.0e-3,
+            "hessian_symmetry_relative_tolerance": 1.0e-6,
+            "rigid_mode_tolerance_cm1": 5.0,
+            "transition_state_imaginary_threshold_cm1": 50.0,
+        },
         "scan": {},
         "freq": {
             "method": "mw",
@@ -634,6 +641,37 @@ class CommandControl:
             raise ValueError(msg)
 
     @classmethod
+    def _validate_irc_preflight_params(
+        cls,
+        params: Dict[str, Any],
+        output_path: Optional[str],
+    ) -> None:
+        from ..dispatcher.irc.preflight import (
+            IRCPreflightParams,
+            validate_irc_preflight_params,
+        )
+
+        preflight = IRCPreflightParams(
+            target_mode=params.get("target_mode"),
+            stationarity_tolerance_ev_per_a=params.get(
+                "stationarity_tolerance_ev_per_a"
+            ),
+            hessian_symmetry_relative_tolerance=params.get(
+                "hessian_symmetry_relative_tolerance"
+            ),
+            rigid_mode_tolerance_cm1=params.get("rigid_mode_tolerance_cm1"),
+            transition_state_imaginary_threshold_cm1=params.get(
+                "transition_state_imaginary_threshold_cm1"
+            ),
+        )
+        try:
+            validate_irc_preflight_params(preflight)
+        except ValueError as exc:
+            msg = f"IRC preflight parameter error: {exc}"
+            cls._log_error(output_path, msg)
+            raise ValueError(msg) from exc
+
+    @classmethod
     def _validate_solvation(
         cls, params: Dict[str, Any], task: str, output_path: Optional[str]
     ) -> None:
@@ -1210,6 +1248,9 @@ class CommandControl:
 
         if task == "freq":
             cls._validate_frequency_params(params, output_path)
+
+        if task == "irc":
+            cls._validate_irc_preflight_params(params, output_path)
 
         if task == "sp":
             if "verbosity" in params:

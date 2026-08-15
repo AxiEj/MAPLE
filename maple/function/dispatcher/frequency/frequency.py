@@ -17,10 +17,11 @@ from ase import Atoms
 
 from ..jobABC import JobABC
 from ..legacy_units import LegacyHartreeJobView
+from .domain import validate_molecular_vibrational_domain
 from .normal_modes import (
-    EV_PER_ANGSTROM2_AMU_TO_WAVENUMBER_CM1,
     analyze_cartesian_hessian,
     mass_weighted_basis_to_cartesian,
+    rigid_body_hessian_residual_cm1,
 )
 from .reporting import (
     PrintParams,
@@ -129,18 +130,6 @@ def _nonnegative_integer(value: object, name: str) -> int:
     return converted
 
 
-def _validate_molecular_atoms(atoms: Atoms) -> None:
-    if np.any(atoms.get_pbc()):
-        raise ValueError(
-            "Molecular RRHO frequency analysis requires a non-periodic system."
-        )
-    if atoms.constraints:
-        raise NotImplementedError(
-            "Frequency analysis with ASE constraints is not implemented; "
-            "a reduced-coordinate Hessian/mass contract is required."
-        )
-
-
 @dataclass
 class FrequencyParams:
     """Validated public FREQ parameters."""
@@ -178,7 +167,10 @@ class FrequencyBase(JobABC):
         transition_state_imaginary_threshold_cm1: float = 50.0,
     ):
         super().__init__(output)
-        _validate_molecular_atoms(atoms)
+        validate_molecular_vibrational_domain(
+            atoms,
+            operation="Molecular frequency analysis",
+        )
         self.atoms = atoms
         self.temperature = _positive_float(temperature, "temperature")
         self.pressure_kpa = _positive_float(pressure_kpa, "pressure_kpa")
@@ -397,11 +389,7 @@ class MWFrequency(FrequencyBase):
             ),
             axis=1,
         )
-        rigid_residual = analysis.mass_weighted_hessian_eV_per_A2_amu @ rigid_basis
-        residual_eigenvalue = float(np.linalg.norm(rigid_residual, ord=2))
-        residual_cm1 = (
-            np.sqrt(residual_eigenvalue) * EV_PER_ANGSTROM2_AMU_TO_WAVENUMBER_CM1
-        )
+        residual_cm1 = rigid_body_hessian_residual_cm1(analysis)
         if residual_cm1 > self.rigid_mode_tolerance_cm1:
             raise ValueError(
                 "Cartesian Hessian violates stationary rigid-body invariance: "
@@ -450,7 +438,10 @@ class Frequency:
         params: Optional[FrequencyParams] = None,
         paras: Optional[dict] = None,
     ):
-        _validate_molecular_atoms(atoms)
+        validate_molecular_vibrational_domain(
+            atoms,
+            operation="Molecular frequency analysis",
+        )
         if params is not None and not isinstance(params, FrequencyParams):
             raise TypeError("params must be a FrequencyParams instance.")
         self.output = output

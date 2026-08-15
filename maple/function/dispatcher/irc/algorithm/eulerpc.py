@@ -20,12 +20,13 @@ Units:
 
 import os
 from collections import deque
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple
 
 import numpy as np
 from ase import Atoms
 
+from ..preflight import IRCPreflightParams, validate_irc_transition_state
 from .logger import log_info, log_error
 
 # =============================== Utilities ===============================
@@ -189,10 +190,7 @@ class DWI:
 
 # =============================== Parameters ===============================
 @dataclass
-class EulerPCParams:
-    # Which negative eigenmode (1 = most negative) to use for initial direction
-    target_mode: int = 1
-
+class EulerPCParams(IRCPreflightParams):
     # EulerPC step length in Bohr
     step_length_bohr: float = 0.10
 
@@ -316,37 +314,24 @@ class EulerPC:
         self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
         self._step_len_umw = float(self.p.step_length_bohr * BOHR_TO_ANG)
 
-        # Diagonalize mass-weighted Hessian at TS to get negative mode
+        # Validate the first-order saddle and select its projected reaction mode.
         H_cart_ts = self._get_hessian_cart()
-        H_mw_ts = (self._D[:, None] * H_cart_ts) * self._D[None, :]
-        w, V = np.linalg.eigh(H_mw_ts)
-
-        neg_idx = np.where(w < 0.0)[0]
-        if len(neg_idx) == 0:
-            log_error(
-                ["[ERROR] EulerPC-IRC: No negative eigenvalues found — "
-                 "starting geometry is not a saddle point.\n"],
-                self.output,
-            )
-            raise RuntimeError("EulerPC-IRC: no negative eigenvalues at TS.")
-
-        if len(neg_idx) < self.p.target_mode:
-            log_error(
-                [f"[ERROR] EulerPC-IRC: Requested mode {self.p.target_mode}, "
-                 f"but only {len(neg_idx)} negative modes found.\n"],
-                self.output,
-            )
-            raise RuntimeError("EulerPC-IRC: requested negative mode does not exist.")
-
-        sorted_neg = neg_idx[np.argsort(w[neg_idx])]  # most negative first
-        idx = sorted_neg[self.p.target_mode - 1]
-        eigval = w[idx]
-        v_neg_mw = V[:, idx]
+        preflight = validate_irc_transition_state(
+            self.atoms,
+            H_cart_ts,
+            self.atoms.get_forces(),
+            self.p,
+        )
+        eigval = preflight.negative_eigenvalue_hartree_per_A2_amu
+        v_neg_mw = preflight.negative_mode_mass_weighted
 
         log_info(
             [
-                "\n[INFO] EulerPC-IRC: Selected negative eigenmode "
-                f"#{self.p.target_mode} with λ = {eigval:.6e} (MW basis)\n"
+                "\n[INFO] EulerPC-IRC: Validated one projected imaginary mode "
+                f"at {preflight.assessment.imaginary_frequency_cm1:.6f} cm^-1 "
+                f"(λ = {eigval:.6e} Eh/(Angstrom^2*amu)); "
+                f"max |F| = {preflight.maximum_force_eV_per_A:.3e} eV/Angstrom; "
+                f"rigid residual = {preflight.rigid_residual_cm1:.3e} cm^-1.\n"
             ],
             self.output,
         )

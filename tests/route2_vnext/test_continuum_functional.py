@@ -17,6 +17,11 @@ from maple.solvation.continuum import (
     FixedReciprocalCPCMFunctional,
 )
 from maple.solvation.continuum.functional import _torch, _torch_device_matches
+from maple.solvation.coupling.metrics import ATOMIC_L1_PAIRING
+from maple.solvation.coupling.spaces import (
+    ATOMIC_L1_FIELD_DUAL_SPACE,
+    ATOMIC_L1_SOURCE_SPACE,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 SIX_POINT_SPHERE = np.asarray(
@@ -192,6 +197,73 @@ def test_scalar_generated_mixed_coordinate_drive_vjp_matches_finite_difference()
     )
 
 
+class _JointQuadraticFunctional(ContinuumEnergyFunctional):
+    __slots__ = ()
+
+    def _energy_torch(self, positions, source):
+        return (
+            0.5 * (positions * positions).sum()
+            + 0.85 * (source * source).sum()
+            + 0.23 * (positions * source[:, 1:]).sum()
+        )
+
+
+def test_joint_position_source_hvp_is_generated_from_the_same_scalar():
+    torch = pytest.importorskip("torch")
+    functional = _JointQuadraticFunctional(
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+        field_space=ATOMIC_L1_FIELD_DUAL_SPACE,
+        pairing=ATOMIC_L1_PAIRING,
+        dtype=torch.float64,
+        device="cpu",
+    )
+    source = np.asarray([[0.2, -0.1, 0.4, 0.3], [-0.2, 0.5, -0.3, 0.1]], dtype=float)
+    position_direction = np.asarray([[0.4, -0.2, 0.7], [-0.1, 0.6, 0.3]], dtype=float)
+    source_direction = np.asarray(
+        [[0.3, -0.5, 0.2, 0.4], [-0.3, 0.1, -0.6, 0.2]], dtype=float
+    )
+
+    position_hvp, source_hvp = functional.joint_position_source_hvp(
+        POSITIONS,
+        source,
+        position_direction,
+        source_direction,
+    )
+    expected_position = position_direction + 0.23 * source_direction[:, 1:]
+    expected_source = 1.7 * source_direction
+    expected_source[:, 1:] += 0.23 * position_direction
+    np.testing.assert_allclose(position_hvp, expected_position, atol=2e-14, rtol=0.0)
+    np.testing.assert_allclose(source_hvp, expected_source, atol=2e-14, rtol=0.0)
+
+    step = 1.0e-6
+    coordinate_fd = (
+        functional.coordinate_partial(
+            POSITIONS + step * position_direction,
+            source + step * source_direction,
+        )
+        - functional.coordinate_partial(
+            POSITIONS - step * position_direction,
+            source - step * source_direction,
+        )
+    ) / (2.0 * step)
+    source_covector_fd = (
+        ATOMIC_L1_PAIRING.field_to_source_dual(
+            functional.drive(
+                POSITIONS + step * position_direction,
+                source + step * source_direction,
+            )
+        )
+        - ATOMIC_L1_PAIRING.field_to_source_dual(
+            functional.drive(
+                POSITIONS - step * position_direction,
+                source - step * source_direction,
+            )
+        )
+    ) / (2.0 * step)
+    np.testing.assert_allclose(position_hvp, coordinate_fd, atol=2e-10, rtol=0.0)
+    np.testing.assert_allclose(source_hvp, source_covector_fd, atol=2e-10, rtol=0.0)
+
+
 @pytest.mark.parametrize(
     "positions",
     [
@@ -238,6 +310,16 @@ def test_derivative_surface_is_final_and_cannot_be_hand_coded():
                 return source.sum()
 
             def mixed_coordinate_source_vjp(self, *args, **kwargs):
+                return None
+
+    with pytest.raises(TypeError, match="final"):
+
+        class BadJointHVP(ContinuumEnergyFunctional):
+            def _energy_torch(self, positions, source):
+                del positions
+                return source.sum()
+
+            def joint_position_source_hvp(self, *args, **kwargs):
                 return None
 
     assert callable(_torch)

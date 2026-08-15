@@ -63,6 +63,29 @@ class _FakeAIMNet2Calculator:
             charge_position_vjp_ev_per_angstrom=charge_vjp,
         )
 
+    def charge_position_second_order(
+        self, atoms, charge_cotangent_ev_per_e, coordinate_direction
+    ):
+        response = self.charge_position_response(atoms, charge_cotangent_ev_per_e)
+        direction = np.asarray(coordinate_direction, dtype=float)
+        charge_jvp = _ALPHA * (direction[:, 0] - float(np.mean(direction[:, 0])))
+        return SimpleNamespace(
+            **vars(response),
+            coordinate_direction=np.array(direction, copy=True),
+            charge_position_jvp_e_per_angstrom=charge_jvp,
+            intrinsic_energy_hvp_ev_per_angstrom2=np.array(direction, copy=True),
+            contracted_charge_hessian_ev_per_angstrom2=np.zeros_like(direction),
+            standard_decomposed_energy_absolute_error_ev=0.0,
+            standard_decomposed_charge_max_absolute_error_e=0.0,
+            standard_decomposed_intrinsic_gradient_max_absolute_error_ev_per_angstrom=0.0,
+            standard_decomposed_charge_vjp_max_absolute_error_ev_per_angstrom=0.0,
+            charge_tangent_residual_e_per_angstrom=abs(float(np.sum(charge_jvp))),
+        )
+
+
+class _NoSecondOrderAIMNet2Calculator(_FakeAIMNet2Calculator):
+    charge_position_second_order = None
+
 
 def _atoms():
     return Atoms(
@@ -72,7 +95,7 @@ def _atoms():
     )
 
 
-def _adapter(tmp_path):
+def _adapter(tmp_path, calculator_type=_FakeAIMNet2Calculator):
     tmp_path.mkdir(parents=True, exist_ok=True)
     checkpoint = tmp_path / "aimnet2.pt"
     checkpoint.write_bytes(b"test AIMNet2 checkpoint\n")
@@ -92,7 +115,7 @@ def _adapter(tmp_path):
         upstream_commit="test",
         checkpoint_origin_status="test-only",
     )
-    calculator = _FakeAIMNet2Calculator(checkpoint)
+    calculator = calculator_type(checkpoint)
     return AIMNet2GeometryMediatedModelAdapter(calculator, contract), calculator
 
 
@@ -151,6 +174,43 @@ def test_aimnet2_adapter_has_zero_field_response_but_complete_charge_position_vj
     np.testing.assert_array_equal(
         adapter.source_position_vjp(atoms, field, changed_only_in_unused_l1), 0.0
     )
+
+
+def test_aimnet2_adapter_exposes_complete_point_l0_second_order_ledger(tmp_path):
+    adapter, _ = _adapter(tmp_path)
+    atoms = _atoms()
+    field = np.linspace(-0.1, 0.2, 8).reshape(2, 4)
+    cotangent = np.linspace(-0.4, 0.5, 8).reshape(2, 4)
+    direction = np.asarray([[0.3, -0.2, 0.4], [-0.1, 0.5, -0.6]])
+
+    result = adapter.source_position_second_order(
+        atoms,
+        field,
+        cotangent,
+        direction,
+    )
+    expected_jvp = _ALPHA * (direction[:, 0] - float(np.mean(direction[:, 0])))
+    expected_vjp = np.zeros((2, 3))
+    expected_vjp[:, 0] = _ALPHA * (cotangent[:, 0] - float(np.mean(cotangent[:, 0])))
+    np.testing.assert_allclose(result.source_position_jvp[:, 0], expected_jvp)
+    np.testing.assert_array_equal(result.source_position_jvp[:, 1:], 0.0)
+    np.testing.assert_allclose(result.source_position_vjp_eV_per_A, expected_vjp)
+    np.testing.assert_allclose(result.intrinsic_energy_hvp_eV_per_A2, direction)
+    np.testing.assert_array_equal(result.contracted_source_hessian_eV_per_A2, 0.0)
+    np.testing.assert_array_equal(result.source_cotangent, cotangent)
+    assert np.sum(result.source_position_jvp[:, 0]) == pytest.approx(0.0, abs=1e-15)
+    assert result.standard_decomposed_energy_absolute_error_eV == 0.0
+    assert result.source_position_jvp.flags.writeable is False
+
+
+def test_aimnet2_adapter_second_order_path_fails_closed_when_runtime_lacks_it(
+    tmp_path,
+):
+    adapter, _ = _adapter(tmp_path, _NoSecondOrderAIMNet2Calculator)
+    atoms = _atoms()
+    zeros = np.zeros((2, 4))
+    with pytest.raises(NotImplementedError, match="no source-bound second-order"):
+        adapter.source_position_second_order(atoms, zeros, zeros, atoms.positions)
 
 
 def test_aimnet2_neighbor_topology_is_rigid_invariant_and_cutoff_event_sensitive(

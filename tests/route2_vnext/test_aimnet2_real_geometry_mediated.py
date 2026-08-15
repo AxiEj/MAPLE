@@ -474,3 +474,128 @@ def test_real_aimnet2_point_harmonic_precision_and_rotation_gates(
     assert decision["public_energy_admitted"] is False
     assert decision["public_force_admitted"] is False
     assert decision["opt_admitted"] is False
+    if runtime_kind != "reconstructed-python-float64":
+        return
+
+    from maple.solvation.release.geometry_mediated_path import (
+        aimnet2_geometry_mediated_water_loop_atoms,
+        aimnet2_geometry_mediated_water_loop_directions,
+    )
+
+    hvp_atoms = aimnet2_geometry_mediated_water_loop_atoms((0.0, 0.0))
+    first_direction, second_direction = (
+        aimnet2_geometry_mediated_water_loop_directions()
+    )
+    first_hvp = scalar.hessian_vector_product(hvp_atoms, first_direction)
+    assert first_hvp.diagnostic_only is True
+    assert first_hvp.tier_h_admitted is False
+    assert first_hvp.model_standard_decomposed_energy_absolute_error_eV <= 1.0e-8
+    assert first_hvp.model_standard_decomposed_charge_max_absolute_error_e <= 1.0e-10
+    assert (
+        first_hvp.model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A
+        <= 1.0e-7
+    )
+    assert (
+        first_hvp.model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A
+        <= 1.0e-10
+    )
+    assert first_hvp.model_charge_tangent_residual_e_per_A <= 1.0e-10
+    assert abs(float(np.sum(first_hvp.source_position_jvp[:, 0]))) <= 1.0e-10
+    np.testing.assert_array_equal(first_hvp.source_position_jvp[:, 1:], 0.0)
+    assert np.linalg.norm(first_hvp.intrinsic_energy_hvp_eV_per_A2) > 0.0
+    assert np.linalg.norm(first_hvp.continuum_joint_position_hvp_eV_per_A2) > 0.0
+    assert np.linalg.norm(first_hvp.continuum_joint_source_hvp) > 0.0
+    assert np.linalg.norm(first_hvp.continuum_source_response_pullback_eV_per_A2) > 0.0
+    assert np.linalg.norm(first_hvp.contracted_source_hessian_eV_per_A2) > 0.0
+
+    fixed_charge_cotangent = np.asarray(
+        first_hvp.source_gradient_cotangent[:, 0], dtype=float
+    )
+    model_second_order = calculator.charge_position_second_order(
+        hvp_atoms,
+        fixed_charge_cotangent,
+        first_direction,
+    )
+    charge_jvp_errors = []
+    contracted_charge_hessian_errors = []
+    full_hvp_errors = []
+    hvp_steps = (4.0e-4, 2.0e-4, 1.0e-4)
+    center_model_topology = model.neighbor_topology(hvp_atoms)
+    center_continuum_topology = continuum.topology_state(hvp_atoms)
+    for step in hvp_steps:
+        plus = hvp_atoms.copy()
+        minus = hvp_atoms.copy()
+        plus.positions += step * first_direction
+        minus.positions -= step * first_direction
+        assert model.neighbor_topology(plus).topology_sha256 == (
+            center_model_topology.topology_sha256
+        )
+        assert model.neighbor_topology(minus).topology_sha256 == (
+            center_model_topology.topology_sha256
+        )
+        assert continuum.topology_state(plus)["cavity_topology_sha256"] == (
+            center_continuum_topology["cavity_topology_sha256"]
+        )
+        assert continuum.topology_state(minus)["cavity_topology_sha256"] == (
+            center_continuum_topology["cavity_topology_sha256"]
+        )
+
+        charge_jvp_fd = (
+            calculator.charge_state(plus).charges_e
+            - calculator.charge_state(minus).charges_e
+        ) / (2.0 * step)
+        charge_jvp_errors.append(
+            float(
+                np.linalg.norm(
+                    charge_jvp_fd
+                    - model_second_order.charge_position_jvp_e_per_angstrom
+                )
+            )
+        )
+        contracted_hessian_fd = (
+            calculator.charge_position_response(
+                plus, fixed_charge_cotangent
+            ).charge_position_vjp_ev_per_angstrom
+            - calculator.charge_position_response(
+                minus, fixed_charge_cotangent
+            ).charge_position_vjp_ev_per_angstrom
+        ) / (2.0 * step)
+        contracted_charge_hessian_errors.append(
+            float(
+                np.linalg.norm(
+                    contracted_hessian_fd
+                    - model_second_order.contracted_charge_hessian_ev_per_angstrom2
+                )
+            )
+        )
+        full_hvp_fd = (
+            scalar.evaluate(plus).total_gradient_eV_per_A
+            - scalar.evaluate(minus).total_gradient_eV_per_A
+        ) / (2.0 * step)
+        full_hvp_errors.append(
+            float(np.linalg.norm(full_hvp_fd - first_hvp.total_hvp_eV_per_A2))
+        )
+
+    for errors in (
+        charge_jvp_errors,
+        contracted_charge_hessian_errors,
+        full_hvp_errors,
+    ):
+        assert errors[1] < 0.45 * errors[0]
+        assert errors[2] < 0.45 * errors[1]
+    assert full_hvp_errors[-1] <= 5.0e-5
+
+    second_hvp = scalar.hessian_vector_product(hvp_atoms, second_direction)
+    left = float(np.vdot(first_direction, second_hvp.total_hvp_eV_per_A2))
+    right = float(np.vdot(second_direction, first_hvp.total_hvp_eV_per_A2))
+    assert left == pytest.approx(right, abs=2.0e-8)
+
+    translation = np.ones_like(first_direction)
+    translation /= np.linalg.norm(translation)
+    translation_hvp = scalar.hessian_vector_product(hvp_atoms, translation)
+    assert np.linalg.norm(translation_hvp.source_position_jvp) <= 1.0e-10
+    assert np.linalg.norm(translation_hvp.total_hvp_eV_per_A2) <= 2.0e-8
+    assert scalar.continuum.capabilities.hessian is False
+    assert model.variational_functional_admitted is False
+    with pytest.raises(NotImplementedError, match="does not expose public HVPs"):
+        calculator.get_hvp(hvp_atoms, first_direction.reshape(-1))

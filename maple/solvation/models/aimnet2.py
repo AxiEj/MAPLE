@@ -123,6 +123,22 @@ def _runtime_provenance_sha256(calculator: object) -> str | None:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def _calculator_behavior_methods(calculator: object) -> tuple[str, ...]:
+    methods = ("charge_state", "charge_position_response")
+    if callable(getattr(calculator, "charge_position_second_order", None)):
+        methods += ("charge_position_second_order",)
+    return methods
+
+
+def _readonly(values: object, *, shape: tuple[int, ...], name: str) -> np.ndarray:
+    result = np.asarray(values, dtype=float)
+    if result.shape != shape or not np.all(np.isfinite(result)):
+        raise ValueError(f"{name} must be finite with shape {shape}.")
+    result = np.array(result, copy=True)
+    result.setflags(write=False)
+    return result
+
+
 @dataclass(frozen=True, slots=True)
 class AIMNet2NeighborTopologyState:
     """Rigid-motion-invariant identity of AIMNet2's hard neighbor graphs."""
@@ -142,6 +158,86 @@ class AIMNet2NeighborTopologyState:
             },
             "minimum_cutoff_margin_angstrom": self.minimum_cutoff_margin_angstrom,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class AIMNet2GeometryMediatedSecondOrder:
+    """Second-order source ledger for the point-l0 AIMNet2 adapter.
+
+    ``source_position_jvp`` is ``J_c h``.  The contracted source Hessian holds
+    the supplied source cotangent fixed and is therefore
+    ``D_R[J_c.T v][h]``.  Only the l0 channel may be nonzero because this
+    adapter does not reinterpret AIMNet2 point charges as atomic dipoles.
+    """
+
+    source: np.ndarray
+    source_cotangent: np.ndarray
+    coordinate_direction: np.ndarray
+    intrinsic_energy_gradient_eV_per_A: np.ndarray
+    source_position_vjp_eV_per_A: np.ndarray
+    source_position_jvp: np.ndarray
+    intrinsic_energy_hvp_eV_per_A2: np.ndarray
+    contracted_source_hessian_eV_per_A2: np.ndarray
+    standard_decomposed_energy_absolute_error_eV: float
+    standard_decomposed_charge_max_absolute_error_e: float
+    standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A: float
+    standard_decomposed_charge_vjp_max_absolute_error_eV_per_A: float
+    charge_tangent_residual_e_per_A: float
+
+    def __post_init__(self) -> None:
+        raw_source = np.asarray(self.source, dtype=float)
+        if raw_source.ndim != 2 or raw_source.shape[1] != 4:
+            raise ValueError("source must have shape (N,4).")
+        count = raw_source.shape[0]
+        arrays = {
+            "source": ((count, 4), raw_source),
+            "source_cotangent": ((count, 4), self.source_cotangent),
+            "coordinate_direction": ((count, 3), self.coordinate_direction),
+            "intrinsic_energy_gradient_eV_per_A": (
+                (count, 3),
+                self.intrinsic_energy_gradient_eV_per_A,
+            ),
+            "source_position_vjp_eV_per_A": (
+                (count, 3),
+                self.source_position_vjp_eV_per_A,
+            ),
+            "source_position_jvp": ((count, 4), self.source_position_jvp),
+            "intrinsic_energy_hvp_eV_per_A2": (
+                (count, 3),
+                self.intrinsic_energy_hvp_eV_per_A2,
+            ),
+            "contracted_source_hessian_eV_per_A2": (
+                (count, 3),
+                self.contracted_source_hessian_eV_per_A2,
+            ),
+        }
+        frozen = {
+            name: _readonly(values, shape=shape, name=name)
+            for name, (shape, values) in arrays.items()
+        }
+        if not np.array_equal(frozen["source"][:, 1:], np.zeros((count, 3))):
+            raise ValueError("AIMNet2 second-order source must be exactly point-l0.")
+        if not np.array_equal(
+            frozen["source_position_jvp"][:, 1:], np.zeros((count, 3))
+        ):
+            raise ValueError("AIMNet2 source-position JVP must be exactly point-l0.")
+        for name, values in frozen.items():
+            object.__setattr__(self, name, values)
+        for name in (
+            "standard_decomposed_energy_absolute_error_eV",
+            "standard_decomposed_charge_max_absolute_error_e",
+            "standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A",
+            "standard_decomposed_charge_vjp_max_absolute_error_eV_per_A",
+            "charge_tangent_residual_e_per_A",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(f"{name} must be finite and non-negative.")
+            object.__setattr__(self, name, value)
+        if abs(float(np.sum(frozen["source_position_jvp"][:, 0]))) > 1.0e-10:
+            raise ValueError(
+                "AIMNet2 source-position JVP violates total-charge tangency."
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -440,7 +536,7 @@ class AIMNet2GeometryMediatedModelAdapter:
             )
         return _hash(
             {
-                "schema": "route2-aimnet2-geometry-mediated-model-adapter-v2",
+                "schema": "route2-aimnet2-geometry-mediated-model-adapter-v3",
                 "contract": self._contract.metadata(),
                 "source_files_sha256": _source_files(self._calculator),
                 "runtime_provenance_sha256": _runtime_provenance_sha256(
@@ -448,8 +544,11 @@ class AIMNet2GeometryMediatedModelAdapter:
                 ),
                 "calculator_behavior_sha256": provider_behavior_sha256(
                     self._calculator,
-                    ("charge_state", "charge_position_response"),
+                    _calculator_behavior_methods(self._calculator),
                     label="aimnet2_calculator",
+                ),
+                "calculator_second_order_response_available": callable(
+                    getattr(self._calculator, "charge_position_second_order", None)
                 ),
                 "provider_id": self.provider_id,
                 "model_profile_id": self.model_profile_id,
@@ -606,6 +705,83 @@ class AIMNet2GeometryMediatedModelAdapter:
                 )
         return response
 
+    def _second_order_response(
+        self,
+        atoms: object,
+        charge_cotangent: np.ndarray,
+        coordinate_direction: np.ndarray,
+    ) -> object:
+        self.configuration_sha256()
+        charge, _ = self.domain.validate_atoms(atoms)
+        count = atom_count(atoms)
+        cotangent = np.asarray(charge_cotangent, dtype=float)
+        direction = np.asarray(coordinate_direction, dtype=float)
+        if cotangent.shape != (count,) or not np.all(np.isfinite(cotangent)):
+            raise ValueError("AIMNet2 charge cotangent must be finite with shape (N,).")
+        if direction.shape != (count, 3) or not np.all(np.isfinite(direction)):
+            raise ValueError(
+                "AIMNet2 coordinate direction must be finite with shape (N,3)."
+            )
+        provider = getattr(self._calculator, "charge_position_second_order", None)
+        if not callable(provider):
+            raise NotImplementedError(
+                "This AIMNet2 runtime has no source-bound second-order response."
+            )
+        response = provider(atoms, cotangent.copy(), direction.copy())
+        self._validate_charge_state(
+            getattr(response, "charge_state", None), atoms, charge
+        )
+        stored_cotangent = np.asarray(
+            getattr(response, "charge_cotangent_ev_per_e", None), dtype=float
+        )
+        stored_direction = np.asarray(
+            getattr(response, "coordinate_direction", None), dtype=float
+        )
+        if stored_cotangent.shape != (count,) or not np.array_equal(
+            stored_cotangent, cotangent
+        ):
+            raise ValueError(
+                "AIMNet2 second-order response changed the supplied charge cotangent."
+            )
+        if stored_direction.shape != (count, 3) or not np.array_equal(
+            stored_direction, direction
+        ):
+            raise ValueError(
+                "AIMNet2 second-order response changed the coordinate direction."
+            )
+        array_shapes = {
+            "intrinsic_energy_gradient_ev_per_angstrom": (count, 3),
+            "charge_position_vjp_ev_per_angstrom": (count, 3),
+            "charge_position_jvp_e_per_angstrom": (count,),
+            "intrinsic_energy_hvp_ev_per_angstrom2": (count, 3),
+            "contracted_charge_hessian_ev_per_angstrom2": (count, 3),
+        }
+        for name, shape in array_shapes.items():
+            values = np.asarray(getattr(response, name, None), dtype=float)
+            if values.shape != shape or not np.all(np.isfinite(values)):
+                raise ValueError(
+                    f"AIMNet2 second-order response {name} must be finite "
+                    f"with shape {shape}."
+                )
+        for name in (
+            "standard_decomposed_energy_absolute_error_ev",
+            "standard_decomposed_charge_max_absolute_error_e",
+            "standard_decomposed_intrinsic_gradient_max_absolute_error_ev_per_angstrom",
+            "standard_decomposed_charge_vjp_max_absolute_error_ev_per_angstrom",
+            "charge_tangent_residual_e_per_angstrom",
+        ):
+            value = float(getattr(response, name, np.nan))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(
+                    f"AIMNet2 second-order response {name} must be non-negative."
+                )
+        charge_jvp = np.asarray(
+            response.charge_position_jvp_e_per_angstrom, dtype=float
+        )
+        if abs(float(np.sum(charge_jvp))) > 1.0e-10:
+            raise ValueError("AIMNet2 second-order response violates charge tangency.")
+        return response
+
     @staticmethod
     def _embed_charges(charges: np.ndarray) -> np.ndarray:
         source = np.zeros((charges.size, 4), dtype=float)
@@ -702,6 +878,67 @@ class AIMNet2GeometryMediatedModelAdapter:
             response.charge_position_vjp_ev_per_angstrom, dtype=float
         ).copy()
 
+    def source_position_second_order(
+        self,
+        atoms: object,
+        field: object,
+        source_cotangent: object,
+        coordinate_direction: object,
+    ) -> AIMNet2GeometryMediatedSecondOrder:
+        """Return ``J_c h``, ``H_E h``, and fixed-cotangent ``D(J_c.T v)h``."""
+
+        count = atom_count(atoms)
+        self.field_space.validate(field, atom_count=count)
+        cotangent = self.source_space.validate(
+            source_cotangent, atom_count=count, name="source_cotangent"
+        )
+        direction = _readonly(
+            coordinate_direction,
+            shape=(count, 3),
+            name="coordinate_direction",
+        )
+        response = self._second_order_response(atoms, cotangent[:, 0], direction)
+        charges = self._validate_charge_state(
+            response.charge_state,
+            atoms,
+            model_charge_and_multiplicity(atoms)[0],
+        )
+        source_jvp = np.zeros((count, 4), dtype=float)
+        source_jvp[:, 0] = np.asarray(
+            response.charge_position_jvp_e_per_angstrom, dtype=float
+        )
+        return AIMNet2GeometryMediatedSecondOrder(
+            source=self._embed_charges(charges),
+            source_cotangent=np.array(cotangent, copy=True),
+            coordinate_direction=np.array(direction, copy=True),
+            intrinsic_energy_gradient_eV_per_A=(
+                response.intrinsic_energy_gradient_ev_per_angstrom
+            ),
+            source_position_vjp_eV_per_A=(response.charge_position_vjp_ev_per_angstrom),
+            source_position_jvp=source_jvp,
+            intrinsic_energy_hvp_eV_per_A2=(
+                response.intrinsic_energy_hvp_ev_per_angstrom2
+            ),
+            contracted_source_hessian_eV_per_A2=(
+                response.contracted_charge_hessian_ev_per_angstrom2
+            ),
+            standard_decomposed_energy_absolute_error_eV=(
+                response.standard_decomposed_energy_absolute_error_ev
+            ),
+            standard_decomposed_charge_max_absolute_error_e=(
+                response.standard_decomposed_charge_max_absolute_error_e
+            ),
+            standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A=(
+                response.standard_decomposed_intrinsic_gradient_max_absolute_error_ev_per_angstrom
+            ),
+            standard_decomposed_charge_vjp_max_absolute_error_eV_per_A=(
+                response.standard_decomposed_charge_vjp_max_absolute_error_ev_per_angstrom
+            ),
+            charge_tangent_residual_e_per_A=(
+                response.charge_tangent_residual_e_per_angstrom
+            ),
+        )
+
 
 __all__ = [
     "AIMNET2_WB97M_D3_CHECKPOINT_SHA256",
@@ -709,6 +946,7 @@ __all__ = [
     "AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT",
     "AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT",
     "AIMNet2CheckpointContract",
+    "AIMNet2GeometryMediatedSecondOrder",
     "AIMNet2GeometryMediatedModelAdapter",
     "AIMNet2NeighborTopologyState",
 ]

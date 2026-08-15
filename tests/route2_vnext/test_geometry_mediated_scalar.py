@@ -13,11 +13,27 @@ from maple.solvation.api import (
     SCALAR_REGISTRY,
 )
 from maple.solvation.api.profiles import AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID
-from maple.solvation.continuum.atomic_l1_pyddx import AtomicL1PyDDXPCMBackend
+from maple.solvation.api.profiles import (
+    AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+    UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID,
+)
+from maple.solvation.api.scalar_registry import (
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
+)
+from maple.solvation.continuum.atomic_l1_pyddx import (
+    ATOMIC_L1_DDX_CAVITY_PROFILE_ID,
+    ATOMIC_L1_DDX_PCM_PROFILE_ID,
+    AtomicL1PyDDXPCMBackend,
+)
+from maple.solvation.continuum.functional import ContinuumEnergyFunctional
 from maple.solvation.coupling.geometry_mediated import (
     GeometryMediatedElectrostaticScalar,
 )
 from maple.solvation.coupling.metrics import ATOMIC_L1_PAIRING
+from maple.solvation.coupling.spaces import (
+    ATOMIC_L1_FIELD_DUAL_SPACE,
+    ATOMIC_L1_SOURCE_SPACE,
+)
 from maple.solvation.models import (
     AIMNet2CheckpointContract,
     AIMNet2GeometryMediatedModelAdapter,
@@ -66,6 +82,25 @@ class _FakeAIMNet2:
                 atoms.positions, copy=True
             ),
             charge_position_vjp_ev_per_angstrom=charge_vjp,
+        )
+
+    def charge_position_second_order(
+        self, atoms, charge_cotangent_ev_per_e, coordinate_direction
+    ):
+        response = self.charge_position_response(atoms, charge_cotangent_ev_per_e)
+        direction = np.asarray(coordinate_direction, dtype=float)
+        charge_jvp = _ALPHA * (direction[:, 0] - float(np.mean(direction[:, 0])))
+        return SimpleNamespace(
+            **vars(response),
+            coordinate_direction=np.array(direction, copy=True),
+            charge_position_jvp_e_per_angstrom=charge_jvp,
+            intrinsic_energy_hvp_ev_per_angstrom2=np.array(direction, copy=True),
+            contracted_charge_hessian_ev_per_angstrom2=np.zeros_like(direction),
+            standard_decomposed_energy_absolute_error_ev=0.0,
+            standard_decomposed_charge_max_absolute_error_e=0.0,
+            standard_decomposed_intrinsic_gradient_max_absolute_error_ev_per_angstrom=0.0,
+            standard_decomposed_charge_vjp_max_absolute_error_ev_per_angstrom=0.0,
+            charge_tangent_residual_e_per_angstrom=abs(float(np.sum(charge_jvp))),
         )
 
 
@@ -122,6 +157,56 @@ class _SkewReactionMap(_FakeReactionMap):
         result[:, 0] += self.skew @ np.asarray(source)[:, 0]
         return result
 
+
+class _QuadraticAtomicL1Functional(ContinuumEnergyFunctional):
+    __slots__ = ("_configuration", "provenance_sha256")
+
+    provider_id = "maple.route2.continuum.test-quadratic-atomic-l1.impl.v1"
+    continuum_profile_id = ATOMIC_L1_DDX_PCM_PROFILE_ID
+    cavity_profile_id = ATOMIC_L1_DDX_CAVITY_PROFILE_ID
+    configuration_contract_id = UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID
+    coupling_id = AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID
+    scalar_id = DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1
+    source_space = ATOMIC_L1_SOURCE_SPACE
+    field_space = ATOMIC_L1_FIELD_DUAL_SPACE
+    pairing = ATOMIC_L1_PAIRING
+    linear_response = True
+    reciprocal = True
+
+    def __init__(self, *, dtype, device):
+        super().__init__(
+            source_space=self.source_space,
+            field_space=self.field_space,
+            pairing=self.pairing,
+            dtype=dtype,
+            device=device,
+            expected_atomic_numbers=(6, 8),
+        )
+        configuration = hashlib.sha256(b"test-quadratic-atomic-l1-v1").hexdigest()
+        object.__setattr__(self, "_configuration", configuration)
+        object.__setattr__(
+            self,
+            "provenance_sha256",
+            hashlib.sha256(configuration.encode()).hexdigest(),
+        )
+
+    def configuration_sha256(self):
+        return self._configuration
+
+    def _energy_torch(self, positions, source):
+        scale = 1.0 + _BETA * (positions * positions).sum()
+        return 0.5 * scale * (source * source).sum()
+
+    def evaluate_field(self, geometry, source):
+        return self.drive(geometry, source)
+
+    field = evaluate_field
+
+    def coordinate_vjp(self, geometry, source, field_cotangent):
+        return self.mixed_coordinate_source_vjp(
+            geometry, source, field_cotangent
+        ).reshape(-1)
+
     def adjoint(self, field_cotangent):
         result = super().adjoint(field_cotangent)
         result[:, 0] += self.skew.T @ np.asarray(field_cotangent)[:, 0]
@@ -156,6 +241,20 @@ def _scalar(
     map_factory=_FakeReactionMap,
 ):
     atoms = _atoms() if atoms is None else atoms
+    model = _model_adapter(tmp_path, calculator_type=calculator_type)
+    continuum = AtomicL1PyDDXPCMBackend(
+        atoms,
+        np.full(len(atoms), 1.6),
+        dielectric=20.0,
+        lmax=7,
+        n_lebedev=302,
+        solver_tolerance=1.0e-12,
+        _map_factory=map_factory,
+    )
+    return GeometryMediatedElectrostaticScalar(model, continuum)
+
+
+def _model_adapter(tmp_path, *, calculator_type=_FakeAIMNet2):
     checkpoint = tmp_path / "aimnet2.pt"
     checkpoint.write_bytes(b"test geometry-mediated checkpoint\n")
     contract = AIMNet2CheckpointContract(
@@ -174,17 +273,15 @@ def _scalar(
         upstream_commit="test",
         checkpoint_origin_status="test",
     )
-    model = AIMNet2GeometryMediatedModelAdapter(calculator_type(checkpoint), contract)
-    continuum = AtomicL1PyDDXPCMBackend(
-        atoms,
-        np.full(len(atoms), 1.6),
-        dielectric=20.0,
-        lmax=7,
-        n_lebedev=302,
-        solver_tolerance=1.0e-12,
-        _map_factory=map_factory,
+    return AIMNet2GeometryMediatedModelAdapter(calculator_type(checkpoint), contract)
+
+
+def _hvp_scalar(tmp_path):
+    torch = pytest.importorskip("torch")
+    return GeometryMediatedElectrostaticScalar(
+        _model_adapter(tmp_path),
+        _QuadraticAtomicL1Functional(dtype=torch.float64, device="cpu"),
     )
-    return GeometryMediatedElectrostaticScalar(model, continuum)
 
 
 def test_geometry_mediated_scalar_gradient_matches_its_complete_finite_difference(
@@ -266,3 +363,89 @@ def test_geometry_mediated_scalar_rejects_charge_projection_with_nonzero_gauge_v
     scalar = _scalar(tmp_path, atoms=atoms, calculator_type=_BadGaugeAIMNet2)
     with pytest.raises(ValueError, match="metric/reciprocity/charge-gauge"):
         scalar.evaluate(atoms)
+
+
+def test_geometry_mediated_complete_hvp_ledger_matches_analytic_and_force_fd(
+    tmp_path,
+):
+    scalar = _hvp_scalar(tmp_path)
+    atoms = _atoms()
+    direction = np.asarray([[0.3, -0.2, 0.4], [-0.1, 0.5, -0.6]])
+    result = scalar.hessian_vector_product(atoms, direction)
+
+    positions = np.asarray(atoms.positions, dtype=float)
+    source = np.asarray(result.source, dtype=float)
+    source_jvp = np.zeros_like(source)
+    source_jvp[:, 0] = _ALPHA * (direction[:, 0] - float(np.mean(direction[:, 0])))
+    scale = 1.0 + _BETA * float(np.vdot(positions, positions))
+    source_norm2 = float(np.vdot(source, source))
+    source_direction_pair = float(np.vdot(source, source_jvp))
+    expected_continuum_position = (
+        _BETA * source_norm2 * direction
+        + 2.0 * _BETA * source_direction_pair * positions
+    )
+    expected_continuum_source = (
+        scale * source_jvp + 2.0 * _BETA * float(np.vdot(positions, direction)) * source
+    )
+    expected_pullback = np.zeros_like(direction)
+    expected_pullback[:, 0] = _ALPHA * (
+        expected_continuum_source[:, 0]
+        - float(np.mean(expected_continuum_source[:, 0]))
+    )
+    expected_total = direction + expected_continuum_position + expected_pullback
+
+    np.testing.assert_allclose(result.source_position_jvp, source_jvp, atol=1e-15)
+    np.testing.assert_allclose(
+        result.intrinsic_energy_hvp_eV_per_A2, direction, atol=1e-15
+    )
+    np.testing.assert_allclose(
+        result.continuum_joint_position_hvp_eV_per_A2,
+        expected_continuum_position,
+        atol=2e-15,
+    )
+    np.testing.assert_allclose(
+        result.continuum_joint_source_hvp,
+        expected_continuum_source,
+        atol=2e-15,
+    )
+    np.testing.assert_allclose(
+        result.continuum_source_response_pullback_eV_per_A2,
+        expected_pullback,
+        atol=2e-15,
+    )
+    np.testing.assert_array_equal(result.contracted_source_hessian_eV_per_A2, 0.0)
+    np.testing.assert_allclose(result.total_hvp_eV_per_A2, expected_total, atol=3e-15)
+
+    step = 1.0e-5
+    plus = atoms.copy()
+    minus = atoms.copy()
+    plus.positions += step * direction
+    minus.positions -= step * direction
+    gradient_fd = (
+        scalar.evaluate(plus).total_gradient_eV_per_A
+        - scalar.evaluate(minus).total_gradient_eV_per_A
+    ) / (2.0 * step)
+    np.testing.assert_allclose(result.total_hvp_eV_per_A2, gradient_fd, atol=3e-10)
+    assert result.diagnostic_only is True
+    assert result.tier_h_admitted is False
+    assert result.total_hvp_eV_per_A2.flags.writeable is False
+
+
+def test_geometry_mediated_hvp_is_symmetric_but_does_not_admit_tier_h(tmp_path):
+    scalar = _hvp_scalar(tmp_path)
+    atoms = _atoms()
+    first = np.asarray([[0.3, -0.2, 0.4], [-0.1, 0.5, -0.6]])
+    second = np.asarray([[-0.4, 0.1, 0.2], [0.6, -0.3, 0.5]])
+    h_first = scalar.hessian_vector_product(atoms, first).total_hvp_eV_per_A2
+    h_second = scalar.hessian_vector_product(atoms, second).total_hvp_eV_per_A2
+    assert np.vdot(first, h_second) == pytest.approx(
+        np.vdot(second, h_first), abs=2e-14
+    )
+    profile = PROFILE_REGISTRY[scalar.profile_id]
+    assert profile.capabilities.hessian is False
+
+
+def test_geometry_mediated_hvp_rejects_nonsealed_continuum_backend(tmp_path):
+    scalar = _scalar(tmp_path)
+    with pytest.raises(NotImplementedError, match="sealed.*joint Hessian"):
+        scalar.hessian_vector_product(_atoms(), np.ones((2, 3)))

@@ -68,6 +68,7 @@ class ContinuumEnergyFunctional:
             "energy_torch",
             "energy_eV",
             "drive",
+            "joint_position_source_hvp",
             "source_hvp",
             "source_jvp",
             "source_vjp",
@@ -329,6 +330,77 @@ class ContinuumEnergyFunctional:
         return self.source_space.validate(
             result, atom_count=values.shape[0], name="continuum source HVP"
         )
+
+    def joint_position_source_hvp(
+        self,
+        geometry: object,
+        source: object,
+        position_direction: object,
+        source_direction: object,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Apply the joint Hessian of the sealed scalar ``G(R,c)``.
+
+        The returned pair is
+
+        ``(G_RR h + G_Rc dc, G_cR h + G_cc dc)``.
+
+        Both blocks are generated in one Torch HVP from the exact scalar graph;
+        subclasses cannot supply a separately coded force-response formula.
+        """
+
+        torch = _torch()
+        values = _source_values(self.source_space, source)
+        count = values.shape[0]
+        coordinate_direction = np.asarray(position_direction, dtype=float)
+        if coordinate_direction.shape != (count, 3) or not np.all(
+            np.isfinite(coordinate_direction)
+        ):
+            raise ValueError(
+                "position_direction must be finite with shape " f"{(count, 3)}."
+            )
+        source_direction_values = self.source_space.validate(
+            source_direction,
+            atom_count=count,
+            name="source_direction",
+        )
+        positions = self._positions_tensor(
+            geometry, atom_count=count, requires_grad=False
+        )
+        source_tensor = self._source_tensor(values, requires_grad=False)
+        position_direction_tensor = torch.as_tensor(
+            np.array(coordinate_direction, copy=True),
+            dtype=positions.dtype,
+            device=positions.device,
+        )
+        source_direction_tensor = torch.as_tensor(
+            np.array(source_direction_values, copy=True),
+            dtype=source_tensor.dtype,
+            device=source_tensor.device,
+        )
+
+        _, (position_hvp, source_hvp) = torch.autograd.functional.hvp(
+            lambda candidate_positions, candidate_source: self.energy_torch(
+                candidate_positions, candidate_source
+            ),
+            (positions, source_tensor),
+            (position_direction_tensor, source_direction_tensor),
+            create_graph=False,
+            strict=False,
+        )
+        position_result = np.asarray(position_hvp.detach().cpu(), dtype=float).copy()
+        if position_result.shape != (count, 3) or not np.all(
+            np.isfinite(position_result)
+        ):
+            raise RuntimeError(
+                "continuum joint position HVP must be finite with shape (N,3)."
+            )
+        source_result = np.asarray(source_hvp.detach().cpu(), dtype=float).copy()
+        source_result = self.source_space.validate(
+            source_result,
+            atom_count=count,
+            name="continuum joint source HVP",
+        )
+        return position_result, source_result
 
     def source_jvp(
         self, geometry: object, source: object, source_direction: object

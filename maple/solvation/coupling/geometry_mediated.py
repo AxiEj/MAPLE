@@ -28,6 +28,7 @@ from maple.solvation.api.scalar_registry import (
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     get_scalar_definition,
 )
+from maple.solvation.continuum.functional import ContinuumEnergyFunctional
 from maple.solvation.models.base import (
     FieldResponsiveModel,
     atom_count,
@@ -301,6 +302,119 @@ class GeometryMediatedEvaluation:
         result = -np.asarray(self.total_gradient_eV_per_A)
         result.setflags(write=False)
         return result
+
+
+@dataclass(frozen=True, slots=True)
+class GeometryMediatedHVPResult:
+    """Diagnostic complete HVP ledger for the weak composite scalar.
+
+    The four coordinate-space terms are
+
+    ``H_E h + (G_RR h + G_Rc J_c h)``
+    ``+ J_c.T (G_cR h + G_cc J_c h) + D_R[J_c.T v][h]``.
+
+    The last derivative holds the centre continuum source cotangent ``v``
+    fixed.  This result is a local fixed-stratum research primitive and does
+    not admit Tier H or any public MAPLE task by itself.
+    """
+
+    scalar_id: str
+    profile_id: str
+    scalar_fingerprint_sha256: str
+    model_second_order_behavior_sha256: str
+    continuum_second_order_behavior_sha256: str
+    coordinate_direction: np.ndarray
+    source: np.ndarray
+    source_gradient_cotangent: np.ndarray
+    source_position_jvp: np.ndarray
+    intrinsic_energy_hvp_eV_per_A2: np.ndarray
+    continuum_joint_position_hvp_eV_per_A2: np.ndarray
+    continuum_joint_source_hvp: np.ndarray
+    continuum_source_response_pullback_eV_per_A2: np.ndarray
+    contracted_source_hessian_eV_per_A2: np.ndarray
+    total_hvp_eV_per_A2: np.ndarray
+    model_standard_decomposed_energy_absolute_error_eV: float
+    model_standard_decomposed_charge_max_absolute_error_e: float
+    model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A: float
+    model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A: float
+    model_charge_tangent_residual_e_per_A: float
+    diagnostic_only: bool = True
+    tier_h_admitted: bool = False
+
+    def __post_init__(self) -> None:
+        for name in ("scalar_id", "profile_id"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"{name} must be non-empty.")
+        for name in (
+            "scalar_fingerprint_sha256",
+            "model_second_order_behavior_sha256",
+            "continuum_second_order_behavior_sha256",
+        ):
+            object.__setattr__(self, name, _sha(getattr(self, name), name=name))
+        raw_source = np.asarray(self.source, dtype=float)
+        if raw_source.ndim != 2 or raw_source.shape[1] != 4:
+            raise ValueError("source must have shape (N,4).")
+        count = raw_source.shape[0]
+        arrays = {
+            "coordinate_direction": ((count, 3), self.coordinate_direction),
+            "source": ((count, 4), raw_source),
+            "source_gradient_cotangent": (
+                (count, 4),
+                self.source_gradient_cotangent,
+            ),
+            "source_position_jvp": ((count, 4), self.source_position_jvp),
+            "intrinsic_energy_hvp_eV_per_A2": (
+                (count, 3),
+                self.intrinsic_energy_hvp_eV_per_A2,
+            ),
+            "continuum_joint_position_hvp_eV_per_A2": (
+                (count, 3),
+                self.continuum_joint_position_hvp_eV_per_A2,
+            ),
+            "continuum_joint_source_hvp": (
+                (count, 4),
+                self.continuum_joint_source_hvp,
+            ),
+            "continuum_source_response_pullback_eV_per_A2": (
+                (count, 3),
+                self.continuum_source_response_pullback_eV_per_A2,
+            ),
+            "contracted_source_hessian_eV_per_A2": (
+                (count, 3),
+                self.contracted_source_hessian_eV_per_A2,
+            ),
+            "total_hvp_eV_per_A2": ((count, 3), self.total_hvp_eV_per_A2),
+        }
+        frozen = {
+            name: _readonly(values, shape=shape, name=name)
+            for name, (shape, values) in arrays.items()
+        }
+        expected = (
+            frozen["intrinsic_energy_hvp_eV_per_A2"]
+            + frozen["continuum_joint_position_hvp_eV_per_A2"]
+            + frozen["continuum_source_response_pullback_eV_per_A2"]
+            + frozen["contracted_source_hessian_eV_per_A2"]
+        )
+        if not np.allclose(
+            expected, frozen["total_hvp_eV_per_A2"], rtol=0.0, atol=2.0e-10
+        ):
+            raise ValueError("geometry-mediated HVP component ledger does not close.")
+        for name, values in frozen.items():
+            object.__setattr__(self, name, values)
+        for name in (
+            "model_standard_decomposed_energy_absolute_error_eV",
+            "model_standard_decomposed_charge_max_absolute_error_e",
+            "model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A",
+            "model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A",
+            "model_charge_tangent_residual_e_per_A",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(f"{name} must be finite and non-negative.")
+            object.__setattr__(self, name, value)
+        if self.diagnostic_only is not True or self.tier_h_admitted is not False:
+            raise ValueError("geometry-mediated HVP must remain diagnostic-only.")
 
 
 @dataclass(frozen=True)
@@ -767,6 +881,206 @@ class GeometryMediatedElectrostaticScalar:
             reciprocity_audit=audit,
         )
 
+    def hessian_vector_product(
+        self, geometry: Any, coordinate_direction: object
+    ) -> GeometryMediatedHVPResult:
+        """Apply the complete weak-scalar Hessian on one fixed stratum.
+
+        This method deliberately accepts only a
+        :class:`ContinuumEnergyFunctional`; its joint position/source blocks
+        must come from the same sealed scalar as the energy and first
+        derivative.  Backends without that scalar graph, including the current
+        pyddx diagnostic wrapper, fail closed rather than using finite
+        differences or an independent Hessian implementation.
+        """
+
+        fingerprint = self.fingerprint_sha256()
+        if not isinstance(self.continuum, ContinuumEnergyFunctional):
+            raise NotImplementedError(
+                "geometry-mediated HVP requires a sealed "
+                "ContinuumEnergyFunctional joint Hessian."
+            )
+        require_model_methods(
+            self.model,
+            "source_position_second_order",
+            "source_position_vjp",
+        )
+        model_behavior = provider_behavior_sha256(
+            self.model,
+            (
+                "configuration_sha256",
+                "source_position_second_order",
+                "source_position_vjp",
+            ),
+            label="geometry_mediated_second_order_model",
+        )
+        continuum_behavior = provider_behavior_sha256(
+            self.continuum,
+            (
+                "configuration_sha256",
+                "energy_torch",
+                "joint_position_source_hvp",
+            ),
+            label="geometry_mediated_second_order_continuum",
+        )
+
+        first_order = self.evaluate(geometry)
+        count = first_order.source.shape[0]
+        direction = _readonly(
+            coordinate_direction,
+            shape=(count, 3),
+            name="coordinate_direction",
+        )
+        source = np.asarray(first_order.source, dtype=float)
+        zero_field = np.zeros(self.model.field_space.shape(count), dtype=float)
+        continuum_first_order = nonlinear_half_coupling(
+            self.continuum, geometry, source, metric=self.metric
+        )
+        source_cotangent = self.model.source_space.validate(
+            continuum_first_order.total_source_gradient_array(),
+            atom_count=count,
+            name="continuum source gradient",
+        )
+        model_second_order = self.model.source_position_second_order(
+            geometry,
+            zero_field,
+            source_cotangent,
+            direction,
+        )
+        second_order_source = self.model.source_space.validate(
+            getattr(model_second_order, "source", None),
+            atom_count=count,
+            name="second-order model source",
+        )
+        if not np.allclose(second_order_source, source, rtol=0.0, atol=1.0e-12):
+            raise ValueError(
+                "second-order AIMNet2 source differs from the first-order state."
+            )
+        intrinsic_gradient = _readonly(
+            getattr(model_second_order, "intrinsic_energy_gradient_eV_per_A", None),
+            shape=(count, 3),
+            name="second-order intrinsic gradient",
+        )
+        source_position_vjp = _readonly(
+            getattr(model_second_order, "source_position_vjp_eV_per_A", None),
+            shape=(count, 3),
+            name="second-order source-position VJP",
+        )
+        if not np.allclose(
+            intrinsic_gradient,
+            first_order.intrinsic_gradient_eV_per_A,
+            rtol=0.0,
+            atol=2.0e-10,
+        ):
+            raise ValueError(
+                "second-order AIMNet2 graph changed the centre intrinsic gradient."
+            )
+        if not np.allclose(
+            source_position_vjp,
+            first_order.source_response_gradient_eV_per_A,
+            rtol=0.0,
+            atol=2.0e-10,
+        ):
+            raise ValueError(
+                "second-order AIMNet2 graph changed the centre source VJP."
+            )
+        source_jvp = self.model.source_space.validate(
+            getattr(model_second_order, "source_position_jvp", None),
+            atom_count=count,
+            name="source-position JVP",
+        )
+        continuum_position_hvp, continuum_source_hvp = (
+            self.continuum.joint_position_source_hvp(
+                geometry,
+                source,
+                direction,
+                source_jvp,
+            )
+        )
+        continuum_position_hvp = _readonly(
+            continuum_position_hvp,
+            shape=(count, 3),
+            name="continuum joint position HVP",
+        )
+        continuum_source_hvp = self.model.source_space.validate(
+            continuum_source_hvp,
+            atom_count=count,
+            name="continuum joint source HVP",
+        )
+        continuum_source_pullback = _readonly(
+            self.model.source_position_vjp(
+                geometry,
+                zero_field,
+                continuum_source_hvp,
+            ),
+            shape=(count, 3),
+            name="continuum source-response pullback",
+        )
+        intrinsic_hvp = _readonly(
+            getattr(model_second_order, "intrinsic_energy_hvp_eV_per_A2", None),
+            shape=(count, 3),
+            name="intrinsic energy HVP",
+        )
+        contracted_source_hessian = _readonly(
+            getattr(
+                model_second_order,
+                "contracted_source_hessian_eV_per_A2",
+                None,
+            ),
+            shape=(count, 3),
+            name="contracted source Hessian",
+        )
+        total = (
+            intrinsic_hvp
+            + continuum_position_hvp
+            + continuum_source_pullback
+            + contracted_source_hessian
+        )
+        return GeometryMediatedHVPResult(
+            scalar_id=self.scalar_id,
+            profile_id=self.profile_id,
+            scalar_fingerprint_sha256=fingerprint,
+            model_second_order_behavior_sha256=model_behavior,
+            continuum_second_order_behavior_sha256=continuum_behavior,
+            coordinate_direction=direction,
+            source=source,
+            source_gradient_cotangent=source_cotangent,
+            source_position_jvp=source_jvp,
+            intrinsic_energy_hvp_eV_per_A2=intrinsic_hvp,
+            continuum_joint_position_hvp_eV_per_A2=continuum_position_hvp,
+            continuum_joint_source_hvp=continuum_source_hvp,
+            continuum_source_response_pullback_eV_per_A2=(continuum_source_pullback),
+            contracted_source_hessian_eV_per_A2=contracted_source_hessian,
+            total_hvp_eV_per_A2=total,
+            model_standard_decomposed_energy_absolute_error_eV=float(
+                getattr(
+                    model_second_order,
+                    "standard_decomposed_energy_absolute_error_eV",
+                )
+            ),
+            model_standard_decomposed_charge_max_absolute_error_e=float(
+                getattr(
+                    model_second_order,
+                    "standard_decomposed_charge_max_absolute_error_e",
+                )
+            ),
+            model_standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A=float(
+                getattr(
+                    model_second_order,
+                    "standard_decomposed_intrinsic_gradient_max_absolute_error_eV_per_A",
+                )
+            ),
+            model_standard_decomposed_charge_vjp_max_absolute_error_eV_per_A=float(
+                getattr(
+                    model_second_order,
+                    "standard_decomposed_charge_vjp_max_absolute_error_eV_per_A",
+                )
+            ),
+            model_charge_tangent_residual_e_per_A=float(
+                getattr(model_second_order, "charge_tangent_residual_e_per_A")
+            ),
+        )
+
 
 __all__ = [
     "BilinearReciprocityRecord",
@@ -774,6 +1088,7 @@ __all__ = [
     "GeometryMediatedElectrostaticScalar",
     "GeometryMediatedEnergyEvaluation",
     "GeometryMediatedEvaluation",
+    "GeometryMediatedHVPResult",
     "GeometryMediatedReciprocityAudit",
     "GEOMETRY_MEDIATED_CHARGE_FD_ABSOLUTE_TOLERANCE_EV_PER_E",
     "GEOMETRY_MEDIATED_CHARGE_FD_RELATIVE_TOLERANCE",

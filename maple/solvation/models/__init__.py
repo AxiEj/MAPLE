@@ -30,6 +30,7 @@ from .aimnet2 import (
     AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT,
     AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT,
     AIMNet2CheckpointContract,
+    AIMNet2GeometryMediatedSecondOrder,
     AIMNet2GeometryMediatedModelAdapter,
     AIMNet2NeighborTopologyState,
 )
@@ -74,6 +75,7 @@ __all__ = [
     "AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT",
     "AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT",
     "AIMNet2CheckpointContract",
+    "AIMNet2GeometryMediatedSecondOrder",
     "AIMNet2GeometryMediatedModelAdapter",
     "AIMNet2NeighborTopologyState",
     "ElectronicSourceModel",

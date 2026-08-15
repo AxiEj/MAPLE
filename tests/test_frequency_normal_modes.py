@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from ase import Atoms
+from ase.vibrations.data import VibrationsData
 
 from maple.function.dispatcher.frequency.normal_modes import (
     EV_PER_ANGSTROM2_AMU_TO_WAVENUMBER_CM1,
@@ -86,6 +88,40 @@ def test_cartesian_hessian_analysis_recovers_known_vibrational_spectrum():
         @ mass_metric
         @ analysis.modes_cartesian_per_sqrt_amu
     ) == pytest.approx(np.eye(3), abs=2.0e-14)
+
+
+def test_vibrational_frequencies_match_ase_for_same_ev_hessian():
+    subspaces = rigid_body_subspaces(WATER_MASSES_AMU, WATER_POSITIONS_A)
+    vibrational_basis = subspaces.vibrational_basis_mass_weighted
+    expected_eigenvalues = np.array([1.0, 4.0, 9.0])
+    hessian_mass_weighted = (
+        vibrational_basis @ np.diag(expected_eigenvalues) @ vibrational_basis.T
+    )
+    square_root_mass = np.sqrt(np.repeat(WATER_MASSES_AMU, 3))
+    hessian_cartesian = (
+        square_root_mass[:, None] * hessian_mass_weighted * square_root_mass[None, :]
+    )
+    atoms = Atoms(
+        numbers=[8, 1, 1],
+        positions=WATER_POSITIONS_A,
+        masses=WATER_MASSES_AMU,
+    )
+
+    analysis = analyze_cartesian_hessian(
+        hessian_cartesian,
+        WATER_MASSES_AMU,
+        WATER_POSITIONS_A,
+    )
+    ase_frequencies = VibrationsData.from_2d(
+        atoms,
+        hessian_cartesian,
+    ).get_frequencies()
+
+    assert analysis.frequencies_cm1 == pytest.approx(
+        np.sort(ase_frequencies.real)[-3:],
+        rel=5.0e-9,
+        abs=1.0e-8,
+    )
 
 
 def test_mass_weighted_basis_can_be_returned_as_unit_cartesian_directions():

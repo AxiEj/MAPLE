@@ -1,3 +1,4 @@
+import math
 import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
@@ -42,10 +43,15 @@ class CommandControl:
             "method": "mw",
             "temperature": 298.15,
             "pressure_kpa": 101.325,
-            "ilowfreq": 2,
+            "symmetry_number": 1,
+            "stationarity_tolerance_ev_per_a": 1.0e-3,
+            "hessian_symmetry_relative_tolerance": 1.0e-6,
+            "rigid_mode_tolerance_cm1": 5.0,
+            "ilowfreq": 0,
             "verbosity": 1,
+            "n_freqs_to_print": 10,
+            "imag_tol_cm1": 10.0,
             "treat_imag_as_real": False,
-            "device": "cpu",
         },
         "md": {
             "ensemble": "nve",
@@ -82,7 +88,7 @@ class CommandControl:
         "opt": {"lbfgs", "rfo", "sd", "cg", "sdcg", ""},
         "scan": {"lbfgs", "rfo", "sd", "cg", "sdcg"},
         "ts": {"prfo", "string", "neb", "dimer", "autoneb"},
-        "freq": {"mw", "nonmw", "both"},
+        "freq": {"mw"},
         "sp": set(),
         "irc": {"gs", "hpc", "eulerpc", "lqa"},
         "md": {"nve", "nvt", "npt"},
@@ -189,7 +195,7 @@ class CommandControl:
         ),
     }
 
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "md"}
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "md"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
@@ -464,6 +470,9 @@ class CommandControl:
         if task == "md":
             allowed.update(cls.DEFAULTS["md"])
             return allowed
+        if task == "freq":
+            allowed.update(cls.DEFAULTS["freq"])
+            return allowed
 
         method = str(params.get("method") or "lbfgs").lower()
         method_params = cls.OPT_METHOD_PARAMS.get(method)
@@ -511,6 +520,96 @@ class CommandControl:
             for key in charge_params:
                 if key not in cls.CHARGE_PARAMS:
                     cls._raise_unknown_param(output_path, "charge", key, cls.CHARGE_PARAMS)
+
+    @classmethod
+    def _validate_frequency_params(
+        cls,
+        params: Dict[str, Any],
+        output_path: Optional[str],
+    ) -> None:
+        positive_numbers = (
+            "temperature",
+            "pressure_kpa",
+            "stationarity_tolerance_ev_per_a",
+        )
+        for key in positive_numbers:
+            value = params.get(key)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0
+            ):
+                msg = f"FREQ {key} must be a finite positive number."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        rigid_tolerance = params.get("rigid_mode_tolerance_cm1")
+        if (
+            isinstance(rigid_tolerance, bool)
+            or not isinstance(rigid_tolerance, (int, float))
+            or not math.isfinite(rigid_tolerance)
+            or rigid_tolerance < 0
+        ):
+            msg = "FREQ rigid_mode_tolerance_cm1 must be finite and non-negative."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        symmetry_tolerance = params.get("hessian_symmetry_relative_tolerance")
+        if (
+            isinstance(symmetry_tolerance, bool)
+            or not isinstance(symmetry_tolerance, (int, float))
+            or not math.isfinite(symmetry_tolerance)
+            or symmetry_tolerance < 0
+        ):
+            msg = (
+                "FREQ hessian_symmetry_relative_tolerance must be finite and "
+                "non-negative."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        imaginary_tolerance = params.get("imag_tol_cm1")
+        if (
+            isinstance(imaginary_tolerance, bool)
+            or not isinstance(imaginary_tolerance, (int, float))
+            or not math.isfinite(imaginary_tolerance)
+            or imaginary_tolerance < 0
+        ):
+            msg = "FREQ imag_tol_cm1 must be finite and non-negative."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        symmetry_number = params.get("symmetry_number")
+        if type(symmetry_number) is not int or symmetry_number <= 0:
+            msg = "FREQ symmetry_number must be a positive integer."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        verbosity = params.get("verbosity")
+        if type(verbosity) is not int or verbosity < 0:
+            msg = "FREQ verbosity must be a non-negative integer."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        frequency_count = params.get("n_freqs_to_print")
+        if type(frequency_count) is not int or frequency_count < 0:
+            msg = "FREQ n_freqs_to_print must be a non-negative integer."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if params.get("ilowfreq") != 0:
+            msg = (
+                "FREQ admits only ilowfreq=0; quasi-RRHO models require a "
+                "separately validated implementation."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if type(params.get("treat_imag_as_real")) is not bool:
+            msg = "FREQ treat_imag_as_real must be true or false."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
 
     @classmethod
     def _validate_solvation(
@@ -1086,6 +1185,9 @@ class CommandControl:
         if "d4" in params and not isinstance(params["d4"], bool):
             cls._log_error(output_path, "D4 must be 'true' or 'false'.")
             raise ValueError("D4 must be 'true' or 'false'.")
+
+        if task == "freq":
+            cls._validate_frequency_params(params, output_path)
 
         if task == "sp":
             if "verbosity" in params:

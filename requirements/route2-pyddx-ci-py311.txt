@@ -4,5 +4,7 @@
 # not belong in this job.
 -r route2-ci-py311.txt
 h5py==3.16.0
-pyddx==0.8.0
+# PyPI publishes pyddx 0.8.0 only as this source archive.  Bind the archive
+# itself so a developer's locally cached wheel cannot silently define CI.
+pyddx @ https://files.pythonhosted.org/packages/9f/ce/aa9c2de936f919fabcd59f1586f5f2c78410d42ef43596cad4f3d07b2212/pyddx-0.8.0.tar.gz#sha256=31a1ddfe72105a0a6843ef2bcda76763cb99bab56d85d844c08e078156201f08
 pyscf==2.13.1

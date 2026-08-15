@@ -110,13 +110,18 @@ def test_public_pyddx_ci_is_exactly_pinned_and_cannot_pass_by_skip():
 
     for pin in (
         "h5py==3.16.0",
-        "pyddx==0.8.0",
         "pyscf==2.13.1",
     ):
         assert pin in requirements
         assert pin.split("==")[1] in workflow
+    assert "pyddx-0.8.0.tar.gz#sha256=" in requirements
+    assert "31a1ddfe72105a0a6843ef2bcda76763cb99bab56d85d844c08e078156201f08" in (
+        requirements
+    )
     assert "requirements/route2-pyddx-ci-py311.txt" in workflow
     assert "python -m venv" in workflow
+    assert "gfortran libblas-dev liblapack-dev" in workflow
+    assert "--no-cache-dir" in workflow
     assert "Install MAPLE without dependency mutation" in workflow
     assert "Verify dependency closure" in workflow
     assert "expected_tests = 29" in workflow

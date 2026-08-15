@@ -48,7 +48,11 @@ its dependency-free algebra and contract tests belong in this job.
 from the selected Python 3.11 runtime and installs the exact PySCF
 2.13.1/pyddx 0.8.0 stack from
 `requirements/route2-pyddx-ci-py311.txt` while proving that unrelated
-Torch/MACE runtimes remain absent. Its 29 version-locked canaries cover the
+Torch/MACE runtimes remain absent. Because PyPI distributes pyddx 0.8.0 only
+as source, the requirements file binds the upstream archive SHA256 and the job
+declares the GNU Fortran/BLAS/LAPACK build toolchain; `--no-cache-dir` prevents
+a developer-built wheel cache from becoming hidden CI provenance. Its 29
+version-locked canaries cover the
 real PySCF solvent/cavity paths, real pyddx energy and coordinate derivatives,
 thread equivalence, and the vNext radial/pair-frame continuum contracts. The
 job parses its JUnit report and fails unless all 29 tests execute with zero

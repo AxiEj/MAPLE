@@ -30,7 +30,7 @@ from maple.solvation.release import (
 )
 from maple.solvation.release.evidence import sha256_file
 
-from aggregate_fixedbox590_pes_panel import _root_record
+from aggregate_fixedbox590_pes_panel import _extended_record, _root_record
 
 SCHEMA_VERSION = "route2-fixedbox590-cartesian-panel-aggregate-v1"
 SHARD_SCHEMA_VERSION = "route2-fixedbox590-cartesian-panel-shard-v1"
@@ -61,24 +61,43 @@ def _runtime_signature(payload: dict[str, object]) -> str:
     )
 
 
-def _load_shards(paths):
+def _load_shards(
+    paths,
+    *,
+    shard_schema_version=SHARD_SCHEMA_VERSION,
+    contract_version=PES_CARTESIAN_PANEL_CONTRACT_VERSION,
+    expected_profile_id=None,
+    expected_scalar_id=None,
+):
     payloads = []
     for raw in paths:
         path = raw.expanduser().resolve(strict=True)
         payload = json.loads(path.read_text(encoding="utf-8"))
         contract = payload.get("panel_contract")
         if (
-            payload.get("schema_version") != SHARD_SCHEMA_VERSION
+            payload.get("schema_version") != shard_schema_version
             or payload.get("capabilities") != CAPABILITIES
             or not isinstance(contract, dict)
-            or contract.get("contract_version")
-            != PES_CARTESIAN_PANEL_CONTRACT_VERSION
+            or contract.get("contract_version") != contract_version
             or contract.get("asset_sha256") != PES_PANEL_ASSET_SHA256
             or contract.get("variant") != PES_CARTESIAN_PANEL_VARIANT
             or tuple(contract.get("cartesian_steps_A", ()))
             != PES_CARTESIAN_PANEL_STEPS_A
         ):
             raise ValueError(f"Unexpected Cartesian-panel shard contract: {path}.")
+        identities = payload.get("identities")
+        if not isinstance(identities, dict):
+            raise ValueError(f"Cartesian shard identity binding is missing: {path}.")
+        if expected_profile_id is not None and (
+            contract.get("profile_id") != expected_profile_id
+            or identities.get("profile_id") != expected_profile_id
+        ):
+            raise ValueError(f"Cartesian shard uses a different profile: {path}.")
+        if expected_scalar_id is not None and (
+            contract.get("scalar_id") != expected_scalar_id
+            or identities.get("scalar_id") != expected_scalar_id
+        ):
+            raise ValueError(f"Cartesian shard uses a different scalar: {path}.")
         expected = canonical_json_sha256(
             {
                 "contract": contract,
@@ -104,7 +123,7 @@ def _load_shards(paths):
     return payloads
 
 
-def _raw_cartesian(record, molecule):
+def _raw_cartesian(record, molecule, *, require_extended_gates=False):
     atoms = panel_geometries(molecule)[PES_CARTESIAN_PANEL_VARIANT]
     if record.get("geometry_sha256") != geometry_sha256(atoms):
         raise ValueError("Cartesian base geometry differs from the frozen asset.")
@@ -173,7 +192,7 @@ def _raw_cartesian(record, molecule):
         }
     )
     root = _root_record(record.get("cold_warm"))
-    return {
+    result = {
         "molecule_id": molecule.molecule_id,
         "variant": PES_CARTESIAN_PANEL_VARIANT,
         "component_count": 3 * len(atoms),
@@ -182,36 +201,76 @@ def _raw_cartesian(record, molecule):
         "maximum_primal_residual": max(maximum_primal, root["maximum_primal_residual"]),
         "adjoint_residual": float(record.get("adjoint_residual")),
     }
+    if require_extended_gates:
+        result.update(_extended_record(record))
+    return result
 
 
-def main() -> None:
-    args = _parse_args()
+def aggregate_cartesian_panel(
+    args: argparse.Namespace,
+    *,
+    schema_version: str = SCHEMA_VERSION,
+    shard_schema_version: str = SHARD_SCHEMA_VERSION,
+    contract_version: str = PES_CARTESIAN_PANEL_CONTRACT_VERSION,
+    expected_profile_id: str | None = None,
+    expected_scalar_id: str | None = None,
+    require_extended_gates: bool = False,
+    verifier_required_paths=(
+        "tools/route2_release/aggregate_fixedbox590_cartesian_panel.py",
+        "maple/solvation/release/pes_panel.py",
+        "maple/solvation/release/pes_validation.py",
+    ),
+    output_marker: str = "ROUTE2_FIXEDBOX590_CARTESIAN_PANEL_AGGREGATE",
+) -> None:
     repository = RepositorySnapshot.capture(Path(__file__).parents[2])
-    shards = _load_shards(args.shard)
+    shards = _load_shards(
+        args.shard,
+        shard_schema_version=shard_schema_version,
+        contract_version=contract_version,
+        expected_profile_id=expected_profile_id,
+        expected_scalar_id=expected_scalar_id,
+    )
     molecules = {item.molecule_id: item for item in load_pes_panel()}
     records = []
     source_hashes = None
     artifact_records = []
     for path, payload in shards:
         artifact_records.append(
-            {"path": str(path), "sha256": sha256_file(path), "bytes": path.stat().st_size}
+            {
+                "path": str(path),
+                "sha256": sha256_file(path),
+                "bytes": path.stat().st_size,
+            }
         )
         current_hashes = payload.get("source_files_sha256")
         if source_hashes is None:
             source_hashes = current_hashes
         elif current_hashes != source_hashes:
-            raise ValueError("Cartesian shards have different source-file hash ledgers.")
+            raise ValueError(
+                "Cartesian shards have different source-file hash ledgers."
+            )
         for raw in payload.get("measurements", ()):
             molecule = molecules.get(str(raw.get("molecule_id")))
             if molecule is None:
                 raise ValueError("Cartesian shard contains an unknown molecule.")
-            records.append(_raw_cartesian(raw, molecule))
+            records.append(
+                _raw_cartesian(
+                    raw, molecule, require_extended_gates=require_extended_gates
+                )
+            )
 
     summary = summarize_cartesian_pes_panel(records)
+    extended_passed = not require_extended_gates or all(
+        record["all_root_multistart_gates_passed"]
+        and record["scalar_identity"]["gate_passed"]
+        and record["domain"]["all_gates_passed"]
+        for record in records
+    )
     first = shards[0][1]
-    if repository.head != first["execution_git_head"] or repository.tree != first[
-        "execution_git_tree"
-    ]:
+    if (
+        repository.head != first["execution_git_head"]
+        or repository.tree != first["execution_git_tree"]
+    ):
         raise RuntimeError(
             "Cartesian aggregator checkout must be the exact shard source tree."
         )
@@ -221,15 +280,11 @@ def main() -> None:
         raise RuntimeError("Cartesian shard sources do not match the exact Git tree.")
     verifier_paths = collect_loaded_repository_sources(
         repository.root,
-        required_paths=(
-            "tools/route2_release/aggregate_fixedbox590_cartesian_panel.py",
-            "maple/solvation/release/pes_panel.py",
-            "maple/solvation/release/pes_validation.py",
-        ),
+        required_paths=verifier_required_paths,
     )
     output = {
-        "schema_version": SCHEMA_VERSION,
-        "status": "pass" if summary["all_gates_passed"] else "fail",
+        "schema_version": schema_version,
+        "status": "pass" if summary["all_gates_passed"] and extended_passed else "fail",
         "claim_boundary": (
             "Independent raw-value recomputation of the preregistered 20-molecule "
             "reference-geometry Cartesian same-scalar panel. This does not itself "
@@ -248,6 +303,11 @@ def main() -> None:
         "verifier_runtime": runtime_record(),
         "input_artifacts": artifact_records,
         "cartesian_panel_summary": summary,
+        "extended_gate_summary": {
+            "required": require_extended_gates,
+            "record_count": len(records),
+            "all_gates_passed": extended_passed,
+        },
     }
     output["aggregate_measurement_sha256"] = canonical_json_sha256(records)
     target = args.output.expanduser().resolve()
@@ -257,7 +317,8 @@ def main() -> None:
     file_record = write_external_json_artifact(repository, target, output)
     repository.assert_unchanged()
     print(
-        "ROUTE2_FIXEDBOX590_CARTESIAN_PANEL_AGGREGATE="
+        output_marker
+        + "="
         + json.dumps(
             {
                 "path": str(target),
@@ -268,8 +329,12 @@ def main() -> None:
             sort_keys=True,
         )
     )
-    if not summary["all_gates_passed"]:
+    if not summary["all_gates_passed"] or not extended_passed:
         sys.exit(2)
+
+
+def main() -> None:
+    aggregate_cartesian_panel(_parse_args())
 
 
 if __name__ == "__main__":

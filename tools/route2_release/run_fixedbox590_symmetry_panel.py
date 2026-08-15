@@ -96,6 +96,8 @@ class _SymmetryRunner:
         *,
         system_builder=build_system_with_model,
         root_context_builder=root_context,
+        cold_warm_record_builder=cold_warm_record,
+        domain_record_builder=None,
         box_length: int = 40,
         contract_version: str = SYMMETRY_PANEL_CONTRACT_VERSION,
     ) -> None:
@@ -106,6 +108,8 @@ class _SymmetryRunner:
         self.box_length = box_length
         self.contract_version = contract_version
         self.root_context_builder = root_context_builder
+        self.cold_warm_record_builder = cold_warm_record_builder
+        self.domain_record_builder = domain_record_builder
         self.primal_options = FixedPointOptions(
             tolerance=1.0e-12,
             max_iterations=max_iterations,
@@ -279,11 +283,15 @@ class _SymmetryRunner:
         warm_forward_work = work(warm_forward)
         warm_reverse_work = work(warm_reverse)
         forward_roots = [
-            cold_warm_record(cold_item[1], warm_item[1], self.scalar, cold_item[0])
+            self.cold_warm_record_builder(
+                cold_item[1], warm_item[1], self.scalar, cold_item[0]
+            )
             for cold_item, warm_item in zip(cold, warm_forward, strict=True)
         ]
         reverse_roots = [
-            cold_warm_record(cold_item[1], warm_item[1], self.scalar, cold_item[0])
+            self.cold_warm_record_builder(
+                cold_item[1], warm_item[1], self.scalar, cold_item[0]
+            )
             for cold_item, warm_item in zip(
                 tuple(reversed(cold)), warm_reverse, strict=True
             )
@@ -294,6 +302,7 @@ class _SymmetryRunner:
             for item in (*forward_roots, *reverse_roots)
         )
         repeat_records = []
+        raw_repeat_records = []
         repeat_pass = True
         for forward_item, reverse_item in zip(
             warm_forward, tuple(reversed(warm_reverse)), strict=True
@@ -322,6 +331,16 @@ class _SymmetryRunner:
                     "gate_passed": passed,
                 }
             )
+            if self.domain_record_builder is not None:
+                raw_repeat_records.append(
+                    {
+                        "geometry_sha256": geometry_sha256(forward_item[0]),
+                        "forward_source": forward_item[1].source_array().tolist(),
+                        "reverse_source": reverse_item[1].source_array().tolist(),
+                        "forward_energy_eV": forward_item[2].scalar.total_energy,
+                        "reverse_energy_eV": reverse_item[2].scalar.total_energy,
+                    }
+                )
         all_evaluations = (*cold, *warm_forward, *warm_reverse)
         raw = {
             "coordinate_names": ["seeded-internal", "orthogonal-radial-internal"],
@@ -349,7 +368,49 @@ class _SymmetryRunner:
             ),
             "topology_hashes": sorted({item[3] for item in all_evaluations}),
         }
+        if self.domain_record_builder is not None:
+            traversals = {
+                "cold_forward": cold,
+                "cold_reverse": tuple(reversed(cold)),
+                "warm_forward": warm_forward,
+                "warm_reverse": warm_reverse,
+            }
+            raw["raw_traversals"] = {
+                name: [
+                    {
+                        "geometry_sha256": geometry_sha256(item[0]),
+                        "positions_A": item[0].positions.tolist(),
+                        "forces_eV_per_A": np.asarray(item[2].forces, dtype=float)
+                        .reshape(len(atoms), 3)
+                        .tolist(),
+                        "primal_residual": item[1].actual_unmixed_residual_norm,
+                        "adjoint_residual": item[2].adjoint.true_residual_norm,
+                        "topology_hash": item[3],
+                    }
+                    for item in values
+                ]
+                for name, values in traversals.items()
+            }
+            raw["raw_warm_repeat_records"] = raw_repeat_records
+            for record, item in zip(forward_roots, cold, strict=True):
+                record["geometry_sha256"] = geometry_sha256(item[0])
+            for record, item in zip(reverse_roots, tuple(reversed(cold)), strict=True):
+                record["geometry_sha256"] = geometry_sha256(item[0])
+            raw["domain_records"] = [
+                {
+                    "geometry_sha256": geometry_sha256(item[0]),
+                    **self.domain_record_builder(self.continuum, item[0]),
+                }
+                for item in cold
+            ]
+            raw["all_domain_gates_passed"] = all(
+                record["all_gates_passed"] for record in raw["domain_records"]
+            )
         summary = summarize_bidirectional_loop_record(raw)
+        if self.domain_record_builder is not None:
+            summary["all_gates_passed"] = bool(
+                summary["all_gates_passed"] and raw["all_domain_gates_passed"]
+            )
         return {**raw, **summary}
 
     def run(self):
@@ -399,6 +460,10 @@ def run_symmetry_panel(
     model_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40],
     system_builder=build_system_with_model,
     root_context_builder=root_context,
+    cold_warm_record_builder=cold_warm_record,
+    identity_record_builder=identity_record,
+    domain_record_builder=None,
+    contract_metadata=None,
     box_length=40,
     output_marker="ROUTE2_FIXEDBOX590_SYMMETRY_PANEL_SHARD",
     artifact_kind="disabled-real-stack-symmetry-loop-panel-shard",
@@ -432,10 +497,12 @@ def run_symmetry_panel(
                 args.max_iterations,
                 system_builder=system_builder,
                 root_context_builder=root_context_builder,
+                cold_warm_record_builder=cold_warm_record_builder,
+                domain_record_builder=domain_record_builder,
                 box_length=box_length,
                 contract_version=contract_version,
             )
-            current = identity_record(
+            current = identity_record_builder(
                 runner.model, runner.continuum, runner.equation, runner.scalar
             )
             if identities is None:
@@ -466,6 +533,7 @@ def run_symmetry_panel(
         "shard_stop": args.molecule_stop,
         "shard_molecule_ids": [item.molecule_id for item in molecules],
         "profile_id": identities["profile_id"],
+        **({} if contract_metadata is None else dict(contract_metadata)),
     }
     payload = {
         "schema_version": schema_version,

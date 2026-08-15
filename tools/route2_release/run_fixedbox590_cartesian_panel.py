@@ -18,7 +18,7 @@ from maple.function.route2_smd_profiles import (
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES,
 )
 from maple.solvation.coupling.adjoint import AdjointOptions
-from maple.solvation.coupling.fixed_point import FixedPointOptions, solve_fixed_point
+from maple.solvation.coupling.fixed_point import FixedPointOptions
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.models import build_official_mace_polar_1_m_radial_gto_adapter
 from maple.solvation.release import (
@@ -49,9 +49,11 @@ from fixedbox590_water_common import (
     state_record,
 )
 from run_fixedbox590_pes_panel import (
+    _ShardRunner,
     _configure_numerical_determinism,
     _warning_records,
 )
+from panel_continuum_identity import continuum_topology_hash
 
 SCHEMA_VERSION = "route2-fixedbox590-cartesian-panel-shard-v1"
 PANEL_ASSET_PATH = "tools/route2_release/data/fixedbox590_pes_panel_v1.json"
@@ -74,50 +76,29 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-class _CartesianShardRunner:
-    def __init__(self, molecule, model, primal_options, adjoint_options) -> None:
-        self.molecule = molecule
-        self.profile, self.model, self.continuum, self.equation, self.scalar = (
-            build_system_with_model(molecule.atoms, model)
-        )
-        self.primal_options = primal_options
-        self.adjoint_options = adjoint_options
-
-    def solve(self, atoms, label: str, initial_y=None):
-        return solve_fixed_point(
-            self.equation,
-            atoms,
-            scalar_id=self.scalar.scalar_id,
-            profile_id=self.scalar.profile_id,
-            scalar_binding=self.scalar,
-            root_context_id=root_context(
-                atoms, label, system_id=self.molecule.molecule_id
-            ),
-            initial_y=initial_y,
-            options=self.primal_options,
-        )
-
+class _CartesianShardRunner(_ShardRunner):
     def run(self) -> dict[str, object]:
         atoms = panel_geometries(self.molecule)[PES_CARTESIAN_PANEL_VARIANT]
         cold = self.solve(atoms, "cartesian-panel/reference")
-        warm = self.solve(
-            atoms,
-            "cartesian-panel/reference",
-            np.full(self.equation.reduced_dimension, 1.0e-3),
-        )
+        warm_states = [
+            self.solve(
+                atoms,
+                "cartesian-panel/reference",
+                np.full(self.equation.reduced_dimension, seed_value),
+            )
+            for seed_value in self.alternate_root_seed_values
+        ]
         gradient = self.scalar.implicit_gradient(
             atoms, cold, adjoint_options=self.adjoint_options
         )
         analytic = np.asarray(gradient.total_coordinate_gradient, dtype=float).reshape(
             len(atoms), 3
         )
-        base_topology = self.continuum.surface_provider.build_state(
-            atoms
-        ).topology_hash
+        base_topology = self.topology_hash_builder(self.continuum, atoms)
         topology_hashes = {base_topology}
         maximum_primal = max(
             cold.actual_unmixed_residual_norm,
-            warm.actual_unmixed_residual_norm,
+            *(warm.actual_unmixed_residual_norm for warm in warm_states),
         )
         raw_steps: list[dict[str, object]] = []
         summary_samples: list[tuple[float, np.ndarray]] = []
@@ -136,21 +117,17 @@ class _CartesianShardRunner:
                         cold.y_array(),
                     )
                     plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)
-                    plus_topology = self.continuum.surface_provider.build_state(
-                        plus
-                    ).topology_hash
+                    plus_topology = self.topology_hash_builder(self.continuum, plus)
                     minus_state = self.solve(
                         minus,
                         f"cartesian/{step}/atom-{atom}/axis-{axis}/minus",
                         cold.y_array(),
                     )
                     minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)
-                    minus_topology = self.continuum.surface_provider.build_state(
-                        minus
-                    ).topology_hash
-                    finite_difference[atom, axis] = (
-                        plus_energy - minus_energy
-                    ) / (2.0 * step)
+                    minus_topology = self.topology_hash_builder(self.continuum, minus)
+                    finite_difference[atom, axis] = (plus_energy - minus_energy) / (
+                        2.0 * step
+                    )
                     maximum_primal = max(
                         maximum_primal,
                         plus_state.actual_unmixed_residual_norm,
@@ -192,21 +169,23 @@ class _CartesianShardRunner:
                 "fixed_topology": len(topology_hashes) == 1,
             }
         )
-        warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
-        root = cold_warm_record(
-            cold,
-            warm,
-            self.scalar,
-            atoms,
-            cold_evaluation=gradient.scalar,
-            warm_evaluation=warm_energy,
-        )
+        root_replays = [
+            self.cold_warm_record_builder(
+                cold,
+                warm,
+                self.scalar,
+                atoms,
+                cold_evaluation=gradient.scalar,
+                warm_evaluation=self.scalar.evaluate_energy_components(atoms, warm.y),
+            )
+            for warm in warm_states
+        ]
         print(
             f"completed Cartesian molecule={self.molecule.molecule_id}",
             file=sys.stderr,
             flush=True,
         )
-        return {
+        record = {
             "molecule_id": self.molecule.molecule_id,
             "source_record_id": self.molecule.source_record_id,
             "chemical_formula": self.molecule.chemical_formula,
@@ -216,10 +195,10 @@ class _CartesianShardRunner:
             "atomic_numbers": atoms.numbers.tolist(),
             "positions_A": atoms.positions.tolist(),
             "geometry_sha256": geometry_sha256(atoms),
-            "cold_state": state_record(
+            "cold_state": self.state_record_builder(
                 cold, self.scalar, atoms, evaluation=gradient.scalar
             ),
-            "cold_warm": root,
+            "cold_warm": root_replays[0],
             "adjoint_residual": gradient.adjoint.true_residual_norm,
             "maximum_primal_residual": maximum_primal,
             "forces_eV_per_A": np.asarray(gradient.forces)
@@ -228,17 +207,43 @@ class _CartesianShardRunner:
             "topology_hash": base_topology,
             "cartesian_force_fd": cartesian,
         }
+        if self.record_root_multistart:
+            record["root_multistart"] = root_replays
+        if self.scalar_identity_builder is not None:
+            record["scalar_identity"] = self.scalar_identity_builder(
+                self.continuum, self.scalar, atoms, cold
+            )
+        if self.domain_record_builder is not None:
+            record["domain"] = self.domain_record_builder(self.continuum, atoms)
+        return record
 
 
-def main() -> None:
-    args = _parse_args()
+def run_cartesian_panel(
+    args: argparse.Namespace,
+    *,
+    schema_version: str = SCHEMA_VERSION,
+    contract_version: str = PES_CARTESIAN_PANEL_CONTRACT_VERSION,
+    required_source_paths=REQUIRED_SOURCE_PATHS,
+    model_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40],
+    system_builder=build_system_with_model,
+    root_context_builder=root_context,
+    state_record_builder=state_record,
+    cold_warm_record_builder=cold_warm_record,
+    identity_record_builder=identity_record,
+    topology_hash_builder=continuum_topology_hash,
+    scalar_identity_builder=None,
+    domain_record_builder=None,
+    alternate_root_seed_values=(1.0e-3,),
+    record_root_multistart: bool = False,
+    contract_metadata=None,
+    box_length: int = 40,
+    output_marker: str = "ROUTE2_FIXEDBOX590_CARTESIAN_PANEL_SHARD",
+    artifact_kind: str = "disabled-real-stack-fixedbox590-cartesian-panel-shard",
+) -> None:
     if (
         type(args.molecule_start) is not int
         or type(args.molecule_stop) is not int
-        or not 0
-        <= args.molecule_start
-        < args.molecule_stop
-        <= PES_PANEL_MOLECULE_COUNT
+        or not 0 <= args.molecule_start < args.molecule_stop <= PES_PANEL_MOLECULE_COUNT
     ):
         raise ValueError("Molecule shard must satisfy 0 <= start < stop <= 20.")
     if not math.isfinite(args.primal_tolerance) or args.primal_tolerance <= 0.0:
@@ -266,15 +271,26 @@ def main() -> None:
         shared_model = build_official_mace_polar_1_m_radial_gto_adapter(
             checkpoint_path=checkpoint,
             device=args.device,
-            long_range_evaluator_profile=(
-                MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40]
-            ),
+            long_range_evaluator_profile=model_evaluator_profile,
         )
         for molecule in molecules:
             runner = _CartesianShardRunner(
-                molecule, shared_model, primal_options, adjoint_options
+                molecule,
+                shared_model,
+                primal_options,
+                adjoint_options,
+                system_builder=system_builder,
+                root_context_builder=root_context_builder,
+                state_record_builder=state_record_builder,
+                cold_warm_record_builder=cold_warm_record_builder,
+                topology_hash_builder=topology_hash_builder,
+                scalar_identity_builder=scalar_identity_builder,
+                domain_record_builder=domain_record_builder,
+                alternate_root_seed_values=alternate_root_seed_values,
+                record_root_multistart=record_root_multistart,
+                box_length=box_length,
             )
-            current_identities = identity_record(
+            current_identities = identity_record_builder(
                 runner.model,
                 runner.continuum,
                 runner.equation,
@@ -290,14 +306,14 @@ def main() -> None:
 
     repository.assert_unchanged()
     source_paths = collect_loaded_repository_sources(
-        repository.root, required_paths=REQUIRED_SOURCE_PATHS
+        repository.root, required_paths=required_source_paths
     )
     source_hashes = committed_source_hashes(
         repository, (*source_paths, PANEL_ASSET_PATH)
     )
     payload: dict[str, object] = {
-        "schema_version": SCHEMA_VERSION,
-        "artifact_kind": "disabled-real-stack-fixedbox590-cartesian-panel-shard",
+        "schema_version": schema_version,
+        "artifact_kind": artifact_kind,
         "status": "diagnostic-shard-success",
         "claim_boundary": (
             "One preregistered shard of the disabled 20-molecule full-Cartesian "
@@ -318,17 +334,16 @@ def main() -> None:
         "dtype": "float64",
         "identities": identities,
         "panel_contract": {
-            "contract_version": PES_CARTESIAN_PANEL_CONTRACT_VERSION,
+            "contract_version": contract_version,
             "asset_sha256": PES_PANEL_ASSET_SHA256,
             "molecule_count": PES_PANEL_MOLECULE_COUNT,
             "variant": PES_CARTESIAN_PANEL_VARIANT,
             "cartesian_steps_A": list(PES_CARTESIAN_PANEL_STEPS_A),
-            "convergence_contract": (
-                "central-order-or-ten-percent-error-plateau-v1"
-            ),
+            "convergence_contract": ("central-order-or-ten-percent-error-plateau-v1"),
             "shard_start": args.molecule_start,
             "shard_stop": args.molecule_stop,
             "shard_molecule_ids": [item.molecule_id for item in molecules],
+            **({} if contract_metadata is None else dict(contract_metadata)),
         },
         "measurements": records,
         "warnings": _warning_records(captured_warnings),
@@ -354,7 +369,8 @@ def main() -> None:
     file_record = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
     print(
-        "ROUTE2_FIXEDBOX590_CARTESIAN_PANEL_SHARD="
+        output_marker
+        + "="
         + json.dumps(
             {
                 "artifact": file_record,
@@ -367,6 +383,10 @@ def main() -> None:
             sort_keys=True,
         )
     )
+
+
+def main() -> None:
+    run_cartesian_panel(_parse_args())
 
 
 if __name__ == "__main__":

@@ -59,6 +59,7 @@ from fixedbox590_water_common import (
     root_context,
     state_record,
 )
+from panel_continuum_identity import continuum_topology_hash
 
 SCHEMA_VERSION = "route2-fixedbox590-pes-panel-shard-v1"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
@@ -138,13 +139,39 @@ class _ShardRunner:
         model,
         primal_options: FixedPointOptions,
         adjoint_options: AdjointOptions,
+        *,
+        system_builder=build_system_with_model,
+        root_context_builder=root_context,
+        state_record_builder=state_record,
+        cold_warm_record_builder=cold_warm_record,
+        topology_hash_builder=continuum_topology_hash,
+        scalar_identity_builder=None,
+        domain_record_builder=None,
+        alternate_root_seed_values=(1.0e-3,),
+        record_root_multistart: bool = False,
+        box_length: int = 40,
     ) -> None:
         self.molecule = molecule
         self.profile, self.model, self.continuum, self.equation, self.scalar = (
-            build_system_with_model(molecule.atoms, model)
+            system_builder(molecule.atoms, model)
         )
         self.primal_options = primal_options
         self.adjoint_options = adjoint_options
+        self.root_context_builder = root_context_builder
+        self.state_record_builder = state_record_builder
+        self.cold_warm_record_builder = cold_warm_record_builder
+        self.topology_hash_builder = topology_hash_builder
+        self.scalar_identity_builder = scalar_identity_builder
+        self.domain_record_builder = domain_record_builder
+        self.alternate_root_seed_values = tuple(
+            float(value) for value in alternate_root_seed_values
+        )
+        self.record_root_multistart = bool(record_root_multistart)
+        if not self.alternate_root_seed_values or any(
+            not math.isfinite(value) for value in self.alternate_root_seed_values
+        ):
+            raise ValueError("alternate_root_seed_values must be finite and non-empty.")
+        self.box_length = box_length
 
     def solve(self, atoms, label: str, initial_y=None):
         return solve_fixed_point(
@@ -153,9 +180,10 @@ class _ShardRunner:
             scalar_id=self.scalar.scalar_id,
             profile_id=self.scalar.profile_id,
             scalar_binding=self.scalar,
-            root_context_id=root_context(
+            root_context_id=self.root_context_builder(
                 atoms,
                 label,
+                box_length=self.box_length,
                 system_id=self.molecule.molecule_id,
             ),
             initial_y=initial_y,
@@ -170,9 +198,7 @@ class _ShardRunner:
         samples: list[tuple[float, float, float]] = []
         displaced: list[dict[str, object]] = []
         maximum_primal = state.actual_unmixed_residual_norm
-        topology_hashes = {
-            self.continuum.surface_provider.build_state(atoms).topology_hash
-        }
+        topology_hashes = {self.topology_hash_builder(self.continuum, atoms)}
         plus_seed = state.y_array()
         minus_seed = state.y_array()
         for step in PES_PANEL_DIRECTIONAL_STEPS_A:
@@ -189,18 +215,14 @@ class _ShardRunner:
             # continuum factorization is still cached. Solving minus first and
             # returning to plus would rebuild the same geometry unnecessarily.
             plus_energy = self.scalar.evaluate_energy(plus, plus_state.y)
-            plus_topology = self.continuum.surface_provider.build_state(
-                plus
-            ).topology_hash
+            plus_topology = self.topology_hash_builder(self.continuum, plus)
             minus_state = self.solve(
                 minus,
                 f"{label}/{name}/{step}/minus",
                 minus_seed,
             )
             minus_energy = self.scalar.evaluate_energy(minus, minus_state.y)
-            minus_topology = self.continuum.surface_provider.build_state(
-                minus
-            ).topology_hash
+            minus_topology = self.topology_hash_builder(self.continuum, minus)
             maximum_primal = max(
                 maximum_primal,
                 plus_state.actual_unmixed_residual_norm,
@@ -240,36 +262,38 @@ class _ShardRunner:
         return result
 
     def run(self) -> list[dict[str, object]]:
-        from fixedbox590_water_path import GradientEvaluation
-
         records: list[dict[str, object]] = []
         for variant, atoms in panel_geometries(self.molecule).items():
             cold = self.solve(atoms, f"panel/{variant}")
-            warm_seed = np.full(self.equation.reduced_dimension, 1.0e-3)
-            warm = self.solve(atoms, f"panel/{variant}", warm_seed)
             gradient = self.scalar.implicit_gradient(
                 atoms, cold, adjoint_options=self.adjoint_options
             )
-            topology = self.continuum.build_state(
-                atoms, cold.source
-            ).surface.topology_hash
-            evaluation = GradientEvaluation(atoms.copy(), cold, gradient, topology)
-            warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
-            root = cold_warm_record(
-                cold,
-                warm,
-                self.scalar,
-                atoms,
-                cold_evaluation=gradient.scalar,
-                warm_evaluation=warm_energy,
-            )
+            topology = self.topology_hash_builder(self.continuum, atoms)
+            root_replays = []
+            warm_states = []
+            for seed_value in self.alternate_root_seed_values:
+                warm_seed = np.full(self.equation.reduced_dimension, seed_value)
+                warm = self.solve(atoms, f"panel/{variant}", warm_seed)
+                warm_states.append(warm)
+                warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
+                root_replays.append(
+                    self.cold_warm_record_builder(
+                        cold,
+                        warm,
+                        self.scalar,
+                        atoms,
+                        cold_evaluation=gradient.scalar,
+                        warm_evaluation=warm_energy,
+                    )
+                )
+            root = root_replays[0]
             directions = panel_directions(atoms, self.molecule.molecule_id)
             directional = {
                 name: self.direction_record(
                     atoms,
                     f"panel/{variant}",
-                    evaluation.state,
-                    evaluation.gradient.total_coordinate_gradient,
+                    cold,
+                    gradient.total_coordinate_gradient,
                     name,
                     directions[name],
                 )
@@ -277,32 +301,39 @@ class _ShardRunner:
             }
             maximum_primal = max(
                 cold.actual_unmixed_residual_norm,
-                warm.actual_unmixed_residual_norm,
+                *(warm.actual_unmixed_residual_norm for warm in warm_states),
                 *(record["maximum_primal_residual"] for record in directional.values()),
             )
-            records.append(
-                {
-                    "molecule_id": self.molecule.molecule_id,
-                    "source_record_id": self.molecule.source_record_id,
-                    "chemical_formula": self.molecule.chemical_formula,
-                    "scope_tags": list(self.molecule.scope_tags),
-                    "variant": variant,
-                    "atomic_numbers": atoms.numbers.tolist(),
-                    "positions_A": atoms.positions.tolist(),
-                    "geometry_sha256": geometry_sha256(atoms),
-                    "cold_state": state_record(
-                        cold, self.scalar, atoms, evaluation=gradient.scalar
-                    ),
-                    "cold_warm": root,
-                    "adjoint_residual": gradient.adjoint.true_residual_norm,
-                    "maximum_primal_residual": maximum_primal,
-                    "forces_eV_per_A": np.asarray(gradient.forces)
-                    .reshape(len(atoms), 3)
-                    .tolist(),
-                    "topology_hash": topology,
-                    "directional_force_fd": directional,
-                }
-            )
+            record = {
+                "molecule_id": self.molecule.molecule_id,
+                "source_record_id": self.molecule.source_record_id,
+                "chemical_formula": self.molecule.chemical_formula,
+                "scope_tags": list(self.molecule.scope_tags),
+                "variant": variant,
+                "atomic_numbers": atoms.numbers.tolist(),
+                "positions_A": atoms.positions.tolist(),
+                "geometry_sha256": geometry_sha256(atoms),
+                "cold_state": self.state_record_builder(
+                    cold, self.scalar, atoms, evaluation=gradient.scalar
+                ),
+                "cold_warm": root,
+                "adjoint_residual": gradient.adjoint.true_residual_norm,
+                "maximum_primal_residual": maximum_primal,
+                "forces_eV_per_A": np.asarray(gradient.forces)
+                .reshape(len(atoms), 3)
+                .tolist(),
+                "topology_hash": topology,
+                "directional_force_fd": directional,
+            }
+            if self.record_root_multistart:
+                record["root_multistart"] = root_replays
+            if self.scalar_identity_builder is not None:
+                record["scalar_identity"] = self.scalar_identity_builder(
+                    self.continuum, self.scalar, atoms, cold
+                )
+            if self.domain_record_builder is not None:
+                record["domain"] = self.domain_record_builder(self.continuum, atoms)
+            records.append(record)
             print(
                 f"completed molecule={self.molecule.molecule_id} variant={variant}",
                 file=sys.stderr,
@@ -313,14 +344,20 @@ class _ShardRunner:
     def path_point_record(self, point, previous_y=None):
         atoms = point.atoms
         cold = self.solve(atoms, f"path/{point.path_name}/{point.point_label}")
-        warm_seed = (
-            np.full(self.equation.reduced_dimension, 1.0e-3)
-            if previous_y is None
-            else previous_y
-        )
-        warm = self.solve(
-            atoms, f"path/{point.path_name}/{point.point_label}", warm_seed
-        )
+        warm_seeds = [
+            np.full(self.equation.reduced_dimension, value)
+            for value in self.alternate_root_seed_values
+        ]
+        if previous_y is not None:
+            warm_seeds[0] = np.asarray(previous_y, dtype=float)
+        warm_states = [
+            self.solve(
+                atoms,
+                f"path/{point.path_name}/{point.point_label}",
+                warm_seed,
+            )
+            for warm_seed in warm_seeds
+        ]
         gradient = self.scalar.implicit_gradient(
             atoms, cold, adjoint_options=self.adjoint_options
         )
@@ -339,7 +376,7 @@ class _ShardRunner:
                 tangent,
             )
         )
-        topology = self.continuum.surface_provider.build_state(atoms).topology_hash
+        topology = self.topology_hash_builder(self.continuum, atoms)
         local_force = self.direction_record(
             atoms,
             f"path/{point.path_name}/{point.point_label}",
@@ -348,54 +385,83 @@ class _ShardRunner:
             "coordinate-tangent",
             unit_direction,
         )
-        warm_energy = self.scalar.evaluate_energy_components(atoms, warm.y)
-        return (
-            {
-                "path_name": point.path_name,
-                "molecule_id": point.molecule_id,
-                "point_label": point.point_label,
-                "coordinate_name": point.coordinate_name,
-                "coordinate_value": point.coordinate_value,
-                "coordinate_unit": point.coordinate_unit,
-                "scope_tags": list(point.scope_tags),
-                "atomic_numbers": atoms.numbers.tolist(),
-                "positions_A": atoms.positions.tolist(),
-                "geometry_sha256": geometry_sha256(atoms),
-                "cold_state": state_record(
-                    cold, self.scalar, atoms, evaluation=gradient.scalar
-                ),
-                "cold_warm": cold_warm_record(
-                    cold,
-                    warm,
-                    self.scalar,
-                    atoms,
-                    cold_evaluation=gradient.scalar,
-                    warm_evaluation=warm_energy,
-                ),
-                "energy_eV": gradient.scalar.total_energy,
-                "forces_eV_per_A": np.asarray(gradient.forces)
-                .reshape(len(atoms), 3)
-                .tolist(),
-                "coordinate_tangent_A_per_coordinate_unit": tangent.tolist(),
-                "coordinate_tangent_norm_A_per_coordinate_unit": tangent_norm,
-                "analytic_coordinate_derivative_eV_per_coordinate_unit": (
-                    analytic_derivative
-                ),
-                "normalized_cartesian_direction": unit_direction.tolist(),
-                "local_tangent_force_fd": local_force,
-                "maximum_primal_residual": max(
-                    cold.actual_unmixed_residual_norm,
-                    warm.actual_unmixed_residual_norm,
-                ),
-                "adjoint_residual": gradient.adjoint.true_residual_norm,
-                "topology_hash": topology,
-            },
-            cold.y_array(),
-        )
+        root_replays = [
+            self.cold_warm_record_builder(
+                cold,
+                warm,
+                self.scalar,
+                atoms,
+                cold_evaluation=gradient.scalar,
+                warm_evaluation=self.scalar.evaluate_energy_components(atoms, warm.y),
+            )
+            for warm in warm_states
+        ]
+        record = {
+            "path_name": point.path_name,
+            "molecule_id": point.molecule_id,
+            "point_label": point.point_label,
+            "coordinate_name": point.coordinate_name,
+            "coordinate_value": point.coordinate_value,
+            "coordinate_unit": point.coordinate_unit,
+            "scope_tags": list(point.scope_tags),
+            "atomic_numbers": atoms.numbers.tolist(),
+            "positions_A": atoms.positions.tolist(),
+            "geometry_sha256": geometry_sha256(atoms),
+            "cold_state": self.state_record_builder(
+                cold, self.scalar, atoms, evaluation=gradient.scalar
+            ),
+            "cold_warm": root_replays[0],
+            "energy_eV": gradient.scalar.total_energy,
+            "forces_eV_per_A": np.asarray(gradient.forces)
+            .reshape(len(atoms), 3)
+            .tolist(),
+            "coordinate_tangent_A_per_coordinate_unit": tangent.tolist(),
+            "coordinate_tangent_norm_A_per_coordinate_unit": tangent_norm,
+            "analytic_coordinate_derivative_eV_per_coordinate_unit": (
+                analytic_derivative
+            ),
+            "normalized_cartesian_direction": unit_direction.tolist(),
+            "local_tangent_force_fd": local_force,
+            "maximum_primal_residual": max(
+                cold.actual_unmixed_residual_norm,
+                *(warm.actual_unmixed_residual_norm for warm in warm_states),
+            ),
+            "adjoint_residual": gradient.adjoint.true_residual_norm,
+            "topology_hash": topology,
+        }
+        if self.record_root_multistart:
+            record["root_multistart"] = root_replays
+        if self.scalar_identity_builder is not None:
+            record["scalar_identity"] = self.scalar_identity_builder(
+                self.continuum, self.scalar, atoms, cold
+            )
+        if self.domain_record_builder is not None:
+            record["domain"] = self.domain_record_builder(self.continuum, atoms)
+        return record, cold.y_array()
 
 
-def main() -> None:
-    args = _parse_args()
+def run_pes_panel(
+    args: argparse.Namespace,
+    *,
+    schema_version: str = SCHEMA_VERSION,
+    contract_version: str = PES_PANEL_CONTRACT_VERSION,
+    required_source_paths=REQUIRED_SOURCE_PATHS,
+    model_evaluator_profile=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40],
+    system_builder=build_system_with_model,
+    root_context_builder=root_context,
+    state_record_builder=state_record,
+    cold_warm_record_builder=cold_warm_record,
+    identity_record_builder=identity_record,
+    topology_hash_builder=continuum_topology_hash,
+    scalar_identity_builder=None,
+    domain_record_builder=None,
+    alternate_root_seed_values=(1.0e-3,),
+    record_root_multistart: bool = False,
+    contract_metadata=None,
+    box_length: int = 40,
+    output_marker: str = "ROUTE2_FIXEDBOX590_PES_PANEL_SHARD",
+    artifact_kind: str = "disabled-real-stack-fixedbox590-pes-panel-shard",
+) -> None:
     if (
         type(args.molecule_start) is not int
         or type(args.molecule_stop) is not int
@@ -431,9 +497,7 @@ def main() -> None:
         shared_model = build_official_mace_polar_1_m_radial_gto_adapter(
             checkpoint_path=checkpoint,
             device=args.device,
-            long_range_evaluator_profile=(
-                MACEPOL_FORCED_RECIPROCAL_FIXED_BOX_PROFILES[40]
-            ),
+            long_range_evaluator_profile=model_evaluator_profile,
         )
         for molecule in molecules:
             runner = _ShardRunner(
@@ -441,8 +505,18 @@ def main() -> None:
                 shared_model,
                 primal_options,
                 adjoint_options,
+                system_builder=system_builder,
+                root_context_builder=root_context_builder,
+                state_record_builder=state_record_builder,
+                cold_warm_record_builder=cold_warm_record_builder,
+                topology_hash_builder=topology_hash_builder,
+                scalar_identity_builder=scalar_identity_builder,
+                domain_record_builder=domain_record_builder,
+                alternate_root_seed_values=alternate_root_seed_values,
+                record_root_multistart=record_root_multistart,
+                box_length=box_length,
             )
-            current_identities = identity_record(
+            current_identities = identity_record_builder(
                 runner.model,
                 runner.continuum,
                 runner.equation,
@@ -472,7 +546,7 @@ def main() -> None:
 
     repository.assert_unchanged()
     source_paths = collect_loaded_repository_sources(
-        repository.root, required_paths=REQUIRED_SOURCE_PATHS
+        repository.root, required_paths=required_source_paths
     )
     # collect_loaded_repository_sources intentionally accepts only Python
     # sources. Bind the frozen JSON geometry asset separately as an exact Git
@@ -481,8 +555,8 @@ def main() -> None:
         repository, (*source_paths, PANEL_ASSET_PATH)
     )
     payload: dict[str, object] = {
-        "schema_version": SCHEMA_VERSION,
-        "artifact_kind": "disabled-real-stack-fixedbox590-pes-panel-shard",
+        "schema_version": schema_version,
+        "artifact_kind": artifact_kind,
         "status": "diagnostic-shard-success",
         "claim_boundary": (
             "One preregistered shard of the disabled 20-molecule same-scalar PES "
@@ -503,7 +577,7 @@ def main() -> None:
         "dtype": "float64",
         "identities": identities,
         "panel_contract": {
-            "contract_version": PES_PANEL_CONTRACT_VERSION,
+            "contract_version": contract_version,
             "asset_sha256": PES_PANEL_ASSET_SHA256,
             "molecule_count": PES_PANEL_MOLECULE_COUNT,
             "variant_names": list(PES_PANEL_VARIANT_NAMES),
@@ -513,6 +587,7 @@ def main() -> None:
             "shard_start": args.molecule_start,
             "shard_stop": args.molecule_stop,
             "shard_molecule_ids": [item.molecule_id for item in molecules],
+            **({} if contract_metadata is None else dict(contract_metadata)),
         },
         "measurements": records,
         "path_measurements": path_records,
@@ -538,7 +613,8 @@ def main() -> None:
     file_record = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
     print(
-        "ROUTE2_FIXEDBOX590_PES_PANEL_SHARD="
+        output_marker
+        + "="
         + json.dumps(
             {
                 "artifact": file_record,
@@ -551,6 +627,10 @@ def main() -> None:
             sort_keys=True,
         )
     )
+
+
+def main() -> None:
+    run_pes_panel(_parse_args())
 
 
 if __name__ == "__main__":

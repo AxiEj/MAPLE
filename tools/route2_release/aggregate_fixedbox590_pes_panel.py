@@ -101,7 +101,7 @@ def _raw_direction(record, atoms, direction, topology_hash, analytic):
     return recomputed
 
 
-def _root_record(record):
+def _root_record(record, *, require_field_gate: bool = False):
     cold = record.get("cold")
     warm = record.get("warm")
     if not isinstance(cold, dict) or not isinstance(warm, dict):
@@ -127,6 +127,12 @@ def _root_record(record):
         float(np.linalg.norm(warm_source)),
         1.0e-15,
     )
+    field_difference = float(np.linalg.norm(cold_field - warm_field))
+    field_relative = field_difference / max(
+        float(np.linalg.norm(cold_field)),
+        float(np.linalg.norm(warm_field)),
+        1.0e-15,
+    )
     energy_difference = abs(
         float(cold.get("total_energy_eV")) - float(warm.get("total_energy_eV"))
     )
@@ -137,38 +143,67 @@ def _root_record(record):
         for value in (energy_difference, cold_residual, warm_residual)
     ):
         raise ValueError("Cold/warm energies and residuals must be finite.")
-    return {
+    gates = {
+        "source_relative_le_1e-8": source_relative <= 1.0e-8,
+        "energy_le_1e-8_eV": energy_difference <= 1.0e-8,
+    }
+    if require_field_gate:
+        gates["field_relative_le_1e-8"] = field_relative <= 1.0e-8
+    result = {
         "numerically_equivalent": (
             source_relative <= 1.0e-8 and energy_difference <= 1.0e-8
         ),
         "source_l2_difference": source_difference,
         "source_relative_difference": source_relative,
-        "field_l2_difference": float(np.linalg.norm(cold_field - warm_field)),
+        "field_l2_difference": field_difference,
         "energy_abs_difference_eV": energy_difference,
         "maximum_primal_residual": max(cold_residual, warm_residual),
-        "gates": {
-            "source_relative_le_1e-8": source_relative <= 1.0e-8,
-            "energy_le_1e-8_eV": energy_difference <= 1.0e-8,
-        },
+        "gates": gates,
     }
+    if require_field_gate:
+        result["field_relative_difference"] = field_relative
+        result["numerically_equivalent"] = bool(
+            result["numerically_equivalent"] and field_relative <= 1.0e-8
+        )
+    return result
 
 
-def _load_shards(paths):
+def _load_shards(
+    paths,
+    *,
+    shard_schema_version=SHARD_SCHEMA_VERSION,
+    contract_version=PES_PANEL_CONTRACT_VERSION,
+    expected_profile_id=None,
+    expected_scalar_id=None,
+):
     payloads = []
     for raw in paths:
         path = raw.expanduser().resolve(strict=True)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        if payload.get("schema_version") != SHARD_SCHEMA_VERSION:
+        if payload.get("schema_version") != shard_schema_version:
             raise ValueError(f"Unexpected shard schema: {path}.")
         if payload.get("capabilities") != CAPABILITIES:
             raise ValueError(f"Shard capabilities are not all false: {path}.")
         contract = payload.get("panel_contract")
         if (
             not isinstance(contract, dict)
-            or contract.get("contract_version") != PES_PANEL_CONTRACT_VERSION
+            or contract.get("contract_version") != contract_version
             or contract.get("asset_sha256") != PES_PANEL_ASSET_SHA256
         ):
             raise ValueError(f"Shard uses a different PES-panel contract: {path}.")
+        identities = payload.get("identities")
+        if not isinstance(identities, dict):
+            raise ValueError(f"Shard identity binding is missing: {path}.")
+        if expected_profile_id is not None and (
+            contract.get("profile_id") != expected_profile_id
+            or identities.get("profile_id") != expected_profile_id
+        ):
+            raise ValueError(f"Shard uses a different profile: {path}.")
+        if expected_scalar_id is not None and (
+            contract.get("scalar_id") != expected_scalar_id
+            or identities.get("scalar_id") != expected_scalar_id
+        ):
+            raise ValueError(f"Shard uses a different scalar: {path}.")
         expected_measurement_sha256 = canonical_json_sha256(
             {
                 "contract": payload["panel_contract"],
@@ -213,10 +248,84 @@ def _load_shards(paths):
     return payloads
 
 
-def main() -> None:
-    args = _parse_args()
+def _extended_record(raw):
+    roots = raw.get("root_multistart")
+    if not isinstance(roots, list) or len(roots) < 2:
+        raise ValueError("Extended PES evidence requires at least two alternate roots.")
+    recomputed_roots = [
+        _root_record(record, require_field_gate=True) for record in roots
+    ]
+    scalar_identity = raw.get("scalar_identity")
+    domain = raw.get("domain")
+    if not isinstance(scalar_identity, dict) or not isinstance(domain, dict):
+        raise ValueError("Extended PES scalar/domain evidence is missing.")
+    scalar_error = float(scalar_identity.get("absolute_error_eV"))
+    missing_block = float(scalar_identity.get("missing_radial_block_max_abs"))
+    domain_values = tuple(
+        float(domain.get(name))
+        for name in (
+            "minimum_center_distance_A",
+            "minimum_relative_basis_singular_value",
+            "surface_minimum_eigenvalue",
+            "surface_condition_number",
+        )
+    )
+    if not all(
+        np.isfinite(value) for value in (scalar_error, missing_block, *domain_values)
+    ):
+        raise ValueError("Extended PES scalar/domain values must be finite.")
+    domain_gates = {
+        "distinct_centres": domain_values[0] > 0.0,
+        "relative_basis_singular_value_gt_1e-10": domain_values[1] > 1.0e-10,
+        "surface_minimum_eigenvalue_gt_1e-12": domain_values[2] > 1.0e-12,
+        "surface_condition_number_le_1e12": domain_values[3] <= 1.0e12,
+    }
+    return {
+        "root_multistart": recomputed_roots,
+        "all_root_multistart_gates_passed": all(
+            record["numerically_equivalent"] and all(record["gates"].values())
+            for record in recomputed_roots
+        ),
+        "scalar_identity": {
+            "absolute_error_eV": scalar_error,
+            "missing_radial_block_max_abs": missing_block,
+            "gate_passed": scalar_error <= 1.0e-10 and missing_block <= 1.0e-8,
+        },
+        "domain": {
+            "minimum_center_distance_A": domain_values[0],
+            "minimum_relative_basis_singular_value": domain_values[1],
+            "surface_minimum_eigenvalue": domain_values[2],
+            "surface_condition_number": domain_values[3],
+            "gates": domain_gates,
+            "all_gates_passed": all(domain_gates.values()),
+        },
+    }
+
+
+def aggregate_pes_panel(
+    args: argparse.Namespace,
+    *,
+    schema_version: str = SCHEMA_VERSION,
+    shard_schema_version: str = SHARD_SCHEMA_VERSION,
+    contract_version: str = PES_PANEL_CONTRACT_VERSION,
+    expected_profile_id: str | None = None,
+    expected_scalar_id: str | None = None,
+    require_extended_gates: bool = False,
+    verifier_required_paths=(
+        "tools/route2_release/aggregate_fixedbox590_pes_panel.py",
+        "maple/solvation/release/pes_panel.py",
+        "maple/solvation/release/pes_validation.py",
+    ),
+    output_marker: str = "ROUTE2_FIXEDBOX590_PES_PANEL_AGGREGATE",
+) -> None:
     repository = RepositorySnapshot.capture(Path(__file__).parents[2])
-    shards = _load_shards(args.shard)
+    shards = _load_shards(
+        args.shard,
+        shard_schema_version=shard_schema_version,
+        contract_version=contract_version,
+        expected_profile_id=expected_profile_id,
+        expected_scalar_id=expected_scalar_id,
+    )
     base_records = []
     path_records = []
     source_hashes = None
@@ -267,19 +376,20 @@ def main() -> None:
                 float(raw["maximum_primal_residual"]),
                 *(record["maximum_primal_residual"] for record in directional.values()),
             )
-            base_records.append(
-                {
-                    "molecule_id": molecule.molecule_id,
-                    "variant": variant,
-                    "directional_force_fd": directional,
-                    "cold_warm": (root := _root_record(raw["cold_warm"])),
-                    "topology_hash": raw["topology_hash"],
-                    "maximum_primal_residual": max(
-                        maximum_primal, root["maximum_primal_residual"]
-                    ),
-                    "adjoint_residual": float(raw["adjoint_residual"]),
-                }
-            )
+            base_record = {
+                "molecule_id": molecule.molecule_id,
+                "variant": variant,
+                "directional_force_fd": directional,
+                "cold_warm": (root := _root_record(raw["cold_warm"])),
+                "topology_hash": raw["topology_hash"],
+                "maximum_primal_residual": max(
+                    maximum_primal, root["maximum_primal_residual"]
+                ),
+                "adjoint_residual": float(raw["adjoint_residual"]),
+            }
+            if require_extended_gates:
+                base_record.update(_extended_record(raw))
+            base_records.append(base_record)
         for raw in payload.get("path_measurements", ()):
             key = (str(raw.get("path_name")), str(raw.get("point_label")))
             point = frozen_paths.get(key)
@@ -305,37 +415,47 @@ def main() -> None:
                 float(np.vdot(gradient, unit_direction)),
             )
             root = _root_record(raw["cold_warm"])
-            path_records.append(
-                {
-                    **{
-                        name: raw[name]
-                        for name in (
-                            "path_name",
-                            "molecule_id",
-                            "point_label",
-                            "coordinate_name",
-                            "coordinate_value",
-                            "coordinate_unit",
-                            "geometry_sha256",
-                            "energy_eV",
-                            "topology_hash",
-                            "adjoint_residual",
-                        )
-                    },
-                    "cold_warm": root,
-                    "maximum_primal_residual": max(
-                        float(raw["maximum_primal_residual"]),
-                        local["maximum_primal_residual"],
-                        root["maximum_primal_residual"],
-                    ),
-                    "local_tangent_force_fd": local,
-                }
-            )
+            path_record = {
+                **{
+                    name: raw[name]
+                    for name in (
+                        "path_name",
+                        "molecule_id",
+                        "point_label",
+                        "coordinate_name",
+                        "coordinate_value",
+                        "coordinate_unit",
+                        "geometry_sha256",
+                        "energy_eV",
+                        "topology_hash",
+                        "adjoint_residual",
+                    )
+                },
+                "cold_warm": root,
+                "maximum_primal_residual": max(
+                    float(raw["maximum_primal_residual"]),
+                    local["maximum_primal_residual"],
+                    root["maximum_primal_residual"],
+                ),
+                "local_tangent_force_fd": local,
+            }
+            if require_extended_gates:
+                path_record.update(_extended_record(raw))
+            path_records.append(path_record)
 
     panel_summary = summarize_pes_panel(base_records)
     path_summary = summarize_pes_paths(path_records)
-    aggregate_passed = (
-        panel_summary["all_gates_passed"] and path_summary["all_gates_passed"]
+    extended_records = (*base_records, *path_records)
+    extended_passed = not require_extended_gates or all(
+        record["all_root_multistart_gates_passed"]
+        and record["scalar_identity"]["gate_passed"]
+        and record["domain"]["all_gates_passed"]
+        for record in extended_records
+    )
+    aggregate_passed = bool(
+        panel_summary["all_gates_passed"]
+        and path_summary["all_gates_passed"]
+        and extended_passed
     )
     first_payload = shards[0][1]
     if (
@@ -352,15 +472,11 @@ def main() -> None:
         raise RuntimeError("Shard source-file hashes do not match the exact Git tree.")
     verifier_paths = collect_loaded_repository_sources(
         repository.root,
-        required_paths=(
-            "tools/route2_release/aggregate_fixedbox590_pes_panel.py",
-            "maple/solvation/release/pes_panel.py",
-            "maple/solvation/release/pes_validation.py",
-        ),
+        required_paths=verifier_required_paths,
     )
     verifier_hashes = committed_source_hashes(repository, verifier_paths)
     output = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": schema_version,
         "status": "pass" if aggregate_passed else "fail",
         "claim_boundary": (
             "Independent raw-value recomputation of the preregistered same-scalar "
@@ -378,6 +494,11 @@ def main() -> None:
         "input_artifacts": artifact_records,
         "panel_summary": panel_summary,
         "path_summary": path_summary,
+        "extended_gate_summary": {
+            "required": require_extended_gates,
+            "record_count": len(extended_records),
+            "all_gates_passed": extended_passed,
+        },
     }
     output["aggregate_measurement_sha256"] = canonical_json_sha256(
         {"base": base_records, "paths": path_records}
@@ -389,7 +510,8 @@ def main() -> None:
     file_record = write_external_json_artifact(repository, target, output)
     repository.assert_unchanged()
     print(
-        "ROUTE2_FIXEDBOX590_PES_PANEL_AGGREGATE="
+        output_marker
+        + "="
         + json.dumps(
             {
                 "path": str(target),
@@ -402,6 +524,10 @@ def main() -> None:
     )
     if not aggregate_passed:
         sys.exit(2)
+
+
+def main() -> None:
+    aggregate_pes_panel(_parse_args())
 
 
 if __name__ == "__main__":

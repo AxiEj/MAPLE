@@ -44,8 +44,9 @@ uploads the raw pytest log, sorted `pip freeze --all`, runtime manifest, and
 their checksums for every run, including failures. As the new package grows,
 its dependency-free algebra and contract tests belong in this job.
 
-`route2-pyddx.yml` is the public optional-runtime job. It installs the exact
-Python 3.11 PySCF 2.13.1/pyddx 0.8.0 stack from
+`route2-pyddx.yml` is the public optional-runtime job. It creates a fresh venv
+from the selected Python 3.11 runtime and installs the exact PySCF
+2.13.1/pyddx 0.8.0 stack from
 `requirements/route2-pyddx-ci-py311.txt` while proving that unrelated
 Torch/MACE runtimes remain absent. Its 29 version-locked canaries cover the
 real PySCF solvent/cavity paths, real pyddx energy and coordinate derivatives,

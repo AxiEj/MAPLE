@@ -33,13 +33,20 @@ jobs:
           cache-dependency-path: |
             requirements/route2-ci-py311.txt
             requirements/route2-pyddx-ci-py311.txt
-      - name: Install pinned public optional runtime
+      - name: Create isolated optional-runtime environment
         shell: bash
         run: |
-          python -m pip install --disable-pip-version-check \
-            -r requirements/route2-pyddx-ci-py311.txt
-          python -m pip install --disable-pip-version-check --no-deps -e .
-          python -m pip check
+          python -m venv "$RUNNER_TEMP/route2-pyddx-venv"
+          echo "$RUNNER_TEMP/route2-pyddx-venv/bin" >> "$GITHUB_PATH"
+      - name: Install pinned public optional dependencies
+        shell: bash
+        run: python -m pip install --disable-pip-version-check -r requirements/route2-pyddx-ci-py311.txt
+      - name: Install MAPLE without dependency mutation
+        shell: bash
+        run: python -m pip install --disable-pip-version-check --no-deps -e .
+      - name: Verify dependency closure
+        shell: bash
+        run: python -m pip check
       - name: Verify exact runtime identity and isolation
         shell: bash
         run: |

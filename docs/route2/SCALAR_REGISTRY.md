@@ -152,6 +152,27 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 - Full contract and literature boundary:
   [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).
 
+## `route2-diagnostic-aimnet2-geometry-mediated-smoothharmonicgalerkin-ddpcm-electrostatic-v1`
+
+- Formula: `E_AIMNet2(R)-1/2 b(R)^T x(R)`, with `b=S(R)c_A(R)`,
+  `M f=b`, `R_eps phi_eps=R_inf f`, and `A x=M phi_eps`.
+- `R_eps=2*pi*(eps+1)/(eps-1) M-D` and `R_inf=2*pi M-D`; `D` is the
+  outward-source-normal Laplace double-layer principal-value Galerkin matrix.
+- Included: explicit AIMNet2 geometry-dependent charges, finite-dielectric PCM
+  electrostatics, the transpose/KKT energy cotangent, full charge-chain rule,
+  and structural harmonic SO(3) intertwiners. The generally nonsymmetric
+  primal apparent-charge map is retained as diagnostic evidence, not exposed
+  as the provider field.
+- Excluded: fixed-geometry electronic mutual polarization, uniform COSMO
+  dielectric scaling, CDS/nonpolar and standard-state terms, and all public
+  E/F/H/V/M or task admission.
+- This identity is explicitly a parameterized, permanently disabled diagnostic.
+  The dielectric value is immutable configuration/provenance, not an adjustable
+  threshold. Any future admission requires a distinct solvent-bound profile and
+  evidence binding the exact dielectric and full continuum configuration SHA.
+- Full equation, literature, residual, topology, and claim boundary:
+  [`AIMNET2_POINT_HARMONIC_DDPCM.md`](AIMNET2_POINT_HARMONIC_DDPCM.md).
+
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 
 - Formula: `E_op(R)=Phi_op(R,y*(R))`, where

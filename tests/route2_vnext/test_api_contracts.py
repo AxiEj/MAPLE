@@ -14,6 +14,8 @@ from maple.solvation.api import (
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_FIXED_BOX_CPCM_590_RADIAL_GTO_PROFILE_IDS,
     DIAGNOSTIC_DDX_DDPCM_194_RADIAL_GTO_PROFILE_V1,
     DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1,
@@ -48,6 +50,8 @@ INITIAL_SCALAR_IDS = {
     "route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1",
     "route2-diagnostic-aimnet2-geometry-mediated-"
     "smoothharmonicgalerkin-cpcm-electrostatic-v1",
+    "route2-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-ddpcm-electrostatic-v1",
     "route2-diagnostic-ddx-ddcosmo-radialgto-electrostatic-v1",
     "route2-diagnostic-ddx-ddpcm-radialgto-electrostatic-v1",
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
@@ -102,7 +106,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 20
+    assert len(PROFILE_REGISTRY) == 21
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -151,6 +155,15 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     )
     assert operational_harmonic.enabled is False
     assert operational_harmonic.capabilities.enabled_tiers == ()
+    diagnostic_ddpcm = PROFILE_REGISTRY[
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+    ]
+    assert diagnostic_ddpcm.scalar_id == (
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+    )
+    assert diagnostic_ddpcm.continuum_profile.endswith("ddpcm-candidate-v1")
+    assert diagnostic_ddpcm.enabled is False
+    assert diagnostic_ddpcm.capabilities.enabled_tiers == ()
     analytic_variational = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
     ]

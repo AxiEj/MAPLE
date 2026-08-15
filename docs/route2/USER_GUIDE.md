@@ -79,6 +79,7 @@ fixed-topology SMD-derived CDS
 multi-solvent vNext profiles
 geometry-mediated AIMNet2/ddPCM (diagnostic only)
 geometry-mediated AIMNet2/smooth-harmonic conductor (diagnostic only)
+geometry-mediated AIMNet2/smooth-harmonic finite-dielectric ddPCM (diagnostic only)
 rho-DROP forces
 strict common variational MACE-continuum functional
 ```

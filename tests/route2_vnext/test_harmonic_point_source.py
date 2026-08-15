@@ -11,12 +11,15 @@ import pytest
 from maple.solvation.api import (
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
     PROFILE_REGISTRY,
     SCALAR_REGISTRY,
 )
 from maple.solvation.api.profiles import AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID
 from maple.solvation.continuum import (
     COULOMB_EV_ANGSTROM_PER_E2,
+    SmoothPointChargeHarmonicDDPCMFunctionalCandidate,
     SmoothPointChargeHarmonicGalerkinFunctionalCandidate,
     point_l0_harmonic_source_operator,
     point_monopole_harmonic_coefficients,
@@ -333,6 +336,28 @@ class _FakeAIMNet2:
             charge_position_vjp_ev_per_angstrom=vjp,
         )
 
+    def charge_position_second_order(
+        self,
+        atoms: Atoms,
+        charge_cotangent_ev_per_e,
+        coordinate_direction,
+    ):
+        response = self.charge_position_response(atoms, charge_cotangent_ev_per_e)
+        direction = np.asarray(coordinate_direction, dtype=float)
+        charge_jvp = 0.07 * (direction[:, 0] - np.mean(direction[:, 0]))
+        return SimpleNamespace(
+            **vars(response),
+            coordinate_direction=np.array(direction, copy=True),
+            charge_position_jvp_e_per_angstrom=charge_jvp,
+            intrinsic_energy_hvp_ev_per_angstrom2=np.array(direction, copy=True),
+            contracted_charge_hessian_ev_per_angstrom2=np.zeros_like(direction),
+            standard_decomposed_energy_absolute_error_ev=0.0,
+            standard_decomposed_charge_max_absolute_error_e=0.0,
+            standard_decomposed_intrinsic_gradient_max_absolute_error_ev_per_angstrom=0.0,
+            standard_decomposed_charge_vjp_max_absolute_error_ev_per_angstrom=0.0,
+            charge_tangent_residual_e_per_angstrom=abs(float(np.sum(charge_jvp))),
+        )
+
 
 def _model(tmp_path: Path) -> AIMNet2GeometryMediatedModelAdapter:
     checkpoint = tmp_path / "aimnet2.pt"
@@ -417,3 +442,86 @@ def test_registered_geometry_mediated_point_harmonic_scalar_closes_full_gradient
         definition.excluded_components
     )
     assert continuum.fixed_geometry_electronic_mutual_polarization is False
+
+
+def test_registered_geometry_mediated_harmonic_ddpcm_closes_full_gradient(tmp_path):
+    torch = pytest.importorskip("torch")
+    atoms = Atoms(
+        "OHC",
+        positions=POSITIONS,
+        info={"charge": 0, "mult": 1},
+    )
+    continuum = SmoothPointChargeHarmonicDDPCMFunctionalCandidate(
+        atomic_numbers=tuple(int(value) for value in atoms.numbers),
+        radii_angstrom=RADII,
+        dielectric=78.39,
+        transition_width_angstrom2=0.18,
+        surface_lmax=1,
+        exposure_lmax=2,
+        exposure_radial_quadrature_order=24,
+        green_radial_quadrature_order=24,
+        dtype=torch.float64,
+        device="cpu",
+    )
+    scalar = GeometryMediatedElectrostaticScalar(
+        _model(tmp_path),
+        continuum,
+        scalar_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        profile_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+        ),
+    )
+    result = scalar.evaluate(atoms)
+    direction = np.asarray(
+        [[0.21, -0.07, 0.11], [-0.13, 0.05, -0.17], [-0.08, 0.02, 0.06]]
+    )
+    direction /= np.linalg.norm(direction)
+    analytic = float(np.vdot(result.total_gradient_eV_per_A, direction))
+    errors = []
+    for step in (1.0e-3, 1.0e-4, 1.0e-5):
+        plus = atoms.copy()
+        minus = atoms.copy()
+        plus.positions += step * direction
+        minus.positions -= step * direction
+        finite = (scalar.evaluate_energy(plus) - scalar.evaluate_energy(minus)) / (
+            2.0 * step
+        )
+        errors.append(abs(analytic - finite))
+    assert errors[-1] < 3.0e-8
+    assert errors[-1] < errors[0] / 20.0
+    assert result.reciprocity_audit.gate_passed is True
+    assert continuum.stationarity_audit(atoms, result.source)["gate_passed"] is True
+
+    hvp = scalar.hessian_vector_product(atoms, direction)
+    step = 2.0e-5
+    plus = atoms.copy()
+    minus = atoms.copy()
+    plus.positions += step * direction
+    minus.positions -= step * direction
+    finite_hvp = (
+        scalar.evaluate(plus).total_gradient_eV_per_A
+        - scalar.evaluate(minus).total_gradient_eV_per_A
+    ) / (2.0 * step)
+    np.testing.assert_allclose(
+        hvp.total_hvp_eV_per_A2, finite_hvp, atol=5.0e-7, rtol=3.0e-6
+    )
+    second_direction = np.asarray(
+        [[-0.11, 0.08, 0.04], [0.16, -0.03, 0.07], [-0.05, -0.05, -0.11]]
+    )
+    second_direction /= np.linalg.norm(second_direction)
+    second_hvp = scalar.hessian_vector_product(
+        atoms, second_direction
+    ).total_hvp_eV_per_A2
+    assert np.vdot(direction, second_hvp) == pytest.approx(
+        np.vdot(second_direction, hvp.total_hvp_eV_per_A2), abs=2.0e-8
+    )
+    assert hvp.tier_h_admitted is False
+    assert continuum.fixed_geometry_electronic_mutual_polarization is False
+    profile = PROFILE_REGISTRY[
+        DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+    ]
+    definition = SCALAR_REGISTRY[profile.scalar_id]
+    assert profile.enabled is definition.enabled is False
+    assert profile.capabilities.enabled_tiers == ()

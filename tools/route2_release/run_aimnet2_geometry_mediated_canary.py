@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Capture a disabled AIMNet2 geometry-mediated continuum diagnostic.
 
-The runner supports the finite-grid pyddx ddPCM branch and the structurally
-SO(3)-controlled smooth harmonic point-charge conductor branch.  It also keeps
+The runner supports the finite-grid pyddx ddPCM branch, the structurally
+SO(3)-controlled smooth harmonic point-charge conductor branch, and its
+finite-dielectric double-layer ddPCM sibling.  It also keeps
 the historical float32 TorchScript runtime as a negative-control arm beside a
 source-bound float64 reconstruction of the same checkpoint.  It records
 positive and negative gate evidence without admitting E/F/H/V/M, OPT,
@@ -59,7 +60,7 @@ from aimnet2_geometry_mediated_common import (
     verify_route2_checkpoint,
 )
 
-SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v5"
+SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v6"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "maple/solvation/release/geometry_mediated_adaptive.py",
     "tools/route2_release/run_aimnet2_geometry_mediated_canary.py",
@@ -87,7 +88,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--continuum",
-        choices=("ddpcm", "harmonic-point"),
+        choices=("ddpcm", "harmonic-point", "harmonic-ddpcm"),
         default="ddpcm",
     )
     parser.add_argument("--output", type=Path, required=True)
@@ -260,7 +261,7 @@ def main() -> None:
     )
     stationarity = (
         continuum.stationarity_audit(atoms, first.source)
-        if args.continuum == "harmonic-point"
+        if args.continuum in {"harmonic-point", "harmonic-ddpcm"}
         else None
     )
     post_solve_residual_available = bool(
@@ -383,9 +384,9 @@ def main() -> None:
             "charge-gauge response, one pinned adaptive directional trace, one "
             "three-step coordinate direction, a three-step full Cartesian "
             "panel, hard neighbor/continuum strata and event clearances, and "
-            "three rigid rotations. The harmonic "
-            "arm is a conductor reference without a finite-dielectric solvent "
-            "parameterization. It is not fixed-R "
+            "three rigid rotations. The harmonic-point arm is a conductor "
+            "reference; harmonic-ddpcm adds the finite-dielectric double-layer "
+            "PCM equation rather than a uniform COSMO scale. Neither is fixed-R "
             "mutual polarization, chemical-accuracy evidence, a global C1 proof, "
             "or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
         ),

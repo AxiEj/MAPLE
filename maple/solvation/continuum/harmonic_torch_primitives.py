@@ -27,7 +27,10 @@ from .harmonic_coefficients import (
 )
 from .harmonic_exposure import HARMONIC_EXPOSURE_MAXIMUM_ALGEBRAIC_DEGREE
 from .harmonic_point_source import POINT_SOURCE_SHELL_EVENT_TOLERANCE_ANGSTROM
-from .harmonic_single_layer import COULOMB_EV_ANGSTROM_PER_E2
+from .harmonic_single_layer import (
+    COULOMB_EV_ANGSTROM_PER_E2,
+    harmonic_sphere_pair_topology,
+)
 
 
 def _torch():
@@ -327,7 +330,7 @@ def _torch_wigner_matrix(rotation: Any, *, lmax: int):
     return torch.block_diag(*blocks)
 
 
-def _canonical_cross_block(
+def _canonical_layer_cross_block(
     reference: Any,
     *,
     target_radius: float,
@@ -335,7 +338,18 @@ def _canonical_cross_block(
     distance: Any,
     lmax: int,
     radial_order: int,
+    layer: str,
 ):
+    """Return one pair-axis single- or double-layer harmonic block.
+
+    The single-layer source coefficients denote charge per unit solid angle.
+    The double-layer coefficients denote a boundary potential.  For distinct
+    spheres the latter is the source-radius normal derivative of the former;
+    its self-sphere principal value is assembled separately below.
+    """
+
+    if layer not in {"single", "double"}:
+        raise ValueError("layer must be 'single' or 'double'.")
     torch = _torch()
     intersection = (source_radius**2 - distance**2 - target_radius**2) / (
         2.0 * distance * target_radius
@@ -390,14 +404,23 @@ def _canonical_cross_block(
         source_directions = target_points / radial_distance[:, None]
         target_design = _torch_real_harmonic_design(directions, lmax=lmax)
         source_design = _torch_real_harmonic_design(source_directions, lmax=lmax)
+        inside = radial_distance < source_radius
         scales = []
         for ell, _ in labels:
-            inside = radial_distance < source_radius
-            radial = torch.where(
-                inside,
-                radial_distance**ell / source_radius ** (ell + 1),
-                source_radius**ell / radial_distance ** (ell + 1),
-            )
+            if layer == "single":
+                radial = torch.where(
+                    inside,
+                    radial_distance**ell / source_radius ** (ell + 1),
+                    source_radius**ell / radial_distance ** (ell + 1),
+                )
+            else:
+                # a_source^2 d/da_source of the Laplace single layer.
+                # This is dimensionless and uses the outward source normal.
+                radial = torch.where(
+                    inside,
+                    -(ell + 1) * (radial_distance / source_radius) ** ell,
+                    ell * (source_radius / radial_distance) ** (ell + 1),
+                )
             scales.append(4.0 * np.pi * radial / (2 * ell + 1))
         potential_scale = torch.stack(scales, dim=1)
         point_weights = torch.repeat_interleave(
@@ -422,7 +445,47 @@ def _canonical_cross_block(
         projected = (
             projected + representation.T @ result @ representation / stabilizer_order
         )
-    return COULOMB_EV_ANGSTROM_PER_E2 * projected
+    return projected
+
+
+def _canonical_cross_block(
+    reference: Any,
+    *,
+    target_radius: float,
+    source_radius: float,
+    distance: Any,
+    lmax: int,
+    radial_order: int,
+):
+    return COULOMB_EV_ANGSTROM_PER_E2 * _canonical_layer_cross_block(
+        reference,
+        target_radius=target_radius,
+        source_radius=source_radius,
+        distance=distance,
+        lmax=lmax,
+        radial_order=radial_order,
+        layer="single",
+    )
+
+
+def _canonical_double_layer_cross_block(
+    reference: Any,
+    *,
+    target_radius: float,
+    source_radius: float,
+    distance: Any,
+    lmax: int,
+    radial_order: int,
+):
+    return _canonical_layer_cross_block(
+        reference,
+        target_radius=target_radius,
+        source_radius=source_radius,
+        distance=distance,
+        lmax=lmax,
+        radial_order=radial_order,
+        layer="double",
+    )
 
 
 def _assemble_single_layer(
@@ -469,6 +532,61 @@ def _assemble_single_layer(
     operator = torch.cat(rows, dim=0)
     if operator.shape != (len(radii) * dimension, len(radii) * dimension):
         raise RuntimeError("harmonic single-layer assembly has an invalid shape.")
+    return operator
+
+
+def _assemble_double_layer(
+    positions: Any,
+    *,
+    radii: tuple[float, ...],
+    lmax: int,
+    radial_order: int,
+):
+    """Assemble the dimensionless Laplace double-layer principal value.
+
+    The source normal points out of each sphere.  The diagonal spectrum is the
+    arithmetic trace of the interior/exterior limits,
+    ``-2*pi/(2*l+1)``.  Ordered cross blocks are assembled independently
+    because the double-layer operator is not generally symmetric.
+    """
+
+    torch = _torch()
+    harmonic_sphere_pair_topology(
+        np.asarray(positions.detach().cpu(), dtype=float),
+        radii,
+    )
+    dimension = (lmax + 1) ** 2
+    row_blocks: list[list[Any]] = [[None for _ in radii] for _ in radii]
+    for atom in range(len(radii)):
+        diagonal_blocks = [
+            positions.new_tensor(-2.0 * np.pi / (2 * ell + 1))
+            * torch.eye(2 * ell + 1, dtype=positions.dtype, device=positions.device)
+            for ell in range(lmax + 1)
+        ]
+        row_blocks[atom][atom] = torch.block_diag(*diagonal_blocks)
+    for target, target_radius in enumerate(radii):
+        for source, source_radius in enumerate(radii):
+            if target == source:
+                continue
+            displacement = positions[target] - positions[source]
+            distance = torch.linalg.vector_norm(displacement)
+            if float(distance.detach().cpu()) <= 1.0e-12:
+                raise ValueError("sphere centres must remain distinct.")
+            canonical = _canonical_double_layer_cross_block(
+                positions,
+                target_radius=target_radius,
+                source_radius=source_radius,
+                distance=distance,
+                lmax=lmax,
+                radial_order=radial_order,
+            )
+            rotation = _rotation_from_positive_z(displacement / distance)
+            representation = _torch_wigner_matrix(rotation, lmax=lmax)
+            row_blocks[target][source] = representation @ canonical @ representation.T
+    rows = [torch.cat(tuple(blocks), dim=1) for blocks in row_blocks]
+    operator = torch.cat(rows, dim=0)
+    if operator.shape != (len(radii) * dimension, len(radii) * dimension):
+        raise RuntimeError("harmonic double-layer assembly has an invalid shape.")
     return operator
 
 

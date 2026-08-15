@@ -35,6 +35,11 @@ no CDS/nonpolar term, and no standard-state term.  The water radii used by the
 optional real canary are a fixed diagnostic geometry configuration, not a
 claim that this scalar is an admitted water solvation model.
 
+The separate disabled finite-dielectric sibling is described in
+[`AIMNET2_POINT_HARMONIC_DDPCM.md`](AIMNET2_POINT_HARMONIC_DDPCM.md). It adds
+the PCM double-layer equation and a distinct scalar/profile/provider identity;
+it does not silently change this conductor reference.
+
 ## Reused architecture
 
 The implementation does not introduce a second PCM stack.  It reuses the

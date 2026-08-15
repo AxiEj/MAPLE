@@ -10,6 +10,7 @@ from .capabilities import CapabilityStatus
 from .scalar_registry import (
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1,
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     OPERATIONAL_CPCM_ELECTROSTATIC_V1,
@@ -38,6 +39,10 @@ DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1 = (
 DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1 = (
     "route2-profile-diagnostic-aimnet2-geometry-mediated-"
     "smoothharmonicgalerkin-cpcm-electrostatic-v1"
+)
+DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
+    "route2-profile-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
 )
 OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1"
@@ -161,11 +166,18 @@ FIXED_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID = (
 SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID = (
     "smooth-weighted-harmonic-galerkin-cpcm-candidate-v1"
 )
+SMOOTH_HARMONIC_GALERKIN_DDPCM_CONTINUUM_PROFILE_ID = (
+    "smooth-weighted-harmonic-galerkin-ddpcm-candidate-v1"
+)
 SMOOTH_HARMONIC_CAVITY_PROFILE_ID = (
     "smooth-weighted-overlap-harmonic-cavity-candidate-v1"
 )
 SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.smooth-weighted-harmonic-galerkin.v1"
+)
+SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration."
+    "smooth-weighted-harmonic-galerkin-ddpcm-parameterized-diagnostic.v1"
 )
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
 AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID = (
@@ -347,6 +359,30 @@ _PROFILE_ENTRIES = (
         coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
         continuum_configuration_contract_id=(
             SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+        ),
+        scalar_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        model_profile=AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID,
+        continuum_profile=SMOOTH_HARMONIC_GALERKIN_DDPCM_CONTINUUM_PROFILE_ID,
+        cavity_profile=SMOOTH_HARMONIC_CAVITY_PROFILE_ID,
+        nonpolar_profile="none",
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID
         ),
         capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -700,6 +736,7 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 __all__ = [
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1",
+    "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_PROFILE_V1",
     "DIAGNOSTIC_FIXED_BOX40_CPCM_590_RADIAL_GTO_PROFILE_V1",
     "DIAGNOSTIC_FIXED_BOX48_CPCM_1202_RADIAL_GTO_PROFILE_V1",
@@ -753,7 +790,9 @@ __all__ = [
     "FIXED_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID",
     "SMOOTH_HARMONIC_CAVITY_PROFILE_ID",
     "SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID",
+    "SMOOTH_HARMONIC_GALERKIN_DDPCM_CONTINUUM_PROFILE_ID",
     "SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID",
+    "SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

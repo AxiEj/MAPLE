@@ -16,10 +16,15 @@ from maple.function.route2_solvents import route2_solvent_spec
 from maple.solvation.api import (
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
 )
 from maple.solvation.continuum.atomic_l1_pyddx import AtomicL1PyDDXPCMBackend
 from maple.solvation.continuum.harmonic_point_torch_functional import (
     SmoothPointChargeHarmonicGalerkinFunctionalCandidate,
+)
+from maple.solvation.continuum.harmonic_point_ddpcm_torch_functional import (
+    SmoothPointChargeHarmonicDDPCMFunctionalCandidate,
 )
 from maple.solvation.coupling.geometry_mediated import (
     GeometryMediatedElectrostaticScalar,
@@ -59,6 +64,17 @@ CONTINUUM_REQUIRED_SOURCE_PATHS = {
         "maple/solvation/continuum/functional.py",
         "maple/solvation/continuum/harmonic_coefficients.py",
         "maple/solvation/continuum/harmonic_exposure.py",
+        "maple/solvation/continuum/harmonic_point_source.py",
+        "maple/solvation/continuum/harmonic_point_torch_functional.py",
+        "maple/solvation/continuum/harmonic_single_layer.py",
+        "maple/solvation/continuum/harmonic_torch_functional.py",
+        "maple/solvation/continuum/harmonic_torch_primitives.py",
+    ),
+    "harmonic-ddpcm": (
+        "maple/solvation/continuum/functional.py",
+        "maple/solvation/continuum/harmonic_coefficients.py",
+        "maple/solvation/continuum/harmonic_exposure.py",
+        "maple/solvation/continuum/harmonic_point_ddpcm_torch_functional.py",
         "maple/solvation/continuum/harmonic_point_source.py",
         "maple/solvation/continuum/harmonic_point_torch_functional.py",
         "maple/solvation/continuum/harmonic_single_layer.py",
@@ -209,6 +225,58 @@ def build_geometry_mediated_stack(
             "exposure_radial_quadrature_order": 32,
             "green_radial_quadrature_order": 32,
             "point_source_map": "analytic-Laplace-addition-theorem",
+            "post_solve_residual_available": True,
+        }
+    elif continuum_kind == "harmonic-ddpcm":
+        dielectric = float(route2_solvent_spec("water").descriptors.dielectric)
+        continuum = SmoothPointChargeHarmonicDDPCMFunctionalCandidate(
+            atomic_numbers=tuple(int(value) for value in atoms.numbers),
+            radii_angstrom=tuple(float(value) for value in radii),
+            dielectric=dielectric,
+            transition_width_angstrom2=0.18,
+            surface_lmax=1,
+            exposure_lmax=2,
+            exposure_radial_quadrature_order=32,
+            green_radial_quadrature_order=32,
+            dtype=torch.float64,
+            device=device,
+        )
+        scalar = GeometryMediatedElectrostaticScalar(
+            model,
+            continuum,
+            scalar_id=(
+                DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+            ),
+            profile_id=(
+                DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+            ),
+        )
+        protocol = {
+            "model": "smooth-weighted-harmonic-finite-dielectric-ddpcm",
+            "finite_dielectric_parameterization": True,
+            "dielectric": dielectric,
+            "uniform_cosmo_dielectric_energy_scaling": False,
+            "admission_identity": (
+                "parameterized-diagnostic-only; solvent-bound profile required"
+            ),
+            "radii_A": np.asarray(radii, dtype=float).tolist(),
+            "transition_width_A2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+            "double_layer_quadrature": (
+                "pair-axis split Gauss-Legendre with exact retained-band "
+                "azimuthal contraction"
+            ),
+            "point_source_map": "analytic-Laplace-addition-theorem",
+            "finite_dielectric_equation": (
+                "R_epsilon Phi_epsilon=R_infinity Phi; " "S sigma=-Phi_epsilon"
+            ),
+            "provider_field_semantics": (
+                "energy-conjugate source derivative from the transpose/KKT chain; "
+                "not the generally nonsymmetric primal apparent-charge response"
+            ),
             "post_solve_residual_available": True,
         }
     else:

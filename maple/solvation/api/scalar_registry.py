@@ -20,6 +20,10 @@ DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-aimnet2-geometry-mediated-"
     "smoothharmonicgalerkin-cpcm-electrostatic-v1"
 )
+DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1 = (
+    "route2-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
@@ -255,6 +259,59 @@ _SCALAR_ENTRIES = (
             "direct same-scalar chain rule through an analytic point-source map, "
             "fixed-dimensional harmonic Galerkin solve, and AIMNet2 charge VJP; "
             "disabled conductor-reference diagnostic only"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        exact_formula=(
+            "E_gm_ddpcm(R)=E_AIMNet2(R)-1/2 b_R^T x_R; "
+            "b_R=S_R c_AIMNet2(R); M_R f_R=b_R; "
+            "[2*pi*(eps+1)/(eps-1) M_R-D_R] phi_eps,R="
+            "[2*pi M_R-D_R] f_R; A_R x_R=M_R phi_eps,R; "
+            "A_R=E_R^T K_R E_R; M_R=E_R^T E_R; "
+            "D_R=E_R^T D0_R E_R; S_R=E_R^T V_point,R; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated:"
+            "GeometryMediatedElectrostaticScalar"
+        ),
+        included_components=(
+            "aimnet2_vacuum_energy",
+            "geometry_dependent_aimnet2_nqe_point_charge_source",
+            "smooth_weighted_harmonic_single_layer_electrostatics",
+            "finite_dielectric_ddpcm_double_layer_response",
+            "complete_first_derivative_charge_chain_rule",
+            "structural_so3_coefficient_intertwiners",
+        ),
+        excluded_components=(
+            "fixed_geometry_electronic_mutual_polarization",
+            "field_conditioned_model_energy_difference",
+            "uniform_cosmo_dielectric_energy_scaling",
+            "nonpolar_smd_cds",
+            "standard_state_correction",
+            "hessian_frequency_ts_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred point monopoles "
+            "mapped analytically to complete real-harmonic boundary data"
+        ),
+        field_convention=(
+            "full energy-dual derivative of the finite-dielectric ddPCM scalar "
+            "in the registered atomic l<=1 pairing; l=1 source components are zero"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-ddpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "sealed same-scalar autograd through weighted Galerkin projection, "
+            "finite-dielectric double-layer solve, single-layer solve, and "
+            "AIMNet2 charge VJP; disabled diagnostic only"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -673,6 +730,7 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 __all__ = [
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1",
+    "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",

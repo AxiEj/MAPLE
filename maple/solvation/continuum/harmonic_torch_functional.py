@@ -177,6 +177,28 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     _source_radial_quadrature_required = True
     _geometry_quadrature = "invariant-one-dimensional"
 
+    def _configuration_extensions(self) -> dict[str, object]:
+        """Return subclass-owned immutable model parameters.
+
+        The conductor reference has no extension.  Scientifically distinct
+        harmonic models must bind their parameters here rather than changing
+        semantics behind the conductor provider identity.
+        """
+
+        return {}
+
+    def _assembly_formula(self) -> str:
+        return "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)"
+
+    def _stationary_scalar_formula(self) -> str:
+        return "-1/2 (S c)^T A^-1 (S c)"
+
+    def _geometry_assembly_label(self) -> str:
+        return "same-scalar-E-K-V"
+
+    def _runtime_provenance_extensions(self) -> dict[str, object]:
+        return {}
+
     def __init__(
         self,
         *,
@@ -277,13 +299,14 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "pairing_sha256": self._pairing_contract.metadata_hash(),
             "runtime_dtype": runtime_dtype,
             "runtime_device": runtime_device,
-            "assembly": "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)",
+            "assembly": self._assembly_formula(),
             "angular_quadrature": "finite-band-exact-contractions-only",
             "geometry_quadrature": self._geometry_quadrature,
             "derivative_route": "sealed-same-scalar-autograd",
             "implementation_sha256": self._implementation_sha256(),
             "capabilities": "none",
         }
+        configuration_payload.update(self._configuration_extensions())
         configuration = _sha(configuration_payload)
         provenance = _sha(
             {
@@ -345,38 +368,38 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
 
     def configuration_sha256(self) -> str:
         topology = self.topology_sha256()
-        current = _sha(
-            {
-                "provider_id": self.provider_id,
-                "scalar_id": self.scalar_id,
-                "functional_contract_id": self.functional_contract_id,
-                "continuum_profile_id": self.continuum_profile_id,
-                "cavity_profile_id": self.cavity_profile_id,
-                "coupling_id": self.coupling_id,
-                "configuration_contract_id": self.configuration_contract_id,
-                "atomic_numbers": self._expected_atomic_numbers,
-                "radii_angstrom": self._radii_angstrom,
-                "transition_width_angstrom2": self._transition_width_angstrom2,
-                "surface_lmax": self._surface_lmax,
-                "exposure_lmax": self._exposure_lmax,
-                "physical_lmax": self.physical_lmax,
-                "exposure_radial_quadrature_order": self._exposure_radial_order,
-                "source_radial_quadrature_order": self._source_radial_order,
-                "green_radial_quadrature_order": self._green_radial_order,
-                "coefficient_topology_sha256": topology,
-                "source_space_sha256": self._source_space_contract.metadata_hash(),
-                "field_space_sha256": self._field_space_contract.metadata_hash(),
-                "pairing_sha256": self._pairing_contract.metadata_hash(),
-                "runtime_dtype": self._runtime_dtype,
-                "runtime_device": self._runtime_device,
-                "assembly": "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)",
-                "angular_quadrature": "finite-band-exact-contractions-only",
-                "geometry_quadrature": self._geometry_quadrature,
-                "derivative_route": "sealed-same-scalar-autograd",
-                "implementation_sha256": self._implementation_sha256(),
-                "capabilities": "none",
-            }
-        )
+        configuration_payload = {
+            "provider_id": self.provider_id,
+            "scalar_id": self.scalar_id,
+            "functional_contract_id": self.functional_contract_id,
+            "continuum_profile_id": self.continuum_profile_id,
+            "cavity_profile_id": self.cavity_profile_id,
+            "coupling_id": self.coupling_id,
+            "configuration_contract_id": self.configuration_contract_id,
+            "atomic_numbers": self._expected_atomic_numbers,
+            "radii_angstrom": self._radii_angstrom,
+            "transition_width_angstrom2": self._transition_width_angstrom2,
+            "surface_lmax": self._surface_lmax,
+            "exposure_lmax": self._exposure_lmax,
+            "physical_lmax": self.physical_lmax,
+            "exposure_radial_quadrature_order": self._exposure_radial_order,
+            "source_radial_quadrature_order": self._source_radial_order,
+            "green_radial_quadrature_order": self._green_radial_order,
+            "coefficient_topology_sha256": topology,
+            "source_space_sha256": self._source_space_contract.metadata_hash(),
+            "field_space_sha256": self._field_space_contract.metadata_hash(),
+            "pairing_sha256": self._pairing_contract.metadata_hash(),
+            "runtime_dtype": self._runtime_dtype,
+            "runtime_device": self._runtime_device,
+            "assembly": self._assembly_formula(),
+            "angular_quadrature": "finite-band-exact-contractions-only",
+            "geometry_quadrature": self._geometry_quadrature,
+            "derivative_route": "sealed-same-scalar-autograd",
+            "implementation_sha256": self._implementation_sha256(),
+            "capabilities": "none",
+        }
+        configuration_payload.update(self._configuration_extensions())
+        current = _sha(configuration_payload)
         if current != self._candidate_configuration_sha256:
             raise RuntimeError("smooth harmonic functional configuration drifted.")
         expected_provenance = _sha(
@@ -528,24 +551,22 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         }
 
     def runtime_provenance(self) -> tuple[tuple[str, object], ...]:
-        return tuple(
-            sorted(
-                {
-                    "provider_id": self.provider_id,
-                    "provenance_sha256": self.provenance_sha256,
-                    "configuration_sha256": self.configuration_sha256(),
-                    "coefficient_topology_sha256": self.topology_sha256(),
-                    "stationary_scalar": "-1/2 (S c)^T A^-1 (S c)",
-                    "geometry_assembly": "same-scalar-E-K-V",
-                    "angular_quadrature": "finite-band-exact-contractions-only",
-                    "geometry_quadrature": self._geometry_quadrature,
-                    "laboratory_fixed_surface_grid": False,
-                    "registered_scalar": True,
-                    "tier_v_admission": "disabled",
-                    "capabilities": "none",
-                }.items()
-            )
-        )
+        payload = {
+            "provider_id": self.provider_id,
+            "provenance_sha256": self.provenance_sha256,
+            "configuration_sha256": self.configuration_sha256(),
+            "coefficient_topology_sha256": self.topology_sha256(),
+            "stationary_scalar": self._stationary_scalar_formula(),
+            "geometry_assembly": self._geometry_assembly_label(),
+            "angular_quadrature": "finite-band-exact-contractions-only",
+            "geometry_quadrature": self._geometry_quadrature,
+            "laboratory_fixed_surface_grid": False,
+            "registered_scalar": True,
+            "tier_v_admission": "disabled",
+            "capabilities": "none",
+        }
+        payload.update(self._runtime_provenance_extensions())
+        return tuple(sorted(payload.items()))
 
 
 __all__ = [

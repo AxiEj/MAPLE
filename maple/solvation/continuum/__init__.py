@@ -244,6 +244,22 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_point_torch_functional",
         "SmoothPointChargeHarmonicGalerkinFunctionalCandidate",
     ),
+    "DDX_EQUATION_REFERENCE_COMMIT": (
+        "harmonic_point_ddpcm_torch_functional",
+        "DDX_EQUATION_REFERENCE_COMMIT",
+    ),
+    "SMOOTH_POINT_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID": (
+        "harmonic_point_ddpcm_torch_functional",
+        "SMOOTH_POINT_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID",
+    ),
+    "SMOOTH_POINT_HARMONIC_DDPCM_PROVIDER_ID": (
+        "harmonic_point_ddpcm_torch_functional",
+        "SMOOTH_POINT_HARMONIC_DDPCM_PROVIDER_ID",
+    ),
+    "SmoothPointChargeHarmonicDDPCMFunctionalCandidate": (
+        "harmonic_point_ddpcm_torch_functional",
+        "SmoothPointChargeHarmonicDDPCMFunctionalCandidate",
+    ),
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend": (
         "pair_frame_ensemble_cpcm",
         "OrderedPairFrameEnsembleRadialGTOCPCMBackend",

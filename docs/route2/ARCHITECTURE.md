@@ -64,9 +64,11 @@ unit-explicit `eV/angstrom^2` mass-weighting and rigid/vibrational subspaces.
 The public molecular FREQ driver now reuses that same pure kernel and validates
 its raw ASE-unit Hessian boundary. Its reusable stationary-point assessor keeps
 minimum and first-order-saddle inertia signatures mutually exclusive and
-withholds transition-state thermochemistry. No Route-2 calculator is thereby
-admitted: the retained research runner still owns its source-bound scalar,
-event-domain, HVP, and evidence checks independently.
+withholds transition-state thermochemistry. The legacy GS/LQA/HPC/EulerPC IRC
+drivers also reuse that projected first-order-saddle preflight at their initial
+geometry, but neither this starting gate nor their gas-phase task wiring admits
+a Route-2 calculator: the retained research runner still owns its source-bound
+scalar, event-domain, HVP, and evidence checks independently.
 
 ## Migration rule
 

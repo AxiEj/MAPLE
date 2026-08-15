@@ -198,6 +198,25 @@ and [ideal-gas thermochemistry](https://wiki.fysik.dtu.dk/ase/ase/thermochemistr
 references, plus the detailed
 [stationary-point validation contract](docs/STATIONARY_POINT_VALIDATION.md).
 
+### IRC starting-point boundary
+
+`#irc(method=gs|lqa|hpc|eulerpc)` accepts only a stationary first-order saddle.
+Before propagation, every method applies the same public FREQ mathematics to
+the initial Hessian: exact legacy-Hartree-to-ASE conversion, symmetry and rigid
+invariance gates, mass-metric rigid projection, exactly one robust imaginary
+vibrational mode, and positive remaining vibrational curvatures. The shared
+defaults are:
+
+```text
+#irc(method=gs,target_mode=1,stationarity_tolerance_ev_per_a=1e-3,hessian_symmetry_relative_tolerance=1e-6,rigid_mode_tolerance_cm1=5,transition_state_imaginary_threshold_cm1=50)
+```
+
+`target_mode` values other than `1` are rejected because they do not describe
+the admitted first-order-saddle contract. Passing this preflight validates the
+starting point and projected downhill mode only; it is not evidence that the
+entire numerical path, endpoints, or chemical connectivity are correct. See
+the [stationary-point validation contract](docs/STATIONARY_POINT_VALIDATION.md).
+
 ### UMA Options
 
 `#model=uma(...)` accepts the following keys (all optional):

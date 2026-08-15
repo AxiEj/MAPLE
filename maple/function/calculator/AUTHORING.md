@@ -114,6 +114,11 @@ class FooCalculator(CalcABC):
   saddle with the shared mass-metric normal-mode kernel, but only minima enter
   the current RRHO implementation. Raw ASE calculators and their `results` are
   never rewritten to Hartree.
+- IRC algorithms still run behind `LegacyHartreeJobView`, but their initial
+  first-order-saddle preflight converts the private Hartree forces/Hessian back
+  to ASE eV units and reuses the FREQ normal-mode kernel. This validates only
+  the starting inertia/direction; it does not turn legacy path integration into
+  a public ASE-unit algorithm.
 
 ## Implicit solvent
 

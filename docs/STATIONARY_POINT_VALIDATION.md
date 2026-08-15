@@ -38,6 +38,20 @@ the intended chemical rearrangement. Inspect the eigenvector and run an IRC at
 the same calculator/model level to establish downhill connectivity in both
 directions.
 
+All four public IRC integrators (`gs`, `lqa`, `hpc`, and `eulerpc`) now rerun
+this same starting-point admission before propagation. Their private legacy
+Hartree Hessian and forces are converted back to public ASE units exactly once;
+the unique downhill direction is selected from the rigid-projected,
+mass-weighted vibrational subspace. `target_mode` is therefore fixed to `1` for
+the admitted first-order-saddle contract. A minimum, higher-order saddle,
+ambiguous shallow negative mode, non-stationary geometry, asymmetric Hessian,
+or excessive rigid-subspace residual stops before path integration.
+
+This preflight certifies the **IRC starting point and direction only**. It does
+not by itself validate the GS/LQA/HPC/EulerPC propagation formulas, step-size
+convergence, endpoint optimization, reaction connectivity, or a complete
+minimum-energy path. Those remain separate path-level validation obligations.
+
 The current thermochemistry implementation is the ideal-gas,
 rigid-rotor/harmonic-oscillator model for minima. MAPLE therefore withholds ZPE,
 enthalpy, entropy, and Gibbs corrections in `transition_state` mode rather than
@@ -70,7 +84,9 @@ MAPLE_REAL_ANI1XNR_CHECKPOINT=/absolute/path/to/ani1xnr.pt \
   pytest -q tests/test_frequency_real_ani1xnr.py
 ```
 
-The checkpoint is supplied externally rather than redistributed by this test.
+The two opt-in tests cover the public FREQ report and the private
+Hartree-to-public-ASE IRC preflight boundary. The checkpoint is supplied
+externally rather than redistributed by this repository test.
 
 ## References
 

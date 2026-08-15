@@ -225,6 +225,25 @@ python tools/route2_release/run_aimnet2_geometry_mediated_pes_panel.py \
   --output /absolute/path/outside/the/repository/aimnet2-gm-water-pes.json
 ```
 
+After all seventeen shards have been captured from one clean Git tree,
+aggregate them without trusting their cached pass/fail fields:
+
+```bash
+shard_args=()
+for shard in /absolute/path/to/shards/*.json; do
+  shard_args+=(--shard "$shard")
+done
+python tools/route2_release/aggregate_aimnet2_geometry_mediated_pes_panel.py \
+  "${shard_args[@]}" \
+  --output /absolute/path/outside/the/repository/aimnet2-gm-pes-panel.json
+```
+
+The aggregator requires exactly one artifact for every frozen index, one
+checkpoint, runtime, source tree, protocol family, and source-hash ledger. It
+recomputes every shard summary and the full panel from raw records. A negative
+panel is written as evidence and exits with status `2`; it never enables a
+capability.
+
 The runner is deliberately limited to the source-bound float64 runtime and
 the smooth harmonic conductor reference.  A passing shard is only local
 distorted-geometry evidence; the complete chemistry panel requires seventeen

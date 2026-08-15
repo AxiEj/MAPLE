@@ -29,6 +29,12 @@ PES_PANEL_RUNNER = ROOT / "tools" / "route2_release" / "run_fixedbox590_pes_pane
 PES_PANEL_AGGREGATOR = (
     ROOT / "tools" / "route2_release" / "aggregate_fixedbox590_pes_panel.py"
 )
+AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_AGGREGATOR = (
+    ROOT
+    / "tools"
+    / "route2_release"
+    / "aggregate_aimnet2_geometry_mediated_pes_panel.py"
+)
 PES_CARTESIAN_RUNNER = (
     ROOT / "tools" / "route2_release" / "run_fixedbox590_cartesian_panel.py"
 )
@@ -266,6 +272,33 @@ def test_pes_panel_aggregator_recomputes_raw_values_and_cannot_admit_capabilitie
         "CAPABILITIES = {tier: False",
         "sys.exit(2)",
         '"numerical_determinism": payload.get("numerical_determinism")',
+    ):
+        assert requirement in text
+
+
+def test_aimnet2_geometry_mediated_panel_aggregator_is_raw_source_bound():
+    result = subprocess.run(
+        (
+            sys.executable,
+            str(AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_AGGREGATOR),
+            "--help",
+        ),
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--shard" in result.stdout
+    assert "--output" in result.stdout
+    text = AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_AGGREGATOR.read_text(encoding="utf-8")
+    for requirement in (
+        "summarize_aimnet2_geometry_mediated_pes_shard",
+        "summarize_aimnet2_geometry_mediated_pes_panel",
+        "committed_source_hashes(repository, source_hashes)",
+        "AIMNET2_WB97M_D3_CHECKPOINT_SHA256",
+        "NO_CAPABILITIES = {tier: False",
+        "sys.exit(2)",
     ):
         assert requirement in text
 

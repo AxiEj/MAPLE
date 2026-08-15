@@ -24,6 +24,7 @@ if str(REPOSITORY_ROOT) not in sys.path:
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release import (
     AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS,
+    AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION,
     AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
     PES_PANEL_ASSET_SHA256,
     PES_PANEL_DIRECTIONAL_STEPS_A,
@@ -50,7 +51,6 @@ from aimnet2_geometry_mediated_common import (
     verify_route2_checkpoint,
 )
 
-SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-pes-shard-artifact-v2"
 RUNTIME_KIND = "reconstructed-python-float64"
 CONTINUUM_KIND = "harmonic-point"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
@@ -227,7 +227,7 @@ def main() -> None:
     )
     source_hashes = committed_source_hashes(repository, source_paths)
     payload: dict[str, object] = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION,
         "artifact_kind": (
             "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
             "smooth-harmonic-pes-shard"

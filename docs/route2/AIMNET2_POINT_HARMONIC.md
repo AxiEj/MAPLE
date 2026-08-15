@@ -283,6 +283,14 @@ python tools/route2_release/run_aimnet2_geometry_mediated_pes_panel.py \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-pes.json
 
+shard_args=()
+for shard in /absolute/path/to/shards/*.json; do
+  shard_args+=(--shard "$shard")
+done
+python tools/route2_release/aggregate_aimnet2_geometry_mediated_pes_panel.py \
+  "${shard_args[@]}" \
+  --output /absolute/path/outside/the/repository/aimnet2-harmonic-pes-panel.json
+
 python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
   --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
   --device cpu \

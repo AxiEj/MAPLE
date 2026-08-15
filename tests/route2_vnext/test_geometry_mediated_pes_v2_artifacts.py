@@ -9,8 +9,13 @@ import pytest
 
 from artifact_source_binding import assert_source_files_match_execution_commit
 from maple.solvation.release import (
+    AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_ARTIFACT_SCHEMA_VERSION,
+    AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION,
     canonical_json_sha256,
     summarize_aimnet2_geometry_mediated_pes_shard,
+)
+from tools.route2_release.aggregate_aimnet2_geometry_mediated_pes_panel import (
+    _load_shards,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -121,7 +126,7 @@ def _assert_common_artifact(
     artifact: dict[str, object], expectation: ShardExpectation
 ) -> dict[str, object]:
     assert artifact["schema_version"] == (
-        "route2-aimnet2-geometry-mediated-pes-shard-artifact-v2"
+        AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION
     )
     assert artifact["contract_version"] == (
         "route2-aimnet2-geometry-mediated-pes-shard-contract-v2"
@@ -232,3 +237,32 @@ def test_methanol_v2_failure_is_only_the_frozen_point_shell_event_guard():
             and record["sphere_tangency_guard_passed"] is True
             for record in directional["records"]
         )
+
+
+def test_v2_panel_aggregator_recomputes_raw_shards_and_rejects_tampering(
+    tmp_path: Path,
+):
+    assert AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_ARTIFACT_SCHEMA_VERSION == (
+        "route2-aimnet2-geometry-mediated-pes-panel-aggregate-v2"
+    )
+    paths = [
+        EVIDENCE_ROOT / expectation.directory / "measurements.json"
+        for expectation in SHARDS
+    ]
+    loaded = _load_shards(paths)
+    assert [shard.summary["molecule_id"] for shard in loaded] == [
+        "water",
+        "methanol",
+    ]
+
+    tampered = _load(paths[0])
+    tampered["records"][0]["directions"]["bond-stretch"]["samples"][0][
+        "plus_energy_eV"
+    ] += 1.0e-2
+    tampered["measurement_sha256"] = canonical_json_sha256(
+        {key: tampered[key] for key in MEASURED_KEYS}
+    )
+    artifact = tmp_path / "tampered.json"
+    artifact.write_text(json.dumps(tampered), encoding="utf-8")
+    with pytest.raises(ValueError, match="cached summary is not reproducible"):
+        _load_shards((artifact,))

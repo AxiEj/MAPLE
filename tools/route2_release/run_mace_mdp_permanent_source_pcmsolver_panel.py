@@ -429,7 +429,7 @@ def main() -> None:
             ),
             "source_representation": "exterior point multipoles through l<=1",
             "reference": "frozen total QM MEP on identical PCMSolver cavity",
-            "continuum": preregistration["method"]["continuum"],
+            "continuum": parent["method"]["continuum"],
             "fixed_source_energy_error_budget_kcal_per_mol": (
                 INHERITED_FIXED_SOURCE_ERROR_BUDGET_KCAL_PER_MOL
             ),

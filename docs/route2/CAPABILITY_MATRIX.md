@@ -44,6 +44,14 @@ It cannot be registered or admitted until a new content-addressed,
 optimizer-audited, source-validated trained head exists; it changes none of the
 `no` entries above.
 
+The capability-neutral
+`maple.solvation.release.electrostatic_decomposition` contract is the next
+gate for such a future head.  It requires the exact frozen source panel to pass
+before matched QM/PCM electronic-distortion, continuum-stabilization, and total
+electrostatic components may be used to compare preregistered ledgers.  Even a
+passing ledger report only authorizes later force/PES work; it does not change
+any `no` entry in this matrix.
+
 The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source
 identity, reciprocity, stability, invertibility, and full coordinate derivative

@@ -151,6 +151,48 @@ MACE-MDP polarizabilities may be used as a training/distillation target, but
 the rejected unchanged MACE-MDP permanent q/p source cannot be silently reused
 as the permanent term.
 
+## Matched component and ledger decision contract
+
+`maple.solvation.release.electrostatic_decomposition` now freezes the next
+scientific decision without manufacturing reference data or enabling a tier.
+For every fixed nuclear geometry, `MatchedElectrostaticReferenceCase` stores
+only the three primitive, electrostatics-only QM quantities
+
+\[
+E_{\rm vac}[\gamma_0],\qquad
+E_{\rm vac}[\gamma_\star],\qquad
+E_{\rm PCM}^{\rm elec}[\gamma_\star],
+\]
+
+where the middle term is evaluated without reoptimizing
+`gamma_star` in vacuum.  Distortion, continuum stabilization, and total
+electrostatic solvation energy are derived rather than caller-supplied.  The
+record rejects CDS/nonpolar terms, standard-state corrections, experimental
+solvation labels, geometry changes, and unconverged vacuum/PCM densities.
+
+`QuantitativeSourceGatePanel` binds the exact source identity to the same
+case, geometry, cavity, topology, continuum, and directly projected QM
+boundary RHS used by the matched references.  A failed case is retained as
+negative evidence, but `assess_operational_electrostatic_ledgers()` refuses to
+run unless **every** frozen source case passed.  This encodes the terminal
+rule that a failed source cannot be rescued by selecting a favorable ledger.
+
+Only after that gate may a `LedgerAssessmentPreregistration` compare candidate
+distortion, continuum, and total components.  The case set, component budgets,
+candidate priority, and all-case selection rule are frozen before blind
+results.  Every candidate prediction additionally binds its exact formula,
+configuration, state, evaluation artifact, and a passed energy-semantics
+canary; a failed field-work/double-counting audit cannot enter the comparison.
+Missing cases, mixed continuum identities, post-hoc priorities, FreeSolv/MNSol
+totals, or component cancellation fail closed.  A selected ledger is merely
+the one allowed to advance to force/PES gates; the report still admits no
+`E/F/H/V/M` capability.
+
+No current source reaches this decision point.  The original MACE-POLAR,
+fixed-radial repair, and unchanged MACE-MDP source panels remain terminal
+negative.  The new contract is therefore preparation for a future trained,
+content-addressed scalar-first source, not evidence that such a source exists.
+
 ## Required successor sequence
 
 A concrete successor receives a new profile and must proceed in this order:

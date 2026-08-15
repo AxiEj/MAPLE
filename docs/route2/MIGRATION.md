@@ -9,7 +9,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
 | 2: coupling operator | mathematical implementation complete; the original source, its one fixed-radial repair, and an unchanged MACE-MDP permanent-source alternative are closed negative for quantitative PCM | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; a disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original source and radial repair fail their frozen QM/PCMSolver gates, while unchanged MACE-MDP atomic q/p passes only `3/4` under an all-case gate; all tiers false |
-| 3: state equation/operational scalar | kernel complete; both unchanged-source ledgers closed | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy ledgers are distinct disabled scalars rather than one supposedly root-implied energy; the field replay closes `Phi1Delta` as complete external enthalpy, and the source physical audit prevents either ledger from advancing on the unchanged source |
+| 3: state equation/operational scalar | kernel complete; both unchanged-source ledgers closed | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy ledgers are distinct disabled scalars rather than one supposedly root-implied energy; the field replay rules out treating native-injection `Phi1Delta` as complete external enthalpy, and the source physical audit prevents either ledger from advancing on the unchanged source |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), native-injection complete-enthalpy, and analytic changed-inference Tier-V stability routes closed negative | clean official-checkpoint canaries rule out retaining the original energy/source common scalar, isolate the pinned fixed-axis real-space operator as non-`SO(3)`, and prove that direct native-field injection omits the upstream explicit field work; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular, so every profile remains unadmitted |
 | 6: force/MAPLE integration | unchanged-source branch stopped before force release | same-scalar force is callable internally and all twenty frozen equilibrium rigid-panel molecules pass twice, but the source now fails matched QM/PCMSolver component physics; distorted-PES and A/B/L coordinate-VJP release work is not continued for this source identity |
@@ -38,9 +38,9 @@ measurement SHA-256
 `e77ab89951e8eefec3480571fcc8df03026090f06aa15b817c464d033f230439`;
 evidence is retained under
 [`evidence/mace-field-semantics-3014f1a6/`](evidence/mace-field-semantics-3014f1a6/README.md).
-This closes `Phi1Delta` as a complete external-enthalpy interpretation of the
-current native-injection branch. It does not validate the original source for
-PCM or admit `Phi0`.
+This closes out a complete external-enthalpy interpretation of `Phi1Delta` on
+the current native-injection branch. It does not validate the original source
+for PCM or admit `Phi0`.
 
 The subsequent clean four-case physical audit at head `1d40c93b` compares the
 unchanged original source directly with frozen total-QM surface MEPs on the
@@ -101,6 +101,14 @@ HVP, and coordinate partial are generated from one Torch continuum scalar and
 match the existing audited response backend.  This closes the earlier 4-to-8
 rank obstruction only by changing the source/model identity and closes the
 continuum half-coupling derivative identity only for the fixed-cavity candidate.
+It also contains a dependency-light matched QM/PCM component contract.  That
+contract derives electronic distortion, continuum stabilization, and total
+electrostatic energy from three primitive reference evaluations, requires an
+all-case quantitative source pass before any ledger comparison, and freezes
+component budgets plus ledger priority before blind access.  It contains no
+reference measurements and changes no capability; it is the terminal decision
+surface for a future trained source rather than a resurrection of a rejected
+source.
 The common constrained state and stationary scalar `E-s<c,u>+sG` are now
 implemented by thin scalar-derived adapters over the existing reduced solver.
 Synthetic same-scalar tests with the real fixed C-PCM backend close reduced

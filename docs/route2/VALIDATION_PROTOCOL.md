@@ -203,6 +203,36 @@ Root uniqueness is tested with declared multi-start seeds and the actual
 unmixed dimensionless residual. Damping/DIIS convergence alone is not a root
 uniqueness proof.
 
+## Source-first matched electrostatic component gate
+
+Operational ledger selection is forbidden until a single, content-addressed
+source identity passes every preregistered case for:
+
+- total charge;
+- dipole and traceless quadrupole under one origin convention;
+- multi-shell far-field MEP;
+- same-cavity surface MEP;
+- directly projected continuum RHS and the `A^-1` energy norm;
+- fixed-source electrostatic PCM energy under the exact same continuum.
+
+The code-level record is
+`maple.solvation.release.electrostatic_decomposition`.  A case pass is derived
+from all six layers; an `A^-1`/energy pass cannot hide a wrong multipole or MEP.
+The exact source, geometry, boundary RHS, cavity, topology, continuum
+configuration/provenance, protocols, and evidence hashes must match.
+
+Only an all-case source pass permits matched ledger evaluation.  Every QM/PCM
+reference case contains three primitive fixed-geometry, electrostatics-only
+energies: `E_vac[gamma_0]`, the non-reoptimized vacuum-functional evaluation
+`E_vac[gamma_pcm]`, and `E_PCM_elec[gamma_pcm]`.  Distortion, continuum
+stabilization, and total electrostatic solvation energy are derived.  Candidate
+formula/configuration/state and energy-semantics evidence, the complete case
+set, component budgets, and ledger priority are frozen before blind access.
+All cases must pass all three component budgets; total-error cancellation is
+not sufficient.  Experimental totals, CDS/nonpolar, and standard-state terms
+are rejected.  Selection authorizes only later force/PES work and never admits
+`E/F/H/V/M` by itself.
+
 ## Hessian and frequency gates
 
 The raw force-FD Hessian is retained. Before optional symmetrization,

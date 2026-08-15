@@ -226,6 +226,16 @@ under
 Therefore both unchanged-source scalar identities remain registered only as
 closed negative research records; neither advances to force/PES/admission.
 
+Future source identities cannot bypass this decision by attaching a new scalar
+ID.  The capability-neutral matched-component contract in
+`maple.solvation.release.electrostatic_decomposition` requires an all-case
+quantitative source pass on the exact matched reference panel before any
+operational ledger is compared.  It then derives QM electronic distortion,
+continuum stabilization, and total electrostatic energy from primitive
+electrostatics-only evaluations and applies a preregistered all-case component
+rule.  Its output selects at most a ledger allowed to enter later force/PES
+gates; it does not register or admit a scalar.
+
 ## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`
 
 Profile `route2-profile-diagnostic-ddx-ddpcm194-radialgto-electrostatic-v1`

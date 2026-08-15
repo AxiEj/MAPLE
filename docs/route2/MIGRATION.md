@@ -12,7 +12,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; a separate closed analytic-evaluator/original-source plus smooth-harmonic profile now reuses the same kernel |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative | a clean official-checkpoint canary rules out retaining the original intrinsic energy and original four-channel source; a second isolates the pinned fixed-axis real-space operator as non-`SO(3)`; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular in a reproducible local-stability canary, so every profile remains unadmitted |
-| 6: force/MAPLE integration | blocked | same-scalar force is callable internally; the analytic-harmonic rigid-panel range `[0,16)` passes twice, but the remaining 4 equilibrium molecules plus complete PES/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
+| 6: force/MAPLE integration | blocked | same-scalar force is callable internally; the analytic-harmonic rigid-panel range `[0,17)` passes twice, but the remaining 3 equilibrium molecules plus complete PES/loop and matched-component accuracy gates have not run; public calculator/workflow and admission gates remain closed |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
 | 9: legacy archive/cleanup | in progress | continuum public exports are now lazy, so dependency-light harmonic submodules do not execute legacy adapters; admitted production paths still use legacy engine assets and are not archived |
@@ -127,6 +127,8 @@ Pyridine extends that coverage to `[0,15)`; evidence is retained under
 [`evidence/operational-analytic-harmonic-rigid-pyridine-ce23da3e/`](evidence/operational-analytic-harmonic-rigid-pyridine-ce23da3e/README.md).
 Nitromethane extends that coverage to `[0,16)`; evidence is retained under
 [`evidence/operational-analytic-harmonic-rigid-nitromethane-303af2d9/`](evidence/operational-analytic-harmonic-rigid-nitromethane-303af2d9/README.md).
+Hydrogen peroxide extends that coverage to `[0,17)`; evidence is retained under
+[`evidence/operational-analytic-harmonic-rigid-hydrogen-peroxide-49d207cd/`](evidence/operational-analytic-harmonic-rigid-hydrogen-peroxide-49d207cd/README.md).
 Physical components, solvation accuracy, PES/domain, Hessian/FREQ/MD, and
 release gates remain absent, so all capabilities remain false. The result
 supports the new coefficient-space replacement and does not repair or admit

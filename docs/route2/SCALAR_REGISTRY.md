@@ -206,11 +206,13 @@ two disabled scalar identities:
   energy.
 
 The fixed point does not select between these ledgers. `Phi0` omits an
-explicit internal solute polarization cost; `Phi1Delta` remains an external-
-enthalpy candidate until the applied-field sign, branch work term, and energy
-semantics are verified by the same content-addressed field-semantics manifest.
-Neither scalar has a public profile or any capability. Their full
-contract and claim boundary are in
+explicit internal solute polarization cost. The clean field-semantics replay
+at `3014f1a6` shows that the native-injection branch consumed by `Phi1Delta`
+omits the explicit upstream `+E dot mu` work term; `Phi1Delta` is therefore a
+disabled diagnostic/ablation scalar, not a complete external-enthalpy ledger.
+`Phi0` still requires matched source and electrostatic-component admission.
+Neither scalar has a public profile or any capability. Their full contract and
+claim boundary are in
 [SEPARATED_OPERATIONAL_ROUTE.md](SEPARATED_OPERATIONAL_ROUTE.md).
 
 ## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`

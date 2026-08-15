@@ -38,15 +38,30 @@ default, is authoritative. The current canary reads and hashes:
 
 For the currently cached official checkpoint the source width is `1.5 A` and
 the receiver widths are `1.5 A` and `3.0 A`. This branch therefore rejects the
-unverified `1.5/2.0 A` recollection for this artifact. The canary intentionally
-leaves the applied-field energy sign and complete external-enthalpy semantics
-unverified. A separate content-addressed `FieldSemanticsManifest` now binds
-the checkpoint, adapter configuration and provenance, source/native-field
+unverified `1.5/2.0 A` recollection for this artifact. The structural canary
+alone intentionally leaves the applied-field energy sign and complete
+external-enthalpy semantics unverified. A separate content-addressed
+`FieldSemanticsManifest` binds the checkpoint, adapter configuration and
+provenance, source/native-field
 spaces, pairing metric, channel order, radial widths, units, real-harmonic
 convention, coordinate transform, origin policy, spin-channel factor,
-work-term inclusion, and supporting evidence IDs. Unknown sign/work/origin
-fields remain explicit `None`/`unverified`; they cannot be inferred from an
-`external_field` variable name.
+work-term inclusion, and supporting measurement SHA-256 values. Unknown
+sign/work/origin fields remain explicit `None`/`unverified`; they cannot be
+inferred from an `external_field` variable name.
+
+The clean two-process checkpoint replay at commit `3014f1a6` resolves this
+specific branch question negatively. Upstream uniform-field and MAPLE native
+injection produce identical source and dipole, but upstream minus native raw
+energy equals the explicit `+E dot mu` work to `6.63e-14 eV`. The energy
+difference is `3.853499335e-3 eV`, the fixed-field force difference is
+`3.533242862e-3 eV/A`, and the directional-derivative difference is
+`0.4928416604 e A`. The native raw graph passes its own reverse/forward AD,
+finite-difference, zero-field, and charging checks; it is simply a different
+energy branch that omits the upstream explicit work. Both runs reproduce
+measurement SHA-256
+`e77ab89951e8eefec3480571fcc8df03026090f06aa15b817c464d033f230439`.
+Evidence is retained under
+[`evidence/mace-field-semantics-3014f1a6/`](evidence/mace-field-semantics-3014f1a6/README.md).
 
 ## Frozen ledgers, not a unique energy
 
@@ -61,30 +76,31 @@ Phi1Delta = E_vac(R)
 ```
 
 `Phi0` is the existing vacuum-plus-continuum ledger and explicitly omits an
-internal solute polarization cost. `Phi1Delta` is a vacuum-normalized
-external-enthalpy candidate. The raw native-injection scalar is deliberately
-named `E_conditioned_raw` until replay proves whether it is internal-only,
-complete external enthalpy, or branch-dependent. `Phi1Delta` does not make the
-original source the derivative of the checkpoint energy.
-Neither is selected as physically correct until matched energy, force,
-surface-MEP, and continuum-component references are run. Both remain absent
-from the public profile registry and admit no E/F/H/V/M capability.
+internal solute polarization cost. `Phi1Delta` is vacuum-normalized, but the
+replay above proves that its consumed native-injection branch is not the
+upstream complete external enthalpy. It is therefore retained only as a
+disabled diagnostic/ablation scalar, not as an admitted external-enthalpy
+ledger. It also does not make the original source the derivative of the
+checkpoint energy. `Phi0` is not selected as physically correct until matched
+source, surface-MEP, continuum-component, and energy references pass. Both
+remain absent from the public profile registry and admit no E/F/H/V/M
+capability.
 
 ## Terminal strict-variational audit
 
-There is one remaining mathematically legitimate quotient-space check for the
-unchanged checkpoint:
+The only mathematically legitimate quotient-space check for the unchanged
+checkpoint was:
 
 ```text
 B M_theta(R,u) + s L^T grad_u E_conditioned_raw(R,u) = 0
 B M_u(R,u) L is self-adjoint on the boundary coefficient chart.
 ```
 
-A coupled-curl failure at one admitted state is terminal. A direct
-energy/source failure becomes terminal only after Gate 1 has verified that the
-consumed scalar is the complete external enthalpy and has frozen its sign; the
-current raw conditioned-energy hook does not yet meet that prerequisite. A finite
-pass is only local numerical evidence, never a global Tier-V proof.
+A coupled-curl failure at one admitted state is terminal. The direct
+energy/source residual is not reinterpreted as a full-enthalpy residual,
+because the field-semantics replay proves that the consumed raw branch omits
+the upstream explicit work. A finite pass would only be local numerical
+evidence, never a global Tier-V proof.
 Geometry-dependent projections, spectral clipping, path integrals,
 residual-squared energies, and solver damping are not accepted repairs. A fixed
 quadratic correction would be a separately named new model and is not
@@ -136,7 +152,8 @@ diagnostic mathematics. It does **not** establish:
 
 - a unified variational functional for the original checkpoint;
 - source/MEP accuracy against QM;
-- a preferred `Phi0` or `Phi1Delta` energy ledger;
+- an admitted `Phi0` ledger (`Phi1Delta` has already failed complete-enthalpy
+  semantics for the current native-injection branch);
 - a globally unique smooth root;
 - distorted-geometry PES, Cartesian finite differences, or closed-loop work;
 - a public conservative force or any solvation-accuracy claim.

@@ -9,9 +9,9 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; an additional disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; single-width/local-jet remain separate diagnostics; all tiers false |
-| 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy candidates are distinct disabled scalar ledgers rather than one supposedly root-implied energy; both bind one field-semantics manifest |
+| 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy ledgers are distinct disabled scalars rather than one supposedly root-implied energy; both bind one field-semantics manifest, and the real replay closes `Phi1Delta` as complete external enthalpy for the current native-injection branch |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
-| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative | a clean official-checkpoint canary rules out retaining the original intrinsic energy and original four-channel source; a second isolates the pinned fixed-axis real-space operator as non-`SO(3)`; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular in a reproducible local-stability canary, so every profile remains unadmitted |
+| 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), native-injection complete-enthalpy, and analytic changed-inference Tier-V stability routes closed negative | clean official-checkpoint canaries rule out retaining the original energy/source common scalar, isolate the pinned fixed-axis real-space operator as non-`SO(3)`, and prove that direct native-field injection omits the upstream explicit field work; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular, so every profile remains unadmitted |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally and all twenty frozen equilibrium rigid-panel molecules pass twice; distorted-geometry, Cartesian-FD, loop-work, matched-component accuracy, public calculator/workflow, and admission gates remain open |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
@@ -29,6 +29,18 @@ under
 The original-source Tier-V route is therefore terminally closed even after the
 actual continuum quotient; the separated operational route remains a distinct
 disabled research candidate.
+
+The follow-up exact field-semantics replay at clean head `3014f1a6` finds
+bitwise-identical source/dipole outputs between upstream uniform-field and
+native-eight-channel injection, while the energy difference equals the
+upstream explicit `+E dot mu` work to `6.63e-14 eV`. Two processes reproduce
+measurement SHA-256
+`e77ab89951e8eefec3480571fcc8df03026090f06aa15b817c464d033f230439`;
+evidence is retained under
+[`evidence/mace-field-semantics-3014f1a6/`](evidence/mace-field-semantics-3014f1a6/README.md).
+This closes `Phi1Delta` as a complete external-enthalpy interpretation of the
+current native-injection branch. It does not validate the original source for
+PCM or admit `Phi0`.
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from

@@ -174,6 +174,9 @@ physical-configuration identity.
   Thiophene extends the contiguous two-process coverage to `[0,18)`;
   evidence is retained under
   [`evidence/operational-analytic-harmonic-rigid-thiophene-b8c7ac21/`](evidence/operational-analytic-harmonic-rigid-thiophene-b8c7ac21/README.md).
+  Methanethiol extends the contiguous two-process coverage to `[0,19)`;
+  evidence is retained under
+  [`evidence/operational-analytic-harmonic-rigid-methanethiol-ad0e3b68/`](evidence/operational-analytic-harmonic-rigid-methanethiol-ad0e3b68/README.md).
   This supports replacement of the finite laboratory-grid route; it does not
   rehabilitate that route or establish a global/profile-wide guarantee.
 - Capabilities: none. This is not physical-component, solvation-accuracy,

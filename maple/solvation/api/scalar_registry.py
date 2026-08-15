@@ -224,8 +224,9 @@ _SCALAR_ENTRIES = (
             "implicit adjoint total derivative exists internally; disabled and "
             "scientifically stopped because the unchanged original source failed "
             "the frozen four-case matched QM/PCMSolver physical gate; the later "
-            "far-field pass authorizes only a separately identified radial-source "
-            "research profile"
+            "far-field pass authorized one separately identified radial-source "
+            "research profile, which then failed all four matched PCMSolver "
+            "energy cases and is terminally closed"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),

@@ -171,6 +171,15 @@ embedding research experiment. It does **not** prove that the near-field defect
 is radial-only; the new profile must still pass held-out cavity-surface MEP and
 fixed-source PCM-energy gates before any ledger is evaluated.
 
+The preregistered experiment has now been executed twice at clean head
+`7c5fc16b`. A universal `sigma=0.75 Angstrom` embedding passes its training and
+held-out distant-surface MEP gates, but fails every matched intrinsic-cavity
+PCMSolver energy case: absolute errors are `1.829` to `4.888 kcal/mol`.
+Evidence is retained under
+[`evidence/mace-fixed-radial-source-terminal-7c5fc16b/`](evidence/mace-fixed-radial-source-terminal-7c5fc16b/README.md).
+Per the frozen termination rule, no further radial patch is authorized and no
+ledger or force work proceeds on either the original or repaired source.
+
 For `r(y)=y-F(y)`, the root diagnostic records:
 
 - `sigma_min(I-J_F)` for a local implicit branch;
@@ -189,8 +198,8 @@ coupled-curl gate, and the same source fails the matched quantitative PCM
 source gate. It does **not** establish:
 
 - a unified variational functional for the original checkpoint;
-- a validated repaired source/MEP model (one fixed radial-embedding experiment
-  is now authorized but not yet executed/admitted);
+- a validated repaired source/MEP model (the single authorized fixed-radial
+  experiment has now failed its matched PCMSolver energy gate);
 - an admitted `Phi0` or `Phi1Delta` ledger (`Phi1Delta` additionally fails
   complete-enthalpy semantics for the current native-injection branch);
 - a globally unique smooth root;

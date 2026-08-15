@@ -1,0 +1,3360 @@
+{
+  "artifact_kind": "terminal-fixed-radial-source-research-audit",
+  "candidate_grid": [
+    {
+      "candidate_id": "baseline-sigma-1p50",
+      "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+      "embedding_distance_from_original_angstrom2": 0.0,
+      "sigmas_angstrom": [
+        1.5
+      ],
+      "weights": [
+        1.0
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p25-weight-0p25",
+      "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+      "embedding_distance_from_original_angstrom2": 0.390625,
+      "sigmas_angstrom": [
+        0.25,
+        1.5
+      ],
+      "weights": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p25-weight-0p50",
+      "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+      "embedding_distance_from_original_angstrom2": 0.78125,
+      "sigmas_angstrom": [
+        0.25,
+        1.5
+      ],
+      "weights": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p25-weight-0p75",
+      "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+      "embedding_distance_from_original_angstrom2": 1.171875,
+      "sigmas_angstrom": [
+        0.25,
+        1.5
+      ],
+      "weights": [
+        0.75,
+        0.25
+      ]
+    },
+    {
+      "candidate_id": "pure-sigma-0p25",
+      "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+      "embedding_distance_from_original_angstrom2": 1.5625,
+      "sigmas_angstrom": [
+        0.25
+      ],
+      "weights": [
+        1.0
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p50-weight-0p25",
+      "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+      "embedding_distance_from_original_angstrom2": 0.25,
+      "sigmas_angstrom": [
+        0.5,
+        1.5
+      ],
+      "weights": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p50-weight-0p50",
+      "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+      "embedding_distance_from_original_angstrom2": 0.5,
+      "sigmas_angstrom": [
+        0.5,
+        1.5
+      ],
+      "weights": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p50-weight-0p75",
+      "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+      "embedding_distance_from_original_angstrom2": 0.75,
+      "sigmas_angstrom": [
+        0.5,
+        1.5
+      ],
+      "weights": [
+        0.75,
+        0.25
+      ]
+    },
+    {
+      "candidate_id": "pure-sigma-0p50",
+      "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+      "embedding_distance_from_original_angstrom2": 1.0,
+      "sigmas_angstrom": [
+        0.5
+      ],
+      "weights": [
+        1.0
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p75-weight-0p25",
+      "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+      "embedding_distance_from_original_angstrom2": 0.140625,
+      "sigmas_angstrom": [
+        0.75,
+        1.5
+      ],
+      "weights": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p75-weight-0p50",
+      "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+      "embedding_distance_from_original_angstrom2": 0.28125,
+      "sigmas_angstrom": [
+        0.75,
+        1.5
+      ],
+      "weights": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-0p75-weight-0p75",
+      "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+      "embedding_distance_from_original_angstrom2": 0.421875,
+      "sigmas_angstrom": [
+        0.75,
+        1.5
+      ],
+      "weights": [
+        0.75,
+        0.25
+      ]
+    },
+    {
+      "candidate_id": "pure-sigma-0p75",
+      "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+      "embedding_distance_from_original_angstrom2": 0.5625,
+      "sigmas_angstrom": [
+        0.75
+      ],
+      "weights": [
+        1.0
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-1p00-weight-0p25",
+      "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+      "embedding_distance_from_original_angstrom2": 0.0625,
+      "sigmas_angstrom": [
+        1.0,
+        1.5
+      ],
+      "weights": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-1p00-weight-0p50",
+      "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+      "embedding_distance_from_original_angstrom2": 0.125,
+      "sigmas_angstrom": [
+        1.0,
+        1.5
+      ],
+      "weights": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-1p00-weight-0p75",
+      "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+      "embedding_distance_from_original_angstrom2": 0.1875,
+      "sigmas_angstrom": [
+        1.0,
+        1.5
+      ],
+      "weights": [
+        0.75,
+        0.25
+      ]
+    },
+    {
+      "candidate_id": "pure-sigma-1p00",
+      "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+      "embedding_distance_from_original_angstrom2": 0.25,
+      "sigmas_angstrom": [
+        1.0
+      ],
+      "weights": [
+        1.0
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-1p25-weight-0p25",
+      "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+      "embedding_distance_from_original_angstrom2": 0.015625,
+      "sigmas_angstrom": [
+        1.25,
+        1.5
+      ],
+      "weights": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-1p25-weight-0p50",
+      "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+      "embedding_distance_from_original_angstrom2": 0.03125,
+      "sigmas_angstrom": [
+        1.25,
+        1.5
+      ],
+      "weights": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "candidate_id": "mix-sigma-1p25-weight-0p75",
+      "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+      "embedding_distance_from_original_angstrom2": 0.046875,
+      "sigmas_angstrom": [
+        1.25,
+        1.5
+      ],
+      "weights": [
+        0.75,
+        0.25
+      ]
+    },
+    {
+      "candidate_id": "pure-sigma-1p25",
+      "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+      "embedding_distance_from_original_angstrom2": 0.0625,
+      "sigmas_angstrom": [
+        1.25
+      ],
+      "weights": [
+        1.0
+      ]
+    }
+  ],
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "This artifact makes one preregistered low-capacity radial-source decision. A pass would authorize only decomposition of a new operational ledger; it cannot reopen the unchanged source, prove Tier V, inherit force evidence, or admit E/F/H/V/M.",
+  "decision": {
+    "additional_radial_patches_authorized": false,
+    "fixed_radial_source_profile_passed": false,
+    "phi0_ledger_decomposition_authorized": false,
+    "phi1_delta_ledger_decomposition_authorized": false,
+    "public_capability_admitted": false,
+    "selected_profile_may_be_frozen": false,
+    "transition_to_scalar_first_or_independent_variational_polarization": true
+  },
+  "device": "cuda",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_mace_fixed_radial_embedding_panel.py --asset-root /home/axie/MAPLE/MAPLE-implicitsolv-route2 --pcmsolver-library /home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1 --checkpoint /home/axie/.cache/mace/MACEPOLAR1Mmodel --device cuda --output /tmp/route2-mace-fixed-radial-7c5fc16b-run1.json",
+  "execution_git_head": "7c5fc16b5bcb98221a97d5663329941ee74fe4f3",
+  "execution_git_tree": "270a1f6cf54d52b57c5536ab2b03bdd50e5cf30c",
+  "external_assets": {
+    "asset_root": "/home/axie/MAPLE/MAPLE-implicitsolv-route2",
+    "input_evidence": {
+      "farfield_positive_sha256": "771d800632c9597dc23141fad97add5ccdd2009f5f924bb7fe74f79e57022633",
+      "original_negative_sha256": "fb6f5f175348b51b99f55147f5df75782f8b2ccbbb86ba16aaae7c2fdb0f0748",
+      "pcmsolver_manifest_sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+      "static_manifest_sha256": "21e4e607b5c88d498be117f41c37b54b00d96eb953c78874eb1ea39b7a040f20"
+    },
+    "mace_checkpoint": {
+      "bytes": 68133235,
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "pcmsolver_library": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    },
+    "preregistration": {
+      "path": "/home/axie/MAPLE/MAPLE-route2-conservative-vnext/docs/route2/preregistrations/mace-original-source-fixed-radial-embedding-v1.json",
+      "sha256": "73c8fcd919d46ac9f33f8bd8dccb737dcc087cff64a5b0889832c8c9a640f1e5"
+    }
+  },
+  "matched_pcmsolver_gate": {
+    "case_pass_count": 0,
+    "executed": true,
+    "gate_passed": false,
+    "maximum_energy_absolute_error_kcal_per_mol": 4.887705463072207
+  },
+  "matched_pcmsolver_records": [
+    {
+      "assets": {
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "pcm_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "projection_result_sha256": "d0a0c3ecf51f5cd91f80a44c7a0de8da0e0043d63b495126ead9501465d1b913",
+        "qm_checkpoint_sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12",
+        "qm_surface_mep_sha256": "41bd88ba7c65e172a2de47ecd2a3dbb9b17291f52f4ad04f9716d58da6dbd829",
+        "surface_points_sha256": "8a6389d36816f0666b2c7a4986fdce5cd1dd8619c6c69f119fc2a9b848e05ac3"
+      },
+      "atom_count": 8,
+      "class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "fixed_source_energy_gate_passed": false,
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "name": "acetic acid",
+      "polarization_energy_absolute_error_kcal_per_mol": 3.59096053261316,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 8.380843270683647,
+      "predicted_polarization_energy_kcal_per_mol": -7.392471678500821,
+      "qm_density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+      "qm_polarization_energy_kcal_per_mol": -10.983432211113982,
+      "surface_mep_area_weighted_relative_l2_error": 0.3037569409030873,
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "pcm_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "projection_result_sha256": "c1a786cfdd11e5b2e6caf3406599eb29575520dfd303addcc66a29999124bd65",
+        "qm_checkpoint_sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079",
+        "qm_surface_mep_sha256": "b4916b9abe6a667dbebf9b6bf0691d0ba2b9e4bd37a98b8f6f7d29cb5a077f8d",
+        "surface_points_sha256": "34616c0bed07e4e3e656e73cf6737a4ff80fa0c2b2b0266d73d16182d34b1c27"
+      },
+      "atom_count": 12,
+      "class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "fixed_source_energy_gate_passed": false,
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "name": "benzene",
+      "polarization_energy_absolute_error_kcal_per_mol": 1.8285303218119144,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 4.29663496957286,
+      "predicted_polarization_energy_kcal_per_mol": -1.3077725429133782,
+      "qm_density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+      "qm_polarization_energy_kcal_per_mol": -3.1363028647252924,
+      "surface_mep_area_weighted_relative_l2_error": 0.7970548526736789,
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "pcm_input_sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "projection_result_sha256": "e3c89b54c6fbbb25ece9ab3fd5b6b9a3e61fa9c605d65533c29084cd15b53fe7",
+        "qm_checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b",
+        "qm_surface_mep_sha256": "ee1dbfa127101796b154cbc4749d1aec22494baaea3666b9264c9eff33f468bb",
+        "surface_points_sha256": "006675ac11e220e7278893467d3c4ca330b8ec02746cfb63d17125d3774bf239"
+      },
+      "atom_count": 20,
+      "class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "fixed_source_energy_gate_passed": false,
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "name": "2-acetoxyethyl acetate",
+      "polarization_energy_absolute_error_kcal_per_mol": 4.887705463072207,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 12.205154554372422,
+      "predicted_polarization_energy_kcal_per_mol": -7.859651751246018,
+      "qm_density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+      "qm_polarization_energy_kcal_per_mol": -12.747357214318225,
+      "surface_mep_area_weighted_relative_l2_error": 0.41521453309916323,
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "pcm_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "projection_result_sha256": "a64d8c0df5c42e1190100294bd4a37ef0bebff918527164a4ad2c339c2c25905",
+        "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+        "qm_surface_mep_sha256": "3cbd917e8e4898934dea21abea77bf1bdb0577e90cc105f826968473489121cb",
+        "surface_points_sha256": "3576e4ad68d34ad5424c768bc3dbe3ec7ddfd9f4f3caa4db04ab9d69702e50bb"
+      },
+      "atom_count": 10,
+      "class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "fixed_source_energy_gate_passed": false,
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "name": "acetone",
+      "polarization_energy_absolute_error_kcal_per_mol": 2.107752938986818,
+      "polarization_energy_error_upper_bound_kcal_per_mol": 5.542919394329517,
+      "predicted_polarization_energy_kcal_per_mol": -4.535586023366956,
+      "qm_density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+      "qm_polarization_energy_kcal_per_mol": -6.6433389623537735,
+      "surface_mep_area_weighted_relative_l2_error": 0.3811036581706927,
+      "surface_replay_max_abs_error_bohr": 0.0
+    }
+  ],
+  "measurement_sha256": "77cd7ab8a845820a78d0236395411ace5c68fd3568c27e999e0a15705291f7bc",
+  "protocol": {
+    "experimental_solvation_labels_read": false,
+    "heldout_mep_used_for_selection": false,
+    "pcmsolver_energy_used_for_selection": false,
+    "pcmsolver_reference": "frozen matched QM total MEP and identical intrinsic PCMSolver cavity",
+    "selection_uses_training_mep_only": true,
+    "source_map": "one universal convex normalized-Gaussian mixture preserving every original q/p block",
+    "static_mep_asset_reuse": "Only frozen QM MEP, geometry, and geometry-only surface assets are reused. Historical legacy-evaluator MACE predictions do not gate the current analytic-evaluator source.",
+    "static_mep_reference": "frozen omegaB97M-V/def2-TZVPD total MEP"
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-15T08:09:11.395101+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 10.197399997967295,
+  "schema_version": "route2-mace-fixed-radial-embedding-terminal-v1",
+  "selected_embedding": {
+    "candidate_id": "pure-sigma-0p75",
+    "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+    "sigmas_angstrom": [
+      0.75
+    ],
+    "weights": [
+      1.0
+    ]
+  },
+  "selection": {
+    "baseline_training_objective": 0.5277461282165373,
+    "candidate_training_objectives": {
+      "baseline-sigma-1p50": 0.5277461282165373,
+      "mix-sigma-0p25-weight-0p25": 0.29693563021336083,
+      "mix-sigma-0p25-weight-0p50": 0.1423427925511041,
+      "mix-sigma-0p25-weight-0p75": 0.06396761522976684,
+      "mix-sigma-0p50-weight-0p25": 0.2970237040915761,
+      "mix-sigma-0p50-weight-0p50": 0.14244999322921303,
+      "mix-sigma-0p50-weight-0p75": 0.06402499562944831,
+      "mix-sigma-0p75-weight-0p25": 0.3111029425677828,
+      "mix-sigma-0p75-weight-0p50": 0.16030277002301682,
+      "mix-sigma-0p75-weight-0p75": 0.07534561058223913,
+      "mix-sigma-1p00-weight-0p25": 0.3762775161114429,
+      "mix-sigma-1p00-weight-0p50": 0.2550110995186335,
+      "mix-sigma-1p00-weight-0p75": 0.16394687843810887,
+      "mix-sigma-1p25-weight-0p25": 0.463365806404129,
+      "mix-sigma-1p25-weight-0p50": 0.4044168973908262,
+      "mix-sigma-1p25-weight-0p75": 0.350899401176629,
+      "pure-sigma-0p25": 0.06181009824934909,
+      "pure-sigma-0p50": 0.061748711292281745,
+      "pure-sigma-0p75": 0.05623146424544992,
+      "pure-sigma-1p00": 0.10308485286986914,
+      "pure-sigma-1p25": 0.3028133177615375
+    },
+    "contract_version": "route2-fixed-radial-embedding-selection-v1",
+    "relative_training_improvement": 0.8934497834489507,
+    "selected_candidate_id": "pure-sigma-0p75",
+    "selected_training_objective": 0.05623146424544992
+  },
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_static_surface_mep.py": "ed3df89c1a107586a6de1da9158b076f80c1a4448f282e815de6cd9b672dad7c",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/read/__init__.py": "5615628ff768f6ddcc27e2c9c6a43bad348f221feab8bebe1a4da6fd63353b75",
+    "maple/function/read/filereader/__init__.py": "971f78d2130e9232397dc76bf1ff211b575504f81bb0a737df6b1d959eb6c3f2",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
+    "maple/function/read/filereader/post_reader.py": "6b8e81de5b8fdef6058acda2751cbf76f4ac3e9d352e9504e48add22c526ebb5",
+    "maple/function/read/filereader/xyz_reader.py": "48acccbfe74267f6c438926d4e390db336217c988b0b21c6af89fb251b61c456",
+    "maple/function/read/filereader/xyz_traj_reader.py": "f8fce59ab621d031762e24d243b7bf74b1d1849a22b633639397f71df5c9a25d",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/function/utility/__init__.py": "cdb04f9be9a33f57ee5c372fe559c9b01c34e73bc32b119c8488fffd4b9fb935",
+    "maple/function/utility/molecules.py": "febb630b2cbba5be36fe314b6832a1f3b4a45b7150750fcc4ffa306328631b4f",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "3ac224d0afd3af273dcfb8e4c8fc4e0da9eeee496f47bf069667f05cfe32e9e9",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "72fb6c768f9abb0ea202147cc54673db88f82b00856ae93ef9d10d7e34733672",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "81d2e79adfd67e7bcc1a1bdbab9f6a5d623cfc15197d232b6775e9dd56d4f2ed",
+    "maple/solvation/api/scalar_registry.py": "9c6dac9a40856b57c089b57f25531f9141c3fae7ad46b7315bd7c5501ca08d32",
+    "maple/solvation/api/state_registry.py": "524f9eec7392da9770bdfc4bc0ab634c12ccf5062d4c7edd5914bd88068b0987",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "b38177fe0e3a82f70671f24e8c15ca6351e6cc398f7f36b9072f9eb0003049fe",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/radial_embedding.py": "6a85ab7539fae39f6d3bb41465601313b7d71ceeafc130e0ac0e08f2cf2ab376",
+    "maple/solvation/coupling/separated_operators.py": "0e2b597252c6e0d9ca5836625b39fbceffaece7b4014d77fa9d8b241f2e204ec",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/models/__init__.py": "bbd0e2c10688853a2db9bc6e250fe2a5761bc8543787165d0b4ba8d2966f33f8",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_separated.py": "cc12a9047404cfdf0493cb4d37908338cd4c284623f3734c74f26dfaaee7b110",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/models/runtime/__init__.py": "64a17adc6d4e8e229b927a4fb2c257b43bb4cb2b4a07223e7c7976b4978bff61",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py": "d892e4986aebd34a3df9b1614e7845903785afa519415e465167dbb9380b70ad",
+    "maple/solvation/release/__init__.py": "6d32e901fb27e2ef1ee2813df4d89015fe3afcb95faf0ec1a30b77677415f1b2",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
+    "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+    "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/radial_embedding.py": "55c27af3df5ddc0f91c2cc44e8f165354c1f038f1f7209f03bbc75574dff51a8",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/root_well_posedness.py": "943cab8cc9f235852cdf257d95619ec8fba6410b7d3a391cd7779e271ac03302",
+    "maple/solvation/release/source_mep.py": "d1f1eedae9a150e1b66a14b0ee2f8fa88ae560a00aa3442a5c45838778126224",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "tools/route2_release/run_mace_fixed_radial_embedding_panel.py": "509645ad6bddc5a1d099606827b09ad0062bf81fdbe684fabf7346fd22241312"
+  },
+  "static_mep_gate": {
+    "baseline_heldout_objective": 0.17544276594436628,
+    "gate_passed": true,
+    "heldout_objective_gate_passed": true,
+    "heldout_record_gate_passed": true,
+    "heldout_weighted_rmse_ratios_to_baseline": {
+      "mobley_3034976": 0.3478789203676879,
+      "mobley_3053621": 0.3282809258920866,
+      "mobley_3867265": 0.38952914304916764,
+      "mobley_7532833": 0.36989610025604697
+    },
+    "selected_heldout_objective": 0.02034296928817235,
+    "training_gate_passed": true
+  },
+  "static_mep_records": [
+    {
+      "assets": {
+        "frozen_record_sha256": "ccf6a1565c04f2db5d236d86e41e08b1e6681d1c1ae823211f2ac547519574c2",
+        "mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+        "qm_mep_sha256": "53e604329af321a0ef97c36793f9d0e7f4c6295cc5d6b27585af879270027ad8",
+        "surface_sha256": "4f35f9ddfa4ebfceb8dc7b421542205cde3c96805b398dfaf1a10ed1541a089b"
+      },
+      "atom_count": 5,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.003506303972545426,
+          "relative_infinity_norm": 1.2909240757451619,
+          "weighted_relative_l2": 1.748823529634978,
+          "weighted_rmse_hartree_per_e": 0.002602410452130117
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.002310588206353315,
+          "relative_infinity_norm": 0.8506946254716601,
+          "weighted_relative_l2": 1.3007449794135202,
+          "weighted_rmse_hartree_per_e": 0.0019356283081850268
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.001710376649892526,
+          "relative_infinity_norm": 0.6297133429466263,
+          "weighted_relative_l2": 0.8897448050456733,
+          "weighted_rmse_hartree_per_e": 0.0013240222018642619
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.0017801504890904967,
+          "relative_infinity_norm": 0.6554021393496497,
+          "weighted_relative_l2": 0.5979203021421777,
+          "weighted_rmse_hartree_per_e": 0.0008897604689481637
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0018499243282884652,
+          "relative_infinity_norm": 0.6810909357526723,
+          "weighted_relative_l2": 0.6241202690936811,
+          "weighted_rmse_hartree_per_e": 0.0009287484323902426
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0023111502926046303,
+          "relative_infinity_norm": 0.8509015700720569,
+          "weighted_relative_l2": 1.3009696021911457,
+          "weighted_rmse_hartree_per_e": 0.0019359625675624726
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.0017103898772599683,
+          "relative_infinity_norm": 0.6297182128972134,
+          "weighted_relative_l2": 0.8901380999480276,
+          "weighted_rmse_hartree_per_e": 0.0013246074608954403
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.0017801703301416607,
+          "relative_infinity_norm": 0.6554094442755307,
+          "weighted_relative_l2": 0.5982102734541044,
+          "weighted_rmse_hartree_per_e": 0.0008901919729622556
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.0018499507830233505,
+          "relative_infinity_norm": 0.681100675653847,
+          "weighted_relative_l2": 0.6237395199009239,
+          "weighted_rmse_hartree_per_e": 0.0009281818425302137
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.00239642133207753,
+          "relative_infinity_norm": 0.8822960066871659,
+          "weighted_relative_l2": 1.3358316662109824,
+          "weighted_rmse_hartree_per_e": 0.0019878405290895507
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.0017160431985989832,
+          "relative_infinity_norm": 0.6317996093424737,
+          "weighted_relative_l2": 0.9526374306225279,
+          "weighted_rmse_hartree_per_e": 0.0014176122201763294
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.0017886503121501821,
+          "relative_infinity_norm": 0.6585315389434209,
+          "weighted_relative_l2": 0.653910727177792,
+          "weighted_rmse_hartree_per_e": 0.0009730793772672344
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0018612574257013776,
+          "relative_infinity_norm": 0.6852634685443667,
+          "weighted_relative_l2": 0.5871028318253125,
+          "weighted_rmse_hartree_per_e": 0.0008736630769922737
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.002758993214538914,
+          "relative_infinity_norm": 1.0157849386002367,
+          "weighted_relative_l2": 1.4829763683174253,
+          "weighted_rmse_hartree_per_e": 0.002206805395611736
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.002011682456532402,
+          "relative_infinity_norm": 0.7406458014553111,
+          "weighted_relative_l2": 1.2285116834354493,
+          "weighted_rmse_hartree_per_e": 0.0018281385121823523
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.0018141146135287646,
+          "relative_infinity_norm": 0.6679067899139689,
+          "weighted_relative_l2": 0.994208167263439,
+          "weighted_rmse_hartree_per_e": 0.0014794733043302212
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0018952098275394902,
+          "relative_infinity_norm": 0.697763803171765,
+          "weighted_relative_l2": 0.7980261145700148,
+          "weighted_rmse_hartree_per_e": 0.0011875363445408753
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.003198797667653328,
+          "relative_infinity_norm": 1.177708765396453,
+          "weighted_relative_l2": 1.6503191520988718,
+          "weighted_rmse_hartree_per_e": 0.0024558268676022716
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.0028912913627612315,
+          "relative_infinity_norm": 1.0644934550477445,
+          "weighted_relative_l2": 1.553834759672192,
+          "weighted_rmse_hartree_per_e": 0.0023122492069271405
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.0025837850578691347,
+          "relative_infinity_norm": 0.951278144699036,
+          "weighted_relative_l2": 1.4597709435211204,
+          "weighted_rmse_hartree_per_e": 0.0021722735866483533
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.002276278752977037,
+          "relative_infinity_norm": 0.8380628343503272,
+          "weighted_relative_l2": 1.3686268831691673,
+          "weighted_rmse_hartree_per_e": 0.00203664283186373
+        }
+      ],
+      "chemical_class": "alkane",
+      "compound_id": "mobley_9055303",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.0018499243282884647,
+          "relative_infinity_norm": 0.6810909357526722,
+          "weighted_relative_l2": 0.6241202690936811,
+          "weighted_rmse_hartree_per_e": 0.0009287484323902428
+        },
+        "source4_sha256": "1e7aafa591a5cd8d032e58c3fab6dbfca32386eaf73e6b8e23f6ae1940d1a7e7",
+        "total_charge_absolute_error_to_qm_e": 1.244143676970566e-14
+      },
+      "functional_group": null,
+      "geometry_max_abs_error_angstrom": 2.9298452552950494e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 5.204170427930421e-18,
+        "dipole_max_abs_error_e_angstrom": 5.508169912725653e-05,
+        "historical_source4_sha256": "c5780ae446b503b5dde488e33d5a750b9a849a7d8bd399726e0b6a2b51627a3e",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 0.0011313524725021784
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "methane",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "cb7b1e03a434b11784dbfa723b037153689f4ffe29f3b72a215ed447b4301cb2",
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "qm_mep_sha256": "5da1b8e231803c5b3c008910865745692cd581396ac95efac6b4b378cbe7784e",
+        "surface_sha256": "6a66a6c641c4b369ed3da38596f387059d131fd512f8cb29576c2d6c9b54a5c8"
+      },
+      "atom_count": 12,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.007770390898657996,
+          "relative_infinity_norm": 0.4547250612392223,
+          "weighted_relative_l2": 0.70894592317927,
+          "weighted_rmse_hartree_per_e": 0.0045008785060618
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.0066119602884185755,
+          "relative_infinity_norm": 0.38693343568876426,
+          "weighted_relative_l2": 0.5746773935994045,
+          "weighted_rmse_hartree_per_e": 0.003648449118900031
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.005453529678179155,
+          "relative_infinity_norm": 0.31914181013830617,
+          "weighted_relative_l2": 0.44333473853811944,
+          "weighted_rmse_hartree_per_e": 0.002814595204565662
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.004295099067939734,
+          "relative_infinity_norm": 0.2513501845878481,
+          "weighted_relative_l2": 0.3185578017156081,
+          "weighted_rmse_hartree_per_e": 0.0020224250056340575
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0032526545070640685,
+          "relative_infinity_norm": 0.19034608930294436,
+          "weighted_relative_l2": 0.21225987522812462,
+          "weighted_rmse_hartree_per_e": 0.0013475723308053302
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.00661233646482047,
+          "relative_infinity_norm": 0.3869554496182588,
+          "weighted_relative_l2": 0.5747267519049006,
+          "weighted_rmse_hartree_per_e": 0.003648762479523232
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.005454282030982945,
+          "relative_infinity_norm": 0.31918583799729533,
+          "weighted_relative_l2": 0.4434288169978168,
+          "weighted_rmse_hartree_per_e": 0.0028151924796233083
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.0042962275971454205,
+          "relative_infinity_norm": 0.25141622637633193,
+          "weighted_relative_l2": 0.3186834654626521,
+          "weighted_rmse_hartree_per_e": 0.0020232228059169407
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.0032526544318205834,
+          "relative_infinity_norm": 0.1903460848996783,
+          "weighted_relative_l2": 0.21236983213433047,
+          "weighted_rmse_hartree_per_e": 0.0013482704132112711
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.006679641864749676,
+          "relative_infinity_norm": 0.39089417709074986,
+          "weighted_relative_l2": 0.582616339720823,
+          "weighted_rmse_hartree_per_e": 0.0036988510336165075
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.005588892830841359,
+          "relative_infinity_norm": 0.32706329294227754,
+          "weighted_relative_l2": 0.45860045703908386,
+          "weighted_rmse_hartree_per_e": 0.002911512532155973
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.004498143796933043,
+          "relative_infinity_norm": 0.2632324087938053,
+          "weighted_relative_l2": 0.33944375329766924,
+          "weighted_rmse_hartree_per_e": 0.0021550234556438693
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0034073947630247235,
+          "relative_infinity_norm": 0.1994015246453329,
+          "weighted_relative_l2": 0.23273342406871084,
+          "weighted_rmse_hartree_per_e": 0.001477552563297759
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.006992712195985219,
+          "relative_infinity_norm": 0.40921512482683514,
+          "weighted_relative_l2": 0.6181191248715239,
+          "weighted_rmse_hartree_per_e": 0.003924247241374532
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.006215033493312441,
+          "relative_infinity_norm": 0.3637051884144479,
+          "weighted_relative_l2": 0.5280455665394396,
+          "weighted_rmse_hartree_per_e": 0.003352398064439683
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.005437354790639663,
+          "relative_infinity_norm": 0.31819525200206067,
+          "weighted_relative_l2": 0.4391889404602133,
+          "weighted_rmse_hartree_per_e": 0.002788274814181526
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.004659676087966886,
+          "relative_infinity_norm": 0.27268531558967346,
+          "weighted_relative_l2": 0.35247080414377535,
+          "weighted_rmse_hartree_per_e": 0.002237728174344659
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.007413657132280766,
+          "relative_infinity_norm": 0.433848919243586,
+          "weighted_relative_l2": 0.6663830518865563,
+          "weighted_rmse_hartree_per_e": 0.00423065999390991
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.007056923365903536,
+          "relative_infinity_norm": 0.4129727772479497,
+          "weighted_relative_l2": 0.6239154982453711,
+          "weighted_rmse_hartree_per_e": 0.003961046624061526
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.006700189599526304,
+          "relative_infinity_norm": 0.39209663525231325,
+          "weighted_relative_l2": 0.5815641437708267,
+          "weighted_rmse_hartree_per_e": 0.00369217096680088
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.006343455833149074,
+          "relative_infinity_norm": 0.37122049325667694,
+          "weighted_relative_l2": 0.5393563617396343,
+          "weighted_rmse_hartree_per_e": 0.0034242068065997687
+        }
+      ],
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.0032526545070640685,
+          "relative_infinity_norm": 0.19034608930294436,
+          "weighted_relative_l2": 0.21225987522812453,
+          "weighted_rmse_hartree_per_e": 0.0013475723308053297
+        },
+        "source4_sha256": "80e30b98bf80f0b60580452489f8601f496ea5fb06bd4dc6e325d372ba39791b",
+        "total_charge_absolute_error_to_qm_e": 1.4247283908197517e-14
+      },
+      "functional_group": null,
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 5.377642775528102e-17,
+        "dipole_max_abs_error_e_angstrom": 0.00021035198215069856,
+        "historical_source4_sha256": "d56009823ba1027ea90c06c7b917d4a1ac443b9631ff2928e6a0ce85e03f82fb",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 5.174425089476964e-05
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "benzene",
+      "split": "heldout",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "c0c9e91513b7094709a7f9e6bc94e09180d6ceed4f7675a8362988fd3da507b6",
+        "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+        "qm_mep_sha256": "72caaac4937c96ed7a7e553c69a9271a267ca65444e4c478a68964f85853400c",
+        "surface_sha256": "99362993cb8750d2449b2cc8e66829ca0b9bc3cbc41009940fa3e9ea359e2ae9"
+      },
+      "atom_count": 6,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.011940733525549956,
+          "relative_infinity_norm": 0.40799938715350387,
+          "weighted_relative_l2": 0.4272330893534898,
+          "weighted_rmse_hartree_per_e": 0.005322459925820159
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.008649874541719345,
+          "relative_infinity_norm": 0.2955550012421574,
+          "weighted_relative_l2": 0.32474282318085446,
+          "weighted_rmse_hartree_per_e": 0.004045638565105868
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.006021906600523801,
+          "relative_infinity_norm": 0.20576074302740052,
+          "weighted_relative_l2": 0.22709921166386496,
+          "weighted_rmse_hartree_per_e": 0.0028291967157679098
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.0042664342332344105,
+          "relative_infinity_norm": 0.1457785276562561,
+          "weighted_relative_l2": 0.14448724798804474,
+          "weighted_rmse_hartree_per_e": 0.0018000187868691027
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.004148024641473701,
+          "relative_infinity_norm": 0.14173262538667664,
+          "weighted_relative_l2": 0.11560899569627373,
+          "weighted_rmse_hartree_per_e": 0.0014402541890865036
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.008651143310161265,
+          "relative_infinity_norm": 0.2955983534152576,
+          "weighted_relative_l2": 0.3247726401450233,
+          "weighted_rmse_hartree_per_e": 0.004046010024154461
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.006021967870868339,
+          "relative_infinity_norm": 0.20576283655565558,
+          "weighted_relative_l2": 0.227154850203579,
+          "weighted_rmse_hartree_per_e": 0.002829889859406216
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.0042665261387512116,
+          "relative_infinity_norm": 0.14578166794863853,
+          "weighted_relative_l2": 0.1445485634354487,
+          "weighted_rmse_hartree_per_e": 0.001800782653291844
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.004148519203473177,
+          "relative_infinity_norm": 0.1417495239291543,
+          "weighted_relative_l2": 0.11559477257857871,
+          "weighted_rmse_hartree_per_e": 0.0014400769978158872
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.008845510727058983,
+          "relative_infinity_norm": 0.3022396361142806,
+          "weighted_relative_l2": 0.3297529497714845,
+          "weighted_rmse_hartree_per_e": 0.004108054606059688
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.0060771207303307526,
+          "relative_infinity_norm": 0.20764733827510853,
+          "weighted_relative_l2": 0.23650171136400427,
+          "weighted_rmse_hartree_per_e": 0.0029463328391245
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.004349255427944832,
+          "relative_infinity_norm": 0.14860842052781792,
+          "weighted_relative_l2": 0.15529413196849973,
+          "weighted_rmse_hartree_per_e": 0.0019346506970425407
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0041717992341810395,
+          "relative_infinity_norm": 0.14254497240318637,
+          "weighted_relative_l2": 0.11526765253199285,
+          "weighted_rmse_hartree_per_e": 0.0014360017438566949
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.009707738049018673,
+          "relative_infinity_norm": 0.33170082609844936,
+          "weighted_relative_l2": 0.35430113209658187,
+          "weighted_rmse_hartree_per_e": 0.004413875292549055
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.007474742572487392,
+          "relative_infinity_norm": 0.25540226504339486,
+          "weighted_relative_l2": 0.2835993663806622,
+          "weighted_rmse_hartree_per_e": 0.0035330743338097526
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.005327838569606313,
+          "relative_infinity_norm": 0.18204533805238396,
+          "weighted_relative_l2": 0.21731552604061147,
+          "weighted_rmse_hartree_per_e": 0.0027073117870153422
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.004472865152498614,
+          "relative_infinity_norm": 0.15283200459459606,
+          "weighted_relative_l2": 0.16100187559560716,
+          "weighted_rmse_hartree_per_e": 0.0020057576348691637
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.010888737770759816,
+          "relative_infinity_norm": 0.3720540557947508,
+          "weighted_relative_l2": 0.3913909381831536,
+          "weighted_rmse_hartree_per_e": 0.004875939237200318
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.009836742015969673,
+          "relative_infinity_norm": 0.3361087244359976,
+          "weighted_relative_l2": 0.3561429941136154,
+          "weighted_rmse_hartree_per_e": 0.004436821166871163
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.008784746261179532,
+          "relative_infinity_norm": 0.30016339307724454,
+          "weighted_relative_l2": 0.3216846436053349,
+          "weighted_rmse_hartree_per_e": 0.004007539834828923
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.007732750506389389,
+          "relative_infinity_norm": 0.2642180617184914,
+          "weighted_relative_l2": 0.2882991493531177,
+          "weighted_rmse_hartree_per_e": 0.0035916241211607254
+        }
+      ],
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.004148024641473697,
+          "relative_infinity_norm": 0.14173262538667653,
+          "weighted_relative_l2": 0.11560899569627377,
+          "weighted_rmse_hartree_per_e": 0.001440254189086504
+        },
+        "source4_sha256": "ecc17024c73fa739e16c1787021638b155149e0832037fee958163b92c3a067c",
+        "total_charge_absolute_error_to_qm_e": 4.264297248646187e-14
+      },
+      "functional_group": "primary-alcohol",
+      "geometry_max_abs_error_angstrom": 7.164002724380225e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 1.734723475976807e-17,
+        "dipole_max_abs_error_e_angstrom": 5.216510199232416e-05,
+        "historical_source4_sha256": "7ff3d53e06474ca428393e753a8a59c02b2cfab689a38d06d27a65b807bbf8c8",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 3.5197850901641514e-05
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "methanol",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "bb655d61e198b6999e82036099e4f4737f9004cc408cfe3cb5629124e9f33afc",
+        "mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+        "qm_mep_sha256": "887828ffe24738e5ec311cf261c1b53dd8acc655edd1c8e83bed310e624d719f",
+        "surface_sha256": "e27b778c96fa8a5c67562f37332e9153f374b95716b3ca3925a4c5ef4bf885cf"
+      },
+      "atom_count": 9,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.008499362315625827,
+          "relative_infinity_norm": 0.3213751053735641,
+          "weighted_relative_l2": 0.4152351370569299,
+          "weighted_rmse_hartree_per_e": 0.0038595849916197465
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.006556024855690672,
+          "relative_infinity_norm": 0.24789426554457408,
+          "weighted_relative_l2": 0.3186516750305133,
+          "weighted_rmse_hartree_per_e": 0.002961847668333627
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.004781906563894916,
+          "relative_infinity_norm": 0.18081188550262542,
+          "weighted_relative_l2": 0.22604228976896446,
+          "weighted_rmse_hartree_per_e": 0.0021010491434978068
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.0035070026338489026,
+          "relative_infinity_norm": 0.13260563547532092,
+          "weighted_relative_l2": 0.14522017538696674,
+          "weighted_rmse_hartree_per_e": 0.0013498125745728486
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0023931021354096603,
+          "relative_infinity_norm": 0.090487194494938,
+          "weighted_relative_l2": 0.10733237035501648,
+          "weighted_rmse_hartree_per_e": 0.0009976477633211417
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.006556075323589584,
+          "relative_infinity_norm": 0.24789617382024567,
+          "weighted_relative_l2": 0.3186756693435058,
+          "weighted_rmse_hartree_per_e": 0.002962070693993176
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.0047819584596016755,
+          "relative_infinity_norm": 0.1808138477660999,
+          "weighted_relative_l2": 0.226087425544298,
+          "weighted_rmse_hartree_per_e": 0.0021014686777460338
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.0035070804774090455,
+          "relative_infinity_norm": 0.13260857887053276,
+          "weighted_relative_l2": 0.14527299928010923,
+          "weighted_rmse_hartree_per_e": 0.0013503035694019873
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.0023934710598342707,
+          "relative_infinity_norm": 0.0905011441445036,
+          "weighted_relative_l2": 0.10733286180523524,
+          "weighted_rmse_hartree_per_e": 0.0009976523313206176
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.006597387980794546,
+          "relative_infinity_norm": 0.2494582744896215,
+          "weighted_relative_l2": 0.32302205133284034,
+          "weighted_rmse_hartree_per_e": 0.0030024700465450345
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.0048259953412802675,
+          "relative_infinity_norm": 0.18247895591942126,
+          "weighted_relative_l2": 0.23435411221044333,
+          "weighted_rmse_hartree_per_e": 0.0021783070205057967
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.0035731357999269284,
+          "relative_infinity_norm": 0.13510624110051458,
+          "weighted_relative_l2": 0.1554221085775574,
+          "weighted_rmse_hartree_per_e": 0.0014446389144317335
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.0024327195906167706,
+          "relative_infinity_norm": 0.091985196741343,
+          "weighted_relative_l2": 0.10975332077674514,
+          "weighted_rmse_hartree_per_e": 0.0010201503481924177
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.006953882023188369,
+          "relative_infinity_norm": 0.26293791051228316,
+          "weighted_relative_l2": 0.3456738554639832,
+          "weighted_rmse_hartree_per_e": 0.0032130171690196016
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.005408401730750901,
+          "relative_infinity_norm": 0.20450071565100178,
+          "weighted_relative_l2": 0.2781290919697895,
+          "weighted_rmse_hartree_per_e": 0.0025851927577897945
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.004194589949313543,
+          "relative_infinity_norm": 0.15860446194665767,
+          "weighted_relative_l2": 0.2145142218886711,
+          "weighted_rmse_hartree_per_e": 0.0019938964634801386
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0031488817910890754,
+          "relative_infinity_norm": 0.1190644874097987,
+          "weighted_relative_l2": 0.15959979050431716,
+          "weighted_rmse_hartree_per_e": 0.0014834702103055995
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.007667079731671866,
+          "relative_infinity_norm": 0.2899051087801677,
+          "weighted_relative_l2": 0.38076016090464376,
+          "weighted_rmse_hartree_per_e": 0.0035391422143372223
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.006834797147717904,
+          "relative_infinity_norm": 0.2584351121867713,
+          "weighted_relative_l2": 0.34685339117159975,
+          "weighted_rmse_hartree_per_e": 0.0032239808806805736
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.006002514563763939,
+          "relative_infinity_norm": 0.22696511559337473,
+          "weighted_relative_l2": 0.313699129026545,
+          "weighted_rmse_hartree_per_e": 0.0029158140586475526
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.005170231979809977,
+          "relative_infinity_norm": 0.19549511899997832,
+          "weighted_relative_l2": 0.2815633248249011,
+          "weighted_rmse_hartree_per_e": 0.0026171137403907894
+        }
+      ],
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.0023931021354096603,
+          "relative_infinity_norm": 0.090487194494938,
+          "weighted_relative_l2": 0.10733237035501653,
+          "weighted_rmse_hartree_per_e": 0.0009976477633211421
+        },
+        "source4_sha256": "99d3f7d5645688a765aed96c314aa3b2a501b2091f9e96f00bb0461f01815245",
+        "total_charge_absolute_error_to_qm_e": 2.845813862339952e-14
+      },
+      "functional_group": "dialkyl-ether",
+      "geometry_max_abs_error_angstrom": 9.49951228790269e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 2.949029909160572e-17,
+        "dipole_max_abs_error_e_angstrom": 0.00013598910715473256,
+        "historical_source4_sha256": "61bb810837e8aeb95642abcb8a7d53292a5874fc2bc53d2124ec5d2a58fbe8c4",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 0.0003025735333805485
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "methoxymethane",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "ef4c87165ab50e86331c88ef9d443bfeae76856792600005e828a15d48fae277",
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "qm_mep_sha256": "0ce48fb4c867ad41822e2d16ce6603d534a468de262ffe30c23f468dd750ad49",
+        "surface_sha256": "ea3f242f933878a97119e0f2a29d58f7250ed89f26959a7aa4973dc7ceb89ecf"
+      },
+      "atom_count": 10,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.009751958215175112,
+          "relative_infinity_norm": 0.2766414897666779,
+          "weighted_relative_l2": 0.28041021445862474,
+          "weighted_rmse_hartree_per_e": 0.004248110644917163
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.007744128393905626,
+          "relative_infinity_norm": 0.21968379771159777,
+          "weighted_relative_l2": 0.20746622988620103,
+          "weighted_rmse_hartree_per_e": 0.003143036359577572
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.006238886228298955,
+          "relative_infinity_norm": 0.17698340606050691,
+          "weighted_relative_l2": 0.1424140177304908,
+          "weighted_rmse_hartree_per_e": 0.002157519496478926
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.005371302119166626,
+          "relative_infinity_norm": 0.15237196339919792,
+          "weighted_relative_l2": 0.10172726321675814,
+          "weighted_rmse_hartree_per_e": 0.0015411302708203062
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006367633510235067,
+          "relative_infinity_norm": 0.1806356817463064,
+          "weighted_relative_l2": 0.11507513827707141,
+          "weighted_rmse_hartree_per_e": 0.0017433456224979031
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.007744159881256062,
+          "relative_infinity_norm": 0.2196846909381007,
+          "weighted_relative_l2": 0.20747860248438635,
+          "weighted_rmse_hartree_per_e": 0.0031432237998466708
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.006238949202999822,
+          "relative_infinity_norm": 0.1769851925135127,
+          "weighted_relative_l2": 0.14243375245322398,
+          "weighted_rmse_hartree_per_e": 0.0021578184702016885
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.005370476954608985,
+          "relative_infinity_norm": 0.15234855530540878,
+          "weighted_relative_l2": 0.1017344505063491,
+          "weighted_rmse_hartree_per_e": 0.0015412391555892808
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.006367308354074258,
+          "relative_infinity_norm": 0.18062645778505182,
+          "weighted_relative_l2": 0.11504322767830139,
+          "weighted_rmse_hartree_per_e": 0.0017428621887735562
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.007771763404542345,
+          "relative_infinity_norm": 0.22046774185323317,
+          "weighted_relative_l2": 0.21004966273067183,
+          "weighted_rmse_hartree_per_e": 0.003182174408054919
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.006290058655109745,
+          "relative_infinity_norm": 0.17843505465000606,
+          "weighted_relative_l2": 0.14663331054435905,
+          "weighted_rmse_hartree_per_e": 0.002221440216168903
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.005295511557034022,
+          "relative_infinity_norm": 0.15022195274944034,
+          "weighted_relative_l2": 0.10378482170587514,
+          "weighted_rmse_hartree_per_e": 0.0015723015180483463
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006095375818168242,
+          "relative_infinity_norm": 0.172912333073975,
+          "weighted_relative_l2": 0.1092279505403014,
+          "weighted_rmse_hartree_per_e": 0.0016547628990926295
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.008123041616240289,
+          "relative_infinity_norm": 0.23043272792705308,
+          "weighted_relative_l2": 0.22521869112074194,
+          "weighted_rmse_hartree_per_e": 0.0034119795565632155
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.006771078774401362,
+          "relative_infinity_norm": 0.19208053174008488,
+          "weighted_relative_l2": 0.17332613845932382,
+          "weighted_rmse_hartree_per_e": 0.0026258266491932087
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.005531932881845898,
+          "relative_infinity_norm": 0.1569287029287831,
+          "weighted_relative_l2": 0.12878417100705145,
+          "weighted_rmse_hartree_per_e": 0.001951032378788798
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.004628094371350991,
+          "relative_infinity_norm": 0.13128880307126342,
+          "weighted_relative_l2": 0.10175311354645886,
+          "weighted_rmse_hartree_per_e": 0.0015415218937181675
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.008866486711283005,
+          "relative_infinity_norm": 0.2515226212709668,
+          "weighted_relative_l2": 0.2514924965826518,
+          "weighted_rmse_hartree_per_e": 0.0038100179549885736
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.007981015207390908,
+          "relative_infinity_norm": 0.22640375277525598,
+          "weighted_relative_l2": 0.2232215313091518,
+          "weighted_rmse_hartree_per_e": 0.0033817233268763017
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.007159647414809098,
+          "relative_infinity_norm": 0.20310336481495755,
+          "weighted_relative_l2": 0.19587755609210125,
+          "weighted_rmse_hartree_per_e": 0.0029674722539681027
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.006463073033241361,
+          "relative_infinity_norm": 0.18334308996571377,
+          "weighted_relative_l2": 0.16990871272306834,
+          "weighted_rmse_hartree_per_e": 0.0025740539180306543
+        }
+      ],
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.006367633510235074,
+          "relative_infinity_norm": 0.1806356817463066,
+          "weighted_relative_l2": 0.11507513827707148,
+          "weighted_rmse_hartree_per_e": 0.0017433456224979042
+        },
+        "source4_sha256": "5c5bfa96056c97e933408e21ff56ebe98dbcd9a4bd805522ad552fa04d426dc4",
+        "total_charge_absolute_error_to_qm_e": 2.1278118156331516e-14
+      },
+      "functional_group": "ketone",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 3.8163916471489756e-17,
+        "dipole_max_abs_error_e_angstrom": 6.365659912033195e-05,
+        "historical_source4_sha256": "ddeeb48de4b9d6088e40154973f33501d3ee238fd51aa700229835a2a2bc7fb3",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 7.22376266553415e-05
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "acetone",
+      "split": "heldout",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "52bee8a8f8a97cf1c9d714ea9f8c915da934990dedb8dcdcb567a61495924e0b",
+        "mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+        "qm_mep_sha256": "c914b62e4916543c0ada429946b45bd603112989ef4d75c4016b305e6d8a551c",
+        "surface_sha256": "d37b6a429185431635d40fd435e1cc9658ef41e59c1b6e262a5df7fcd8f03321"
+      },
+      "atom_count": 14,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.009113200538324435,
+          "relative_infinity_norm": 0.27651853269550103,
+          "weighted_relative_l2": 0.3625889103296292,
+          "weighted_rmse_hartree_per_e": 0.004214582620773522
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.0065578461761044635,
+          "relative_infinity_norm": 0.19898234375874013,
+          "weighted_relative_l2": 0.2742838136121327,
+          "weighted_rmse_hartree_per_e": 0.0031881609201954565
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.005353016048703661,
+          "relative_infinity_norm": 0.1624246209724205,
+          "weighted_relative_l2": 0.19314781909712195,
+          "weighted_rmse_hartree_per_e": 0.0022450698805625293
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.004486801559398013,
+          "relative_infinity_norm": 0.13614138945841062,
+          "weighted_relative_l2": 0.1330192720289288,
+          "weighted_rmse_hartree_per_e": 0.001546160668872661
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006240108875591142,
+          "relative_infinity_norm": 0.18934135629762944,
+          "weighted_relative_l2": 0.12804589230822658,
+          "weighted_rmse_hartree_per_e": 0.001488352172417754
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.006557907078358148,
+          "relative_infinity_norm": 0.19898419169369513,
+          "weighted_relative_l2": 0.27429895741471294,
+          "weighted_rmse_hartree_per_e": 0.0031883369454553273
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.005352754342515007,
+          "relative_infinity_norm": 0.1624166801166279,
+          "weighted_relative_l2": 0.19317261343844314,
+          "weighted_rmse_hartree_per_e": 0.0022453580796691452
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.00448640900011504,
+          "relative_infinity_norm": 0.13612947817472196,
+          "weighted_relative_l2": 0.13303360299393197,
+          "weighted_rmse_hartree_per_e": 0.001546327246046757
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.006239784192846494,
+          "relative_infinity_norm": 0.18933150456708053,
+          "weighted_relative_l2": 0.12801078418447884,
+          "weighted_rmse_hartree_per_e": 0.0014879440901957666
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.006609716990407105,
+          "relative_infinity_norm": 0.2005562410301069,
+          "weighted_relative_l2": 0.2774571835239893,
+          "weighted_rmse_hartree_per_e": 0.0032250468516146985
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.005333524595836105,
+          "relative_infinity_norm": 0.16183319890018869,
+          "weighted_relative_l2": 0.19853628706701684,
+          "weighted_rmse_hartree_per_e": 0.0023077031901082294
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.0044575643800966805,
+          "relative_infinity_norm": 0.1352542563500629,
+          "weighted_relative_l2": 0.13701541400114287,
+          "weighted_rmse_hartree_per_e": 0.0015926101603668326
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.005967280307337397,
+          "relative_infinity_norm": 0.18106301818209283,
+          "weighted_relative_l2": 0.12268735820657198,
+          "weighted_rmse_hartree_per_e": 0.001426066801701025
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.007073985766439781,
+          "relative_infinity_norm": 0.21464337981137374,
+          "weighted_relative_l2": 0.2963824970031658,
+          "weighted_rmse_hartree_per_e": 0.003445026820691846
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.005482893150592451,
+          "relative_infinity_norm": 0.1663654346847933,
+          "weighted_relative_l2": 0.23308531752058614,
+          "weighted_rmse_hartree_per_e": 0.0027092867442820587
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.0046816172122311935,
+          "relative_infinity_norm": 0.14205261002696973,
+          "weighted_relative_l2": 0.17586716588252213,
+          "weighted_rmse_hartree_per_e": 0.0020442067580592623
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.003880341273869943,
+          "relative_infinity_norm": 0.11773978536914634,
+          "weighted_relative_l2": 0.13283097871154095,
+          "weighted_rmse_hartree_per_e": 0.0015439720257000135
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.008021759896940765,
+          "relative_infinity_norm": 0.24340134588385876,
+          "weighted_relative_l2": 0.32878252587114737,
+          "weighted_rmse_hartree_per_e": 0.003821631274632303
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.006930319255557094,
+          "relative_infinity_norm": 0.21028415907221648,
+          "weighted_relative_l2": 0.2955779900837835,
+          "weighted_rmse_hartree_per_e": 0.003435675567015503
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.006023842743006862,
+          "relative_infinity_norm": 0.18277927161591442,
+          "weighted_relative_l2": 0.26320318122184716,
+          "weighted_rmse_hartree_per_e": 0.0030593642599312954
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.005159171208710726,
+          "relative_infinity_norm": 0.1565428574251327,
+          "weighted_relative_l2": 0.23200570783540123,
+          "weighted_rmse_hartree_per_e": 0.0026967378105260246
+        }
+      ],
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.006240108875591156,
+          "relative_infinity_norm": 0.18934135629762985,
+          "weighted_relative_l2": 0.12804589230822672,
+          "weighted_rmse_hartree_per_e": 0.0014883521724177553
+        },
+        "source4_sha256": "800a4bafeedd1c99b9dba1f59a0c6ec84958e3ec5b780104e0da60d8106b114c",
+        "total_charge_absolute_error_to_qm_e": 3.469446951953614e-17
+      },
+      "functional_group": "carboxylic-acid-ester",
+      "geometry_max_abs_error_angstrom": 1.5079670845352666e-10,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 9.194034422677078e-17,
+        "dipole_max_abs_error_e_angstrom": 0.0001307117032727234,
+        "historical_source4_sha256": "cd03e88fe8c5ddcd316d2739b3a77e1c5408a2ed65b7f813b2dd51f8c48737b2",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 0.00012959210001883825
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "ethyl acetate",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "eb833bee4d4d8c29cc00cfb72c63458b60fe3f3e0f1dfdc5916b4589646a3957",
+        "mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+        "qm_mep_sha256": "d36e3a6c0bfe50c198b98c5be28a04f046d2f53aecc38ebe0548eb5aebcc0573",
+        "surface_sha256": "9fdd04e87b50acdc9a4dfec01c18abdb3c1e20a07f3337f0134ff80ea1aedbcd"
+      },
+      "atom_count": 6,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.005309228373134469,
+          "relative_infinity_norm": 0.17165706065375078,
+          "weighted_relative_l2": 0.20879382620464995,
+          "weighted_rmse_hartree_per_e": 0.00411132861139271
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.003732084299399977,
+          "relative_infinity_norm": 0.12066510911241737,
+          "weighted_relative_l2": 0.1542159964153657,
+          "weighted_rmse_hartree_per_e": 0.003036644569056747
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.0030373085370931988,
+          "relative_infinity_norm": 0.09820173839464208,
+          "weighted_relative_l2": 0.10468232592402921,
+          "weighted_rmse_hartree_per_e": 0.0020612843277116647
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.0027958540507444576,
+          "relative_infinity_norm": 0.09039507337755291,
+          "weighted_relative_l2": 0.0715703101335978,
+          "weighted_rmse_hartree_per_e": 0.001409280480784432
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.00455775014302056,
+          "relative_infinity_norm": 0.14736039547743637,
+          "weighted_relative_l2": 0.07921068959205047,
+          "weighted_rmse_hartree_per_e": 0.0015597260722103245
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0037326968450772623,
+          "relative_infinity_norm": 0.12068491383413757,
+          "weighted_relative_l2": 0.15422953912055304,
+          "weighted_rmse_hartree_per_e": 0.003036911236478502
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.003037308507993327,
+          "relative_infinity_norm": 0.09820173745379002,
+          "weighted_relative_l2": 0.10470715399900232,
+          "weighted_rmse_hartree_per_e": 0.0020617732136948294
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.0027958499737337217,
+          "relative_infinity_norm": 0.09039494156034145,
+          "weighted_relative_l2": 0.07159171701304085,
+          "weighted_rmse_hartree_per_e": 0.0014097020005081455
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.004557744707006241,
+          "relative_infinity_norm": 0.1473602197211543,
+          "weighted_relative_l2": 0.07919664308701362,
+          "weighted_rmse_hartree_per_e": 0.0015594494845396168
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.0038261581550936737,
+          "relative_infinity_norm": 0.12370668887087317,
+          "weighted_relative_l2": 0.15642371092213442,
+          "weighted_rmse_hartree_per_e": 0.003080116351639861
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.003038448334024396,
+          "relative_infinity_norm": 0.09823859011342319,
+          "weighted_relative_l2": 0.10872535610334778,
+          "weighted_rmse_hartree_per_e": 0.002140895042046984
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.0027651607968376263,
+          "relative_infinity_norm": 0.08940270435944729,
+          "weighted_relative_l2": 0.07518868947270264,
+          "weighted_rmse_hartree_per_e": 0.001480529457701752
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.004516825804478118,
+          "relative_infinity_norm": 0.1460372367866289,
+          "weighted_relative_l2": 0.07723202207063887,
+          "weighted_rmse_hartree_per_e": 0.0015207644202252723
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.004233106137487643,
+          "relative_infinity_norm": 0.13686406120207725,
+          "weighted_relative_l2": 0.16743111975521532,
+          "weighted_rmse_hartree_per_e": 0.0032968616246939857
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.003156983901840809,
+          "relative_infinity_norm": 0.10207106175040347,
+          "weighted_relative_l2": 0.12895536223931936,
+          "weighted_rmse_hartree_per_e": 0.0025392411260636086
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.002805002046695971,
+          "relative_infinity_norm": 0.0906908448127873,
+          "weighted_relative_l2": 0.0968699056701513,
+          "weighted_rmse_hartree_per_e": 0.001907451106213486
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.003708827589214099,
+          "relative_infinity_norm": 0.1199131771497267,
+          "weighted_relative_l2": 0.07934771190963916,
+          "weighted_rmse_hartree_per_e": 0.0015624241585711232
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.004783991350994665,
+          "relative_infinity_norm": 0.15467518738883818,
+          "weighted_relative_l2": 0.1861862164136764,
+          "weighted_rmse_hartree_per_e": 0.003666165482489995
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.004258754328854865,
+          "relative_infinity_norm": 0.13769331412392566,
+          "weighted_relative_l2": 0.1643383346371395,
+          "weighted_rmse_hartree_per_e": 0.003235962046502571
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.0037335173067150618,
+          "relative_infinity_norm": 0.12071144085901306,
+          "weighted_relative_l2": 0.14359737117294977,
+          "weighted_rmse_hartree_per_e": 0.002827554776669824
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.003208280284575253,
+          "relative_infinity_norm": 0.10372956759410029,
+          "weighted_relative_l2": 0.12451769959271125,
+          "weighted_rmse_hartree_per_e": 0.0024518597616892323
+        }
+      ],
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.00455775014302056,
+          "relative_infinity_norm": 0.14736039547743637,
+          "weighted_relative_l2": 0.07921068959205042,
+          "weighted_rmse_hartree_per_e": 0.0015597260722103237
+        },
+        "source4_sha256": "3b8558fbdd8c748a95a8ef5fc60c03c61456b3387800eaa664ac57cbf7bf5b12",
+        "total_charge_absolute_error_to_qm_e": 3.5371011675167097e-15
+      },
+      "functional_group": "carbonitrile",
+      "geometry_max_abs_error_angstrom": 7.755085462690658e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 1.214306433183765e-17,
+        "dipole_max_abs_error_e_angstrom": 0.00015388088760293073,
+        "historical_source4_sha256": "3a4ca1f18b38b948370370badb130f21da93b7565cacba6735d8159608b7e7b6",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 4.434633618710659e-06
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "acetonitrile",
+      "split": "heldout",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "2f9913bb450d44dc486a2bd764c5c659cdfa69f2e2a7e07a4586e1f20e9fa17b",
+        "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+        "qm_mep_sha256": "59dddc6d142ffaed16715e7f9c49ed877287213621f1c38e0ebf39057f795a3c",
+        "surface_sha256": "a27f3e1f133bbd87bc341e8e2ae27bac4808c14101d99613cc4d73e59ca034aa"
+      },
+      "atom_count": 14,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.013905865468161503,
+          "relative_infinity_norm": 0.6083506307144226,
+          "weighted_relative_l2": 0.5934697209762266,
+          "weighted_rmse_hartree_per_e": 0.006144502704174676
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.010523135490005272,
+          "relative_infinity_norm": 0.46036373119640206,
+          "weighted_relative_l2": 0.46284240675983296,
+          "weighted_rmse_hartree_per_e": 0.004792049736361246
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.007140405511849034,
+          "relative_infinity_norm": 0.3123768316783812,
+          "weighted_relative_l2": 0.3356389111292891,
+          "weighted_rmse_hartree_per_e": 0.0034750453547448537
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.006246001113904921,
+          "relative_infinity_norm": 0.27324863208168315,
+          "weighted_relative_l2": 0.21793913192004027,
+          "weighted_rmse_hartree_per_e": 0.0022564379244578376
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.005411283553980647,
+          "relative_infinity_norm": 0.23673159866071533,
+          "weighted_relative_l2": 0.13694908969851644,
+          "weighted_rmse_hartree_per_e": 0.0014179056188453848
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.01052442923717907,
+          "relative_infinity_norm": 0.4604203297526708,
+          "weighted_relative_l2": 0.4628890473011619,
+          "weighted_rmse_hartree_per_e": 0.004792532630302067
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.007142993006196637,
+          "relative_infinity_norm": 0.31249002879091897,
+          "weighted_relative_l2": 0.3357269778693992,
+          "weighted_rmse_hartree_per_e": 0.0034759571558083753
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.006246060014028412,
+          "relative_infinity_norm": 0.2732512088308511,
+          "weighted_relative_l2": 0.21804887156192404,
+          "weighted_rmse_hartree_per_e": 0.002257574116419242
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.005411362087478638,
+          "relative_infinity_norm": 0.23673503432627274,
+          "weighted_relative_l2": 0.13698317514097316,
+          "weighted_rmse_hartree_per_e": 0.0014182585232749552
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.010735015012022432,
+          "relative_infinity_norm": 0.46963298819804133,
+          "weighted_relative_l2": 0.4704682903537928,
+          "weighted_rmse_hartree_per_e": 0.004871004501378962
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.007564164555883357,
+          "relative_infinity_norm": 0.33091534568165987,
+          "weighted_relative_l2": 0.350190099004382,
+          "weighted_rmse_hartree_per_e": 0.003625701420399539
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.006301062475038295,
+          "relative_infinity_norm": 0.2756574439496086,
+          "weighted_relative_l2": 0.23682142925089117,
+          "weighted_rmse_hartree_per_e": 0.002451936233654797
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.00548469870215848,
+          "relative_infinity_norm": 0.23994334781794935,
+          "weighted_relative_l2": 0.14728972796372675,
+          "weighted_rmse_hartree_per_e": 0.0015249676601555298
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.011671720104738645,
+          "relative_infinity_norm": 0.5106117489412703,
+          "weighted_relative_l2": 0.5051543859323171,
+          "weighted_rmse_hartree_per_e": 0.005230127807162648
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.009437574741315785,
+          "relative_infinity_norm": 0.41287286716811794,
+          "weighted_relative_l2": 0.41779236548516374,
+          "weighted_rmse_hartree_per_e": 0.00432562307523345
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.007203429377892926,
+          "relative_infinity_norm": 0.3151339853949655,
+          "weighted_relative_l2": 0.3321367652168257,
+          "weighted_rmse_hartree_per_e": 0.0034387858047308308
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0061246149199469455,
+          "relative_infinity_norm": 0.26793825655536785,
+          "weighted_relative_l2": 0.24994812277686956,
+          "weighted_rmse_hartree_per_e": 0.0025878437635866863
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.012897066822580742,
+          "relative_infinity_norm": 0.5642179376642827,
+          "weighted_relative_l2": 0.5524260396762488,
+          "weighted_rmse_hartree_per_e": 0.005719555985204493
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.011888268176999978,
+          "relative_infinity_norm": 0.5200852446141427,
+          "weighted_relative_l2": 0.5115340701883329,
+          "weighted_rmse_hartree_per_e": 0.0052961800180461064
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.010879469531419215,
+          "relative_infinity_norm": 0.4759525515640028,
+          "weighted_relative_l2": 0.4708333427750989,
+          "weighted_rmse_hartree_per_e": 0.0048747840802026154
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.009870670885838454,
+          "relative_infinity_norm": 0.43181985851386295,
+          "weighted_relative_l2": 0.43037811797113834,
+          "weighted_rmse_hartree_per_e": 0.004455929959394171
+        }
+      ],
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.005411283553980642,
+          "relative_infinity_norm": 0.2367315986607151,
+          "weighted_relative_l2": 0.1369490896985164,
+          "weighted_rmse_hartree_per_e": 0.0014179056188453846
+        },
+        "source4_sha256": "3a9ad177617ca8e09ae592d8fa8a36e70659a54a7d003354e1c992827b1275fa",
+        "total_charge_absolute_error_to_qm_e": 7.049916206369744e-15
+      },
+      "functional_group": "primary-aromatic-amine",
+      "geometry_max_abs_error_angstrom": 1.47487355661724e-10,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 5.898059818321144e-17,
+        "dipole_max_abs_error_e_angstrom": 0.00044583635578215874,
+        "historical_source4_sha256": "7b779b6466d18c464100724ae9a244c6e950884a4bc1c1c17d7ad43a824bbc01",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 0.0005766858174117706
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "aniline",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "b03c87baa865c0fa8fcbcc8c5567baf6d1b2f63223eabbe465dc414fe77c0dea",
+        "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+        "qm_mep_sha256": "f0be93328bfcdf89882c4a578ef1e07691819cc2b17f4e4ed0d276e4be10a10d",
+        "surface_sha256": "bd8c7ca42e4be9fb436f45ffbb19373928dbe13fbce7e1a1ba0eba94c99c7fc1"
+      },
+      "atom_count": 8,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.006872714112655887,
+          "relative_infinity_norm": 0.45677871048698326,
+          "weighted_relative_l2": 0.39527424141448597,
+          "weighted_rmse_hartree_per_e": 0.003533962276730977
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.00585413313081258,
+          "relative_infinity_norm": 0.3890811313666503,
+          "weighted_relative_l2": 0.3105420886014752,
+          "weighted_rmse_hartree_per_e": 0.002776411694644373
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.0048665670840533845,
+          "relative_infinity_norm": 0.3234448866509406,
+          "weighted_relative_l2": 0.2340671066379408,
+          "weighted_rmse_hartree_per_e": 0.0020926846184612905
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.005181463400866174,
+          "relative_infinity_norm": 0.34437372657838267,
+          "weighted_relative_l2": 0.17690333738081218,
+          "weighted_rmse_hartree_per_e": 0.001581610070756035
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.005496359717678968,
+          "relative_infinity_norm": 0.3653025665058249,
+          "weighted_relative_l2": 0.16111651030482077,
+          "weighted_rmse_hartree_per_e": 0.0014404674272177546
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0058543705141783555,
+          "relative_infinity_norm": 0.3890969084913688,
+          "weighted_relative_l2": 0.31057131149338246,
+          "weighted_rmse_hartree_per_e": 0.002776672962864755
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.004866567081787523,
+          "relative_infinity_norm": 0.32344488650034553,
+          "weighted_relative_l2": 0.23411733868226822,
+          "weighted_rmse_hartree_per_e": 0.002093133719695666
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.005181463397467386,
+          "relative_infinity_norm": 0.3443737263524902,
+          "weighted_relative_l2": 0.17694884055184512,
+          "weighted_rmse_hartree_per_e": 0.0015820168933441362
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.005496359713147251,
+          "relative_infinity_norm": 0.365302566204635,
+          "weighted_relative_l2": 0.16110379022742727,
+          "weighted_rmse_hartree_per_e": 0.0014403537029500037
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.005905301654067548,
+          "relative_infinity_norm": 0.39248192640727153,
+          "weighted_relative_l2": 0.31525953008701,
+          "weighted_rmse_hartree_per_e": 0.0028185881344571667
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.004937889195479211,
+          "relative_infinity_norm": 0.32818514232755985,
+          "weighted_relative_l2": 0.242305726231564,
+          "weighted_rmse_hartree_per_e": 0.002166342266255423
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.005180695848075217,
+          "relative_infinity_norm": 0.34432271299505335,
+          "weighted_relative_l2": 0.18496542078877123,
+          "weighted_rmse_hartree_per_e": 0.001653689391011336
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.005495336313957691,
+          "relative_infinity_norm": 0.3652345483947192,
+          "weighted_relative_l2": 0.1609005813524833,
+          "weighted_rmse_hartree_per_e": 0.0014385369073607462
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.006165287501739381,
+          "relative_infinity_norm": 0.4097612716990711,
+          "weighted_relative_l2": 0.33684130479140467,
+          "weighted_rmse_hartree_per_e": 0.003011540696701822
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.005457860890822877,
+          "relative_infinity_norm": 0.3627438329111591,
+          "weighted_relative_l2": 0.2816910925775867,
+          "weighted_rmse_hartree_per_e": 0.0025184684215646997
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.00512999709313605,
+          "relative_infinity_norm": 0.3409531399959724,
+          "weighted_relative_l2": 0.232174819904599,
+          "weighted_rmse_hartree_per_e": 0.002075766567063714
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0054277379740387995,
+          "relative_infinity_norm": 0.36074178439594434,
+          "weighted_relative_l2": 0.19268598987500726,
+          "weighted_rmse_hartree_per_e": 0.0017227153913092993
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.006541203607351463,
+          "relative_infinity_norm": 0.434745647763336,
+          "weighted_relative_l2": 0.36725156385070323,
+          "weighted_rmse_hartree_per_e": 0.003283424611921295
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.006209693102047041,
+          "relative_infinity_norm": 0.41271258503968883,
+          "weighted_relative_l2": 0.3399226298951039,
+          "weighted_rmse_hartree_per_e": 0.003039089384518792
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.005878182596742616,
+          "relative_infinity_norm": 0.3906795223160415,
+          "weighted_relative_l2": 0.31346893852158186,
+          "weighted_rmse_hartree_per_e": 0.0028025792920326987
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.005546672091438193,
+          "relative_infinity_norm": 0.3686464595923943,
+          "weighted_relative_l2": 0.28813166167555704,
+          "weighted_rmse_hartree_per_e": 0.0025760505401248605
+        }
+      ],
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.005496359717678968,
+          "relative_infinity_norm": 0.3653025665058249,
+          "weighted_relative_l2": 0.16111651030482074,
+          "weighted_rmse_hartree_per_e": 0.0014404674272177546
+        },
+        "source4_sha256": "df426a0c134362ae5e13802166ad69ac1149e8775e692ec681817b4083b43502",
+        "total_charge_absolute_error_to_qm_e": 2.8428648324307915e-14
+      },
+      "functional_group": "alkyl-chloride",
+      "geometry_max_abs_error_angstrom": 9.097922415435278e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 2.0816681711721685e-17,
+        "dipole_max_abs_error_e_angstrom": 3.745339574345863e-05,
+        "historical_source4_sha256": "89af4461672e8c4fac8352709d710fc24059b3f75a8404d39cbf1e7dd0a58dec",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 9.332296828468145e-05
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "chloroethane",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "a22494d87cefa8d1a6c6967d070f056c666edc3228a99ce0b69d900d8f288226",
+        "mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+        "qm_mep_sha256": "99a4cfa4101f50dc230c9b1cd71c641add1f8a06089b47946d4af78e2322c8fe",
+        "surface_sha256": "51fed392a9674db3d4c8bbab863453086402c937129c010888048d814656cd24"
+      },
+      "atom_count": 10,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.009408229388217615,
+          "relative_infinity_norm": 0.2197669463839725,
+          "weighted_relative_l2": 0.27506266465665935,
+          "weighted_rmse_hartree_per_e": 0.004944091491820107
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.007091276419410961,
+          "relative_infinity_norm": 0.1656452133926829,
+          "weighted_relative_l2": 0.19700259248723412,
+          "weighted_rmse_hartree_per_e": 0.0035410070741458484
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.005081777512117747,
+          "relative_infinity_norm": 0.1187053036184991,
+          "weighted_relative_l2": 0.12500080960094206,
+          "weighted_rmse_hartree_per_e": 0.00224681688440002
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.003275019154668213,
+          "relative_infinity_norm": 0.07650121285008409,
+          "weighted_relative_l2": 0.07813457845679553,
+          "weighted_rmse_hartree_per_e": 0.0014044236248761319
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006867153208989757,
+          "relative_infinity_norm": 0.1604099165546057,
+          "weighted_relative_l2": 0.10123957376382853,
+          "weighted_rmse_hartree_per_e": 0.0018197224836239531
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.007091924434298898,
+          "relative_infinity_norm": 0.1656603503804472,
+          "weighted_relative_l2": 0.1970214877651213,
+          "weighted_rmse_hartree_per_e": 0.003541346705781258
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.005083073541893621,
+          "relative_infinity_norm": 0.11873557759402772,
+          "weighted_relative_l2": 0.12503791070004988,
+          "weighted_rmse_hartree_per_e": 0.0022474837550880682
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.0032747569605814583,
+          "relative_infinity_norm": 0.07649508825517591,
+          "weighted_relative_l2": 0.07816973136180817,
+          "weighted_rmse_hartree_per_e": 0.0014050554779078863
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.006866803616874098,
+          "relative_infinity_norm": 0.1604017504280618,
+          "weighted_relative_l2": 0.1012203043268132,
+          "weighted_rmse_hartree_per_e": 0.0018193761266957291
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.007204885649176953,
+          "relative_infinity_norm": 0.16829901279280968,
+          "weighted_relative_l2": 0.20046439640779448,
+          "weighted_rmse_hartree_per_e": 0.0036032309871271173
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.005308995971649733,
+          "relative_infinity_norm": 0.12401290241875275,
+          "weighted_relative_l2": 0.1315047888719774,
+          "weighted_rmse_hartree_per_e": 0.002363722130762838
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.00341310629412251,
+          "relative_infinity_norm": 0.07972679204469574,
+          "weighted_relative_l2": 0.08355881339145405,
+          "weighted_rmse_hartree_per_e": 0.0015019210944929315
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006571238118098226,
+          "relative_infinity_norm": 0.15349763229465657,
+          "weighted_relative_l2": 0.0961856102778104,
+          "weighted_rmse_hartree_per_e": 0.0017288804280422498
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.007726467863887136,
+          "relative_infinity_norm": 0.18048265818294004,
+          "weighted_relative_l2": 0.21835851191763012,
+          "weighted_rmse_hartree_per_e": 0.003924867310821776
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.006352160401070103,
+          "relative_infinity_norm": 0.14838019319901355,
+          "weighted_relative_l2": 0.16475201270476425,
+          "weighted_rmse_hartree_per_e": 0.002961321651161219
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.004977852938253063,
+          "relative_infinity_norm": 0.11627772821508689,
+          "weighted_relative_l2": 0.118523530905001,
+          "weighted_rmse_hartree_per_e": 0.002130391565352364
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.003946290787961319,
+          "relative_infinity_norm": 0.09218145521617248,
+          "weighted_relative_l2": 0.0916201112782321,
+          "weighted_rmse_hartree_per_e": 0.0016468182376395515
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.008441820159469714,
+          "relative_infinity_norm": 0.19719258128343659,
+          "weighted_relative_l2": 0.24635101952754646,
+          "weighted_rmse_hartree_per_e": 0.004428016361899458
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.007782864992235253,
+          "relative_infinity_norm": 0.1818000394000065,
+          "weighted_relative_l2": 0.21832728226920198,
+          "weighted_rmse_hartree_per_e": 0.003924305976046375
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.007123909825000788,
+          "relative_infinity_norm": 0.16640749751657632,
+          "weighted_relative_l2": 0.1912940186477466,
+          "weighted_rmse_hartree_per_e": 0.0034383987780127957
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.006464954657766336,
+          "relative_infinity_norm": 0.15101495563314646,
+          "weighted_relative_l2": 0.16573660725472664,
+          "weighted_rmse_hartree_per_e": 0.0029790191658109724
+        }
+      ],
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.006867153208989785,
+          "relative_infinity_norm": 0.16040991655460635,
+          "weighted_relative_l2": 0.10123957376382868,
+          "weighted_rmse_hartree_per_e": 0.001819722483623956
+        },
+        "source4_sha256": "42695e29de023a4f15d79e1e2e2223d5501214096eeb4539e250f7c34059473f",
+        "total_charge_absolute_error_to_qm_e": 1.4172690798730514e-14
+      },
+      "functional_group": "sulfoxide",
+      "geometry_max_abs_error_angstrom": 1.1121858989326938e-10,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 2.7755575615628914e-17,
+        "dipole_max_abs_error_e_angstrom": 0.000144043796593607,
+        "historical_source4_sha256": "b6d2e202eafd3f8f9989ce4b819067b7f2fa6c06fdf7276706fde5626c4e560d",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 1.1595555776899857e-05
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "methylsulfinylmethane",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "0da3d3f15c1a1f4658031fbb04ff9ea29d53d4733d1150373893ea5e5fce7def",
+        "mol2_sha256": "04cfd88f681f2f77524301fe57bf450601c3c9e41c38a80e346e575e61d3f4f1",
+        "qm_mep_sha256": "acfba7445a47ffa11b2448101a19ca2a720444c807580d0a4a935a3f2863fa08",
+        "surface_sha256": "16ed99f0c238e78ba21eaad82b58d3d383ade8047c485bd11930857c05623736"
+      },
+      "atom_count": 9,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.011178701519491427,
+          "relative_infinity_norm": 0.27264737836397945,
+          "weighted_relative_l2": 0.3050552953460968,
+          "weighted_rmse_hartree_per_e": 0.006424124231129139
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.009104762120619817,
+          "relative_infinity_norm": 0.22206421009509117,
+          "weighted_relative_l2": 0.22770514901002284,
+          "weighted_rmse_hartree_per_e": 0.004795216433297937
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.0072326616048778575,
+          "relative_infinity_norm": 0.17640387139109107,
+          "weighted_relative_l2": 0.1550973310664842,
+          "weighted_rmse_hartree_per_e": 0.003266176781351217
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.005360561089135907,
+          "relative_infinity_norm": 0.13074353268709119,
+          "weighted_relative_l2": 0.09836348343518551,
+          "weighted_rmse_hartree_per_e": 0.0020714252367831586
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006279006031481384,
+          "relative_infinity_norm": 0.15314431020722868,
+          "weighted_relative_l2": 0.09332852294100095,
+          "weighted_rmse_hartree_per_e": 0.0019653945852687437
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.009105306844676664,
+          "relative_infinity_norm": 0.22207749585871697,
+          "weighted_relative_l2": 0.22772369787714986,
+          "weighted_rmse_hartree_per_e": 0.004795607051748391
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.007233751052991552,
+          "relative_infinity_norm": 0.17643044291834264,
+          "weighted_relative_l2": 0.15513087783707283,
+          "weighted_rmse_hartree_per_e": 0.0032668832389184266
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.005362195261306442,
+          "relative_infinity_norm": 0.1307833899779684,
+          "weighted_relative_l2": 0.09839335988605398,
+          "weighted_rmse_hartree_per_e": 0.0020720544015112993
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.006278669782204135,
+          "relative_infinity_norm": 0.15313610912199901,
+          "weighted_relative_l2": 0.09330098932133882,
+          "weighted_rmse_hartree_per_e": 0.0019648147579523828
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.009203702307526679,
+          "relative_infinity_norm": 0.22447735106034214,
+          "weighted_relative_l2": 0.23108353490604405,
+          "weighted_rmse_hartree_per_e": 0.004866361471682247
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.007430541978691588,
+          "relative_infinity_norm": 0.1812301533215932,
+          "weighted_relative_l2": 0.16122605059068482,
+          "weighted_rmse_hartree_per_e": 0.003395240777950728
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.0056573816498565015,
+          "relative_infinity_norm": 0.13798295558284432,
+          "weighted_relative_l2": 0.10412228902538558,
+          "weighted_rmse_hartree_per_e": 0.0021926992585712206
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.005996091390203635,
+          "relative_infinity_norm": 0.14624405125401593,
+          "weighted_relative_l2": 0.08912034084944054,
+          "weighted_rmse_hartree_per_e": 0.0018767749646431584
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.009666563321618353,
+          "relative_infinity_norm": 0.23576648350733936,
+          "weighted_relative_l2": 0.24862717238951057,
+          "weighted_rmse_hartree_per_e": 0.005235810907174974
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.008356264006874937,
+          "relative_infinity_norm": 0.20380841821558765,
+          "weighted_relative_l2": 0.19414202062157296,
+          "weighted_rmse_hartree_per_e": 0.00408841438907144
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.007045964692131517,
+          "relative_infinity_norm": 0.17185035292383585,
+          "weighted_relative_l2": 0.14382521747094953,
+          "weighted_rmse_hartree_per_e": 0.0030287986430600636
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.005735665377388101,
+          "relative_infinity_norm": 0.1398922876320841,
+          "weighted_relative_l2": 0.10391909294744331,
+          "weighted_rmse_hartree_per_e": 0.002188420175834767
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.010393714711536035,
+          "relative_infinity_norm": 0.25350163099196416,
+          "weighted_relative_l2": 0.27635659250509775,
+          "weighted_rmse_hartree_per_e": 0.005819761562670398
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.009679597020492285,
+          "relative_infinity_norm": 0.23608437408006527,
+          "weighted_relative_l2": 0.24807249314333607,
+          "weighted_rmse_hartree_per_e": 0.005224129980994652
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.009030964212557538,
+          "relative_infinity_norm": 0.22026428672055226,
+          "weighted_relative_l2": 0.22036270128735477,
+          "weighted_rmse_hartree_per_e": 0.004640592674751224
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.008382331404622793,
+          "relative_infinity_norm": 0.20444419936103927,
+          "weighted_relative_l2": 0.1934741352583257,
+          "weighted_rmse_hartree_per_e": 0.00407434946834687
+        }
+      ],
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.006279006031481377,
+          "relative_infinity_norm": 0.15314431020722852,
+          "weighted_relative_l2": 0.0933285229410009,
+          "weighted_rmse_hartree_per_e": 0.0019653945852687424
+        },
+        "source4_sha256": "a4b0a5273b71fa121a566f7283e3de3bceeec5a7cd4c23bf9deccbcec48aa124",
+        "total_charge_absolute_error_to_qm_e": 5.3321930204575096e-14
+      },
+      "functional_group": "primary-carboxylic-acid-amide",
+      "geometry_max_abs_error_angstrom": 9.618394969379551e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 4.5102810375396984e-17,
+        "dipole_max_abs_error_e_angstrom": 3.21428112386446e-05,
+        "historical_source4_sha256": "d54f82e9bfb32c0ace8b6b4bad0a5d23233cf118006ca109545ba2fc81e0c019",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 5.358366704910633e-05
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "acetamide",
+      "split": "train",
+      "surface_replay_max_abs_error_bohr": 0.0
+    },
+    {
+      "assets": {
+        "frozen_record_sha256": "461e58bf470823c3880cf4cee376e2e7fc8745fbf207f3c39e09668ff029a33e",
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "qm_mep_sha256": "4919745b5647c822f8512dd563b58bdd6b4d0dfc03dc5bf631f3b0da946beb72",
+        "surface_sha256": "e8d4efda7d0d9d79bbefa2a0a09c8b084309cba50fc6837824cbfdca6055501f"
+      },
+      "atom_count": 8,
+      "candidate_metrics": [
+        {
+          "candidate_id": "baseline-sigma-1p50",
+          "configuration_sha256": "577687e9b0693f839c3a1cbd5b456e83e3e1828215ce843ba779166766058da8",
+          "embedding_distance_from_original_angstrom2": 0.0,
+          "maximum_absolute_error_hartree_per_e": 0.012508497847258718,
+          "relative_infinity_norm": 0.3077348797400171,
+          "weighted_relative_l2": 0.27738419484723403,
+          "weighted_rmse_hartree_per_e": 0.006378791818478074
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p25",
+          "configuration_sha256": "94f8f628ace5a8edd9e94845059a7035042e21121936746df7b9189eae753fd6",
+          "embedding_distance_from_original_angstrom2": 0.390625,
+          "maximum_absolute_error_hartree_per_e": 0.00944855082610523,
+          "relative_infinity_norm": 0.23245386358092182,
+          "weighted_relative_l2": 0.2092948530619753,
+          "weighted_rmse_hartree_per_e": 0.004812993390256284
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p50",
+          "configuration_sha256": "362c7d9870ae7afabb68526d80a20b84e45e73e273e3e8a01a51ebf8df3bd1ec",
+          "embedding_distance_from_original_angstrom2": 0.78125,
+          "maximum_absolute_error_hartree_per_e": 0.007166602425223807,
+          "relative_infinity_norm": 0.1763132202124564,
+          "weighted_relative_l2": 0.14691001839544035,
+          "weighted_rmse_hartree_per_e": 0.0033783771418894265
+        },
+        {
+          "candidate_id": "mix-sigma-0p25-weight-0p75",
+          "configuration_sha256": "157e905f34e7d6423ad9469fd8deea5a10447a468074b23dfd670a3c2baf2630",
+          "embedding_distance_from_original_angstrom2": 1.171875,
+          "maximum_absolute_error_hartree_per_e": 0.005924699099677388,
+          "relative_infinity_norm": 0.14575983361060238,
+          "weighted_relative_l2": 0.1013737910467627,
+          "weighted_rmse_hartree_per_e": 0.0023312154079050034
+        },
+        {
+          "candidate_id": "pure-sigma-0p25",
+          "configuration_sha256": "63d05276e0346c5f4a3eadf9f91c04423874badd527d4edaa2b7b8b6b9d1f009",
+          "embedding_distance_from_original_angstrom2": 1.5625,
+          "maximum_absolute_error_hartree_per_e": 0.00657337147052392,
+          "relative_infinity_norm": 0.16171851357926675,
+          "weighted_relative_l2": 0.09943144139036741,
+          "weighted_rmse_hartree_per_e": 0.002286548680935713
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p25",
+          "configuration_sha256": "b7c3e4c12da362812f789efa64a4d3a9daef31efdb16a0a0b0d09beb38e01601",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.009449738991663164,
+          "relative_infinity_norm": 0.23248309490746055,
+          "weighted_relative_l2": 0.20930806535357538,
+          "weighted_rmse_hartree_per_e": 0.004813297223203969
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p50",
+          "configuration_sha256": "1d9f9290db6b5e0db1c38f64a084767bef8c52c8774bcc032920fc5a3a7dfd03",
+          "embedding_distance_from_original_angstrom2": 0.5,
+          "maximum_absolute_error_hartree_per_e": 0.007167826975843672,
+          "relative_infinity_norm": 0.1763433466866615,
+          "weighted_relative_l2": 0.14693345088901213,
+          "weighted_rmse_hartree_per_e": 0.0033789160009919227
+        },
+        {
+          "candidate_id": "mix-sigma-0p50-weight-0p75",
+          "configuration_sha256": "61f608ea7352595a166ced229b6e5f1050df50cf3a5bb65dfd5ccb81b6da3c62",
+          "embedding_distance_from_original_angstrom2": 0.75,
+          "maximum_absolute_error_hartree_per_e": 0.005926535925607181,
+          "relative_infinity_norm": 0.1458050233219099,
+          "weighted_relative_l2": 0.10139383539121011,
+          "weighted_rmse_hartree_per_e": 0.0023316763523378264
+        },
+        {
+          "candidate_id": "pure-sigma-0p50",
+          "configuration_sha256": "628ba0d4cb8c6a6e18591c6f1a62aad9378f3699bf283269676a79c626c15b96",
+          "embedding_distance_from_original_angstrom2": 1.0,
+          "maximum_absolute_error_hartree_per_e": 0.006573068501058585,
+          "relative_infinity_norm": 0.1617110599047234,
+          "weighted_relative_l2": 0.0994166928519291,
+          "weighted_rmse_hartree_per_e": 0.002286209520096442
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p25",
+          "configuration_sha256": "af5d841b8b8cda25350e16f87e381d8f44c4cb26ed2bd5ab0587333ac31aabb0",
+          "embedding_distance_from_original_angstrom2": 0.140625,
+          "maximum_absolute_error_hartree_per_e": 0.009631454336442365,
+          "relative_infinity_norm": 0.2369536676697046,
+          "weighted_relative_l2": 0.21184765023179175,
+          "weighted_rmse_hartree_per_e": 0.004871698111013814
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p50",
+          "configuration_sha256": "e55653b9e2597e96ce500b566e2dabe86a3ddf2017ad8b1204f423f187e9d0a2",
+          "embedding_distance_from_original_angstrom2": 0.28125,
+          "maximum_absolute_error_hartree_per_e": 0.007346051736727418,
+          "relative_infinity_norm": 0.18072804387628227,
+          "weighted_relative_l2": 0.15139404473002255,
+          "weighted_rmse_hartree_per_e": 0.003481492860189907
+        },
+        {
+          "candidate_id": "mix-sigma-0p75-weight-0p75",
+          "configuration_sha256": "d302d1a1ea11d88972df5c219e663490647f3a090afdbeb5513dbe74523f92f9",
+          "embedding_distance_from_original_angstrom2": 0.421875,
+          "maximum_absolute_error_hartree_per_e": 0.006193873066932802,
+          "relative_infinity_norm": 0.1523820691063411,
+          "weighted_relative_l2": 0.10518641149883293,
+          "weighted_rmse_hartree_per_e": 0.0024188913195048755
+        },
+        {
+          "candidate_id": "pure-sigma-0p75",
+          "configuration_sha256": "2477a79a7331d3b01f56697aeeac6f7e2c559bedb13e7aeb26175bee634394f3",
+          "embedding_distance_from_original_angstrom2": 0.5625,
+          "maximum_absolute_error_hartree_per_e": 0.006317878700990695,
+          "relative_infinity_norm": 0.15543286380206497,
+          "weighted_relative_l2": 0.09649611423051617,
+          "weighted_rmse_hartree_per_e": 0.0022190472110623933
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p25",
+          "configuration_sha256": "99017083e317316c8ee51dad6a2ddf2420ebe8db7cf873b66a5d12a482d023a9",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.010425797976641206,
+          "relative_infinity_norm": 0.25649616170646133,
+          "weighted_relative_l2": 0.2260394950494446,
+          "weighted_rmse_hartree_per_e": 0.0051980570935860225
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p50",
+          "configuration_sha256": "377a1181dde570d47e4c296076c873d63aa834cd3ccf64ee3a36d21bb79080a9",
+          "embedding_distance_from_original_angstrom2": 0.125,
+          "maximum_absolute_error_hartree_per_e": 0.008343098106023687,
+          "relative_infinity_norm": 0.20525744367290533,
+          "weighted_relative_l2": 0.177196661898837,
+          "weighted_rmse_hartree_per_e": 0.0040748558792415195
+        },
+        {
+          "candidate_id": "mix-sigma-1p00-weight-0p75",
+          "configuration_sha256": "ddcc4ae0cc7eff3f56dbab49d88c3f6a35ddfd91729435beaace2d9fc39406b4",
+          "embedding_distance_from_original_angstrom2": 0.1875,
+          "maximum_absolute_error_hartree_per_e": 0.007239780172027602,
+          "relative_infinity_norm": 0.17811354391137654,
+          "weighted_relative_l2": 0.13362785094693758,
+          "weighted_rmse_hartree_per_e": 0.003072937312850767
+        },
+        {
+          "candidate_id": "pure-sigma-1p00",
+          "configuration_sha256": "ef1cb7362ef19894f7c1c8bc49ed0c8c5e50455f2e9f6019e4cfa7240a700e20",
+          "embedding_distance_from_original_angstrom2": 0.25,
+          "maximum_absolute_error_hartree_per_e": 0.0064362372039312565,
+          "relative_infinity_norm": 0.15834472740978062,
+          "weighted_relative_l2": 0.10230879729537688,
+          "weighted_rmse_hartree_per_e": 0.0023527170302745505
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p25",
+          "configuration_sha256": "cdc76dc8fe6c766f37c0d3d8b8d6bbd92410d811b86ed478a65458506eb6c94a",
+          "embedding_distance_from_original_angstrom2": 0.015625,
+          "maximum_absolute_error_hartree_per_e": 0.011504988753537015,
+          "relative_infinity_norm": 0.2830464835756336,
+          "weighted_relative_l2": 0.2503271074899413,
+          "weighted_rmse_hartree_per_e": 0.005756580709580545
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p50",
+          "configuration_sha256": "5391122d4723ed6a2ea0e4cf99e6eebbdbcb0f775fbe32b068cc14bb396433a1",
+          "embedding_distance_from_original_angstrom2": 0.03125,
+          "maximum_absolute_error_hartree_per_e": 0.010501479659815304,
+          "relative_infinity_norm": 0.2583580874112499,
+          "weighted_relative_l2": 0.22376516438860555,
+          "weighted_rmse_hartree_per_e": 0.005145756053795836
+        },
+        {
+          "candidate_id": "mix-sigma-1p25-weight-0p75",
+          "configuration_sha256": "043cd89a2ed59437131ec492f30c49349b2ecffffd7842951b2d21e56c1aa63c",
+          "embedding_distance_from_original_angstrom2": 0.046875,
+          "maximum_absolute_error_hartree_per_e": 0.009497970566093604,
+          "relative_infinity_norm": 0.2336696912468664,
+          "weighted_relative_l2": 0.1978978415743475,
+          "weighted_rmse_hartree_per_e": 0.004550905048588443
+        },
+        {
+          "candidate_id": "pure-sigma-1p25",
+          "configuration_sha256": "bde7000f8ab9bac7bebacc0aa6735562ae23410f77ef591c53d5a8d71e7d089e",
+          "embedding_distance_from_original_angstrom2": 0.0625,
+          "maximum_absolute_error_hartree_per_e": 0.008494461472371897,
+          "relative_infinity_norm": 0.20898129508248275,
+          "weighted_relative_l2": 0.17303693669866618,
+          "weighted_rmse_hartree_per_e": 0.0039791978656745245
+        }
+      ],
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "current_source_identity": {
+        "point_multipole_metrics": {
+          "maximum_absolute_error_hartree_per_e": 0.00657337147052392,
+          "relative_infinity_norm": 0.16171851357926675,
+          "weighted_relative_l2": 0.09943144139036746,
+          "weighted_rmse_hartree_per_e": 0.002286548680935714
+        },
+        "source4_sha256": "6e230fc6bf6665a3ad43ec06200d9d6d757ee15c6e9a91084a43bde0950e853c",
+        "total_charge_absolute_error_to_qm_e": 7.098488463697095e-15
+      },
+      "functional_group": "carboxylic-acid",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "historical_legacy_source_diagnostic_only": {
+        "bitwise_source_hash_replayed": false,
+        "charge_absolute_error_e": 6.938893903907228e-18,
+        "dipole_max_abs_error_e_angstrom": 0.00018899333958966036,
+        "historical_source4_sha256": "f10370af1e2b1e98f09246062bcc90220a87a25b6be9635efa85c88f1322d944",
+        "identity_note": "The historical source used the upstream molecular-realspace evaluator, whereas this experiment uses the current analytic-Gaussian evaluator profile. Historical MACE predictions are not a source-identity gate; only their frozen QM MEP assets and geometry are reused.",
+        "point_multipole_metric_max_abs_error": 0.0001861401911849303
+      },
+      "maximum_moment_preservation_error": 0.0,
+      "name": "acetic acid",
+      "split": "heldout",
+      "surface_replay_max_abs_error_bohr": 0.0
+    }
+  ],
+  "status": "fixed-radial-embedding-fails-pcmsolver-energy-gate",
+  "working_tree_clean": true
+}

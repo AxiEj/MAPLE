@@ -40,3 +40,8 @@ for exactly one separately named, fixed, symmetry-preserving radial-embedding
 research experiment. It does not prove that the near-field defect is
 radial-only; held-out cavity-surface MEP and fixed-source PCM energy remain
 mandatory. `Phi0`, `Phi1Delta`, and all E/F/H/V/M capabilities remain disabled.
+
+That single authorized experiment has now reached its frozen endpoint: the
+selected universal radial map improves distant surface MEPs but fails all four
+matched intrinsic-cavity PCMSolver energy cases. See
+[`../mace-fixed-radial-source-terminal-7c5fc16b/`](../mace-fixed-radial-source-terminal-7c5fc16b/README.md).

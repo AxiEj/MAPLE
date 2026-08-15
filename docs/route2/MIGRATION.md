@@ -8,7 +8,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | --- | --- | --- |
 | 0: freeze and reproduce | complete | baseline `15777aad`, `1430 passed, 15 skipped`; Phase 0 evidence bundle |
 | 1: contracts and units | engineering complete; unadmitted | immutable API registries; ASE public eV/eV/A boundary; full regression suite |
-| 2: coupling operator | mathematical implementation complete; unchanged original-source physical route closed negative; one radial-repair research branch authorized | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; an additional disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original four-channel source fails all four frozen QM/PCMSolver fixed-source cases, while a later preregistered four-case charge/dipole/quadrupole/far-field panel passes the necessary condition for one separately named fixed radial-embedding experiment; all tiers false |
+| 2: coupling operator | mathematical implementation complete; unchanged source and one fixed-radial repair are both closed negative for quantitative PCM | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; a disabled `C4 --B--> Sigma --L--> U8` contract no longer invents an eight-channel source or require operational `L=B*`; the original source fails all four frozen QM/PCMSolver cases, and its one authorized universal fixed-radial experiment also fails all four despite better distant MEPs; all tiers false |
 | 3: state equation/operational scalar | kernel complete; both unchanged-source ledgers closed | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; the separated operational root supports different source and receiver dimensions; `Phi0` vacuum-plus-continuum and vacuum-normalized `Phi1Delta` raw-conditioned-energy ledgers are distinct disabled scalars rather than one supposedly root-implied energy; the field replay closes `Phi1Delta` as complete external enthalpy, and the source physical audit prevents either ledger from advancing on the unchanged source |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
 | 5: MACE-POLAR adapter/canaries | candidates complete; original common-scalar, current molecular-realspace SO(3), native-injection complete-enthalpy, and analytic changed-inference Tier-V stability routes closed negative | clean official-checkpoint canaries rule out retaining the original energy/source common scalar, isolate the pinned fixed-axis real-space operator as non-`SO(3)`, and prove that direct native-field injection omits the upstream explicit field work; the analytic replacement passes one common-state replay/envelope/rotation canary, but its reduced susceptibility is indefinite and singular, so every profile remains unadmitted |
@@ -64,6 +64,19 @@ Evidence is retained under
 This authorizes exactly one separately named fixed radial-embedding **research**
 experiment. It is only a necessary condition: it does not prove that the
 near-field defect is radial-only, select a ledger, or admit any capability.
+
+That single experiment was frozen before execution and run twice at clean head
+`7c5fc16b`. Training selected a universal single `sigma=0.75 Angstrom`
+Gaussian and the held-out distant-surface objective fell to `11.595%` of the
+1.5-A baseline. Nevertheless, all four intrinsic-cavity PCMSolver cases still
+fail the inherited `1 kcal/mol` energy budget, with errors from `1.829` to
+`4.888 kcal/mol`. Both executions reproduce measurement SHA-256
+`77cd7ab8a845820a78d0236395411ace5c68fd3568c27e999e0a15705291f7bc`;
+evidence is retained under
+[`evidence/mace-fixed-radial-source-terminal-7c5fc16b/`](evidence/mace-fixed-radial-source-terminal-7c5fc16b/README.md).
+The radial-repair branch is terminally closed; no additional radial patch,
+ledger, or force work is authorized on this source. The next model branch must
+be scalar-first or an independent variational polarization model.
 
 Phase 10 now contains disabled scalar-first model and fixed-cavity continuum
 engineering candidates.  The eight-channel effective source is generated from

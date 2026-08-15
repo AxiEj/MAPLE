@@ -50,3 +50,8 @@ The later preregistered follow-up under
 passes the necessary low-multipole/far-field condition and authorizes one new
 fixed radial-embedding research profile.  It does not alter this artifact's
 negative unchanged-source decision or admit a ledger/capability.
+
+That single authorized experiment has since been executed and fails all four
+matched PCMSolver energy cases. The terminal evidence is retained under
+[`../mace-fixed-radial-source-terminal-7c5fc16b/`](../mace-fixed-radial-source-terminal-7c5fc16b/README.md);
+no further radial patch is authorized.

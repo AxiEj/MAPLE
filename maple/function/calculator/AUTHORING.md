@@ -110,8 +110,10 @@ class FooCalculator(CalcABC):
   receive a private `LegacyHartreeJobView` at the Dispatcher/job boundary.
   FREQ is the first migrated exception: it receives the raw calculator,
   requires public `get_forces()` in eV/Å and `get_hessian()` in eV/Å², and
-  rejects a legacy view. Raw ASE calculators and their `results` are never
-  rewritten to Hartree.
+  rejects a legacy view. It can validate either a minimum or a first-order
+  saddle with the shared mass-metric normal-mode kernel, but only minima enter
+  the current RRHO implementation. Raw ASE calculators and their `results` are
+  never rewritten to Hartree.
 
 ## Implicit solvent
 

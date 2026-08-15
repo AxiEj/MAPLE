@@ -62,7 +62,9 @@ calculator-independent
 `maple/function/dispatcher/frequency/normal_modes.py` supplies the reusable,
 unit-explicit `eV/angstrom^2` mass-weighting and rigid/vibrational subspaces.
 The public molecular FREQ driver now reuses that same pure kernel and validates
-its raw ASE-unit Hessian boundary, but no Route-2 calculator is thereby
+its raw ASE-unit Hessian boundary. Its reusable stationary-point assessor keeps
+minimum and first-order-saddle inertia signatures mutually exclusive and
+withholds transition-state thermochemistry. No Route-2 calculator is thereby
 admitted: the retained research runner still owns its source-bound scalar,
 event-domain, HVP, and evidence checks independently.
 

@@ -155,7 +155,7 @@ TIPS:  Charge and spin multiplicity are supported only in the **OMOL task** mode
 | `#opt(method=lbfgs)` | Geometry optimization |
 | `#sp` | Single-point energy |
 | `#ts(method=neb)` | Transition-state search |
-| `#freq(method=mw,ilowfreq=0)` | Molecular harmonic frequencies and minimum-only gas-phase RRHO corrections |
+| `#freq(method=mw,ilowfreq=0)` | Molecular harmonic frequencies, minimum RRHO, or first-order-saddle validation |
 | `#irc(method=gs)` | Intrinsic reaction coordinate |
 | `#scan(method=lbfgs)` | PES scan |
 | `#md(mdp=nvt.mdp)` | Molecular dynamics |
@@ -163,27 +163,40 @@ TIPS:  Charge and spin multiplicity are supported only in the **OMOL task** mode
 ### Frequency boundary
 
 Run `#freq` on a fully optimized, non-periodic, unconstrained molecular
-minimum with a calculator that supplies a Cartesian Hessian. The public
-boundary is ASE `eV/Å²`; MAPLE solves the mass-weighted generalized eigenproblem
-and checks Hessian symmetry, stationarity, and the unprojected rigid-body
-residual before reporting modes. The rotational `symmetry_number` must be set
-for quantitative entropy, while the input multiplicity supplies the electronic
-spin entropy. Example:
+stationary point with a calculator that supplies a Cartesian Hessian. The
+public boundary is ASE `eV/Å²`; MAPLE solves the mass-weighted generalized
+eigenproblem and checks Hessian symmetry, stationarity, and the unprojected
+rigid-body residual before reporting modes. For a minimum, the rotational
+`symmetry_number` must be set for quantitative entropy, while the input
+multiplicity supplies the electronic spin entropy. Example:
 
 ```text
-#freq(method=mw,temperature=298.15,pressure_kpa=101.325,symmetry_number=1,ilowfreq=0)
+#freq(method=mw,stationary_point=minimum,temperature=298.15,pressure_kpa=101.325,symmetry_number=1,ilowfreq=0)
 ```
 
+First-order-saddle validation is explicit and withholds thermochemistry:
+
+```text
+#freq(method=mw,stationary_point=transition_state,transition_state_imaginary_threshold_cm1=50)
+```
+
+This mode requires exactly one robust imaginary vibrational mode and strictly
+positive remaining vibrational modes. The `50 cm^-1` default is a conservative,
+configurable admission guard, not the mathematical definition of a transition
+state. The mode still needs chemical inspection and an IRC at the same model
+level to establish connectivity.
+
 `nonmw`, `both`, empirical low-frequency variants, periodic phonons,
-constrained-coordinate modes, and transition-state thermochemistry are not
-admitted by this workflow. The defaults are
+constrained-coordinate modes, and transition-state thermochemistry remain
+unadmitted. The defaults are
 `stationarity_tolerance_ev_per_a=1e-3` and
 `hessian_symmetry_relative_tolerance=1e-6`, and
 `rigid_mode_tolerance_cm1=5`; loosening any gate changes an acceptance criterion
 and should be reported with the result. See
 [ASE's normal-mode](https://wiki.fysik.dtu.dk/ase/ase/vibrations/modes.html)
 and [ideal-gas thermochemistry](https://wiki.fysik.dtu.dk/ase/ase/thermochemistry/thermochemistry.html)
-references.
+references, plus the detailed
+[stationary-point validation contract](docs/STATIONARY_POINT_VALIDATION.md).
 
 ### UMA Options
 

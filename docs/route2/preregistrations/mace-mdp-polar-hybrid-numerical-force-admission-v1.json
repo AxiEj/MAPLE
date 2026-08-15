@@ -1,0 +1,90 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-hybrid-numerical-force-admission-prereg-v1",
+  "schema_version": "route2-experimental-energy-force-admission-prereg-v1",
+  "status": "preregistered-before-execution",
+  "target_profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-pcmsolver-electrostatic-v1",
+  "target_scalar_id": "route2-experimental-macemdppoint-macepolarinduced-pcmsolver-electrostatic-v1",
+  "target_capabilities": {
+    "E": true,
+    "F": true,
+    "H": false,
+    "V": false,
+    "M": false
+  },
+  "exact_scalar": "E_exp(R)=E_vac^MACEPOLAR(R)+0.5*v_total(u*)^T*q_total(u*)*HartreeToEV; v_total=B_point*c_MDP+B_GTO1p5*(M_POLAR(R,u*)-M_POLAR(R,0)); q_total=Q_PCMSolver*v_total; u*=L_radial*q_total",
+  "included_components": [
+    "macepolar_zero_field_vacuum_energy",
+    "hybrid_pcmsolver_half_coupling_electrostatic"
+  ],
+  "excluded_components": [
+    "macepolar_field_conditioned_raw_energy_difference",
+    "mace_mdp_polarizability_response",
+    "nonpolar_smd_cds",
+    "thermal_and_standard_state_terms",
+    "complete_solvation_free_energy_claim",
+    "analytic_coordinate_derivative",
+    "strict_common_functional_claim"
+  ],
+  "parent_panel": {
+    "artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+    "relative_path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+    "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+    "record_count": 4
+  },
+  "frozen_runtime_contract": {
+    "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "mace_polar_long_range_evaluator": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+    "permanent_source_kernel": "exterior point monopoles and dipoles",
+    "induced_source_kernel": "normalized sigma=1.5-A Gaussian multipoles",
+    "receiver_kernel": "normalized sigma=1.5/3.0-A radial GTO field",
+    "continuum": "content-addressed symmetric PCMSolver external-MEP response",
+    "root_method": "undamped Picard",
+    "root_tolerance_ev": 1e-10,
+    "maximum_root_iterations": 40,
+    "second_start": "twice the permanent-source reaction field",
+    "total_charge_tolerance_e": 1e-08,
+    "multi_start_field_tolerance_ev": 2e-09,
+    "multi_start_energy_tolerance_ev": 1e-10,
+    "force_derivative": "fourth-order central Richardson derivative of the complete re-solved scalar",
+    "force_coarse_step_angstrom": 0.0005,
+    "force_fine_step_angstrom": 0.00025,
+    "force_maximum_local_error_estimate_ev_per_angstrom": 0.0002,
+    "force_topology_policy": "identical PCMSolver surface cardinality and derived atom-owner sequence at center and all four stencil points or fail closed",
+    "force_displacement_policy": "rebuild PCMSolver cavity and recompute both-start self-consistent root at every point"
+  },
+  "admission_gates": {
+    "clean_content_addressed_execution": true,
+    "two_independent_processes_same_measurement_sha256": true,
+    "all_four_roots_converge_from_both_starts": true,
+    "all_four_final_residuals_below_tolerance": true,
+    "all_four_total_charge_errors_below_tolerance": true,
+    "all_four_half_coupling_identities_pass": true,
+    "all_four_scalar_leaves_are_finite": true,
+    "accuracy_threshold": null,
+    "all_force_stencil_topologies_stable": true,
+    "all_force_stencil_roots_pass_existing_root_and_charge_gates": true,
+    "all_local_richardson_error_estimates_below_2e-4_ev_per_angstrom": true,
+    "acetone_full_cartesian_force_finite": true,
+    "acetone_independent_directional_derivative_error_below_5e-4_ev_per_angstrom": true,
+    "acetone_net_force_norm_below_1e-3_ev_per_angstrom": true
+  },
+  "decision_rule": {
+    "pass": "Enable experimental public E and numerical scalar-gradient F only for the exact registered scalar/profile/evidence identity. Keep H/V/M false. Every force call rebuilds PCMSolver, resolves both root starts, checks topology identity, and enforces the Richardson error bound at runtime.",
+    "fail": "Keep E/F/H/V/M false and retain the run only as negative evidence. Do not relax force, root, topology, or charge tolerances and do not fit against the four reference energies."
+  },
+  "claim_boundary": "A replicated pass admits execution of one explicitly named electrostatic scalar and its error-bounded numerical scalar-gradient force. It is not chemical-accuracy admission, not complete solvation free energy, not named-solvent transfer, not an analytic force, not Hessian/MD admission, and not Tier V.",
+  "fit_calibration_or_case_selection": false,
+  "force_panel": {
+    "full_cartesian_compound_id": "mobley_3867265",
+    "full_cartesian_reason": "small strongly-dipolar ketone selected before execution by frozen compound id",
+    "sampled_cartesian_dof_for_other_records": [
+      0,
+      0
+    ],
+    "independent_directional_check_step_angstrom": 0.000125,
+    "independent_direction_seed": 20260816,
+    "maximum_directional_derivative_abs_error_ev_per_angstrom": 0.0005,
+    "maximum_net_force_norm_ev_per_angstrom": 0.001
+  }
+}

@@ -23,6 +23,9 @@ SWIG provider from silently using the wrong energy or reaction field.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
+from pathlib import Path
 from typing import Protocol
 
 import numpy as np
@@ -31,6 +34,44 @@ from .pcmsolver import PCMSolverSession
 
 
 EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION = 1
+PCMSOLVER_EXTERNAL_MEP_PROVIDER_ID = (
+    "maple.route2.continuum.pcmsolver-symmetric-external-mep.impl.v1"
+)
+PCMSOLVER_EXTERNAL_MEP_CONTINUUM_PROFILE_ID = (
+    "pcmsolver-symmetric-external-mep-electrostatic-v1"
+)
+PCMSOLVER_EXTERNAL_MEP_CAVITY_PROFILE_ID = (
+    "pcmsolver-input-defined-gepol-cavity-v1"
+)
+
+
+def _sha256_file(path: Path, *, name: str) -> str:
+    if not path.is_file():
+        raise FileNotFoundError(f"{name} is unavailable: {path}.")
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _array_sha256(values: object, *, name: str) -> str:
+    array = np.asarray(values)
+    if array.size == 0 or not np.all(np.isfinite(array)):
+        raise ValueError(f"{name} must be a nonempty finite array.")
+    contiguous = np.ascontiguousarray(array)
+    header = json.dumps(
+        {"dtype": contiguous.dtype.str, "shape": list(contiguous.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    return hashlib.sha256(header + b"\0" + contiguous.tobytes()).hexdigest()
+
+
+def _canonical_sha256(value: object) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 def _immutable_vector(
@@ -151,6 +192,17 @@ class ExternalMEPCavityResponse(Protocol):
     contract_version: int
     energy_response_is_reciprocal: bool
     atom_count: int
+    provider_id: str
+    continuum_profile_id: str
+    cavity_profile_id: str
+
+    def configuration_sha256(self) -> str:
+        """Content address the live continuum and cavity configuration."""
+        ...
+
+    def cavity_configuration_sha256(self) -> str:
+        """Content address only the live cavity geometry and input policy."""
+        ...
 
     @property
     def atomic_numbers(self) -> np.ndarray:
@@ -197,6 +249,9 @@ class PCMSolverExternalMEPCavityResponse:
 
     contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
     energy_response_is_reciprocal = True
+    provider_id = PCMSOLVER_EXTERNAL_MEP_PROVIDER_ID
+    continuum_profile_id = PCMSOLVER_EXTERNAL_MEP_CONTINUUM_PROFILE_ID
+    cavity_profile_id = PCMSOLVER_EXTERNAL_MEP_CAVITY_PROFILE_ID
 
     def __init__(
         self,
@@ -242,6 +297,94 @@ class PCMSolverExternalMEPCavityResponse:
         self._cavity_radii_angstrom = radii
         self.atom_count = int(atomic_numbers.size)
         self._surface_size = points.shape[0]
+        try:
+            self._configuration_digest = self._live_configuration_sha256()
+            self._cavity_configuration_digest = (
+                self._live_cavity_configuration_sha256()
+            )
+        except (AttributeError, FileNotFoundError):
+            # Lightweight algebra tests use an intentionally file-free fake
+            # session.  It may exercise the numerical response, but it cannot
+            # be promoted to a content-addressed public runtime.
+            self._configuration_digest = None
+            self._cavity_configuration_digest = None
+
+    def _runtime_file_hashes(self) -> tuple[str, str]:
+        parsed_input = Path(self._session.parsed_input_path).expanduser().resolve()
+        library = Path(self._session.library_source).expanduser().resolve()
+        return (
+            _sha256_file(parsed_input, name="PCMSolver parsed input"),
+            _sha256_file(library, name="PCMSolver shared library"),
+        )
+
+    def _live_cavity_configuration_sha256(self) -> str:
+        parsed_input_sha256, _library_sha256 = self._runtime_file_hashes()
+        return _canonical_sha256(
+            {
+                "contract": "pcmsolver-input-defined-gepol-cavity-v1",
+                "cavity_profile_id": self.cavity_profile_id,
+                "parsed_input_sha256": parsed_input_sha256,
+                "atomic_numbers_sha256": _array_sha256(
+                    self._atomic_numbers, name="atomic numbers"
+                ),
+                "reference_positions_bohr_sha256": _array_sha256(
+                    self._reference_positions_bohr,
+                    name="reference positions",
+                ),
+                "cavity_radii_angstrom_sha256": _array_sha256(
+                    self._cavity_radii_angstrom,
+                    name="cavity radii",
+                ),
+                "surface_points_bohr_sha256": _array_sha256(
+                    self.surface_points_bohr,
+                    name="surface points",
+                ),
+                "surface_areas_bohr2_sha256": _array_sha256(
+                    self.surface_areas_bohr2,
+                    name="surface areas",
+                ),
+            }
+        )
+
+    def _live_configuration_sha256(self) -> str:
+        parsed_input_sha256, library_sha256 = self._runtime_file_hashes()
+        return _canonical_sha256(
+            {
+                "contract": "pcmsolver-symmetric-external-mep-response-v1",
+                "contract_version": self.contract_version,
+                "provider_id": self.provider_id,
+                "continuum_profile_id": self.continuum_profile_id,
+                "cavity_profile_id": self.cavity_profile_id,
+                "energy_response_is_reciprocal": (
+                    self.energy_response_is_reciprocal
+                ),
+                "parsed_input_sha256": parsed_input_sha256,
+                "library_sha256": library_sha256,
+                "cavity_configuration_sha256": (
+                    self._live_cavity_configuration_sha256()
+                ),
+            }
+        )
+
+    def configuration_sha256(self) -> str:
+        if self._configuration_digest is None:
+            raise RuntimeError(
+                "PCMSolver response lacks content-addressed input/library provenance."
+            )
+        current = self._live_configuration_sha256()
+        if current != self._configuration_digest:
+            raise RuntimeError("PCMSolver external-MEP configuration drifted.")
+        return current
+
+    def cavity_configuration_sha256(self) -> str:
+        if self._cavity_configuration_digest is None:
+            raise RuntimeError(
+                "PCMSolver cavity lacks content-addressed input provenance."
+            )
+        current = self._live_cavity_configuration_sha256()
+        if current != self._cavity_configuration_digest:
+            raise RuntimeError("PCMSolver cavity configuration drifted.")
+        return current
 
     @property
     def atomic_numbers(self) -> np.ndarray:
@@ -328,6 +471,9 @@ class PCMSolverExternalMEPCavityResponse:
 __all__ = [
     "EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION",
     "ExternalMEPCavityResponse",
+    "PCMSOLVER_EXTERNAL_MEP_CAVITY_PROFILE_ID",
+    "PCMSOLVER_EXTERNAL_MEP_CONTINUUM_PROFILE_ID",
+    "PCMSOLVER_EXTERNAL_MEP_PROVIDER_ID",
     "PCMSolverExternalMEPCavityResponse",
     "SurfaceChargeState",
 ]

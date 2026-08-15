@@ -21,6 +21,7 @@ from maple.solvation.api import (
     DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1,
     DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1,
     EnergyComponent,
+    EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
     ForceComponent,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
@@ -48,6 +49,7 @@ INITIAL_SCALAR_IDS = {
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-electrostatic-v1",
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
+    EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
     "route2-operational-macepolar-analytic-gaussian-multipole-"
     "smoothharmonicgalerkin-cpcm-v1",
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
@@ -99,7 +101,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 18
+    assert len(PROFILE_REGISTRY) == 19
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():

@@ -71,8 +71,11 @@ class FieldResponsiveAtomicL1SourceProvider(Protocol):
     provenance_sha256: str
     source_space: SourceSpace
     receiver_space: NativeFieldSpace
+    long_range_evaluator_profile: str
 
     def configuration_sha256(self) -> str: ...
+
+    def vacuum_energy_ev(self, geometry: Any) -> float: ...
 
     def evaluate_source(self, geometry: Any, field: np.ndarray) -> np.ndarray: ...
 
@@ -229,6 +232,7 @@ class PermanentAnchoredInducedSourceModel:
                 response,
                 (
                     "configuration_sha256",
+                    "vacuum_energy_ev",
                     "evaluate_source",
                     "field_jvp",
                     "field_vjp",
@@ -298,6 +302,10 @@ class PermanentAnchoredInducedSourceModel:
     def receiver_space(self) -> NativeFieldSpace:
         return self._response.receiver_space
 
+    @property
+    def long_range_evaluator_profile(self) -> str:
+        return str(self._response.long_range_evaluator_profile)
+
     def _current_configuration(self) -> str:
         return canonical_metadata_sha256(
             {
@@ -313,6 +321,7 @@ class PermanentAnchoredInducedSourceModel:
                 ),
                 "source_space_sha256": self.source_space.metadata_hash(),
                 "receiver_space_sha256": self.receiver_space.metadata_hash(),
+                "long_range_evaluator_profile": self.long_range_evaluator_profile,
                 "permanent_source_kernel": self.permanent_source_kernel,
                 "induced_source_kernel": self.induced_source_kernel,
                 "capabilities": "none",
@@ -345,6 +354,15 @@ class PermanentAnchoredInducedSourceModel:
             permanent_source4=permanent,
             response_zero_source4=response_zero,
         )
+
+    def vacuum_energy_ev(self, geometry: object) -> float:
+        """Return the MACE-POLAR zero-field energy for the operational ledger."""
+
+        self.configuration_sha256()
+        value = float(self._response.vacuum_energy_ev(geometry))
+        if not np.isfinite(value):
+            raise RuntimeError("hybrid vacuum energy is non-finite.")
+        return value
 
     def _validate_anchor(
         self, geometry: object, anchor: PermanentInducedSourceAnchor

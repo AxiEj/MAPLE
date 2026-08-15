@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the research MACE-MDP/MACE-POLAR hybrid on four frozen PCM cases.
+"""Run the preregistered hybrid energy/numerical-force admission panel.
 
 The source seen by PCMSolver is deliberately heterogeneous:
 
@@ -10,10 +10,12 @@ The source seen by PCMSolver is deliberately heterogeneous:
 * the PCMSolver surface charge is returned to MACE-POLAR through its audited
   two-width 1.5/3.0-A receiver.
 
-This is a post-preregistration feasibility experiment, not an admission
-artifact.  It compares the hybrid with the already defined fixed MACE-MDP and
-fixed original-MACE-POLAR sources on the same frozen water cavities.  No
-energy/force capability, fit, solvent transfer claim, or Tier-V claim follows.
+The force is the fourth-order Richardson gradient of that same scalar.  Every
+stencil point rebuilds PCMSolver and resolves the two-start root.  Accuracy
+values are retained as context but are not an admission threshold.  Two
+independent clean processes must reproduce the same measurement digest before
+public experimental E/F can be enabled.  Analytic derivatives, complete
+solvation, solvent transfer, Hessians, MD, and Tier V remain excluded.
 """
 
 from __future__ import annotations
@@ -46,11 +48,17 @@ from maple.function.calculator.extra_correction.implicit.pcmsolver import (
 )
 from maple.function.read.filereader.mol2_reader import MOL2Reader
 from maple.solvation.api.profiles import (
+    EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_PROFILE_V1,
     MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
 )
-from maple.solvation.coupling.exact_gto import (
-    FixedSurfaceGeometry,
-    MACEPolarRadialGTOCoupling,
+from maple.solvation.api.scalar_registry import (
+    EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
+)
+from maple.solvation.experimental.mace_mdp_polar_pcmsolver import (
+    MACE_MDPPolarHybridPCMSolverEnergy,
+    MACE_MDPPolarHybridPCMSolverPES,
+    NUMERICAL_FORCE_COARSE_STEP_ANGSTROM,
+    NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM,
 )
 from maple.solvation.models import (
     MACE_MDP_EXPECTED_CHECKPOINT_SHA256,
@@ -71,13 +79,17 @@ from maple.solvation.release import (
     write_external_json_artifact,
 )
 
-SCHEMA_VERSION = "route2-mace-mdp-polar-hybrid-pcmsolver-four-v1"
+SCHEMA_VERSION = "route2-mace-mdp-polar-hybrid-energy-force-admission-v1"
 EXPECTED_MACE_POLAR_CHECKPOINT_SHA256 = (
     "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
 )
 PARENT_PREREGISTRATION_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
     "route2-gto-pcm-energy-projection-four-prereg-v1.json"
+)
+ADMISSION_PREREGISTRATION_RELATIVE_PATH = (
+    "docs/route2/preregistrations/"
+    "mace-mdp-polar-hybrid-numerical-force-admission-v1.json"
 )
 PANEL_RELATIVE_ROOT = ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1"
 CUTOFF_DIRECTORY = "cutoff-1e-12"
@@ -95,6 +107,7 @@ REQUIRED_SOURCE_PATHS = (
     "maple/function/calculator/extra_correction/implicit/gto_galerkin.py",
     "maple/function/calculator/extra_correction/implicit/pcmsolver.py",
     "maple/solvation/coupling/exact_gto.py",
+    "maple/solvation/experimental/mace_mdp_polar_pcmsolver.py",
     "maple/solvation/models/mace_mdp.py",
     "maple/solvation/models/mace_mdp_polar_hybrid.py",
     "maple/solvation/models/mace_polar.py",
@@ -179,65 +192,13 @@ def _relative_l2(predicted: np.ndarray, reference: np.ndarray) -> float:
     )
 
 
-def _solve_hybrid_root(
-    *,
-    atoms: object,
-    hybrid: object,
-    anchor: object,
-    response: PCMSolverExternalMEPCavityResponse,
-    permanent_potential_hartree: np.ndarray,
-    induced_source_operator_hartree: np.ndarray,
-    receiver_operator_ev: np.ndarray,
-    initial_field_ev: np.ndarray,
-) -> dict[str, object]:
-    field = np.asarray(initial_field_ev, dtype=float).copy()
-    residual_history: list[float] = []
-    for iteration in range(1, MAX_ROOT_ITERATIONS + 1):
-        induced = hybrid.induced_source(atoms, anchor, field)
-        potential = permanent_potential_hartree + (
-            induced_source_operator_hartree @ induced.reshape(-1)
-        )
-        charge = np.asarray(response.apply_energy_conjugate(potential), dtype=float)
-        target = (receiver_operator_ev.T @ charge).reshape(field.shape)
-        residual = float(np.linalg.norm(target - field))
-        residual_history.append(residual)
-        field = target
-        if residual < ROOT_TOLERANCE_EV:
-            break
-    else:
-        raise RuntimeError(
-            f"Hybrid Picard root did not converge in {MAX_ROOT_ITERATIONS} steps."
-        )
-
-    induced = hybrid.induced_source(atoms, anchor, field)
-    total_source = anchor.permanent_source4 + induced
-    potential = permanent_potential_hartree + (
-        induced_source_operator_hartree @ induced.reshape(-1)
-    )
-    charge = np.asarray(response.apply_energy_conjugate(potential), dtype=float)
-    final_target = (receiver_operator_ev.T @ charge).reshape(field.shape)
-    final_residual = float(np.linalg.norm(final_target - field))
-    energy = 0.5 * float(np.vdot(potential, charge))
-    return {
-        "iterations": iteration,
-        "field_ev": field,
-        "induced_source4": induced,
-        "total_source4": total_source,
-        "surface_potential_hartree_per_e": potential,
-        "surface_charge_e": charge,
-        "polarization_energy_hartree": energy,
-        "final_residual_ev": final_residual,
-        "residual_history_ev": residual_history,
-    }
-
-
 def _record_case(
     *,
     record: dict[str, object],
     asset_root: Path,
     hybrid: object,
     pcmsolver_library: Path,
-    radial_coupling: MACEPolarRadialGTOCoupling,
+    force_panel: dict[str, object],
 ) -> dict[str, object]:
     compound_id = str(record["compound_id"])
     panel_root = asset_root / PANEL_RELATIVE_ROOT / compound_id
@@ -298,9 +259,6 @@ def _record_case(
                 induced_operator = AtomCenteredL1GTOBasis((1.5,)).surface_operator(
                     points, atoms.positions
                 )
-                receiver_operator = radial_coupling.surface_operator(
-                    FixedSurfaceGeometry(atoms.positions, points)
-                )
                 permanent_potential = point_multipole_potential(
                     points, atoms.positions, anchor.permanent_source4
                 )
@@ -317,41 +275,121 @@ def _record_case(
                 qm_charge, qm_energy = surface_energy(qm_potential)
                 mdp_charge, mdp_energy = surface_energy(permanent_potential)
                 _polar_charge, polar_energy = surface_energy(polar_zero_potential)
-                permanent_field = (receiver_operator.T @ mdp_charge).reshape(
-                    len(atoms), 8
-                )
-                cold = _solve_hybrid_root(
-                    atoms=atoms,
+                energy_evaluator = MACE_MDPPolarHybridPCMSolverEnergy(
+                    atoms,
                     hybrid=hybrid,
-                    anchor=anchor,
                     response=response,
-                    permanent_potential_hartree=permanent_potential,
-                    induced_source_operator_hartree=induced_operator,
-                    receiver_operator_ev=receiver_operator,
-                    initial_field_ev=np.zeros((len(atoms), 8)),
                 )
-                wide = _solve_hybrid_root(
-                    atoms=atoms,
-                    hybrid=hybrid,
-                    anchor=anchor,
-                    response=response,
-                    permanent_potential_hartree=permanent_potential,
-                    induced_source_operator_hartree=induced_operator,
-                    receiver_operator_ev=receiver_operator,
-                    initial_field_ev=2.0 * permanent_field,
-                )
+                energy_state = energy_evaluator.solve(atoms)
                 areas = np.asarray(session.cavity_areas_bohr2, dtype=float)
         finally:
             os.chdir(previous)
 
-    field_replay_error = float(np.max(np.abs(cold["field_ev"] - wide["field_ev"])))
-    energy_replay_error = abs(
-        float(cold["polarization_energy_hartree"])
-        - float(wide["polarization_energy_hartree"])
+    pes = MACE_MDPPolarHybridPCMSolverPES(
+        hybrid=hybrid,
+        atomic_numbers=atoms.numbers,
+        cavity_radii_angstrom=radii,
+        parsed_input_path=pcm_input,
+        pcmsolver_library_path=pcmsolver_library,
     )
+    full_force_compound_id = str(force_panel["full_cartesian_compound_id"])
+    if compound_id == full_force_compound_id:
+        force_evaluation = pes.numerical_force(
+            atoms,
+            central_state=energy_state,
+        )
+        force_values = np.asarray(force_evaluation.forces_eV_per_A, dtype=float)
+        force_errors = np.asarray(
+            force_evaluation.error_estimates_eV_per_A, dtype=float
+        )
+        force_record: dict[str, object] = {
+            "scope": "full-cartesian",
+            "forces_eV_per_A": force_values.tolist(),
+            "error_estimates_eV_per_A": force_errors.tolist(),
+            "maximum_error_estimate_eV_per_A": (
+                force_evaluation.maximum_error_estimate_eV_per_A
+            ),
+            "evaluation_sha256": force_evaluation.evaluation_sha256,
+            "net_force_norm_eV_per_A": float(
+                np.linalg.norm(np.sum(force_values, axis=0))
+            ),
+            "finite": bool(
+                np.all(np.isfinite(force_values)) and np.all(np.isfinite(force_errors))
+            ),
+        }
+
+        direction_seed = int(force_panel["independent_direction_seed"])
+        direction_step = float(
+            force_panel["independent_directional_check_step_angstrom"]
+        )
+        direction = np.random.default_rng(direction_seed).normal(
+            size=atoms.positions.shape
+        )
+        direction /= np.linalg.norm(direction)
+        plus = atoms.copy()
+        minus = atoms.copy()
+        plus.positions = np.asarray(atoms.positions) + direction_step * direction
+        minus.positions = np.asarray(atoms.positions) - direction_step * direction
+        plus_sample = pes.sample(plus)
+        minus_sample = pes.sample(minus)
+        central_topology = energy_state.cavity_topology_id
+        if (
+            plus_sample.topology_id != central_topology
+            or minus_sample.topology_id != central_topology
+        ):
+            raise RuntimeError(
+                f"{compound_id} independent directional stencil changed topology."
+            )
+        directional_energy_derivative = (
+            plus_sample.energy_eV - minus_sample.energy_eV
+        ) / (2.0 * direction_step)
+        directional_force_projection = -float(np.vdot(force_values, direction))
+        directional_error = abs(
+            directional_energy_derivative - directional_force_projection
+        )
+        force_record["independent_directional_check"] = {
+            "seed": direction_seed,
+            "step_angstrom": direction_step,
+            "energy_derivative_eV_per_A": directional_energy_derivative,
+            "negative_force_projection_eV_per_A": directional_force_projection,
+            "absolute_error_eV_per_A": directional_error,
+            "plus_state_sha256": plus_sample.state_sha256,
+            "minus_state_sha256": minus_sample.state_sha256,
+        }
+    else:
+        sampled_dof = force_panel["sampled_cartesian_dof_for_other_records"]
+        if (
+            not isinstance(sampled_dof, list)
+            or len(sampled_dof) != 2
+            or any(type(value) is not int for value in sampled_dof)
+        ):
+            raise RuntimeError("Preregistered sampled Cartesian DOF is invalid.")
+        component = pes.numerical_force_component(
+            atoms,
+            atom_index=sampled_dof[0],
+            axis_index=sampled_dof[1],
+            central_state=energy_state,
+        )
+        force_record = {
+            "scope": "sampled-cartesian-component",
+            "atom_index": component.atom_index,
+            "axis_index": component.axis_index,
+            "force_eV_per_A": component.force_eV_per_A,
+            "error_estimate_eV_per_A": component.error_estimate_eV_per_A,
+            "displaced_state_sha256": list(component.displaced_state_sha256),
+            "finite": bool(
+                np.isfinite(component.force_eV_per_A)
+                and np.isfinite(component.error_estimate_eV_per_A)
+            ),
+        }
+
+    field_replay_error = energy_state.replay_field_max_abs_difference_ev
+    energy_replay_error = energy_state.replay_energy_abs_difference_ev / 27.211386245988
     if field_replay_error > ROOT_REPLAY_ATOL_EV:
         raise RuntimeError(f"{compound_id} hybrid multi-start roots disagree.")
-    hybrid_potential = np.asarray(cold["surface_potential_hartree_per_e"], dtype=float)
+    hybrid_potential = np.asarray(
+        energy_state.surface_potential_hartree_per_e, dtype=float
+    )
     potential_error = hybrid_potential - qm_potential
     area_relative_mep = float(
         np.sqrt(
@@ -359,9 +397,9 @@ def _record_case(
             / np.sum(areas * qm_potential * qm_potential)
         )
     )
-    total_source = np.asarray(cold["total_source4"], dtype=float)
+    total_source = np.asarray(energy_state.total_source4, dtype=float)
     hybrid_dipole = _molecular_dipole(total_source, atoms.positions)
-    hybrid_energy = float(cold["polarization_energy_hartree"])
+    hybrid_energy = energy_state.polarization_energy_ev / 27.211386245988
     total_charge = float(np.sum(total_source[:, 0]))
     target_from_prior = float(
         result["basis_results"]["one_radial"]["target_polarization_energy_hartree"]
@@ -403,21 +441,32 @@ def _record_case(
             (abs(mdp_energy - qm_energy) - abs(hybrid_energy - qm_energy))
             * KCAL_PER_HARTREE
         ),
-        "induced_source_l2_norm": float(np.linalg.norm(cold["induced_source4"])),
-        "cold_root_iterations": int(cold["iterations"]),
-        "wide_root_iterations": int(wide["iterations"]),
-        "cold_final_residual_ev": float(cold["final_residual_ev"]),
-        "wide_final_residual_ev": float(wide["final_residual_ev"]),
+        "macepolar_vacuum_energy_ev": energy_state.vacuum_energy_ev,
+        "experimental_total_energy_ev": energy_state.total_energy_ev,
+        "energy_root_sha256": energy_state.root_sha256,
+        "energy_evaluator_configuration_sha256": (
+            energy_state.evaluator_configuration_sha256
+        ),
+        "half_coupling_gate_passed": True,
+        "finite_scalar_leaves_gate_passed": bool(
+            np.isfinite(energy_state.vacuum_energy_ev)
+            and np.isfinite(energy_state.polarization_energy_ev)
+            and np.isfinite(energy_state.total_energy_ev)
+        ),
+        "cavity_topology_id": energy_state.cavity_topology_id,
+        "force": force_record,
+        "induced_source_l2_norm": float(np.linalg.norm(energy_state.induced_source4)),
+        "cold_root_iterations": energy_state.cold_iterations,
+        "wide_root_iterations": energy_state.wide_iterations,
+        "cold_final_residual_ev": energy_state.primal_residual_ev,
+        "wide_final_residual_ev": energy_state.primal_residual_ev,
         "multi_start_field_max_abs_difference_ev": field_replay_error,
         "multi_start_energy_abs_difference_hartree": energy_replay_error,
-        "cold_residual_history_ev": cold["residual_history_ev"],
-        "wide_residual_history_ev": wide["residual_history_ev"],
         "charge_gate_passed": bool(
             abs(total_charge - qm_total_charge) <= TOTAL_CHARGE_ATOL_E
         ),
         "root_gate_passed": bool(
-            float(cold["final_residual_ev"]) < ROOT_TOLERANCE_EV
-            and float(wide["final_residual_ev"]) < ROOT_TOLERANCE_EV
+            energy_state.primal_residual_ev < ROOT_TOLERANCE_EV
             and field_replay_error <= ROOT_REPLAY_ATOL_EV
         ),
         "asset_sha256": {
@@ -443,9 +492,60 @@ def main() -> None:
     if sha256_file(polar_checkpoint) != EXPECTED_MACE_POLAR_CHECKPOINT_SHA256:
         raise RuntimeError("MACE-POLAR checkpoint does not match the frozen model.")
 
+    admission_preregistration_path = (
+        repository.root / ADMISSION_PREREGISTRATION_RELATIVE_PATH
+    )
+    admission_preregistration = _load_json(
+        admission_preregistration_path,
+        name="hybrid experimental-energy admission preregistration",
+    )
+    if (
+        admission_preregistration.get("target_profile_id")
+        != EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_PROFILE_V1
+        or admission_preregistration.get("target_scalar_id")
+        != EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1
+        or admission_preregistration.get("status") != "preregistered-before-execution"
+    ):
+        raise RuntimeError("Hybrid energy/force admission preregistration is invalid.")
+    target_capabilities = admission_preregistration.get("target_capabilities")
+    if target_capabilities != {
+        "E": True,
+        "F": True,
+        "H": False,
+        "V": False,
+        "M": False,
+    }:
+        raise RuntimeError("Hybrid admission target capabilities drifted.")
+    frozen_runtime = admission_preregistration.get("frozen_runtime_contract")
+    force_panel = admission_preregistration.get("force_panel")
+    if not isinstance(frozen_runtime, dict) or not isinstance(force_panel, dict):
+        raise RuntimeError("Hybrid admission omits its force contract.")
+    if (
+        float(frozen_runtime.get("force_coarse_step_angstrom", np.nan))
+        != NUMERICAL_FORCE_COARSE_STEP_ANGSTROM
+        or float(
+            frozen_runtime.get(
+                "force_maximum_local_error_estimate_ev_per_angstrom", np.nan
+            )
+        )
+        != NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM
+    ):
+        raise RuntimeError(
+            "Hybrid numerical-force implementation drifted from preregistration."
+        )
+    parent_record = admission_preregistration.get("parent_panel")
+    if not isinstance(parent_record, dict):
+        raise RuntimeError("Hybrid admission preregistration omits its parent panel.")
     preregistration_path = repository.root / PARENT_PREREGISTRATION_RELATIVE_PATH
+    if str(parent_record.get("relative_path")) != PARENT_PREREGISTRATION_RELATIVE_PATH:
+        raise RuntimeError("Hybrid admission parent-panel path drifted.")
     preregistration = _load_json(
         preregistration_path, name="parent PCM preregistration"
+    )
+    _validated_sha(
+        preregistration_path,
+        parent_record.get("sha256"),
+        name="parent PCM preregistration",
     )
     execution_contract = preregistration.get("execution_contract")
     records = preregistration.get("records")
@@ -474,14 +574,13 @@ def main() -> None:
         permanent=mdp,
         response=MACEPolarOriginalSourceNativeFieldAdapter(radial),
     )
-    radial_coupling = MACEPolarRadialGTOCoupling()
     case_records = [
         _record_case(
             record=record,
             asset_root=asset_root,
             hybrid=hybrid,
             pcmsolver_library=pcmsolver_library,
-            radial_coupling=radial_coupling,
+            force_panel=force_panel,
         )
         for record in sorted(records, key=lambda value: str(value["compound_id"]))
     ]
@@ -500,6 +599,35 @@ def main() -> None:
         float(record["hybrid_improvement_vs_mdp_kcal_per_mol"]) > 0.0
         for record in case_records
     ]
+    force_records = [record["force"] for record in case_records]
+    if not all(isinstance(record, dict) for record in force_records):
+        raise RuntimeError("Force panel records are invalid.")
+    maximum_force_error = max(
+        float(
+            record.get(
+                "maximum_error_estimate_eV_per_A",
+                record.get("error_estimate_eV_per_A", np.inf),
+            )
+        )
+        for record in force_records
+    )
+    full_force_records = [
+        record for record in force_records if record.get("scope") == "full-cartesian"
+    ]
+    if len(full_force_records) != 1:
+        raise RuntimeError(
+            "Admission requires exactly one full Cartesian force record."
+        )
+    full_force_record = full_force_records[0]
+    directional_record = full_force_record.get("independent_directional_check")
+    if not isinstance(directional_record, dict):
+        raise RuntimeError("Full force record omits its independent direction.")
+    directional_error = float(directional_record["absolute_error_eV_per_A"])
+    net_force_norm = float(full_force_record["net_force_norm_eV_per_A"])
+    directional_limit = float(
+        force_panel["maximum_directional_derivative_abs_error_ev_per_angstrom"]
+    )
+    net_force_limit = float(force_panel["maximum_net_force_norm_ev_per_angstrom"])
     aggregate = {
         "record_count": len(case_records),
         "root_and_charge_pass_count": sum(
@@ -522,10 +650,51 @@ def main() -> None:
             float(record["multi_start_field_max_abs_difference_ev"])
             for record in case_records
         ),
+        "maximum_final_root_residual_ev": max(
+            float(record["cold_final_residual_ev"]) for record in case_records
+        ),
+        "maximum_total_charge_absolute_error_e": max(
+            float(record["total_charge_absolute_error_e"]) for record in case_records
+        ),
+        "half_coupling_pass_count": sum(
+            bool(record["half_coupling_gate_passed"]) for record in case_records
+        ),
+        "finite_scalar_leaves_pass_count": sum(
+            bool(record["finite_scalar_leaves_gate_passed"]) for record in case_records
+        ),
+        "force_record_count": len(force_records),
+        "finite_force_record_count": sum(
+            bool(record["finite"]) for record in force_records
+        ),
+        "maximum_richardson_force_error_estimate_eV_per_A": (maximum_force_error),
+        "acetone_independent_directional_derivative_absolute_error_eV_per_A": (
+            directional_error
+        ),
+        "acetone_net_force_norm_eV_per_A": net_force_norm,
     }
+    energy_force_execution_gate_passed = bool(
+        aggregate["record_count"] == 4
+        and aggregate["root_and_charge_pass_count"] == 4
+        and aggregate["half_coupling_pass_count"] == 4
+        and aggregate["finite_scalar_leaves_pass_count"] == 4
+        and aggregate["force_record_count"] == 4
+        and aggregate["finite_force_record_count"] == 4
+        and maximum_force_error <= NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM
+        and directional_error <= directional_limit
+        and net_force_norm <= net_force_limit
+        and aggregate["maximum_multi_start_field_difference_ev"] <= ROOT_REPLAY_ATOL_EV
+        and aggregate["maximum_final_root_residual_ev"] < ROOT_TOLERANCE_EV
+        and aggregate["maximum_total_charge_absolute_error_e"] <= TOTAL_CHARGE_ATOL_E
+    )
     measurement = {
         "protocol": {
-            "profile_id": MACE_MDP_POLAR_HYBRID_PROFILE_ID,
+            "profile_id": (
+                EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_PROFILE_V1
+            ),
+            "scalar_id": (
+                EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1
+            ),
+            "model_profile_id": MACE_MDP_POLAR_HYBRID_PROFILE_ID,
             "permanent_source": "frozen MACE-MDP atom-centred point q/p",
             "induced_source": ("MACE-POLAR(R,u)-MACE-POLAR(R,0), 1.5-A Gaussian q/p"),
             "receiver": "MACE-POLAR physical radial 1.5/3.0-A field8",
@@ -535,8 +704,17 @@ def main() -> None:
             "root_tolerance_ev": ROOT_TOLERANCE_EV,
             "maximum_root_iterations": MAX_ROOT_ITERATIONS,
             "second_start": "twice the permanent-source reaction field",
+            "force_derivative": (
+                "fourth-order Richardson central derivative of the complete "
+                "re-solved scalar"
+            ),
+            "force_coarse_step_angstrom": (NUMERICAL_FORCE_COARSE_STEP_ANGSTROM),
+            "force_fine_step_angstrom": (0.5 * NUMERICAL_FORCE_COARSE_STEP_ANGSTROM),
+            "force_maximum_error_eV_per_A": (NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM),
             "fit_or_calibration": False,
-            "formal_preregistration": False,
+            "formal_preregistration": True,
+            "admission_preregistration_id": admission_preregistration["artifact_id"],
+            "accuracy_threshold": None,
         },
         "records": case_records,
         "aggregate": aggregate,
@@ -544,9 +722,15 @@ def main() -> None:
             "hybrid_feasibility_demonstrated": bool(
                 aggregate["root_and_charge_pass_count"] == len(case_records)
             ),
+            "experimental_energy_force_execution_gate_passed": (
+                energy_force_execution_gate_passed
+            ),
             "uniform_accuracy_improvement_demonstrated": bool(all(improved)),
+            "chemical_accuracy_admitted": False,
             "multi_solvent_transfer_demonstrated": False,
-            "force_available": False,
+            "numerical_conservative_force_candidate": (
+                energy_force_execution_gate_passed
+            ),
             "tier_v_available": False,
             "public_capability_admitted": False,
         },
@@ -558,15 +742,18 @@ def main() -> None:
     )
     payload = {
         "schema_version": SCHEMA_VERSION,
-        "artifact_kind": "post-hoc-research-hybrid-feasibility-panel",
-        "status": "completed-no-capability-admission",
+        "artifact_kind": "preregistered-experimental-energy-force-admission",
+        "status": (
+            "candidate-energy-force-gate-passed-awaiting-independent-replay"
+            if energy_force_execution_gate_passed
+            else "candidate-energy-force-gate-failed"
+        ),
         "claim_boundary": (
-            "This four-case water panel demonstrates that the frozen MACE-MDP "
-            "permanent source and MACE-POLAR induced increment can be iterated "
-            "self-consistently. It was designed after observing a preliminary "
-            "acetone probe, is not a preregistered accuracy gate, and does not "
-            "establish uniform improvement, solvent transfer, a physical total "
-            "solvation free energy, conservative force, or Tier V."
+            "A replicated pass can admit execution of one explicitly named "
+            "experimental electrostatic scalar and its error-bounded numerical "
+            "scalar-gradient force. It does not admit chemical accuracy, complete "
+            "solvation free energy, named-solvent transfer, analytic force, "
+            "Hessian/frequency, MD, or Tier V."
         ),
         "capabilities": NO_CAPABILITIES,
         "exact_command": shlex.join(sys.argv),
@@ -576,6 +763,11 @@ def main() -> None:
         "source_files_sha256": committed_source_hashes(repository, source_paths),
         "external_assets": {
             "asset_root": str(asset_root),
+            "admission_preregistration": {
+                "path": str(admission_preregistration_path),
+                "sha256": sha256_file(admission_preregistration_path),
+                "artifact_id": admission_preregistration["artifact_id"],
+            },
             "parent_preregistration": {
                 "path": str(preregistration_path),
                 "sha256": sha256_file(preregistration_path),

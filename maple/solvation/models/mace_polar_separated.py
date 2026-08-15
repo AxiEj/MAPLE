@@ -421,6 +421,11 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
         return self._base.provenance.checkpoint_sha256
 
     @property
+    def long_range_evaluator_profile(self) -> str:
+        self.configuration_sha256()
+        return self._base.release_contract.long_range_evaluator_profile
+
+    @property
     def field_energy_pairing_sha256(self) -> str:
         self.configuration_sha256()
         return MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash()
@@ -482,6 +487,16 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
             need_fixed_field_forces=False,
         )
         return self._extract(state.source, atom_count_value=count)
+
+    def vacuum_energy_ev(self, geometry: object) -> float:
+        """Return the exact zero-field checkpoint energy used by Phi0 ledgers."""
+
+        self.configuration_sha256()
+        state = self._base.evaluate_vacuum(geometry, need_forces=False)
+        value = float(state.energy_eV)
+        if not np.isfinite(value):
+            raise RuntimeError("MACE-POLAR vacuum energy is non-finite.")
+        return value
 
     def field_jvp(
         self, geometry: object, field: object, field_direction: object

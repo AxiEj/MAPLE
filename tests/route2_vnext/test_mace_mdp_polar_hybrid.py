@@ -38,6 +38,9 @@ class _Response:
     provenance_sha256 = "2" * 64
     source_space = ATOMIC_L1_SOURCE_SPACE
     receiver_space = MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE
+    long_range_evaluator_profile = (
+        "graph-longrange-analytic-gaussian-multipole-realspace-v1"
+    )
 
     def __init__(self) -> None:
         self.digest = "3" * 64
@@ -51,6 +54,9 @@ class _Response:
 
     def configuration_sha256(self) -> str:
         return self.digest
+
+    def vacuum_energy_ev(self, _geometry: object) -> float:
+        return -12.5
 
     def evaluate_source(self, _geometry: object, field: object) -> np.ndarray:
         values = np.asarray(field, dtype=float).reshape(-1)
@@ -98,6 +104,7 @@ def test_hybrid_zero_field_is_exactly_the_permanent_anchor():
     assert model.model_profile_id == MACE_MDP_POLAR_HYBRID_PROFILE_ID
     assert model.capabilities == ()
     assert model.variational_functional_admitted is False
+    assert model.vacuum_energy_ev(atoms) == pytest.approx(-12.5)
 
 
 def test_hybrid_uses_only_the_polar_field_increment_and_preserves_charge():

@@ -83,10 +83,11 @@ class Route2Result:
     energy_components: tuple[EnergyComponent, ...]
     provenance: ProvenanceBundle
     primal_residual: float
-    adjoint_residual: float
+    adjoint_residual: float | None
     root_identity: str
     root_sha256: str
     force_components: tuple[ForceComponent, ...] = ()
+    force_error_estimate_eV_per_A: float | None = None
     evidence_artifact_ids: tuple[str, ...] = ()
     units: UnitContract = ASE_PUBLIC_UNITS
     admitted_domain: tuple[tuple[str, str], ...] = ()
@@ -123,11 +124,17 @@ class Route2Result:
             raise ValueError("Result evidence_artifact_ids must exactly match the registered profile admission.")
         object.__setattr__(self, "evidence_artifact_ids", evidence)
 
-        for name in ("primal_residual", "adjoint_residual"):
-            residual = _finite(getattr(self, name), name)
-            if residual < 0:
-                raise ValueError(f"{name} must be non-negative.")
-            object.__setattr__(self, name, residual)
+        primal_residual = _finite(self.primal_residual, "primal_residual")
+        if primal_residual < 0:
+            raise ValueError("primal_residual must be non-negative.")
+        object.__setattr__(self, "primal_residual", primal_residual)
+        if self.adjoint_residual is not None:
+            adjoint_residual = _finite(
+                self.adjoint_residual, "adjoint_residual"
+            )
+            if adjoint_residual < 0:
+                raise ValueError("adjoint_residual must be non-negative.")
+            object.__setattr__(self, "adjoint_residual", adjoint_residual)
         if not isinstance(self.root_identity, str) or not self.root_identity.strip():
             raise ValueError("root_identity must be a non-empty string.")
         object.__setattr__(self, "root_identity", self.root_identity.strip())
@@ -155,6 +162,27 @@ class Route2Result:
             raise ValueError("Every force component must have shape (atom_count, 3).")
         if force_components and not profile.capabilities.conservative_force:
             raise ValueError("Force leaves require registered conservative-force admission.")
+        force_error = self.force_error_estimate_eV_per_A
+        if force_error is not None:
+            force_error = _finite(
+                force_error, "force_error_estimate_eV_per_A"
+            )
+            if force_error < 0.0:
+                raise ValueError(
+                    "force_error_estimate_eV_per_A must be non-negative."
+                )
+            object.__setattr__(
+                self, "force_error_estimate_eV_per_A", force_error
+            )
+        if force_components and self.adjoint_residual is None and force_error is None:
+            raise ValueError(
+                "Force leaves require an adjoint residual or a numerical force "
+                "error estimate."
+            )
+        if not force_components and force_error is not None:
+            raise ValueError(
+                "A force error estimate is invalid when no force leaves are present."
+            )
         object.__setattr__(self, "force_components", force_components)
 
         domain = tuple(sorted(tuple(item) for item in self.admitted_domain))

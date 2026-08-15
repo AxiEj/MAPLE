@@ -26,7 +26,7 @@ OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
 )
 OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
     "route2-operational-macepolar-source4-nativefield8-"
-    "smoothharmonicgalerkin-cpcm-externalenthalpy-phi1-v1"
+    "smoothharmonicgalerkin-cpcm-conditioneddelta-phi1-v1"
 )
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
@@ -275,19 +275,22 @@ _SCALAR_ENTRIES = (
             OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
         ),
         exact_formula=(
-            "Phi1(R,y*)=E_intrinsic_theta(R,L_R sigma*)+"
-            "1/2 sigma*^T A_R sigma*; c*=c_ref+Ty*, "
-            "A_R sigma*=B_R c*, c*=Pi_q M_orig(R,L_R sigma*)"
+            "Phi1Delta(R,y*)=E_vac(R)+[E_conditioned_raw(R,L_R sigma*)-"
+            "E_conditioned_raw(R,0)]+1/2 sigma*^T A_R sigma*; "
+            "c*=c_ref+Ty*, A_R sigma*=B_R c*, "
+            "c*=Pi_q M_orig(R,L_R sigma*)"
         ),
         implementation_entry_point=(
-            "maple.solvation.coupling.separated_ledgers:ExternalEnthalpyOperationalLedger"
+            "maple.solvation.coupling.separated_ledgers:NormalizedPhi1DeltaLedger"
         ),
         included_components=(
-            "macepolar_intrinsic_field_conditioned_energy",
+            "macepolar_vacuum_energy",
+            "macepolar_conditioned_raw_energy_difference",
             "continuum_polarization_self_energy",
         ),
         excluded_components=(
             "explicit_checkpoint_uniform_field_work_term",
+            "complete_external_enthalpy_claim_before_field_semantics_gate",
             "nonpolar_smd_cds",
             "strict_common_functional_claim",
             "original_source_energy_conjugacy_claim",
@@ -306,7 +309,8 @@ _SCALAR_ENTRIES = (
         state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
         derivative_route=(
             "implicit adjoint of this explicitly selected operational ledger; "
-            "not a common-stationarity or Tier-V claim"
+            "vacuum-normalized and field-semantics-manifest-bound; not a "
+            "common-stationarity or Tier-V claim"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),

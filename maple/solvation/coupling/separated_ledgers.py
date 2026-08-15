@@ -2,7 +2,7 @@
 
 The fixed point selects a state; it does not uniquely select an energy.  These
 classes therefore keep the current vacuum-plus-continuum ledger (Phi0) and the
-field-conditioned intrinsic-energy ledger (Phi1) as different scalar IDs.
+vacuum-normalized raw conditioned-energy ledger (Phi1Delta) as different IDs.
 Neither class asserts that the original checkpoint source is an energy
 gradient, and neither enables a public capability.
 """
@@ -25,6 +25,8 @@ from maple.solvation.api.scalar_registry import (
 from maple.solvation.api.state_registry import (
     SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
 )
+from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
+from maple.solvation.release.field_semantics import FieldSemanticsManifest
 
 from .separated_state import SeparatedOperationalStateEquation
 from .state_equation import geometry_sha256, provider_behavior_sha256
@@ -50,6 +52,7 @@ class OperationalLedgerEvaluation:
     geometry_sha256: str
     equation_sha256: str
     ledger_sha256: str
+    field_semantics_sha256: str
     reduced_coordinates_sha256: str
     root_residual_norm: float
     root_tolerance: float
@@ -63,6 +66,7 @@ class OperationalLedgerEvaluation:
             "geometry_sha256",
             "equation_sha256",
             "ledger_sha256",
+            "field_semantics_sha256",
             "reduced_coordinates_sha256",
         ):
             value = getattr(self, name)
@@ -72,6 +76,7 @@ class OperationalLedgerEvaluation:
             "geometry_sha256",
             "equation_sha256",
             "ledger_sha256",
+            "field_semantics_sha256",
             "reduced_coordinates_sha256",
         ):
             if _SHA256.fullmatch(getattr(self, name)) is None:
@@ -110,6 +115,7 @@ class OperationalLedgerEvaluation:
             "geometry_sha256": self.geometry_sha256,
             "equation_sha256": self.equation_sha256,
             "ledger_sha256": self.ledger_sha256,
+            "field_semantics_sha256": self.field_semantics_sha256,
             "reduced_coordinates_sha256": self.reduced_coordinates_sha256,
             "root_residual_norm": self.root_residual_norm,
             "root_tolerance": self.root_tolerance,
@@ -134,6 +140,7 @@ class _SeparatedLedgerBase:
         "_configuration_sha256",
         "_sealed",
         "equation",
+        "field_semantics_manifest",
         "scalar_id",
         "vacuum",
     )
@@ -145,6 +152,7 @@ class _SeparatedLedgerBase:
         *,
         equation: SeparatedOperationalStateEquation,
         vacuum: SeparatedVacuumScalarProvider | None,
+        field_semantics_manifest: FieldSemanticsManifest,
         scalar_id: str,
     ) -> None:
         if not isinstance(equation, SeparatedOperationalStateEquation):
@@ -158,6 +166,47 @@ class _SeparatedLedgerBase:
             raise ValueError("continuum snapshot is bound to a different scalar ID.")
         if definition.enabled or definition.admitted_capabilities.enabled_tiers:
             raise ValueError("separated operational ledgers must remain disabled.")
+        if not isinstance(field_semantics_manifest, FieldSemanticsManifest):
+            raise TypeError("field_semantics_manifest must be FieldSemanticsManifest.")
+        if (
+            field_semantics_manifest.model_provider_id
+            != equation.electronic.provider_id
+        ):
+            raise ValueError("field-semantics model provider does not match equation.")
+        if (
+            field_semantics_manifest.model_profile_id
+            != equation.electronic.model_profile_id
+        ):
+            raise ValueError("field-semantics model profile does not match equation.")
+        if (
+            field_semantics_manifest.adapter_configuration_sha256
+            != equation.electronic.configuration_sha256()
+            or field_semantics_manifest.adapter_provenance_sha256
+            != equation.electronic.provenance_sha256
+        ):
+            raise ValueError(
+                "field-semantics adapter identity does not match equation."
+            )
+        if (
+            getattr(equation.electronic, "checkpoint_sha256", None)
+            != field_semantics_manifest.checkpoint_sha256
+        ):
+            raise ValueError("field-semantics checkpoint does not match equation.")
+        canonical_pairing_sha256 = MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash()
+        if (
+            getattr(equation.electronic, "field_energy_pairing_sha256", None)
+            != canonical_pairing_sha256
+            or field_semantics_manifest.pairing_metric_sha256
+            != canonical_pairing_sha256
+        ):
+            raise ValueError("field-semantics native-field pairing does not match.")
+        if (
+            field_semantics_manifest.source_space_sha256
+            != equation.electronic.source_space.metadata_hash()
+            or field_semantics_manifest.native_field_space_sha256
+            != equation.electronic.receiver_space.metadata_hash()
+        ):
+            raise ValueError("field-semantics source/receiver spaces do not match.")
         if vacuum is not None:
             for name in ("provider_id", "model_profile_id", "provenance_sha256"):
                 value = getattr(vacuum, name, None)
@@ -178,6 +227,7 @@ class _SeparatedLedgerBase:
         equation.fingerprint_sha256()
         object.__setattr__(self, "equation", equation)
         object.__setattr__(self, "vacuum", vacuum)
+        object.__setattr__(self, "field_semantics_manifest", field_semantics_manifest)
         object.__setattr__(self, "scalar_id", scalar_id)
         object.__setattr__(
             self, "_configuration_sha256", self._current_configuration_sha256()
@@ -196,8 +246,8 @@ class _SeparatedLedgerBase:
         ):
             electronic_energy_behavior = provider_behavior_sha256(
                 self.equation.electronic,
-                ("configuration_sha256", "intrinsic_energy_ev"),
-                label="separated_intrinsic_energy",
+                ("configuration_sha256", "conditioned_raw_energy_ev"),
+                label="separated_conditioned_raw_energy",
             )
         vacuum_record: dict[str, str] | None = None
         if self.vacuum is not None:
@@ -217,6 +267,9 @@ class _SeparatedLedgerBase:
             "registry_formula": get_scalar_definition(self.scalar_id).exact_formula,
             "implementation_entry_point": self.implementation_entry_point,
             "equation_sha256": self.equation.fingerprint_sha256(),
+            "field_semantics_sha256": (
+                self.field_semantics_manifest.configuration_sha256()
+            ),
             "electronic_energy_behavior_sha256": electronic_energy_behavior,
             "vacuum": vacuum_record,
             "capabilities": "none",
@@ -272,6 +325,9 @@ class _SeparatedLedgerBase:
             geometry_sha256=geometry_sha256(geometry),
             equation_sha256=self.equation.fingerprint_sha256(),
             ledger_sha256=self.configuration_sha256(),
+            field_semantics_sha256=(
+                self.field_semantics_manifest.configuration_sha256()
+            ),
             reduced_coordinates_sha256=_array_sha256(y),
             root_residual_norm=residual_norm,
             root_tolerance=float(root_tolerance),
@@ -292,10 +348,12 @@ class FrozenVacuumContinuumLedger(_SeparatedLedgerBase):
         *,
         equation: SeparatedOperationalStateEquation,
         vacuum: SeparatedVacuumScalarProvider,
+        field_semantics_manifest: FieldSemanticsManifest,
     ) -> None:
         super().__init__(
             equation=equation,
             vacuum=vacuum,
+            field_semantics_manifest=field_semantics_manifest,
             scalar_id=(
                 OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
             ),
@@ -322,23 +380,30 @@ class FrozenVacuumContinuumLedger(_SeparatedLedgerBase):
         )
 
 
-class ExternalEnthalpyOperationalLedger(_SeparatedLedgerBase):
-    """Phi1: checkpoint intrinsic field energy plus continuum self energy."""
+class NormalizedPhi1DeltaLedger(_SeparatedLedgerBase):
+    """Phi1Delta: vacuum plus raw conditioned-energy change and self energy."""
 
     implementation_entry_point = (
-        "maple.solvation.coupling.separated_ledgers:ExternalEnthalpyOperationalLedger"
+        "maple.solvation.coupling.separated_ledgers:NormalizedPhi1DeltaLedger"
     )
 
     def __init__(
         self,
         *,
         equation: SeparatedOperationalStateEquation,
+        vacuum: SeparatedVacuumScalarProvider,
+        field_semantics_manifest: FieldSemanticsManifest,
     ) -> None:
-        if not callable(getattr(equation.electronic, "intrinsic_energy_ev", None)):
-            raise TypeError("Phi1 electronic provider must expose intrinsic_energy_ev.")
+        if not callable(
+            getattr(equation.electronic, "conditioned_raw_energy_ev", None)
+        ):
+            raise TypeError(
+                "Phi1Delta electronic provider must expose conditioned_raw_energy_ev."
+            )
         super().__init__(
             equation=equation,
-            vacuum=None,
+            vacuum=vacuum,
+            field_semantics_manifest=field_semantics_manifest,
             scalar_id=(
                 OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
             ),
@@ -352,26 +417,41 @@ class ExternalEnthalpyOperationalLedger(_SeparatedLedgerBase):
         native_field: np.ndarray,
     ) -> tuple[tuple[str, float], ...]:
         del source
-        intrinsic = float(
-            self.equation.electronic.intrinsic_energy_ev(geometry, native_field)
+        if self.vacuum is None:  # pragma: no cover - constructor invariant
+            raise RuntimeError("Phi1Delta vacuum provider is absent.")
+        vacuum = float(self.vacuum.evaluate_energy(geometry))
+        zero_field = np.zeros_like(native_field)
+        conditioned = float(
+            self.equation.electronic.conditioned_raw_energy_ev(geometry, native_field)
         )
+        conditioned_zero = float(
+            self.equation.electronic.conditioned_raw_energy_ev(geometry, zero_field)
+        )
+        conditioned_delta = conditioned - conditioned_zero
         self_energy = 0.5 * float(
             np.vdot(
                 boundary_state,
                 self.equation.continuum.surface_operator @ boundary_state,
             )
         )
-        if not np.isfinite(intrinsic) or not np.isfinite(self_energy):
-            raise RuntimeError("Phi1 ledger produced a non-finite component.")
+        if not np.all(np.isfinite((vacuum, conditioned_delta, self_energy))):
+            raise RuntimeError("Phi1Delta ledger produced a non-finite component.")
         return (
-            ("macepolar_intrinsic_field_conditioned_energy", intrinsic),
+            ("macepolar_vacuum_energy", vacuum),
+            ("macepolar_conditioned_raw_energy_difference", conditioned_delta),
             ("continuum_polarization_self_energy", self_energy),
         )
+
+
+# Compatibility import only.  The registered scalar and implementation entry
+# point use the vacuum-normalized class name above.
+ExternalEnthalpyOperationalLedger = NormalizedPhi1DeltaLedger
 
 
 __all__ = [
     "ExternalEnthalpyOperationalLedger",
     "FrozenVacuumContinuumLedger",
+    "NormalizedPhi1DeltaLedger",
     "OperationalLedgerEvaluation",
     "SeparatedVacuumScalarProvider",
 ]

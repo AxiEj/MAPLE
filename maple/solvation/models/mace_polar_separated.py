@@ -17,6 +17,7 @@ import numpy as np
 from maple.solvation.coupling.exact_gto import (
     embed_mace_polar_learned_source,
 )
+from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
 from maple.solvation.coupling.operator import canonical_metadata_sha256
 from maple.solvation.coupling.separated_operators import (
     MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE,
@@ -414,6 +415,16 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
         self.configuration_sha256()
         return self._base
 
+    @property
+    def checkpoint_sha256(self) -> str:
+        self.configuration_sha256()
+        return self._base.provenance.checkpoint_sha256
+
+    @property
+    def field_energy_pairing_sha256(self) -> str:
+        self.configuration_sha256()
+        return MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash()
+
     def _current_configuration_sha256(self) -> str:
         return canonical_metadata_sha256(
             {
@@ -424,8 +435,12 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
                 "provenance_sha256": self.provenance_sha256,
                 "base_configuration_sha256": self._base.configuration_sha256(),
                 "base_provenance_sha256": self._base.provenance_sha256,
+                "checkpoint_sha256": self._base.provenance.checkpoint_sha256,
                 "source_space_sha256": self.source_space.metadata_hash(),
                 "receiver_space_sha256": self.receiver_space.metadata_hash(),
+                "field_energy_pairing_sha256": (
+                    MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash()
+                ),
                 "learned_source_indices": list(_LEARNED_SOURCE_INDICES),
                 "capabilities": "none",
             }
@@ -511,11 +526,17 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
             raise RuntimeError("separated source coordinate VJP must be finite (N,3).")
         return result.copy()
 
-    def intrinsic_energy_ev(self, geometry: object, field: object) -> float:
+    def conditioned_raw_energy_ev(self, geometry: object, field: object) -> float:
+        """Return the native-injection branch's uninterpreted raw scalar.
+
+        Until the upstream replay and work-sign canaries are complete, this is
+        deliberately not named an internal energy or external enthalpy.
+        """
+
         self.configuration_sha256()
         return self._base.intrinsic_energy_ev(geometry, self._field(geometry, field))
 
-    def intrinsic_energy_field_gradient(
+    def conditioned_raw_energy_field_gradient(
         self, geometry: object, field: object
     ) -> np.ndarray:
         self.configuration_sha256()
@@ -527,6 +548,31 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
             atom_count=atom_count(geometry),
             name="intrinsic energy native-field gradient",
         )
+
+    def conditioned_raw_energy_directional_derivative(
+        self,
+        geometry: object,
+        field: object,
+        field_direction: object,
+    ) -> float:
+        self.configuration_sha256()
+        count = atom_count(geometry)
+        return self._base.intrinsic_energy_field_directional_derivative(
+            geometry,
+            self._field(geometry, field),
+            self.receiver_space.validate(
+                field_direction,
+                atom_count=count,
+                name="native field direction",
+            ),
+        )
+
+    # Compatibility aliases for audit artifacts created before the raw-energy
+    # semantics split.  New ledgers and canaries consume the conditioned_raw_*
+    # names so that an unverified physical interpretation is not encoded in an
+    # API method name.
+    intrinsic_energy_ev = conditioned_raw_energy_ev
+    intrinsic_energy_field_gradient = conditioned_raw_energy_field_gradient
 
     def dense_source_jacobian(self, geometry: object, field: object) -> np.ndarray:
         """Return audit-only ``d source4 / d native-field8``."""

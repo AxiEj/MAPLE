@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 
 import numpy as np
@@ -18,8 +19,10 @@ from maple.solvation.coupling.separated_ledgers import (
     ExternalEnthalpyOperationalLedger,
     FrozenVacuumContinuumLedger,
 )
+from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
 from maple.solvation.coupling.separated_operators import (
     MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE,
+    SEPARATED_MACE_POLAR_HARMONIC_COUPLING_ID,
     SeparatedContinuumSnapshot,
     build_mace_polar_harmonic_separated_snapshot,
 )
@@ -34,6 +37,7 @@ from maple.solvation.release.root_well_posedness import (
     certify_root_well_posedness,
     dense_state_map_jacobian,
 )
+from maple.solvation.release.field_semantics import FieldSemanticsManifest
 
 
 def _digest(label: str) -> str:
@@ -71,6 +75,8 @@ class _SeparatedElectronic:
     provenance_sha256 = _digest("electronic-provenance")
     source_space = ATOMIC_L1_SOURCE_SPACE
     receiver_space = MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE
+    checkpoint_sha256 = _digest("checkpoint")
+    field_energy_pairing_sha256 = MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash()
 
     def __init__(self, coupling_id, jacobian):
         self.coupling_id = coupling_id
@@ -98,7 +104,7 @@ class _SeparatedElectronic:
         del geometry, field, source_cotangent
         return np.zeros((1, 3))
 
-    def intrinsic_energy_ev(self, geometry, field):
+    def conditioned_raw_energy_ev(self, geometry, field):
         del geometry
         return 2.0 + 0.25 * float(np.vdot(field, field))
 
@@ -160,6 +166,32 @@ def _snapshot(
         source_to_boundary=source,
         boundary_to_native_field=receiver,
         source_embedding=embedding,
+    )
+
+
+def _field_semantics(electronic):
+    return FieldSemanticsManifest(
+        checkpoint_sha256=_digest("checkpoint"),
+        adapter_configuration_sha256=electronic.configuration_sha256(),
+        adapter_provenance_sha256=electronic.provenance_sha256,
+        model_provider_id=electronic.provider_id,
+        model_profile_id=electronic.model_profile_id,
+        source_space_sha256=electronic.source_space.metadata_hash(),
+        native_field_space_sha256=electronic.receiver_space.metadata_hash(),
+        pairing_metric_sha256=MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
+        field_channel_order=electronic.receiver_space.components,
+        field_radial_widths_angstrom=(1.5, 3.0),
+        real_ylm_convention="test raw real-l1 convention",
+        cartesian_spherical_l1_transform="test l1 transform",
+        field_units=electronic.receiver_space.units,
+        energy_unit="eV",
+        external_potential_sign=None,
+        uniform_field_sign=None,
+        spin_channel_factor=None,
+        native_injection_explicit_work_included=None,
+        upstream_uniform_explicit_work_included=None,
+        origin_convention="unverified",
+        evidence_measurement_sha256s=(),
     )
 
 
@@ -229,9 +261,17 @@ def test_separated_state_jvp_vjp_ledgers_and_local_root_certificate():
     assert certificate.residual_error_bound(1.0e-12) is None
 
     vacuum = _VacuumModel()
-    phi0 = FrozenVacuumContinuumLedger(equation=equation, vacuum=vacuum)
+    phi0 = FrozenVacuumContinuumLedger(
+        equation=equation,
+        vacuum=vacuum,
+        field_semantics_manifest=_field_semantics(electronic),
+    )
     with pytest.raises(ValueError, match="different scalar ID"):
-        ExternalEnthalpyOperationalLedger(equation=equation)
+        ExternalEnthalpyOperationalLedger(
+            equation=equation,
+            vacuum=vacuum,
+            field_semantics_manifest=_field_semantics(electronic),
+        )
     phi1_snapshot = _snapshot(
         geometry,
         OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
@@ -239,11 +279,15 @@ def test_separated_state_jvp_vjp_ledgers_and_local_root_certificate():
     phi1_equation = SeparatedOperationalStateEquation(
         coordinates, electronic, phi1_snapshot
     )
-    phi1 = ExternalEnthalpyOperationalLedger(equation=phi1_equation)
+    phi1 = ExternalEnthalpyOperationalLedger(
+        equation=phi1_equation,
+        vacuum=vacuum,
+        field_semantics_manifest=_field_semantics(electronic),
+    )
     result0 = phi0.evaluate_root(geometry, y, root_tolerance=1.0e-14)
     result1 = phi1.evaluate_root(geometry, y, root_tolerance=1.0e-14)
     assert result0.total_energy_eV == pytest.approx(1.5)
-    assert result1.total_energy_eV == pytest.approx(2.0)
+    assert result1.total_energy_eV == pytest.approx(1.5)
     assert result0.scalar_id != result1.scalar_id
     assert result0.components_eV != result1.components_eV
 
@@ -262,4 +306,37 @@ def test_separated_registry_entries_are_distinct_disabled_ledgers():
     assert phi0.admitted_capabilities.enabled_tiers == ()
     assert phi1.admitted_capabilities.enabled_tiers == ()
     assert "field_conditioned_intrinsic_energy" in phi0.excluded_components
-    assert "macepolar_intrinsic_field_conditioned_energy" in phi1.included_components
+    assert "macepolar_conditioned_raw_energy_difference" in phi1.included_components
+
+
+def test_separated_ledgers_reject_forged_checkpoint_and_native_field_pairing():
+    geometry = np.asarray([[0.1, -0.2, 0.3]])
+    electronic = _SeparatedElectronic(
+        SEPARATED_MACE_POLAR_HARMONIC_COUPLING_ID,
+        np.zeros((4, 8)),
+    )
+    coordinates = AffineChargeCoordinates(1, total_charge=0.0)
+    equation = SeparatedOperationalStateEquation(
+        coordinates,
+        electronic,
+        _snapshot(geometry),
+    )
+    manifest = _field_semantics(electronic)
+    with pytest.raises(ValueError, match="checkpoint"):
+        FrozenVacuumContinuumLedger(
+            equation=equation,
+            vacuum=_VacuumModel(),
+            field_semantics_manifest=replace(
+                manifest,
+                checkpoint_sha256=_digest("forged-checkpoint"),
+            ),
+        )
+    with pytest.raises(ValueError, match="pairing"):
+        FrozenVacuumContinuumLedger(
+            equation=equation,
+            vacuum=_VacuumModel(),
+            field_semantics_manifest=replace(
+                manifest,
+                pairing_metric_sha256=_digest("forged-pairing"),
+            ),
+        )

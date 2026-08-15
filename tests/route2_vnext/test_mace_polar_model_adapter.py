@@ -35,6 +35,9 @@ from maple.solvation.models.mace_polar_variational import (
     MACEPolarVariationalFieldEnergy,
     MACE_POLAR_VARIATIONAL_DUALITY_MAP,
 )
+from maple.solvation.release.field_semantics import (
+    build_unverified_mace_polar_field_semantics_manifest,
+)
 
 
 @dataclass
@@ -721,6 +724,15 @@ def test_native_semantics_canary_reads_checkpoint_spaces_without_paper_defaults(
     assert canary.intrinsic_energy_is_complete_external_enthalpy is False
     assert len(canary.configuration_sha256()) == 64
     assert "does not select Phi0 versus Phi1" in canary.as_dict()["claim_boundary"]
+    separated = MACEPolarOriginalSourceNativeFieldAdapter(radial)
+    manifest = build_unverified_mace_polar_field_semantics_manifest(
+        native_canary=canary,
+        adapter=separated,
+    )
+    assert manifest.field_radial_widths_angstrom == (1.5, 3.0)
+    assert manifest.field_channel_order == separated.receiver_space.components
+    assert manifest.phi1_semantics_complete is False
+    assert manifest.native_injection_explicit_work_included is None
 
 
 def test_original_source4_native_field8_adapter_has_rectangular_exact_jvp_vjp(
@@ -740,6 +752,13 @@ def test_original_source4_native_field8_adapter_has_rectangular_exact_jvp_vjp(
         ],
         rtol=0.0,
         atol=0.0,
+    )
+    assert adapter.conditioned_raw_energy_ev(
+        atoms, field
+    ) == adapter.intrinsic_energy_ev(atoms, field)
+    np.testing.assert_array_equal(
+        adapter.conditioned_raw_energy_field_gradient(atoms, field),
+        adapter.intrinsic_energy_field_gradient(atoms, field),
     )
     rng = np.random.default_rng(20260815)
     direction = rng.normal(size=field.shape)

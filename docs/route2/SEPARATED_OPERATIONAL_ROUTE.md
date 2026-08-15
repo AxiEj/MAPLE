@@ -40,7 +40,13 @@ For the currently cached official checkpoint the source width is `1.5 A` and
 the receiver widths are `1.5 A` and `3.0 A`. This branch therefore rejects the
 unverified `1.5/2.0 A` recollection for this artifact. The canary intentionally
 leaves the applied-field energy sign and complete external-enthalpy semantics
-unverified.
+unverified. A separate content-addressed `FieldSemanticsManifest` now binds
+the checkpoint, adapter configuration and provenance, source/native-field
+spaces, pairing metric, channel order, radial widths, units, real-harmonic
+convention, coordinate transform, origin policy, spin-channel factor,
+work-term inclusion, and supporting evidence IDs. Unknown sign/work/origin
+fields remain explicit `None`/`unverified`; they cannot be inferred from an
+`external_field` variable name.
 
 ## Frozen ledgers, not a unique energy
 
@@ -49,12 +55,17 @@ IDs are registered:
 
 ```text
 Phi0 = E_vac(R) - 1/2 (Bc)^T A^-1(Bc)
-Phi1 = E_intrinsic_theta(R, L sigma) + 1/2 sigma^T A sigma
+Phi1Delta = E_vac(R)
+            + [E_conditioned_raw(R, L sigma)-E_conditioned_raw(R, 0)]
+            + 1/2 sigma^T A sigma
 ```
 
 `Phi0` is the existing vacuum-plus-continuum ledger and explicitly omits an
-internal solute polarization cost. `Phi1` is an external-enthalpy candidate;
-it does not make the original source the derivative of the checkpoint energy.
+internal solute polarization cost. `Phi1Delta` is a vacuum-normalized
+external-enthalpy candidate. The raw native-injection scalar is deliberately
+named `E_conditioned_raw` until replay proves whether it is internal-only,
+complete external enthalpy, or branch-dependent. `Phi1Delta` does not make the
+original source the derivative of the checkpoint energy.
 Neither is selected as physically correct until matched energy, force,
 surface-MEP, and continuum-component references are run. Both remain absent
 from the public profile registry and admit no E/F/H/V/M capability.
@@ -65,14 +76,14 @@ There is one remaining mathematically legitimate quotient-space check for the
 unchanged checkpoint:
 
 ```text
-B M_theta(R,u) + s L^T grad_u E_intrinsic(R,u) = 0
+B M_theta(R,u) + s L^T grad_u E_conditioned_raw(R,u) = 0
 B M_u(R,u) L is self-adjoint on the boundary coefficient chart.
 ```
 
 A coupled-curl failure at one admitted state is terminal. A direct
 energy/source failure becomes terminal only after Gate 1 has verified that the
 consumed scalar is the complete external enthalpy and has frozen its sign; the
-current intrinsic-energy hook does not yet meet that prerequisite. A finite
+current raw conditioned-energy hook does not yet meet that prerequisite. A finite
 pass is only local numerical evidence, never a global Tier-V proof.
 Geometry-dependent projections, spectral clipping, path integrals,
 residual-squared energies, and solver damping are not accepted repairs. A fixed
@@ -93,8 +104,20 @@ operational state/ledger research branch.
 
 Source validation is deliberately decomposed into charge, molecular dipole,
 traceless quadrupole, far/surface MEP, and matched fixed-source PCM energy.
-No reference is inferred by the code, and no total-solvation comparison may be
-mixed with an electrostatic-only component.
+The decisive continuum-active comparison consumes a QM-projected boundary RHS
+directly, not another fitted atom-charge model. For symmetric positive-definite
+`A`, it reports
+
+```text
+d = sqrt((b_ML-b_QM)^T A^-1 (b_ML-b_QM))
+|G_ML-G_QM| <= ||b_QM||_(A^-1) d + 1/2 d^2
+```
+
+and derives the accepted `d` from a preregistered fixed-source energy budget.
+Every record binds geometry, continuum configuration/provenance, topology,
+cavity, and reference artifact SHA. No reference is inferred by the code, and
+no total-solvation comparison may be mixed with an electrostatic-only
+component.
 
 For `r(y)=y-F(y)`, the root diagnostic records:
 
@@ -113,7 +136,7 @@ diagnostic mathematics. It does **not** establish:
 
 - a unified variational functional for the original checkpoint;
 - source/MEP accuracy against QM;
-- a preferred `Phi0` or `Phi1` energy ledger;
+- a preferred `Phi0` or `Phi1Delta` energy ledger;
 - a globally unique smooth root;
 - distorted-geometry PES, Cartesian finite differences, or closed-loop work;
 - a public conservative force or any solvation-accuracy claim.

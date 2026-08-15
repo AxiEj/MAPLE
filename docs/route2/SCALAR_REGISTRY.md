@@ -201,13 +201,15 @@ two disabled scalar identities:
   `smoothharmonicgalerkin-cpcm-phi0-v1`: vacuum energy plus the signed
   stationary continuum energy;
 - `route2-operational-macepolar-source4-nativefield8-`
-  `smoothharmonicgalerkin-cpcm-externalenthalpy-phi1-v1`: intrinsic
-  field-conditioned checkpoint energy plus continuum self energy.
+  `smoothharmonicgalerkin-cpcm-conditioneddelta-phi1-v1`: vacuum energy plus
+  the raw conditioned-energy difference from zero field and continuum self
+  energy.
 
 The fixed point does not select between these ledgers. `Phi0` omits an
-explicit internal solute polarization cost; `Phi1` remains an external-
-enthalpy candidate until the applied-field sign and energy semantics are
-verified. Neither scalar has a public profile or any capability. Their full
+explicit internal solute polarization cost; `Phi1Delta` remains an external-
+enthalpy candidate until the applied-field sign, branch work term, and energy
+semantics are verified by the same content-addressed field-semantics manifest.
+Neither scalar has a public profile or any capability. Their full
 contract and claim boundary are in
 [SEPARATED_OPERATIONAL_ROUTE.md](SEPARATED_OPERATIONAL_ROUTE.md).
 

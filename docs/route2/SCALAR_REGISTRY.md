@@ -210,10 +210,21 @@ explicit internal solute polarization cost. The clean field-semantics replay
 at `3014f1a6` shows that the native-injection branch consumed by `Phi1Delta`
 omits the explicit upstream `+E dot mu` work term; `Phi1Delta` is therefore a
 disabled diagnostic/ablation scalar, not a complete external-enthalpy ledger.
-`Phi0` still requires matched source and electrostatic-component admission.
-Neither scalar has a public profile or any capability. Their full contract and
-claim boundary are in
+`Phi0` was therefore conditional on matched source and electrostatic-component
+admission. Neither scalar has a public profile or any capability. Their full
+contract and claim boundary are in
 [SEPARATED_OPERATIONAL_ROUTE.md](SEPARATED_OPERATIONAL_ROUTE.md).
+
+That source gate is now negative. On four frozen QM/PCMSolver cases the
+unchanged original source gives area-weighted surface-MEP relative errors of
+`0.628` to `1.034` and fixed-source polarization-energy absolute errors of
+`2.824` to `11.828 kcal/mol`; `0/4` meet the inherited strict `1 kcal/mol`
+budget. Two clean runs reproduce measurement SHA-256
+`ff40c7c426cbcb59ab28378f29a1ed5675da98d4063fba20423b0247d997649b`
+under
+[`evidence/mace-original-source-pcmsolver-four-1d40c93b/`](evidence/mace-original-source-pcmsolver-four-1d40c93b/README.md).
+Therefore both unchanged-source scalar identities remain registered only as
+closed negative research records; neither advances to force/PES/admission.
 
 ## `route2-diagnostic-ddx-{ddpcm,ddcosmo}-radialgto-electrostatic-v1`
 

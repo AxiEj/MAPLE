@@ -17,7 +17,7 @@ CLI restriction.
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |
 | `route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1` | no | no | no | no | no | real same-scalar derivative candidate; rotation/torque and physical-component gates failed |
-| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | separately registered operational PES candidate: analytic isotropic MACE evaluator, original four-channel density response embedded in the first radial block, and scalar-first smooth harmonic continuum; all twenty frozen equilibrium rigid-panel molecules pass in two clean processes per molecule, but distorted-geometry, Cartesian-FD, closed-loop, physical-component, accuracy, Hessian/FREQ/MD, and release gates remain absent |
+| `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | closed negative for quantitative solvation on the unchanged source: all twenty equilibrium rigid panels pass twice, but the original four-channel source then fails all four matched QM/PCMSolver fixed-source cases by `2.824` to `11.828 kcal/mol`; a repaired source requires a new profile and may not inherit the force evidence |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
@@ -91,8 +91,8 @@ measurement SHA-256
 This is negative Tier-V evidence; it does not affect the separate operational
 conservative-PES target, and every capability remains `no`.
 
-The separate original-source operational target now has positive but narrow
-real-checkpoint evidence under
+The separate original-source operational target first accumulated positive but
+narrow derivative/symmetry evidence under
 [`evidence/operational-analytic-harmonic-water-fa6f0200/`](evidence/operational-analytic-harmonic-water-fa6f0200/README.md).
 For one water geometry, its exact operational scalar converges and replays,
 all three implicit-force finite differences pass, and the second radial source
@@ -105,6 +105,15 @@ reproduce measurement SHA-256
 `586024051151be3e3c63171e73bab34b6ce43459d4232c8070daadcd204b4547`.
 This validates one canary, not a public PES or solvation model; every
 capability remains `no`, and the legacy laboratory-grid route remains failed.
+
+That engineering result is not physical source admission. The later frozen
+four-case QM/PCMSolver audit finds `0/4` fixed-source energy passes: absolute
+errors are `2.824` to `11.828 kcal/mol` against the inherited strict
+`1 kcal/mol` budget, with area-weighted surface-MEP relative errors `0.628` to
+`1.034`. Evidence is retained under
+[`evidence/mace-original-source-pcmsolver-four-1d40c93b/`](evidence/mace-original-source-pcmsolver-four-1d40c93b/README.md).
+This closes the unchanged source before force/PES/public admission; the rigid
+evidence remains useful only as an implementation record.
 
 The preregistered methanol rigid-symmetry shard is retained under
 [`evidence/operational-analytic-harmonic-rigid-methanol-93c98598/`](evidence/operational-analytic-harmonic-rigid-methanol-93c98598/README.md).

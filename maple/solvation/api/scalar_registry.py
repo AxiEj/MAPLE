@@ -221,9 +221,9 @@ _SCALAR_ENTRIES = (
         nonpolar_profile="none",
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
         derivative_route=(
-            "implicit adjoint total derivative of this operational scalar; "
-            "disabled pending real-checkpoint root, force, rotation, physical, "
-            "and release gates"
+            "implicit adjoint total derivative exists internally; disabled and "
+            "scientifically stopped because the unchanged original source failed "
+            "the frozen four-case matched QM/PCMSolver physical gate"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -263,8 +263,9 @@ _SCALAR_ENTRIES = (
         nonpolar_profile="none",
         state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
         derivative_route=(
-            "implicit adjoint of this frozen ledger only; all public capabilities "
-            "disabled pending source/MEP, ledger, root, PES, and release gates"
+            "implicit adjoint of this frozen ledger only; unchanged-source route "
+            "closed before ledger/force admission by the four-case matched "
+            "QM/PCMSolver source-MEP gate"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -309,8 +310,9 @@ _SCALAR_ENTRIES = (
         state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
         derivative_route=(
             "implicit adjoint of this explicitly selected operational ledger; "
-            "vacuum-normalized and field-semantics-manifest-bound; not a "
-            "common-stationarity or Tier-V claim"
+            "vacuum-normalized and field-semantics-manifest-bound; closed because "
+            "native injection omits upstream explicit work and the unchanged "
+            "source fails the matched QM/PCMSolver physical gate"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),

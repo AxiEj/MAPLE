@@ -142,6 +142,25 @@ continuum configuration/provenance, topology, and cavity identity. An
 internally converged but unvalidated continuum may report diagnostics, but it
 cannot admit or reject the source.
 
+The clean four-case audit at head `1d40c93b` therefore uses the already frozen
+QM MEPs and intrinsic PCMSolver IEFPCM cavities rather than treating the new
+harmonic candidate as its own reference. Both executions reproduce
+measurement SHA-256
+`ff40c7c426cbcb59ab28378f29a1ed5675da98d4063fba20423b0247d997649b`.
+Total charge passes in all records, and molecular dipoles are much closer than
+the near-field observables, but area-weighted surface-MEP relative errors are
+`0.628` to `1.034`. The fixed-source polarization-energy absolute errors are
+`2.824` to `11.828 kcal/mol`; all four exceed the inherited strict
+`1 kcal/mol` budget. Evidence is retained under
+[`evidence/mace-original-source-pcmsolver-four-1d40c93b/`](evidence/mace-original-source-pcmsolver-four-1d40c93b/README.md).
+
+This closes the unchanged original four-channel source as a full quantitative
+PCM source for the separated profile. Consequently neither `Phi0` nor
+`Phi1Delta` proceeds to ledger, force, PES, or public admission on this source
+identity. A fixed radial embedding would be a separately named model change
+and remains unauthorized until quadrupole and far-field test-charge evidence
+shows that the missing physics is radial-only.
+
 For `r(y)=y-F(y)`, the root diagnostic records:
 
 - `sigma_min(I-J_F)` for a local implicit branch;
@@ -154,17 +173,20 @@ with an externally evidenced invariant domain and a uniform domain bound.
 
 ## Claim boundary
 
-This change establishes modular contracts, hashes, disabled ledgers, and
-diagnostic mathematics. It does **not** establish:
+This change establishes modular contracts, hashes, and two terminal negative
+decisions for the unchanged checkpoint: original-source Tier V fails the
+coupled-curl gate, and the same source fails the matched quantitative PCM
+source gate. It does **not** establish:
 
 - a unified variational functional for the original checkpoint;
-- source/MEP accuracy against QM;
-- an admitted `Phi0` ledger (`Phi1Delta` has already failed complete-enthalpy
-  semantics for the current native-injection branch);
+- a repaired source/MEP model;
+- an admitted `Phi0` or `Phi1Delta` ledger (`Phi1Delta` additionally fails
+  complete-enthalpy semantics for the current native-injection branch);
 - a globally unique smooth root;
 - distorted-geometry PES, Cartesian finite differences, or closed-loop work;
 - a public conservative force or any solvation-accuracy claim.
 
-Those gates must be rerun under this exact separated scalar/state identity;
-evidence from the earlier eight-dimensional embedded-source profile cannot be
+The current separated source identity terminates here. Any radial embedding,
+scalar-first field head, or independent variational polarization model must
+receive a new profile/hash and rerun its own gates; earlier evidence cannot be
 silently inherited.

@@ -17,7 +17,7 @@ import json
 import math
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Callable, Mapping
+from typing import Callable, Mapping
 
 import numpy as np
 
@@ -121,6 +121,7 @@ class AtomicL1PyDDXState:
     geometry_sha256: str
     cavity_topology_sha256: str
     cavity_active_node_count: int
+    minimum_cavity_active_set_clearance_angstrom: float
     source: np.ndarray
     field: np.ndarray
     polarization_energy_eV: float
@@ -144,6 +145,15 @@ class AtomicL1PyDDXState:
             or self.cavity_active_node_count < 1
         ):
             raise ValueError("cavity_active_node_count must be a positive integer.")
+        clearance = float(self.minimum_cavity_active_set_clearance_angstrom)
+        if not math.isfinite(clearance) or clearance < 0.0:
+            raise ValueError(
+                "minimum_cavity_active_set_clearance_angstrom must be finite "
+                "and non-negative."
+            )
+        object.__setattr__(
+            self, "minimum_cavity_active_set_clearance_angstrom", clearance
+        )
         source = np.asarray(self.source, dtype=float)
         field = np.asarray(self.field, dtype=float)
         if (
@@ -377,7 +387,7 @@ class AtomicL1PyDDXPCMBackend:
         )
 
     @staticmethod
-    def _topology_from_map(reaction_map: object) -> tuple[str, int]:
+    def _topology_from_map(reaction_map: object) -> tuple[str, int, float]:
         digest = getattr(reaction_map, "cavity_topology_sha256", None)
         if not isinstance(digest, str):
             raise RuntimeError(
@@ -403,17 +413,37 @@ class AtomicL1PyDDXPCMBackend:
                 or pair[1] < 0
             ):
                 raise RuntimeError("pyddx active cavity-node identity is malformed.")
-        return digest, len(pairs)
+        raw_clearance = getattr(
+            reaction_map, "minimum_cavity_active_set_clearance_angstrom", None
+        )
+        if isinstance(raw_clearance, bool):
+            raise RuntimeError(
+                "pyddx reaction map cavity active-set clearance is invalid."
+            )
+        try:
+            clearance = float(raw_clearance)
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(
+                "pyddx reaction map does not expose a numeric cavity active-set "
+                "clearance."
+            ) from exc
+        if not math.isfinite(clearance) or clearance < 0.0:
+            raise RuntimeError(
+                "pyddx reaction map cavity active-set clearance must be finite "
+                "and non-negative."
+            )
+        return digest, len(pairs), clearance
 
     def topology_state(self, geometry: object) -> dict[str, object]:
         """Return the exact exposed sphere/Lebedev active-set identity."""
 
         reaction_map = self._map(geometry)
-        digest, count = self._topology_from_map(reaction_map)
+        digest, count, clearance = self._topology_from_map(reaction_map)
         return {
             "configuration_sha256": self.configuration_sha256(),
             "cavity_topology_sha256": digest,
             "cavity_active_node_count": count,
+            "minimum_cavity_active_set_clearance_angstrom": clearance,
         }
 
     def _source(self, values: object, *, name: str) -> np.ndarray:
@@ -481,12 +511,15 @@ class AtomicL1PyDDXPCMBackend:
                 "positions_angstrom": positions.tolist(),
             }
         )
-        topology_digest, active_node_count = self._topology_from_map(reaction_map)
+        topology_digest, active_node_count, clearance = self._topology_from_map(
+            reaction_map
+        )
         return AtomicL1PyDDXState(
             configuration_sha256=self.configuration_sha256(),
             geometry_sha256=geometry_digest,
             cavity_topology_sha256=topology_digest,
             cavity_active_node_count=active_node_count,
+            minimum_cavity_active_set_clearance_angstrom=clearance,
             source=values,
             field=field,
             polarization_energy_eV=0.5 * self.pairing.pair(values, field),

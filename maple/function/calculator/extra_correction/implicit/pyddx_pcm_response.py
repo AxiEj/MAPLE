@@ -38,6 +38,13 @@ _SUPPORTED_CONTINUUM_MODELS = frozenset({"pcm", "cosmo"})
 _LEBEDEV_DIRECTION_CACHE: dict[tuple[int, str, int, float], np.ndarray] = {}
 
 
+@dataclass(frozen=True)
+class _CavityTopologyRecord:
+    digest: str
+    active_pairs: tuple[tuple[int, int], ...]
+    minimum_active_set_clearance_angstrom: float
+
+
 def _canonical_json_sha256(value: object) -> str:
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
@@ -86,6 +93,95 @@ def _lebedev_directions(
     return directions
 
 
+def _ddx_centered_switch(distance_ratio: float, eta: float) -> float:
+    """Reproduce ddX 0.8.0 ``fsw(t, shift=0, eta)`` in binary64."""
+
+    shifted = distance_ratio - 0.5 * eta
+    complement = 1.0 - shifted
+    if complement <= 0.0:
+        return 0.0
+    if complement >= eta:
+        return 1.0
+    normalized = complement / eta
+    return normalized**3 * ((6.0 * normalized - 15.0) * normalized + 10.0)
+
+
+def _regularized_cavity_active_set(
+    centres_bohr: np.ndarray,
+    radii_bohr: np.ndarray,
+    directions: np.ndarray,
+    *,
+    eta: float,
+) -> tuple[tuple[tuple[int, int], ...], float]:
+    """Rebuild ddX active candidates and a conservative event clearance.
+
+    The clearance is a lower bound, in Angstrom, under the maximum pairwise
+    relative centre displacement.  For ``eta > 0`` it uses the global
+    derivative bound ``max |d fsw / dt| = 1.875 / eta``.  Exact points on an
+    active-set event, and cases for which no positive finite bound can be
+    certified, return zero and therefore fail closed.
+    """
+
+    active: list[tuple[int, int]] = []
+    clearances_bohr: list[float] = []
+    lower_switch_edge = 1.0 - 0.5 * eta
+    for sphere_index, centre in enumerate(centres_bohr):
+        for candidate_index, direction in enumerate(directions):
+            candidate = centre + radii_bohr[sphere_index] * direction
+            ratios: list[tuple[int, float]] = []
+            for other_index, other_centre in enumerate(centres_bohr):
+                if other_index == sphere_index:
+                    continue
+                ratio = float(
+                    np.linalg.norm(candidate - other_centre) / radii_bohr[other_index]
+                )
+                ratios.append((other_index, ratio))
+
+            if eta == 0.0:
+                switches = [1.0 if ratio < 1.0 else 0.0 for _, ratio in ratios]
+                characteristic_sum = math.fsum(switches)
+                clearance = min(
+                    (
+                        radii_bohr[other_index] * abs(ratio - 1.0)
+                        for other_index, ratio in ratios
+                    ),
+                    default=0.0,
+                )
+            else:
+                switches = [_ddx_centered_switch(ratio, eta) for _, ratio in ratios]
+                characteristic_sum = math.fsum(switches)
+                lipschitz = math.fsum(
+                    1.875 / (eta * radii_bohr[other_index]) for other_index, _ in ratios
+                )
+                if lipschitz == 0.0:
+                    clearance = 0.0
+                elif characteristic_sum != 1.0:
+                    clearance = abs(1.0 - characteristic_sum) / lipschitz
+                else:
+                    saturated_depths = [
+                        radii_bohr[other_index] * (lower_switch_edge - ratio)
+                        for (other_index, ratio), switch in zip(ratios, switches)
+                        if switch == 1.0 and ratio <= lower_switch_edge
+                    ]
+                    fractional = any(0.0 < switch < 1.0 for switch in switches)
+                    if len(saturated_depths) == 1 and not fractional:
+                        clearance = max(0.0, saturated_depths[0])
+                    else:
+                        clearance = 0.0
+
+            if characteristic_sum < 1.0:
+                active.append((sphere_index, candidate_index))
+            clearances_bohr.append(float(clearance))
+
+    minimum_clearance_angstrom = min(clearances_bohr, default=0.0) * Bohr
+    if (
+        not math.isfinite(minimum_clearance_angstrom)
+        or minimum_clearance_angstrom < 0.0
+    ):
+        raise RuntimeError("pyddx cavity active-set clearance is invalid.")
+    return tuple(active), float(minimum_clearance_angstrom)
+
+
 def _cavity_topology_record(
     runtime: "_PyDDXRuntime",
     model: object,
@@ -93,7 +189,7 @@ def _cavity_topology_record(
     n_lebedev: int,
     lmax: int,
     eta: float,
-) -> tuple[str, tuple[tuple[int, int], ...]] | None:
+) -> _CavityTopologyRecord | None:
     """Bind each exposed cavity node to its sphere and Lebedev candidate."""
 
     raw_cavity = getattr(model, "cavity", None)
@@ -143,6 +239,17 @@ def _cavity_topology_record(
     active_tuple = tuple(sorted(active))
     if len(set(active_tuple)) != len(active_tuple):
         raise RuntimeError("pyddx cavity topology contains duplicate active nodes.")
+    reconstructed, clearance_angstrom = _regularized_cavity_active_set(
+        centres,
+        radii,
+        directions,
+        eta=eta,
+    )
+    if reconstructed != active_tuple:
+        raise RuntimeError(
+            "pyddx exposed cavity nodes disagree with the version-pinned "
+            "regularized active-set reconstruction."
+        )
     digest = _canonical_json_sha256(
         {
             "schema": "route2-pyddx-exposed-lebedev-topology-v1",
@@ -152,7 +259,11 @@ def _cavity_topology_record(
             "active_sphere_candidate_pairs": [list(pair) for pair in active_tuple],
         }
     )
-    return digest, active_tuple
+    return _CavityTopologyRecord(
+        digest=digest,
+        active_pairs=active_tuple,
+        minimum_active_set_clearance_angstrom=clearance_angstrom,
+    )
 
 
 @dataclass(frozen=True)
@@ -381,8 +492,13 @@ class PyDDXReactionFieldLinearMap:
             lmax=int(lmax),
             eta=eta_value,
         )
-        self._cavity_topology_sha256 = None if topology is None else topology[0]
-        self._cavity_active_node_pairs = () if topology is None else topology[1]
+        self._cavity_topology_sha256 = None if topology is None else topology.digest
+        self._cavity_active_node_pairs = (
+            () if topology is None else topology.active_pairs
+        )
+        self._minimum_cavity_active_set_clearance_angstrom = (
+            None if topology is None else topology.minimum_active_set_clearance_angstrom
+        )
         self._scf_state = None
         self._scf_state_has_adjoint_solution = False
         self._scf_state_creations = 0
@@ -410,6 +526,9 @@ class PyDDXReactionFieldLinearMap:
             "n_cav": int(getattr(self._model, "n_cav", -1)),
             "cavity_topology_sha256": self._cavity_topology_sha256,
             "cavity_active_node_count": len(self._cavity_active_node_pairs),
+            "minimum_cavity_active_set_clearance_angstrom": (
+                self._minimum_cavity_active_set_clearance_angstrom
+            ),
             "scf_state_reuse": "pyddx.State.update_problem warm start",
             "scf_state_creations": self._scf_state_creations,
             "scf_state_updates": self._scf_state_updates,
@@ -440,6 +559,15 @@ class PyDDXReactionFieldLinearMap:
                 "pyddx cavity topology is unavailable from this runtime model."
             )
         return self._cavity_active_node_pairs
+
+    @property
+    def minimum_cavity_active_set_clearance_angstrom(self) -> float:
+        if self._minimum_cavity_active_set_clearance_angstrom is None:
+            raise RuntimeError(
+                "pyddx cavity active-set clearance is unavailable from this "
+                "runtime model."
+            )
+        return self._minimum_cavity_active_set_clearance_angstrom
 
     def _validated_density(self, values: np.ndarray, *, name: str) -> np.ndarray:
         return _validated_density_block(

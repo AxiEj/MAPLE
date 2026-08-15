@@ -44,6 +44,10 @@ from maple.solvation.release.geometry_mediated import (
     summarize_geometry_mediated_directional_audit,
     summarize_geometry_mediated_rotation_audit,
 )
+from maple.solvation.release.geometry_mediated_adaptive import (
+    capture_geometry_mediated_adaptive_directional_samples,
+    summarize_geometry_mediated_adaptive_directional_audit,
+)
 from aimnet2_geometry_mediated_common import (
     COMMON_REQUIRED_SOURCE_PATHS,
     CONTINUUM_REQUIRED_SOURCE_PATHS,
@@ -55,8 +59,9 @@ from aimnet2_geometry_mediated_common import (
     verify_route2_checkpoint,
 )
 
-SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v3"
+SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v4"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
+    "maple/solvation/release/geometry_mediated_adaptive.py",
     "tools/route2_release/run_aimnet2_geometry_mediated_canary.py",
 )
 
@@ -161,6 +166,32 @@ def main() -> None:
         model, continuum, atoms
     )
     direction = geometry_mediated_coordinate_direction(len(atoms))
+
+    def adaptive_sample(displacement_A: float) -> dict[str, object]:
+        displaced = atoms.copy()
+        displaced.positions = atoms.positions + displacement_A * direction
+        model_topology, continuum_topology = geometry_mediated_topologies(
+            model, continuum, displaced
+        )
+        return {
+            "energy_eV": scalar.evaluate_energy(displaced),
+            "positions_A": displaced.positions.tolist(),
+            "model_topology": model_topology,
+            "continuum_topology": continuum_topology,
+        }
+
+    adaptive_samples = capture_geometry_mediated_adaptive_directional_samples(
+        adaptive_sample
+    )
+    adaptive_directional = summarize_geometry_mediated_adaptive_directional_audit(
+        analytic_gradient_eV_per_A=first.total_gradient_eV_per_A,
+        direction=direction,
+        center_positions_A=atoms.positions,
+        center_model_topology=center_model_topology,
+        center_continuum_topology=center_continuum_topology,
+        adaptive_record=adaptive_samples,
+        reciprocity_audit=first.reciprocity_audit.as_dict(),
+    )
     directional_samples: list[dict[str, object]] = []
     for step in GEOMETRY_MEDIATED_COORDINATE_STEPS_A:
         plus = atoms.copy()
@@ -244,6 +275,13 @@ def main() -> None:
         # branch records its actual dense stationary residual.
         post_solve_residual_available=post_solve_residual_available,
     )
+    decision["adaptive_directional_gate_passed"] = bool(
+        adaptive_directional["gate_passed"]
+    )
+    decision["local_diagnostic_gates_passed"] = bool(
+        decision["local_diagnostic_gates_passed"]
+        and decision["adaptive_directional_gate_passed"]
+    )
 
     measured = {
         "protocol": {
@@ -301,6 +339,10 @@ def main() -> None:
         "reciprocity_metric_charge_gauge": first.reciprocity_audit.as_dict(),
         "stationarity": stationarity,
         "coordinate_directional": directional,
+        "coordinate_directional_adaptive": {
+            "raw": adaptive_samples,
+            "summary": adaptive_directional,
+        },
         "coordinate_cartesian": cartesian,
         "rigid_rotation": rotation,
         "decision": decision,
@@ -332,9 +374,10 @@ def main() -> None:
             "This one-water artifact audits the explicit geometry map "
             "R->q_AIMNet2(R), the selected continuum half-coupling under the "
             "registered metric, "
-            "charge-gauge response, one three-step coordinate direction, a "
-            "three-step full Cartesian panel, hard neighbor/continuum strata, "
-            "and three rigid rotations. The harmonic "
+            "charge-gauge response, one pinned adaptive directional trace, one "
+            "three-step coordinate direction, a three-step full Cartesian "
+            "panel, hard neighbor/continuum strata and event clearances, and "
+            "three rigid rotations. The harmonic "
             "arm is a conductor reference without a finite-dielectric solvent "
             "parameterization. It is not fixed-R "
             "mutual polarization, chemical-accuracy evidence, a global C1 proof, "

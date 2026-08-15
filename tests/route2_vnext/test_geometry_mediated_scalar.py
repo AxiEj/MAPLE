@@ -107,6 +107,7 @@ class _FakeAIMNet2:
 class _FakeReactionMap:
     cavity_topology_sha256 = "1" * 64
     cavity_active_node_pairs = ((0, 0), (1, 0))
+    minimum_cavity_active_set_clearance_angstrom = 0.25
 
     def __init__(self, positions, radii, **kwargs):
         del radii, kwargs

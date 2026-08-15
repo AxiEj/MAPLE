@@ -13,6 +13,7 @@ _BETA = 0.03
 class _FakeReactionMap:
     cavity_topology_sha256 = "1" * 64
     cavity_active_node_pairs = ((0, 0), (1, 0))
+    minimum_cavity_active_set_clearance_angstrom = 0.25
 
     def __init__(self, positions, radii, **kwargs):
         self.positions = np.asarray(positions, dtype=float)
@@ -35,6 +36,10 @@ class _FakeReactionMap:
             np.vdot(ATOMIC_L1_PAIRING.field_to_source_dual(field_cotangent), source)
         )
         return 2.0 * _BETA * contraction * self.positions
+
+
+class _MissingClearanceReactionMap(_FakeReactionMap):
+    minimum_cavity_active_set_clearance_angstrom = None
 
 
 def _atoms():
@@ -104,7 +109,10 @@ def test_atomic_l1_pyddx_state_is_immutable_and_configuration_bound():
     assert len(state.geometry_sha256) == 64
     assert state.cavity_topology_sha256 == "1" * 64
     assert state.cavity_active_node_count == 2
-    assert backend.topology_state(atoms)["cavity_topology_sha256"] == "1" * 64
+    assert state.minimum_cavity_active_set_clearance_angstrom == 0.25
+    topology = backend.topology_state(atoms)
+    assert topology["cavity_topology_sha256"] == "1" * 64
+    assert topology["minimum_cavity_active_set_clearance_angstrom"] == 0.25
     assert len(backend.configuration_sha256()) == 64
     assert len(backend.provenance_sha256) == 64
     with pytest.raises(AttributeError, match="immutable"):
@@ -135,6 +143,17 @@ def test_atomic_l1_pyddx_rejects_atom_reordering_periodicity_and_bad_grid():
             _map_factory=_FakeReactionMap,
         )
 
+    missing_clearance = AtomicL1PyDDXPCMBackend(
+        _atoms(),
+        [1.7, 1.5],
+        dielectric=20.0,
+        lmax=7,
+        n_lebedev=302,
+        _map_factory=_MissingClearanceReactionMap,
+    )
+    with pytest.raises(RuntimeError, match="numeric cavity active-set clearance"):
+        missing_clearance.topology_state(_atoms())
+
 
 def test_real_pyddx_cavity_topology_is_translation_invariant_but_lab_grid_bound():
     pytest.importorskip("pyddx")
@@ -155,6 +174,9 @@ def test_real_pyddx_cavity_topology_is_translation_invariant_but_lab_grid_bound(
         solver_tolerance=1.0e-12,
     )
     base = backend.topology_state(water)
+    assert base["minimum_cavity_active_set_clearance_angstrom"] == pytest.approx(
+        5.826261813812085e-9, rel=1.0e-8, abs=1.0e-15
+    )
     translated = water.copy()
     translated.positions += np.asarray([1.2, -0.7, 0.4])
     axis = np.asarray([0.3, 0.4, 0.5])
@@ -173,9 +195,13 @@ def test_real_pyddx_cavity_topology_is_translation_invariant_but_lab_grid_bound(
     rotated = water.copy()
     rotated.positions = water.positions @ rotation.T
 
-    assert backend.topology_state(translated)["cavity_topology_sha256"] == (
-        base["cavity_topology_sha256"]
+    translated_topology = backend.topology_state(translated)
+    assert (
+        translated_topology["cavity_topology_sha256"] == base["cavity_topology_sha256"]
     )
+    assert translated_topology[
+        "minimum_cavity_active_set_clearance_angstrom"
+    ] == pytest.approx(base["minimum_cavity_active_set_clearance_angstrom"])
     assert backend.topology_state(rotated)["cavity_topology_sha256"] != (
         base["cavity_topology_sha256"]
     )

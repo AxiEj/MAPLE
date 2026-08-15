@@ -144,7 +144,7 @@ A clean-tree, source-bound JSON runner writes outside the checkout:
 ```bash
 python tools/route2_release/run_aimnet2_geometry_mediated_canary.py \
   --checkpoint /absolute/path/to/aimnet2.pt \
-  --aimnet-runtime legacy-jit-float32 \
+  --aimnet-runtime reconstructed-python-float64 \
   --continuum ddpcm \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-gm-water.json
@@ -153,13 +153,24 @@ python tools/route2_release/run_aimnet2_geometry_mediated_canary.py \
 The runner records the checkpoint, selected precision runtime, upstream source
 hashes for the reconstruction arm, loaded committed sources, registered metric,
 model hard-neighbor graph, exact exposed sphere/Lebedev candidate set,
-three-step directional measurements, all `3N` Cartesian energy stencils,
-rotation measurements, and the fact that this pyddx provider exposes a
-requested solver tolerance but not a measured post-solve algebraic residual.
-The pyddx topology record likewise has exact sampled active-set identity but no
-continuous distance-to-active-set-event value; the artifact marks that event
-margin as unavailable/not applicable instead of inventing one. It always
-leaves all capabilities false.
+a complete adaptive directional trace, three-step directional measurements,
+all `3N` Cartesian energy stencils, rotation measurements, and the fact that
+this pyddx provider exposes a requested solver tolerance but not a measured
+post-solve algebraic residual. The adaptive trace is delegated to the pinned
+[`scipy.differentiate.derivative`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.differentiate.derivative.html)
+implementation, records every requested abscissa, and is replayed from only
+those raw scalar energies; it does not choose a favorable step after seeing the
+answer. SciPy's nested finite-difference construction follows the general
+finite-difference weight framework of
+[Fornberg (1988)](https://doi.org/10.1090/S0025-5718-1988-0935077-0).
+
+For `pyddx==0.8.0`, MAPLE now independently rebuilds the centered regularized
+ddX characteristic function over every sphere/Lebedev candidate, requires the
+predicted active pairs to equal the nodes exposed by pyddx, and reports a
+conservative lower bound to an active-set event using the global derivative
+bound of the quintic switch. A zero or sub-guard clearance is retained as
+negative evidence. This local bound is not a global cavity-smoothness or `C1`
+proof. The artifact always leaves all capabilities false.
 
 ## Structurally rotational harmonic branch
 

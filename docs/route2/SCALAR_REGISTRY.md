@@ -101,8 +101,11 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   guards. A fail-closed 17-shard H/C/N/O distorted-geometry contract now
   reuses MAPLE's frozen PES asset (three variants, three directions, three
   steps per molecule) and requires all raw shards for aggregation; S/Cl
-  controls remain explicitly excluded by the local checkpoint domain. This
-  isolates precision and defines the next evidence panel but does not itself
+  controls remain explicitly excluded by the local checkpoint domain. The
+  water shard passes two clean processes with identical measurement SHA; the
+  other sixteen shards are absent
+  ([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md)).
+  This isolates precision and begins the next evidence panel but does not
   supply full-domain, closed-loop, HVP, physical-solvent, or release evidence.
   It remains a conductor reference, not an admitted water ddPCM model.
 - Full contract and literature boundary:

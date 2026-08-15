@@ -205,8 +205,10 @@ sharded runner reuses the existing frozen PES asset for exactly the seventeen
 H/C/N/O molecules within the local contract and recomputes three variants by
 three internal directions by three steps; its full-panel reducer rejects
 partial or reordered shards. The S/Cl controls remain explicit exclusions.
-SMD-CDS, closed-loop/event evidence, public OPT, Hessian/FREQ, and MD remain
-open gates; details are in
+The water shard is preserved in two clean-process executions under
+[`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md);
+the remaining sixteen shards are not yet evidence. SMD-CDS, closed-loop/event
+evidence, public OPT, Hessian/FREQ, and MD remain open gates; details are in
 `AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
 
 The current negative Phase-5/6 result is documented in

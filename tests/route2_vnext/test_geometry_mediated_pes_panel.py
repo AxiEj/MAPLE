@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import hashlib
+import json
 
 import numpy as np
 import pytest
@@ -173,6 +174,14 @@ def test_aimnet2_pes_shard_recomputes_exact_three_by_three_by_three_coverage():
             for audit in geometry["directional_force_fd"].values()
         )
 
+    serialized = json.loads(json.dumps(_records(), sort_keys=True))
+    assert (
+        summarize_aimnet2_geometry_mediated_pes_shard(
+            molecule_index=0, records=serialized
+        )["diagnostic_gates_passed"]
+        is True
+    )
+
 
 def test_aimnet2_pes_shard_fails_closed_on_coverage_geometry_and_dishonest_gate():
     records = _records()
@@ -228,6 +237,14 @@ def test_aimnet2_full_pes_panel_requires_all_seventeen_raw_shards():
     assert summary["failed_molecule_ids"] == []
     assert summary["diagnostic_gates_passed"] is True
     assert all(value is False for value in summary["capabilities"].values())
+
+    serialized = json.loads(json.dumps(shards, sort_keys=True))
+    assert (
+        summarize_aimnet2_geometry_mediated_pes_panel(serialized)[
+            "diagnostic_gates_passed"
+        ]
+        is True
+    )
 
     with pytest.raises(ValueError, match="exactly 17"):
         summarize_aimnet2_geometry_mediated_pes_panel(shards[:-1])

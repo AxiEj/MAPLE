@@ -317,8 +317,10 @@ def _geometry_record(
         raise ValueError("continuum topology and stationarity dimensions disagree.")
 
     raw_directions = _mapping(raw.get("directions"), name="direction records")
-    if tuple(raw_directions) != PES_PANEL_DIRECTION_NAMES:
-        raise ValueError("direction records changed from the frozen order or coverage.")
+    if len(raw_directions) != len(PES_PANEL_DIRECTION_NAMES) or set(
+        raw_directions
+    ) != set(PES_PANEL_DIRECTION_NAMES):
+        raise ValueError("direction record coverage changed from the frozen contract.")
     expected_directions = panel_directions(expected_atoms, molecule.molecule_id)
     audits: dict[str, object] = {}
     neighbor_margins = [

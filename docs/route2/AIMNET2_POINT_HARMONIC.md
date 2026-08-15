@@ -185,6 +185,14 @@ clean shards plus closed-loop and explicit event-trial panels are captured,
 there is no broader-domain or distorted-geometry claim. Neither arm supplies
 finite-dielectric, nonpolar, optimization, Hessian, or NVE evidence.
 
+The water shard has been executed in two clean processes with identical raw
+measurement SHA; all 27 central differences and all replay, reciprocity,
+stationarity, neighbor, and point/source-shell event gates pass.  The retained
+bundle is
+[`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
+The other sixteen H/C/N/O shards remain unexecuted, so no full-panel claim is
+made.
+
 Run both continuum arms explicitly:
 
 ```bash

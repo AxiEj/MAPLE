@@ -216,6 +216,14 @@ distorted-geometry evidence; the complete chemistry panel requires seventeen
 separately captured clean-tree shards and still does not establish a physical
 finite-dielectric solvation model or chemical accuracy.
 
+The water shard has been captured twice from execution commit `5244de8c` with
+identical measurement SHA.  All 27 central differences pass; the maximum
+absolute error is `5.866424167422224e-05 eV/angstrom`, the minimum
+point/source-shell margin is `0.11773221132261891 angstrom`, and the maximum
+stationary condition number is `150.593715831781`.  This is one positive shard,
+not the seventeen-molecule panel.  Raw measurements and the cold replay are in
+[`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
+
 ## Fixed-geometry response no-go
 
 At fixed `R`, the unmodified deterministic model always returns the same
@@ -242,7 +250,7 @@ unsupported upstream.
 | harmonic-point structural continuum rotation | passes synthetic and real water canaries |
 | harmonic-point full rigid-rotation gate | passes current real water canary |
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
-| harmonic-point distorted-geometry PES harness | exact 17-shard H/C/N/O contract implemented; no full-panel claim until every clean shard is captured |
+| harmonic-point distorted-geometry PES harness | exact 17-shard H/C/N/O contract implemented; water passes two clean processes, remaining 16 shards absent |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
 | fixed-geometry electronic mutual polarization | absent by model interface |
 | SMD-CDS/nonpolar and standard-state terms | excluded |

@@ -36,12 +36,13 @@ from maple.solvation.coupling.state_equation import provider_behavior_sha256
 
 from .base import ModelProvenance, model_input_sha256
 from .field_energy import FieldEnergyFunctional, GaugeReducedDualityMap, TorchGeometry
+from .passive_training import (
+    PASSIVE_QUADRATIC_CONSTRUCTION_ID,
+    PassiveTrainingRunBinding,
+)
 
 PASSIVE_QUADRATIC_FIELD_ENERGY_PROVIDER_ID = (
     "maple.route2.models.passive-quadratic-field-energy.v1"
-)
-PASSIVE_QUADRATIC_CONSTRUCTION_ID = (
-    "route2-scalar-first-passive-quadratic-reduced-field-v1"
 )
 
 
@@ -96,6 +97,8 @@ class TrainedPassivePolarizationHead(Protocol):
     provenance: ModelProvenance
     provenance_sha256: str
     duality_map_sha256: str
+    training_preregistration_sha256: str
+    training_run_sha256: str
 
     def configuration_sha256(self) -> str: ...
 
@@ -200,6 +203,7 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
         "_head_behavior_sha256",
         "_head_configuration_sha256",
         "_head_parameter_state_sha256",
+        "_training_run",
         "capabilities",
         "coordinate_frame_policy",
         "coupling_id",
@@ -213,6 +217,8 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
         "provenance_sha256",
         "provider_id",
         "source_space",
+        "training_preregistration_sha256",
+        "training_run_sha256",
         "variational_functional_admitted",
     )
 
@@ -230,12 +236,15 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
         self,
         head: TrainedPassivePolarizationHead,
         *,
+        training_run: PassiveTrainingRunBinding,
         duality_map: GaugeReducedDualityMap,
         dtype: object,
         device: object,
     ) -> None:
         if not isinstance(duality_map, GaugeReducedDualityMap):
             raise TypeError("duality_map must be GaugeReducedDualityMap.")
+        if not isinstance(training_run, PassiveTrainingRunBinding):
+            raise TypeError("training_run must be PassiveTrainingRunBinding.")
         if duality_map.conjugacy_sign != 1:
             raise ValueError(
                 "the public scalar-first contract requires positive energy-dual "
@@ -268,6 +277,7 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
             raise ValueError(
                 "a trained passive head requires optimizer parameter-group audit evidence."
             )
+        training_run.validate_head(head)
         if provenance.field_convention != duality_map.field_space.field_convention:
             raise ValueError("head and duality-map field conventions differ.")
         head_duality = _digest(
@@ -308,6 +318,10 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
                 "head_behavior_sha256": head_behavior,
                 "duality_map_sha256": duality_map.configuration_sha256(),
                 "coupling_id": coupling_id,
+                "training_preregistration_sha256": (
+                    training_run.preregistration_sha256
+                ),
+                "training_run_sha256": training_run.content_sha256,
             }
         )
         wrapper_provenance = ModelProvenance(
@@ -330,12 +344,19 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
         )
 
         object.__setattr__(self, "_head", head)
+        object.__setattr__(self, "_training_run", training_run)
         object.__setattr__(self, "_head_configuration_sha256", head_configuration)
         object.__setattr__(self, "_head_parameter_state_sha256", parameter_state)
         object.__setattr__(self, "_head_behavior_sha256", head_behavior)
         object.__setattr__(self, "provider_id", wrapper_provenance.provider_id)
         object.__setattr__(self, "model_profile_id", head_profile)
         object.__setattr__(self, "coupling_id", coupling_id)
+        object.__setattr__(
+            self,
+            "training_preregistration_sha256",
+            training_run.preregistration_sha256,
+        )
+        object.__setattr__(self, "training_run_sha256", training_run.content_sha256)
         object.__setattr__(self, "provenance", wrapper_provenance)
         object.__setattr__(self, "provenance_sha256", wrapper_provenance.sha256)
         object.__setattr__(self, "dtype", wrapper_provenance.dtype)
@@ -363,6 +384,11 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
         self.configuration_sha256()
         return self._head
 
+    @property
+    def training_run(self) -> PassiveTrainingRunBinding:
+        self.configuration_sha256()
+        return self._training_run
+
     def _live_head_binding(self) -> dict[str, str]:
         provenance = getattr(self._head, "provenance", None)
         if not isinstance(provenance, ModelProvenance):
@@ -374,6 +400,12 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
             or getattr(self._head, "provenance_sha256", None) != provenance.sha256
         ):
             raise RuntimeError("trained passive head identity drifted.")
+        try:
+            self._training_run.validate_head(self._head)
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(
+                "trained passive head training binding drifted."
+            ) from exc
         return {
             "head_provenance_sha256": provenance.sha256,
             "head_configuration_sha256": _digest(
@@ -393,6 +425,10 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
                 ),
                 label="trained_passive_polarization_head",
             ),
+            "training_preregistration_sha256": (
+                self._training_run.preregistration_sha256
+            ),
+            "training_run_sha256": self._training_run.content_sha256,
         }
 
     def _configuration_payload(self, live: dict[str, str]) -> dict[str, object]:
@@ -402,6 +438,8 @@ class PassiveQuadraticFieldEnergy(FieldEnergyFunctional):
             "provider_id": self.provider_id,
             "model_profile_id": self.model_profile_id,
             "coupling_id": self.coupling_id,
+            "training_preregistration_sha256": (self.training_preregistration_sha256),
+            "training_run_sha256": self.training_run_sha256,
             "provenance_sha256": self.provenance_sha256,
             "duality_map_sha256": self.duality_map.configuration_sha256(),
             "source_space_sha256": self.source_space.metadata_hash(),

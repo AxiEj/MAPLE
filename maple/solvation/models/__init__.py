@@ -83,6 +83,16 @@ from .passive_polarization import (
     PassiveQuadraticPointCertificate,
     TrainedPassivePolarizationHead,
 )
+from .passive_training import (
+    PASSIVE_TRAINING_PREREGISTRATION_VERSION,
+    PASSIVE_TRAINING_RUN_BINDING_VERSION,
+    PassiveTrainingDataSplit,
+    PassiveTrainingDomain,
+    PassiveTrainingPreregistration,
+    PassiveTrainingRunBinding,
+    PassiveTrainingTarget,
+    bind_passive_training_run,
+)
 
 __all__ = [
     "ElectronicSourceModel",
@@ -136,6 +146,13 @@ __all__ = [
     "PassiveHeadTensors",
     "PassiveQuadraticFieldEnergy",
     "PassiveQuadraticPointCertificate",
+    "PASSIVE_TRAINING_PREREGISTRATION_VERSION",
+    "PASSIVE_TRAINING_RUN_BINDING_VERSION",
+    "PassiveTrainingDataSplit",
+    "PassiveTrainingDomain",
+    "PassiveTrainingPreregistration",
+    "PassiveTrainingRunBinding",
+    "PassiveTrainingTarget",
     "TrainedPassivePolarizationHead",
     "array_sha256",
     "atom_count",
@@ -153,4 +170,5 @@ __all__ = [
     "build_mace_polar_variational_field_energy",
     "build_mace_mdp_moment_adapter",
     "build_mace_mdp_moment_state",
+    "bind_passive_training_run",
 ]

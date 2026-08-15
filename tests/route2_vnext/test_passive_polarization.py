@@ -26,6 +26,13 @@ from maple.solvation.models.passive_polarization import (
     PassiveHeadTensors,
     PassiveQuadraticFieldEnergy,
 )
+from maple.solvation.models.passive_training import (
+    PassiveTrainingDataSplit,
+    PassiveTrainingDomain,
+    PassiveTrainingPreregistration,
+    PassiveTrainingTarget,
+    bind_passive_training_run,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -48,6 +55,9 @@ class SyntheticAuditedPassiveHead:
         "provenance",
         "provenance_sha256",
         "provider_id",
+        "training_preregistration_sha256",
+        "training_run",
+        "training_run_sha256",
     )
 
     def __init__(self, *, audited: bool = True) -> None:
@@ -78,6 +88,78 @@ class SyntheticAuditedPassiveHead:
             optimizer_audit_evidence_sha256="3" * 64 if audited else None,
         )
         self.provenance_sha256 = self.provenance.sha256
+        preregistration = PassiveTrainingPreregistration(
+            preregistration_id="route2-synthetic-passive-head-test-prereg-v1",
+            head_provider_id=self.provider_id,
+            model_profile_id=self.model_profile_id,
+            coupling_id=self.coupling_id,
+            duality_map_sha256=self.duality_map_sha256,
+            domain=PassiveTrainingDomain(
+                model_domain=self.provenance.domain,
+                maximum_atom_count=2,
+                minimum_interatomic_distance_angstrom=0.5,
+                maximum_reduced_field_norm=0.2,
+                coordinate_frame_policy=self.provenance.coordinate_frame_policy,
+                dtype=self.provenance.dtype,
+            ),
+            data_splits=tuple(
+                PassiveTrainingDataSplit(
+                    split_id=f"synthetic-{role}-v1",
+                    role=role,
+                    index_artifact_sha256=_hash((role, "index")),
+                    record_sha256s=tuple(
+                        sorted((_hash((role, "record-0")), _hash((role, "record-1"))))
+                    ),
+                    molecule_group_sha256s=(_hash((role, "molecule")),),
+                )
+                for role in ("train", "validation", "blind")
+            ),
+            targets=(
+                PassiveTrainingTarget(
+                    target_id="synthetic-field-energy",
+                    kind="external_field_energy",
+                    unit="eV",
+                    reference_method_id="synthetic-contract-oracle",
+                    reference_protocol_sha256=_hash("field-energy-protocol"),
+                    objective_weight=1.0,
+                    use_for_training=True,
+                    use_for_model_selection=False,
+                    use_for_admission=True,
+                ),
+                PassiveTrainingTarget(
+                    target_id="synthetic-surface-mep",
+                    kind="cavity_surface_mep",
+                    unit="Hartree/e",
+                    reference_method_id="synthetic-contract-oracle",
+                    reference_protocol_sha256=_hash("surface-mep-protocol"),
+                    objective_weight=0.0,
+                    use_for_training=False,
+                    use_for_model_selection=True,
+                    use_for_admission=True,
+                ),
+            ),
+            training_code_sha256=_hash("training-code"),
+            inference_code_sha256=self.provenance.inference_code_sha256,
+            optimizer_protocol_sha256=_hash("optimizer-protocol"),
+            source_gate_protocol_sha256=_hash("source-gate-protocol"),
+            response_gate_protocol_sha256=_hash("response-gate-protocol"),
+            root_gate_protocol_sha256=_hash("root-gate-protocol"),
+            random_seeds=(17,),
+        )
+        self.training_preregistration_sha256 = preregistration.content_sha256
+        self.training_run = bind_passive_training_run(
+            preregistration,
+            training_run_id="synthetic-passive-head-run-v1",
+            checkpoint_sha256=self.provenance.checkpoint_sha256,
+            parameter_state_sha256=self.parameter_state_sha256(),
+            optimizer_state_sha256=_hash("optimizer-state"),
+            optimizer_parameter_group_audit_sha256="3" * 64,
+            dataset_access_audit_sha256=_hash("dataset-access-audit"),
+            runtime_manifest_sha256=_hash("runtime-manifest"),
+            training_log_sha256=_hash("training-log"),
+            random_seed=17,
+        )
+        self.training_run_sha256 = self.training_run.content_sha256
 
     def parameter_state_sha256(self) -> str:
         return _hash(
@@ -96,6 +178,10 @@ class SyntheticAuditedPassiveHead:
                 "duality_map_sha256": self.duality_map_sha256,
                 "provenance_sha256": self.provenance_sha256,
                 "parameter_state_sha256": self.parameter_state_sha256(),
+                "training_preregistration_sha256": (
+                    self.training_preregistration_sha256
+                ),
+                "training_run_sha256": self.training_run_sha256,
                 "construction": "synthetic-test-coefficients-only",
             }
         )
@@ -140,8 +226,10 @@ def _atoms() -> Atoms:
 
 def _functional(*, audited: bool = True):
     torch = pytest.importorskip("torch")
+    head = SyntheticAuditedPassiveHead(audited=audited)
     return PassiveQuadraticFieldEnergy(
-        SyntheticAuditedPassiveHead(audited=audited),
+        head,
+        training_run=head.training_run,
         duality_map=MACE_POLAR_VARIATIONAL_DUALITY_MAP,
         dtype=torch.float64,
         device="cpu",
@@ -175,8 +263,10 @@ assert PassiveQuadraticFieldEnergy.__name__ == "PassiveQuadraticFieldEnergy"
 def test_untrained_or_unaudited_head_is_rejected_before_scalar_construction() -> None:
     torch = pytest.importorskip("torch")
     with pytest.raises(ValueError, match="optimizer parameter-group audit"):
+        head = SyntheticAuditedPassiveHead(audited=False)
         PassiveQuadraticFieldEnergy(
-            SyntheticAuditedPassiveHead(audited=False),
+            head,
+            training_run=head.training_run,
             duality_map=MACE_POLAR_VARIATIONAL_DUALITY_MAP,
             dtype=torch.float64,
             device="cpu",
@@ -184,8 +274,10 @@ def test_untrained_or_unaudited_head_is_rejected_before_scalar_construction() ->
 
     negative_sign = replace(MACE_POLAR_VARIATIONAL_DUALITY_MAP, conjugacy_sign=-1)
     with pytest.raises(ValueError, match="positive energy-dual"):
+        head = SyntheticAuditedPassiveHead()
         PassiveQuadraticFieldEnergy(
-            SyntheticAuditedPassiveHead(),
+            head,
+            training_run=head.training_run,
             duality_map=negative_sign,
             dtype=torch.float64,
             device="cpu",
@@ -344,8 +436,14 @@ def test_generic_scalar_adapter_accepts_the_head_without_model_name_branching() 
 def test_parameter_drift_and_derivative_override_attempts_fail_closed() -> None:
     functional = _functional()
     head = functional.trained_head
+    object.__setattr__(head, "training_run_sha256", "f" * 64)
+    with pytest.raises(RuntimeError, match="training binding drifted"):
+        functional.configuration_sha256()
+
+    functional = _functional()
+    head = functional.trained_head
     object.__setattr__(head, "_factor_scale", 0.29)
-    with pytest.raises(RuntimeError, match="configuration drifted"):
+    with pytest.raises(RuntimeError, match="training binding drifted"):
         functional.configuration_sha256()
 
     with pytest.raises(TypeError, match="is final"):

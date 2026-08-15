@@ -118,5 +118,8 @@ vacuum scalar, permanent reduced-source covector, and response factor; the
 framework fixes `E=E0+m0.xi-0.5||C xi||^2` and derives every response and
 coordinate derivative from that scalar. This structurally enforces
 `-H=C.T C` but does not admit chemistry, a root, or any capability without a
-new checkpoint and all source/stability/PES gates. See
+new checkpoint and all source/stability/PES gates. Construction also requires
+a content-addressed preregistration plus completed training-run binding that
+freezes disjoint molecule-family train/validation/blind splits, allowed QM
+component targets, domain, code, optimizer audit, and runtime evidence. See
 [SCALAR_FIRST_PASSIVE_POLARIZATION.md](SCALAR_FIRST_PASSIVE_POLARIZATION.md).

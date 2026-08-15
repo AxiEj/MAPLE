@@ -78,10 +78,44 @@ The head must also bind:
 - dtype, device, chemical domain, and coordinate-frame policy;
 - affirmative optimizer parameter-group audit with evidence SHA-256.
 
+Construction additionally requires a typed `PassiveTrainingRunBinding` from
+`maple.solvation.models.passive_training`.  The run binding must match the
+head's exact checkpoint, live parameter state, inference code, optimizer
+protocol/state, optimizer-group audit, runtime manifest, and retained training
+log, plus a dataset-access audit showing that the blind partition was not read
+during fitting or selection. Both the preregistration and run SHA-256 enter
+the wrapper identity;
+drift in either fails closed.
+
 The wrapper rechecks configuration, parameter, implementation, provenance,
 and duality identities. Drift fails closed. It imports Torch lazily and enters
 the existing generic `ScalarFirstElectronicResponseAdapter`; the continuum
 solver never branches on the model family.
+
+## Training preregistration boundary
+
+Before training, `PassiveTrainingPreregistration` freezes:
+
+- exactly one train, validation, and blind dataset index;
+- record SHA-256s and molecule-family SHA-256s for each split;
+- disjointness of both records and molecule families, preventing conformer
+  leakage across splits;
+- the chemical, charge/spin, atom-count, minimum-distance, field-norm, dtype,
+  and coordinate-frame domain;
+- each QM/component target, unit, reference protocol, objective weight, and
+  whether it is used for training, model selection, or independent admission;
+- training/inference code, optimizer protocol, duality map, source/response/
+  root gate protocols, and allowed random seeds.
+
+The target whitelist excludes experimental or total solvation free energies.
+Matched fixed-source PCM energy is admission-only and cannot be a fitting or
+model-selection objective.  The blind split cannot be used for model
+selection.  These restrictions prevent the scalar-first replacement from
+becoming another post-hoc solvation fit or component-cancellation patch.
+
+The preregistration and completed-run records are capability-neutral. Their
+presence proves only a consistent training provenance chain; source physics,
+root stability, forces, and `E/F/H/V/M` remain separate gates.
 
 ## What is structural
 

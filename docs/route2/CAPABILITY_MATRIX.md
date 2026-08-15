@@ -37,9 +37,12 @@ CLI restriction.
 `maple.route2.models.passive-quadratic-field-energy.v1` is an untrained
 provider contract rather than a scalar/profile row. It fixes the reduced-field
 scalar to `E0+m0.xi-0.5||C xi||^2`, seals every derivative to that graph, and
-therefore guarantees pointwise `-H=C.T C`. It cannot be registered or admitted
-until a new content-addressed, optimizer-audited, source-validated trained head
-exists; it changes none of the `no` entries above.
+therefore guarantees pointwise `-H=C.T C`. It also requires a preregistered,
+leakage-checked train/validation/blind data contract and a completed training
+run bound to checkpoint, live parameters, optimizer audit, runtime, and logs.
+It cannot be registered or admitted until a new content-addressed,
+optimizer-audited, source-validated trained head exists; it changes none of the
+`no` entries above.
 
 The first release target is the operational electrostatic profile. Tier V is
 not required for it and must remain false unless the model energy/source

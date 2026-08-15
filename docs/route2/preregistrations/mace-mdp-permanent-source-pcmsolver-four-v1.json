@@ -1,0 +1,81 @@
+{
+  "artifact_id": "route2-mace-mdp-permanent-source-pcmsolver-four-prereg-v1",
+  "status": "frozen-before-transfer-execution",
+  "created_utc": "2026-08-15T15:20:00Z",
+  "claim_boundary": "This is a necessary permanent-source falsifier for a separately identified MACE-MDP-based independent quadratic polarization model. It does not treat MACE-MDP as an energy model, admit a common KKT scalar, select a solvation ledger, or admit E/F/H/V/M.",
+  "candidate": {
+    "checkpoint": {
+      "path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+      "model_type": "DipolePolarizabilityMACE"
+    },
+    "model_profile_id": "mace-mdp-route2-independent-variational-polarization-candidate-v1",
+    "permanent_source": "unchanged atom-resolved charges and Cartesian dipoles emitted by the frozen checkpoint",
+    "surface_map": "exact exterior point-multipole potential through l<=1; no Gaussian width, radial mixture, fitting, or clipping",
+    "response_role_if_this_gate_passes": "the separately audited molecular polarizability and atomic induced-dipole partition may enter a later explicit quadratic common-scalar KKT gate"
+  },
+  "prior_coefficient_evidence": {
+    "molecular_response": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json",
+      "sha256": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "verdict": "admit-frozen-mace-mdp-response-coefficients-only"
+    },
+    "atomic_moment_map": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json",
+      "sha256": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0",
+      "verdict": "admit-atomic-moment-partition-for-source-map-gates-only"
+    },
+    "coordinate_derivatives": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-derivatives-v1.json",
+      "sha256": "7cca4b7c99c63e5eb0ca1abde72c6f41cfd06204990654b7ca3f3c852eb0682f",
+      "verdict": "admit-mace-mdp-property-coordinate-derivatives-only"
+    },
+    "induced_source_map": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-source-acetone-v1.json",
+      "sha256": "86fcfa24af125caee6c9e85482c05a3c2215d798928cd4a0cfa1b95c92dc8ce0",
+      "verdict": "admit-frozen-atomic-displacement-source-to-same-basis-common-scalar-kkt-gates-only"
+    }
+  },
+  "parent_pcmsolver_preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+    "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+    "record_count": 4,
+    "reuse_boundary": "Only frozen geometries, QM MEPs, intrinsic cavities, dielectric convention, and PCMSolver identity are reused. No prior MACE source result is reused."
+  },
+  "execution_contract": {
+    "device": "cpu",
+    "dtype": "float64",
+    "pcmsolver_library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "all_four_records_required": true,
+    "no_result_dependent_exclusion": true,
+    "repeat_count": 2,
+    "cold_model_load_each_repeat": true
+  },
+  "admission_gates": {
+    "total_charge_absolute_error_max_e_per_case": 1.0e-8,
+    "fixed_source_polarization_energy_absolute_error_max_kcal_per_mol_per_case": 1.0,
+    "all_cases_must_pass": true,
+    "threshold_provenance": "The 1 kcal/mol fixed-source budget is inherited unchanged from the already frozen four-case representation gate and was not selected from MACE-MDP outcomes."
+  },
+  "terminal_decision": {
+    "failure": "Reject the unchanged MACE-MDP permanent atomic-moment source for quantitative PCM and close this untrained independent-polarization candidate. Do not add a radial fit, rescale charges/dipoles, or tune against solvation energy. A successor requires a newly trained scalar-first permanent-source/polarization head or another independently source-validated model.",
+    "success": "Authorize only the broader twelve-geometry static-MEP gate and explicit quadratic common-scalar KKT construction using the already audited polarizability/induced-source coefficients. No capability is admitted by this four-case pass."
+  },
+  "hard_constraints": {
+    "experimental_solvation_labels_read": false,
+    "source_or_response_fit": false,
+    "charge_or_dipole_rescaling": false,
+    "radial_width_selection": false,
+    "cavity_or_dielectric_selection": false,
+    "ledger_selection": false,
+    "mace_mdp_relabelled_as_field_energy_model": false,
+    "public_capability_admitted": false
+  },
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "V": false,
+    "M": false
+  }
+}

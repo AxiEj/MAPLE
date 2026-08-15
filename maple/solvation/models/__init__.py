@@ -64,6 +64,17 @@ from .mace_polar_separated import (
     MACEPolarOriginalSourceNativeFieldAdapter,
     NativeSemanticsCanary,
 )
+from .mace_mdp import (
+    MACE_MDP_EXPECTED_CHECKPOINT_SHA256,
+    MACE_MDP_MODEL_TYPE,
+    MACE_MDP_MOMENT_MODEL_PROFILE_ID,
+    MACE_MDP_MOMENT_PROVIDER_ID,
+    POLARIZABILITY_BOHR3_PER_EANGSTROM2_PER_VOLT,
+    MACE_MDPMomentAdapter,
+    MACE_MDPMomentState,
+    build_mace_mdp_moment_adapter,
+    build_mace_mdp_moment_state,
+)
 
 __all__ = [
     "ElectronicSourceModel",
@@ -83,6 +94,12 @@ __all__ = [
     "MACEPolarReleaseContract",
     "MACEPolarDifferentiableFieldGraph",
     "MACEPolarVariationalFieldEnergy",
+    "MACE_MDP_EXPECTED_CHECKPOINT_SHA256",
+    "MACE_MDP_MODEL_TYPE",
+    "MACE_MDP_MOMENT_MODEL_PROFILE_ID",
+    "MACE_MDP_MOMENT_PROVIDER_ID",
+    "MACE_MDPMomentAdapter",
+    "MACE_MDPMomentState",
     "MACE_POLAR_1_M_FIXED_BOX40_CONTRACT",
     "MACE_POLAR_NATIVE_SEMANTICS_CONTRACT",
     "MACE_POLAR_SEPARATED_RESPONSE_PROVIDER_ID",
@@ -105,6 +122,7 @@ __all__ = [
     "VariationalFieldModel",
     "VariationalIdentityDeclaration",
     "TorchGeometry",
+    "POLARIZABILITY_BOHR3_PER_EANGSTROM2_PER_VOLT",
     "array_sha256",
     "atom_count",
     "model_input_sha256",
@@ -119,4 +137,6 @@ __all__ = [
     "build_official_mace_polar_1_m_adapter",
     "build_official_mace_polar_1_m_radial_gto_adapter",
     "build_mace_polar_variational_field_energy",
+    "build_mace_mdp_moment_adapter",
+    "build_mace_mdp_moment_state",
 ]

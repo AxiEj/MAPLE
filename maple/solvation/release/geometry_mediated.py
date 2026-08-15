@@ -34,6 +34,9 @@ GEOMETRY_MEDIATED_ROTATION_FORCE_RELATIVE_TOLERANCE = 1.0e-4
 GEOMETRY_MEDIATED_ROTATION_SOURCE_RELATIVE_TOLERANCE = 1.0e-6
 GEOMETRY_MEDIATED_NET_FORCE_TOLERANCE_EV_PER_A = 1.0e-5
 GEOMETRY_MEDIATED_TORQUE_TOLERANCE_EV = 1.0e-4
+GEOMETRY_MEDIATED_REPLAY_ENERGY_TOLERANCE_EV = 1.0e-10
+GEOMETRY_MEDIATED_REPLAY_SOURCE_TOLERANCE = 1.0e-10
+GEOMETRY_MEDIATED_REPLAY_GRADIENT_TOLERANCE_EV_PER_A = 1.0e-9
 
 
 def _array(values: object, *, shape: tuple[int, ...], name: str) -> np.ndarray:
@@ -155,8 +158,9 @@ def summarize_geometry_mediated_directional_audit(
     center_continuum_topology: Mapping[str, object],
     samples: Sequence[Mapping[str, object]],
     reciprocity_audit: Mapping[str, object],
+    expected_steps_A: Sequence[float] = GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
 ) -> dict[str, object]:
-    """Gate a three-step same-scalar coordinate derivative within one stratum."""
+    """Gate a preregistered same-scalar coordinate derivative within one stratum."""
 
     analytic = np.asarray(analytic_gradient_eV_per_A, dtype=float)
     if (
@@ -175,9 +179,19 @@ def summarize_geometry_mediated_directional_audit(
     center_continuum_hash, center_continuum_margin = _continuum_topology(
         center_continuum_topology
     )
-    if tuple(float(record.get("step_A")) for record in samples) != (
-        GEOMETRY_MEDIATED_COORDINATE_STEPS_A
+    expected_steps = tuple(float(value) for value in expected_steps_A)
+    if (
+        len(expected_steps) < 3
+        or any(not math.isfinite(value) or value <= 0.0 for value in expected_steps)
+        or any(
+            second >= first for first, second in zip(expected_steps, expected_steps[1:])
+        )
     ):
+        raise ValueError(
+            "directional audit steps must be finite, positive, and strictly "
+            "decreasing."
+        )
+    if tuple(float(record.get("step_A")) for record in samples) != expected_steps:
         raise ValueError("directional samples changed from the frozen step sequence.")
 
     analytic_directional = float(np.vdot(analytic, tangent))
@@ -658,6 +672,9 @@ __all__ = [
     "GEOMETRY_MEDIATED_CONTINUUM_EVENT_GUARD_A",
     "GEOMETRY_MEDIATED_COORDINATE_STEPS_A",
     "GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A",
+    "GEOMETRY_MEDIATED_REPLAY_ENERGY_TOLERANCE_EV",
+    "GEOMETRY_MEDIATED_REPLAY_GRADIENT_TOLERANCE_EV_PER_A",
+    "GEOMETRY_MEDIATED_REPLAY_SOURCE_TOLERANCE",
     "geometry_mediated_admission_decision",
     "geometry_mediated_coordinate_direction",
     "geometry_mediated_rotations",

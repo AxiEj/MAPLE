@@ -176,6 +176,46 @@ admitted water ddPCM replacement. See
 theorem, parent functional, topology events, executed tests, and claim
 boundary.
 
+## Preregistered distorted-geometry H/C/N/O panel
+
+The smooth-harmonic float64 branch now reuses MAPLE's frozen twenty-molecule
+PES asset instead of defining a favorable AIMNet2-only molecule set.  The
+local checkpoint contract admits exactly the seventeen asset entries composed
+of H/C/N/O; thiophene, methanethiol, and chloroform remain explicit S/Cl
+exclusions rather than being silently evaluated outside the declared domain.
+
+Each source-bound shard is fixed to one stable molecule index and contains:
+
+- the reference, deterministic bond-compressed, and bond-stretched geometries;
+- the seeded-internal, radial-internal, and bond-stretch unit directions;
+- central differences at `4e-4`, `2e-4`, and `1e-4` angstrom;
+- two independent center evaluations, the full reciprocity/metric/charge-gauge
+  record, measured stationary residual and condition number, and raw displaced
+  scalar energies;
+- exact hard-neighbor and point/source-shell topology identities plus their
+  minimum event distances over every stencil.
+
+`summarize_aimnet2_geometry_mediated_pes_shard` recomputes all 27 central
+differences (54 displaced scalar energies) for one molecule.  The full-panel
+summarizer accepts only all seventeen raw shards in frozen order (51 geometries,
+153 directional records, 459 step records); it cannot aggregate a cherry-picked
+subset.  Both layers hard-code all public capabilities, OPT, FREQ/TS/IRC, and
+MD to false.
+
+```bash
+python tools/route2_release/run_aimnet2_geometry_mediated_pes_panel.py \
+  --checkpoint /absolute/path/to/aimnet2.pt \
+  --molecule-index 0 \
+  --device cpu \
+  --output /absolute/path/outside/the/repository/aimnet2-gm-water-pes.json
+```
+
+The runner is deliberately limited to the source-bound float64 runtime and
+the smooth harmonic conductor reference.  A passing shard is only local
+distorted-geometry evidence; the complete chemistry panel requires seventeen
+separately captured clean-tree shards and still does not establish a physical
+finite-dielectric solvation model or chemical accuracy.
+
 ## Fixed-geometry response no-go
 
 At fixed `R`, the unmodified deterministic model always returns the same
@@ -202,6 +242,7 @@ unsupported upstream.
 | harmonic-point structural continuum rotation | passes synthetic and real water canaries |
 | harmonic-point full rigid-rotation gate | passes current real water canary |
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
+| harmonic-point distorted-geometry PES harness | exact 17-shard H/C/N/O contract implemented; no full-panel claim until every clean shard is captured |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
 | fixed-geometry electronic mutual polarization | absent by model interface |
 | SMD-CDS/nonpolar and standard-state terms | excluded |
@@ -219,12 +260,12 @@ coordinate derivative and passes cavity/profile compatibility gates.
 ## Remaining admission gates
 
 1. Recover the exact upstream release identity of the local checkpoint.
-2. Continue the structurally controlled harmonic branch through
-   distorted-geometry, closed-loop, cutoff/source-shell/sphere-tangency, and
-   broader chemistry panels. One equilibrium-water float64 directional and
-   Cartesian panel is positive, but it is not a domain or workflow gate. The
-   legacy float32 arm remains a negative control, and the pyddx arm still has
-   both derivative and laboratory-grid rotation failures.
+2. Execute all seventeen preregistered distorted-geometry H/C/N/O shards, then
+   continue through bidirectional closed-loop and explicit
+   cutoff/source-shell/sphere-tangency trial-step panels. One equilibrium-water
+   float64 directional and Cartesian panel is positive, but it is not a domain
+   or workflow gate. The legacy float32 arm remains a negative control, and the
+   pyddx arm still has both derivative and laboratory-grid rotation failures.
 3. Bind solvent dielectric, radii, grid, and solver choices to separately named
    physical-configuration profiles instead of the current unbound diagnostic.
 4. Add a same-scalar nonpolar provider before making total solvation-free-energy

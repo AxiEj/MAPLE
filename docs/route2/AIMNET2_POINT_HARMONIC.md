@@ -175,9 +175,15 @@ precision arms:
 
 The float64 result isolates a numerical precision blocker; it does not admit a
 force capability. The reconstruction is CPU-only, source/version/SHA-bound,
-not a public ASE calculator, and has no HVP. Neither arm supplies broader
-chemistry, distorted-geometry, closed-loop, cutoff/tangency, finite-dielectric,
-nonpolar, optimization, Hessian, or NVE evidence.
+not a public ASE calculator, and has no HVP. A preregistered sharded harness now
+exists for all seventeen H/C/N/O molecules in MAPLE's frozen PES asset. Each
+shard recomputes three geometry variants by three internal directions by three
+steps, including replay, reciprocity, stationarity, hard-neighbor, and
+point/source-shell event-distance gates. The remaining S/Cl asset controls are
+explicitly excluded by the local checkpoint contract. Until all seventeen
+clean shards plus closed-loop and explicit event-trial panels are captured,
+there is no broader-domain or distorted-geometry claim. Neither arm supplies
+finite-dielectric, nonpolar, optimization, Hessian, or NVE evidence.
 
 Run both continuum arms explicitly:
 
@@ -200,12 +206,18 @@ python tools/route2_release/run_aimnet2_geometry_mediated_canary.py \
   --continuum harmonic-point \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-fp64.json
+
+python tools/route2_release/run_aimnet2_geometry_mediated_pes_panel.py \
+  --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
+  --molecule-index 0 \
+  --device cpu \
+  --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-pes.json
 ```
 
 All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false.  Before
-force admission, the full real-stack directional, distorted-geometry,
-closed-loop, cutoff/source-shell/tangency, and broader chemistry panels must
-pass.  Hessian tasks additionally require the complete AIMNet2 contracted
+force admission, all seventeen distorted-geometry shards and the real-stack
+closed-loop and explicit cutoff/source-shell/tangency panels must pass.
+Hessian tasks additionally require the complete AIMNet2 contracted
 charge Hessian and continuum `RR/Rq/qR/qq` HVP blocks on a full event-free `C2`
 neighborhood.  Finite-dielectric physics and a separately derived same-scalar
 nonpolar term are later, independent model-definition tasks; neither may be

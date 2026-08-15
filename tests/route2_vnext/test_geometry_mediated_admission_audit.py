@@ -197,6 +197,48 @@ def test_geometry_mediated_directional_audit_fails_on_cavity_event_or_reciprocit
     assert failed_metric["gate_passed"] is False
 
 
+def test_geometry_mediated_directional_audit_accepts_only_explicit_step_contract():
+    _, _, gradient, direction = _directional_audit()
+    steps = (4.0e-4, 2.0e-4, 1.0e-4)
+    samples = []
+    for step in steps:
+        cubic = 0.1 * step**3
+        samples.append(
+            {
+                "step_A": step,
+                "plus_energy_eV": -10.0 + 2.0 * step + cubic,
+                "minus_energy_eV": -10.0 - 2.0 * step - cubic,
+                "plus_model_topology": _model_topology(),
+                "minus_model_topology": _model_topology(),
+                "plus_continuum_topology": _continuum_topology(),
+                "minus_continuum_topology": _continuum_topology(),
+            }
+        )
+
+    result = summarize_geometry_mediated_directional_audit(
+        analytic_gradient_eV_per_A=gradient,
+        direction=direction,
+        center_model_topology=_model_topology(),
+        center_continuum_topology=_continuum_topology(),
+        samples=samples,
+        reciprocity_audit={"gate_passed": True},
+        expected_steps_A=steps,
+    )
+    assert result["gate_passed"] is True
+    assert tuple(record["step_A"] for record in result["records"]) == steps
+
+    with np.testing.assert_raises_regex(ValueError, "strictly decreasing"):
+        summarize_geometry_mediated_directional_audit(
+            analytic_gradient_eV_per_A=gradient,
+            direction=direction,
+            center_model_topology=_model_topology(),
+            center_continuum_topology=_continuum_topology(),
+            samples=samples,
+            reciprocity_audit={"gate_passed": True},
+            expected_steps_A=(1.0e-4, 2.0e-4, 4.0e-4),
+        )
+
+
 def test_geometry_mediated_cartesian_audit_fails_closed_on_coverage_and_events():
     _, samples, gradient = _cartesian_audit()
     incomplete = copy.deepcopy(samples)

@@ -200,8 +200,13 @@ graphs, pyddx exposed nodes, and harmonic point-source strata receive separate
 rigid-invariant/event-sensitive hashes. The runner now records one frozen
 direction and every Cartesian component at three decreasing steps. The
 harmonic float64 one-water derivative/rotation prerequisites pass; the legacy
-float32 derivative arm and the pyddx rotation arm remain negative. SMD-CDS,
-public OPT, Hessian/FREQ, and MD remain open gates; details are in
+float32 derivative arm and the pyddx rotation arm remain negative. A second,
+sharded runner reuses the existing frozen PES asset for exactly the seventeen
+H/C/N/O molecules within the local contract and recomputes three variants by
+three internal directions by three steps; its full-panel reducer rejects
+partial or reordered shards. The S/Cl controls remain explicit exclusions.
+SMD-CDS, closed-loop/event evidence, public OPT, Hessian/FREQ, and MD remain
+open gates; details are in
 `AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
 
 The current negative Phase-5/6 result is documented in

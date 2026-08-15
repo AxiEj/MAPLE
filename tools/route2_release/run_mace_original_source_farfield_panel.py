@@ -68,7 +68,6 @@ REQUIRED_SOURCE_PATHS = (
     "maple/solvation/release/source_mep.py",
     "tools/route2_release/qm_checkpoint_farfield.py",
     "tools/route2_release/run_mace_original_source_farfield_panel.py",
-    FAR_FIELD_PREREGISTRATION,
 )
 
 

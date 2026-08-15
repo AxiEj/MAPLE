@@ -107,9 +107,12 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   other sixteen shards are absent
   ([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md)).
   A water-only bidirectional force-work and straight-segment event harness is
-  implemented but not yet retained as clean evidence. This isolates precision
-  and begins the next evidence panel but does not supply full-domain, HVP,
-  physical-solvent, workflow, or release evidence.
+  retained in two clean processes with identical raw records and measurement
+  SHA; its reciprocity/charge-FD operands and segment certificates are
+  independently recomputed
+  ([bundle](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md)).
+  This isolates precision and closes one local water-loop diagnostic but does
+  not supply full-domain, HVP, physical-solvent, workflow, or release evidence.
   It remains a conductor reference, not an admitted water ddPCM model.
 - Full contract and literature boundary:
   [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).

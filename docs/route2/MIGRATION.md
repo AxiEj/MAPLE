@@ -211,8 +211,10 @@ The water shard is preserved in two clean-process executions under
 [`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md);
 the remaining sixteen shards are not yet v2 evidence. A separate water
 bidirectional-loop reducer and conservative straight-trial event certificate
-are implemented but not yet captured from a clean process. SMD-CDS, broader
-domain/event evidence, public OPT, Hessian/FREQ, and MD remain open gates; details are in
+pass two clean processes with identical raw measurements under
+[`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).
+This is only a local water-path diagnostic. SMD-CDS, broader domain/event
+evidence, public OPT, Hessian/FREQ, and MD remain open gates; details are in
 `AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
 
 The current negative Phase-5/6 result is documented in

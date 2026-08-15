@@ -191,11 +191,12 @@ not a public ASE calculator, and has no HVP. A preregistered sharded harness now
 exists for all seventeen H/C/N/O molecules in MAPLE's frozen PES asset. Each
 shard recomputes three geometry variants by three internal directions by three
 steps, including replay, reciprocity, stationarity, hard-neighbor,
-point/source-shell, and sphere-tangency event-distance gates. The remaining S/Cl asset controls are
-explicitly excluded by the local checkpoint contract. Until all seventeen
-clean shards plus closed-loop and explicit event-trial panels are captured,
-there is no broader-domain or distorted-geometry claim. Neither arm supplies
-finite-dielectric, nonpolar, optimization, Hessian, or NVE evidence.
+point/source-shell, and sphere-tangency event-distance gates. The remaining
+S/Cl asset controls are explicitly excluded by the local checkpoint contract.
+Until all seventeen clean v2 shards and explicit event-trial panels beyond the
+local water path are captured, there is no broader-domain or
+distorted-geometry claim. Neither arm supplies finite-dielectric, nonpolar,
+optimization, Hessian, or NVE evidence.
 
 The water shard has been executed in two clean processes with identical raw
 measurement SHA; all 27 central differences and all replay, reciprocity,
@@ -204,6 +205,15 @@ bundle is
 [`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
 The other sixteen H/C/N/O shards remain unexecuted, so no full-panel claim is
 made.
+
+The separate frozen water loop has also been captured in two clean processes
+with identical raw forward/reverse records and measurement SHA. Its forward
+and reverse Simpson works sum to `-5.692061405548898e-19 eV`; the reducer
+recomputes reciprocity and charge-direction finite differences from raw
+operands, and every straight segment has certified hard-neighbor,
+point/source-shell, and sphere-tangency margins. The retained bundle is
+[`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).
+This water-only local result does not admit force, optimization, or MD.
 
 Run both continuum arms explicitly:
 
@@ -239,9 +249,9 @@ python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-loop.json
 ```
 
-All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false.  Before
-force admission, all seventeen distorted-geometry shards and the real-stack
-closed-loop and explicit cutoff/source-shell/tangency panels must pass.
+All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false. Before
+force admission, all seventeen v2 distorted-geometry shards and explicit
+cutoff/source-shell/tangency panels beyond the retained local loop must pass.
 Hessian tasks additionally require the complete AIMNet2 contracted
 charge Hessian and continuum `RR/Rq/qR/qq` HVP blocks on a full event-free `C2`
 neighborhood.  Finite-dielectric physics and a separately derived same-scalar

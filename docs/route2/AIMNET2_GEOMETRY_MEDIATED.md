@@ -265,6 +265,20 @@ The release reducer recomputes every bilinear reciprocity, apply/adjoint, and
 charge-direction finite-difference error from the raw operands; it rejects a
 boolean gate that disagrees with those measurements.
 
+Two independent clean-process executions from commit `e0a347f5` have identical
+raw forward/reverse records and measurement SHA. The forward and reverse
+Simpson works are `0.00014855129592190874` and
+`-0.0001485512959219093 eV`, with a sum of
+`-5.692061405548898e-19 eV`; all same-coordinate replay errors are exactly
+zero. The largest recomputed reciprocity and charge-direction finite-difference
+errors are `3.1086244689504383e-15 eV` and
+`4.294398170401337e-12 eV/e`. Every straight segment remains above the frozen
+hard-neighbor, point/source-shell, and sphere-tangency guards. The retained raw
+artifacts, exact commands, hashes, and claim boundary are in
+[`evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/`](evidence/aimnet2-geometry-mediated-water-loop-e0a347f5/README.md).
+This closes only the frozen water-loop diagnostic, not a force or workflow
+admission gate.
+
 ## Fixed-geometry response no-go
 
 At fixed `R`, the unmodified deterministic model always returns the same
@@ -293,7 +307,7 @@ unsupported upstream.
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
 | harmonic-point distorted-geometry PES harness | exact 17-shard H/C/N/O contract implemented; water passes two clean processes, remaining 16 shards absent |
 | harmonic sphere-pair tangency identity/margin | implemented and required by the v2 shard and loop contracts |
-| harmonic water bidirectional loop/event harness | implemented; clean source-bound execution pending |
+| harmonic water bidirectional loop/event harness | passes two clean source-bound processes on the frozen local water path; no task admission |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
 | fixed-geometry electronic mutual polarization | absent by model interface |
 | SMD-CDS/nonpolar and standard-state terms | excluded |
@@ -311,12 +325,13 @@ coordinate derivative and passes cavity/profile compatibility gates.
 ## Remaining admission gates
 
 1. Recover the exact upstream release identity of the local checkpoint.
-2. Execute all seventeen preregistered distorted-geometry H/C/N/O v2 shards
-   and the implemented bidirectional water loop; then expand explicit
-   cutoff/source-shell/sphere-tangency trial-step panels beyond that path. One equilibrium-water
-   float64 directional and Cartesian panel is positive, but it is not a domain
-   or workflow gate. The legacy float32 arm remains a negative control, and the
-   pyddx arm still has both derivative and laboratory-grid rotation failures.
+2. Execute all seventeen preregistered distorted-geometry H/C/N/O v2 shards,
+   then expand explicit cutoff/source-shell/sphere-tangency trial-step panels
+   beyond the now-retained water loop. One equilibrium-water float64
+   directional and Cartesian panel and one local water loop are positive, but
+   neither is a domain or workflow gate. The legacy float32 arm remains a
+   negative control, and the pyddx arm still has both derivative and
+   laboratory-grid rotation failures.
 3. Bind solvent dielectric, radii, grid, and solver choices to separately named
    physical-configuration profiles instead of the current unbound diagnostic.
 4. Add a same-scalar nonpolar provider before making total solvation-free-energy

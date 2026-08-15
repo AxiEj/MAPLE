@@ -110,6 +110,14 @@ def _continuum_topology(
         record.get("minimum_point_source_shell_margin_angstrom"),
         name="point-source shell margin",
     )
+    active_set_margin = _optional_margin(
+        record.get("minimum_cavity_active_set_clearance_angstrom"),
+        name="cavity active-set clearance",
+    )
+    event_margins = tuple(
+        margin for margin in (point_margin, active_set_margin) if margin is not None
+    )
+    continuum_event_margin = min(event_margins) if event_margins else None
     sphere_margin = _optional_margin(
         record.get("minimum_sphere_tangency_margin_angstrom"),
         name="sphere-tangency margin",
@@ -122,9 +130,11 @@ def _continuum_topology(
         _sha(sphere_marker, name="sphere-pair topology")
     return (
         _sha(record.get("cavity_topology_sha256"), name="continuum topology"),
-        point_margin,
+        continuum_event_margin,
         sphere_margin,
-        point_marker is not None or point_margin is not None,
+        point_marker is not None
+        or point_margin is not None
+        or active_set_margin is not None,
         sphere_marker is not None or sphere_margin is not None,
     )
 

@@ -27,6 +27,7 @@ def _continuum_topology(
     digest: str = "2" * 64,
     *,
     margin: float | None = None,
+    active_set_clearance: float | None = None,
     sphere_margin: float | None = None,
     harmonic: bool = False,
 ):
@@ -36,6 +37,8 @@ def _continuum_topology(
     }
     if margin is not None:
         result["minimum_point_source_shell_margin_angstrom"] = margin
+    if active_set_clearance is not None:
+        result["minimum_cavity_active_set_clearance_angstrom"] = active_set_clearance
     if sphere_margin is not None:
         result["minimum_sphere_tangency_margin_angstrom"] = sphere_margin
     if harmonic:
@@ -209,6 +212,48 @@ def test_geometry_mediated_directional_audit_fails_on_cavity_event_or_reciprocit
     assert failed_metric["gate_passed"] is False
 
 
+def test_geometry_mediated_audits_apply_pyddx_active_set_clearance():
+    directional, directional_samples, gradient, direction = _directional_audit()
+    assert directional["gate_passed"] is True
+    near_event = _continuum_topology(active_set_clearance=1.0e-8)
+    changed_directional = copy.deepcopy(directional_samples)
+    for sample in changed_directional:
+        sample["plus_continuum_topology"] = copy.deepcopy(near_event)
+        sample["minus_continuum_topology"] = copy.deepcopy(near_event)
+    directional = summarize_geometry_mediated_directional_audit(
+        analytic_gradient_eV_per_A=gradient,
+        direction=direction,
+        center_model_topology=_model_topology(),
+        center_continuum_topology=near_event,
+        samples=changed_directional,
+        reciprocity_audit={"gate_passed": True},
+    )
+    assert directional["topology"]["continuum_event_guard_applicable"] is True
+    assert directional["topology"]["all_continuum_event_margins_available"] is True
+    assert directional["topology"]["all_continuum_event_guards_passed"] is False
+    assert directional["gate_passed"] is False
+
+    _, rotation_records, positions, forces, source = _rotation_audit()
+    for record in rotation_records:
+        record["continuum_topology"] = copy.deepcopy(near_event)
+    rotation = summarize_geometry_mediated_rotation_audit(
+        positions_A=positions,
+        base_energy_eV=-10.0,
+        base_forces_eV_per_A=forces,
+        base_source=source,
+        base_model_topology=_model_topology(),
+        base_continuum_topology=near_event,
+        rotation_records=rotation_records,
+    )
+    assert rotation["continuum_event_guard_applicable"] is True
+    assert rotation["all_continuum_event_margins_available"] is True
+    assert all(
+        record["continuum_event_guard_passed"] is False
+        for record in rotation["records"]
+    )
+    assert rotation["gate_passed"] is False
+
+
 def test_geometry_mediated_directional_audit_requires_declared_harmonic_margins():
     _, samples, gradient, direction = _directional_audit()
     harmonic = _continuum_topology(
@@ -295,12 +340,16 @@ def test_geometry_mediated_cartesian_audit_fails_closed_on_coverage_and_events()
     event = copy.deepcopy(samples)
     for step in event:
         for component in step["components"]:
-            component["plus_continuum_topology"] = _continuum_topology(margin=0.01)
-            component["minus_continuum_topology"] = _continuum_topology(margin=0.01)
+            component["plus_continuum_topology"] = _continuum_topology(
+                active_set_clearance=0.01
+            )
+            component["minus_continuum_topology"] = _continuum_topology(
+                active_set_clearance=0.01
+            )
     result = summarize_geometry_mediated_cartesian_audit(
         analytic_gradient_eV_per_A=gradient,
         center_model_topology=_model_topology(),
-        center_continuum_topology=_continuum_topology(margin=0.01),
+        center_continuum_topology=_continuum_topology(active_set_clearance=0.01),
         samples=event,
         reciprocity_audit={"gate_passed": True},
     )

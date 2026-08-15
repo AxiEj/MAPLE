@@ -950,6 +950,36 @@ class MACEPolarRadialGTOModelAdapter:
             name="intrinsic_energy_field_gradient",
         )
 
+    def intrinsic_energy_fixed_field_coordinate_gradient(
+        self, atoms: object, field: object
+    ) -> np.ndarray:
+        """Differentiate the raw checkpoint scalar at fixed native field.
+
+        ``polar_state(..., compute_forces=True)`` differentiates the same
+        feature-injection branch used by :meth:`intrinsic_energy_ev`.  The
+        injected radial field is held fixed, so the returned force is exactly
+        the coordinate partial needed by an outer operational scalar.  This
+        method deliberately makes no source/energy-conjugacy claim.
+        """
+
+        self.configuration_sha256()
+        self.domain.validate_atoms(atoms)
+        count = atom_count(atoms)
+        state = self._state(
+            atoms,
+            self.field_space.validate(field, atom_count=count),
+            need_forces=True,
+        )
+        forces = np.asarray(
+            getattr(state, "fixed_field_forces_ev_per_angstrom", None),
+            dtype=float,
+        )
+        if forces.shape != (count, 3) or not np.all(np.isfinite(forces)):
+            raise RuntimeError(
+                "MACE-POLAR fixed-field raw-energy forces must be finite (N,3)."
+            )
+        return -forces.copy()
+
     def intrinsic_energy_field_directional_derivative(
         self,
         atoms: object,

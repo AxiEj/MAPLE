@@ -549,6 +549,25 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
             name="intrinsic energy native-field gradient",
         )
 
+    def conditioned_raw_energy_fixed_field_coordinate_gradient(
+        self, geometry: object, field: object
+    ) -> np.ndarray:
+        """Return the raw-scalar coordinate partial with native field fixed."""
+
+        self.configuration_sha256()
+        count = atom_count(geometry)
+        result = np.asarray(
+            self._base.intrinsic_energy_fixed_field_coordinate_gradient(
+                geometry, self._field(geometry, field)
+            ),
+            dtype=float,
+        )
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "separated raw-energy coordinate gradient must be finite (N,3)."
+            )
+        return result.copy()
+
     def conditioned_raw_energy_directional_derivative(
         self,
         geometry: object,

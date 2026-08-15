@@ -691,7 +691,11 @@ def test_real_pyddx_full_position_vjp_matches_same_energy_finite_difference():
         ),
         abs=1.0e-10,
     )
-    density_step = 1.0e-5
+    # This fixed-cavity energy is exactly quadratic in the source, so a larger
+    # central-difference step adds no truncation error. Keep the step above the
+    # real solver's ~1e-12-Hartree energy noise; 1e-5 amplified compiler-specific
+    # solve noise into a spurious ~1e-7-Hartree derivative defect in public CI.
+    density_step = 1.0e-2
     displaced_density_energies_hartree = []
     for sign in (-1.0, 1.0):
         displaced_density = density.copy()

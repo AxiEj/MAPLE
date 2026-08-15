@@ -50,7 +50,7 @@ from aimnet2_geometry_mediated_common import (
     verify_route2_checkpoint,
 )
 
-SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-pes-shard-artifact-v1"
+SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-pes-shard-artifact-v2"
 RUNTIME_KIND = "reconstructed-python-float64"
 CONTINUUM_KIND = "harmonic-point"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
@@ -287,6 +287,9 @@ def main() -> None:
                 ],
                 "minimum_continuum_event_margin_A": summary[
                     "minimum_continuum_event_margin_A"
+                ],
+                "minimum_sphere_tangency_margin_A": summary[
+                    "minimum_sphere_tangency_margin_A"
                 ],
                 "capabilities": NO_CAPABILITIES,
                 "runtime_seconds": payload["runtime_seconds"],

@@ -11,6 +11,7 @@ from maple.solvation.api.units import HARTREE_TO_EV
 from maple.solvation.continuum.harmonic_coefficients import real_wigner_matrix
 from maple.solvation.continuum.harmonic_single_layer import (
     canonical_harmonic_cross_block,
+    harmonic_sphere_pair_topology,
     harmonic_single_layer_operator,
 )
 
@@ -212,6 +213,48 @@ def test_exact_shell_l0_block_is_c1_but_does_not_claim_c2_at_tangency(boundary):
         value(boundary + 2.0 * step) - 2.0 * value(boundary + step) + value(boundary)
     ) / step**2
     assert abs(left_second - right_second) > 1.0
+
+
+def test_sphere_pair_topology_is_rigid_invariant_and_classifies_all_strata():
+    positions = np.asarray(
+        [
+            [0.0, 0.0, 0.0],
+            [0.4, 0.0, 0.0],
+            [1.6, 0.0, 0.0],
+            [3.2, 0.0, 0.0],
+        ]
+    )
+    radii = (1.0, 0.2, 0.8, 0.3)
+    base = harmonic_sphere_pair_topology(positions, radii)
+    rotation = _rotation(20260815)
+    rotated = harmonic_sphere_pair_topology(positions @ rotation.T, radii)
+    translated = harmonic_sphere_pair_topology(
+        positions + np.asarray([0.8, -0.4, 0.2]), radii
+    )
+
+    assert rotated.topology_sha256 == base.topology_sha256
+    assert translated.topology_sha256 == base.topology_sha256
+    assert (0, 1, "nested") in base.relations
+    assert (0, 2, "intersecting") in base.relations
+    assert (0, 3, "separated") in base.relations
+    assert base.minimum_tangency_margin_angstrom == pytest.approx(0.2)
+
+
+@pytest.mark.parametrize("distance", (0.2, 1.8))
+def test_sphere_pair_topology_fails_closed_at_internal_and_external_tangency(
+    distance,
+):
+    with pytest.raises(ValueError, match="tangency event surface"):
+        harmonic_sphere_pair_topology(
+            np.asarray([[0.0, 0.0, 0.0], [distance, 0.0, 0.0]]),
+            (1.0, 0.8),
+        )
+
+
+def test_one_sphere_topology_has_no_pair_margin():
+    topology = harmonic_sphere_pair_topology(np.zeros((1, 3)), (1.0,))
+    assert topology.relations == ()
+    assert topology.minimum_tangency_margin_angstrom is None
 
 
 def test_geometry_assembled_operator_is_spd_and_so3_covariant_for_intersecting_spheres():

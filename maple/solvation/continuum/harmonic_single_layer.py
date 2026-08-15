@@ -20,7 +20,10 @@ cancels.  Coordinate derivatives are not exposed by this reference module.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import lru_cache
+import hashlib
+import json
 import math
 
 import numpy as np
@@ -41,7 +44,20 @@ HARMONIC_SINGLE_LAYER_CONTRACT_ID = (
 HARMONIC_SINGLE_LAYER_PROVIDER_ID = (
     "maple.route2.continuum.harmonic-single-layer.impl.v1"
 )
+HARMONIC_SPHERE_PAIR_TOPOLOGY_CONTRACT_ID = (
+    "maple.route2.continuum.harmonic-sphere-pair-topology.v1"
+)
+HARMONIC_SPHERE_PAIR_TOPOLOGY_PROVIDER_ID = (
+    "maple.route2.continuum.harmonic-sphere-pair-topology.impl.v1"
+)
+SPHERE_TANGENCY_EVENT_TOLERANCE_ANGSTROM = 1.0e-12
 COULOMB_EV_ANGSTROM_PER_E2 = HARTREE_TO_EV * Bohr
+
+
+def _sha(payload: object) -> str:
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 def _positive_float(value: object, *, name: str) -> float:
@@ -265,6 +281,73 @@ def _geometry(
     return np.ascontiguousarray(positions), np.ascontiguousarray(radii)
 
 
+@dataclass(frozen=True, slots=True)
+class HarmonicSpherePairTopology:
+    """Rigid-motion-invariant sphere-pair stratum identity.
+
+    ``relations`` contains each unordered sphere pair once.  The margin is
+    the minimum distance, in coordinate space, to either the internal or
+    external tangency surface.  It is ``None`` for a one-sphere system.
+    """
+
+    topology_sha256: str
+    relations: tuple[tuple[int, int, str], ...]
+    minimum_tangency_margin_angstrom: float | None
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "contract_id": HARMONIC_SPHERE_PAIR_TOPOLOGY_CONTRACT_ID,
+            "topology_sha256": self.topology_sha256,
+            "relations": [list(item) for item in self.relations],
+            "minimum_tangency_margin_angstrom": (self.minimum_tangency_margin_angstrom),
+        }
+
+
+def harmonic_sphere_pair_topology(
+    positions_angstrom: object,
+    radii_angstrom: object,
+) -> HarmonicSpherePairTopology:
+    """Classify every unordered sphere pair and fail on tangency events."""
+
+    positions, radii = _geometry(positions_angstrom, radii_angstrom)
+    relations: list[tuple[int, int, str]] = []
+    margins: list[float] = []
+    for first in range(len(positions)):
+        for second in range(first + 1, len(positions)):
+            distance = float(np.linalg.norm(positions[second] - positions[first]))
+            if not np.isfinite(distance) or distance <= 1.0e-12:
+                raise ValueError(
+                    "sphere centres must be distinct for harmonic sphere-pair "
+                    "topology."
+                )
+            internal_tangency = abs(float(radii[first] - radii[second]))
+            external_tangency = float(radii[first] + radii[second])
+            internal_margin = abs(distance - internal_tangency)
+            external_margin = abs(distance - external_tangency)
+            margin = min(internal_margin, external_margin)
+            if margin <= SPHERE_TANGENCY_EVENT_TOLERANCE_ANGSTROM:
+                raise ValueError("sphere pair lies on a tangency event surface.")
+            if distance < internal_tangency:
+                relation = "nested"
+            elif distance < external_tangency:
+                relation = "intersecting"
+            else:
+                relation = "separated"
+            relations.append((first, second, relation))
+            margins.append(margin)
+    payload = {
+        "contract_id": HARMONIC_SPHERE_PAIR_TOPOLOGY_CONTRACT_ID,
+        "provider_id": HARMONIC_SPHERE_PAIR_TOPOLOGY_PROVIDER_ID,
+        "radii_angstrom": tuple(float(value) for value in radii),
+        "relations": relations,
+    }
+    return HarmonicSpherePairTopology(
+        topology_sha256=_sha(payload),
+        relations=tuple(relations),
+        minimum_tangency_margin_angstrom=min(margins) if margins else None,
+    )
+
+
 def harmonic_single_layer_operator(
     *,
     positions_angstrom: object,
@@ -339,8 +422,13 @@ def harmonic_single_layer_operator(
 
 __all__ = [
     "COULOMB_EV_ANGSTROM_PER_E2",
+    "HARMONIC_SPHERE_PAIR_TOPOLOGY_CONTRACT_ID",
+    "HARMONIC_SPHERE_PAIR_TOPOLOGY_PROVIDER_ID",
     "HARMONIC_SINGLE_LAYER_CONTRACT_ID",
     "HARMONIC_SINGLE_LAYER_PROVIDER_ID",
+    "SPHERE_TANGENCY_EVENT_TOLERANCE_ANGSTROM",
+    "HarmonicSpherePairTopology",
     "canonical_harmonic_cross_block",
+    "harmonic_sphere_pair_topology",
     "harmonic_single_layer_operator",
 ]

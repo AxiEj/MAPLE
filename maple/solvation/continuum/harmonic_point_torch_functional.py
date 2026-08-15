@@ -32,6 +32,7 @@ from maple.solvation.coupling.spaces import (
 )
 
 from .harmonic_point_source import point_source_topology
+from .harmonic_single_layer import harmonic_sphere_pair_topology
 from .harmonic_torch_functional import (
     SmoothWeightedHarmonicGalerkinFunctionalCandidate,
 )
@@ -136,10 +137,12 @@ class SmoothPointChargeHarmonicGalerkinFunctionalCandidate(
         getter = getattr(geometry, "get_positions", None)
         positions = getter() if callable(getter) else geometry
         point = point_source_topology(positions, self._radii_angstrom)
+        sphere_pair = harmonic_sphere_pair_topology(positions, self._radii_angstrom)
         topology = _sha(
             {
                 "coefficient_topology_sha256": self.topology_sha256(),
                 "point_source_topology_sha256": point.topology_sha256,
+                "sphere_pair_topology_sha256": sphere_pair.topology_sha256,
             }
         )
         return {
@@ -152,6 +155,11 @@ class SmoothPointChargeHarmonicGalerkinFunctionalCandidate(
             "point_source_relations": [list(item) for item in point.relations],
             "minimum_point_source_shell_margin_angstrom": (
                 point.minimum_shell_margin_angstrom
+            ),
+            "sphere_pair_topology_sha256": sphere_pair.topology_sha256,
+            "sphere_pair_relations": [list(item) for item in sphere_pair.relations],
+            "minimum_sphere_tangency_margin_angstrom": (
+                sphere_pair.minimum_tangency_margin_angstrom
             ),
         }
 

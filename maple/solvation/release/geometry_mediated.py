@@ -71,33 +71,60 @@ def _model_topology(record: Mapping[str, object]) -> tuple[str, float | None]:
     return digest, margin
 
 
-def _continuum_topology(record: Mapping[str, object]) -> tuple[str, float | None]:
+def _optional_margin(
+    value: object,
+    *,
+    name: str,
+) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise TypeError(f"{name} must be numeric.")
+    margin = float(value)
+    if not math.isfinite(margin) or margin < 0.0:
+        raise ValueError(f"{name} must be finite and non-negative.")
+    return margin
+
+
+def _continuum_topology(
+    record: Mapping[str, object],
+) -> tuple[str, float | None, float | None, bool, bool]:
     count = record.get("cavity_active_node_count", record.get("coefficient_count"))
     if isinstance(count, bool) or not isinstance(count, int) or count < 1:
         raise ValueError(
             "continuum topology requires a positive active-node or coefficient count."
         )
-    raw_margin = record.get("minimum_point_source_shell_margin_angstrom")
-    if raw_margin is None:
-        margin = None
-    else:
-        if isinstance(raw_margin, bool):
-            raise TypeError("continuum event margin must be numeric.")
-        margin = float(raw_margin)
-        if not math.isfinite(margin) or margin < 0.0:
-            raise ValueError("continuum event margin must be finite and non-negative.")
+    point_margin = _optional_margin(
+        record.get("minimum_point_source_shell_margin_angstrom"),
+        name="point-source shell margin",
+    )
+    sphere_margin = _optional_margin(
+        record.get("minimum_sphere_tangency_margin_angstrom"),
+        name="sphere-tangency margin",
+    )
+    point_marker = record.get("point_source_topology_sha256")
+    sphere_marker = record.get("sphere_pair_topology_sha256")
+    if point_marker is not None:
+        _sha(point_marker, name="point-source topology")
+    if sphere_marker is not None:
+        _sha(sphere_marker, name="sphere-pair topology")
     return (
         _sha(record.get("cavity_topology_sha256"), name="continuum topology"),
-        margin,
+        point_margin,
+        sphere_margin,
+        point_marker is not None or point_margin is not None,
+        sphere_marker is not None or sphere_margin is not None,
     )
 
 
 def _continuum_margin_status(
     *margins: float | None,
+    applicable: bool | None = None,
 ) -> tuple[bool, bool, bool]:
     """Return applicability, availability, and the optional event-margin gate."""
 
-    applicable = any(value is not None for value in margins)
+    detected = any(value is not None for value in margins)
+    applicable = detected if applicable is None else applicable or detected
     available = applicable and all(value is not None for value in margins)
     passed = not applicable or (
         available
@@ -150,6 +177,134 @@ def geometry_mediated_rotations() -> tuple[np.ndarray, ...]:
     return tuple(rotations)
 
 
+def geometry_mediated_trial_step_guard(
+    *,
+    center_positions_A: object,
+    trial_positions_A: object,
+    center_model_topology: Mapping[str, object],
+    trial_model_topology: Mapping[str, object],
+    center_continuum_topology: Mapping[str, object],
+    trial_continuum_topology: Mapping[str, object],
+) -> dict[str, object]:
+    """Conservatively certify one straight trial segment stays in one stratum.
+
+    Pair distances, point/source shell event functions, and sphere-tangency
+    event functions are 1-Lipschitz with respect to pair-relative atomic
+    displacement.  Subtracting the maximum pair-relative displacement from
+    both endpoint margins therefore gives a deliberately conservative lower
+    bound for the full line segment.  The certificate is local: it does not
+    establish global smoothness or stationary-solve conditioning.
+    """
+
+    center = np.asarray(center_positions_A, dtype=float)
+    if (
+        center.ndim != 2
+        or center.shape[0] < 1
+        or center.shape[1] != 3
+        or not np.all(np.isfinite(center))
+    ):
+        raise ValueError("center positions must be finite with shape (N,3).")
+    trial = _array(trial_positions_A, shape=center.shape, name="trial positions")
+    displacement = trial - center
+    relative_displacement_bound = 0.0
+    for first in range(len(center)):
+        for second in range(first + 1, len(center)):
+            relative_displacement_bound = max(
+                relative_displacement_bound,
+                float(np.linalg.norm(displacement[second] - displacement[first])),
+            )
+
+    center_model_hash, center_model_margin = _model_topology(center_model_topology)
+    trial_model_hash, trial_model_margin = _model_topology(trial_model_topology)
+    (
+        center_continuum_hash,
+        center_point_margin,
+        center_sphere_margin,
+        center_point_applicable,
+        center_sphere_applicable,
+    ) = _continuum_topology(center_continuum_topology)
+    (
+        trial_continuum_hash,
+        trial_point_margin,
+        trial_sphere_margin,
+        trial_point_applicable,
+        trial_sphere_applicable,
+    ) = _continuum_topology(trial_continuum_topology)
+
+    def certified_lower_bound(
+        first: float | None, second: float | None
+    ) -> float | None:
+        if first is None or second is None:
+            return None
+        return min(first, second) - relative_displacement_bound
+
+    neighbor_lower = certified_lower_bound(center_model_margin, trial_model_margin)
+    point_lower = certified_lower_bound(center_point_margin, trial_point_margin)
+    sphere_lower = certified_lower_bound(center_sphere_margin, trial_sphere_margin)
+    point_applicable = center_point_applicable or trial_point_applicable
+    sphere_applicable = center_sphere_applicable or trial_sphere_applicable
+    model_topology_match = center_model_hash == trial_model_hash
+    continuum_topology_match = center_continuum_hash == trial_continuum_hash
+    neighbor_gate = (
+        neighbor_lower is not None
+        and neighbor_lower >= GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A
+    )
+    point_available = center_point_margin is not None and trial_point_margin is not None
+    point_gate = not point_applicable or (
+        point_available
+        and point_lower is not None
+        and point_lower >= GEOMETRY_MEDIATED_CONTINUUM_EVENT_GUARD_A
+    )
+    sphere_available = (
+        center_sphere_margin is not None and trial_sphere_margin is not None
+    )
+    sphere_gate = not sphere_applicable or (
+        sphere_available
+        and sphere_lower is not None
+        and sphere_lower >= GEOMETRY_MEDIATED_CONTINUUM_EVENT_GUARD_A
+    )
+    gate = (
+        model_topology_match
+        and continuum_topology_match
+        and neighbor_gate
+        and point_gate
+        and sphere_gate
+    )
+    return {
+        "schema_version": GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION,
+        "straight_segment_only": True,
+        "relative_displacement_bound_A": relative_displacement_bound,
+        "same_model_topology": model_topology_match,
+        "same_continuum_topology": continuum_topology_match,
+        "neighbor_cutoff": {
+            "center_margin_A": center_model_margin,
+            "trial_margin_A": trial_model_margin,
+            "certified_segment_lower_bound_A": neighbor_lower,
+            "guard_A": GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A,
+            "gate_passed": neighbor_gate,
+        },
+        "point_source_shell": {
+            "applicable": point_applicable,
+            "margins_available": point_available,
+            "center_margin_A": center_point_margin,
+            "trial_margin_A": trial_point_margin,
+            "certified_segment_lower_bound_A": point_lower,
+            "guard_A": GEOMETRY_MEDIATED_CONTINUUM_EVENT_GUARD_A,
+            "gate_passed": point_gate,
+        },
+        "sphere_tangency": {
+            "applicable": sphere_applicable,
+            "margins_available": sphere_available,
+            "center_margin_A": center_sphere_margin,
+            "trial_margin_A": trial_sphere_margin,
+            "certified_segment_lower_bound_A": sphere_lower,
+            "guard_A": GEOMETRY_MEDIATED_CONTINUUM_EVENT_GUARD_A,
+            "gate_passed": sphere_gate,
+        },
+        "gate_passed": gate,
+    }
+
+
 def summarize_geometry_mediated_directional_audit(
     *,
     analytic_gradient_eV_per_A: object,
@@ -176,9 +331,13 @@ def summarize_geometry_mediated_directional_audit(
     if not np.allclose(np.sum(tangent, axis=0), 0.0, rtol=0.0, atol=2.0e-14):
         raise ValueError("direction must contain no rigid translation component.")
     center_model_hash, center_margin = _model_topology(center_model_topology)
-    center_continuum_hash, center_continuum_margin = _continuum_topology(
-        center_continuum_topology
-    )
+    (
+        center_continuum_hash,
+        center_continuum_margin,
+        center_sphere_tangency_margin,
+        center_continuum_applicable,
+        center_sphere_applicable,
+    ) = _continuum_topology(center_continuum_topology)
     expected_steps = tuple(float(value) for value in expected_steps_A)
     if (
         len(expected_steps) < 3
@@ -200,9 +359,18 @@ def summarize_geometry_mediated_directional_audit(
     all_margins_safe = center_margin is not None and (
         center_margin >= GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A
     )
-    any_continuum_margin_applicable = center_continuum_margin is not None
+    any_continuum_margin_applicable = center_continuum_applicable
     all_continuum_margins_available = center_continuum_margin is not None
-    _, _, all_continuum_margins_safe = _continuum_margin_status(center_continuum_margin)
+    _, _, all_continuum_margins_safe = _continuum_margin_status(
+        center_continuum_margin,
+        applicable=center_continuum_applicable,
+    )
+    any_sphere_margin_applicable = center_sphere_applicable
+    all_sphere_margins_available = center_sphere_tangency_margin is not None
+    _, _, all_sphere_margins_safe = _continuum_margin_status(
+        center_sphere_tangency_margin,
+        applicable=center_sphere_applicable,
+    )
     for sample in samples:
         step = float(sample["step_A"])
         plus = float(sample["plus_energy_eV"])
@@ -218,12 +386,20 @@ def summarize_geometry_mediated_directional_audit(
         )
         plus_model_hash, plus_margin = _model_topology(sample["plus_model_topology"])
         minus_model_hash, minus_margin = _model_topology(sample["minus_model_topology"])
-        plus_continuum_hash, plus_continuum_margin = _continuum_topology(
-            sample["plus_continuum_topology"]
-        )
-        minus_continuum_hash, minus_continuum_margin = _continuum_topology(
-            sample["minus_continuum_topology"]
-        )
+        (
+            plus_continuum_hash,
+            plus_continuum_margin,
+            plus_sphere_tangency_margin,
+            plus_continuum_applicable,
+            plus_sphere_applicable,
+        ) = _continuum_topology(sample["plus_continuum_topology"])
+        (
+            minus_continuum_hash,
+            minus_continuum_margin,
+            minus_sphere_tangency_margin,
+            minus_continuum_applicable,
+            minus_sphere_applicable,
+        ) = _continuum_topology(sample["minus_continuum_topology"])
         topology_match = (
             plus_model_hash == center_model_hash == minus_model_hash
             and plus_continuum_hash == center_continuum_hash == minus_continuum_hash
@@ -241,6 +417,25 @@ def summarize_geometry_mediated_directional_audit(
             center_continuum_margin,
             plus_continuum_margin,
             minus_continuum_margin,
+            applicable=(
+                center_continuum_applicable
+                or plus_continuum_applicable
+                or minus_continuum_applicable
+            ),
+        )
+        (
+            sphere_margin_applicable,
+            sphere_margin_available,
+            sphere_margin_safe,
+        ) = _continuum_margin_status(
+            center_sphere_tangency_margin,
+            plus_sphere_tangency_margin,
+            minus_sphere_tangency_margin,
+            applicable=(
+                center_sphere_applicable
+                or plus_sphere_applicable
+                or minus_sphere_applicable
+            ),
         )
         all_topologies_match = all_topologies_match and topology_match
         all_margins_safe = all_margins_safe and margin_safe
@@ -253,6 +448,13 @@ def summarize_geometry_mediated_directional_audit(
         all_continuum_margins_safe = (
             all_continuum_margins_safe and continuum_margin_safe
         )
+        any_sphere_margin_applicable = (
+            any_sphere_margin_applicable or sphere_margin_applicable
+        )
+        all_sphere_margins_available = (
+            all_sphere_margins_available and sphere_margin_available
+        )
+        all_sphere_margins_safe = all_sphere_margins_safe and sphere_margin_safe
         numerical_gate = (
             absolute_error <= GEOMETRY_MEDIATED_DIRECTIONAL_ABSOLUTE_TOLERANCE_EV_PER_A
             and (
@@ -273,12 +475,16 @@ def summarize_geometry_mediated_directional_audit(
                 "continuum_event_guard_applicable": continuum_margin_applicable,
                 "continuum_event_margin_available": continuum_margin_available,
                 "continuum_event_guard_passed": continuum_margin_safe,
+                "sphere_tangency_guard_applicable": sphere_margin_applicable,
+                "sphere_tangency_margin_available": sphere_margin_available,
+                "sphere_tangency_guard_passed": sphere_margin_safe,
                 "numerical_gate_passed": numerical_gate,
                 "gate_passed": (
                     numerical_gate
                     and topology_match
                     and margin_safe
                     and continuum_margin_safe
+                    and sphere_margin_safe
                 ),
             }
         )
@@ -316,6 +522,9 @@ def summarize_geometry_mediated_directional_audit(
             "continuum_event_guard_applicable": any_continuum_margin_applicable,
             "all_continuum_event_margins_available": (all_continuum_margins_available),
             "all_continuum_event_guards_passed": all_continuum_margins_safe,
+            "sphere_tangency_guard_applicable": any_sphere_margin_applicable,
+            "all_sphere_tangency_margins_available": (all_sphere_margins_available),
+            "all_sphere_tangency_guards_passed": all_sphere_margins_safe,
         },
         "reciprocity_metric_charge_gauge_gate_passed": reciprocity_gate,
         "gate_passed": (
@@ -351,9 +560,13 @@ def summarize_geometry_mediated_cartesian_audit(
     ):
         raise ValueError("analytic gradient must be finite with shape (N,3).")
     center_model_hash, center_model_margin = _model_topology(center_model_topology)
-    center_continuum_hash, center_continuum_margin = _continuum_topology(
-        center_continuum_topology
-    )
+    (
+        center_continuum_hash,
+        center_continuum_margin,
+        center_sphere_tangency_margin,
+        center_continuum_applicable,
+        center_sphere_applicable,
+    ) = _continuum_topology(center_continuum_topology)
     records = tuple(samples)
     if tuple(float(record.get("step_A")) for record in records) != (
         GEOMETRY_MEDIATED_COORDINATE_STEPS_A
@@ -367,9 +580,18 @@ def summarize_geometry_mediated_cartesian_audit(
         center_model_margin is not None
         and center_model_margin >= GEOMETRY_MEDIATED_NEIGHBOR_CUTOFF_GUARD_A
     )
-    any_continuum_guard_applicable = center_continuum_margin is not None
+    any_continuum_guard_applicable = center_continuum_applicable
     all_continuum_margins_available = center_continuum_margin is not None
-    _, _, all_continuum_guards = _continuum_margin_status(center_continuum_margin)
+    _, _, all_continuum_guards = _continuum_margin_status(
+        center_continuum_margin,
+        applicable=center_continuum_applicable,
+    )
+    any_sphere_guard_applicable = center_sphere_applicable
+    all_sphere_margins_available = center_sphere_tangency_margin is not None
+    _, _, all_sphere_guards = _continuum_margin_status(
+        center_sphere_tangency_margin,
+        applicable=center_sphere_applicable,
+    )
     expected_components = analytic.size
     for raw_step in records:
         step = float(raw_step["step_A"])
@@ -411,12 +633,20 @@ def summarize_geometry_mediated_cartesian_audit(
             minus_model_hash, minus_model_margin = _model_topology(
                 raw["minus_model_topology"]
             )
-            plus_continuum_hash, plus_continuum_margin = _continuum_topology(
-                raw["plus_continuum_topology"]
-            )
-            minus_continuum_hash, minus_continuum_margin = _continuum_topology(
-                raw["minus_continuum_topology"]
-            )
+            (
+                plus_continuum_hash,
+                plus_continuum_margin,
+                plus_sphere_tangency_margin,
+                plus_continuum_applicable,
+                plus_sphere_applicable,
+            ) = _continuum_topology(raw["plus_continuum_topology"])
+            (
+                minus_continuum_hash,
+                minus_continuum_margin,
+                minus_sphere_tangency_margin,
+                minus_continuum_applicable,
+                minus_sphere_applicable,
+            ) = _continuum_topology(raw["minus_continuum_topology"])
             topology_match = (
                 plus_model_hash == center_model_hash == minus_model_hash
                 and plus_continuum_hash == center_continuum_hash == minus_continuum_hash
@@ -438,6 +668,25 @@ def summarize_geometry_mediated_cartesian_audit(
                 center_continuum_margin,
                 plus_continuum_margin,
                 minus_continuum_margin,
+                applicable=(
+                    center_continuum_applicable
+                    or plus_continuum_applicable
+                    or minus_continuum_applicable
+                ),
+            )
+            (
+                sphere_guard_applicable,
+                sphere_margin_available,
+                sphere_guard,
+            ) = _continuum_margin_status(
+                center_sphere_tangency_margin,
+                plus_sphere_tangency_margin,
+                minus_sphere_tangency_margin,
+                applicable=(
+                    center_sphere_applicable
+                    or plus_sphere_applicable
+                    or minus_sphere_applicable
+                ),
             )
             all_topologies_match = all_topologies_match and topology_match
             all_neighbor_guards = all_neighbor_guards and neighbor_guard
@@ -448,6 +697,13 @@ def summarize_geometry_mediated_cartesian_audit(
                 all_continuum_margins_available and continuum_margin_available
             )
             all_continuum_guards = all_continuum_guards and continuum_guard
+            any_sphere_guard_applicable = (
+                any_sphere_guard_applicable or sphere_guard_applicable
+            )
+            all_sphere_margins_available = (
+                all_sphere_margins_available and sphere_margin_available
+            )
+            all_sphere_guards = all_sphere_guards and sphere_guard
             normalized_components.append(
                 {
                     "atom": atom,
@@ -459,6 +715,9 @@ def summarize_geometry_mediated_cartesian_audit(
                     "continuum_event_guard_applicable": (continuum_guard_applicable),
                     "continuum_event_margin_available": (continuum_margin_available),
                     "continuum_event_guard_passed": continuum_guard,
+                    "sphere_tangency_guard_applicable": sphere_guard_applicable,
+                    "sphere_tangency_margin_available": sphere_margin_available,
+                    "sphere_tangency_guard_passed": sphere_guard,
                     "plus_model_topology": raw["plus_model_topology"],
                     "minus_model_topology": raw["minus_model_topology"],
                     "plus_continuum_topology": raw["plus_continuum_topology"],
@@ -480,12 +739,16 @@ def summarize_geometry_mediated_cartesian_audit(
         "continuum_event_guard_applicable": any_continuum_guard_applicable,
         "all_continuum_event_margins_available": (all_continuum_margins_available),
         "all_continuum_event_guards_passed": all_continuum_guards,
+        "sphere_tangency_guard_applicable": any_sphere_guard_applicable,
+        "all_sphere_tangency_margins_available": all_sphere_margins_available,
+        "all_sphere_tangency_guards_passed": all_sphere_guards,
     }
     gate = (
         numerical["all_gates_passed"] is True
         and all_topologies_match
         and all_neighbor_guards
         and all_continuum_guards
+        and all_sphere_guards
         and reciprocity_gate
     )
     return {
@@ -526,9 +789,13 @@ def summarize_geometry_mediated_rotation_audit(
     if not math.isfinite(energy):
         raise ValueError("base energy must be finite.")
     base_model_hash, base_margin = _model_topology(base_model_topology)
-    base_continuum_hash, base_continuum_margin = _continuum_topology(
-        base_continuum_topology
-    )
+    (
+        base_continuum_hash,
+        base_continuum_margin,
+        base_sphere_tangency_margin,
+        base_continuum_applicable,
+        base_sphere_applicable,
+    ) = _continuum_topology(base_continuum_topology)
     expected_rotations = geometry_mediated_rotations()
     records = tuple(rotation_records)
     if len(records) != len(expected_rotations):
@@ -549,9 +816,13 @@ def summarize_geometry_mediated_rotation_audit(
             record["source"], shape=source.shape, name="rotated source"
         )
         model_hash, margin = _model_topology(record["model_topology"])
-        continuum_hash, continuum_margin = _continuum_topology(
-            record["continuum_topology"]
-        )
+        (
+            continuum_hash,
+            continuum_margin,
+            sphere_tangency_margin,
+            continuum_applicable,
+            sphere_applicable,
+        ) = _continuum_topology(record["continuum_topology"])
         energy_error = abs(rotated_energy - energy)
         force_relative = float(
             np.linalg.norm(rotated_forces - forces @ rotation.T)
@@ -573,7 +844,20 @@ def summarize_geometry_mediated_rotation_audit(
             continuum_margin_applicable,
             continuum_margin_available,
             continuum_margin_safe,
-        ) = _continuum_margin_status(base_continuum_margin, continuum_margin)
+        ) = _continuum_margin_status(
+            base_continuum_margin,
+            continuum_margin,
+            applicable=base_continuum_applicable or continuum_applicable,
+        )
+        (
+            sphere_margin_applicable,
+            sphere_margin_available,
+            sphere_margin_safe,
+        ) = _continuum_margin_status(
+            base_sphere_tangency_margin,
+            sphere_tangency_margin,
+            applicable=base_sphere_applicable or sphere_applicable,
+        )
         numerical_gate = (
             energy_error <= GEOMETRY_MEDIATED_ROTATION_ENERGY_TOLERANCE_EV
             and force_relative <= GEOMETRY_MEDIATED_ROTATION_FORCE_RELATIVE_TOLERANCE
@@ -591,12 +875,16 @@ def summarize_geometry_mediated_rotation_audit(
                 "continuum_event_guard_applicable": continuum_margin_applicable,
                 "continuum_event_margin_available": continuum_margin_available,
                 "continuum_event_guard_passed": continuum_margin_safe,
+                "sphere_tangency_guard_applicable": sphere_margin_applicable,
+                "sphere_tangency_margin_available": sphere_margin_available,
+                "sphere_tangency_guard_passed": sphere_margin_safe,
                 "numerical_gate_passed": numerical_gate,
                 "gate_passed": (
                     numerical_gate
                     and topology_match
                     and margin_safe
                     and continuum_margin_safe
+                    and sphere_margin_safe
                 ),
             }
         )
@@ -622,6 +910,12 @@ def summarize_geometry_mediated_rotation_audit(
         ),
         "all_continuum_event_margins_available": all(
             bool(record["continuum_event_margin_available"]) for record in measured
+        ),
+        "sphere_tangency_guard_applicable": any(
+            bool(record["sphere_tangency_guard_applicable"]) for record in measured
+        ),
+        "all_sphere_tangency_margins_available": all(
+            bool(record["sphere_tangency_margin_available"]) for record in measured
         ),
         "gate_passed": (
             rigid_body_gate and all(bool(record["gate_passed"]) for record in measured)
@@ -678,6 +972,7 @@ __all__ = [
     "geometry_mediated_admission_decision",
     "geometry_mediated_coordinate_direction",
     "geometry_mediated_rotations",
+    "geometry_mediated_trial_step_guard",
     "summarize_geometry_mediated_cartesian_audit",
     "summarize_geometry_mediated_directional_audit",
     "summarize_geometry_mediated_rotation_audit",

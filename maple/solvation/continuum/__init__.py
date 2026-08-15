@@ -216,6 +216,22 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_point_source",
         "point_source_topology",
     ),
+    "HARMONIC_SPHERE_PAIR_TOPOLOGY_CONTRACT_ID": (
+        "harmonic_single_layer",
+        "HARMONIC_SPHERE_PAIR_TOPOLOGY_CONTRACT_ID",
+    ),
+    "HARMONIC_SPHERE_PAIR_TOPOLOGY_PROVIDER_ID": (
+        "harmonic_single_layer",
+        "HARMONIC_SPHERE_PAIR_TOPOLOGY_PROVIDER_ID",
+    ),
+    "HarmonicSpherePairTopology": (
+        "harmonic_single_layer",
+        "HarmonicSpherePairTopology",
+    ),
+    "harmonic_sphere_pair_topology": (
+        "harmonic_single_layer",
+        "harmonic_sphere_pair_topology",
+    ),
     "SMOOTH_POINT_HARMONIC_GALERKIN_FUNCTIONAL_CONTRACT_ID": (
         "harmonic_point_torch_functional",
         "SMOOTH_POINT_HARMONIC_GALERKIN_FUNCTIONAL_CONTRACT_ID",

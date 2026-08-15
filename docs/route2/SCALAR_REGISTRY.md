@@ -97,16 +97,19 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 - Capability/evidence: none. Synthetic scalar/derivative/symmetry gates pass;
   the real water rigid-rotation gate passes for both precision arms. The
   float32 directional/full-Cartesian gates fail, while the float64 local
-  one-water gates pass with central refinement and point/source-shell event
-  guards. A fail-closed 17-shard H/C/N/O distorted-geometry contract now
+  one-water gates pass with central refinement and point/source-shell plus
+  sphere-tangency event guards. A fail-closed v2 17-shard H/C/N/O
+  distorted-geometry contract now
   reuses MAPLE's frozen PES asset (three variants, three directions, three
   steps per molecule) and requires all raw shards for aggregation; S/Cl
   controls remain explicitly excluded by the local checkpoint domain. The
   water shard passes two clean processes with identical measurement SHA; the
   other sixteen shards are absent
   ([bundle](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md)).
-  This isolates precision and begins the next evidence panel but does not
-  supply full-domain, closed-loop, HVP, physical-solvent, or release evidence.
+  A water-only bidirectional force-work and straight-segment event harness is
+  implemented but not yet retained as clean evidence. This isolates precision
+  and begins the next evidence panel but does not supply full-domain, HVP,
+  physical-solvent, workflow, or release evidence.
   It remains a conductor reference, not an admitted water ddPCM model.
 - Full contract and literature boundary:
   [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).

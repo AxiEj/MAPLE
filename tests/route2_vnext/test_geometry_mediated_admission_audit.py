@@ -9,6 +9,7 @@ from maple.solvation.release.geometry_mediated import (
     geometry_mediated_admission_decision,
     geometry_mediated_coordinate_direction,
     geometry_mediated_rotations,
+    geometry_mediated_trial_step_guard,
     summarize_geometry_mediated_cartesian_audit,
     summarize_geometry_mediated_directional_audit,
     summarize_geometry_mediated_rotation_audit,
@@ -22,13 +23,24 @@ def _model_topology(digest: str = "1" * 64):
     }
 
 
-def _continuum_topology(digest: str = "2" * 64, *, margin: float | None = None):
+def _continuum_topology(
+    digest: str = "2" * 64,
+    *,
+    margin: float | None = None,
+    sphere_margin: float | None = None,
+    harmonic: bool = False,
+):
     result = {
         "cavity_topology_sha256": digest,
         "cavity_active_node_count": 12,
     }
     if margin is not None:
         result["minimum_point_source_shell_margin_angstrom"] = margin
+    if sphere_margin is not None:
+        result["minimum_sphere_tangency_margin_angstrom"] = sphere_margin
+    if harmonic:
+        result["point_source_topology_sha256"] = "3" * 64
+        result["sphere_pair_topology_sha256"] = "4" * 64
     return result
 
 
@@ -197,6 +209,34 @@ def test_geometry_mediated_directional_audit_fails_on_cavity_event_or_reciprocit
     assert failed_metric["gate_passed"] is False
 
 
+def test_geometry_mediated_directional_audit_requires_declared_harmonic_margins():
+    _, samples, gradient, direction = _directional_audit()
+    harmonic = _continuum_topology(
+        margin=0.5,
+        sphere_margin=0.5,
+        harmonic=True,
+    )
+    changed = copy.deepcopy(samples)
+    for sample in changed:
+        sample["plus_continuum_topology"] = copy.deepcopy(harmonic)
+        sample["minus_continuum_topology"] = copy.deepcopy(harmonic)
+    del changed[-1]["minus_continuum_topology"][
+        "minimum_sphere_tangency_margin_angstrom"
+    ]
+    result = summarize_geometry_mediated_directional_audit(
+        analytic_gradient_eV_per_A=gradient,
+        direction=direction,
+        center_model_topology=_model_topology(),
+        center_continuum_topology=harmonic,
+        samples=changed,
+        reciprocity_audit={"gate_passed": True},
+    )
+    assert result["topology"]["sphere_tangency_guard_applicable"] is True
+    assert result["topology"]["all_sphere_tangency_margins_available"] is False
+    assert result["topology"]["all_sphere_tangency_guards_passed"] is False
+    assert result["gate_passed"] is False
+
+
 def test_geometry_mediated_directional_audit_accepts_only_explicit_step_contract():
     _, _, gradient, direction = _directional_audit()
     steps = (4.0e-4, 2.0e-4, 1.0e-4)
@@ -285,3 +325,91 @@ def test_geometry_mediated_rotation_audit_fails_on_lab_grid_topology_change():
     )
     assert result["all_rotation_topologies_match"] is False
     assert result["gate_passed"] is False
+
+
+def test_geometry_mediated_trial_step_guard_certifies_only_the_full_segment():
+    center = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+    trial = center.copy()
+    trial[1, 0] += 0.01
+    harmonic = _continuum_topology(
+        margin=0.4,
+        sphere_margin=0.3,
+        harmonic=True,
+    )
+    result = geometry_mediated_trial_step_guard(
+        center_positions_A=center,
+        trial_positions_A=trial,
+        center_model_topology=_model_topology(),
+        trial_model_topology=_model_topology(),
+        center_continuum_topology=harmonic,
+        trial_continuum_topology=harmonic,
+    )
+    np.testing.assert_allclose(
+        result["relative_displacement_bound_A"], 0.01, atol=1.0e-15, rtol=0.0
+    )
+    assert result["neighbor_cutoff"]["gate_passed"] is True
+    assert result["point_source_shell"]["gate_passed"] is True
+    assert result["sphere_tangency"]["gate_passed"] is True
+    assert result["gate_passed"] is True
+
+    translated = geometry_mediated_trial_step_guard(
+        center_positions_A=center,
+        trial_positions_A=center + np.asarray([2.0, -1.0, 0.5]),
+        center_model_topology=_model_topology(),
+        trial_model_topology=_model_topology(),
+        center_continuum_topology=harmonic,
+        trial_continuum_topology=harmonic,
+    )
+    assert translated["relative_displacement_bound_A"] < 1.0e-15
+    assert translated["gate_passed"] is True
+
+
+def test_geometry_mediated_trial_step_guard_fails_on_missing_margin_or_long_step():
+    center = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    harmonic = _continuum_topology(
+        margin=0.1,
+        sphere_margin=0.1,
+        harmonic=True,
+    )
+    missing_sphere = copy.deepcopy(harmonic)
+    del missing_sphere["minimum_sphere_tangency_margin_angstrom"]
+    missing = geometry_mediated_trial_step_guard(
+        center_positions_A=center,
+        trial_positions_A=center,
+        center_model_topology=_model_topology(),
+        trial_model_topology=_model_topology(),
+        center_continuum_topology=harmonic,
+        trial_continuum_topology=missing_sphere,
+    )
+    assert missing["sphere_tangency"]["applicable"] is True
+    assert missing["sphere_tangency"]["margins_available"] is False
+    assert missing["gate_passed"] is False
+
+    trial = center.copy()
+    trial[1, 0] += 0.09
+    long_step = geometry_mediated_trial_step_guard(
+        center_positions_A=center,
+        trial_positions_A=trial,
+        center_model_topology=_model_topology(),
+        trial_model_topology=_model_topology(),
+        center_continuum_topology=harmonic,
+        trial_continuum_topology=harmonic,
+    )
+    np.testing.assert_allclose(
+        long_step["point_source_shell"]["certified_segment_lower_bound_A"],
+        0.01,
+        atol=1.0e-15,
+        rtol=0.0,
+    )
+    assert long_step["gate_passed"] is False
+
+    changed = geometry_mediated_trial_step_guard(
+        center_positions_A=center,
+        trial_positions_A=center,
+        center_model_topology=_model_topology(),
+        trial_model_topology=_model_topology("9" * 64),
+        center_continuum_topology=harmonic,
+        trial_continuum_topology=harmonic,
+    )
+    assert changed["same_model_topology"] is False
+    assert changed["gate_passed"] is False

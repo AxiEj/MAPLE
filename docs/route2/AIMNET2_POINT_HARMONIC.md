@@ -133,9 +133,12 @@ exposure uses no active-node deletion.  This does not imply global `C2`:
 3. AIMNet2 retains its own hard neighbor-list event surfaces;
 4. a fully buried weighted chart can lose rank and fails closed.
 
-The provider hashes every point-centre/target-shell inside/outside relation and
-reports the minimum shell-event margin.  It never deletes coefficients, clips
-eigenvalues, or regularizes a failed solve.  Current admissible language is
+The provider separately hashes every point-centre/target-shell inside/outside
+relation and every unordered sphere-pair `nested`/`intersecting`/`separated`
+relation. It reports both the minimum source/shell margin and the minimum
+distance to internal or external sphere tangency. The combined cavity topology
+identity includes both hashes. It never deletes coefficients, clips
+eigenvalues, or regularizes a failed solve. Current admissible language is
 therefore only local to an event-free, full-rank stratum.
 
 ## Executed evidence and remaining blockers
@@ -152,7 +155,10 @@ Synthetic tests currently establish:
   torque identities;
 - a complete synthetic AIMNet2-charge chain rule through the registered
   geometry-mediated scalar;
-- fail-closed point-on-shell events and measured stationary residuals.
+- fail-closed point-on-shell and sphere-tangency events, rigid-invariant
+  sphere-pair topology identities, and measured stationary residuals;
+- conservative straight-trial-segment certificates based on pair-relative
+  displacement rather than endpoint hashes alone.
 
 The opt-in SHA256-bound real AIMNet2 water canary now has two explicit
 precision arms:
@@ -171,15 +177,16 @@ precision arms:
 - the full Cartesian audit recomputes derivatives from raw displaced scalar
   energies, requires every component exactly once, reuses the common Route-2
   PES convergence contract, and enforces identical neighbor/cavity strata plus
-  neighbor and point/source-shell event margins over every stencil.
+  neighbor, point/source-shell, and sphere-tangency event margins over every
+  stencil.
 
 The float64 result isolates a numerical precision blocker; it does not admit a
 force capability. The reconstruction is CPU-only, source/version/SHA-bound,
 not a public ASE calculator, and has no HVP. A preregistered sharded harness now
 exists for all seventeen H/C/N/O molecules in MAPLE's frozen PES asset. Each
 shard recomputes three geometry variants by three internal directions by three
-steps, including replay, reciprocity, stationarity, hard-neighbor, and
-point/source-shell event-distance gates. The remaining S/Cl asset controls are
+steps, including replay, reciprocity, stationarity, hard-neighbor,
+point/source-shell, and sphere-tangency event-distance gates. The remaining S/Cl asset controls are
 explicitly excluded by the local checkpoint contract. Until all seventeen
 clean shards plus closed-loop and explicit event-trial panels are captured,
 there is no broader-domain or distorted-geometry claim. Neither arm supplies
@@ -220,6 +227,11 @@ python tools/route2_release/run_aimnet2_geometry_mediated_pes_panel.py \
   --molecule-index 0 \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-pes.json
+
+python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
+  --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
+  --device cpu \
+  --output /absolute/path/outside/the/repository/aimnet2-harmonic-water-loop.json
 ```
 
 All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false.  Before

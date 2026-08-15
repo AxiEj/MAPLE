@@ -137,8 +137,21 @@ from .geometry_mediated_panel import (
     AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE,
     AIMNET2_GEOMETRY_MEDIATED_SUPPORTED_ATOMIC_NUMBERS,
     aimnet2_geometry_mediated_pes_molecule,
+    summarize_aimnet2_geometry_mediated_stationarity,
     summarize_aimnet2_geometry_mediated_pes_panel,
     summarize_aimnet2_geometry_mediated_pes_shard,
+)
+from .geometry_mediated_path import (
+    AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_AMPLITUDES_A,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_ANTISYMMETRY_TOLERANCE_EV,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_COORDINATE_NAMES,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SUBDIVISIONS,
+    aimnet2_geometry_mediated_water_loop_atoms,
+    aimnet2_geometry_mediated_water_loop_coefficients,
+    aimnet2_geometry_mediated_water_loop_directions,
+    summarize_aimnet2_geometry_mediated_water_loop,
 )
 
 __all__ = [
@@ -255,6 +268,17 @@ __all__ = [
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE",
     "AIMNET2_GEOMETRY_MEDIATED_SUPPORTED_ATOMIC_NUMBERS",
     "aimnet2_geometry_mediated_pes_molecule",
+    "summarize_aimnet2_geometry_mediated_stationarity",
     "summarize_aimnet2_geometry_mediated_pes_panel",
     "summarize_aimnet2_geometry_mediated_pes_shard",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_AMPLITUDES_A",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_ANTISYMMETRY_TOLERANCE_EV",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_COORDINATE_NAMES",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SUBDIVISIONS",
+    "aimnet2_geometry_mediated_water_loop_atoms",
+    "aimnet2_geometry_mediated_water_loop_coefficients",
+    "aimnet2_geometry_mediated_water_loop_directions",
+    "summarize_aimnet2_geometry_mediated_water_loop",
 ]

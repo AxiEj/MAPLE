@@ -193,7 +193,9 @@ Each source-bound shard is fixed to one stable molecule index and contains:
   record, measured stationary residual and condition number, and raw displaced
   scalar energies;
 - exact hard-neighbor and point/source-shell topology identities plus their
-  minimum event distances over every stencil.
+  minimum event distances over every stencil;
+- exact unordered sphere-pair `nested`/`intersecting`/`separated` strata and
+  minimum distances to both internal and external tangency surfaces.
 
 `summarize_aimnet2_geometry_mediated_pes_shard` recomputes all 27 central
 differences (54 displaced scalar energies) for one molecule.  The full-panel
@@ -216,6 +218,11 @@ distorted-geometry evidence; the complete chemistry panel requires seventeen
 separately captured clean-tree shards and still does not establish a physical
 finite-dielectric solvation model or chemical accuracy.
 
+The shard/panel contract is now `v2`: a harmonic record without its independent
+sphere-tangency topology and margin fails closed. Earlier `v1` evidence remains
+source-bound to its execution commit and does not retroactively satisfy this
+stronger event contract.
+
 The water shard has been captured twice from execution commit `5244de8c` with
 identical measurement SHA.  All 27 central differences pass; the maximum
 absolute error is `5.866424167422224e-05 eV/angstrom`, the minimum
@@ -223,6 +230,37 @@ point/source-shell margin is `0.11773221132261891 angstrom`, and the maximum
 stationary condition number is `150.593715831781`.  This is one positive shard,
 not the seventeen-molecule panel.  Raw measurements and the cold replay are in
 [`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md).
+
+## Bidirectional loop and straight-segment event contract
+
+The water reference geometry also has a separate explicit-scalar loop harness.
+It uses the frozen seeded-internal direction and a Gram-Schmidt-orthogonalized
+radial direction, amplitudes `(0.02, 0.02) angstrom`, four Simpson-compatible
+subdivisions per edge, and independent forward and reverse evaluations. It
+does not reuse the cold/warm implicit-root semantics of mutually responsive
+Route-2 models because this candidate has no outer charge root.
+
+The pure reducer recomputes both force-work integrals and requires:
+
+- forward and reverse loop-work gates plus `|W_forward + W_reverse| <= 1e-10 eV`;
+- energy, charge-source, and force replay at every identical forward/reverse
+  coordinate and at each traversal closure;
+- stationarity and reciprocity/metric/charge-gauge gates at every point;
+- one model and continuum stratum over the loop;
+- a conservative certificate for every straight segment. The certificate
+  subtracts the maximum pair-relative atomic displacement from the endpoint
+  neighbor-cutoff, point/source-shell, and sphere-tangency margins. It can
+  therefore reject a segment even when both endpoints separately exceed the
+  guard, preventing an endpoint-only "cross twice and return" loophole.
+
+```bash
+python tools/route2_release/run_aimnet2_geometry_mediated_water_loop.py \
+  --checkpoint /absolute/path/to/aimnet2.pt \
+  --device cpu \
+  --output /absolute/path/outside/the/repository/aimnet2-gm-water-loop.json
+```
+
+This is a water-only local diagnostic and cannot by itself open OPT or MD.
 
 ## Fixed-geometry response no-go
 
@@ -251,6 +289,8 @@ unsupported upstream.
 | harmonic-point full rigid-rotation gate | passes current real water canary |
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
 | harmonic-point distorted-geometry PES harness | exact 17-shard H/C/N/O contract implemented; water passes two clean processes, remaining 16 shards absent |
+| harmonic sphere-pair tangency identity/margin | implemented and required by the v2 shard and loop contracts |
+| harmonic water bidirectional loop/event harness | implemented; clean source-bound execution pending |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
 | fixed-geometry electronic mutual polarization | absent by model interface |
 | SMD-CDS/nonpolar and standard-state terms | excluded |
@@ -268,9 +308,9 @@ coordinate derivative and passes cavity/profile compatibility gates.
 ## Remaining admission gates
 
 1. Recover the exact upstream release identity of the local checkpoint.
-2. Execute all seventeen preregistered distorted-geometry H/C/N/O shards, then
-   continue through bidirectional closed-loop and explicit
-   cutoff/source-shell/sphere-tangency trial-step panels. One equilibrium-water
+2. Execute all seventeen preregistered distorted-geometry H/C/N/O v2 shards
+   and the implemented bidirectional water loop; then expand explicit
+   cutoff/source-shell/sphere-tangency trial-step panels beyond that path. One equilibrium-water
    float64 directional and Cartesian panel is positive, but it is not a domain
    or workflow gate. The legacy float32 arm remains a negative control, and the
    pyddx arm still has both derivative and laboratory-grid rotation failures.

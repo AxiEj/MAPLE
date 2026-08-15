@@ -196,19 +196,23 @@ the existing weighted `E`, Coulomb `K`, and sealed scalar/autograd kernel and
 adds only the analytic point-monopole `V`. The shared coupling layer binds
 identities and composes VJPs. Both maps are audited in the registered metric
 rather than inferred from the half-coupling identity. AIMNet2 hard-neighbor
-graphs, pyddx exposed nodes, and harmonic point-source strata receive separate
-rigid-invariant/event-sensitive hashes. The runner now records one frozen
+graphs, pyddx exposed nodes, and harmonic point-source plus unordered
+sphere-pair strata receive separate rigid-invariant/event-sensitive hashes and
+independent event margins. The runner now records one frozen
 direction and every Cartesian component at three decreasing steps. The
 harmonic float64 one-water derivative/rotation prerequisites pass; the legacy
 float32 derivative arm and the pyddx rotation arm remain negative. A second,
 sharded runner reuses the existing frozen PES asset for exactly the seventeen
 H/C/N/O molecules within the local contract and recomputes three variants by
-three internal directions by three steps; its full-panel reducer rejects
-partial or reordered shards. The S/Cl controls remain explicit exclusions.
+three internal directions by three steps; its v2 full-panel reducer rejects
+partial or reordered shards and requires sphere-tangency evidence. The S/Cl
+controls remain explicit exclusions.
 The water shard is preserved in two clean-process executions under
 [`evidence/aimnet2-geometry-mediated-pes-water-5244de8c/`](evidence/aimnet2-geometry-mediated-pes-water-5244de8c/README.md);
-the remaining sixteen shards are not yet evidence. SMD-CDS, closed-loop/event
-evidence, public OPT, Hessian/FREQ, and MD remain open gates; details are in
+the remaining sixteen shards are not yet v2 evidence. A separate water
+bidirectional-loop reducer and conservative straight-trial event certificate
+are implemented but not yet captured from a clean process. SMD-CDS, broader
+domain/event evidence, public OPT, Hessian/FREQ, and MD remain open gates; details are in
 `AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
 
 The current negative Phase-5/6 result is documented in

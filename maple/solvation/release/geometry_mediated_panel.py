@@ -39,16 +39,16 @@ from .pes_panel import (
 )
 
 AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION = (
-    "route2-aimnet2-geometry-mediated-pes-shard-contract-v1"
+    "route2-aimnet2-geometry-mediated-pes-shard-contract-v2"
 )
 AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_SCHEMA_VERSION = (
-    "route2-aimnet2-geometry-mediated-pes-shard-summary-v1"
+    "route2-aimnet2-geometry-mediated-pes-shard-summary-v2"
 )
 AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION = (
-    "route2-aimnet2-geometry-mediated-pes-panel-contract-v1"
+    "route2-aimnet2-geometry-mediated-pes-panel-contract-v2"
 )
 AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_SCHEMA_VERSION = (
-    "route2-aimnet2-geometry-mediated-pes-panel-summary-v1"
+    "route2-aimnet2-geometry-mediated-pes-panel-summary-v2"
 )
 AIMNET2_GEOMETRY_MEDIATED_SUPPORTED_ATOMIC_NUMBERS = (1, 6, 7, 8)
 AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS = (
@@ -169,7 +169,9 @@ def _replay_summary(record: Mapping[str, object]) -> dict[str, object]:
     }
 
 
-def _stationarity_summary(record: Mapping[str, object]) -> dict[str, object]:
+def summarize_aimnet2_geometry_mediated_stationarity(
+    record: Mapping[str, object],
+) -> dict[str, object]:
     absolute = _finite_float(
         record.get("absolute_residual_eV_per_e"),
         name="stationarity absolute residual",
@@ -308,7 +310,7 @@ def _geometry_record(
     replay = _replay_summary(
         _mapping(raw.get("deterministic_replay"), name="deterministic replay")
     )
-    stationarity = _stationarity_summary(
+    stationarity = summarize_aimnet2_geometry_mediated_stationarity(
         _mapping(raw.get("stationarity"), name="stationarity audit")
     )
     if stationarity["state_dimension"] != 4 * len(expected_atoms):
@@ -334,6 +336,13 @@ def _geometry_record(
         _finite_float(
             continuum_topology.get("minimum_point_source_shell_margin_angstrom"),
             name="center continuum event margin",
+            nonnegative=True,
+        )
+    ]
+    sphere_tangency_margins = [
+        _finite_float(
+            continuum_topology.get("minimum_sphere_tangency_margin_angstrom"),
+            name="center sphere-tangency margin",
             nonnegative=True,
         )
     ]
@@ -378,6 +387,15 @@ def _geometry_record(
                         nonnegative=True,
                     )
                 )
+                sphere_tangency_margins.append(
+                    _finite_float(
+                        sampled_continuum.get(
+                            "minimum_sphere_tangency_margin_angstrom"
+                        ),
+                        name="sampled sphere-tangency margin",
+                        nonnegative=True,
+                    )
+                )
         audits[direction_name] = summarize_geometry_mediated_directional_audit(
             analytic_gradient_eV_per_A=gradient,
             direction=direction,
@@ -411,6 +429,7 @@ def _geometry_record(
         "directional_force_fd": audits,
         "minimum_neighbor_cutoff_margin_A": min(neighbor_margins),
         "minimum_continuum_event_margin_A": min(continuum_margins),
+        "minimum_sphere_tangency_margin_A": min(sphere_tangency_margins),
         "gate_passed": gate,
     }
 
@@ -463,6 +482,9 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
     minimum_continuum_margin = min(
         float(summary["minimum_continuum_event_margin_A"]) for summary in summaries
     )
+    minimum_sphere_tangency_margin = min(
+        float(summary["minimum_sphere_tangency_margin_A"]) for summary in summaries
+    )
     gates = {
         "all_deterministic_replays": all(
             _mapping(summary["deterministic_replay"], name="replay").get("gate_passed")
@@ -496,6 +518,11 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
             is True
             for topology in topology_gates
         ),
+        "all_sphere_tangency_guards": all(
+            _mapping(topology, name="topology").get("all_sphere_tangency_guards_passed")
+            is True
+            for topology in topology_gates
+        ),
     }
     return {
         "schema_version": AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_SCHEMA_VERSION,
@@ -516,6 +543,7 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
         "maximum_directional_absolute_error_eV_per_A": maximum_directional_error,
         "minimum_neighbor_cutoff_margin_A": minimum_neighbor_margin,
         "minimum_continuum_event_margin_A": minimum_continuum_margin,
+        "minimum_sphere_tangency_margin_A": minimum_sphere_tangency_margin,
         "geometry_records": summaries,
         "gates": gates,
         "diagnostic_gates_passed": all(gates.values()),
@@ -603,6 +631,9 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
         "minimum_continuum_event_margin_A": min(
             float(summary["minimum_continuum_event_margin_A"]) for summary in summaries
         ),
+        "minimum_sphere_tangency_margin_A": min(
+            float(summary["minimum_sphere_tangency_margin_A"]) for summary in summaries
+        ),
         "failed_molecule_ids": failed_molecule_ids,
         "shard_summaries": summaries,
         "gates": gates,
@@ -626,6 +657,7 @@ __all__ = [
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_MAXIMUM_CONDITION_NUMBER",
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE",
     "aimnet2_geometry_mediated_pes_molecule",
+    "summarize_aimnet2_geometry_mediated_stationarity",
     "summarize_aimnet2_geometry_mediated_pes_shard",
     "summarize_aimnet2_geometry_mediated_pes_panel",
 ]

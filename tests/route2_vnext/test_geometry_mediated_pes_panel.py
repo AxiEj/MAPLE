@@ -29,7 +29,12 @@ from maple.solvation.release.pes_panel import (
 
 
 def _topology(
-    label: str, *, continuum: bool = False, margin: float = 1.0, count: int = 12
+    label: str,
+    *,
+    continuum: bool = False,
+    margin: float = 1.0,
+    sphere_margin: float = 1.0,
+    count: int = 12,
 ):
     digest = hashlib.sha256(label.encode()).hexdigest()
     if continuum:
@@ -37,6 +42,13 @@ def _topology(
             "cavity_topology_sha256": digest,
             "coefficient_count": count,
             "minimum_point_source_shell_margin_angstrom": margin,
+            "minimum_sphere_tangency_margin_angstrom": sphere_margin,
+            "point_source_topology_sha256": hashlib.sha256(
+                f"{label}:point".encode()
+            ).hexdigest(),
+            "sphere_pair_topology_sha256": hashlib.sha256(
+                f"{label}:sphere".encode()
+            ).hexdigest(),
         }
     return {
         "topology_sha256": digest,
@@ -131,7 +143,7 @@ def _records(molecule_index: int = 0):
 
 
 def test_aimnet2_pes_shard_domain_is_explicit_hcno_subset_of_frozen_asset():
-    assert AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION.endswith("-v1")
+    assert AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION.endswith("-v2")
     panel = load_pes_panel()
     assert tuple(item.molecule_id for item in panel[:17]) == (
         AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS
@@ -162,6 +174,7 @@ def test_aimnet2_pes_shard_recomputes_exact_three_by_three_by_three_coverage():
     assert summary["maximum_directional_absolute_error_eV_per_A"] < 1.0e-6
     assert summary["minimum_neighbor_cutoff_margin_A"] == pytest.approx(1.0)
     assert summary["minimum_continuum_event_margin_A"] == pytest.approx(1.0)
+    assert summary["minimum_sphere_tangency_margin_A"] == pytest.approx(1.0)
     assert all(value is False for value in summary["capabilities"].values())
     assert summary["opt_admitted"] is False
     assert summary["freq_ts_irc_admitted"] is False
@@ -221,9 +234,24 @@ def test_aimnet2_pes_shard_preserves_topology_and_event_margin_failure():
     assert summary["diagnostic_gates_passed"] is False
     assert all(value is False for value in summary["capabilities"].values())
 
+    tangency = deepcopy(records)
+    sphere_sample = tangency[0]["directions"]["seeded-internal"]["samples"][0]
+    sphere_sample["minus_continuum_topology"] = _topology(
+        "continuum:water:reference",
+        continuum=True,
+        sphere_margin=0.01,
+    )
+    sphere_summary = summarize_aimnet2_geometry_mediated_pes_shard(
+        molecule_index=0, records=tangency
+    )
+    assert sphere_summary["gates"]["all_stencils_same_stratum"] is True
+    assert sphere_summary["gates"]["all_sphere_tangency_guards"] is False
+    assert sphere_summary["minimum_sphere_tangency_margin_A"] == pytest.approx(0.01)
+    assert sphere_summary["diagnostic_gates_passed"] is False
+
 
 def test_aimnet2_full_pes_panel_requires_all_seventeen_raw_shards():
-    assert AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION.endswith("-v1")
+    assert AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION.endswith("-v2")
     shards = [
         {"molecule_index": index, "records": _records(index)}
         for index in range(len(AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS))

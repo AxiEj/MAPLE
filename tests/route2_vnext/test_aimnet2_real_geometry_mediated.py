@@ -403,6 +403,8 @@ def test_real_aimnet2_point_harmonic_precision_and_rotation_gates(
         rotation_records=rotation_records,
     )
     assert rotation["all_rotation_topologies_match"] is True
+    assert rotation["sphere_tangency_guard_applicable"] is True
+    assert rotation["all_sphere_tangency_margins_available"] is True
     assert rotation["gate_passed"] is True
 
     direction = geometry_mediated_coordinate_direction(len(atoms))
@@ -434,6 +436,9 @@ def test_real_aimnet2_point_harmonic_precision_and_rotation_gates(
     assert directional["topology"]["all_stencils_same_stratum"] is True
     assert directional["topology"]["continuum_event_guard_applicable"] is True
     assert directional["topology"]["all_continuum_event_margins_available"] is True
+    assert directional["topology"]["sphere_tangency_guard_applicable"] is True
+    assert directional["topology"]["all_sphere_tangency_margins_available"] is True
+    assert directional["topology"]["all_sphere_tangency_guards_passed"] is True
     assert directional["gate_passed"] is expected_force_gate
 
     cartesian = summarize_geometry_mediated_cartesian_audit(
@@ -451,6 +456,9 @@ def test_real_aimnet2_point_harmonic_precision_and_rotation_gates(
     )
     assert cartesian["topology"]["continuum_event_guard_applicable"] is True
     assert cartesian["topology"]["all_continuum_event_margins_available"] is True
+    assert cartesian["topology"]["sphere_tangency_guard_applicable"] is True
+    assert cartesian["topology"]["all_sphere_tangency_margins_available"] is True
+    assert cartesian["topology"]["all_sphere_tangency_guards_passed"] is True
     assert cartesian["gate_passed"] is expected_force_gate
 
     decision = geometry_mediated_admission_decision(

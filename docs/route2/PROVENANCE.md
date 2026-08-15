@@ -44,6 +44,17 @@ uploads the raw pytest log, sorted `pip freeze --all`, runtime manifest, and
 their checksums for every run, including failures. As the new package grows,
 its dependency-free algebra and contract tests belong in this job.
 
+`route2-pyddx.yml` is the public optional-runtime job. It installs the exact
+Python 3.11 PySCF 2.13.1/pyddx 0.8.0 stack from
+`requirements/route2-pyddx-ci-py311.txt` while proving that unrelated
+Torch/MACE runtimes remain absent. Its 29 version-locked canaries cover the
+real PySCF solvent/cavity paths, real pyddx energy and coordinate derivatives,
+thread equivalence, and the vNext radial/pair-frame continuum contracts. The
+job parses its JUnit report and fails unless all 29 tests execute with zero
+failures, errors, or skips; missing optional dependencies therefore cannot
+produce a green check. It retains the JUnit and pytest logs, exact runtime,
+sorted package inventory, and checksums as a source-bound artifact.
+
 `route2-real-stack.yml` is a manually triggered, self-hosted job. A runner that
 claims the `route2-real-stack` label must provide the declared Torch/MACE,
 PySCF/pyddx, PCMSolver, MOIST, and checkpoint assets. The workflow validates
@@ -51,6 +62,7 @@ those prerequisites before tests; missing dependencies fail rather than turn
 into a green skip.
 
 Repository workflows cannot enable GitHub branch protection themselves. A
-maintainer must require `Route 2 core / core` on the vNext branch. Real-stack
+maintainer must require `Route 2 core / core` and
+`Route 2 PySCF and pyddx / optional-runtime` on the vNext branch. Real-stack
 jobs become required only when a stable, access-controlled runner is available;
 the release manifest must still show that the corresponding job executed.

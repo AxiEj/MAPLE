@@ -1,0 +1,166 @@
+name: Route 2 PySCF and pyddx
+
+on:
+  pull_request:
+  push:
+    branches:
+      - refactor/route2-conservative-vnext
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: route2-pyddx-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  optional-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Historical evidence tests require the exact Git blobs they bind.
+          fetch-depth: 0
+      - name: Verify source-bound history is available
+        shell: bash
+        run: test "$(git rev-parse --is-shallow-repository)" = false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements/route2-ci-py311.txt
+            requirements/route2-pyddx-ci-py311.txt
+      - name: Install pinned public optional runtime
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check \
+            -r requirements/route2-pyddx-ci-py311.txt
+          python -m pip install --disable-pip-version-check --no-deps -e .
+          python -m pip check
+      - name: Verify exact runtime identity and isolation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import importlib.metadata
+          import importlib.util
+
+          expected = {
+              "h5py": "3.16.0",
+              "pyddx": "0.8.0",
+              "pyscf": "2.13.1",
+          }
+          observed = {
+              name: importlib.metadata.version(name) for name in expected
+          }
+          if observed != expected:
+              raise SystemExit(
+                  f"optional-runtime version mismatch: {observed!r} != {expected!r}"
+              )
+
+          import pyddx
+          import pyscf
+
+          module_versions = {
+              "pyddx": str(pyddx.__version__),
+              "pyscf": str(pyscf.__version__),
+          }
+          if module_versions != {"pyddx": "0.8.0", "pyscf": "2.13.1"}:
+              raise SystemExit(
+                  "imported optional-runtime version mismatch: "
+                  f"{module_versions!r}"
+              )
+
+          unrelated = ("torch", "mace", "aimnet2calc", "fairchem")
+          unexpected = [
+              name for name in unrelated if importlib.util.find_spec(name) is not None
+          ]
+          if unexpected:
+              raise SystemExit(
+                  "PySCF/pyddx CI must not hide unrelated import boundaries; found: "
+                  + ", ".join(unexpected)
+              )
+          PY
+      - name: Run pinned PySCF and pyddx canaries without skips
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q -rs \
+            --junitxml="$RUNNER_TEMP/route2-pyddx-junit.xml" \
+            tests/solvation/test_route2_v0_atomic_response_stationary_source.py::test_pyscf_atomic_reference_keeps_atomic_metric_count_and_same_source_dual \
+            tests/solvation/test_fc_aswig_smd_provider.py::test_fixed_topology_aqueous_provider_exposes_energy_and_labelled_derivative_evidence \
+            tests/solvation/test_fc_aswig_smd_provider.py::test_force_v3_is_the_only_public_fixed_topology_force_profile \
+            tests/solvation/test_fc_aswig_smd_provider.py::test_force_v3_rejects_a_noncanonical_mace_transform \
+            tests/solvation/test_fc_aswig_smd_provider.py::test_force_v3_opens_the_common_route2_correction_boundary \
+            tests/solvation/test_route2_solvents.py::test_registry_matches_tested_pyscf_solvent_database_when_available \
+            tests/solvation/test_pyddx_pcm_response.py::test_real_pyddx_full_position_vjp_matches_same_energy_finite_difference \
+            tests/solvation/test_pyddx_pcm_response.py::test_real_pyddx_pcm_converges_to_scaled_cosmo_at_high_dielectric \
+            tests/solvation/test_pyddx_pcm_response.py::test_real_pyddx_scaled_cosmo_position_vjp_matches_energy_difference \
+            tests/solvation/test_pyddx_pcm_response.py::test_real_pyddx_one_and_four_threads_are_numerically_equivalent \
+            tests/route2_vnext/test_radial_gto_ddx.py \
+            tests/route2_vnext/test_conjugate_radial_cpcm.py::test_water_factory_binds_all_profile_parameters_when_pyscf_is_available \
+            tests/route2_vnext/test_conjugate_radial_cpcm.py::test_high_order_water_factory_binds_590_point_candidate_and_rejects_forgery \
+            tests/route2_vnext/test_conjugate_radial_cpcm.py::test_1202_water_factory_binds_distinct_candidate_and_rejects_forgery \
+            tests/route2_vnext/test_pair_frame_ensemble_cpcm.py \
+            tests/route2_vnext/test_pair_frame_operational_scalar.py \
+            | tee "$RUNNER_TEMP/route2-pyddx-pytest.log"
+          python - "$RUNNER_TEMP/route2-pyddx-junit.xml" <<'PY'
+          from pathlib import Path
+          import sys
+          import xml.etree.ElementTree as ET
+
+          report = Path(sys.argv[1])
+          root = ET.parse(report).getroot()
+          suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
+          totals = {
+              key: sum(int(suite.attrib.get(key, "0")) for suite in suites)
+              for key in ("tests", "failures", "errors", "skipped")
+          }
+          expected_tests = 29
+          if totals != {
+              "tests": expected_tests,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0,
+          }:
+              raise SystemExit(
+                  "pinned optional-runtime canaries must execute exactly and "
+                  f"cannot pass by skip: {totals!r}"
+              )
+          print("verified no-skip optional-runtime canaries:", totals)
+          PY
+      - name: Record exact optional runtime
+        if: always()
+        shell: bash
+        run: |
+          python tools/route2_release/capture_runtime.py \
+            --output "$RUNNER_TEMP/route2-pyddx-runtime.json" \
+            --command "pinned 29-test PySCF/pyddx canary set" \
+            --source-file requirements/route2-ci-py311.txt \
+            --source-file requirements/route2-pyddx-ci-py311.txt \
+            --source-file .github/workflows/route2-pyddx.yml
+          python -m pip freeze --all \
+            | sort > "$RUNNER_TEMP/route2-pyddx-pip-freeze.txt"
+          : > "$RUNNER_TEMP/route2-pyddx-SHA256SUMS"
+          for path in \
+            "$RUNNER_TEMP/route2-pyddx-pytest.log" \
+            "$RUNNER_TEMP/route2-pyddx-junit.xml" \
+            "$RUNNER_TEMP/route2-pyddx-runtime.json" \
+            "$RUNNER_TEMP/route2-pyddx-pip-freeze.txt"
+          do
+            if test -f "$path"; then
+              sha256sum "$path" >> "$RUNNER_TEMP/route2-pyddx-SHA256SUMS"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route2-pyddx-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/route2-pyddx-pytest.log
+            ${{ runner.temp }}/route2-pyddx-junit.xml
+            ${{ runner.temp }}/route2-pyddx-runtime.json
+            ${{ runner.temp }}/route2-pyddx-pip-freeze.txt
+            ${{ runner.temp }}/route2-pyddx-SHA256SUMS

@@ -69,7 +69,11 @@ def test_inventory_is_source_bound_and_nonempty():
 
 
 def test_source_bound_ci_jobs_checkout_complete_git_history():
-    for filename in ("route2-core.yml", "route2-real-stack.yml"):
+    for filename in (
+        "route2-core.yml",
+        "route2-pyddx.yml",
+        "route2-real-stack.yml",
+    ):
         workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
         assert "fetch-depth: 0" in workflow
         assert 'git rev-parse --is-shallow-repository)" = false' in workflow
@@ -95,3 +99,30 @@ def test_core_ci_proves_optional_runtime_absence_and_retains_runtime_evidence():
     assert "route2-core-pip-freeze.txt" in workflow
     assert "route2-core-SHA256SUMS" in workflow
     assert "actions/upload-artifact@v4" in workflow
+
+
+def test_public_pyddx_ci_is_exactly_pinned_and_cannot_pass_by_skip():
+    root = Path(__file__).parents[2]
+    requirements = (root / "requirements" / "route2-pyddx-ci-py311.txt").read_text(
+        encoding="utf-8"
+    )
+    workflow = (WORKFLOWS / "route2-pyddx.yml").read_text(encoding="utf-8")
+
+    for pin in (
+        "h5py==3.16.0",
+        "pyddx==0.8.0",
+        "pyscf==2.13.1",
+    ):
+        assert pin in requirements
+        assert pin.split("==")[1] in workflow
+    assert "requirements/route2-pyddx-ci-py311.txt" in workflow
+    assert "expected_tests = 29" in workflow
+    assert '"skipped": 0' in workflow
+    assert "cannot pass by skip" in workflow
+    assert "--junitxml" in workflow
+    assert "tools/route2_release/capture_runtime.py" in workflow
+    assert "route2-pyddx-pip-freeze.txt" in workflow
+    assert "route2-pyddx-SHA256SUMS" in workflow
+    assert "actions/upload-artifact@v4" in workflow
+    for unrelated in ('"torch"', '"mace"', '"aimnet2calc"', '"fairchem"'):
+        assert unrelated in workflow

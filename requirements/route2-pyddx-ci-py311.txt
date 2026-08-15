@@ -1,0 +1,8 @@
+# Conservative Route 2 public PySCF/pyddx CI, Python 3.11.
+# Keep the dependency-light algebra pins identical to route2-core and bind the
+# optional continuum runtime exactly.  Torch/MACE and private native stacks do
+# not belong in this job.
+-r route2-ci-py311.txt
+h5py==3.16.0
+pyddx==0.8.0
+pyscf==2.13.1

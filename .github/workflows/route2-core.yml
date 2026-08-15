@@ -39,7 +39,68 @@ jobs:
             -r requirements/route2-ci-py311.txt
           python -m pip install --disable-pip-version-check --no-deps -e .
           python -m pip check
+      - name: Verify optional scientific runtimes are absent
+        shell: bash
+        run: |
+          python - <<'PY'
+          import importlib.util
+
+          optional = (
+              "torch",
+              "mace",
+              "pyscf",
+              "pyddx",
+              "aimnet2calc",
+              "fairchem",
+          )
+          unexpected = [
+              name for name in optional if importlib.util.find_spec(name) is not None
+          ]
+          if unexpected:
+              raise SystemExit(
+                  "Route 2 core must remain dependency-light; unexpectedly found: "
+                  + ", ".join(unexpected)
+              )
+
+          import maple.solvation
+
+          print("dependency-light import boundary verified:", maple.solvation.__file__)
+          PY
       - name: Compile source
         run: python -m compileall -q maple
       - name: Verify Phase 0 evidence and vNext dependency-free contracts
-        run: python -m pytest -q tests/route2_vnext
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m pytest -q -rs tests/route2_vnext \
+            | tee "$RUNNER_TEMP/route2-core-pytest.log"
+      - name: Record exact core runtime
+        if: always()
+        shell: bash
+        run: |
+          python tools/route2_release/capture_runtime.py \
+            --output "$RUNNER_TEMP/route2-core-runtime.json" \
+            --command "python -m pytest -q -rs tests/route2_vnext" \
+            --source-file requirements/route2-ci-py311.txt \
+            --source-file .github/workflows/route2-core.yml
+          python -m pip freeze --all \
+            | sort > "$RUNNER_TEMP/route2-core-pip-freeze.txt"
+          : > "$RUNNER_TEMP/route2-core-SHA256SUMS"
+          for path in \
+            "$RUNNER_TEMP/route2-core-pytest.log" \
+            "$RUNNER_TEMP/route2-core-runtime.json" \
+            "$RUNNER_TEMP/route2-core-pip-freeze.txt"
+          do
+            if test -f "$path"; then
+              sha256sum "$path" >> "$RUNNER_TEMP/route2-core-SHA256SUMS"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route2-core-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/route2-core-pytest.log
+            ${{ runner.temp }}/route2-core-runtime.json
+            ${{ runner.temp }}/route2-core-pip-freeze.txt
+            ${{ runner.temp }}/route2-core-SHA256SUMS

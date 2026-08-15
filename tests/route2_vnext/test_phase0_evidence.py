@@ -73,3 +73,25 @@ def test_source_bound_ci_jobs_checkout_complete_git_history():
         workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
         assert "fetch-depth: 0" in workflow
         assert 'git rev-parse --is-shallow-repository)" = false' in workflow
+
+
+def test_core_ci_proves_optional_runtime_absence_and_retains_runtime_evidence():
+    workflow = (WORKFLOWS / "route2-core.yml").read_text(encoding="utf-8")
+
+    for optional in (
+        '"torch"',
+        '"mace"',
+        '"pyscf"',
+        '"pyddx"',
+        '"aimnet2calc"',
+        '"fairchem"',
+    ):
+        assert optional in workflow
+    assert "importlib.util.find_spec" in workflow
+    assert "dependency-light import boundary verified" in workflow
+    assert "set -o pipefail" in workflow
+    assert 'tee "$RUNNER_TEMP/route2-core-pytest.log"' in workflow
+    assert "tools/route2_release/capture_runtime.py" in workflow
+    assert "route2-core-pip-freeze.txt" in workflow
+    assert "route2-core-SHA256SUMS" in workflow
+    assert "actions/upload-artifact@v4" in workflow

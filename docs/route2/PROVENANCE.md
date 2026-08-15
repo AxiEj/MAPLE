@@ -36,10 +36,13 @@ to the checkout and capability-neutral.
 
 ## CI and branch protection
 
-`route2-core.yml` is the required lightweight job. It runs without scientific
-native runtimes and verifies the baseline evidence/compile boundary. As the new
-package grows, its dependency-free algebra and contract tests belong in this
-job.
+`route2-core.yml` is the required lightweight job. It installs only the pinned
+ASE/NumPy/SciPy/pytest environment, explicitly fails if Torch, MACE, PySCF,
+pyddx, AIMNet, or FAIR-Chem is unexpectedly importable, and verifies the
+baseline evidence/compile boundary plus all vNext dependency-light tests. It
+uploads the raw pytest log, sorted `pip freeze --all`, runtime manifest, and
+their checksums for every run, including failures. As the new package grows,
+its dependency-free algebra and contract tests belong in this job.
 
 `route2-real-stack.yml` is a manually triggered, self-hosted job. A runner that
 claims the `route2-real-stack` label must provide the declared Torch/MACE,

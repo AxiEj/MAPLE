@@ -47,6 +47,8 @@ class CommandControl:
             "stationarity_tolerance_ev_per_a": 1.0e-3,
             "hessian_symmetry_relative_tolerance": 1.0e-6,
             "rigid_mode_tolerance_cm1": 5.0,
+            "stationary_point": "minimum",
+            "transition_state_imaginary_threshold_cm1": 50.0,
             "ilowfreq": 0,
             "verbosity": 1,
             "n_freqs_to_print": 10,
@@ -531,6 +533,7 @@ class CommandControl:
             "temperature",
             "pressure_kpa",
             "stationarity_tolerance_ev_per_a",
+            "transition_state_imaginary_threshold_cm1",
         )
         for key in positive_numbers:
             value = params.get(key)
@@ -608,6 +611,25 @@ class CommandControl:
 
         if type(params.get("treat_imag_as_real")) is not bool:
             msg = "FREQ treat_imag_as_real must be true or false."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        stationary_point = params.get("stationary_point")
+        if stationary_point not in {"minimum", "transition_state"}:
+            msg = (
+                "FREQ stationary_point must be 'minimum' or "
+                "'transition_state'."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if (
+            stationary_point == "transition_state"
+            and params.get("treat_imag_as_real")
+        ):
+            msg = (
+                "FREQ stationary_point=transition_state cannot be combined "
+                "with treat_imag_as_real."
+            )
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 

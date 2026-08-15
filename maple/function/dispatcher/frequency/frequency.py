@@ -1,8 +1,9 @@
-"""Molecular normal modes and minimum-only gas-phase RRHO analysis.
+"""Molecular normal modes and stationary-point analysis.
 
 The public calculator boundary is ASE-native: forces are eV/Angstrom and the
 Cartesian Hessian is eV/Angstrom**2.  The only admitted eigensystem is the
 mass-weighted generalized eigenproblem implemented in :mod:`normal_modes`.
+Minimum RRHO and first-order-saddle validation remain separate contracts.
 """
 
 from __future__ import annotations
@@ -25,6 +26,11 @@ from .reporting import (
     PrintParams,
     render_frequency_report,
     write_frequency_summary,
+)
+from .stationary_points import (
+    StationaryPointAssessment,
+    assess_stationary_point,
+    normalize_stationary_point_target,
 )
 from .thermochemistry import (
     ThermoResults,
@@ -146,6 +152,8 @@ class FrequencyParams:
     stationarity_tolerance_eV_per_A: float = 1.0e-3
     hessian_symmetry_relative_tolerance: float = 1.0e-6
     rigid_mode_tolerance_cm1: float = 5.0
+    stationary_point: str = "minimum"
+    transition_state_imaginary_threshold_cm1: float = 50.0
     ilowfreq: int = 0
     verbose: int = 1
     treat_imag_as_real: bool = False
@@ -166,6 +174,8 @@ class FrequencyBase(JobABC):
         stationarity_tolerance_eV_per_A: float = 1.0e-3,
         hessian_symmetry_relative_tolerance: float = 1.0e-6,
         rigid_mode_tolerance_cm1: float = 5.0,
+        stationary_point: str = "minimum",
+        transition_state_imaginary_threshold_cm1: float = 50.0,
     ):
         super().__init__(output)
         _validate_molecular_atoms(atoms)
@@ -188,6 +198,11 @@ class FrequencyBase(JobABC):
             rigid_mode_tolerance_cm1,
             "rigid_mode_tolerance_cm1",
         )
+        self.stationary_point = normalize_stationary_point_target(stationary_point)
+        self.transition_state_imaginary_threshold_cm1 = _positive_float(
+            transition_state_imaginary_threshold_cm1,
+            "transition_state_imaginary_threshold_cm1",
+        )
         self.ilowfreq = _integer(ilowfreq, "ilowfreq")
         if self.ilowfreq != 0:
             raise ValueError(
@@ -207,16 +222,43 @@ class FrequencyBase(JobABC):
         )
         try:
             self._validate_stationarity()
+            if self.stationary_point == "transition_state" and self.treat_imag_as_real:
+                raise ValueError(
+                    "stationary_point='transition_state' cannot be combined with "
+                    "treat_imag_as_real; the reaction mode must remain explicit."
+                )
             frequencies, modes = self.compute_frequencies(self.get_hessian())
+            reinterpreted_negative_frequencies: tuple[float, ...] = ()
+            reinterpretation_threshold = None
             if self.treat_imag_as_real:
                 tolerance = self._print.imag_tol_cm1
+                reinterpretation_mask = (frequencies < 0.0) & (
+                    frequencies >= -tolerance
+                )
+                reinterpreted_negative_frequencies = tuple(
+                    float(value) for value in frequencies[reinterpretation_mask]
+                )
+                reinterpretation_threshold = tolerance
                 frequencies = np.where(
                     frequencies < -tolerance,
                     frequencies,
                     np.abs(frequencies),
                 )
-            thermo = self.compute_thermo(frequencies)
-            self._write_output(frequencies, modes, thermo)
+            assessment = assess_stationary_point(
+                frequencies[self._rigid_mode_count() :],
+                target=self.stationary_point,
+                imaginary_threshold_cm1=(self.transition_state_imaginary_threshold_cm1),
+                reinterpreted_negative_frequencies_cm1=(
+                    reinterpreted_negative_frequencies
+                ),
+                reinterpretation_threshold_cm1=reinterpretation_threshold,
+            )
+            thermo = (
+                self.compute_thermo(frequencies)
+                if assessment.thermochemistry_admitted
+                else None
+            )
+            self._write_output(frequencies, modes, thermo, assessment)
             self.log_info(
                 [
                     "Frequency analysis completed\n",
@@ -230,6 +272,7 @@ class FrequencyBase(JobABC):
                     frequencies,
                     modes,
                     thermo,
+                    assessment,
                     temperature_K=self.temperature,
                     pressure_kPa=self.pressure_kpa,
                     rigid_mode_count=self._rigid_mode_count(),
@@ -310,13 +353,15 @@ class FrequencyBase(JobABC):
         self,
         frequencies_cm1: np.ndarray,
         modes_cartesian: np.ndarray,
-        thermo: ThermoResults,
+        thermo: Optional[ThermoResults],
+        assessment: StationaryPointAssessment,
     ) -> None:
         report = render_frequency_report(
             self.atoms,
             frequencies_cm1,
             modes_cartesian,
             thermo,
+            assessment,
             temperature_K=self.temperature,
             pressure_kPa=self.pressure_kpa,
             rigid_mode_count=self._rigid_mode_count(),
@@ -474,6 +519,13 @@ class Frequency:
             self.params.rigid_mode_tolerance_cm1,
             "rigid_mode_tolerance_cm1",
         )
+        self.params.stationary_point = normalize_stationary_point_target(
+            self.params.stationary_point
+        )
+        self.params.transition_state_imaginary_threshold_cm1 = _positive_float(
+            self.params.transition_state_imaginary_threshold_cm1,
+            "transition_state_imaginary_threshold_cm1",
+        )
         self.params.ilowfreq = _integer(self.params.ilowfreq, "ilowfreq")
         self.params.verbose = _nonnegative_integer(
             self.params.verbose,
@@ -489,6 +541,14 @@ class Frequency:
         )
         if type(self.params.treat_imag_as_real) is not bool:
             raise ValueError("treat_imag_as_real must be true or false.")
+        if (
+            self.params.stationary_point == "transition_state"
+            and self.params.treat_imag_as_real
+        ):
+            raise ValueError(
+                "stationary_point='transition_state' cannot be combined with "
+                "treat_imag_as_real; the reaction mode must remain explicit."
+            )
         if self.params.ilowfreq != 0:
             raise ValueError(
                 "Only standard RRHO thermochemistry (ilowfreq=0) is admitted; "
@@ -517,6 +577,10 @@ class Frequency:
                     self.params.hessian_symmetry_relative_tolerance
                 ),
                 rigid_mode_tolerance_cm1=self.params.rigid_mode_tolerance_cm1,
+                stationary_point=self.params.stationary_point,
+                transition_state_imaginary_threshold_cm1=(
+                    self.params.transition_state_imaginary_threshold_cm1
+                ),
             )
             job.verbosity = self.params.verbose
             job.treat_imag_as_real = self.params.treat_imag_as_real

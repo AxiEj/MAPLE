@@ -31,11 +31,15 @@ WATER_POSITIONS_A = np.array(
 )
 
 
-def _water_with_known_ev_hessian() -> tuple[Atoms, np.ndarray]:
+def _water_with_vibrational_eigenvalues(
+    eigenvalues_eV_per_A2_amu: object,
+) -> tuple[Atoms, np.ndarray]:
     subspaces = rigid_body_subspaces(WATER_MASSES_AMU, WATER_POSITIONS_A)
     vibrational_basis = subspaces.vibrational_basis_mass_weighted
     hessian_mass_weighted = (
-        vibrational_basis @ np.diag([1.0, 4.0, 9.0]) @ vibrational_basis.T
+        vibrational_basis
+        @ np.diag(np.asarray(eigenvalues_eV_per_A2_amu, dtype=float))
+        @ vibrational_basis.T
     )
     square_root_mass = np.sqrt(np.repeat(WATER_MASSES_AMU, 3))
     hessian = (
@@ -47,6 +51,10 @@ def _water_with_known_ev_hessian() -> tuple[Atoms, np.ndarray]:
         masses=WATER_MASSES_AMU,
     )
     return atoms, hessian
+
+
+def _water_with_known_ev_hessian() -> tuple[Atoms, np.ndarray]:
+    return _water_with_vibrational_eigenvalues([1.0, 4.0, 9.0])
 
 
 def _ase_rrho_totals(
@@ -324,6 +332,18 @@ def test_frequency_parameter_alias_keeps_documented_verbosity(tmp_path):
         ({"treat_imag_as_real": "Ture"}, "true or false"),
         ({"symmetry_number": 1.5}, "positive integer"),
         ({"temperature": float("nan")}, "finite"),
+        ({"stationary_point": "ts"}, "minimum.*transition_state"),
+        (
+            {"transition_state_imaginary_threshold_cm1": 0.0},
+            "finite positive",
+        ),
+        (
+            {
+                "stationary_point": "transition_state",
+                "treat_imag_as_real": True,
+            },
+            "cannot be combined",
+        ),
     ],
 )
 def test_frequency_rejects_ambiguous_or_invalid_parameters(
@@ -390,6 +410,95 @@ def test_frequency_run_uses_ev_hessian_and_reports_consistent_entropy(tmp_path):
     summary = output.with_suffix(".sum").read_text(encoding="utf-8")
     assert "Number of Vib. Modes:   3" in summary
     assert "S_elec:" in summary
+
+
+def test_frequency_transition_state_reports_one_imaginary_mode_without_rrho(
+    tmp_path,
+):
+    atoms, hessian = _water_with_vibrational_eigenvalues([-1.0, 4.0, 9.0])
+
+    class _EVHessianCalculator:
+        @staticmethod
+        def get_forces(_atoms):
+            return np.zeros((3, 3))
+
+        @staticmethod
+        def get_hessian(_atoms):
+            return hessian.copy()
+
+    atoms.calc = _EVHessianCalculator()
+    output = tmp_path / "ts-freq.out"
+    driver = Frequency(
+        str(output),
+        atoms,
+        paras={
+            "stationary_point": "transition_state",
+            "transition_state_imaginary_threshold_cm1": 50.0,
+            "verbosity": 10,
+        },
+    )
+
+    driver.run()
+
+    text = output.read_text(encoding="utf-8")
+    assert "Requested stationary point: first-order transition state" in text
+    assert "Thermochemistry: withheld" in text
+    assert "minimum-only RRHO" in text
+    assert "THERMOCHEMISTRY AT" not in text
+    summary = output.with_suffix(".sum").read_text(encoding="utf-8")
+    assert "Stationary point:        first-order transition state" in summary
+    assert "Thermochemistry:         withheld" in summary
+    assert "G_corr (total)" not in summary
+
+
+def test_frequency_minimum_contract_rejects_transition_state_hessian(tmp_path):
+    atoms, hessian = _water_with_vibrational_eigenvalues([-1.0, 4.0, 9.0])
+
+    class _EVHessianCalculator:
+        @staticmethod
+        def get_forces(_atoms):
+            return np.zeros((3, 3))
+
+        @staticmethod
+        def get_hessian(_atoms):
+            return hessian.copy()
+
+    atoms.calc = _EVHessianCalculator()
+    driver = Frequency(str(tmp_path / "minimum-freq.out"), atoms)
+
+    with pytest.raises(ValueError, match="minimum requires all vibrational"):
+        driver.run()
+
+
+def test_frequency_minimum_only_reinterprets_shallow_negative_mode_when_explicit(
+    tmp_path,
+):
+    atoms, hessian = _water_with_vibrational_eigenvalues([-1.0e-5, 4.0, 9.0])
+
+    class _EVHessianCalculator:
+        @staticmethod
+        def get_forces(_atoms):
+            return np.zeros((3, 3))
+
+        @staticmethod
+        def get_hessian(_atoms):
+            return hessian.copy()
+
+    atoms.calc = _EVHessianCalculator()
+    output = tmp_path / "explicit-noise-policy.out"
+    driver = Frequency(
+        str(output),
+        atoms,
+        paras={"treat_imag_as_real": True, "imag_tol_cm1": 10.0},
+    )
+
+    driver.run()
+
+    text = output.read_text(encoding="utf-8")
+    assert "Thermochemistry: admitted" in text
+    assert "***imaginary mode***" not in text
+    assert "Explicit numerical-noise policy: treat_imag_as_real=true" in text
+    assert "Reinterpreted raw negative modes:" in text
 
 
 def test_frequency_run_rejects_nonstationary_geometry_before_hessian(tmp_path):
@@ -473,6 +582,10 @@ def test_command_control_defaults_to_rrho_mass_weighted_frequency():
     )
     assert command.params["n_freqs_to_print"] == 10
     assert command.params["imag_tol_cm1"] == pytest.approx(10.0)
+    assert command.params["stationary_point"] == "minimum"
+    assert command.params["transition_state_imaginary_threshold_cm1"] == (
+        pytest.approx(50.0)
+    )
 
 
 def test_command_control_rejects_unknown_frequency_parameter():
@@ -493,6 +606,18 @@ def test_command_control_rejects_unknown_frequency_parameter():
         ),
         ("#freq(n_freqs_to_print=-1)", "non-negative integer"),
         ("#freq(imag_tol_cm1=-1)", "non-negative"),
+        (
+            "#freq(stationary_point=ts)",
+            "minimum.*transition_state",
+        ),
+        (
+            "#freq(transition_state_imaginary_threshold_cm1=0)",
+            "positive number",
+        ),
+        (
+            "#freq(stationary_point=transition_state,treat_imag_as_real=true)",
+            "cannot be combined",
+        ),
     ],
 )
 def test_command_control_rejects_invalid_frequency_values(setting, message):

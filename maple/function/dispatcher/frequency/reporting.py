@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+from typing import Optional
 
 import numpy as np
 from ase import Atoms
 
+from .stationary_points import StationaryPointAssessment
 from .thermochemistry import ThermoResults
 
 KJ_PER_MOL_TO_KCAL_PER_MOL = 0.23900573614
@@ -133,6 +135,47 @@ def _format_thermochemistry(
     )
 
 
+def _format_stationary_point_assessment(
+    assessment: StationaryPointAssessment,
+) -> str:
+    lines = [
+        "\n",
+        "-" * 60 + "\n",
+        "STATIONARY-POINT ASSESSMENT\n",
+        "-" * 60 + "\n\n",
+        f"Requested stationary point: {assessment.label}\n",
+    ]
+    if assessment.imaginary_frequency_cm1 is not None:
+        lines.append(
+            "Robust imaginary mode: "
+            f"{assessment.imaginary_frequency_cm1:.2f} cm**-1\n"
+        )
+    if assessment.reinterpretation_threshold_cm1 is not None:
+        reinterpreted = assessment.reinterpreted_negative_frequencies_cm1
+        rendered = (
+            ", ".join(f"{frequency:.2f}" for frequency in reinterpreted)
+            if reinterpreted
+            else "none"
+        )
+        lines.extend(
+            [
+                "Explicit numerical-noise policy: treat_imag_as_real=true; "
+                "negative modes no lower than "
+                f"-{assessment.reinterpretation_threshold_cm1:g} cm**-1 are "
+                "reflected positive before classification.\n",
+                f"Reinterpreted raw negative modes: {rendered} cm**-1\n",
+            ]
+        )
+    if assessment.thermochemistry_admitted:
+        lines.append("Thermochemistry: admitted (minimum-only ideal-gas RRHO)\n\n")
+    else:
+        lines.append(
+            "Thermochemistry: withheld; minimum-only RRHO is not a transition-"
+            "state thermochemistry model.\n\n"
+        )
+    return "".join(lines)
+
+
 def _format_normal_modes(
     frequencies_cm1: np.ndarray,
     modes_cartesian: np.ndarray,
@@ -182,7 +225,8 @@ def render_frequency_report(
     atoms: Atoms,
     frequencies_cm1: object,
     modes_cartesian: object,
-    thermo: ThermoResults,
+    thermo: Optional[ThermoResults],
+    assessment: StationaryPointAssessment,
     *,
     temperature_K: float,
     pressure_kPa: float,
@@ -205,11 +249,16 @@ def render_frequency_report(
                 verbosity=verbosity,
                 requested_vibrations=print_params.n_freqs_to_print,
             ),
-            _format_thermochemistry(
-                atoms,
-                thermo,
-                temperature_K=temperature_K,
-                pressure_kPa=pressure_kPa,
+            _format_stationary_point_assessment(assessment),
+            (
+                _format_thermochemistry(
+                    atoms,
+                    thermo,
+                    temperature_K=temperature_K,
+                    pressure_kPa=pressure_kPa,
+                )
+                if thermo is not None
+                else ""
             ),
             _format_normal_modes(
                 frequencies,
@@ -227,7 +276,8 @@ def write_frequency_summary(
     atoms: Atoms,
     frequencies_cm1: object,
     modes_cartesian: object,
-    thermo: ThermoResults,
+    thermo: Optional[ThermoResults],
+    assessment: StationaryPointAssessment,
     *,
     temperature_K: float,
     pressure_kPa: float,
@@ -244,7 +294,29 @@ def write_frequency_summary(
     summary_path = f"{base}.sum"
 
     with open(summary_path, "w", encoding="utf-8") as handle:
-        handle.write("=" * 70 + "\nTHERMODYNAMIC SUMMARY\n" + "=" * 70 + "\n\n")
+        heading = (
+            "THERMODYNAMIC SUMMARY"
+            if thermo is not None
+            else "STATIONARY-POINT FREQUENCY SUMMARY"
+        )
+        handle.write("=" * 70 + f"\n{heading}\n" + "=" * 70 + "\n\n")
+        handle.write(f"Stationary point:        {assessment.label}\n")
+        handle.write(
+            "Thermochemistry:         "
+            + ("admitted\n" if thermo is not None else "withheld\n")
+        )
+        if assessment.reinterpretation_threshold_cm1 is not None:
+            reinterpreted = assessment.reinterpreted_negative_frequencies_cm1
+            rendered = (
+                ", ".join(f"{frequency:.2f}" for frequency in reinterpreted)
+                if reinterpreted
+                else "none"
+            )
+            handle.write(
+                "Numerical-noise policy: treat_imag_as_real=true at "
+                f"{assessment.reinterpretation_threshold_cm1:g} cm^-1\n"
+            )
+            handle.write(f"Reinterpreted modes:    {rendered} cm^-1\n")
         handle.write(f"Temperature:            {temperature_K:.2f} K\n")
         handle.write(
             f"Pressure:               {pressure_kPa:.3f} kPa "
@@ -253,32 +325,44 @@ def write_frequency_summary(
         handle.write(f"Total Mass:             {np.sum(atoms.get_masses()):.4f} amu\n")
         handle.write(f"Number of Atoms:        {atom_count}\n")
         handle.write(f"Number of Vib. Modes:   {len(frequencies)}\n\n")
-        handle.write("-" * 40 + "\nKey Thermodynamic Values\n" + "-" * 40 + "\n")
-        handle.write(
-            f"ZPE:                    {thermo.zpe_kjmol:12.4f} kJ/mol  "
-            f"({_kjmol_to_kcalmol(thermo.zpe_kjmol):10.4f} kcal/mol)\n"
-        )
-        handle.write(
-            f"H_corr (total):         {thermo.h_total_kjmol:12.4f} kJ/mol  "
-            f"({_kjmol_to_kcalmol(thermo.h_total_kjmol):10.4f} kcal/mol)\n"
-        )
-        handle.write(
-            f"G_corr (total):         {thermo.g_correction_kjmol:12.4f} kJ/mol  "
-            f"({_kjmol_to_kcalmol(thermo.g_correction_kjmol):10.4f} kcal/mol)\n"
-        )
-        handle.write(
-            f"S_total:                {thermo.s_total_jmolK:12.4f} J/mol/K\n\n"
-        )
-        handle.write("-" * 40 + "\nEnthalpy Contributions (kJ/mol)\n" + "-" * 40 + "\n")
-        handle.write(f"  H_trans:              {thermo.h_trans_kjmol:12.4f}\n")
-        handle.write(f"  H_rot:                {thermo.h_rot_kjmol:12.4f}\n")
-        handle.write(f"  H_vib (thermal):      {thermo.h_vib_thermal_kjmol:12.4f}\n")
-        handle.write(f"  ZPE:                  {thermo.zpe_kjmol:12.4f}\n\n")
-        handle.write("-" * 40 + "\nEntropy Contributions (J/mol/K)\n" + "-" * 40 + "\n")
-        handle.write(f"  S_trans:              {thermo.s_trans_jmolK:12.4f}\n")
-        handle.write(f"  S_rot:                {thermo.s_rot_jmolK:12.4f}\n")
-        handle.write(f"  S_vib:                {thermo.s_vib_jmolK:12.4f}\n")
-        handle.write(f"  S_elec:               {thermo.s_elec_jmolK:12.4f}\n\n")
+        if thermo is None:
+            handle.write(
+                "Thermochemistry is withheld: minimum-only RRHO is not a "
+                "transition-state thermochemistry model.\n\n"
+            )
+        else:
+            handle.write("-" * 40 + "\nKey Thermodynamic Values\n" + "-" * 40 + "\n")
+            handle.write(
+                f"ZPE:                    {thermo.zpe_kjmol:12.4f} kJ/mol  "
+                f"({_kjmol_to_kcalmol(thermo.zpe_kjmol):10.4f} kcal/mol)\n"
+            )
+            handle.write(
+                f"H_corr (total):         {thermo.h_total_kjmol:12.4f} kJ/mol  "
+                f"({_kjmol_to_kcalmol(thermo.h_total_kjmol):10.4f} kcal/mol)\n"
+            )
+            handle.write(
+                f"G_corr (total):         {thermo.g_correction_kjmol:12.4f} kJ/mol  "
+                f"({_kjmol_to_kcalmol(thermo.g_correction_kjmol):10.4f} kcal/mol)\n"
+            )
+            handle.write(
+                f"S_total:                {thermo.s_total_jmolK:12.4f} J/mol/K\n\n"
+            )
+            handle.write(
+                "-" * 40 + "\nEnthalpy Contributions (kJ/mol)\n" + "-" * 40 + "\n"
+            )
+            handle.write(f"  H_trans:              {thermo.h_trans_kjmol:12.4f}\n")
+            handle.write(f"  H_rot:                {thermo.h_rot_kjmol:12.4f}\n")
+            handle.write(
+                f"  H_vib (thermal):      {thermo.h_vib_thermal_kjmol:12.4f}\n"
+            )
+            handle.write(f"  ZPE:                  {thermo.zpe_kjmol:12.4f}\n\n")
+            handle.write(
+                "-" * 40 + "\nEntropy Contributions (J/mol/K)\n" + "-" * 40 + "\n"
+            )
+            handle.write(f"  S_trans:              {thermo.s_trans_jmolK:12.4f}\n")
+            handle.write(f"  S_rot:                {thermo.s_rot_jmolK:12.4f}\n")
+            handle.write(f"  S_vib:                {thermo.s_vib_jmolK:12.4f}\n")
+            handle.write(f"  S_elec:               {thermo.s_elec_jmolK:12.4f}\n\n")
         handle.write(
             "=" * 70 + "\nVIBRATIONAL FREQUENCIES (cm^-1)\n" + "=" * 70 + "\n\n"
         )

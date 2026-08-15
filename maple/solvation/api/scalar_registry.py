@@ -8,6 +8,7 @@ from typing import Mapping
 
 from .capabilities import CapabilityStatus
 from .state_registry import (
+    MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
     MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID,
     OPERATIONAL_STATE_EQUATION_ID,
     SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
@@ -30,8 +31,11 @@ OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
     "smoothharmonicgalerkin-cpcm-conditioneddelta-phi1-v1"
 )
 EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1 = (
+    "route2-experimental-macemdppoint-macepolarinduced-" "pcmsolver-electrostatic-v1"
+)
+EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1 = (
     "route2-experimental-macemdppoint-macepolarinduced-"
-    "pcmsolver-electrostatic-v1"
+    "smoothharmonicgalerkin-electrostatic-v1"
 )
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
@@ -327,9 +331,7 @@ _SCALAR_ENTRIES = (
         enabled=False,
     ),
     ScalarDefinition(
-        scalar_id=(
-            EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1
-        ),
+        scalar_id=(EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1),
         exact_formula=(
             "E_exp(R)=E_vac^MACEPOLAR(R)+G_PCM(R,u*(R)); "
             "G_PCM=1/2 v(u*)^T q(u*)*HartreeToEV; "
@@ -371,6 +373,57 @@ _SCALAR_ENTRIES = (
             "scalar; every displacement rebuilds PCMSolver and resolves both root "
             "starts; topology changes and excessive stencil error fail closed; "
             "this is numerical, not an analytic adjoint"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1
+        ),
+        exact_formula=(
+            "E_exp(R)=E_vac^MACEPOLAR(R)-1/2 b(u*)^T A_harm(R)^-1 b(u*); "
+            "b=B_point^harm(R)c_MDP+B_GTO1p5^harm(R)"
+            "[M_POLAR(R,u*)-M_POLAR(R,0)]; "
+            "u*=-S8_harm(R)^T A_harm(R)^-1 b(u*); G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.experimental.mace_mdp_polar_harmonic:"
+            "MACE_MDPPolarHybridSmoothHarmonicPES"
+        ),
+        included_components=(
+            "macepolar_zero_field_vacuum_energy",
+            "hybrid_smooth_harmonic_half_coupling_electrostatic",
+        ),
+        excluded_components=(
+            "macepolar_field_conditioned_raw_energy_difference",
+            "mace_mdp_polarizability_response",
+            "nonpolar_smd_cds",
+            "thermal_and_standard_state_terms",
+            "complete_solvation_free_energy_claim",
+            "analytic_coordinate_derivative",
+            "strict_common_functional_claim",
+        ),
+        source_representation=(
+            "MACE-MDP permanent atom-centred q/p through the invariant exterior "
+            "point harmonic kernel plus only the MACE-POLAR field-induced q/p "
+            "increment through the normalized sigma=1.5-A Gaussian harmonic kernel"
+        ),
+        field_convention=(
+            "MACE-POLAR native eight-channel 1.5/3.0-A radial receiver assembled "
+            "as minus the exact transpose of the harmonic Gaussian source operator; "
+            "the permanent point source remains categorically distinct"
+        ),
+        continuum_profile="smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+        cavity_profile="smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+        nonpolar_profile="none",
+        state_equation_id=MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
+        derivative_route=(
+            "fourth-order Richardson central derivative of this exact registered "
+            "scalar; every displacement rebuilds the fixed-dimensional smooth "
+            "harmonic assembly and resolves both root starts; excessive stencil "
+            "error fails closed; this is numerical, not an analytic adjoint"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -727,6 +780,7 @@ __all__ = [
     "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
+    "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",

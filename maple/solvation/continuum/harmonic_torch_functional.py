@@ -23,6 +23,7 @@ from maple.solvation.api.profiles import (
     SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID,
 )
 from maple.solvation.api.scalar_registry import (
+    EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
@@ -215,6 +216,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         )
         normalized_scalar_id = str(scalar_id).strip()
         if normalized_scalar_id not in {
+            EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
             OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
             OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
             OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
@@ -314,6 +316,10 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     @property
     def physical_lmax(self) -> int:
         return self._surface_lmax + self._exposure_lmax
+
+    @property
+    def source_radial_quadrature_order(self) -> int:
+        return self._source_radial_order
 
     @property
     def provenance_sha256(self) -> str:

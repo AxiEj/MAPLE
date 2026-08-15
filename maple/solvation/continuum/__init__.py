@@ -127,6 +127,22 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_gaussian_source",
         "gaussian_harmonic_source_operator",
     ),
+    "HARMONIC_POINT_SOURCE_CONTRACT_ID": (
+        "harmonic_point_source",
+        "HARMONIC_POINT_SOURCE_CONTRACT_ID",
+    ),
+    "HARMONIC_POINT_SOURCE_PROVIDER_ID": (
+        "harmonic_point_source",
+        "HARMONIC_POINT_SOURCE_PROVIDER_ID",
+    ),
+    "harmonic_point_source_implementation_sha256": (
+        "harmonic_point_source",
+        "harmonic_point_source_implementation_sha256",
+    ),
+    "point_harmonic_source_operator": (
+        "harmonic_point_source",
+        "point_harmonic_source_operator",
+    ),
     "COULOMB_EV_ANGSTROM_PER_E2": (
         "harmonic_single_layer",
         "COULOMB_EV_ANGSTROM_PER_E2",

@@ -13,6 +13,9 @@ SEPARATED_OPERATIONAL_STATE_EQUATION_ID = (
 MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID = (
     "route2-mace-mdp-permanent-macepolar-induced-pcmsolver-field-root-v1"
 )
+MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID = (
+    "route2-mace-mdp-permanent-macepolar-induced-harmonic-field-root-v1"
+)
 VARIATIONAL_STATE_EQUATION_ID = "route2-common-functional-stationarity-v1"
 
 
@@ -82,6 +85,23 @@ _STATE_ENTRIES = (
         ),
     ),
     StateEquationDefinition(
+        state_equation_id=MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
+        exact_formula=(
+            "c_perm=M_MDP(R); delta_c(u)=M_POLAR(R,u)-M_POLAR(R,0); "
+            "b=B_point^harm(R)c_perm+B_GTO1p5^harm(R)delta_c(u); "
+            "A_harm(R)sigma=b; r(R,u)=u+S8_harm(R)^T sigma=0"
+        ),
+        coordinates="MACE-POLAR native two-width radial receiver field u",
+        constraints=(
+            "neutral singlet and fixed total charge",
+            "MACE-MDP permanent point kernel remains distinct from induced GTO kernel",
+            "fixed-dimensional smooth weighted harmonic coefficient topology",
+            "two deterministic starts agree and the final residual is below tolerance",
+            "numerical scalar-gradient force rebuilds the full harmonic scalar at every stencil point",
+            "no Hessian, MD, or strict common-functional claim",
+        ),
+    ),
+    StateEquationDefinition(
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,
         exact_formula="D_c F_var(R,c)=0 with c=M_theta(R,u) and u=P_R(c)",
         coordinates="charge-constrained source c and energy-dual field u",
@@ -108,6 +128,7 @@ def get_state_equation(state_equation_id: str) -> StateEquationDefinition:
 
 
 __all__ = [
+    "MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID",
     "MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID",
     "OPERATIONAL_STATE_EQUATION_ID",
     "SEPARATED_OPERATIONAL_STATE_EQUATION_ID",

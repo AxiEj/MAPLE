@@ -1,0 +1,149 @@
+{
+    "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-prereg-v1",
+    "schema_version": "route2-experimental-harmonic-energy-force-admission-prereg-v1",
+    "status": "frozen-before-full-admission-execution",
+    "target_profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1",
+    "target_scalar_id": "route2-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1",
+    "target_capabilities": {
+        "E": true,
+        "F": true,
+        "H": false,
+        "V": false,
+        "M": false
+    },
+    "exact_scalar": "E_exp(R)=E_vac^MACEPOLAR(R)-0.5*b(u*)^T*A_harm(R)^-1*b(u*); b=B_point_harm*c_MDP+B_GTO1p5_harm*(M_POLAR(R,u*)-M_POLAR(R,0)); u*=-S8_harm(R)^T*A_harm(R)^-1*b(u*)",
+    "included_components": [
+        "macepolar_zero_field_vacuum_energy",
+        "hybrid_smooth_harmonic_half_coupling_electrostatic"
+    ],
+    "excluded_components": [
+        "macepolar_field_conditioned_raw_energy_difference",
+        "mace_mdp_polarizability_response",
+        "nonpolar_smd_cds",
+        "thermal_and_standard_state_terms",
+        "complete_solvation_free_energy_claim",
+        "analytic_coordinate_derivative",
+        "strict_common_functional_claim"
+    ],
+    "predecessor_failure": {
+        "profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-pcmsolver-electrostatic-v1",
+        "mechanism": "PCMSolver GEPOL active surface cardinality changed under 0.00025-A displacements",
+        "benzene_atom0_x_richardson_local_error_ev_per_angstrom": 0.023995674686,
+        "frozen_threshold_ev_per_angstrom": 0.0002,
+        "decision": "predecessor remains disabled; its tolerance is not relaxed"
+    },
+    "prior_observation_boundary": {
+        "scope": "One development-only benzene atom-0/x stencil was run before this full admission contract was frozen; no water full-Cartesian, translation-force, rotation-force, or closed-loop result had been observed.",
+        "benzene_atom0_x_richardson_local_error_ev_per_angstrom": 1.7219766353451793e-07,
+        "benzene_atom0_x_independent_h4_difference_ev_per_angstrom": 3.941143707567041e-08,
+        "threshold_policy": "The 2e-4 eV/A local-force threshold is inherited unchanged from the failed predecessor preregistration; the full panel and symmetry/loop thresholds were frozen before their execution."
+    },
+    "parent_panel": {
+        "artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+        "relative_path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+        "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+        "record_count": 4
+    },
+    "frozen_runtime_contract": {
+        "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+        "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+        "mace_polar_long_range_evaluator": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+        "permanent_source_kernel": "invariant exterior point multipoles projected to complete harmonic coefficients",
+        "induced_source_kernel": "normalized sigma=1.5-A Gaussian multipoles projected to complete harmonic coefficients",
+        "receiver_kernel": "minus exact transpose of the normalized sigma=1.5/3.0-A Gaussian harmonic source operator",
+        "continuum": "smooth weighted harmonic Galerkin A=E.T*K*E with fixed coefficient topology",
+        "transition_width_angstrom2": 0.18,
+        "surface_lmax": 1,
+        "exposure_lmax": 2,
+        "exposure_radial_quadrature_order": 32,
+        "source_radial_quadrature_order": 32,
+        "green_radial_quadrature_order": 32,
+        "root_method": "undamped Picard",
+        "root_tolerance_ev": 1e-10,
+        "maximum_root_iterations": 40,
+        "second_start": "twice the permanent-source reaction field",
+        "total_charge_tolerance_e": 1e-08,
+        "multi_start_field_tolerance_ev": 2e-09,
+        "multi_start_energy_tolerance_ev": 1e-10,
+        "force_derivative": "fourth-order central Richardson derivative of the complete re-solved scalar",
+        "force_coarse_step_angstrom": 0.0005,
+        "force_fine_step_angstrom": 0.00025,
+        "independent_force_step_angstrom": 0.000125,
+        "force_maximum_local_error_estimate_ev_per_angstrom": 0.0002,
+        "force_topology_policy": "identical fixed coefficient topology hash at center and every stencil point",
+        "force_displacement_policy": "rebuild E,K,point/Gaussian source maps,A,b and both-start root at every point"
+    },
+    "force_panel": {
+        "gepol_regression_compound_id": "mobley_3053621",
+        "gepol_regression_cartesian_dof": [
+            0,
+            0
+        ],
+        "water_geometry_angstrom": [
+            [
+                0.0,
+                0.0,
+                0.0
+            ],
+            [
+                0.9572,
+                0.0,
+                0.0
+            ],
+            [
+                -0.239,
+                0.9266,
+                0.0
+            ]
+        ],
+        "water_full_cartesian_force": true,
+        "independent_direction_seed": 20260816,
+        "maximum_independent_directional_error_ev_per_angstrom": 0.0005,
+        "maximum_benzene_h4_difference_ev_per_angstrom": 0.0002,
+        "translation_angstrom": [
+            4.2,
+            -3.1,
+            1.7
+        ],
+        "maximum_translation_energy_error_ev": 1e-07,
+        "maximum_translation_force_relative_error": 2e-05,
+        "maximum_translation_force_absolute_error_ev_per_angstrom": 5e-05,
+        "maximum_net_force_norm_ev_per_angstrom": 0.001,
+        "rotation_seed": 20260817,
+        "maximum_rotation_energy_error_ev": 1e-07,
+        "maximum_rotation_force_relative_error": 2e-05,
+        "maximum_rotation_force_absolute_error_ev_per_angstrom": 5e-05,
+        "closed_loop_cartesian_dofs": [
+            [
+                0,
+                0
+            ],
+            [
+                1,
+                1
+            ]
+        ],
+        "closed_loop_half_width_angstrom": 0.001,
+        "maximum_closed_loop_work_abs_ev": 2e-07
+    },
+    "admission_gates": {
+        "clean_content_addressed_execution": true,
+        "two_independent_processes_same_measurement_sha256": true,
+        "benzene_predecessor_failure_coordinate_passes_h_h2_h4": true,
+        "water_full_cartesian_h_h2_force_is_finite": true,
+        "all_local_richardson_error_estimates_below_2e-4_ev_per_angstrom": true,
+        "independent_h4_directional_derivative_below_5e-4_ev_per_angstrom": true,
+        "translation_energy_and_net_force_gates_pass": true,
+        "rotation_energy_and_force_covariance_gates_pass": true,
+        "closed_loop_work_plus_numerical_error_bound_gate_passes": true,
+        "all_roots_converge_from_both_starts": true,
+        "all_final_residuals_and_total_charge_errors_pass": true,
+        "accuracy_threshold": null
+    },
+    "decision_rule": {
+        "pass": "Attach the two replicated evidence artifacts and admit only experimental electrostatic E plus runtime-error-bounded numerical scalar-gradient F for this exact profile. Keep H/V/M false and retain all per-call root/topology/Richardson guards.",
+        "fail": "Keep E/F/H/V/M false, retain the run as negative evidence, and do not relax the frozen force/root/symmetry/loop thresholds."
+    },
+    "claim_boundary": "A replicated pass addresses the GEPOL active-point force blocker and admits one experimental electrostatic scalar plus its numerical scalar-gradient force. It does not admit chemical accuracy, complete solvation free energy, analytic force, Hessian/frequency, MD, or Tier V.",
+    "fit_calibration_or_case_selection": false
+}

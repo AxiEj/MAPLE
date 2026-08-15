@@ -11,7 +11,7 @@ This ledger prevents the rebuild from becoming a cosmetic parallel stack.
 | 2: coupling operator | mathematical implementation complete; physical gate open | matrix-free spaces/Q; exact conjugate two-width radial-GTO B/B* and moving-node VJP; the harmonic branch has a geometry-assembled eight-channel Gaussian `S/S.T` intertwiner and rectangular exposure-product embedding; single-width/local-jet remain separate diagnostics; all tiers false |
 | 3: state equation/operational scalar | kernel complete; unadmitted | constrained residual, deterministic root, implicit adjoint, exact state/provider fingerprints; a separate closed analytic-evaluator/original-source plus smooth-harmonic profile now reuses the same kernel |
 | 4: fixed-topology/union-sphere continuum | backend candidates complete; harmonic same-scalar geometry derivative candidate complete; unadmitted | legacy-parity C-PCM plus independent Torch continuum-algebra oracle; ordered-pair-frame candidate; full eight-channel ddX joint `(psi,phi)` ddPCM adapter; the fixed-dimensional harmonic branch assembles nested/intersecting/tangent Coulomb `K`, rectangular `E`, `A=E.T K E`, and `S=E.T V` with structural `SO(3)` covariance, and a separate Torch implementation differentiates the complete `R->E,K,V->G` scalar; physical calibration and all release gates remain missing |
-| 5: solute-model adapters/canaries | MACE-POLAR candidates complete with the original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative; AIMNet2 geometry-mediated candidates implemented and unadmitted | the MACE evidence boundaries are unchanged; one AIMNet2 adapter binds geometry-dependent NQE monopoles and their coordinate VJP without pretending the model accepts a reaction field. It composes either the reused pyddx atomic-l1 map or the reused smooth-harmonic `E/K` kernel plus a new exact point-monopole source map. The harmonic real rotation gate passes, but its full directional gate and all public task gates remain closed |
+| 5: solute-model adapters/canaries | MACE-POLAR candidates complete with the original common-scalar, current molecular-realspace SO(3), and analytic changed-inference Tier-V stability routes closed negative; AIMNet2 geometry-mediated candidates implemented and unadmitted | the MACE evidence boundaries are unchanged; one AIMNet2 adapter binds geometry-dependent NQE monopoles and their coordinate VJP without pretending the model accepts a reaction field. It composes either the reused pyddx atomic-l1 map or the reused smooth-harmonic `E/K` kernel plus a new exact point-monopole source map. The legacy float32 runtime remains a derivative negative control; the source-bound official-Python float64 reconstruction passes one-water harmonic directional/full-Cartesian/rotation prerequisites, but all public task gates remain closed |
 | 6: force/MAPLE integration | blocked | same-scalar force is callable internally and all twenty frozen equilibrium rigid-panel molecules pass twice; distorted-geometry, Cartesian-FD, loop-work, matched-component accuracy, public calculator/workflow, and admission gates remain open |
 | 7: Hessian/FREQ/TS | pending | no vNext Tier H profile |
 | 8: CDS/multisolvent/performance | blocked by Tier F/H | not started |
@@ -184,17 +184,24 @@ Historical exploratory modules remain traceable until the new import graph is
 complete. No production import may point from `maple/solvation` into the future
 `research/route2_legacy` archive.
 
-The geometry-mediated AIMNet2 migration is intentionally a thin reuse path:
-`AIMNet2Calculator.charge_state/charge_position_response` remains the model
-owner. The pyddx arm retains `PyDDXPCMReactionFieldLinearMap`; the harmonic arm
-retains the existing weighted `E`, Coulomb `K`, and sealed scalar/autograd
-kernel and adds only the analytic point-monopole `V`. The shared coupling layer
-binds identities and composes VJPs. Both maps are audited in the registered
-metric rather than inferred from the half-coupling identity. AIMNet2 hard-
-neighbor graphs, pyddx exposed nodes, and harmonic point-source strata receive
-separate rigid-invariant/event-sensitive hashes. The harmonic real rotation
-gate passes, while both real three-step directional gates remain negative.
-SMD-CDS, public OPT, Hessian/FREQ, and MD remain open gates; details are in
+The geometry-mediated AIMNet2 migration is intentionally a thin reuse path.
+The legacy negative-control arm retains
+`AIMNet2Calculator.charge_state/charge_position_response`. Its serialized
+graph hard-casts coordinates to float32. The optional precision arm rebuilds
+the official `aimnet==0.2.0` wB97M-D3 Python architecture, content-addresses
+the upstream sources/configuration, and loads the same unchanged checkpoint
+state dictionary in a float64 graph; it is CPU-only and research-only. The
+pyddx arm retains `PyDDXPCMReactionFieldLinearMap`; the harmonic arm retains
+the existing weighted `E`, Coulomb `K`, and sealed scalar/autograd kernel and
+adds only the analytic point-monopole `V`. The shared coupling layer binds
+identities and composes VJPs. Both maps are audited in the registered metric
+rather than inferred from the half-coupling identity. AIMNet2 hard-neighbor
+graphs, pyddx exposed nodes, and harmonic point-source strata receive separate
+rigid-invariant/event-sensitive hashes. The runner now records one frozen
+direction and every Cartesian component at three decreasing steps. The
+harmonic float64 one-water derivative/rotation prerequisites pass; the legacy
+float32 derivative arm and the pyddx rotation arm remain negative. SMD-CDS,
+public OPT, Hessian/FREQ, and MD remain open gates; details are in
 `AIMNET2_GEOMETRY_MEDIATED.md` and `AIMNET2_POINT_HARMONIC.md`.
 
 The current negative Phase-5/6 result is documented in

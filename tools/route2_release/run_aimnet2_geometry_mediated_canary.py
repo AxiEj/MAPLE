@@ -2,7 +2,9 @@
 """Capture a disabled AIMNet2 geometry-mediated continuum diagnostic.
 
 The runner supports the finite-grid pyddx ddPCM branch and the structurally
-SO(3)-controlled smooth harmonic point-charge conductor branch.  It records
+SO(3)-controlled smooth harmonic point-charge conductor branch.  It also keeps
+the historical float32 TorchScript runtime as a negative-control arm beside a
+source-bound float64 reconstruction of the same checkpoint.  It records
 positive and negative gate evidence without admitting E/F/H/V/M, OPT,
 FREQ/TS/IRC, or MD.
 """
@@ -40,7 +42,12 @@ from maple.solvation.continuum.harmonic_point_torch_functional import (
 from maple.solvation.coupling.geometry_mediated import (
     GeometryMediatedElectrostaticScalar,
 )
-from maple.solvation.models.aimnet2 import AIMNet2GeometryMediatedModelAdapter
+from maple.solvation.models.aimnet2 import (
+    AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
+    AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES,
+    AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT,
+    AIMNet2GeometryMediatedModelAdapter,
+)
 from maple.solvation.release import (
     RepositorySnapshot,
     canonical_json_sha256,
@@ -48,6 +55,7 @@ from maple.solvation.release import (
     collect_loaded_repository_sources,
     committed_source_hashes,
     runtime_record,
+    sha256_file,
     write_external_json_artifact,
 )
 from maple.solvation.release.geometry_mediated import (
@@ -56,11 +64,12 @@ from maple.solvation.release.geometry_mediated import (
     geometry_mediated_admission_decision,
     geometry_mediated_coordinate_direction,
     geometry_mediated_rotations,
+    summarize_geometry_mediated_cartesian_audit,
     summarize_geometry_mediated_directional_audit,
     summarize_geometry_mediated_rotation_audit,
 )
 
-SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v2"
+SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-real-stack-canary-v3"
 NO_CAPABILITIES = {tier: False for tier in ("E", "F", "H", "V", "M")}
 COMMON_REQUIRED_SOURCE_PATHS = (
     "maple/function/calculator/aimnet/_aimnet2_calculator.py",
@@ -90,6 +99,12 @@ CONTINUUM_REQUIRED_SOURCE_PATHS = {
         "maple/solvation/continuum/harmonic_torch_primitives.py",
     ),
 }
+MODEL_RUNTIME_REQUIRED_SOURCE_PATHS = {
+    "legacy-jit-float32": (),
+    "reconstructed-python-float64": (
+        "maple/function/calculator/aimnet/_aimnet2_float64_source.py",
+    ),
+}
 
 
 def _parse_args() -> argparse.Namespace:
@@ -101,6 +116,16 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    parser.add_argument(
+        "--aimnet-runtime",
+        choices=tuple(MODEL_RUNTIME_REQUIRED_SOURCE_PATHS),
+        default="legacy-jit-float32",
+        help=(
+            "Keep the historical hard-coded-float32 TorchScript runtime as a "
+            "negative control, or use the source-bound official-Python float64 "
+            "reconstruction (CPU only)."
+        ),
+    )
     parser.add_argument(
         "--continuum",
         choices=("ddpcm", "harmonic-point"),
@@ -124,7 +149,25 @@ def _water() -> Atoms:
     )
 
 
-def _build(atoms: Atoms, checkpoint: Path, device: str, continuum_kind: str):
+def _verify_route2_checkpoint(checkpoint: Path) -> None:
+    """Reject non-contract checkpoint bytes before TorchScript deserialization."""
+
+    if (
+        checkpoint.stat().st_size != AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES
+        or sha256_file(checkpoint) != AIMNET2_WB97M_D3_CHECKPOINT_SHA256
+    ):
+        raise ValueError(
+            "The AIMNet2 checkpoint bytes do not match the Route-2 contract."
+        )
+
+
+def _build(
+    atoms: Atoms,
+    checkpoint: Path,
+    device: str,
+    continuum_kind: str,
+    aimnet_runtime: str = "legacy-jit-float32",
+):
     import torch
 
     torch.manual_seed(20260815)
@@ -133,13 +176,52 @@ def _build(atoms: Atoms, checkpoint: Path, device: str, continuum_kind: str):
         torch.cuda.manual_seed_all(20260815)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
-    calculator = AIMNet2Calculator(
-        device=torch.device(device),
-        model="aimnet2",
-        model_path=str(checkpoint),
-        coulomb_method="simple",
-    )
-    model = AIMNet2GeometryMediatedModelAdapter(calculator)
+    if aimnet_runtime == "legacy-jit-float32":
+        calculator = AIMNet2Calculator(
+            device=torch.device(device),
+            model="aimnet2",
+            model_path=str(checkpoint),
+            coulomb_method="simple",
+        )
+        model = AIMNet2GeometryMediatedModelAdapter(calculator)
+        model_runtime = {
+            "runtime_kind": aimnet_runtime,
+            "coordinate_dtype": "torch.float32",
+            "checkpoint_weights_changed": False,
+            "forward_semantics": (
+                "legacy TorchScript _prepare_dtype hard-casts coordinates to "
+                "torch.float32"
+            ),
+            "negative_control": True,
+            "ase_calculator_implementation": True,
+            "route2_public_ase_admitted": False,
+        }
+    elif aimnet_runtime == "reconstructed-python-float64":
+        if device != "cpu":
+            raise ValueError(
+                "The source-bound reconstructed AIMNet2 runtime is CPU-only."
+            )
+        from maple.function.calculator.aimnet._aimnet2_float64_source import (
+            AIMNet2ReconstructedFloat64SourceCalculator,
+        )
+
+        calculator = AIMNet2ReconstructedFloat64SourceCalculator(
+            model_path=checkpoint,
+            device=device,
+        )
+        model = AIMNet2GeometryMediatedModelAdapter(
+            calculator,
+            contract=AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT,
+        )
+        model_runtime = calculator.runtime_provenance()
+        model_runtime.update(
+            {
+                "checkpoint_weights_changed": False,
+                "negative_control": False,
+            }
+        )
+    else:  # pragma: no cover - argparse closes this branch
+        raise ValueError(f"unsupported AIMNet2 runtime: {aimnet_runtime}")
     radii = route2_coulomb_radii(
         atoms.get_chemical_symbols(),
         solvent="water",
@@ -204,7 +286,7 @@ def _build(atoms: Atoms, checkpoint: Path, device: str, continuum_kind: str):
         }
     else:  # pragma: no cover - argparse closes this branch
         raise ValueError(f"unsupported continuum kind: {continuum_kind}")
-    return model, continuum, scalar, protocol
+    return model, continuum, scalar, protocol, model_runtime
 
 
 def _topologies(model, continuum, atoms: Atoms):
@@ -229,14 +311,53 @@ def _replay(first, second) -> dict[str, object]:
     }
 
 
+def _cartesian_samples(model, continuum, scalar, atoms: Atoms):
+    """Measure every Cartesian central-difference component on frozen steps."""
+
+    samples: list[dict[str, object]] = []
+    for step in GEOMETRY_MEDIATED_COORDINATE_STEPS_A:
+        components: list[dict[str, object]] = []
+        for atom in range(len(atoms)):
+            for axis in range(3):
+                plus = atoms.copy()
+                minus = atoms.copy()
+                plus.positions[atom, axis] += step
+                minus.positions[atom, axis] -= step
+                plus_model_topology, plus_continuum_topology = _topologies(
+                    model, continuum, plus
+                )
+                minus_model_topology, minus_continuum_topology = _topologies(
+                    model, continuum, minus
+                )
+                components.append(
+                    {
+                        "atom": atom,
+                        "axis": axis,
+                        "plus_energy_eV": scalar.evaluate_energy(plus),
+                        "minus_energy_eV": scalar.evaluate_energy(minus),
+                        "plus_model_topology": plus_model_topology,
+                        "minus_model_topology": minus_model_topology,
+                        "plus_continuum_topology": plus_continuum_topology,
+                        "minus_continuum_topology": minus_continuum_topology,
+                    }
+                )
+        samples.append({"step_A": step, "components": components})
+    return samples
+
+
 def main() -> None:
     args = _parse_args()
     repository = RepositorySnapshot.capture(REPOSITORY_ROOT)
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
+    _verify_route2_checkpoint(checkpoint)
     started = time.perf_counter()
     atoms = _water()
-    model, continuum, scalar, continuum_protocol = _build(
-        atoms, checkpoint, args.device, args.continuum
+    model, continuum, scalar, continuum_protocol, model_runtime = _build(
+        atoms,
+        checkpoint,
+        args.device,
+        args.continuum,
+        args.aimnet_runtime,
     )
 
     first = scalar.evaluate(atoms)
@@ -277,6 +398,13 @@ def main() -> None:
         samples=directional_samples,
         reciprocity_audit=first.reciprocity_audit.as_dict(),
     )
+    cartesian = summarize_geometry_mediated_cartesian_audit(
+        analytic_gradient_eV_per_A=first.total_gradient_eV_per_A,
+        center_model_topology=center_model_topology,
+        center_continuum_topology=center_continuum_topology,
+        samples=_cartesian_samples(model, continuum, scalar, atoms),
+        reciprocity_audit=first.reciprocity_audit.as_dict(),
+    )
 
     rotation_records: list[dict[str, object]] = []
     for rotation in geometry_mediated_rotations():
@@ -314,6 +442,7 @@ def main() -> None:
     decision = geometry_mediated_admission_decision(
         deterministic_replay_passed=bool(replay["gate_passed"]),
         directional_audit=directional,
+        cartesian_audit=cartesian,
         rotation_audit=rotation,
         # pyddx 0.8.0 reports only the requested tolerance.  The harmonic
         # branch records its actual dense stationary residual.
@@ -325,6 +454,7 @@ def main() -> None:
             "audit_schema_version": GEOMETRY_MEDIATED_AUDIT_SCHEMA_VERSION,
             "coordinate_steps_A": list(GEOMETRY_MEDIATED_COORDINATE_STEPS_A),
             "coordinate_direction": direction.tolist(),
+            "cartesian_component_count": int(first.total_gradient_eV_per_A.size),
             "rotation_matrices": [
                 rotation_matrix.tolist()
                 for rotation_matrix in geometry_mediated_rotations()
@@ -353,6 +483,7 @@ def main() -> None:
             "pairing_sha256": continuum.pairing.metadata_hash(),
             "center_model_topology": center_model_topology,
             "center_continuum_topology": center_continuum_topology,
+            "model_runtime": model_runtime,
         },
         "center": {
             "vacuum_energy_eV": first.energy.vacuum_energy_eV,
@@ -374,6 +505,7 @@ def main() -> None:
         "reciprocity_metric_charge_gauge": first.reciprocity_audit.as_dict(),
         "stationarity": stationarity,
         "coordinate_directional": directional,
+        "coordinate_cartesian": cartesian,
         "rigid_rotation": rotation,
         "decision": decision,
     }
@@ -384,15 +516,16 @@ def main() -> None:
         required_paths=(
             COMMON_REQUIRED_SOURCE_PATHS
             + CONTINUUM_REQUIRED_SOURCE_PATHS[args.continuum]
+            + MODEL_RUNTIME_REQUIRED_SOURCE_PATHS[args.aimnet_runtime]
         ),
     )
     source_hashes = committed_source_hashes(repository, source_paths)
     payload: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
         "artifact_kind": (
-            "disabled-aimnet2-geometry-mediated-ddpcm-real-stack-canary"
-            if args.continuum == "ddpcm"
-            else "disabled-aimnet2-geometry-mediated-harmonic-point-real-stack-canary"
+            "disabled-aimnet2-"
+            f"{args.aimnet_runtime}-geometry-mediated-{args.continuum}-"
+            "real-stack-canary"
         ),
         "status": (
             "diagnostic-gates-passed-not-admitted"
@@ -403,8 +536,9 @@ def main() -> None:
             "This one-water artifact audits the explicit geometry map "
             "R->q_AIMNet2(R), the selected continuum half-coupling under the "
             "registered metric, "
-            "charge-gauge response, one three-step coordinate direction, hard "
-            "neighbor/continuum strata, and three rigid rotations. The harmonic "
+            "charge-gauge response, one three-step coordinate direction, a "
+            "three-step full Cartesian panel, hard neighbor/continuum strata, "
+            "and three rigid rotations. The harmonic "
             "arm is a conductor reference without a finite-dielectric solvent "
             "parameterization. It is not fixed-R "
             "mutual polarization, chemical-accuracy evidence, a global C1 proof, "
@@ -423,6 +557,7 @@ def main() -> None:
         ),
         "runtime": runtime_record(),
         "device": args.device,
+        "aimnet_runtime": args.aimnet_runtime,
         "continuum_kind": args.continuum,
         "dtype": model.dtype,
         **measured,

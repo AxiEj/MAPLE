@@ -100,6 +100,29 @@ def _source_files(calculator: object) -> tuple[tuple[str, str], ...]:
     return tuple((label, _sha256_file(path)) for label, path in sorted(paths.items()))
 
 
+def _runtime_provenance_sha256(calculator: object) -> str | None:
+    provider = getattr(calculator, "runtime_provenance", None)
+    if provider is None:
+        return None
+    if not callable(provider):
+        raise TypeError("AIMNet2 runtime_provenance must be callable when present.")
+    payload = provider()
+    if not isinstance(payload, dict):
+        raise TypeError("AIMNet2 runtime_provenance() must return a dictionary.")
+    try:
+        canonical = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "AIMNet2 runtime provenance must be finite JSON-compatible metadata."
+        ) from exc
+    return hashlib.sha256(canonical).hexdigest()
+
+
 @dataclass(frozen=True, slots=True)
 class AIMNet2NeighborTopologyState:
     """Rigid-motion-invariant identity of AIMNet2's hard neighbor graphs."""
@@ -222,12 +245,32 @@ AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT = AIMNet2CheckpointContract(
     checkpoint_origin_status="hash-bound-local-asset-upstream-release-origin-unresolved",
 )
 
+AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT = AIMNet2CheckpointContract(
+    provider_id="maple.route2.model.aimnet2-geometry-mediated-float64.impl.v1",
+    model_profile_id=AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID,
+    checkpoint_identifier="aimnet2-wb97m-d3-local-sha256-bound",
+    checkpoint_sha256=AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
+    checkpoint_size_bytes=AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES,
+    model_name="aimnet2",
+    coulomb_method="simple",
+    inference_dtype="float64",
+    supported_atomic_numbers=(1, 6, 7, 8),
+    upstream_repository="https://github.com/isayevlab/aimnetcentral",
+    publication_doi="10.1039/D4SC08572H",
+    upstream_version="aimnet==0.2.0 Python reconstruction of legacy wB97M-D3",
+    upstream_commit="unresolved-upstream-commit-runtime-files-sha256-bound",
+    checkpoint_origin_status=(
+        "hash-bound-local-asset-upstream-release-origin-unresolved"
+    ),
+)
+
 
 class AIMNet2GeometryMediatedModelAdapter:
     """Vacuum/source/coordinate-response adapter with zero field response."""
 
     __slots__ = (
         "_calculator",
+        "_calculator_runtime_provenance_sha256",
         "_checkpoint_path",
         "_checkpoint_stat",
         "_configuration_sha256",
@@ -280,6 +323,11 @@ class AIMNet2GeometryMediatedModelAdapter:
                 "AIMNet2 geometry-mediated vacuum/source inference must not include "
                 "a calculator-internal solvent correction."
             )
+        calculator_dtype = str(getattr(calculator, "inference_dtype", "float32"))
+        if calculator_dtype != contract.inference_dtype:
+            raise ValueError(
+                "AIMNet2 calculator inference dtype does not match the contract."
+            )
         short_cutoff = float(getattr(calculator, "cutoff", np.nan))
         raw_long_cutoff = float(getattr(calculator, "cutoff_lr", np.nan))
         if not math.isfinite(short_cutoff) or short_cutoff <= 0.0:
@@ -303,6 +351,7 @@ class AIMNet2GeometryMediatedModelAdapter:
         device = _text(str(getattr(calculator, "device", "")), name="device")
         domain = ModelDomain(contract.supported_atomic_numbers, (0, 0), (1,))
         files = _source_files(calculator)
+        runtime_provenance_sha256 = _runtime_provenance_sha256(calculator)
         provenance = ModelProvenance(
             provider_id=contract.provider_id,
             model_profile_id=contract.model_profile_id,
@@ -310,7 +359,12 @@ class AIMNet2GeometryMediatedModelAdapter:
             checkpoint_sha256=contract.checkpoint_sha256,
             upstream_version=contract.upstream_version,
             upstream_commit=contract.upstream_commit,
-            inference_code_sha256=_hash({"source_files_sha256": files}),
+            inference_code_sha256=_hash(
+                {
+                    "source_files_sha256": files,
+                    "runtime_provenance_sha256": runtime_provenance_sha256,
+                }
+            ),
             dtype=contract.inference_dtype,
             device=device,
             domain=domain,
@@ -322,6 +376,11 @@ class AIMNet2GeometryMediatedModelAdapter:
             ),
         )
         object.__setattr__(self, "_calculator", calculator)
+        object.__setattr__(
+            self,
+            "_calculator_runtime_provenance_sha256",
+            runtime_provenance_sha256,
+        )
         object.__setattr__(self, "_contract", contract)
         object.__setattr__(
             self,
@@ -381,9 +440,12 @@ class AIMNet2GeometryMediatedModelAdapter:
             )
         return _hash(
             {
-                "schema": "route2-aimnet2-geometry-mediated-model-adapter-v1",
+                "schema": "route2-aimnet2-geometry-mediated-model-adapter-v2",
                 "contract": self._contract.metadata(),
                 "source_files_sha256": _source_files(self._calculator),
+                "runtime_provenance_sha256": _runtime_provenance_sha256(
+                    self._calculator
+                ),
                 "calculator_behavior_sha256": provider_behavior_sha256(
                     self._calculator,
                     ("charge_state", "charge_position_response"),
@@ -394,6 +456,9 @@ class AIMNet2GeometryMediatedModelAdapter:
                 "coupling_id": self.coupling_id,
                 "provenance_sha256": self.provenance_sha256,
                 "device": str(getattr(self._calculator, "device", "")),
+                "calculator_inference_dtype": str(
+                    getattr(self._calculator, "inference_dtype", "float32")
+                ),
                 "model_name": getattr(self._calculator, "model_name", None),
                 "coulomb_method": getattr(self._calculator, "_coulomb_method", None),
                 "neighbor_cutoffs_angstrom": {
@@ -415,6 +480,11 @@ class AIMNet2GeometryMediatedModelAdapter:
         )
 
     def configuration_sha256(self) -> str:
+        if (
+            _runtime_provenance_sha256(self._calculator)
+            != self._calculator_runtime_provenance_sha256
+        ):
+            raise ValueError("AIMNet2 runtime provenance drifted.")
         current_short = float(getattr(self._calculator, "cutoff", np.nan))
         current_long = float(getattr(self._calculator, "cutoff_lr", np.nan))
         if current_short != self._neighbor_cutoffs_angstrom[0][1] or (
@@ -637,6 +707,7 @@ __all__ = [
     "AIMNET2_WB97M_D3_CHECKPOINT_SHA256",
     "AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES",
     "AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT",
+    "AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT",
     "AIMNet2CheckpointContract",
     "AIMNet2GeometryMediatedModelAdapter",
     "AIMNet2NeighborTopologyState",

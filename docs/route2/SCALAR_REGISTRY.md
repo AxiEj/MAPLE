@@ -57,12 +57,12 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 - Profile:
   `route2-profile-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1`.
 - Capability/evidence: none / negative local admission canary. The hash-bound
-  real water metric/gauge audit passes, but its fixed-stratum three-step
-  coordinate differences do not exhibit an admissible numerical window, and
-  all three frozen rotations change the exposed laboratory-grid cavity active
-  set. Unresolved upstream release identity, absent measured pyddx residual,
-  omitted nonpolar physics, and absent domain/HVP/NVE validation keep
-  `E/F/H/V/M` false.
+  real water metric/gauge audit passes, but the legacy float32 graph's
+  fixed-stratum directional and full-Cartesian coordinate differences do not
+  exhibit an admissible numerical window, and all three frozen rotations
+  change the exposed laboratory-grid cavity active set. Unresolved checkpoint
+  release identity, absent measured pyddx residual, omitted nonpolar physics,
+  and absent domain/loop/HVP/NVE validation keep `E/F/H/V/M` false.
 - Full contract and literature boundary:
   [`AIMNET2_GEOMETRY_MEDIATED.md`](AIMNET2_GEOMETRY_MEDIATED.md).
 
@@ -88,10 +88,19 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 - Excluded: finite-dielectric solvent parameterization, CDS/nonpolar and
   standard-state terms, fixed-geometry mutual polarization, and all public
   Hessian/FREQ/TS/MD claims.
+- Precision/runtime boundary: the legacy TorchScript graph hard-casts
+  coordinates to float32 and is retained as a negative control. The optional
+  CPU research runtime rebuilds the official `aimnet==0.2.0` wB97M-D3 Python
+  architecture, verifies its source/configuration hashes, loads unchanged
+  checkpoint weights, and evaluates the same input/topology semantics in
+  float64. It is not a public ASE calculator and has no HVP.
 - Capability/evidence: none. Synthetic scalar/derivative/symmetry gates pass;
-  the real water rigid-rotation gate passes while the real three-step
-  full-energy directional gate remains negative. This is a conductor
-  reference, not an admitted water ddPCM model.
+  the real water rigid-rotation gate passes for both precision arms. The
+  float32 directional/full-Cartesian gates fail, while the float64 local
+  one-water gates pass with central refinement and point/source-shell event
+  guards. This isolates precision but does not supply broader-domain,
+  closed-loop, HVP, physical-solvent, or release evidence. It remains a
+  conductor reference, not an admitted water ddPCM model.
 - Full contract and literature boundary:
   [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md).
 

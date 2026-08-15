@@ -10,6 +10,34 @@ import pytest
 _ENABLED = os.environ.get("MAPLE_ROUTE2_REAL_AIMNET2") == "1"
 
 
+def _cartesian_samples(model, continuum, scalar, atoms, steps):
+    samples = []
+    for step in steps:
+        components = []
+        for atom in range(len(atoms)):
+            for axis in range(3):
+                plus = atoms.copy()
+                minus = atoms.copy()
+                plus.positions[atom, axis] += step
+                minus.positions[atom, axis] -= step
+                components.append(
+                    {
+                        "atom": atom,
+                        "axis": axis,
+                        "plus_energy_eV": scalar.evaluate_energy(plus),
+                        "minus_energy_eV": scalar.evaluate_energy(minus),
+                        "plus_model_topology": model.neighbor_topology(plus).as_dict(),
+                        "minus_model_topology": model.neighbor_topology(
+                            minus
+                        ).as_dict(),
+                        "plus_continuum_topology": continuum.topology_state(plus),
+                        "minus_continuum_topology": continuum.topology_state(minus),
+                    }
+                )
+        samples.append({"step_A": step, "components": components})
+    return samples
+
+
 @pytest.mark.skipif(
     not _ENABLED,
     reason="set MAPLE_ROUTE2_REAL_AIMNET2=1 for the real checkpoint canary",
@@ -47,6 +75,7 @@ def test_real_aimnet2_pyddx_geometry_mediated_directional_derivative():
         geometry_mediated_admission_decision,
         geometry_mediated_coordinate_direction,
         geometry_mediated_rotations,
+        summarize_geometry_mediated_cartesian_audit,
         summarize_geometry_mediated_directional_audit,
         summarize_geometry_mediated_rotation_audit,
     )
@@ -125,6 +154,21 @@ def test_real_aimnet2_pyddx_geometry_mediated_directional_derivative():
     assert scalar.continuum.fixed_topology is False
     assert scalar.continuum.capabilities.enabled_tiers == ()
 
+    cartesian = summarize_geometry_mediated_cartesian_audit(
+        analytic_gradient_eV_per_A=result.total_gradient_eV_per_A,
+        center_model_topology=model.neighbor_topology(atoms).as_dict(),
+        center_continuum_topology=continuum.topology_state(atoms),
+        samples=_cartesian_samples(
+            model,
+            continuum,
+            scalar,
+            atoms,
+            GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
+        ),
+        reciprocity_audit=result.reciprocity_audit.as_dict(),
+    )
+    assert cartesian["gate_passed"] is False
+
     rotations = []
     for rotation in geometry_mediated_rotations():
         rotated = atoms.copy()
@@ -154,6 +198,7 @@ def test_real_aimnet2_pyddx_geometry_mediated_directional_derivative():
     decision = geometry_mediated_admission_decision(
         deterministic_replay_passed=True,
         directional_audit=directional,
+        cartesian_audit=cartesian,
         rotation_audit=rotation_audit,
         post_solve_residual_available=False,
     )
@@ -167,7 +212,17 @@ def test_real_aimnet2_pyddx_geometry_mediated_directional_derivative():
     not _ENABLED,
     reason="set MAPLE_ROUTE2_REAL_AIMNET2=1 for the real checkpoint canary",
 )
-def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
+@pytest.mark.parametrize(
+    ("runtime_kind", "expected_force_gate"),
+    (
+        ("legacy-jit-float32", False),
+        ("reconstructed-python-float64", True),
+    ),
+)
+def test_real_aimnet2_point_harmonic_precision_and_rotation_gates(
+    runtime_kind,
+    expected_force_gate,
+):
     checkpoint_raw = os.environ.get("MAPLE_ROUTE2_AIMNET2_CHECKPOINT")
     assert checkpoint_raw, (
         "MAPLE_ROUTE2_REAL_AIMNET2=1 requires " "MAPLE_ROUTE2_AIMNET2_CHECKPOINT"
@@ -194,6 +249,7 @@ def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
         GeometryMediatedElectrostaticScalar,
     )
     from maple.solvation.models.aimnet2 import (
+        AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT,
         AIMNet2GeometryMediatedModelAdapter,
     )
     from maple.solvation.release.geometry_mediated import (
@@ -201,6 +257,7 @@ def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
         geometry_mediated_admission_decision,
         geometry_mediated_coordinate_direction,
         geometry_mediated_rotations,
+        summarize_geometry_mediated_cartesian_audit,
         summarize_geometry_mediated_directional_audit,
         summarize_geometry_mediated_rotation_audit,
     )
@@ -215,13 +272,69 @@ def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
         ],
         info={"charge": 0, "mult": 1},
     )
-    calculator = AIMNet2Calculator(
-        device=torch.device("cpu"),
-        model="aimnet2",
-        model_path=str(checkpoint),
-        coulomb_method="simple",
-    )
-    model = AIMNet2GeometryMediatedModelAdapter(calculator)
+    if runtime_kind == "legacy-jit-float32":
+        calculator = AIMNet2Calculator(
+            device=torch.device("cpu"),
+            model="aimnet2",
+            model_path=str(checkpoint),
+            coulomb_method="simple",
+        )
+        model = AIMNet2GeometryMediatedModelAdapter(calculator)
+    else:
+        pytest.importorskip("aimnet")
+        from maple.function.calculator.aimnet._aimnet2_float64_source import (
+            AIMNET_REQUIRED_FILE_SHA256,
+            AIMNet2ReconstructedFloat64SourceCalculator,
+        )
+
+        calculator = AIMNet2ReconstructedFloat64SourceCalculator(
+            model_path=checkpoint,
+            device="cpu",
+        )
+        model = AIMNet2GeometryMediatedModelAdapter(
+            calculator,
+            AIMNET2_WB97M_D3_RECONSTRUCTED_FLOAT64_CONTRACT,
+        )
+        runtime_provenance = calculator.runtime_provenance()
+        assert runtime_provenance["coordinate_dtype"] == "torch.float64"
+        assert runtime_provenance["aimnet_runtime_files_sha256"] == dict(
+            sorted(AIMNET_REQUIRED_FILE_SHA256.items())
+        )
+        with pytest.raises(NotImplementedError, match="not a public ASE calculator"):
+            calculator.calculate(atoms)
+
+        # Loading the state dictionary is exact; this cross-runtime comparison
+        # separately bounds the expected float32/float64 numerical difference.
+        legacy = AIMNet2Calculator(
+            device=torch.device("cpu"),
+            model="aimnet2",
+            model_path=str(checkpoint),
+            coulomb_method="simple",
+        )
+        cotangent = np.asarray([-0.3, 0.1, 0.2])
+        legacy_response = legacy.charge_position_response(atoms, cotangent)
+        reconstructed_response = calculator.charge_position_response(atoms, cotangent)
+        assert reconstructed_response.charge_state.energy_ev == pytest.approx(
+            legacy_response.charge_state.energy_ev, abs=2.0e-6
+        )
+        np.testing.assert_allclose(
+            reconstructed_response.charge_state.charges_e,
+            legacy_response.charge_state.charges_e,
+            rtol=0.0,
+            atol=2.0e-7,
+        )
+        np.testing.assert_allclose(
+            reconstructed_response.intrinsic_energy_gradient_ev_per_angstrom,
+            legacy_response.intrinsic_energy_gradient_ev_per_angstrom,
+            rtol=0.0,
+            atol=3.0e-6,
+        )
+        np.testing.assert_allclose(
+            reconstructed_response.charge_position_vjp_ev_per_angstrom,
+            legacy_response.charge_position_vjp_ev_per_angstrom,
+            rtol=0.0,
+            atol=5.0e-7,
+        )
     radii = route2_coulomb_radii(
         atoms.get_chemical_symbols(),
         solvent="water",
@@ -252,8 +365,8 @@ def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
     assert result.reciprocity_audit.gate_passed is True
 
     # The continuum itself is structurally covariant for an invariant point-l0
-    # source.  The full audit below additionally measures the real float32
-    # AIMNet2 checkpoint rather than hiding its small numerical frame drift.
+    # source.  The full audit below additionally measures the selected AIMNet2
+    # numerical graph rather than hiding its finite-precision frame drift.
     continuum_energy = continuum.energy_eV(atoms, result.source)
     continuum_gradient = continuum.coordinate_partial(atoms, result.source)
     rotation_records = []
@@ -319,16 +432,37 @@ def test_real_aimnet2_point_harmonic_removes_laboratory_grid_rotation_failure():
         reciprocity_audit=result.reciprocity_audit.as_dict(),
     )
     assert directional["topology"]["all_stencils_same_stratum"] is True
-    assert directional["gate_passed"] is False
+    assert directional["topology"]["continuum_event_guard_applicable"] is True
+    assert directional["topology"]["all_continuum_event_margins_available"] is True
+    assert directional["gate_passed"] is expected_force_gate
+
+    cartesian = summarize_geometry_mediated_cartesian_audit(
+        analytic_gradient_eV_per_A=result.total_gradient_eV_per_A,
+        center_model_topology=model.neighbor_topology(atoms).as_dict(),
+        center_continuum_topology=continuum.topology_state(atoms),
+        samples=_cartesian_samples(
+            model,
+            continuum,
+            scalar,
+            atoms,
+            GEOMETRY_MEDIATED_COORDINATE_STEPS_A,
+        ),
+        reciprocity_audit=result.reciprocity_audit.as_dict(),
+    )
+    assert cartesian["topology"]["continuum_event_guard_applicable"] is True
+    assert cartesian["topology"]["all_continuum_event_margins_available"] is True
+    assert cartesian["gate_passed"] is expected_force_gate
 
     decision = geometry_mediated_admission_decision(
         deterministic_replay_passed=True,
         directional_audit=directional,
+        cartesian_audit=cartesian,
         rotation_audit=rotation,
         post_solve_residual_available=True,
     )
     assert decision["rotation_topology_gate_passed"] is True
-    assert decision["local_diagnostic_gates_passed"] is False
+    assert decision["local_diagnostic_gates_passed"] is expected_force_gate
+    assert decision["tier_f_prerequisites_passed"] is expected_force_gate
     assert decision["public_energy_admitted"] is False
     assert decision["public_force_admitted"] is False
     assert decision["opt_admitted"] is False

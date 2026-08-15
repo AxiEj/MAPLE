@@ -154,16 +154,30 @@ Synthetic tests currently establish:
   geometry-mediated scalar;
 - fail-closed point-on-shell events and measured stationary residuals.
 
-The opt-in SHA256-bound real AIMNet2 water canary shows a materially narrower
-result than the pyddx branch:
+The opt-in SHA256-bound real AIMNet2 water canary now has two explicit
+precision arms:
 
 - the harmonic continuum alone is rotation invariant/covariant at roughly
   double-precision error;
 - the full AIMNet2 plus harmonic scalar keeps the same model and continuum
   strata and passes the frozen rigid-rotation gate;
-- the three-step full-energy directional finite-difference gate still fails
-  because the real AIMNet2 energy head is float32 and the sampled differences
-  do not form the required convergence window.
+- the historical TorchScript arm is a negative control: its serialized input
+  preparation hard-casts coordinates to float32, and both the three-step
+  directional and complete `3N` Cartesian full-energy gates fail;
+- the optional source-bound arm rebuilds the official `aimnet==0.2.0`
+  wB97M-D3 Python architecture, loads the unchanged checkpoint state
+  dictionary, evaluates the complete graph in float64, and passes both local
+  one-water derivative gates with central-difference refinement;
+- the full Cartesian audit recomputes derivatives from raw displaced scalar
+  energies, requires every component exactly once, reuses the common Route-2
+  PES convergence contract, and enforces identical neighbor/cavity strata plus
+  neighbor and point/source-shell event margins over every stencil.
+
+The float64 result isolates a numerical precision blocker; it does not admit a
+force capability. The reconstruction is CPU-only, source/version/SHA-bound,
+not a public ASE calculator, and has no HVP. Neither arm supplies broader
+chemistry, distorted-geometry, closed-loop, cutoff/tangency, finite-dielectric,
+nonpolar, optimization, Hessian, or NVE evidence.
 
 Run both continuum arms explicitly:
 
@@ -175,9 +189,17 @@ python -m pytest -q -s \
 
 python tools/route2_release/run_aimnet2_geometry_mediated_canary.py \
   --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
+  --aimnet-runtime legacy-jit-float32 \
   --continuum harmonic-point \
   --device cpu \
-  --output /absolute/path/outside/the/repository/aimnet2-harmonic-water.json
+  --output /absolute/path/outside/the/repository/aimnet2-harmonic-fp32.json
+
+python tools/route2_release/run_aimnet2_geometry_mediated_canary.py \
+  --checkpoint "$MAPLE_ROUTE2_AIMNET2_CHECKPOINT" \
+  --aimnet-runtime reconstructed-python-float64 \
+  --continuum harmonic-point \
+  --device cpu \
+  --output /absolute/path/outside/the/repository/aimnet2-harmonic-fp64.json
 ```
 
 All public `E/F/H/V/M`, OPT, FREQ/TS/IRC, and MD flags remain false.  Before

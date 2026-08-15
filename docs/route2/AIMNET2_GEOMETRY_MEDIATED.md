@@ -62,26 +62,68 @@ dE_gm/dR = dE_AIMNet2/dR
 
 Each term has one owner:
 
-- `models/aimnet2.py` delegates intrinsic energy/forces and the charge-position
-  VJP to the existing `AIMNet2Calculator` methods;
+- `models/aimnet2.py` binds the checkpoint, model contract, neighbor topology,
+  intrinsic energy/forces, and charge-position VJP;
+- the historical negative-control arm delegates those primitives to the
+  existing TorchScript `AIMNet2Calculator`, while the optional precision arm
+  in `maple/function/calculator/aimnet/_aimnet2_float64_source.py` rebuilds the
+  official `aimnet==0.2.0` Python architecture and loads the same unchanged
+  checkpoint state dictionary;
 - `continuum/atomic_l1_pyddx.py` delegates field, source JVP/VJP, and coordinate
   VJP to the existing `PyDDXPCMReactionFieldLinearMap`;
 - `coupling/geometry_mediated.py` owns the half-coupling ledger and composes the
   three gradient terms.
 
-No model inference, ddPCM equation, or chain-rule term is reimplemented in a
-second monolithic objective. Synthetic full-Cartesian finite differences lock
-the complete scalar and include negative tests for an antisymmetric reaction
-operator and a charge projection with nonzero gauge VJP.
+No PCM equation or chain-rule term is reimplemented in a second monolithic
+objective. The precision arm reuses the maintained upstream AIMNet2 modules
+rather than forking the network implementation. It is pinned to the exact
+package version, official wB97M-D3 YAML, and SHA256 of every AIMNet package
+source/configuration/data file used by the dense molecular forward; external
+runtime package versions are recorded separately. Any bound-file drift fails
+closed.
+No dependency was added to MAPLE: this is an optional research runtime and is
+available only when the exact upstream package is already installed.
+
+Synthetic and real-stack full-Cartesian finite differences lock the complete
+scalar and include negative tests for an antisymmetric reaction operator, a
+charge projection with nonzero gauge VJP, incomplete Cartesian coverage, and
+nearby continuum event surfaces. The Cartesian wrapper reuses MAPLE's existing
+PES convergence primitive; it does not introduce a second set of numerical
+thresholds.
+
+## Precision-controlled checkpoint reconstruction
+
+The serialized legacy TorchScript graph calls `torch.to(coord, 6)` in its
+input preparation; Torch dtype enum `6` is `float32`. Calling `double()` on the
+loaded module therefore does not produce a double-precision coordinate graph:
+each forward converts the coordinates back to float32 before distances are
+formed. This is why the legacy arm is retained explicitly as a negative
+control rather than hidden by selecting a favorable finite-difference step.
+
+`AIMNet2ReconstructedFloat64SourceCalculator` instead:
+
+1. verifies `aimnet==0.2.0` and content-addresses its configuration and source;
+2. builds the official `aimnet2_dftd3_wb97m.yaml` architecture;
+3. loads the unchanged local checkpoint state dictionary, allowing only its
+   known unused misspelled sentinel buffer;
+4. converts the complete Python forward and coordinate contract to float64;
+5. exposes only the same-forward energy/charge state and `J_q^T v` research
+   primitives.
+
+It is CPU-only, not registered as an ASE calculator, rejects public
+`calculate()`, and supplies no Hessian/HVP. It changes numerical precision and
+execution graph, not weights, input semantics, neighbor policy, or charge
+projection. Agreement with the historical float32 graph is tested separately;
+that agreement is a reconstruction check, not chemical-accuracy evidence.
 
 The opt-in real-checkpoint test uses the SHA256-bound AIMNet2 asset and
 `pyddx==0.8.0`. It verifies the reciprocity/metric/gauge audit, then deliberately
-applies the stricter three-step coordinate and three-rotation fail-closed
-harness. The current water diagnostic keeps one cavity active set over the
-small coordinate stencil, but the float32 energy differences do not form an
-admissible convergence window; the laboratory-frame Lebedev active set also
-changes under all three frozen rotations. These are negative admission results,
-not a tuned threshold pass:
+applies the stricter three-step directional, complete `3N` Cartesian, and
+three-rotation fail-closed harness. The current water diagnostic keeps one
+cavity active set over the small coordinate stencil, but the legacy float32
+energy differences do not form an admissible convergence window; the
+laboratory-frame Lebedev active set also changes under all three frozen
+rotations. These are negative admission results, not a tuned threshold pass:
 
 ```bash
 export MAPLE_ROUTE2_REAL_AIMNET2=1
@@ -95,16 +137,22 @@ A clean-tree, source-bound JSON runner writes outside the checkout:
 ```bash
 python tools/route2_release/run_aimnet2_geometry_mediated_canary.py \
   --checkpoint /absolute/path/to/aimnet2.pt \
+  --aimnet-runtime legacy-jit-float32 \
   --continuum ddpcm \
   --device cpu \
   --output /absolute/path/outside/the/repository/aimnet2-gm-water.json
 ```
 
-The runner records the checkpoint, loaded committed sources, registered metric,
+The runner records the checkpoint, selected precision runtime, upstream source
+hashes for the reconstruction arm, loaded committed sources, registered metric,
 model hard-neighbor graph, exact exposed sphere/Lebedev candidate set,
-three-step directional measurements, rotation measurements, and the fact that
-this pyddx provider exposes a requested solver tolerance but not a measured
-post-solve algebraic residual. It always leaves all capabilities false.
+three-step directional measurements, all `3N` Cartesian energy stencils,
+rotation measurements, and the fact that this pyddx provider exposes a
+requested solver tolerance but not a measured post-solve algebraic residual.
+The pyddx topology record likewise has exact sampled active-set identity but no
+continuous distance-to-active-set-event value; the artifact marks that event
+margin as unavailable/not applicable instead of inventing one. It always
+leaves all capabilities false.
 
 ## Structurally rotational harmonic branch
 
@@ -114,13 +162,16 @@ Galerkin assembly and an analytic point-monopole boundary map. It keeps the
 same unmodified AIMNet2 charge function and supplies structural `SO(3)`
 intertwiners rather than tuning a larger angular grid.
 
-The real water canary now preserves the continuum stratum under all frozen
-rotations and passes the complete rigid-rotation gate. Its full three-step
-coordinate directional gate remains negative because the float32 AIMNet2
-energy differences do not show the required convergence window. This is an
-isolation result, not force admission. The branch is also a conductor
-reference without finite-dielectric solvent parameterization, so it must not
-be presented as an admitted water ddPCM replacement. See
+The real water canary preserves the continuum stratum under all frozen
+rotations and passes the complete rigid-rotation gate. The legacy float32 arm
+remains negative for both the directional and full-Cartesian energy-difference
+gates. The source-bound float64 arm passes those local one-water derivative
+gates with central-difference refinement, while using the same checkpoint
+weights and topology. This is a precision-isolation result, not force or task
+admission: broader geometry/chemistry, closed-loop, event, HVP, and release
+panels remain absent. The branch is also a conductor reference without
+finite-dielectric solvent parameterization, so it must not be presented as an
+admitted water ddPCM replacement. See
 [`AIMNET2_POINT_HARMONIC.md`](AIMNET2_POINT_HARMONIC.md) for the addition
 theorem, parent functional, topology events, executed tests, and claim
 boundary.
@@ -150,7 +201,8 @@ unsupported upstream.
 | pyddx rigid rotation / exact cavity-active-set gate | fails current laboratory-grid diagnostic |
 | harmonic-point structural continuum rotation | passes synthetic and real water canaries |
 | harmonic-point full rigid-rotation gate | passes current real water canary |
-| harmonic-point three-step full-energy direction | fails current float32 AIMNet2 water canary |
+| harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
+| source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
 | fixed-geometry electronic mutual polarization | absent by model interface |
 | SMD-CDS/nonpolar and standard-state terms | excluded |
 | public single-point E/F | disabled |
@@ -168,10 +220,11 @@ coordinate derivative and passes cavity/profile compatibility gates.
 
 1. Recover the exact upstream release identity of the local checkpoint.
 2. Continue the structurally controlled harmonic branch through
-   distorted-geometry, full Cartesian, closed-loop, cutoff/source-shell/sphere-
-   tangency, and broader chemistry panels. Its rotation gate is now positive,
-   but its real full-energy directional gate remains negative. The pyddx arm
-   still has both directional and laboratory-grid rotation failures.
+   distorted-geometry, closed-loop, cutoff/source-shell/sphere-tangency, and
+   broader chemistry panels. One equilibrium-water float64 directional and
+   Cartesian panel is positive, but it is not a domain or workflow gate. The
+   legacy float32 arm remains a negative control, and the pyddx arm still has
+   both derivative and laboratory-grid rotation failures.
 3. Bind solvent dielectric, radii, grid, and solver choices to separately named
    physical-configuration profiles instead of the current unbound diagnostic.
 4. Add a same-scalar nonpolar provider before making total solvation-free-energy

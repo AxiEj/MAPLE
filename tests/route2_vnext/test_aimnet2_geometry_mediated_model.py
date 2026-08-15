@@ -239,3 +239,28 @@ def test_aimnet2_adapter_rejects_internal_solvent_correction_at_construction(tmp
     calculator.solvent_correction = object()
     with pytest.raises(ValueError, match="must not include"):
         AIMNet2GeometryMediatedModelAdapter(calculator, contract)
+
+
+def test_aimnet2_adapter_binds_and_rechecks_inference_dtype(tmp_path):
+    adapter, calculator = _adapter(tmp_path)
+    calculator.inference_dtype = "float64"
+
+    with pytest.raises(ValueError, match="configuration drifted"):
+        adapter.configuration_sha256()
+
+    with pytest.raises(ValueError, match="inference dtype"):
+        AIMNet2GeometryMediatedModelAdapter(calculator, adapter.checkpoint_contract)
+
+
+def test_aimnet2_adapter_binds_optional_runtime_provenance(tmp_path):
+    baseline, original = _adapter(tmp_path)
+    calculator = _FakeAIMNet2Calculator(original.model_path)
+    runtime = {"runtime_kind": "test", "source_sha256": "1" * 64}
+    calculator.runtime_provenance = lambda: dict(runtime)
+    adapter = AIMNet2GeometryMediatedModelAdapter(
+        calculator, baseline.checkpoint_contract
+    )
+
+    runtime["source_sha256"] = "2" * 64
+    with pytest.raises(ValueError, match="runtime provenance drifted"):
+        adapter.configuration_sha256()

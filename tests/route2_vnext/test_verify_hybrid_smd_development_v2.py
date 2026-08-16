@@ -13,6 +13,14 @@ from tools.route2_release.verify_hybrid_smd_development_v2 import (
 )
 
 
+_FROZEN_RUNNER_SHA256 = (
+    "f36e32ae7a68ad5e6f2d626b28464b4c7a4e1757341f3117c22a82481cb9a7ff"
+)
+_FROZEN_AGGREGATOR_SHA256 = (
+    "5e8351b2388082cf06093d4e3c0f1de531534aa9f9287f23a1dc3bd770c2d74c"
+)
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -129,6 +137,15 @@ def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
         "polar_checkpoint_path": polar,
         "expected_count": count,
     }
+
+
+def test_committed_frozen_v2_tools_retain_the_preregistered_bytes() -> None:
+    root = Path(__file__).resolve().parents[2]
+    runner = root / "tools/route2_release/run_hybrid_smd_development_v2.py"
+    aggregator = root / "tools/route2_release/aggregate_hybrid_smd_development_v2.py"
+
+    assert _sha256(runner) == _FROZEN_RUNNER_SHA256
+    assert _sha256(aggregator) == _FROZEN_AGGREGATOR_SHA256
 
 
 def test_integrity_audit_recomputes_complete_metrics_and_bindings(tmp_path: Path):

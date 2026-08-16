@@ -34,6 +34,14 @@ from maple.solvation.coupling.state_equation import geometry_sha256
 
 from .harmonic_coefficients import _bounded_lmax, _positive_int
 from .harmonic_exposure import SMOOTH_HARMONIC_EXPOSURE_CONTRACT_ID
+from .harmonic_positive_exposure import (
+    POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID,
+    POSITIVE_BERNSTEIN_EXPOSURE_PROVIDER_ID,
+    POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE,
+    POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS,
+    POSITIVE_BERNSTEIN_PAIR_DEGREE,
+    assemble_positive_bernstein_exposure,
+)
 from .harmonic_torch_primitives import _assemble_exposure_coefficients, _torch
 
 SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID = (
@@ -44,6 +52,15 @@ SMOOTH_HARMONIC_EXPOSURE_AREA_PROVIDER_ID = (
 )
 _AREA_MEASURE = "a_i^2-integral-e_i-domega"
 _SQRT_FOUR_PI = float(np.sqrt(4.0 * np.pi))
+POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID = (
+    "maple.route2.cds-area.positive-bernstein-parent-integral.v1"
+)
+POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_PROVIDER_ID = (
+    "maple.route2.cds-area.positive-bernstein-parent-integral.impl.v1"
+)
+POSITIVE_BERNSTEIN_HARMONIC_CAVITY_PROFILE_ID = (
+    "positive-bernstein-parent-harmonic-cavity-candidate-v1"
+)
 
 
 def _sha(payload: object) -> str:
@@ -60,6 +77,19 @@ def _implementation_sha256() -> tuple[tuple[str, str], ...]:
             "harmonic_cds_area.py",
             "harmonic_coefficients.py",
             "harmonic_exposure.py",
+            "harmonic_torch_primitives.py",
+        )
+    )
+
+
+def _positive_implementation_sha256() -> tuple[tuple[str, str], ...]:
+    directory = Path(__file__).resolve().parent
+    return tuple(
+        (name, hashlib.sha256((directory / name).read_bytes()).hexdigest())
+        for name in (
+            "harmonic_cds_area.py",
+            "harmonic_coefficients.py",
+            "harmonic_positive_exposure.py",
             "harmonic_torch_primitives.py",
         )
     )
@@ -450,7 +480,266 @@ class SmoothHarmonicExposureArea:
         }
 
 
+class PositiveBernsteinHarmonicExposureArea(SmoothHarmonicExposureArea):
+    """Differentiable area from one positive finite Bernstein parent.
+
+    ``surface_lmax`` is the continuum trial/test band.  The stored harmonic
+    moments extend through ``2 * surface_lmax`` solely to assemble the exact
+    Galerkin multiplication matrix; they are never reconstructed as a cavity
+    mask.
+    """
+
+    __slots__ = ("_surface_lmax",)
+
+    provider_id = POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_PROVIDER_ID
+    contract_id = POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID
+    cavity_profile_id = POSITIVE_BERNSTEIN_HARMONIC_CAVITY_PROFILE_ID
+    exposure_contract_id = POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID
+    parent_provider_id = POSITIVE_BERNSTEIN_EXPOSURE_PROVIDER_ID
+    positive_parent_pair_degree = POSITIVE_BERNSTEIN_PAIR_DEGREE
+    positive_parent_maximum_transition_factors = (
+        POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+    )
+    positive_parent_maximum_integrand_degree = (
+        POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE
+    )
+    reconstructed_low_band_used_as_mask = False
+
+    def __init__(
+        self,
+        *,
+        atomic_numbers: tuple[int, ...],
+        radii_angstrom: tuple[float, ...],
+        transition_width_angstrom2: float,
+        surface_lmax: int,
+        dtype: object,
+        device: object,
+    ) -> None:
+        numbers = tuple(atomic_numbers)
+        if not numbers or any(
+            isinstance(number, bool) or not isinstance(number, int) or number < 1
+            for number in numbers
+        ):
+            raise ValueError("atomic_numbers must contain positive integers.")
+        radii = tuple(
+            _positive_float(value, name=f"radii_angstrom[{index}]")
+            for index, value in enumerate(radii_angstrom)
+        )
+        if len(radii) != len(numbers):
+            raise ValueError("radii_angstrom must have one value per atom.")
+        width = _positive_float(
+            transition_width_angstrom2,
+            name="transition_width_angstrom2",
+        )
+        surface_maximum = _bounded_lmax(surface_lmax)
+        moment_maximum = 2 * surface_maximum
+        _bounded_lmax(moment_maximum)
+        runtime_dtype = str(dtype)
+        runtime_device = str(device)
+        configuration = _sha(
+            {
+                "provider_id": self.provider_id,
+                "contract_id": self.contract_id,
+                "cavity_profile_id": self.cavity_profile_id,
+                "exposure_contract_id": self.exposure_contract_id,
+                "parent_provider_id": self.parent_provider_id,
+                "atomic_numbers": numbers,
+                "radii_angstrom": radii,
+                "transition_width_angstrom2": width,
+                "surface_lmax": surface_maximum,
+                "retained_parent_moment_lmax": moment_maximum,
+                "positive_parent_pair_degree": self.positive_parent_pair_degree,
+                "positive_parent_maximum_transition_factors": (
+                    self.positive_parent_maximum_transition_factors
+                ),
+                "positive_parent_maximum_integrand_degree": (
+                    self.positive_parent_maximum_integrand_degree
+                ),
+                "area_measure": self.area_measure,
+                "harmonic_basis": "orthonormal-real-l-ascending-m-ascending",
+                "moment_operator": "W=P_L-M_parent-P_L",
+                "derivative_route": "same-positive-parent-torch-graph",
+                "reconstructed_low_band_used_as_mask": False,
+                "laboratory_fixed_surface_grid": False,
+                "runtime_dtype": runtime_dtype,
+                "runtime_device": runtime_device,
+                "implementation_sha256": _positive_implementation_sha256(),
+                "capabilities": "none",
+            }
+        )
+        object.__setattr__(self, "_atomic_numbers", numbers)
+        object.__setattr__(self, "_radii_angstrom", radii)
+        object.__setattr__(self, "_transition_width_angstrom2", width)
+        object.__setattr__(self, "_surface_lmax", surface_maximum)
+        object.__setattr__(self, "_exposure_lmax", moment_maximum)
+        object.__setattr__(self, "_radial_order", 0)
+        object.__setattr__(self, "_torch_dtype", runtime_dtype)
+        object.__setattr__(self, "_torch_device", runtime_device)
+        object.__setattr__(self, "_configuration_sha256", configuration)
+        object.__setattr__(self, "_sealed", True)
+
+    @property
+    def surface_lmax(self) -> int:
+        return self._surface_lmax
+
+    @property
+    def retained_parent_moment_lmax(self) -> int:
+        return self._exposure_lmax
+
+    @property
+    def radial_quadrature_order(self) -> None:
+        return None
+
+    def configuration_sha256(self) -> str:
+        current = _sha(
+            {
+                "provider_id": self.provider_id,
+                "contract_id": self.contract_id,
+                "cavity_profile_id": self.cavity_profile_id,
+                "exposure_contract_id": self.exposure_contract_id,
+                "parent_provider_id": self.parent_provider_id,
+                "atomic_numbers": self._atomic_numbers,
+                "radii_angstrom": self._radii_angstrom,
+                "transition_width_angstrom2": self._transition_width_angstrom2,
+                "surface_lmax": self._surface_lmax,
+                "retained_parent_moment_lmax": self._exposure_lmax,
+                "positive_parent_pair_degree": self.positive_parent_pair_degree,
+                "positive_parent_maximum_transition_factors": (
+                    self.positive_parent_maximum_transition_factors
+                ),
+                "positive_parent_maximum_integrand_degree": (
+                    self.positive_parent_maximum_integrand_degree
+                ),
+                "area_measure": self.area_measure,
+                "harmonic_basis": "orthonormal-real-l-ascending-m-ascending",
+                "moment_operator": "W=P_L-M_parent-P_L",
+                "derivative_route": "same-positive-parent-torch-graph",
+                "reconstructed_low_band_used_as_mask": False,
+                "laboratory_fixed_surface_grid": False,
+                "runtime_dtype": self._torch_dtype,
+                "runtime_device": self._torch_device,
+                "implementation_sha256": _positive_implementation_sha256(),
+                "capabilities": "none",
+            }
+        )
+        if current != self._configuration_sha256:
+            raise RuntimeError("positive Bernstein area configuration drifted.")
+        return current
+
+    def _parent_tensors(self, positions: Any):
+        torch = _torch()
+        if (
+            not torch.is_tensor(positions)
+            or positions.shape != (len(self._atomic_numbers), 3)
+            or not torch.is_floating_point(positions)
+            or positions.dtype != self._dtype()
+            or not _torch_device_matches(positions.device, self._torch_device)
+            or not bool(torch.isfinite(positions).all())
+        ):
+            raise ValueError("positions do not satisfy the positive area contract.")
+        return assemble_positive_bernstein_exposure(
+            positions,
+            radii=self._radii_angstrom,
+            transition_width=self._transition_width_angstrom2,
+            surface_lmax=self._surface_lmax,
+        )
+
+    def _coefficients_torch(self, positions: Any):
+        return self._parent_tensors(positions).moments
+
+    def multiplication_blocks(self, geometry: object) -> np.ndarray:
+        """Return detached ``P_L M_e P_L`` blocks for continuum audits."""
+
+        self.configuration_sha256()
+        positions = self._positions_tensor(geometry, requires_grad=False)
+        values = self._parent_tensors(positions).multiplication_blocks
+        result = np.asarray(values.detach().cpu(), dtype=float)
+        expected = (
+            len(self._atomic_numbers),
+            (self._surface_lmax + 1) ** 2,
+            (self._surface_lmax + 1) ** 2,
+        )
+        if result.shape != expected or not np.all(np.isfinite(result)):
+            raise RuntimeError("positive Bernstein multiplication blocks are invalid.")
+        return np.array(result, copy=True)
+
+    def parent_diagnostics(self, geometry: object) -> dict[str, object]:
+        """Return target-blind structural diagnostics for one geometry."""
+
+        self.configuration_sha256()
+        positions = self._positions_tensor(geometry, requires_grad=False)
+        tensors = self._parent_tensors(positions)
+        return {
+            "transition_factor_counts": list(tensors.transition_factor_counts),
+            "maximum_transition_factor_count": max(
+                tensors.transition_factor_counts, default=0
+            ),
+            "maximum_integrand_degree": tensors.maximum_integrand_degree,
+        }
+
+    def validate_same_cavity_as(self, continuum: object) -> str:
+        self.configuration_sha256()
+        expected = {
+            "cavity_profile_id": self.cavity_profile_id,
+            "exposure_contract_id": self.exposure_contract_id,
+            "atomic_numbers": self._atomic_numbers,
+            "radii_angstrom": self._radii_angstrom,
+            "transition_width_angstrom2": self._transition_width_angstrom2,
+            "surface_lmax": self._surface_lmax,
+            "positive_parent_pair_degree": self.positive_parent_pair_degree,
+            "positive_parent_maximum_transition_factors": (
+                self.positive_parent_maximum_transition_factors
+            ),
+            "runtime_dtype": self._torch_dtype,
+            "runtime_device": self._torch_device,
+            "laboratory_fixed_surface_grid": False,
+        }
+        observed: dict[str, object] = {}
+        for name in expected:
+            if not hasattr(continuum, name):
+                raise TypeError(
+                    f"continuum does not expose required cavity field {name!r}."
+                )
+            observed[name] = getattr(continuum, name)
+        for name in ("atomic_numbers", "radii_angstrom"):
+            observed[name] = tuple(observed[name])
+        if observed != expected:
+            raise ValueError("continuum and positive CDS parent descriptors differ.")
+        configuration = getattr(continuum, "configuration_sha256", None)
+        if not callable(configuration):
+            raise TypeError("continuum must expose callable configuration_sha256().")
+        digest = configuration()
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ValueError("continuum configuration_sha256 is invalid.")
+        return digest
+
+    def state_identity(self, geometry: object) -> dict[str, object]:
+        diagnostics = self.parent_diagnostics(geometry)
+        return {
+            "provider_id": self.provider_id,
+            "contract_id": self.contract_id,
+            "configuration_sha256": self.configuration_sha256(),
+            "geometry_sha256": geometry_sha256(geometry),
+            "cavity_profile_id": self.cavity_profile_id,
+            "exposure_contract_id": self.exposure_contract_id,
+            "area_measure": self.area_measure,
+            "coordinate_derivative_available": True,
+            "laboratory_fixed_surface_grid": False,
+            "reconstructed_low_band_used_as_mask": False,
+            **diagnostics,
+            "capabilities": "none",
+        }
+
+
 __all__ = [
+    "POSITIVE_BERNSTEIN_HARMONIC_CAVITY_PROFILE_ID",
+    "POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID",
+    "POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_PROVIDER_ID",
+    "PositiveBernsteinHarmonicExposureArea",
     "SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID",
     "SMOOTH_HARMONIC_EXPOSURE_AREA_PROVIDER_ID",
     "SmoothHarmonicExposureArea",

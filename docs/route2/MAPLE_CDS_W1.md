@@ -250,6 +250,31 @@ coefficient. Its exact numerical certificate and Pro review are frozen in
 `evidence/M4_PRO_AUDIT_2026-08-16.md`. Missing the development gate terminates
 this 3D estimator lane; `delta` will not be tuned afterward.
 
+The first M4 execution terminated on fold 0 because the preregistered
+`trust-exact` success certificate failed. A failure-after diagnostic found two
+near-stationary endpoints but their held-out predictions also differed by
+`3.745e-8 kcal/mol`, above the frozen `1e-8` replay threshold. No OOF MAE was
+produced, no rule was relaxed, and the stock-area 3D lane is closed. The exact
+artifact and numerical boundary are recorded in
+`evidence/M4_TERMINAL_FAILURE_2026-08-17.md`.
+
+The post-M4 terminal decision is frozen in
+`evidence/SMOOTH_AREA_TERMINAL_LANE_PRO_DECISION_2026-08-17.md`: exactly one
+new smooth-area lane may be opened, and failure closes the current hybrid CDS
+accuracy route rather than spawning another estimator.
+
+The first target-blind smooth-area generation then exposed a real projection
+artifact before any fit: a nearly buried atom acquired a negative area because
+individually truncated pair factors were multiplied and truncated again.  The
+284 partial rows from that definition are historical and must not be mixed
+with a repaired run.  The replacement is a separately identified positive
+degree-four Bernstein parent.  CDS area and the continuum multiplication
+matrix are exact contractions of the same finite parent; a reconstructed
+low-band function is never used as a pointwise mask.  Its mathematical choice,
+factor/degree caps, and Pro evidence are frozen in
+`evidence/POSITIVE_BERNSTEIN_PARENT_PRO_AUDIT_2026-08-17.md`.  All 306 rows must
+be regenerated from ordinal zero before the final target-visible fit.
+
 ## Admission and stop rules
 
 Report M0-M3 with MAE, RMSE, signed error, Q95 absolute error, maximum error,

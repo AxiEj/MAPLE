@@ -25,10 +25,16 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
     SMD_WATER_TENSION_PARAMETER_NAMES,
 )
 from maple.solvation.continuum.harmonic_cds_area import (
-    SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
+    POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
+)
+from maple.solvation.continuum.harmonic_positive_exposure import (
+    POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID,
+    POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE,
+    POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS,
+    POSITIVE_BERNSTEIN_PAIR_DEGREE,
 )
 from maple.solvation.harmonic_cds import (
-    MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID,
+    MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID,
 )
 from maple.solvation.release.evidence import (
     RepositorySnapshot,
@@ -41,8 +47,7 @@ from maple.solvation.release.evidence import (
 from generate_maple_cds_w1_features import (
     AREA_DEVICE,
     AREA_DTYPE,
-    AREA_EXPOSURE_LMAX,
-    AREA_RADIAL_QUADRATURE_ORDER,
+    AREA_SURFACE_LMAX,
     AREA_TRANSITION_WIDTH_ANGSTROM2,
     INPUT_FILE_NAMES,
     PREREGISTRATION_ARTIFACT,
@@ -121,10 +126,15 @@ def create(args: argparse.Namespace) -> dict[str, object]:
     water, water_identity_sha256 = _water_records(rows)
     water_count = len(water)
     maximum_active = _maximum_active_pair_factors(water)
-    finite_product_degree = (maximum_active + 1) * AREA_EXPOSURE_LMAX
-    if finite_product_degree > 128:
+    finite_product_degree = (
+        POSITIVE_BERNSTEIN_PAIR_DEGREE * maximum_active + 2 * AREA_SURFACE_LMAX
+    )
+    if (
+        maximum_active > POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+        or finite_product_degree > POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE
+    ):
         raise W1FeaturePreregistrationError(
-            "Selected harmonic exposure exceeds the finite degree bound."
+            "Selected positive parent exceeds its frozen structural bound."
         )
     loaded_sources = collect_loaded_repository_sources(
         source_root,
@@ -141,7 +151,7 @@ def create(args: argparse.Namespace) -> dict[str, object]:
     payload: dict[str, object] = {
         "artifact": PREREGISTRATION_ARTIFACT,
         "schema_version": 1,
-        "status": "locked-before-first-feature-evaluation",
+        "status": "locked-before-first-positive-parent-feature-evaluation",
         "locked_at_utc": datetime.now(timezone.utc).isoformat(),
         "partition": "development-water-only",
         "water_record_count": water_count,
@@ -169,15 +179,22 @@ def create(args: argparse.Namespace) -> dict[str, object]:
         "feature_output_dir": str(output_dir),
         "preregistration_path": str(output),
         "area_definition": {
-            "contract_id": SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
-            "profile_id": MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID,
+            "contract_id": POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
+            "exposure_contract_id": POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID,
+            "profile_id": MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID,
             "radii": "published-smd-sasa-radii-including-0.4-A-probe",
             "transition_width_angstrom2": AREA_TRANSITION_WIDTH_ANGSTROM2,
-            "exposure_lmax": AREA_EXPOSURE_LMAX,
-            "radial_quadrature_order": AREA_RADIAL_QUADRATURE_ORDER,
+            "surface_lmax": AREA_SURFACE_LMAX,
+            "retained_parent_moment_lmax": 2 * AREA_SURFACE_LMAX,
+            "positive_parent_pair_degree": POSITIVE_BERNSTEIN_PAIR_DEGREE,
+            "maximum_transition_factors": (
+                POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+            ),
+            "maximum_integrand_degree": (POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE),
             "dtype": AREA_DTYPE,
             "device": AREA_DEVICE,
             "area_measure": "a_i^2-integral-e_i-domega",
+            "reconstructed_low_band_used_as_mask": False,
         },
         "linear_basis": {
             "contract": "published-aqueous-smd-linear-18-column-v1",
@@ -191,9 +208,17 @@ def create(args: argparse.Namespace) -> dict[str, object]:
         },
         "numerical_choice_rationale": {
             "maximum_observed_active_pair_factors": maximum_active,
-            "finite_product_degree_formula": "(active_pair_factors+1)*lmax",
-            "finite_product_degree": finite_product_degree,
-            "implementation_degree_limit": 128,
+            "finite_product_degree_formula": (
+                "pair_degree*active_pair_factors+2*surface_lmax"
+            ),
+            "positive_parent_pair_degree": POSITIVE_BERNSTEIN_PAIR_DEGREE,
+            "maximum_integrand_degree": finite_product_degree,
+            "maximum_transition_factor_cap": (
+                POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+            ),
+            "implementation_degree_limit": (
+                POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE
+            ),
             "selected_from_geometry_only": True,
             "accuracy_results_used": False,
         },

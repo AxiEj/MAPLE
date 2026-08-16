@@ -41,6 +41,9 @@ from maple.solvation.solvent_terms import SolventEnergyState
 MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID = (
     "maple-cds-w1-smooth-harmonic-linear-water-candidate-v1"
 )
+MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID = (
+    "maple-cds-w1-positive-bernstein-parent-linear-water-candidate-v1"
+)
 SMOOTH_HARMONIC_AQUEOUS_LINEAR_CDS_PROVIDER_ID = (
     "maple.route2.solvent-term.smooth-harmonic-aqueous-linear-cds.impl.v1"
 )
@@ -321,6 +324,7 @@ def build_stock_smd_water_harmonic_cds(
 
 __all__ = [
     "MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID",
+    "MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID",
     "SMOOTH_HARMONIC_AQUEOUS_LINEAR_CDS_PROVIDER_ID",
     "SmoothHarmonicAqueousLinearCDSTerm",
     "build_stock_smd_water_harmonic_cds",

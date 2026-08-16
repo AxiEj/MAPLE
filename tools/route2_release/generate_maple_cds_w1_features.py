@@ -37,11 +37,17 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
     smd_sasa_radii,
 )
 from maple.solvation.continuum.harmonic_cds_area import (
-    SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
-    SmoothHarmonicExposureArea,
+    POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
+    PositiveBernsteinHarmonicExposureArea,
+)
+from maple.solvation.continuum.harmonic_positive_exposure import (
+    POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID,
+    POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE,
+    POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS,
+    POSITIVE_BERNSTEIN_PAIR_DEGREE,
 )
 from maple.solvation.harmonic_cds import (
-    MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID,
+    MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID,
     SmoothHarmonicAqueousLinearCDSTerm,
 )
 from maple.solvation.release.evidence import (
@@ -49,12 +55,13 @@ from maple.solvation.release.evidence import (
     runtime_record,
 )
 
-ARTIFACT = "route2-maple-cds-w1-water-feature-record-v1"
-PREREGISTRATION_ARTIFACT = "route2-maple-cds-w1-water-features-prereg-v1"
+ARTIFACT = "route2-maple-cds-w1-positive-parent-water-feature-record-v2"
+PREREGISTRATION_ARTIFACT = (
+    "route2-maple-cds-w1-positive-parent-water-features-prereg-v2"
+)
 EXPECTED_WATER_RECORD_COUNT = 306
 AREA_TRANSITION_WIDTH_ANGSTROM2 = 0.18
-AREA_EXPOSURE_LMAX = 4
-AREA_RADIAL_QUADRATURE_ORDER = 192
+AREA_SURFACE_LMAX = 2
 AREA_DTYPE = "torch.float64"
 AREA_DEVICE = "cpu"
 INPUT_FILE_NAMES = (
@@ -71,6 +78,9 @@ REQUIRED_SOURCE_FILE_NAMES = (
     "docs/implicit-solvation/benchmarks/mnsol_pilot.py",
     "docs/route2/MAPLE_CDS_W1.md",
     "docs/route2/evidence/HARMONIC_CDS_AREA_PRO_AUDIT_2026-08-16.md",
+    "docs/route2/evidence/M4_TERMINAL_FAILURE_2026-08-17.md",
+    "docs/route2/evidence/POSITIVE_BERNSTEIN_PARENT_PRO_AUDIT_2026-08-17.md",
+    "docs/route2/evidence/SMOOTH_AREA_TERMINAL_LANE_PRO_DECISION_2026-08-17.md",
     "maple/function/calculator/extra_correction/implicit/smd_cds.py",
     "maple/function/route2_smd_profiles.py",
     "maple/function/route2_solvents.py",
@@ -78,6 +88,7 @@ REQUIRED_SOURCE_FILE_NAMES = (
     "maple/solvation/continuum/harmonic_cds_area.py",
     "maple/solvation/continuum/harmonic_coefficients.py",
     "maple/solvation/continuum/harmonic_exposure.py",
+    "maple/solvation/continuum/harmonic_positive_exposure.py",
     "maple/solvation/continuum/harmonic_single_layer.py",
     "maple/solvation/continuum/harmonic_torch_primitives.py",
     "maple/solvation/coupling/operator.py",
@@ -324,7 +335,10 @@ def _validate_preregistration(
         raise W1FeatureGenerationError("Unknown W1 feature preregistration.")
     for key, expected in (
         ("schema_version", 1),
-        ("status", "locked-before-first-feature-evaluation"),
+        (
+            "status",
+            "locked-before-first-positive-parent-feature-evaluation",
+        ),
         ("partition", "development-water-only"),
         ("water_record_count", EXPECTED_WATER_RECORD_COUNT),
         ("dataset_loader_parses_experimental_targets", True),
@@ -411,15 +425,20 @@ def _validate_preregistration(
             raise W1FeatureGenerationError(f"Source file {relative!r} drifted.")
     area = preregistration.get("area_definition")
     expected_area = {
-        "contract_id": SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
-        "profile_id": MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID,
+        "contract_id": POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
+        "exposure_contract_id": POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID,
+        "profile_id": MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID,
         "radii": "published-smd-sasa-radii-including-0.4-A-probe",
         "transition_width_angstrom2": AREA_TRANSITION_WIDTH_ANGSTROM2,
-        "exposure_lmax": AREA_EXPOSURE_LMAX,
-        "radial_quadrature_order": AREA_RADIAL_QUADRATURE_ORDER,
+        "surface_lmax": AREA_SURFACE_LMAX,
+        "retained_parent_moment_lmax": 2 * AREA_SURFACE_LMAX,
+        "positive_parent_pair_degree": POSITIVE_BERNSTEIN_PAIR_DEGREE,
+        "maximum_transition_factors": (POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS),
+        "maximum_integrand_degree": POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE,
         "dtype": AREA_DTYPE,
         "device": AREA_DEVICE,
         "area_measure": "a_i^2-integral-e_i-domega",
+        "reconstructed_low_band_used_as_mask": False,
     }
     if area != expected_area:
         raise W1FeatureGenerationError("Preregistered area definition drifted.")
@@ -496,12 +515,11 @@ def _feature_payload(
     radii = tuple(float(value) for value in smd_sasa_radii(symbols))
     import torch
 
-    area = SmoothHarmonicExposureArea(
+    area = PositiveBernsteinHarmonicExposureArea(
         atomic_numbers=tuple(int(value) for value in geometry.atomic_numbers),
         radii_angstrom=radii,
         transition_width_angstrom2=AREA_TRANSITION_WIDTH_ANGSTROM2,
-        exposure_lmax=AREA_EXPOSURE_LMAX,
-        radial_quadrature_order=AREA_RADIAL_QUADRATURE_ORDER,
+        surface_lmax=AREA_SURFACE_LMAX,
         dtype=torch.float64,
         device=AREA_DEVICE,
     )
@@ -511,6 +529,7 @@ def _feature_payload(
         coefficients_cal_mol_angstrom2=(
             SMD_WATER_STOCK_TENSION_COEFFICIENTS_CAL_MOL_ANGSTROM2
         ),
+        profile_id=MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID,
     )
     design = term.design_row_kcal_mol(atoms)
     if design.shape != (18,) or not np.all(np.isfinite(design)):
@@ -595,12 +614,20 @@ def generate(args: argparse.Namespace) -> dict[str, object]:
     if preregistration.get("water_identity_sha256") != water_identity_sha256:
         raise W1FeatureGenerationError("Frozen water identity binding drifted.")
     maximum_active = _maximum_active_pair_factors(water)
-    finite_product_degree = (maximum_active + 1) * AREA_EXPOSURE_LMAX
+    finite_product_degree = (
+        POSITIVE_BERNSTEIN_PAIR_DEGREE * maximum_active + 2 * AREA_SURFACE_LMAX
+    )
     expected_rationale = {
         "maximum_observed_active_pair_factors": maximum_active,
-        "finite_product_degree_formula": "(active_pair_factors+1)*lmax",
-        "finite_product_degree": finite_product_degree,
-        "implementation_degree_limit": 128,
+        "finite_product_degree_formula": (
+            "pair_degree*active_pair_factors+2*surface_lmax"
+        ),
+        "positive_parent_pair_degree": POSITIVE_BERNSTEIN_PAIR_DEGREE,
+        "maximum_integrand_degree": finite_product_degree,
+        "maximum_transition_factor_cap": (
+            POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+        ),
+        "implementation_degree_limit": (POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE),
         "selected_from_geometry_only": True,
         "accuracy_results_used": False,
     }
@@ -608,9 +635,12 @@ def generate(args: argparse.Namespace) -> dict[str, object]:
         raise W1FeatureGenerationError(
             "Preregistered geometry-only degree rationale drifted."
         )
-    if finite_product_degree > 128:
+    if (
+        maximum_active > POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+        or finite_product_degree > POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE
+    ):
         raise W1FeatureGenerationError(
-            "Preregistered harmonic exposure exceeds the finite degree bound."
+            "Preregistered positive parent exceeds its frozen structural bound."
         )
     loaded_sources = collect_loaded_repository_sources(
         source_root,
@@ -644,7 +674,7 @@ def generate(args: argparse.Namespace) -> dict[str, object]:
         _write_json_exclusive(destination, payload)
         generated.append(destination.name)
     summary = {
-        "artifact": "route2-maple-cds-w1-water-feature-shard-v1",
+        "artifact": "route2-maple-cds-w1-positive-parent-water-feature-shard-v2",
         "status": "complete",
         "start": start,
         "stop": stop,

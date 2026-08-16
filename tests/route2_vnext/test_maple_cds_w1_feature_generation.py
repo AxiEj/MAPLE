@@ -132,7 +132,7 @@ def _preregistration_payload(
     payload: dict[str, object] = {
         "artifact": GENERATOR.PREREGISTRATION_ARTIFACT,
         "schema_version": 1,
-        "status": "locked-before-first-feature-evaluation",
+        "status": "locked-before-first-positive-parent-feature-evaluation",
         "partition": "development-water-only",
         "water_record_count": GENERATOR.EXPECTED_WATER_RECORD_COUNT,
         "dataset_loader_parses_experimental_targets": True,
@@ -164,15 +164,26 @@ def _preregistration_payload(
         "parent_hybrid_source_git_head": "f" * 40,
         "feature_output_dir": str(tmp_path / "features"),
         "area_definition": {
-            "contract_id": GENERATOR.SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID,
-            "profile_id": GENERATOR.MAPLE_CDS_W1_HARMONIC_LINEAR_PROFILE_ID,
+            "contract_id": (
+                GENERATOR.POSITIVE_BERNSTEIN_HARMONIC_EXPOSURE_AREA_CONTRACT_ID
+            ),
+            "exposure_contract_id": (GENERATOR.POSITIVE_BERNSTEIN_EXPOSURE_CONTRACT_ID),
+            "profile_id": GENERATOR.MAPLE_CDS_W1_POSITIVE_BERNSTEIN_PROFILE_ID,
             "radii": "published-smd-sasa-radii-including-0.4-A-probe",
             "transition_width_angstrom2": GENERATOR.AREA_TRANSITION_WIDTH_ANGSTROM2,
-            "exposure_lmax": GENERATOR.AREA_EXPOSURE_LMAX,
-            "radial_quadrature_order": GENERATOR.AREA_RADIAL_QUADRATURE_ORDER,
+            "surface_lmax": GENERATOR.AREA_SURFACE_LMAX,
+            "retained_parent_moment_lmax": 2 * GENERATOR.AREA_SURFACE_LMAX,
+            "positive_parent_pair_degree": GENERATOR.POSITIVE_BERNSTEIN_PAIR_DEGREE,
+            "maximum_transition_factors": (
+                GENERATOR.POSITIVE_BERNSTEIN_MAXIMUM_TRANSITION_FACTORS
+            ),
+            "maximum_integrand_degree": (
+                GENERATOR.POSITIVE_BERNSTEIN_MAXIMUM_INTEGRAND_DEGREE
+            ),
             "dtype": GENERATOR.AREA_DTYPE,
             "device": GENERATOR.AREA_DEVICE,
             "area_measure": "a_i^2-integral-e_i-domega",
+            "reconstructed_low_band_used_as_mask": False,
         },
         "linear_basis": {
             "contract": "published-aqueous-smd-linear-18-column-v1",

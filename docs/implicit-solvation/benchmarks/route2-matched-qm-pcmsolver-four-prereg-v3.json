@@ -243,13 +243,14 @@
         "maple/function/calculator/extra_correction/implicit/route2_derivative.py",
         "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py",
         "maple/function/calculator/extra_correction/implicit/route2_engine.py",
+        "maple/function/calculator/extra_correction/implicit/smd_cds.py",
         "maple/solvation/api/__init__.py",
         "maple/solvation/api/profiles.py",
         "maple/solvation/api/scalar_registry.py",
         "maple/solvation/api/state_registry.py",
         "maple/solvation/continuum/__init__.py"
       ],
-      "reason": "Cumulative administrative refresh: additive smooth-harmonic registry/API exports, evidence-bound pure and hybrid E/F/V/H derivative surfaces, and the file-free legacy algebra-test provenance guard changed shared files. The matched-QM reference protocol, frozen assets, numerical gates, runner semantics, and prior measurements are unchanged."
+      "reason": "Cumulative administrative refresh: additive smooth-harmonic registry/API and harmonic-CDS area exports, evidence-bound pure and hybrid E/F/V/H derivative surfaces, the file-free legacy algebra-test provenance guard, and the additive exact 18-column aqueous SMD tension basis changed shared files. The matched-QM reference protocol, frozen assets, numerical gates, imported runner behavior, and prior measurements are unchanged."
     },
     "source_sha256": {
       "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
@@ -301,7 +302,7 @@
       "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
       "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
       "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
-      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "f59a6df04f9448cd6a672274125cc405c8e27d42e2fae79baa06f0739ea44639",
       "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
       "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
       "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
@@ -317,7 +318,7 @@
       "maple/solvation/api/scalar_registry.py": "73fecfa7e03a61e037da07d48a8cb7c47ec60566f02dd58a1247a51598016394",
       "maple/solvation/api/state_registry.py": "3398450170c1d94081d1d4569a80371543fc71507cd0979fe418334ad97dbff1",
       "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
-      "maple/solvation/continuum/__init__.py": "9611965ad938ab01f03125ac0122a1ccc26c72d70a23e632235a428bac0e6531",
+      "maple/solvation/continuum/__init__.py": "f3af62fecee71ae74afd0fdc7cb0ce7ae683fb0db063ee0f90ee164ea22c060b",
       "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
       "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
       "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",

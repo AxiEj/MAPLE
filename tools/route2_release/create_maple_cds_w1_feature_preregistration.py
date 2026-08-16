@@ -128,9 +128,14 @@ def create(args: argparse.Namespace) -> dict[str, object]:
         )
     loaded_sources = collect_loaded_repository_sources(
         source_root,
-        required_paths=REQUIRED_SOURCE_FILE_NAMES,
+        required_paths=tuple(
+            name for name in REQUIRED_SOURCE_FILE_NAMES if name.endswith(".py")
+        ),
     )
-    source_hashes = committed_source_hashes(snapshot, loaded_sources)
+    source_hashes = committed_source_hashes(
+        snapshot,
+        tuple(sorted(set(loaded_sources).union(REQUIRED_SOURCE_FILE_NAMES))),
+    )
     runtime_identity, runtime_identity_sha256 = _runtime_identity()
     generator_relative = "tools/route2_release/generate_maple_cds_w1_features.py"
     payload: dict[str, object] = {

@@ -614,7 +614,9 @@ def generate(args: argparse.Namespace) -> dict[str, object]:
         )
     loaded_sources = collect_loaded_repository_sources(
         source_root,
-        required_paths=REQUIRED_SOURCE_FILE_NAMES,
+        required_paths=tuple(
+            name for name in REQUIRED_SOURCE_FILE_NAMES if name.endswith(".py")
+        ),
     )
     source_hashes = preregistration["source_files_sha256"]
     missing_loaded = sorted(set(loaded_sources) - set(source_hashes))

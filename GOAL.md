@@ -41,6 +41,34 @@ This workspace was copied from that snapshot. It may evolve only under new,
 explicitly versioned profiles; it must not alter the running snapshot or
 retroactively change its preregistered method.
 
+## Chrome Pro mathematical advisor
+
+The retained Windows Chrome session is an approved autonomous external-advisor
+surface for this hybrid route. When a material scientific decision depends on
+advanced mathematics or remains unresolved after a concrete local derivation,
+the agent should use that session to ask the genuine **Pro** model rather than
+silently guessing or reducing the claim. Appropriate topics include:
+
+- variational and stationary-functional constructions;
+- implicit-function, adjoint, HVP, and mixed-derivative derivations;
+- reciprocity, gauge, passivity, conditioning, and root-uniqueness arguments;
+- equivariant continuum discretization and cavity regularity;
+- identifiability of electrostatic and CDS components;
+- adversarial review of a proposed scientific admission proof.
+
+Before submitting, the UI must visibly identify the selected model as `Pro`
+(the prior validated surface displayed `Pro, 5 of 5`), not `Medium` or an
+unverified default. The prompt, selected-model evidence, answer, timestamps,
+and SHA256 digests should be retained in a repository evidence note, following
+[`docs/route2/evidence/HARMONIC_GREEN_OPERATOR_PRO_AUDIT_2026-08-14.md`](docs/route2/evidence/HARMONIC_GREEN_OPERATOR_PRO_AUDIT_2026-08-14.md).
+
+Pro output is an external mathematical review, not authoritative implementation
+or admission evidence. Every accepted result must be independently rederived,
+translated into an explicit repository contract, and verified by analytic
+identities, finite differences, or other appropriate tests. Routine coding
+questions should remain local; Pro should be used promptly when the uncertainty
+is genuinely mathematical or could change the scientific model.
+
 ## Prospective profile-bound CDS lane
 
 Stock SMD-CDS transferability is a hypothesis tested by the frozen v3

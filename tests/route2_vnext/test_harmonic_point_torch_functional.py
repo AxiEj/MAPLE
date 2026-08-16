@@ -13,7 +13,6 @@ from maple.solvation.continuum.harmonic_torch_functional import (
     SmoothWeightedHarmonicGalerkinFunctionalCandidate,
 )
 
-
 POSITIONS = np.asarray(
     [[0.0, 0.0, 0.0], [1.72, -0.31, 0.21], [-0.39, 1.65, -0.17]],
     dtype=float,
@@ -82,9 +81,7 @@ def test_torch_point_source_matches_independent_numpy_operator() -> None:
         surface_lmax=functional.physical_lmax,
         radial_quadrature_order=functional.source_radial_quadrature_order,
     )
-    np.testing.assert_allclose(
-        matrices["raw_source"], expected, rtol=0.0, atol=2.0e-12
-    )
+    np.testing.assert_allclose(matrices["raw_source"], expected, rtol=0.0, atol=2.0e-12)
     np.testing.assert_allclose(
         matrices["source_operator"],
         matrices["weighted_basis"].T @ expected,
@@ -121,8 +118,9 @@ def test_point_scalar_generates_source_coordinate_and_second_derivatives() -> No
         functional.energy_eV(POSITIONS, SOURCE + step * source_direction)
         - functional.energy_eV(POSITIONS, SOURCE - step * source_direction)
     ) / (2.0 * step)
-    assert np.vdot(
-        functional.drive(POSITIONS, SOURCE), source_direction
+    assert functional.pairing.pair(
+        source_direction,
+        functional.drive(POSITIONS, SOURCE),
     ) == pytest.approx(finite_source, abs=3.0e-11)
 
     jvp = functional.source_jvp(POSITIONS, SOURCE, source_direction)
@@ -134,14 +132,22 @@ def test_point_scalar_generates_source_coordinate_and_second_derivatives() -> No
     gradient = functional.coordinate_partial(POSITIONS, SOURCE)
     analytic = float(np.vdot(gradient, coordinate_direction))
     coordinate_step = 1.0e-4
-    finite_coordinate = (
-        functional.energy_eV(
-            POSITIONS + coordinate_step * coordinate_direction, SOURCE
-        )
+    finite_coordinate_coarse = (
+        functional.energy_eV(POSITIONS + coordinate_step * coordinate_direction, SOURCE)
         - functional.energy_eV(
             POSITIONS - coordinate_step * coordinate_direction, SOURCE
         )
     ) / (2.0 * coordinate_step)
+    fine_coordinate_step = coordinate_step / 2.0
+    finite_coordinate_fine = (
+        functional.energy_eV(
+            POSITIONS + fine_coordinate_step * coordinate_direction, SOURCE
+        )
+        - functional.energy_eV(
+            POSITIONS - fine_coordinate_step * coordinate_direction, SOURCE
+        )
+    ) / (2.0 * fine_coordinate_step)
+    finite_coordinate = (4.0 * finite_coordinate_fine - finite_coordinate_coarse) / 3.0
     assert analytic == pytest.approx(finite_coordinate, abs=8.0e-10)
 
     hvp = functional.coordinate_hvp(POSITIONS, SOURCE, coordinate_direction)

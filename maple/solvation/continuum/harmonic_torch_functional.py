@@ -270,7 +270,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         )
         if not scalar_binding_valid:
             raise ValueError(
-                "The harmonic continuum scalar/source-embedding binding is invalid."
+                "The harmonic continuum scalar/source-embedding binding is not "
+                "preregistered."
             )
         runtime_dtype = str(dtype)
         runtime_device = str(device)
@@ -523,9 +524,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         _, _, _, surface, source_operator = self._assemble_torch(positions)
         right_hand_side = source_operator @ source.reshape(-1)
         surface_state = _torch().linalg.solve(surface, right_hand_side)
-        return -0.5 * self._screening_factor * (
-            right_hand_side @ surface_state
-        )
+        return -0.5 * self._screening_factor * (right_hand_side @ surface_state)
 
     def debug_geometry_matrices(self, geometry: object) -> dict[str, np.ndarray]:
         """Return detached matrices for parity tests; never an admission API."""

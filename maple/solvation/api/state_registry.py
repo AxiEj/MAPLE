@@ -16,6 +16,9 @@ MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID = (
 MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID = (
     "route2-mace-mdp-permanent-macepolar-induced-harmonic-field-root-v1"
 )
+PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID = (
+    "route2-pure-macepolar-zero-field-frozen-source-ddx-v1"
+)
 VARIATIONAL_STATE_EQUATION_ID = "route2-common-functional-stationarity-v1"
 
 
@@ -45,6 +48,24 @@ class StateEquationDefinition:
 
 
 _STATE_ENTRIES = (
+    StateEquationDefinition(
+        state_equation_id=PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID,
+        exact_formula=(
+            "c0(R)=M_MACE-POLAR(R,u=0); s_ddX(R)=Solve_ddX[R,c0(R)]; "
+            "there is no coupled ML/continuum root"
+        ),
+        coordinates=(
+            "geometry R, deterministic zero-field MACE-POLAR source c0(R), "
+            "and the uniquely solved linear ddX response state"
+        ),
+        constraints=(
+            "pure MACE-POLAR provider and no MACE-MDP source",
+            "the external MACE-POLAR receiver field is exactly zero",
+            "the declared ddX linear response solve is unique and deterministic",
+            "the additive solvent term is geometry-only and separately identified",
+            "no mutual ML/continuum fixed point or common-functional claim",
+        ),
+    ),
     StateEquationDefinition(
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
         exact_formula=(
@@ -132,6 +153,7 @@ __all__ = [
     "MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID",
     "MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID",
     "OPERATIONAL_STATE_EQUATION_ID",
+    "PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID",
     "SEPARATED_OPERATIONAL_STATE_EQUATION_ID",
     "STATE_REGISTRY",
     "VARIATIONAL_STATE_EQUATION_ID",

@@ -1,4 +1,4 @@
-"""Pure MACE-POLAR frozen-source ddX/SMD scalar with E/F/V/H access.
+"""Pure MACE-POLAR frozen-source ddX/SMD scalar with E/F/virial/HVP/H access.
 
 This module intentionally does not build a MACE-MDP permanent source and does
 not solve a coupled electronic/continuum fixed point.  It defines one explicit
@@ -32,6 +32,9 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
     validate_smd_symbols,
 )
 from maple.solvation.api.units import HARTREE_TO_EV
+from maple.solvation.api.scalar_registry import (
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+)
 from maple.solvation.coupling.operator import (
     canonical_metadata_sha256,
     source_files_sha256,
@@ -69,7 +72,7 @@ SMOOTH_SMD_WATER_CDS_PROVIDER_ID = (
 )
 SCIENTIFIC_STATUS = (
     "experimental-callable-E-F-molecular-virial-HVP-H; "
-    "accuracy-and-release-admission-pending"
+    "accuracy-evidence-is-scalar-profile-specific; release-admission-pending"
 )
 SOURCE_CHARGE_ATOL_E = 1.0e-8
 ENERGY_REPLAY_ATOL_EV = 2.0e-10
@@ -137,6 +140,100 @@ def _positions(geometry: object) -> np.ndarray:
     if result.shape != expected or not np.all(np.isfinite(result)):
         raise ValueError(f"geometry positions must be finite with shape {expected}.")
     return np.array(result, copy=True)
+
+
+def _registered_point_profile_bindings_match(
+    continuum: object,
+    solvent_term: object,
+) -> bool:
+    """Return whether providers realize the exact registered point profile."""
+
+    from maple.function.calculator.extra_correction.implicit.smd_cds import (
+        smd_coulomb_radii,
+    )
+    from maple.function.route2_solvents import route2_solvent_spec
+    from maple.solvation.continuum.mace_polar_point_ddx import (
+        MACEPolarPointEmbeddedDDXBackend,
+    )
+
+    if (
+        type(continuum) is not MACEPolarPointEmbeddedDDXBackend
+        or type(solvent_term) is not PySCFSMDCDSTerm
+    ):
+        return False
+    try:
+        specification = route2_solvent_spec(solvent_term.solvent)
+        radial = continuum._separated.radial_backend
+        expected_radii = smd_coulomb_radii(
+            continuum.symbols,
+            solvent=specification.name,
+        )
+        return bool(
+            continuum.symbols == solvent_term.symbols
+            and np.array_equal(continuum.cavity_radii_angstrom, expected_radii)
+            and radial._continuum_model == "pcm"
+            and radial._dielectric == specification.descriptors.dielectric
+            and radial._lmax == 15
+            and radial._n_lebedev == 1202
+            and radial._solver_tolerance == 1.0e-12
+            and radial._eta == 0.1
+            and radial._n_proc == 1
+        )
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
+def _registered_point_model_bindings_match(model: object) -> bool:
+    """Return whether ``model`` is the exact evidenced official CPU adapter."""
+
+    from maple.solvation.models.mace_polar import (
+        MACEPolarRadialGTOModelAdapter,
+        OFFICIAL_MACE_POLAR_1_M_CONTRACT,
+    )
+
+    if type(model) is not MACEPolarRadialGTOModelAdapter:
+        return False
+    try:
+        provenance = model.provenance
+        domain = model.domain
+        release = model.release_contract
+        expected_provider = (
+            f"{OFFICIAL_MACE_POLAR_1_M_CONTRACT.provider_id}.radial-gto.v1"
+        )
+        return bool(
+            release == OFFICIAL_MACE_POLAR_1_M_CONTRACT
+            and model.provider_id == expected_provider
+            and model.model_profile_id
+            == OFFICIAL_MACE_POLAR_1_M_CONTRACT.model_profile_id
+            and model.dtype == "float64"
+            and model.device == "cpu"
+            and provenance.provider_id == model.provider_id
+            and provenance.model_profile_id == model.model_profile_id
+            and provenance.model_family == "MACE-POLAR-1-radial-GTO-response"
+            and provenance.checkpoint_sha256
+            == OFFICIAL_MACE_POLAR_1_M_CONTRACT.checkpoint_sha256
+            and provenance.upstream_version
+            == (
+                "mace-torch=="
+                f"{OFFICIAL_MACE_POLAR_1_M_CONTRACT.mace_torch_version};"
+                "graph-longrange=="
+                f"{OFFICIAL_MACE_POLAR_1_M_CONTRACT.graph_longrange_version}"
+            )
+            and provenance.upstream_commit
+            == OFFICIAL_MACE_POLAR_1_M_CONTRACT.upstream_commit
+            and model.provenance_sha256 == provenance.sha256
+            and provenance.dtype == model.dtype
+            and provenance.device == model.device
+            and provenance.domain == domain
+            and model.field_convention == provenance.field_convention
+            and model.coordinate_frame_policy == provenance.coordinate_frame_policy
+            and tuple(domain.atomic_numbers) == tuple(range(1, 84))
+            and tuple(domain.total_charge_range) == (0, 0)
+            and tuple(domain.spin_multiplicities) == (1,)
+            and model.configuration_sha256()
+        )
+    except (AttributeError, TypeError, ValueError):
+        return False
 
 
 @dataclass(frozen=True, slots=True)
@@ -241,7 +338,14 @@ class MACEPolarFrozenDDXEnergyState:
     def __post_init__(self) -> None:
         if self.provider_id != PURE_FROZEN_DDX_PROVIDER_ID:
             raise ValueError("pure frozen-source provider identity is invalid.")
-        if self.scalar_contract_id != PURE_FROZEN_DDX_SCALAR_CONTRACT_ID:
+        scalar_contract = _text(
+            self.scalar_contract_id,
+            name="scalar_contract_id",
+        )
+        if scalar_contract not in (
+            PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+        ):
             raise ValueError("pure frozen-source scalar contract is invalid.")
         for name in (
             "configuration_sha256",
@@ -279,7 +383,7 @@ class MACEPolarFrozenDDXEnergyState:
         payload = {
             "contract": "mace-polar-frozen-ddx-energy-state-v2",
             "provider_id": self.provider_id,
-            "scalar_contract_id": self.scalar_contract_id,
+            "scalar_contract_id": scalar_contract,
             "configuration_sha256": self.configuration_sha256,
             "geometry_sha256": self.geometry_sha256,
             "model_input_sha256": self.model_input_sha256,
@@ -303,6 +407,7 @@ class MACEPolarFrozenDDXEnergyState:
         if self.state_sha256 and self.state_sha256 != expected:
             raise ValueError("state_sha256 does not match energy-state contents.")
         object.__setattr__(self, "source_values", source)
+        object.__setattr__(self, "scalar_contract_id", scalar_contract)
         object.__setattr__(self, "topology_observation_coverage", coverage)
         object.__setattr__(self, "unobservable_topology_components", components)
         object.__setattr__(self, "source_total_charge_e", charge)
@@ -490,12 +595,12 @@ class MACEPolarFrozenSourceDDXPES:
         "_model",
         "_numerical_force_backend",
         "_sealed",
+        "_scalar_contract_id",
         "_solvent_term",
         "_symbols",
     )
 
     provider_id = PURE_FROZEN_DDX_PROVIDER_ID
-    scalar_contract_id = PURE_FROZEN_DDX_SCALAR_CONTRACT_ID
     scientific_status = SCIENTIFIC_STATUS
 
     def __init__(
@@ -504,6 +609,7 @@ class MACEPolarFrozenSourceDDXPES:
         model: object,
         continuum: object,
         solvent_term: SolventEnergyTerm,
+        scalar_contract_id: str = PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
         numerical_force_backend: RichardsonScalarForce | None = None,
         hessian_backend: RichardsonScalarHessian | None = None,
     ) -> None:
@@ -561,9 +667,35 @@ class MACEPolarFrozenSourceDDXPES:
             raise TypeError("numerical_force_backend must be RichardsonScalarForce.")
         if not isinstance(hessian, RichardsonScalarHessian):
             raise TypeError("hessian_backend must be RichardsonScalarHessian.")
+        scalar_contract = _text(scalar_contract_id, name="scalar_contract_id")
+        if scalar_contract not in (
+            PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+        ):
+            raise ValueError("scalar_contract_id is not supported by this PES.")
+        if (
+            scalar_contract == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+            and not _registered_point_model_bindings_match(model)
+        ):
+            raise ValueError(
+                "the registered point-l1 scalar requires the exact official "
+                "MACE-POLAR-1-M radial-GTO CPU/float64 model binding."
+            )
+        if (
+            scalar_contract == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+            and not _registered_point_profile_bindings_match(
+                continuum,
+                solvent_term,
+            )
+        ):
+            raise ValueError(
+                "the registered point-l1 scalar requires the exact point-ddPCM "
+                "lmax=15/n_lebedev=1202/eta=0.1 and PySCF SMD-CDS bindings."
+            )
         object.__setattr__(self, "_model", model)
         object.__setattr__(self, "_continuum", continuum)
         object.__setattr__(self, "_solvent_term", solvent_term)
+        object.__setattr__(self, "_scalar_contract_id", scalar_contract)
         object.__setattr__(self, "_symbols", symbols)
         object.__setattr__(self, "_numerical_force_backend", numerical)
         object.__setattr__(self, "_hessian_backend", hessian)
@@ -588,6 +720,10 @@ class MACEPolarFrozenSourceDDXPES:
     @property
     def solvent_term(self) -> SolventEnergyTerm:
         return self._solvent_term
+
+    @property
+    def scalar_contract_id(self) -> str:
+        return self._scalar_contract_id
 
     def _current_configuration_sha256(self) -> str:
         return canonical_metadata_sha256(
@@ -645,9 +781,17 @@ class MACEPolarFrozenSourceDDXPES:
             raise TypeError("central_state must be MACEPolarFrozenDDXEnergyState.")
         if state.configuration_sha256 != self.configuration_sha256():
             raise ValueError("central_state belongs to a different PES configuration.")
+        if state.scalar_contract_id != self.scalar_contract_id:
+            raise ValueError("central_state belongs to a different scalar contract.")
         if state.geometry_sha256 != geometry_sha256(geometry):
             raise ValueError("central_state is bound to a different geometry.")
-        return state
+        replayed = self.solve(geometry)
+        if replayed.state_sha256 != state.state_sha256:
+            raise ValueError(
+                "cached central energy state did not replay for the current "
+                "provider and geometry."
+            )
+        return replayed
 
     def _validated_force_evaluation(
         self,
@@ -1002,7 +1146,11 @@ def build_smd_mace_polar_frozen_point_ddx_pes(
     This profile preserves the official learned ``(q,l=1)`` coefficients but
     does not claim that a point multipole is the checkpoint electron density.
     It is a separate continuum coupling identity selected by the frozen MNSol
-    source-representation gate.
+    source-representation gate. Physical discretization overrides remain
+    callable under the generic frozen-source scalar contract; only the exact
+    ``lmax=15/n_lebedev=1202/eta=0.1`` identity receives the registered
+    point-profile scalar ID. The registered identity also fixes
+    ``solver_tolerance=1e-12`` and ``n_proc=1``.
     """
 
     from maple.function.calculator.extra_correction.implicit.smd_cds import (
@@ -1028,10 +1176,22 @@ def build_smd_mace_polar_frozen_point_ddx_pes(
     adaptive_hessian = hessian_backend or RichardsonScalarHessian(
         maximum_topology_step_reductions=6,
     )
+    scalar_contract_id = (
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+        if (
+            lmax == 15
+            and n_lebedev == 1202
+            and solver_tolerance == 1.0e-12
+            and eta == 0.1
+            and n_proc == 1
+        )
+        else PURE_FROZEN_DDX_SCALAR_CONTRACT_ID
+    )
     return MACEPolarFrozenSourceDDXPES(
         model=model,
         continuum=continuum,
         solvent_term=PySCFSMDCDSTerm(normalized, specification.name),
+        scalar_contract_id=scalar_contract_id,
         numerical_force_backend=numerical_force_backend,
         hessian_backend=adaptive_hessian,
     )

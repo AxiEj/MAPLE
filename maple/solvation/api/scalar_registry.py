@@ -6,13 +6,21 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
 
-from .capabilities import CapabilityStatus
+from .capabilities import CapabilityStatus, ExecutionCapability, ExecutionStatus
 from .state_registry import (
     MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
     MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID,
     OPERATIONAL_STATE_EQUATION_ID,
+    PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID,
     SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
     VARIATIONAL_STATE_EQUATION_ID,
+)
+
+EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1 = (
+    "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1"
+)
+PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID = (
+    "route2-pure-macepolar-point-l1-mnsol505-development-evidence-v1"
 )
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
@@ -81,6 +89,9 @@ class ScalarDefinition:
     nonpolar_profile: str
     state_equation_id: str
     derivative_route: str
+    experimental_execution: ExecutionStatus = ExecutionStatus()
+    experimental_operation_policies: tuple[tuple[ExecutionCapability, str], ...] = ()
+    experimental_evidence_artifact_ids: tuple[str, ...] = ()
     admitted_capabilities: CapabilityStatus = CapabilityStatus()
     evidence_artifact_ids: tuple[str, ...] = ()
     enabled: bool = False
@@ -104,6 +115,7 @@ class ScalarDefinition:
         for name in (
             "included_components",
             "excluded_components",
+            "experimental_evidence_artifact_ids",
             "evidence_artifact_ids",
         ):
             values = tuple(getattr(self, name))
@@ -119,6 +131,41 @@ class ScalarDefinition:
             )
         if not isinstance(self.admitted_capabilities, CapabilityStatus):
             raise TypeError("admitted_capabilities must be a CapabilityStatus.")
+        if not isinstance(self.experimental_execution, ExecutionStatus):
+            raise TypeError("experimental_execution must be an ExecutionStatus.")
+        policies: list[tuple[ExecutionCapability, str]] = []
+        for item in self.experimental_operation_policies:
+            if not isinstance(item, tuple) or len(item) != 2:
+                raise TypeError(
+                    "experimental_operation_policies entries must be "
+                    "(ExecutionCapability, policy_id) pairs."
+                )
+            operation, policy_id = item
+            if not isinstance(operation, ExecutionCapability):
+                raise TypeError(
+                    "experimental operation policy keys must be "
+                    "ExecutionCapability values."
+                )
+            if not isinstance(policy_id, str) or not policy_id.strip():
+                raise ValueError("experimental operation policy IDs must be non-empty.")
+            if not self.experimental_execution.supports(operation):
+                raise ValueError(
+                    f"Policy declared for unavailable operation {operation.value!r}."
+                )
+            policies.append((operation, policy_id.strip()))
+        if len({operation for operation, _ in policies}) != len(policies):
+            raise ValueError("Experimental operation policy keys must be unique.")
+        object.__setattr__(self, "experimental_operation_policies", tuple(policies))
+        experimental = bool(self.experimental_execution.available_operations)
+        experimental_evidence = bool(self.experimental_evidence_artifact_ids)
+        if experimental and not experimental_evidence:
+            raise ValueError(
+                "An experimental execution surface requires evidence artifact IDs."
+            )
+        if experimental_evidence and not experimental:
+            raise ValueError(
+                "Experimental evidence cannot be attached without an execution surface."
+            )
         if type(self.enabled) is not bool:
             raise TypeError("enabled must be a bool.")
         admitted = bool(self.admitted_capabilities.enabled_tiers)
@@ -149,6 +196,17 @@ class ScalarDefinition:
             "nonpolar_profile": self.nonpolar_profile,
             "state_equation_id": self.state_equation_id,
             "derivative_route": self.derivative_route,
+            "experimental_execution": self.experimental_execution.as_dict(),
+            "experimental_operation_policies": {
+                operation.value: policy_id
+                for operation, policy_id in self.experimental_operation_policies
+            },
+            "experimental_evidence_artifact_ids": list(
+                self.experimental_evidence_artifact_ids
+            ),
+            "experimental_enabled": bool(
+                self.experimental_execution.available_operations
+            ),
             "admitted_capabilities": {
                 "E": self.admitted_capabilities.energy,
                 "F": self.admitted_capabilities.conservative_force,
@@ -177,6 +235,68 @@ _COMMON = dict(
 )
 
 _SCALAR_ENTRIES = (
+    ScalarDefinition(
+        scalar_id=EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+        exact_formula=(
+            "E(R)=E_vac^MACE-POLAR(R)+G_ddPCM[R,c0(R)]+G_SMD-CDS(R); "
+            "c0(R)=M_MACE-POLAR(R,u=0)"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.experimental:" "build_smd_mace_polar_frozen_point_ddx_pes"
+        ),
+        included_components=(
+            "macepolar_zero_field_vacuum_energy",
+            "ddx_ddpcm_point_l1_half_coupling_electrostatic",
+            "pyscf_smd_cds",
+        ),
+        excluded_components=(
+            "mace_mdp_permanent_source",
+            "field_conditioned_macepolar_energy_difference",
+            "mutual_ml_continuum_fixed_point",
+            "periodic_stress",
+            "common_variational_functional",
+        ),
+        source_representation=(
+            "unmodified zero-field MACE-POLAR l<=1 learned block mapped without "
+            "fitting to ddX point multipoles; the unused second radial block is zero"
+        ),
+        field_convention=(
+            "ddX point-multipole energy cotangent embedded back into the registered "
+            "MACE-POLAR radial-GTO field-dual space under its Q pairing"
+        ),
+        continuum_profile="ddx-ddpcm-macepolar-point-l1-embedding-v1",
+        cavity_profile="ddx-union-of-spheres-exposed-lebedev-v0p8p0",
+        nonpolar_profile="pyscf-2.13.1-smd-cds-legacy-v1",
+        state_equation_id=PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID,
+        derivative_route=(
+            "analytic complete chain-rule force of the declared scalar; molecular "
+            "virial from that force; Richardson HVP/H from the same force with "
+            "explicit partial-topology policy for PySCF SMD-CDS"
+        ),
+        experimental_execution=ExecutionStatus(
+            energy=True,
+            force=True,
+            molecular_virial=True,
+            hessian_vector_product=True,
+            hessian=True,
+        ),
+        experimental_operation_policies=(
+            (
+                ExecutionCapability.HESSIAN_VECTOR_PRODUCT,
+                "observed-components-only-experimental-v1",
+            ),
+            (
+                ExecutionCapability.HESSIAN,
+                "observed-components-only-experimental-v1",
+            ),
+        ),
+        experimental_evidence_artifact_ids=(
+            PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID,
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
     ScalarDefinition(
         scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
         exact_formula=(
@@ -787,6 +907,8 @@ __all__ = [
     "DIAGNOSTIC_DDX_DDCOSMO_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
+    "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1",
+    "PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",
     "MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID",

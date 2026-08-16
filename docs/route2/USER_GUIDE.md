@@ -39,17 +39,25 @@ same-scalar PES described here.
 
 ## Pure MACE-POLAR frozen-source developer API
 
-The new pure route is callable for direct E/F/virial/HVP/H validation without
-pretending it is a stable public calculator profile:
+The primary pure route is callable for direct E/F/virial/HVP/H validation
+without pretending it is a stable public calculator profile:
 
 ```python
-from maple.solvation.experimental import build_water_mace_polar_frozen_ddx_pes
+from maple.solvation.derivatives import (
+    OBSERVED_COMPONENTS_ONLY_EXPERIMENTAL_V1,
+    RichardsonScalarHessian,
+)
+from maple.solvation.experimental import build_smd_mace_polar_frozen_point_ddx_pes
 from maple.solvation.models import build_official_mace_polar_1_m_radial_gto_adapter
 
-model = build_official_mace_polar_1_m_radial_gto_adapter(device="cuda")
-pes = build_water_mace_polar_frozen_ddx_pes(
+model = build_official_mace_polar_1_m_radial_gto_adapter(device="cpu")
+pes = build_smd_mace_polar_frozen_point_ddx_pes(
     model,
     atoms.get_chemical_symbols(),
+    solvent="water",
+    hessian_backend=RichardsonScalarHessian(
+        topology_guard_policy=OBSERVED_COMPONENTS_ONLY_EXPERIMENTAL_V1,
+    ),
 )
 
 energy_eV = pes.get_potential_energy(atoms)
@@ -60,13 +68,16 @@ hvp = pes.hessian_vector_product(atoms, direction)
 hessian_eV_per_A2 = pes.get_hessian(atoms)
 ```
 
-This scalar is exactly
-`E_vac(MACE-POLAR) + G_ddX[R,c0(R)] + G_CDS(R)`, where `c0` is the
-unmodified zero-field MACE-POLAR source. It has no MACE-MDP dependency and no
-coupled self-consistent root. The force contains vacuum, moving-cavity,
-source-coordinate-VJP, and CDS leaves. HVP/H are numerical derivatives of
-that same conservative force and fail closed on ddX exposed-node topology
-changes or error-budget violations.
+This registered scalar uses the official CPU/float64 model binding and is exactly
+`E_vac(MACE-POLAR) + G_ddPCM[R,c0(R)] + G_SMD-CDS(R)`, where `c0` is the
+unmodified zero-field MACE-POLAR learned point-`l<=1` block. It binds pyddx
+ddPCM `lmax=15/n_lebedev=1202/solver_tolerance=1e-12/eta=0.1/n_proc=1` and
+PySCF 2.13.1 SMD-CDS. It has no
+MACE-MDP dependency and no coupled self-consistent root. The force contains
+vacuum, moving-cavity, source-coordinate-VJP, and CDS leaves. Supplied center
+states/forces are replayed before reuse. HVP/H are numerical derivatives of
+that same conservative force and reject observed ddX topology changes or
+error-budget violations.
 
 Topology coverage is recorded separately from the topology projection hash.
 The PySCF SMD-CDS adapter cannot observe libsolvent's internal surface topology,
@@ -77,10 +88,23 @@ diagnostic and records the unobservable component, policy SHA256, and retry coun
 Such a result is not fully topology fail-closed and does not change the `H=no`
 workflow admission.
 
-The bundled CDS is the existing differentiable Fibonacci/SWIG-inspired
-candidate, not exact published Lebedev-SWIG. The default and every override
-are configuration-hashed. Existing pilot accuracy numbers from another CDS,
-continuum, evaluator, or panel do not transfer to this identity. See
+The exact default point profile has a frozen 505-row development MAE of
+`1.2850369252161231 kcal/mol`, passing the aggregate `<=1.5` target; the sealed
+confirmation partition remains unopened. Energy accuracy does not establish
+physical F/virial/H accuracy or workflow admission. Model impersonation is
+rejected fail-closed. Changing `lmax`, `n_lebedev`, `solver_tolerance`, `eta`,
+or `n_proc` falls back to a generic unregistered scalar ID rather than
+impersonating this accuracy profile.
+
+For the exact profile, `profile_registry_manifest()` and
+`scalar_registry_manifest()` now report `experimental_enabled=true` with
+E/F/molecular-virial/HVP/H operations. This is the supported experimental API
+surface, not a release switch: admitted E/F/H/V/M remain false, periodic stress
+is false, and HVP/H still require the explicit partial-topology policy above.
+
+`build_water_mace_polar_frozen_ddx_pes(...)` remains available as a separate
+radial-GTO ddPCM/194 + smooth-CDS water derivative canary. It does not inherit
+the point-profile accuracy evidence. See
 [PURE_MACE_POLAR_FROZEN_DDX.md](PURE_MACE_POLAR_FROZEN_DDX.md).
 
 ## MACE-MDP + MACE-POLAR separated-ddX developer API
@@ -192,7 +216,7 @@ NEB/CINEB, PRFO, Dimer, TS, IRC
 stable-workflow numerical FREQ or HVP
 MD
 fixed-topology SMD-derived CDS
-multi-solvent vNext profiles
+stable/public multi-solvent vNext profiles
 rho-DROP forces
 strict common variational MACE-continuum functional
 ```

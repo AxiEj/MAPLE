@@ -31,6 +31,38 @@ Public ASE units are declared centrally as energy `eV`, forces `eV/A`, and
 Hessian `eV/A^2`. Historical Hartree-reporting jobs use the dispatcher-bound
 non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 
+## Experimental pure MACE-POLAR point-l1 ddPCM/SMD scalar
+
+- Profile:
+  `route2-profile-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1`.
+- Scalar:
+  `route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1`.
+- State equation:
+  `route2-pure-macepolar-zero-field-frozen-source-ddx-v1`.
+- Formula:
+  `E=E_vac^MACE-POLAR+G_ddPCM[R,c0(R)]+G_SMD-CDS(R)`, with
+  `c0=M_MACE-POLAR(R,u=0)` and no coupled continuum/ML root.
+- Physical identity: official CPU/float64 zero-field MACE-POLAR-1-M radial-GTO
+  adapter and learned point-`l<=1` SourceEmbedding; pyddx 0.8.0 ddPCM
+  `lmax=15/n_lebedev=1202/solver_tolerance=1e-12/eta=0.1/n_proc=1`;
+  PySCF 2.13.1 SMD-CDS.
+- Derivatives: complete analytic chain-rule F, molecular virial, and
+  error-estimated Richardson HVP/H of that same replayed force. PySCF CDS
+  internal topology is unobservable, so HVP/H are explicitly
+  `partial-experimental`, not workflow-admitted.
+- Experimental access: the scalar and exact profile registries expose
+  machine-readable E/F/molecular-virial/HVP/H availability, bound to
+  `route2-pure-macepolar-point-l1-mnsol505-development-evidence-v1`.
+  Periodic stress is false. This access surface is deliberately separate from
+  evidence-admitted E/F/H/V/M workflow tiers.
+- Development energy: frozen 505-row MNSol MAE
+  `1.2850369252161231 kcal/mol`, passing the hard aggregate `<=1.5` target;
+  confirmation remains sealed.
+- Accuracy boundary: energy accuracy does not establish physical F, virial,
+  stress, or H accuracy. All registry capability tiers remain false and the
+  scalar/profile remain workflow/release-disabled even though exact-profile
+  experimental execution is enabled.
+
 ## Experimental MACE-MDP + MACE-POLAR harmonic E/F profile
 
 - Profile:

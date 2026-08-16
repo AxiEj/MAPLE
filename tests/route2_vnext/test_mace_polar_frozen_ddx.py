@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 from types import SimpleNamespace
 
@@ -7,6 +8,7 @@ from ase import Atoms
 import numpy as np
 import pytest
 
+from maple.solvation.api import EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
 from maple.solvation.coupling.operator import canonical_metadata_sha256
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.derivatives import (
@@ -18,10 +20,17 @@ from maple.solvation.derivatives import (
 from maple.solvation.experimental.mace_polar_frozen_ddx import (
     MACEPolarFrozenDDXForceEvaluation,
     MACEPolarFrozenSourceDDXPES,
+    PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
     SolventEnergyState,
     build_smd_mace_polar_frozen_point_ddx_pes,
 )
-from maple.solvation.models.base import VacuumState, array_sha256, model_input_sha256
+from maple.solvation.models.base import (
+    ModelDomain,
+    ModelProvenance,
+    VacuumState,
+    array_sha256,
+    model_input_sha256,
+)
 
 
 class _Space:
@@ -409,6 +418,148 @@ def test_pure_route_rejects_a_mace_mdp_model_family():
         )
 
 
+def test_registered_point_scalar_rejects_non_official_model_impersonation(monkeypatch):
+    import maple.solvation.experimental.mace_polar_frozen_ddx as frozen_module
+
+    monkeypatch.setattr(
+        frozen_module,
+        "_registered_point_profile_bindings_match",
+        lambda continuum, solvent_term: True,
+    )
+    with pytest.raises(ValueError, match="exact official MACE-POLAR-1-M"):
+        MACEPolarFrozenSourceDDXPES(
+            model=_LinearPureMACEPolar(),
+            continuum=_QuadraticMovingDDX(),
+            solvent_term=_QuadraticSolventTerm(),
+            scalar_contract_id=(EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1),
+        )
+
+
+def test_registered_point_model_binding_rejects_live_provenance_drift(monkeypatch):
+    import maple.solvation.experimental.mace_polar_frozen_ddx as frozen_module
+    from maple.solvation.models.mace_polar import (
+        MACEPolarRadialGTOModelAdapter,
+        OFFICIAL_MACE_POLAR_1_M_CONTRACT,
+    )
+
+    release = OFFICIAL_MACE_POLAR_1_M_CONTRACT
+    provider_id = f"{release.provider_id}.radial-gto.v1"
+    domain = ModelDomain(
+        atomic_numbers=tuple(range(1, 84)),
+        total_charge_range=(0, 0),
+        spin_multiplicities=(1,),
+    )
+    provenance = ModelProvenance(
+        provider_id=provider_id,
+        model_profile_id=release.model_profile_id,
+        model_family="MACE-POLAR-1-radial-GTO-response",
+        checkpoint_sha256=release.checkpoint_sha256,
+        upstream_version=(
+            f"mace-torch=={release.mace_torch_version};"
+            f"graph-longrange=={release.graph_longrange_version}"
+        ),
+        upstream_commit=release.upstream_commit,
+        inference_code_sha256="1" * 64,
+        dtype="float64",
+        device="cpu",
+        domain=domain,
+        field_convention="test-radial-field-dual",
+        coordinate_frame_policy="test-laboratory-frame",
+    )
+    model = object.__new__(MACEPolarRadialGTOModelAdapter)
+    object.__setattr__(model, "_base", SimpleNamespace(release_contract=release))
+    object.__setattr__(model, "provider_id", provider_id)
+    object.__setattr__(model, "model_profile_id", release.model_profile_id)
+    object.__setattr__(model, "provenance", provenance)
+    object.__setattr__(model, "provenance_sha256", provenance.sha256)
+    object.__setattr__(model, "dtype", provenance.dtype)
+    object.__setattr__(model, "device", provenance.device)
+    object.__setattr__(model, "domain", domain)
+    object.__setattr__(model, "field_convention", provenance.field_convention)
+    object.__setattr__(
+        model,
+        "coordinate_frame_policy",
+        provenance.coordinate_frame_policy,
+    )
+    monkeypatch.setattr(
+        MACEPolarRadialGTOModelAdapter,
+        "configuration_sha256",
+        lambda self: "b" * 64,
+    )
+
+    assert frozen_module._registered_point_model_bindings_match(model)
+
+    object.__setattr__(
+        model,
+        "provenance",
+        replace(provenance, inference_code_sha256="2" * 64),
+    )
+    assert model.provenance_sha256 != model.provenance.sha256
+    assert not frozen_module._registered_point_model_bindings_match(model)
+
+
+def test_registered_point_scalar_rejects_non_point_provider_impersonation(monkeypatch):
+    import maple.solvation.experimental.mace_polar_frozen_ddx as frozen_module
+
+    monkeypatch.setattr(
+        frozen_module,
+        "_registered_point_model_bindings_match",
+        lambda model: True,
+    )
+    with pytest.raises(ValueError, match="registered point-l1 scalar"):
+        MACEPolarFrozenSourceDDXPES(
+            model=_LinearPureMACEPolar(),
+            continuum=_QuadraticMovingDDX(),
+            solvent_term=_QuadraticSolventTerm(),
+            scalar_contract_id=(EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1),
+        )
+
+
+def test_energy_state_hash_uses_the_normalized_scalar_contract_identity():
+    state = _pes().solve(_atoms())
+    normalized = replace(
+        state,
+        scalar_contract_id=f"  {state.scalar_contract_id}  ",
+        state_sha256="",
+    )
+
+    assert normalized.scalar_contract_id == state.scalar_contract_id
+    assert normalized.state_sha256 == state.state_sha256
+    assert replace(normalized).state_sha256 == normalized.state_sha256
+
+
+def test_derivative_entrypoints_reject_a_forged_central_energy_ledger():
+    atoms = _atoms()
+    pes = _pes()
+    state = pes.solve(atoms)
+    force = pes.evaluate_forces(atoms, central_state=state)
+    forged_state = replace(
+        state,
+        polarization_energy_eV=state.polarization_energy_eV + 0.5,
+        state_sha256="",
+    )
+    forged_force = replace(
+        force,
+        central_state=forged_state,
+        evaluation_sha256="",
+    )
+
+    with pytest.raises(ValueError, match="did not replay"):
+        pes.evaluate_forces(atoms, central_state=forged_state)
+    with pytest.raises(ValueError, match="did not replay"):
+        pes.numerical_force_audit(atoms, central_state=forged_state)
+    with pytest.raises(ValueError, match="did not replay"):
+        pes.molecular_virial(atoms, force_evaluation=forged_force)
+    with pytest.raises(ValueError, match="did not replay"):
+        pes.hessian_vector_product(
+            atoms,
+            np.ones((2, 3)),
+            central_force=forged_force,
+        )
+    with pytest.raises(ValueError, match="did not replay"):
+        pes.evaluate_hessian(atoms, central_force=forged_force)
+
+
 def test_point_builder_defaults_to_topology_adaptive_hessian(monkeypatch):
     import maple.solvation.continuum.mace_polar_point_ddx as point_module
     import maple.solvation.experimental.mace_polar_frozen_ddx as frozen_module
@@ -423,12 +574,23 @@ def test_point_builder_defaults_to_topology_adaptive_hessian(monkeypatch):
         "PySCFSMDCDSTerm",
         lambda *args, **kwargs: _UnobservableQuadraticSolventTerm(),
     )
+    monkeypatch.setattr(
+        frozen_module,
+        "_registered_point_profile_bindings_match",
+        lambda continuum, solvent_term: True,
+    )
+    monkeypatch.setattr(
+        frozen_module,
+        "_registered_point_model_bindings_match",
+        lambda model: True,
+    )
 
     pes = build_smd_mace_polar_frozen_point_ddx_pes(
         _LinearPureMACEPolar(),
         ("H", "H"),
         solvent="water",
     )
+    assert pes.scalar_contract_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
     assert pes._hessian_backend.maximum_topology_step_reductions == 6
     assert (
         pes._hessian_backend.topology_guard_policy
@@ -436,6 +598,7 @@ def test_point_builder_defaults_to_topology_adaptive_hessian(monkeypatch):
     )
     atoms = _atoms()
     state = pes.solve(atoms)
+    assert state.scalar_contract_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
     evaluated = pes.evaluate_forces(atoms, central_state=state)
     assert state.topology_observation_coverage == "partial"
     finite_difference = np.empty((2, 3))
@@ -473,6 +636,43 @@ def test_point_builder_defaults_to_topology_adaptive_hessian(monkeypatch):
         custom.hessian_vector_product(atoms, np.ones((2, 3))).topology_guard_status
         == "partial-experimental"
     )
+
+
+@pytest.mark.parametrize(
+    "override",
+    (
+        {"lmax": 8},
+        {"n_lebedev": 194},
+        {"solver_tolerance": 0.9},
+        {"eta": 0.2},
+        {"n_proc": 2},
+    ),
+)
+def test_point_builder_physical_overrides_do_not_claim_registered_profile(
+    monkeypatch,
+    override,
+):
+    import maple.solvation.continuum.mace_polar_point_ddx as point_module
+    import maple.solvation.experimental.mace_polar_frozen_ddx as frozen_module
+
+    monkeypatch.setattr(
+        point_module,
+        "MACEPolarPointEmbeddedDDXBackend",
+        lambda *args, **kwargs: _QuadraticMovingDDX(),
+    )
+    monkeypatch.setattr(
+        frozen_module,
+        "PySCFSMDCDSTerm",
+        lambda *args, **kwargs: _UnobservableQuadraticSolventTerm(),
+    )
+
+    pes = build_smd_mace_polar_frozen_point_ddx_pes(
+        _LinearPureMACEPolar(),
+        ("H", "H"),
+        solvent="water",
+        **override,
+    )
+    assert pes.scalar_contract_id == PURE_FROZEN_DDX_SCALAR_CONTRACT_ID
 
 
 def test_cached_state_and_force_are_bound_to_pes_configuration_and_geometry():

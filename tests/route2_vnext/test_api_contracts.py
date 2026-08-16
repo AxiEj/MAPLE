@@ -24,6 +24,10 @@ from maple.solvation.api import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_PROFILE_V1,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+    ExecutionCapability,
+    ExecutionStatus,
     ForceComponent,
     MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
     MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
@@ -33,6 +37,8 @@ from maple.solvation.api import (
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID,
+    PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID,
     ProvenanceBundle,
     ProvenanceRecord,
     Route2Result,
@@ -55,6 +61,7 @@ INITIAL_SCALAR_IDS = {
     "route2-operational-cpcm-fixedtopology-smdcds-v1",
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
     "route2-operational-macepolar-analytic-gaussian-multipole-"
     "smoothharmonicgalerkin-cpcm-v1",
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
@@ -105,8 +112,34 @@ def test_capabilities_default_false_and_variational_disabled():
         CapabilityStatus(variational_functional=True)
 
 
+def test_experimental_execution_is_distinct_and_prerequisite_checked():
+    status = ExecutionStatus(
+        energy=True,
+        force=True,
+        molecular_virial=True,
+        hessian_vector_product=True,
+        hessian=True,
+    )
+    assert status.available_operations == (
+        ExecutionCapability.ENERGY,
+        ExecutionCapability.FORCE,
+        ExecutionCapability.MOLECULAR_VIRIAL,
+        ExecutionCapability.HESSIAN_VECTOR_PRODUCT,
+        ExecutionCapability.HESSIAN,
+    )
+    assert status.supports(ExecutionCapability.PERIODIC_STRESS) is False
+    with pytest.raises(ValueError, match="Force execution requires energy"):
+        ExecutionStatus(force=True)
+    with pytest.raises(ValueError, match="Molecular-virial.*requires force"):
+        ExecutionStatus(energy=True, molecular_virial=True)
+    with pytest.raises(ValueError, match="HVP execution requires force"):
+        ExecutionStatus(energy=True, hessian_vector_product=True)
+    with pytest.raises(ValueError, match="Hessian execution requires HVP"):
+        ExecutionStatus(energy=True, force=True, hessian=True)
+
+
 def test_authoritative_profile_registry_is_immutable_and_narrowly_admitted():
-    assert len(PROFILE_REGISTRY) == 20
+    assert len(PROFILE_REGISTRY) == 21
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -127,10 +160,36 @@ def test_authoritative_profile_registry_is_immutable_and_narrowly_admitted():
             assert profile.evidence_artifact_ids == (
                 MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
             )
+        elif profile_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_PROFILE_V1:
+            assert profile.enabled is False
+            assert profile.capabilities.enabled_tiers == ()
+            assert profile.evidence_artifact_ids == ()
+            assert profile.experimental_execution == ExecutionStatus(
+                energy=True,
+                force=True,
+                molecular_virial=True,
+                hessian_vector_product=True,
+                hessian=True,
+            )
+            assert profile.experimental_evidence_artifact_ids == (
+                PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID,
+            )
+            assert profile.experimental_operation_policies == (
+                (
+                    ExecutionCapability.HESSIAN_VECTOR_PRODUCT,
+                    "observed-components-only-experimental-v1",
+                ),
+                (
+                    ExecutionCapability.HESSIAN,
+                    "observed-components-only-experimental-v1",
+                ),
+            )
         else:
             assert profile.enabled is False
             assert profile.capabilities.enabled_tiers == ()
             assert profile.evidence_artifact_ids == ()
+            assert profile.experimental_execution.available_operations == ()
+            assert profile.experimental_evidence_artifact_ids == ()
     manifest = profile_registry_manifest()
     manifest[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1]["enabled"] = True
     assert PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1].enabled is False
@@ -139,6 +198,35 @@ def test_authoritative_profile_registry_is_immutable_and_narrowly_admitted():
     assert diagnostic.coupling_id.endswith("local-l1-jet-diagnostic.v1")
     assert diagnostic.enabled is False
     assert diagnostic.capabilities.enabled_tiers == ()
+    pure_point = PROFILE_REGISTRY[
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_PROFILE_V1
+    ]
+    assert pure_point.scalar_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+    assert (
+        pure_point.state_equation_id == PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID
+    )
+    assert pure_point.continuum_profile == "ddx-ddpcm-macepolar-point-l1-embedding-v1"
+    assert pure_point.nonpolar_profile == "pyscf-2.13.1-smd-cds-legacy-v1"
+    assert pure_point.continuum_configuration_contract_id.endswith(
+        "smd-solvent-radii-ddpcm-l15-lebedev1202-tol1e-12-nproc1-" "pyscf-smd-cds.v1"
+    )
+    assert pure_point.enabled is False
+    assert pure_point.capabilities.enabled_tiers == ()
+    assert pure_point.experimental_execution.periodic_stress is False
+    assert pure_point.experimental_execution.hessian is True
+    pure_profile_manifest = profile_registry_manifest()[pure_point.profile_id]
+    assert pure_profile_manifest["experimental_enabled"] is True
+    assert pure_profile_manifest["experimental_operation_policies"] == {
+        "hessian_vector_product": "observed-components-only-experimental-v1",
+        "hessian": "observed-components-only-experimental-v1",
+    }
+    assert pure_profile_manifest["capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "V": False,
+        "M": False,
+    }
     radial = PROFILE_REGISTRY[OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1]
     assert (
         radial.scalar_id
@@ -302,6 +390,19 @@ def test_admission_records_cannot_bypass_enablement_or_evidence():
         replace(
             scalar, enabled=True, admitted_capabilities=CapabilityStatus(energy=True)
         )
+    with pytest.raises(ValueError, match="execution surface requires evidence"):
+        replace(base, experimental_execution=ExecutionStatus(energy=True))
+    with pytest.raises(ValueError, match="without an execution surface"):
+        replace(base, experimental_evidence_artifact_ids=("fake-evidence",))
+    with pytest.raises(ValueError, match="execution surface requires evidence"):
+        replace(scalar, experimental_execution=ExecutionStatus(energy=True))
+    with pytest.raises(ValueError, match="unavailable operation"):
+        replace(
+            base,
+            experimental_operation_policies=(
+                (ExecutionCapability.HESSIAN, "test-policy"),
+            ),
+        )
 
 
 def test_contracts_and_nested_values_are_immutable():
@@ -397,10 +498,29 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
             assert entry.evidence_artifact_ids == (
                 MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
             )
+        elif scalar_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1:
+            assert entry.enabled is False
+            assert entry.admitted_capabilities.enabled_tiers == ()
+            assert entry.evidence_artifact_ids == ()
+            assert entry.experimental_execution.hessian is True
+            assert entry.experimental_execution.periodic_stress is False
+            assert entry.experimental_evidence_artifact_ids == (
+                PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID,
+            )
+            assert dict(entry.experimental_operation_policies) == {
+                ExecutionCapability.HESSIAN_VECTOR_PRODUCT: (
+                    "observed-components-only-experimental-v1"
+                ),
+                ExecutionCapability.HESSIAN: (
+                    "observed-components-only-experimental-v1"
+                ),
+            }
         else:
             assert entry.enabled is False
             assert entry.admitted_capabilities.enabled_tiers == ()
             assert entry.evidence_artifact_ids == ()
+            assert entry.experimental_execution.available_operations == ()
+            assert entry.experimental_evidence_artifact_ids == ()
         assert not (set(entry.included_components) & set(entry.excluded_components))
     assert tuple(
         state_id for state_id, entry in STATE_REGISTRY.items() if entry.enabled
@@ -410,6 +530,27 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
     manifest = scalar_registry_manifest()
     assert set(manifest) == INITIAL_SCALAR_IDS
     assert manifest[variational.scalar_id]["admitted_capabilities"]["V"] is False
+    pure_manifest = manifest[EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1]
+    assert pure_manifest["experimental_enabled"] is True
+    assert pure_manifest["experimental_execution"] == {
+        "energy": True,
+        "force": True,
+        "molecular_virial": True,
+        "hessian_vector_product": True,
+        "hessian": True,
+        "periodic_stress": False,
+    }
+    assert pure_manifest["experimental_operation_policies"] == {
+        "hessian_vector_product": "observed-components-only-experimental-v1",
+        "hessian": "observed-components-only-experimental-v1",
+    }
+    assert pure_manifest["admitted_capabilities"] == {
+        "E": False,
+        "F": False,
+        "H": False,
+        "V": False,
+        "M": False,
+    }
     assert (
         manifest["route2-operational-cpcm-fixedtopology-electrostatic-v1"][
             "implementation_entry_point"

@@ -1,0 +1,235 @@
+{
+  "admission": {
+    "energy_workflow_admitted": false,
+    "force_workflow_admitted": false,
+    "hessian_workflow_admitted": false,
+    "md_frequency_optimization_admitted": false,
+    "release_admitted": false,
+    "variational_tier_admitted": false
+  },
+  "artifact_id": "route2-pure-macepolar-point-l1-mnsol505-development-evidence-v1",
+  "artifact_sha256": "3a27f8140f3db2fa80873fc5ef85dd6b3ec8d59a7c8501f98b49999071733a71",
+  "claim_boundary": "The preregistered same-panel 505-row development energy MAE passes <=1.5 kcal/mol for this exact scalar/profile. The derivative panel establishes only same-scalar numerical consistency. Energy error does not bound physical force, virial, stress, or Hessian error; confirmation and independent derivative references remain sealed or absent.",
+  "confirmation_partition_opened": false,
+  "derivative_development_canary": {
+    "aggregator_sha256": "1431eff33207da838bd06429ccdc5ae37c0a2311e1d12da2925afb28c213e420",
+    "claim_boundary": "Numerical same-scalar consistency on a preregistered 10-solvent development canary only. It provides no independent physical force, stress, Hessian, frequency, optimization, MD, confirmation-partition, or release-accuracy evidence; PySCF SMD-CDS topology remains partially unobservable.",
+    "full_hessian_record_count": 4,
+    "maximum_energy_replay_difference_kcal_mol": 0.0,
+    "maximum_force_directional_error_eV_per_A": 6.234038871066883e-06,
+    "maximum_h_times_direction_vs_hvp_error_eV_per_A2": 7.98962399528591e-06,
+    "maximum_hvp_vs_force_fd_component_error_eV_per_A2": 3.593239849308816e-05,
+    "maximum_net_force_norm_eV_per_A": 1.067421125338667e-14,
+    "maximum_translation_residual_norm_eV_per_A2": 2.493474125043105e-05,
+    "maximum_virial_affine_error_eV": 1.549656708284275e-05,
+    "preregistration_file_sha256": "9334a3a6fb04d2b892008a75915d0973c491e3c9ca753df38fc8250b7d3a00fb",
+    "preregistration_sha256": "3f709b81bd770fc382339bad54217c52f7a35932f5e50048218eaed6ad6db201",
+    "record_count": 10,
+    "runner_sha256": "23184faf774f245bf3ee7bcdfbb0ee67d15f55acd8bf261ab90e98488af353fb",
+    "solvent_count": 10,
+    "sourcebound_summary_file_sha256": "01f4c7ab48546e5ee3845593b7fa2e5d1a1058209055d5631ff02072e35f45c2",
+    "sourcebound_summary_sha256": "11deac9970c1b128c48e14cc97039d6ea9ff8e9271c9436c4b05af1bf379419c",
+    "status": "pass",
+    "topology_guard_status": "partial-experimental",
+    "topology_observation_coverage": "partial"
+  },
+  "energy_development_panel": {
+    "by_solvent": {
+      "acetonitrile": {
+        "maximum_absolute_error_kcal_mol": 2.5573975726866673,
+        "mean_absolute_error_kcal_mol": 1.0531707175876814,
+        "mean_signed_error_kcal_mol": -0.3681269500944303,
+        "record_count": 4,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 1,
+        "root_mean_square_error_kcal_mol": 1.4078407937125361
+      },
+      "chloroform": {
+        "maximum_absolute_error_kcal_mol": 5.3920023801550725,
+        "mean_absolute_error_kcal_mol": 1.0383465431803878,
+        "mean_signed_error_kcal_mol": 0.5643347693062027,
+        "record_count": 85,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 21,
+        "root_mean_square_error_kcal_mol": 1.4554040043521907
+      },
+      "dichloromethane": {
+        "maximum_absolute_error_kcal_mol": 2.1279649617124914,
+        "mean_absolute_error_kcal_mol": 0.92530513640038,
+        "mean_signed_error_kcal_mol": -0.46586723248048106,
+        "record_count": 7,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 2,
+        "root_mean_square_error_kcal_mol": 1.2037335563585627
+      },
+      "dimethylformamide": {
+        "maximum_absolute_error_kcal_mol": 1.7144749490972537,
+        "mean_absolute_error_kcal_mol": 1.2787839797101976,
+        "mean_signed_error_kcal_mol": 0.4215465051615709,
+        "record_count": 4,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 1,
+        "root_mean_square_error_kcal_mol": 1.3355339802207233
+      },
+      "dimethylsulfoxide": {
+        "maximum_absolute_error_kcal_mol": 1.7570705144570269,
+        "mean_absolute_error_kcal_mol": 1.5374614697753546,
+        "mean_signed_error_kcal_mol": 0.6815805763211524,
+        "record_count": 4,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 3,
+        "root_mean_square_error_kcal_mol": 1.5762556815856907
+      },
+      "ethanol": {
+        "maximum_absolute_error_kcal_mol": 2.4517619721149257,
+        "mean_absolute_error_kcal_mol": 1.222369763936195,
+        "mean_signed_error_kcal_mol": -1.222369763936195,
+        "record_count": 5,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 2,
+        "root_mean_square_error_kcal_mol": 1.4954561428504103
+      },
+      "hexane": {
+        "maximum_absolute_error_kcal_mol": 3.034860327779392,
+        "mean_absolute_error_kcal_mol": 0.5645828080528223,
+        "mean_signed_error_kcal_mol": 0.01817014821501703,
+        "record_count": 48,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 3,
+        "root_mean_square_error_kcal_mol": 0.8359415191373598
+      },
+      "tetrahydrofuran": {
+        "maximum_absolute_error_kcal_mol": 0.9667632529211576,
+        "mean_absolute_error_kcal_mol": 0.6953602637491078,
+        "mean_signed_error_kcal_mol": 0.43556149788955334,
+        "record_count": 4,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 0,
+        "root_mean_square_error_kcal_mol": 0.74366759063097
+      },
+      "toluene": {
+        "maximum_absolute_error_kcal_mol": 2.16395646006856,
+        "mean_absolute_error_kcal_mol": 0.5170166038965318,
+        "mean_signed_error_kcal_mol": 0.24633423922162861,
+        "record_count": 38,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 2,
+        "root_mean_square_error_kcal_mol": 0.7271558349991302
+      },
+      "water": {
+        "maximum_absolute_error_kcal_mol": 7.243453829909983,
+        "mean_absolute_error_kcal_mol": 1.5787238393184055,
+        "mean_signed_error_kcal_mol": 0.9769035380325107,
+        "record_count": 306,
+        "records_with_absolute_error_ge_1_5_kcal_mol": 124,
+        "root_mean_square_error_kcal_mol": 2.120472036925946
+      }
+    },
+    "confirmation_partition_opened": false,
+    "hard_accuracy_target": {
+      "comparison": "<=",
+      "metric": "mean_absolute_error_kcal_mol",
+      "threshold_kcal_mol": 1.5
+    },
+    "hard_accuracy_target_passed": true,
+    "overall": {
+      "maximum_absolute_error_kcal_mol": 7.243453829909983,
+      "mean_absolute_error_kcal_mol": 1.2850369252161231,
+      "mean_signed_error_kcal_mol": 0.6979071946609611,
+      "record_count": 505,
+      "records_with_absolute_error_ge_1_5_kcal_mol": 159,
+      "root_mean_square_error_kcal_mol": 1.8120165083234037
+    },
+    "record_count": 505,
+    "solvent_count": 10,
+    "solvent_record_counts": {
+      "acetonitrile": 4,
+      "chloroform": 85,
+      "dichloromethane": 7,
+      "dimethylformamide": 4,
+      "dimethylsulfoxide": 4,
+      "ethanol": 5,
+      "hexane": 48,
+      "tetrahydrofuran": 4,
+      "toluene": 38,
+      "water": 306
+    },
+    "sourcebound_summary_file_sha256": "d713f63f132b26fb7a0bfd966d9d85aaa1e671b5f5aae2a967fb35f7acbec1c3",
+    "sourcebound_summary_sha256": "67605fad64875f16eacc7b1c9907cf775305b94c24ff7e553af9c98d4e3ba80f",
+    "status": "pass"
+  },
+  "experimental_execution": {
+    "access": "enabled",
+    "claim_boundary": "Callable exact-profile execution only; this does not change any workflow, release, or physical derivative-accuracy admission.",
+    "evidence_artifact_id": "route2-pure-macepolar-point-l1-mnsol505-development-evidence-v1",
+    "operation_policies": {
+      "hessian": "observed-components-only-experimental-v1",
+      "hessian_vector_product": "observed-components-only-experimental-v1"
+    },
+    "operations": {
+      "energy": true,
+      "force": true,
+      "hessian": true,
+      "hessian_vector_product": true,
+      "molecular_virial": true,
+      "periodic_stress": false
+    }
+  },
+  "external_input_sha256": {
+    "checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "dataset_zip": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+    "pilot_selection": "689dee172e7d8da3f2e5a501dd1ca905f18cf4dae9f830cabea1cb05e933a069",
+    "private_selection": "d05130aa8f38d0d1c292b43d769bb021f0b6ce7d2c29cb0af7479246913ec6a4",
+    "protocol": "70c34de4b9812f557c123cd124f1b49d4b58e33467e6ba893f4c267b905b9a21"
+  },
+  "implementation_source_binding": {
+    "base_commit": "815cf81a4b097dd61e1b6649ab8f7658ca83eba9",
+    "changed_paths": [
+      "docs/route2/CAPABILITY_MATRIX.md",
+      "docs/route2/PURE_MACE_POLAR_FROZEN_DDX.md",
+      "docs/route2/SCALAR_REGISTRY.md",
+      "docs/route2/USER_GUIDE.md",
+      "maple/solvation/api/__init__.py",
+      "maple/solvation/api/profiles.py",
+      "maple/solvation/api/scalar_registry.py",
+      "maple/solvation/api/state_registry.py",
+      "maple/solvation/experimental/mace_polar_frozen_ddx.py",
+      "tests/route2_vnext/test_api_contracts.py",
+      "tests/route2_vnext/test_mace_polar_frozen_ddx.py"
+    ],
+    "energy_aggregator_sha256": "bc6ff414ee3b3259a3056ff8820eac8664895bffb6f62d00c29b9dea80252d9f",
+    "energy_runner_sha256": "4ed8e421953c9eb1d96e9a737ab6c109d719ec927894653898651b82bf979250",
+    "frozen_source_file_count": 340,
+    "implementation_patch_excludes_this_evidence_file": true,
+    "implementation_patch_sha256": "96177ecd53d768639bec1faac6c87e70c7e0f22c98089b1117e6e5832cb26f44",
+    "post_run_evidence_file": true,
+    "source_manifest_content_sha256": "4fb36f80c371d26cc735dd6869fd8915a7761afdf85059e63d4b38f4c4995e02",
+    "source_manifest_file_sha256": "b71d3fe7252958a63372a315275fa69b084cae41ed47e11ab89cad3884607544"
+  },
+  "partition": "development",
+  "profile_id": "route2-profile-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1",
+  "route": "pure MACE-POLAR plus solvent; no MACE-MDP and no mutual ML-continuum fixed point",
+  "row_level_data_emitted": false,
+  "runtime": {
+    "packages": {
+      "ase": "3.27.0",
+      "mace-torch": "0.3.16",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14"
+  },
+  "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1",
+  "schema_version": 1,
+  "scientific_identity": {
+    "continuum": "pyddx 0.8.0 ddPCM lmax=15 n_lebedev=1202 solver_tolerance=1e-12 eta=0.1 n_proc=1",
+    "energy": "vacuum MACE-POLAR + ddPCM polarization + SMD-CDS",
+    "model": "official MACE-POLAR-1-M radial-GTO CPU float64 adapter; exact release/checkpoint/evaluator/runtime/domain/provenance",
+    "no_hybrid": true,
+    "no_mutual_fixed_point": true,
+    "nonpolar": "PySCF 2.13.1 SMD-CDS",
+    "profile_id": "route2-profile-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1",
+    "route": "pure MACE-POLAR plus solvent",
+    "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1",
+    "source": "MACE-POLAR-1-M zero-field point l<=1 SourceEmbedding",
+    "state_equation_id": "route2-pure-macepolar-zero-field-frozen-source-ddx-v1"
+  },
+  "state_equation_id": "route2-pure-macepolar-zero-field-frozen-source-ddx-v1",
+  "status": "development-pass",
+  "visibility": "public-aggregate-only"
+}

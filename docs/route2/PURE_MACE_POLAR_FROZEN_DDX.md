@@ -3,133 +3,123 @@
 ## Scope
 
 [`mace_polar_frozen_ddx.py`](../../maple/solvation/experimental/mace_polar_frozen_ddx.py)
-is the first callable Route-2 vNext path that is both:
+defines the pure MACE-POLAR + solvent lane. It has no MACE-MDP source and no
+coupled ML/continuum fixed point. The execution surface exposes E, analytic F,
+a molecular virial, numerical HVP, and a full numerical Hessian for one declared
+geometry scalar. The registry now marks those five operations as experimentally
+available for the exact profile while keeping periodic stress and every
+workflow/release admission false.
 
-1. **pure MACE-POLAR** (no MACE-MDP permanent source); and
-2. defined by one explicit geometry scalar with E/F/molecular-virial/HVP/H access.
+## Registered accuracy scalar
 
-It is an experimental execution surface, not a release or chemical-accuracy admission.
-The callable API is intentionally open so derivative and topology failures can be
-found by using the real model rather than by keeping E/F/H permanently unavailable.
-
-## Scalar
-
-Let `c0(R)` be the unmodified zero-field eight-channel radial-GTO source from the
-official MACE-POLAR adapter.  For an additive differentiable solvent term `G_CDS`,
+The quantitative profile is
+`route2-profile-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1`:
 
 \[
 E(\mathbf R)=E_\mathrm{vac}^{\mathrm{MACE\mbox{-}POLAR}}(\mathbf R)
-+G_\mathrm{ddX}[\mathbf R,c_0(\mathbf R)]
-+G_\mathrm{CDS}(\mathbf R).
++G_\mathrm{ddPCM}[\mathbf R,c_0(\mathbf R)]
++G_\mathrm{SMD\mbox{-}CDS}(\mathbf R),
+\qquad c_0(\mathbf R)=M_\mathrm{POLAR}(\mathbf R,u=0).
 \]
 
-This route has no coupled electronic/continuum root and makes no common variational
-functional claim.  It reuses:
+Its frozen identity is:
 
-- the official MACE-POLAR checkpoint and existing radial-GTO model adapter;
-- `pyddx==0.8.0` for ddPCM energy, adjoint source derivative, and nuclear force terms;
-- the existing differentiable Fibonacci/SWIG-inspired SMD-water CDS implementation;
-- the existing scalar Richardson force auditor, extended with reusable HVP/Hessian
-  differentiation of conservative forces.
+- official unmodified MACE-POLAR-1-M radial-GTO adapter on CPU/float64 at zero
+  external field, with its release contract, checkpoint, evaluator, runtime,
+  provenance, and neutral-singlet domain checked fail-closed;
+- the learned first `(q,l=1)` block mapped without fitting to ddX point
+  multipoles; the unused second radial block is exactly zero;
+- `pyddx==0.8.0` ddPCM, `lmax=15`, `n_lebedev=1202`,
+  `solver_tolerance=1e-12`, `eta=0.1`, `n_proc=1`;
+- SMD solvent radii/dielectric and official PySCF `2.13.1` legacy SMD-CDS;
+- neutral-singlet fixed geometries and no response calibration or fitting.
+
+Only that exact model/runtime binding and those ddX settings receive the
+registered scalar ID
+`route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1`.
+Model impersonation and `lmax`, `n_lebedev`, `solver_tolerance`, `eta`, or
+`n_proc` overrides remain callable only through the generic unregistered
+frozen-source scalar contract. The constructor also rejects attempts to attach
+the registered ID to another model, continuum, or CDS term.
+
+The older radial-GTO ddPCM/194 + smooth Fibonacci/SWIG-inspired CDS water path
+remains a distinct low-cost derivative canary. It is not the 505-row accuracy
+identity and cannot inherit the registered point-profile MAE.
 
 ## Complete force ledger
 
-The implemented force is
+The implemented force is the complete chain rule of the same scalar:
 
 \[
-\mathbf F = \mathbf F_\mathrm{vac}
--\left.\partial_{\mathbf R}G_\mathrm{ddX}\right|_{c_0}
+\mathbf F=\mathbf F_\mathrm{vac}
+-\left.\partial_{\mathbf R}G_\mathrm{ddPCM}\right|_{c_0}
 -\left(\frac{\partial c_0}{\partial\mathbf R}\right)^\mathsf T
-  \frac{\partial G_\mathrm{ddX}}{\partial c_0}
--\partial_{\mathbf R}G_\mathrm{CDS}.
+  \frac{\partial G_\mathrm{ddPCM}}{\partial c_0}
+-\partial_{\mathbf R}G_\mathrm{SMD\mbox{-}CDS}.
 \]
 
-The first ddX term moves the atom-centred cavity and Gaussian source centres while
-holding coefficients fixed.  The second is the MACE-POLAR source-coordinate VJP
-against the ddX reaction field.  Each leaf is stored separately before summation,
-preventing a missing or double-counted coordinate contribution.
+The vacuum, fixed-source continuum-coordinate, MACE-POLAR source-VJP, and CDS
+leaves are stored separately. A supplied central energy or force cache is
+accepted only after replay against the current provider, configuration,
+geometry, and complete production state digest. A caller cannot change an
+energy leaf, rebuild a self-consistent digest, and reuse the stale cache for F,
+virial, HVP, or H.
 
-`RadialGTODDXBackend.fixed_source_coordinate_gradient()` now exposes the public
-same-scalar ddX partial.  `build_state_with_fixed_source_coordinate_gradient()`
-reuses one ddX solve for state and derivative.  Every state also carries a discrete
-exposed-Lebedev-node topology hash, so numerical F/H stencils fail closed when the
-**observable ddX** active cavity changes even if the exposed-node count is unchanged.
-This guard says nothing about topology internal to another library unless that
-library exposes a corresponding fingerprint.
+## Virial, HVP, Hessian, and topology
 
-## V and H definitions
+- The virial is a declared-origin molecular affine derivative in eV. It is not
+  periodic stress and not the registry's historical `V=variational` tier.
+- HVP/H are error-estimated Richardson derivatives of the same replayed
+  conservative force. Policy SHA, actual steps, retry count, force hashes,
+  raw antisymmetry, and the symmetrized Hessian remain visible.
+- ddX exposes a discrete cavity topology fingerprint. PySCF SMD-CDS does not
+  expose libsolvent's internal surface active set, so point-ddX + PySCF-SMD has
+  `partial` topology observation. HVP/H therefore reject by default. The
+  explicit `observed-components-only-experimental-v1` policy permits a
+  diagnostic result labelled `partial-experimental`; it is not fully topology
+  fail-closed and does not admit FREQ, OPT, MD, or Tier H.
 
-- **V** means a molecular virial, not the legacy Route-2 `V=variational` tier and
-  not volume-normalized periodic stress.  For declared origin `o`,
-  `W = F.T @ (R-o)` and `dE/dstrain = -W`.  Raw and symmetric tensors, net force,
-  origin, and antisymmetry are all retained.
-- **HVP/H** are fourth-order Richardson derivatives of the same conservative
-  force.  They retain step sizes, local truncation estimates, displaced force
-  hashes, topology identity and observation coverage, derivative-policy SHA256,
-  topology retry count, raw Hessian, symmetric Hessian, and raw antisymmetry.
-  Symmetrization is therefore visible rather than hidden.
+## Development energy evidence
 
-Topology observation is explicit.  The smooth in-tree CDS term reports complete
-coverage.  The official PySCF SMD-CDS adapter reports its libsolvent internal
-surface as unobservable because `get_cds_legacy` exposes energy and gradient but
-not an active-set/surface fingerprint.  A ddX + PySCF-SMD state therefore has
-partial coverage: ddX exposed-node changes remain guarded, while the internal CDS
-surface does not.  Richardson F/H reject partial or unobservable coverage by
-default.  An explicitly selected
-`observed-components-only-experimental-v1` policy permits numerical exploration,
-but the result is labelled `partial-experimental`; it is not topology fail-closed
-and does not admit Hessian, frequency, optimization, or MD workflows.
+The frozen preregistered 505-row MNSol development panel (10 solvents, fixed
+record/geometry/profile identity) measured:
 
-## Current real-checkpoint evidence
+- MAE: `1.2850369252161231 kcal/mol` — passes the hard `<=1.5` target;
+- RMSE: `1.8120165083234037 kcal/mol`;
+- maximum absolute error: `7.243453829909983 kcal/mol`;
+- records with absolute error `>=1.5`: `159/505`;
+- water subset: `306` records, MAE `1.5787238393184055 kcal/mol`.
 
-The reproducible runner
-[`run_mace_polar_frozen_ddx_water_canary.py`](../../tools/route2_release/run_mace_polar_frozen_ddx_water_canary.py)
-produced
-[`mace-polar-frozen-ddx-water-derivative-canary-v1.json`](evidence/mace-polar-frozen-ddx-water-derivative-canary-v1.json)
-with the official MACE-POLAR-1-M checkpoint, CUDA float64 conversion,
-`pyddx==0.8.0`, water ddPCM/194, and a **302-point low-cost smooth CDS canary**.
+This is an aggregate development-panel result, not a per-record or per-solvent
+guarantee. The sealed confirmation partition remains unopened. The exact
+source-bound replay artifact must accompany integration; an interrupted or
+path-unbound rerun is not evidence.
 
-All five canary gates passed:
+## Derivative evidence boundary
 
-- total zero-field source charge: `1.39e-17 e`;
-- maximum net-force component: below `1.6e-14 eV/A`;
-- best analytic-force versus total-scalar directional error:
-  `4.49e-7 eV/A`;
-- best virial versus homogeneous-strain scalar error: `4.81e-7 eV`;
-- Richardson HVP error estimate: `7.44e-5 eV/A^2`.
+Earlier same-scalar development diagnostics found maximum errors of about
+`6.23e-6 eV/A` for a force directional check, `1.55e-5 eV` for an affine
+virial check, `3.59e-5 eV/A^2` for an HVP versus force-FD check, and
+`7.99e-6 eV/A^2` for `H @ direction` versus HVP on the selected small panel.
+These are numerical consistency checks, not independent physical force,
+stress, or Hessian references.
 
-The raw molecular-virial antisymmetry remains measured rather than concealed; the
-finite laboratory-fixed ddX grid is not structurally SO(3)-equivariant.
-
-## Accuracy boundary
-
-These derivative checks do **not** establish `MAE <= 1.5 kcal/mol`.  Existing
-MNSol/FreeSolv pilot values bind different evaluator, continuum, cavity, CDS, or
-record identities and cannot be transferred to this profile.  In particular, the
-302-point smooth CDS canary is not the production accuracy identity.  A frozen
-all-record benchmark must rerun this exact checkpoint/evaluator + radial-GTO ddX
-+ selected CDS configuration before accuracy admission.
-
-Energy MAE also does not bound force, virial, or Hessian errors.  Those require
-their own finite-difference, covariance, topology, frequency, optimization, and MD
-panels.
+Energy MAE does not bound force, virial, or Hessian error. Broad covariance,
+distorted-PES, independent derivative-reference, frequency, optimization, MD,
+and periodic-stress evidence remain open. Accordingly the registry/profile
+have an enabled `experimental_execution` surface for E/F/molecular-virial/HVP/H,
+but no admitted E/F/H/V/M tiers. `V` remains the historical variational tier;
+it is not the molecular virial. Periodic stress is explicitly unavailable.
 
 ## Literature and upstream boundaries
 
-- Differentiating a converged non-variational fixed point is mathematically valid
-  under smoothness, local uniqueness, and nonsingular residual Jacobian conditions;
-  see Christianson,
-  [*Reverse accumulation and attractive fixed points*](https://doi.org/10.1080/10556789408805572)
-  and [*Reverse accumulation and implicit functions*](https://doi.org/10.1080/10556789808805697).
-  This frozen-source route is simpler because it has no coupled fixed point.
-- ddCOSMO analytic first derivatives and adjoints are documented by Lipparini et al.,
-  [JCTC 2013](https://doi.org/10.1021/ct400280b); the domain-decomposition model is
-  described in [JCP 2013](https://doi.org/10.1063/1.4816767).  The public ddX 0.8
-  interface supplies energy and force ingredients, not a nuclear Hessian API.
-- MACE `v0.3.16` exposes PolarMACE energy/forces/stress and autograd Hessian support
-  for its own model energy; see the
-  [official release](https://github.com/ACEsuit/mace/releases/tag/v0.3.16) and
-  [PolarMACE guide](https://mace-docs.readthedocs.io/en/latest/guide/polar_mace.html).
-  Those upstream derivatives do not automatically differentiate the added ddX/CDS
-  scalar, which is why Route-2 owns the explicit combined chain rule and numerical
-  HVP/H audit.
+- A nonconjugate fixed-point derivative is mathematically admissible only for
+  a smooth, locally unique residual root with nonsingular state Jacobian; see
+  Christianson's work on reverse accumulation and implicit functions. This
+  frozen-source route is simpler because it has no coupled ML/continuum root.
+- ddX `0.8.0` exposes energy, adjoint/source derivatives, and force ingredients,
+  but no public nuclear-Hessian API. Combined HVP/H therefore differentiate the
+  complete MAPLE force rather than claiming an upstream ddX Hessian.
+- MACE `0.3.16` supports PolarMACE E/F/stress and model-energy autograd Hessians.
+  Those APIs do not establish derivatives of the added ddPCM + SMD-CDS scalar;
+  MAPLE owns and verifies that combined chain rule.

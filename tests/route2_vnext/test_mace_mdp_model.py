@@ -100,3 +100,27 @@ def test_mace_mdp_state_rejects_atomic_moment_mismatch():
                 state.public_polarizability_eangstrom2_per_volt
             ),
         )
+
+
+def test_mace_mdp_state_accepts_roundoff_at_a_cancelled_public_dipole():
+    positions = np.array([[-1.0, 0.2, 0.0], [1.0, -0.2, 0.0]])
+    charges = np.zeros(2)
+    dipoles = np.array([[1.0, -0.3, 0.2], [-1.0, 0.3, -0.2]])
+    atomic_alpha = np.stack((0.5 * np.eye(3), 0.5 * np.eye(3)))
+
+    state = build_mace_mdp_moment_state(
+        configuration_sha256="1" * 64,
+        model_input_sha256_value="2" * 64,
+        atomic_numbers=[6, 6],
+        positions_angstrom=positions,
+        charges_e=charges,
+        atomic_dipoles_eangstrom=dipoles,
+        atomic_polarizabilities_eangstrom2_per_volt=atomic_alpha,
+        public_dipole_eangstrom=np.array([2.0e-17, -1.0e-17, 5.0e-18]),
+        public_polarizability_eangstrom2_per_volt=np.eye(3),
+    )
+
+    np.testing.assert_array_equal(
+        state.public_dipole_eangstrom,
+        np.array([2.0e-17, -1.0e-17, 5.0e-18]),
+    )

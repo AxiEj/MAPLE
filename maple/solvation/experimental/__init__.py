@@ -21,6 +21,14 @@ from .mace_mdp_polar_ddx import (
     MACE_MDPPolarHybridDDXEnergy,
     MACE_MDPPolarHybridDDXPES,
 )
+from .mace_mdp_polar_solvated_ddx import (
+    HYBRID_SOLVATED_DDX_PES_PROVIDER_ID,
+    HYBRID_SOLVATED_DDX_SCALAR_CONTRACT_ID,
+    HybridSolvatedDDXEnergyState,
+    HybridSolvatedDDXForceEvaluation,
+    MACE_MDPPolarHybridSolvatedDDXPES,
+    build_smd_mace_mdp_polar_hybrid_ddx_pes,
+)
 from .mace_polar_frozen_ddx import (
     MACEPolarFrozenDDXEnergyState,
     MACEPolarFrozenDDXForceEvaluation,
@@ -45,6 +53,12 @@ __all__ = [
     "HybridDDXForceEvaluation",
     "MACE_MDPPolarHybridDDXEnergy",
     "MACE_MDPPolarHybridDDXPES",
+    "HYBRID_SOLVATED_DDX_PES_PROVIDER_ID",
+    "HYBRID_SOLVATED_DDX_SCALAR_CONTRACT_ID",
+    "HybridSolvatedDDXEnergyState",
+    "HybridSolvatedDDXForceEvaluation",
+    "MACE_MDPPolarHybridSolvatedDDXPES",
+    "build_smd_mace_mdp_polar_hybrid_ddx_pes",
     "MACEPolarFrozenDDXEnergyState",
     "MACEPolarFrozenDDXForceEvaluation",
     "MACEPolarFrozenSourceDDXPES",

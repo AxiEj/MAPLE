@@ -747,6 +747,11 @@ class MACE_MDPPolarHybridDDXPES:
             topology_id=evaluator.cavity_topology_sha256,
         )
 
+    def topology_id(self, geometry: object) -> str:
+        """Return the observed ddX cavity topology for this geometry."""
+
+        return self._evaluator(geometry).cavity_topology_sha256
+
     def get_potential_energy(self, geometry: object) -> float:
         return self.solve(geometry).total_energy_ev
 

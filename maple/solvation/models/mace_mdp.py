@@ -117,6 +117,37 @@ def _relative_norm(left: np.ndarray, right: np.ndarray) -> float:
     )
 
 
+def _dipole_reconstruction_matches(
+    *,
+    charges: np.ndarray,
+    positions: np.ndarray,
+    atomic_dipoles: np.ndarray,
+    public_dipole: np.ndarray,
+) -> bool:
+    """Compare two equivalent reductions with a cancellation-safe error bound.
+
+    The public checkpoint dipole and the NumPy reconstruction sum the same
+    atomic terms, but Torch scatter reduction and NumPy reduction need not
+    round a nearly cancelled result identically.  A relative error is therefore
+    undefined at molecular dipoles close to zero.  The standard floating-point
+    summation bound uses the magnitude of the unreduced atomic terms instead.
+    The factor two covers the two independently rounded reductions.
+    """
+
+    charge_terms = charges[:, None] * positions
+    contributions = charge_terms + atomic_dipoles
+    reconstructed = np.sum(contributions, axis=0)
+    epsilon = np.finfo(np.float64).eps
+    operation_count = len(charges) + 1
+    gamma = (operation_count * epsilon) / (1.0 - operation_count * epsilon)
+    component_scale = np.sum(
+        np.abs(charge_terms) + np.abs(atomic_dipoles),
+        axis=0,
+    )
+    roundoff_bound = 2.0 * gamma * component_scale
+    return bool(np.all(np.abs(reconstructed - public_dipole) <= roundoff_bound))
+
+
 @dataclass(frozen=True, slots=True)
 class MACE_MDPMomentState:
     """One immutable permanent-moment and polarizability coefficient state."""
@@ -203,8 +234,12 @@ class MACE_MDPMomentState:
         )
         if not np.allclose(source, expected_source, rtol=0.0, atol=2.0e-15):
             raise ValueError("Raw-l1 source does not match the Cartesian moments.")
-        reconstructed_dipole = np.sum(charges[:, None] * positions + dipoles, axis=0)
-        if _relative_norm(reconstructed_dipole, public_dipole) > 1.0e-10:
+        if not _dipole_reconstruction_matches(
+            charges=charges,
+            positions=positions,
+            atomic_dipoles=dipoles,
+            public_dipole=public_dipole,
+        ):
             raise ValueError("Atomic moments do not reconstruct the public dipole.")
 
         payload = {

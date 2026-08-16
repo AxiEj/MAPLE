@@ -241,6 +241,15 @@ six-range-LP rule. No OOF MAE was produced and the rule was not loosened.
 Any subsequent strictly identified estimator is a new candidate profile, not
 a retroactive repair of M3.
 
+The next and terminal candidate for this frozen three-dimensional stock-area
+lane is `M4-PH1.0-v1`: the same target-blind subspace and family folds with a
+strictly convex pseudo-Huber residual loss, fixed `delta=1.0 kcal/mol`, no
+intercept, no regularizer, and no hyperparameter grid or fallback. Full-rank
+design plus positive pseudo-Huber curvature gives a structurally unique
+coefficient. Its exact numerical certificate and Pro review are frozen in
+`evidence/M4_PRO_AUDIT_2026-08-16.md`. Missing the development gate terminates
+this 3D estimator lane; `delta` will not be tuned afterward.
+
 ## Admission and stop rules
 
 Report M0-M3 with MAE, RMSE, signed error, Q95 absolute error, maximum error,

@@ -103,4 +103,3 @@ Degree four defines a new positive cavity parent.  It is not claimed to be the
 `L2`-optimal projection or to reproduce the old smooth-step product exactly.
 Representation fidelity and downstream solvation accuracy remain separate,
 unpassed gates.
-

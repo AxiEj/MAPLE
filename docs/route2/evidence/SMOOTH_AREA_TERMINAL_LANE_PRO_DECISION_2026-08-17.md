@@ -54,4 +54,3 @@ The Pro answer suggested constructing the two geometry directions within each
 training fold.  That detail is not accepted automatically: it must be frozen
 as a deterministic training-only transformation and proved not to use held-out
 targets.  Confirmation remains sealed.
-

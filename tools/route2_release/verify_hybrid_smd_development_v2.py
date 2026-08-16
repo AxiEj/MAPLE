@@ -18,10 +18,21 @@ from pathlib import Path
 from statistics import fmean
 from typing import Any, Mapping
 
-
 EXPECTED_ARTIFACT = "route2-hybrid-smd-development-record-v2"
 EXPECTED_PREREGISTRATION = "route2-hybrid-smd-development-prereg-v2"
 EXPECTED_RECORD_COUNT = 505
+
+
+def _contract(version: int) -> tuple[str, str, str]:
+    if version not in (2, 3):
+        raise HybridDevelopmentVerificationError(
+            f"Unsupported hybrid evidence contract version: {version}."
+        )
+    return (
+        f"route2-hybrid-smd-development-record-v{version}",
+        f"route2-hybrid-smd-development-prereg-v{version}",
+        f"locked-before-first-v{version}-hybrid-evaluation",
+    )
 
 
 class HybridDevelopmentVerificationError(RuntimeError):
@@ -75,10 +86,12 @@ def _record_identity(
     mdp_checkpoint_sha256: str,
     polar_checkpoint_sha256: str,
     selection_index: int,
+    contract_version: int = 2,
 ) -> str:
+    record_artifact, _, _ = _contract(contract_version)
     return _canonical_sha256(
         {
-            "contract": "route2-hybrid-smd-development-record-v2",
+            "contract": record_artifact,
             "preregistration_sha256": preregistration_sha256,
             "runner_sha256": runner_sha256,
             "mdp_checkpoint_sha256": mdp_checkpoint_sha256,
@@ -117,10 +130,12 @@ def _validate_preregistration(
     mdp_checkpoint_path: Path,
     polar_checkpoint_path: Path,
     expected_count: int,
+    contract_version: int,
 ) -> tuple[str, str, str, str]:
-    if preregistration.get("artifact_id") != EXPECTED_PREREGISTRATION:
+    _, expected_preregistration, expected_status = _contract(contract_version)
+    if preregistration.get("artifact_id") != expected_preregistration:
         raise HybridDevelopmentVerificationError("Unknown preregistration identity.")
-    if preregistration.get("status") != "locked-before-first-v2-hybrid-evaluation":
+    if preregistration.get("status") != expected_status:
         raise HybridDevelopmentVerificationError("Preregistration is not locked.")
     if preregistration.get("partition") != "development":
         raise HybridDevelopmentVerificationError("Partition is not development.")
@@ -174,9 +189,11 @@ def _validate_record(
     runner_sha256: str,
     mdp_checkpoint_sha256: str,
     polar_checkpoint_sha256: str,
+    contract_version: int,
 ) -> None:
+    expected_artifact, _, _ = _contract(contract_version)
     prefix = f"record {index:03d}"
-    if row.get("artifact") != EXPECTED_ARTIFACT:
+    if row.get("artifact") != expected_artifact:
         raise HybridDevelopmentVerificationError(f"{prefix} artifact drifted.")
     if row.get("selection_index") != index:
         raise HybridDevelopmentVerificationError(f"{prefix} index drifted.")
@@ -200,6 +217,7 @@ def _validate_record(
         mdp_checkpoint_sha256=mdp_checkpoint_sha256,
         polar_checkpoint_sha256=polar_checkpoint_sha256,
         selection_index=index,
+        contract_version=contract_version,
     )
     if row.get("record_identity_sha256") != expected_identity:
         raise HybridDevelopmentVerificationError(f"{prefix} identity drifted.")
@@ -229,9 +247,7 @@ def _validate_record(
         row.get("experimental_delta_g_kcal_mol"),
         name=f"{prefix} experimental energy",
     )
-    signed = _finite(
-        row.get("signed_error_kcal_mol"), name=f"{prefix} signed error"
-    )
+    signed = _finite(row.get("signed_error_kcal_mol"), name=f"{prefix} signed error")
     absolute = _finite(
         row.get("absolute_error_kcal_mol"), name=f"{prefix} absolute error"
     )
@@ -260,6 +276,7 @@ def audit_hybrid_development(
     polar_checkpoint_path: Path,
     expected_count: int = EXPECTED_RECORD_COUNT,
     allow_incomplete: bool = False,
+    contract_version: int = 2,
 ) -> dict[str, object]:
     preregistration = json.loads(preregistration_path.read_text())
     preregistration_sha256 = _sha256(preregistration_path)
@@ -272,6 +289,7 @@ def audit_hybrid_development(
             mdp_checkpoint_path=mdp_checkpoint_path,
             polar_checkpoint_path=polar_checkpoint_path,
             expected_count=expected_count,
+            contract_version=contract_version,
         )
     )
 
@@ -306,6 +324,7 @@ def audit_hybrid_development(
             runner_sha256=runner_sha256,
             mdp_checkpoint_sha256=mdp_sha256,
             polar_checkpoint_sha256=polar_sha256,
+            contract_version=contract_version,
         )
         records.append(row)
         record_file_hashes.append((index, _sha256(path)))
@@ -345,6 +364,7 @@ def audit_hybrid_development(
         )
     payload: dict[str, object] = {
         "artifact": "route2-hybrid-smd-development-integrity-audit-v1",
+        "evidence_contract_version": contract_version,
         "status": status,
         "do_not_commit": True,
         "partition": "development",
@@ -354,8 +374,7 @@ def audit_hybrid_development(
         "success_count": len(successes),
         "failure_count": len(failures),
         "missing_selection_indices": [
-            int(name.removeprefix("index-").removesuffix(".json"))
-            for name in missing
+            int(name.removeprefix("index-").removesuffix(".json")) for name in missing
         ],
         "failed_selection_indices": [row["selection_index"] for row in failures],
         "preregistration_sha256": preregistration_sha256,
@@ -404,6 +423,7 @@ def main() -> int:
     parser.add_argument("--polar-checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--allow-incomplete", action="store_true")
+    parser.add_argument("--contract-version", type=int, choices=(2, 3), default=2)
     args = parser.parse_args()
     payload = audit_hybrid_development(
         input_dir=args.input_dir,
@@ -414,6 +434,7 @@ def main() -> int:
         mdp_checkpoint_path=args.mdp_checkpoint,
         polar_checkpoint_path=args.polar_checkpoint,
         allow_incomplete=args.allow_incomplete,
+        contract_version=args.contract_version,
     )
     _write_json_atomic(args.output, payload)
     print(json.dumps(payload, indent=2, sort_keys=True))

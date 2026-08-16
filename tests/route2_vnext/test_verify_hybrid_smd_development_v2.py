@@ -12,7 +12,6 @@ from tools.route2_release.verify_hybrid_smd_development_v2 import (
     audit_hybrid_development,
 )
 
-
 _FROZEN_RUNNER_SHA256 = (
     "f36e32ae7a68ad5e6f2d626b28464b4c7a4e1757341f3117c22a82481cb9a7ff"
 )
@@ -30,7 +29,9 @@ def _write(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
-def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
+def _fixture(
+    tmp_path: Path, *, count: int = 3, contract_version: int = 2
+) -> dict[str, Path | int]:
     runner = tmp_path / "runner.py"
     aggregator = tmp_path / "aggregator.py"
     mdp = tmp_path / "mdp.model"
@@ -38,11 +39,11 @@ def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
     source_root = tmp_path / "source"
     source = source_root / "maple/example.py"
     for path, content in (
-        (runner, "runner-v2\n"),
-        (aggregator, "aggregator-v2\n"),
+        (runner, f"runner-v{contract_version}\n"),
+        (aggregator, f"aggregator-v{contract_version}\n"),
         (mdp, "mdp-checkpoint\n"),
         (polar, "polar-checkpoint\n"),
-        (source, "source-v2\n"),
+        (source, f"source-v{contract_version}\n"),
     ):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
@@ -50,8 +51,10 @@ def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
     _write(
         preregistration,
         {
-            "artifact_id": "route2-hybrid-smd-development-prereg-v2",
-            "status": "locked-before-first-v2-hybrid-evaluation",
+            "artifact_id": (
+                f"route2-hybrid-smd-development-prereg-v{contract_version}"
+            ),
+            "status": (f"locked-before-first-v{contract_version}-hybrid-evaluation"),
             "partition": "development",
             "confirmation_partition_opened": False,
             "fitting_or_calibration_permitted": False,
@@ -81,7 +84,9 @@ def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
         _write(
             records / f"index-{index:03d}.json",
             {
-                "artifact": "route2-hybrid-smd-development-record-v2",
+                "artifact": (
+                    f"route2-hybrid-smd-development-record-v{contract_version}"
+                ),
                 "do_not_commit": True,
                 "partition": "development",
                 "confirmation_partition_opened": False,
@@ -98,6 +103,7 @@ def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
                     mdp_checkpoint_sha256=mdp_sha256,
                     polar_checkpoint_sha256=polar_sha256,
                     selection_index=index,
+                    contract_version=contract_version,
                 ),
                 "preregistration_sha256": preregistration_sha256,
                 "runner_sha256": runner_sha256,
@@ -136,6 +142,7 @@ def _fixture(tmp_path: Path, *, count: int = 3) -> dict[str, Path | int]:
         "mdp_checkpoint_path": mdp,
         "polar_checkpoint_path": polar,
         "expected_count": count,
+        "contract_version": contract_version,
     }
 
 
@@ -160,6 +167,13 @@ def test_integrity_audit_recomputes_complete_metrics_and_bindings(tmp_path: Path
     )
     assert set(result["per_solvent_metrics"]) == {"toluene", "water"}
     assert len(result["verification_sha256"]) == 64
+
+
+def test_integrity_audit_accepts_v3_contract_without_weakening_v2(tmp_path: Path):
+    paths = _fixture(tmp_path, contract_version=3)
+    result = audit_hybrid_development(**paths)
+    assert result["status"] == "pass"
+    assert result["evidence_contract_version"] == 3
 
 
 def test_integrity_audit_fails_closed_on_incomplete_or_tampered_records(

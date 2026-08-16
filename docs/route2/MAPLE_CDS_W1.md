@@ -107,6 +107,43 @@ force evaluation. The legacy PySCF internal surface is not observable, and the
 experimental Fibonacci grid is not a structural rotational guarantee; neither
 may be silently substituted for the final surface.
 
+### Smooth harmonic area candidate
+
+The first coefficient-space candidate now has an explicit geometric parent.
+The harmonic cavity field `e_i(R,u)` is constructed by applying a centered
+smooth Heaviside directly to signed sphere overlap and composing those relaxed
+exposure fractions. It is **not** constructed as the square root of a separate
+area weight. Therefore its SMD-like geometric area is
+
+```text
+A_i(R) = a_i^2 integral e_i(R,u) dOmega
+       = a_i^2 sqrt(4*pi) c_i,00(R).
+```
+
+The fact that electrostatic trial and test functions are both attenuated by
+`e_i` does not force a local `e_i^2 dS` geometric measure: the two factors in
+the electrostatic bilinear form occur at its trial and test arguments. Squaring
+an exposure fraction would instead define a separately named quadratic
+participation measure and would attenuate a transition point with `e=1/2` to
+one quarter of its base area.
+
+This decision is frozen from transition-profile provenance and geometry, not
+from final solvation errors. It also agrees with the current PySCF 2.13.1 SWIG
+surface semantics, whose exposed area is linear in its switching function
+`swf`. `SmoothHarmonicExposureArea` evaluates the scalar from the shared
+harmonic coefficient graph, rejects violations of `0 <= A_i <= 4*pi*a_i^2`
+instead of clipping, and supplies its exact coordinate VJP. A CDS term may
+claim the *same harmonic cavity* as an electrostatic continuum only after
+`validate_same_cavity_as()` proves equality of radii, transition width,
+exposure order, radial projection order, atom identity, and cavity profile.
+
+This is a named smooth area model, not a claim of bitwise equality to sharp
+SMD SASA. Its finite-width, finite-band geometry accuracy must be checked on
+preregistered analytic union-of-spheres cases before any coefficient fit. The
+full Pro-assisted mathematical audit and the local independent checks are
+recorded in
+`evidence/HARMONIC_CDS_AREA_PRO_AUDIT_2026-08-16.md`.
+
 ## Fit and selection protocol
 
 For a frozen design matrix `X`, fit only on development data using grouped,

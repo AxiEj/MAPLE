@@ -235,17 +235,24 @@ def _weighted_basis_block(coefficients: Any, *, exposure_lmax: int, basis_lmax: 
     )
 
 
-def _assemble_weighted_basis(
+def _assemble_exposure_coefficients(
     positions: Any,
     *,
     radii: tuple[float, ...],
     transition_width: float,
-    surface_lmax: int,
     exposure_lmax: int,
     radial_order: int,
 ):
-    torch = _torch()
-    blocks = []
+    """Return the per-atom smooth exposure-fraction coefficients.
+
+    This is the single differentiable implementation used both by the
+    electrostatic weighted basis and by any geometry scalar derived from that
+    same cavity descriptor.  Keeping the coefficients as a first-class tensor
+    prevents a CDS-area implementation from reconstructing a second overlap
+    model or differentiating a laboratory-fixed surface grid.
+    """
+
+    coefficients_by_atom = []
     for atom_i in range(len(radii)):
         active_factors = []
         buried = False
@@ -272,6 +279,29 @@ def _assemble_weighted_basis(
                 tuple(active_factors), lmax=exposure_lmax, reference=positions
             )
         )
+        coefficients_by_atom.append(coefficients)
+    return _torch().stack(coefficients_by_atom, dim=0)
+
+
+def _assemble_weighted_basis(
+    positions: Any,
+    *,
+    radii: tuple[float, ...],
+    transition_width: float,
+    surface_lmax: int,
+    exposure_lmax: int,
+    radial_order: int,
+):
+    torch = _torch()
+    exposure_coefficients = _assemble_exposure_coefficients(
+        positions,
+        radii=radii,
+        transition_width=transition_width,
+        exposure_lmax=exposure_lmax,
+        radial_order=radial_order,
+    )
+    blocks = []
+    for coefficients in exposure_coefficients:
         blocks.append(
             _weighted_basis_block(
                 coefficients,

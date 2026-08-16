@@ -107,6 +107,18 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_exposure",
         "smooth_pair_exposure_coefficients",
     ),
+    "SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID": (
+        "harmonic_cds_area",
+        "SMOOTH_HARMONIC_EXPOSURE_AREA_CONTRACT_ID",
+    ),
+    "SMOOTH_HARMONIC_EXPOSURE_AREA_PROVIDER_ID": (
+        "harmonic_cds_area",
+        "SMOOTH_HARMONIC_EXPOSURE_AREA_PROVIDER_ID",
+    ),
+    "SmoothHarmonicExposureArea": (
+        "harmonic_cds_area",
+        "SmoothHarmonicExposureArea",
+    ),
     "HARMONIC_GAUSSIAN_SOURCE_CONTRACT_ID": (
         "harmonic_gaussian_source",
         "HARMONIC_GAUSSIAN_SOURCE_CONTRACT_ID",

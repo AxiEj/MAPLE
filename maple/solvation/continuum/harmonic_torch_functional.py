@@ -41,6 +41,7 @@ from maple.solvation.coupling.spaces import (
 
 from .functional import ContinuumEnergyFunctional
 from .harmonic_coefficients import _bounded_lmax, _positive_int
+from .harmonic_exposure import SMOOTH_HARMONIC_EXPOSURE_CONTRACT_ID
 from .harmonic_point_source import HARMONIC_POINT_SOURCE_CONTRACT_ID
 from .harmonic_torch_primitives import (
     _assemble_gaussian_source,
@@ -159,6 +160,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     functional_contract_id = SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID
     continuum_profile_id = SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID
     cavity_profile_id = SMOOTH_HARMONIC_CAVITY_PROFILE_ID
+    exposure_contract_id = SMOOTH_HARMONIC_EXPOSURE_CONTRACT_ID
     configuration_contract_id = SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
     capabilities = CapabilityStatus()
     scalar_first = True
@@ -289,6 +291,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "functional_contract_id": self.functional_contract_id,
             "continuum_profile_id": self.continuum_profile_id,
             "cavity_profile_id": self.cavity_profile_id,
+            "exposure_contract_id": self.exposure_contract_id,
             "coupling_id": coupling_id,
             "configuration_contract_id": self.configuration_contract_id,
             "atomic_numbers": numbers,
@@ -380,12 +383,32 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         return self._radii_angstrom
 
     @property
+    def atomic_numbers(self) -> tuple[int, ...]:
+        return self._expected_atomic_numbers
+
+    @property
+    def transition_width_angstrom2(self) -> float:
+        return self._transition_width_angstrom2
+
+    @property
     def surface_lmax(self) -> int:
         return self._surface_lmax
 
     @property
     def exposure_lmax(self) -> int:
         return self._exposure_lmax
+
+    @property
+    def exposure_radial_quadrature_order(self) -> int:
+        return self._exposure_radial_order
+
+    @property
+    def runtime_dtype(self) -> str:
+        return self._runtime_dtype
+
+    @property
+    def runtime_device(self) -> str:
+        return self._runtime_device
 
     @property
     def physical_lmax(self) -> int:
@@ -409,6 +432,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                 "functional_contract_id": self.functional_contract_id,
                 "continuum_profile_id": self.continuum_profile_id,
                 "cavity_profile_id": self.cavity_profile_id,
+                "exposure_contract_id": self.exposure_contract_id,
                 "coupling_id": self.coupling_id,
                 "configuration_contract_id": self.configuration_contract_id,
                 "atomic_numbers": self._expected_atomic_numbers,

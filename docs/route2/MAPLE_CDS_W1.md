@@ -207,22 +207,32 @@ it writes only outside the checkout.
 
 ## Fit and selection protocol
 
-For a frozen design matrix `X`, fit only on development data using grouped,
-nested validation. Groups must keep the same solute/geometry family together
-and should additionally audit scaffold, homolog, functional-group, element,
-and size leakage.
-
-The primary candidate is regularized robust linear regression:
+The first target-visible M3 candidate is intentionally much narrower than a
+free 18-parameter refit. Before reading any M3 target or hybrid record, the
+complete 306×18 geometry-only stock-area matrix fixes a unit-invariant
+three-dimensional coefficient subspace:
 
 ```text
-argmin_theta sum_i w_i Huber(y_i - X_i theta)
-            + lambda ||L(theta - theta_prior)||^2
+theta(alpha,beta) = alpha theta_stock + D^-1 [v1 v2] beta.
 ```
 
-The grids for Huber scale, regularization, prior strength, and model complexity
-must be preregistered. No confirmation result may select them. Report design
-rank, condition number, coefficient uncertainty, bootstrap intervals, and
-held-group failure modes.
+Here `D` contains positive column-L2 norms, while `v1,v2` are the two leading
+target-blind geometry modes orthogonal to `D theta_stock`. Ten deterministic
+OOF folds keep each exact heavy-element-count family together; the rule is not
+claimed to separate scaffolds, homologs, connectivity, or constitutional
+isomers.
+
+Every training fold fits **unweighted pure LAD** with three parameters and no
+intercept, anchor, ridge term, target weighting, or hyperparameter grid. The
+implementation recomputes primal/dual/KKT certificates and then solves six
+coefficient-range LPs inside a frozen relaxed-LAD cap. A numerically nonunique
+fold fails closed rather than choosing a convenient secondary optimum. The
+cluster bootstrap resamples the already frozen OOF errors by the same families
+and is report-only on development; it is not a substitute for confirmation.
+
+The complete Pro-assisted mathematical review, rejected alternatives, and
+local counterexamples are recorded in
+`evidence/M3_PRO_AUDIT_2026-08-16.md`.
 
 ## Admission and stop rules
 

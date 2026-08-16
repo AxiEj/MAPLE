@@ -234,6 +234,13 @@ The complete Pro-assisted mathematical review, rejected alternatives, and
 local counterexamples are recorded in
 `evidence/M3_PRO_AUDIT_2026-08-16.md`.
 
+The resulting preregistered M3 run terminated on its first OOF training fold
+because the pure-LAD coefficient was numerically nonunique under the frozen
+six-range-LP rule. No OOF MAE was produced and the rule was not loosened.
+`evidence/M3_TERMINAL_FAILURE_2026-08-16.md` binds the terminal artifact.
+Any subsequent strictly identified estimator is a new candidate profile, not
+a retroactive repair of M3.
+
 ## Admission and stop rules
 
 Report M0-M3 with MAE, RMSE, signed error, Q95 absolute error, maximum error,

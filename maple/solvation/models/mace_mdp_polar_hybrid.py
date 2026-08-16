@@ -9,11 +9,11 @@ This research-only adapter keeps the two scientific roles explicit:
 The permanent and induced sources may use different source-to-boundary
 kernels.  Consequently this object deliberately does *not* implement the
 ordinary :class:`SeparatedElectronicResponseProvider` protocol, whose single
-``B`` matrix would silently erase that distinction.  The current admitted
-research construction uses exterior point multipoles for the permanent term
-and the checkpoint's 1.5-A Gaussian density for the induced term.
-
-No common variational functional or coordinate derivative is claimed.
+``B`` matrix would silently erase that distinction.  The current research
+construction uses exterior point multipoles for the permanent term and the
+checkpoint's 1.5-A Gaussian density for the induced term.  Its operational
+coordinate derivative is assembled explicitly from the permanent-source and
+induced-response VJPs; no common variational functional is claimed.
 """
 
 from __future__ import annotations
@@ -25,10 +25,7 @@ from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 
-from maple.solvation.coupling.operator import (
-    CoordinateDerivativeUnavailable,
-    canonical_metadata_sha256,
-)
+from maple.solvation.coupling.operator import canonical_metadata_sha256
 from maple.solvation.coupling.separated_operators import NativeFieldSpace
 from maple.solvation.coupling.spaces import ATOMIC_L1_SOURCE_SPACE, SourceSpace
 from maple.solvation.coupling.state_equation import geometry_sha256
@@ -61,6 +58,10 @@ class PermanentAtomicL1SourceProvider(Protocol):
 
     def evaluate_source(self, geometry: Any) -> np.ndarray: ...
 
+    def source_position_vjp(
+        self, geometry: Any, source_cotangent: np.ndarray
+    ) -> np.ndarray: ...
+
 
 @runtime_checkable
 class FieldResponsiveAtomicL1SourceProvider(Protocol):
@@ -77,6 +78,8 @@ class FieldResponsiveAtomicL1SourceProvider(Protocol):
 
     def vacuum_energy_ev(self, geometry: Any) -> float: ...
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: Any) -> np.ndarray: ...
+
     def evaluate_source(self, geometry: Any, field: np.ndarray) -> np.ndarray: ...
 
     def field_jvp(
@@ -84,6 +87,10 @@ class FieldResponsiveAtomicL1SourceProvider(Protocol):
     ) -> np.ndarray: ...
 
     def field_vjp(
+        self, geometry: Any, field: np.ndarray, source_cotangent: np.ndarray
+    ) -> np.ndarray: ...
+
+    def coordinate_vjp(
         self, geometry: Any, field: np.ndarray, source_cotangent: np.ndarray
     ) -> np.ndarray: ...
 
@@ -197,6 +204,25 @@ class MACE_MDPPermanentSourceAdapter:
             name="MACE-MDP permanent source",
         )
 
+    def source_position_vjp(
+        self, geometry: object, source_cotangent: object
+    ) -> np.ndarray:
+        self.configuration_sha256()
+        count = atom_count(geometry)
+        cotangent = self.source_space.validate(
+            source_cotangent,
+            atom_count=count,
+            name="MACE-MDP permanent-source cotangent",
+        )
+        result = np.asarray(
+            self._base.source_position_vjp(geometry, cotangent), dtype=float
+        )
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-MDP permanent-source position VJP must be finite (N,3)."
+            )
+        return result.copy()
+
 
 class PermanentAnchoredInducedSourceModel:
     """Compose a permanent source with a field-induced source increment."""
@@ -214,7 +240,7 @@ class PermanentAnchoredInducedSourceModel:
     source_space = ATOMIC_L1_SOURCE_SPACE
     capabilities = ()
     variational_functional_admitted = False
-    coordinate_derivative_available = False
+    coordinate_derivative_available = True
     permanent_source_kernel = "exterior point monopoles and dipoles"
     induced_source_kernel = "checkpoint 1.5-A normalized Gaussian multipoles"
 
@@ -227,15 +253,20 @@ class PermanentAnchoredInducedSourceModel:
         model_profile_id: str = MACE_MDP_POLAR_HYBRID_PROFILE_ID,
     ) -> None:
         for owner, names in (
-            (permanent, ("configuration_sha256", "evaluate_source")),
+            (
+                permanent,
+                ("configuration_sha256", "evaluate_source", "source_position_vjp"),
+            ),
             (
                 response,
                 (
                     "configuration_sha256",
                     "vacuum_energy_ev",
+                    "vacuum_forces_ev_per_angstrom",
                     "evaluate_source",
                     "field_jvp",
                     "field_vjp",
+                    "coordinate_vjp",
                 ),
             ),
         ):
@@ -364,6 +395,18 @@ class PermanentAnchoredInducedSourceModel:
             raise RuntimeError("hybrid vacuum energy is non-finite.")
         return value
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: object) -> np.ndarray:
+        """Return the zero-field MACE-POLAR force used by the ledger."""
+
+        self.configuration_sha256()
+        count = atom_count(geometry)
+        result = np.asarray(
+            self._response.vacuum_forces_ev_per_angstrom(geometry), dtype=float
+        )
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise RuntimeError("hybrid vacuum force must be finite with shape (N,3).")
+        return result.copy()
+
     def _validate_anchor(
         self, geometry: object, anchor: PermanentInducedSourceAnchor
     ) -> int:
@@ -450,11 +493,53 @@ class PermanentAnchoredInducedSourceModel:
             name="hybrid native-field VJP",
         )
 
-    def coordinate_vjp(self, *_args: object, **_kwargs: object) -> np.ndarray:
-        raise CoordinateDerivativeUnavailable(
-            "The hybrid total coordinate VJP requires MACE-MDP atomic q/p "
-            "coordinate derivatives and distinct point/GTO kernel derivatives."
+    def permanent_source_position_vjp(
+        self,
+        geometry: object,
+        anchor: PermanentInducedSourceAnchor,
+        source_cotangent: object,
+    ) -> np.ndarray:
+        count = self._validate_anchor(geometry, anchor)
+        cotangent = self.source_space.validate(
+            source_cotangent, atom_count=count, name="permanent-source cotangent"
         )
+        result = np.asarray(
+            self._permanent.source_position_vjp(geometry, cotangent), dtype=float
+        )
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "permanent-source position VJP must be finite with shape (N,3)."
+            )
+        return result.copy()
+
+    def induced_source_position_vjp(
+        self,
+        geometry: object,
+        anchor: PermanentInducedSourceAnchor,
+        field: object,
+        source_cotangent: object,
+    ) -> np.ndarray:
+        """Differentiate ``M(R,u)-M(R,0)`` at fixed native field ``u``."""
+
+        count = self._validate_anchor(geometry, anchor)
+        field_values = self.receiver_space.validate(
+            field, atom_count=count, name="native receiver field"
+        )
+        cotangent = self.source_space.validate(
+            source_cotangent, atom_count=count, name="induced-source cotangent"
+        )
+        zero = np.zeros(self.receiver_space.shape(count), dtype=float)
+        result = np.asarray(
+            self._response.coordinate_vjp(geometry, field_values, cotangent),
+            dtype=float,
+        ) - np.asarray(
+            self._response.coordinate_vjp(geometry, zero, cotangent), dtype=float
+        )
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "induced-source position VJP must be finite with shape (N,3)."
+            )
+        return result.copy()
 
     def conditioned_raw_energy_ev(self, geometry: object, field: object) -> float:
         method = getattr(self._response, "conditioned_raw_energy_ev", None)

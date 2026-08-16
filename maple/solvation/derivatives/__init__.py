@@ -1,17 +1,41 @@
 """Derivative backends for registered solvation scalars."""
 
 from .scalar_finite_difference import (
+    FiniteDifferenceTopologyChangeError,
+    FiniteDifferenceTopologyObservationError,
+    OBSERVED_COMPONENTS_ONLY_EXPERIMENTAL_V1,
+    RICHARDSON_FORCE_COMPONENT_CONTRACT,
+    REQUIRE_COMPLETE_TOPOLOGY_OBSERVATION_V1,
     RichardsonScalarForce,
     RichardsonScalarForceComponentEvaluation,
     RichardsonScalarForceEvaluation,
+    RichardsonScalarHessian,
+    RichardsonScalarHessianEvaluation,
+    RichardsonScalarHVPEvaluation,
     ScalarEnergySample,
     ScalarEnergySampler,
+    ScalarForceSample,
+    ScalarForceSampler,
+    TOPOLOGY_OBSERVATION_COVERAGES,
+    normalize_topology_observation,
 )
 
 __all__ = [
+    "FiniteDifferenceTopologyChangeError",
+    "FiniteDifferenceTopologyObservationError",
+    "OBSERVED_COMPONENTS_ONLY_EXPERIMENTAL_V1",
+    "RICHARDSON_FORCE_COMPONENT_CONTRACT",
+    "REQUIRE_COMPLETE_TOPOLOGY_OBSERVATION_V1",
     "RichardsonScalarForce",
     "RichardsonScalarForceComponentEvaluation",
     "RichardsonScalarForceEvaluation",
+    "RichardsonScalarHessian",
+    "RichardsonScalarHessianEvaluation",
+    "RichardsonScalarHVPEvaluation",
     "ScalarEnergySample",
     "ScalarEnergySampler",
+    "ScalarForceSample",
+    "ScalarForceSampler",
+    "TOPOLOGY_OBSERVATION_COVERAGES",
+    "normalize_topology_observation",
 ]

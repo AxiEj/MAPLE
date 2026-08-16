@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path
 
 from ase import Atoms
@@ -16,6 +17,7 @@ from maple.solvation.api.profiles import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_PROFILE_V1,
     PROFILE_REGISTRY,
 )
+from maple.solvation.coupling.operator import canonical_metadata_sha256
 from maple.solvation.coupling.separated_operators import (
     MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE,
 )
@@ -45,6 +47,11 @@ class _Permanent:
     def evaluate_source(self, _geometry: object) -> np.ndarray:
         return np.asarray([[-0.15, 0.01, -0.02, 0.03], [0.15, -0.02, 0.01, -0.01]])
 
+    def source_position_vjp(
+        self, geometry: object, _source_cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
+
 
 class _Responsive:
     provider_id = "test.hybrid.response.v1"
@@ -68,6 +75,9 @@ class _Responsive:
     def vacuum_energy_ev(self, _geometry: object) -> float:
         return -123.456
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: object) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
+
     def evaluate_source(self, _geometry: object, field: object) -> np.ndarray:
         return self.zero + (self.jacobian @ np.asarray(field).reshape(-1)).reshape(2, 4)
 
@@ -80,6 +90,11 @@ class _Responsive:
         self, _geometry: object, _field: object, cotangent: object
     ) -> np.ndarray:
         return (self.jacobian.T @ np.asarray(cotangent).reshape(-1)).reshape(2, 8)
+
+    def coordinate_vjp(
+        self, geometry: object, _field: object, _source_cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
 
 
 class _Response:
@@ -243,6 +258,17 @@ def test_geometry_resolved_pes_differentiates_one_scalar_and_checks_files(
 
     @contextmanager
     def fake_open(_self, geometry):
+        evaluator_configuration_sha256 = canonical_metadata_sha256(
+            {
+                "contract": "test-hybrid-pcmsolver-energy-evaluator-v1",
+                "geometry_sha256": geometry_sha256(geometry),
+                "hybrid_configuration_sha256": (_self._hybrid.configuration_sha256()),
+                "cavity_radii_angstrom": (_self._cavity_radii_angstrom.tolist()),
+                "parsed_input_sha256": _self._parsed_input_sha256,
+                "library_sha256": _self._library_sha256,
+            }
+        )
+
         class Evaluator:
             @staticmethod
             def solve(current):
@@ -253,7 +279,7 @@ def test_geometry_resolved_pes_differentiates_one_scalar_and_checks_files(
                 energy = float(np.sum(weights * (positions**2 + 0.2 * positions**6)))
                 return HybridPCMSolverEnergyState(
                     geometry_sha256=geometry_sha256(current),
-                    evaluator_configuration_sha256="7" * 64,
+                    evaluator_configuration_sha256=(evaluator_configuration_sha256),
                     anchor_state_sha256="8" * 64,
                     native_field_ev=np.zeros((len(current), 8)),
                     induced_source4=np.zeros((len(current), 4)),
@@ -280,6 +306,32 @@ def test_geometry_resolved_pes_differentiates_one_scalar_and_checks_files(
     assert force.forces_eV_per_A == pytest.approx(expected, abs=2.0e-8)
     assert force.maximum_error_estimate_eV_per_A < 1.0e-3
     assert pes.configuration_sha256()
+
+    other_pes = MACE_MDPPolarHybridPCMSolverPES(
+        hybrid=hybrid,
+        atomic_numbers=atoms.numbers,
+        cavity_radii_angstrom=np.asarray([1.9, 1.7]),
+        parsed_input_path=parsed,
+        pcmsolver_library_path=library,
+        force_backend=pes.force_backend,
+    )
+    with pytest.raises(ValueError, match="central_sample did not replay"):
+        other_pes.numerical_force_component(
+            atoms,
+            atom_index=0,
+            axis_index=0,
+            central_state=pes.solve(atoms),
+        )
+
+    stale = replace(
+        pes.solve(atoms),
+        evaluator_configuration_sha256="6" * 64,
+        root_sha256="",
+    )
+    with pytest.raises(ValueError, match="central_sample did not replay"):
+        pes.numerical_force_component(
+            atoms, atom_index=0, axis_index=0, central_state=stale
+        )
 
     moved = atoms.copy()
     moved.positions[0, 0] += 1.0e-3

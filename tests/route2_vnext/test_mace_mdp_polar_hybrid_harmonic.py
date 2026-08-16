@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from ase import Atoms
 import numpy as np
 import pytest
@@ -8,6 +9,9 @@ import torch
 from maple.solvation.api.profiles import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1,
     PROFILE_REGISTRY,
+)
+from maple.solvation.api.scalar_registry import (
+    MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
 )
 from maple.solvation.continuum import (
     SmoothWeightedHarmonicGalerkinFunctionalCandidate,
@@ -39,6 +43,12 @@ class _Permanent:
     def evaluate_source(self, _geometry: object) -> np.ndarray:
         return np.asarray([[-0.15, 0.01, -0.02, 0.03], [0.15, -0.02, 0.01, -0.01]])
 
+    def source_position_vjp(
+        self, geometry: object, source_cotangent: object
+    ) -> np.ndarray:
+        del source_cotangent
+        return np.zeros((len(geometry), 3), dtype=float)
+
 
 class _Responsive:
     provider_id = "test.harmonic-hybrid.response.v1"
@@ -62,6 +72,9 @@ class _Responsive:
     def vacuum_energy_ev(self, _geometry: object) -> float:
         return -123.456
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: object) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
+
     def evaluate_source(self, _geometry: object, field: object) -> np.ndarray:
         return self.zero + (self.jacobian @ np.asarray(field).reshape(-1)).reshape(2, 4)
 
@@ -74,6 +87,11 @@ class _Responsive:
         self, _geometry: object, _field: object, cotangent: object
     ) -> np.ndarray:
         return (self.jacobian.T @ np.asarray(cotangent).reshape(-1)).reshape(2, 8)
+
+    def coordinate_vjp(
+        self, geometry: object, _field: object, _source_cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
 
 
 def _atoms() -> Atoms:
@@ -146,6 +164,15 @@ def test_harmonic_hybrid_numerical_force_converges_without_topology_jump() -> No
         atoms, atom_index=0, axis_index=0, central_state=state
     )
     assert component.error_estimate_eV_per_A < 2.0e-4
+    stale = replace(
+        state,
+        evaluator_configuration_sha256="f" * 64,
+        root_sha256="",
+    )
+    with pytest.raises(ValueError, match="central_sample did not replay"):
+        pes.numerical_force_component(
+            atoms, atom_index=0, axis_index=0, central_state=stale
+        )
     assert pes.sample(atoms).topology_id == state.coefficient_topology_id
     translated = atoms.copy()
     translated.positions += np.asarray([3.1, -2.7, 0.8])
@@ -154,19 +181,29 @@ def test_harmonic_hybrid_numerical_force_converges_without_topology_jump() -> No
     )
 
 
-def test_harmonic_hybrid_public_capabilities_remain_closed_before_admission() -> None:
+def test_harmonic_hybrid_public_result_rejects_unbound_test_providers() -> None:
     atoms = _atoms()
     profile = PROFILE_REGISTRY[
         EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1
     ]
-    assert profile.enabled is False
-    assert profile.capabilities.enabled_tiers == ()
+    assert profile.enabled is True
+    assert profile.capabilities.energy is True
+    assert profile.capabilities.conservative_force is True
+    assert profile.capabilities.hessian is False
+    assert profile.capabilities.variational_functional is False
+    assert profile.capabilities.molecular_dynamics is False
+    assert profile.evidence_artifact_ids == (
+        MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+    )
     pes = MACE_MDPPolarHybridSmoothHarmonicPES(
         hybrid=_hybrid(),
         atomic_numbers=atoms.numbers,
         cavity_radii_angstrom=(1.8, 1.7),
         dtype=torch.float64,
         device="cpu",
+        exposure_radial_quadrature_order=40,
+        source_radial_quadrature_order=48,
+        green_radial_quadrature_order=48,
     )
-    with pytest.raises(RuntimeError, match="has not passed admission"):
+    with pytest.raises(RuntimeError, match="differ from the admitted evidence"):
         pes.evaluate(atoms, need_forces=True)

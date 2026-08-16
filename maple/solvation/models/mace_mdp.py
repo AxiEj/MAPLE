@@ -473,6 +473,80 @@ class MACE_MDPMomentAdapter:
             public_polarizability_eangstrom2_per_volt=public_alpha,
         )
 
+    def source_position_vjp(
+        self, atoms: object, source_cotangent: object
+    ) -> np.ndarray:
+        """Return ``d<c(R),bar_c>/dR`` from the native MACE-MDP graph.
+
+        The source coordinates use the repository's raw real-spherical order
+        ``[q,y,z,x]``.  Positions remain in Angstrom, so a cotangent carrying
+        the dual source units produces an ``(N,3)`` coordinate gradient per
+        Angstrom.  No finite differences or reconstructed receiver model are
+        used here.
+        """
+
+        charge, multiplicity = model_charge_and_multiplicity(atoms)
+        if (charge, multiplicity) != (0, 1):
+            raise ValueError(
+                "Frozen MACE-MDP candidate supports neutral singlets only."
+            )
+        positions = np.asarray(getattr(atoms, "positions"), dtype=float)
+        cotangent = np.asarray(source_cotangent, dtype=float)
+        if (
+            positions.ndim != 2
+            or positions.shape[1] != 3
+            or cotangent.shape != (len(positions), 4)
+            or not np.all(np.isfinite(positions))
+            or not np.all(np.isfinite(cotangent))
+        ):
+            raise ValueError(
+                "MACE-MDP source cotangent must be finite with shape (N,4)."
+            )
+
+        torch = __import__("torch")
+        calculator = self._calculator
+        batch = calculator._atoms_to_batch(atoms)
+        data = calculator._clone_batch(batch).to_dict()
+        position_tensor = data["positions"].detach().clone().requires_grad_(True)
+        data["positions"] = position_tensor
+        output = calculator.models[0](
+            data,
+            compute_dielectric_derivatives=False,
+            training=False,
+        )
+        charges = output.get("charges")
+        dipoles = output.get("atomic_dipoles")
+        if (
+            charges is None
+            or dipoles is None
+            or tuple(charges.shape) != (len(positions),)
+            or tuple(dipoles.shape) != (len(positions), 3)
+        ):
+            raise RuntimeError(
+                "MACE-MDP did not return differentiable atomic q/p values."
+            )
+        # Cartesian [x,y,z] -> raw real-spherical [y,z,x].
+        raw_source = torch.cat((charges[:, None], dipoles[:, (1, 2, 0)]), dim=1)
+        cotangent_tensor = torch.as_tensor(
+            cotangent,
+            dtype=raw_source.dtype,
+            device=raw_source.device,
+        )
+        contraction = torch.sum(raw_source * cotangent_tensor)
+        (gradient,) = torch.autograd.grad(
+            contraction,
+            position_tensor,
+            create_graph=False,
+            retain_graph=False,
+            allow_unused=False,
+        )
+        result = np.asarray(gradient.detach().cpu().numpy(), dtype=float)
+        if result.shape != positions.shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-MDP source position VJP must be finite with shape (N,3)."
+            )
+        return result.copy()
+
 
 def build_mace_mdp_moment_adapter(
     *,

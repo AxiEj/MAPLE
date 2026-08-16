@@ -239,13 +239,14 @@
     },
     "source_hash_refresh_20260816": {
       "changed_paths": [
+        "maple/function/calculator/extra_correction/implicit/continuum_response.py",
         "maple/solvation/api/__init__.py",
         "maple/solvation/api/profiles.py",
         "maple/solvation/api/scalar_registry.py",
         "maple/solvation/api/state_registry.py",
         "maple/solvation/continuum/__init__.py"
       ],
-      "reason": "Additive disabled smooth-harmonic profile/API exports changed these shared registry files; matched-QM reference protocol, assets, numerical gates, and runner semantics are unchanged."
+      "reason": "Cumulative administrative refresh: additive smooth-harmonic registry/API exports, the evidence-bound experimental hybrid E/F admission, and the file-free legacy algebra-test provenance guard changed shared files. The matched-QM reference protocol, frozen assets, numerical gates, runner semantics, and prior measurements are unchanged."
     },
     "source_sha256": {
       "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
@@ -255,7 +256,7 @@
       "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
       "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
       "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
-      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "2f600029076e9c4f5b4d98ad2410f2c6a9f9d598f49b1b17f2115e245108bf3e",
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "37a71da9dedc1d679b4b92d400c5fcccae3f5e0fec965553c9cd55136e8644cf",
       "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
       "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
       "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
@@ -305,13 +306,13 @@
       "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
       "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
       "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
-      "maple/solvation/api/__init__.py": "f98b9bcda3a85a57ceca3c95003f50ccde4a5bcde658a68d0a9e6eb63bd32e60",
+      "maple/solvation/api/__init__.py": "89cfef7bb671abecfc644d4ffbebe6aad6cc00e3ca7cd45403d5c6d08ac6b1b9",
       "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
-      "maple/solvation/api/profiles.py": "8356725d95de44e029dbbcd04c8d5f20da9ec3ae0db6cf92e319e92c21eb9114",
+      "maple/solvation/api/profiles.py": "afef11604721e9f931a77289bd65ca2df8834c5fdcf8e3272b02594b6f7d47c1",
       "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
       "maple/solvation/api/result.py": "e41a04c1054e61f841db64622ade6c0951c7c7c8434f34e6efaec5dc9d51cbda",
-      "maple/solvation/api/scalar_registry.py": "493ad1b8b6edd36fdf99e8635eb559eef0ffff06e79c49686dca38cedee52846",
-      "maple/solvation/api/state_registry.py": "1f7495ccf634110a824bde33bda98599f59670120e26646c4522af6b7bd601a6",
+      "maple/solvation/api/scalar_registry.py": "73fecfa7e03a61e037da07d48a8cb7c47ec60566f02dd58a1247a51598016394",
+      "maple/solvation/api/state_registry.py": "3398450170c1d94081d1d4569a80371543fc71507cd0979fe418334ad97dbff1",
       "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
       "maple/solvation/continuum/__init__.py": "8252d98200104884dbb0866a5ed064f79be19e449d88b77d542d85355cfa7208",
       "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",

@@ -642,8 +642,20 @@ def validate_route2_electronic_model_capabilities(
     ledger = validate_route2_electrostatic_energy_ledger(electrostatic_energy_ledger)
     if not need_forces:
         return
+    if mode == "frozen":
+        if ledger != PCM_HALF_COUPLING_ONLY_V1:
+            raise TypeError(
+                "Frozen-source Route-2 derivatives require the direct PCM "
+                "half-coupling ledger."
+            )
+        if projector not in capabilities.position_vjp_projectors:
+            raise TypeError(
+                "Electronic model lacks capabilities required for a frozen-source "
+                "Route-2 derivative: source-position-vjp."
+            )
+        return
     if mode != "scf":
-        raise TypeError("Route-2 force derivatives require response_mode='scf'.")
+        raise TypeError("Route-2 force derivatives require frozen or scf response.")
     missing: list[str] = []
     if not capabilities.gas_forces:
         missing.append("gas-forces")

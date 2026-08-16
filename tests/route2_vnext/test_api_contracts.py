@@ -22,8 +22,11 @@ from maple.solvation.api import (
     DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1,
     EnergyComponent,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
+    EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
     ForceComponent,
+    MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+    MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
@@ -102,7 +105,7 @@ def test_capabilities_default_false_and_variational_disabled():
         CapabilityStatus(variational_functional=True)
 
 
-def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
+def test_authoritative_profile_registry_is_immutable_and_narrowly_admitted():
     assert len(PROFILE_REGISTRY) == 20
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
@@ -112,9 +115,22 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
         scalar = SCALAR_REGISTRY[profile.scalar_id]
         assert profile.state_equation_id == scalar.state_equation_id
         assert profile.state_equation_id in STATE_REGISTRY
-        assert profile.enabled is False
-        assert profile.capabilities.enabled_tiers == ()
-        assert profile.evidence_artifact_ids == ()
+        if (
+            profile_id
+            == EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1
+        ):
+            assert profile.enabled is True
+            assert profile.capabilities == CapabilityStatus(
+                energy=True,
+                conservative_force=True,
+            )
+            assert profile.evidence_artifact_ids == (
+                MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+            )
+        else:
+            assert profile.enabled is False
+            assert profile.capabilities.enabled_tiers == ()
+            assert profile.evidence_artifact_ids == ()
     manifest = profile_registry_manifest()
     manifest[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1]["enabled"] = True
     assert PROFILE_REGISTRY[OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1].enabled is False
@@ -369,10 +385,26 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
         assert scalar_id == entry.scalar_id
         assert entry.exact_formula
         assert entry.state_equation_id in STATE_REGISTRY
-        assert entry.enabled is False
-        assert entry.admitted_capabilities.enabled_tiers == ()
-        assert entry.evidence_artifact_ids == ()
+        if (
+            scalar_id
+            == EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1
+        ):
+            assert entry.enabled is True
+            assert entry.admitted_capabilities == CapabilityStatus(
+                energy=True,
+                conservative_force=True,
+            )
+            assert entry.evidence_artifact_ids == (
+                MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+            )
+        else:
+            assert entry.enabled is False
+            assert entry.admitted_capabilities.enabled_tiers == ()
+            assert entry.evidence_artifact_ids == ()
         assert not (set(entry.included_components) & set(entry.excluded_components))
+    assert tuple(
+        state_id for state_id, entry in STATE_REGISTRY.items() if entry.enabled
+    ) == (MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,)
     variational = SCALAR_REGISTRY["route2-variational-common-functional-v1"]
     assert variational.admitted_capabilities.variational_functional is False
     manifest = scalar_registry_manifest()

@@ -100,6 +100,7 @@ _STATE_ENTRIES = (
             "numerical scalar-gradient force rebuilds the full harmonic scalar at every stencil point",
             "no Hessian, MD, or strict common-functional claim",
         ),
+        enabled=True,
     ),
     StateEquationDefinition(
         state_equation_id=VARIATIONAL_STATE_EQUATION_ID,

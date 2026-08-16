@@ -12,6 +12,7 @@ from .scalar_registry import (
     DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
+    MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
     OPERATIONAL_CPCM_ELECTROSTATIC_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_CPCM_SMDCDS_V1,
@@ -418,9 +419,11 @@ _PROFILE_ENTRIES = (
         continuum_configuration_contract_id=(
             SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
         ),
-        capabilities=CapabilityStatus(),
-        evidence_artifact_ids=(),
-        enabled=False,
+        capabilities=CapabilityStatus(energy=True, conservative_force=True),
+        evidence_artifact_ids=(
+            MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+        ),
+        enabled=True,
     ),
     *(
         SolvationProfile(

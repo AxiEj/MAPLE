@@ -1,0 +1,156 @@
+{
+  "analytic_force": {
+    "adjoint_iterations": 3,
+    "adjoint_residual_eV": 2.038507425012483e-11,
+    "analytic_gradient_eV_per_A": -0.12623828926075492,
+    "direction": [
+      [
+        -0.18362165479470463,
+        0.03826238166563926,
+        0.3028113272260767
+      ],
+      [
+        0.3715071561711558,
+        0.005470085159192631,
+        0.41956546043572057
+      ],
+      [
+        -0.1878855013764512,
+        -0.04373246682483186,
+        -0.7223767876617972
+      ]
+    ],
+    "evaluation_sha256": "7381460a7fac41d634ab4890176acb920346189c973695bf0ce1600419fd8ac9",
+    "finite_difference": [
+      {
+        "absolute_error_eV_per_A": 5.314516327570296e-07,
+        "finite_difference_gradient_eV_per_A": -0.12623882071238768,
+        "step_angstrom": 0.0002
+      },
+      {
+        "absolute_error_eV_per_A": 1.3468456910858961e-07,
+        "finite_difference_gradient_eV_per_A": -0.12623842394532403,
+        "step_angstrom": 0.0001
+      },
+      {
+        "absolute_error_eV_per_A": 3.0092678404702866e-08,
+        "finite_difference_gradient_eV_per_A": -0.12623831935343333,
+        "step_angstrom": 5e-05
+      }
+    ],
+    "net_force_eV_per_A": [
+      -2.3245294578089215e-16,
+      0.0,
+      3.7035760601622414e-20
+    ],
+    "norm_eV_per_A": 0.5891629612230863
+  },
+  "artifact_id": "route2-mace-mdp-polar-ddx-water-analytic-force-canary-v1",
+  "claim_boundary": "one-water real-checkpoint derivative consistency only; not a chemical-accuracy panel, global topology/SO(3) guarantee, public force admission, Hessian/FREQ/MD admission, or Tier V",
+  "configuration": {
+    "continuum": "ddPCM",
+    "dielectric": 78.39,
+    "energy_ledger": "vacuum MACE-POLAR plus ddX polarization",
+    "hybrid_configuration_sha256": "8f7ed9697f5e2359e0c14b3ca6132f29d79bc990b89c179ba22117b23d8aa891",
+    "hybrid_provenance_sha256": "b22895ba3d6ab5c5055e226aff0c4cc9acf3a610b2bfee45ae39c419c6d9da32",
+    "induced_source": "MACE-POLAR 1.5-A Gaussian q/p increment",
+    "lmax": 8,
+    "mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "model_drive": "external-MEP 1.5/3.0-A phi-side adjoint",
+    "n_lebedev": 194,
+    "permanent_source": "MACE-MDP point q/p",
+    "pes_configuration_sha256": "f3e571fb93fbfb4db9884c23ee35642e3bf114e26ec75f6104c1e4c111fbc868",
+    "polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "polar_device": "cuda"
+  },
+  "execution": {
+    "git_head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+    "runner_sha256": "8c0575e45d03bfb33515aa57d0b11c3bae0a485374cbb0fd86a78cca6acdbcf8",
+    "source_files_sha256": {
+      "maple/solvation/continuum/radial_gto_ddx.py": "c00af50c8b47d938b0c6a11b2036f3b5c991102230ae502fdab94c1b8b5ba337",
+      "maple/solvation/continuum/separated_source_ddx.py": "19bfd54cd53cf37325041ebcb182152ecad1002c0c1b1ad5ebc8c58b9f16b718",
+      "maple/solvation/experimental/mace_mdp_polar_ddx.py": "5242b08873c9ee9032c1eff03ed74d83b078e90c7e8f308beacede688bbf37a5",
+      "maple/solvation/models/mace_mdp.py": "f6a81e21ae4e25362ec14c085ac349b40071d4aeb0ce096135c9bcf9210ea42e",
+      "maple/solvation/models/mace_mdp_polar_hybrid.py": "f40acb3e815ef3f3c6fe85be71b1906e49e2cc9ef6ac92fe6416a371b4264ac0",
+      "maple/solvation/models/mace_polar_separated.py": "7ed58cbfa1c53da0efd410ae62ef5e0e9131613957e06c2648ac614b1778f0c0"
+    },
+    "worktree_dirty": true
+  },
+  "gates": {
+    "adjoint_residual": true,
+    "directional_force": true,
+    "directional_force_converges": true,
+    "fixed_total_charge": true,
+    "mdp_source_position_vjp": true,
+    "mdp_source_position_vjp_converges": true,
+    "root_residual": true,
+    "translation_covariance": true
+  },
+  "mace_mdp_source_position_vjp": {
+    "analytic_directional": 0.452120785895888,
+    "direction": [
+      [
+        -0.07308357070500798,
+        -0.4841032772963665,
+        0.34032236477895833
+      ],
+      [
+        -0.11428365108410196,
+        0.26875110667928903,
+        -0.628311210881183
+      ],
+      [
+        0.1873672217891099,
+        0.21535217061707743,
+        0.28798884610222464
+      ]
+    ],
+    "finite_difference": [
+      {
+        "absolute_error": 2.915507879563961e-08,
+        "finite_difference": 0.4521207567408092,
+        "step_angstrom": 0.0002
+      },
+      {
+        "absolute_error": 7.288819992012918e-09,
+        "finite_difference": 0.452120778607068,
+        "step_angstrom": 0.0001
+      },
+      {
+        "absolute_error": 1.8212491514901785e-09,
+        "finite_difference": 0.45212078407463885,
+        "step_angstrom": 5e-05
+      }
+    ],
+    "translation_sum": [
+      0.0,
+      2.0816681711721685e-17,
+      0.0
+    ]
+  },
+  "runtime": {
+    "packages": {
+      "ase": "3.27.0",
+      "mace-torch": "0.3.16",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14"
+  },
+  "schema_version": 1,
+  "state": {
+    "cold_iterations": 7,
+    "continuum_state_sha256": "5917109840b12501ca15c0e30423120cfea834b21056097c7069281e8ce6e393",
+    "energy_eV": -2080.1311534262745,
+    "polarization_energy_eV": -0.26709875725093374,
+    "replay_energy_abs_difference_eV": 5.2735593669694936e-15,
+    "replay_field_max_abs_difference_eV": 5.112854584155002e-13,
+    "root_residual_eV": 4.3452669630021775e-13,
+    "root_sha256": "6d361b532ffcb77ef07e6ca90716bcf50d014a9984b34db725ff7b08de4e7766",
+    "wide_iterations": 7
+  },
+  "status": "pass"
+}

@@ -31,15 +31,20 @@ from maple.solvation.api.scalar_registry import (
     VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
 )
 from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
+from maple.solvation.coupling.metrics import ATOMIC_L1_PAIRING
 from maple.solvation.coupling.spaces import (
+    ATOMIC_L1_FIELD_DUAL_SPACE,
+    ATOMIC_L1_SOURCE_SPACE,
     MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
     MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
 )
 
 from .functional import ContinuumEnergyFunctional
 from .harmonic_coefficients import _bounded_lmax, _positive_int
+from .harmonic_point_source import HARMONIC_POINT_SOURCE_CONTRACT_ID
 from .harmonic_torch_primitives import (
     _assemble_gaussian_source,
+    _assemble_point_source,
     _assemble_single_layer,
     _assemble_weighted_basis,
     _torch,
@@ -50,6 +55,11 @@ SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID = (
 )
 SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID = (
     "maple.route2.continuum.smooth-harmonic-galerkin-same-scalar.v1"
+)
+RADIAL_GTO_SOURCE_EMBEDDING = "mace-polar-radial-gto"
+POINT_L1_SOURCE_EMBEDDING = "point-l1"
+POINT_L1_HARMONIC_RESEARCH_SCALAR_ID = (
+    "route2-research-macepolar-frozen-point-l1-smoothharmonicgalerkin-cpcm-v1"
 )
 _MINIMUM_RELATIVE_BASIS_SINGULAR_VALUE = 1.0e-10
 _MAXIMUM_REFERENCE_CONDITION_NUMBER = 1.0e12
@@ -68,6 +78,7 @@ def _implementation_sha256() -> tuple[tuple[str, str], ...]:
         "harmonic_coefficients.py": continuum / "harmonic_coefficients.py",
         "harmonic_exposure.py": continuum / "harmonic_exposure.py",
         "harmonic_gaussian_source.py": continuum / "harmonic_gaussian_source.py",
+        "harmonic_point_source.py": continuum / "harmonic_point_source.py",
         "harmonic_single_layer.py": continuum / "harmonic_single_layer.py",
         "harmonic_torch_functional.py": Path(__file__),
         "harmonic_torch_primitives.py": continuum / "harmonic_torch_primitives.py",
@@ -128,6 +139,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         "_candidate_configuration_sha256",
         "_candidate_provenance_sha256",
         "_candidate_topology_sha256",
+        "_coupling_id",
+        "_dielectric",
         "_exposure_lmax",
         "_exposure_radial_order",
         "_green_radial_order",
@@ -135,6 +148,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         "_runtime_device",
         "_runtime_dtype",
         "_scalar_id",
+        "_screening_factor",
+        "_source_embedding",
         "_source_radial_order",
         "_surface_lmax",
         "_transition_width_angstrom2",
@@ -144,7 +159,6 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     functional_contract_id = SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID
     continuum_profile_id = SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID
     cavity_profile_id = SMOOTH_HARMONIC_CAVITY_PROFILE_ID
-    coupling_id = MACE_POLAR_RADIAL_GTO_COUPLING_ID
     configuration_contract_id = SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
     capabilities = CapabilityStatus()
     scalar_first = True
@@ -160,7 +174,6 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     moving_cavity_coordinate_derivative_available = True
     derivatives_generated_from_same_scalar = True
     laboratory_fixed_surface_grid = False
-    registered_scalar = True
     tier_v_rotation_admitted = False
     tier_v_admitted = False
 
@@ -177,6 +190,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         green_radial_quadrature_order: int = 128,
         dtype: object,
         device: object,
+        source_embedding: str = RADIAL_GTO_SOURCE_EMBEDDING,
+        dielectric: float | None = None,
         scalar_id: str = (
             VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1
         ),
@@ -214,17 +229,48 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         width = _positive_float(
             transition_width_angstrom2, name="transition_width_angstrom2"
         )
+        normalized_embedding = str(source_embedding).strip().lower()
+        if normalized_embedding == RADIAL_GTO_SOURCE_EMBEDDING:
+            source_space = MACE_POLAR_RADIAL_GTO_SOURCE_SPACE
+            field_space = MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE
+            pairing = MACE_POLAR_RADIAL_GTO_PAIRING
+            coupling_id = MACE_POLAR_RADIAL_GTO_COUPLING_ID
+        elif normalized_embedding == POINT_L1_SOURCE_EMBEDDING:
+            source_space = ATOMIC_L1_SOURCE_SPACE
+            field_space = ATOMIC_L1_FIELD_DUAL_SPACE
+            pairing = ATOMIC_L1_PAIRING
+            coupling_id = HARMONIC_POINT_SOURCE_CONTRACT_ID
+        else:
+            raise ValueError(
+                "source_embedding must be 'mace-polar-radial-gto' or 'point-l1'."
+            )
+        if dielectric is None:
+            normalized_dielectric = None
+            screening_factor = 1.0
+        else:
+            normalized_dielectric = _positive_float(dielectric, name="dielectric")
+            if normalized_dielectric < 1.0:
+                raise ValueError("dielectric must be at least one.")
+            screening_factor = (normalized_dielectric - 1.0) / normalized_dielectric
         normalized_scalar_id = str(scalar_id).strip()
-        if normalized_scalar_id not in {
+        radial_scalar_ids = {
             EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
             OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
             OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
             OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
             VARIATIONAL_MACEPOLAR_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
             VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
-        }:
+        }
+        scalar_binding_valid = (
+            normalized_embedding == RADIAL_GTO_SOURCE_EMBEDDING
+            and normalized_scalar_id in radial_scalar_ids
+        ) or (
+            normalized_embedding == POINT_L1_SOURCE_EMBEDDING
+            and normalized_scalar_id == POINT_L1_HARMONIC_RESEARCH_SCALAR_ID
+        )
+        if not scalar_binding_valid:
             raise ValueError(
-                "The harmonic continuum scalar binding is not preregistered."
+                "The harmonic continuum scalar/source-embedding binding is invalid."
             )
         runtime_dtype = str(dtype)
         runtime_device = str(device)
@@ -242,7 +288,7 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "functional_contract_id": self.functional_contract_id,
             "continuum_profile_id": self.continuum_profile_id,
             "cavity_profile_id": self.cavity_profile_id,
-            "coupling_id": self.coupling_id,
+            "coupling_id": coupling_id,
             "configuration_contract_id": self.configuration_contract_id,
             "atomic_numbers": numbers,
             "radii_angstrom": radii,
@@ -253,13 +299,16 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             "exposure_radial_quadrature_order": exposure_order,
             "source_radial_quadrature_order": source_order,
             "green_radial_quadrature_order": green_order,
+            "source_embedding": normalized_embedding,
+            "dielectric": normalized_dielectric,
+            "cpcm_screening_factor": screening_factor,
             "coefficient_topology_sha256": topology,
-            "source_space_sha256": MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash(),
-            "field_space_sha256": MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.metadata_hash(),
-            "pairing_sha256": MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
+            "source_space_sha256": source_space.metadata_hash(),
+            "field_space_sha256": field_space.metadata_hash(),
+            "pairing_sha256": pairing.metadata_hash(),
             "runtime_dtype": runtime_dtype,
             "runtime_device": runtime_device,
-            "assembly": "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)",
+            "assembly": "A=E.T K E; S=E.T V; G=-f_eps/2 (Sc).T A^-1 (Sc)",
             "angular_quadrature": "finite-band-exact-contractions-only",
             "geometry_quadrature": "invariant-one-dimensional",
             "derivative_route": "sealed-same-scalar-autograd",
@@ -276,6 +325,8 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             }
         )
         object.__setattr__(self, "_radii_angstrom", radii)
+        object.__setattr__(self, "_coupling_id", coupling_id)
+        object.__setattr__(self, "_dielectric", normalized_dielectric)
         object.__setattr__(self, "_transition_width_angstrom2", width)
         object.__setattr__(self, "_surface_lmax", surface_maximum)
         object.__setattr__(self, "_exposure_lmax", exposure_maximum)
@@ -285,13 +336,15 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         object.__setattr__(self, "_runtime_dtype", runtime_dtype)
         object.__setattr__(self, "_runtime_device", runtime_device)
         object.__setattr__(self, "_scalar_id", normalized_scalar_id)
+        object.__setattr__(self, "_screening_factor", screening_factor)
+        object.__setattr__(self, "_source_embedding", normalized_embedding)
         object.__setattr__(self, "_candidate_topology_sha256", topology)
         object.__setattr__(self, "_candidate_configuration_sha256", configuration)
         object.__setattr__(self, "_candidate_provenance_sha256", provenance)
         super().__init__(
-            source_space=MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
-            field_space=MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
-            pairing=MACE_POLAR_RADIAL_GTO_PAIRING,
+            source_space=source_space,
+            field_space=field_space,
+            pairing=pairing,
             dtype=dtype,
             device=device,
             expected_atomic_numbers=numbers,
@@ -300,6 +353,26 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
     @property
     def scalar_id(self) -> str:
         return self._scalar_id
+
+    @property
+    def coupling_id(self) -> str:
+        return self._coupling_id
+
+    @property
+    def source_embedding(self) -> str:
+        return self._source_embedding
+
+    @property
+    def dielectric(self) -> float | None:
+        return self._dielectric
+
+    @property
+    def cpcm_screening_factor(self) -> float:
+        return self._screening_factor
+
+    @property
+    def registered_scalar(self) -> bool:
+        return self._source_embedding == RADIAL_GTO_SOURCE_EMBEDDING
 
     @property
     def radii_angstrom(self) -> tuple[float, ...]:
@@ -346,13 +419,16 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                 "exposure_radial_quadrature_order": self._exposure_radial_order,
                 "source_radial_quadrature_order": self._source_radial_order,
                 "green_radial_quadrature_order": self._green_radial_order,
+                "source_embedding": self._source_embedding,
+                "dielectric": self._dielectric,
+                "cpcm_screening_factor": self._screening_factor,
                 "coefficient_topology_sha256": topology,
-                "source_space_sha256": MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.metadata_hash(),
-                "field_space_sha256": MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.metadata_hash(),
-                "pairing_sha256": MACE_POLAR_RADIAL_GTO_PAIRING.metadata_hash(),
+                "source_space_sha256": self.source_space.metadata_hash(),
+                "field_space_sha256": self.field_space.metadata_hash(),
+                "pairing_sha256": self.pairing.metadata_hash(),
                 "runtime_dtype": self._runtime_dtype,
                 "runtime_device": self._runtime_device,
-                "assembly": "A=E.T K E; S=E.T V; G=-1/2 (Sc).T A^-1 (Sc)",
+                "assembly": "A=E.T K E; S=E.T V; G=-f_eps/2 (Sc).T A^-1 (Sc)",
                 "angular_quadrature": "finite-band-exact-contractions-only",
                 "geometry_quadrature": "invariant-one-dimensional",
                 "derivative_route": "sealed-same-scalar-autograd",
@@ -404,12 +480,22 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
             lmax=self.physical_lmax,
             radial_order=self._green_radial_order,
         )
-        raw_source = _assemble_gaussian_source(
-            positions,
-            radii=self._radii_angstrom,
-            lmax=self.physical_lmax,
-            radial_order=self._source_radial_order,
-        )
+        if self._source_embedding == RADIAL_GTO_SOURCE_EMBEDDING:
+            raw_source = _assemble_gaussian_source(
+                positions,
+                radii=self._radii_angstrom,
+                lmax=self.physical_lmax,
+                radial_order=self._source_radial_order,
+            )
+        elif self._source_embedding == POINT_L1_SOURCE_EMBEDDING:
+            raw_source = _assemble_point_source(
+                positions,
+                radii=self._radii_angstrom,
+                lmax=self.physical_lmax,
+                radial_order=self._source_radial_order,
+            )
+        else:  # pragma: no cover - immutable constructor invariant
+            raise AssertionError("unsupported harmonic source embedding")
         surface = weighted_basis.T @ raw_single_layer @ weighted_basis
         surface = 0.5 * (surface + surface.T)
         source_operator = weighted_basis.T @ raw_source
@@ -437,7 +523,9 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
         _, _, _, surface, source_operator = self._assemble_torch(positions)
         right_hand_side = source_operator @ source.reshape(-1)
         surface_state = _torch().linalg.solve(surface, right_hand_side)
-        return -0.5 * (right_hand_side @ surface_state)
+        return -0.5 * self._screening_factor * (
+            right_hand_side @ surface_state
+        )
 
     def debug_geometry_matrices(self, geometry: object) -> dict[str, np.ndarray]:
         """Return detached matrices for parity tests; never an admission API."""
@@ -468,11 +556,14 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
                     "provenance_sha256": self.provenance_sha256,
                     "configuration_sha256": self.configuration_sha256(),
                     "coefficient_topology_sha256": self.topology_sha256(),
-                    "stationary_scalar": "-1/2 (S c)^T A^-1 (S c)",
+                    "stationary_scalar": "-f_eps/2 (S c)^T A^-1 (S c)",
+                    "source_embedding": self._source_embedding,
+                    "dielectric": self._dielectric,
+                    "cpcm_screening_factor": self._screening_factor,
                     "geometry_assembly": "same-scalar-E-K-V",
                     "angular_quadrature": "finite-band-exact-contractions-only",
                     "laboratory_fixed_surface_grid": False,
-                    "registered_scalar": True,
+                    "registered_scalar": self.registered_scalar,
                     "tier_v_admission": "disabled",
                     "capabilities": "none",
                 }.items()
@@ -481,6 +572,9 @@ class SmoothWeightedHarmonicGalerkinFunctionalCandidate(ContinuumEnergyFunctiona
 
 
 __all__ = [
+    "POINT_L1_HARMONIC_RESEARCH_SCALAR_ID",
+    "POINT_L1_SOURCE_EMBEDDING",
+    "RADIAL_GTO_SOURCE_EMBEDDING",
     "SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_CONTRACT_ID",
     "SMOOTH_HARMONIC_GALERKIN_TORCH_FUNCTIONAL_PROVIDER_ID",
     "SmoothWeightedHarmonicGalerkinFunctionalCandidate",

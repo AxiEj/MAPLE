@@ -1,0 +1,60 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-ddx-water-same-scalar-force-canary-v1",
+  "artifact_kind": "real-checkpoint-focused-richardson-force-canary",
+  "capabilities_admitted": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoint_sha256": {
+    "MACE-MDP": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "MACE-POLAR-1M": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": "This single water Cartesian component does not admit a global smooth force, rotation covariance, a full Cartesian force panel, analytic derivatives, optimization, Hessian/FREQ/MD, chemical accuracy, or Tier V.",
+  "decision": "The exact operational scalar now has a callable real-checkpoint numerical conservative-force component and a 4.07e-6 eV/A local Richardson error estimate. Retain it as an internal oracle for the future analytic block adjoint.",
+  "exact_command": "PYTHONPATH=\"$PWD\" python /tmp/route2_hybrid_ddx_force_canary.py",
+  "executed_at_utc": "2026-08-15T19:39:29.139669+00:00",
+  "execution_git_head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+  "measurement": {
+    "central_state_sha256": "5816965452bfa6748a98af46c5b4af80a950e687698e3215ae775bfb8dbf7403",
+    "displaced_state_sha256": [
+      "ba783434e81a3bf77b46cfd397fc4a70331486945e13f45c5eb92391dbe9b05d",
+      "e484b65041c92eff2f1fde0353684b68a8214d3eddf6dd8bcfedb92d73498840",
+      "18e02845b144d11f26693d8ab172e5ec12d8d7e5e183ed2c100e1d5b6dd17bed",
+      "dadaa5fee2149bce32287c140ca4805f195b1cb746ba71a06758c081a9de30d8"
+    ],
+    "energy_eV": -2080.1311534262745,
+    "force_component": {
+      "atom_index": 1,
+      "axis_index": 0,
+      "coarse_step_angstrom": 0.0005,
+      "fine_step_angstrom": 0.00025,
+      "force_eV_per_A": 0.2697970891555694,
+      "richardson_error_estimate_eV_per_A": 4.068472965912395e-06
+    },
+    "provider_configuration_sha256": "87f4efe1d4e958d59d6b7470122abce022b47df42ddf5529b59a84fa5d18274c",
+    "topology_id": "181413fd867de59b86c45f7eebc49ebf5649846a0d360927dad105036f541578"
+  },
+  "measurement_sha256": "8b75d370c87121fc110c507bcd168034e3578c29e125b3e60382a0b5224d3d73",
+  "protocol": {
+    "continuum": "ddPCM",
+    "dielectric": 78.39,
+    "ledger": "vacuum MACE-POLAR plus ddX polarization",
+    "lmax": 8,
+    "model_drive": "external-MEP phi-side adjoint",
+    "molecule": "water",
+    "n_lebedev": 194,
+    "solver_tolerance": 1e-12
+  },
+  "runner_source_sha256": "0adce413cb569d3949bf88513af71a6232eb44c9d1afd7df420fa3464dbac980",
+  "schema_version": 1,
+  "source_files_sha256": {
+    "maple/solvation/continuum/radial_gto_ddx.py": "c00af50c8b47d938b0c6a11b2036f3b5c991102230ae502fdab94c1b8b5ba337",
+    "maple/solvation/continuum/separated_source_ddx.py": "f6c2963a56426d740f7c85cad39617e0cb8670abd431a2145a67658fbb497eb8",
+    "maple/solvation/derivatives/scalar_finite_difference.py": "aae459f3b536de6daa5003a8bc0a56553325c495c8afd982c83c551deda3fa8a",
+    "maple/solvation/experimental/mace_mdp_polar_ddx.py": "35cbcb53f707cf0585beabde10da126dbe471befd82d4a630186ef9272a0e6df"
+  },
+  "status": "passed-internal-canary-release-admission-open"
+}

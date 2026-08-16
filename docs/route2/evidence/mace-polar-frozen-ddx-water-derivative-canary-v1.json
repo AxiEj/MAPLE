@@ -1,0 +1,187 @@
+{
+  "artifact_id": "route2-pure-mace-polar-frozen-ddx-water-derivative-canary-v1",
+  "claim_boundary": "one-water derivative consistency only; not chemical accuracy, broad covariance, frequency, optimization, or MD admission",
+  "configuration": {
+    "cds_grid_points": 302,
+    "cds_grid_status": "low-cost derivative canary; not production accuracy identity",
+    "checkpoint_path_is_external": true,
+    "device": "cuda",
+    "model_configuration_sha256": "a4c7d4d72e33cbd62884467b82c82988d9ff6123b354158004807dbfc7803e43",
+    "model_provenance_sha256": "18d18063756d48190a493f061dcc0fcd42ad0ba0a7934d89aa25da2af723209c",
+    "pes_configuration_sha256": "d2b78fd827368751a799b154409a05343eef4405de697d4266b920b136e32ea4",
+    "runner_sha256": "9e5cf044282cff723afb1fd509f5903e7aeb7356192495806504508c7bdfcc87"
+  },
+  "energy_state": {
+    "cds_energy_eV": 0.06218276984836831,
+    "polarization_energy_eV": -0.06750992341906416,
+    "solvation_energy_eV": -0.005327153570695846,
+    "source_total_charge_e": 1.3877787807814457e-17,
+    "state_sha256": "6c89e29980eae811e516c8cb7bf4192d30375488dff3dfa4726e6f95c48ae89e",
+    "topology_id": "1791331a3226fa0ec1b1248b012b74a3c9cf86673ab1c97636be52f7fa408579",
+    "total_energy_eV": -2079.8689984502776,
+    "vacuum_energy_eV": -2079.863671296707
+  },
+  "force": {
+    "analytic_gradient_eV_per_A": -0.11810095692432451,
+    "direction": [
+      [
+        -0.18362165479470463,
+        0.03826238166563926,
+        0.3028113272260767
+      ],
+      [
+        0.3715071561711558,
+        0.005470085159192631,
+        0.41956546043572057
+      ],
+      [
+        -0.1878855013764512,
+        -0.04373246682483186,
+        -0.7223767876617972
+      ]
+    ],
+    "evaluation_sha256": "570491d60e27b8b59035f9f73273762eaba3cb13e07aa544c134d8995115793c",
+    "finite_difference": [
+      {
+        "absolute_error_eV_per_A": 4.494175002978107e-07,
+        "finite_difference_gradient_eV_per_A": -0.11810050750682421,
+        "step_angstrom": 0.0002
+      },
+      {
+        "absolute_error_eV_per_A": 1.721573214402694e-06,
+        "finite_difference_gradient_eV_per_A": -0.11809923535111011,
+        "step_angstrom": 0.0001
+      },
+      {
+        "absolute_error_eV_per_A": 8.143522493841981e-07,
+        "finite_difference_gradient_eV_per_A": -0.11810014257207513,
+        "step_angstrom": 5e-05
+      }
+    ],
+    "net_force_eV_per_A": [
+      -5.981326545168031e-15,
+      1.5015766408055242e-14,
+      -3.4762232155316486e-18
+    ],
+    "norm_eV_per_A": 0.4594215921662151
+  },
+  "gates": {
+    "directional_force": true,
+    "hvp_error_estimate": true,
+    "molecular_virial": true,
+    "net_force": true,
+    "source_charge": true
+  },
+  "hvp": {
+    "direction": [
+      [
+        0.04098352876315424,
+        0.33755624732198447,
+        -0.3642151700366215
+      ],
+      [
+        0.3648389719380058,
+        0.11750271885120388,
+        -0.10660695045284549
+      ],
+      [
+        -0.4058225007011602,
+        -0.4550589661731884,
+        0.47082212048946703
+      ]
+    ],
+    "evaluation_sha256": "66eb566f778fceecf113f60f4869b2d61b3f9c64dbf31f8ba31a38177355464e",
+    "maximum_error_estimate_eV_per_A2": 7.443301760007293e-05,
+    "norm_eV_per_A2": 59.481074112470594
+  },
+  "molecular_virial": {
+    "analytic_strain_gradient_eV": -0.00923771462982398,
+    "evaluation_sha256": "d96ae21089f3ccd1976ed58d13f49fb6bdfc2e206242c50cf41692439875efba",
+    "finite_difference": [
+      {
+        "absolute_error_eV": 4.811450416437185e-07,
+        "finite_difference_strain_gradient_eV": -0.009237233484782337,
+        "step": 0.0004
+      },
+      {
+        "absolute_error_eV": 1.526495514493978e-06,
+        "finite_difference_strain_gradient_eV": -0.009236188134309486,
+        "step": 0.0002
+      },
+      {
+        "absolute_error_eV": 8.370538417384193e-07,
+        "finite_difference_strain_gradient_eV": -0.009238551683665719,
+        "step": 0.0001
+      }
+    ],
+    "maximum_antisymmetry_eV": 0.0002722634186826667,
+    "origin_angstrom": [
+      0.23940000000000003,
+      0.3088666666666667,
+      0.0
+    ],
+    "raw_virial_eV": [
+      [
+        0.2572487961088341,
+        -0.07788880698013313,
+        0.0
+      ],
+      [
+        -0.0781610703988158,
+        0.23138401870664219,
+        0.0
+      ],
+      [
+        -0.0001232360688016152,
+        -5.514066045906368e-05,
+        0.0
+      ]
+    ],
+    "strain_direction": [
+      [
+        0.12,
+        0.02,
+        -0.01
+      ],
+      [
+        0.02,
+        -0.08,
+        0.03
+      ],
+      [
+        -0.01,
+        0.03,
+        0.04
+      ]
+    ],
+    "symmetric_virial_eV": [
+      [
+        0.2572487961088341,
+        -0.07802493868947447,
+        -6.16180344008076e-05
+      ],
+      [
+        -0.07802493868947447,
+        0.23138401870664219,
+        -2.757033022953184e-05
+      ],
+      [
+        -6.16180344008076e-05,
+        -2.757033022953184e-05,
+        0.0
+      ]
+    ]
+  },
+  "runtime": {
+    "packages": {
+      "ase": "3.27.0",
+      "mace-torch": "0.3.16",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14"
+  },
+  "status": "pass"
+}

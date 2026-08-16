@@ -1,0 +1,123 @@
+{
+  "aggregate": {
+    "mae_kcal_mol": 0.8690891908557846,
+    "max_abs_error_kcal_mol": 1.7630917074131083,
+    "target_passed": true
+  },
+  "artifact_id": "route2-mace-mdp-polar-ddx-external-mep-four-diagnostic-v1",
+  "artifact_kind": "cross-backend-electrostatic-accuracy-diagnostic",
+  "capabilities_admitted": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "The 0.869089 kcal/mol MAE passes only a four-case fixed-geometry cross-backend electrostatic diagnostic. The maximum case error is 1.763092 kcal/mol. This does not admit complete solvation free energy, same-backend matched accuracy, public E/F, analytic force, global smoothness/SO(3), Hessian/FREQ/MD, or Tier V.",
+  "decision": "Retain this separated-source external-MEP candidate for matched-backend chemistry and same-scalar force work because the four-case diagnostic MAE is below 1.5 kcal/mol.",
+  "exact_command": "PYTHONPATH=\"$PWD\" python /tmp/route2_hybrid_ddx_production_accuracy.py",
+  "executed_at_utc": "2026-08-15T19:20:10.940862+00:00",
+  "execution_git_head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+  "execution_worktree_dirty": true,
+  "external_assets": {
+    "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "reference_panel_path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-v1.json",
+    "reference_panel_sha256": "9969c3a9ba07ad349d0ef460f84a84e9b03e5d2b7021a8a7e9bf43c86f2480e8"
+  },
+  "measurement_sha256": "a1469a447fd821176440073fec375e83dbe49bf8100726b3e6967fd392dc8a74",
+  "protocol": {
+    "dielectric": 78.355,
+    "energy_ledger": "vacuum MACE-POLAR plus ddX general-source polarization scalar",
+    "eta": 0.1,
+    "induced": "MACE-POLAR 1.5-A Gaussian q/p increment",
+    "lmax": 15,
+    "method": "ddPCM",
+    "model_drive": "external-MEP phi-side adjoint",
+    "n_lebedev": 1202,
+    "n_proc": 1,
+    "permanent": "MACE-MDP point q/p",
+    "solver_tolerance": 1e-12
+  },
+  "records": [
+    {
+      "absolute_error_kcal_mol": 0.15174558682524797,
+      "compound_id": "mobley_3034976",
+      "continuum_configuration_sha256": "f4e620f7a6c197bf94fdbbde57deb8c4c7eebda80af1498f5a817481357f5a01",
+      "continuum_provenance_sha256": "228c5ce5914a9119e04971c0cc504a4ee4845f18ad47e800b679650140327e81",
+      "elapsed_s": 32.87671399116516,
+      "evaluator_configuration_sha256": "ab72e87a67264be05739e13c8d2589aa7bece0917ac9bf5c69ee5a1e54bf50bb",
+      "hybrid_ddpcm_kcal_mol": -11.13517779793923,
+      "iterations": 11,
+      "name": "acetic acid",
+      "qm_pcmsolver_fixed_gas_density_kcal_mol": -10.983432211113982,
+      "root_residual_ev": 8.256975478968829e-13,
+      "root_sha256": "b9b11059c21756b0239d3eaf324f0e0c33eee33f352355598ed59f3c2d4dbc8c"
+    },
+    {
+      "absolute_error_kcal_mol": 1.7630917074131083,
+      "compound_id": "mobley_3053621",
+      "continuum_configuration_sha256": "27d412c87b01c4f6f03592c8cb1d83be99d7ef53ec0f40a17e7424bbcbbf2ca6",
+      "continuum_provenance_sha256": "79beff42a7cd30c55080f0e5101829cc0fe67d0c270eb9f7692845c488057a9b",
+      "elapsed_s": 67.15749716758728,
+      "evaluator_configuration_sha256": "02f7801be86ace8a982be009ac77922b6ff3a04ca28ae3d77ee57e2bbf232c72",
+      "hybrid_ddpcm_kcal_mol": -4.899394572138401,
+      "iterations": 13,
+      "name": "benzene",
+      "qm_pcmsolver_fixed_gas_density_kcal_mol": -3.1363028647252924,
+      "root_residual_ev": 1.4215210705136113e-11,
+      "root_sha256": "673e0fc00208b56cead47848924ab6021fff134b9c36e74076f46a91af71ad02"
+    },
+    {
+      "absolute_error_kcal_mol": 1.3251247216966693,
+      "compound_id": "mobley_352111",
+      "continuum_configuration_sha256": "3d5e0a2071bb931b28a4c8bc21c6517607da71041a60a986023ea3792c73ea7e",
+      "continuum_provenance_sha256": "9095f36bfcbf5eda2b740510dac92b4ee3918e2843f9eebcfe844e2ad9c5d83e",
+      "elapsed_s": 142.05710101127625,
+      "evaluator_configuration_sha256": "2b5a2ec7a8b991e9764cccc8f1ab8a9e32abce7695e77206675b08337f511c95",
+      "hybrid_ddpcm_kcal_mol": -11.422232492621555,
+      "iterations": 11,
+      "name": "2-acetoxyethyl acetate",
+      "qm_pcmsolver_fixed_gas_density_kcal_mol": -12.747357214318225,
+      "root_residual_ev": 9.371560064095222e-12,
+      "root_sha256": "99e91b59455e1bde67624f7d4325ba931b2092a017e1b44c16258089a99a2b3b"
+    },
+    {
+      "absolute_error_kcal_mol": 0.23639474748811296,
+      "compound_id": "mobley_3867265",
+      "continuum_configuration_sha256": "7b0f56d3845ab3c32b743cedacf43e5076c189dd470a8e6b9499f4b9951c3d51",
+      "continuum_provenance_sha256": "2bd85915732eb0f3435b7f4e56f263d8fa00b8271010cb80596f1632e7d0858c",
+      "elapsed_s": 43.846028566360474,
+      "evaluator_configuration_sha256": "b79751515364cca1537903c7771eea0607a4ea3694300da70da2ed0a0301d45b",
+      "hybrid_ddpcm_kcal_mol": -6.8797337098418865,
+      "iterations": 11,
+      "name": "acetone",
+      "qm_pcmsolver_fixed_gas_density_kcal_mol": -6.6433389623537735,
+      "root_residual_ev": 4.5102520888174456e-12,
+      "root_sha256": "4c61a59b666e2356cc891c14e077597562c0bf6c00697c64d93ecb1d3c09bf21"
+    }
+  ],
+  "runner_source_sha256": "32ed06c0d67c6f71734d894c0068b7401a1c0105e869aeb1f28ce5ff218b7591",
+  "runtime": {
+    "ase": "3.27.0",
+    "cuda": "13.0",
+    "mace": "0.3.16",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "maple/solvation/continuum/radial_gto_ddx.py": "c00af50c8b47d938b0c6a11b2036f3b5c991102230ae502fdab94c1b8b5ba337",
+    "maple/solvation/continuum/separated_source_ddx.py": "7d5fc5f3ce6a2367ea7c858c0daccc944f25ec830d8b27702843ff88cddc3305",
+    "maple/solvation/experimental/mace_mdp_polar_ddx.py": "c163ab99efecfeff4900a68a5102993ddb6f9cd1fc44c6da5b3e3cb4b5340641",
+    "maple/solvation/models/mace_mdp.py": "ba957da754ced111435519ccac4862f0fa71905d9f710ea53b6c1b48cf140a61",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "9ed523c1fe1d81508cf14e6455f19b8e8c054eb2055fba8a96e5f2ca1a53c1a9",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_separated.py": "2aedd9e8ede2df159d54341bdd26f37e3f8221a3836b308199bc33981c68c3f9"
+  },
+  "status": "diagnostic-mae-target-passed-final-admission-open"
+}

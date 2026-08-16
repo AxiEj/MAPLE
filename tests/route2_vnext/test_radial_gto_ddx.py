@@ -105,6 +105,7 @@ def test_joint_psi_phi_map_closes_scalar_source_and_adjoint():
     )
     assert not state.source.flags.writeable
     assert not state.reaction_field.flags.writeable
+    assert len(state.cavity_topology_sha256) == 64
     assert state.state_hash == backend.build_state(POSITIONS, SOURCE).state_hash
     displaced_state = backend.build_state(
         POSITIONS + np.asarray([[0.0, 0.0, 0.0], [1.0e-5, 0.0, 0.0], [0.0, 0.0, 0.0]]),
@@ -139,6 +140,43 @@ def test_joint_psi_phi_map_closes_scalar_source_and_adjoint():
     assert finite_difference == pytest.approx(
         MACE_POLAR_RADIAL_GTO_PAIRING.pair(direction, state.reaction_field),
         abs=2.0e-9,
+    )
+
+
+@pytest.mark.skipif(
+    importlib.util.find_spec("pyddx") is None,
+    reason="optional pyddx==0.8.0 runtime is unavailable",
+)
+def test_fixed_source_coordinate_gradient_is_the_same_ddx_scalar_derivative():
+    backend = _backend()
+    state, analytic = backend.build_state_with_fixed_source_coordinate_gradient(
+        POSITIONS, SOURCE
+    )
+    np.testing.assert_allclose(
+        analytic,
+        backend.fixed_source_coordinate_gradient(POSITIONS, SOURCE),
+        atol=0.0,
+        rtol=0.0,
+    )
+    direction = _direction(27, POSITIONS.shape)
+    direction -= np.mean(direction, axis=0, keepdims=True)
+    direction /= np.linalg.norm(direction)
+    projected = float(np.vdot(analytic, direction))
+    errors = []
+    for step in (2.0e-4, 1.0e-4, 5.0e-5):
+        finite_difference = (
+            backend.energy(POSITIONS + step * direction, SOURCE)
+            - backend.energy(POSITIONS - step * direction, SOURCE)
+        ) / (2.0 * step)
+        errors.append(abs(finite_difference - projected))
+    assert errors[-1] < 2.0e-8
+    assert errors[-1] < errors[0] / 6.0
+    np.testing.assert_allclose(np.sum(analytic, axis=0), 0.0, atol=3.0e-11)
+    assert (
+        state.cavity_topology_sha256
+        == backend.build_state(
+            POSITIONS + 1.0e-5 * direction, SOURCE
+        ).cavity_topology_sha256
     )
 
 

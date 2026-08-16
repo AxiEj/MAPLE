@@ -22,6 +22,9 @@ import sys
 
 import numpy as np
 
+from maple.function.calculator.extra_correction.implicit.smd_cds import (
+    smd_water_coulomb_radii,
+)
 from maple.solvation.api.profiles import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1,
     get_solvation_profile,
@@ -55,8 +58,10 @@ from maple.solvation.derivatives import (
     RichardsonScalarForceEvaluation,
     ScalarEnergySample,
 )
-from maple.solvation.models.base import atom_count
+from maple.solvation.models.base import atom_count, model_charge_and_multiplicity
 from maple.solvation.models.mace_mdp_polar_hybrid import (
+    MACE_MDP_POLAR_HYBRID_PROFILE_ID,
+    MACE_MDP_POLAR_HYBRID_PROVIDER_ID,
     PermanentAnchoredInducedSourceModel,
     PermanentInducedSourceAnchor,
 )
@@ -79,6 +84,26 @@ HYBRID_HARMONIC_SCALAR_PROVIDER_ID = (
 )
 NUMERICAL_FORCE_COARSE_STEP_ANGSTROM = 5.0e-4
 NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM = 2.0e-4
+ADMITTED_CONTINUUM_SETTINGS = tuple(
+    sorted(
+        {
+            "transition_width_angstrom2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "source_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+        }.items()
+    )
+)
+ADMITTED_HYBRID_CONFIGURATION_SHA256 = (
+    "ad866e18797d12614c98bc04e4060674a6d3e9801d6ae83f45a515cfbfc68aae"
+)
+ADMITTED_HYBRID_PROVENANCE_SHA256 = (
+    "439e7b3585e2bcfb828bd346e163614ee1571b78895ce36536ddabfc633ef74e"
+)
+ADMITTED_DTYPE = "float64"
+ADMITTED_DEVICE = "cuda"
 
 
 def _array_sha256(values: object, *, name: str) -> str:
@@ -576,6 +601,56 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         ):
             raise ValueError("geometry positions must be finite with shape (N,3).")
 
+    def _validate_admitted_runtime(self, geometry: object) -> None:
+        """Reject any runtime not covered by the replicated E/F artifact."""
+
+        self.configuration_sha256()
+        if model_charge_and_multiplicity(geometry) != (0, 1):
+            raise RuntimeError(
+                "The admitted hybrid harmonic profile is restricted to neutral singlets."
+            )
+        if (
+            self._hybrid.provider_id != MACE_MDP_POLAR_HYBRID_PROVIDER_ID
+            or self._hybrid.model_profile_id != MACE_MDP_POLAR_HYBRID_PROFILE_ID
+            or self._hybrid.long_range_evaluator_profile
+            != REQUIRED_LONG_RANGE_EVALUATOR
+        ):
+            raise RuntimeError(
+                "Hybrid model identity is outside the admitted checkpoint profile."
+            )
+        if (
+            self._hybrid.configuration_sha256() != ADMITTED_HYBRID_CONFIGURATION_SHA256
+            or self._hybrid.provenance_sha256 != ADMITTED_HYBRID_PROVENANCE_SHA256
+        ):
+            raise RuntimeError(
+                "Hybrid providers/checkpoints differ from the admitted evidence."
+            )
+        if self._continuum_settings != ADMITTED_CONTINUUM_SETTINGS:
+            raise RuntimeError(
+                "Harmonic continuum settings differ from the admitted evidence."
+            )
+        if (
+            self._force_backend.coarse_step_angstrom
+            != NUMERICAL_FORCE_COARSE_STEP_ANGSTROM
+            or self._force_backend.maximum_error_eV_per_A
+            != NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM
+        ):
+            raise RuntimeError("Numerical-force settings differ from the admission.")
+        if str(self._dtype) != ADMITTED_DTYPE or str(self._device) != ADMITTED_DEVICE:
+            raise RuntimeError(
+                "The replicated admission is restricted to float64 on cuda."
+            )
+        symbols_method = getattr(geometry, "get_chemical_symbols", None)
+        if not callable(symbols_method):
+            raise TypeError("admitted geometry must expose get_chemical_symbols().")
+        expected_radii = np.asarray(
+            smd_water_coulomb_radii(symbols_method()), dtype=float
+        )
+        if not np.array_equal(self._cavity_radii_angstrom, expected_radii):
+            raise RuntimeError(
+                "Cavity radii differ from the admitted SMD-water Coulomb radii."
+            )
+
     def _continuum(self) -> SmoothWeightedHarmonicGalerkinFunctionalCandidate:
         return SmoothWeightedHarmonicGalerkinFunctionalCandidate(
             atomic_numbers=tuple(int(value) for value in self._atomic_numbers),
@@ -602,6 +677,8 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             energy_eV=state.total_energy_ev,
             state_sha256=state.root_sha256,
             topology_id=state.coefficient_topology_id,
+            topology_observation_coverage="complete",
+            unobservable_topology_components=(),
         )
 
     @staticmethod
@@ -696,6 +773,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             raise RuntimeError(
                 "The experimental hybrid smooth-harmonic force has not passed admission."
             )
+        self._validate_admitted_runtime(geometry)
         state = self.solve(geometry)
         force_evaluation = (
             self.numerical_force(geometry, central_state=state) if need_forces else None
@@ -739,8 +817,12 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
                 ("charge_spin", "neutral-singlet"),
                 ("component", "electrostatic-polarization-only"),
                 ("continuum", "smooth-fixed-coefficient-harmonic-galerkin"),
+                ("device", ADMITTED_DEVICE),
+                ("dtype", ADMITTED_DTYPE),
                 ("force", self.force_derivative_kind),
+                ("model_binding_sha256", ADMITTED_HYBRID_CONFIGURATION_SHA256),
                 ("nonpolar", "excluded"),
+                ("solvent", "water-cavity-conductor-limit-electrostatic"),
             ),
             warnings=(
                 "Experimental electrostatic scalar and numerical scalar-gradient "
@@ -760,6 +842,11 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
 
 
 __all__ = [
+    "ADMITTED_CONTINUUM_SETTINGS",
+    "ADMITTED_DEVICE",
+    "ADMITTED_DTYPE",
+    "ADMITTED_HYBRID_CONFIGURATION_SHA256",
+    "ADMITTED_HYBRID_PROVENANCE_SHA256",
     "HYBRID_HARMONIC_SCALAR_PROVIDER_ID",
     "HybridHarmonicEnergyState",
     "MACE_MDPPolarHybridSmoothHarmonicEnergy",

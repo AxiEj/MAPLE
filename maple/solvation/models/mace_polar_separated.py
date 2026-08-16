@@ -498,6 +498,19 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
             raise RuntimeError("MACE-POLAR vacuum energy is non-finite.")
         return value
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: object) -> np.ndarray:
+        """Return the exact zero-field checkpoint force for operational ledgers."""
+
+        self.configuration_sha256()
+        count = atom_count(geometry)
+        state = self._base.evaluate_vacuum(geometry, need_forces=True)
+        result = np.asarray(state.forces_eV_per_A, dtype=float)
+        if result.shape != (count, 3) or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-POLAR vacuum force must be finite with shape (N,3)."
+            )
+        return result.copy()
+
     def field_jvp(
         self, geometry: object, field: object, field_direction: object
     ) -> np.ndarray:

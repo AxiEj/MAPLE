@@ -791,6 +791,8 @@ class MACE_MDPPolarHybridPCMSolverPES:
             energy_eV=state.total_energy_ev,
             state_sha256=state.root_sha256,
             topology_id=state.cavity_topology_id,
+            topology_observation_coverage="complete",
+            unobservable_topology_components=(),
         )
 
     @staticmethod

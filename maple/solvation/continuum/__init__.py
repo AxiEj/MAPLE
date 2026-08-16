@@ -200,6 +200,26 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "pair_frame_ensemble_cpcm",
         "build_pair_frame_water_cpcm_110_candidate",
     ),
+    "MACE_POLAR_POINT_DDX_PROFILE_ID": (
+        "mace_polar_point_ddx",
+        "MACE_POLAR_POINT_DDX_PROFILE_ID",
+    ),
+    "MACE_POLAR_POINT_DDX_PROVIDER_ID": (
+        "mace_polar_point_ddx",
+        "MACE_POLAR_POINT_DDX_PROVIDER_ID",
+    ),
+    "MACE_POLAR_POINT_DDX_SCALAR_ID": (
+        "mace_polar_point_ddx",
+        "MACE_POLAR_POINT_DDX_SCALAR_ID",
+    ),
+    "MACEPolarPointDDXState": (
+        "mace_polar_point_ddx",
+        "MACEPolarPointDDXState",
+    ),
+    "MACEPolarPointEmbeddedDDXBackend": (
+        "mace_polar_point_ddx",
+        "MACEPolarPointEmbeddedDDXBackend",
+    ),
     "DDX_CAVITY_PROFILE_ID": ("radial_gto_ddx", "DDX_CAVITY_PROFILE_ID"),
     "DDX_COSMO_PROFILE_ID": ("radial_gto_ddx", "DDX_COSMO_PROFILE_ID"),
     "DDX_PCM_PROFILE_ID": ("radial_gto_ddx", "DDX_PCM_PROFILE_ID"),
@@ -210,10 +230,39 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "DDX_WATER_194_CONFIGURATION_CONTRACT_ID",
     ),
     "RadialGTODDXBackend": ("radial_gto_ddx", "RadialGTODDXBackend"),
+    "RadialDDXProblem": ("radial_gto_ddx", "RadialDDXProblem"),
     "RadialGTODDXState": ("radial_gto_ddx", "RadialGTODDXState"),
     "build_water_radial_gto_ddpcm_194_candidate": (
         "radial_gto_ddx",
         "build_water_radial_gto_ddpcm_194_candidate",
+    ),
+    "PreparedSeparatedSourceDDX": (
+        "separated_source_ddx",
+        "PreparedSeparatedSourceDDX",
+    ),
+    "SEPARATED_SOURCE_DDX_CONTRACT_ID": (
+        "separated_source_ddx",
+        "SEPARATED_SOURCE_DDX_CONTRACT_ID",
+    ),
+    "SEPARATED_SOURCE_DDX_PROVIDER_ID": (
+        "separated_source_ddx",
+        "SEPARATED_SOURCE_DDX_PROVIDER_ID",
+    ),
+    "SeparatedSourceDDXBackend": (
+        "separated_source_ddx",
+        "SeparatedSourceDDXBackend",
+    ),
+    "SeparatedSourceDDXState": (
+        "separated_source_ddx",
+        "SeparatedSourceDDXState",
+    ),
+    "embed_atomic_l1_in_first_radial_channel": (
+        "separated_source_ddx",
+        "embed_atomic_l1_in_first_radial_channel",
+    ),
+    "extract_atomic_l1_first_radial_cotangent": (
+        "separated_source_ddx",
+        "extract_atomic_l1_first_radial_cotangent",
     ),
 }
 

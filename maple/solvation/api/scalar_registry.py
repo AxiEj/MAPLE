@@ -37,6 +37,9 @@ EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1 = (
     "route2-experimental-macemdppoint-macepolarinduced-"
     "smoothharmonicgalerkin-electrostatic-v1"
 )
+MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID = (
+    "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1"
+)
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
 )
@@ -425,9 +428,14 @@ _SCALAR_ENTRIES = (
             "harmonic assembly and resolves both root starts; excessive stencil "
             "error fails closed; this is numerical, not an analytic adjoint"
         ),
-        admitted_capabilities=CapabilityStatus(),
-        evidence_artifact_ids=(),
-        enabled=False,
+        admitted_capabilities=CapabilityStatus(
+            energy=True,
+            conservative_force=True,
+        ),
+        evidence_artifact_ids=(
+            MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+        ),
+        enabled=True,
     ),
     ScalarDefinition(
         scalar_id=DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1,
@@ -781,6 +789,7 @@ __all__ = [
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",
+    "MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",

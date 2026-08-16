@@ -485,6 +485,131 @@ def _gaussian_kernel(radius_angstrom: Any, *, sigma_angstrom: float):
     return torch.where(small, series, regular)
 
 
+def _point_kernel(radius_angstrom: Any):
+    """Return the exterior point-monopole kernel in atomic units.
+
+    ``radius_angstrom`` is a Torch tensor.  The explicit ``Bohr`` numerator
+    converts ``1 / r_angstrom`` to ``1 / r_bohr`` and therefore matches the
+    authoritative NumPy point-source implementation exactly.
+    """
+
+    return Bohr / radius_angstrom
+
+
+def _point_monopole_coefficients(
+    displacement: Any,
+    *,
+    target_radius: float,
+    lmax: int,
+    radial_order: int,
+):
+    torch = _torch()
+    distance = torch.linalg.vector_norm(displacement)
+    distance_value = float(distance.detach().cpu())
+    if not np.isfinite(distance_value) or distance_value <= 1.0e-12:
+        raise ValueError("distinct point-source centres must remain distinct.")
+    if abs(distance_value - target_radius) <= 1.0e-12:
+        raise ValueError("a distinct point source lies on a target sphere.")
+    nodes, weights, legendre = _legendre_design(radial_order, lmax)
+    cosine = _constant(displacement, nodes)
+    radius_squared = (
+        target_radius**2 + distance**2 - 2.0 * target_radius * distance * cosine
+    )
+    radius = torch.sqrt(torch.clamp(radius_squared, min=0.0))
+    kernel = _point_kernel(radius)
+    zonal = (
+        2.0
+        * np.pi
+        * (
+            (_constant(displacement, weights) * kernel)
+            @ _constant(displacement, legendre)
+        )
+    )
+    direction = displacement / distance
+    harmonics = _torch_real_harmonic_design(direction[None, :], lmax=lmax)[0]
+    return torch.cat(
+        [
+            zonal[ell] * harmonics[ell * ell : (ell + 1) * (ell + 1)]
+            for ell in range(lmax + 1)
+        ]
+    )
+
+
+def _self_point_source_block(reference: Any, *, target_radius: float, lmax: int):
+    torch = _torch()
+    radius = reference.new_tensor(target_radius, requires_grad=True)
+    kernel = _point_kernel(radius)
+    (radial_derivative,) = torch.autograd.grad(kernel, (radius,), create_graph=True)
+    block = reference.new_zeros(((lmax + 1) ** 2, 4))
+    block[0, 0] = math.sqrt(4.0 * np.pi) * kernel
+    if lmax >= 1:
+        amplitude = -radial_derivative * math.sqrt(4.0 * np.pi / 3.0)
+        block[1:4, 1:4] = amplitude * torch.eye(
+            3, dtype=reference.dtype, device=reference.device
+        )
+    return block
+
+
+def _distinct_point_source_block(
+    displacement: Any,
+    *,
+    target_radius: float,
+    lmax: int,
+    radial_order: int,
+):
+    torch = _torch()
+
+    def monopole(candidate):
+        return _point_monopole_coefficients(
+            candidate,
+            target_radius=target_radius,
+            lmax=lmax,
+            radial_order=radial_order,
+        )
+
+    coefficient = monopole(displacement)
+    jacobian = torch.func.jacfwd(monopole)(displacement)
+    # Authoritative raw real-l=1 order is (m0,m1,m-1)=(y,z,x).
+    return torch.stack(
+        (coefficient, jacobian[:, 1], jacobian[:, 2], jacobian[:, 0]), dim=1
+    )
+
+
+def _assemble_point_source(
+    positions: Any,
+    *,
+    radii: tuple[float, ...],
+    lmax: int,
+    radial_order: int,
+):
+    """Assemble the differentiable point ``[q,y,z,x]`` source operator."""
+
+    torch = _torch()
+    rows = []
+    for target, target_radius in enumerate(radii):
+        row_blocks = []
+        for source in range(len(radii)):
+            displacement = positions[source] - positions[target]
+            distance = float(torch.linalg.vector_norm(displacement).detach().cpu())
+            block = (
+                _self_point_source_block(
+                    positions,
+                    target_radius=target_radius,
+                    lmax=lmax,
+                )
+                if distance <= 1.0e-12
+                else _distinct_point_source_block(
+                    displacement,
+                    target_radius=target_radius,
+                    lmax=lmax,
+                    radial_order=radial_order,
+                )
+            )
+            row_blocks.append(HARTREE_TO_EV * block)
+        rows.append(torch.cat(tuple(row_blocks), dim=1))
+    return torch.cat(tuple(rows), dim=0)
+
+
 def _gaussian_monopole_coefficients(
     displacement: Any,
     *,

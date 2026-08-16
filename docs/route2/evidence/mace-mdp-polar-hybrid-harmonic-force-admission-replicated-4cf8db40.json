@@ -1,0 +1,76 @@
+{
+  "admitted_capabilities": {
+    "E": true,
+    "F": true,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "admitted_runtime_binding": {
+    "cavity_radii_profile": "smd-water-coulomb-radii-v1",
+    "device": "cuda",
+    "dtype": "float64",
+    "hybrid_configuration_sha256": "ad866e18797d12614c98bc04e4060674a6d3e9801d6ae83f45a515cfbfc68aae",
+    "hybrid_provenance_sha256": "439e7b3585e2bcfb828bd346e163614ee1571b78895ce36536ddabfc633ef74e"
+  },
+  "admitted_scope": [
+    "the exact registered MACE-MDP permanent plus MACE-POLAR induced operational scalar",
+    "electrostatic-only conductor-limit smooth harmonic-Galerkin continuum with frozen water-cavity radii",
+    "neutral-singlet geometries accepted by both checkpoint domains",
+    "runtime-guarded fourth-order Richardson numerical scalar-gradient force",
+    "the exact content-addressed hybrid configuration on float64 CUDA with SMD-water Coulomb radii"
+  ],
+  "aggregate": {
+    "all_execution_gates_passed": true,
+    "benzene_h4_difference_eV_per_A": 3.941143707567041e-08,
+    "maximum_local_richardson_error_eV_per_A": 1.4104595417549493e-05,
+    "water_closed_loop_guarded_absolute_work_eV": 4.7405289175354166e-08,
+    "water_independent_directional_error_eV_per_A": 2.513079225691106e-07,
+    "water_rotation_energy_error_eV": 2.9654074751306325e-09,
+    "water_rotation_force_relative_error": 2.4243672701543782e-08,
+    "water_translation_energy_error_eV": 0.0,
+    "water_translation_force_relative_error": 0.0
+  },
+  "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1",
+  "claim_boundary": "A replicated pass addresses the GEPOL active-point force blocker and admits one experimental electrostatic scalar plus its numerical scalar-gradient force. It does not admit chemical accuracy, complete solvation free energy, analytic force, Hessian/frequency, MD, or Tier V.",
+  "execution_git_head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+  "execution_git_tree": "ac96348b6e7f937f1028aa39f48b89a7f76c30a9",
+  "measurement_sha256": "a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30",
+  "not_admitted": [
+    "chemical or solvation-energy accuracy",
+    "complete solvation free energy or nonpolar terms",
+    "named-solvent transfer",
+    "analytic force",
+    "Hessian, frequency, transition-state, molecular-dynamics, or NVE use",
+    "strict Tier-V common variational functional"
+  ],
+  "preregistration_artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-prereg-v1",
+  "preregistration_sha256": "c9ec2660006efd9449c7bbdb11daa23018c08dee4bcb30c2fb6452d788fe4120",
+  "profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1",
+  "replicate_measurements_equal": true,
+  "replicates": [
+    {
+      "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-v1",
+      "relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-4cf8db40.json",
+      "runtime_seconds": 431.7575244239997,
+      "sha256": "1a248e06218c0cb968e87992a7444923a246064c3fa7fa7362c00cf394587589",
+      "status": "candidate-energy-force-gate-passed-awaiting-independent-replay"
+    },
+    {
+      "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-v1",
+      "relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-4cf8db40.json",
+      "runtime_seconds": 438.4962088909815,
+      "sha256": "3c393008037697526f06731e3de0e983f740e5cc3f0a02b5ad2dc54347c7e415",
+      "status": "candidate-energy-force-gate-passed-awaiting-independent-replay"
+    }
+  ],
+  "runtime_guards": [
+    "both deterministic root starts converge to the same state",
+    "root residual and total-charge tolerances pass",
+    "fixed harmonic coefficient topology is unchanged across every force stencil",
+    "per-call Richardson local error is at most 2e-4 eV/angstrom"
+  ],
+  "scalar_id": "route2-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1",
+  "schema_version": "route2-replicated-experimental-energy-force-admission-v1",
+  "status": "admitted-experimental-electrostatic-energy-and-numerical-force"
+}

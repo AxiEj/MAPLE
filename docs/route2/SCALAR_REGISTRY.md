@@ -2,17 +2,21 @@
 
 This document mirrors the machine-readable registry in
 `maple.solvation.api.scalar_registry`. Registration defines an identity; it
-does **not** admit a capability. Every current `E/F/H/V/M` capability is false
-and every scalar is disabled.
+does **not** by itself admit a capability. One exact experimental profile now
+admits only `E/F`: the MACE-MDP permanent + MACE-POLAR induced + smooth
+harmonic-Galerkin electrostatic scalar. Every `H/V/M` capability remains false,
+and every other scalar/profile remains disabled.
 
 `maple.solvation.api.profiles.PROFILE_REGISTRY` is the sole admission registry.
 Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-All current profiles are disabled, have no capabilities, and have empty
-admission evidence. Multiple profiles may share one scalar formula while
-binding different coupling or physical-continuum configuration contracts.
+The admitted profile and scalar both bind evidence artifact
+`route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1`.
+Multiple profiles may share one scalar formula while binding different
+coupling or physical-continuum configuration contracts; evidence from one
+identity cannot admit another.
 
 `Route2Result` accepts only a registered `profile_id`; it derives scalar ID,
 state-equation ID, and capabilities from that profile. Callers cannot attach
@@ -26,6 +30,45 @@ declare an admitted domain, or carry force leaves.
 Public ASE units are declared centrally as energy `eV`, forces `eV/A`, and
 Hessian `eV/A^2`. Historical Hartree-reporting jobs use the dispatcher-bound
 non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
+
+## Experimental MACE-MDP + MACE-POLAR harmonic E/F profile
+
+- Profile:
+  `route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1`.
+- Scalar:
+  `route2-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1`.
+- Ledger:
+
+  \[
+    E(R)=E_{\rm vac}^{\rm MACE\text{-}POLAR}(R)
+      -\frac12 b(R,c^*)^T A(R)^{-1}b(R,c^*).
+  \]
+
+- State: a two-start operational root combining unchanged MACE-MDP permanent
+  point monopoles/dipoles with the field-induced increment of MACE-POLAR.
+- Continuum: a fixed-dimensional smooth harmonic-Galerkin coefficient model;
+  its mathematical definition contains no laboratory-fixed surface grid and
+  therefore removes the old GEPOL active-point switching mechanism.
+- Force: the fourth-order Richardson numerical gradient of this exact scalar;
+  every stencil point fully rebuilds the harmonic operator and re-solves both
+  root starts. Runtime guards reject excessive local Richardson error, root or
+  charge failure, replay disagreement, or topology drift.
+- Replicated admission: two independent clean executions at candidate head
+  `4cf8db40` produced identical measurement SHA-256
+  `a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30`.
+  The maximum local Richardson estimate was `1.4104595417549493e-5 eV/A`;
+  water rotation energy and relative force-covariance errors were
+  `2.9654074751306325e-9 eV` and `2.4243672701543782e-8`; the guarded closed-loop
+  work was `4.7405289175354166e-8 eV`.
+- Scope: the exact content-addressed checkpoint/adaptor binding, `float64` CUDA,
+  experimental conductor-limit electrostatics using SMD-water Coulomb radii,
+  neutral singlets, and numerical force only.
+- Not admitted: quantitative solvation accuracy, a complete solvation free
+  energy, named-solvent transfer, nonpolar/CDS, analytic force, Hessian/FREQ,
+  TS/IRC, MD/NVE, or a strict Tier-V common functional.
+
+See [HYBRID_HARMONIC_EXPERIMENTAL.md](HYBRID_HARMONIC_EXPERIMENTAL.md) for the
+runtime and claim boundary.
 
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 

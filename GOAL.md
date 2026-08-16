@@ -25,20 +25,50 @@ mean absolute error <= 1.5 kcal/mol
 
 on the preregistered frozen 505-record MNSol development panel, using the
 exact profile bound by
-`route2-hybrid-smd-development-prereg-v2`. The 148-record confirmation
-partition remains sealed. No fitting, calibration, checkpoint selection, or
-method selection is permitted after observing this development result.
+`route2-hybrid-smd-development-prereg-v3`. The 148-record confirmation
+partition remains sealed. The v3 result is a frozen baseline: it cannot be
+retroactively altered by fitting, calibration, checkpoint selection, or
+method selection.
 
 The running evidence source is read-only:
 
 ```text
-source snapshot: /tmp/maple-route2-v5-sourcebound.7btWng
-records:         /tmp/maple-route2-hybrid-smd-development-v2
+source snapshot: ~/.local/share/maple/route2/hybrid-smd-development-v3/source
+records:         ~/.local/share/maple/route2/hybrid-smd-development-v3/records
 ```
 
 This workspace was copied from that snapshot. It may evolve only under new,
 explicitly versioned profiles; it must not alter the running snapshot or
 retroactively change its preregistered method.
+
+## Prospective profile-bound CDS lane
+
+Stock SMD-CDS transferability is a hypothesis tested by the frozen v3
+baseline, not an invariant. SMD electrostatic and CDS decompositions are
+model-dependent, so a separately versioned effective CDS may be developed
+after the complete v3 component matrix is frozen.
+
+The first such candidate is water-only:
+
+```text
+MAPLE-CDS-W1
+= low-dimensional linear aqueous SMD surface-tension basis
++ a frozen differentiable area definition
++ frozen MACE-MDP + MACE-POLAR hybrid electrostatics v3
+```
+
+It may fit only the residual between the frozen electrostatic prediction and
+the experimental total under the frozen standard-state convention. It must
+not alter source scales, Gaussian widths, dielectric factors, cavity radii,
+checkpoints, or the electrostatic ledger. It is an effective model-dependent
+term, not an experimentally observable standalone CDS component.
+
+The 505 records remain the development pool; no retroactive blind subset may
+be carved out after partial execution. The existing 148-record confirmation
+manifest remains the only current MNSol confirmation partition. A water-only
+candidate and a future multi-solvent candidate require different profile IDs
+and admission decisions. See
+[`docs/route2/MAPLE_CDS_W1.md`](docs/route2/MAPLE_CDS_W1.md).
 
 ## Required MAPLE capability surface
 

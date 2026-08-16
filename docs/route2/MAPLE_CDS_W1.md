@@ -275,6 +275,21 @@ factor/degree caps, and Pro evidence are frozen in
 `evidence/POSITIVE_BERNSTEIN_PARENT_PRO_AUDIT_2026-08-17.md`.  All 306 rows must
 be regenerated from ordinal zero before the final target-visible fit.
 
+That final positive-parent PH1.0 lane was frozen and executed exactly once.
+All ten minimizer certificates passed, but the prospective water bound was
+`1.6969972 kcal/mol`, above `1.5`; the mixed-505 bound was
+`1.4546582 kcal/mol`.  Because both were required to pass, the result is
+terminal and no deployment fit exists.  No further CDS estimator is allowed.
+See `evidence/POSITIVE_PH1_TERMINAL_FAILURE_2026-08-17.md`.
+
+The remaining hybrid research branch is no longer a CDS-fitting branch.  It is
+a target-independent heterogeneous-electrostatics audit of point MDP permanent
+sources, Gaussian POLAR induced sources, and the harmonic continuum.  The
+frozen PH1 OOF CDS values may be retained only as an immutable comparison term
+after that electrostatic model passes analytic and fixed-source equivalence
+gates; they may not be refitted.  The post-failure Pro decision is recorded in
+`evidence/POSITIVE_PH1_POSTFAILURE_PRO_AUDIT_2026-08-17.md`.
+
 ## Admission and stop rules
 
 Report M0-M3 with MAE, RMSE, signed error, Q95 absolute error, maximum error,

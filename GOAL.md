@@ -117,6 +117,39 @@ candidate and a future multi-solvent candidate require different profile IDs
 and admission decisions. See
 [`docs/route2/MAPLE_CDS_W1.md`](docs/route2/MAPLE_CDS_W1.md).
 
+### Frozen CDS terminal result
+
+The final positive-parent PH1.0 CDS lane was preregistered before target
+joining and then executed exactly once.  All ten numerical minimizer
+certificates passed, but the conjunctive development gate failed:
+
+```text
+water grouped-OOF exact-minimizer MAE upper bound: 1.6969972 kcal/mol  FAIL
+mixed-505 exact-minimizer MAE upper bound:          1.4546582 kcal/mol  PASS
+required:                                           both <= 1.5 kcal/mol
+```
+
+Consequently, no all-306 deployment fit exists and no further CDS feature,
+loss, mode, intercept, regularizer, fold, or threshold variant is permitted.
+This closes only the attempt to repair the current electrostatic profile by
+increasing CDS capacity; it does not close the hybrid route.
+
+The next mainline is a target-independent heterogeneous-electrostatics audit:
+
+```text
+MDP permanent source = point monopoles/dipoles
+POLAR induced source = exact zero-anchored 1.5 A Gaussian increments
+continuum             = shared-cavity harmonic coefficient operator
+```
+
+Analytic single-sphere identities and frozen-source permanent-only,
+induced-only, and direct-sum comparisons against PCMSolver must pass before a
+new accuracy profile is frozen.  The existing PH1 OOF CDS predictions may be
+carried only as the immutable CDS term of that comparison; they may not be
+refitted.  The terminal result and post-failure Pro review are recorded in
+`docs/route2/evidence/POSITIVE_PH1_TERMINAL_FAILURE_2026-08-17.md` and
+`docs/route2/evidence/POSITIVE_PH1_POSTFAILURE_PRO_AUDIT_2026-08-17.md`.
+
 ## Required MAPLE capability surface
 
 The final hybrid route must expose one content-addressed scalar per solvent and

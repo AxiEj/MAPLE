@@ -144,6 +144,48 @@ full Pro-assisted mathematical audit and the local independent checks are
 recorded in
 `evidence/HARMONIC_CDS_AREA_PRO_AUDIT_2026-08-16.md`.
 
+### Target-blind feature freeze
+
+The first W1 design matrix is generated before any W1 fit by
+`generate_maple_cds_w1_features.py` under an external, read-only
+preregistration created by
+`create_maple_cds_w1_feature_preregistration.py`. The generator parses the
+licensed MNSol archive to recover and validate the already-frozen molecular
+geometries. The loader necessarily parses the table's target column into its
+in-memory record objects; the downstream feature computation never accesses
+that attribute, a hybrid prediction record, or a confirmation-selection
+manifest. Each exclusive record contains an opaque development identity,
+geometry/configuration hashes, the 18-column design row, and a stock-coefficient
+reconstruction control. It emits neither coordinates nor targets.
+
+The geometry-only numerical choice is frozen as:
+
+```text
+SMD SASA radii:              published Bondi-style radii + 0.4 A probe
+transition width:            0.18 A^2
+exposure lmax:               4
+radial quadrature order:     192
+runtime:                     Torch float64 CPU
+water development records:  306
+```
+
+Across those 306 frozen water geometries, the largest number of simultaneous
+transition pair factors on one non-buried atom is 27. The exact finite-product
+contraction therefore requires degree
+
+```text
+(27 + 1) * 4 = 112,
+```
+
+below the implementation limit of 128. This audit is recomputed from geometry
+by both preregistration and feature generation; `lmax=4` was not selected from
+solvation errors. The feature preregistration binds the parent hybrid-v3
+preregistration, exact Git tree, every loaded repository source, four frozen
+MNSol input files, water-identity fingerprint, area definition, basis ordering,
+and stock control vector. Feature generation requires the same clean Git tree
+and the same normalized Python/platform/package/NumPy/Torch runtime identity;
+it writes only outside the checkout.
+
 ## Fit and selection protocol
 
 For a frozen design matrix `X`, fit only on development data using grouped,

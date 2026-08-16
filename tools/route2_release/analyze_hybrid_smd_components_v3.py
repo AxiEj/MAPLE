@@ -23,6 +23,10 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _sha256_bytes(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
 def _canonical_sha256(payload: object) -> str:
     encoded = json.dumps(
         payload,
@@ -230,7 +234,8 @@ def _load_bound_records(
     }
     for index in range(expected_count):
         path = paths[f"index-{index:03d}.json"]
-        row = json.loads(path.read_text())
+        raw = path.read_bytes()
+        row = json.loads(raw)
         if not isinstance(row, dict):
             raise HybridComponentAnalysisError(f"Record {index:03d} is not an object.")
         if row.get("artifact") != EXPECTED_RECORD_ARTIFACT:
@@ -283,7 +288,7 @@ def _load_bound_records(
                 f"Record {index:03d} component ledger does not close."
             )
         records.append(row)
-        manifest.append((index, _sha256(path)))
+        manifest.append((index, _sha256_bytes(raw)))
     if _canonical_sha256(manifest) != audit.get("record_files_manifest_sha256"):
         raise HybridComponentAnalysisError("Record-file manifest drifted from audit.")
     return records

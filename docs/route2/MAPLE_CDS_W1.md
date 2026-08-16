@@ -84,6 +84,25 @@ definitions fixed. Only preregistered linear coefficients may vary. A larger
 local-environment model is considered only if grouped validation rejects M3.
 Neural residual correction is outside W1.
 
+M2 is frozen while the v3 record set is still incomplete and before either
+terminal aggregate/audit exists.  The preregistration observes only record file
+names, never record contents, predictions, targets, component errors, or
+confirmation data.  It freezes the single formula
+
+```text
+y_i = delta_G_exp,i - G_hybrid_electrostatic,i
+x_i = G_stock_SMD_CDS,i
+alpha = sum_i x_i*y_i / sum_i x_i^2
+```
+
+over all and only the 306 water development records.  There is no intercept,
+weighting, hyperparameter, solvent-dependent branch, or post-hoc clipping.
+The candidate is rejected when `alpha` is outside `[0, 2]`.  Its development
+gate requires water MAE no greater than `1.5 kcal/mol` and improvement of at
+least `0.05 kcal/mol` over the better of M0 and M1.  Nonaqueous records retain
+M1 unchanged.  Confirmation remains sealed until the coefficient and a
+separate confirmation rule are frozen.
+
 The linear tension algebra is already represented by one shared contract in
 `implicit/smd_cds.py`:
 

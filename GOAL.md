@@ -69,6 +69,25 @@ identities, finite differences, or other appropriate tests. Routine coding
 questions should remain local; Pro should be used promptly when the uncertainty
 is genuinely mathematical or could change the scientific model.
 
+For this goal, Pro review is a required second-opinion checkpoint rather than a
+one-off escalation. Unless a single completed answer explicitly closes the next
+checkpoint too, ask a new, focused Pro question before freezing each of:
+
+1. the target-blind M3 statistical subspace and its grouped validation rule;
+2. the final positive-parent, SO(3)-structured smooth CDS area and its force
+   regularity contract;
+3. the source/continuum/energy-ledger interpretation and matched QM/PCM
+   component admission;
+4. the complete block/reduced implicit-force derivation and root-well-posedness
+   certificate; and
+5. the final public scientific admission proof.
+
+Questions should combine tightly related mathematics, but a still-running query
+must never be duplicated or overlapped. Poll sparsely, retain the complete
+answer and its evidence hashes, then critically rederive and test it before the
+next checkpoint is submitted. Passing Pro review never substitutes for local
+proof, chemical reference data, or profile-bound validation.
+
 ## Prospective profile-bound CDS lane
 
 Stock SMD-CDS transferability is a hypothesis tested by the frozen v3

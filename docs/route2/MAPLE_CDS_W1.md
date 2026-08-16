@@ -84,6 +84,23 @@ definitions fixed. Only preregistered linear coefficients may vary. A larger
 local-environment model is considered only if grouped validation rejects M3.
 Neural residual correction is outside W1.
 
+The linear tension algebra is already represented by one shared contract in
+`implicit/smd_cds.py`:
+
+```text
+gamma_A(R; theta) = b_A(R) @ theta
+X(R, A)_j         = sum_A A_A(R) b_Aj(R) / 1000
+G_CDS(R; theta)   = X(R, A) @ theta
+```
+
+The 18 named columns contain ten elemental intercepts and the eight published
+aqueous environment branches, including the published zero-coefficient H-O
+branch. The stock coefficient vector reconstructs the existing SMD-water
+atomic tensions, while the same basis supports an arbitrary frozen coefficient
+vector and its analytic tension-coordinate VJP. The area vector remains an
+explicit input: this algebra does not choose, fit, or silently substitute the
+production surface definition.
+
 The production area definition must be selected before fitting, content
 addressed, differentiable, and identical in feature generation, energy, and
 force evaluation. The legacy PySCF internal surface is not observable, and the

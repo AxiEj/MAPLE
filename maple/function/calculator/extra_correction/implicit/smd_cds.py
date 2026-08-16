@@ -27,6 +27,17 @@ from ....route2_smd_profiles import (
 )
 from ....route2_solvents import route2_solvent_spec
 
+# Historical callers import these profile constants from ``smd_cds``.  Keep
+# that compatibility boundary explicit while new code imports the registry
+# directly from ``route2_smd_profiles``.
+_LEGACY_PROFILE_REEXPORTS = (
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    DDPCM_GAFF2_CARBONYL_O_PROFILE,
+    DDPCM_SMD_PROFILE,
+    GAFF2_CARBONYL_O_PROFILE,
+    SUPPORTED_DDPCM_SMD_PROFILES,
+    SUPPORTED_PCMSOLVER_SMD_PROFILES,
+)
 
 HARTREE_TO_KCAL_MOL = 627.5094740631
 SASA_PROBE_RADIUS_ANGSTROM = 0.4
@@ -120,6 +131,57 @@ _OXYGEN_TENSION_COEFFICIENTS = {
 }
 
 
+SMD_WATER_TENSION_PARAMETER_NAMES = (
+    "base:H",
+    "base:C",
+    "base:N",
+    "base:O",
+    "base:F",
+    "base:P",
+    "base:S",
+    "base:Cl",
+    "base:Br",
+    "base:I",
+    "environment:H-C",
+    "environment:H-O",
+    "environment:C-C",
+    "environment:N-C-coordination-power-1.3",
+    "environment:N-C3-short-range",
+    "environment:O-C",
+    "environment:O-N",
+    "environment:O-P",
+)
+_SMD_WATER_TENSION_PARAMETER_INDEX = {
+    name: index for index, name in enumerate(SMD_WATER_TENSION_PARAMETER_NAMES)
+}
+SMD_WATER_STOCK_TENSION_COEFFICIENTS_CAL_MOL_ANGSTROM2 = np.frombuffer(
+    np.asarray(
+        [
+            _WATER_BASE_TENSION.get("H", 0.0),
+            _WATER_BASE_TENSION.get("C", 0.0),
+            _WATER_BASE_TENSION.get("N", 0.0),
+            _WATER_BASE_TENSION.get("O", 0.0),
+            _WATER_BASE_TENSION.get("F", 0.0),
+            _WATER_BASE_TENSION.get("P", 0.0),
+            _WATER_BASE_TENSION.get("S", 0.0),
+            _WATER_BASE_TENSION.get("Cl", 0.0),
+            _WATER_BASE_TENSION.get("Br", 0.0),
+            _WATER_BASE_TENSION.get("I", 0.0),
+            _HYDROGEN_CARBON_TENSION_COEFFICIENT,
+            0.0,
+            _CARBON_CARBON_TENSION_COEFFICIENT,
+            _NITROGEN_COORDINATION_TENSION_COEFFICIENT,
+            _NITROGEN_SHORT_RANGE_C3_TENSION_COEFFICIENT,
+            _OXYGEN_TENSION_COEFFICIENTS["C"],
+            _OXYGEN_TENSION_COEFFICIENTS["N"],
+            _OXYGEN_TENSION_COEFFICIENTS["P"],
+        ],
+        dtype=np.float64,
+    ).tobytes(),
+    dtype=np.float64,
+)
+
+
 @dataclass(frozen=True)
 class SMDCDSResult:
     energy_hartree: float
@@ -158,11 +220,7 @@ def smd_coulomb_radii(symbols, *, solvent: str) -> np.ndarray:
         dtype=float,
     )
     acidity = solvent_spec.descriptors.hydrogen_bond_acidity
-    oxygen_radius = (
-        1.52
-        if acidity >= 0.43
-        else 1.52 + 1.8 * (0.43 - acidity)
-    )
+    oxygen_radius = 1.52 if acidity >= 0.43 else 1.52 + 1.8 * (0.43 - acidity)
     radii[np.asarray(normalized) == "O"] = oxygen_radius
     return radii
 
@@ -193,15 +251,9 @@ def route2_coulomb_radii(
             f"solvent={solvent_spec.name}."
         )
 
-    if (
-        profile_spec.coulomb_radii_policy
-        == "smd-water-reference-smd18-v1"
-    ):
+    if profile_spec.coulomb_radii_policy == "smd-water-reference-smd18-v1":
         radii = np.asarray(
-            [
-                SMD_WATER_COULOMB_RADII_ANGSTROM[symbol]
-                for symbol in normalized_symbols
-            ],
+            [SMD_WATER_COULOMB_RADII_ANGSTROM[symbol] for symbol in normalized_symbols],
             dtype=float,
         )
     else:
@@ -284,11 +336,29 @@ def _switch_with_derivative(
     return value, derivative
 
 
-def aqueous_atomic_surface_tensions(
+def _validated_tension_coefficients(coefficients: np.ndarray) -> np.ndarray:
+    values = np.asarray(coefficients, dtype=float)
+    expected = (len(SMD_WATER_TENSION_PARAMETER_NAMES),)
+    if values.shape != expected or not np.all(np.isfinite(values)):
+        raise ValueError(
+            "SMD water tension coefficients must be finite with shape " f"{expected}."
+        )
+    return values
+
+
+def aqueous_atomic_surface_tension_basis(
     symbols,
     positions_angstrom: np.ndarray,
 ) -> np.ndarray:
-    """Return aqueous SMD atomic surface tensions in cal/(mol Å²)."""
+    """Return the linear aqueous SMD atomic-tension design matrix.
+
+    Each row describes one atomic surface tension and each column follows
+    :data:`SMD_WATER_TENSION_PARAMETER_NAMES`.  The published stock SMD
+    tensions are exactly ``basis @ stock_coefficients``.  The aqueous H-O
+    branch is retained even though its published stock coefficient is zero,
+    allowing a future preregistered linear refit without changing geometry
+    functions after observing data.
+    """
 
     symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
@@ -298,40 +368,34 @@ def aqueous_atomic_surface_tensions(
         positions[:, None, :] - positions[None, :, :],
         axis=2,
     )
-
-    tensions = np.zeros(len(symbols), dtype=float)
+    basis = np.zeros(
+        (len(symbols), len(SMD_WATER_TENSION_PARAMETER_NAMES)),
+        dtype=float,
+    )
     for i, symbol in enumerate(symbols):
-        tension = _WATER_BASE_TENSION.get(symbol, 0.0)
+        basis[i, _SMD_WATER_TENSION_PARAMETER_INDEX[f"base:{symbol}"]] = 1.0
         if symbol in {"F", "S", "Cl", "Br", "I", "P"}:
-            tensions[i] = tension
             continue
 
         if symbol == "H":
-            t_hc = sum(
+            basis[i, _SMD_WATER_TENSION_PARAMETER_INDEX["environment:H-C"]] = sum(
                 _switch(distances[i, j], *_SWITCH_PARAMETERS[("H", "C")])
                 for j, other in enumerate(symbols)
                 if other == "C"
             )
-            # The aqueous H-O coefficient is zero, but retaining the published
-            # switching branch documents the complete water functional.
-            _ = sum(
+            basis[i, _SMD_WATER_TENSION_PARAMETER_INDEX["environment:H-O"]] = sum(
                 _switch(distances[i, j], *_SWITCH_PARAMETERS[("H", "O")])
                 for j, other in enumerate(symbols)
                 if other == "O"
             )
-            tensions[i] = (
-                tension
-                + _HYDROGEN_CARBON_TENSION_COEFFICIENT * t_hc
-            )
             continue
 
         if symbol == "C":
-            t_cc = sum(
+            basis[i, _SMD_WATER_TENSION_PARAMETER_INDEX["environment:C-C"]] = sum(
                 _switch(distances[i, j], *_SWITCH_PARAMETERS[("C", "C")])
                 for j, other in enumerate(symbols)
                 if j != i and other == "C"
             )
-            tensions[i] = tension + _CARBON_CARBON_TENSION_COEFFICIENT * t_cc
             continue
 
         if symbol == "N":
@@ -351,63 +415,103 @@ def aqueous_atomic_surface_tensions(
                     distances[i, j], *_SWITCH_PARAMETERS[("N", "C")]
                 )
                 t_nc += nc_coordination * carbon_environment**2
-                t_nc3 += _switch(
-                    distances[i, j], *_SWITCH_PARAMETERS[("N", "C3")]
-                )
-            tensions[i] = (
-                tension
-                + _NITROGEN_COORDINATION_TENSION_COEFFICIENT
-                * t_nc**_NITROGEN_COORDINATION_POWER
-                + _NITROGEN_SHORT_RANGE_C3_TENSION_COEFFICIENT * t_nc3
+                t_nc3 += _switch(distances[i, j], *_SWITCH_PARAMETERS[("N", "C3")])
+            basis[
+                i,
+                _SMD_WATER_TENSION_PARAMETER_INDEX[
+                    "environment:N-C-coordination-power-1.3"
+                ],
+            ] = (
+                t_nc**_NITROGEN_COORDINATION_POWER
             )
+            basis[
+                i,
+                _SMD_WATER_TENSION_PARAMETER_INDEX["environment:N-C3-short-range"],
+            ] = t_nc3
             continue
 
         if symbol == "O":
-            t_oc = sum(
-                _switch(distances[i, j], *_SWITCH_PARAMETERS[("O", "C")])
-                for j, other in enumerate(symbols)
-                if other == "C"
-            )
-            t_on = sum(
-                _switch(distances[i, j], *_SWITCH_PARAMETERS[("O", "N")])
-                for j, other in enumerate(symbols)
-                if other == "N"
-            )
-            t_op = sum(
-                _switch(distances[i, j], *_SWITCH_PARAMETERS[("O", "P")])
-                for j, other in enumerate(symbols)
-                if other == "P"
-            )
-            tensions[i] = (
-                tension
-                + _OXYGEN_TENSION_COEFFICIENTS["C"] * t_oc
-                + _OXYGEN_TENSION_COEFFICIENTS["N"] * t_on
-                + _OXYGEN_TENSION_COEFFICIENTS["P"] * t_op
-            )
-            continue
-
-        tensions[i] = tension
-    return tensions
+            for neighbor in ("C", "N", "P"):
+                basis[
+                    i,
+                    _SMD_WATER_TENSION_PARAMETER_INDEX[f"environment:O-{neighbor}"],
+                ] = sum(
+                    _switch(
+                        distances[i, j],
+                        *_SWITCH_PARAMETERS[("O", neighbor)],
+                    )
+                    for j, other in enumerate(symbols)
+                    if other == neighbor
+                )
+    return basis
 
 
-def aqueous_atomic_surface_tension_position_vjp(
+def aqueous_atomic_surface_tensions_from_coefficients(
+    symbols,
+    positions_angstrom: np.ndarray,
+    coefficients_cal_mol_angstrom2: np.ndarray,
+) -> np.ndarray:
+    """Evaluate aqueous atomic tensions for one frozen linear coefficient set."""
+
+    coefficients = _validated_tension_coefficients(coefficients_cal_mol_angstrom2)
+    return (
+        aqueous_atomic_surface_tension_basis(symbols, positions_angstrom) @ coefficients
+    )
+
+
+def aqueous_atomic_surface_tensions(
+    symbols,
+    positions_angstrom: np.ndarray,
+) -> np.ndarray:
+    """Return published aqueous SMD atomic tensions in cal/(mol Å²)."""
+
+    return aqueous_atomic_surface_tensions_from_coefficients(
+        symbols,
+        positions_angstrom,
+        SMD_WATER_STOCK_TENSION_COEFFICIENTS_CAL_MOL_ANGSTROM2,
+    )
+
+
+def aqueous_cds_tension_design_row(
+    symbols,
+    positions_angstrom: np.ndarray,
+    atom_areas_angstrom2: np.ndarray,
+) -> np.ndarray:
+    """Contract atomic areas with the linear tension basis.
+
+    The returned row has units such that its dot product with coefficients in
+    ``cal/(mol Å²)`` is the CDS energy in ``kcal/mol``.  Area generation is an
+    independent, explicitly versioned concern and is therefore supplied by the
+    caller rather than hidden in this function.
+    """
+
+    symbols = validate_smd_symbols(tuple(symbols))
+    areas = np.asarray(atom_areas_angstrom2, dtype=float)
+    if areas.shape != (len(symbols),) or not np.all(np.isfinite(areas)):
+        raise ValueError("SMD atom areas must be finite with shape (n_atoms,).")
+    basis = aqueous_atomic_surface_tension_basis(symbols, positions_angstrom)
+    return areas @ basis / 1000.0
+
+
+def aqueous_atomic_surface_tension_position_vjp_from_coefficients(
     symbols,
     positions_angstrom: np.ndarray,
     tension_cotangent: np.ndarray,
+    coefficients_cal_mol_angstrom2: np.ndarray,
 ) -> np.ndarray:
-    """Differentiate a pairing with the aqueous SMD atomic tensions.
+    """Differentiate a pairing with a frozen linear aqueous tension model.
 
     This returns
-    ``d <tension_cotangent, aqueous_atomic_surface_tensions(R)> / dR``
-    without constructing a dense tension-by-coordinate Jacobian.  It is the
-    analytic coordinate response of the published geometry-dependent tension
-    functions only.  Solvent-accessible surface-area derivatives are separate
-    and deliberately absent, so this is not a complete CDS gradient.
+    ``d <tension_cotangent, basis(R) @ coefficients> / dR`` without constructing
+    a dense tension-by-coordinate Jacobian.  Solvent-accessible surface-area
+    derivatives are separate and deliberately absent, so this is not a complete
+    CDS gradient.
     """
 
     symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
     cotangent = np.asarray(tension_cotangent, dtype=float)
+    coefficients = _validated_tension_coefficients(coefficients_cal_mol_angstrom2)
     expected_positions_shape = (len(symbols), 3)
     if positions.shape != expected_positions_shape or not np.all(
         np.isfinite(positions)
@@ -449,14 +553,16 @@ def aqueous_atomic_surface_tension_position_vjp(
 
         if symbol == "H":
             for j, other in enumerate(symbols):
-                if other != "C":
+                if other not in {"C", "O"}:
                     continue
-                _, derivative = switch(i, j, ("H", "C"))
+                _, derivative = switch(i, j, ("H", other))
                 add_pair(
                     i,
                     j,
                     objective_cotangent
-                    * _HYDROGEN_CARBON_TENSION_COEFFICIENT
+                    * coefficients[
+                        _SMD_WATER_TENSION_PARAMETER_INDEX[f"environment:H-{other}"]
+                    ]
                     * derivative,
                 )
             continue
@@ -470,7 +576,9 @@ def aqueous_atomic_surface_tension_position_vjp(
                     i,
                     j,
                     objective_cotangent
-                    * _CARBON_CARBON_TENSION_COEFFICIENT
+                    * coefficients[
+                        _SMD_WATER_TENSION_PARAMETER_INDEX["environment:C-C"]
+                    ]
                     * derivative,
                 )
             continue
@@ -492,11 +600,9 @@ def aqueous_atomic_surface_tension_position_vjp(
                     )
                     if parameters[1] <= 0.0:
                         continue
-                    coordination, coordination_derivative = (
-                        _switch_with_derivative(
-                            float(distances[j, k]),
-                            *parameters,
-                        )
+                    coordination, coordination_derivative = _switch_with_derivative(
+                        float(distances[j, k]),
+                        *parameters,
                     )
                     carbon_environment += coordination
                     environment_branches.append((k, coordination_derivative))
@@ -517,7 +623,11 @@ def aqueous_atomic_surface_tension_position_vjp(
             t_nc_gradient = (
                 0.0
                 if t_nc == 0.0
-                else _NITROGEN_COORDINATION_TENSION_COEFFICIENT
+                else coefficients[
+                    _SMD_WATER_TENSION_PARAMETER_INDEX[
+                        "environment:N-C-coordination-power-1.3"
+                    ]
+                ]
                 * _NITROGEN_COORDINATION_POWER
                 * t_nc ** (_NITROGEN_COORDINATION_POWER - 1.0)
             )
@@ -530,16 +640,18 @@ def aqueous_atomic_surface_tension_position_vjp(
                 environment_branches,
             ) in carbon_branches:
                 nc_cotangent = (
-                    objective_cotangent
-                    * t_nc_gradient
-                    * carbon_environment**2
+                    objective_cotangent * t_nc_gradient * carbon_environment**2
                 )
                 add_pair(
                     i,
                     j,
                     nc_cotangent * nc_derivative
                     + objective_cotangent
-                    * _NITROGEN_SHORT_RANGE_C3_TENSION_COEFFICIENT
+                    * coefficients[
+                        _SMD_WATER_TENSION_PARAMETER_INDEX[
+                            "environment:N-C3-short-range"
+                        ]
+                    ]
                     * nc3_derivative,
                 )
 
@@ -560,14 +672,15 @@ def aqueous_atomic_surface_tension_position_vjp(
 
         if symbol == "O":
             for j, other in enumerate(symbols):
-                coefficient = _OXYGEN_TENSION_COEFFICIENTS.get(other)
-                if coefficient is None:
+                parameter_name = f"environment:O-{other}"
+                parameter_index = _SMD_WATER_TENSION_PARAMETER_INDEX.get(parameter_name)
+                if parameter_index is None:
                     continue
                 _, derivative = switch(i, j, ("O", other))
                 add_pair(
                     i,
                     j,
-                    objective_cotangent * coefficient * derivative,
+                    objective_cotangent * coefficients[parameter_index] * derivative,
                 )
 
     position_vjp = np.zeros_like(positions)
@@ -587,6 +700,21 @@ def aqueous_atomic_surface_tension_position_vjp(
             position_vjp[first] += contribution
             position_vjp[second] -= contribution
     return position_vjp
+
+
+def aqueous_atomic_surface_tension_position_vjp(
+    symbols,
+    positions_angstrom: np.ndarray,
+    tension_cotangent: np.ndarray,
+) -> np.ndarray:
+    """Differentiate a pairing with the published aqueous SMD tensions."""
+
+    return aqueous_atomic_surface_tension_position_vjp_from_coefficients(
+        symbols,
+        positions_angstrom,
+        tension_cotangent,
+        SMD_WATER_STOCK_TENSION_COEFFICIENTS_CAL_MOL_ANGSTROM2,
+    )
 
 
 def _fibonacci_sphere(number: int) -> np.ndarray:
@@ -617,9 +745,7 @@ def solvent_accessible_surface_areas(
 
     directions = _fibonacci_sphere(int(grid_points))
     areas = np.empty(positions.shape[0], dtype=float)
-    for atom_index, (center, radius) in enumerate(
-        zip(positions, radii, strict=True)
-    ):
+    for atom_index, (center, radius) in enumerate(zip(positions, radii, strict=True)):
         surface_points = center + radius * directions
         exposed = np.ones(grid_points, dtype=bool)
         for other_index, (other_center, other_radius) in enumerate(
@@ -707,9 +833,8 @@ def _fibonacci_swig_inspired_surface_areas_and_position_vjp(
     cotangent = None
     if area_cotangent is not None:
         cotangent = np.asarray(area_cotangent, dtype=float)
-        if (
-            cotangent.shape != (positions.shape[0],)
-            or not np.all(np.isfinite(cotangent))
+        if cotangent.shape != (positions.shape[0],) or not np.all(
+            np.isfinite(cotangent)
         ):
             raise ValueError(
                 "Fibonacci-SWIG-inspired area cotangent must be finite with "
@@ -737,33 +862,23 @@ def _fibonacci_swig_inspired_surface_areas_and_position_vjp(
         axis=2,
     )
 
-    for atom_index, (center, radius) in enumerate(
-        zip(positions, radii, strict=True)
-    ):
+    for atom_index, (center, radius) in enumerate(zip(positions, radii, strict=True)):
         surface_points = center + radius * directions
         candidates = np.flatnonzero(
             (np.arange(atom_count) != atom_index)
-            & (
-                center_distances[atom_index]
-                < radius + outer_radii
-            )
+            & (center_distances[atom_index] < radius + outer_radii)
         )
         area_scale = point_weight * radius * radius
         if candidates.size == 0:
             areas[atom_index] = area_scale * number
             continue
 
-        displacements = (
-            surface_points[:, None, :]
-            - positions[candidates][None, :, :]
-        )
+        displacements = surface_points[:, None, :] - positions[candidates][None, :, :]
         distances = np.linalg.norm(displacements, axis=2)
         switch_coordinates = (
             distances - inner_radii[candidates][None, :]
         ) / switching_radii[candidates][None, :]
-        switches, switch_derivatives = _swig_switch_with_derivative(
-            switch_coordinates
-        )
+        switches, switch_derivatives = _swig_switch_with_derivative(switch_coordinates)
         point_switches = np.prod(switches, axis=1)
         areas[atom_index] = area_scale * float(np.sum(point_switches))
 
@@ -792,9 +907,7 @@ def _fibonacci_swig_inspired_surface_areas_and_position_vjp(
             * inverse_distances
             / switching_radii[candidates][None, :]
         )
-        contributions = (
-            derivative_coefficients[:, :, None] * displacements
-        )
+        contributions = derivative_coefficients[:, :, None] * displacements
         position_vjp[atom_index] += np.sum(contributions, axis=(0, 1))
         np.add.at(
             position_vjp,

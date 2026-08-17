@@ -88,7 +88,12 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--continuum",
-        choices=("ddpcm", "harmonic-point", "harmonic-ddpcm"),
+        choices=(
+            "ddpcm",
+            "harmonic-point",
+            "harmonic-ddpcm",
+            "harmonic-ddpcm-water",
+        ),
         default="ddpcm",
     )
     parser.add_argument("--output", type=Path, required=True)
@@ -261,7 +266,8 @@ def main() -> None:
     )
     stationarity = (
         continuum.stationarity_audit(atoms, first.source)
-        if args.continuum in {"harmonic-point", "harmonic-ddpcm"}
+        if args.continuum
+        in {"harmonic-point", "harmonic-ddpcm", "harmonic-ddpcm-water"}
         else None
     )
     post_solve_residual_available = bool(
@@ -386,7 +392,10 @@ def main() -> None:
             "panel, hard neighbor/continuum strata and event clearances, and "
             "three rigid rotations. The harmonic-point arm is a conductor "
             "reference; harmonic-ddpcm adds the finite-dielectric double-layer "
-            "PCM equation rather than a uniform COSMO scale. Neither is fixed-R "
+            "PCM equation rather than a uniform COSMO scale. The "
+            "harmonic-ddpcm-water arm additionally binds water, epsilon=78.355, "
+            "the SMD Coulomb cavity, discretization, and one-shot float64 source "
+            "identity. None is fixed-R "
             "mutual polarization, chemical-accuracy evidence, a global C1 proof, "
             "or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
         ),

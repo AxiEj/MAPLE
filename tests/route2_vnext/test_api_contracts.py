@@ -10,6 +10,8 @@ from maple.solvation.api import (
     SCALAR_REGISTRY,
     STATE_REGISTRY,
     CapabilityStatus,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
@@ -47,6 +49,8 @@ from maple.solvation.api import (
 )
 
 INITIAL_SCALAR_IDS = {
+    "route2-candidate-aimnet2-frozen-charge-water-"
+    "smoothharmonicgalerkin-ddpcm-electrostatic-v1",
     "route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1",
     "route2-diagnostic-aimnet2-geometry-mediated-"
     "smoothharmonicgalerkin-cpcm-electrostatic-v1",
@@ -106,7 +110,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 21
+    assert len(PROFILE_REGISTRY) == 22
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -164,6 +168,25 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     assert diagnostic_ddpcm.continuum_profile.endswith("ddpcm-candidate-v1")
     assert diagnostic_ddpcm.enabled is False
     assert diagnostic_ddpcm.capabilities.enabled_tiers == ()
+    water_frozen_charge = PROFILE_REGISTRY[
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+    ]
+    assert water_frozen_charge.scalar_id == (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+    )
+    assert water_frozen_charge.model_profile == "aimnet2-polarizable-v1"
+    assert water_frozen_charge.continuum_profile.startswith(
+        "smooth-weighted-harmonic-galerkin-water-ddpcm"
+    )
+    assert water_frozen_charge.cavity_profile.startswith(
+        "smooth-weighted-overlap-harmonic-water-smd-coulomb"
+    )
+    assert water_frozen_charge.continuum_configuration_contract_id.endswith(
+        "transition0p18-surface-l1-exposure-l2-q32-ddpcm.v1"
+    )
+    assert water_frozen_charge.nonpolar_profile == "none"
+    assert water_frozen_charge.enabled is False
+    assert water_frozen_charge.capabilities.enabled_tiers == ()
     analytic_variational = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
     ]

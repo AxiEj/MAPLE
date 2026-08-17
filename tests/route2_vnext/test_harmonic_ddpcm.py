@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 
 from maple.solvation.api import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
     PROFILE_REGISTRY,
@@ -15,7 +17,13 @@ from maple.solvation.continuum import (
     COULOMB_EV_ANGSTROM_PER_E2,
     SmoothPointChargeHarmonicDDPCMFunctionalCandidate,
     SmoothPointChargeHarmonicGalerkinFunctionalCandidate,
+    WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate,
+    build_water_aimnet2_frozen_charge_harmonic_ddpcm_candidate,
 )
+from maple.function.calculator.extra_correction.implicit.smd_cds import (
+    route2_coulomb_radii,
+)
+from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
 from maple.solvation.continuum.harmonic_torch_primitives import (
     _assemble_double_layer,
     _assemble_single_layer,
@@ -433,3 +441,55 @@ def test_ddpcm_has_distinct_immutable_registry_identity_and_no_admission():
     assert functional.fixed_geometry_electronic_mutual_polarization is False
     with pytest.raises(AttributeError, match="immutable"):
         functional._dielectric = 80.0
+
+
+def test_water_frozen_charge_candidate_locks_solvent_discretization_and_no_scf():
+    torch = pytest.importorskip("torch")
+    functional = build_water_aimnet2_frozen_charge_harmonic_ddpcm_candidate(
+        ("O", "H", "H"), dtype=torch.float64, device="cpu"
+    )
+    assert isinstance(
+        functional, WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate
+    )
+    profile = PROFILE_REGISTRY[
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+    ]
+    scalar = SCALAR_REGISTRY[
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+    ]
+    expected_radii = route2_coulomb_radii(
+        ("O", "H", "H"),
+        solvent="water",
+        profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+    )
+    np.testing.assert_allclose(functional.radii_angstrom, expected_radii)
+    assert functional.dielectric == pytest.approx(78.355)
+    assert functional.surface_lmax == 1
+    assert functional.exposure_lmax == 2
+    assert functional.scalar_id == scalar.scalar_id == profile.scalar_id
+    assert functional.continuum_profile_id == profile.continuum_profile
+    assert functional.cavity_profile_id == profile.cavity_profile
+    assert functional.configuration_contract_id == (
+        profile.continuum_configuration_contract_id
+    )
+    assert profile.model_profile == "aimnet2-polarizable-v1"
+    assert scalar.enabled is profile.enabled is False
+    assert scalar.admitted_capabilities.enabled_tiers == ()
+    assert profile.capabilities.enabled_tiers == ()
+    provenance = dict(functional.runtime_provenance())
+    assert provenance["solvent"] == "water"
+    assert provenance["aimnet2_source_evaluation"] == "one-shot-per-geometry"
+    assert provenance["continuum_field_supplied_to_aimnet2"] is False
+    assert provenance["electronic_scf_iteration"] is False
+    assert provenance["admission_identity"].endswith("capabilities-none")
+    assert functional.fixed_geometry_electronic_mutual_polarization is False
+
+    with pytest.raises(ValueError, match="not preregistered"):
+        WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate(
+            symbols=("O", "H", "H"),
+            dtype=torch.float64,
+            device="cpu",
+            scalar_id=(
+                DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+            ),
+        )

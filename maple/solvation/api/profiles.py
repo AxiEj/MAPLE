@@ -8,6 +8,7 @@ from typing import Mapping
 
 from .capabilities import CapabilityStatus
 from .scalar_registry import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
@@ -42,6 +43,10 @@ DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1 = (
 )
 DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
     "route2-profile-diagnostic-aimnet2-geometry-mediated-"
+    "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
+)
+CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
+    "route2-profile-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
 )
 OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
@@ -179,10 +184,21 @@ SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration."
     "smooth-weighted-harmonic-galerkin-ddpcm-parameterized-diagnostic.v1"
 )
+SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID = (
+    "smooth-weighted-harmonic-galerkin-water-ddpcm-frozen-charge-candidate-v1"
+)
+SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID = (
+    "smooth-weighted-overlap-harmonic-water-smd-coulomb-cavity-candidate-v1"
+)
+SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration.water-eps78p355-smd-coulomb-radii-"
+    "transition0p18-surface-l1-exposure-l2-q32-ddpcm.v1"
+)
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
 AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID = (
     "aimnet2-route2-geometry-mediated-neutral-hcno-v1"
 )
+AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID = "aimnet2-polarizable-v1"
 MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID = (
     "mace-polar-route2-analytic-gaussian-multipole-realspace-contract-v1"
 )
@@ -383,6 +399,33 @@ _PROFILE_ENTRIES = (
         coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
         continuum_configuration_contract_id=(
             SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+        ),
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        # This separately versioned profile intentionally keeps AIMNet2
+        # field-independent: "polarizable" names the NQE checkpoint family,
+        # not an external-field input or an electronic SCF loop.
+        model_profile=AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID,
+        continuum_profile=SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID,
+        cavity_profile=SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID,
+        nonpolar_profile="none",
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID
         ),
         capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -734,6 +777,7 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",
@@ -768,6 +812,7 @@ __all__ = [
     "MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE_ID",
     "MACE_POLAR_RADIAL_GTO_PAIRING_ID",
     "MACE_POLAR_MODEL_PROFILE_ID",
+    "AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID",
     "AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID",
     "MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID",
     "MACE_POLAR_FIXED_BOX40_MODEL_PROFILE_ID",
@@ -793,6 +838,9 @@ __all__ = [
     "SMOOTH_HARMONIC_GALERKIN_DDPCM_CONTINUUM_PROFILE_ID",
     "SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID",
     "SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID",
+    "SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID",
+    "SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID",
+    "SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

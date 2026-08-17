@@ -260,6 +260,14 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "harmonic_point_ddpcm_torch_functional",
         "SmoothPointChargeHarmonicDDPCMFunctionalCandidate",
     ),
+    "WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate": (
+        "harmonic_point_ddpcm_torch_functional",
+        "WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate",
+    ),
+    "build_water_aimnet2_frozen_charge_harmonic_ddpcm_candidate": (
+        "harmonic_point_ddpcm_torch_functional",
+        "build_water_aimnet2_frozen_charge_harmonic_ddpcm_candidate",
+    ),
     "OrderedPairFrameEnsembleRadialGTOCPCMBackend": (
         "pair_frame_ensemble_cpcm",
         "OrderedPairFrameEnsembleRadialGTOCPCMBackend",

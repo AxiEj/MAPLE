@@ -15,10 +15,18 @@ import numpy as np
 from maple.solvation.api.profiles import (
     SMOOTH_HARMONIC_GALERKIN_DDPCM_CONFIGURATION_CONTRACT_ID,
     SMOOTH_HARMONIC_GALERKIN_DDPCM_CONTINUUM_PROFILE_ID,
+    SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID,
+    SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID,
+    SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID,
 )
 from maple.solvation.api.scalar_registry import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
 )
+from maple.function.calculator.extra_correction.implicit.smd_cds import (
+    route2_coulomb_radii,
+)
+from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
 
 from .harmonic_point_torch_functional import (
     SmoothPointChargeHarmonicGalerkinFunctionalCandidate,
@@ -35,6 +43,19 @@ SMOOTH_POINT_HARMONIC_DDPCM_PROVIDER_ID = (
 SMOOTH_POINT_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID = (
     "maple.route2.continuum.smooth-harmonic-point-l0-ddpcm-same-scalar.v1"
 )
+WATER_AIMNET2_FROZEN_CHARGE_HARMONIC_DDPCM_PROVIDER_ID = (
+    "maple.route2.continuum.aimnet2-frozen-charge-water-"
+    "smooth-harmonic-ddpcm.impl.v1"
+)
+WATER_AIMNET2_FROZEN_CHARGE_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID = (
+    "maple.route2.continuum.aimnet2-frozen-charge-water-"
+    "smooth-harmonic-ddpcm-same-scalar.v1"
+)
+WATER_DIELECTRIC = 78.355
+WATER_TRANSITION_WIDTH_ANGSTROM2 = 0.18
+WATER_SURFACE_LMAX = 1
+WATER_EXPOSURE_LMAX = 2
+WATER_RADIAL_QUADRATURE_ORDER = 32
 DDX_EQUATION_REFERENCE_COMMIT = "4d79e3d9caeae5e602683572a71cb550414f9b09"
 _RESIDUAL_THRESHOLD = 1.0e-10
 _COTANGENT_CLOSURE_THRESHOLD = 1.0e-10
@@ -574,9 +595,130 @@ class SmoothPointChargeHarmonicDDPCMFunctionalCandidate(
         }
 
 
+class WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate(
+    SmoothPointChargeHarmonicDDPCMFunctionalCandidate
+):
+    """Exact disabled water/ddPCM candidate for one-shot AIMNet2 NQE charges.
+
+    The solvent, dielectric, Coulomb-radius policy, smooth cavity, retained
+    harmonic orders, and quadrature orders are constructor invariants.  This
+    class never supplies a continuum field to AIMNet2 and does not introduce
+    an electronic SCF iteration.
+    """
+
+    __slots__ = ()
+
+    provider_id = WATER_AIMNET2_FROZEN_CHARGE_HARMONIC_DDPCM_PROVIDER_ID
+    functional_contract_id = (
+        WATER_AIMNET2_FROZEN_CHARGE_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID
+    )
+    continuum_profile_id = SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID
+    cavity_profile_id = SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID
+    configuration_contract_id = (
+        SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID
+    )
+    _accepted_scalar_ids = frozenset(
+        {CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1}
+    )
+
+    def _energy_torch(self, positions: Any, source: Any):
+        """Expose the inherited sealed ddPCM scalar under this exact identity."""
+
+        return super()._energy_torch(positions, source)
+
+    def __init__(
+        self,
+        *,
+        symbols: tuple[str, ...],
+        dtype: object,
+        device: object,
+        scalar_id: str = (
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+    ) -> None:
+        from ase.data import atomic_numbers
+
+        normalized = tuple(str(symbol).strip() for symbol in symbols)
+        if not normalized or any(not symbol for symbol in normalized):
+            raise ValueError("symbols must contain non-empty element symbols.")
+        try:
+            numbers = tuple(int(atomic_numbers[symbol]) for symbol in normalized)
+        except KeyError as exc:
+            raise ValueError(f"Unsupported element symbol: {exc.args[0]!r}.") from exc
+        radii = route2_coulomb_radii(
+            normalized,
+            solvent="water",
+            profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+        )
+        super().__init__(
+            atomic_numbers=numbers,
+            radii_angstrom=tuple(float(value) for value in radii),
+            dielectric=WATER_DIELECTRIC,
+            transition_width_angstrom2=WATER_TRANSITION_WIDTH_ANGSTROM2,
+            surface_lmax=WATER_SURFACE_LMAX,
+            exposure_lmax=WATER_EXPOSURE_LMAX,
+            exposure_radial_quadrature_order=WATER_RADIAL_QUADRATURE_ORDER,
+            green_radial_quadrature_order=WATER_RADIAL_QUADRATURE_ORDER,
+            dtype=dtype,
+            device=device,
+            scalar_id=scalar_id,
+        )
+
+    def _configuration_extensions(self) -> dict[str, object]:
+        payload = super()._configuration_extensions()
+        payload.update(
+            {
+                "admission_identity": (
+                    "water-bound-frozen-charge-candidate; capabilities-none"
+                ),
+                "solvent": "water",
+                "cavity_radii_policy": DDPCM_MULTISOLVENT_SMD_PROFILE,
+                "aimnet2_source_evaluation": "one-shot-per-geometry",
+                "continuum_field_supplied_to_aimnet2": False,
+                "electronic_scf_iteration": False,
+            }
+        )
+        return payload
+
+    def _runtime_provenance_extensions(self) -> dict[str, object]:
+        payload = super()._runtime_provenance_extensions()
+        payload.update(
+            {
+                "admission_identity": (
+                    "water-bound-frozen-charge-candidate; capabilities-none"
+                ),
+                "solvent": "water",
+                "cavity_radii_policy": DDPCM_MULTISOLVENT_SMD_PROFILE,
+                "aimnet2_source_evaluation": "one-shot-per-geometry",
+                "continuum_field_supplied_to_aimnet2": False,
+                "electronic_scf_iteration": False,
+            }
+        )
+        return payload
+
+
+def build_water_aimnet2_frozen_charge_harmonic_ddpcm_candidate(
+    symbols: tuple[str, ...], *, dtype: object, device: object
+) -> WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate:
+    """Build the exact disabled water frozen-charge continuum candidate."""
+
+    return WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate(
+        symbols=tuple(symbols), dtype=dtype, device=device
+    )
+
+
 __all__ = [
     "DDX_EQUATION_REFERENCE_COMMIT",
     "SMOOTH_POINT_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID",
     "SMOOTH_POINT_HARMONIC_DDPCM_PROVIDER_ID",
     "SmoothPointChargeHarmonicDDPCMFunctionalCandidate",
+    "WATER_AIMNET2_FROZEN_CHARGE_HARMONIC_DDPCM_FUNCTIONAL_CONTRACT_ID",
+    "WATER_AIMNET2_FROZEN_CHARGE_HARMONIC_DDPCM_PROVIDER_ID",
+    "WATER_DIELECTRIC",
+    "WATER_EXPOSURE_LMAX",
+    "WATER_RADIAL_QUADRATURE_ORDER",
+    "WATER_SURFACE_LMAX",
+    "WATER_TRANSITION_WIDTH_ANGSTROM2",
+    "WaterAIMNet2FrozenChargeHarmonicDDPCMFunctionalCandidate",
+    "build_water_aimnet2_frozen_charge_harmonic_ddpcm_candidate",
 ]

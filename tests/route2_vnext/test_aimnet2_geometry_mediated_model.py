@@ -8,10 +8,12 @@ import numpy as np
 import pytest
 
 from maple.solvation.api.profiles import (
+    AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID,
     AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID,
     AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
 )
 from maple.solvation.models import (
+    AIMNET2_WB97M_D3_FROZEN_CHARGE_WATER_FLOAT64_CONTRACT,
     AIMNet2CheckpointContract,
     AIMNet2GeometryMediatedModelAdapter,
     validate_response_linearization,
@@ -20,6 +22,15 @@ from maple.solvation.models import (
 )
 
 _ALPHA = 0.07
+
+
+def test_water_frozen_charge_contract_is_float64_and_separately_versioned():
+    contract = AIMNET2_WB97M_D3_FROZEN_CHARGE_WATER_FLOAT64_CONTRACT
+    assert contract.model_profile_id == AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID
+    assert contract.model_profile_id == "aimnet2-polarizable-v1"
+    assert contract.inference_dtype == "float64"
+    assert "frozen-charge-water" in contract.provider_id
+    assert contract.publication_doi == "10.1039/D4SC08572H"
 
 
 class _FakeAIMNet2Calculator:

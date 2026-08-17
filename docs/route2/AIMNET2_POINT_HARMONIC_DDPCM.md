@@ -182,3 +182,34 @@ its local derivative, reciprocity, stationarity, rotation, and event checks
 pass.  A retained artifact must additionally bind both executions, the exact
 source tree, checkpoint bytes, raw operands, and an independently recomputed
 summary before it can support any later admission discussion.
+
+## Retained real-checkpoint water result
+
+Two independent clean-tree executions at commit `4dca73d7` now reproduce
+scientific measurement SHA256
+`7ec7732e79aacfd1d9502d7c19de8fd49b0b1975b764ef1cf59a413eaaf5cbbf`.
+The reconstructed float64 AIMNet2 graph keeps the checkpoint weights unchanged
+and supplies one field-independent NQE charge source per geometry.  At the
+registered water dielectric and SMD Coulomb radii:
+
+- the adaptive directional analytic/numerical gradient error is
+  `1.8257224045914455e-6 eV/A`;
+- the terminal complete-Cartesian maximum and RMS errors are
+  `2.826476747208595e-5` and `1.5826934760464932e-5 eV/A`;
+- three rigid rotations have zero recorded energy drift and maximum relative
+  force-covariance error `5.5951040041648464e-11`;
+- every recorded primal/adjoint residual, condition, half-coupling,
+  reciprocity, charge-gauge, topology, and event-clearance gate passes.
+
+The raw operands, both clean-process records, exact source binding, and
+independent reducers are retained under
+[`evidence/aimnet2-geometry-mediated-harmonic-ddpcm-water-4dca73d7/`](evidence/aimnet2-geometry-mediated-harmonic-ddpcm-water-4dca73d7/README.md).
+This closes a real-stack local force diagnostic for the finite-dielectric
+implementation.  It does not open a capability.  The subsequent distinct
+water-bound candidate locks `epsilon=78.355`, SMD Coulomb radii, the `1/2`
+surface/exposure orders, both order-32 radial quadratures, and the source-bound
+float64 `aimnet2-polarizable-v1` model profile.  It still uses exactly one NQE
+charge evaluation per geometry, supplies no continuum field to AIMNet2, and
+runs no electronic SCF.  A fresh clean-tree artifact under that exact identity,
+broader distorted-PES evidence, a compatible nonpolar scalar, and task-level
+validation remain required.

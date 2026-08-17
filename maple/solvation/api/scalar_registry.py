@@ -24,6 +24,10 @@ DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-aimnet2-geometry-mediated-"
     "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
 )
+CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1 = (
+    "route2-candidate-aimnet2-frozen-charge-water-"
+    "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
@@ -312,6 +316,60 @@ _SCALAR_ENTRIES = (
             "sealed same-scalar autograd through weighted Galerkin projection, "
             "finite-dielectric double-layer solve, single-layer solve, and "
             "AIMNet2 charge VJP; disabled diagnostic only"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        exact_formula=(
+            "E_AIMNet2-frozen-water(R)=E_AIMNet2(R)-1/2 b_R^T x_R; "
+            "b_R=S_R c_AIMNet2(R); M_R f_R=b_R; "
+            "[2*pi*(eps_water+1)/(eps_water-1) M_R-D_R] phi_R="
+            "[2*pi M_R-D_R] f_R; A_R x_R=M_R phi_R; "
+            "eps_water=78.355; c_AIMNet2(R)=[q_NQE(R),0,0,0]; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated:"
+            "GeometryMediatedElectrostaticScalar"
+        ),
+        included_components=(
+            "aimnet2_wb97m_d3_vacuum_energy",
+            "one_shot_geometry_dependent_aimnet2_nqe_point_charge_source",
+            "water_bound_smooth_harmonic_finite_dielectric_ddpcm_electrostatics",
+            "complete_first_derivative_charge_chain_rule",
+            "structural_so3_coefficient_intertwiners",
+        ),
+        excluded_components=(
+            "continuum_field_input_to_aimnet2",
+            "fixed_geometry_electronic_mutual_polarization",
+            "electronic_scf_iteration",
+            "nonpolar_smd_cds",
+            "standard_state_correction",
+            "public_hessian_frequency_ts_irc_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred point monopoles, "
+            "evaluated once per geometry and embedded as [q,0,0,0]"
+        ),
+        field_convention=(
+            "full energy-dual derivative of the water-bound finite-dielectric "
+            "ddPCM scalar; never supplied to AIMNet2"
+        ),
+        continuum_profile=(
+            "smooth-weighted-harmonic-galerkin-water-ddpcm-frozen-charge-candidate-v1"
+        ),
+        cavity_profile=(
+            "smooth-weighted-overlap-harmonic-water-smd-coulomb-cavity-candidate-v1"
+        ),
+        nonpolar_profile="none",
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "direct same-scalar chain rule through the water-bound harmonic ddPCM "
+            "primal/transpose solves and AIMNet2 charge-position VJP; no electronic SCF"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -728,6 +786,7 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1",

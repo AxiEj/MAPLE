@@ -170,8 +170,36 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   The dielectric value is immutable configuration/provenance, not an adjustable
   threshold. Any future admission requires a distinct solvent-bound profile and
   evidence binding the exact dielectric and full continuum configuration SHA.
+- Two clean processes of the source-bound float64 AIMNet2 water canary now
+  reproduce scientific SHA256
+  `7ec7732e79aacfd1d9502d7c19de8fd49b0b1975b764ef1cf59a413eaaf5cbbf`.
+  Its local same-scalar force, complete Cartesian refinement, rigid rotations,
+  stationarity/residuals, reciprocity, gauge, and event-clearance gates pass.
+  This is implementation evidence for the finite-dielectric branch, not a
+  solvent-bound identity or capability admission
+  ([bundle](evidence/aimnet2-geometry-mediated-harmonic-ddpcm-water-4dca73d7/README.md)).
 - Full equation, literature, residual, topology, and claim boundary:
   [`AIMNET2_POINT_HARMONIC_DDPCM.md`](AIMNET2_POINT_HARMONIC_DDPCM.md).
+
+## `route2-candidate-aimnet2-frozen-charge-water-smoothharmonicgalerkin-ddpcm-electrostatic-v1`
+
+- Formula: the same finite-dielectric ddPCM scalar above, but with water
+  `epsilon=78.355`, SMD water Coulomb radii, transition width `0.18 A^2`,
+  surface/exposure orders `1/2`, and both radial quadrature orders `32` bound
+  into one immutable continuum configuration contract.
+- Model profile: `aimnet2-polarizable-v1`, separately versioned from MACE and
+  from the earlier neutral-HCNO diagnostic. Here "polarizable" identifies the
+  NQE checkpoint family; execution remains one-shot and field-independent at
+  each geometry. No continuum field is supplied to AIMNet2 and there is no
+  electronic SCF loop.
+- Included: unchanged source-bound float64 AIMNet2 checkpoint weights,
+  geometry-dependent NQE monopoles, exact water finite-dielectric harmonic
+  ddPCM electrostatics, and the complete same-scalar coordinate chain rule.
+- Excluded: CDS/nonpolar and standard-state terms, chemical-accuracy claims,
+  and every public E/F/H/V/M or OPT/FREQ/TS/IRC/MD capability.
+- This profile is registered but disabled. The preceding retained water bundle
+  validates the shared implementation, not this new identity; a fresh clean-tree
+  two-process run is required before attaching evidence to this candidate.
 
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 

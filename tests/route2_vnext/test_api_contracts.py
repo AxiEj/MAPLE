@@ -11,7 +11,9 @@ from maple.solvation.api import (
     STATE_REGISTRY,
     CapabilityStatus,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1,
@@ -51,6 +53,8 @@ from maple.solvation.api import (
 INITIAL_SCALAR_IDS = {
     "route2-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-electrostatic-v1",
+    "route2-candidate-aimnet2-frozen-charge-water-"
+    "smoothharmonicgalerkin-ddpcm-pyscf-smdcds-v1",
     "route2-diagnostic-aimnet2-geometry-mediated-ddx-ddpcm-electrostatic-v1",
     "route2-diagnostic-aimnet2-geometry-mediated-"
     "smoothharmonicgalerkin-cpcm-electrostatic-v1",
@@ -110,7 +114,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 22
+    assert len(PROFILE_REGISTRY) == 23
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -187,6 +191,20 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     assert water_frozen_charge.nonpolar_profile == "none"
     assert water_frozen_charge.enabled is False
     assert water_frozen_charge.capabilities.enabled_tiers == ()
+    water_total = PROFILE_REGISTRY[
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1
+    ]
+    assert water_total.scalar_id == (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1
+    )
+    assert water_total.model_profile == water_frozen_charge.model_profile
+    assert water_total.continuum_profile == water_frozen_charge.continuum_profile
+    assert water_total.cavity_profile == water_frozen_charge.cavity_profile
+    assert water_total.nonpolar_profile == (
+        "pyscf-2.13.1-water-smd-cds-analytic-gradient-v1"
+    )
+    assert water_total.enabled is False
+    assert water_total.capabilities.enabled_tiers == ()
     analytic_variational = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
     ]

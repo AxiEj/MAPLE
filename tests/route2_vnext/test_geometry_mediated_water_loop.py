@@ -15,6 +15,7 @@ from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.geometry_mediated_path import (
     AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_AMPLITUDES_A,
     AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION,
     AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SUBDIVISIONS,
     aimnet2_geometry_mediated_water_loop_atoms,
     aimnet2_geometry_mediated_water_loop_coefficients,
@@ -98,6 +99,28 @@ def _records(*, reverse: bool = False, margin: float = 1.0):
     ]
 
 
+def _total_records(*, reverse: bool = False):
+    records = _records(reverse=reverse)
+    for record in records:
+        positions = np.asarray(record["positions_A"], dtype=float)
+        electrostatic_gradient = np.asarray(
+            record["total_gradient_eV_per_A"], dtype=float
+        )
+        nonpolar_energy = 0.05 * float(np.vdot(positions, positions))
+        nonpolar_gradient = 0.1 * positions
+        total_gradient = electrostatic_gradient + nonpolar_gradient
+        record["energy"]["nonpolar_energy_eV"] = nonpolar_energy
+        record["energy"]["total_energy_eV"] += nonpolar_energy
+        record["electrostatic_total_gradient_eV_per_A"] = (
+            electrostatic_gradient.tolist()
+        )
+        record["nonpolar_gradient_eV_per_A"] = nonpolar_gradient.tolist()
+        record["total_gradient_eV_per_A"] = total_gradient.tolist()
+        record["forces_eV_per_A"] = (-total_gradient).tolist()
+        record["stationarity"] = synthetic_ddpcm_stationarity_record()
+    return records
+
+
 def test_water_loop_definition_is_frozen_translation_free_and_orthonormal():
     assert AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION.endswith("-v1")
     assert AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_AMPLITUDES_A == (0.02, 0.02)
@@ -158,6 +181,40 @@ def test_water_loop_recomputes_finite_dielectric_stationarity_contract():
     assert summary["forward"]["points"][0]["stationarity"]["stationarity_kind"] == (
         "harmonic-ddpcm-primal-adjoint-kkt"
     )
+
+
+def test_water_loop_recomputes_total_ddpcm_smdcds_energy_gradient_and_work():
+    summary = summarize_aimnet2_geometry_mediated_water_loop(
+        forward_records=_total_records(),
+        reverse_records=_total_records(reverse=True),
+        continuum_kind="harmonic-ddpcm-water",
+        nonpolar_kind="pyscf-smd-cds-water",
+    )
+    assert summary["contract_version"] == (
+        AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION
+    )
+    assert summary["nonpolar_kind"] == "pyscf-smd-cds-water"
+    assert summary["same_scalar_nonpolar_energy_gradient"] is True
+    assert summary["strict_original_smd_electrostatic_equivalence"] is False
+    assert summary["diagnostic_gates_passed"] is True
+    point = summary["forward"]["points"][0]
+    assert point["total_energy_eV"] == pytest.approx(
+        point["vacuum_energy_eV"]
+        + point["continuum_energy_eV"]
+        + point["nonpolar_energy_eV"]
+    )
+
+
+def test_water_total_loop_rejects_nonpolar_gradient_not_from_total_scalar():
+    forward = _total_records()
+    forward[0]["nonpolar_gradient_eV_per_A"][0][0] += 1.0e-3
+    with pytest.raises(ValueError, match="gradient component ledger"):
+        summarize_aimnet2_geometry_mediated_water_loop(
+            forward_records=forward,
+            reverse_records=_total_records(reverse=True),
+            continuum_kind="harmonic-ddpcm-water",
+            nonpolar_kind="pyscf-smd-cds-water",
+        )
 
 
 def test_water_loop_detects_same_coordinate_path_dependence():

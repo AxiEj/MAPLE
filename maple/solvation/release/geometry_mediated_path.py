@@ -44,6 +44,9 @@ from .pes_validation import (
 AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION = (
     "route2-aimnet2-geometry-mediated-water-loop-contract-v1"
 )
+AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION = (
+    "route2-aimnet2-geometry-mediated-water-ddpcm-smdcds-loop-contract-v1"
+)
 AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION = (
     "route2-aimnet2-geometry-mediated-water-loop-summary-v1"
 )
@@ -151,6 +154,7 @@ def _point_summary(
     *,
     expected_coefficient: tuple[float, float],
     continuum_kind: str,
+    nonpolar_kind: str,
 ) -> dict[str, object]:
     coefficient = tuple(float(value) for value in raw.get("coefficient", ()))
     if coefficient != expected_coefficient:
@@ -172,8 +176,16 @@ def _point_summary(
     continuum = _finite_float(
         energy.get("continuum_energy_eV"), name="continuum energy"
     )
+    nonpolar_active = nonpolar_kind != "none"
+    nonpolar = (
+        _finite_float(energy.get("nonpolar_energy_eV"), name="nonpolar energy")
+        if nonpolar_active
+        else 0.0
+    )
     total = _finite_float(energy.get("total_energy_eV"), name="total energy")
-    if not math.isclose(total, vacuum + continuum, rel_tol=0.0, abs_tol=1.0e-12):
+    if not math.isclose(
+        total, vacuum + continuum + nonpolar, rel_tol=0.0, abs_tol=1.0e-12
+    ):
         raise ValueError("water-loop scalar energy ledger does not close.")
 
     forces = _array(
@@ -188,6 +200,26 @@ def _point_summary(
     )
     if not np.array_equal(forces, -gradient):
         raise ValueError("water-loop force is not the exact negative scalar gradient.")
+    if nonpolar_active:
+        electrostatic_gradient = _array(
+            raw.get("electrostatic_total_gradient_eV_per_A"),
+            shape=forces.shape,
+            name="loop electrostatic gradient",
+        )
+        nonpolar_gradient = _array(
+            raw.get("nonpolar_gradient_eV_per_A"),
+            shape=forces.shape,
+            name="loop nonpolar gradient",
+        )
+        if not np.allclose(
+            gradient,
+            electrostatic_gradient + nonpolar_gradient,
+            rtol=0.0,
+            atol=2.0e-10,
+        ):
+            raise ValueError(
+                "water-loop total gradient component ledger does not close."
+            )
     source = _array(
         raw.get("source"), shape=(len(expected_atoms), 4), name="loop source"
     )
@@ -234,7 +266,7 @@ def _point_summary(
         reaction_field=reaction,
     )
 
-    return {
+    summary = {
         "coefficient": list(coefficient),
         "geometry_sha256": geometry_sha256(expected_atoms),
         "positions_A": positions.tolist(),
@@ -248,6 +280,17 @@ def _point_summary(
         "stationarity": stationarity,
         "reciprocity": reciprocity_summary,
     }
+    if nonpolar_active:
+        summary.update(
+            {
+                "nonpolar_energy_eV": nonpolar,
+                "electrostatic_total_gradient_eV_per_A": (
+                    electrostatic_gradient.tolist()
+                ),
+                "nonpolar_gradient_eV_per_A": nonpolar_gradient.tolist(),
+            }
+        )
+    return summary
 
 
 def _traversal_summary(
@@ -255,6 +298,7 @@ def _traversal_summary(
     *,
     reverse: bool,
     continuum_kind: str,
+    nonpolar_kind: str,
 ) -> dict[str, object]:
     coefficients = aimnet2_geometry_mediated_water_loop_coefficients(reverse=reverse)
     values = tuple(records)
@@ -265,6 +309,7 @@ def _traversal_summary(
             raw,
             expected_coefficient=coefficient,
             continuum_kind=continuum_kind,
+            nonpolar_kind=nonpolar_kind,
         )
         for raw, coefficient in zip(values, coefficients, strict=True)
     ]
@@ -336,18 +381,26 @@ def summarize_aimnet2_geometry_mediated_water_loop(
     forward_records: Sequence[Mapping[str, object]],
     reverse_records: Sequence[Mapping[str, object]],
     continuum_kind: str = "harmonic-point",
+    nonpolar_kind: str = "none",
 ) -> dict[str, object]:
     """Recompute the frozen water closed-loop and every fail-closed gate."""
+
+    if nonpolar_kind not in {"none", "pyscf-smd-cds-water"}:
+        raise ValueError("unsupported water-loop nonpolar kind.")
+    if nonpolar_kind != "none" and continuum_kind != "harmonic-ddpcm-water":
+        raise ValueError("the registered SMD-CDS loop requires harmonic-ddpcm-water.")
 
     forward = _traversal_summary(
         forward_records,
         reverse=False,
         continuum_kind=continuum_kind,
+        nonpolar_kind=nonpolar_kind,
     )
     reverse = _traversal_summary(
         reverse_records,
         reverse=True,
         continuum_kind=continuum_kind,
+        nonpolar_kind=nonpolar_kind,
     )
     forward_points = forward["points"]
     reverse_points = reverse["points"]
@@ -470,9 +523,13 @@ def summarize_aimnet2_geometry_mediated_water_loop(
             "finite_dielectric_parameterization": True,
             "water_bound_frozen_charge": True,
         }
-    return {
+    summary = {
         "schema_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION,
-        "contract_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
+        "contract_version": (
+            AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION
+            if nonpolar_kind == "none"
+            else AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION
+        ),
         "molecule_id": "water",
         "variant": "reference",
         "coordinate_names": list(AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_COORDINATE_NAMES),
@@ -558,12 +615,22 @@ def summarize_aimnet2_geometry_mediated_water_loop(
         "freq_ts_irc_admitted": False,
         "md_admitted": False,
     }
+    if nonpolar_kind != "none":
+        summary.update(
+            {
+                "nonpolar_kind": nonpolar_kind,
+                "same_scalar_nonpolar_energy_gradient": True,
+                "strict_original_smd_electrostatic_equivalence": False,
+            }
+        )
+    return summary
 
 
 __all__ = [
     "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_AMPLITUDES_A",
     "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_ANTISYMMETRY_TOLERANCE_EV",
     "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION",
+    "AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION",
     "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_COORDINATE_NAMES",
     "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION",
     "AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SUBDIVISIONS",

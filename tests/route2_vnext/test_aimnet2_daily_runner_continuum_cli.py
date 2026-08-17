@@ -61,6 +61,8 @@ def test_daily_runner_cli_preserves_old_default_and_accepts_water_ddpcm(
         [str(RUNNERS[name]), "--checkpoint", "aimnet2.pt", "--output", "out.json"],
     )
     assert runner._parse_args().continuum == "harmonic-point"
+    if name == "water_loop":
+        assert runner._parse_args().nonpolar == "none"
 
     monkeypatch.setattr(
         sys,
@@ -86,6 +88,8 @@ def test_daily_runner_cli_preserves_old_default_and_accepts_water_ddpcm(
     )
     assert help_result.returncode == 0, help_result.stderr
     assert "--continuum {harmonic-point,harmonic-ddpcm-water}" in help_result.stdout
+    if name == "water_loop":
+        assert "--nonpolar {none,pyscf-smd-cds-water}" in help_result.stdout
 
 
 @pytest.mark.parametrize("name", tuple(RUNNERS))
@@ -135,3 +139,16 @@ def test_frequency_runner_bound_transform_keeps_every_root_trial_in_domain():
         np.all(values > bounds[:, 0]) and np.all(values < bounds[:, 1])
         for values in observed
     )
+
+
+def test_water_loop_runner_names_total_ddpcm_smdcds_scalar_without_admission():
+    runner = _load_runner("water_loop")
+    artifact = runner._artifact_kind("harmonic-ddpcm-water", "pyscf-smd-cds-water")
+    boundary = runner._claim_boundary("harmonic-ddpcm-water", "pyscf-smd-cds-water")
+    assert "pyscf-smdcds" in artifact
+    assert "official PySCF 2.13.1 SMD-CDS scalar" in boundary
+    assert "field-independent" in boundary
+    assert "not electronically iterated" in boundary
+    assert "not strict original-SMD electrostatic equivalence" in boundary
+    assert "same-scalar HVP" in boundary
+    assert "admission" in boundary

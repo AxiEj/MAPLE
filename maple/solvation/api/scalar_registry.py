@@ -28,6 +28,10 @@ CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1 = (
     "route2-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
 )
+CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1 = (
+    "route2-candidate-aimnet2-frozen-charge-water-"
+    "smoothharmonicgalerkin-ddpcm-pyscf-smdcds-v1"
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
@@ -370,6 +374,62 @@ _SCALAR_ENTRIES = (
         derivative_route=(
             "direct same-scalar chain rule through the water-bound harmonic ddPCM "
             "primal/transpose solves and AIMNet2 charge-position VJP; no electronic SCF"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1
+        ),
+        exact_formula=(
+            "E_AIMNet2-frozen-water-CDS(R)=E_AIMNet2(R)+G_ddPCM,harm(R,"
+            "q_NQE(R))+G_CDS,PySCF-SMD-water(R); AIMNet2 is evaluated once "
+            "per geometry, receives no continuum field, and has no electronic SCF"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated_smd:"
+            "GeometryMediatedSMDTotalScalar"
+        ),
+        included_components=(
+            "aimnet2_wb97m_d3_vacuum_energy",
+            "one_shot_geometry_dependent_aimnet2_nqe_point_charge_source",
+            "water_bound_smooth_harmonic_finite_dielectric_ddpcm_electrostatics",
+            "pyscf_2p13p1_water_smd_cds_energy",
+            "complete_first_derivative_charge_chain_rule",
+            "pyscf_water_smd_cds_analytic_coordinate_gradient",
+            "structural_so3_coefficient_intertwiners",
+        ),
+        excluded_components=(
+            "continuum_field_input_to_aimnet2",
+            "fixed_geometry_electronic_mutual_polarization",
+            "electronic_scf_iteration",
+            "standard_state_correction",
+            "strict_original_smd_electrostatic_equivalence",
+            "public_hessian_frequency_ts_irc_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred point monopoles, "
+            "evaluated once per geometry and embedded as [q,0,0,0]"
+        ),
+        field_convention=(
+            "full energy-dual derivative of the water-bound finite-dielectric "
+            "ddPCM scalar; never supplied to AIMNet2"
+        ),
+        continuum_profile=(
+            "smooth-weighted-harmonic-galerkin-water-ddpcm-frozen-charge-candidate-v1"
+        ),
+        cavity_profile=(
+            "smooth-weighted-overlap-harmonic-water-smd-coulomb-cavity-candidate-v1"
+        ),
+        nonpolar_profile="pyscf-2.13.1-water-smd-cds-analytic-gradient-v1",
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "sum of the sealed AIMNet2/harmonic-ddPCM same-scalar chain rule "
+            "and the analytic gradient returned with the exact PySCF SMD-CDS "
+            "energy; disabled pending total-scalar domain, accuracy, HVP, and "
+            "public workflow gates"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -787,6 +847,7 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 
 __all__ = [
     "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1",
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1",

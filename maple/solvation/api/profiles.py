@@ -9,6 +9,7 @@ from typing import Mapping
 from .capabilities import CapabilityStatus
 from .scalar_registry import (
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_ELECTROSTATIC_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
@@ -48,6 +49,10 @@ DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
 CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
     "route2-profile-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-electrostatic-v1"
+)
+CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1 = (
+    "route2-profile-candidate-aimnet2-frozen-charge-water-"
+    "smoothharmonicgalerkin-ddpcm-pyscf-smdcds-v1"
 )
 OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1"
@@ -432,6 +437,30 @@ _PROFILE_ENTRIES = (
         enabled=False,
     ),
     SolvationProfile(
+        profile_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1
+        ),
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1
+        ),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        model_profile=AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID,
+        continuum_profile=SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID,
+        cavity_profile=SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID,
+        nonpolar_profile="pyscf-2.13.1-water-smd-cds-analytic-gradient-v1",
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
         profile_id=OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
         scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
         state_equation_id=OPERATIONAL_STATE_EQUATION_ID,
@@ -778,6 +807,7 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 
 __all__ = [
     "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_CPCM_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",

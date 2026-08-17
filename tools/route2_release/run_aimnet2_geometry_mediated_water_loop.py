@@ -22,6 +22,7 @@ if str(REPOSITORY_ROOT) not in sys.path:
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release import (
     AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
+    AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION,
     RepositorySnapshot,
     aimnet2_geometry_mediated_water_loop_atoms,
     aimnet2_geometry_mediated_water_loop_coefficients,
@@ -37,6 +38,7 @@ from aimnet2_geometry_mediated_common import (
     COMMON_REQUIRED_SOURCE_PATHS,
     CONTINUUM_REQUIRED_SOURCE_PATHS,
     MODEL_RUNTIME_REQUIRED_SOURCE_PATHS,
+    NONPOLAR_REQUIRED_SOURCE_PATHS,
     NO_CAPABILITIES,
     build_geometry_mediated_stack,
     geometry_mediated_topologies,
@@ -47,6 +49,7 @@ SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-water-loop-artifact-v1"
 RUNTIME_KIND = "reconstructed-python-float64"
 CONTINUUM_KIND = "harmonic-point"
 CONTINUUM_KINDS = (CONTINUUM_KIND, "harmonic-ddpcm-water")
+NONPOLAR_KINDS = ("none", "pyscf-smd-cds-water")
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "maple/solvation/release/geometry_mediated_panel.py",
     "maple/solvation/release/geometry_mediated_path.py",
@@ -70,11 +73,21 @@ def _parse_args() -> argparse.Namespace:
         choices=CONTINUUM_KINDS,
         default=CONTINUUM_KIND,
     )
+    parser.add_argument(
+        "--nonpolar",
+        choices=NONPOLAR_KINDS,
+        default="none",
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
 
-def _artifact_kind(continuum_kind: str) -> str:
+def _artifact_kind(continuum_kind: str, nonpolar_kind: str = "none") -> str:
+    if nonpolar_kind != "none":
+        return (
+            "disabled-aimnet2-reconstructed-float64-frozen-charge-water-"
+            "smooth-harmonic-ddpcm-pyscf-smdcds-bidirectional-loop"
+        )
     if continuum_kind == CONTINUUM_KIND:
         return (
             "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
@@ -86,7 +99,18 @@ def _artifact_kind(continuum_kind: str) -> str:
     )
 
 
-def _claim_boundary(continuum_kind: str) -> str:
+def _claim_boundary(continuum_kind: str, nonpolar_kind: str = "none") -> str:
+    if nonpolar_kind != "none":
+        return (
+            "This water-molecule artifact checks bidirectional closed-loop total-"
+            "force work for the registered vacuum AIMNet2 plus harmonic-ddPCM plus "
+            "official PySCF 2.13.1 SMD-CDS scalar. AIMNet2 remains field-"
+            "independent and is not electronically iterated; the PySCF CDS energy "
+            "and analytic gradient are retained as one component ledger. It is "
+            "not strict original-SMD electrostatic equivalence, the complete H/C/N/O "
+            "domain panel, chemical-accuracy evidence, a same-scalar HVP, or E/F/H/"
+            "V/M, OPT, FREQ/TS/IRC, or MD admission."
+        )
     if continuum_kind == CONTINUUM_KIND:
         return (
             "This water-only artifact checks bidirectional closed-loop force work, "
@@ -117,7 +141,7 @@ def _point_measurement(model, continuum, scalar, coefficient):
     model_topology, continuum_topology = geometry_mediated_topologies(
         model, continuum, atoms
     )
-    return {
+    measurement = {
         "coefficient": list(coefficient),
         "geometry_sha256": geometry_sha256(atoms),
         "atomic_numbers": atoms.numbers.tolist(),
@@ -136,6 +160,21 @@ def _point_measurement(model, continuum, scalar, coefficient):
         "stationarity": continuum.stationarity_audit(atoms, result.source),
         "reciprocity": result.reciprocity_audit.as_dict(),
     }
+    if hasattr(result.energy, "nonpolar_energy_eV"):
+        measurement["energy"]["nonpolar_energy_eV"] = result.energy.nonpolar_energy_eV
+        measurement["electrostatic_total_gradient_eV_per_A"] = (
+            result.electrostatic_total_gradient_eV_per_A.tolist()
+        )
+        measurement["nonpolar_gradient_eV_per_A"] = (
+            result.nonpolar_gradient_eV_per_A.tolist()
+        )
+        measurement["nonpolar"] = {
+            "provider_id": result.nonpolar.provider_id,
+            "profile_id": result.nonpolar.nonpolar_profile_id,
+            "configuration_sha256": result.nonpolar.configuration_sha256,
+            "runtime_provenance": dict(result.nonpolar.runtime_provenance),
+        }
+    return measurement
 
 
 def _traversal(model, continuum, scalar, *, reverse: bool):
@@ -166,6 +205,7 @@ def main() -> None:
             args.device,
             args.continuum,
             RUNTIME_KIND,
+            args.nonpolar,
         )
     )
     forward_records = _traversal(model, continuum, scalar, reverse=False)
@@ -174,9 +214,14 @@ def main() -> None:
         forward_records=forward_records,
         reverse_records=reverse_records,
         continuum_kind=args.continuum,
+        nonpolar_kind=args.nonpolar,
     )
     measured = {
-        "contract_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
+        "contract_version": (
+            AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION
+            if args.nonpolar == "none"
+            else AIMNET2_GEOMETRY_MEDIATED_WATER_TOTAL_LOOP_CONTRACT_VERSION
+        ),
         "protocol": {
             "aimnet_runtime": RUNTIME_KIND,
             "continuum_kind": args.continuum,
@@ -204,6 +249,23 @@ def main() -> None:
         "reverse_records": reverse_records,
         "summary": summary,
     }
+    if args.nonpolar != "none":
+        measured["protocol"].update(
+            {
+                "nonpolar_kind": args.nonpolar,
+                "nonpolar_energy_gradient_same_component": True,
+                "strict_original_smd_electrostatic_equivalence": False,
+            }
+        )
+        measured["identity"].update(
+            {
+                "nonpolar_provider_id": scalar.nonpolar.provider_id,
+                "nonpolar_profile_id": scalar.nonpolar.nonpolar_profile_id,
+                "nonpolar_configuration_sha256": (
+                    scalar.nonpolar.configuration_sha256()
+                ),
+            }
+        )
 
     repository.assert_unchanged()
     source_paths = collect_loaded_repository_sources(
@@ -212,18 +274,19 @@ def main() -> None:
             REQUIRED_SOURCE_PATHS
             + CONTINUUM_REQUIRED_SOURCE_PATHS[args.continuum]
             + MODEL_RUNTIME_REQUIRED_SOURCE_PATHS[RUNTIME_KIND]
+            + NONPOLAR_REQUIRED_SOURCE_PATHS[args.nonpolar]
         ),
     )
     source_hashes = committed_source_hashes(repository, source_paths)
     payload: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
-        "artifact_kind": _artifact_kind(args.continuum),
+        "artifact_kind": _artifact_kind(args.continuum, args.nonpolar),
         "status": (
             "diagnostic-gates-passed-not-admitted"
             if summary["diagnostic_gates_passed"]
             else "diagnostic-gates-failed-not-admitted"
         ),
-        "claim_boundary": _claim_boundary(args.continuum),
+        "claim_boundary": _claim_boundary(args.continuum, args.nonpolar),
         "capabilities": NO_CAPABILITIES,
         "exact_command": shlex.join(sys.argv),
         "argv": list(sys.argv),
@@ -244,40 +307,38 @@ def main() -> None:
         "measurement_sha256": canonical_json_sha256(measured),
         "runtime_seconds": time.perf_counter() - started,
     }
+    if args.nonpolar != "none":
+        payload["nonpolar_kind"] = args.nonpolar
     repository.assert_unchanged()
     artifact = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
+    terminal_summary = {
+        "artifact": artifact,
+        "measurement_sha256": payload["measurement_sha256"],
+        "status": payload["status"],
+        "diagnostic_gates_passed": summary["diagnostic_gates_passed"],
+        "forward_work_eV": summary["forward"]["work"]["simpson_work_eV"],
+        "reverse_work_eV": summary["reverse"]["work"]["simpson_work_eV"],
+        "forward_reverse_work_sum_eV": summary["forward_reverse_work_sum_eV"],
+        "minimum_neighbor_cutoff_margin_A": summary["minimum_neighbor_cutoff_margin_A"],
+        "minimum_point_source_shell_margin_A": summary[
+            "minimum_point_source_shell_margin_A"
+        ],
+        "minimum_sphere_tangency_margin_A": summary["minimum_sphere_tangency_margin_A"],
+        "maximum_reciprocity_absolute_error_eV": summary[
+            "maximum_reciprocity_absolute_error_eV"
+        ],
+        "maximum_charge_fd_absolute_error_eV_per_e": summary[
+            "maximum_charge_fd_absolute_error_eV_per_e"
+        ],
+        "capabilities": NO_CAPABILITIES,
+        "runtime_seconds": payload["runtime_seconds"],
+    }
+    if args.nonpolar != "none":
+        terminal_summary["nonpolar_kind"] = args.nonpolar
     print(
         "ROUTE2_AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP="
-        + json.dumps(
-            {
-                "artifact": artifact,
-                "measurement_sha256": payload["measurement_sha256"],
-                "status": payload["status"],
-                "diagnostic_gates_passed": summary["diagnostic_gates_passed"],
-                "forward_work_eV": summary["forward"]["work"]["simpson_work_eV"],
-                "reverse_work_eV": summary["reverse"]["work"]["simpson_work_eV"],
-                "forward_reverse_work_sum_eV": summary["forward_reverse_work_sum_eV"],
-                "minimum_neighbor_cutoff_margin_A": summary[
-                    "minimum_neighbor_cutoff_margin_A"
-                ],
-                "minimum_point_source_shell_margin_A": summary[
-                    "minimum_point_source_shell_margin_A"
-                ],
-                "minimum_sphere_tangency_margin_A": summary[
-                    "minimum_sphere_tangency_margin_A"
-                ],
-                "maximum_reciprocity_absolute_error_eV": summary[
-                    "maximum_reciprocity_absolute_error_eV"
-                ],
-                "maximum_charge_fd_absolute_error_eV_per_e": summary[
-                    "maximum_charge_fd_absolute_error_eV_per_e"
-                ],
-                "capabilities": NO_CAPABILITIES,
-                "runtime_seconds": payload["runtime_seconds"],
-            },
-            sort_keys=True,
-        )
+        + json.dumps(terminal_summary, sort_keys=True)
     )
 
 

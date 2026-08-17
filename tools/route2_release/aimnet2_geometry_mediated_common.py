@@ -32,6 +32,10 @@ from maple.solvation.continuum.harmonic_point_ddpcm_torch_functional import (
 from maple.solvation.coupling.geometry_mediated import (
     GeometryMediatedElectrostaticScalar,
 )
+from maple.solvation.coupling.geometry_mediated_smd import (
+    GeometryMediatedSMDTotalScalar,
+    PySCFSMDCDSNonpolarFunctional,
+)
 from maple.solvation.models.aimnet2 import (
     AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
     AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES,
@@ -104,6 +108,15 @@ MODEL_RUNTIME_REQUIRED_SOURCE_PATHS = {
     "legacy-jit-float32": (),
     "reconstructed-python-float64": (
         "maple/function/calculator/aimnet/_aimnet2_float64_source.py",
+    ),
+}
+NONPOLAR_REQUIRED_SOURCE_PATHS = {
+    "none": (),
+    "pyscf-smd-cds-water": (
+        "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py",
+        "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py",
+        "maple/function/route2_solvents.py",
+        "maple/solvation/coupling/geometry_mediated_smd.py",
     ),
 }
 
@@ -228,6 +241,7 @@ def build_geometry_mediated_stack(
     device: str,
     continuum_kind: str,
     aimnet_runtime: str = "legacy-jit-float32",
+    nonpolar_kind: str = "none",
 ):
     """Build one geometry-sized disabled model/continuum/scalar stack."""
 
@@ -463,6 +477,18 @@ def build_geometry_mediated_stack(
     expected_protocol = geometry_mediated_continuum_protocol(atoms, continuum_kind)
     if protocol != expected_protocol:
         raise RuntimeError("geometry-mediated continuum protocol drifted.")
+    if nonpolar_kind == "pyscf-smd-cds-water":
+        if continuum_kind != "harmonic-ddpcm-water":
+            raise ValueError(
+                "The registered PySCF SMD-CDS companion requires the exact "
+                "harmonic-ddpcm-water electrostatic candidate."
+            )
+        scalar = GeometryMediatedSMDTotalScalar(
+            scalar,
+            PySCFSMDCDSNonpolarFunctional(),
+        )
+    elif nonpolar_kind != "none":
+        raise ValueError(f"unsupported nonpolar kind: {nonpolar_kind}")
     return model, continuum, scalar, protocol, model_runtime
 
 
@@ -496,6 +522,7 @@ __all__ = [
     "COMMON_REQUIRED_SOURCE_PATHS",
     "CONTINUUM_REQUIRED_SOURCE_PATHS",
     "MODEL_RUNTIME_REQUIRED_SOURCE_PATHS",
+    "NONPOLAR_REQUIRED_SOURCE_PATHS",
     "NO_CAPABILITIES",
     "build_geometry_mediated_stack",
     "deterministic_replay",

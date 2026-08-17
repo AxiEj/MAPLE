@@ -42,6 +42,86 @@ def _cartesian_samples(model, continuum, scalar, atoms, steps):
     not _ENABLED,
     reason="set MAPLE_ROUTE2_REAL_AIMNET2=1 for the real checkpoint canary",
 )
+def test_reconstructed_float64_first_order_energy_uses_smooth_parity_gated_dftd3():
+    checkpoint_raw = os.environ.get("MAPLE_ROUTE2_AIMNET2_CHECKPOINT")
+    assert checkpoint_raw, (
+        "MAPLE_ROUTE2_REAL_AIMNET2=1 requires " "MAPLE_ROUTE2_AIMNET2_CHECKPOINT"
+    )
+    checkpoint = Path(checkpoint_raw).resolve()
+    assert checkpoint.is_file(), f"missing AIMNet2 checkpoint: {checkpoint}"
+
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("aimnet")
+    from maple.function.calculator.aimnet._aimnet2_float64_source import (
+        AIMNET_FIRST_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV,
+        AIMNET_FLOAT64_RUNTIME_VERSION,
+        AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E,
+        AIMNET_SECOND_ORDER_CHARGE_VJP_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A,
+        AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A,
+        AIMNet2ReconstructedFloat64SourceCalculator,
+    )
+    from maple.solvation.release import (
+        aimnet2_geometry_mediated_pes_molecule,
+        panel_directions,
+        panel_geometries,
+    )
+
+    torch.set_num_threads(1)
+    molecule = aimnet2_geometry_mediated_pes_molecule(5)
+    atoms = panel_geometries(molecule)["reference"]
+    direction = panel_directions(atoms, molecule.molecule_id)["radial-internal"]
+    calculator = AIMNet2ReconstructedFloat64SourceCalculator(
+        model_path=checkpoint,
+        device="cpu",
+    )
+    provenance = calculator.runtime_provenance()
+    assert AIMNET_FLOAT64_RUNTIME_VERSION == "aimnet-reconstructed-float64-runtime-v3"
+    assert provenance["first_order_coordinate_graph"] == (
+        "frozen-deep-copy-with-embedded-dftd3-replaced-by-identity; "
+        "source-bound-upstream-dftd3-reapplied-with-hessian-true"
+    )
+    assert provenance["ordinary_forward_role"] == (
+        "per-geometry energy-charge-gradient-vjp parity oracle only"
+    )
+
+    response = calculator.charge_position_response(atoms, np.zeros(len(atoms)))
+    analytic = float(
+        np.sum(response.intrinsic_energy_gradient_ev_per_angstrom * direction)
+    )
+    errors = []
+    for step in (4.0e-4, 2.0e-4, 1.0e-4):
+        plus = atoms.copy()
+        minus = atoms.copy()
+        plus.positions += step * direction
+        minus.positions -= step * direction
+        finite_difference = (
+            calculator.charge_state(plus).energy_ev
+            - calculator.charge_state(minus).energy_ev
+        ) / (2.0 * step)
+        errors.append(abs(finite_difference - analytic))
+    assert errors[1] <= 0.35 * errors[0]
+    assert errors[2] <= 0.35 * errors[1]
+    assert errors[2] <= 1.0e-6
+
+    parity = calculator.last_ordinary_decomposed_parity()
+    assert parity["energy_absolute_error_eV"] <= (
+        AIMNET_FIRST_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV
+    )
+    assert parity["charge_max_absolute_error_e"] <= (
+        AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E
+    )
+    assert parity["intrinsic_gradient_max_absolute_error_eV_per_A"] <= (
+        AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A
+    )
+    assert parity["charge_vjp_max_absolute_error_eV_per_A"] <= (
+        AIMNET_SECOND_ORDER_CHARGE_VJP_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A
+    )
+
+
+@pytest.mark.skipif(
+    not _ENABLED,
+    reason="set MAPLE_ROUTE2_REAL_AIMNET2=1 for the real checkpoint canary",
+)
 def test_real_aimnet2_pyddx_geometry_mediated_directional_derivative():
     checkpoint_raw = os.environ.get("MAPLE_ROUTE2_AIMNET2_CHECKPOINT")
     assert checkpoint_raw, (

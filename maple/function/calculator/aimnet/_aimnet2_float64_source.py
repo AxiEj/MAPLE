@@ -40,9 +40,10 @@ from maple.function.calculator.aimnet._aimnet2_calculator import (
 )
 from maple.function.calculator.calculator_base import CalcABC
 
-AIMNET_FLOAT64_RUNTIME_VERSION = "aimnet-reconstructed-float64-runtime-v2"
+AIMNET_FLOAT64_RUNTIME_VERSION = "aimnet-reconstructed-float64-runtime-v3"
 AIMNET_REQUIRED_PACKAGE_VERSION = "0.2.0"
 AIMNET_MODEL_CONFIGURATION = "models/aimnet2_dftd3_wb97m.yaml"
+AIMNET_FIRST_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV = 1.0e-6
 AIMNET_SECOND_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV = 1.0e-8
 AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E = 1.0e-10
 AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A = 1.0e-7
@@ -310,12 +311,12 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
             raise RuntimeError("AIMNet2 reconstruction retained a non-float64 tensor.")
 
         # The embedded DFT-D3 coordinate derivative is a custom first-order
-        # autograd function.  The same source-bound upstream module also
-        # exposes a differentiable ``hessian=True`` energy.  Keep the ordinary
-        # forward untouched, and construct a separate frozen graph in which
-        # only the embedded DFT-D3 call is removed and then reapplied through
-        # that upstream Hessian path.  Every second-order call is parity-gated
-        # against the ordinary graph before its result is returned.
+        # autograd function whose sub-millimilliangstrom energy differences are
+        # noisy even in the otherwise float64 graph.  The same source-bound
+        # upstream module exposes a smooth differentiable ``hessian=True``
+        # energy.  Preserve the ordinary forward as a per-geometry parity oracle
+        # and return first/second derivatives from a separate frozen graph in
+        # which DFT-D3 is removed and reapplied through that upstream path.
         second_order_model = copy.deepcopy(model)
         second_order_dftd3 = getattr(second_order_model.outputs, "dftd3", None)
         if second_order_dftd3 is None or not callable(second_order_dftd3):
@@ -338,6 +339,7 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
         self.cutoff_lr = float("inf")
         self.solvent_correction = None
         self._last_charge_state: AIMNet2ChargeState | None = None
+        self._last_ordinary_decomposed_response_parity: dict[str, float] | None = None
         self._runtime_provenance = {
             "runtime_kind": AIMNET_FLOAT64_RUNTIME_VERSION,
             "aimnet_package_version": AIMNET_REQUIRED_PACKAGE_VERSION,
@@ -353,6 +355,27 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
             ),
             "coordinate_dtype": "torch.float64",
             "parameter_dtype": "torch.float64",
+            "first_order_coordinate_graph": (
+                "frozen-deep-copy-with-embedded-dftd3-replaced-by-identity; "
+                "source-bound-upstream-dftd3-reapplied-with-hessian-true"
+            ),
+            "ordinary_forward_role": (
+                "per-geometry energy-charge-gradient-vjp parity oracle only"
+            ),
+            "first_order_ordinary_decomposed_parity_tolerances": {
+                "energy_absolute_eV": (
+                    AIMNET_FIRST_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV
+                ),
+                "charge_absolute_e": (
+                    AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E
+                ),
+                "intrinsic_gradient_absolute_eV_per_A": (
+                    AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A
+                ),
+                "charge_vjp_absolute_eV_per_A": (
+                    AIMNET_SECOND_ORDER_CHARGE_VJP_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A
+                ),
+            },
             "second_order_coordinate_graph": (
                 "frozen-deep-copy-with-embedded-dftd3-replaced-by-identity; "
                 "source-bound-upstream-dftd3-reapplied-with-hessian-true"
@@ -384,6 +407,15 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
         """Return a detached description of the external numerical runtime."""
 
         return copy.deepcopy(self._runtime_provenance)
+
+    def last_ordinary_decomposed_parity(self) -> dict[str, float]:
+        """Return the last full first-order ordinary/decomposed parity ledger."""
+
+        if self._last_ordinary_decomposed_response_parity is None:
+            raise RuntimeError(
+                "No ordinary/decomposed first-order response parity is available."
+            )
+        return dict(self._last_ordinary_decomposed_response_parity)
 
     def calculate(self, atoms=None, properties=None, system_changes=None):
         raise NotImplementedError(
@@ -443,8 +475,8 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
                 raise RuntimeError(f"AIMNet2 forward did not preserve float64 {key}.")
         return data, output
 
-    def _validated_second_order_forward(self, atoms):
-        """Return the parity-gated candidate graph before parity comparison."""
+    def _validated_decomposed_forward(self, atoms):
+        """Return the smooth DFT-D3-decomposed graph before parity comparison."""
 
         torch = import_module("torch")
 
@@ -468,6 +500,96 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
                     f"AIMNet2 second-order forward did not preserve float64 {key}."
                 )
         return data, output
+
+    def _response_from_output(
+        self,
+        atoms,
+        charge_cotangent_ev_per_e: np.ndarray,
+        data,
+        output,
+    ) -> AIMNet2ChargePositionResponse:
+        """Differentiate one already validated energy/charge forward graph."""
+
+        torch = import_module("torch")
+
+        atom_count = len(atoms)
+        cotangent = np.asarray(charge_cotangent_ev_per_e, dtype=float)
+        state = self._charge_state_from_output(
+            output,
+            atom_count=atom_count,
+            requested_total_charge_e=self._total_charge_from_atoms(atoms),
+        )
+        charges = self._differentiable_charges(
+            output,
+            atom_count=atom_count,
+            requested_total_charge_e=state.requested_total_charge_e,
+        )
+        energy = self._energy_from_output(output)
+        intrinsic = torch.autograd.grad(energy, data["coord"], retain_graph=True)[0][
+            :atom_count
+        ]
+        pairing = torch.sum(
+            charges
+            * torch.as_tensor(cotangent, dtype=charges.dtype, device=charges.device)
+        )
+        response = torch.autograd.grad(pairing, data["coord"])[0][:atom_count]
+        return AIMNet2ChargePositionResponse(
+            charge_state=state,
+            charge_cotangent_ev_per_e=np.array(cotangent, copy=True),
+            intrinsic_energy_gradient_ev_per_angstrom=(
+                intrinsic.detach().cpu().numpy()
+            ),
+            charge_position_vjp_ev_per_angstrom=response.detach().cpu().numpy(),
+        )
+
+    @staticmethod
+    def _state_parity_errors(
+        ordinary: AIMNet2ChargeState,
+        decomposed: AIMNet2ChargeState,
+    ) -> dict[str, float]:
+        return {
+            "energy_absolute_error_eV": abs(
+                float(decomposed.energy_ev) - float(ordinary.energy_ev)
+            ),
+            "charge_max_absolute_error_e": max(
+                float(
+                    np.max(np.abs(decomposed.raw_charges_e - ordinary.raw_charges_e))
+                ),
+                float(np.max(np.abs(decomposed.charges_e - ordinary.charges_e))),
+            ),
+        }
+
+    @staticmethod
+    def _validate_parity_errors(
+        errors: dict[str, float],
+        *,
+        energy_tolerance_eV: float = (
+            AIMNET_FIRST_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV
+        ),
+        comparison: str = "ordinary-forward",
+    ) -> None:
+        tolerances = {
+            "energy_absolute_error_eV": float(energy_tolerance_eV),
+            "charge_max_absolute_error_e": (
+                AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E
+            ),
+            "intrinsic_gradient_max_absolute_error_eV_per_A": (
+                AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A
+            ),
+            "charge_vjp_max_absolute_error_eV_per_A": (
+                AIMNET_SECOND_ORDER_CHARGE_VJP_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A
+            ),
+        }
+        failures = [
+            f"{name}={error:.6e}>{tolerances[name]:.6e}"
+            for name, error in errors.items()
+            if error > tolerances[name]
+        ]
+        if failures:
+            raise RuntimeError(
+                f"AIMNet2 differentiable DFT-D3 graph failed {comparison} "
+                f"parity: {', '.join(failures)}."
+            )
 
     def _differentiable_charges(
         self,
@@ -496,28 +618,33 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
         )
 
     def charge_state(self, atoms) -> AIMNet2ChargeState:
-        """Evaluate one float64 gas-phase energy/charge state."""
+        """Evaluate one smooth, ordinary-forward-parity-gated float64 state."""
 
         torch = import_module("torch")
 
         with torch.no_grad():
-            _, output = self._validated_forward(atoms, requires_grad=False)
-        state = self._charge_state_from_output(
-            output,
+            _, ordinary_output = self._validated_forward(atoms, requires_grad=False)
+        ordinary = self._charge_state_from_output(
+            ordinary_output,
             atom_count=len(atoms),
             requested_total_charge_e=self._total_charge_from_atoms(atoms),
         )
-        self._last_charge_state = state
-        return state
+        _, decomposed_output = self._validated_decomposed_forward(atoms)
+        decomposed = self._charge_state_from_output(
+            decomposed_output,
+            atom_count=len(atoms),
+            requested_total_charge_e=self._total_charge_from_atoms(atoms),
+        )
+        self._validate_parity_errors(self._state_parity_errors(ordinary, decomposed))
+        self._last_charge_state = decomposed
+        return decomposed
 
     def charge_position_response(
         self,
         atoms,
         charge_cotangent_ev_per_e: np.ndarray,
     ) -> AIMNet2ChargePositionResponse:
-        """Differentiate one shared float64 energy/charge forward."""
-
-        torch = import_module("torch")
+        """Differentiate the smooth graph after ordinary-forward parity checks."""
 
         atom_count = len(atoms)
         cotangent = np.array(charge_cotangent_ev_per_e, dtype=float, copy=True)
@@ -526,36 +653,50 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
                 "AIMNet2 charge cotangent must be finite with shape "
                 f"{(atom_count,)}."
             )
-        data, output = self._validated_forward(atoms, requires_grad=True)
-        state = self._charge_state_from_output(
-            output,
-            atom_count=atom_count,
-            requested_total_charge_e=self._total_charge_from_atoms(atoms),
+        ordinary_data, ordinary_output = self._validated_forward(
+            atoms, requires_grad=True
         )
-        charges = self._differentiable_charges(
-            output,
-            atom_count=atom_count,
-            requested_total_charge_e=state.requested_total_charge_e,
+        ordinary = self._response_from_output(
+            atoms,
+            cotangent,
+            ordinary_data,
+            ordinary_output,
         )
-        energy = self._energy_from_output(output)
-        intrinsic = torch.autograd.grad(energy, data["coord"], retain_graph=True)[0][
-            :atom_count
-        ]
-        pairing = torch.sum(
-            charges
-            * torch.as_tensor(cotangent, dtype=charges.dtype, device=charges.device)
+        decomposed_data, decomposed_output = self._validated_decomposed_forward(atoms)
+        decomposed = self._response_from_output(
+            atoms,
+            cotangent,
+            decomposed_data,
+            decomposed_output,
         )
-        response = torch.autograd.grad(pairing, data["coord"])[0][:atom_count]
-        result = AIMNet2ChargePositionResponse(
-            charge_state=state,
-            charge_cotangent_ev_per_e=np.array(cotangent, copy=True),
-            intrinsic_energy_gradient_ev_per_angstrom=(
-                intrinsic.detach().cpu().numpy()
-            ),
-            charge_position_vjp_ev_per_angstrom=response.detach().cpu().numpy(),
+        parity = self._state_parity_errors(
+            ordinary.charge_state,
+            decomposed.charge_state,
         )
-        self._last_charge_state = state
-        return result
+        parity.update(
+            {
+                "intrinsic_gradient_max_absolute_error_eV_per_A": float(
+                    np.max(
+                        np.abs(
+                            decomposed.intrinsic_energy_gradient_ev_per_angstrom
+                            - ordinary.intrinsic_energy_gradient_ev_per_angstrom
+                        )
+                    )
+                ),
+                "charge_vjp_max_absolute_error_eV_per_A": float(
+                    np.max(
+                        np.abs(
+                            decomposed.charge_position_vjp_ev_per_angstrom
+                            - ordinary.charge_position_vjp_ev_per_angstrom
+                        )
+                    )
+                ),
+            }
+        )
+        self._validate_parity_errors(parity)
+        self._last_ordinary_decomposed_response_parity = dict(parity)
+        self._last_charge_state = decomposed.charge_state
+        return decomposed
 
     def charge_position_second_order(
         self,
@@ -565,11 +706,10 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
     ) -> AIMNet2ChargePositionSecondOrderResponse:
         """Apply the intrinsic and fixed-cotangent charge coordinate Hessians.
 
-        The ordinary AIMNet2 graph remains the first-order reference.  A
-        separate graph reuses upstream AIMNet2 with its differentiable DFT-D3
-        Hessian path, and must reproduce the reference energy, charges,
-        intrinsic gradient, and charge VJP within fixed numerical tolerances
-        before any second-order quantity is exposed.
+        The public first-order response is the smooth DFT-D3-decomposed graph,
+        already parity-gated against the ordinary AIMNet2 graph.  A fresh copy
+        of that smooth graph must reproduce the public response before any
+        second-order quantity is exposed.
         """
 
         torch = import_module("torch")
@@ -589,7 +729,8 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
             )
 
         reference = self.charge_position_response(atoms, cotangent)
-        data, output = self._validated_second_order_forward(atoms)
+        ordinary_decomposed_parity = self.last_ordinary_decomposed_parity()
+        data, output = self._validated_decomposed_forward(atoms)
         candidate_state = self._charge_state_from_output(
             output,
             atom_count=atom_count,
@@ -688,34 +829,18 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
                 )
             )
         )
-        parity_errors = {
-            "energy": (
-                energy_error,
-                AIMNET_SECOND_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV,
+        self._validate_parity_errors(
+            {
+                "energy_absolute_error_eV": energy_error,
+                "charge_max_absolute_error_e": charge_error,
+                "intrinsic_gradient_max_absolute_error_eV_per_A": intrinsic_error,
+                "charge_vjp_max_absolute_error_eV_per_A": charge_vjp_error,
+            },
+            energy_tolerance_eV=(
+                AIMNET_SECOND_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV
             ),
-            "charge": (
-                charge_error,
-                AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E,
-            ),
-            "intrinsic gradient": (
-                intrinsic_error,
-                AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A,
-            ),
-            "charge VJP": (
-                charge_vjp_error,
-                AIMNET_SECOND_ORDER_CHARGE_VJP_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A,
-            ),
-        }
-        failures = [
-            f"{name}={error:.6e}>{tolerance:.6e}"
-            for name, (error, tolerance) in parity_errors.items()
-            if error > tolerance
-        ]
-        if failures:
-            raise RuntimeError(
-                "AIMNet2 differentiable DFT-D3 graph failed ordinary-forward "
-                f"parity: {', '.join(failures)}."
-            )
+            comparison="public-first-order repeat",
+        )
         charge_jvp_values = np.asarray(charge_jvp.detach().cpu(), dtype=float)
         tangent_residual = abs(float(np.sum(charge_jvp_values)))
         if tangent_residual > AIMNET_SECOND_ORDER_CHARGE_TANGENT_TOLERANCE_E_PER_A:
@@ -741,13 +866,19 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
             contracted_charge_hessian_ev_per_angstrom2=(
                 contracted_charge_hessian.detach().cpu().numpy()
             ),
-            standard_decomposed_energy_absolute_error_ev=energy_error,
-            standard_decomposed_charge_max_absolute_error_e=charge_error,
+            standard_decomposed_energy_absolute_error_ev=(
+                ordinary_decomposed_parity["energy_absolute_error_eV"]
+            ),
+            standard_decomposed_charge_max_absolute_error_e=(
+                ordinary_decomposed_parity["charge_max_absolute_error_e"]
+            ),
             standard_decomposed_intrinsic_gradient_max_absolute_error_ev_per_angstrom=(
-                intrinsic_error
+                ordinary_decomposed_parity[
+                    "intrinsic_gradient_max_absolute_error_eV_per_A"
+                ]
             ),
             standard_decomposed_charge_vjp_max_absolute_error_ev_per_angstrom=(
-                charge_vjp_error
+                ordinary_decomposed_parity["charge_vjp_max_absolute_error_eV_per_A"]
             ),
             charge_tangent_residual_e_per_angstrom=tangent_residual,
         )
@@ -768,6 +899,7 @@ class AIMNet2ReconstructedFloat64SourceCalculator(AIMNet2Calculator):
 
 __all__ = [
     "AIMNET_FLOAT64_RUNTIME_VERSION",
+    "AIMNET_FIRST_ORDER_ENERGY_PARITY_ABSOLUTE_TOLERANCE_EV",
     "AIMNET_MODEL_CONFIGURATION",
     "AIMNET_REQUIRED_PACKAGE_VERSION",
     "AIMNET_REQUIRED_FILE_SHA256",

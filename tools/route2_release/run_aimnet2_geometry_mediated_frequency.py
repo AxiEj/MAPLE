@@ -61,6 +61,7 @@ from aimnet2_geometry_mediated_common import (
 SCHEMA_VERSION = "route2-aimnet2-geometry-mediated-frequency-water-artifact-v1"
 RUNTIME_KIND = "reconstructed-python-float64"
 CONTINUUM_KIND = "harmonic-point"
+CONTINUUM_KINDS = (CONTINUUM_KIND, "harmonic-ddpcm-water")
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "maple/function/dispatcher/frequency/normal_modes.py",
     "maple/solvation/release/geometry_mediated_frequency.py",
@@ -80,8 +81,53 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--device", choices=("cpu",), default="cpu")
+    parser.add_argument(
+        "--continuum",
+        choices=CONTINUUM_KINDS,
+        default=CONTINUUM_KIND,
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
+
+
+def _artifact_kind(continuum_kind: str) -> str:
+    if continuum_kind == CONTINUUM_KIND:
+        return (
+            "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
+            "smooth-harmonic-stationary-water-dense-hessian-frequency"
+        )
+    return (
+        "disabled-aimnet2-reconstructed-float64-frozen-charge-water-"
+        "smooth-harmonic-ddpcm-stationary-water-dense-hessian-frequency"
+    )
+
+
+def _claim_boundary(continuum_kind: str) -> str:
+    if continuum_kind == CONTINUUM_KIND:
+        return (
+            "This one-water artifact validates a guarded internal-coordinate "
+            "stationary solve, the complete dense weak-scalar Cartesian Hessian, "
+            "all-column total-gradient finite differences, Hessian symmetry, "
+            "three translational and three stationary rotational zero modes, and "
+            "a correctly mass-weighted three-mode vibrational subspace on one "
+            "fixed graph/cavity stratum. Frequencies are implementation evidence "
+            "for a conductor-reference point-charge research scalar, not physical "
+            "solvent predictions, chemical accuracy, global C2 regularity, or "
+            "Tier H, FREQ/TS/IRC, OPT, MD, public ASE, or E/F/H/V/M admission."
+        )
+    return (
+        "This one-water artifact validates a guarded internal-coordinate "
+        "stationary solve, the complete dense weak-scalar Cartesian Hessian, "
+        "all-column total-gradient finite differences, Hessian symmetry, rigid "
+        "zero modes, and mass weighting for the water-bound frozen-charge finite-"
+        "dielectric harmonic-ddPCM electrostatic scalar on one fixed graph/cavity "
+        "stratum. AIMNet2 is evaluated once per geometry, receives no continuum "
+        "field, and has no electronic SCF; G_np is identically zero. Frequencies "
+        "are diagnostic implementation evidence, not nonpolar or complete-"
+        "solvation validation, physical solvent predictions, chemical accuracy, "
+        "global C2 regularity, or Tier H, FREQ/TS/IRC, OPT, MD, public ASE, or "
+        "E/F/H/V/M admission."
+    )
 
 
 def _search_record(model, continuum, scalar, reference):
@@ -389,7 +435,7 @@ def main() -> None:
             reference,
             checkpoint,
             args.device,
-            CONTINUUM_KIND,
+            args.continuum,
             RUNTIME_KIND,
         )
     )
@@ -430,7 +476,7 @@ def main() -> None:
         "contract_version": AIMNET2_GEOMETRY_MEDIATED_FREQUENCY_WATER_CONTRACT_VERSION,
         "protocol": {
             "aimnet_runtime": RUNTIME_KIND,
-            "continuum_kind": CONTINUUM_KIND,
+            "continuum_kind": args.continuum,
             "continuum": continuum_protocol,
             "stationary_search": "three-coordinate scipy.optimize.root-hybr",
             "dense_hessian": "nine complete weak-scalar Cartesian HVP columns",
@@ -470,33 +516,20 @@ def main() -> None:
         repository.root,
         required_paths=(
             REQUIRED_SOURCE_PATHS
-            + CONTINUUM_REQUIRED_SOURCE_PATHS[CONTINUUM_KIND]
+            + CONTINUUM_REQUIRED_SOURCE_PATHS[args.continuum]
             + MODEL_RUNTIME_REQUIRED_SOURCE_PATHS[RUNTIME_KIND]
         ),
     )
     source_hashes = committed_source_hashes(repository, source_paths)
     payload: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
-        "artifact_kind": (
-            "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
-            "smooth-harmonic-stationary-water-dense-hessian-frequency"
-        ),
+        "artifact_kind": _artifact_kind(args.continuum),
         "status": (
             "diagnostic-frequency-gates-passed-not-admitted"
             if summary["diagnostic_gates_passed"]
             else "diagnostic-frequency-gates-failed-not-admitted"
         ),
-        "claim_boundary": (
-            "This one-water artifact validates a guarded internal-coordinate "
-            "stationary solve, the complete dense weak-scalar Cartesian Hessian, "
-            "all-column total-gradient finite differences, Hessian symmetry, "
-            "three translational and three stationary rotational zero modes, and "
-            "a correctly mass-weighted three-mode vibrational subspace on one "
-            "fixed graph/cavity stratum. Frequencies are implementation evidence "
-            "for a conductor-reference point-charge research scalar, not physical "
-            "solvent predictions, chemical accuracy, global C2 regularity, or "
-            "Tier H, FREQ/TS/IRC, OPT, MD, public ASE, or E/F/H/V/M admission."
-        ),
+        "claim_boundary": _claim_boundary(args.continuum),
         "capabilities": NO_CAPABILITIES,
         "exact_command": shlex.join(sys.argv),
         "argv": list(sys.argv),
@@ -511,7 +544,7 @@ def main() -> None:
         "runtime": runtime_record(),
         "device": args.device,
         "aimnet_runtime": RUNTIME_KIND,
-        "continuum_kind": CONTINUUM_KIND,
+        "continuum_kind": args.continuum,
         "dtype": model.dtype,
         **measured,
         "measurement_sha256": canonical_json_sha256(measured),

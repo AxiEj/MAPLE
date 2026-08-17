@@ -7,7 +7,10 @@ import json
 import numpy as np
 import pytest
 
-from _geometry_mediated_records import synthetic_reciprocity_record
+from _geometry_mediated_records import (
+    synthetic_ddpcm_stationarity_record,
+    synthetic_reciprocity_record,
+)
 
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.geometry_mediated_path import (
@@ -140,6 +143,22 @@ def test_water_loop_recomputes_bidirectional_work_replay_and_segment_gates():
         reverse_records=serialized_reverse,
     )
     assert replay["diagnostic_gates_passed"] is True
+
+
+def test_water_loop_recomputes_finite_dielectric_stationarity_contract():
+    forward = _records()
+    reverse = _records(reverse=True)
+    for record in (*forward, *reverse):
+        record["stationarity"] = synthetic_ddpcm_stationarity_record()
+    summary = summarize_aimnet2_geometry_mediated_water_loop(
+        forward_records=forward,
+        reverse_records=reverse,
+        continuum_kind="harmonic-ddpcm-water",
+    )
+    assert summary["diagnostic_gates_passed"] is True
+    assert summary["forward"]["points"][0]["stationarity"]["stationarity_kind"] == (
+        "harmonic-ddpcm-primal-adjoint-kkt"
+    )
 
 
 def test_water_loop_detects_same_coordinate_path_dependence():

@@ -336,6 +336,7 @@ def main() -> None:
         center_record=center_record,
         direction_records=direction_records,
         finite_difference_records=finite_difference_records,
+        continuum_kind=args.continuum,
     )
     admission_boundary = _capability_record(model, continuum, model_runtime)
     if admission_boundary["continuum_capabilities"] != NO_CAPABILITIES or any(

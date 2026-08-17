@@ -6,7 +6,10 @@ import hashlib
 import numpy as np
 import pytest
 
-from _geometry_mediated_records import synthetic_reciprocity_record
+from _geometry_mediated_records import (
+    synthetic_ddpcm_stationarity_record,
+    synthetic_reciprocity_record,
+)
 
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.geometry_mediated_hessian import (
@@ -231,6 +234,21 @@ def test_hvp_water_contract_recomputes_complete_local_second_order_gates():
         0.0,
         0.0,
     ]
+
+
+def test_hvp_water_contract_accepts_finite_dielectric_stationarity():
+    center, hvps, finite_differences = _raw_panel()
+    center["stationarity"] = synthetic_ddpcm_stationarity_record()
+    summary = summarize_aimnet2_geometry_mediated_hvp_water(
+        center_record=center,
+        direction_records=hvps,
+        finite_difference_records=finite_differences,
+        continuum_kind="harmonic-ddpcm-water",
+    )
+    assert summary["diagnostic_gates_passed"] is True
+    assert summary["center"]["stationarity"]["stationarity_kind"] == (
+        "harmonic-ddpcm-primal-adjoint-kkt"
+    )
 
 
 def test_hvp_water_contract_rejects_a_broken_component_ledger():

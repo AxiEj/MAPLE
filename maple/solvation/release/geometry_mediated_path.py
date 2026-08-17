@@ -150,6 +150,7 @@ def _point_summary(
     raw: Mapping[str, object],
     *,
     expected_coefficient: tuple[float, float],
+    continuum_kind: str,
 ) -> dict[str, object]:
     coefficient = tuple(float(value) for value in raw.get("coefficient", ()))
     if coefficient != expected_coefficient:
@@ -220,7 +221,8 @@ def _point_summary(
         name="sphere-pair topology",
     )
     stationarity = summarize_aimnet2_geometry_mediated_stationarity(
-        _mapping(raw.get("stationarity"), name="stationarity audit")
+        _mapping(raw.get("stationarity"), name="stationarity audit"),
+        continuum_kind=continuum_kind,
     )
     if stationarity["state_dimension"] != 4 * len(expected_atoms):
         raise ValueError("water-loop stationarity dimension is not surface_lmax=1.")
@@ -252,13 +254,18 @@ def _traversal_summary(
     records: Sequence[Mapping[str, object]],
     *,
     reverse: bool,
+    continuum_kind: str,
 ) -> dict[str, object]:
     coefficients = aimnet2_geometry_mediated_water_loop_coefficients(reverse=reverse)
     values = tuple(records)
     if len(values) != len(coefficients):
         raise ValueError("water-loop traversal has the wrong point count.")
     points = [
-        _point_summary(raw, expected_coefficient=coefficient)
+        _point_summary(
+            raw,
+            expected_coefficient=coefficient,
+            continuum_kind=continuum_kind,
+        )
         for raw, coefficient in zip(values, coefficients, strict=True)
     ]
     work = closed_loop_work(
@@ -328,11 +335,20 @@ def summarize_aimnet2_geometry_mediated_water_loop(
     *,
     forward_records: Sequence[Mapping[str, object]],
     reverse_records: Sequence[Mapping[str, object]],
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Recompute the frozen water closed-loop and every fail-closed gate."""
 
-    forward = _traversal_summary(forward_records, reverse=False)
-    reverse = _traversal_summary(reverse_records, reverse=True)
+    forward = _traversal_summary(
+        forward_records,
+        reverse=False,
+        continuum_kind=continuum_kind,
+    )
+    reverse = _traversal_summary(
+        reverse_records,
+        reverse=True,
+        continuum_kind=continuum_kind,
+    )
     forward_points = forward["points"]
     reverse_points = reverse["points"]
     paired_replays = [
@@ -410,6 +426,50 @@ def summarize_aimnet2_geometry_mediated_water_loop(
     }
     stationarity_records = [point["stationarity"] for point in all_points]
     reciprocity_records = [point["reciprocity"] for point in all_points]
+    if continuum_kind == "harmonic-point":
+        stationarity_maxima = {
+            "maximum_stationarity_absolute_residual_eV_per_e": max(
+                float(record["absolute_residual_eV_per_e"])
+                for record in stationarity_records
+            ),
+            "maximum_stationarity_relative_residual": max(
+                float(record["relative_residual"]) for record in stationarity_records
+            ),
+            "maximum_surface_condition_number": max(
+                float(record["surface_condition_number"])
+                for record in stationarity_records
+            ),
+        }
+        continuum_identity = {}
+    else:
+        stationarity_maxima = {
+            "maximum_stationarity_absolute_residual": max(
+                float(record["maximum_absolute_residual"])
+                for record in stationarity_records
+            ),
+            "maximum_stationarity_relative_residual": max(
+                float(record["maximum_relative_residual"])
+                for record in stationarity_records
+            ),
+            "maximum_stationarity_scaled_residual": max(
+                float(record["maximum_scaled_residual"])
+                for record in stationarity_records
+            ),
+            "maximum_surface_condition_number": max(
+                float(record["surface_condition_number"])
+                for record in stationarity_records
+            ),
+            "maximum_stationarity_condition_number": max(
+                float(record["maximum_condition_number"])
+                for record in stationarity_records
+            ),
+        }
+        continuum_identity = {
+            "continuum_kind": continuum_kind,
+            "conductor_reference_only": False,
+            "finite_dielectric_parameterization": True,
+            "water_bound_frozen_charge": True,
+        }
     return {
         "schema_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_SCHEMA_VERSION,
         "contract_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,
@@ -440,16 +500,8 @@ def summarize_aimnet2_geometry_mediated_water_loop(
             float(record["force_difference_norm_eV_per_A"])
             for record in (*paired_replays, *closure_replays)
         ),
-        "maximum_stationarity_absolute_residual_eV_per_e": max(
-            float(record["absolute_residual_eV_per_e"])
-            for record in stationarity_records
-        ),
-        "maximum_stationarity_relative_residual": max(
-            float(record["relative_residual"]) for record in stationarity_records
-        ),
-        "maximum_surface_condition_number": max(
-            float(record["surface_condition_number"]) for record in stationarity_records
-        ),
+        **stationarity_maxima,
+        **continuum_identity,
         "maximum_reciprocity_absolute_error_eV": max(
             float(record["maximum_reciprocity_absolute_error_eV"])
             for record in reciprocity_records

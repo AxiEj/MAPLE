@@ -75,6 +75,7 @@ def summarize_aimnet2_geometry_mediated_frequency_water(
     center_record: Mapping[str, object],
     hessian_vector_records: Sequence[Mapping[str, object]],
     finite_difference_records: Sequence[Mapping[str, object]],
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Recompute the stationary-water dense-Hessian diagnostic."""
 
@@ -83,7 +84,9 @@ def summarize_aimnet2_geometry_mediated_frequency_water(
     )
     solution_positions = np.asarray(search["result"]["positions_A"], dtype=float)
     center = _center_record(
-        _mapping(center_record, name="center record"), positions=solution_positions
+        _mapping(center_record, name="center record"),
+        positions=solution_positions,
+        continuum_kind=continuum_kind,
     )
     final_search = search["evaluations"][-1]
     search_center_energy_error = abs(
@@ -352,8 +355,8 @@ def summarize_aimnet2_geometry_mediated_frequency_water(
         "water_only": True,
         "stationary_point_only": True,
         "fixed_graph_cavity_stratum_only": True,
-        "conductor_reference_only": True,
-        "finite_dielectric_parameterization": False,
+        "conductor_reference_only": continuum_kind == "harmonic-point",
+        "finite_dielectric_parameterization": continuum_kind != "harmonic-point",
         "search": search,
         "center": center["summary"],
         "search_center_replay": {

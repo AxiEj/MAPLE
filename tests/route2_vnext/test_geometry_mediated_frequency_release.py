@@ -6,7 +6,10 @@ import hashlib
 import numpy as np
 import pytest
 
-from _geometry_mediated_records import synthetic_reciprocity_record
+from _geometry_mediated_records import (
+    synthetic_ddpcm_stationarity_record,
+    synthetic_reciprocity_record,
+)
 
 from maple.function.dispatcher.frequency.normal_modes import rigid_body_subspaces
 from maple.solvation.coupling.state_equation import geometry_sha256
@@ -256,6 +259,22 @@ def test_frequency_reducer_closes_dense_hessian_and_keeps_tasks_disabled():
     assert summary["tier_h_admitted"] is False
     assert summary["freq_ts_irc_admitted"] is False
     assert summary["md_admitted"] is False
+
+
+def test_frequency_reducer_accepts_finite_dielectric_stationarity():
+    search, center, hvps, finite_differences = _panel()
+    center["stationarity"] = synthetic_ddpcm_stationarity_record()
+    summary = summarize_aimnet2_geometry_mediated_frequency_water(
+        search_record=search,
+        center_record=center,
+        hessian_vector_records=hvps,
+        finite_difference_records=finite_differences,
+        continuum_kind="harmonic-ddpcm-water",
+    )
+    assert summary["diagnostic_gates_passed"] is True
+    assert summary["center"]["stationarity"]["stationarity_kind"] == (
+        "harmonic-ddpcm-primal-adjoint-kkt"
+    )
 
 
 def test_frequency_reducer_rejects_an_asymmetric_hvp_matrix():

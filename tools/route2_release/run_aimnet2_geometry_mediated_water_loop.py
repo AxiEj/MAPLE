@@ -173,6 +173,7 @@ def main() -> None:
     summary = summarize_aimnet2_geometry_mediated_water_loop(
         forward_records=forward_records,
         reverse_records=reverse_records,
+        continuum_kind=args.continuum,
     )
     measured = {
         "contract_version": AIMNET2_GEOMETRY_MEDIATED_WATER_LOOP_CONTRACT_VERSION,

@@ -75,6 +75,7 @@ def parse_frequency_center(
     raw: Mapping[str, object],
     *,
     positions: np.ndarray,
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Validate the stationary scalar center and deterministic replay."""
 
@@ -149,7 +150,8 @@ def parse_frequency_center(
         trial_continuum_topology=continuum_topology,
     )
     stationarity = summarize_aimnet2_geometry_mediated_stationarity(
-        mapping(raw.get("stationarity"), name="center PCM stationarity")
+        mapping(raw.get("stationarity"), name="center PCM stationarity"),
+        continuum_kind=continuum_kind,
     )
     reciprocity = summarize_geometry_mediated_reciprocity_audit(
         mapping(raw.get("reciprocity"), name="center reciprocity"),

@@ -75,4 +75,67 @@ def synthetic_reciprocity_record() -> dict[str, object]:
     }
 
 
-__all__ = ["synthetic_reciprocity_record"]
+def synthetic_ddpcm_stationarity_record() -> dict[str, object]:
+    """Return a zero-residual finite-dielectric primal/adjoint/KKT audit."""
+
+    residual_units = {
+        "vacuum_projection_primal": "eV/e",
+        "dielectric_primal": "eV/e",
+        "single_layer_primal": "eV/e",
+        "single_layer_adjoint": "eV/e",
+        "dielectric_adjoint": "e",
+        "vacuum_projection_adjoint": "e",
+    }
+    return {
+        "state_dimension_per_block": 12,
+        "primal_block_count": 3,
+        "adjoint_block_count": 3,
+        "dielectric": 78.355,
+        "finite_dielectric_parameterization": True,
+        "residuals": {
+            name: {
+                "absolute": 0.0,
+                "right_hand_side_norm": 0.0,
+                "relative": 0.0,
+                "scaled": 0.0,
+                "unit": unit,
+            }
+            for name, unit in residual_units.items()
+        },
+        "condition_numbers": {"mass": 1.0, "surface": 1.0, "dielectric": 1.0},
+        "response_operator_audit": {
+            "pairing_metric_id": "synthetic-pairing",
+            "operator_representation": "synthetic point-monopole block",
+            "primal_response_used_as_provider_field": False,
+            "primal_response_is_energy_cotangent": True,
+            "primal_response_relative_asymmetry": 0.0,
+            "primal_charge_tangent_relative_asymmetry": 0.0,
+            "energy_cotangent_relative_asymmetry": 0.0,
+            "energy_cotangent_charge_tangent_relative_asymmetry": 0.0,
+            "energy_cotangent_vs_symmetric_primal_relative_error": 0.0,
+            "kkt_vs_autograd_absolute_source_covector_norm": 0.0,
+            "kkt_vs_autograd_relative_error": 0.0,
+            "primal_vs_energy_cotangent_absolute_source_covector_norm": 0.0,
+            "primal_vs_energy_cotangent_relative_error": 0.0,
+            "scalar_energy_eV": 0.0,
+            "half_energy_cotangent_pairing_eV": 0.0,
+            "half_coupling_absolute_error_eV": 0.0,
+            "threshold": 1.0e-10,
+            "gate_passed": True,
+        },
+        "thresholds": {
+            "absolute_residual": 1.0e-10,
+            "relative_residual": 1.0e-10,
+            "max_rhs_or_one_scaled_residual": 1.0e-10,
+            "condition_number": 1.0e12,
+            "energy_cotangent_closure": 1.0e-10,
+        },
+        "gate_passed": True,
+        "capability_admitted": False,
+    }
+
+
+__all__ = [
+    "synthetic_ddpcm_stationarity_record",
+    "synthetic_reciprocity_record",
+]

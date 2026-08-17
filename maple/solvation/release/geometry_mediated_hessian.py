@@ -186,7 +186,7 @@ class _HVP:
     summary: dict[str, object]
 
 
-def _center_record(raw: Mapping[str, object]) -> _Center:
+def _center_record(raw: Mapping[str, object], *, continuum_kind: str) -> _Center:
     expected_atoms = aimnet2_geometry_mediated_water_loop_atoms((0.0, 0.0))
     shape = (len(expected_atoms), 3)
     source_shape = (len(expected_atoms), 4)
@@ -266,7 +266,8 @@ def _center_record(raw: Mapping[str, object]) -> _Center:
         trial_continuum_topology=continuum_topology,
     )
     stationarity = summarize_aimnet2_geometry_mediated_stationarity(
-        _mapping(raw.get("stationarity"), name="center stationarity")
+        _mapping(raw.get("stationarity"), name="center stationarity"),
+        continuum_kind=continuum_kind,
     )
     reciprocity = summarize_geometry_mediated_reciprocity_audit(
         _mapping(raw.get("reciprocity"), name="center reciprocity"),
@@ -483,10 +484,14 @@ def summarize_aimnet2_geometry_mediated_hvp_water(
     center_record: Mapping[str, object],
     direction_records: Sequence[Mapping[str, object]],
     finite_difference_records: Sequence[Mapping[str, object]],
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Recompute the complete local HVP canary from raw tensor operands."""
 
-    center = _center_record(_mapping(center_record, name="center record"))
+    center = _center_record(
+        _mapping(center_record, name="center record"),
+        continuum_kind=continuum_kind,
+    )
     expected_directions = aimnet2_geometry_mediated_hvp_directions()
     raw_directions = _sequence(direction_records, name="HVP direction records")
     if len(raw_directions) != len(AIMNET2_GEOMETRY_MEDIATED_HVP_DIRECTION_NAMES):
@@ -676,8 +681,8 @@ def summarize_aimnet2_geometry_mediated_hvp_water(
         "schema_version": AIMNET2_GEOMETRY_MEDIATED_HVP_WATER_SCHEMA_VERSION,
         "water_only": True,
         "fixed_graph_cavity_stratum_only": True,
-        "conductor_reference_only": True,
-        "finite_dielectric_parameterization": False,
+        "conductor_reference_only": continuum_kind == "harmonic-point",
+        "finite_dielectric_parameterization": continuum_kind != "harmonic-point",
         "center": center.summary,
         "direction_records": [record.summary for record in hvps],
         "finite_difference_records": fd_summaries,

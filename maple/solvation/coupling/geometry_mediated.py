@@ -39,7 +39,10 @@ from maple.solvation.models.base import (
     validate_vacuum_evaluation,
 )
 
-from .energy import nonlinear_half_coupling
+from .energy import (
+    nonlinear_half_coupling,
+    scalar_first_reciprocal_linear_half_coupling,
+)
 from .metrics import PairingMetric, get_pairing_metric
 from .spaces import get_coordinate_contract, get_field_dual_space, get_source_space
 from .state_equation import ContinuumResponseProvider, provider_behavior_sha256
@@ -680,33 +683,88 @@ class GeometryMediatedElectrostaticScalar:
 
         bilinear_records: list[BilinearReciprocityRecord] = []
         charge_records: list[ChargeDirectionalFDRecord] = []
+        response_operator_getter = getattr(
+            self.continuum, "source_covector_response_operator", None
+        )
+        response_operator: np.ndarray | None = None
+        if callable(response_operator_getter):
+            dimension = int(source.size)
+            response_operator = np.asarray(
+                response_operator_getter(geometry), dtype=float
+            )
+            if response_operator.shape != (dimension, dimension) or not np.all(
+                np.isfinite(response_operator)
+            ):
+                raise ValueError(
+                    "continuum source-covector response operator is invalid."
+                )
+            asymmetry = float(np.linalg.norm(response_operator - response_operator.T))
+            operator_scale = max(1.0, float(np.linalg.norm(response_operator)))
+            if asymmetry > self.reciprocity_tolerance * operator_scale:
+                raise ValueError(
+                    "continuum source-covector response operator is not symmetric."
+                )
+            center_covector = (response_operator @ source.reshape(-1)).reshape(
+                source.shape
+            )
+            operator_field = self.metric.source_to_field_dual(center_covector)
+            if not np.allclose(
+                operator_field,
+                reaction_field,
+                rtol=self.reciprocity_tolerance,
+                atol=self.reciprocity_tolerance,
+            ):
+                raise ValueError(
+                    "continuum response operator disagrees with the scalar drive."
+                )
+
+        def fixed_geometry_field(candidate: np.ndarray) -> np.ndarray:
+            if response_operator is None:
+                return self.model.field_space.validate(
+                    self.continuum.evaluate_field(geometry, candidate),
+                    atom_count=count,
+                    name="probe continuum field",
+                )
+            source_covector = (
+                response_operator @ np.asarray(candidate, dtype=float).reshape(-1)
+            ).reshape(candidate.shape)
+            return self.model.field_space.validate(
+                self.metric.source_to_field_dual(source_covector),
+                atom_count=count,
+                name="operator probe continuum field",
+            )
+
         if count > 1:
             rng = np.random.default_rng(self.reciprocity_seed)
             for probe_index in range(self.reciprocity_probe_count):
                 left = _charge_tangent_direction(rng, count)
                 right = _charge_tangent_direction(rng, count)
-                left_field = self.model.field_space.validate(
-                    self.continuum.evaluate_field(geometry, left),
-                    atom_count=count,
-                    name="left-probe continuum field",
-                )
-                right_field = self.model.field_space.validate(
-                    self.continuum.evaluate_field(geometry, right),
-                    atom_count=count,
-                    name="right-probe continuum field",
-                )
+                left_field = fixed_geometry_field(left)
+                right_field = fixed_geometry_field(right)
                 left_P_right = self.metric.pair(left, right_field)
                 right_P_left = self.metric.pair(right, left_field)
                 field_cotangent = self.metric.source_to_field_dual(left)
-                adjoint_left = self.model.source_space.validate(
-                    self.continuum.source_vjp(
-                        geometry,
-                        source,
-                        field_cotangent,
-                    ),
-                    atom_count=count,
-                    name="continuum probe source VJP",
-                )
+                if response_operator is None:
+                    adjoint_left = self.model.source_space.validate(
+                        self.continuum.source_vjp(
+                            geometry,
+                            source,
+                            field_cotangent,
+                        ),
+                        atom_count=count,
+                        name="continuum probe source VJP",
+                    )
+                else:
+                    cotangent_covector = self.metric.field_to_source_dual(
+                        field_cotangent
+                    )
+                    adjoint_left = self.model.source_space.validate(
+                        (response_operator.T @ cotangent_covector.reshape(-1)).reshape(
+                            source.shape
+                        ),
+                        atom_count=count,
+                        name="operator probe source VJP",
+                    )
                 apply_adjoint = float(np.vdot(adjoint_left, right))
                 bilinear_records.append(
                     BilinearReciprocityRecord(
@@ -733,11 +791,11 @@ class GeometryMediatedElectrostaticScalar:
                     minus = source - step * left
                     plus_energy = 0.5 * self.metric.pair(
                         plus,
-                        self.continuum.evaluate_field(geometry, plus),
+                        fixed_geometry_field(plus),
                     )
                     minus_energy = 0.5 * self.metric.pair(
                         minus,
-                        self.continuum.evaluate_field(geometry, minus),
+                        fixed_geometry_field(minus),
                     )
                     finite_difference = (plus_energy - minus_energy) / (2.0 * step)
                     charge_records.append(
@@ -815,9 +873,30 @@ class GeometryMediatedElectrostaticScalar:
         self.fingerprint_sha256()
         source, zero_field = self._source(geometry)
         count = source.shape[0]
-        continuum = nonlinear_half_coupling(
-            self.continuum, geometry, source, metric=self.metric
+        fused_first_derivative = isinstance(
+            self.continuum, ContinuumEnergyFunctional
+        ) and all(
+            getattr(self.continuum, declaration, None) is True
+            for declaration in (
+                "linear_response",
+                "reciprocal",
+                "scalar_first",
+                "derivatives_generated_from_same_scalar",
+            )
         )
+        if fused_first_derivative:
+            continuum, reaction_field = scalar_first_reciprocal_linear_half_coupling(
+                self.continuum, geometry, source, metric=self.metric
+            )
+        else:
+            continuum = nonlinear_half_coupling(
+                self.continuum, geometry, source, metric=self.metric
+            )
+            reaction_field = self.model.field_space.validate(
+                self.continuum.evaluate_field(geometry, source),
+                atom_count=count,
+                name="continuum field",
+            )
         direct = np.asarray(continuum.direct_source_gradient)
         response = np.asarray(continuum.response_source_gradient)
         reciprocity_error = float(np.linalg.norm(direct - response))
@@ -827,11 +906,6 @@ class GeometryMediatedElectrostaticScalar:
                 "continuum source derivative violates fixed-geometry reciprocity: "
                 f"error={reciprocity_error:.6e}."
             )
-        reaction_field = self.model.field_space.validate(
-            self.continuum.evaluate_field(geometry, source),
-            atom_count=count,
-            name="continuum field",
-        )
         audit = self._reciprocity_audit(
             geometry,
             source,

@@ -333,6 +333,42 @@ def test_ddpcm_joint_hvp_is_symmetric_and_generated_from_the_scalar():
     np.testing.assert_allclose(hh_c, finite_c, atol=4.0e-8, rtol=2.0e-6)
 
 
+def test_ddpcm_fused_first_derivative_and_response_operator_match_sealed_methods():
+    functional = _functional()
+    fused = functional.first_derivative_evaluation(POSITIONS, SOURCE)
+    assert fused.energy_eV == pytest.approx(
+        functional.energy_eV(POSITIONS, SOURCE), abs=2.0e-13
+    )
+    np.testing.assert_allclose(
+        fused.drive,
+        functional.drive(POSITIONS, SOURCE),
+        atol=2.0e-12,
+        rtol=0.0,
+    )
+    np.testing.assert_allclose(
+        fused.coordinate_partial_eV_per_A,
+        functional.coordinate_partial(POSITIONS, SOURCE),
+        atol=2.0e-11,
+        rtol=0.0,
+    )
+
+    operator = functional.source_covector_response_operator(POSITIONS)
+    np.testing.assert_allclose(operator, operator.T, atol=2.0e-12, rtol=0.0)
+    expected_covector = functional.pairing.field_to_source_dual(fused.drive)
+    np.testing.assert_allclose(
+        (operator @ SOURCE.reshape(-1)).reshape(SOURCE.shape),
+        expected_covector,
+        atol=2.0e-12,
+        rtol=0.0,
+    )
+    rng = np.random.default_rng(17082026)
+    field_cotangent = rng.normal(size=SOURCE.shape)
+    expected_vjp = functional.source_vjp(POSITIONS, SOURCE, field_cotangent)
+    cotangent_covector = functional.pairing.field_to_source_dual(field_cotangent)
+    operator_vjp = (operator.T @ cotangent_covector.reshape(-1)).reshape(SOURCE.shape)
+    np.testing.assert_allclose(operator_vjp, expected_vjp, atol=3.0e-12, rtol=0.0)
+
+
 def test_ddpcm_double_layer_radial_quadrature_has_a_refinement_plateau():
     torch = pytest.importorskip("torch")
     records = []

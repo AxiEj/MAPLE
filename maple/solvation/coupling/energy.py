@@ -206,6 +206,72 @@ def nonlinear_half_coupling(
     )
 
 
+def scalar_first_reciprocal_linear_half_coupling(
+    continuum: ContinuumResponseProvider,
+    geometry: Any,
+    source: object,
+    *,
+    metric: PairingMetric | None = None,
+) -> tuple[HalfCouplingEvaluation, np.ndarray]:
+    """Evaluate a reciprocal linear same-scalar continuum in one graph.
+
+    For ``G(R,c)=1/2<c,P_R c>_Q`` with reciprocal linear ``P_R``, the two
+    source-gradient halves are identical, their sum is the energy-dual drive,
+    and the fixed-source coordinate derivative is ``partial_R G``.  The
+    continuum must provide these quantities from one sealed scalar graph.
+    """
+
+    metric = _continuum_metric(continuum, metric)
+    _validate_continuum_pairing_identity(continuum, metric)
+    for declaration in (
+        "linear_response",
+        "reciprocal",
+        "scalar_first",
+        "derivatives_generated_from_same_scalar",
+    ):
+        if getattr(continuum, declaration, None) is not True:
+            raise ValueError(
+                "Fused half coupling requires an explicitly declared "
+                f"{declaration}=True continuum."
+            )
+    evaluator = getattr(continuum, "first_derivative_evaluation", None)
+    if not callable(evaluator):
+        raise TypeError("Fused half coupling requires first_derivative_evaluation().")
+    values = np.asarray(source, dtype=float)
+    if values.ndim != 2 or values.shape[1] != metric.component_count:
+        raise ValueError("source must have shape (atom_count, metric.component_count).")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("source must be finite.")
+    evaluated = evaluator(geometry, values)
+    field = _source_array(
+        evaluated.drive,
+        values.shape[0],
+        metric.component_count,
+        "continuum field",
+    )
+    coordinate = np.asarray(evaluated.coordinate_partial_eV_per_A, dtype=float)
+    if coordinate.shape != (values.shape[0], 3) or not np.all(np.isfinite(coordinate)):
+        raise ValueError(
+            "continuum coordinate partial must be finite with shape (N,3)."
+        )
+    energy = float(evaluated.energy_eV)
+    half_pairing = _half_pairing_energy(values, field, metric)
+    if not np.isclose(energy, half_pairing, rtol=1.0e-10, atol=1.0e-10):
+        raise ValueError("same-scalar continuum energy and half coupling do not agree.")
+    source_covector = _source_dual_of_field(field, metric)
+    half = 0.5 * source_covector
+    result = HalfCouplingEvaluation(
+        energy=energy,
+        direct_source_gradient=tuple(tuple(float(v) for v in row) for row in half),
+        response_source_gradient=tuple(tuple(float(v) for v in row) for row in half),
+        total_source_gradient=tuple(
+            tuple(float(v) for v in row) for row in source_covector
+        ),
+        coordinate_gradient=tuple(float(v) for v in coordinate.reshape(-1)),
+    )
+    return result, field
+
+
 def reciprocal_linear_half_coupling(
     continuum: ContinuumResponseProvider,
     geometry: Any,
@@ -596,4 +662,5 @@ __all__ = [
     "VacuumScalarProvider",
     "nonlinear_half_coupling",
     "reciprocal_linear_half_coupling",
+    "scalar_first_reciprocal_linear_half_coupling",
 ]

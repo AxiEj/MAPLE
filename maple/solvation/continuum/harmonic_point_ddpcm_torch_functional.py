@@ -334,6 +334,31 @@ class SmoothPointChargeHarmonicDDPCMFunctionalCandidate(
             for name, value in assembly._asdict().items()
         }
 
+    def source_covector_response_operator(self, geometry: object) -> np.ndarray:
+        """Return the fixed-geometry Hessian of the registered scalar in ``c``.
+
+        The operator is assembled once from the same ddPCM primal and
+        transpose/KKT matrices as :meth:`drive`.  It maps flattened source
+        coefficients to flattened source covectors and is intended for
+        batched reciprocity/charge-direction audits, not as a second field
+        implementation.
+        """
+
+        self.configuration_sha256()
+        positions = self._positions_tensor(
+            geometry,
+            atom_count=len(self._radii_angstrom),
+            requires_grad=False,
+        )
+        assembly = self._assemble_ddpcm_torch(positions)
+        _, energy_cotangent = self._response_operators(assembly)
+        result = np.asarray(energy_cotangent.detach().cpu(), dtype=float).copy()
+        expected = len(self._radii_angstrom) * self.source_space.component_count
+        if result.shape != (expected, expected) or not np.all(np.isfinite(result)):
+            raise RuntimeError("ddPCM source-covector response operator is invalid.")
+        result.setflags(write=False)
+        return result
+
     @staticmethod
     def _residual_record(
         residual: Any, right_hand_side: Any, *, unit: str

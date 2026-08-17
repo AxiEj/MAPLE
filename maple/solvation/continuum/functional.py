@@ -13,6 +13,7 @@ callable does not admit Route-2 E/F/H/V/M capability.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -50,6 +51,35 @@ def _torch_device_matches(actual: Any, configured: object) -> bool:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class ContinuumFirstDerivativeEvaluation:
+    """Energy, energy-dual drive, and fixed-source coordinate derivative."""
+
+    energy_eV: float
+    drive: np.ndarray
+    coordinate_partial_eV_per_A: np.ndarray
+
+    def __post_init__(self) -> None:
+        energy = float(self.energy_eV)
+        drive = np.asarray(self.drive, dtype=float)
+        coordinate = np.asarray(self.coordinate_partial_eV_per_A, dtype=float)
+        if (
+            not np.isfinite(energy)
+            or drive.ndim != 2
+            or coordinate.shape != (drive.shape[0], 3)
+            or not np.all(np.isfinite(drive))
+            or not np.all(np.isfinite(coordinate))
+        ):
+            raise ValueError("continuum first-derivative evaluation is invalid.")
+        drive = np.array(drive, copy=True)
+        coordinate = np.array(coordinate, copy=True)
+        drive.setflags(write=False)
+        coordinate.setflags(write=False)
+        object.__setattr__(self, "energy_eV", energy)
+        object.__setattr__(self, "drive", drive)
+        object.__setattr__(self, "coordinate_partial_eV_per_A", coordinate)
+
+
 class ContinuumEnergyFunctional:
     """Base class whose derivatives are sealed to one Torch scalar graph."""
 
@@ -74,6 +104,7 @@ class ContinuumEnergyFunctional:
             "source_vjp",
             "mixed_coordinate_source_vjp",
             "coordinate_partial",
+            "first_derivative_evaluation",
         }
     )
 
@@ -296,6 +327,49 @@ class ContinuumEnergyFunctional:
         values = np.asarray(drive.detach().cpu(), dtype=float).copy()
         return self.field_space.validate(
             values, atom_count=values.shape[0], name="continuum drive"
+        )
+
+    def first_derivative_evaluation(
+        self, geometry: object, source: object
+    ) -> ContinuumFirstDerivativeEvaluation:
+        """Evaluate all first derivatives from one sealed scalar graph."""
+
+        torch = _torch()
+        values = _source_values(self.source_space, source)
+        positions = self._positions_tensor(
+            geometry, atom_count=values.shape[0], requires_grad=True
+        )
+        source_tensor = self._source_tensor(values, requires_grad=True)
+        energy = self.energy_torch(positions, source_tensor)
+        if energy.requires_grad:
+            coordinate, source_covector = torch.autograd.grad(
+                energy,
+                (positions, source_tensor),
+                create_graph=False,
+                allow_unused=True,
+            )
+        else:
+            coordinate = source_covector = None
+        if coordinate is None:
+            coordinate = torch.zeros_like(positions)
+        if source_covector is None:
+            source_covector = torch.zeros_like(source_tensor)
+        inverse = torch.as_tensor(
+            np.argsort(self.pairing.field_to_source_indices),
+            dtype=torch.long,
+            device=source_tensor.device,
+        )
+        drive = torch.index_select(source_covector, -1, inverse)
+        drive_values = self.field_space.validate(
+            np.asarray(drive.detach().cpu(), dtype=float),
+            atom_count=values.shape[0],
+            name="continuum drive",
+        )
+        coordinate_values = np.asarray(coordinate.detach().cpu(), dtype=float)
+        return ContinuumFirstDerivativeEvaluation(
+            energy_eV=float(energy.detach().cpu()),
+            drive=drive_values,
+            coordinate_partial_eV_per_A=coordinate_values,
         )
 
     def source_hvp(
@@ -531,4 +605,4 @@ class ContinuumEnergyFunctional:
         return result
 
 
-__all__ = ["ContinuumEnergyFunctional"]
+__all__ = ["ContinuumEnergyFunctional", "ContinuumFirstDerivativeEvaluation"]

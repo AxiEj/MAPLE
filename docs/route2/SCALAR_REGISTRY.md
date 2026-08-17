@@ -197,9 +197,14 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   ddPCM electrostatics, and the complete same-scalar coordinate chain rule.
 - Excluded: CDS/nonpolar and standard-state terms, chemical-accuracy claims,
   and every public E/F/H/V/M or OPT/FREQ/TS/IRC/MD capability.
-- This profile is registered but disabled. The preceding retained water bundle
-  validates the shared implementation, not this new identity; a fresh clean-tree
-  two-process run is required before attaching evidence to this candidate.
+- This profile is registered but disabled. Two clean processes under its exact
+  identity reproduce scientific SHA256
+  `29ad72cd84a137b6bc7b9079ce6979000e7dab58983e2c41d6d2e3ce82fa08e5`
+  and pass the local water derivative, stationarity, symmetry, topology, and
+  event gates
+  ([bundle](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-0c19ede4/README.md)).
+  This is not broad PES, accuracy, nonpolar, or workflow evidence and opens no
+  capability.
 
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 

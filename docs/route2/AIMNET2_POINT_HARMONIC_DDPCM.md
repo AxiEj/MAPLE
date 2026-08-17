@@ -210,6 +210,10 @@ water-bound candidate locks `epsilon=78.355`, SMD Coulomb radii, the `1/2`
 surface/exposure orders, both order-32 radial quadratures, and the source-bound
 float64 `aimnet2-polarizable-v1` model profile.  It still uses exactly one NQE
 charge evaluation per geometry, supplies no continuum field to AIMNet2, and
-runs no electronic SCF.  A fresh clean-tree artifact under that exact identity,
-broader distorted-PES evidence, a compatible nonpolar scalar, and task-level
+runs no electronic SCF. Two clean processes under that exact identity reproduce
+scientific SHA256
+`29ad72cd84a137b6bc7b9079ce6979000e7dab58983e2c41d6d2e3ce82fa08e5`
+and are retained under
+[`evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-0c19ede4/`](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-0c19ede4/README.md).
+Broader distorted-PES evidence, a compatible nonpolar scalar, and task-level
 validation remain required.

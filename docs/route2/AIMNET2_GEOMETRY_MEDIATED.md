@@ -107,19 +107,20 @@ control rather than hidden by selecting a favorable finite-difference step.
 3. loads the unchanged local checkpoint state dictionary, allowing only its
    known unused misspelled sentinel buffer;
 4. converts the complete Python forward and coordinate contract to float64;
-5. exposes the same-forward energy/charge state and `J_q^T v`, plus a separate
-   diagnostic second-order graph for `J_q h`, `H_E h`, and the fixed-cotangent
-   contracted charge Hessian `D_R[J_q^T v][h]`.
+5. retains the ordinary upstream forward as a per-geometry parity oracle, and
+   returns energy, charge, intrinsic gradient, `J_q^T v`, `J_q h`, `H_E h`,
+   and the fixed-cotangent contracted charge Hessian
+   `D_R[J_q^T v][h]` from one smooth decomposed graph.
 
 It is CPU-only, not registered as an ASE calculator, rejects public
 `calculate()`, and rejects the inherited public Hessian/HVP entry points. The
-second-order method is a Route-2 research primitive only. It deep-copies the
-source-bound upstream graph, replaces the embedded first-order-only DFT-D3
-call by identity, and reapplies the same upstream DFT-D3 module with
-`hessian=True`. Every call must reproduce the ordinary graph's energy,
-charges, intrinsic gradient, and charge VJP within fixed tolerances before any
-second-order tensor is returned. It changes numerical precision and execution
-graph, not weights, input semantics, neighbor policy, or charge projection.
+first/second-order methods are Route-2 research primitives only. The
+source-bound graph replaces the embedded first-order-only DFT-D3 call by
+identity and reapplies the same upstream DFT-D3 module with `hessian=True`.
+Every research call must reproduce the ordinary graph's energy, charges,
+intrinsic gradient, and charge VJP within fixed tolerances before any result is
+returned. It changes numerical precision and execution graph, not weights,
+input semantics, neighbor policy, charge projection, or DFT-D3 parameters.
 Agreement with the historical float32 graph is tested separately; that
 agreement is a reconstruction check, not chemical-accuracy evidence.
 
@@ -452,6 +453,49 @@ smallest-step all-column FD Frobenius error is
 accuracy panel. Raw operands and hashes are retained in
 [`evidence/aimnet2-geometry-mediated-frequency-water-f79d5051/`](evidence/aimnet2-geometry-mediated-frequency-water-f79d5051/README.md).
 
+## Exact water-bound finite-dielectric validation
+
+The distinct `aimnet2-polarizable-v1` water profile now binds the unchanged
+checkpoint, one NQE charge evaluation per geometry, no continuum-field input,
+no electronic SCF, water `epsilon=78.355`, SMD Coulomb radii, and the exact
+smooth harmonic ddPCM discretization. The AIMNet2 paper supports the use of
+geometry-dependent NQE charges; it does not supply the missing solvent-field
+interface ([Chemical Science 2025](https://doi.org/10.1039/D4SC08572H)). ddPCM
+adjoint/force methodology is established in ddX and the ddPCM force literature
+([ddX theory](https://ddsolvation.github.io/ddX/md_docs_theory.html);
+[Nottoli et al., 2022](https://doi.org/10.1063/5.0104536)), but those references
+do not admit this discretization or composite implementation.
+
+Two complete source-bound runs of the 17-molecule H/C/N/O distorted-PES panel
+reproduce measurement SHA256
+`a219082dbe88097923fd18b39fff83a613f1a7a02d57d7e126df2e549708c42b`.
+Every molecule now passes the frozen three-step convergence window. Twelve
+pass all gates; methanol, methane, dimethyl ether, and acetic acid fail the
+unchanged point/source-shell clearance, and ethylamine fails the independent
+sphere-tangency clearance. The complete profile remains negative
+([bundle](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-smoothed-97efb08e/README.md)).
+
+A separate preregistered ten-record MNSol pilot combines fixed AIMNet2 charges,
+full-resolution pyddx electrostatics, and SMD-CDS. It reports ddPCM MAE
+`1.1430625 kcal/mol` and scaled-ddCOSMO MAE `1.0120976 kcal/mol`; the tracked
+frozen-source MACE-POLAR arms on the same ten records report `0.8635007` and
+`0.9154388 kcal/mol`. This is early complete-ledger accuracy context, not a
+ranking and not validation of the lower-order differentiable `G_np=0`
+harmonic scalar. SMD itself contains both bulk electrostatics and a separately
+parameterized CDS term ([SMD paper](https://doi.org/10.1021/jp810292n)).
+
+Finally, water-only bidirectional-loop, complete-HVP, and guarded stationary
+dense-Hessian/frequency diagnostics each pass two clean finite-dielectric
+processes with identical scientific measurements
+([bundle](evidence/aimnet2-frozen-charge-water-ddpcm-daily-tasks-76d4d097/README.md)).
+The stationary solve stays inside the frozen coordinate domain through a
+componentwise open-bound `tanh` parameterization and converges to a Cartesian
+maximum gradient of `6.744916582722416e-15 eV/angstrom`. The dense Hessian
+passes symmetry, all-column four-step gradient FD, six rigid zero modes, and
+the mass-weighted three-mode subspace. These are local implementation
+diagnostics and do not open F/OPT/FREQ/MD while the complete PES profile remains
+topology-negative.
+
 ## Fixed-geometry response no-go
 
 At fixed `R`, the unmodified deterministic model always returns the same
@@ -479,15 +523,17 @@ unsupported upstream.
 | harmonic-point full rigid-rotation gate | passes current real water canary |
 | harmonic-point directional/full-Cartesian derivative gates | legacy float32 fails; source-bound float64 passes the local one-water canary |
 | harmonic-point distorted-geometry PES harness | complete v2 17-shard H/C/N/O panel captured twice and independently aggregated; water and hydrogen peroxide pass, while 15 shards fail one or more frozen derivative/event gates; full panel negative |
+| water-bound finite-ddPCM distorted-geometry PES harness | latest smooth runtime captured twice; all 17 pass convergence and 12 pass every gate, but four point/source-shell and one sphere-tangency failure keep the full panel negative |
 | harmonic sphere-pair tangency identity/margin | implemented and required by the v2 shard and loop contracts |
 | harmonic water bidirectional loop/event harness | passes two clean source-bound processes on the frozen local water path; no task admission |
+| water-bound finite-ddPCM daily-task diagnostics | water loop, complete HVP, and guarded stationary dense-Hessian/frequency each pass two clean processes; diagnostic only |
 | source-bound float64 reconstruction | optional CPU research primitive; unchanged weights; upstream source hashes recorded |
 | fixed-geometry electronic mutual polarization | absent by model interface |
 | SMD-CDS/nonpolar and standard-state terms | excluded |
 | public single-point E/F | disabled |
 | solution-phase OPT/NEB/TS | disabled pending full PES/release gates |
-| complete local weak-scalar HVP | implemented for the sealed harmonic-point research arm; one source-bound water canary passes; diagnostic only |
-| stationary-water dense Hessian / local normal modes | one source-bound guarded water canary passes symmetry, all-column gradient FD, six rigid modes, and a three-mode mass-weighted subspace; diagnostic only |
+| complete local weak-scalar HVP | conductor and exact water-bound finite-ddPCM water canaries pass; diagnostic only |
+| stationary-water dense Hessian / local normal modes | conductor and exact water-bound finite-ddPCM water canaries pass symmetry, all-column gradient FD, six rigid modes, and a three-mode mass-weighted subspace; diagnostic only |
 | Tier H / FREQ/TS/IRC | disabled; broad event-free `C2`, multi-stationary-point, TS/IRC, physical-solvent, and workflow evidence absent |
 | MD/NVE | absent |
 | strict variational tier | not applicable/proven |
@@ -501,16 +547,18 @@ coordinate derivative and passes cavity/profile compatibility gates.
 
 1. Recover the exact upstream release identity of the local checkpoint.
 2. Treat the complete reproducible v2 panel as negative for the current
-   profile. Preserve the four point/source-shell failures, the ethylamine
-   sphere-tangency failure, and the small-step convergence-window failures.
+   profile. Preserve the four point/source-shell failures and the ethylamine
+   sphere-tangency failure. The latest smooth runtime closes every frozen
+   convergence window, but that does not override an event-domain failure.
    A broader finite-difference scan or any smooth source/cavity replacement
    must be a newly derived, versioned profile with fresh evidence rather than
    a relaxed threshold. Also expand explicit
    cutoff/source-shell/sphere-tangency trial-step panels beyond the retained
    water loop. The legacy float32 arm remains a negative control, and the
    pyddx arm still has both derivative and laboratory-grid rotation failures.
-3. Bind solvent dielectric, radii, grid, and solver choices to separately named
-   physical-configuration profiles instead of the current unbound diagnostic.
+3. Preserve the exact water-bound configuration identity and expand it to new
+   separately named solvent profiles only with independent source-bound
+   evidence; do not treat the parameterized diagnostic as an admission profile.
 4. Add a same-scalar nonpolar provider before making total solvation-free-energy
    or multi-solvent claims.
 5. Add force-domain, optimization, broad Hessian/FREQ, and NVE evidence before
@@ -520,7 +568,8 @@ coordinate derivative and passes cavity/profile compatibility gates.
    adjointness, multi-molecule/stationary-point force-FD/HVP closure,
    conditioning, and FREQ/TS/IRC path panels. The local water Hessian,
    translational/rotational modes, and mass-weighted subspace now pass, but the
-   current methanol event-guard failure remains a profile-level block.
+   current four point/source-shell and one sphere-tangency failures remain
+   profile-level blocks.
 
 No fitting, radius tuning, response tempering, calibration, or experimental
 label use is part of this candidate.

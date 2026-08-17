@@ -217,3 +217,108 @@ and are retained under
 [`evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-0c19ede4/`](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-0c19ede4/README.md).
 Broader distorted-PES evidence, a compatible nonpolar scalar, and task-level
 validation remain required.
+
+## Literature-to-implementation boundary
+
+The AIMNet2 paper establishes geometry-dependent partial charges produced by
+Neural Charge Equilibration and a model trained for energies and forces
+([Anstine, Zubatyuk, and Isayev, 2025](https://doi.org/10.1039/D4SC08572H)).
+It does not establish a continuum-field input for the checkpoint used here.
+The one-shot frozen-charge design is therefore a property of MAPLE's bound
+model interface and local checkpoint contract, not a claim that the published
+AIMNet2 architecture cannot ever be extended.
+
+The ddX theory manual derives parameter derivatives through a transpose
+adjoint solve, and published ddPCM implementations compute solvation forces
+([ddX theory](https://ddsolvation.github.io/ddX/md_docs_theory.html);
+[Nottoli et al., 2022](https://doi.org/10.1063/5.0104536)). This establishes
+that analytic ddPCM force methodology exists. It does not validate MAPLE's
+particular smooth weighted-harmonic discretization, its point-source event
+domain, or its AIMNet2 charge-chain composition; those are tested separately
+by the retained source-bound artifacts.
+
+SMD defines total solvation free energy as bulk electrostatics plus a
+cavity-dispersion-solvent-structure contribution
+([Marenich, Cramer, and Truhlar, 2009](https://doi.org/10.1021/jp810292n)).
+Consequently the exact differentiable candidate in this document, for which
+`G_np=0`, is not a complete SMD solvation free energy and cannot inherit SMD's
+published accuracy or workflow claims.
+
+## Water-bound distorted-PES result
+
+The exact water-bound candidate has now been run twice over the frozen
+17-molecule H/C/N/O panel: 51 geometries, 153 directions, and 459 central-
+difference samples per process. The source-bound float64 runtime keeps the
+ordinary AIMNet2 forward as a per-geometry parity oracle while evaluating the
+same upstream DFT-D3 term through its smooth `hessian=True` graph for
+first/second coordinate derivatives. Across all 51 centers, ordinary versus
+decomposed energy and intrinsic-gradient discrepancies are bounded by
+`1.327271093e-7 eV` and `3.81574774e-8 eV/A`, respectively; checkpoint weights
+and charge outputs are unchanged.
+
+All 17 molecules now pass every frozen three-step convergence requirement.
+Twelve also pass the topology/event gates: water, ethanol, acetone,
+acetonitrile, benzene, trans-butane, formic acid, acetaldehyde, acetamide,
+pyridine, nitromethane, and hydrogen peroxide. Methanol, methane, dimethyl
+ether, and acetic acid fail the preregistered `0.02 A` point/source-shell
+margin; ethylamine fails the independent sphere-tangency margin. Methane also
+has one terminal numerical sample failure inside its already failed event
+domain. No threshold, radius, molecule list, or public capability was changed.
+The two aggregates reproduce measurement SHA256
+`a219082dbe88097923fd18b39fff83a613f1a7a02d57d7e126df2e549708c42b`
+and are retained under
+[`evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-smoothed-97efb08e/`](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-smoothed-97efb08e/README.md).
+
+This is a materially stronger force-domain result, but the five topology
+failures keep the complete current-profile panel negative. The `0.02 A` guard
+must not be lowered to convert those failures into passes.
+
+## Accuracy pilot
+
+The preregistered ten-record MNSol-v2012 frozen-source pilot was replayed twice
+from the current source tree. With fixed AIMNet2 charges, full-resolution
+`lmax=15`/1202-point pyddx electrostatics, and SMD-CDS, the ddPCM arm reports
+MAE/RMSE/max/MSE of `1.1430625`, `1.3515630`, `2.2322398`, and
+`+1.0333127 kcal/mol`; the separately named scaled-ddCOSMO arm reports
+`1.0120976`, `1.2743164`, `2.1932768`, and `+0.8300035 kcal/mol`. On the same
+ten records, the tracked frozen-source MACE-POLAR arm reports ddPCM MAE
+`0.8635007 kcal/mol` and ddCOSMO MAE `0.9154388 kcal/mol`.
+
+These values are descriptive only: ten records do not establish a source
+ranking or solvent generalization. More importantly, this accuracy pilot uses
+SMD-CDS and full-resolution pyddx, so it is not the same scalar or cavity
+numerics as the current differentiable `harmonic-ddpcm-water` force candidate.
+The aggregate-only evidence is retained under
+[`evidence/aimnet2-frozen-charge-mnsol-pilot-replay-b758aede/`](evidence/aimnet2-frozen-charge-mnsol-pilot-replay-b758aede/README.md).
+
+## Water daily-task diagnostics
+
+Three finite-dielectric, exact-scalar water workflows now pass in two clean
+processes each at source commit `76d4d097`:
+
+- bidirectional closed-loop work and conservative straight-segment event
+  certificates, measurement SHA256
+  `4c70022f570e2736e4b2f16312009971058461cf2a78776e3ba45e01738cd26f`;
+- the complete weak-scalar HVP ledger, central response checks, bilinear
+  symmetry, and all three translational zero modes, measurement SHA256
+  `60159b0b31ec0ae1ae308dd03175121d9c467078882965cbf9a72670d4d39dfb`;
+- an internal-coordinate stationary solve, all nine Cartesian HVP columns,
+  four-step total-gradient finite differences, Hessian symmetry, six rigid
+  modes, and the mass-weighted three-mode vibrational subspace, measurement
+  SHA256
+  `2cb5aceee9d22c84bfe458bf9e9967d5c5cb61c9536f90a450246d97730c258c`.
+
+The finite-dielectric stationary search uses a componentwise open-bound
+`tanh` parameterization of the same frozen internal-coordinate bounds and
+MINPACK hybrid root equations. It changes neither the scalar nor any gate; it
+prevents a solver trial from leaving the declared domain. The final Cartesian
+maximum gradient is `6.744916582722416e-15 eV/A`, the dense-Hessian symmetry
+error is `1.126172990825879e-14 eV/A^2`, and the smallest-step FD Frobenius
+error is `3.524831549078756e-5 eV/A^2`.
+
+The full primary/replay records and independent reducers are retained under
+[`evidence/aimnet2-frozen-charge-water-ddpcm-daily-tasks-76d4d097/`](evidence/aimnet2-frozen-charge-water-ddpcm-daily-tasks-76d4d097/README.md).
+They establish local implementation readiness for one event-safe water
+stratum. They do not open public F/OPT/FREQ/MD support: the broad PES panel is
+still negative, `G_np` is absent, and the reported frequencies are not
+physical solvent predictions.

@@ -203,8 +203,22 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   and pass the local water derivative, stationarity, symmetry, topology, and
   event gates
   ([bundle](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-0c19ede4/README.md)).
-  This is not broad PES, accuracy, nonpolar, or workflow evidence and opens no
-  capability.
+  The subsequent dual-process 17-molecule distorted-PES panel passes every
+  frozen convergence check and 12/17 complete molecule gates; methanol,
+  methane, dimethyl ether, and acetic acid remain below the point/source-shell
+  guard, while ethylamine remains below the sphere-tangency guard
+  ([bundle](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-smoothed-97efb08e/README.md)).
+  A distinct ten-record MNSol pilot provides aggregate-only early accuracy
+  evidence for fixed electrostatics plus SMD-CDS, not for this `G_np=0`
+  harmonic scalar
+  ([bundle](evidence/aimnet2-frozen-charge-mnsol-pilot-replay-b758aede/README.md)).
+  Finally, water-only loop, complete-HVP, and stationary dense-Hessian/frequency
+  diagnostics each pass two clean processes under the exact finite-dielectric
+  identity
+  ([bundle](evidence/aimnet2-frozen-charge-water-ddpcm-daily-tasks-76d4d097/README.md)).
+  These results improve implementation and task-level diagnostic coverage but
+  open no capability because the full force domain remains topology-negative,
+  broad event-free `C2`, nonpolar, and public workflow evidence remain absent.
 
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 

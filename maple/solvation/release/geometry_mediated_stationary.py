@@ -37,6 +37,9 @@ AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_METHOD = "hybr"
 AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_FACTOR = 0.2
 AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_XTOL = 1.0e-10
 AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_MAXFEV = 20
+AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_BOUND_TRANSFORM = (
+    "componentwise-open-bound-tanh"
+)
 AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_GRADIENT_TOLERANCE = 1.0e-9
 AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_CARTESIAN_GRADIENT_TOLERANCE = 1.0e-8
 
@@ -189,6 +192,8 @@ def aimnet2_geometry_mediated_stationary_water_geometry(
 
 def summarize_aimnet2_geometry_mediated_stationary_water_search(
     search_record: Mapping[str, object],
+    *,
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Validate a raw SciPy root trace and its fixed-stratum event guards."""
 
@@ -209,6 +214,12 @@ def summarize_aimnet2_geometry_mediated_stationary_water_search(
         ],
         "public_optimizer": False,
     }
+    if continuum_kind == "harmonic-ddpcm-water":
+        expected_protocol["internal_coordinate_transform"] = (
+            AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_BOUND_TRANSFORM
+        )
+    elif continuum_kind != "harmonic-point":
+        raise ValueError(f"unsupported stationary-water continuum: {continuum_kind}")
     if dict(protocol) != expected_protocol:
         raise ValueError("stationary water search protocol changed from the contract.")
 
@@ -371,6 +382,7 @@ def summarize_aimnet2_geometry_mediated_stationary_water_search(
 
 
 __all__ = [
+    "AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_BOUND_TRANSFORM",
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_CARTESIAN_GRADIENT_TOLERANCE",
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_BOUNDS",
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_COORDINATE_NAMES",

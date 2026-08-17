@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 
+import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -105,3 +106,32 @@ def test_daily_runner_artifact_labels_keep_old_evidence_and_close_new_claims(nam
     assert "no electronic SCF" in claim_boundary
     assert "G_np is identically zero" in claim_boundary
     assert "admission" in claim_boundary
+
+
+def test_frequency_runner_bound_transform_keeps_every_root_trial_in_domain():
+    runner = _load_runner("frequency")
+    bounds = np.asarray(
+        runner.AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_BOUNDS,
+        dtype=float,
+    )
+    initial = runner.aimnet2_geometry_mediated_stationary_water_initial_coordinates()
+    target = np.array((1.02, 1.01, np.deg2rad(115.0)))
+    observed = []
+
+    def function(coordinates):
+        observed.append(np.asarray(coordinates, dtype=float))
+        return np.asarray(coordinates, dtype=float) - target
+
+    solved = runner._solve_stationary_root(
+        function,
+        lambda coordinates: np.eye(3),
+        initial,
+        "harmonic-ddpcm-water",
+    )
+    assert solved.success is True
+    np.testing.assert_allclose(solved.x, target, atol=1.0e-12, rtol=0.0)
+    assert observed
+    assert all(
+        np.all(values > bounds[:, 0]) and np.all(values < bounds[:, 1])
+        for values in observed
+    )

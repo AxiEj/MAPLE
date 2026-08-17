@@ -39,6 +39,7 @@ from maple.solvation.release.geometry_mediated_path import (
     aimnet2_geometry_mediated_water_loop_atoms,
 )
 from maple.solvation.release.geometry_mediated_stationary import (
+    AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_BOUND_TRANSFORM,
     AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_BOUNDS,
     AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_COORDINATE_NAMES,
     AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_FACTOR,
@@ -130,7 +131,61 @@ def _claim_boundary(continuum_kind: str) -> str:
     )
 
 
-def _search_record(model, continuum, scalar, reference):
+def _solve_stationary_root(function, jacobian, initial, continuum_kind: str):
+    if continuum_kind == CONTINUUM_KIND:
+        return root(
+            function,
+            initial,
+            jac=jacobian,
+            method=AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_METHOD,
+            options={
+                "factor": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_FACTOR,
+                "xtol": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_XTOL,
+                "maxfev": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_MAXFEV,
+            },
+        )
+    if continuum_kind != "harmonic-ddpcm-water":
+        raise ValueError(f"unsupported stationary-water continuum: {continuum_kind}")
+
+    bounds = np.asarray(
+        AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_INTERNAL_BOUNDS,
+        dtype=float,
+    )
+    midpoint = np.mean(bounds, axis=1)
+    half_width = 0.5 * (bounds[:, 1] - bounds[:, 0])
+    scaled_initial = (np.asarray(initial, dtype=float) - midpoint) / half_width
+    if np.any(np.abs(scaled_initial) >= 1.0):
+        raise ValueError("stationary-water initial coordinates must be inside bounds.")
+
+    def physical_coordinates(unbounded_coordinates):
+        return midpoint + half_width * np.tanh(unbounded_coordinates)
+
+    def transformed_function(unbounded_coordinates):
+        return function(physical_coordinates(unbounded_coordinates))
+
+    def transformed_jacobian(unbounded_coordinates):
+        hyperbolic_tangent = np.tanh(unbounded_coordinates)
+        derivative = half_width * (1.0 - hyperbolic_tangent**2)
+        return (
+            jacobian(physical_coordinates(unbounded_coordinates)) * derivative[None, :]
+        )
+
+    solved = root(
+        transformed_function,
+        np.arctanh(scaled_initial),
+        jac=transformed_jacobian,
+        method=AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_METHOD,
+        options={
+            "factor": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_FACTOR,
+            "xtol": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_XTOL,
+            "maxfev": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_MAXFEV,
+        },
+    )
+    solved.x = physical_coordinates(solved.x)
+    return solved
+
+
+def _search_record(model, continuum, scalar, reference, *, continuum_kind: str):
     initial = aimnet2_geometry_mediated_stationary_water_initial_coordinates()
     baseline_model_topology, baseline_continuum_topology = geometry_mediated_topologies(
         model, continuum, reference
@@ -222,16 +277,11 @@ def _search_record(model, continuum, scalar, reference):
             raise RuntimeError("stationary-search internal Hessian lost symmetry.")
         return internal_hessian
 
-    solved = root(
+    solved = _solve_stationary_root(
         function,
+        jacobian,
         initial,
-        jac=jacobian,
-        method=AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_METHOD,
-        options={
-            "factor": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_FACTOR,
-            "xtol": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_XTOL,
-            "maxfev": AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_ROOT_MAXFEV,
-        },
+        continuum_kind,
     )
     final_state = evaluate_internal(solved.x)
     if not solved.success:
@@ -266,6 +316,10 @@ def _search_record(model, continuum, scalar, reference):
         },
         "evaluations": evaluations,
     }
+    if continuum_kind == "harmonic-ddpcm-water":
+        search["protocol"][
+            "internal_coordinate_transform"
+        ] = AIMNET2_GEOMETRY_MEDIATED_STATIONARY_WATER_BOUND_TRANSFORM
     return search, final_state["atoms"]
 
 
@@ -440,7 +494,11 @@ def main() -> None:
         )
     )
     search_record, stationary_atoms = _search_record(
-        model, continuum, scalar, reference
+        model,
+        continuum,
+        scalar,
+        reference,
+        continuum_kind=args.continuum,
     )
     _, center_record = _center_measurement(model, continuum, scalar, stationary_atoms)
 
@@ -479,7 +537,11 @@ def main() -> None:
             "aimnet_runtime": RUNTIME_KIND,
             "continuum_kind": args.continuum,
             "continuum": continuum_protocol,
-            "stationary_search": "three-coordinate scipy.optimize.root-hybr",
+            "stationary_search": (
+                "three-coordinate scipy.optimize.root-hybr"
+                if args.continuum == CONTINUUM_KIND
+                else "three-coordinate bound-transformed scipy.optimize.root-hybr"
+            ),
             "dense_hessian": "nine complete weak-scalar Cartesian HVP columns",
             "finite_difference_target": "total-scalar-gradient",
             "mass_weighting_order": (

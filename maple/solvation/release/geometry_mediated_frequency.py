@@ -80,7 +80,8 @@ def summarize_aimnet2_geometry_mediated_frequency_water(
     """Recompute the stationary-water dense-Hessian diagnostic."""
 
     search = summarize_aimnet2_geometry_mediated_stationary_water_search(
-        _mapping(search_record, name="search record")
+        _mapping(search_record, name="search record"),
+        continuum_kind=continuum_kind,
     )
     solution_positions = np.asarray(search["result"]["positions_A"], dtype=float)
     center = _center_record(

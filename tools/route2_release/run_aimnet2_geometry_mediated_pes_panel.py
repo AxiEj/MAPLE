@@ -2,7 +2,7 @@
 """Capture one disabled AIMNet2 geometry-mediated H/C/N/O PES shard.
 
 The runner is intentionally restricted to the source-bound reconstructed
-float64 AIMNet2 runtime and smooth harmonic point-charge conductor reference.
+float64 AIMNet2 runtime and one registered smooth harmonic continuum scalar.
 Each invocation evaluates exactly one frozen molecule across three geometry
 variants, three internal directions, and three central-difference steps.  It
 writes evidence outside the checkout and cannot admit any public capability.
@@ -24,11 +24,10 @@ if str(REPOSITORY_ROOT) not in sys.path:
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release import (
     AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS,
-    AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION,
-    AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
     PES_PANEL_ASSET_SHA256,
     PES_PANEL_DIRECTIONAL_STEPS_A,
     RepositorySnapshot,
+    aimnet2_geometry_mediated_pes_continuum_contract,
     aimnet2_geometry_mediated_pes_molecule,
     canonical_json_sha256,
     checkpoint_record,
@@ -52,7 +51,6 @@ from aimnet2_geometry_mediated_common import (
 )
 
 RUNTIME_KIND = "reconstructed-python-float64"
-CONTINUUM_KIND = "harmonic-point"
 REQUIRED_SOURCE_PATHS = COMMON_REQUIRED_SOURCE_PATHS + (
     "maple/solvation/release/geometry_mediated_panel.py",
     "maple/solvation/release/pes_panel.py",
@@ -70,6 +68,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--device", choices=("cpu",), default="cpu")
     parser.add_argument(
+        "--continuum",
+        choices=("harmonic-point", "harmonic-ddpcm-water"),
+        default="harmonic-point",
+    )
+    parser.add_argument(
         "--molecule-index",
         type=int,
         required=True,
@@ -77,6 +80,29 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
+
+
+def _claim_boundary(continuum_kind: str) -> str:
+    if continuum_kind == "harmonic-point":
+        return (
+            "This single-molecule H/C/N/O shard recomputes 3 geometry variants "
+            "x 3 internal directions x 3 central-difference steps for the "
+            "explicit R->q_AIMNet2(R) smooth-harmonic conductor-reference scalar. "
+            "It is not the complete 17-molecule panel, a finite-dielectric solvent "
+            "model, fixed-R mutual polarization, chemical-accuracy evidence, a "
+            "global C1 proof, or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
+        )
+    return (
+        "This single-molecule H/C/N/O shard recomputes 3 geometry variants x 3 "
+        "internal directions x 3 central-difference steps for the explicit "
+        "R->q_AIMNet2(R) water-bound frozen-charge finite-dielectric "
+        "harmonic-ddPCM scalar, including its primal/transpose/KKT stationarity "
+        "audit. The source is evaluated once per geometry with no continuum-field "
+        "input and no electronic SCF. It is not the complete 17-molecule panel, "
+        "fixed-R mutual polarization, solvent calibration, "
+        "chemical-accuracy evidence, a global C1/C2 proof, or E/F/H/V/M, OPT, "
+        "FREQ/TS/IRC, or MD admission."
+    )
 
 
 def _center_record(result) -> dict[str, object]:
@@ -158,6 +184,9 @@ def _geometry_measurement(model, continuum, scalar, molecule, variant, atoms):
 
 def main() -> None:
     args = _parse_args()
+    continuum_contract = aimnet2_geometry_mediated_pes_continuum_contract(
+        args.continuum
+    )
     repository = RepositorySnapshot.capture(REPOSITORY_ROOT)
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     verify_route2_checkpoint(checkpoint)
@@ -169,7 +198,7 @@ def main() -> None:
             geometries["reference"],
             checkpoint,
             args.device,
-            CONTINUUM_KIND,
+            args.continuum,
             RUNTIME_KIND,
         )
     )
@@ -187,13 +216,14 @@ def main() -> None:
     summary = summarize_aimnet2_geometry_mediated_pes_shard(
         molecule_index=args.molecule_index,
         records=records,
+        continuum_kind=args.continuum,
     )
     measured = {
-        "contract_version": AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
+        "contract_version": continuum_contract.shard_contract_version,
         "panel_asset_sha256": PES_PANEL_ASSET_SHA256,
         "protocol": {
             "aimnet_runtime": RUNTIME_KIND,
-            "continuum_kind": CONTINUUM_KIND,
+            "continuum_kind": args.continuum,
             "directional_steps_A": list(PES_PANEL_DIRECTIONAL_STEPS_A),
             "continuum": continuum_protocol,
         },
@@ -221,30 +251,20 @@ def main() -> None:
         repository.root,
         required_paths=(
             REQUIRED_SOURCE_PATHS
-            + CONTINUUM_REQUIRED_SOURCE_PATHS[CONTINUUM_KIND]
+            + CONTINUUM_REQUIRED_SOURCE_PATHS[args.continuum]
             + MODEL_RUNTIME_REQUIRED_SOURCE_PATHS[RUNTIME_KIND]
         ),
     )
     source_hashes = committed_source_hashes(repository, source_paths)
     payload: dict[str, object] = {
-        "schema_version": AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION,
-        "artifact_kind": (
-            "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
-            "smooth-harmonic-pes-shard"
-        ),
+        "schema_version": continuum_contract.shard_artifact_schema_version,
+        "artifact_kind": continuum_contract.shard_artifact_kind,
         "status": (
             "diagnostic-gates-passed-not-admitted"
             if summary["diagnostic_gates_passed"]
             else "diagnostic-gates-failed-not-admitted"
         ),
-        "claim_boundary": (
-            "This single-molecule H/C/N/O shard recomputes 3 geometry variants "
-            "x 3 internal directions x 3 central-difference steps for the "
-            "explicit R->q_AIMNet2(R) smooth-harmonic conductor-reference scalar. "
-            "It is not the complete 17-molecule panel, a finite-dielectric solvent "
-            "model, fixed-R mutual polarization, chemical-accuracy evidence, a "
-            "global C1 proof, or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
-        ),
+        "claim_boundary": _claim_boundary(args.continuum),
         "capabilities": NO_CAPABILITIES,
         "exact_command": shlex.join(sys.argv),
         "argv": list(sys.argv),
@@ -259,7 +279,7 @@ def main() -> None:
         "runtime": runtime_record(),
         "device": args.device,
         "aimnet_runtime": RUNTIME_KIND,
-        "continuum_kind": CONTINUUM_KIND,
+        "continuum_kind": args.continuum,
         "dtype": model.dtype,
         **measured,
         "measurement_sha256": canonical_json_sha256(measured),

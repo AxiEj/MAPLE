@@ -120,6 +120,108 @@ def verify_route2_checkpoint(checkpoint: Path) -> None:
         )
 
 
+def geometry_mediated_continuum_protocol(
+    atoms: Atoms, continuum_kind: str
+) -> dict[str, object]:
+    """Return the exact molecule-sized continuum configuration contract."""
+
+    radii = np.asarray(
+        route2_coulomb_radii(
+            atoms.get_chemical_symbols(),
+            solvent="water",
+            profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+        ),
+        dtype=float,
+    ).tolist()
+    if continuum_kind == "ddpcm":
+        return {
+            "model": "ddPCM",
+            "dielectric": float(route2_solvent_spec("water").descriptors.dielectric),
+            "radii_A": radii,
+            "lmax": 7,
+            "n_lebedev": 302,
+            "solver_tolerance": 1.0e-12,
+            "eta": 0.1,
+            "post_solve_residual_available": False,
+        }
+    if continuum_kind == "harmonic-point":
+        return {
+            "model": "smooth-weighted-harmonic-conductor-reference",
+            "finite_dielectric_parameterization": False,
+            "radii_A": radii,
+            "transition_width_A2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+            "point_source_map": "analytic-Laplace-addition-theorem",
+            "post_solve_residual_available": True,
+        }
+    if continuum_kind == "harmonic-ddpcm":
+        return {
+            "model": "smooth-weighted-harmonic-finite-dielectric-ddpcm",
+            "finite_dielectric_parameterization": True,
+            "dielectric": float(route2_solvent_spec("water").descriptors.dielectric),
+            "uniform_cosmo_dielectric_energy_scaling": False,
+            "admission_identity": (
+                "parameterized-diagnostic-only; solvent-bound profile required"
+            ),
+            "radii_A": radii,
+            "transition_width_A2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+            "double_layer_quadrature": (
+                "pair-axis split Gauss-Legendre with exact retained-band "
+                "azimuthal contraction"
+            ),
+            "point_source_map": "analytic-Laplace-addition-theorem",
+            "finite_dielectric_equation": (
+                "R_epsilon Phi_epsilon=R_infinity Phi; S sigma=-Phi_epsilon"
+            ),
+            "provider_field_semantics": (
+                "energy-conjugate source derivative from the transpose/KKT chain; "
+                "not the generally nonsymmetric primal apparent-charge response"
+            ),
+            "post_solve_residual_available": True,
+        }
+    if continuum_kind == "harmonic-ddpcm-water":
+        return {
+            "model": "water-bound-smooth-weighted-harmonic-finite-dielectric-ddpcm",
+            "finite_dielectric_parameterization": True,
+            "solvent": "water",
+            "dielectric": 78.355,
+            "uniform_cosmo_dielectric_energy_scaling": False,
+            "admission_identity": (
+                "water-bound-frozen-charge-candidate; capabilities-none"
+            ),
+            "aimnet2_source_evaluation": "one-shot-per-geometry",
+            "continuum_field_supplied_to_aimnet2": False,
+            "electronic_scf_iteration": False,
+            "radii_A": radii,
+            "transition_width_A2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+            "double_layer_quadrature": (
+                "pair-axis split Gauss-Legendre with exact retained-band "
+                "azimuthal contraction"
+            ),
+            "point_source_map": "analytic-Laplace-addition-theorem",
+            "finite_dielectric_equation": (
+                "R_epsilon Phi_epsilon=R_infinity Phi; S sigma=-Phi_epsilon"
+            ),
+            "provider_field_semantics": (
+                "energy-conjugate source derivative from the transpose/KKT chain; "
+                "never supplied to AIMNet2"
+            ),
+            "post_solve_residual_available": True,
+        }
+    raise ValueError(f"unsupported continuum kind: {continuum_kind}")
+
+
 def build_geometry_mediated_stack(
     atoms: Atoms,
     checkpoint: Path,
@@ -358,6 +460,9 @@ def build_geometry_mediated_stack(
         }
     else:
         raise ValueError(f"unsupported continuum kind: {continuum_kind}")
+    expected_protocol = geometry_mediated_continuum_protocol(atoms, continuum_kind)
+    if protocol != expected_protocol:
+        raise RuntimeError("geometry-mediated continuum protocol drifted.")
     return model, continuum, scalar, protocol, model_runtime
 
 
@@ -395,5 +500,6 @@ __all__ = [
     "build_geometry_mediated_stack",
     "deterministic_replay",
     "geometry_mediated_topologies",
+    "geometry_mediated_continuum_protocol",
     "verify_route2_checkpoint",
 ]

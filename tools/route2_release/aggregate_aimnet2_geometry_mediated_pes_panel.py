@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independently aggregate all AIMNet2 geometry-mediated PES shards.
 
-The verifier accepts only the exact seventeen-source-bound v2 shard artifacts,
+The verifier accepts one exact continuum-specific seventeen-shard contract,
 recomputes every shard and panel decision from raw records, and writes a
 fail-closed aggregate outside the checkout.  A negative aggregate is retained
 as scientific evidence and exits with status 2; it never admits a capability.
@@ -13,7 +13,6 @@ import argparse
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 import json
-import math
 from pathlib import Path
 import shlex
 import sys
@@ -24,13 +23,10 @@ if str(REPOSITORY_ROOT) not in sys.path:
 
 from maple.solvation.release import (
     AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS,
-    AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_ARTIFACT_SCHEMA_VERSION,
-    AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION,
-    AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION,
-    AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
     PES_PANEL_ASSET_SHA256,
     PES_PANEL_DIRECTIONAL_STEPS_A,
     RepositorySnapshot,
+    aimnet2_geometry_mediated_pes_continuum_contract,
     aimnet2_geometry_mediated_pes_molecule,
     canonical_json_sha256,
     collect_loaded_repository_sources,
@@ -45,21 +41,11 @@ from maple.solvation.models.aimnet2 import (
     AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
     AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES,
 )
-from maple.function.calculator.extra_correction.implicit.smd_cds import (
-    route2_coulomb_radii,
+from tools.route2_release.aimnet2_geometry_mediated_common import (
+    geometry_mediated_continuum_protocol,
 )
-from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
 
-SHARD_ARTIFACT_KIND = (
-    "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
-    "smooth-harmonic-pes-shard"
-)
-PANEL_ARTIFACT_KIND = (
-    "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
-    "smooth-harmonic-pes-panel-aggregate"
-)
 RUNTIME_KIND = "reconstructed-python-float64"
-CONTINUUM_KIND = "harmonic-point"
 NO_CAPABILITIES = {tier: False for tier in ("E", "F", "H", "V", "M")}
 _INVARIANT_IDENTITY_KEYS = (
     "scalar_id",
@@ -93,6 +79,11 @@ def _parse_args() -> argparse.Namespace:
         )
     )
     parser.add_argument("--shard", action="append", type=Path, required=True)
+    parser.add_argument(
+        "--continuum",
+        choices=("harmonic-point", "harmonic-ddpcm-water"),
+        default="harmonic-point",
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -141,36 +132,28 @@ def _runtime_signature(payload: Mapping[str, object]) -> str:
     )
 
 
-def _protocol_signature(payload: Mapping[str, object], *, molecule_index: int) -> str:
+def _protocol_signature(
+    payload: Mapping[str, object],
+    *,
+    molecule_index: int,
+    continuum_kind: str,
+) -> str:
     protocol = dict(_mapping(payload.get("protocol"), name="shard protocol"))
     if (
         protocol.get("aimnet_runtime") != RUNTIME_KIND
-        or protocol.get("continuum_kind") != CONTINUUM_KIND
+        or protocol.get("continuum_kind") != continuum_kind
         or tuple(protocol.get("directional_steps_A", ()))
         != PES_PANEL_DIRECTIONAL_STEPS_A
     ):
         raise ValueError("PES shard runtime, continuum, or step protocol changed.")
     continuum = dict(_mapping(protocol.get("continuum"), name="continuum protocol"))
-    radii = _sequence(continuum.pop("radii_A", None), name="continuum radii")
     molecule = aimnet2_geometry_mediated_pes_molecule(molecule_index)
-    expected_radii = tuple(
-        float(value)
-        for value in route2_coulomb_radii(
-            molecule.atoms.get_chemical_symbols(),
-            solvent="water",
-            profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
-        )
+    expected_continuum = geometry_mediated_continuum_protocol(
+        molecule.atoms, continuum_kind
     )
-    try:
-        normalized_radii = tuple(float(value) for value in radii)
-    except (TypeError, ValueError) as exc:
-        raise ValueError("Continuum radii must be finite numeric values.") from exc
-    if (
-        len(normalized_radii) != len(expected_radii)
-        or any(not math.isfinite(value) or value <= 0.0 for value in normalized_radii)
-        or normalized_radii != expected_radii
-    ):
-        raise ValueError("Continuum radii changed from the frozen water profile.")
+    if continuum != expected_continuum:
+        raise ValueError("Continuum protocol changed from the frozen contract.")
+    continuum.pop("radii_A")
     protocol["continuum"] = continuum
     return canonical_json_sha256(protocol)
 
@@ -201,7 +184,12 @@ def _identity_signature(
 
 def _load_shards(
     paths: Sequence[Path],
+    *,
+    continuum_kind: str = "harmonic-point",
 ) -> tuple[_LoadedShard, ...]:
+    continuum_contract = aimnet2_geometry_mediated_pes_continuum_contract(
+        continuum_kind
+    )
     loaded: list[_LoadedShard] = []
     for raw_path in paths:
         path = raw_path.expanduser().resolve(strict=True)
@@ -210,15 +198,15 @@ def _load_shards(
             raise TypeError(f"PES shard artifact must be a mapping: {path}.")
         if (
             payload.get("schema_version")
-            != AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION
-            or payload.get("artifact_kind") != SHARD_ARTIFACT_KIND
+            != continuum_contract.shard_artifact_schema_version
+            or payload.get("artifact_kind") != continuum_contract.shard_artifact_kind
             or payload.get("capabilities") != NO_CAPABILITIES
             or payload.get("working_tree_clean") is not True
             or payload.get("contract_version")
-            != AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION
+            != continuum_contract.shard_contract_version
             or payload.get("panel_asset_sha256") != PES_PANEL_ASSET_SHA256
             or payload.get("aimnet_runtime") != RUNTIME_KIND
-            or payload.get("continuum_kind") != CONTINUUM_KIND
+            or payload.get("continuum_kind") != continuum_kind
             or payload.get("device") != "cpu"
             or payload.get("dtype") != "float64"
         ):
@@ -238,6 +226,7 @@ def _load_shards(
         recomputed = summarize_aimnet2_geometry_mediated_pes_shard(
             molecule_index=raw_index,
             records=normalized_records,
+            continuum_kind=continuum_kind,
         )
         if canonical_json_sha256(cached_summary) != canonical_json_sha256(recomputed):
             raise ValueError(f"PES shard cached summary is not reproducible: {path}.")
@@ -263,6 +252,7 @@ def _load_shards(
                 protocol_signature=_protocol_signature(
                     payload,
                     molecule_index=raw_index,
+                    continuum_kind=continuum_kind,
                 ),
                 identity_signature=_identity_signature(
                     payload,
@@ -305,8 +295,11 @@ def _load_shards(
 
 def main() -> None:
     args = _parse_args()
+    continuum_contract = aimnet2_geometry_mediated_pes_continuum_contract(
+        args.continuum
+    )
     repository = RepositorySnapshot.capture(REPOSITORY_ROOT)
-    shards = _load_shards(args.shard)
+    shards = _load_shards(args.shard, continuum_kind=args.continuum)
     expected_count = len(AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS)
     if len(shards) != expected_count:
         raise ValueError(
@@ -320,7 +313,10 @@ def main() -> None:
         }
         for shard in shards
     ]
-    summary = summarize_aimnet2_geometry_mediated_pes_panel(raw_shards)
+    summary = summarize_aimnet2_geometry_mediated_pes_panel(
+        raw_shards,
+        continuum_kind=args.continuum,
+    )
     first = shards[0].payload
     if repository.head != first.get(
         "execution_git_head"
@@ -354,8 +350,8 @@ def main() -> None:
         for shard in shards
     ]
     payload: dict[str, object] = {
-        "schema_version": (AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_ARTIFACT_SCHEMA_VERSION),
-        "artifact_kind": PANEL_ARTIFACT_KIND,
+        "schema_version": continuum_contract.panel_artifact_schema_version,
+        "artifact_kind": continuum_contract.panel_artifact_kind,
         "status": (
             "diagnostic-panel-passed-not-admitted"
             if summary["diagnostic_gates_passed"]
@@ -363,13 +359,14 @@ def main() -> None:
         ),
         "claim_boundary": (
             "Independent raw-record recomputation of the exact seventeen-shard "
-            "H/C/N/O AIMNet2 geometry-mediated smooth-harmonic conductor panel. "
-            "This is diagnostic domain evidence, not finite-dielectric solvent "
-            "validation, chemical accuracy, fixed-R mutual polarization, global "
-            "C1/C2 proof, or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
+            f"H/C/N/O AIMNet2 geometry-mediated {args.continuum} panel. This is "
+            "diagnostic domain evidence, not solvent calibration, chemical "
+            "accuracy, fixed-R mutual polarization, global C1/C2 proof, or "
+            "E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
         ),
         "capabilities": NO_CAPABILITIES,
-        "contract_version": AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION,
+        "contract_version": continuum_contract.panel_contract_version,
+        "continuum_kind": args.continuum,
         "exact_command": shlex.join(sys.argv),
         "argv": list(sys.argv),
         "execution_git_head": repository.head,

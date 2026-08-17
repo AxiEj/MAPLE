@@ -16,6 +16,7 @@ energy, force, optimizer, Hessian, dynamics, or mutual-polarization capability.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 import math
 
 import numpy as np
@@ -57,6 +58,24 @@ AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_SCHEMA_VERSION = (
 AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_ARTIFACT_SCHEMA_VERSION = (
     "route2-aimnet2-geometry-mediated-pes-panel-aggregate-v2"
 )
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_CONTRACT_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-shard-contract-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-shard-summary-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_ARTIFACT_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-shard-artifact-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_CONTRACT_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-contract-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-summary-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_ARTIFACT_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-aggregate-v1"
+)
 AIMNET2_GEOMETRY_MEDIATED_SUPPORTED_ATOMIC_NUMBERS = (1, 6, 7, 8)
 AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS = (
     "water",
@@ -85,6 +104,90 @@ AIMNET2_GEOMETRY_MEDIATED_PES_EXCLUDED_MOLECULES = {
 AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_ABSOLUTE_TOLERANCE_EV_PER_E = 1.0e-10
 AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE = 1.0e-10
 AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_MAXIMUM_CONDITION_NUMBER = 1.0e12
+
+
+@dataclass(frozen=True, slots=True)
+class AIMNet2GeometryMediatedPESContinuumContract:
+    """Immutable shard/panel identities for one continuum diagnostic."""
+
+    continuum_kind: str
+    shard_contract_version: str
+    shard_summary_schema_version: str
+    shard_artifact_schema_version: str
+    panel_contract_version: str
+    panel_summary_schema_version: str
+    panel_artifact_schema_version: str
+    shard_artifact_kind: str
+    panel_artifact_kind: str
+
+
+_PES_CONTINUUM_CONTRACTS = {
+    "harmonic-point": AIMNet2GeometryMediatedPESContinuumContract(
+        continuum_kind="harmonic-point",
+        shard_contract_version=AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
+        shard_summary_schema_version=AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_SCHEMA_VERSION,
+        shard_artifact_schema_version=(
+            AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_ARTIFACT_SCHEMA_VERSION
+        ),
+        panel_contract_version=AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION,
+        panel_summary_schema_version=AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_SCHEMA_VERSION,
+        panel_artifact_schema_version=(
+            AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_ARTIFACT_SCHEMA_VERSION
+        ),
+        shard_artifact_kind=(
+            "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
+            "smooth-harmonic-pes-shard"
+        ),
+        panel_artifact_kind=(
+            "disabled-aimnet2-reconstructed-float64-geometry-mediated-"
+            "smooth-harmonic-pes-panel-aggregate"
+        ),
+    ),
+    "harmonic-ddpcm-water": AIMNet2GeometryMediatedPESContinuumContract(
+        continuum_kind="harmonic-ddpcm-water",
+        shard_contract_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_CONTRACT_VERSION
+        ),
+        shard_summary_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_SCHEMA_VERSION
+        ),
+        shard_artifact_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_ARTIFACT_SCHEMA_VERSION
+        ),
+        panel_contract_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_CONTRACT_VERSION
+        ),
+        panel_summary_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_SCHEMA_VERSION
+        ),
+        panel_artifact_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_ARTIFACT_SCHEMA_VERSION
+        ),
+        shard_artifact_kind=(
+            "disabled-aimnet2-reconstructed-float64-frozen-charge-water-"
+            "smooth-harmonic-ddpcm-pes-shard"
+        ),
+        panel_artifact_kind=(
+            "disabled-aimnet2-reconstructed-float64-frozen-charge-water-"
+            "smooth-harmonic-ddpcm-pes-panel-aggregate"
+        ),
+    ),
+}
+
+
+def aimnet2_geometry_mediated_pes_continuum_contract(
+    continuum_kind: str,
+) -> AIMNet2GeometryMediatedPESContinuumContract:
+    """Return the exact immutable evidence contract for ``continuum_kind``."""
+
+    try:
+        return _PES_CONTINUUM_CONTRACTS[continuum_kind]
+    except KeyError as exc:
+        choices = ", ".join(sorted(_PES_CONTINUUM_CONTRACTS))
+        raise ValueError(
+            f"unsupported geometry-mediated PES continuum {continuum_kind!r}; "
+            f"expected one of: {choices}."
+        ) from exc
 
 
 def _finite_float(value: object, *, name: str, nonnegative: bool = False) -> float:
@@ -176,7 +279,7 @@ def _replay_summary(record: Mapping[str, object]) -> dict[str, object]:
     }
 
 
-def summarize_aimnet2_geometry_mediated_stationarity(
+def _summarize_harmonic_point_stationarity(
     record: Mapping[str, object],
 ) -> dict[str, object]:
     absolute = _finite_float(
@@ -237,11 +340,305 @@ def summarize_aimnet2_geometry_mediated_stationarity(
     }
 
 
+_DDPCM_RESIDUAL_UNITS = {
+    "vacuum_projection_primal": "eV/e",
+    "dielectric_primal": "eV/e",
+    "single_layer_primal": "eV/e",
+    "single_layer_adjoint": "eV/e",
+    "dielectric_adjoint": "e",
+    "vacuum_projection_adjoint": "e",
+}
+_DDPCM_CONDITION_NAMES = ("mass", "surface", "dielectric")
+_DDPCM_RESPONSE_NONNEGATIVE_FIELDS = (
+    "primal_response_relative_asymmetry",
+    "primal_charge_tangent_relative_asymmetry",
+    "energy_cotangent_relative_asymmetry",
+    "energy_cotangent_charge_tangent_relative_asymmetry",
+    "energy_cotangent_vs_symmetric_primal_relative_error",
+    "kkt_vs_autograd_absolute_source_covector_norm",
+    "kkt_vs_autograd_relative_error",
+    "primal_vs_energy_cotangent_absolute_source_covector_norm",
+    "primal_vs_energy_cotangent_relative_error",
+    "half_coupling_absolute_error_eV",
+    "threshold",
+)
+_DDPCM_RESPONSE_FIELDS = frozenset(
+    {
+        "pairing_metric_id",
+        "operator_representation",
+        "primal_response_used_as_provider_field",
+        "primal_response_is_energy_cotangent",
+        *_DDPCM_RESPONSE_NONNEGATIVE_FIELDS,
+        "scalar_energy_eV",
+        "half_energy_cotangent_pairing_eV",
+        "gate_passed",
+    }
+)
+
+
+def _positive_integer(value: object, *, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
+        raise TypeError(f"{name} must be an integer.")
+    result = int(value)
+    if result < 1:
+        raise ValueError(f"{name} must be positive.")
+    return result
+
+
+def _summarize_ddpcm_residual(
+    record: Mapping[str, object],
+    *,
+    name: str,
+    expected_unit: str,
+) -> dict[str, object]:
+    expected_fields = {
+        "absolute",
+        "right_hand_side_norm",
+        "relative",
+        "scaled",
+        "unit",
+    }
+    if set(record) != expected_fields:
+        raise ValueError(f"ddPCM {name} residual schema changed.")
+    absolute = _finite_float(
+        record.get("absolute"), name=f"ddPCM {name} absolute residual", nonnegative=True
+    )
+    rhs_norm = _finite_float(
+        record.get("right_hand_side_norm"),
+        name=f"ddPCM {name} right-hand-side norm",
+        nonnegative=True,
+    )
+    relative = _finite_float(
+        record.get("relative"),
+        name=f"ddPCM {name} relative residual",
+        nonnegative=True,
+    )
+    scaled = _finite_float(
+        record.get("scaled"),
+        name=f"ddPCM {name} scaled residual",
+        nonnegative=True,
+    )
+    expected_relative = absolute / rhs_norm if rhs_norm > np.finfo(float).tiny else 0.0
+    expected_scaled = absolute / max(rhs_norm, 1.0)
+    if not math.isclose(
+        relative, expected_relative, rel_tol=2.0e-15, abs_tol=2.0e-15
+    ) or not math.isclose(scaled, expected_scaled, rel_tol=2.0e-15, abs_tol=2.0e-15):
+        raise ValueError(f"ddPCM {name} normalized residual is not reproducible.")
+    if record.get("unit") != expected_unit:
+        raise ValueError(f"ddPCM {name} residual unit changed.")
+    return {
+        "absolute": absolute,
+        "right_hand_side_norm": rhs_norm,
+        "relative": relative,
+        "scaled": scaled,
+        "unit": expected_unit,
+    }
+
+
+def _summarize_ddpcm_response_audit(
+    record: Mapping[str, object], *, threshold: float
+) -> dict[str, object]:
+    if set(record) != _DDPCM_RESPONSE_FIELDS:
+        raise ValueError("ddPCM energy-cotangent response-audit schema changed.")
+    pairing_metric_id = record.get("pairing_metric_id")
+    representation = record.get("operator_representation")
+    if not isinstance(pairing_metric_id, str) or not pairing_metric_id:
+        raise ValueError("ddPCM response audit requires a pairing-metric identity.")
+    if not isinstance(representation, str) or not representation:
+        raise ValueError("ddPCM response audit requires an operator representation.")
+    if record.get("primal_response_used_as_provider_field") is not False:
+        raise ValueError("ddPCM primal response must not be the provider field.")
+    primal_is_cotangent = record.get("primal_response_is_energy_cotangent")
+    if not isinstance(primal_is_cotangent, bool):
+        raise TypeError("ddPCM primal/cotangent identity flag must be boolean.")
+    numeric = {
+        name: _finite_float(
+            record.get(name), name=f"ddPCM response metric {name}", nonnegative=True
+        )
+        for name in _DDPCM_RESPONSE_NONNEGATIVE_FIELDS
+    }
+    scalar_energy = _finite_float(
+        record.get("scalar_energy_eV"), name="ddPCM scalar energy"
+    )
+    half_energy = _finite_float(
+        record.get("half_energy_cotangent_pairing_eV"),
+        name="ddPCM half energy-cotangent pairing",
+    )
+    if numeric["threshold"] != threshold:
+        raise ValueError("ddPCM response threshold changed from the shard contract.")
+    expected_half_error = abs(scalar_energy - half_energy)
+    if not math.isclose(
+        numeric["half_coupling_absolute_error_eV"],
+        expected_half_error,
+        rel_tol=2.0e-15,
+        abs_tol=2.0e-15,
+    ):
+        raise ValueError("ddPCM half-coupling error is not reproducible.")
+    gate = (
+        numeric["energy_cotangent_relative_asymmetry"] <= threshold
+        and numeric["energy_cotangent_charge_tangent_relative_asymmetry"] <= threshold
+        and numeric["energy_cotangent_vs_symmetric_primal_relative_error"] <= threshold
+        and numeric["kkt_vs_autograd_relative_error"] <= threshold
+        and expected_half_error
+        <= threshold * max(abs(scalar_energy), abs(half_energy), 1.0)
+    )
+    if record.get("gate_passed") is not gate:
+        raise ValueError("ddPCM energy-cotangent gate disagrees with raw metrics.")
+    return {
+        "pairing_metric_id": pairing_metric_id,
+        "operator_representation": representation,
+        "primal_response_used_as_provider_field": False,
+        "primal_response_is_energy_cotangent": primal_is_cotangent,
+        **numeric,
+        "scalar_energy_eV": scalar_energy,
+        "half_energy_cotangent_pairing_eV": half_energy,
+        "gate_passed": gate,
+    }
+
+
+def _summarize_harmonic_ddpcm_stationarity(
+    record: Mapping[str, object],
+) -> dict[str, object]:
+    if record.get("finite_dielectric_parameterization") is not True:
+        raise ValueError("ddPCM stationarity requires finite dielectric equations.")
+    dielectric = _finite_float(record.get("dielectric"), name="ddPCM dielectric")
+    if dielectric <= 1.0:
+        raise ValueError("ddPCM dielectric must be greater than one.")
+    dimension = _positive_integer(
+        record.get("state_dimension_per_block"),
+        name="ddPCM state dimension per block",
+    )
+    primal_blocks = _positive_integer(
+        record.get("primal_block_count"), name="ddPCM primal block count"
+    )
+    adjoint_blocks = _positive_integer(
+        record.get("adjoint_block_count"), name="ddPCM adjoint block count"
+    )
+    if primal_blocks != 3 or adjoint_blocks != 3:
+        raise ValueError("ddPCM stationarity requires three primal and adjoint blocks.")
+
+    thresholds = _mapping(record.get("thresholds"), name="ddPCM thresholds")
+    expected_thresholds = {
+        "absolute_residual": (
+            AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_ABSOLUTE_TOLERANCE_EV_PER_E
+        ),
+        "relative_residual": (
+            AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE
+        ),
+        "max_rhs_or_one_scaled_residual": (
+            AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE
+        ),
+        "condition_number": (
+            AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_MAXIMUM_CONDITION_NUMBER
+        ),
+        "energy_cotangent_closure": (
+            AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE
+        ),
+    }
+    if set(thresholds) != set(expected_thresholds):
+        raise ValueError("ddPCM stationarity threshold schema changed.")
+    normalized_thresholds = {
+        name: _finite_float(
+            thresholds[name], name=f"ddPCM stationarity threshold {name}"
+        )
+        for name in expected_thresholds
+    }
+    if normalized_thresholds != expected_thresholds:
+        raise ValueError("ddPCM stationarity thresholds changed from the contract.")
+
+    raw_residuals = _mapping(record.get("residuals"), name="ddPCM residuals")
+    if set(raw_residuals) != set(_DDPCM_RESIDUAL_UNITS):
+        raise ValueError("ddPCM primal/adjoint residual coverage changed.")
+    residuals = {
+        name: _summarize_ddpcm_residual(
+            _mapping(raw_residuals[name], name=f"ddPCM {name} residual"),
+            name=name,
+            expected_unit=unit,
+        )
+        for name, unit in _DDPCM_RESIDUAL_UNITS.items()
+    }
+
+    raw_conditions = _mapping(
+        record.get("condition_numbers"), name="ddPCM condition numbers"
+    )
+    if set(raw_conditions) != set(_DDPCM_CONDITION_NAMES):
+        raise ValueError("ddPCM condition-number coverage changed.")
+    conditions = {
+        name: _finite_float(
+            raw_conditions[name],
+            name=f"ddPCM {name} condition number",
+            nonnegative=True,
+        )
+        for name in _DDPCM_CONDITION_NAMES
+    }
+    response = _summarize_ddpcm_response_audit(
+        _mapping(
+            record.get("response_operator_audit"),
+            name="ddPCM response-operator audit",
+        ),
+        threshold=normalized_thresholds["energy_cotangent_closure"],
+    )
+    residual_gate = all(
+        residual["absolute"] <= normalized_thresholds["absolute_residual"]
+        and residual["relative"] <= normalized_thresholds["relative_residual"]
+        and residual["scaled"]
+        <= normalized_thresholds["max_rhs_or_one_scaled_residual"]
+        for residual in residuals.values()
+    )
+    condition_gate = all(
+        value <= normalized_thresholds["condition_number"]
+        for value in conditions.values()
+    )
+    gate = response["gate_passed"] is True and residual_gate and condition_gate
+    if record.get("gate_passed") is not gate:
+        raise ValueError("ddPCM stationarity gate disagrees with raw measurements.")
+    if record.get("capability_admitted") is not False:
+        raise ValueError("ddPCM stationarity diagnostic must not admit capability.")
+    return {
+        "stationarity_kind": "harmonic-ddpcm-primal-adjoint-kkt",
+        "dielectric": dielectric,
+        "state_dimension": dimension,
+        "state_dimension_per_block": dimension,
+        "primal_block_count": primal_blocks,
+        "adjoint_block_count": adjoint_blocks,
+        "maximum_absolute_residual": max(
+            residual["absolute"] for residual in residuals.values()
+        ),
+        "maximum_relative_residual": max(
+            residual["relative"] for residual in residuals.values()
+        ),
+        "maximum_scaled_residual": max(
+            residual["scaled"] for residual in residuals.values()
+        ),
+        "surface_condition_number": conditions["surface"],
+        "maximum_condition_number": max(conditions.values()),
+        "residuals": residuals,
+        "condition_numbers": conditions,
+        "response_operator_audit": response,
+        "gate_passed": gate,
+        "capability_admitted": False,
+    }
+
+
+def summarize_aimnet2_geometry_mediated_stationarity(
+    record: Mapping[str, object],
+    *,
+    continuum_kind: str = "harmonic-point",
+) -> dict[str, object]:
+    """Recompute one continuum's stationary/KKT audit from raw measurements."""
+
+    aimnet2_geometry_mediated_pes_continuum_contract(continuum_kind)
+    if continuum_kind == "harmonic-point":
+        return _summarize_harmonic_point_stationarity(record)
+    return _summarize_harmonic_ddpcm_stationarity(record)
+
+
 def _geometry_record(
     raw: Mapping[str, object],
     *,
     molecule: PESPanelMolecule,
     variant: str,
+    continuum_kind: str,
 ) -> dict[str, object]:
     geometries = panel_geometries(molecule)
     expected_atoms = geometries[variant]
@@ -319,7 +716,8 @@ def _geometry_record(
         _mapping(raw.get("deterministic_replay"), name="deterministic replay")
     )
     stationarity = summarize_aimnet2_geometry_mediated_stationarity(
-        _mapping(raw.get("stationarity"), name="stationarity audit")
+        _mapping(raw.get("stationarity"), name="stationarity audit"),
+        continuum_kind=continuum_kind,
     )
     if stationarity["state_dimension"] != 4 * len(expected_atoms):
         raise ValueError("stationarity dimension changed from surface_lmax=1.")
@@ -444,10 +842,14 @@ def _geometry_record(
 
 
 def summarize_aimnet2_geometry_mediated_pes_shard(
-    *, molecule_index: int, records: Sequence[Mapping[str, object]]
+    *,
+    molecule_index: int,
+    records: Sequence[Mapping[str, object]],
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Validate and summarize one exact H/C/N/O three-geometry shard."""
 
+    contract = aimnet2_geometry_mediated_pes_continuum_contract(continuum_kind)
     molecule = aimnet2_geometry_mediated_pes_molecule(molecule_index)
     values = tuple(records)
     if len(values) != len(PES_PANEL_VARIANT_NAMES):
@@ -458,7 +860,12 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
     if len(by_variant) != len(values) or tuple(by_variant) != PES_PANEL_VARIANT_NAMES:
         raise ValueError("PES shard variant coverage or order is invalid.")
     summaries = [
-        _geometry_record(by_variant[variant], molecule=molecule, variant=variant)
+        _geometry_record(
+            by_variant[variant],
+            molecule=molecule,
+            variant=variant,
+            continuum_kind=continuum_kind,
+        )
         for variant in PES_PANEL_VARIANT_NAMES
     ]
 
@@ -472,13 +879,12 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
     topology_gates = [
         _mapping(audit, name="directional audit")["topology"] for audit in directional
     ]
+    stationarity_summaries = [
+        _mapping(summary["stationarity"], name="stationarity") for summary in summaries
+    ]
     maximum_condition = max(
-        float(
-            _mapping(summary["stationarity"], name="stationarity")[
-                "surface_condition_number"
-            ]
-        )
-        for summary in summaries
+        float(stationarity["surface_condition_number"])
+        for stationarity in stationarity_summaries
     )
     reciprocity_summaries = [
         _mapping(
@@ -540,9 +946,30 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
             for topology in topology_gates
         ),
     }
-    return {
-        "schema_version": AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_SCHEMA_VERSION,
-        "contract_version": AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
+    if continuum_kind == "harmonic-ddpcm-water":
+        gates.update(
+            {
+                "all_energy_cotangent_kkt_audits": all(
+                    _mapping(
+                        stationarity["response_operator_audit"],
+                        name="ddPCM response audit",
+                    ).get("gate_passed")
+                    is True
+                    for stationarity in stationarity_summaries
+                ),
+                "all_primal_responses_excluded_from_provider_field": all(
+                    _mapping(
+                        stationarity["response_operator_audit"],
+                        name="ddPCM response audit",
+                    ).get("primal_response_used_as_provider_field")
+                    is False
+                    for stationarity in stationarity_summaries
+                ),
+            }
+        )
+    result = {
+        "schema_version": contract.shard_summary_schema_version,
+        "contract_version": contract.shard_contract_version,
         "molecule_index": int(molecule_index),
         "molecule_id": molecule.molecule_id,
         "source_record_id": molecule.source_record_id,
@@ -596,13 +1023,66 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
         "freq_ts_irc_admitted": False,
         "md_admitted": False,
     }
+    if continuum_kind == "harmonic-ddpcm-water":
+        response_summaries = [
+            _mapping(
+                stationarity["response_operator_audit"],
+                name="ddPCM response audit",
+            )
+            for stationarity in stationarity_summaries
+        ]
+        result.update(
+            {
+                "continuum_kind": continuum_kind,
+                "maximum_stationarity_condition_number": max(
+                    float(stationarity["maximum_condition_number"])
+                    for stationarity in stationarity_summaries
+                ),
+                "maximum_stationarity_absolute_residual": max(
+                    float(stationarity["maximum_absolute_residual"])
+                    for stationarity in stationarity_summaries
+                ),
+                "maximum_stationarity_relative_residual": max(
+                    float(stationarity["maximum_relative_residual"])
+                    for stationarity in stationarity_summaries
+                ),
+                "maximum_stationarity_scaled_residual": max(
+                    float(stationarity["maximum_scaled_residual"])
+                    for stationarity in stationarity_summaries
+                ),
+                "maximum_energy_cotangent_relative_asymmetry": max(
+                    float(response["energy_cotangent_relative_asymmetry"])
+                    for response in response_summaries
+                ),
+                "maximum_kkt_vs_autograd_relative_error": max(
+                    float(response["kkt_vs_autograd_relative_error"])
+                    for response in response_summaries
+                ),
+                "maximum_half_coupling_absolute_error_eV": max(
+                    float(response["half_coupling_absolute_error_eV"])
+                    for response in response_summaries
+                ),
+                "maximum_primal_response_relative_asymmetry": max(
+                    float(response["primal_response_relative_asymmetry"])
+                    for response in response_summaries
+                ),
+                "maximum_primal_vs_energy_cotangent_relative_error": max(
+                    float(response["primal_vs_energy_cotangent_relative_error"])
+                    for response in response_summaries
+                ),
+            }
+        )
+    return result
 
 
 def summarize_aimnet2_geometry_mediated_pes_panel(
     shards: Sequence[Mapping[str, object]],
+    *,
+    continuum_kind: str = "harmonic-point",
 ) -> dict[str, object]:
     """Recompute and aggregate all seventeen exact H/C/N/O shards."""
 
+    contract = aimnet2_geometry_mediated_pes_continuum_contract(continuum_kind)
     values = tuple(shards)
     expected_count = len(AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS)
     if len(values) != expected_count:
@@ -629,6 +1109,7 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
             summarize_aimnet2_geometry_mediated_pes_shard(
                 molecule_index=expected_index,
                 records=normalized_records,
+                continuum_kind=continuum_kind,
             )
         )
 
@@ -650,9 +1131,9 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
         for summary in summaries
         if summary["diagnostic_gates_passed"] is not True
     ]
-    return {
-        "schema_version": AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_SCHEMA_VERSION,
-        "contract_version": AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION,
+    result = {
+        "schema_version": contract.panel_summary_schema_version,
+        "contract_version": contract.panel_contract_version,
         "molecule_count": len(summaries),
         "molecule_ids": [str(summary["molecule_id"]) for summary in summaries],
         "geometry_count": sum(int(summary["variant_count"]) for summary in summaries),
@@ -714,9 +1195,58 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
         "freq_ts_irc_admitted": False,
         "md_admitted": False,
     }
+    if continuum_kind == "harmonic-ddpcm-water":
+        result.update(
+            {
+                "continuum_kind": continuum_kind,
+                "maximum_stationarity_condition_number": max(
+                    float(summary["maximum_stationarity_condition_number"])
+                    for summary in summaries
+                ),
+                "maximum_stationarity_absolute_residual": max(
+                    float(summary["maximum_stationarity_absolute_residual"])
+                    for summary in summaries
+                ),
+                "maximum_stationarity_relative_residual": max(
+                    float(summary["maximum_stationarity_relative_residual"])
+                    for summary in summaries
+                ),
+                "maximum_stationarity_scaled_residual": max(
+                    float(summary["maximum_stationarity_scaled_residual"])
+                    for summary in summaries
+                ),
+                "maximum_energy_cotangent_relative_asymmetry": max(
+                    float(summary["maximum_energy_cotangent_relative_asymmetry"])
+                    for summary in summaries
+                ),
+                "maximum_kkt_vs_autograd_relative_error": max(
+                    float(summary["maximum_kkt_vs_autograd_relative_error"])
+                    for summary in summaries
+                ),
+                "maximum_half_coupling_absolute_error_eV": max(
+                    float(summary["maximum_half_coupling_absolute_error_eV"])
+                    for summary in summaries
+                ),
+                "maximum_primal_response_relative_asymmetry": max(
+                    float(summary["maximum_primal_response_relative_asymmetry"])
+                    for summary in summaries
+                ),
+                "maximum_primal_vs_energy_cotangent_relative_error": max(
+                    float(summary["maximum_primal_vs_energy_cotangent_relative_error"])
+                    for summary in summaries
+                ),
+            }
+        )
+    return result
 
 
 __all__ = [
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_ARTIFACT_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_CONTRACT_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_ARTIFACT_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_CONTRACT_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_SCHEMA_VERSION",
     "AIMNET2_GEOMETRY_MEDIATED_PES_EXCLUDED_MOLECULES",
     "AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS",
     "AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION",
@@ -729,6 +1259,8 @@ __all__ = [
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_ABSOLUTE_TOLERANCE_EV_PER_E",
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_MAXIMUM_CONDITION_NUMBER",
     "AIMNET2_GEOMETRY_MEDIATED_STATIONARITY_RELATIVE_TOLERANCE",
+    "AIMNet2GeometryMediatedPESContinuumContract",
+    "aimnet2_geometry_mediated_pes_continuum_contract",
     "aimnet2_geometry_mediated_pes_molecule",
     "summarize_aimnet2_geometry_mediated_stationarity",
     "summarize_aimnet2_geometry_mediated_pes_shard",

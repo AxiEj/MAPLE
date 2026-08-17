@@ -9,6 +9,10 @@ import pytest
 
 from artifact_source_binding import assert_source_files_match_execution_commit
 from maple.solvation.release import canonical_json_sha256
+from maple.solvation.release import (
+    aimnet2_geometry_mediated_pes_continuum_contract,
+    summarize_aimnet2_geometry_mediated_stationarity,
+)
 from maple.solvation.release.geometry_mediated import (
     geometry_mediated_admission_decision,
     summarize_geometry_mediated_cartesian_audit,
@@ -282,6 +286,16 @@ def _assert_artifact(artifact: dict[str, object]) -> dict[str, object]:
     assert stationarity["response_operator_audit"][
         "half_coupling_absolute_error_eV"
     ] == pytest.approx(4.440892098500626e-16, rel=0.0, abs=1.0e-30)
+    pes_stationarity = summarize_aimnet2_geometry_mediated_stationarity(
+        stationarity, continuum_kind="harmonic-ddpcm-water"
+    )
+    assert pes_stationarity["stationarity_kind"] == (
+        "harmonic-ddpcm-primal-adjoint-kkt"
+    )
+    assert pes_stationarity["maximum_relative_residual"] == pytest.approx(
+        1.0735508334481661e-15, rel=0.0, abs=1.0e-30
+    )
+    assert pes_stationarity["gate_passed"] is True
 
     decision = recomputed["decision"]
     assert decision["tier_f_prerequisites_passed"] is True
@@ -342,3 +356,14 @@ def test_water_frozen_charge_ddpcm_evidence_file_hashes_are_frozen():
         for line in (EVIDENCE / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
     }
     assert listed == FILE_SHA256
+
+
+def test_water_frozen_charge_pes_contract_is_distinct_and_fail_closed():
+    contract = aimnet2_geometry_mediated_pes_continuum_contract("harmonic-ddpcm-water")
+    assert contract.continuum_kind == "harmonic-ddpcm-water"
+    assert "frozen-charge-water" in contract.shard_contract_version
+    assert "frozen-charge-water" in contract.panel_contract_version
+    assert "frozen-charge-water" in contract.shard_artifact_kind
+    assert "frozen-charge-water" in contract.panel_artifact_kind
+    with pytest.raises(ValueError, match="unsupported geometry-mediated PES"):
+        aimnet2_geometry_mediated_pes_continuum_contract("harmonic-ddpcm")

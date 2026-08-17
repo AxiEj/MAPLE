@@ -308,6 +308,42 @@ def _paired_method_comparison(
     }
 
 
+def _claim_boundary(
+    *,
+    complete_panel: bool,
+    partition_shard: bool,
+    partition: str | None = None,
+) -> str:
+    if complete_panel:
+        return (
+            "This experiment-blind ten-record MNSol pilot is an engineering "
+            "and early chemical diagnostic for a fixed AIMNet2 point-charge "
+            "source with ddPCM or scaled ddCOSMO plus SMD-CDS. One record per "
+            "solvent cannot certify accuracy, solvent generalization, "
+            "MACE-POLAR, C-PCM, COSMO-RS, forces, self-consistent solute "
+            "polarization, or a solution-phase PES."
+        )
+    if partition_shard:
+        if partition not in {"development", "confirmation"}:
+            raise ValueError("Partition shard claim requires its frozen partition.")
+        boundary = (
+            f"One-record bounded MNSol {partition}-partition shard for "
+            "provenance, charge, continuum, energy-ledger, and timing "
+            "inspection only. It cannot be aggregated until the complete "
+            "frozen partition has been evaluated."
+        )
+    else:
+        boundary = (
+            "One-record bounded MNSol pilot smoke for provenance, charge, "
+            "continuum, energy-ledger, and timing inspection only."
+        )
+    return boundary + (
+        " Its derived single-row values remain private under .omx and cannot "
+        "support population accuracy, solvent ranking, generalization, method "
+        "selection, force, or PES claims."
+    )
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, required=True)
@@ -343,7 +379,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     dataset = load_mnsol_v2012(args.source, protocol)
     selection_manifest = json.loads(args.selection.read_text(encoding="utf-8"))
     partition_shard = selection_manifest.get("artifact") == PARTITION_ARTIFACT
+    partition_name = None
     if partition_shard:
+        partition_name = str(selection_manifest.get("partition", ""))
         if args.pilot_selection is None:
             raise ValueError(
                 "Complete MNSol partition selection requires "
@@ -507,33 +545,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if partition_shard
         else ("ten-record-panel" if complete_panel else "single-record-smoke")
     )
-    if complete_panel:
-        claim_boundary = (
-            "This experiment-blind ten-record MNSol pilot is an engineering "
-            "and early chemical diagnostic for a fixed AIMNet2 point-charge "
-            "source with ddPCM or scaled ddCOSMO plus SMD-CDS. One record per "
-            "solvent cannot certify accuracy, solvent generalization, "
-            "MACE-POLAR, C-PCM, COSMO-RS, forces, self-consistent solute "
-            "polarization, or a solution-phase PES."
-        )
-    elif partition_shard:
-        claim_boundary = (
-            "One-record bounded MNSol confirmation-partition shard for "
-            "provenance, charge, continuum, energy-ledger, and timing "
-            "inspection only. It cannot be aggregated until the complete "
-            "frozen partition has been evaluated."
-        )
-    else:
-        claim_boundary = (
-            "One-record bounded MNSol pilot smoke for provenance, charge, "
-            "continuum, energy-ledger, and timing inspection only."
-        )
-    if not complete_panel:
-        claim_boundary += (
-            " Its derived single-row values remain private under .omx and "
-            "cannot support population accuracy, solvent ranking, "
-            "generalization, method selection, force, or PES claims."
-        )
+    claim_boundary = _claim_boundary(
+        complete_panel=complete_panel,
+        partition_shard=partition_shard,
+        partition=partition_name,
+    )
     private_artifact = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,

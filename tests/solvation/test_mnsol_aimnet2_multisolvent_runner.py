@@ -114,3 +114,21 @@ def test_single_record_smoke_forces_both_outputs_below_omx():
         complete_panel=True,
     )
     assert full_paths[1] == (ROOT / "docs/full-summary.json").resolve()
+
+
+def test_partition_shard_claim_names_its_actual_partition():
+    for partition in ("development", "confirmation"):
+        boundary = runner._claim_boundary(
+            complete_panel=False,
+            partition_shard=True,
+            partition=partition,
+        )
+        assert f"MNSol {partition}-partition shard" in boundary
+        assert "remain private under .omx" in boundary
+
+    with pytest.raises(ValueError, match="requires its frozen partition"):
+        runner._claim_boundary(
+            complete_panel=False,
+            partition_shard=True,
+            partition=None,
+        )

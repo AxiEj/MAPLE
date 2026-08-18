@@ -21,7 +21,7 @@ import run_mnsol_aimnet2_smooth_partition_ddpcm as runner  # noqa: E402
 import finalize_mnsol_aimnet2_smooth_partition_ddpcm as finalizer  # noqa: E402
 
 MEASUREMENT_HEAD = "c578fda2b974dd44833b8f0813bd689751f47d4d"
-AGGREGATION_HEAD = "0e84615a6d94f995e288e4e003f6d66e2c094036"
+AGGREGATION_HEAD = "3e10352c5087b45c9d2695f01b906c507b1d111c"
 MEASUREMENT_SHA256 = "27cecc9043804d69ddbed1e7262ec362d5da60a5c24601d08555d8687b391605"
 CHECKPOINT_SHA256 = "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
 

@@ -354,16 +354,80 @@ def _valid_shard(
     task: Mapping[str, Any],
     execution_git_head: str,
 ) -> bool:
-    return bool(
-        isinstance(value, Mapping)
-        and value.get("artifact") == ARTIFACT
-        and value.get("schema_version") == 1
-        and value.get("do_not_commit") is True
-        and value.get("execution_git_head") == execution_git_head
-        and value.get("selection_index") == task["selection_index"]
-        and value.get("task_sha256") == task["task_sha256"]
-        and isinstance(value.get("continuum_energy_ev"), (int, float))
-        and math.isfinite(float(value["continuum_energy_ev"]))
+    if not isinstance(value, Mapping):
+        return False
+    exact_fields = {
+        "artifact": ARTIFACT,
+        "schema_version": 1,
+        "do_not_commit": True,
+        "execution_git_head": execution_git_head,
+        "selection_index": task["selection_index"],
+        "partition_selection_index": task["partition_selection_index"],
+        "task_sha256": task["task_sha256"],
+        "opaque_record_id": task["opaque_record_id"],
+        "partition": task["partition"],
+        "geometry_handle": task["geometry_handle"],
+        "geometry_sha256": task["geometry_sha256"],
+        "canonical_solvent": task["canonical_solvent"],
+        "atom_count": task["atom_count"],
+        "factor_count": task["factor_count"],
+        "required_algebraic_degree": task["required_algebraic_degree"],
+    }
+    if any(value.get(name) != expected for name, expected in exact_fields.items()):
+        return False
+    numeric_fields = (
+        "continuum_energy_ev",
+        "continuum_energy_kcal_mol",
+        "reference_ddpcm_energy_ev",
+        "smooth_minus_reference_ev",
+        "smooth_minus_reference_kcal_mol",
+        "smd_cds_energy_kcal_mol",
+        "experimental_delta_g_kcal_mol",
+        "predicted_delta_g_kcal_mol",
+        "signed_error_kcal_mol",
+        "absolute_error_kcal_mol",
+        "timing_seconds",
+    )
+    if any(
+        isinstance(value.get(name), bool)
+        or not isinstance(value.get(name), (int, float))
+        or not math.isfinite(float(value[name]))
+        for name in numeric_fields
+    ):
+        return False
+    if float(value["timing_seconds"]) < 0.0:
+        return False
+    if any(
+        not isinstance(value.get(name), str)
+        or len(str(value[name])) != 64
+        or any(character not in "0123456789abcdef" for character in str(value[name]))
+        for name in ("configuration_sha256", "provenance_sha256")
+    ):
+        return False
+
+    continuum_ev = float(value["continuum_energy_ev"])
+    continuum_kcal = continuum_ev / HARTREE_TO_EV * HARTREE_TO_KCAL_MOL
+    reference_ev = float(task["reference_ddpcm_energy_hartree"]) * HARTREE_TO_EV
+    parity_ev = continuum_ev - reference_ev
+    parity_kcal = parity_ev / HARTREE_TO_EV * HARTREE_TO_KCAL_MOL
+    smd_cds = float(task["smd_cds_energy_kcal_mol"])
+    experimental = float(task["experimental_delta_g_kcal_mol"])
+    predicted = continuum_kcal + smd_cds
+    signed_error = predicted - experimental
+    expected_numeric = {
+        "continuum_energy_kcal_mol": continuum_kcal,
+        "reference_ddpcm_energy_ev": reference_ev,
+        "smooth_minus_reference_ev": parity_ev,
+        "smooth_minus_reference_kcal_mol": parity_kcal,
+        "smd_cds_energy_kcal_mol": smd_cds,
+        "experimental_delta_g_kcal_mol": experimental,
+        "predicted_delta_g_kcal_mol": predicted,
+        "signed_error_kcal_mol": signed_error,
+        "absolute_error_kcal_mol": abs(signed_error),
+    }
+    return all(
+        math.isclose(float(value[name]), expected, rel_tol=0.0, abs_tol=1.0e-12)
+        for name, expected in expected_numeric.items()
     )
 
 

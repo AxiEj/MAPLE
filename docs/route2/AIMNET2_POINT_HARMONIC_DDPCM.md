@@ -311,6 +311,38 @@ numerics as the current differentiable `harmonic-ddpcm-water` force candidate.
 The aggregate-only evidence is retained under
 [`evidence/aimnet2-frozen-charge-mnsol-pilot-replay-b758aede/`](evidence/aimnet2-frozen-charge-mnsol-pilot-replay-b758aede/README.md).
 
+## Complete 653-record MNSol matrix
+
+The pilot has now been superseded by the complete neutral absolute MNSol-v2012
+matrix inside the frozen Route-2 domain: 653/653 records, 395 unique
+geometries, 505 development records, and 148 confirmation records. No
+experimental value or model output selected, fitted, calibrated, or tempered
+the method. The public aggregate is retained as
+[`route2-mnsol-aimnet2-full-frozen-charge-matrix-v1.json`](../implicit-solvation/benchmarks/route2-mnsol-aimnet2-full-frozen-charge-matrix-v1.json)
+with measurement SHA256
+`10b68d1fbbbc9eede7feefcb64daa2cb7be1bd0ab4a00186586eaf8965361039`.
+
+Across all 653 records, full-resolution `lmax=15`/1202-point pyddx plus
+PySCF SMD-CDS gives:
+
+- ddPCM MAE/RMSE/median/max/MSE of `2.5443`, `3.3020`, `1.9718`,
+  `10.2917`, and `+2.4983 kcal/mol`;
+- separately named scaled ddCOSMO MAE/RMSE/median/max/MSE of `2.4393`,
+  `3.2244`, `1.8466`, `10.1798`, and `+2.3377 kcal/mol`;
+- on the untouched 102-record confirmation subset, ddPCM MAE/RMSE of
+  `2.9075`/`3.6416 kcal/mol` and ddCOSMO MAE/RMSE of
+  `2.7733`/`3.5580 kcal/mol`;
+- on the 387 water records, ddPCM MAE/MSE of
+  `3.3860`/`+3.3836 kcal/mol` and ddCOSMO MAE/MSE of
+  `3.3430`/`+3.3397 kcal/mol`.
+
+The positive signed water errors expose systematic under-solvation by this
+one-shot frozen gas-charge protocol. They must not be hidden by calibrating the
+charges, radii, dielectric, CDS term, or record selection. This matrix measures
+the high-resolution pyddx energy protocol only. It does not validate the
+lower-order smooth harmonic force scalar and does not open E/F/H/V/M, OPT,
+FREQ/TS/IRC, or MD support.
+
 ## Water daily-task diagnostics
 
 Three finite-dielectric, exact-scalar water workflows now pass in two clean

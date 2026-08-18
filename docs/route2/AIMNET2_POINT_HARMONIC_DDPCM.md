@@ -343,6 +343,31 @@ the high-resolution pyddx energy protocol only. It does not validate the
 lower-order smooth harmonic force scalar and does not open E/F/H/V/M, OPT,
 FREQ/TS/IRC, or MD support.
 
+The exact smooth-partition finite-dielectric candidate has now also completed
+all 653 records. It gives MAE/RMSE/median/max/signed bias of `2.5817`, `3.3526`,
+`2.0589`, `10.5343`, and `+2.5426 kcal/mol`; its 148-record confirmation MAE is
+`2.4111 kcal/mol`, and its 387-record water MAE/bias is
+`3.4332/+3.4324 kcal/mol`. Against the same frozen source and SMD-CDS ledger,
+smooth-versus-high-resolution ddPCM has only `0.0619 kcal/mol` MAE and
+`+0.0443 kcal/mol` bias. The dominant accuracy deficit is therefore already
+present in the frozen-source/high-resolution comparator rather than being
+introduced by the smooth discretization. The public aggregate is
+[`route2-mnsol-aimnet2-smooth-partition-ddpcm-full-v1.json`](../implicit-solvation/benchmarks/route2-mnsol-aimnet2-smooth-partition-ddpcm-full-v1.json).
+
+Published AIMNet2 training uses ORCA partial atomic Hirshfeld charges together
+with molecular dipole/quadrupole supervision; the standard checkpoint is a
+gas-phase molecular model and exposes no external field, reaction potential,
+or polarizability input. MAPLE consumes `output['charges']`, performs only a
+tiny exact-total-charge residue cleanup, and embeds `[q,0,0,0]`. Consequently
+the present method must be named a fixed-Hirshfeld-like-point-charge ddPCM
+baseline plus a separate SMD-CDS comparator. It is not original
+density-based self-consistent SMD, and SMD-CDS cannot restore the missing
+solute polarization. Primary sources are the
+[AIMNet2 paper](https://doi.org/10.1039/D4SC08572H),
+[AIMNet2 training archive](https://doi.org/10.1184/R1/27629937.v2),
+[official model guide](https://isayevlab.github.io/aimnetcentral/models/guide/),
+and [original SMD paper](https://doi.org/10.1021/jp810292n).
+
 ## Water daily-task diagnostics
 
 Three finite-dielectric, exact-scalar water workflows now pass in two clean

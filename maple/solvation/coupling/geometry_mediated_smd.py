@@ -1,4 +1,4 @@
-"""Water SMD-CDS companion for the frozen-charge AIMNet2/ddPCM scalar.
+"""SMD-CDS companion for the fixed-charge AIMNet2/ddPCM baseline.
 
 The electronic/continuum part remains the explicit one-shot composition
 
@@ -9,9 +9,12 @@ energy and the analytic coordinate gradient returned with that same energy.
 It never supplies a field to AIMNet2 and introduces no electronic fixed point.
 
 The resulting profile is deliberately disabled.  It closes the missing
-same-ledger nonpolar *implementation* for aqueous force diagnostics; it does
-not establish strict original-SMD electrostatic equivalence, a globally smooth
-PES, chemical accuracy, Hessians, dynamics, or a public capability.
+same-ledger nonpolar *implementation* for force diagnostics.  AIMNet2's
+published charges are gas-phase Hirshfeld-like monopoles, not a continuous
+QM density or a solvent-polarized response; consequently the composite is not
+strict original SMD and cannot inherit SMD accuracy.  It also does not establish
+a globally smooth PES, chemical accuracy, Hessians, dynamics, or a public
+capability.
 """
 
 from __future__ import annotations

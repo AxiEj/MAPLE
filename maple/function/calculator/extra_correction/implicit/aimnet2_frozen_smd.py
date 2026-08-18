@@ -1,4 +1,4 @@
-"""Exact one-shot AIMNet2 frozen-charge aqueous SMD scalar factory.
+"""One-shot AIMNet2 fixed-charge ddPCM plus SMD-CDS comparator factory.
 
 This module binds the source-reconstructed CPU float64 AIMNet2 checkpoint to
 the water harmonic-ddPCM electrostatic candidate and the official PySCF-2.13.1
@@ -6,9 +6,12 @@ SMD-CDS energy/gradient companion.  AIMNet2 is evaluated once per geometry;
 the continuum field is never supplied to the model and there is no electronic
 fixed point.
 
-The factory is intentionally narrower than MAPLE's input routing.  It creates
-the exact scalar and its guarded ASE E/F bridge, but does not by itself make a
-profile publicly selectable.
+The electrostatic term is a fixed-Hirshfeld-like-point-charge continuum
+baseline, not original density-based self-consistent SMD.  ``SMD`` remains in
+the historical Python entry-point names for compatibility and refers only to
+the separately evaluated PySCF SMD-CDS component and solvent parameter table.
+The factory creates the exact composite scalar and its guarded ASE E/F bridge,
+but does not by itself make a profile publicly selectable.
 """
 
 from __future__ import annotations

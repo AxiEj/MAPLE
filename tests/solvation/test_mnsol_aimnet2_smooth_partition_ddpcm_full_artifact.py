@@ -18,6 +18,7 @@ if str(BENCHMARK_DIR) not in sys.path:
 
 from benchmark_core import canonical_json_bytes  # noqa: E402
 import run_mnsol_aimnet2_smooth_partition_ddpcm as runner  # noqa: E402
+import finalize_mnsol_aimnet2_smooth_partition_ddpcm as finalizer  # noqa: E402
 
 MEASUREMENT_HEAD = "c578fda2b974dd44833b8f0813bd689751f47d4d"
 AGGREGATION_HEAD = "0e84615a6d94f995e288e4e003f6d66e2c094036"
@@ -71,12 +72,34 @@ def test_full_smooth_ddpcm_artifact_is_public_safe_commit_bound_and_fail_closed(
         "hessian_admitted": False,
         "profile_enabled": False,
         "reason": (
-            "The complete scalar panel is evidence, not an automatic capability "
-            "transition; force, order-convergence, path, HVP, and workflow gates "
-            "remain separately open."
+            "The complete panel has 2.581704293058602 kcal/mol MAE, "
+            "+2.542606484695728 kcal/mol signed bias, and 3.433153943927792 "
+            "kcal/mol water MAE. Smooth-vs-high-resolution ddPCM parity is only "
+            "0.0618835476444038 kcal/mol MAE, so numerical refinement of this "
+            "smooth operator cannot remove the dominant frozen-source/energy-ledger "
+            "error. Accuracy and E/F/H/V/M therefore remain closed; force, "
+            "order-convergence, path, HVP, and workflow gates are additionally "
+            "separate."
         ),
         "variational_electronic_scf_admitted": False,
     }
+    assert artifact["scientific_identity"] == {
+        "experimental_values_used_for_method_selection": False,
+        "fit_or_calibration": False,
+        "method_label": (
+            "fixed-AIMNet2-Hirshfeld-like-point-charge smooth ddPCM plus a "
+            "separately evaluated PySCF-2.13.1 SMD-CDS comparator"
+        ),
+        "smd_cds_role": (
+            "separate cavity-dispersion-solvent-structure component; it does not "
+            "turn the fixed-point-charge electrostatics into original density-based "
+            "self-consistent SMD"
+        ),
+        "source": finalizer.SOURCE_SEMANTICS,
+    }
+    assert artifact["references"] == finalizer.PRIMARY_REFERENCES
+    assert "not original SMD" in artifact["claim_boundary"]
+    assert "approximately 1 kcal/mol" in artifact["claim_boundary"]
     runner._assert_public_safe(artifact)
 
     measurement = artifact["measurement_provenance"]

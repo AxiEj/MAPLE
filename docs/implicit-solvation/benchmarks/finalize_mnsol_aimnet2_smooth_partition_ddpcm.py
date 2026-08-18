@@ -36,6 +36,37 @@ from maple.solvation.release.evidence import (
 
 FINALIZER_ARTIFACT = "route2-mnsol-aimnet2-smooth-partition-ddpcm-full-v1"
 CAPABILITIES_CLOSED = {"E": False, "F": False, "H": False, "M": False, "V": False}
+SOURCE_SEMANTICS = {
+    "runtime_output_tensor": "output['charges']",
+    "published_charge_supervision": (
+        "ORCA-5.0.3 partial atomic Hirshfeld charges with molecular "
+        "dipole/quadrupole supervision"
+    ),
+    "upstream_total_charge_constraint": "AIMNet2 neural charge equilibration",
+    "maple_charge_cleanup": "uniform-affine floating-residue correction only",
+    "continuum_source_embedding": "point-l0 [q,0,0,0]",
+    "source_interpretation": (
+        "gas-phase geometry-dependent NQE point monopoles; not ESP-fit charges, "
+        "a continuous electron density, solvent-polarized charges, or an "
+        "electronic polarizability"
+    ),
+    "continuum_field_supplied_to_aimnet2": False,
+    "external_potential_or_field_input_available": False,
+    "electronic_scf_iteration": False,
+    "strict_original_smd_equivalence": False,
+}
+PRIMARY_REFERENCES = {
+    "aimnet2_paper": "https://doi.org/10.1039/D4SC08572H",
+    "aimnet2_training_data": "https://doi.org/10.1184/R1/27629937.v2",
+    "aimnet2_model_guide": "https://isayevlab.github.io/aimnetcentral/models/guide/",
+    "aimnet2_architecture": (
+        "https://isayevlab.github.io/aimnetcentral/models/architecture/"
+    ),
+    "aimnet2_calculator_api": (
+        "https://isayevlab.github.io/aimnetcentral/calculator/"
+    ),
+    "smd_paper": "https://doi.org/10.1021/jp810292n",
+}
 REQUIRED_SOURCE_PATHS = (
     "docs/implicit-solvation/benchmarks/finalize_mnsol_aimnet2_smooth_partition_ddpcm.py",
     "docs/implicit-solvation/benchmarks/run_mnsol_aimnet2_smooth_partition_ddpcm.py",
@@ -334,15 +365,38 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "variational_electronic_scf_admitted": False,
                 "profile_enabled": False,
                 "reason": (
-                    "The complete scalar panel is evidence, not an automatic "
-                    "capability transition; force, order-convergence, path, HVP, "
-                    "and workflow gates remain separately open."
+                    "The complete panel has 2.581704293058602 kcal/mol MAE, "
+                    "+2.542606484695728 kcal/mol signed bias, and 3.433153943927792 "
+                    "kcal/mol water MAE. Smooth-vs-high-resolution ddPCM parity "
+                    "is only 0.0618835476444038 kcal/mol MAE, so numerical "
+                    "refinement of this smooth operator cannot remove the dominant "
+                    "frozen-source/energy-ledger error. Accuracy and E/F/H/V/M "
+                    "therefore remain closed; force, order-convergence, path, HVP, "
+                    "and workflow gates are additionally separate."
                 ),
             },
+            "scientific_identity": {
+                "method_label": (
+                    "fixed-AIMNet2-Hirshfeld-like-point-charge smooth ddPCM plus "
+                    "a separately evaluated PySCF-2.13.1 SMD-CDS comparator"
+                ),
+                "source": SOURCE_SEMANTICS,
+                "smd_cds_role": (
+                    "separate cavity-dispersion-solvent-structure component; it "
+                    "does not turn the fixed-point-charge electrostatics into "
+                    "original density-based self-consistent SMD"
+                ),
+                "fit_or_calibration": False,
+                "experimental_values_used_for_method_selection": False,
+            },
+            "references": PRIMARY_REFERENCES,
             "claim_boundary": (
                 str(raw_public["claim_boundary"])
                 + " The finalizer replays all 653 private ledgers and publishes "
-                "only aggregate-safe hashes and statistics; E/F/H/V/M remain false."
+                "only aggregate-safe hashes and statistics. This is a fixed-charge "
+                "continuum baseline, not original SMD or a self-consistent AIMNet2 "
+                "reaction-field model, and it supplies no literature basis for a "
+                "general approximately 1 kcal/mol claim. E/F/H/V/M remain false."
             ),
         }
     )

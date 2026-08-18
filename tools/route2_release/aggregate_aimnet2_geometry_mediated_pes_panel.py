@@ -59,6 +59,11 @@ _INVARIANT_IDENTITY_KEYS = (
     "pairing_sha256",
     "model_runtime",
 )
+_NONPOLAR_IDENTITY_KEYS = (
+    "nonpolar_provider_id",
+    "nonpolar_profile_id",
+    "nonpolar_configuration_sha256",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +88,11 @@ def _parse_args() -> argparse.Namespace:
         "--continuum",
         choices=("harmonic-point", "harmonic-ddpcm-water"),
         default="harmonic-point",
+    )
+    parser.add_argument(
+        "--nonpolar",
+        choices=("none", "pyscf-smd-cds-water"),
+        default="none",
     )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
@@ -137,11 +147,13 @@ def _protocol_signature(
     *,
     molecule_index: int,
     continuum_kind: str,
+    nonpolar_kind: str,
 ) -> str:
     protocol = dict(_mapping(payload.get("protocol"), name="shard protocol"))
     if (
         protocol.get("aimnet_runtime") != RUNTIME_KIND
         or protocol.get("continuum_kind") != continuum_kind
+        or protocol.get("nonpolar_kind", "none") != nonpolar_kind
         or tuple(protocol.get("directional_steps_A", ()))
         != PES_PANEL_DIRECTIONAL_STEPS_A
     ):
@@ -159,10 +171,16 @@ def _protocol_signature(
 
 
 def _identity_signature(
-    payload: Mapping[str, object], *, records: Sequence[Mapping[str, object]]
+    payload: Mapping[str, object],
+    *,
+    records: Sequence[Mapping[str, object]],
+    nonpolar_kind: str,
 ) -> str:
     identity = _mapping(payload.get("identity"), name="shard identity")
-    if any(key not in identity for key in _INVARIANT_IDENTITY_KEYS):
+    identity_keys = _INVARIANT_IDENTITY_KEYS + (
+        _NONPOLAR_IDENTITY_KEYS if nonpolar_kind != "none" else ()
+    )
+    if any(key not in identity for key in identity_keys):
         raise ValueError("PES shard identity is incomplete.")
     model_configuration = identity.get("model_configuration_sha256")
     continuum_configuration = identity.get("continuum_configuration_sha256")
@@ -177,18 +195,17 @@ def _identity_signature(
             raise ValueError("Model identity and topology configuration disagree.")
         if continuum_topology.get("configuration_sha256") != continuum_configuration:
             raise ValueError("Continuum identity and topology configuration disagree.")
-    return canonical_json_sha256(
-        {key: identity[key] for key in _INVARIANT_IDENTITY_KEYS}
-    )
+    return canonical_json_sha256({key: identity[key] for key in identity_keys})
 
 
 def _load_shards(
     paths: Sequence[Path],
     *,
     continuum_kind: str = "harmonic-point",
+    nonpolar_kind: str = "none",
 ) -> tuple[_LoadedShard, ...]:
     continuum_contract = aimnet2_geometry_mediated_pes_continuum_contract(
-        continuum_kind
+        continuum_kind, nonpolar_kind=nonpolar_kind
     )
     loaded: list[_LoadedShard] = []
     for raw_path in paths:
@@ -207,6 +224,7 @@ def _load_shards(
             or payload.get("panel_asset_sha256") != PES_PANEL_ASSET_SHA256
             or payload.get("aimnet_runtime") != RUNTIME_KIND
             or payload.get("continuum_kind") != continuum_kind
+            or payload.get("nonpolar_kind", "none") != nonpolar_kind
             or payload.get("device") != "cpu"
             or payload.get("dtype") != "float64"
         ):
@@ -227,6 +245,7 @@ def _load_shards(
             molecule_index=raw_index,
             records=normalized_records,
             continuum_kind=continuum_kind,
+            nonpolar_kind=nonpolar_kind,
         )
         if canonical_json_sha256(cached_summary) != canonical_json_sha256(recomputed):
             raise ValueError(f"PES shard cached summary is not reproducible: {path}.")
@@ -253,10 +272,12 @@ def _load_shards(
                     payload,
                     molecule_index=raw_index,
                     continuum_kind=continuum_kind,
+                    nonpolar_kind=nonpolar_kind,
                 ),
                 identity_signature=_identity_signature(
                     payload,
                     records=normalized_records,
+                    nonpolar_kind=nonpolar_kind,
                 ),
                 source_hash_signature=canonical_json_sha256(
                     payload.get("source_files_sha256")
@@ -296,10 +317,14 @@ def _load_shards(
 def main() -> None:
     args = _parse_args()
     continuum_contract = aimnet2_geometry_mediated_pes_continuum_contract(
-        args.continuum
+        args.continuum, nonpolar_kind=args.nonpolar
     )
     repository = RepositorySnapshot.capture(REPOSITORY_ROOT)
-    shards = _load_shards(args.shard, continuum_kind=args.continuum)
+    shards = _load_shards(
+        args.shard,
+        continuum_kind=args.continuum,
+        nonpolar_kind=args.nonpolar,
+    )
     expected_count = len(AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS)
     if len(shards) != expected_count:
         raise ValueError(
@@ -316,6 +341,7 @@ def main() -> None:
     summary = summarize_aimnet2_geometry_mediated_pes_panel(
         raw_shards,
         continuum_kind=args.continuum,
+        nonpolar_kind=args.nonpolar,
     )
     first = shards[0].payload
     if repository.head != first.get(
@@ -381,6 +407,8 @@ def main() -> None:
         "aggregate_measurement_sha256": canonical_json_sha256(raw_shards),
         "panel_summary": summary,
     }
+    if args.nonpolar != "none":
+        payload["nonpolar_kind"] = args.nonpolar
     repository.assert_unchanged()
     artifact = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
@@ -392,6 +420,7 @@ def main() -> None:
                 "status": payload["status"],
                 "diagnostic_gates_passed": summary["diagnostic_gates_passed"],
                 "failed_molecule_ids": summary["failed_molecule_ids"],
+                "nonpolar_kind": args.nonpolar,
                 "capabilities": NO_CAPABILITIES,
             },
             sort_keys=True,

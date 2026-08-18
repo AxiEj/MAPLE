@@ -43,6 +43,7 @@ from aimnet2_geometry_mediated_common import (
     COMMON_REQUIRED_SOURCE_PATHS,
     CONTINUUM_REQUIRED_SOURCE_PATHS,
     MODEL_RUNTIME_REQUIRED_SOURCE_PATHS,
+    NONPOLAR_REQUIRED_SOURCE_PATHS,
     NO_CAPABILITIES,
     build_geometry_mediated_stack,
     deterministic_replay,
@@ -73,6 +74,11 @@ def _parse_args() -> argparse.Namespace:
         default="harmonic-point",
     )
     parser.add_argument(
+        "--nonpolar",
+        choices=("none", "pyscf-smd-cds-water"),
+        default="none",
+    )
+    parser.add_argument(
         "--molecule-index",
         type=int,
         required=True,
@@ -82,7 +88,7 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _claim_boundary(continuum_kind: str) -> str:
+def _claim_boundary(continuum_kind: str, nonpolar_kind: str) -> str:
     if continuum_kind == "harmonic-point":
         return (
             "This single-molecule H/C/N/O shard recomputes 3 geometry variants "
@@ -92,13 +98,27 @@ def _claim_boundary(continuum_kind: str) -> str:
             "model, fixed-R mutual polarization, chemical-accuracy evidence, a "
             "global C1 proof, or E/F/H/V/M, OPT, FREQ/TS/IRC, or MD admission."
         )
+    if nonpolar_kind == "none":
+        return (
+            "This single-molecule H/C/N/O shard recomputes 3 geometry variants x 3 "
+            "internal directions x 3 central-difference steps for the explicit "
+            "R->q_AIMNet2(R) water-bound frozen-charge finite-dielectric "
+            "harmonic-ddPCM scalar, including its primal/transpose/KKT stationarity "
+            "audit. The source is evaluated once per geometry with no continuum-field "
+            "input and no electronic SCF. It is not the complete 17-molecule panel, "
+            "fixed-R mutual polarization, solvent calibration, "
+            "chemical-accuracy evidence, a global C1/C2 proof, or E/F/H/V/M, OPT, "
+            "FREQ/TS/IRC, or MD admission."
+        )
     return (
         "This single-molecule H/C/N/O shard recomputes 3 geometry variants x 3 "
         "internal directions x 3 central-difference steps for the explicit "
         "R->q_AIMNet2(R) water-bound frozen-charge finite-dielectric "
-        "harmonic-ddPCM scalar, including its primal/transpose/KKT stationarity "
-        "audit. The source is evaluated once per geometry with no continuum-field "
-        "input and no electronic SCF. It is not the complete 17-molecule panel, "
+        "harmonic-ddPCM plus PySCF-2.13.1 SMD-CDS total scalar, including the "
+        "electrostatic primal/transpose/KKT stationarity audit and the exact analytic "
+        "nonpolar gradient in the same ledger. The source is evaluated once per "
+        "geometry with no continuum-field input and no electronic SCF. It is not "
+        "the complete 17-molecule panel, "
         "fixed-R mutual polarization, solvent calibration, "
         "chemical-accuracy evidence, a global C1/C2 proof, or E/F/H/V/M, OPT, "
         "FREQ/TS/IRC, or MD admission."
@@ -106,7 +126,7 @@ def _claim_boundary(continuum_kind: str) -> str:
 
 
 def _center_record(result) -> dict[str, object]:
-    return {
+    record = {
         "vacuum_energy_eV": result.energy.vacuum_energy_eV,
         "continuum_energy_eV": result.energy.continuum_energy_eV,
         "total_energy_eV": result.energy.total_energy_eV,
@@ -122,6 +142,24 @@ def _center_record(result) -> dict[str, object]:
             "source_response": result.source_response_gradient_eV_per_A.tolist(),
         },
     }
+    if hasattr(result.energy, "nonpolar_energy_eV"):
+        record.update(
+            {
+                "nonpolar_energy_eV": result.energy.nonpolar_energy_eV,
+                "nonpolar_gradient_eV_per_A": (
+                    result.nonpolar_gradient_eV_per_A.tolist()
+                ),
+            }
+        )
+        record["gradient_components_eV_per_A"].update(
+            {
+                "electrostatic_total": (
+                    result.electrostatic_total_gradient_eV_per_A.tolist()
+                ),
+                "nonpolar": result.nonpolar_gradient_eV_per_A.tolist(),
+            }
+        )
+    return record
 
 
 def _geometry_measurement(model, continuum, scalar, molecule, variant, atoms):
@@ -185,7 +223,7 @@ def _geometry_measurement(model, continuum, scalar, molecule, variant, atoms):
 def main() -> None:
     args = _parse_args()
     continuum_contract = aimnet2_geometry_mediated_pes_continuum_contract(
-        args.continuum
+        args.continuum, nonpolar_kind=args.nonpolar
     )
     repository = RepositorySnapshot.capture(REPOSITORY_ROOT)
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
@@ -200,6 +238,7 @@ def main() -> None:
             args.device,
             args.continuum,
             RUNTIME_KIND,
+            args.nonpolar,
         )
     )
     records = [
@@ -217,31 +256,46 @@ def main() -> None:
         molecule_index=args.molecule_index,
         records=records,
         continuum_kind=args.continuum,
+        nonpolar_kind=args.nonpolar,
     )
+    identity = {
+        "scalar_id": scalar.scalar_id,
+        "profile_id": scalar.profile_id,
+        "scalar_fingerprint_sha256": scalar.fingerprint_sha256(),
+        "model_provider_id": model.provider_id,
+        "model_configuration_sha256": model.configuration_sha256(),
+        "model_provenance_sha256": model.provenance_sha256,
+        "continuum_provider_id": continuum.provider_id,
+        "continuum_configuration_sha256": continuum.configuration_sha256(),
+        "continuum_provenance_sha256": continuum.provenance_sha256,
+        "source_space_sha256": model.source_space.metadata_hash(),
+        "field_space_sha256": model.field_space.metadata_hash(),
+        "pairing_sha256": continuum.pairing.metadata_hash(),
+        "model_runtime": model_runtime,
+    }
+    if args.nonpolar != "none":
+        identity.update(
+            {
+                "nonpolar_provider_id": scalar.nonpolar.provider_id,
+                "nonpolar_profile_id": scalar.nonpolar.nonpolar_profile_id,
+                "nonpolar_configuration_sha256": (
+                    scalar.nonpolar.configuration_sha256()
+                ),
+            }
+        )
+    protocol = {
+        "aimnet_runtime": RUNTIME_KIND,
+        "continuum_kind": args.continuum,
+        "directional_steps_A": list(PES_PANEL_DIRECTIONAL_STEPS_A),
+        "continuum": continuum_protocol,
+    }
+    if args.nonpolar != "none":
+        protocol["nonpolar_kind"] = args.nonpolar
     measured = {
         "contract_version": continuum_contract.shard_contract_version,
         "panel_asset_sha256": PES_PANEL_ASSET_SHA256,
-        "protocol": {
-            "aimnet_runtime": RUNTIME_KIND,
-            "continuum_kind": args.continuum,
-            "directional_steps_A": list(PES_PANEL_DIRECTIONAL_STEPS_A),
-            "continuum": continuum_protocol,
-        },
-        "identity": {
-            "scalar_id": scalar.scalar_id,
-            "profile_id": scalar.profile_id,
-            "scalar_fingerprint_sha256": scalar.fingerprint_sha256(),
-            "model_provider_id": model.provider_id,
-            "model_configuration_sha256": model.configuration_sha256(),
-            "model_provenance_sha256": model.provenance_sha256,
-            "continuum_provider_id": continuum.provider_id,
-            "continuum_configuration_sha256": continuum.configuration_sha256(),
-            "continuum_provenance_sha256": continuum.provenance_sha256,
-            "source_space_sha256": model.source_space.metadata_hash(),
-            "field_space_sha256": model.field_space.metadata_hash(),
-            "pairing_sha256": continuum.pairing.metadata_hash(),
-            "model_runtime": model_runtime,
-        },
+        "protocol": protocol,
+        "identity": identity,
         "records": records,
         "summary": summary,
     }
@@ -253,6 +307,7 @@ def main() -> None:
             REQUIRED_SOURCE_PATHS
             + CONTINUUM_REQUIRED_SOURCE_PATHS[args.continuum]
             + MODEL_RUNTIME_REQUIRED_SOURCE_PATHS[RUNTIME_KIND]
+            + NONPOLAR_REQUIRED_SOURCE_PATHS[args.nonpolar]
         ),
     )
     source_hashes = committed_source_hashes(repository, source_paths)
@@ -264,7 +319,7 @@ def main() -> None:
             if summary["diagnostic_gates_passed"]
             else "diagnostic-gates-failed-not-admitted"
         ),
-        "claim_boundary": _claim_boundary(args.continuum),
+        "claim_boundary": _claim_boundary(args.continuum, args.nonpolar),
         "capabilities": NO_CAPABILITIES,
         "exact_command": shlex.join(sys.argv),
         "argv": list(sys.argv),
@@ -285,6 +340,8 @@ def main() -> None:
         "measurement_sha256": canonical_json_sha256(measured),
         "runtime_seconds": time.perf_counter() - started,
     }
+    if args.nonpolar != "none":
+        payload["nonpolar_kind"] = args.nonpolar
     repository.assert_unchanged()
     artifact = write_external_json_artifact(repository, args.output, payload)
     repository.assert_unchanged()
@@ -297,6 +354,7 @@ def main() -> None:
                 "status": payload["status"],
                 "molecule_index": args.molecule_index,
                 "molecule_id": molecule.molecule_id,
+                "nonpolar_kind": args.nonpolar,
                 "diagnostic_gates_passed": summary["diagnostic_gates_passed"],
                 "gates": summary["gates"],
                 "maximum_directional_absolute_error_eV_per_A": summary[

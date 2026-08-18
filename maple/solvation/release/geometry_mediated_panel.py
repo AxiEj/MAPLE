@@ -76,6 +76,24 @@ AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_SCHEMA_VERSION = (
 AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_PANEL_ARTIFACT_SCHEMA_VERSION = (
     "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-pes-panel-aggregate-v1"
 )
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_CONTRACT_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-shard-contract-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-shard-summary-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_ARTIFACT_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-shard-artifact-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_CONTRACT_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-panel-contract-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-panel-summary-v1"
+)
+AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_ARTIFACT_SCHEMA_VERSION = (
+    "route2-aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-panel-aggregate-v1"
+)
 AIMNET2_GEOMETRY_MEDIATED_SUPPORTED_ATOMIC_NUMBERS = (1, 6, 7, 8)
 AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS = (
     "water",
@@ -111,6 +129,7 @@ class AIMNet2GeometryMediatedPESContinuumContract:
     """Immutable shard/panel identities for one continuum diagnostic."""
 
     continuum_kind: str
+    nonpolar_kind: str
     shard_contract_version: str
     shard_summary_schema_version: str
     shard_artifact_schema_version: str
@@ -122,8 +141,9 @@ class AIMNet2GeometryMediatedPESContinuumContract:
 
 
 _PES_CONTINUUM_CONTRACTS = {
-    "harmonic-point": AIMNet2GeometryMediatedPESContinuumContract(
+    ("harmonic-point", "none"): AIMNet2GeometryMediatedPESContinuumContract(
         continuum_kind="harmonic-point",
+        nonpolar_kind="none",
         shard_contract_version=AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
         shard_summary_schema_version=AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_SCHEMA_VERSION,
         shard_artifact_schema_version=(
@@ -143,8 +163,9 @@ _PES_CONTINUUM_CONTRACTS = {
             "smooth-harmonic-pes-panel-aggregate"
         ),
     ),
-    "harmonic-ddpcm-water": AIMNet2GeometryMediatedPESContinuumContract(
+    ("harmonic-ddpcm-water", "none"): AIMNet2GeometryMediatedPESContinuumContract(
         continuum_kind="harmonic-ddpcm-water",
+        nonpolar_kind="none",
         shard_contract_version=(
             AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_CONTRACT_VERSION
         ),
@@ -172,20 +193,59 @@ _PES_CONTINUUM_CONTRACTS = {
             "smooth-harmonic-ddpcm-pes-panel-aggregate"
         ),
     ),
+    (
+        "harmonic-ddpcm-water",
+        "pyscf-smd-cds-water",
+    ): AIMNet2GeometryMediatedPESContinuumContract(
+        continuum_kind="harmonic-ddpcm-water",
+        nonpolar_kind="pyscf-smd-cds-water",
+        shard_contract_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_CONTRACT_VERSION
+        ),
+        shard_summary_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_SCHEMA_VERSION
+        ),
+        shard_artifact_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_ARTIFACT_SCHEMA_VERSION
+        ),
+        panel_contract_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_CONTRACT_VERSION
+        ),
+        panel_summary_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_SCHEMA_VERSION
+        ),
+        panel_artifact_schema_version=(
+            AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_ARTIFACT_SCHEMA_VERSION
+        ),
+        shard_artifact_kind=(
+            "disabled-aimnet2-reconstructed-float64-frozen-charge-water-"
+            "smooth-harmonic-ddpcm-pyscf-smdcds-pes-shard"
+        ),
+        panel_artifact_kind=(
+            "disabled-aimnet2-reconstructed-float64-frozen-charge-water-"
+            "smooth-harmonic-ddpcm-pyscf-smdcds-pes-panel-aggregate"
+        ),
+    ),
 }
 
 
 def aimnet2_geometry_mediated_pes_continuum_contract(
     continuum_kind: str,
+    *,
+    nonpolar_kind: str = "none",
 ) -> AIMNet2GeometryMediatedPESContinuumContract:
-    """Return the exact immutable evidence contract for ``continuum_kind``."""
+    """Return the exact immutable evidence contract for one total scalar."""
 
     try:
-        return _PES_CONTINUUM_CONTRACTS[continuum_kind]
+        return _PES_CONTINUUM_CONTRACTS[(continuum_kind, nonpolar_kind)]
     except KeyError as exc:
-        choices = ", ".join(sorted(_PES_CONTINUUM_CONTRACTS))
+        choices = ", ".join(
+            f"{continuum}+{nonpolar}"
+            for continuum, nonpolar in sorted(_PES_CONTINUUM_CONTRACTS)
+        )
         raise ValueError(
-            f"unsupported geometry-mediated PES continuum {continuum_kind!r}; "
+            "unsupported geometry-mediated PES scalar "
+            f"{continuum_kind!r}+{nonpolar_kind!r}; "
             f"expected one of: {choices}."
         ) from exc
 
@@ -193,7 +253,10 @@ def aimnet2_geometry_mediated_pes_continuum_contract(
 def _finite_float(value: object, *, name: str, nonnegative: bool = False) -> float:
     if isinstance(value, bool):
         raise TypeError(f"{name} must be numeric.")
-    result = float(value)
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as exc:
+        raise TypeError(f"{name} must be numeric.") from exc
     if not math.isfinite(result) or (nonnegative and result < 0.0):
         qualifier = "finite and non-negative" if nonnegative else "finite"
         raise ValueError(f"{name} must be {qualifier}.")
@@ -639,6 +702,7 @@ def _geometry_record(
     molecule: PESPanelMolecule,
     variant: str,
     continuum_kind: str,
+    nonpolar_kind: str,
 ) -> dict[str, object]:
     geometries = panel_geometries(molecule)
     expected_atoms = geometries[variant]
@@ -668,9 +732,14 @@ def _geometry_record(
     continuum_energy = _finite_float(
         center.get("continuum_energy_eV"), name="center continuum energy"
     )
+    nonpolar_energy = 0.0
+    if nonpolar_kind == "pyscf-smd-cds-water":
+        nonpolar_energy = _finite_float(
+            center.get("nonpolar_energy_eV"), name="center nonpolar energy"
+        )
     if not math.isclose(
         energy,
-        vacuum_energy + continuum_energy,
+        vacuum_energy + continuum_energy + nonpolar_energy,
         rel_tol=0.0,
         abs_tol=1.0e-12,
     ):
@@ -692,6 +761,59 @@ def _geometry_record(
         raise ValueError("center force/source/reaction-field arrays are invalid.")
     if not np.array_equal(forces, -gradient):
         raise ValueError("center force is not the exact negative scalar gradient.")
+    nonpolar_gradient = None
+    if nonpolar_kind == "pyscf-smd-cds-water":
+        nonpolar_gradient = np.asarray(
+            center.get("nonpolar_gradient_eV_per_A"), dtype=float
+        )
+        components = _mapping(
+            center.get("gradient_components_eV_per_A"),
+            name="center gradient components",
+        )
+        expected_component_names = {
+            "intrinsic",
+            "continuum_fixed_source",
+            "source_response",
+            "electrostatic_total",
+            "nonpolar",
+        }
+        if set(components) != expected_component_names:
+            raise ValueError("center total-SMD gradient component ledger changed.")
+        component_arrays = {
+            name: np.asarray(components[name], dtype=float)
+            for name in expected_component_names
+        }
+        if any(
+            values.shape != gradient.shape or not np.all(np.isfinite(values))
+            for values in component_arrays.values()
+        ) or (
+            nonpolar_gradient.shape != gradient.shape
+            or not np.all(np.isfinite(nonpolar_gradient))
+        ):
+            raise ValueError(
+                "center total-SMD gradient components must be finite with shape (N,3)."
+            )
+        electrostatic_expected = (
+            component_arrays["intrinsic"]
+            + component_arrays["continuum_fixed_source"]
+            + component_arrays["source_response"]
+        )
+        if (
+            not np.allclose(
+                component_arrays["electrostatic_total"],
+                electrostatic_expected,
+                rtol=0.0,
+                atol=2.0e-10,
+            )
+            or not np.array_equal(component_arrays["nonpolar"], nonpolar_gradient)
+            or not np.allclose(
+                gradient,
+                component_arrays["electrostatic_total"] + nonpolar_gradient,
+                rtol=0.0,
+                atol=2.0e-10,
+            )
+        ):
+            raise ValueError("center total-SMD gradient ledger does not close.")
     if not np.array_equal(
         source[:, 1:], np.zeros_like(source[:, 1:])
     ) or not math.isclose(
@@ -822,7 +944,7 @@ def _geometry_record(
         and reciprocity_gate
         and directional_gate
     )
-    return {
+    result = {
         "molecule_id": molecule.molecule_id,
         "variant": variant,
         "geometry_sha256": geometry_sha256(expected_atoms),
@@ -839,6 +961,15 @@ def _geometry_record(
         "minimum_sphere_tangency_margin_A": min(sphere_tangency_margins),
         "gate_passed": gate,
     }
+    if nonpolar_kind == "pyscf-smd-cds-water":
+        result.update(
+            {
+                "nonpolar_kind": nonpolar_kind,
+                "nonpolar_energy_eV": nonpolar_energy,
+                "nonpolar_gradient_eV_per_A": nonpolar_gradient.tolist(),
+            }
+        )
+    return result
 
 
 def summarize_aimnet2_geometry_mediated_pes_shard(
@@ -846,10 +977,13 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
     molecule_index: int,
     records: Sequence[Mapping[str, object]],
     continuum_kind: str = "harmonic-point",
+    nonpolar_kind: str = "none",
 ) -> dict[str, object]:
     """Validate and summarize one exact H/C/N/O three-geometry shard."""
 
-    contract = aimnet2_geometry_mediated_pes_continuum_contract(continuum_kind)
+    contract = aimnet2_geometry_mediated_pes_continuum_contract(
+        continuum_kind, nonpolar_kind=nonpolar_kind
+    )
     molecule = aimnet2_geometry_mediated_pes_molecule(molecule_index)
     values = tuple(records)
     if len(values) != len(PES_PANEL_VARIANT_NAMES):
@@ -865,6 +999,7 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
             molecule=molecule,
             variant=variant,
             continuum_kind=continuum_kind,
+            nonpolar_kind=nonpolar_kind,
         )
         for variant in PES_PANEL_VARIANT_NAMES
     ]
@@ -1072,6 +1207,8 @@ def summarize_aimnet2_geometry_mediated_pes_shard(
                 ),
             }
         )
+    if nonpolar_kind != "none":
+        result["nonpolar_kind"] = nonpolar_kind
     return result
 
 
@@ -1079,10 +1216,13 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
     shards: Sequence[Mapping[str, object]],
     *,
     continuum_kind: str = "harmonic-point",
+    nonpolar_kind: str = "none",
 ) -> dict[str, object]:
     """Recompute and aggregate all seventeen exact H/C/N/O shards."""
 
-    contract = aimnet2_geometry_mediated_pes_continuum_contract(continuum_kind)
+    contract = aimnet2_geometry_mediated_pes_continuum_contract(
+        continuum_kind, nonpolar_kind=nonpolar_kind
+    )
     values = tuple(shards)
     expected_count = len(AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS)
     if len(values) != expected_count:
@@ -1110,6 +1250,7 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
                 molecule_index=expected_index,
                 records=normalized_records,
                 continuum_kind=continuum_kind,
+                nonpolar_kind=nonpolar_kind,
             )
         )
 
@@ -1237,6 +1378,8 @@ def summarize_aimnet2_geometry_mediated_pes_panel(
                 ),
             }
         )
+    if nonpolar_kind != "none":
+        result["nonpolar_kind"] = nonpolar_kind
     return result
 
 
@@ -1247,6 +1390,12 @@ __all__ = [
     "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_ARTIFACT_SCHEMA_VERSION",
     "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_CONTRACT_VERSION",
     "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_PES_SHARD_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_ARTIFACT_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_CONTRACT_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_PANEL_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_ARTIFACT_SCHEMA_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_CONTRACT_VERSION",
+    "AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_SCHEMA_VERSION",
     "AIMNET2_GEOMETRY_MEDIATED_PES_EXCLUDED_MOLECULES",
     "AIMNET2_GEOMETRY_MEDIATED_PES_MOLECULE_IDS",
     "AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION",

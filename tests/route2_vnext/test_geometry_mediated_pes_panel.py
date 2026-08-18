@@ -7,7 +7,10 @@ import json
 import numpy as np
 import pytest
 
-from _geometry_mediated_records import synthetic_reciprocity_record
+from _geometry_mediated_records import (
+    synthetic_ddpcm_stationarity_record,
+    synthetic_reciprocity_record,
+)
 
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.release.geometry_mediated_panel import (
@@ -16,6 +19,8 @@ from maple.solvation.release.geometry_mediated_panel import (
     AIMNET2_GEOMETRY_MEDIATED_PES_PANEL_CONTRACT_VERSION,
     AIMNET2_GEOMETRY_MEDIATED_PES_SHARD_CONTRACT_VERSION,
     AIMNET2_GEOMETRY_MEDIATED_SUPPORTED_ATOMIC_NUMBERS,
+    AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_CONTRACT_VERSION,
+    aimnet2_geometry_mediated_pes_continuum_contract,
     aimnet2_geometry_mediated_pes_molecule,
     summarize_aimnet2_geometry_mediated_pes_panel,
     summarize_aimnet2_geometry_mediated_pes_shard,
@@ -291,3 +296,77 @@ def test_aimnet2_full_pes_panel_requires_all_seventeen_raw_shards():
     reordered[0], reordered[1] = reordered[1], reordered[0]
     with pytest.raises(ValueError, match="indices"):
         summarize_aimnet2_geometry_mediated_pes_panel(reordered)
+
+
+def _total_smd_records():
+    records = _records()
+    for record in records:
+        center = record["center"]
+        gradient = np.asarray(center["total_gradient_eV_per_A"], dtype=float)
+        electrostatic_gradient = 0.75 * gradient
+        nonpolar_gradient = gradient - electrostatic_gradient
+        center["vacuum_energy_eV"] = center["total_energy_eV"] - 0.30
+        center["continuum_energy_eV"] = 0.25
+        center["nonpolar_energy_eV"] = 0.05
+        center["nonpolar_gradient_eV_per_A"] = nonpolar_gradient.tolist()
+        center["gradient_components_eV_per_A"] = {
+            "intrinsic": (0.50 * gradient).tolist(),
+            "continuum_fixed_source": (0.125 * gradient).tolist(),
+            "source_response": (0.125 * gradient).tolist(),
+            "electrostatic_total": electrostatic_gradient.tolist(),
+            "nonpolar": nonpolar_gradient.tolist(),
+        }
+        record["stationarity"] = synthetic_ddpcm_stationarity_record()
+    return records
+
+
+def test_total_smd_pes_contract_is_versioned_and_recomputes_full_energy_gradient_ledger():
+    contract = aimnet2_geometry_mediated_pes_continuum_contract(
+        "harmonic-ddpcm-water", nonpolar_kind="pyscf-smd-cds-water"
+    )
+    electrostatic = aimnet2_geometry_mediated_pes_continuum_contract(
+        "harmonic-ddpcm-water"
+    )
+    assert contract.nonpolar_kind == "pyscf-smd-cds-water"
+    assert contract.shard_contract_version == (
+        AIMNET2_FROZEN_CHARGE_WATER_DDPCM_SMDCDS_PES_SHARD_CONTRACT_VERSION
+    )
+    assert contract.shard_contract_version != electrostatic.shard_contract_version
+
+    summary = summarize_aimnet2_geometry_mediated_pes_shard(
+        molecule_index=0,
+        records=_total_smd_records(),
+        continuum_kind="harmonic-ddpcm-water",
+        nonpolar_kind="pyscf-smd-cds-water",
+    )
+    assert summary["nonpolar_kind"] == "pyscf-smd-cds-water"
+    assert summary["diagnostic_gates_passed"] is True
+    for geometry in summary["geometry_records"]:
+        assert geometry["nonpolar_energy_eV"] == pytest.approx(0.05)
+        assert geometry["total_energy_eV"] == pytest.approx(
+            geometry["vacuum_energy_eV"]
+            + geometry["continuum_energy_eV"]
+            + geometry["nonpolar_energy_eV"]
+        )
+
+
+def test_total_smd_pes_contract_fails_closed_on_missing_or_dishonest_nonpolar_ledger():
+    missing = _total_smd_records()
+    del missing[0]["center"]["nonpolar_energy_eV"]
+    with pytest.raises((TypeError, ValueError), match="nonpolar"):
+        summarize_aimnet2_geometry_mediated_pes_shard(
+            molecule_index=0,
+            records=missing,
+            continuum_kind="harmonic-ddpcm-water",
+            nonpolar_kind="pyscf-smd-cds-water",
+        )
+
+    dishonest = _total_smd_records()
+    dishonest[0]["center"]["nonpolar_energy_eV"] += 0.01
+    with pytest.raises(ValueError, match="ledger"):
+        summarize_aimnet2_geometry_mediated_pes_shard(
+            molecule_index=0,
+            records=dishonest,
+            continuum_kind="harmonic-ddpcm-water",
+            nonpolar_kind="pyscf-smd-cds-water",
+        )

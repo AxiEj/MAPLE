@@ -7,6 +7,8 @@ from ase import Atoms
 import pytest
 
 from maple.solvation.api import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
 )
@@ -134,3 +136,106 @@ def test_frozen_smd_factory_binds_exact_one_shot_total_scalar(monkeypatch, tmp_p
         CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
     )
     assert isinstance(calls["nonpolar"], FakeNonpolar)
+
+
+def test_smooth_partition_factory_binds_multisolvent_one_shot_scalar(
+    monkeypatch, tmp_path
+):
+    from maple.function.calculator.extra_correction.implicit import aimnet2_frozen_smd
+
+    checkpoint = tmp_path / "aimnet2.pt"
+    checkpoint.write_bytes(b"synthetic")
+    calls = {}
+
+    monkeypatch.setattr(
+        aimnet2_frozen_smd, "_verify_multisolvent_checkpoint", lambda path: None
+    )
+
+    class FakeSource:
+        def __init__(self, *, model_path, device):
+            calls["source"] = (Path(model_path), device)
+
+    class FakeDomain:
+        def validate_atoms(self, atoms):
+            calls["validated"] = tuple(atoms.get_chemical_symbols())
+            return 0, 1
+
+    class FakeModel:
+        def __init__(self, calculator, *, contract):
+            calls["contract"] = contract
+            self.domain = FakeDomain()
+
+    continuum = SimpleNamespace(solvent="methanol")
+
+    def fake_continuum(symbols, *, solvent, dtype, device):
+        calls["continuum"] = (tuple(symbols), solvent, dtype, device)
+        return continuum
+
+    class FakeElectrostatic:
+        def __init__(self, model, built_continuum, *, scalar_id, profile_id):
+            calls["electrostatic"] = (scalar_id, profile_id)
+            assert built_continuum is continuum
+            self.model = model
+            self.continuum = built_continuum
+
+    class FakeNonpolar:
+        def __init__(self, *, solvent):
+            calls["nonpolar_solvent"] = solvent
+
+    class FakeTotal:
+        def __init__(self, electrostatic, nonpolar):
+            calls["nonpolar"] = nonpolar
+            self.model = electrostatic.model
+            self.continuum = electrostatic.continuum
+
+    monkeypatch.setattr(
+        aimnet2_frozen_smd, "AIMNet2ReconstructedFloat64SourceCalculator", FakeSource
+    )
+    monkeypatch.setattr(
+        aimnet2_frozen_smd, "AIMNet2GeometryMediatedModelAdapter", FakeModel
+    )
+    monkeypatch.setattr(
+        aimnet2_frozen_smd,
+        "build_aimnet2_frozen_charge_smooth_partition_ddpcm_candidate",
+        fake_continuum,
+    )
+    monkeypatch.setattr(
+        aimnet2_frozen_smd, "GeometryMediatedElectrostaticScalar", FakeElectrostatic
+    )
+    monkeypatch.setattr(
+        aimnet2_frozen_smd,
+        "PySCFMultisolventSMDCDSNonpolarFunctional",
+        FakeNonpolar,
+    )
+    monkeypatch.setattr(
+        aimnet2_frozen_smd,
+        "GeometryMediatedMultisolventSMDTotalScalar",
+        FakeTotal,
+    )
+    monkeypatch.setattr(
+        aimnet2_frozen_smd,
+        "torch",
+        SimpleNamespace(float64="float64"),
+    )
+
+    scalar = aimnet2_frozen_smd.build_aimnet2_frozen_charge_smooth_partition_smd_scalar(
+        _atoms(), checkpoint, solvent="methanol"
+    )
+
+    assert isinstance(scalar, FakeTotal)
+    assert calls["source"] == (checkpoint.resolve(), "cpu")
+    assert calls["validated"] == ("O", "H", "H")
+    assert calls["continuum"] == (
+        ("O", "H", "H"),
+        "methanol",
+        "float64",
+        "cpu",
+    )
+    assert calls["electrostatic"] == (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1,
+    )
+    assert calls["nonpolar_solvent"] == "methanol"
+    assert calls["contract"].provider_id.endswith(
+        "aimnet2-frozen-charge-multisolvent-float64.impl.v1"
+    )

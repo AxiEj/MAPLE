@@ -33,11 +33,15 @@ from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
 )
 from maple.function.route2_solvents import route2_solvent_spec
 from maple.solvation.api.profiles import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1,
     get_solvation_profile,
 )
 from maple.solvation.api.scalar_registry import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1,
     get_scalar_definition,
@@ -55,6 +59,12 @@ PYSCF_WATER_SMD_CDS_NONPOLAR_PROFILE_ID = (
 )
 PYSCF_SMD_CDS_NONPOLAR_PROVIDER_ID = (
     "maple.route2.nonpolar.pyscf-smd-cds-energy-gradient.impl.v1"
+)
+PYSCF_MULTISOLVENT_SMD_CDS_NONPOLAR_PROFILE_ID = (
+    "pyscf-2.13.1-multisolvent-smd-cds-analytic-gradient-v1"
+)
+PYSCF_MULTISOLVENT_SMD_CDS_NONPOLAR_PROVIDER_ID = (
+    "maple.route2.nonpolar.pyscf-multisolvent-smd-cds-energy-gradient.impl.v1"
 )
 
 
@@ -175,6 +185,18 @@ class PySCFSMDCDSNonpolarFunctional:
             ),
             runtime_provenance=dict(upstream.runtime_provenance),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class PySCFMultisolventSMDCDSNonpolarFunctional(PySCFSMDCDSNonpolarFunctional):
+    """Pinned PySCF SMD-CDS energy/gradient for a registered Route-2 solvent."""
+
+    provider_id = PYSCF_MULTISOLVENT_SMD_CDS_NONPOLAR_PROVIDER_ID
+    nonpolar_profile_id = PYSCF_MULTISOLVENT_SMD_CDS_NONPOLAR_PROFILE_ID
+
+    def __post_init__(self) -> None:
+        spec = route2_solvent_spec(self.solvent)
+        object.__setattr__(self, "solvent", spec.name)
 
 
 @dataclass(frozen=True, slots=True)
@@ -422,12 +444,85 @@ class GeometryMediatedSMDTotalScalar:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class GeometryMediatedMultisolventSMDTotalScalar(GeometryMediatedSMDTotalScalar):
+    """Disabled multi-solvent total scalar for one-shot AIMNet2 NQE charges."""
+
+    nonpolar: PySCFMultisolventSMDCDSNonpolarFunctional
+    scalar_id: str = (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1
+    )
+    profile_id: str = (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1
+    )
+    _construction_fingerprint: str = ""
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.electrostatic, GeometryMediatedElectrostaticScalar):
+            raise TypeError(
+                "multi-solvent total SMD scalar requires "
+                "GeometryMediatedElectrostaticScalar."
+            )
+        if not isinstance(self.nonpolar, PySCFMultisolventSMDCDSNonpolarFunctional):
+            raise TypeError(
+                "multi-solvent total SMD scalar requires the exact registered "
+                "PySCF multi-solvent SMD-CDS functional."
+            )
+        if (
+            self.electrostatic.scalar_id
+            != CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1
+            or self.electrostatic.profile_id
+            != CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1
+        ):
+            raise ValueError(
+                "multi-solvent total SMD scalar requires the exact AIMNet2 "
+                "smooth-partition ddPCM electrostatic child."
+            )
+        continuum_solvent = getattr(self.electrostatic.continuum, "solvent", None)
+        if continuum_solvent != self.nonpolar.solvent:
+            raise ValueError(
+                "electrostatic and SMD-CDS components must bind the same solvent."
+            )
+        definition = get_scalar_definition(self.scalar_id)
+        profile = get_solvation_profile(self.profile_id)
+        child_definition = get_scalar_definition(self.electrostatic.scalar_id)
+        child_profile = get_solvation_profile(self.electrostatic.profile_id)
+        if definition.implementation_entry_point != (
+            "maple.solvation.coupling.geometry_mediated_smd:"
+            "GeometryMediatedMultisolventSMDTotalScalar"
+        ):
+            raise ValueError(
+                "registered multi-solvent total SMD implementation entry drifted."
+            )
+        if (
+            profile.scalar_id != self.scalar_id
+            or profile.state_equation_id != definition.state_equation_id
+            or profile.model_profile != child_profile.model_profile
+            or profile.continuum_profile != child_definition.continuum_profile
+            or profile.cavity_profile != child_definition.cavity_profile
+            or profile.nonpolar_profile != self.nonpolar.nonpolar_profile_id
+            or definition.nonpolar_profile != self.nonpolar.nonpolar_profile_id
+        ):
+            raise ValueError(
+                "multi-solvent total SMD scalar/profile/component binding drifted."
+            )
+        if definition.enabled or profile.enabled:
+            raise ValueError("multi-solvent total SMD candidate must remain disabled.")
+        object.__setattr__(
+            self, "_construction_fingerprint", self._current_fingerprint_sha256()
+        )
+
+
 __all__ = [
+    "GeometryMediatedMultisolventSMDTotalScalar",
     "GeometryMediatedSMDTotalEnergyEvaluation",
     "GeometryMediatedSMDTotalEvaluation",
     "GeometryMediatedSMDTotalScalar",
     "GeometryNonpolarEvaluation",
     "PYSCF_SMD_CDS_NONPOLAR_PROVIDER_ID",
+    "PYSCF_MULTISOLVENT_SMD_CDS_NONPOLAR_PROFILE_ID",
+    "PYSCF_MULTISOLVENT_SMD_CDS_NONPOLAR_PROVIDER_ID",
     "PYSCF_WATER_SMD_CDS_NONPOLAR_PROFILE_ID",
     "PySCFSMDCDSNonpolarFunctional",
+    "PySCFMultisolventSMDCDSNonpolarFunctional",
 ]

@@ -32,6 +32,14 @@ CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1 = (
     "route2-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-pyscf-smdcds-v1"
 )
+CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1 = (
+    "route2-candidate-aimnet2-frozen-charge-multisolvent-"
+    "smoothpartitionharmonic-ddpcm-electrostatic-v1"
+)
+CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1 = (
+    "route2-candidate-aimnet2-frozen-charge-multisolvent-"
+    "smoothpartitionharmonic-ddpcm-pyscf-smdcds-v1"
+)
 
 OPERATIONAL_CPCM_ELECTROSTATIC_V1 = (
     "route2-operational-cpcm-fixedtopology-electrostatic-v1"
@@ -430,6 +438,119 @@ _SCALAR_ENTRIES = (
             "and the analytic gradient returned with the exact PySCF SMD-CDS "
             "energy; disabled pending total-scalar domain, accuracy, HVP, and "
             "public workflow gates"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        exact_formula=(
+            "E_AIMNet2-frozen,s(R)=E_AIMNet2(R)+1/2 c(R)^T C_s(R) X_s(R); "
+            "F_s=-B_s(R)c(R); A_eps,s(R) G_s=A_inf,s(R) F_s; "
+            "L_s(R) X_s=G_s; c(R)=[q_NQE(R),0,0,0]; "
+            "epsilon_s and Coulomb radii are bound to the registered solvent"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated:"
+            "GeometryMediatedElectrostaticScalar"
+        ),
+        included_components=(
+            "aimnet2_wb97m_d3_vacuum_energy",
+            "one_shot_geometry_dependent_aimnet2_nqe_point_charge_source",
+            "solvent_bound_smooth_partition_harmonic_finite_dielectric_ddpcm_electrostatics",
+            "complete_first_derivative_charge_chain_rule",
+            "fixed_so3_covariant_local_harmonic_coefficient_topology",
+        ),
+        excluded_components=(
+            "continuum_field_input_to_aimnet2",
+            "fixed_geometry_electronic_mutual_polarization",
+            "electronic_scf_iteration",
+            "laboratory_fixed_surface_grid",
+            "active_tessera_or_coefficient_deletion",
+            "nonpolar_smd_cds",
+            "standard_state_correction",
+            "public_hessian_frequency_ts_irc_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred point monopoles, "
+            "evaluated once per geometry and embedded as [q,0,0,0]"
+        ),
+        field_convention=(
+            "full energy-dual derivative of the solvent-bound finite-dielectric "
+            "smooth-partition ddPCM scalar; never supplied to AIMNet2"
+        ),
+        continuum_profile=(
+            "smooth-partition-harmonic-multisolvent-ddpcm-" "frozen-charge-candidate-v1"
+        ),
+        cavity_profile=(
+            "smooth-partition-harmonic-multisolvent-smd-coulomb-" "cavity-candidate-v1"
+        ),
+        nonpolar_profile="none",
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "sealed same-scalar autograd through the smooth coefficient partition, "
+            "finite-dielectric and Schwarz solves, plus the AIMNet2 charge-position "
+            "VJP; no electronic SCF"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1
+        ),
+        exact_formula=(
+            "E_AIMNet2-frozen-CDS,s(R)=E_AIMNet2(R)+G_ddPCM,s(R,q_NQE(R))"
+            "+G_CDS,PySCF-SMD,s(R); AIMNet2 is evaluated once per geometry, "
+            "receives no continuum field, and has no electronic SCF"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.geometry_mediated_smd:"
+            "GeometryMediatedMultisolventSMDTotalScalar"
+        ),
+        included_components=(
+            "aimnet2_wb97m_d3_vacuum_energy",
+            "one_shot_geometry_dependent_aimnet2_nqe_point_charge_source",
+            "solvent_bound_smooth_partition_harmonic_finite_dielectric_ddpcm_electrostatics",
+            "pyscf_2p13p1_multisolvent_smd_cds_energy",
+            "complete_first_derivative_charge_chain_rule",
+            "pyscf_multisolvent_smd_cds_analytic_coordinate_gradient",
+            "fixed_so3_covariant_local_harmonic_coefficient_topology",
+        ),
+        excluded_components=(
+            "continuum_field_input_to_aimnet2",
+            "fixed_geometry_electronic_mutual_polarization",
+            "electronic_scf_iteration",
+            "laboratory_fixed_surface_grid",
+            "active_tessera_or_coefficient_deletion",
+            "standard_state_correction",
+            "strict_original_smd_electrostatic_equivalence",
+            "public_hessian_frequency_ts_irc_md",
+        ),
+        source_representation=(
+            "AIMNet2 neural-charge-equilibration atom-centred point monopoles, "
+            "evaluated once per geometry and embedded as [q,0,0,0]"
+        ),
+        field_convention=(
+            "full energy-dual derivative of the solvent-bound finite-dielectric "
+            "smooth-partition ddPCM scalar; never supplied to AIMNet2"
+        ),
+        continuum_profile=(
+            "smooth-partition-harmonic-multisolvent-ddpcm-" "frozen-charge-candidate-v1"
+        ),
+        cavity_profile=(
+            "smooth-partition-harmonic-multisolvent-smd-coulomb-" "cavity-candidate-v1"
+        ),
+        nonpolar_profile=("pyscf-2.13.1-multisolvent-smd-cds-analytic-gradient-v1"),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        derivative_route=(
+            "sum of the sealed AIMNet2/smooth-partition-ddPCM same-scalar chain "
+            "rule and the analytic gradient returned with the exact PySCF SMD-CDS "
+            "energy; disabled pending full accuracy and daily-task gates"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -846,6 +967,8 @@ def scalar_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1",
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1",
     "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1",
     "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1",

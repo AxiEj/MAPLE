@@ -8,6 +8,8 @@ from typing import Mapping
 
 from .capabilities import CapabilityStatus
 from .scalar_registry import (
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_V1,
     DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_ELECTROSTATIC_V1,
@@ -53,6 +55,14 @@ CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
 CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1 = (
     "route2-profile-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-pyscf-smdcds-v1"
+)
+CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1 = (
+    "route2-profile-candidate-aimnet2-frozen-charge-multisolvent-"
+    "smoothpartitionharmonic-ddpcm-electrostatic-v1"
+)
+CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1 = (
+    "route2-profile-candidate-aimnet2-frozen-charge-multisolvent-"
+    "smoothpartitionharmonic-ddpcm-pyscf-smdcds-v1"
 )
 OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-operational-cpcm-fixedtopology-radialgto-electrostatic-v1"
@@ -198,6 +208,16 @@ SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID = (
 SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.water-eps78p355-smd-coulomb-radii-"
     "transition0p18-surface-l1-exposure-l2-q32-ddpcm.v1"
+)
+SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONTINUUM_PROFILE_ID = (
+    "smooth-partition-harmonic-multisolvent-ddpcm-" "frozen-charge-candidate-v1"
+)
+SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_CAVITY_PROFILE_ID = (
+    "smooth-partition-harmonic-multisolvent-smd-coulomb-" "cavity-candidate-v1"
+)
+SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration.multisolvent-smd-coulomb-radii-"
+    "transition0p18-surface-l4-partition-l8-algebraic192-q96-q128-q128-ddpcm.v1"
 )
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
 AIMNET2_GEOMETRY_MEDIATED_MODEL_PROFILE_ID = (
@@ -455,6 +475,58 @@ _PROFILE_ENTRIES = (
         coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
         continuum_configuration_contract_id=(
             SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1
+        ),
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1
+        ),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        model_profile=AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID,
+        continuum_profile=(
+            SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONTINUUM_PROFILE_ID
+        ),
+        cavity_profile=SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_CAVITY_PROFILE_ID,
+        nonpolar_profile="none",
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1
+        ),
+        scalar_id=(
+            CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1
+        ),
+        state_equation_id=GEOMETRY_MEDIATED_SOURCE_MAP_ID,
+        model_profile=AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID,
+        continuum_profile=(
+            SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONTINUUM_PROFILE_ID
+        ),
+        cavity_profile=SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_CAVITY_PROFILE_ID,
+        nonpolar_profile=("pyscf-2.13.1-multisolvent-smd-cds-analytic-gradient-v1"),
+        coupling_id=AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=ATOMIC_L1_FIELD_DUAL_SPACE_ID,
+        pairing_id=ATOMIC_L1_PAIRING_ID,
+        coordinate_contract_id=GEOMETRY_MEDIATED_DIRECT_SOURCE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONFIGURATION_CONTRACT_ID
         ),
         capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -806,6 +878,8 @@ def profile_registry_manifest() -> dict[str, dict[str, object]]:
 
 
 __all__ = [
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1",
+    "CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1",
     "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",
     "CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1",
     "DIAGNOSTIC_AIMNET2_GEOMETRY_MEDIATED_DDX_DDPCM_PROFILE_V1",
@@ -871,6 +945,9 @@ __all__ = [
     "SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONTINUUM_PROFILE_ID",
     "SMOOTH_HARMONIC_WATER_CAVITY_PROFILE_ID",
     "SMOOTH_HARMONIC_GALERKIN_WATER_DDPCM_CONFIGURATION_CONTRACT_ID",
+    "SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONTINUUM_PROFILE_ID",
+    "SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_CAVITY_PROFILE_ID",
+    "SMOOTH_PARTITION_HARMONIC_MULTISOLVENT_DDPCM_CONFIGURATION_CONTRACT_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

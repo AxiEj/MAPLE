@@ -10,6 +10,10 @@ from maple.solvation.api import (
     SCALAR_REGISTRY,
     STATE_REGISTRY,
     CapabilityStatus,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1,
+    CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_PROFILE_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_SMDCDS_PROFILE_V1,
     CANDIDATE_AIMNET2_FROZEN_CHARGE_WATER_SMOOTH_HARMONIC_DDPCM_ELECTROSTATIC_V1,
@@ -51,6 +55,10 @@ from maple.solvation.api import (
 )
 
 INITIAL_SCALAR_IDS = {
+    "route2-candidate-aimnet2-frozen-charge-multisolvent-"
+    "smoothpartitionharmonic-ddpcm-electrostatic-v1",
+    "route2-candidate-aimnet2-frozen-charge-multisolvent-"
+    "smoothpartitionharmonic-ddpcm-pyscf-smdcds-v1",
     "route2-candidate-aimnet2-frozen-charge-water-"
     "smoothharmonicgalerkin-ddpcm-electrostatic-v1",
     "route2-candidate-aimnet2-frozen-charge-water-"
@@ -114,7 +122,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 23
+    assert len(PROFILE_REGISTRY) == 25
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -205,6 +213,39 @@ def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
     )
     assert water_total.enabled is False
     assert water_total.capabilities.enabled_tiers == ()
+    multisolvent = PROFILE_REGISTRY[
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_PROFILE_V1
+    ]
+    assert multisolvent.scalar_id == (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_ELECTROSTATIC_V1
+    )
+    assert multisolvent.model_profile == water_frozen_charge.model_profile
+    assert multisolvent.continuum_profile.startswith(
+        "smooth-partition-harmonic-multisolvent-ddpcm"
+    )
+    assert multisolvent.cavity_profile.startswith(
+        "smooth-partition-harmonic-multisolvent-smd-coulomb"
+    )
+    assert multisolvent.continuum_configuration_contract_id.endswith(
+        "transition0p18-surface-l4-partition-l8-algebraic192-" "q96-q128-q128-ddpcm.v1"
+    )
+    assert multisolvent.nonpolar_profile == "none"
+    assert multisolvent.enabled is False
+    assert multisolvent.capabilities.enabled_tiers == ()
+    multisolvent_total = PROFILE_REGISTRY[
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_PROFILE_V1
+    ]
+    assert multisolvent_total.scalar_id == (
+        CANDIDATE_AIMNET2_FROZEN_CHARGE_MULTISOLVENT_SMOOTH_PARTITION_HARMONIC_DDPCM_SMDCDS_V1
+    )
+    assert multisolvent_total.model_profile == multisolvent.model_profile
+    assert multisolvent_total.continuum_profile == multisolvent.continuum_profile
+    assert multisolvent_total.cavity_profile == multisolvent.cavity_profile
+    assert multisolvent_total.nonpolar_profile == (
+        "pyscf-2.13.1-multisolvent-smd-cds-analytic-gradient-v1"
+    )
+    assert multisolvent_total.enabled is False
+    assert multisolvent_total.capabilities.enabled_tiers == ()
     analytic_variational = PROFILE_REGISTRY[
         VARIATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_ENERGYGRADIENT_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1
     ]

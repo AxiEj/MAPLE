@@ -98,6 +98,7 @@ class ContinuumEnergyFunctional:
             "energy_torch",
             "energy_eV",
             "drive",
+            "coordinate_hvp",
             "joint_position_source_hvp",
             "source_hvp",
             "source_jvp",
@@ -475,6 +476,20 @@ class ContinuumEnergyFunctional:
             name="continuum joint source HVP",
         )
         return position_result, source_result
+
+    def coordinate_hvp(
+        self, geometry: object, source: object, position_direction: object
+    ) -> np.ndarray:
+        """Apply the fixed-source coordinate Hessian of the sealed scalar."""
+
+        values = _source_values(self.source_space, source)
+        position_action, _ = self.joint_position_source_hvp(
+            geometry,
+            values,
+            position_direction,
+            np.zeros_like(values),
+        )
+        return position_action
 
     def source_jvp(
         self, geometry: object, source: object, source_direction: object

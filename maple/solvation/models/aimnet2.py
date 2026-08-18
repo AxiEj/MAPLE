@@ -380,6 +380,29 @@ AIMNET2_WB97M_D3_FROZEN_CHARGE_WATER_FLOAT64_CONTRACT = AIMNet2CheckpointContrac
     ),
 )
 
+AIMNET2_WB97M_D3_FROZEN_CHARGE_MULTISOLVENT_FLOAT64_CONTRACT = (
+    AIMNet2CheckpointContract(
+        provider_id=(
+            "maple.route2.model.aimnet2-frozen-charge-multisolvent-float64.impl.v1"
+        ),
+        model_profile_id=AIMNET2_FROZEN_CHARGE_MODEL_PROFILE_ID,
+        checkpoint_identifier="aimnet2-wb97m-d3-local-sha256-bound",
+        checkpoint_sha256=AIMNET2_WB97M_D3_CHECKPOINT_SHA256,
+        checkpoint_size_bytes=AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES,
+        model_name="aimnet2",
+        coulomb_method="simple",
+        inference_dtype="float64",
+        supported_atomic_numbers=(1, 6, 7, 8),
+        upstream_repository="https://github.com/isayevlab/aimnetcentral",
+        publication_doi="10.1039/D4SC08572H",
+        upstream_version="aimnet==0.2.0 Python reconstruction of legacy wB97M-D3",
+        upstream_commit="unresolved-upstream-commit-runtime-files-sha256-bound",
+        checkpoint_origin_status=(
+            "hash-bound-local-asset-upstream-release-origin-unresolved"
+        ),
+    )
+)
+
 
 class AIMNet2GeometryMediatedModelAdapter:
     """Vacuum/source/coordinate-response adapter with zero field response."""
@@ -961,6 +984,7 @@ class AIMNet2GeometryMediatedModelAdapter:
 
 
 __all__ = [
+    "AIMNET2_WB97M_D3_FROZEN_CHARGE_MULTISOLVENT_FLOAT64_CONTRACT",
     "AIMNET2_WB97M_D3_CHECKPOINT_SHA256",
     "AIMNET2_WB97M_D3_CHECKPOINT_SIZE_BYTES",
     "AIMNET2_WB97M_D3_LOCAL_CHECKPOINT_CONTRACT",

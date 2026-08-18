@@ -273,6 +273,26 @@ This is a materially stronger force-domain result, but the five topology
 failures keep the complete current-profile panel negative. The `0.02 A` guard
 must not be lowered to convert those failures into passes.
 
+## Total harmonic-ddPCM plus SMD-CDS PES result
+
+The same frozen 17-molecule panel has now been repeated with the separately
+differentiable PySCF 2.13.1 SMD-CDS scalar included in the exact total energy.
+Primary and replay executions at commit `20f9c65c` reproduce aggregate
+measurement SHA256
+`61512993a63cc7bf04d4a3d15a288c806eabc96be104e33373b802f88f62322e`
+and identical independently reduced summaries. The evidence is retained under
+[`evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-panel-20f9c65c/`](evidence/aimnet2-frozen-charge-water-harmonic-ddpcm-smdcds-pes-panel-20f9c65c/README.md).
+
+The total scalar again passes only 12/17 molecules. Methanol, methane,
+dimethyl ether, and acetic acid fail the unchanged continuum event margin;
+ethylamine fails the unchanged sphere-tangency margin. The maximum directional
+absolute error among the 12 accepted diagnostic strata is
+`5.552903772709783e-05 eV/A`, but the complete-panel maximum is
+`0.23707138702659591 eV/A` inside already event-rejected methanol. Adding the
+nonpolar term therefore closes the former `G_np=0` composition gap but does
+not repair the topology-domain failure. Public E/F/OPT and every H/V/M,
+FREQ/TS/IRC, and MD capability remain false.
+
 ## Accuracy pilot
 
 The preregistered ten-record MNSol-v2012 frozen-source pilot was replayed twice
@@ -320,5 +340,5 @@ The full primary/replay records and independent reducers are retained under
 [`evidence/aimnet2-frozen-charge-water-ddpcm-daily-tasks-76d4d097/`](evidence/aimnet2-frozen-charge-water-ddpcm-daily-tasks-76d4d097/README.md).
 They establish local implementation readiness for one event-safe water
 stratum. They do not open public F/OPT/FREQ/MD support: the broad PES panel is
-still negative, `G_np` is absent, and the reported frequencies are not
-physical solvent predictions.
+still negative, the total SMD-CDS panel remains 12/17, and the reported
+frequencies are not physical solvent predictions.

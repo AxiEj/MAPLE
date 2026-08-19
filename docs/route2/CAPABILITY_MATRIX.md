@@ -11,6 +11,10 @@ CLI restriction.
 | V | strict common variational electronic-continuum functional |
 | M | public MD release gate |
 
+`exp` below means the quantity is intentionally callable through an explicit
+experimental calculator identity, but it has not inherited the quantitative
+production-accuracy claim.
+
 ## Conservative-vNext registry
 
 | scalar/profile | E | F | H | V | M | current disposition |
@@ -22,6 +26,7 @@ CLI restriction.
 | `mace-mdp-route2-independent-variational-polarization-candidate-v1` | no | no | no | no | no | terminal negative for the unchanged permanent source: frozen MACE-MDP atomic charges/dipoles pass `3/4` matched QM/PCMSolver cases, but 2-acetoxyethyl acetate misses by `1.824 kcal/mol` under the preregistered all-case `1 kcal/mol` gate; no KKT, source patch, ledger, or force work is authorized on this identity |
 | `route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1` | **yes** | **yes** | no | no | no | experimental same-scalar E/F admission only: fixed-dimensional smooth harmonic assembly removes the GEPOL active-point mechanism, and two clean identical runs pass `h/h2/h4`, independent directional, translation, rotation-force, and guarded closed-loop gates; force is runtime-guarded fourth-order Richardson, while chemical accuracy, complete solvation, named-solvent transfer, analytic force, Hessian, MD, and Tier V remain unadmitted |
 | `maple.route2.experimental.mace-mdp-polar-separated-ddx-pes.impl.v1` | no | no | no | no | no | **callable but not registry-admitted** MACE-MDP permanent + MACE-POLAR induced operational ddX surface: `E_vac + E_ddX,pol` exposes analytic block-adjoint F, a declared-origin molecular virial, and error-estimated Richardson HVP/H of that same force. Exposed ddX cavity topology is guarded, but this electrostatic-only identity has no CDS/nonpolar completion, chemical or derivative-accuracy panel, global root uniqueness/nonsingularity proof, broad covariance/distorted-PES evidence, FREQ/OPT/MD workflow admission, or strict common-functional Tier V claim |
+| `route2-experimental-mace-mdp-polar-separated-ddx-smd-daily-v1` | **exp** | **exp** | **exp** | no | no | explicit named-solvent daily surface: ASE E/F, same-scalar Richardson H, nonperiodic molecular virial, MAPLE SP, and first-order LBFGS/SD/SDCG/CG OPT are callable through `macemdppolarhybridddx`; strict Tier V, periodic stress, FREQ/TS/IRC/scan, and MD remain closed |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |

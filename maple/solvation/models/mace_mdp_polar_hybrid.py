@@ -240,7 +240,6 @@ class PermanentAnchoredInducedSourceModel:
     source_space = ATOMIC_L1_SOURCE_SPACE
     capabilities = ()
     variational_functional_admitted = False
-    coordinate_derivative_available = True
     permanent_source_kernel = "exterior point monopoles and dipoles"
     induced_source_kernel = "checkpoint 1.5-A normalized Gaussian multipoles"
 
@@ -336,6 +335,19 @@ class PermanentAnchoredInducedSourceModel:
     @property
     def long_range_evaluator_profile(self) -> str:
         return str(self._response.long_range_evaluator_profile)
+
+    @property
+    def coordinate_derivative_available(self) -> bool:
+        """Whether the complete induced-response coordinate VJP is available."""
+
+        declared = getattr(self._response, "coordinate_derivative_available", None)
+        if declared is None:
+            return callable(getattr(self._response, "coordinate_vjp", None))
+        if type(declared) is not bool:
+            raise RuntimeError(
+                "responsive provider coordinate-derivative capability is not boolean."
+            )
+        return declared
 
     def _current_configuration(self) -> str:
         return canonical_metadata_sha256(
@@ -520,6 +532,11 @@ class PermanentAnchoredInducedSourceModel:
         source_cotangent: object,
     ) -> np.ndarray:
         """Differentiate ``M(R,u)-M(R,0)`` at fixed native field ``u``."""
+
+        if not self.coordinate_derivative_available:
+            raise NotImplementedError(
+                "responsive provider has no complete coordinate derivative."
+            )
 
         count = self._validate_anchor(geometry, anchor)
         field_values = self.receiver_space.validate(

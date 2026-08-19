@@ -259,8 +259,6 @@ class MACE_MDPPolarHybridDDXEnergy:
     )
 
     provider_id = HYBRID_DDX_SCALAR_PROVIDER_ID
-    force_available = True
-    coordinate_derivative_available = True
     force_derivative_kind = "analytic-block-implicit-adjoint-v1"
 
     def __init__(
@@ -325,6 +323,14 @@ class MACE_MDPPolarHybridDDXEnergy:
     @property
     def cavity_topology_sha256(self) -> str:
         return self._prepared.cavity_topology_sha256
+
+    @property
+    def coordinate_derivative_available(self) -> bool:
+        return self._hybrid.coordinate_derivative_available
+
+    @property
+    def force_available(self) -> bool:
+        return self.coordinate_derivative_available
 
     def configuration_sha256(self) -> str:
         self._hybrid.configuration_sha256()
@@ -445,6 +451,12 @@ class MACE_MDPPolarHybridDDXEnergy:
         central_state: HybridDDXEnergyState | None = None,
     ) -> HybridDDXForceEvaluation:
         """Differentiate the selected operational ledger by block adjoint."""
+
+        if not self.coordinate_derivative_available:
+            raise NotImplementedError(
+                "Hybrid response has no complete coordinate derivative; "
+                "analytic block-adjoint force is unavailable."
+            )
 
         self.configuration_sha256()
         self._validate_geometry(geometry)
@@ -577,8 +589,6 @@ class MACE_MDPPolarHybridDDXPES:
     )
 
     provider_id = HYBRID_DDX_PES_PROVIDER_ID
-    force_available = True
-    coordinate_derivative_available = True
     force_derivative_kind = "analytic-block-implicit-adjoint-v1"
     numerical_force_audit_kind = "same-scalar-richardson-v1"
 
@@ -654,6 +664,14 @@ class MACE_MDPPolarHybridDDXPES:
     @property
     def hessian_backend(self) -> RichardsonScalarHessian:
         return self._hessian_backend
+
+    @property
+    def coordinate_derivative_available(self) -> bool:
+        return self._hybrid.coordinate_derivative_available
+
+    @property
+    def force_available(self) -> bool:
+        return self.coordinate_derivative_available
 
     def _current_configuration(self) -> str:
         return canonical_metadata_sha256(

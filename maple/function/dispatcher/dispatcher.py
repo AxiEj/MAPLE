@@ -10,8 +10,30 @@ class Dispatcher():
     def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
         from .legacy_units import legacy_hartree_job_calculators
 
+        params = commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol
+        self._validate_calculator_job_contract(atoms, jobtype, params)
         with legacy_hartree_job_calculators(atoms):
             return self._dispatch_legacy(commandcontrol, jobtype, atoms, output, extra)
+
+    @staticmethod
+    def _validate_calculator_job_contract(atoms, jobtype, params) -> None:
+        """Apply an optional calculator-specific MAPLE workflow contract."""
+
+        if hasattr(atoms, "multiatoms"):
+            structures = atoms.multiatoms
+        elif isinstance(atoms, list):
+            structures = atoms
+        else:
+            structures = (atoms,)
+        seen = set()
+        for structure in structures:
+            calculator = getattr(structure, "calc", None)
+            if calculator is None or id(calculator) in seen:
+                continue
+            seen.add(id(calculator))
+            validator = getattr(calculator, "validate_maple_job", None)
+            if callable(validator):
+                validator(jobtype=jobtype, params=params)
 
     def _dispatch_legacy(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
 

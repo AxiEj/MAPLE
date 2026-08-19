@@ -37,6 +37,66 @@ The stable public legacy Route-2 inputs remain experimental energy-only paths
 with their historical contracts. They must not be interpreted as the vNext
 same-scalar PES described here.
 
+## Experimental named-solvent hybrid daily surface
+
+Accuracy development no longer blocks direct exploratory use of the frozen
+operational scalar.  The explicit calculator identity
+`macemdppolarhybridddx` composes MACE-MDP permanent q/p, zero-anchored
+MACE-POLAR response, pyddx ddPCM, and the existing named-solvent SMD-CDS term:
+
+```python
+calc = SetCalculator(
+    device="cuda",
+    model="macemdppolarhybridddx",
+    solvent="water",                 # any registered Route-2 solvent
+    model_options={
+        "module": (
+            "maple.function.calculator.route2."
+            "_mace_mdp_polar_hybrid_ddx_calculator"
+        ),
+        "route2_solvent": "water",  # any registered Route-2 solvent
+        "hessian": "numerical",
+    },
+    output="maple.out",
+    atoms=atoms,
+).set_calculator()
+atoms.calc = calc
+
+energy_eV = atoms.get_potential_energy()
+forces_eV_per_A = atoms.get_forces()
+hessian_eV_per_A2 = calc.get_hessian(atoms)
+molecular_virial_eV = calc.get_molecular_virial(atoms)
+```
+
+MAPLE `SP` and first-order `LBFGS`/`SD`/`SDCG`/`CG` optimization are enabled.
+The explicit `module` keeps this experimental calculator outside the stable
+builtin registry while making it available through the normal MAPLE factory.
+For a normal MAPLE input file, use the same options in the model header; this
+profile owns its solvent ledger, so do not add a second `#solv` correction:
+
+```text
+#model=macemdppolarhybridddx(module=maple.function.calculator.route2._mace_mdp_polar_hybrid_ddx_calculator,route2_solvent=water,hessian=numerical)
+#sp(verbose=1)
+```
+The MACE-POLAR graph runs on CUDA; the audited MACE-MDP coefficient adapter
+remains CPU/float64.  The calculator owns its ddX and SMD-CDS terms, so
+`implicit=none` is mandatory and D4 composition is rejected rather than double
+counted.
+
+This is an availability decision, not a claim that the current solvation
+accuracy is satisfactory.  The frozen 505-development baseline is
+`1.696313 kcal/mol` MAE with `14.904481 kcal/mol` maximum absolute error.  H is
+the Richardson derivative of the same analytic E/F scalar under an explicit
+observed-components-only policy for the opaque PySCF SMD surface topology.
+Periodic stress, strict Tier V, FREQ/TS/IRC/scan, and MD remain closed.  The
+existing FREQ driver adds gas-phase translational/rotational thermochemistry,
+so exposing it unchanged would be chemically incorrect for this solution-phase
+scalar.
+
+In the historical `E/F/H/V/M` notation, `V` is strict common variational
+functionality; it does not mean virial.  The molecular virial above is
+available even though strict `V` remains false.
+
 ## Pure MACE-POLAR frozen-source developer API
 
 The new pure route is callable for direct E/F/virial/HVP/H validation without

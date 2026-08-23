@@ -262,6 +262,15 @@
       ],
       "reason": "Administrative post-review refresh for fail-closed handling of the historical experimental harmonic E/F record, related registry identities, and dependency-light continuum exports. The matched-QM v3 reference protocol, frozen assets, numerical gates, runner semantics, and prior measurements are unchanged."
     },
+    "source_hash_refresh_20260824": {
+      "changed_paths": [
+        "maple/solvation/api/__init__.py",
+        "maple/solvation/api/profiles.py",
+        "maple/solvation/api/scalar_registry.py",
+        "maple/solvation/release/evidence.py"
+      ],
+      "reason": "Administrative pre-result refresh after registering a distinct disabled hybrid total-SMD scalar/profile, centralizing its coupling identity, typing shared registry helpers, and reconciling the already-current evidence helper digest. The matched-QM v3 scientific question, frozen assets, cases, numerical gates, reference runner, and absence of execution results are unchanged."
+    },
     "source_sha256": {
       "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
       "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -320,12 +329,12 @@
       "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
       "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
       "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
-      "maple/solvation/api/__init__.py": "8d2790efbbad5fd721805a00a0e1971247d924cd94cb6c72854816ee1a520660",
+      "maple/solvation/api/__init__.py": "97b0cb43a0a97994075e5683cbbc580108e62c997f8975e33a0ba36b69b6fdfa",
       "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
-      "maple/solvation/api/profiles.py": "9ddb98bbd52fe946a5b535774f15e3e297af3f70d3ae70287e50a0eb2690171b",
+      "maple/solvation/api/profiles.py": "d79e53a11a1e0096e3d6ee69161adad97842cdd538feb7573d3f2c77bb3071c1",
       "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
       "maple/solvation/api/result.py": "e41a04c1054e61f841db64622ade6c0951c7c7c8434f34e6efaec5dc9d51cbda",
-      "maple/solvation/api/scalar_registry.py": "21230a4f0de6595ad84a514bd46ee8d40b21b605d0e222eb3b81390879a989a1",
+      "maple/solvation/api/scalar_registry.py": "b32e7f2fed696226cbf383e35a7a019b62c76c2edd4fe307a093073d2f2cdb69",
       "maple/solvation/api/state_registry.py": "ea68490c03420449ced947e52bbe8dbda1df109b2f07446807aea6be8026869b",
       "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
       "maple/solvation/continuum/__init__.py": "99f02d024a016714d4225ba2a85799928d60f58b60725b63f4e75a1638e66b01",
@@ -343,7 +352,7 @@
       "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
       "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
       "maple/solvation/release/electrostatic_decomposition.py": "433cf54c271f269745fd16e4e6170140db3340de462b540d3c94a865fe0cfd42",
-      "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+      "maple/solvation/release/evidence.py": "cb884a50bbaa53c5ff7d600181b072e5c5ba48de44e281f46c186f979fd4dc10",
       "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
       "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
       "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",

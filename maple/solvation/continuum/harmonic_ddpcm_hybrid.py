@@ -41,8 +41,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+
+from maple.solvation.api.identities import (
+    MACE_MDP_POLAR_HYBRID_HARMONIC_DDPCM_COUPLING_ID,
+)
 
 from maple.solvation.api.scalar_registry import (
     OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2,
@@ -58,7 +63,7 @@ from maple.solvation.coupling.spaces import ATOMIC_L1_SOURCE_SPACE
 from maple.solvation.coupling.state_equation import geometry_sha256
 
 from .harmonic_ddpcm_functional import SmoothPartitionHarmonicDDPCMFunctionalCandidate
-from .harmonic_ddpcm_primitives import _assemble_point_ddpcm
+from .harmonic_ddpcm_primitives import HarmonicDDPCMAssembly, _assemble_point_ddpcm
 from .harmonic_ddpcm_separated import HarmonicDDPCMSeparatedCoordinateKernel
 from .harmonic_torch_primitives import (
     _assemble_gaussian_source,
@@ -67,8 +72,7 @@ from .harmonic_torch_primitives import (
 
 
 HARMONIC_DDPCM_HYBRID_COUPLING_ID = (
-    "route2-coupling-macemdppoint-macepolarinduced-gto1p5-"
-    "smoothharmonic-ddpcm-nativefield8-v2"
+    MACE_MDP_POLAR_HYBRID_HARMONIC_DDPCM_COUPLING_ID
 )
 HARMONIC_DDPCM_HYBRID_CONTRACT_ID = (
     "route2-harmonic-ddpcm-general-source-psi-phi-primal-adjoint-v2"
@@ -98,9 +102,9 @@ def _matrix_sha256(values: object) -> str:
 
 
 def _localize_gaussian_native_source(
-    positions: object,
+    positions: Any,
     *,
-    assembly: object,
+    assembly: HarmonicDDPCMAssembly,
     radii: tuple[float, ...],
     surface_lmax: int,
     partition_lmax: int,
@@ -182,7 +186,7 @@ class HarmonicDDPCMHybridCoordinateKernel:
             }
         )
 
-    def _source_tensor(self, source: object, *, reference: object):
+    def _source_tensor(self, source: object, *, reference: Any) -> Any:
         values = ATOMIC_L1_SOURCE_SPACE.validate(
             source, atom_count=self.atom_count, name="atomic l<=1 source"
         )
@@ -190,7 +194,7 @@ class HarmonicDDPCMHybridCoordinateKernel:
             values, dtype=reference.dtype, device=reference.device
         )
 
-    def _field_tensor(self, field: object, *, reference: object):
+    def _field_tensor(self, field: object, *, reference: Any) -> Any:
         values = MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE.validate(
             field, atom_count=self.atom_count, name="native field cotangent"
         )
@@ -198,7 +202,9 @@ class HarmonicDDPCMHybridCoordinateKernel:
             values, dtype=reference.dtype, device=reference.device
         )
 
-    def _assemble(self, positions: object):
+    def _assemble(
+        self, positions: Any
+    ) -> tuple[HarmonicDDPCMAssembly, Any, Any, Any]:
         ddpcm = _assemble_point_ddpcm(
             positions,
             radii=self.base.radii_angstrom,
@@ -231,12 +237,12 @@ class HarmonicDDPCMHybridCoordinateKernel:
 
     @staticmethod
     def _solve_general(
-        ddpcm: object,
-        gaussian_native: object,
-        gaussian_induced: object,
-        permanent: object,
-        induced: object,
-    ):
+        ddpcm: HarmonicDDPCMAssembly,
+        gaussian_native: Any,
+        gaussian_induced: Any,
+        permanent: Any,
+        induced: Any,
+    ) -> tuple[Any, Any, Any, Any]:
         torch = __import__("torch")
         psi = permanent + induced
         phi = ddpcm.source_operator @ permanent + gaussian_induced @ induced

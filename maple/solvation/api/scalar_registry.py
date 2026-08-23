@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Mapping
+from typing import Mapping, TypedDict
 
 from .capabilities import CapabilityStatus
 from .state_registry import (
@@ -42,6 +42,10 @@ OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2 = (
 OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2 = (
     "route2-operational-macemdppoint-macepolarinduced-gto1p5-"
     "nativefield8-smoothharmonic-ddpcm-general-source-phi0-v2"
+)
+OPERATIONAL_MACE_MDP_POLAR_HYBRID_SMD_TOTAL_SMOOTH_HARMONIC_DDPCM_V1 = (
+    "route2-operational-macemdppoint-macepolarinduced-gto1p5-"
+    "nativefield8-smoothharmonic-ddpcm-smd-total-v1"
 )
 EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1 = (
     "route2-experimental-macemdppoint-macepolarinduced-" "pcmsolver-electrostatic-v1"
@@ -174,20 +178,30 @@ class ScalarDefinition:
         }
 
 
-_COMMON = dict(
-    source_representation=(
+class _ScalarCommon(TypedDict):
+    source_representation: str
+    field_convention: str
+    continuum_profile: str
+    cavity_profile: str
+    admitted_capabilities: CapabilityStatus
+    evidence_artifact_ids: tuple[str, ...]
+    enabled: bool
+
+
+_COMMON: _ScalarCommon = {
+    "source_representation": (
         "profile-bound atom-centred l<=1 electrostatic source; exact component, "
         "radial-basis, unit, and charge-functional identity is registered by profile"
     ),
-    field_convention=(
+    "field_convention": (
         "profile-bound positive energy-dual field with pairing c^T Q(R) u"
     ),
-    continuum_profile="fixed-topology-linear-reciprocal-cpcm-v1",
-    cavity_profile="fixed-topology-amplitude-swig-v1",
-    admitted_capabilities=CapabilityStatus(),
-    evidence_artifact_ids=(),
-    enabled=False,
-)
+    "continuum_profile": "fixed-topology-linear-reciprocal-cpcm-v1",
+    "cavity_profile": "fixed-topology-amplitude-swig-v1",
+    "admitted_capabilities": CapabilityStatus(),
+    "evidence_artifact_ids": (),
+    "enabled": False,
+}
 
 _SCALAR_ENTRIES = (
     ScalarDefinition(
@@ -494,6 +508,57 @@ _SCALAR_ENTRIES = (
             "same-graph point/Gaussian source, ddPCM, receiver, and moving-geometry "
             "coordinate pullbacks; capability remains closed pending real-checkpoint "
             "distorted-PES and quantitative component admission"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACE_MDP_POLAR_HYBRID_SMD_TOTAL_SMOOTH_HARMONIC_DDPCM_V1
+        ),
+        exact_formula=(
+            "Phi_s(R,y*)=Phi0_hyb(R,y*)+G_SMD_CDS(R,s); "
+            "DeltaG_solv_pred=Phi_s-E_vac^MACEPOLAR="
+            "G_ddPCM(R,p,d*)+G_SMD_CDS(R,s); "
+            "d*=Pi_0[M_POLAR(R,u*)-M_POLAR(R,0)]"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.additive_solvent_ledgers:"
+            "AdditiveSolventOperationalLedger"
+        ),
+        included_components=(
+            "macepolar_vacuum_energy",
+            "point_permanent_gaussian_induced_smooth_harmonic_ddpcm_energy",
+            "pyscf_smd_cds_energy",
+        ),
+        excluded_components=(
+            "macepolar_conditioned_raw_energy_difference",
+            "mace_mdp_polarizability_response",
+            "empirical_residual_correction",
+            "additional_standard_state_correction",
+            "strict_common_functional_claim",
+        ),
+        source_representation=(
+            "direct sum of MACE-MDP exterior point l<=1 permanent multipoles "
+            "and the zero-charge MACE-POLAR induced increment in its 1.5-A "
+            "Gaussian l<=1 source block"
+        ),
+        field_convention=(
+            "checkpoint-native 1.5/3.0-A eight-channel receiver driven by the "
+            "complete finite-ddPCM phi-side adjoint"
+        ),
+        continuum_profile=(
+            "smooth-partition-harmonic-ddpcm-hybrid-general-source-v2"
+        ),
+        cavity_profile="smd-solvent-dependent-coulomb-radii-v1",
+        nonpolar_profile="pyscf-smd-cds-v1",
+        state_equation_id=(
+            PERMANENT_INDUCED_SEPARATED_OPERATIONAL_STATE_EQUATION_ID
+        ),
+        derivative_route=(
+            "the exact hybrid Phi0 implicit-adjoint derivative plus the analytic "
+            "gradient of the separately bound PySCF SMD-CDS term"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -952,6 +1017,7 @@ __all__ = [
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",
     "MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID",
     "OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2",
+    "OPERATIONAL_MACE_MDP_POLAR_HYBRID_SMD_TOTAL_SMOOTH_HARMONIC_DDPCM_V1",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",

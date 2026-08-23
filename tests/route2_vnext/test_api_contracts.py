@@ -33,6 +33,7 @@ from maple.solvation.api import (
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
     OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2,
+    OPERATIONAL_MACE_MDP_POLAR_HYBRID_SMD_TOTAL_SMOOTH_HARMONIC_DDPCM_V1,
     ProvenanceBundle,
     ProvenanceRecord,
     Route2Result,
@@ -62,6 +63,7 @@ INITIAL_SCALAR_IDS = {
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
     OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2,
     OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2,
+    OPERATIONAL_MACE_MDP_POLAR_HYBRID_SMD_TOTAL_SMOOTH_HARMONIC_DDPCM_V1,
     "route2-variational-common-functional-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-"
@@ -109,7 +111,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 22
+    assert len(PROFILE_REGISTRY) == 24
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():

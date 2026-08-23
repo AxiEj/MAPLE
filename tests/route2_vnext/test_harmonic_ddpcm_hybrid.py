@@ -18,6 +18,9 @@ from maple.solvation.continuum.separated_source_ddx import (
     embed_atomic_l1_in_first_radial_channel,
 )
 from maple.solvation.coupling.fixed_point import FixedPointOptions
+from maple.solvation.coupling.additive_solvent_ledgers import (
+    AdditiveSolventOperationalLedger,
+)
 from maple.solvation.coupling.permanent_induced_ledgers import (
     HybridHarmonicDDPCMPhi0Ledger,
 )
@@ -34,11 +37,16 @@ from maple.solvation.coupling.spaces import (
     AffineChargeCoordinates,
 )
 from maple.solvation.coupling.state_equation import provider_behavior_sha256
+from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.experimental.harmonic_ddpcm_operational import (
     MACE_MDPPolarGeneralSourceHarmonicDDPCMBuilder,
 )
 from maple.solvation.models.mace_mdp_polar_hybrid import (
     PermanentAnchoredInducedSourceModel,
+)
+from maple.solvation.solvent_terms import (
+    PySCFSMDCDSTerm,
+    SolventEnergyState,
 )
 
 
@@ -173,6 +181,42 @@ def _functional(
 
 def _hybrid() -> PermanentAnchoredInducedSourceModel:
     return PermanentAnchoredInducedSourceModel(_Permanent(), _Responsive())
+
+
+class _QuadraticSolventTerm:
+    provider_id = "test.hybrid-ddpcm.quadratic-solvent.v1"
+
+    def configuration_sha256(self) -> str:
+        return _digest("quadratic-solvent-0.007")
+
+    def evaluate(self, geometry: object, *, need_gradient: bool) -> SolventEnergyState:
+        positions = np.asarray(geometry.positions, dtype=float)
+        gradient = 0.014 * positions if need_gradient else None
+        return SolventEnergyState(
+            provider_id=self.provider_id,
+            configuration_sha256=self.configuration_sha256(),
+            geometry_sha256=geometry_sha256(geometry),
+            topology_id="all-atoms-quadratic-solvent",
+            atom_count=len(geometry),
+            energy_eV=0.007 * float(np.vdot(positions, positions)),
+            gradient_eV_per_A=gradient,
+        )
+
+
+def _quadratic_smd_evaluate(
+    self: PySCFSMDCDSTerm, geometry: object, *, need_gradient: bool
+) -> SolventEnergyState:
+    positions = np.asarray(geometry.positions, dtype=float)
+    gradient = 0.014 * positions if need_gradient else None
+    return SolventEnergyState(
+        provider_id=self.provider_id,
+        configuration_sha256=self.configuration_sha256(),
+        geometry_sha256=geometry_sha256(geometry),
+        topology_id="all-atoms-quadratic-smd-test-double",
+        atom_count=len(geometry),
+        energy_eV=0.007 * float(np.vdot(positions, positions)),
+        gradient_eV_per_A=gradient,
+    )
 
 
 def test_hybrid_builder_behavior_identity_is_stable_after_real_build():
@@ -389,3 +433,173 @@ def test_hybrid_complete_implicit_phi0_gradient_matches_resolved_energy_fd():
     finite_difference = (plus_energy - minus_energy) / (2.0 * step)
     analytic = float(np.vdot(gradient.gradient_array(), direction))
     assert analytic == pytest.approx(finite_difference, abs=8.0e-8)
+
+
+def test_additive_solvent_ledger_closes_total_scalar_and_force_fd(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(PySCFSMDCDSTerm, "evaluate", _quadratic_smd_evaluate)
+    atoms = _atoms()
+    functional = _functional()
+    hybrid = _hybrid()
+    options = FixedPointOptions(
+        method="anderson",
+        tolerance=1.0e-12,
+        max_iterations=80,
+        damping=0.8,
+        history=6,
+    )
+
+    def solve(geometry: Atoms, context: str):
+        coordinates = AffineChargeCoordinates(
+            atom_count=len(geometry),
+            total_charge=0.0,
+            source_space=ATOMIC_L1_SOURCE_SPACE,
+        )
+        equation = PermanentInducedOperationalStateEquation(
+            coordinates,
+            hybrid,
+            hybrid.prepare(geometry),
+            build_harmonic_ddpcm_hybrid_snapshot(
+                functional, geometry, receiver_radial_quadrature_order=80
+            ),
+        )
+        state = solve_separated_fixed_point(
+            equation, geometry, root_context_id=context, options=options
+        )
+        total = AdditiveSolventOperationalLedger(
+            HybridHarmonicDDPCMPhi0Ledger(equation),
+            PySCFSMDCDSTerm(("O", "H", "H"), "water"),
+        )
+        evaluation = total.evaluate_root(
+            geometry, state.y_array(), root_tolerance=options.tolerance
+        )
+        return total, state, evaluation
+
+    ledger, state, evaluation = solve(atoms, "additive-solvent-base")
+    base_evaluation = ledger.base_ledger.evaluate_root(
+        atoms, state.y_array(), root_tolerance=state.primal_tolerance
+    )
+    assert evaluation.field_semantics_sha256 == base_evaluation.field_semantics_sha256
+    components = dict(evaluation.components_eV)
+    assert tuple(components) == (
+        "macepolar_vacuum_energy",
+        "point_permanent_gaussian_induced_smooth_harmonic_ddpcm_energy",
+        "pyscf_smd_cds_energy",
+    )
+    assert ledger.solvation_energy_eV(evaluation) == pytest.approx(
+        components["point_permanent_gaussian_induced_smooth_harmonic_ddpcm_energy"]
+        + components["pyscf_smd_cds_energy"],
+        abs=0.0,
+    )
+    gradient = ledger.implicit_gradient(atoms, state)
+    direction = np.asarray([[0.3, -0.2, 0.1], [-0.1, 0.4, -0.3], [-0.2, -0.2, 0.2]])
+    direction /= np.linalg.norm(direction)
+    step = 2.0e-5
+    plus = atoms.copy()
+    minus = atoms.copy()
+    plus.positions += step * direction
+    minus.positions -= step * direction
+    plus_total, _plus_state, plus_evaluation = solve(plus, "additive-solvent-plus")
+    minus_total, _minus_state, minus_evaluation = solve(minus, "additive-solvent-minus")
+    finite_difference = (
+        plus_evaluation.total_energy_eV - minus_evaluation.total_energy_eV
+    ) / (2.0 * step)
+    analytic = float(np.vdot(gradient.gradient_array(), direction))
+    assert analytic == pytest.approx(finite_difference, abs=1.0e-7)
+    assert plus_total.solvation_energy_eV(plus_evaluation) != (
+        minus_total.solvation_energy_eV(minus_evaluation)
+    )
+
+
+def _small_hybrid_phi0_ledger() -> tuple[HybridHarmonicDDPCMPhi0Ledger, Atoms]:
+    atoms = _atoms()
+    hybrid = _hybrid()
+    coordinates = AffineChargeCoordinates(
+        atom_count=len(atoms),
+        total_charge=0.0,
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+    )
+    equation = PermanentInducedOperationalStateEquation(
+        coordinates,
+        hybrid,
+        hybrid.prepare(atoms),
+        build_harmonic_ddpcm_hybrid_snapshot(
+            _functional(lmax=1, quadrature_order=24),
+            atoms,
+            receiver_radial_quadrature_order=24,
+        ),
+    )
+    return HybridHarmonicDDPCMPhi0Ledger(equation), atoms
+
+
+def test_total_smd_ledger_rejects_wrong_provider_type():
+    base, _atoms_value = _small_hybrid_phi0_ledger()
+    with pytest.raises(TypeError, match="requires PySCFSMDCDSTerm"):
+        AdditiveSolventOperationalLedger(base, _QuadraticSolventTerm())
+
+
+def test_total_smd_ledger_rejects_returned_state_provider_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def wrong_provider(
+        self: PySCFSMDCDSTerm, geometry: object, *, need_gradient: bool
+    ) -> SolventEnergyState:
+        del need_gradient
+        return SolventEnergyState(
+            provider_id="wrong.provider.v1",
+            configuration_sha256=self.configuration_sha256(),
+            geometry_sha256=geometry_sha256(geometry),
+            topology_id="wrong-provider-test",
+            atom_count=len(geometry),
+            energy_eV=0.0,
+            gradient_eV_per_A=None,
+        )
+
+    monkeypatch.setattr(PySCFSMDCDSTerm, "evaluate", wrong_provider)
+    base, atoms = _small_hybrid_phi0_ledger()
+    ledger = AdditiveSolventOperationalLedger(
+        base, PySCFSMDCDSTerm(("O", "H", "H"), "water")
+    )
+    with pytest.raises(ValueError, match="provider differs"):
+        ledger._solvent_state(atoms, need_gradient=False)
+
+
+def test_total_smd_gradient_rejects_energy_replay_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def inconsistent_energy(
+        self: PySCFSMDCDSTerm, geometry: object, *, need_gradient: bool
+    ) -> SolventEnergyState:
+        positions = np.asarray(geometry.positions, dtype=float)
+        return SolventEnergyState(
+            provider_id=self.provider_id,
+            configuration_sha256=self.configuration_sha256(),
+            geometry_sha256=geometry_sha256(geometry),
+            topology_id="inconsistent-smd-energy-test",
+            atom_count=len(geometry),
+            energy_eV=0.007 * float(np.vdot(positions, positions))
+            + (1.0e-6 if need_gradient else 0.0),
+            gradient_eV_per_A=(0.014 * positions if need_gradient else None),
+        )
+
+    monkeypatch.setattr(PySCFSMDCDSTerm, "evaluate", inconsistent_energy)
+    base, atoms = _small_hybrid_phi0_ledger()
+    options = FixedPointOptions(
+        method="anderson",
+        tolerance=1.0e-12,
+        max_iterations=80,
+        damping=0.8,
+        history=6,
+    )
+    state = solve_separated_fixed_point(
+        base.equation,
+        atoms,
+        root_context_id="inconsistent-smd-energy-replay",
+        options=options,
+    )
+    ledger = AdditiveSolventOperationalLedger(
+        base, PySCFSMDCDSTerm(("O", "H", "H"), "water")
+    )
+    with pytest.raises(RuntimeError, match="changed the SMD-CDS scalar"):
+        ledger.implicit_gradient(atoms, state)

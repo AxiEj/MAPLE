@@ -1,0 +1,248 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-hybrid-mnsol10-fullsolv-prereg-v1",
+  "schema_version": 1,
+  "created_at_utc": "2026-08-23T17:45:00Z",
+  "status": "prepared-exposure-aware-known-panel-regression-no-hybrid-output-observed",
+  "protocol_classification": {
+    "is_blind_preregistration": false,
+    "is_exposure_aware_revalidation": true,
+    "unobserved_target": "No MACE-MDP+MACE-POLAR mutual harmonic-ddPCM plus SMD-CDS prediction or error has been observed for any selected MNSol-10 row before this contract.",
+    "known_prior_evidence": [
+      "The same frozen MNSol-10 membership and experimental targets were previously evaluated for distinct pure zero-field MACE-POLAR profiles.",
+      "The hybrid source/root was previously evaluated on a distinct four-case cross-backend electrostatic-only panel and local water E/F/HVP canaries."
+    ],
+    "non_transfer_rule": "Neither pure-profile accuracy nor four-case electrostatic evidence is transferred. This new profile must execute all ten full-solvation rows once under its own identity, and the result remains a known-panel regression rather than untouched confirmation.",
+    "prior_observation_ledger": [
+      {
+        "role": "public-aggregate-observed",
+        "artifact_id": "route2-mnsol10-macepolar-radial-gto-frozen-ddpcm-smd-v1",
+        "path": "docs/route2/evidence/mace-polar-radial-gto-mnsol10-accuracy-v1.json",
+        "file_sha256": "efd26e13787ed5cb3a653bb4f7f8472ce345ec4fb79d5b29de5e86f162969905"
+      },
+      {
+        "role": "private-row-level-observed-local-only",
+        "artifact_id": "route2-mnsol10-macepolar-radial-gto-frozen-ddpcm-smd-v1",
+        "path": ".omx/route2/mnsol10-radial-gto-private-v1.json",
+        "file_sha256": "cef41e9dcb5d029aa54de6d0e9405d9a5b1f8ba08d300f20c73dbc2f8d049fe0"
+      },
+      {
+        "role": "public-aggregate-observed",
+        "artifact_id": "route2-mnsol10-macepolar-point-l1-frozen-ddpcm-smd-v1",
+        "path": "docs/route2/evidence/mace-polar-point-l1-mnsol10-accuracy-v1.json",
+        "file_sha256": "abfc0f369481ef889b411dc2d015137187394db2ee67ae2b4fa8bec3c3426038"
+      },
+      {
+        "role": "private-row-level-observed-local-only",
+        "artifact_id": "route2-mnsol10-macepolar-point-l1-frozen-ddpcm-smd-v1",
+        "path": ".omx/route2/mnsol10-point-l1-private-v1.json",
+        "file_sha256": "f100ccf2f165c0c94f97d09143492e8cb05a0a2efdba231643d8c644a8f70cff"
+      },
+      {
+        "role": "public-aggregate-observed",
+        "artifact_id": "route2-mnsol10-macepolar-point-l1-frozen-smoothpartition-harmonic-ddpcm-smd-v1",
+        "path": "docs/route2/evidence/mace-polar-point-l1-harmonic-ddpcm-mnsol10-accuracy-v1.json",
+        "file_sha256": "cd8be99ab59832b8bfc56b5cde60e35f6c024bd8fc67f28073973f99dd590667"
+      },
+      {
+        "role": "private-row-level-observed-local-only",
+        "artifact_id": "route2-mnsol10-macepolar-point-l1-frozen-smoothpartition-harmonic-ddpcm-smd-v1",
+        "path": ".omx/route2/mnsol10-point-l1-harmonic-ddpcm-private-v1.json",
+        "file_sha256": "04a3cba5e9c76f003f77029cc747d0fc85fdbf47ccbe9f55501908f0a995cbed"
+      },
+      {
+        "role": "public-aggregate-observed",
+        "artifact_id": "route2-mnsol10-macepolar-point-l1-frozen-smoothpartition-harmonic-ddcosmo-smd-v1",
+        "path": "docs/route2/evidence/mace-polar-point-l1-harmonic-ddcosmo-mnsol10-accuracy-v1.json",
+        "file_sha256": "d74a00ef5d89bf7a85d23b2b91a56f17c45678413474ae9ac47775f8de11c4fe"
+      },
+      {
+        "role": "private-row-level-observed-local-only",
+        "artifact_id": "route2-mnsol10-macepolar-point-l1-frozen-smoothpartition-harmonic-ddcosmo-smd-v1",
+        "path": ".omx/route2/mnsol10-point-l1-harmonic-ddcosmo-private-v1.json",
+        "file_sha256": "cf82c70f0822e800741e47b29fe3728922772eb2073a1a7ae6a1cc47a7630f40"
+      },
+      {
+        "role": "public-hybrid-electrostatic-observed",
+        "artifact_id": "route2-mace-mdp-polar-harmonic-ddpcm-general-source-four-v1",
+        "path": "docs/route2/evidence/mace-mdp-polar-harmonic-ddpcm-general-source-four-4cf8db40.json",
+        "file_sha256": "2477ab65947ff93122aac71e1e01949bd0f32eeae808c0c3006848e39c1663f4"
+      },
+      {
+        "role": "public-hybrid-water-force-observed",
+        "artifact_id": "route2-mace-mdp-polar-harmonic-ddpcm-general-source-water-v2",
+        "path": "docs/route2/evidence/mace-mdp-polar-harmonic-ddpcm-general-source-water-force-4cf8db40.json",
+        "file_sha256": "c639b069552b6116ce6e85f481921ffb5b7bd7e56bdffdfc2e12142ee8555c7c"
+      },
+      {
+        "role": "public-hybrid-water-hvp-observed",
+        "artifact_id": "route2-operational-harmonic-ddpcm-water-hvp-canary-v1",
+        "path": "docs/route2/evidence/operational-harmonic-ddpcm-water-hvp-canary-4cf8db40.json",
+        "file_sha256": "eaaa9fc49d5c8efb13cb0993929c76b3f2201d109f5501e81986a420a066f7cc"
+      }
+    ]
+  },
+  "target_identity": {
+    "profile_id": "route2-profile-operational-macemdppoint-macepolarinduced-gto1p5-nativefield8-smoothharmonic-ddpcm-smd-total-v1",
+    "scalar_id": "route2-operational-macemdppoint-macepolarinduced-gto1p5-nativefield8-smoothharmonic-ddpcm-smd-total-v1",
+    "state_equation_id": "route2-separated-permanent-induced-boundary-nativefield-root-v1",
+    "exact_solvation_scalar": "DeltaG_pred(R,solvent)=G_hybrid_ddPCM(R,p_MDP,delta_c_POLAR(u*);solvent)+G_SMD_CDS(R,solvent)",
+    "gas_energy_cancellation": "The same MACE-POLAR zero-field vacuum energy is present in gas and solution states and cancels from DeltaG_solv; it is not added to the reported solvation free energy.",
+    "excluded_energy_terms": [
+      "field-conditioned raw MACE-POLAR energy difference",
+      "MACE-MDP polarizability output",
+      "thermal corrections beyond the frozen MNSol standard state",
+      "empirical residual correction or fitted scaling"
+    ]
+  },
+  "dataset_contract": {
+    "protocol_path": "docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json",
+    "protocol_sha256": "70c34de4b9812f557c123cd124f1b49d4b58e33467e6ba893f4c267b905b9a21",
+    "selection_path": "docs/implicit-solvation/benchmarks/route2-mnsol-pilot-selection-v1.json",
+    "selection_sha256": "689dee172e7d8da3f2e5a501dd1ca905f18cf4dae9f830cabea1cb05e933a069",
+    "selection_fingerprint": "967979795b3bd1483db93f7b463f9a65f3f2c0859f69228100d2adc107138fba",
+    "record_count": 10,
+    "solvent_count": 10,
+    "partition_counts": {
+      "confirmation": 8,
+      "development": 2
+    },
+    "geometry_policy": "one-fixed-MNSol-M06-2X-MG3S-gas-geometry-no-optimization",
+    "temperature_k": 298.0,
+    "standard_state": "1M-ideal-gas-to-1M-ideal-solution",
+    "row_level_output": "private-below-.omx-no-redistribution"
+  },
+  "model_contract": {
+    "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_mdp_device": "cpu",
+    "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "mace_polar_device": "cuda",
+    "dtype": "float64",
+    "long_range_evaluator_id": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+    "permanent_source_kernel": "MACE-MDP exterior point monopoles and dipoles",
+    "induced_source_kernel": "MACE-POLAR field-induced increment in the normalized sigma=1.5-A Gaussian multipole basis",
+    "receiver_space": "checkpoint-native sigma=1.5/3.0-A eight-channel potential/gradient field"
+  },
+  "continuum_contract": {
+    "model": "finite-dielectric-smooth-partition-harmonic-ddpcm-general-source",
+    "radii": "PySCF-2.13.1 SMD solvent-dependent Coulomb radii",
+    "dielectric": "route2_solvent_spec canonical solvent dielectric",
+    "transition_width_angstrom2": 0.08,
+    "surface_lmax": 3,
+    "partition_lmax": 6,
+    "partition_radial_quadrature_order": 96,
+    "source_radial_quadrature_order": 128,
+    "double_layer_radial_quadrature_order": 128,
+    "receiver_radial_quadrature_order": 128,
+    "device": "cpu",
+    "numerics_provenance": {
+      "hybrid_four_case_preregistration_path": "docs/implicit-solvation/benchmarks/route2-mace-mdp-polar-harmonic-ddpcm-general-source-four-prereg-v1.json",
+      "hybrid_four_case_preregistration_sha256": "ceba26bf64ec77516787d0eff77a0a2ffba3df3748f30a0a32563be224c99fef",
+      "rule": "All continuum numerical settings are inherited unchanged from the existing hybrid general-source profile before any hybrid MNSol-10 target execution; four-case errors do not transfer.",
+      "pure_mnsol10_role": "The distinct pure zero-field lmax=5 profile is prior convergence context only and is not this profile identity."
+    }
+  },
+  "root_contract": {
+    "method": "anderson",
+    "tolerance": 1e-10,
+    "max_iterations": 100,
+    "damping": 0.5,
+    "history": 6,
+    "starts": [
+      "cold-zero",
+      "deterministic-wide-0.05"
+    ],
+    "wide_seed_base": 20260816,
+    "maximum_actual_residual_norm": 1e-10,
+    "maximum_induced_source_absolute_difference_e": 2e-09,
+    "maximum_native_field_absolute_difference_eV_per_e": 2e-09,
+    "maximum_continuum_energy_absolute_difference_eV": 1e-09,
+    "root_semantics_provenance": {
+      "hybrid_four_case_preregistration_path": "docs/implicit-solvation/benchmarks/route2-mace-mdp-polar-harmonic-ddpcm-general-source-four-prereg-v1.json",
+      "hybrid_four_case_preregistration_sha256": "ceba26bf64ec77516787d0eff77a0a2ffba3df3748f30a0a32563be224c99fef",
+      "rule": "Source kernels, receiver semantics, root method, starts, and agreement gates are inherited unchanged; four-case errors do not transfer."
+    },
+    "maximum_permanent_charge_error_e": 1e-08,
+    "maximum_induced_charge_error_e": 1e-08,
+    "maximum_combined_charge_error_e": 1e-08,
+    "wide_initial_amplitude": 0.05
+  },
+  "nonpolar_contract": {
+    "provider_id": "maple.route2.solvent-term.pyscf-smd-cds.impl.v1",
+    "model": "PySCF-2.13.1 SMD-CDS",
+    "coefficient_scale": 1.0,
+    "fit_or_calibration": false,
+    "combination_rule": "strict additive G_hybrid_ddPCM + G_SMD_CDS"
+  },
+  "decision_rule": {
+    "primary_metric": "mean_absolute_error_kcal_mol over all ten frozen records",
+    "maximum_mae_kcal_mol": 1.5,
+    "required_gates": [
+      "complete_exact_frozen_panel",
+      "ten_distinct_solvents",
+      "all_cold_wide_roots_pass",
+      "all_actual_root_residuals_pass",
+      "all_permanent_and_induced_charge_checks_pass",
+      "mae_at_most_1_5_kcal_mol"
+    ],
+    "required_reports": [
+      "aggregate MAE, RMSE, mean signed error, and maximum absolute error",
+      "confirmation and development partition metrics without using either to alter the model",
+      "per-record signed/absolute errors in private output",
+      "polarization and CDS components",
+      "root residuals, iterations, cold/wide differences",
+      "checkpoint, dataset, selection, configuration, source, and code hashes"
+    ],
+    "failure": "Retain the complete result as negative evidence. Do not change membership, thresholds, source kernels, CDS scale, cavity, harmonic orders, root settings, or ledger in response to observed errors.",
+    "success": "Record a pass for this exact known MNSol-10 regression only. Final leakage-safe accuracy admission still requires the complete frozen 148-row confirmation partition; E/F/H/V/M remain governed separately."
+  },
+  "post_execution_prohibitions": {
+    "fit": false,
+    "calibration": false,
+    "case_selection": false,
+    "threshold_change": false,
+    "continuum_setting_change": false,
+    "root_setting_change": false,
+    "source_kernel_change": false,
+    "cds_scale_change": false,
+    "ledger_change": false
+  },
+  "claim_boundary": "This exposure-aware, target-locked run is a known-panel regression for full DeltaG_solv on the exact ten-record/ten-solvent MNSol pilot for one MDP+POLAR hybrid profile. Even a pass is not final leakage-safe accuracy admission and does not establish the complete 148-row confirmation, broad MNSol generalization, conformer transfer, distorted PES coverage, analytic force, Hessian/FREQ, OPT/TS/IRC, MD/NVE, strict Tier V, or any other profile.",
+  "execution_contract": {
+    "label_boundary": "prepare one private coordinate/solvent input bundle containing no experimental target or error; the prediction process may open only that bundle",
+    "seal": "bind clean Git head/tree, exact preregistration, protocol, selection, label-free input bundle, captured checkpoint bytes, source files, and deterministic environment before prediction",
+    "one_time_claim": "Before the first model evaluation, publish one host-user-global no-replace claim keyed only by the immutable semantic stage maple.route2.mnsol10-known-regression.attempt-slot.v1, not by protocol bytes, selection bytes, Git, environment, output filename, attempt_slot_id, or execution_id. The claim binds the computed scientific attempt_slot_id and chosen execution_id and never reopens.",
+    "prediction_terminal": "publish exactly one canonical complete-or-typed-failure label-free terminal artifact; any failed root or gate makes the panel a retained failure",
+    "scoring_boundary": "after the prediction digest is frozen, a model-free and continuum-free mechanical scorer may read MNSol targets and create one private scored bundle",
+    "public_projection": "derive aggregate-only public evidence from the private scored bundle in a separately retryable publication step",
+    "required_environment": {
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": "0",
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "PYTHONHASHSEED": "0"
+    },
+    "publication_durability": "Every claim, terminal, private score, and public artifact uses O_TMPFILE byte verification, fsync(file), no-replace linkat, and fsync(parent directory); claim publication must return successfully before the first model evaluation.",
+    "orphan_recovery": "The claim binds Linux boot_id, PID, and /proc start ticks. A different boot proves the claimed process dead; on the same boot, missing PID or different start ticks proves it dead. A dead claimed process without a terminal is permanently closed by a model-free aborted-unresolved terminal; scoring is forbidden and public failure projection remains available.",
+    "evidence_class": "exposure-aware-known-panel-regression",
+    "custody_contract": {
+      "contract_id": "maple-route2-host-user-custody-root-v1",
+      "scope": "host-user-global",
+      "uid": 1000,
+      "passwd_home": "/home/axie",
+      "home_environment_must_match": true,
+      "directory_owner": "current-uid",
+      "group_or_world_writable": false
+    }
+  },
+  "verified_pro_audit": {
+    "path": "docs/route2/evidence/mace-mdp-polar-hybrid-mnsol10-pro-audit-v1.json",
+    "file_sha256": "3fafcae2587f6bdc558d588ccd57a251cd41231297c78648dab1e3897214f58a",
+    "artifact_id": "route2-mace-mdp-polar-hybrid-mnsol10-pro-architecture-audit-v1",
+    "final_verdict": "APPROVE",
+    "final_prompt_sha256": "c8d2f0c27220cc44ad859d2189c5207c6a3e1ce7ece1d431066c7114ae82a977",
+    "final_response_sha256": "1e30bbb5f625ea62afe1b6697dc441a9641439f68be039f35902ae210c8b6971",
+    "terminal_marker": "MAPLE HYBRID ACCURACY FINAL REPAIR COMPLETE",
+    "scientific_output_observed_before_final_approval": false
+  }
+}

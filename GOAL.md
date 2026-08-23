@@ -61,6 +61,34 @@ Operational conservative PES 与严格统一变分 Tier V 必须分开声明。�
 
 ## 当前进度（不等于最终 admission）
 
+### hybrid 窄域 E/F data-only admission
+
+在 clean commit `7561edfa849732f522093d4eb33dcdace539dec9` 上，新的
+rich-v2 合同完成了两次独立 CUDA 冷重放。两次运行的 141-event
+measurement SHA-256 均为
+`4e60a2597bc4724116857497e38faa56762d9d8b40fa6b7a2abe4711009c38a9`，
+全部 root、Richardson、方向、平移、旋转与闭环门通过。机械聚合后发布的
+独立 data-only overlay SHA-256 为
+`32b05deaaa596cf5872ff1986e54e142a94c49dd0db6f2ac1870ad287beba863`。
+
+该 overlay 只承认 exact local electrostatic profile 的实验性 `E/F`；静态
+registry 和 safe default 仍关闭，`H/V/M`、解析力、完整溶剂化、化学精度、
+FREQ/OPT/MD 与 Tier V 均未由这份证据开放。
+
+hybrid accuracy 下一步分为两层：已观察的 MNSol-10 只作冻结 known-panel
+regression；最终 leakage-safe 主门使用完整 148-row confirmation partition，
+并分别披露 102 个无 prior-pilot geometry overlap 与 46 个 overlap 记录。
+
+完整 hybrid 标量现在具有独立、仍关闭的 `Phi0_hyb + G_SMD-CDS` identity。
+MNSol-10 的 pre-result 工具链已按 label-free inputs、source-backed seal、单次
+prediction terminal、model-free scorer、aggregate-only publisher 分层；在 clean
+commit 的一次性运行完成前，不记录 hybrid accuracy 结果，也不开放完整溶剂化能力。
+该链先后经过 verified Pro 的两轮 `STOP` 修复审计；semantic-stage claim、
+`fsync(file)->linkat->fsync(parent)` 与 boot-safe orphan recovery 完成后，第三轮
+最终 verdict 为 `APPROVE`。跟踪审计制品 SHA-256 为
+`3fafcae2587f6bdc558d588ccd57a251cd41231297c78648dab1e3897214f58a`；该批准只解除
+MNSol-10 执行架构门，不是 accuracy admission。
+
 ### 固定 zero-field source 的结构等变 continuum 精度门
 
 新的、独立 profile

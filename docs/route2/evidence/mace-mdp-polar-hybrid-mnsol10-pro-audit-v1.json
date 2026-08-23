@@ -1,0 +1,90 @@
+{
+  "advisor": "ChatGPT Chrome",
+  "artifact_id": "route2-mace-mdp-polar-hybrid-mnsol10-pro-architecture-audit-v1",
+  "claim_boundary": "Approval removes the execution-architecture blocker only for the exposure-aware frozen MNSol-10 known-panel regression. It does not admit accuracy or any E/F/H/OPT/FREQ/MD/Tier-V capability, and the 148-row final accuracy gate remains separately closed.",
+  "final_verdict": "APPROVE",
+  "implemented_repairs": {
+    "crash_durability": "O_TMPFILE bytes -> fsync(tmpfd) -> stability -> no-replace linkat -> fsync(parent dirfd)",
+    "orphan_terminal": "model-free recovery uses boot_id then same-boot PID/start ticks and emits aborted-unresolved without retry rights",
+    "public_negative_evidence": "aggregate-only failure projection exposes closed attempt without row-level MNSol data",
+    "semantic_stage_claim": "host-user-global no-replace path keyed only by maple.route2.mnsol10-known-regression.attempt-slot.v1; claim payload binds attempt/execution/seal/prereg/code/checkpoint/input/environment/publication/process identities"
+  },
+  "post_approval_local_review_hardening": [
+    "claim custody root derives from getpwuid(getuid()).pw_dir and rejects a mismatched HOME",
+    "custody directories are current-UID owned and not group/world writable",
+    "cold missing-directory creation uses mkdirat plus fsync of every parent child-entry and new directory",
+    "public failure projection exposes no completed-prefix count or failed row index"
+  ],
+  "power_contract": {
+    "composer": "Pro",
+    "menu_accessible_name": "Pro, 5 of 5.",
+    "pro_thinking_required": true
+  },
+  "rounds": [
+    {
+      "end_marker": "MAPLE HYBRID ACCURACY CHAIN AUDIT COMPLETE",
+      "findings": [
+        "execution-id claim is not a scientific-attempt claim",
+        "publication crash durability must explicitly include file and parent fsync",
+        "claimed execution can be orphaned without terminal classification"
+      ],
+      "mode_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q4-mode.txt",
+      "mode_sha256": "686afdf7b078f646e9bdbbd1df3ad08db377411c4e5c78da8ee67bb7e0528c6d",
+      "prompt_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q4-prompt.md",
+      "prompt_sha256": "b55469fff791d9ca2d75978369d1e52fe0d613367116d60fe7e70b1652294504",
+      "response_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q4-response.md",
+      "response_sha256": "7fbbc0c8da83fb0bb216bfddd08c7387593892541bba5ea27ed92de748fd0d16",
+      "round": "q4-initial-adversarial-audit",
+      "start_marker": "MAPLE HYBRID ACCURACY CHAIN PRO AUDIT",
+      "submission_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q4-submission.txt",
+      "submission_sha256": "dbccdadf627f0acdb7c871385e0520c76581205a89e5f4a4946c37fe1b459cff",
+      "uia_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q4-answer-uia.txt",
+      "uia_sha256": "3f686142062cc39d0848a7c0480466d82952bd32469c6f9873a53b025d91c5c8",
+      "verdict": "STOP"
+    },
+    {
+      "end_marker": "MAPLE HYBRID ACCURACY CHAIN REPAIR COMPLETE",
+      "findings": [
+        "raw protocol/selection bytes could select a different slot path",
+        "PID plus start ticks is not boot-unique"
+      ],
+      "mode_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q5-mode.txt",
+      "mode_sha256": "4909660745886c2bee93e12c3644b60865994ba4985da70b15942431a92e26e0",
+      "prompt_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q5-prompt.md",
+      "prompt_sha256": "fa0430bd3bb784e5ad5903707d6f071cf167bc64ad76c9ea717f8351c1422a6e",
+      "response_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q5-response.md",
+      "response_sha256": "db31c1bb26014bd201c5f257ecb390e1b0d2b2cff1991a0f2b8d74c4d0da5838",
+      "round": "q5-first-repair-audit",
+      "start_marker": "MAPLE HYBRID ACCURACY CHAIN REPAIR AUDIT",
+      "submission_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q5-submission.txt",
+      "submission_sha256": "107f70352d7dbc59ca4a4cf193c488a9294be6c396be7418a97d904aa974b49b",
+      "uia_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q5-answer-uia.txt",
+      "uia_sha256": "fca8da686dc6c962ebc6bacb6cf61f1f0dabbd804b1498ef4b1d2f02484eb2cb",
+      "verdict": "STOP"
+    },
+    {
+      "closed_findings": [
+        "semantic-stage claim path is independent of raw artifact bytes and computed identities",
+        "boot_id plus same-boot PID/start ticks closes reboot ambiguity"
+      ],
+      "end_marker": "MAPLE HYBRID ACCURACY FINAL REPAIR COMPLETE",
+      "mode_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q6-mode.txt",
+      "mode_sha256": "59369f423ef2a557605fb737c999ab2a850fe63fdcb5aadc48dbbc50c339d2c2",
+      "prompt_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q6-prompt.md",
+      "prompt_sha256": "c8d2f0c27220cc44ad859d2189c5207c6a3e1ce7ece1d431066c7114ae82a977",
+      "remaining_blockers": [],
+      "response_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q6-response.md",
+      "response_sha256": "1e30bbb5f625ea62afe1b6697dc441a9641439f68be039f35902ae210c8b6971",
+      "round": "q6-final-repair-audit",
+      "start_marker": "MAPLE HYBRID ACCURACY FINAL REPAIR AUDIT",
+      "submission_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q6-submission.txt",
+      "submission_sha256": "a618f648efb4caf6bd906088be47a89771eb0bf6bc991debd951ab81500daf49",
+      "uia_path": ".omx/artifacts/pro-hybrid-accuracy-chain-q6-answer-uia.txt",
+      "uia_sha256": "7c63aecbe3b89dfed65ada1e9127510ba53b404450ac60ecf4269f826fbf7726",
+      "verdict": "APPROVE"
+    }
+  ],
+  "schema_version": 1,
+  "scientific_output_observed_before_final_approval": false,
+  "status": "verified-pro-final-approve-before-scientific-execution"
+}

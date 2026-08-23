@@ -81,13 +81,37 @@ regression；最终 leakage-safe 主门使用完整 148-row confirmation partiti
 
 完整 hybrid 标量现在具有独立、仍关闭的 `Phi0_hyb + G_SMD-CDS` identity。
 MNSol-10 的 pre-result 工具链已按 label-free inputs、source-backed seal、单次
-prediction terminal、model-free scorer、aggregate-only publisher 分层；在 clean
-commit 的一次性运行完成前，不记录 hybrid accuracy 结果，也不开放完整溶剂化能力。
+prediction terminal、model-free scorer、aggregate-only publisher 分层。
 该链先后经过 verified Pro 的两轮 `STOP` 修复审计；semantic-stage claim、
 `fsync(file)->linkat->fsync(parent)` 与 boot-safe orphan recovery 完成后，第三轮
 最终 verdict 为 `APPROVE`。跟踪审计制品 SHA-256 为
 `3fafcae2587f6bdc558d588ccd57a251cd41231297c78648dab1e3897214f58a`；该批准只解除
 MNSol-10 执行架构门，不是 accuracy admission。
+
+该 exact known-panel stage 随后在 clean commit
+`b0de0aab81e94e4c305122149dfe7ac4498cc08a` 上执行一次并永久关闭：
+
+- `attempt_slot_id`：`dd120f1feb82d5df0325e54ee929e4d4ac5b0cb0d082a49eba3b6c319af5ebb8`；
+- `execution_id`：`6418623ebdf43aa370acf21a7e3fb448dd4db9938003e7597da1dbf92ae57687`；
+- prediction terminal file SHA-256：
+  `4d70342dd626286b56ba71863280d95a777a9156142fbce9c58b27ed024574d5`；
+- public aggregate-only failure SHA-256：
+  `2b42f99df83069889107f79008b1f5d4b261d5ad31649fe58c2344ac855b57eb`；
+- 第一条记录在入账前触发 `solution total minus vacuum does not equal
+  predicted DeltaG_solv`，因此 `validated_record_count=0`、未打开实验标签、未进行
+  scorer、没有 MAE/RMSE/误差结论。
+
+这是一份工程/数值闭合 terminal negative，不是 hybrid accuracy 的正或负结论；
+MNSol-10 不得重跑，完整溶剂化能力仍关闭。执行代码的静态归因表明该门比较
+`fl(fl(fl(V+H)+C)-V)` 与 `fl(H+C)`，固定 `1e-12 eV` 容差不能区分大真空能量
+消去产生的 binary64 roundoff 与真实 ledger 错误。未来 148-row stage 只能在前瞻性
+注册新的 scale-aware float64 closure 后执行，不能用这次失败反向调参。
+verified Pro 的后续数值审计批准前瞻性合同：以 `math.fsum(H,C)` 直接构造
+`DeltaG`、以 `math.fsum(V,H,C)` 独立构造 `Phi`，用 exact-dyadic shadow 做位级
+校验，只让冗余 `Phi-V=DeltaG` 接受精确有理 ULP envelope。跟踪 failure-analysis
+SHA-256 为 `d58f67d9df08c3e5f30fae4f7c912b34a41711f9a7537001e2ea13779d6d7c1a`；
+`maple/solvation/release/float64_ledger.py` 的 14 个对抗测试通过，但该合同只供新的
+148-row preregistration，不能追认 MNSol-10。
 
 ### 固定 zero-field source 的结构等变 continuum 精度门
 

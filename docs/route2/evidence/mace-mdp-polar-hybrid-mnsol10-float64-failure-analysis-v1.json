@@ -1,0 +1,81 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-hybrid-mnsol10-float64-closure-failure-analysis-v1",
+  "claim_boundary": "This audit diagnoses the numerical validation contract from immutable executed code and terminal evidence. It contains no MNSol row prediction or experimental label and makes no statement for or against hybrid predictive accuracy.",
+  "disposition": {
+    "capabilities": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "M": false,
+      "V": false
+    },
+    "future_148": "may use the prospective contract only after a separate preregistration and two prospective prediction slots",
+    "mnsol10_accuracy_inference": "none",
+    "mnsol10_stage": "permanently closed; do not rerun, rescore, or edit terminal"
+  },
+  "executed_identity": {
+    "attempt_slot_id": "dd120f1feb82d5df0325e54ee929e4d4ac5b0cb0d082a49eba3b6c319af5ebb8",
+    "claim_file_sha256": "c720edb8805233e24cb105c2667f2bab3ecd8727a50dec6029ea074a3454da40",
+    "execution_id": "6418623ebdf43aa370acf21a7e3fb448dd4db9938003e7597da1dbf92ae57687",
+    "git_head": "b0de0aab81e94e4c305122149dfe7ac4498cc08a",
+    "public_failure_file_sha256": "2b42f99df83069889107f79008b1f5d4b261d5ad31649fe58c2344ac855b57eb",
+    "terminal_content_sha256": "15957165c9e7434622658e24ddb3248e489506d21ecd569870204b3ccb9d9f1c",
+    "terminal_file_sha256": "4d70342dd626286b56ba71863280d95a777a9156142fbce9c58b27ed024574d5"
+  },
+  "prospective_contract": {
+    "bitwise_shadow": "independent exact-dyadic integer alignment and one binary64 ties-to-even rounding for both sums",
+    "cross_ledger_bound": "(Q(ulp(phi))+Q(ulp(delta)))/2, evaluated exactly",
+    "cross_ledger_residual": "Q(phi)-Q(V)-Q(delta)",
+    "implementation_path": "maple/solvation/release/float64_ledger.py",
+    "kcal_constant_hex": "0x1.70f8010085c0dp+4",
+    "kcal_decomposition": "exact construction of each multiplication plus exact-rational local ULP envelope",
+    "local_test_count": 14,
+    "primary_delta_eV": "canonical positive-zero math.fsum((H,C))",
+    "reported_phi_eV": "canonical positive-zero math.fsum((V,H,C))",
+    "score_source": "delta_eV directly; never phi_eV-V",
+    "test_path": "tests/route2_vnext/test_float64_ledger_closure.py",
+    "wrong_sign_unit_missing_or_double_component": "must fail bitwise construction before any ULP envelope"
+  },
+  "schema_version": 1,
+  "static_root_cause": {
+    "component_order": [
+      "macepolar_vacuum_energy",
+      "point_permanent_gaussian_induced_smooth_harmonic_ddpcm_energy",
+      "pyscf_smd_cds_energy"
+    ],
+    "conclusion": "The failed line can differ only through binary64 non-associativity and cancellation; the fixed absolute threshold is not a valid scientific ledger-closure gate.",
+    "failed_comparison": "abs(fl(solution_total-V)-predicted) <= 1e-12 eV",
+    "predicted_implementation": "fl(H+C)",
+    "provider_replay_between_values": false,
+    "solution_total_implementation": "fl(fl(fl(0+V)+H)+C)"
+  },
+  "status": "terminal-negative-no-accuracy-prospective-repair-approved",
+  "terminal": {
+    "accuracy_metrics_exist": false,
+    "experimental_labels_opened": false,
+    "message": "solution total minus vacuum does not equal predicted DeltaG_solv",
+    "scorer_executed": false,
+    "stage": "science-execution",
+    "status": "failure",
+    "validated_record_count": 0
+  },
+  "verified_pro_audit": {
+    "advisor": "ChatGPT Chrome",
+    "composer": "Pro",
+    "end_marker": "MAPLE FLOAT64 LEDGER CLOSURE COMPLETE",
+    "menu_accessible_name": "Pro, 5 of 5.",
+    "mode_path": ".omx/artifacts/pro-hybrid-floating-closure-q7-mode.txt",
+    "mode_sha256": "e69a2a83f3fdbb73d92a076861a49b233ba62eddbf1887946004f7d58621080c",
+    "pro_thinking_observed": true,
+    "prompt_path": ".omx/artifacts/pro-hybrid-floating-closure-q7-prompt.md",
+    "prompt_sha256": "c310f8c5f6baa8f13b26b64be2920dbdfa273796636be68180e0c2062b262be8",
+    "response_path": ".omx/artifacts/pro-hybrid-floating-closure-q7-response.md",
+    "response_sha256": "3b4b135787e61008fe67667acbff3772748595fa16afb43d1eb71a03e15456a2",
+    "start_marker": "MAPLE FLOAT64 LEDGER CLOSURE AUDIT",
+    "submission_path": ".omx/artifacts/pro-hybrid-floating-closure-q7-submission.txt",
+    "submission_sha256": "f671a878dd3575a187349d1b852ec5e532d551179519d4a6e1c4f325db640435",
+    "uia_path": ".omx/artifacts/pro-hybrid-floating-closure-q7-answer-uia.txt",
+    "uia_sha256": "a84369f9dd48b95e2c269f25b0c61195f41d396c1c74edebb0f1e1d98c155d77",
+    "verdict": "APPROVE"
+  }
+}

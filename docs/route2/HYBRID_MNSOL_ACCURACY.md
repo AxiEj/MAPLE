@@ -1,8 +1,9 @@
 # Hybrid MNSol accuracy boundary
 
-Status: **pre-result infrastructure only**.  The total-SMD scalar, profile,
-preregistration, and release tools are registered but disabled.  No hybrid
-MNSol-10 prediction or score is claimed by this document.
+Status: **terminal execution failure; no accuracy result**.  The total-SMD
+scalar and profile remain disabled.  The only permitted MNSol-10 attempt closed
+before its first prediction record passed validation; no labels were opened and
+no score or MAE exists.
 
 The execution architecture passed a three-round verified-Pro audit only after
 two fail-closed repair rounds.  The tracked audit is
@@ -141,6 +142,39 @@ python tools/route2_release/publish_mace_mdp_polar_hybrid_mnsol10_failure.py \
 
 The exact seal path printed by the sealer replaces `<execution_id>`; it must not
 be guessed or edited.
+
+## Executed terminal
+
+The one host-user-global stage claim binds:
+
+```text
+git commit       b0de0aab81e94e4c305122149dfe7ac4498cc08a
+attempt_slot_id  dd120f1feb82d5df0325e54ee929e4d4ac5b0cb0d082a49eba3b6c319af5ebb8
+execution_id     6418623ebdf43aa370acf21a7e3fb448dd4db9938003e7597da1dbf92ae57687
+terminal file    4d70342dd626286b56ba71863280d95a777a9156142fbce9c58b27ed024574d5
+public failure   2b42f99df83069889107f79008b1f5d4b261d5ad31649fe58c2344ac855b57eb
+```
+
+The first record failed before admission with `solution total minus vacuum does
+not equal predicted DeltaG_solv`; the typed terminal contains zero validated
+records.  The public artifact contains only stage/execution identities,
+aggregate incompleteness, hashes, and the failure class.
+
+Static inspection proves that the failed line compared
+`fl(fl(fl(V+H)+C)-V)` against `fl(H+C)`.  Both values came from the same immutable
+component tuple with no provider replay.  A fixed `1e-12 eV` absolute threshold
+therefore confounded binary64 cancellation with a scientific ledger error.  No
+accuracy inference is permitted, and this stage will not be rerun.
+
+The tracked failure analysis is
+`docs/route2/evidence/mace-mdp-polar-hybrid-mnsol10-float64-failure-analysis-v1.json`.
+Verified Pro approved a prospective replacement contract for a distinct future
+campaign: bitwise `math.fsum` plus an independent exact-dyadic shadow for
+`DeltaG=H+CDS` and `Phi=V+H+CDS`, followed only by an exact-rational local ULP
+envelope on the redundant cancellation relation.  The implementation and 14
+adversarial tests live in `maple/solvation/release/float64_ledger.py` and
+`tests/route2_vnext/test_float64_ledger_closure.py`; they do not alter or reopen
+the executed MNSol-10 terminal.
 
 ## Failure semantics
 

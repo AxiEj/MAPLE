@@ -28,8 +28,11 @@ from maple.solvation.api import (
     OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
+    OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2,
     ProvenanceBundle,
     ProvenanceRecord,
     Route2Result,
@@ -56,6 +59,9 @@ INITIAL_SCALAR_IDS = {
     "smoothharmonicgalerkin-cpcm-v1",
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
+    OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2,
+    OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2,
     "route2-variational-common-functional-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-cpcm-v1",
     "route2-variational-macepolar-energygradient-fixedcavity-"
@@ -103,7 +109,7 @@ def test_capabilities_default_false_and_variational_disabled():
 
 
 def test_authoritative_profile_registry_is_immutable_and_fully_disabled():
-    assert len(PROFILE_REGISTRY) == 20
+    assert len(PROFILE_REGISTRY) == 22
     with pytest.raises(TypeError):
         PROFILE_REGISTRY["new"] = next(iter(PROFILE_REGISTRY.values()))
     for profile_id, profile in PROFILE_REGISTRY.items():
@@ -373,6 +379,7 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
         assert entry.admitted_capabilities.enabled_tiers == ()
         assert entry.evidence_artifact_ids == ()
         assert not (set(entry.included_components) & set(entry.excluded_components))
+    assert not any(entry.enabled for entry in STATE_REGISTRY.values())
     variational = SCALAR_REGISTRY["route2-variational-common-functional-v1"]
     assert variational.admitted_capabilities.variational_functional is False
     manifest = scalar_registry_manifest()

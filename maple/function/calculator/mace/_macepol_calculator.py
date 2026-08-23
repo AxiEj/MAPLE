@@ -75,7 +75,6 @@ from ..extra_correction.implicit.route2_jgp94_mace_frame import (
 )
 from ._macepol_long_range import MACEPolarLongRangeEvaluator
 
-
 _MACEPOL_FOUNDATION_NAMES = {
     "macepols": "polar-1-s",
     "macepolm": "polar-1-m",
@@ -107,10 +106,14 @@ def _validated_route2_checkpoint_provenance(
     *,
     identifier: str,
     release_url: str,
+    preserve_supplied_path: bool = False,
+    parameter_source: str | None = None,
 ) -> dict[str, object]:
     """Fingerprint and validate the complete Route-2 learned checkpoint."""
 
-    path = Path(resolved_path).expanduser().resolve()
+    path = Path(resolved_path).expanduser()
+    if not preserve_supplied_path:
+        path = path.resolve()
     if not path.is_file():
         raise RuntimeError(
             f"The resolved MACE-POLAR checkpoint does not exist: {path}."
@@ -135,7 +138,40 @@ def _validated_route2_checkpoint_provenance(
         "resolved_path": str(path),
         "size_bytes": size_bytes,
         "sha256": sha256,
+        "parameter_source": parameter_source
+        or ("explicit-supplied-path" if preserve_supplied_path else "upstream-cache"),
     }
+
+
+def _resolve_route2_checkpoint_source(
+    *,
+    model_source: str,
+    model_path: str | None,
+    polar_model_urls: dict[str, str],
+    downloader,
+) -> tuple[str, dict[str, object]]:
+    """Resolve exactly one cache or supplied-path lane, never both."""
+
+    if model_path is None:
+        release_url = str(polar_model_urls.get(model_source, ""))
+        resolved = downloader(model_source)
+        return resolved, _validated_route2_checkpoint_provenance(
+            resolved,
+            identifier=_ROUTE2_MACE_POLAR_IDENTIFIER,
+            release_url=release_url,
+        )
+    supplied = str(model_path)
+    return supplied, _validated_route2_checkpoint_provenance(
+        supplied,
+        identifier=_ROUTE2_MACE_POLAR_IDENTIFIER,
+        release_url=_ROUTE2_MACE_POLAR_RELEASE_URL,
+        preserve_supplied_path=True,
+        parameter_source=(
+            "captured-bytes-procfd"
+            if supplied.startswith("/proc/self/fd/")
+            else "explicit-supplied-path"
+        ),
+    )
 
 
 @dataclass(frozen=True)
@@ -202,10 +238,7 @@ class _LocalReactionFieldProjector(torch.nn.Module):
         features = self._model_field_features
         if features is not None:
             expected_features = int(self.upstream.matrix.shape[0])
-            if (
-                features.ndim != 2
-                or features.shape[1] != expected_features
-            ):
+            if features.ndim != 2 or features.shape[1] != expected_features:
                 raise ValueError(
                     "MACE-POLAR preprojected reaction-field features must "
                     f"have shape (n_atoms, {expected_features})."
@@ -289,21 +322,13 @@ class MACEPolCalculator(CalcABC):
     @classmethod
     def build_implicit_solvent_kwargs(cls, solvation_options):
         if "profile" not in solvation_options:
-            raise ValueError(
-                "Route 2 SMD requires an explicit versioned profile."
-            )
-        provider = str(
-            solvation_options.get("provider", "pcmsolver")
-        ).strip().lower()
+            raise ValueError("Route 2 SMD requires an explicit versioned profile.")
+        provider = str(solvation_options.get("provider", "pcmsolver")).strip().lower()
         profile = str(solvation_options["profile"]).strip().lower()
         spec = validate_route2_smd_profile(provider, profile)
         return {
-            "long_range_evaluator_profile": (
-                spec.model_field_evaluator
-            ),
-            "route2_mace_geometry_frame_policy": (
-                spec.mace_geometry_frame_policy
-            ),
+            "long_range_evaluator_profile": (spec.model_field_evaluator),
+            "route2_mace_geometry_frame_policy": (spec.mace_geometry_frame_policy),
         }
 
     def __init__(
@@ -313,36 +338,31 @@ class MACEPolCalculator(CalcABC):
         model_path: str | None = None,
         implicit: Literal["smd", "gbsa", "none"] = "none",
         solvent: str = "none",
-        long_range_evaluator_profile: str = (
-            MACEPOL_MOLECULAR_REALSPACE_PROFILE
-        ),
+        long_range_evaluator_profile: str = (MACEPOL_MOLECULAR_REALSPACE_PROFILE),
         route2_mace_geometry_frame_policy: str = "laboratory-v1",
         _implicit_solvent_factory_token=None,
     ):
         super().__init__()
         route2_smd = str(implicit).strip().lower() == "smd"
         if route2_smd and (
-            _implicit_solvent_factory_token
-            is not _IMPLICIT_SOLVENT_FACTORY_TOKEN
+            _implicit_solvent_factory_token is not _IMPLICIT_SOLVENT_FACTORY_TOKEN
         ):
             raise ValueError(
                 "Direct MACEPolCalculator(implicit='smd') construction is "
                 "disabled because it cannot attach the Route-2 continuum "
                 "correction safely; use MAPLE's SetCalculator factory."
             )
-        self._long_range_evaluator = (
-            MACEPolarLongRangeEvaluator.from_profile(
-                long_range_evaluator_profile
-            )
+        self._long_range_evaluator = MACEPolarLongRangeEvaluator.from_profile(
+            long_range_evaluator_profile
         )
         if not route2_smd and not self._long_range_evaluator.is_default:
             raise ValueError(
                 "The forced reciprocal MACE-POLAR evaluator is available "
                 "only through its explicit Route-2 SMD profile."
             )
-        self.route2_mace_geometry_frame_policy = str(
-            route2_mace_geometry_frame_policy
-        ).strip().lower()
+        self.route2_mace_geometry_frame_policy = (
+            str(route2_mace_geometry_frame_policy).strip().lower()
+        )
         if self.route2_mace_geometry_frame_policy not in {
             "laboratory-v1",
             JGP94_D2_CANONICAL_MACE_FRAME_POLICY,
@@ -351,10 +371,7 @@ class MACEPolCalculator(CalcABC):
                 "Unsupported Route-2 MACE geometry-frame policy: "
                 f"{route2_mace_geometry_frame_policy!r}."
             )
-        if (
-            not route2_smd
-            and self.route2_mace_geometry_frame_policy != "laboratory-v1"
-        ):
+        if not route2_smd and self.route2_mace_geometry_frame_policy != "laboratory-v1":
             raise ValueError(
                 "JGP94 D2 MACE canonicalisation is available only through "
                 "an explicit Route-2 SMD profile."
@@ -379,12 +396,8 @@ class MACEPolCalculator(CalcABC):
         try:
             self.graph_longrange_version = version("graph-longrange")
         except PackageNotFoundError as exc:
-            raise ImportError(
-                "MACE-POLAR requires graph-longrange."
-            ) from exc
-        self.route2_smd_profile = (
-            ROUTE2_SMD_CALCULATOR_PROFILE if route2_smd else None
-        )
+            raise ImportError("MACE-POLAR requires graph-longrange.") from exc
+        self.route2_smd_profile = ROUTE2_SMD_CALCULATOR_PROFILE if route2_smd else None
 
         try:
             from mace.calculators import mace_polar
@@ -399,10 +412,9 @@ class MACEPolCalculator(CalcABC):
                 "release that provides mace.calculators.mace_polar."
             ) from exc
 
-        if route2_smd and (model != "macepolm" or model_path is not None):
+        if route2_smd and model != "macepolm":
             raise ValueError(
-                "Route 2 requires the unmodified official MACE-POLAR-1-M "
-                "checkpoint through MACE's upstream cache."
+                "Route 2 requires the unmodified official MACE-POLAR-1-M " "checkpoint."
             )
         model_source = (
             str(Path(model_path).expanduser())
@@ -412,15 +424,12 @@ class MACEPolCalculator(CalcABC):
         checkpoint_provenance = None
         resolved_model_source = model_source
         if route2_smd:
-            release_url = str(polar_model_urls.get(model_source, ""))
-            resolved_model_source = download_mace_polar_checkpoint(
-                model_source
-            )
-            checkpoint_provenance = (
-                _validated_route2_checkpoint_provenance(
-                    resolved_model_source,
-                    identifier=model_source,
-                    release_url=release_url,
+            resolved_model_source, checkpoint_provenance = (
+                _resolve_route2_checkpoint_source(
+                    model_source=model_source,
+                    model_path=model_path,
+                    polar_model_urls=polar_model_urls,
+                    downloader=download_mace_polar_checkpoint,
                 )
             )
         self.mace_polar_checkpoint_provenance = checkpoint_provenance
@@ -463,46 +472,34 @@ class MACEPolCalculator(CalcABC):
         self.dtype = next(self.model.parameters()).dtype
         self.r_max = float(self.model.r_max)
         self.atomic_numbers = [int(z) for z in self.model.atomic_numbers]
-        self.long_range_evaluator_profile = (
-            self._long_range_evaluator.profile
-        )
-        self.long_range_evaluator_provenance = (
-            self._long_range_evaluator.provenance
-        )
-        self.route2_electronic_model_descriptor = (
-            Route2ElectronicModelDescriptor(
-                adapter_name="mace-polar-atomic-l1-adapter-v1",
-                model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
-                field_evaluator=self.long_range_evaluator_profile,
-                source_space=ATOMIC_L1_SOURCE_SPACE,
-                capabilities=Route2ElectronicModelCapabilities(
-                    state_projectors=frozenset(
-                        {"local-jet", "exact-gto-v1"}
-                    ),
-                    gas_forces=True,
-                    response_projectors=frozenset(
-                        {"local-jet", "exact-gto-v1"}
-                    ),
-                    position_vjp_projectors=frozenset({"local-jet"}),
-                    fixed_field_force_projectors=frozenset({"local-jet"}),
-                    energy_gradient_projectors=frozenset({"local-jet"}),
-                ),
-                energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
-                profile_binding=self.route2_smd_profile,
-                provenance={
-                    "checkpoint": checkpoint_provenance,
-                    "mace_torch_version": self.mace_torch_version,
-                    "graph_longrange_version": self.graph_longrange_version,
-                    "long_range_evaluator": self.long_range_evaluator_provenance,
-                },
-            )
+        self.long_range_evaluator_profile = self._long_range_evaluator.profile
+        self.long_range_evaluator_provenance = self._long_range_evaluator.provenance
+        self.route2_electronic_model_descriptor = Route2ElectronicModelDescriptor(
+            adapter_name="mace-polar-atomic-l1-adapter-v1",
+            model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
+            field_evaluator=self.long_range_evaluator_profile,
+            source_space=ATOMIC_L1_SOURCE_SPACE,
+            capabilities=Route2ElectronicModelCapabilities(
+                state_projectors=frozenset({"local-jet", "exact-gto-v1"}),
+                gas_forces=True,
+                response_projectors=frozenset({"local-jet", "exact-gto-v1"}),
+                position_vjp_projectors=frozenset({"local-jet"}),
+                fixed_field_force_projectors=frozenset({"local-jet"}),
+                energy_gradient_projectors=frozenset({"local-jet"}),
+            ),
+            energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+            profile_binding=self.route2_smd_profile,
+            provenance={
+                "checkpoint": checkpoint_provenance,
+                "mace_torch_version": self.mace_torch_version,
+                "graph_longrange_version": self.graph_longrange_version,
+                "long_range_evaluator": self.long_range_evaluator_provenance,
+            },
         )
         self.route2_mace_geometry_frame_provenance = {
             "policy": self.route2_mace_geometry_frame_policy,
             "enabled": bool(self._route2_jgp94_d2_canonical_mace),
-            "branch_count": (
-                4 if self._route2_jgp94_d2_canonical_mace else 1
-            ),
+            "branch_count": (4 if self._route2_jgp94_d2_canonical_mace else 1),
             "minimum_relative_eigengap_guard": (
                 JGP94_D2_CANONICAL_MINIMUM_RELATIVE_EIGENGAP
                 if self._route2_jgp94_d2_canonical_mace
@@ -549,10 +546,7 @@ class MACEPolCalculator(CalcABC):
             "graph_longrange_version",
             None,
         )
-        if (
-            graph_longrange_version
-            != EXACT_GTO_GRAPH_LONGRANGE_VERSION
-        ):
+        if graph_longrange_version != EXACT_GTO_GRAPH_LONGRANGE_VERSION:
             raise RuntimeError(
                 "The exact Route-2 GTO projector is pinned to "
                 f"graph-longrange {EXACT_GTO_GRAPH_LONGRANGE_VERSION} "
@@ -609,10 +603,7 @@ class MACEPolCalculator(CalcABC):
                 self._last_polar_state_positions,
                 np.asarray(atoms.get_positions(), dtype=float),
             )
-            or (
-                require_forces
-                and state.fixed_field_forces_ev_per_angstrom is None
-            )
+            or (require_forces and state.fixed_field_forces_ev_per_angstrom is None)
         ):
             return None
         return state
@@ -725,8 +716,7 @@ class MACEPolCalculator(CalcABC):
         local_values = None
         feature_values = None
         if model_field_features is not None and (
-            node_potential_ev is not None
-            or node_gradient_ev_per_angstrom is not None
+            node_potential_ev is not None or node_gradient_ev_per_angstrom is not None
         ):
             raise ValueError(
                 "Supply either local reaction potential/gradient or "
@@ -735,21 +725,17 @@ class MACEPolCalculator(CalcABC):
         if model_field_features is not None:
             if not torch.is_tensor(model_field_features):
                 raise TypeError(
-                    "Graph-preserving model-field features must be a torch "
-                    "tensor."
+                    "Graph-preserving model-field features must be a torch " "tensor."
                 )
-            if (
-                model_field_features.ndim != 2
-                or model_field_features.shape[0] != len(atoms)
+            if model_field_features.ndim != 2 or model_field_features.shape[0] != len(
+                atoms
             ):
                 raise ValueError(
-                    "Model-field features must have shape "
-                    "(n_atoms, n_features)."
+                    "Model-field features must have shape " "(n_atoms, n_features)."
                 )
             if not torch.is_floating_point(model_field_features):
                 raise TypeError(
-                    "Model-field features must use a floating-point torch "
-                    "dtype."
+                    "Model-field features must use a floating-point torch " "dtype."
                 )
             feature_values = model_field_features.to(
                 dtype=self.dtype,
@@ -795,9 +781,7 @@ class MACEPolCalculator(CalcABC):
         context = (
             self._reaction_projector.use_model_field_features(feature_values)
             if feature_values is not None
-            else self._reaction_projector.use_node_potential_gradient(
-                local_values
-            )
+            else self._reaction_projector.use_node_potential_gradient(local_values)
         )
         with context:
             return self._model_forward(
@@ -834,8 +818,7 @@ class MACEPolCalculator(CalcABC):
         gradient_tensor = None
         feature_tensor = None
         if model_field_features is not None and (
-            node_potential_ev is not None
-            or node_gradient_ev_per_angstrom is not None
+            node_potential_ev is not None or node_gradient_ev_per_angstrom is not None
         ):
             raise ValueError(
                 "Supply either local reaction potential/gradient or "
@@ -903,9 +886,7 @@ class MACEPolCalculator(CalcABC):
             raise RuntimeError("JGP94 D2 MACE context requested for a raw profile.")
         return JGP94D2CanonicalMACEContext.from_atoms(
             atoms,
-            minimum_relative_eigengap=(
-                JGP94_D2_CANONICAL_MINIMUM_RELATIVE_EIGENGAP
-            ),
+            minimum_relative_eigengap=(JGP94_D2_CANONICAL_MINIMUM_RELATIVE_EIGENGAP),
         )
 
     def polar_state(
@@ -946,12 +927,10 @@ class MACEPolCalculator(CalcABC):
                 "The JGP94 D2 canonical MACE profile has no Hessian proof."
             )
         has_local_field = (
-            node_potential_ev is not None
-            or node_gradient_ev_per_angstrom is not None
+            node_potential_ev is not None or node_gradient_ev_per_angstrom is not None
         )
         if has_local_field and (
-            node_potential_ev is None
-            or node_gradient_ev_per_angstrom is None
+            node_potential_ev is None or node_gradient_ev_per_angstrom is None
         ):
             raise ValueError("Both local reaction potential and gradient are required.")
 
@@ -979,9 +958,7 @@ class MACEPolCalculator(CalcABC):
         density = np.zeros((len(atoms), 4), dtype=float)
         dipole = np.zeros(3, dtype=float)
         branch_energies: list[float] = []
-        forces = (
-            np.zeros((len(atoms), 3), dtype=float) if compute_forces else None
-        )
+        forces = np.zeros((len(atoms), 3), dtype=float) if compute_forces else None
         for branch in context.branches:
             body_atoms = context.body_atoms(atoms, branch)
             if has_local_field:
@@ -1014,7 +991,9 @@ class MACEPolCalculator(CalcABC):
             if compute_forces:
                 body_forces = state.fixed_field_forces_ev_per_angstrom
                 if body_forces is None:
-                    raise RuntimeError("MACE-POLAR omitted requested fixed-field forces.")
+                    raise RuntimeError(
+                        "MACE-POLAR omitted requested fixed-field forces."
+                    )
                 if has_local_field:
                     body_energy_field_gradient = (
                         self._intrinsic_energy_field_gradient_native(
@@ -1344,9 +1323,7 @@ class MACEPolCalculator(CalcABC):
         positions_required_grad = positions.requires_grad
         positions.requires_grad_(True)
         try:
-            with self._reaction_projector.use_node_potential_gradient(
-                local_values
-            ):
+            with self._reaction_projector.use_node_potential_gradient(local_values):
                 output = self._model_forward(
                     batch,
                     compute_force=False,
@@ -1451,7 +1428,9 @@ class MACEPolCalculator(CalcABC):
             and np.all(np.isfinite(gradient_lab))
             and np.all(np.isfinite(cotangent_lab))
         ):
-            raise ValueError("Local reaction field and density cotangent must be finite.")
+            raise ValueError(
+                "Local reaction field and density cotangent must be finite."
+            )
 
         context = self._jgp94_d2_mace_context(atoms)
         result = np.zeros((len(atoms), 3), dtype=float)
@@ -1483,11 +1462,9 @@ class MACEPolCalculator(CalcABC):
                 node_potential_ev=body_potential,
                 node_gradient_ev_per_angstrom=body_gradient,
             )
-            output_orientation_cotangent = (
-                context.output_density_orientation_cotangent(
-                    cotangent_lab,
-                    body_state.density_coefficients,
-                )
+            output_orientation_cotangent = context.output_density_orientation_cotangent(
+                cotangent_lab,
+                body_state.density_coefficients,
             )
             result += context.branch_weight * context.reduce_position_vjp(
                 branch,
@@ -1642,10 +1619,8 @@ class MACEPolCalculator(CalcABC):
                         f"{expected_size**2} Cartesian entries; received "
                         f"shape {raw_hessian.shape}."
                     )
-                hessian_np = (
-                    self._long_range_evaluator.coordinate_hessian_pullback(
-                        raw_hessian.reshape(expected_size, expected_size)
-                    )
+                hessian_np = self._long_range_evaluator.coordinate_hessian_pullback(
+                    raw_hessian.reshape(expected_size, expected_size)
                 )
 
         self._finalize_results(
@@ -1676,9 +1651,7 @@ class MACEPolCalculator(CalcABC):
             return output["energy"].sum() * EV2HARTREE
 
         raw_hessian = hessian_via_double_autograd(energy_fn, positions)
-        return self._long_range_evaluator.coordinate_hessian_pullback(
-            raw_hessian
-        )
+        return self._long_range_evaluator.coordinate_hessian_pullback(raw_hessian)
 
 
 class _MACEPolarDensityResponseLinearization:

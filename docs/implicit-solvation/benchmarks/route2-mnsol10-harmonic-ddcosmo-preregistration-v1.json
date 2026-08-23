@@ -1,0 +1,31 @@
+{
+  "artifact_id": "route2-mnsol10-harmonic-ddcosmo-preregistration-v1",
+  "created_utc": "2026-08-15T22:36:00Z",
+  "scientific_target": {
+    "metric": "mean_absolute_error_kcal_mol",
+    "maximum": 1.5,
+    "panel": "route2-mnsol-pilot-selection-v1.json",
+    "record_count": 10,
+    "solvent_count": 10
+  },
+  "profile": {
+    "source_embedding": "point-l1-harmonic-ddcosmo",
+    "solute_model": "official-unmodified-MACE-POLAR-1-M-zero-field-source",
+    "continuum_model": "smooth-partition-harmonic-ddcosmo",
+    "surface_lmax": 5,
+    "partition_lmax": 10,
+    "transition_width_angstrom2": 0.18,
+    "partition_radial_quadrature_order": 96,
+    "source_radial_quadrature_order": 128,
+    "dielectric_scaling": "(epsilon-1)/epsilon",
+    "cavity": "PySCF-2.13.1-SMD-solvent-dependent-Coulomb-radii",
+    "nonpolar": "PySCF-2.13.1-SMD-CDS"
+  },
+  "rationale": {
+    "surface_lmax": "Frozen from pre-panel water convergence to the independent pyddx ddCOSMO scalar; lmax=5 gave an absolute electrostatic difference below 5e-5 eV.",
+    "partition_lmax": "Twice surface_lmax so every partition mode visible to P_L M_w P_L is represented.",
+    "transition_width_angstrom2": "Inherited unchanged from the pre-existing harmonic MNSol runner; not chosen after observing this profile's panel errors.",
+    "quadrature": "Invariant one-dimensional and finite-band coefficient contractions; orders frozen before the panel run."
+  },
+  "decision_rule": "Run the frozen panel once. Do not adjust lmax, partition bandwidth, transition width, dielectric factor, cavity, CDS, source coefficients, or panel membership after observing its errors. A failure closes this preregistered profile rather than triggering in-panel tuning."
+}

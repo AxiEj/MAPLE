@@ -20,6 +20,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 
@@ -222,6 +223,39 @@ MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE = NativeFieldSpace(
         "two radial receiver blocks; no source-duality assertion is made by this space"
     ),
 )
+def mace_polar_native_field_convention_contract() -> dict[str, object]:
+    """Return a fresh complete JSON contract for the public native field."""
+
+    return {
+        "schema_id": "maple.route2.mace-polar-native-field-convention-contract.v2",
+        "receiver_space": MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE.metadata(),
+        "receiver_sigmas_angstrom": [1.5, 3.0],
+        "angular_max_l": 1,
+        "radial_block_order": ["sigma=1.5 angstrom", "sigma=3.0 angstrom"],
+        "global_component_layout": (
+            "potential_sigma_1p5, potential_sigma_3p0, then checkpoint-native "
+            "real-l1 axes y,z,x for sigma_1p5 followed by y,z,x for sigma_3p0"
+        ),
+        "public_receiver_normalization": (
+            "physical Gaussian-smoothed potential and Cartesian gradients before "
+            "checkpoint feature normalization"
+        ),
+        "checkpoint_feature_normalization_role": (
+            "adapter-only representation transform; excluded from the public field "
+            "values"
+        ),
+        "pairing_metric": MACE_POLAR_RADIAL_GTO_PAIRING.metadata(),
+        "source_duality_claim": False,
+    }
+
+
+def mace_polar_native_field_convention_contract_sha256() -> str:
+    encoded = json.dumps(
+        mace_polar_native_field_convention_contract(),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 SMOOTH_HARMONIC_BOUNDARY_COEFFICIENT_SPACE = BoundaryCoefficientSpace(
     space_id=SMOOTH_HARMONIC_BOUNDARY_COEFFICIENT_SPACE_ID,
@@ -230,6 +264,63 @@ SMOOTH_HARMONIC_BOUNDARY_COEFFICIENT_SPACE = BoundaryCoefficientSpace(
     units="continuum stationary coefficient chart",
     metric_convention="Euclidean coefficient covectors; A supplies the energy metric",
 )
+
+
+@runtime_checkable
+class SeparatedContinuumProvider(Protocol):
+    """Geometry-bound linear continuum with distinct source and field spaces.
+
+    The protocol deliberately exposes actions rather than a particular matrix
+    factorization.  A symmetric CPCM snapshot may use one ``A`` solve, while a
+    finite-dielectric ddPCM snapshot may use a composite dielectric/Schwarz
+    solve.  The electronic state equation must not know which representation
+    produced the same source-to-native-field action.
+    """
+
+    atom_count: int
+    boundary_space: BoundaryCoefficientSpace
+    cavity_profile_id: str
+    continuum_configuration_sha256: str
+    continuum_profile_id: str
+    continuum_provider_id: str
+    coupling_id: str
+    geometry_sha256: str
+    receiver_space: NativeFieldSpace
+    scalar_id: str
+    source_space: SourceSpace
+    topology_sha256: str
+
+    @property
+    def provenance_sha256(self) -> str: ...
+
+    def configuration_sha256(self) -> str: ...
+
+    def solve_boundary(self, source: object) -> np.ndarray: ...
+
+    def native_field_from_boundary(self, boundary_state: object) -> np.ndarray: ...
+
+    def native_field(self, source: object) -> np.ndarray: ...
+
+    def source_field_jvp(self, source_direction: object) -> np.ndarray: ...
+
+    def source_field_vjp(self, field_cotangent: object) -> np.ndarray: ...
+
+    def continuum_energy_eV(self, source: object) -> float: ...
+
+    def continuum_source_gradient(self, source: object) -> np.ndarray: ...
+
+
+@runtime_checkable
+class DifferentiableSeparatedContinuumProvider(
+    SeparatedContinuumProvider, Protocol
+):
+    """Separated continuum with complete fixed-source coordinate pullbacks."""
+
+    def source_field_position_vjp(
+        self, source: object, field_cotangent: object
+    ) -> np.ndarray: ...
+
+    def continuum_energy_position_gradient(self, source: object) -> np.ndarray: ...
 
 
 class SeparatedContinuumSnapshot:
@@ -517,6 +608,32 @@ class SeparatedContinuumSnapshot:
     def native_field(self, source: object) -> np.ndarray:
         return self.native_field_from_boundary(self.solve_boundary(source))
 
+    def source_field_jvp(self, source_direction: object) -> np.ndarray:
+        """Apply the fixed-geometry linear source-to-native-field map."""
+
+        return self.native_field(source_direction)
+
+    def source_field_vjp(self, field_cotangent: object) -> np.ndarray:
+        """Apply the exact transpose of the source-to-native-field map."""
+
+        cotangent = self.receiver_space.validate(
+            field_cotangent,
+            atom_count=self.atom_count,
+            name="native field cotangent",
+        ).reshape(-1)
+        boundary_cotangent = self.boundary_to_native_field.T @ cotangent
+        adjoint_boundary = np.linalg.solve(
+            self.surface_operator.T, boundary_cotangent
+        )
+        result = (self.source_to_boundary.T @ adjoint_boundary).reshape(
+            self.source_space.shape(self.atom_count)
+        )
+        return self.source_space.validate(
+            result,
+            atom_count=self.atom_count,
+            name="continuum source-field VJP",
+        )
+
     def continuum_energy_eV(self, source: object) -> float:
         rhs = self.source_rhs(source)
         sigma = np.linalg.solve(self.surface_operator, rhs)
@@ -614,10 +731,14 @@ __all__ = [
     "MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE",
     "MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE_ID",
     "NativeFieldSpace",
+    "SeparatedContinuumProvider",
+    "DifferentiableSeparatedContinuumProvider",
     "SEPARATED_HARMONIC_SNAPSHOT_CONTRACT",
     "SEPARATED_MACE_POLAR_HARMONIC_COUPLING_ID",
     "SMOOTH_HARMONIC_BOUNDARY_COEFFICIENT_SPACE",
     "SMOOTH_HARMONIC_BOUNDARY_COEFFICIENT_SPACE_ID",
     "SeparatedContinuumSnapshot",
     "build_mace_polar_harmonic_separated_snapshot",
+    "mace_polar_native_field_convention_contract",
+    "mace_polar_native_field_convention_contract_sha256",
 ]

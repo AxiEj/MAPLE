@@ -400,6 +400,7 @@ class MACEPolarLocalFieldModelAdapter:
         "_release_contract",
         "_checkpoint_path",
         "_checkpoint_stat",
+        "_checkpoint_parameter_source",
         "_configuration_sha256",
         "_sealed",
         "provider_id",
@@ -449,17 +450,30 @@ class MACEPolarLocalFieldModelAdapter:
                 raise ValueError(
                     f"MACE-POLAR checkpoint provenance field {name!r} is not release-bound."
                 )
-        checkpoint_path = Path(str(checkpoint.get("resolved_path", ""))).resolve()
-        if not checkpoint_path.is_file():
-            raise FileNotFoundError("MACE-POLAR checkpoint path is unavailable.")
-        stat = checkpoint_path.stat()
-        if (
-            stat.st_size != release_contract.checkpoint_size_bytes
-            or _sha256_file(checkpoint_path) != release_contract.checkpoint_sha256
-        ):
-            raise ValueError(
-                "MACE-POLAR checkpoint bytes do not match the release contract."
-            )
+        parameter_source = str(checkpoint.get("parameter_source", "upstream-cache"))
+        raw_checkpoint_path = str(checkpoint.get("resolved_path", ""))
+        checkpoint_path = Path(raw_checkpoint_path).expanduser()
+        captured_procfd = parameter_source == "captured-bytes-procfd"
+        if parameter_source == "upstream-cache":
+            checkpoint_path = checkpoint_path.resolve()
+        elif parameter_source not in {
+            "explicit-supplied-path",
+            "captured-bytes-procfd",
+        }:
+            raise ValueError("MACE-POLAR checkpoint parameter source is unsupported.")
+        if captured_procfd:
+            stat = None
+        else:
+            if not checkpoint_path.is_file():
+                raise FileNotFoundError("MACE-POLAR checkpoint path is unavailable.")
+            stat = checkpoint_path.stat()
+            if (
+                stat.st_size != release_contract.checkpoint_size_bytes
+                or _sha256_file(checkpoint_path) != release_contract.checkpoint_sha256
+            ):
+                raise ValueError(
+                    "MACE-POLAR checkpoint bytes do not match the release contract."
+                )
         if (
             getattr(calculator, "mace_torch_version", None)
             != release_contract.mace_torch_version
@@ -522,12 +536,21 @@ class MACEPolarLocalFieldModelAdapter:
         )
         object.__setattr__(self, "_calculator", calculator)
         object.__setattr__(self, "_release_contract", release_contract)
-        object.__setattr__(self, "_checkpoint_path", checkpoint_path)
+        object.__setattr__(
+            self,
+            "_checkpoint_path",
+            checkpoint_path if not captured_procfd else None,
+        )
         object.__setattr__(
             self,
             "_checkpoint_stat",
-            (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns),
+            (
+                (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
+                if stat is not None
+                else None
+            ),
         )
+        object.__setattr__(self, "_checkpoint_parameter_source", parameter_source)
         object.__setattr__(self, "provider_id", provenance.provider_id)
         object.__setattr__(self, "model_profile_id", provenance.model_profile_id)
         object.__setattr__(self, "coupling_id", LOCAL_JET_DIAGNOSTIC_COUPLING_ID)
@@ -552,16 +575,17 @@ class MACEPolarLocalFieldModelAdapter:
         object.__setattr__(self, name, value)
 
     def _current_configuration_sha256(self) -> str:
-        stat = self._checkpoint_path.stat()
-        if (
-            stat.st_dev,
-            stat.st_ino,
-            stat.st_size,
-            stat.st_mtime_ns,
-        ) != self._checkpoint_stat:
-            raise RuntimeError(
-                "MACE-POLAR checkpoint file identity changed after construction."
-            )
+        if self._checkpoint_path is not None:
+            stat = self._checkpoint_path.stat()
+            if (
+                stat.st_dev,
+                stat.st_ino,
+                stat.st_size,
+                stat.st_mtime_ns,
+            ) != self._checkpoint_stat:
+                raise RuntimeError(
+                    "MACE-POLAR checkpoint file identity changed after construction."
+                )
         source_files = _calculator_source_files(self._calculator)
         evaluator = getattr(self._calculator, "_long_range_evaluator", None)
         evaluator_configuration = None
@@ -575,6 +599,7 @@ class MACEPolarLocalFieldModelAdapter:
         payload = {
             "schema": "route2-mace-polar-local-field-model-adapter-v1",
             "release_contract": self._release_contract.metadata(),
+            "checkpoint_parameter_source": self._checkpoint_parameter_source,
             "source_files_sha256": dict(source_files),
             "calculator_behavior_sha256": provider_behavior_sha256(
                 self._calculator,
@@ -1177,6 +1202,7 @@ def build_official_mace_polar_1_m_adapter(
     *,
     device: str = "cpu",
     checkpoint_path: str | Path | None = None,
+    checkpoint_bytes: bytes | None = None,
     long_range_evaluator_profile: str = (MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID),
 ) -> MACEPolarLocalFieldModelAdapter:
     """Load the exact official checkpoint in float64 without a solvent sidecar."""
@@ -1208,7 +1234,19 @@ def build_official_mace_polar_1_m_adapter(
             "Unsupported vNext MACE-POLAR long-range evaluator contract: "
             f"{long_range_evaluator_profile!r}."
         ) from exc
-    if checkpoint_path is not None:
+    if checkpoint_bytes is not None:
+        if type(checkpoint_bytes) is not bytes or not checkpoint_bytes:
+            raise TypeError("checkpoint_bytes must be nonempty exact bytes.")
+        if (
+            len(checkpoint_bytes) != release_contract.checkpoint_size_bytes
+            or hashlib.sha256(checkpoint_bytes).hexdigest()
+            != release_contract.checkpoint_sha256
+        ):
+            raise RuntimeError(
+                "Captured checkpoint bytes do not match the official "
+                "MACE-POLAR-1-M release."
+            )
+    elif checkpoint_path is not None:
         path = Path(checkpoint_path).expanduser().resolve()
         if not path.is_file():
             raise RuntimeError(
@@ -1244,14 +1282,28 @@ def build_official_mace_polar_1_m_adapter(
     calculator_type = _VNextModelOnlyMACEPolCalculator
     if calculator_type is None:  # pragma: no cover - guarded above
         raise RuntimeError("Unable to construct the vNext MACE-POLAR calculator type.")
-    calculator = calculator_type(
-        device=device,
-        model="macepolm",
-        implicit="smd",
-        long_range_evaluator_profile=construction_profile,
-        solvent="water",
-        _implicit_solvent_factory_token=_IMPLICIT_SOLVENT_FACTORY_TOKEN,
-    )
+    calculator_kwargs = {
+        "device": device,
+        "model": "macepolm",
+        "implicit": "smd",
+        "long_range_evaluator_profile": construction_profile,
+        "solvent": "water",
+        "_implicit_solvent_factory_token": _IMPLICIT_SOLVENT_FACTORY_TOKEN,
+    }
+    if checkpoint_bytes is not None:
+        from .checkpoint_bytes import sealed_checkpoint_descriptor
+
+        with sealed_checkpoint_descriptor(checkpoint_bytes) as proc_path:
+            calculator = calculator_type(model_path=proc_path, **calculator_kwargs)
+    else:
+        calculator = calculator_type(
+            model_path=(
+                str(Path(checkpoint_path).expanduser())
+                if checkpoint_path is not None
+                else None
+            ),
+            **calculator_kwargs,
+        )
     if construction_profile != normalized_evaluator_profile:
         if normalized_evaluator_profile == (
             MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
@@ -1290,6 +1342,7 @@ def build_official_mace_polar_1_m_radial_gto_adapter(
     *,
     device: str = "cpu",
     checkpoint_path: str | Path | None = None,
+    checkpoint_bytes: bytes | None = None,
     long_range_evaluator_profile: str = (MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID),
 ) -> MACEPolarRadialGTOModelAdapter:
     """Load the official checkpoint behind the conjugate radial GTO contract."""
@@ -1298,6 +1351,7 @@ def build_official_mace_polar_1_m_radial_gto_adapter(
         build_official_mace_polar_1_m_adapter(
             device=device,
             checkpoint_path=checkpoint_path,
+            checkpoint_bytes=checkpoint_bytes,
             long_range_evaluator_profile=long_range_evaluator_profile,
         )
     )

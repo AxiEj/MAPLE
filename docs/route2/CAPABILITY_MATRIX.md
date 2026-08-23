@@ -20,11 +20,15 @@ CLI restriction.
 | `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | closed negative for quantitative solvation on the unchanged source: all twenty equilibrium rigid panels pass twice, but the original four-channel source fails all four matched QM/PCMSolver fixed-source cases by `2.824` to `11.828 kcal/mol`; no ledger or force evidence may advance on this identity |
 | `route2-research-macepolar-original-source-fixed-radial-embedding-v1` | no | no | no | no | no | terminal negative: a preregistered universal `sigma=0.75 A` map improves train and held-out distant surface MEPs, but all four matched intrinsic-cavity PCMSolver energies still miss by `1.829` to `4.888 kcal/mol`; no additional radial patches are authorized |
 | `mace-mdp-route2-independent-variational-polarization-candidate-v1` | no | no | no | no | no | terminal negative for the unchanged permanent source: frozen MACE-MDP atomic charges/dipoles pass `3/4` matched QM/PCMSolver cases, but 2-acetoxyethyl acetate misses by `1.824 kcal/mol` under the preregistered all-case `1 kcal/mol` gate; no KKT, source patch, ledger, or force work is authorized on this identity |
+| `route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1` | no | no | no | no | no | historical commit `4cf8db40` has replicated same-scalar E/F evidence, but the current provenance-bearing provider implementation differs from that frozen runtime binding; the registry therefore remains fail-closed until the complete two-clean-process admission is rerun on the final tree |
+| `route2-operational-macepolar-source-gto1p5-nativefield8-smoothharmonic-ddpcm-general-source-phi0-v2` | no | no | no | no | no | pure MACE-POLAR mainline with the original four-channel coefficients interpreted only as the checkpoint `1.5 A` Gaussian source and the separate native `1.5/3.0 A` receiver; the common internal same-scalar facade exposes analytic E/F, molecular virial, Richardson HVP/H, and a real water HVP canary has maximum error `4.19e-5 eV/A^2` with projected bilinear asymmetry `2.48e-9 eV/A^2`; the exact mutual profile still lacks chemical-accuracy, distorted-domain, complete-solvation, FREQ, and workflow evidence |
+| `route2-operational-macemdppoint-macepolarinduced-gto1p5-nativefield8-smoothharmonic-ddpcm-general-source-phi0-v2` | no | no | no | no | no | current finite-dielectric hybrid mainline: exact heterogeneous point-permanent/Gaussian-induced general-source primal/adjoint closes source JVP/VJP, moving-coordinate VJP, and analytic implicit Phi0 force; preregistered four-case electrostatic MAE is `0.846696 kcal/mol`, the real water force FD reaches `1.06e-7 eV/A`, and the common internal same-scalar facade gives water HVP error `1.26e-3 eV/A^2` with projected bilinear asymmetry `6.90e-8 eV/A^2`; public E/F/H remains closed pending broader distorted-domain, complete-solvation, workflow, and release evidence |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |
 | `route2-profile-diagnostic-pairframe-cpcm110-radialgto-electrostatic-v1` | no | no | no | no | no | distinct ordered-pair-frame ensemble discretization; algebra/continuum tests pass and one preliminary unbound real methanol engineering run meets local thresholds, but clean source-bound PES/symmetry/accuracy evidence is absent |
 | `route2-profile-diagnostic-ddx-ddpcm194-radialgto-electrostatic-v1` | no | no | no | no | no | full eight-channel joint `(psi,phi)` map is derived from one ddPCM scalar and passes local derivative tests; ddX finite-grid rotation drift and missing achieved algebraic-residual report keep it diagnostic |
+| `maple.route2.experimental.mace-polar-frozen-source-ddx-smd.impl.v1` | no | no | no | no | no | **callable but not registry-admitted** pure MACE-POLAR execution surface: explicit `E_vac + G_ddX[R,c0(R)] + G_CDS(R)` exposes analytic-chain-rule E/F, molecular virial, Richardson HVP/H, content hashes, error estimates, and ddX exposed-node topology guards; one official-checkpoint water derivative canary passes, while exact-profile chemical accuracy, broad covariance, workflow, frequency, and MD evidence remain open |
 | `route2-profile-diagnostic-cpcm-injectedgrid-radialgto-electrostatic-v1` | no | no | no | no | no | synthetic injected-grid diagnostic only |
 | `route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | implemented diagnostic; exact-GTO mismatch prevents admission |
 | `route2-operational-cpcm-fixedtopology-smdcds-v1` | no | no | no | no | no | blocked until electrostatic F/H and same-scalar CDS force pass |
@@ -52,10 +56,20 @@ electrostatic components may be used to compare preregistered ledgers.  Even a
 passing ledger report only authorizes later force/PES work; it does not change
 any `no` entry in this matrix.
 
-The first release target is the operational electrostatic profile. Tier V is
-not required for it and must remain false unless the model energy/source
-identity, reciprocity, stability, invertibility, and full coordinate derivative
-are independently proven.
+The first narrow experimental E/F target has a positive historical record only
+for the exact `4cf8db40` implementation. That record is retained as evidence,
+but it is not transferable to the current modified provider bytes; no current
+profile is enabled. A fresh two-clean-process replay on the final tree is
+required before E/F may reopen. Production electrostatic release still needs
+physical-component and accuracy evidence plus an integrated public workflow.
+Tier V must remain false unless model energy/source identity, reciprocity,
+stability, invertibility, and full coordinate derivatives are independently
+proven.
+
+The table's historical `V` tier continues to mean **strict common variational
+functional**. The pure frozen-source execution surface instead exposes a
+separately named molecular virial tensor with declared origin and sign; that
+callable output does not change the registry's Tier-V meaning or admission.
 
 The decisive current negative artifact is
 [`evidence/mace-conjugacy-nogo-d17c35ac/`](evidence/mace-conjugacy-nogo-d17c35ac/README.md).

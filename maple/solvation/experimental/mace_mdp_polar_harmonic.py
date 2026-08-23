@@ -17,11 +17,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 from importlib import metadata
+import math
 import platform
 import sys
 
 import numpy as np
 
+from maple.function.calculator.extra_correction.implicit.smd_cds import (
+    smd_water_coulomb_radii,
+)
 from maple.solvation.api.profiles import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1,
     get_solvation_profile,
@@ -47,7 +51,13 @@ from maple.solvation.continuum.harmonic_torch_functional import (
 from maple.solvation.coupling.exact_gto import (
     mace_polar_learned_source_embedding_matrix,
 )
+from maple.solvation.coupling.metrics import (
+    atomic_l1_source_convention_contract_sha256,
+)
 from maple.solvation.coupling.operator import canonical_metadata_sha256
+from maple.solvation.coupling.separated_operators import (
+    mace_polar_native_field_convention_contract_sha256,
+)
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.derivatives import (
     RichardsonScalarForce,
@@ -55,8 +65,10 @@ from maple.solvation.derivatives import (
     RichardsonScalarForceEvaluation,
     ScalarEnergySample,
 )
-from maple.solvation.models.base import atom_count
+from maple.solvation.models.base import atom_count, model_charge_and_multiplicity
 from maple.solvation.models.mace_mdp_polar_hybrid import (
+    MACE_MDP_POLAR_HYBRID_PROFILE_ID,
+    MACE_MDP_POLAR_HYBRID_PROVIDER_ID,
     PermanentAnchoredInducedSourceModel,
     PermanentInducedSourceAnchor,
 )
@@ -79,6 +91,26 @@ HYBRID_HARMONIC_SCALAR_PROVIDER_ID = (
 )
 NUMERICAL_FORCE_COARSE_STEP_ANGSTROM = 5.0e-4
 NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM = 2.0e-4
+ADMITTED_CONTINUUM_SETTINGS = tuple(
+    sorted(
+        {
+            "transition_width_angstrom2": 0.18,
+            "surface_lmax": 1,
+            "exposure_lmax": 2,
+            "exposure_radial_quadrature_order": 32,
+            "source_radial_quadrature_order": 32,
+            "green_radial_quadrature_order": 32,
+        }.items()
+    )
+)
+ADMITTED_HYBRID_CONFIGURATION_SHA256 = (
+    "ad866e18797d12614c98bc04e4060674a6d3e9801d6ae83f45a515cfbfc68aae"
+)
+ADMITTED_HYBRID_PROVENANCE_SHA256 = (
+    "439e7b3585e2bcfb828bd346e163614ee1571b78895ce36536ddabfc633ef74e"
+)
+ADMITTED_DTYPE = "float64"
+ADMITTED_DEVICE = "cuda"
 
 
 def _array_sha256(values: object, *, name: str) -> str:
@@ -208,6 +240,165 @@ class HybridHarmonicEnergyState:
     @property
     def total_energy_ev(self) -> float:
         return self.vacuum_energy_ev + self.polarization_energy_ev
+
+
+@dataclass(frozen=True, slots=True)
+class HybridHarmonicRootStartDiagnostics:
+    """Already-computed raw leaves for one root start, without schema claims."""
+
+    initial_state_sha256: str
+    final_native_field_ev: np.ndarray
+    final_residual_ev: np.ndarray
+    final_residual_norm_ev: float
+    final_polarization_energy_ev: float
+    iterations: int
+    converged: bool
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.initial_state_sha256, str)
+            or len(self.initial_state_sha256) != 64
+            or any(
+                character not in "0123456789abcdef"
+                for character in self.initial_state_sha256
+            )
+        ):
+            raise ValueError("initial_state_sha256 must be a lowercase SHA256 digest.")
+        field = np.asarray(self.final_native_field_ev, dtype=float)
+        residual = np.asarray(self.final_residual_ev, dtype=float)
+        if field.ndim != 2 or field.shape[1] != 8 or residual.shape != field.shape:
+            raise ValueError("root diagnostic field/residual must have shape (N,8).")
+        field = _readonly(field, shape=field.shape, name="final native field")
+        residual = _readonly(
+            residual, shape=residual.shape, name="final residual field"
+        )
+        residual_norm = float(self.final_residual_norm_ev)
+        energy = float(self.final_polarization_energy_ev)
+        if (
+            not np.isfinite(residual_norm)
+            or residual_norm < 0.0
+            or residual_norm != float(np.linalg.norm(residual))
+            or not np.isfinite(energy)
+        ):
+            raise ValueError("root diagnostic scalar leaves are inconsistent.")
+        if (
+            type(self.iterations) is not int
+            or not 1 <= self.iterations <= MAX_ROOT_ITERATIONS
+        ):
+            raise ValueError("root diagnostic iterations are outside the frozen bound.")
+        if self.converged is not True:
+            raise ValueError("successful root diagnostics require converged=True.")
+        object.__setattr__(self, "final_native_field_ev", field)
+        object.__setattr__(self, "final_residual_ev", residual)
+        object.__setattr__(self, "final_residual_norm_ev", residual_norm)
+        object.__setattr__(self, "final_polarization_energy_ev", energy)
+
+
+@dataclass(frozen=True, slots=True)
+class HybridHarmonicSolveDiagnostics:
+    """Raw, kernel-separated source audit accompanying one legacy solve."""
+
+    cold_start: HybridHarmonicRootStartDiagnostics
+    wide_start: HybridHarmonicRootStartDiagnostics
+    permanent_source4: np.ndarray
+    response_zero_source4: np.ndarray
+    response_final_source4: np.ndarray
+    induced_source4: np.ndarray
+    audit_coefficient_sum4: np.ndarray
+    target_charge_e: float
+    source_basis_id: str
+    source_space_contract_sha256: str
+    source_component_order: tuple[str, str, str, str]
+    receiver_basis_id: str
+    receiver_space_contract_sha256: str
+    source_role_identities: tuple[tuple[str, str], ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(
+            self.cold_start, HybridHarmonicRootStartDiagnostics
+        ) or not isinstance(self.wide_start, HybridHarmonicRootStartDiagnostics):
+            raise TypeError("cold_start/wide_start must be typed root diagnostics.")
+        count = self.cold_start.final_native_field_ev.shape[0]
+        arrays = {}
+        for name in (
+            "permanent_source4",
+            "response_zero_source4",
+            "response_final_source4",
+            "induced_source4",
+            "audit_coefficient_sum4",
+        ):
+            arrays[name] = _readonly(getattr(self, name), shape=(count, 4), name=name)
+        if not np.array_equal(
+            arrays["induced_source4"],
+            arrays["response_final_source4"] - arrays["response_zero_source4"],
+        ):
+            raise ValueError(
+                "induced_source4 must equal the frozen subtraction "
+                "response_final_source4 - response_zero_source4."
+            )
+        if not np.array_equal(
+            arrays["audit_coefficient_sum4"],
+            arrays["permanent_source4"] + arrays["induced_source4"],
+        ):
+            raise ValueError(
+                "audit_coefficient_sum4 must equal permanent_source4 + "
+                "induced_source4."
+            )
+        target_charge = float(self.target_charge_e)
+        if (
+            not np.isfinite(target_charge)
+            or abs(
+                float(math.fsum(arrays["audit_coefficient_sum4"][:, 0]))
+                - target_charge
+            )
+            > TOTAL_CHARGE_ATOL_E
+        ):
+            raise ValueError("diagnostic audit coefficient sum violates target charge.")
+        if not self.source_basis_id or not self.receiver_basis_id:
+            raise ValueError("diagnostic basis identities must be nonempty.")
+        expected_source_space_sha256 = self.source_space_contract_sha256
+        expected_receiver_space_sha256 = self.receiver_space_contract_sha256
+        for name, value in (
+            ("source_space_contract_sha256", expected_source_space_sha256),
+            ("receiver_space_contract_sha256", expected_receiver_space_sha256),
+        ):
+            if (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(f"{name} must be a lowercase SHA256 digest.")
+        expected_component_order = (
+            "net_monopole",
+            "real_l1_m0",
+            "real_l1_m1",
+            "real_l1_m_minus1",
+        )
+        if tuple(self.source_component_order) != expected_component_order:
+            raise ValueError("diagnostic source component order drifted.")
+        expected_roles = (
+            ("permanent_source4", "geometry-only permanent atomic-l1 source"),
+            (
+                "response_zero_source4",
+                "zero-field responsive subtraction reference",
+            ),
+            (
+                "response_final_source4",
+                "field-conditioned responsive checkpoint source",
+            ),
+            ("induced_source4", "responsive(field)-responsive(zero-field)"),
+            (
+                "audit_coefficient_sum4",
+                "non-operational permanent+induced coefficient audit projection",
+            ),
+        )
+        if tuple(self.source_role_identities) != expected_roles:
+            raise ValueError("diagnostic source-role identities drifted.")
+        for name, array in arrays.items():
+            object.__setattr__(self, name, array)
+        object.__setattr__(self, "target_charge_e", target_charge)
+        object.__setattr__(self, "source_component_order", expected_component_order)
+        object.__setattr__(self, "source_role_identities", expected_roles)
 
 
 class MACE_MDPPolarHybridSmoothHarmonicEnergy:
@@ -352,6 +543,7 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
         field = self._hybrid.receiver_space.validate(
             initial_field, atom_count=count, name="initial native field"
         )
+        initial_state_sha256 = _array_sha256(field, name="initial native field")
         for iteration in range(1, MAX_ROOT_ITERATIONS + 1):
             induced = self._hybrid.induced_source(geometry, self._anchor, field)
             rhs = self._permanent_rhs + self._induced_operator @ induced.reshape(-1)
@@ -365,17 +557,22 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
             raise RuntimeError(
                 f"hybrid harmonic root did not converge in {MAX_ROOT_ITERATIONS} iterations."
             )
-        induced = self._hybrid.induced_source(geometry, self._anchor, field)
+        response = self._hybrid.response_source(geometry, self._anchor, field)
+        induced = response - self._anchor.response_zero_source4
         rhs = self._permanent_rhs + self._induced_operator @ induced.reshape(-1)
         sigma = np.linalg.solve(self._surface_operator, rhs)
         target = (self._receiver_operator @ sigma).reshape(count, 8)
-        final_residual = float(np.linalg.norm(target - field))
+        final_residual_vector = target - field
+        final_residual = float(np.linalg.norm(final_residual_vector))
         energy = -0.5 * float(np.vdot(rhs, sigma))
         if not np.isfinite(energy):
             raise RuntimeError("hybrid harmonic scalar is non-finite.")
         return {
             "iterations": iteration,
+            "initial_state_sha256": initial_state_sha256,
             "field": field,
+            "final_residual_vector": final_residual_vector,
+            "response": response,
             "induced": induced,
             "rhs": rhs,
             "sigma": sigma,
@@ -383,7 +580,11 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
             "residual_ev": final_residual,
         }
 
-    def solve(self, geometry: object) -> HybridHarmonicEnergyState:
+    def solve_with_diagnostics(
+        self, geometry: object
+    ) -> tuple[HybridHarmonicEnergyState, HybridHarmonicSolveDiagnostics]:
+        """Return the legacy state plus non-admitting already-computed raw leaves."""
+
         self.configuration_sha256()
         count = self._validate_geometry(geometry)
         permanent_sigma = np.linalg.solve(self._surface_operator, self._permanent_rhs)
@@ -400,15 +601,17 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
             raise RuntimeError("hybrid harmonic starts disagree in energy.")
         if float(cold["residual_ev"]) >= ROOT_TOLERANCE_EV:
             raise RuntimeError("hybrid harmonic root residual exceeds tolerance.")
-        total_source = self._hybrid.total_source(
-            geometry, self._anchor, np.asarray(cold["field"])
+        total_source = self._hybrid.source_space.validate(
+            self._anchor.permanent_source4 + np.asarray(cold["induced"]),
+            atom_count=count,
+            name="non-operational source coefficient audit sum",
         )
         charge_error = abs(
-            float(np.sum(total_source[:, 0])) - self._anchor.total_charge_e
+            float(math.fsum(total_source[:, 0])) - self._anchor.total_charge_e
         )
         if charge_error > TOTAL_CHARGE_ATOL_E:
             raise RuntimeError("hybrid harmonic root violates fixed total charge.")
-        return HybridHarmonicEnergyState(
+        state = HybridHarmonicEnergyState(
             geometry_sha256=self._geometry_sha256,
             evaluator_configuration_sha256=self.configuration_sha256(),
             anchor_state_sha256=self._anchor.state_sha256,
@@ -437,6 +640,62 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
             replay_energy_abs_difference_ev=energy_difference,
             coefficient_topology_id=self._continuum.topology_sha256(),
         )
+        diagnostics = HybridHarmonicSolveDiagnostics(
+            cold_start=HybridHarmonicRootStartDiagnostics(
+                initial_state_sha256=str(cold["initial_state_sha256"]),
+                final_native_field_ev=np.asarray(cold["field"]),
+                final_residual_ev=np.asarray(cold["final_residual_vector"]),
+                final_residual_norm_ev=float(cold["residual_ev"]),
+                final_polarization_energy_ev=float(cold["energy_ev"]),
+                iterations=int(cold["iterations"]),
+                converged=True,
+            ),
+            wide_start=HybridHarmonicRootStartDiagnostics(
+                initial_state_sha256=str(wide["initial_state_sha256"]),
+                final_native_field_ev=np.asarray(wide["field"]),
+                final_residual_ev=np.asarray(wide["final_residual_vector"]),
+                final_residual_norm_ev=float(wide["residual_ev"]),
+                final_polarization_energy_ev=float(wide["energy_ev"]),
+                iterations=int(wide["iterations"]),
+                converged=True,
+            ),
+            permanent_source4=self._anchor.permanent_source4,
+            response_zero_source4=self._anchor.response_zero_source4,
+            response_final_source4=np.asarray(cold["response"]),
+            induced_source4=np.asarray(cold["induced"]),
+            audit_coefficient_sum4=total_source,
+            target_charge_e=self._anchor.total_charge_e,
+            source_basis_id=self._hybrid.source_space.scalar_id,
+            source_space_contract_sha256=(
+                atomic_l1_source_convention_contract_sha256()
+            ),
+            source_component_order=tuple(self._hybrid.source_space.components),
+            receiver_basis_id=self._hybrid.receiver_space.space_id,
+            receiver_space_contract_sha256=(
+                mace_polar_native_field_convention_contract_sha256()
+            ),
+            source_role_identities=(
+                ("permanent_source4", "geometry-only permanent atomic-l1 source"),
+                (
+                    "response_zero_source4",
+                    "zero-field responsive subtraction reference",
+                ),
+                (
+                    "response_final_source4",
+                    "field-conditioned responsive checkpoint source",
+                ),
+                ("induced_source4", "responsive(field)-responsive(zero-field)"),
+                (
+                    "audit_coefficient_sum4",
+                    "non-operational permanent+induced coefficient audit projection",
+                ),
+            ),
+        )
+        return state, diagnostics
+
+    def solve(self, geometry: object) -> HybridHarmonicEnergyState:
+        state, _ = self.solve_with_diagnostics(geometry)
+        return state
 
 
 class MACE_MDPPolarHybridSmoothHarmonicPES:
@@ -535,6 +794,38 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
     def force_backend(self) -> RichardsonScalarForce:
         return self._force_backend
 
+    @property
+    def prepared_atomic_numbers(self) -> tuple[int, ...]:
+        return tuple(int(value) for value in self._atomic_numbers)
+
+    @property
+    def prepared_cavity_radii_angstrom(self) -> tuple[float, ...]:
+        return tuple(float(value) for value in self._cavity_radii_angstrom)
+
+    @property
+    def prepared_charge(self) -> int:
+        return 0
+
+    @property
+    def prepared_multiplicity(self) -> int:
+        return 1
+
+    @property
+    def prepared_profile_id(self) -> str:
+        return self.profile_id
+
+    @property
+    def prepared_scalar_id(self) -> str:
+        return SCALAR_ID
+
+    @property
+    def prepared_provider_id(self) -> str:
+        return self.provider_id
+
+    @property
+    def prepared_configuration_sha256(self) -> str:
+        return self.configuration_sha256()
+
     def _current_configuration_sha256(self) -> str:
         return canonical_metadata_sha256(
             {
@@ -576,6 +867,56 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         ):
             raise ValueError("geometry positions must be finite with shape (N,3).")
 
+    def _validate_admitted_runtime(self, geometry: object) -> None:
+        """Reject any runtime not covered by the replicated E/F artifact."""
+
+        self.configuration_sha256()
+        if model_charge_and_multiplicity(geometry) != (0, 1):
+            raise RuntimeError(
+                "The admitted hybrid harmonic profile is restricted to neutral singlets."
+            )
+        if (
+            self._hybrid.provider_id != MACE_MDP_POLAR_HYBRID_PROVIDER_ID
+            or self._hybrid.model_profile_id != MACE_MDP_POLAR_HYBRID_PROFILE_ID
+            or self._hybrid.long_range_evaluator_profile
+            != REQUIRED_LONG_RANGE_EVALUATOR
+        ):
+            raise RuntimeError(
+                "Hybrid model identity is outside the admitted checkpoint profile."
+            )
+        if (
+            self._hybrid.configuration_sha256() != ADMITTED_HYBRID_CONFIGURATION_SHA256
+            or self._hybrid.provenance_sha256 != ADMITTED_HYBRID_PROVENANCE_SHA256
+        ):
+            raise RuntimeError(
+                "Hybrid providers/checkpoints differ from the admitted evidence."
+            )
+        if self._continuum_settings != ADMITTED_CONTINUUM_SETTINGS:
+            raise RuntimeError(
+                "Harmonic continuum settings differ from the admitted evidence."
+            )
+        if (
+            self._force_backend.coarse_step_angstrom
+            != NUMERICAL_FORCE_COARSE_STEP_ANGSTROM
+            or self._force_backend.maximum_error_eV_per_A
+            != NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM
+        ):
+            raise RuntimeError("Numerical-force settings differ from the admission.")
+        if str(self._dtype) != ADMITTED_DTYPE or str(self._device) != ADMITTED_DEVICE:
+            raise RuntimeError(
+                "The replicated admission is restricted to float64 on cuda."
+            )
+        symbols_method = getattr(geometry, "get_chemical_symbols", None)
+        if not callable(symbols_method):
+            raise TypeError("admitted geometry must expose get_chemical_symbols().")
+        expected_radii = np.asarray(
+            smd_water_coulomb_radii(symbols_method()), dtype=float
+        )
+        if not np.array_equal(self._cavity_radii_angstrom, expected_radii):
+            raise RuntimeError(
+                "Cavity radii differ from the admitted SMD-water Coulomb radii."
+            )
+
     def _continuum(self) -> SmoothWeightedHarmonicGalerkinFunctionalCandidate:
         return SmoothWeightedHarmonicGalerkinFunctionalCandidate(
             atomic_numbers=tuple(int(value) for value in self._atomic_numbers),
@@ -595,6 +936,13 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
 
     def solve(self, geometry: object) -> HybridHarmonicEnergyState:
         return self._evaluator(geometry).solve(geometry)
+
+    def solve_with_diagnostics(
+        self, geometry: object
+    ) -> tuple[HybridHarmonicEnergyState, HybridHarmonicSolveDiagnostics]:
+        """Return the unchanged legacy state plus non-admitting diagnostics."""
+
+        return self._evaluator(geometry).solve_with_diagnostics(geometry)
 
     @staticmethod
     def _sample_from_state(state: HybridHarmonicEnergyState) -> ScalarEnergySample:
@@ -696,6 +1044,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             raise RuntimeError(
                 "The experimental hybrid smooth-harmonic force has not passed admission."
             )
+        self._validate_admitted_runtime(geometry)
         state = self.solve(geometry)
         force_evaluation = (
             self.numerical_force(geometry, central_state=state) if need_forces else None
@@ -739,8 +1088,12 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
                 ("charge_spin", "neutral-singlet"),
                 ("component", "electrostatic-polarization-only"),
                 ("continuum", "smooth-fixed-coefficient-harmonic-galerkin"),
+                ("device", ADMITTED_DEVICE),
+                ("dtype", ADMITTED_DTYPE),
                 ("force", self.force_derivative_kind),
+                ("model_binding_sha256", ADMITTED_HYBRID_CONFIGURATION_SHA256),
                 ("nonpolar", "excluded"),
+                ("solvent", "water-cavity-conductor-limit-electrostatic"),
             ),
             warnings=(
                 "Experimental electrostatic scalar and numerical scalar-gradient "
@@ -760,8 +1113,15 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
 
 
 __all__ = [
+    "ADMITTED_CONTINUUM_SETTINGS",
+    "ADMITTED_DEVICE",
+    "ADMITTED_DTYPE",
+    "ADMITTED_HYBRID_CONFIGURATION_SHA256",
+    "ADMITTED_HYBRID_PROVENANCE_SHA256",
     "HYBRID_HARMONIC_SCALAR_PROVIDER_ID",
     "HybridHarmonicEnergyState",
+    "HybridHarmonicRootStartDiagnostics",
+    "HybridHarmonicSolveDiagnostics",
     "MACE_MDPPolarHybridSmoothHarmonicEnergy",
     "MACE_MDPPolarHybridSmoothHarmonicPES",
     "NUMERICAL_FORCE_COARSE_STEP_ANGSTROM",

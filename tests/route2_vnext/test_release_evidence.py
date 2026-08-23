@@ -9,6 +9,7 @@ import sys
 import pytest
 
 from maple.solvation.release.evidence import (
+    _numpy_runtime,
     RepositorySnapshot,
     canonical_json_sha256,
     collect_loaded_repository_sources,
@@ -72,6 +73,14 @@ PES_CARTESIAN_EVIDENCE = (
 RESIDUAL_FORCE_EVIDENCE = (
     ROOT / "docs" / "route2" / "evidence" / "fixedbox590-residual-force-9918dea6"
 )
+
+
+def test_numpy_runtime_configuration_is_nonempty_and_canonical() -> None:
+    runtime = _numpy_runtime()
+    assert runtime is not None
+    config = runtime["show_config"]
+    assert isinstance(config, str) and config
+    assert config == config.strip()
 
 
 def _git(*arguments: str, root: Path = ROOT) -> str:

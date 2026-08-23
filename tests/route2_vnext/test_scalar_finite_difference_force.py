@@ -8,7 +8,9 @@ import pytest
 
 from maple.solvation.derivatives import (
     RichardsonScalarForce,
+    RichardsonScalarHessian,
     ScalarEnergySample,
+    ScalarForceSample,
 )
 
 
@@ -37,6 +39,16 @@ class _PolynomialScalar:
             state_sha256=state,
             topology_id=topology,
         )
+
+    def force_sample(self, geometry: object) -> ScalarForceSample:
+        positions = np.asarray(geometry.positions, dtype=float)
+        weights = np.arange(1, positions.size + 1, dtype=float).reshape(positions.shape)
+        forces = -weights * (2.0 * positions + 1.2 * positions**5)
+        energy_sample = self.sample(geometry)
+        evaluation = hashlib.sha256(
+            energy_sample.state_sha256.encode() + forces.tobytes()
+        ).hexdigest()
+        return ScalarForceSample(energy_sample, forces, evaluation)
 
 
 def _atoms() -> Atoms:
@@ -95,3 +107,46 @@ def test_richardson_force_fails_closed_when_error_budget_is_too_small():
             coarse_step_angstrom=0.1,
             maximum_error_eV_per_A=1.0e-12,
         ).evaluate(_PolynomialScalar(), _atoms())
+
+
+def test_richardson_hvp_and_hessian_differentiate_the_same_scalar_force():
+    atoms = _atoms()
+    provider = _PolynomialScalar()
+    backend = RichardsonScalarHessian(
+        coarse_step_angstrom=1.0e-2,
+        maximum_error_eV_per_A2=1.0e-3,
+        maximum_antisymmetry_eV_per_A2=1.0e-10,
+    )
+    positions = np.asarray(atoms.positions)
+    weights = np.arange(1, positions.size + 1, dtype=float).reshape(positions.shape)
+    expected_diagonal = (weights * (2.0 + 6.0 * positions**4)).reshape(-1)
+    direction = np.linspace(-0.4, 0.6, positions.size).reshape(positions.shape)
+    hvp = backend.evaluate_hvp(provider, atoms, direction)
+    np.testing.assert_allclose(
+        hvp.hvp_eV_per_A2,
+        expected_diagonal.reshape(positions.shape) * direction,
+        atol=3.0e-8,
+        rtol=0.0,
+    )
+    assert hvp.maximum_error_estimate_eV_per_A2 < 1.0e-3
+
+    evaluated = backend.evaluate(provider, atoms)
+    expected = np.diag(expected_diagonal)
+    np.testing.assert_allclose(evaluated.raw_hessian_eV_per_A2, expected, atol=3.0e-8)
+    np.testing.assert_allclose(evaluated.hessian_eV_per_A2, expected, atol=3.0e-8)
+    assert evaluated.maximum_antisymmetry_eV_per_A2 < 1.0e-12
+    assert evaluated.maximum_error_estimate_eV_per_A2 < 1.0e-3
+    assert evaluated.evaluation_sha256
+    with pytest.raises(ValueError):
+        evaluated.hessian_eV_per_A2.setflags(write=True)
+
+
+def test_richardson_hessian_fails_closed_on_topology_change():
+    atoms = _atoms()
+    atoms.positions[0, 0] = 0.0
+    direction = np.zeros((2, 3))
+    direction[0, 0] = 1.0
+    with pytest.raises(RuntimeError, match="changed the continuum topology"):
+        RichardsonScalarHessian().evaluate_hvp(
+            _PolynomialScalar(topology_switch=True), atoms, direction
+        )

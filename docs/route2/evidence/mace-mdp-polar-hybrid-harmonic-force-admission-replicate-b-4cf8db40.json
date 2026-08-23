@@ -1,0 +1,745 @@
+{
+  "aggregate": {
+    "all_execution_gates_passed": true,
+    "benzene_h4_difference_eV_per_A": 3.941143707567041e-08,
+    "maximum_local_richardson_error_eV_per_A": 1.4104595417549493e-05,
+    "water_closed_loop_guarded_absolute_work_eV": 4.7405289175354166e-08,
+    "water_independent_directional_error_eV_per_A": 2.513079225691106e-07,
+    "water_rotation_energy_error_eV": 2.9654074751306325e-09,
+    "water_rotation_force_relative_error": 2.4243672701543782e-08,
+    "water_translation_energy_error_eV": 0.0,
+    "water_translation_force_relative_error": 0.0
+  },
+  "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-v1",
+  "artifact_kind": "preregistered-experimental-energy-force-admission-run",
+  "benzene_gepol_regression": {
+    "asset_sha256": {
+      "mol2": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "projection_result": "c1a786cfdd11e5b2e6caf3406599eb29575520dfd303addcc66a29999124bd65"
+    },
+    "atom_count": 12,
+    "cavity_radii_angstrom": [
+      1.849999998754871,
+      1.849999998754871,
+      1.849999998754871,
+      1.849999998754871,
+      1.849999998754871,
+      1.849999998754871,
+      1.1999999991923487,
+      1.1999999991923487,
+      1.1999999991923487,
+      1.1999999991923487,
+      1.1999999991923487,
+      1.1999999991923487
+    ],
+    "center_energy_eV": -6319.337259901052,
+    "center_polarization_energy_eV": -0.12556631031246712,
+    "center_root_sha256": "92b465bdc34c9ff4defa955bec95c9a4a2d3be8833240961105086b6e8bd7195",
+    "coefficient_topology_id": "e83eae94061c770d62d8737fecf4fcb397d3a81b4eb8630abf4f5418483df317",
+    "compound_id": "mobley_3053621",
+    "force_convergence": {
+      "atom_index": 0,
+      "axis_index": 0,
+      "center_state_sha256": "92b465bdc34c9ff4defa955bec95c9a4a2d3be8833240961105086b6e8bd7195",
+      "coarse_step_angstrom": 0.0005,
+      "displaced_state_sha256": {
+        "minus_h": "b65e2633ac679650a8be7aefde93ed56c49648b05d38887d3773dab8dbeca5a1",
+        "minus_h2": "2209e90f598602a1978d0461aa9fb2e221b25467fe74ee110905cb0011b2a6d3",
+        "minus_h4": "bb1a5406683083e495a634ad4e38cd18d0e278b2d3785f3205c5572b305918e8",
+        "plus_h": "ee5e4dd0fe83749082abf895f66f316cc1cd03e54c22a6a85bc41d470e8e28df",
+        "plus_h2": "5448a785dc908422cc1399aa13bf83648d6c2ded9bb2af83152fd7528001fd2c",
+        "plus_h4": "a3743a1c043e7ad2adc9faf92387a673d30da7b42fa2b38f4bfcf1078261989c"
+      },
+      "energy_derivative_h2_eV_per_A": -0.015910196452750824,
+      "energy_derivative_h4_eV_per_A": -0.015910063666524366,
+      "energy_derivative_h_eV_per_A": -0.01591071304574143,
+      "fine_step_angstrom": 0.00025,
+      "gate_passed": true,
+      "h4_difference_eV_per_A": 3.941143707567041e-08,
+      "independent_step_angstrom": 0.000125,
+      "local_error_estimate_eV_per_A": 1.7219766353451793e-07,
+      "maximum_h4_difference_eV_per_A": 0.0002,
+      "maximum_local_error_eV_per_A": 0.0002,
+      "richardson_energy_derivative_eV_per_A": -0.01591002425508729,
+      "richardson_force_eV_per_A": 0.01591002425508729,
+      "topology_id": "e83eae94061c770d62d8737fecf4fcb397d3a81b4eb8630abf4f5418483df317"
+    },
+    "gate_passed": true,
+    "name": "benzene",
+    "root_summary": {
+      "maximum_cold_iterations": 10,
+      "maximum_primal_residual_eV": 9.943047292772342e-13,
+      "maximum_replay_energy_difference_eV": 7.743805596760467e-15,
+      "maximum_replay_field_difference_eV": 5.183076190462543e-13,
+      "maximum_total_charge_error_e": 9.020562075079397e-17,
+      "maximum_wide_iterations": 10,
+      "state_count": 8,
+      "topology_ids": [
+        "e83eae94061c770d62d8737fecf4fcb397d3a81b4eb8630abf4f5418483df317"
+      ]
+    }
+  },
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "A replicated pass addresses the GEPOL active-point force blocker and admits one experimental electrostatic scalar plus its numerical scalar-gradient force. It does not admit chemical accuracy, complete solvation free energy, analytic force, Hessian/frequency, MD, or Tier V.",
+  "decision": {
+    "analytic_force_admitted": false,
+    "awaiting_independent_replay": true,
+    "candidate_energy_force_gate_passed": true,
+    "chemical_accuracy_admitted": false,
+    "complete_solvation_free_energy_admitted": false,
+    "hessian_frequency_md_admitted": false,
+    "public_capability_admitted": false,
+    "tier_v_admitted": false
+  },
+  "device": "cuda",
+  "dtype": "float64",
+  "exact_command": "tools/route2_release/run_mace_mdp_polar_hybrid_harmonic_force_admission.py --asset-root /home/axie/MAPLE/MAPLE-implicitsolv-route2 --device cuda --replicate-label b --output /tmp/route2-hybrid-harmonic-force-b.json",
+  "execution_git_head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+  "execution_git_tree": "ac96348b6e7f937f1028aa39f48b89a7f76c30a9",
+  "external_assets": {
+    "asset_root": "/home/axie/MAPLE/MAPLE-implicitsolv-route2",
+    "mace_mdp_checkpoint": {
+      "bytes": 51716861,
+      "resolved_path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "role": "mace-mdp-official-checkpoint",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "mace_polar_checkpoint": {
+      "bytes": 68133235,
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "parent_preregistration": {
+      "artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+      "path": "/home/axie/MAPLE/MAPLE-route2-conservative-vnext/docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+      "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
+    },
+    "preregistration": {
+      "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-prereg-v1",
+      "path": "/home/axie/MAPLE/MAPLE-route2-conservative-vnext/docs/route2/preregistrations/mace-mdp-polar-hybrid-harmonic-force-admission-v1.json",
+      "sha256": "c9ec2660006efd9449c7bbdb11daa23018c08dee4bcb30c2fb6452d788fe4120"
+    }
+  },
+  "measurement_sha256": "a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30",
+  "protocol": {
+    "fit_calibration_or_case_selection": false,
+    "force_panel": {
+      "closed_loop_cartesian_dofs": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "closed_loop_half_width_angstrom": 0.001,
+      "gepol_regression_cartesian_dof": [
+        0,
+        0
+      ],
+      "gepol_regression_compound_id": "mobley_3053621",
+      "independent_direction_seed": 20260816,
+      "maximum_benzene_h4_difference_ev_per_angstrom": 0.0002,
+      "maximum_closed_loop_work_abs_ev": 2e-07,
+      "maximum_independent_directional_error_ev_per_angstrom": 0.0005,
+      "maximum_net_force_norm_ev_per_angstrom": 0.001,
+      "maximum_rotation_energy_error_ev": 1e-07,
+      "maximum_rotation_force_absolute_error_ev_per_angstrom": 5e-05,
+      "maximum_rotation_force_relative_error": 2e-05,
+      "maximum_translation_energy_error_ev": 1e-07,
+      "maximum_translation_force_absolute_error_ev_per_angstrom": 5e-05,
+      "maximum_translation_force_relative_error": 2e-05,
+      "rotation_seed": 20260817,
+      "translation_angstrom": [
+        4.2,
+        -3.1,
+        1.7
+      ],
+      "water_full_cartesian_force": true,
+      "water_geometry_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239,
+          0.9266,
+          0.0
+        ]
+      ]
+    },
+    "frozen_runtime_contract": {
+      "continuum": "smooth weighted harmonic Galerkin A=E.T*K*E with fixed coefficient topology",
+      "exposure_lmax": 2,
+      "exposure_radial_quadrature_order": 32,
+      "force_coarse_step_angstrom": 0.0005,
+      "force_derivative": "fourth-order central Richardson derivative of the complete re-solved scalar",
+      "force_displacement_policy": "rebuild E,K,point/Gaussian source maps,A,b and both-start root at every point",
+      "force_fine_step_angstrom": 0.00025,
+      "force_maximum_local_error_estimate_ev_per_angstrom": 0.0002,
+      "force_topology_policy": "identical fixed coefficient topology hash at center and every stencil point",
+      "green_radial_quadrature_order": 32,
+      "independent_force_step_angstrom": 0.000125,
+      "induced_source_kernel": "normalized sigma=1.5-A Gaussian multipoles projected to complete harmonic coefficients",
+      "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+      "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "mace_polar_long_range_evaluator": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+      "maximum_root_iterations": 40,
+      "multi_start_energy_tolerance_ev": 1e-10,
+      "multi_start_field_tolerance_ev": 2e-09,
+      "permanent_source_kernel": "invariant exterior point multipoles projected to complete harmonic coefficients",
+      "receiver_kernel": "minus exact transpose of the normalized sigma=1.5/3.0-A Gaussian harmonic source operator",
+      "root_method": "undamped Picard",
+      "root_tolerance_ev": 1e-10,
+      "second_start": "twice the permanent-source reaction field",
+      "source_radial_quadrature_order": 32,
+      "surface_lmax": 1,
+      "total_charge_tolerance_e": 1e-08,
+      "transition_width_angstrom2": 0.18
+    },
+    "parent_preregistration_artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+    "parent_preregistration_sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+    "preregistration_artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-prereg-v1",
+    "preregistration_sha256": "c9ec2660006efd9449c7bbdb11daa23018c08dee4bcb30c2fb6452d788fe4120",
+    "profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1",
+    "scalar_id": "route2-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1"
+  },
+  "replicate_label": "b",
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-15T17:29:28.710340+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 10,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 438.4962088909815,
+  "schema_version": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-v1",
+  "source_files_sha256": {
+    "maple/__init__.py": "5b37f94f73410df850a139e19d13474a502c1345cca9b7255c6f8cf3555ab3bd",
+    "maple/function/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maple/function/calculator/__init__.py": "efd8feb09dc76853b215c8d0afc0af13c91357cedb21de724a86814327bef2a5",
+    "maple/function/calculator/calculator_base.py": "218a047f77b99d6e7465a307948a133c82f45848d01fde47c18d58f10a4c0b56",
+    "maple/function/calculator/extra_correction/__init__.py": "4790e4ef392266c41c6a105c8f0480f65ebb9a2e79e77d9d9011297b5ae00af2",
+    "maple/function/calculator/extra_correction/implicit/__init__.py": "516077c4a8fcee307eedf0584666723943d35a68189e15483ad2634f7e657bea",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py": "693fcbdcdad5ead3c8e20432d1be0c8db3105fe8aa4eab645ae12ff3148b9a8f",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "2f600029076e9c4f5b4d98ad2410f2c6a9f9d598f49b1b17f2115e245108bf3e",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "b5fbbec5fddeecbb19b0c3d4949e3a778400137eab69f94f7d48ab38fed2f711",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "eed1d398a04311890d37bc4bab74042714bf8bfeae1b203d3726a8a947e5d2d0",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py": "df0bc8afa1cec59b097a1a226d32d7b0fb7673c2e63baa537b185e7aebc7ea25",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py": "68e0b087ad7595e17fd06c9e311d7f34bbb24bf7482cd45abd90415a7f5c9069",
+    "maple/function/calculator/extra_correction/implicit/result.py": "246772ea1e904925806fefbfbd75c7778c343fa22a9759a5be83b2df449d5e9f",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py": "92e8128f815f5d6cf8eb876038734d41609b5519f7c3ce077e4fe4fed10ecf10",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py": "ea4967114a762fbb8358f29b321d8257099dd8d1ccd419ba4daadab423b15a89",
+    "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py": "5925f1abd171444c796120b65cb6392f15d64be9d0c3f3d0fc5fe408ba608953",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py": "735d16ec5d09b84799d6fdac3f4b87046834d244c854d059bb0f6d9e1a208c73",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py": "1e772cab5ca5042c43b31dd75c1ffec616f79b033098e65f2e9b015c10e3d1e9",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "7e42c529b87ee35a9e1d20c978479be9dbe12b323f47ac8092e379e9afb8716b",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py": "ca172260903c92a7c46ad6491c9f4be29d3dccad095f8c819353e9b31f394c3a",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py": "38296dd773d207554e2938155addef28ab8744500ad62cf519bbd8bee511ad66",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py": "8cccec211212ae13207f5b1322e30b29387c21a03d6fc81d5a68ef4d50c0830b",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py": "73ee381c65744a65e9d7ea1353e239d6611fa116ad21717300351b7150239785",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py": "967238952ecf4bd691aead7f91524470fb0502777fc24908780bd75f7dd5e05f",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py": "cc8fe2f07d50f4683a477ee6063203edafa50376700f92b7483fd7ff1c62094b",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py": "d72f5689481f9663d2a5094dd4b9072fab2c2da5ff25e016418526d82e761d52",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py": "b2bd1cfd73bbdf9efc1a8a4dab06a73919d393f7cc909a26e304bc686dbd999d",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py": "0a4a5b6efe81af726dcedb2ce110b0b62540a945be85b07da62a05453fd800d7",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py": "f9d548e0ab7580944f2795eb567fa87c3e75ea277bf668d66e71d6edcefd2466",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "a53a1ce5d437c9381508f0caed7060d8d3fefc6d7473774e18305974ab668ab4",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py": "aa8053d6fb24426d433e813a3cb28bd7e66ff34f871bf4ab259e0c30370ebf45",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "2e60544723bc984761c5566bc752d5b92d879eb8ad609a0886ec70a4fd0bbc6e",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+    "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+    "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
+    "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+    "maple/function/read/__init__.py": "5615628ff768f6ddcc27e2c9c6a43bad348f221feab8bebe1a4da6fd63353b75",
+    "maple/function/read/filereader/__init__.py": "971f78d2130e9232397dc76bf1ff211b575504f81bb0a737df6b1d959eb6c3f2",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
+    "maple/function/read/filereader/post_reader.py": "6b8e81de5b8fdef6058acda2751cbf76f4ac3e9d352e9504e48add22c526ebb5",
+    "maple/function/read/filereader/xyz_reader.py": "48acccbfe74267f6c438926d4e390db336217c988b0b21c6af89fb251b61c456",
+    "maple/function/read/filereader/xyz_traj_reader.py": "f8fce59ab621d031762e24d243b7bf74b1d1849a22b633639397f71df5c9a25d",
+    "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+    "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
+    "maple/function/route2_smd_profiles.py": "93bc8a60be9c0626b7472598aac04b21b95e075b9e7ba557e1e0ce7d0ccafa02",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe",
+    "maple/function/utility/__init__.py": "cdb04f9be9a33f57ee5c372fe559c9b01c34e73bc32b119c8488fffd4b9fb935",
+    "maple/function/utility/molecules.py": "febb630b2cbba5be36fe314b6832a1f3b4a45b7150750fcc4ffa306328631b4f",
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "f98b9bcda3a85a57ceca3c95003f50ccde4a5bcde658a68d0a9e6eb63bd32e60",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "8356725d95de44e029dbbcd04c8d5f20da9ec3ae0db6cf92e319e92c21eb9114",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "e41a04c1054e61f841db64622ade6c0951c7c7c8434f34e6efaec5dc9d51cbda",
+    "maple/solvation/api/scalar_registry.py": "493ad1b8b6edd36fdf99e8635eb559eef0ffff06e79c49686dca38cedee52846",
+    "maple/solvation/api/state_registry.py": "1f7495ccf634110a824bde33bda98599f59670120e26646c4522af6b7bd601a6",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "8252d98200104884dbb0866a5ed064f79be19e449d88b77d542d85355cfa7208",
+    "maple/solvation/continuum/functional.py": "8229c0b670312506c5ecf0798c78dcecc849aaee8833a2e2327037d95958c471",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/continuum/harmonic_exposure.py": "66f1225f037fd87dd284dbc17f7d9e2acedac298423ffef2d26c9d20494dd83d",
+    "maple/solvation/continuum/harmonic_point_source.py": "68acab10ece2e264ef7b524b4a72d5ddc90d34c0d39f2a09094641dfaebca4e0",
+    "maple/solvation/continuum/harmonic_single_layer.py": "327ba90e5625d5addd35f93c38bdd5213e087c74498d7e7624e3a14002a31762",
+    "maple/solvation/continuum/harmonic_torch_functional.py": "661208256c55d6832d720130ce7ec04ef102b45963d81d5c3f449d01ee63dd8d",
+    "maple/solvation/continuum/harmonic_torch_primitives.py": "85c79292a6dbf3909a39dd710f8ffc84663c4ec4d0e803ba0637332c65b23ff9",
+    "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/separated_operators.py": "0e2b597252c6e0d9ca5836625b39fbceffaece7b4014d77fa9d8b241f2e204ec",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/derivatives/__init__.py": "6a1e0e8fc26ab592110a6209c6b7949ae0993faa6899fd99dab0840413c56681",
+    "maple/solvation/derivatives/scalar_finite_difference.py": "88197850a1fd38a7012e5dc1e593f07cd6e186b24facdfdb53730ca08b02ffa8",
+    "maple/solvation/experimental/__init__.py": "eeccff1cb70fa93086b96540ff71aa29af47f6e76864489cba85dcd993773a36",
+    "maple/solvation/experimental/mace_mdp_polar_harmonic.py": "5d1e8a09e1d6b574ad6439039d1d91d09a80b34540a29044db97b1b981410b8e",
+    "maple/solvation/experimental/mace_mdp_polar_pcmsolver.py": "a6a7d1dd8f03d61e6e57d0a92003672fd6bbfd5ed7670efe04cb99d4ac2f9c00",
+    "maple/solvation/models/__init__.py": "14166a9dc34a29798c41e43abcbc9cb523f5edbb46048f24fbdc71af3133598d",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/mace_mdp.py": "ba957da754ced111435519ccac4862f0fa71905d9f710ea53b6c1b48cf140a61",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "9ed523c1fe1d81508cf14e6455f19b8e8c054eb2055fba8a96e5f2ca1a53c1a9",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_separated.py": "2aedd9e8ede2df159d54341bdd26f37e3f8221a3836b308199bc33981c68c3f9",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/models/passive_polarization.py": "2558518e2aa3375a48b2f8719bc23a5fd084f2fd69adc838799ee9839aa23a48",
+    "maple/solvation/models/passive_training.py": "58d592d7e136e2d77199e15611d3f063f3dbd98d8d119bd61d43251886c803ed",
+    "maple/solvation/models/runtime/__init__.py": "64a17adc6d4e8e229b927a4fb2c257b43bb4cb2b4a07223e7c7976b4978bff61",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py": "d892e4986aebd34a3df9b1614e7845903785afa519415e465167dbb9380b70ad",
+    "maple/solvation/release/__init__.py": "01d6bcc28049365d49de53eaff3ee6d3e0f5230510ca2771ea788159e8525792",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
+    "maple/solvation/release/electrostatic_decomposition.py": "433cf54c271f269745fd16e4e6170140db3340de462b540d3c94a865fe0cfd42",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
+    "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+    "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/radial_embedding.py": "55c27af3df5ddc0f91c2cc44e8f165354c1f038f1f7209f03bbc75574dff51a8",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/root_well_posedness.py": "943cab8cc9f235852cdf257d95619ec8fba6410b7d3a391cd7779e271ac03302",
+    "maple/solvation/release/source_mep.py": "d1f1eedae9a150e1b66a14b0ee2f8fa88ae560a00aa3442a5c45838778126224",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "tools/route2_release/run_mace_mdp_polar_hybrid_harmonic_force_admission.py": "392ce312ad16d12aa4f5f42e72d2309aa1e543f2946a375bef070f225fbce06d"
+  },
+  "status": "candidate-energy-force-gate-passed-awaiting-independent-replay",
+  "water_force_symmetry_loop": {
+    "cavity_radii_angstrom": [
+      1.52,
+      1.2,
+      1.2
+    ],
+    "center_energy_eV": -2080.2295876398484,
+    "center_force": {
+      "error_estimates_eV_per_A": [
+        [
+          9.424790429590768e-06,
+          8.316722717949254e-06,
+          0.0
+        ],
+        [
+          1.3750195648754016e-05,
+          1.8926584743894637e-06,
+          0.0
+        ],
+        [
+          3.9608494262211025e-06,
+          1.0397798178019002e-05,
+          0.0
+        ]
+      ],
+      "evaluation_sha256": "c3ee4afa622dff3aa8e2eba2da13bc2f3009c0fecbc64646997269aec3ab3fa9",
+      "finite": true,
+      "forces_eV_per_A": [
+        [
+          -0.4957137710637956,
+          -0.6587795921101739,
+          -0.0
+        ],
+        [
+          0.09683269263405236,
+          0.4406048583405209,
+          -0.0
+        ],
+        [
+          0.3988810804003151,
+          0.2181747345275653,
+          -0.0
+        ]
+      ],
+      "maximum_error_estimate_eV_per_A": 1.3750195648754016e-05,
+      "net_force_norm_eV_per_A": 2.111299254277778e-09
+    },
+    "center_polarization_energy_eV": -0.3657910461856432,
+    "center_root_sha256": "3ca33489626a033368cc0aa5b30ad98f1f34bbed5c6be6b613255b3ced5334f5",
+    "closed_loop": {
+      "absolute_work_eV": 2.13700938412123e-09,
+      "cartesian_dofs": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "closed_loop_work_eV": -2.13700938412123e-09,
+      "edges": [
+        {
+          "displacement_angstrom": 0.002,
+          "force_component": {
+            "atom_index": 0,
+            "axis_index": 0,
+            "displaced_state_sha256": [
+              "9ba543e3bdd0d3cd50d2cd5ee2a7f03d7770f7524e7680c2bd667d9bef56461e",
+              "44a6fc09b5afb2f56905e3d975923cdba96632378b27e71125d87c3cd5f57e35",
+              "bd606f9006eb80fbb63ab3a64f16cc6971fe1790750f352359e1db09a6cea0e8",
+              "62ad7240482f9c7251dd410bdea486d54be73a310fe95b273f9fd870f5c7ed20"
+            ],
+            "error_estimate_eV_per_A": 9.391897037858143e-06,
+            "force_eV_per_A": -0.498400782362296
+          },
+          "label": "bottom",
+          "midpoint_offsets_angstrom": [
+            0.0,
+            -0.001
+          ],
+          "work_eV": -0.000996801564724592,
+          "work_error_bound_eV": 1.8783794075716287e-08
+        },
+        {
+          "displacement_angstrom": 0.002,
+          "force_component": {
+            "atom_index": 1,
+            "axis_index": 1,
+            "displaced_state_sha256": [
+              "d9819607e88632128fc4245473966969ae211311983ee356a7aae8729bb20a61",
+              "f23f6ef0ca58ff55fb51e99d218d3809dab094ef110f83b453cdbea39ca58fd5",
+              "6a9e2507105f51352c09c93984c6b8272ce7703c57288e27b9cec61e5f42b090",
+              "3dd085e54d790740c3c44a855c54f2cd5e2d8e5cd481794a490b86c09434c87e"
+            ],
+            "error_estimate_eV_per_A": 1.8915973972188915e-06,
+            "force_eV_per_A": 0.44331403008375975
+          },
+          "label": "right",
+          "midpoint_offsets_angstrom": [
+            0.001,
+            0.0
+          ],
+          "work_eV": 0.0008866280601675195,
+          "work_error_bound_eV": 3.7831947944377835e-09
+        },
+        {
+          "displacement_angstrom": -0.002,
+          "force_component": {
+            "atom_index": 0,
+            "axis_index": 0,
+            "displaced_state_sha256": [
+              "7ff2439147e684cf55363725010f465183a47ef5ba2c96f5c9687cd549f3671d",
+              "963eb103fe79a1da5a5f14244efc138a9a46fb910237b0514b215f5d08a012d7",
+              "18a222a52a2e978e42bdf09bd526d39fa8435f6c374d03817922093b88f06a18",
+              "53bf738e360117a19303b1b5a3dc3b37309e78e6c0f96b5ab64a13160a52f30b"
+            ],
+            "error_estimate_eV_per_A": 9.456774326566109e-06,
+            "force_eV_per_A": -0.4929801499808188
+          },
+          "label": "top",
+          "midpoint_offsets_angstrom": [
+            0.0,
+            0.001
+          ],
+          "work_eV": 0.0009859602999616377,
+          "work_error_bound_eV": 1.8913548653132218e-08
+        },
+        {
+          "displacement_angstrom": -0.002,
+          "force_component": {
+            "atom_index": 1,
+            "axis_index": 1,
+            "displaced_state_sha256": [
+              "65f2108b0b8be282b62b28ea76a52a489d85db15c4f378a0dcb2dc3353fcb885",
+              "7b6bbe596ddc31bc6e19173b5dc7259df7437ae0d6b581939c0902ccd840e0fa",
+              "91a99290a4b2bb5540f23271559a2bc09b7e498af5327c4b9953566568e39772",
+              "59a99f1c52c37061a52513aacf4f3ce69a221fcf0a65589ec52e8925a702b9f2"
+            ],
+            "error_estimate_eV_per_A": 1.8938711339733239e-06,
+            "force_eV_per_A": 0.43789446620697464
+          },
+          "label": "left",
+          "midpoint_offsets_angstrom": [
+            -0.001,
+            0.0
+          ],
+          "work_eV": -0.0008757889324139493,
+          "work_error_bound_eV": 3.787742267946648e-09
+        }
+      ],
+      "gate_passed": true,
+      "guarded_absolute_work_eV": 4.7405289175354166e-08,
+      "half_width_angstrom": 0.001,
+      "maximum_guarded_absolute_work_eV": 2e-07,
+      "numerical_work_error_bound_eV": 4.5268279791232936e-08,
+      "orientation": "counterclockwise"
+    },
+    "coefficient_topology_id": "cb2ba89451120c28d8b6efd7e543e8ee9d8f6c395ac5b70402dc41ab4335eb40",
+    "gate_passed": true,
+    "geometry_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.239,
+        0.9266,
+        0.0
+      ]
+    ],
+    "independent_h4_directional_check": {
+      "absolute_error_eV_per_A": 2.513079225691106e-07,
+      "direction": [
+        [
+          0.103504300549424,
+          -0.11686037739894775,
+          0.4774564367023317
+        ],
+        [
+          0.5244998836496971,
+          -0.14172922173961294,
+          0.5659998043298206
+        ],
+        [
+          0.1002707076562551,
+          -0.17904318681106332,
+          -0.30002017717356555
+        ]
+      ],
+      "energy_derivative_eV_per_A": -0.014952516721677966,
+      "gate_passed": true,
+      "maximum_error_eV_per_A": 0.0005,
+      "minus_state_sha256": "8ffca42991a2e70f6fbe99614ccdaf0b9884ddc2dae477bb1c4014fe285d539c",
+      "negative_force_projection_eV_per_A": -0.014952265413755397,
+      "plus_state_sha256": "fe4732115fa5e0218bb8e24589e9e55711d24cb18ca6be0aa473b7f6a24cbdf7",
+      "seed": 20260816,
+      "step_angstrom": 0.000125
+    },
+    "root_gate_passed": true,
+    "root_summary": {
+      "maximum_cold_iterations": 6,
+      "maximum_primal_residual_eV": 1.6231639875766716e-14,
+      "maximum_replay_energy_difference_eV": 3.885780586188048e-16,
+      "maximum_replay_field_difference_eV": 1.509903313490213e-14,
+      "maximum_total_charge_error_e": 4.2500725161431774e-17,
+      "maximum_wide_iterations": 6,
+      "state_count": 133,
+      "topology_ids": [
+        "cb2ba89451120c28d8b6efd7e543e8ee9d8f6c395ac5b70402dc41ab4335eb40"
+      ]
+    },
+    "rotation": {
+      "energy_absolute_error_eV": 2.9654074751306325e-09,
+      "force_maximum_absolute_error_eV_per_A": 1.5642968476115016e-08,
+      "force_relative_error": 2.4243672701543782e-08,
+      "gate_passed": true,
+      "rotated_force": {
+        "error_estimates_eV_per_A": [
+          [
+            1.3954680374572703e-06,
+            2.5162686750901386e-07,
+            3.90643132655577e-06
+          ],
+          [
+            2.7421265258453786e-07,
+            2.980110972994332e-07,
+            1.4104595417549493e-05
+          ],
+          [
+            9.889239057092603e-07,
+            6.304314107696829e-07,
+            1.0005199631735184e-05
+          ]
+        ],
+        "evaluation_sha256": "b4bae789eb9cd1cf50a7cc29df56098aef540b361fa096d7855f7eee7c4174f2",
+        "finite": true,
+        "forces_eV_per_A": [
+          [
+            -0.6835732671485554,
+            -0.43945421051224304,
+            -0.13903347174467248
+          ],
+          [
+            0.35077270740657696,
+            0.25999639243915834,
+            -0.11344428473118266
+          ],
+          [
+            0.3328005574682417,
+            0.1794578191341619,
+            0.25247775814326207
+          ]
+        ],
+        "maximum_error_estimate_eV_per_A": 1.4104595417549493e-05,
+        "net_force_norm_eV_per_A": 3.0126415788927063e-09
+      },
+      "rotated_root_sha256": "461602a1a1b8990867cf07d173c8902a9242ae277a684d0040f2c18792ad8e43",
+      "rotation_matrix": [
+        [
+          0.4533868309579021,
+          0.6964744525723685,
+          -0.5562047450606388
+        ],
+        [
+          0.14451546425771397,
+          0.5583292263827628,
+          0.8169355883772005
+        ],
+        [
+          0.8795201317220249,
+          -0.4507680244658498,
+          0.15248778972372506
+        ]
+      ],
+      "seed": 20260817
+    },
+    "system": "water",
+    "translation": {
+      "energy_absolute_error_eV": 0.0,
+      "force_maximum_absolute_error_eV_per_A": 0.0,
+      "force_relative_error": 0.0,
+      "gate_passed": true,
+      "translated_force": {
+        "error_estimates_eV_per_A": [
+          [
+            9.424790429590768e-06,
+            8.316722717949254e-06,
+            0.0
+          ],
+          [
+            1.3750195648754016e-05,
+            1.8926584743894637e-06,
+            0.0
+          ],
+          [
+            3.9608494262211025e-06,
+            1.0397798178019002e-05,
+            0.0
+          ]
+        ],
+        "evaluation_sha256": "9fca67e9751d714db55cfd56454494de10a17f9506ef2b24dba627eee5b19713",
+        "finite": true,
+        "forces_eV_per_A": [
+          [
+            -0.4957137710637956,
+            -0.6587795921101739,
+            -0.0
+          ],
+          [
+            0.09683269263405236,
+            0.4406048583405209,
+            -0.0
+          ],
+          [
+            0.3988810804003151,
+            0.2181747345275653,
+            -0.0
+          ]
+        ],
+        "maximum_error_estimate_eV_per_A": 1.3750195648754016e-05,
+        "net_force_norm_eV_per_A": 2.111299254277778e-09
+      },
+      "translated_root_sha256": "bad5815ca38eba536a0a8ec01a6c46a7198c1cbd94d464f951712347fe253858",
+      "translation_angstrom": [
+        4.2,
+        -3.1,
+        1.7
+      ]
+    }
+  },
+  "working_tree_clean": true
+}

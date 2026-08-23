@@ -14,6 +14,8 @@ from .scalar_registry import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
     OPERATIONAL_CPCM_ELECTROSTATIC_V1,
     OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
+    OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2,
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
     OPERATIONAL_CPCM_SMDCDS_V1,
     SCALAR_REGISTRY,
     VARIATIONAL_COMMON_FUNCTIONAL_V1,
@@ -26,6 +28,7 @@ from .state_registry import (
     MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
     MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID,
     OPERATIONAL_STATE_EQUATION_ID,
+    SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
     STATE_REGISTRY,
     VARIATIONAL_STATE_EQUATION_ID,
 )
@@ -39,6 +42,14 @@ OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1 = (
 OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1 = (
     "route2-profile-operational-macepolar-analytic-gaussian-multipole-"
     "smoothharmonicgalerkin-cpcm-v1"
+)
+OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_PROFILE_V1 = (
+    "route2-profile-operational-macepolar-source4-nativefield8-"
+    "smoothharmonic-ddpcm-phi0-v1"
+)
+OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_PROFILE_V2 = (
+    "route2-profile-operational-macepolar-source-gto1p5-nativefield8-"
+    "smoothharmonic-ddpcm-general-source-phi0-v2"
 )
 EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_PROFILE_V1 = (
     "route2-profile-experimental-macemdppoint-macepolarinduced-"
@@ -135,6 +146,9 @@ MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE_ID = (
 MACE_MDP_POLAR_HYBRID_NO_DUALITY_ID = (
     "maple.route2.hybrid-distinct-source-kernels-no-source-field-duality.v1"
 )
+MACE_POLAR_SEPARATED_NO_DUALITY_ID = (
+    "maple.route2.mace-polar-separated-source4-nativefield8-no-duality.v1"
+)
 MACE_MDP_POLAR_HYBRID_NUMERICAL_FORCE_COORDINATE_CONTRACT_ID = (
     "maple.route2.hybrid-full-scalar-richardson-coordinate-gradient.v1"
 )
@@ -146,6 +160,9 @@ LEGACY_UNBOUND_COORDINATE_CONTRACT_ID = (
 )
 MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID = (
     "maple.route2.mace-polar-radial-gto-linear-charge-coordinates.v1"
+)
+ATOMIC_L1_AFFINE_CHARGE_COORDINATE_CONTRACT_ID = (
+    "maple.route2.atomic-l1-affine-charge-coordinates.v1"
 )
 UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.unbound-diagnostic.v1"
@@ -184,6 +201,9 @@ SMOOTH_HARMONIC_CAVITY_PROFILE_ID = (
 )
 SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID = (
     "maple.route2.continuum-configuration.smooth-weighted-harmonic-galerkin.v1"
+)
+SMOOTH_HARMONIC_DDPCM_SEPARATED_CONFIGURATION_CONTRACT_ID = (
+    "maple.route2.continuum-configuration.smooth-harmonic-ddpcm-separated.v1"
 )
 MACE_POLAR_MODEL_PROFILE_ID = "mace-polar-route2-source-field-contract-v1"
 MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID = (
@@ -367,6 +387,60 @@ _PROFILE_ENTRIES = (
         coordinate_contract_id=MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID,
         continuum_configuration_contract_id=(
             SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_PROFILE_V1
+        ),
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1
+        ),
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        model_profile=MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
+        continuum_profile="smooth-partition-harmonic-ddpcm-point-l1-v1",
+        cavity_profile="smooth-partition-harmonic-ddpcm-cavity-v1",
+        nonpolar_profile="none",
+        coupling_id=(
+            "route2-coupling-mace-polar-source4-harmonic-boundary-nativefield8-v1"
+        ),
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE_ID,
+        pairing_id=MACE_POLAR_SEPARATED_NO_DUALITY_ID,
+        coordinate_contract_id=ATOMIC_L1_AFFINE_CHARGE_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_HARMONIC_DDPCM_SEPARATED_CONFIGURATION_CONTRACT_ID
+        ),
+        capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    SolvationProfile(
+        profile_id=(
+            OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_PROFILE_V2
+        ),
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2
+        ),
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        model_profile=MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_MODEL_PROFILE_ID,
+        continuum_profile=(
+            "smooth-partition-harmonic-ddpcm-gaussian-general-source-v2"
+        ),
+        cavity_profile="smooth-partition-harmonic-ddpcm-cavity-v1",
+        nonpolar_profile="none",
+        coupling_id=(
+            "route2-coupling-mace-polar-source4-harmonic-boundary-nativefield8-v1"
+        ),
+        source_space_id=ATOMIC_L1_SOURCE_SPACE_ID,
+        field_space_id=MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE_ID,
+        pairing_id=MACE_POLAR_SEPARATED_NO_DUALITY_ID,
+        coordinate_contract_id=ATOMIC_L1_AFFINE_CHARGE_COORDINATE_CONTRACT_ID,
+        continuum_configuration_contract_id=(
+            SMOOTH_HARMONIC_DDPCM_SEPARATED_CONFIGURATION_CONTRACT_ID
         ),
         capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -731,6 +805,8 @@ __all__ = [
     "OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_CPCM_RADIAL_GTO_ELECTROSTATIC_PROFILE_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_PROFILE_V1",
+    "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_PROFILE_V1",
+    "OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_PROFILE_V2",
     "OPERATIONAL_CPCM_SMDCDS_PROFILE_V1",
     "PROFILE_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_PROFILE_V1",
@@ -755,6 +831,7 @@ __all__ = [
     "MACE_MDP_POLAR_HYBRID_MODEL_PROFILE_ID",
     "MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE_ID",
     "MACE_MDP_POLAR_HYBRID_NO_DUALITY_ID",
+    "MACE_POLAR_SEPARATED_NO_DUALITY_ID",
     "MACE_MDP_POLAR_HYBRID_NUMERICAL_FORCE_COORDINATE_CONTRACT_ID",
     "PCMSOLVER_CONTENT_ADDRESSED_CONFIGURATION_CONTRACT_ID",
     "MACE_POLAR_MODEL_PROFILE_ID",
@@ -767,6 +844,7 @@ __all__ = [
     "MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS",
     "LEGACY_UNBOUND_COORDINATE_CONTRACT_ID",
     "MACE_POLAR_RADIAL_GTO_COORDINATE_CONTRACT_ID",
+    "ATOMIC_L1_AFFINE_CHARGE_COORDINATE_CONTRACT_ID",
     "UNBOUND_CONTINUUM_CONFIGURATION_CONTRACT_ID",
     "WATER_CPCM_194_CONFIGURATION_CONTRACT_ID",
     "WATER_CPCM_590_CONFIGURATION_CONTRACT_ID",
@@ -779,6 +857,7 @@ __all__ = [
     "SMOOTH_HARMONIC_CAVITY_PROFILE_ID",
     "SMOOTH_HARMONIC_GALERKIN_CPCM_CONTINUUM_PROFILE_ID",
     "SMOOTH_HARMONIC_GALERKIN_CONFIGURATION_CONTRACT_ID",
+    "SMOOTH_HARMONIC_DDPCM_SEPARATED_CONFIGURATION_CONTRACT_ID",
     "get_solvation_profile",
     "profile_registry_manifest",
 ]

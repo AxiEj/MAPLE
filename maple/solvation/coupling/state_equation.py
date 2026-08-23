@@ -14,7 +14,6 @@ from dataclasses import dataclass
 import hashlib
 import inspect
 import json
-import marshal
 import re
 import types
 from typing import Any, Protocol, runtime_checkable
@@ -109,6 +108,71 @@ def _finite_vector(values: object, size: int, name: str) -> np.ndarray:
     return np.array(result, copy=True)
 
 
+def _stable_code_sha256(code: types.CodeType) -> str:
+    """Hash executable code without CPython's mutable quickening state.
+
+    ``marshal.dumps(code)`` is not a stable implementation identity on all
+    supported Python 3.11 runtimes: executing a function can specialize its
+    internal adaptive bytecode and change the marshalled representation even
+    though the Python program is unchanged.  Hash only documented semantic
+    code fields and recursively normalize nested code constants instead.
+    """
+
+    if not isinstance(code, types.CodeType):
+        raise TypeError("code must be a Python code object.")
+
+    def constant_payload(value: object) -> object:
+        if isinstance(value, types.CodeType):
+            return {"kind": "code", "sha256": _stable_code_sha256(value)}
+        if isinstance(value, tuple):
+            return {
+                "kind": "tuple",
+                "items": [constant_payload(item) for item in value],
+            }
+        if isinstance(value, frozenset):
+            items = [constant_payload(item) for item in value]
+            items.sort(
+                key=lambda item: json.dumps(
+                    item, sort_keys=True, separators=(",", ":")
+                )
+            )
+            return {"kind": "frozenset", "items": items}
+        if isinstance(value, bytes):
+            return {"kind": "bytes", "hex": value.hex()}
+        if value is Ellipsis:
+            return {"kind": "ellipsis"}
+        if value is None:
+            return {"kind": "none"}
+        if isinstance(value, (bool, int, str)):
+            return {"kind": type(value).__name__, "value": value}
+        if isinstance(value, (float, complex)):
+            return {"kind": type(value).__name__, "repr": repr(value)}
+        return {
+            "kind": f"{type(value).__module__}.{type(value).__qualname__}",
+            "repr": repr(value),
+        }
+
+    payload = {
+        "name": code.co_name,
+        "qualname": getattr(code, "co_qualname", code.co_name),
+        "argcount": code.co_argcount,
+        "posonlyargcount": code.co_posonlyargcount,
+        "kwonlyargcount": code.co_kwonlyargcount,
+        "nlocals": code.co_nlocals,
+        "stacksize": code.co_stacksize,
+        "flags": code.co_flags,
+        "bytecode_hex": code.co_code.hex(),
+        "constants": [constant_payload(value) for value in code.co_consts],
+        "names": list(code.co_names),
+        "varnames": list(code.co_varnames),
+        "freevars": list(code.co_freevars),
+        "cellvars": list(code.co_cellvars),
+        "exceptiontable_hex": getattr(code, "co_exceptiontable", b"").hex(),
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def provider_behavior_sha256(
     provider: object,
     method_names: tuple[str, ...],
@@ -178,7 +242,7 @@ def provider_behavior_sha256(
             payload = (
                 value.__module__,
                 value.__qualname__,
-                hashlib.sha256(marshal.dumps(value.__code__)).hexdigest(),
+                _stable_code_sha256(value.__code__),
                 defaults,
                 keyword_defaults,
                 closure,
@@ -211,11 +275,13 @@ def provider_behavior_sha256(
         if not callable(getattr(provider, name, None)) or not callable(implementation):
             raise TypeError(f"{label}.{name} must be callable.")
         code = getattr(implementation, "__code__", None)
-        code_digest = hashlib.sha256(
-            marshal.dumps(code)
+        code_digest = (
+            _stable_code_sha256(code)
             if code is not None
-            else repr(type(implementation)).encode("utf-8")
-        ).hexdigest()
+            else hashlib.sha256(
+                repr(type(implementation)).encode("utf-8")
+            ).hexdigest()
+        )
         global_dependencies: dict[str, str] = {}
         if code is not None:
             global_namespace = getattr(implementation, "__globals__", {})

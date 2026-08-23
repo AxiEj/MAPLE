@@ -33,6 +33,7 @@ from .route2_derivative import (
     assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
+    frozen_source_pcm_half_coupling_coordinate_gradient,
     pcm_half_coupling_continuum_coordinate_gradient,
     pcm_half_coupling_source_gradient,
 )
@@ -2234,6 +2235,133 @@ class Route2ContinuumEngine:
             reaction_field_capabilities=(
                 _reaction_field_capability_audit(reaction_field)
             ),
+        )
+
+    def frozen_source_solvation_coordinate_gradient(
+        self,
+        atoms,
+        electronic_model,
+        coupled: Route2CoupledState,
+        *,
+        electrostatic_energy_ledger: str = PCM_HALF_COUPLING_ONLY_V1,
+    ) -> tuple[np.ndarray, dict[str, Any]]:
+        """Differentiate one frozen zero-field source plus matching CDS scalar.
+
+        This route is not an implicit fixed-point derivative.  It applies the
+        explicit chain rule to the stored scalar
+
+        ``0.5*<c0(R), P_R c0(R)> + G_CDS(R)``
+
+        and therefore needs only the complete continuum position VJP and the
+        electronic model's zero-field source position VJP.
+        """
+
+        selected_energy_ledger = self._select_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
+        if selected_energy_ledger != PCM_HALF_COUPLING_ONLY_V1:
+            raise TypeError(
+                "Frozen-source derivatives require the direct PCM "
+                "half-coupling ledger."
+            )
+        model = self._resolve_electronic_model(
+            electronic_model,
+            atoms=atoms,
+            execution_mode="frozen",
+            require_force_route=True,
+        )
+        if coupled.response_mode != "frozen":
+            raise TypeError(
+                "The explicit frozen-source chain rule requires a frozen state."
+            )
+        if coupled.electronic_model_identity != model.cache_identity:
+            raise RuntimeError(
+                "Route-2 derivative model does not own the frozen state."
+            )
+        if not np.array_equal(
+            coupled.atomic_numbers,
+            np.asarray(atoms.numbers, dtype=int),
+        ) or not np.array_equal(
+            coupled.positions_angstrom,
+            np.asarray(atoms.get_positions(), dtype=float),
+        ):
+            raise RuntimeError(
+                "Frozen-source Route-2 derivative geometry does not own the "
+                "stored continuum state."
+            )
+        if bool(
+            getattr(coupled.reaction_field, "source_dependent_geometry", False)
+        ):
+            raise NotImplementedError(
+                "The explicit frozen-source chain rule is limited to a continuum "
+                "map whose geometry does not depend on the electronic source."
+            )
+        projector = coupled.reaction_field_projector
+        capabilities = model.descriptor.capabilities
+        if projector not in capabilities.position_vjp_projectors:
+            raise TypeError(
+                "Electronic model lacks the source-position VJP required by the "
+                "frozen-source derivative."
+            )
+
+        density = coupled.density_coefficients
+        field = coupled.reaction_field_values_ev
+        zero_field_drive = ReactionFieldDrive.local_jet(np.zeros_like(field))
+        continuum = frozen_source_pcm_half_coupling_coordinate_gradient(
+            coupled.reaction_field,
+            source=density,
+            field=field,
+            source_position_vjp=lambda cotangent: model.source_position_vjp(
+                atoms,
+                zero_field_drive,
+                source_cotangent=cotangent,
+            ),
+            pairing=model.descriptor.source_space.pairing,
+        )
+        total = assemble_total_solvation_coordinate_gradient(
+            continuum.continuum_position_gradient_ev_per_angstrom,
+            coupled.cds_result.position_gradient_hartree_per_angstrom,
+        )
+        force_admission = {
+            "release_admitted": False,
+            "scope": "experimental-frozen-source-same-scalar-derivative",
+            "failure_reasons": [
+                "pyddx-active-set-path-smoothness-unverified",
+                "component-resolved-broad-force-validation-unverified",
+                "solution-phase-pes-release-not-requested",
+            ],
+        }
+        derivative = {
+            "source_energy_cotangent_ev": (
+                continuum.source_energy_cotangent_ev
+            ),
+            "fixed_source_continuum_position_gradient_ev_per_angstrom": (
+                continuum.fixed_source_continuum_position_gradient_ev_per_angstrom
+            ),
+            "source_response_position_gradient_ev_per_angstrom": (
+                continuum.source_response_position_gradient_ev_per_angstrom
+            ),
+            "continuum_position_gradient_ev_per_angstrom": (
+                continuum.continuum_position_gradient_ev_per_angstrom
+            ),
+            "cds_position_gradient_hartree_per_angstrom": (
+                coupled.cds_result.position_gradient_hartree_per_angstrom
+            ),
+            "total_position_gradient_hartree_per_angstrom": (
+                total.total_position_gradient_hartree_per_angstrom
+            ),
+            "solvent_correction_forces_hartree_per_angstrom": (
+                total.solvent_correction_forces_hartree_per_angstrom
+            ),
+            "adjoint": {
+                "applies": False,
+                "reason": "frozen-source-explicit-chain-rule-v1",
+            },
+            "force_admission": force_admission,
+        }
+        return (
+            total.solvent_correction_forces_hartree_per_angstrom,
+            derivative,
         )
 
     def solvent_correction_force(

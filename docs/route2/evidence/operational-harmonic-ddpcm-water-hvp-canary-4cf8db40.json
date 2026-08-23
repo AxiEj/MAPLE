@@ -1,0 +1,503 @@
+{
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "checkpoints": {
+    "mace_mdp": {
+      "device": "cpu",
+      "path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "mace_polar": {
+      "device": "cuda",
+      "path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    }
+  },
+  "claim_boundary": "This bounded canary proves callable same-scalar E/F/molecular-virial and two-direction HVP consistency for both exact source profiles on one water geometry. The generic full Hessian closure is separately unit-tested. It does not prove a global single root, distorted-PES admission, H/FREQ accuracy, total solvation free energy, or Tier V.",
+  "continuum": {
+    "configuration_sha256": "f888a59f42d2d2b143d656da5801c4996359793b989c2fb0563e5a1fed1d6e94",
+    "dielectric": 80.0,
+    "provenance_sha256": "b471aeb18fb08ce65246522317d6f8f28a92e15cae672617a90dc2771c20df62",
+    "quadrature_order": 32,
+    "radii_angstrom": [
+      1.52,
+      1.2,
+      1.2
+    ],
+    "surface_lmax": 1
+  },
+  "git": {
+    "branch": "refactor/route2-conservative-vnext",
+    "dirty": true,
+    "head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c"
+  },
+  "hvp_options": {
+    "bilinear_tolerance_eV_per_A2": 0.0002,
+    "coarse_step_angstrom": 0.000125,
+    "derivative": "fourth-order Richardson differentiation of the exact implicit same-scalar force; every stencil point uses a cold root",
+    "fine_step_angstrom": 6.25e-05,
+    "maximum_error_eV_per_A2": 0.005
+  },
+  "profiles": [
+    {
+      "adjoint_true_residual_norm": 1.4400551042244746e-13,
+      "configuration_sha256": "d57a163627348151446b89908567a3b443665ee1b443497d23872d48b485428e",
+      "directions": [
+        [
+          [
+            0.3852583994131825,
+            -0.21287280094828748,
+            0.6177564474150467
+          ],
+          [
+            -0.1039401813597279,
+            0.1402434533437472,
+            -0.5527427807516226
+          ],
+          [
+            -0.28131821805345464,
+            0.07262934760454029,
+            -0.06501366666342409
+          ]
+        ],
+        [
+          [
+            0.42197104544549024,
+            -0.383335800608547,
+            -0.3212362170316301
+          ],
+          [
+            0.07803414069270571,
+            -0.029883432375691073,
+            0.375638308451635
+          ],
+          [
+            -0.5000051861381959,
+            0.4132192329842382,
+            -0.05440209142000483
+          ]
+        ]
+      ],
+      "energy_eV": -2079.932988662723,
+      "force_evaluation_sha256": "7f17f283263ab5fdccef226890e63faba6ea0648f8ba7947814702b8e6e21320",
+      "forces_eV_per_A": [
+        [
+          -0.19785302838330793,
+          -0.21028873519476884,
+          -3.0609098651456366e-17
+        ],
+        [
+          0.27688067262307103,
+          -0.019057581408248474,
+          1.6301225913751674e-17
+        ],
+        [
+          -0.07902764423976306,
+          0.2293463166030173,
+          1.430787273770469e-17
+        ]
+      ],
+      "hvp_eV_per_A2": [
+        [
+          [
+            32.995739883955395,
+            -22.29210576376069,
+            -0.463328755900716
+          ],
+          [
+            -26.104255240628095,
+            -1.051962002979967,
+            0.31851650033359363
+          ],
+          [
+            -6.891484643328265,
+            23.344067766740878,
+            0.14481225556712232
+          ]
+        ],
+        [
+          [
+            34.392025198120194,
+            -49.28055597152687,
+            0.24417749634666083
+          ],
+          [
+            -18.34179732240952,
+            -2.7534850222208456,
+            -0.1925039676315851
+          ],
+          [
+            -16.05022787571068,
+            52.03404099374757,
+            -0.051673528715075835
+          ]
+        ]
+      ],
+      "hvp_error_estimates_eV_per_A2": [
+        [
+          [
+            6.961458595355907e-06,
+            3.772698228488025e-06,
+            3.2799665317106985e-08
+          ],
+          [
+            5.926722447924249e-06,
+            4.078393178730266e-08,
+            4.1811963447102585e-08
+          ],
+          [
+            1.0347364449714291e-06,
+            3.8134821593871493e-06,
+            9.0122981299956e-09
+          ]
+        ],
+        [
+          [
+            1.3153957219458334e-05,
+            4.185320474903165e-05,
+            1.495562835518438e-07
+          ],
+          [
+            2.1665111198387876e-06,
+            2.0480427531666123e-07,
+            2.1968029062513494e-09
+          ],
+          [
+            1.0987446099619547e-05,
+            4.164840043330287e-05,
+            1.4735948062477577e-07
+          ]
+        ]
+      ],
+      "hvp_maximum_error_estimate_eV_per_A2": 4.185320474903165e-05,
+      "name": "pure-macepolar-gto1p5",
+      "net_force_eV_per_A": [
+        4.163336342344337e-17,
+        -2.7755575615628914e-17,
+        -3.0814879110195774e-33
+      ],
+      "projected_hessian_bilinear_asymmetry_eV_per_A2": 2.4758790573287115e-09,
+      "projected_hessian_eV_per_A2": [
+        [
+          23.18548696188684,
+          33.81562489683951
+        ],
+        [
+          33.81562489931539,
+          61.4331617093761
+        ]
+      ],
+      "provider_id": "maple.route2.builder.macepolar-gto1p5-harmonic-ddpcm-phi0.impl.v2",
+      "root_residual_norm": 6.877580305971514e-13,
+      "scalar_id": "route2-operational-macepolar-source-gto1p5-nativefield8-smoothharmonic-ddpcm-general-source-phi0-v2",
+      "state_sha256": "eefd50d30dc9b3b11ad9d7d70eab8d24d73f955648dcbe8efb32fd0b4162dc3b",
+      "timing_seconds": 254.3463575890055,
+      "topology_id": "8adbbb89181b413f691c7eaf285f4c1fbb2bde4138ed6bf35c5bc34d436ed7d6",
+      "virial": {
+        "evaluation_sha256": "036fd4476c10732d04b5c3d87b51b0e97cea90a63115922dc2d6349aadbd1ac8",
+        "maximum_antisymmetry_eV": 1.4475251552958923e-10,
+        "raw_eV": [
+          [
+            0.28399580289850046,
+            -0.07328209742059959,
+            0.0
+          ],
+          [
+            -0.07328209727584707,
+            0.21267215134702816,
+            0.0
+          ],
+          [
+            1.2169827128365022e-17,
+            1.3267647466055347e-17,
+            0.0
+          ]
+        ],
+        "strain_gradient_eV": [
+          [
+            -0.28399580289850046,
+            0.07328209742059959,
+            -0.0
+          ],
+          [
+            0.07328209727584707,
+            -0.21267215134702816,
+            -0.0
+          ],
+          [
+            -1.2169827128365022e-17,
+            -1.3267647466055347e-17,
+            -0.0
+          ]
+        ],
+        "symmetric_eV": [
+          [
+            0.28399580289850046,
+            -0.07328209734822333,
+            6.084913564182511e-18
+          ],
+          [
+            -0.07328209734822333,
+            0.21267215134702816,
+            6.6338237330276735e-18
+          ],
+          [
+            6.084913564182511e-18,
+            6.6338237330276735e-18,
+            0.0
+          ]
+        ]
+      }
+    },
+    {
+      "adjoint_true_residual_norm": 5.266250202865052e-16,
+      "configuration_sha256": "e9ee2effdb20bf375c83b06c302ebc604acb308c5b27a6f556d20fc77bcc8b75",
+      "directions": [
+        [
+          [
+            0.3852583994131825,
+            -0.21287280094828748,
+            0.6177564474150467
+          ],
+          [
+            -0.1039401813597279,
+            0.1402434533437472,
+            -0.5527427807516226
+          ],
+          [
+            -0.28131821805345464,
+            0.07262934760454029,
+            -0.06501366666342409
+          ]
+        ],
+        [
+          [
+            0.42197104544549024,
+            -0.383335800608547,
+            -0.3212362170316301
+          ],
+          [
+            0.07803414069270571,
+            -0.029883432375691073,
+            0.375638308451635
+          ],
+          [
+            -0.5000051861381959,
+            0.4132192329842382,
+            -0.05440209142000483
+          ]
+        ]
+      ],
+      "energy_eV": -2080.0988102109463,
+      "force_evaluation_sha256": "9da7c8c77044833d65827d06c64466ecde6e923b6799c30c88b8edaa967a72f5",
+      "forces_eV_per_A": [
+        [
+          -0.16878377345228007,
+          -0.16972067316904801,
+          -1.606037211520581e-16
+        ],
+        [
+          0.16628524668824682,
+          0.035957338768166335,
+          8.712868013161792e-17
+        ],
+        [
+          0.002498526764033242,
+          0.13376333440088164,
+          7.347504102044016e-17
+        ]
+      ],
+      "hvp_eV_per_A2": [
+        [
+          [
+            35.95219331159734,
+            -23.044109940492845,
+            -0.3850727664047784
+          ],
+          [
+            -28.782639602968302,
+            -1.0726805067101108,
+            0.2411947085214408
+          ],
+          [
+            -7.169553708629022,
+            24.11679044720294,
+            0.1438780578833376
+          ]
+        ],
+        [
+          [
+            36.85174576776095,
+            -51.068114697792744,
+            0.20369669933398438
+          ],
+          [
+            -20.438009311690337,
+            -2.640499761600107,
+            -0.138183272336498
+          ],
+          [
+            -16.41373645607015,
+            53.70861445939201,
+            -0.06551342699748644
+          ]
+        ]
+      ],
+      "hvp_error_estimates_eV_per_A2": [
+        [
+          [
+            0.00017532691124699795,
+            0.00010424332567637862,
+            4.656826215421184e-06
+          ],
+          [
+            0.00014967544685262624,
+            6.567835719728521e-07,
+            3.382271346413779e-06
+          ],
+          [
+            2.565146433486376e-05,
+            0.00010490010937402872,
+            1.2745548689796493e-06
+          ]
+        ],
+        [
+          [
+            0.0003690410629317853,
+            0.0012578201750912399,
+            3.6820256342218194e-06
+          ],
+          [
+            4.384613420427286e-05,
+            5.751860348901516e-06,
+            9.979484354161183e-07
+          ],
+          [
+            0.00032519492878080314,
+            0.00126357203578209,
+            2.684077198805701e-06
+          ]
+        ]
+      ],
+      "hvp_maximum_error_estimate_eV_per_A2": 0.00126357203578209,
+      "name": "mace-mdp-point-plus-macepolar-induced",
+      "net_force_eV_per_A": [
+        -1.214306433183765e-17,
+        -2.7755575615628914e-17,
+        -1.232595164407831e-32
+      ],
+      "projected_hessian_bilinear_asymmetry_eV_per_A2": 6.902926941165788e-08,
+      "projected_hessian_eV_per_A2": [
+        [
+          24.985544012650156,
+          35.547253538295685
+        ],
+        [
+          35.547253469266415,
+          63.89725922646638
+        ]
+      ],
+      "provider_id": "maple.route2.builder.macedp-polar-general-source-harmonic-ddpcm-phi0.impl.v2",
+      "root_residual_norm": 8.27913546286506e-13,
+      "scalar_id": "route2-operational-macemdppoint-macepolarinduced-gto1p5-nativefield8-smoothharmonic-ddpcm-general-source-phi0-v2",
+      "state_sha256": "b56436865e31f950b42664b0669ae8c31f59246c6079f2408fc15c632aeec2ef",
+      "timing_seconds": 281.9078793639783,
+      "topology_id": "8adbbb89181b413f691c7eaf285f4c1fbb2bde4138ed6bf35c5bc34d436ed7d6",
+      "virial": {
+        "evaluation_sha256": "4751984b5f8823371c2639e814bf268be6ba44ecca742f516198fe993473189d",
+        "maximum_antisymmetry_eV": 2.1064981920240755e-10,
+        "raw_eV": [
+          [
+            0.15856862368776448,
+            0.0023168763727077343,
+            0.0
+          ],
+          [
+            0.0023168765833575535,
+            0.12403833869993437,
+            0.0
+          ],
+          [
+            6.57665032576041e-17,
+            6.813318511313111e-17,
+            0.0
+          ]
+        ],
+        "strain_gradient_eV": [
+          [
+            -0.15856862368776448,
+            -0.0023168763727077343,
+            -0.0
+          ],
+          [
+            -0.0023168765833575535,
+            -0.12403833869993437,
+            -0.0
+          ],
+          [
+            -6.57665032576041e-17,
+            -6.813318511313111e-17,
+            -0.0
+          ]
+        ],
+        "symmetric_eV": [
+          [
+            0.15856862368776448,
+            0.0023168764780326437,
+            3.288325162880205e-17
+          ],
+          [
+            0.0023168764780326437,
+            0.12403833869993437,
+            3.4066592556565556e-17
+          ],
+          [
+            3.288325162880205e-17,
+            3.4066592556565556e-17,
+            0.0
+          ]
+        ]
+      }
+    }
+  ],
+  "root_options": {
+    "damping": 0.5,
+    "history": 6,
+    "max_iterations": 100,
+    "method": "anderson",
+    "tolerance": 1e-12
+  },
+  "runtime": {
+    "cuda_available": true,
+    "cuda_device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": "route2-operational-harmonic-ddpcm-water-hvp-canary-v1",
+  "source_files_sha256": {
+    "maple/solvation/continuum/harmonic_ddpcm_functional.py": "793697405a49a9c6538479f53b7fba1141016e4cc3214278bcf3d62423194a44",
+    "maple/solvation/continuum/harmonic_ddpcm_gaussian.py": "86b1db47ca05fccc8335dea3ce48d684e881d1027f515539efe82eb465c375ce",
+    "maple/solvation/continuum/harmonic_ddpcm_hybrid.py": "733a85834581579c4d7e50021527e20d16ab1cfda17995f058e1fa9cc0bc9917",
+    "maple/solvation/coupling/operational_pes.py": "8a38116fe00786c2a1473dfab3425dcd9e0096db56267fb4da5f13ce15d0d55d",
+    "maple/solvation/coupling/permanent_induced_ledgers.py": "5bca995e9c1cc47d8d0c149e83bb57436a7e12760083c2dd21e7c73890a58607",
+    "maple/solvation/coupling/permanent_induced_state.py": "4feeca5b799790b91073d2173e42097738566a1f886fe1d992e0a55a25a5e8af",
+    "maple/solvation/coupling/separated_ledgers.py": "641a8c4084d04975ddf6d0a460ec0ab88a85d908f2f7fe9d90bacb250ebf0187",
+    "maple/solvation/coupling/separated_state.py": "d61f1b82e015adc9424a820d4d544b0fd6528371b12ae10d46d658a535d82a43",
+    "maple/solvation/coupling/state_equation.py": "00002a3cfd973af68d233fae4bb51c23af454b7d16abfc5dbd889a015879719e",
+    "maple/solvation/derivatives/molecular_virial.py": "b9d1a0e7bec9769671eb50f67f81130aa15b6f60174b4fc64b0e75eb81185152",
+    "maple/solvation/derivatives/scalar_finite_difference.py": "aae459f3b536de6daa5003a8bc0a56553325c495c8afd982c83c551deda3fa8a",
+    "maple/solvation/experimental/harmonic_ddpcm_operational.py": "7013fb023d9d9af4353c1694eb9d497ddc26e41df074d6ef3efcd86f85ca0d42",
+    "maple/solvation/models/mace_mdp.py": "f6a81e21ae4e25362ec14c085ac349b40071d4aeb0ce096135c9bcf9210ea42e",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "f40acb3e815ef3f3c6fe85be71b1906e49e2cc9ef6ac92fe6416a371b4264ac0",
+    "maple/solvation/models/mace_polar_separated.py": "405253b92253a8833b431c2a75143b9cff4e9df4d27f88e63d7e3c95eeffe85a",
+    "tools/route2_release/run_operational_harmonic_ddpcm_hvp_water_canary.py": "da76dd3dc14b23cbe48e374f27c14f5930c99fc8307cb8b5450289909043ecd9"
+  },
+  "status": "pass",
+  "timing_seconds": {
+    "total": 542.2521975130076
+  }
+}

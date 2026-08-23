@@ -38,7 +38,12 @@ SMOOTH_HARMONIC_EXPOSURE_CONTRACT_ID = (
 SMOOTH_HARMONIC_EXPOSURE_PROVIDER_ID = (
     "maple.route2.cavity.smooth-harmonic-exposure.impl.v1"
 )
-HARMONIC_EXPOSURE_MAXIMUM_ALGEBRAIC_DEGREE = 128
+# The frozen MNSol-10 Schwarz profile has at most fourteen simultaneous pair
+# factors at auxiliary lmax=10, so exact finite-product contractions require
+# degree 150.  This is an implementation capacity bound, not a continuum
+# parameter; 256 retains a finite audited ceiling without truncating that
+# preregistered coefficient algebra.
+HARMONIC_EXPOSURE_MAXIMUM_ALGEBRAIC_DEGREE = 256
 
 
 def _sha(payload: object) -> str:

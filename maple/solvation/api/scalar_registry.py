@@ -11,6 +11,7 @@ from .state_registry import (
     MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
     MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID,
     OPERATIONAL_STATE_EQUATION_ID,
+    PERMANENT_INDUCED_SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
     SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
     VARIATIONAL_STATE_EQUATION_ID,
 )
@@ -30,12 +31,27 @@ OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1 = (
     "route2-operational-macepolar-source4-nativefield8-"
     "smoothharmonicgalerkin-cpcm-conditioneddelta-phi1-v1"
 )
+OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1 = (
+    "route2-operational-macepolar-source4-nativefield8-"
+    "smoothharmonic-ddpcm-phi0-v1"
+)
+OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2 = (
+    "route2-operational-macepolar-source-gto1p5-nativefield8-"
+    "smoothharmonic-ddpcm-general-source-phi0-v2"
+)
+OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2 = (
+    "route2-operational-macemdppoint-macepolarinduced-gto1p5-"
+    "nativefield8-smoothharmonic-ddpcm-general-source-phi0-v2"
+)
 EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1 = (
     "route2-experimental-macemdppoint-macepolarinduced-" "pcmsolver-electrostatic-v1"
 )
 EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1 = (
     "route2-experimental-macemdppoint-macepolarinduced-"
     "smoothharmonicgalerkin-electrostatic-v1"
+)
+MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID = (
+    "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1"
 )
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
@@ -325,6 +341,159 @@ _SCALAR_ENTRIES = (
             "vacuum-normalized and field-semantics-manifest-bound; closed because "
             "native injection omits upstream explicit work and the unchanged "
             "source fails the matched QM/PCMSolver physical gate"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1
+        ),
+        exact_formula=(
+            "Phi0_ddPCM(R,y*)=E_vac(R)+G_ddPCM(R,c*); c*=c_ref+Ty*; "
+            "F=-B_R c*; A_epsilon(R) G=A_infinity(R) F; "
+            "L_S(R) X=G; G_ddPCM=1/2 c*^T C_R X; "
+            "K_R q=X; u*=V8_R^T q; c*=Pi_q M_orig(R,u*); G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.separated_ledgers:"
+            "HarmonicDDPCMFrozenVacuumLedger"
+        ),
+        included_components=(
+            "macepolar_vacuum_energy",
+            "smooth_harmonic_ddpcm_stationary_energy",
+        ),
+        excluded_components=(
+            "macepolar_conditioned_raw_energy_difference",
+            "solute_internal_polarization_cost",
+            "nonpolar_smd_cds",
+            "strict_common_functional_claim",
+            "source_native_field_duality_claim",
+        ),
+        source_representation=(
+            "original four-channel point-l<=1 MACE-POLAR source; the second "
+            "native-field radial block is a receiver coordinate and is not "
+            "invented as a source coefficient"
+        ),
+        field_convention=(
+            "separate eight-channel checkpoint-native Gaussian receiver "
+            "u=V8_R^T K_R^-1 X; no V8/B/C source-field duality assertion"
+        ),
+        continuum_profile="smooth-partition-harmonic-ddpcm-point-l1-v1",
+        cavity_profile="smooth-partition-harmonic-ddpcm-cavity-v1",
+        nonpolar_profile="none",
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "reduced implicit adjoint of this exact registered Phi0 ledger; "
+            "energy/source derivatives are implemented, while the complete "
+            "moving-geometry native-field coordinate VJP and force admission "
+            "remain fail-closed"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2
+        ),
+        exact_formula=(
+            "Phi0_gto(R,y*)=E_vac(R)+G_ddPCM(R,c*); c*=c_ref+Ty*; "
+            "psi=c*; phi=B_GTO1p5,R c*; "
+            "N_R=L_S^-1 A_epsilon^-1 A_infinity; X=-N_R phi; "
+            "xi=N_R^T C_point,R^T psi; u=-B_native,R^T xi; "
+            "c*=Pi_q M_orig(R,u); "
+            "G_ddPCM=1/2 psi^T C_point,R X; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.separated_ledgers:"
+            "HarmonicDDPCMFrozenVacuumLedger"
+        ),
+        included_components=(
+            "macepolar_vacuum_energy",
+            "smooth_harmonic_ddpcm_stationary_energy",
+        ),
+        excluded_components=(
+            "macepolar_conditioned_raw_energy_difference",
+            "solute_internal_polarization_cost",
+            "nonpolar_smd_cds",
+            "strict_common_functional_claim",
+            "point_source_substitution",
+        ),
+        source_representation=(
+            "original four-channel MACE-POLAR coefficients interpreted only as "
+            "the checkpoint 1.5-A Gaussian l<=1 source; no point-source "
+            "substitution and no artificial second-radial source block"
+        ),
+        field_convention=(
+            "separate checkpoint-native two-width Gaussian receiver "
+            "u=-B_native,R^T xi from the exact general-source adjoint; no "
+            "source/native-field duality assertion"
+        ),
+        continuum_profile=(
+            "smooth-partition-harmonic-ddpcm-gaussian-general-source-v2"
+        ),
+        cavity_profile="smooth-partition-harmonic-ddpcm-cavity-v1",
+        nonpolar_profile="none",
+        state_equation_id=SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
+        derivative_route=(
+            "reduced implicit adjoint of this exact registered Phi0 ledger; "
+            "all moving-continuum, native-field, source-response, and vacuum "
+            "coordinate pullbacks are generated by the bound providers"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    ),
+    ScalarDefinition(
+        scalar_id=(
+            OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2
+        ),
+        exact_formula=(
+            "Phi0_hyb(R,y*)=E_vac^MACEPOLAR(R)+G_ddPCM(R,p(R),d*); "
+            "p=M_MDP(R); d*=T y*; psi=p+d*; "
+            "phi=B_point,R p+B_GTO1p5,R d*; "
+            "N_R=L_S^-1 A_epsilon^-1 A_infinity; X=-N_R phi; "
+            "xi=N_R^T C_point,R^T psi; u=-B_native,R^T xi; "
+            "d*=Pi_0[M_POLAR(R,u)-M_POLAR(R,0)]; "
+            "G_ddPCM=1/2 psi^T C_point,R X; G_np=0"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.coupling.permanent_induced_ledgers:"
+            "HybridHarmonicDDPCMPhi0Ledger"
+        ),
+        included_components=(
+            "macepolar_vacuum_energy",
+            "point_permanent_gaussian_induced_smooth_harmonic_ddpcm_energy",
+        ),
+        excluded_components=(
+            "macepolar_conditioned_raw_energy_difference",
+            "nonpolar_smd_cds",
+            "strict_common_functional_claim",
+            "single_shared_permanent_induced_source_kernel",
+        ),
+        source_representation=(
+            "direct sum of MACE-MDP exterior point l<=1 permanent multipoles "
+            "and the zero-charge MACE-POLAR induced increment in its 1.5-A "
+            "Gaussian l<=1 source block"
+        ),
+        field_convention=(
+            "checkpoint-native two-width Gaussian external-MEP receiver "
+            "u=-B_native,R^T xi from the complete phi-side adjoint; the model "
+            "drive is not asserted to be the ledger gradient"
+        ),
+        continuum_profile="smooth-partition-harmonic-ddpcm-hybrid-general-source-v2",
+        cavity_profile="smooth-partition-harmonic-ddpcm-cavity-v1",
+        nonpolar_profile="none",
+        state_equation_id=(
+            PERMANENT_INDUCED_SEPARATED_OPERATIONAL_STATE_EQUATION_ID
+        ),
+        derivative_route=(
+            "reduced implicit adjoint of this frozen hybrid Phi0 ledger with "
+            "same-graph point/Gaussian source, ddPCM, receiver, and moving-geometry "
+            "coordinate pullbacks; capability remains closed pending real-checkpoint "
+            "distorted-PES and quantitative component admission"
         ),
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
@@ -781,10 +950,14 @@ __all__ = [
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",
+    "MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID",
+    "OPERATIONAL_MACE_MDP_POLAR_HYBRID_PHI0_SMOOTH_HARMONIC_DDPCM_V2",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
     "OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",
+    "OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1",
+    "OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2",
     "OPERATIONAL_CPCM_SMDCDS_V1",
     "SCALAR_REGISTRY",
     "VARIATIONAL_COMMON_FUNCTIONAL_V1",

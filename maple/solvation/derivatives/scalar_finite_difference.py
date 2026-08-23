@@ -17,6 +17,8 @@ from typing import Protocol, runtime_checkable
 import numpy as np
 
 RICHARDSON_FORCE_CONTRACT = "scalar-central-richardson-force-v1"
+RICHARDSON_HVP_CONTRACT = "scalar-force-central-richardson-hvp-v1"
+RICHARDSON_HESSIAN_CONTRACT = "scalar-force-central-richardson-hessian-v1"
 
 
 def _digest(value: object, *, name: str) -> str:
@@ -57,6 +59,26 @@ def _displaced(geometry: object, atom: int, axis: int, delta: float) -> object:
     return result
 
 
+def _directionally_displaced(
+    geometry: object, direction: np.ndarray, delta: float
+) -> object:
+    copier = getattr(geometry, "copy", None)
+    if not callable(copier):
+        raise TypeError("finite-difference geometry must provide copy().")
+    result = copier()
+    positions = _positions(result)
+    values = np.asarray(direction, dtype=float)
+    if values.shape != positions.shape or not np.all(np.isfinite(values)):
+        raise ValueError("direction must be finite with the geometry position shape.")
+    displaced = positions + float(delta) * values
+    setter = getattr(result, "set_positions", None)
+    if callable(setter):
+        setter(displaced)
+    else:
+        setattr(result, "positions", displaced)
+    return result
+
+
 @dataclass(frozen=True, slots=True)
 class ScalarEnergySample:
     """One immutable scalar evaluation used by a force stencil."""
@@ -85,6 +107,35 @@ class ScalarEnergySampler(Protocol):
     def configuration_sha256(self) -> str: ...
 
     def sample(self, geometry: object) -> ScalarEnergySample: ...
+
+
+@dataclass(frozen=True, slots=True)
+class ScalarForceSample:
+    """A conservative force sampled from the same content-addressed scalar."""
+
+    energy_sample: ScalarEnergySample
+    forces_eV_per_A: np.ndarray
+    evaluation_sha256: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.energy_sample, ScalarEnergySample):
+            raise TypeError("energy_sample must be ScalarEnergySample.")
+        forces = np.asarray(self.forces_eV_per_A, dtype=float)
+        if forces.ndim != 2 or forces.shape[1] != 3 or not np.all(np.isfinite(forces)):
+            raise ValueError("forces_eV_per_A must be finite with shape (N,3).")
+        _digest(self.evaluation_sha256, name="evaluation_sha256")
+        copied = np.frombuffer(
+            np.ascontiguousarray(forces, dtype=np.float64).tobytes(),
+            dtype=np.float64,
+        ).reshape(forces.shape)
+        object.__setattr__(self, "forces_eV_per_A", copied)
+
+
+@runtime_checkable
+class ScalarForceSampler(ScalarEnergySampler, Protocol):
+    """Provider of a scalar and its conservative first derivative."""
+
+    def force_sample(self, geometry: object) -> ScalarForceSample: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -331,11 +382,365 @@ class RichardsonScalarForce:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class RichardsonScalarHVPEvaluation:
+    """One fourth-order Hessian-vector product from conservative forces."""
+
+    contract_id: str
+    provider_configuration_sha256: str
+    central_sample: ScalarForceSample
+    coarse_step_angstrom: float
+    fine_step_angstrom: float
+    direction: np.ndarray
+    hvp_eV_per_A2: np.ndarray
+    error_estimates_eV_per_A2: np.ndarray
+    displaced_force_sha256: tuple[str, str, str, str]
+    evaluation_sha256: str = ""
+
+    def __post_init__(self) -> None:
+        if self.contract_id != RICHARDSON_HVP_CONTRACT:
+            raise ValueError("Unknown Richardson HVP contract.")
+        _digest(
+            self.provider_configuration_sha256,
+            name="provider_configuration_sha256",
+        )
+        if not isinstance(self.central_sample, ScalarForceSample):
+            raise TypeError("central_sample must be ScalarForceSample.")
+        coarse = float(self.coarse_step_angstrom)
+        fine = float(self.fine_step_angstrom)
+        if coarse <= 0.0 or fine <= 0.0 or coarse != 2.0 * fine:
+            raise ValueError("Richardson HVP requires coarse_step == 2*fine_step.")
+        direction = np.asarray(self.direction, dtype=float)
+        hvp = np.asarray(self.hvp_eV_per_A2, dtype=float)
+        errors = np.asarray(self.error_estimates_eV_per_A2, dtype=float)
+        expected_shape = self.central_sample.forces_eV_per_A.shape
+        if (
+            direction.shape != expected_shape
+            or hvp.shape != expected_shape
+            or errors.shape != expected_shape
+            or not np.all(np.isfinite(direction))
+            or not np.all(np.isfinite(hvp))
+            or not np.all(np.isfinite(errors))
+            or np.any(errors < 0.0)
+        ):
+            raise ValueError("Richardson HVP arrays must be finite matching (N,3).")
+        state_ids = tuple(self.displaced_force_sha256)
+        if len(state_ids) != 4:
+            raise ValueError("A Richardson HVP requires four displaced forces.")
+        for index, digest in enumerate(state_ids):
+            _digest(digest, name=f"displaced_force_sha256[{index}]")
+        direction_copy = np.frombuffer(
+            np.ascontiguousarray(direction, dtype=np.float64).tobytes(),
+            dtype=np.float64,
+        ).reshape(direction.shape)
+        hvp_copy = np.frombuffer(
+            np.ascontiguousarray(hvp, dtype=np.float64).tobytes(), dtype=np.float64
+        ).reshape(hvp.shape)
+        errors_copy = np.frombuffer(
+            np.ascontiguousarray(errors, dtype=np.float64).tobytes(), dtype=np.float64
+        ).reshape(errors.shape)
+        payload = {
+            "contract_id": self.contract_id,
+            "provider_configuration_sha256": self.provider_configuration_sha256,
+            "central_force_sha256": self.central_sample.evaluation_sha256,
+            "coarse_step_angstrom": coarse,
+            "fine_step_angstrom": fine,
+            "direction": direction_copy.tolist(),
+            "hvp_eV_per_A2": hvp_copy.tolist(),
+            "error_estimates_eV_per_A2": errors_copy.tolist(),
+            "displaced_force_sha256": list(state_ids),
+        }
+        expected = _canonical_sha256(payload)
+        if self.evaluation_sha256 and self.evaluation_sha256 != expected:
+            raise ValueError("evaluation_sha256 does not match HVP content.")
+        object.__setattr__(self, "coarse_step_angstrom", coarse)
+        object.__setattr__(self, "fine_step_angstrom", fine)
+        object.__setattr__(self, "direction", direction_copy)
+        object.__setattr__(self, "hvp_eV_per_A2", hvp_copy)
+        object.__setattr__(self, "error_estimates_eV_per_A2", errors_copy)
+        object.__setattr__(self, "displaced_force_sha256", state_ids)
+        object.__setattr__(self, "evaluation_sha256", expected)
+
+    @property
+    def maximum_error_estimate_eV_per_A2(self) -> float:
+        return float(np.max(self.error_estimates_eV_per_A2))
+
+
+@dataclass(frozen=True, slots=True)
+class RichardsonScalarHessianEvaluation:
+    """Full symmetric Cartesian Hessian with numerical diagnostics."""
+
+    contract_id: str
+    provider_configuration_sha256: str
+    central_sample: ScalarForceSample
+    coarse_step_angstrom: float
+    fine_step_angstrom: float
+    raw_hessian_eV_per_A2: np.ndarray
+    hessian_eV_per_A2: np.ndarray
+    error_estimates_eV_per_A2: np.ndarray
+    displaced_force_sha256: tuple[str, ...]
+    maximum_antisymmetry_eV_per_A2: float
+    evaluation_sha256: str = ""
+
+    def __post_init__(self) -> None:
+        if self.contract_id != RICHARDSON_HESSIAN_CONTRACT:
+            raise ValueError("Unknown Richardson Hessian contract.")
+        _digest(
+            self.provider_configuration_sha256,
+            name="provider_configuration_sha256",
+        )
+        if not isinstance(self.central_sample, ScalarForceSample):
+            raise TypeError("central_sample must be ScalarForceSample.")
+        coarse = float(self.coarse_step_angstrom)
+        fine = float(self.fine_step_angstrom)
+        if coarse <= 0.0 or fine <= 0.0 or coarse != 2.0 * fine:
+            raise ValueError("Richardson Hessian requires coarse_step == 2*fine_step.")
+        dimension = self.central_sample.forces_eV_per_A.size
+        expected_shape = (dimension, dimension)
+        raw = np.asarray(self.raw_hessian_eV_per_A2, dtype=float)
+        symmetric = np.asarray(self.hessian_eV_per_A2, dtype=float)
+        errors = np.asarray(self.error_estimates_eV_per_A2, dtype=float)
+        if (
+            raw.shape != expected_shape
+            or symmetric.shape != expected_shape
+            or errors.shape != expected_shape
+            or not np.all(np.isfinite(raw))
+            or not np.all(np.isfinite(symmetric))
+            or not np.all(np.isfinite(errors))
+            or np.any(errors < 0.0)
+        ):
+            raise ValueError("Hessian arrays must be finite square matrices.")
+        if not np.array_equal(symmetric, 0.5 * (raw + raw.T)):
+            raise ValueError(
+                "hessian_eV_per_A2 must be the exact symmetric raw Hessian."
+            )
+        antisymmetry = float(self.maximum_antisymmetry_eV_per_A2)
+        expected_antisymmetry = float(np.max(np.abs(raw - raw.T)))
+        if not np.isfinite(antisymmetry) or antisymmetry != expected_antisymmetry:
+            raise ValueError("maximum_antisymmetry_eV_per_A2 is inconsistent.")
+        state_ids = tuple(self.displaced_force_sha256)
+        if len(state_ids) != 4 * dimension:
+            raise ValueError("Every Hessian column requires four displaced forces.")
+        for index, digest in enumerate(state_ids):
+            _digest(digest, name=f"displaced_force_sha256[{index}]")
+        raw_copy = np.frombuffer(
+            np.ascontiguousarray(raw, dtype=np.float64).tobytes(), dtype=np.float64
+        ).reshape(raw.shape)
+        symmetric_copy = np.frombuffer(
+            np.ascontiguousarray(symmetric, dtype=np.float64).tobytes(),
+            dtype=np.float64,
+        ).reshape(symmetric.shape)
+        errors_copy = np.frombuffer(
+            np.ascontiguousarray(errors, dtype=np.float64).tobytes(), dtype=np.float64
+        ).reshape(errors.shape)
+        payload = {
+            "contract_id": self.contract_id,
+            "provider_configuration_sha256": self.provider_configuration_sha256,
+            "central_force_sha256": self.central_sample.evaluation_sha256,
+            "coarse_step_angstrom": coarse,
+            "fine_step_angstrom": fine,
+            "raw_hessian_eV_per_A2": raw_copy.tolist(),
+            "hessian_eV_per_A2": symmetric_copy.tolist(),
+            "error_estimates_eV_per_A2": errors_copy.tolist(),
+            "maximum_antisymmetry_eV_per_A2": antisymmetry,
+            "displaced_force_sha256": list(state_ids),
+        }
+        expected = _canonical_sha256(payload)
+        if self.evaluation_sha256 and self.evaluation_sha256 != expected:
+            raise ValueError("evaluation_sha256 does not match Hessian content.")
+        object.__setattr__(self, "coarse_step_angstrom", coarse)
+        object.__setattr__(self, "fine_step_angstrom", fine)
+        object.__setattr__(self, "raw_hessian_eV_per_A2", raw_copy)
+        object.__setattr__(self, "hessian_eV_per_A2", symmetric_copy)
+        object.__setattr__(self, "error_estimates_eV_per_A2", errors_copy)
+        object.__setattr__(self, "displaced_force_sha256", state_ids)
+        object.__setattr__(self, "maximum_antisymmetry_eV_per_A2", antisymmetry)
+        object.__setattr__(self, "evaluation_sha256", expected)
+
+    @property
+    def maximum_error_estimate_eV_per_A2(self) -> float:
+        return float(np.max(self.error_estimates_eV_per_A2))
+
+
+@dataclass(frozen=True, slots=True)
+class RichardsonScalarHessian:
+    """Differentiate conservative forces from one scalar with Richardson error control."""
+
+    coarse_step_angstrom: float = 2.0e-3
+    maximum_error_eV_per_A2: float = 5.0e-3
+    maximum_antisymmetry_eV_per_A2: float = 5.0e-3
+
+    def __post_init__(self) -> None:
+        coarse = float(self.coarse_step_angstrom)
+        error = float(self.maximum_error_eV_per_A2)
+        antisymmetry = float(self.maximum_antisymmetry_eV_per_A2)
+        if not np.isfinite(coarse) or coarse <= 0.0:
+            raise ValueError("coarse_step_angstrom must be positive and finite.")
+        if not np.isfinite(error) or error <= 0.0:
+            raise ValueError("maximum_error_eV_per_A2 must be positive and finite.")
+        if not np.isfinite(antisymmetry) or antisymmetry <= 0.0:
+            raise ValueError(
+                "maximum_antisymmetry_eV_per_A2 must be positive and finite."
+            )
+        object.__setattr__(self, "coarse_step_angstrom", coarse)
+        object.__setattr__(self, "maximum_error_eV_per_A2", error)
+        object.__setattr__(self, "maximum_antisymmetry_eV_per_A2", antisymmetry)
+
+    @property
+    def fine_step_angstrom(self) -> float:
+        return 0.5 * self.coarse_step_angstrom
+
+    def evaluate_hvp(
+        self,
+        provider: ScalarForceSampler,
+        geometry: object,
+        direction: object,
+        *,
+        central_sample: ScalarForceSample | None = None,
+    ) -> RichardsonScalarHVPEvaluation:
+        if not isinstance(getattr(provider, "provider_id", None), str):
+            raise TypeError("scalar provider requires a stable provider_id.")
+        configuration = provider.configuration_sha256()
+        _digest(configuration, name="provider.configuration_sha256()")
+        center = (
+            provider.force_sample(geometry)
+            if central_sample is None
+            else central_sample
+        )
+        if not isinstance(center, ScalarForceSample):
+            raise TypeError("provider.force_sample() must return ScalarForceSample.")
+        vector = np.asarray(direction, dtype=float)
+        positions = _positions(geometry)
+        if vector.shape != positions.shape or not np.all(np.isfinite(vector)):
+            raise ValueError(
+                "direction must be finite with the geometry position shape."
+            )
+        direction_norm = float(np.linalg.norm(vector))
+        if not np.isfinite(direction_norm) or direction_norm == 0.0:
+            raise ValueError("direction must be nonzero.")
+        stencil_direction = vector / direction_norm
+        samples = []
+        for delta in (
+            self.coarse_step_angstrom,
+            -self.coarse_step_angstrom,
+            self.fine_step_angstrom,
+            -self.fine_step_angstrom,
+        ):
+            sample = provider.force_sample(
+                _directionally_displaced(geometry, stencil_direction, delta)
+            )
+            if sample.energy_sample.topology_id != center.energy_sample.topology_id:
+                raise RuntimeError(
+                    "finite-difference displacement changed the continuum topology; "
+                    "Hessian fails closed."
+                )
+            samples.append(sample)
+        plus_coarse, minus_coarse, plus_fine, minus_fine = samples
+        derivative_coarse = (
+            plus_coarse.forces_eV_per_A - minus_coarse.forces_eV_per_A
+        ) / (2.0 * self.coarse_step_angstrom)
+        derivative_fine = (plus_fine.forces_eV_per_A - minus_fine.forces_eV_per_A) / (
+            2.0 * self.fine_step_angstrom
+        )
+        # F=-grad(E), hence H v = -dF/ds.
+        hvp_fine = -direction_norm * derivative_fine
+        hvp = -direction_norm * (4.0 * derivative_fine - derivative_coarse) / 3.0
+        errors = np.abs(hvp - hvp_fine)
+        maximum_error = float(np.max(errors))
+        if maximum_error > self.maximum_error_eV_per_A2:
+            raise RuntimeError(
+                "Richardson HVP error estimate exceeds the admitted bound: "
+                f"{maximum_error:.6e} > {self.maximum_error_eV_per_A2:.6e} eV/A^2."
+            )
+        if provider.configuration_sha256() != configuration:
+            raise RuntimeError(
+                "scalar provider configuration drifted during HVP evaluation."
+            )
+        return RichardsonScalarHVPEvaluation(
+            contract_id=RICHARDSON_HVP_CONTRACT,
+            provider_configuration_sha256=configuration,
+            central_sample=center,
+            coarse_step_angstrom=self.coarse_step_angstrom,
+            fine_step_angstrom=self.fine_step_angstrom,
+            direction=vector,
+            hvp_eV_per_A2=hvp,
+            error_estimates_eV_per_A2=errors,
+            displaced_force_sha256=tuple(
+                sample.evaluation_sha256 for sample in samples
+            ),
+        )
+
+    def evaluate(
+        self,
+        provider: ScalarForceSampler,
+        geometry: object,
+        *,
+        central_sample: ScalarForceSample | None = None,
+    ) -> RichardsonScalarHessianEvaluation:
+        configuration = provider.configuration_sha256()
+        _digest(configuration, name="provider.configuration_sha256()")
+        center = (
+            provider.force_sample(geometry)
+            if central_sample is None
+            else central_sample
+        )
+        if not isinstance(center, ScalarForceSample):
+            raise TypeError("provider.force_sample() must return ScalarForceSample.")
+        positions = _positions(geometry)
+        dimension = positions.size
+        raw = np.empty((dimension, dimension), dtype=float)
+        errors = np.empty_like(raw)
+        state_ids: list[str] = []
+        for column in range(dimension):
+            direction = np.zeros_like(positions)
+            direction.reshape(-1)[column] = 1.0
+            evaluated = self.evaluate_hvp(
+                provider,
+                geometry,
+                direction,
+                central_sample=center,
+            )
+            raw[:, column] = evaluated.hvp_eV_per_A2.reshape(-1)
+            errors[:, column] = evaluated.error_estimates_eV_per_A2.reshape(-1)
+            state_ids.extend(evaluated.displaced_force_sha256)
+        antisymmetry = float(np.max(np.abs(raw - raw.T)))
+        if antisymmetry > self.maximum_antisymmetry_eV_per_A2:
+            raise RuntimeError(
+                "Numerical scalar Hessian antisymmetry exceeds the admitted bound: "
+                f"{antisymmetry:.6e} > "
+                f"{self.maximum_antisymmetry_eV_per_A2:.6e} eV/A^2."
+            )
+        symmetric = 0.5 * (raw + raw.T)
+        if provider.configuration_sha256() != configuration:
+            raise RuntimeError(
+                "scalar provider configuration drifted during Hessian evaluation."
+            )
+        return RichardsonScalarHessianEvaluation(
+            contract_id=RICHARDSON_HESSIAN_CONTRACT,
+            provider_configuration_sha256=configuration,
+            central_sample=center,
+            coarse_step_angstrom=self.coarse_step_angstrom,
+            fine_step_angstrom=self.fine_step_angstrom,
+            raw_hessian_eV_per_A2=raw,
+            hessian_eV_per_A2=symmetric,
+            error_estimates_eV_per_A2=errors,
+            displaced_force_sha256=tuple(state_ids),
+            maximum_antisymmetry_eV_per_A2=antisymmetry,
+        )
+
+
 __all__ = [
     "RICHARDSON_FORCE_CONTRACT",
+    "RICHARDSON_HESSIAN_CONTRACT",
+    "RICHARDSON_HVP_CONTRACT",
     "RichardsonScalarForce",
     "RichardsonScalarForceComponentEvaluation",
     "RichardsonScalarForceEvaluation",
+    "RichardsonScalarHessian",
+    "RichardsonScalarHessianEvaluation",
+    "RichardsonScalarHVPEvaluation",
     "ScalarEnergySample",
     "ScalarEnergySampler",
+    "ScalarForceSample",
+    "ScalarForceSampler",
 ]

@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from ase import Atoms
 
-from maple.solvation.coupling.operator import CoordinateDerivativeUnavailable
 from maple.solvation.coupling.separated_operators import (
     MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE,
 )
@@ -30,6 +29,11 @@ class _Permanent:
 
     def evaluate_source(self, _geometry: object) -> np.ndarray:
         return self.source.copy()
+
+    def source_position_vjp(
+        self, geometry: object, _source_cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
 
 
 class _Response:
@@ -58,6 +62,9 @@ class _Response:
     def vacuum_energy_ev(self, _geometry: object) -> float:
         return -12.5
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: object) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
+
     def evaluate_source(self, _geometry: object, field: object) -> np.ndarray:
         values = np.asarray(field, dtype=float).reshape(-1)
         return self.zero_source + (self.jacobian @ values).reshape(2, 4)
@@ -71,6 +78,11 @@ class _Response:
         self, _geometry: object, _field: object, cotangent: object
     ) -> np.ndarray:
         return (self.jacobian.T @ np.asarray(cotangent).reshape(-1)).reshape(2, 8)
+
+    def coordinate_vjp(
+        self, geometry: object, _field: object, _cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3), dtype=float)
 
     def conditioned_raw_energy_ev(self, _geometry: object, field: object) -> float:
         return 0.5 * float(np.vdot(field, field))
@@ -158,12 +170,23 @@ def test_hybrid_anchor_and_configuration_fail_closed():
         model.configuration_sha256()
 
 
-def test_hybrid_force_path_stays_closed_but_raw_polar_energy_is_delegated():
+def test_hybrid_coordinate_parts_and_raw_polar_energy_are_delegated():
     model, _permanent, _response = _model()
     atoms = _geometry()
+    anchor = model.prepare(atoms)
     field = np.linspace(-0.02, 0.01, 16).reshape(2, 8)
     assert model.conditioned_raw_energy_ev(atoms, field) == pytest.approx(
         0.5 * float(np.vdot(field, field))
     )
-    with pytest.raises(CoordinateDerivativeUnavailable, match="MACE-MDP atomic q/p"):
-        model.coordinate_vjp(atoms, field, np.ones((2, 4)))
+    np.testing.assert_array_equal(
+        model.permanent_source_position_vjp(
+            atoms, anchor, np.ones((2, 4))
+        ),
+        0.0,
+    )
+    np.testing.assert_array_equal(
+        model.induced_source_position_vjp(
+            atoms, anchor, field, np.ones((2, 4))
+        ),
+        0.0,
+    )

@@ -19,8 +19,9 @@ from maple.solvation.api.state_registry import (
 )
 
 from .separated_operators import (
+    DifferentiableSeparatedContinuumProvider,
     NativeFieldSpace,
-    SeparatedContinuumSnapshot,
+    SeparatedContinuumProvider,
 )
 from .spaces import ReducedCoordinates, SourceSpace
 from .state_equation import geometry_sha256, provider_behavior_sha256
@@ -54,6 +55,48 @@ class SeparatedElectronicResponseProvider(Protocol):
     ) -> np.ndarray: ...
 
 
+@runtime_checkable
+class SeparatedReducedStateEquation(Protocol):
+    """Model-agnostic reduced root with distinct source and field spaces.
+
+    Both the pure MACE-POLAR equation and the permanent/induced hybrid expose
+    this action contract.  The fixed-point and adjoint kernels consume these
+    actions rather than branching on a model or continuum implementation.
+    """
+
+    state_equation_id: str
+    coordinates: ReducedCoordinates
+    continuum: object
+    source_space: SourceSpace
+    receiver_space: NativeFieldSpace
+
+    @property
+    def reduced_dimension(self) -> int: ...
+
+    def fingerprint_sha256(self) -> str: ...
+
+    def source(self, y: object) -> np.ndarray: ...
+
+    def boundary_state(self, y: object) -> np.ndarray: ...
+
+    def field(self, y: object) -> np.ndarray: ...
+
+    def mapping(self, geometry: object, y: object) -> np.ndarray: ...
+
+    def residual(self, geometry: object, y: object) -> np.ndarray: ...
+
+    def residual_jvp(
+        self, geometry: object, y: object, direction: object
+    ) -> np.ndarray: ...
+
+    def residual_vjp(
+        self, geometry: object, y: object, cotangent: object
+    ) -> np.ndarray: ...
+
+    def coordinate_vjp(
+        self, geometry: object, y: object, residual_cotangent: object
+    ) -> np.ndarray: ...
+
 def _vector(values: object, *, size: int, name: str) -> np.ndarray:
     result = np.asarray(values, dtype=float)
     if result.shape != (size,) or not np.all(np.isfinite(result)):
@@ -79,12 +122,12 @@ class SeparatedOperationalStateEquation:
         self,
         coordinates: ReducedCoordinates,
         electronic: SeparatedElectronicResponseProvider,
-        continuum: SeparatedContinuumSnapshot,
+        continuum: SeparatedContinuumProvider,
         *,
         state_equation_id: str = SEPARATED_OPERATIONAL_STATE_EQUATION_ID,
     ) -> None:
-        if not isinstance(continuum, SeparatedContinuumSnapshot):
-            raise TypeError("continuum must be SeparatedContinuumSnapshot.")
+        if not isinstance(continuum, SeparatedContinuumProvider):
+            raise TypeError("continuum must satisfy SeparatedContinuumProvider.")
         source_space = getattr(coordinates, "source_space", None)
         if not isinstance(source_space, SourceSpace):
             raise TypeError("coordinates must expose one SourceSpace.")
@@ -222,13 +265,7 @@ class SeparatedOperationalStateEquation:
             direction, size=self.reduced_dimension, name="reduced direction"
         )
         source_direction = self.coordinates.expand_direction(reduced_direction)
-        rhs_direction = self.continuum.source_to_boundary @ source_direction.reshape(-1)
-        boundary_direction = np.linalg.solve(
-            self.continuum.surface_operator, rhs_direction
-        )
-        field_direction = (
-            self.continuum.boundary_to_native_field @ boundary_direction
-        ).reshape(self.receiver_space.shape(self.coordinates.atom_count))
+        field_direction = self.continuum.source_field_jvp(source_direction)
         source_direction_out = self.electronic.field_jvp(
             geometry, self.field(values), field_direction
         )
@@ -266,21 +303,78 @@ class SeparatedOperationalStateEquation:
             field_cotangent,
             atom_count=self.coordinates.atom_count,
             name="native field cotangent",
-        ).reshape(-1)
-        boundary_cotangent = self.continuum.boundary_to_native_field.T @ field_cotangent
-        adjoint_boundary = np.linalg.solve(
-            self.continuum.surface_operator.T, boundary_cotangent
         )
-        continuum_source_cotangent = (
-            self.continuum.source_to_boundary.T @ adjoint_boundary
-        ).reshape(self.source_space.shape(self.coordinates.atom_count))
+        continuum_source_cotangent = self.continuum.source_field_vjp(
+            field_cotangent
+        )
         mapped_cotangent = self.coordinates.reduce_source_cotangent(
             continuum_source_cotangent
         )
         return reduced_cotangent - mapped_cotangent
 
+    def coordinate_vjp(
+        self, geometry: object, y: object, residual_cotangent: object
+    ) -> np.ndarray:
+        """Apply ``r_R.T`` at fixed reduced coordinates.
+
+        For ``r=y-T+M(R,u(R,c))`` the residual cotangent first acquires the
+        minus sign of the state map, then branches through the model's explicit
+        fixed-field coordinate response and through the continuum native-field
+        map.  Static affine coordinates own no geometry derivative here.
+        """
+
+        self.fingerprint_sha256()
+        self._validate_geometry(geometry)
+        if not isinstance(
+            self.continuum, DifferentiableSeparatedContinuumProvider
+        ):
+            raise TypeError(
+                "continuum lacks complete separated coordinate pullbacks."
+            )
+        values = _vector(y, size=self.reduced_dimension, name="reduced coordinates")
+        cotangent = _vector(
+            residual_cotangent,
+            size=self.reduced_dimension,
+            name="residual cotangent",
+        )
+        source = self.source(values)
+        field = self.field(values)
+        response_cotangent = -self.coordinates.lift_reduced_cotangent(cotangent)
+        field_cotangent = self.receiver_space.validate(
+            self.electronic.field_vjp(
+                geometry, field, response_cotangent
+            ),
+            atom_count=self.coordinates.atom_count,
+            name="native field cotangent",
+        )
+        electronic_position = np.asarray(
+            self.electronic.coordinate_vjp(
+                geometry, field, response_cotangent
+            ),
+            dtype=float,
+        )
+        continuum_position = np.asarray(
+            self.continuum.source_field_position_vjp(source, field_cotangent),
+            dtype=float,
+        )
+        expected = (self.coordinates.atom_count, 3)
+        if (
+            electronic_position.shape != expected
+            or continuum_position.shape != expected
+            or not np.all(np.isfinite(electronic_position))
+            or not np.all(np.isfinite(continuum_position))
+        ):
+            raise ValueError(
+                "separated provider coordinate VJPs must be finite with shape "
+                f"{expected}."
+            )
+        result = electronic_position + continuum_position
+        result.setflags(write=False)
+        return result
+
 
 __all__ = [
     "SeparatedElectronicResponseProvider",
     "SeparatedOperationalStateEquation",
+    "SeparatedReducedStateEquation",
 ]

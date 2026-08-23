@@ -1,0 +1,247 @@
+{
+  "all_match": false,
+  "counts": {
+    "drifted": 22,
+    "matching": 109,
+    "missing": 0,
+    "total": 131
+  },
+  "drifted": [
+    {
+      "actual_sha256": "37a71da9dedc1d679b4b92d400c5fcccae3f5e0fec965553c9cd55136e8644cf",
+      "expected_sha256": "2f600029076e9c4f5b4d98ad2410f2c6a9f9d598f49b1b17f2115e245108bf3e",
+      "path": "maple/function/calculator/extra_correction/implicit/continuum_response.py"
+    },
+    {
+      "actual_sha256": "5ee85a96d518aa41a9c9ecdfa8524c2298e61533d5b61d5829410eac7662cfe2",
+      "expected_sha256": "4823853a2566d21a48975f96dcabc160f9d49422a2b27a8b29726de0e5387c06",
+      "path": "maple/function/calculator/extra_correction/implicit/route2_derivative.py"
+    },
+    {
+      "actual_sha256": "6b02b8a72cfebee1a713daec6250e33dd3cb597929ebf562ed661f39d444e7de",
+      "expected_sha256": "02d832b522e1805fa82339f04cf4e77a446d73cd901fc650a796ce971c1b27c1",
+      "path": "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py"
+    },
+    {
+      "actual_sha256": "39fee033d83d3a6a3309b49383d8a1ec00d78d9efedd3471ed6b4f4225094329",
+      "expected_sha256": "6e42efd4c0388d1da7a13f62080a3fb8ec57e685d7393734ae0f60dcac168bfd",
+      "path": "maple/function/calculator/extra_correction/implicit/route2_engine.py"
+    },
+    {
+      "actual_sha256": "8d2790efbbad5fd721805a00a0e1971247d924cd94cb6c72854816ee1a520660",
+      "expected_sha256": "f98b9bcda3a85a57ceca3c95003f50ccde4a5bcde658a68d0a9e6eb63bd32e60",
+      "path": "maple/solvation/api/__init__.py"
+    },
+    {
+      "actual_sha256": "5b22b78e9dadfc1316f0af97ba715b189a59cb39e6ebbd0768388094f86d5555",
+      "expected_sha256": "8356725d95de44e029dbbcd04c8d5f20da9ec3ae0db6cf92e319e92c21eb9114",
+      "path": "maple/solvation/api/profiles.py"
+    },
+    {
+      "actual_sha256": "21230a4f0de6595ad84a514bd46ee8d40b21b605d0e222eb3b81390879a989a1",
+      "expected_sha256": "493ad1b8b6edd36fdf99e8635eb559eef0ffff06e79c49686dca38cedee52846",
+      "path": "maple/solvation/api/scalar_registry.py"
+    },
+    {
+      "actual_sha256": "ea68490c03420449ced947e52bbe8dbda1df109b2f07446807aea6be8026869b",
+      "expected_sha256": "1f7495ccf634110a824bde33bda98599f59670120e26646c4522af6b7bd601a6",
+      "path": "maple/solvation/api/state_registry.py"
+    },
+    {
+      "actual_sha256": "99f02d024a016714d4225ba2a85799928d60f58b60725b63f4e75a1638e66b01",
+      "expected_sha256": "8252d98200104884dbb0866a5ed064f79be19e449d88b77d542d85355cfa7208",
+      "path": "maple/solvation/continuum/__init__.py"
+    },
+    {
+      "actual_sha256": "eec77672f333285d23029c8230a070fb3a71c98421943d482f347fe28cc433e9",
+      "expected_sha256": "8229c0b670312506c5ecf0798c78dcecc849aaee8833a2e2327037d95958c471",
+      "path": "maple/solvation/continuum/functional.py"
+    },
+    {
+      "actual_sha256": "e2b5204101dc62615aaae0df8cabd2f03f24d829b0b87e277e4266fe5419c72c",
+      "expected_sha256": "66f1225f037fd87dd284dbc17f7d9e2acedac298423ffef2d26c9d20494dd83d",
+      "path": "maple/solvation/continuum/harmonic_exposure.py"
+    },
+    {
+      "actual_sha256": "4b4bb09c9151dffd414b6908c4725ae3e03494c7ae9a8b49050ac86cb91a7abf",
+      "expected_sha256": "661208256c55d6832d720130ce7ec04ef102b45963d81d5c3f449d01ee63dd8d",
+      "path": "maple/solvation/continuum/harmonic_torch_functional.py"
+    },
+    {
+      "actual_sha256": "ca69233e39a3047b1bfea231b97c5c9f9c7201407e987f5c0bce0a5b8eca871f",
+      "expected_sha256": "85c79292a6dbf3909a39dd710f8ffc84663c4ec4d0e803ba0637332c65b23ff9",
+      "path": "maple/solvation/continuum/harmonic_torch_primitives.py"
+    },
+    {
+      "actual_sha256": "6c467235e706d348c62b8826e6db2bc7bbe436197aa7a7a953eed0f85cc19917",
+      "expected_sha256": "0e2b597252c6e0d9ca5836625b39fbceffaece7b4014d77fa9d8b241f2e204ec",
+      "path": "maple/solvation/coupling/separated_operators.py"
+    },
+    {
+      "actual_sha256": "00002a3cfd973af68d233fae4bb51c23af454b7d16abfc5dbd889a015879719e",
+      "expected_sha256": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+      "path": "maple/solvation/coupling/state_equation.py"
+    },
+    {
+      "actual_sha256": "2af77fe158f4b3cbca3a134ef32133032ddb800e7f3d17f9061484d86af34872",
+      "expected_sha256": "6a1e0e8fc26ab592110a6209c6b7949ae0993faa6899fd99dab0840413c56681",
+      "path": "maple/solvation/derivatives/__init__.py"
+    },
+    {
+      "actual_sha256": "aae459f3b536de6daa5003a8bc0a56553325c495c8afd982c83c551deda3fa8a",
+      "expected_sha256": "88197850a1fd38a7012e5dc1e593f07cd6e186b24facdfdb53730ca08b02ffa8",
+      "path": "maple/solvation/derivatives/scalar_finite_difference.py"
+    },
+    {
+      "actual_sha256": "a1b7cf9a50a55a899aad192eef91a1425eb83df388bc97de2e777c9c847d4f4a",
+      "expected_sha256": "eeccff1cb70fa93086b96540ff71aa29af47f6e76864489cba85dcd993773a36",
+      "path": "maple/solvation/experimental/__init__.py"
+    },
+    {
+      "actual_sha256": "93ddf5d96ffd4da4d0607e3a67357f37ac31680836e0d56584f7096875234b8b",
+      "expected_sha256": "5d1e8a09e1d6b574ad6439039d1d91d09a80b34540a29044db97b1b981410b8e",
+      "path": "maple/solvation/experimental/mace_mdp_polar_harmonic.py"
+    },
+    {
+      "actual_sha256": "f6a81e21ae4e25362ec14c085ac349b40071d4aeb0ce096135c9bcf9210ea42e",
+      "expected_sha256": "ba957da754ced111435519ccac4862f0fa71905d9f710ea53b6c1b48cf140a61",
+      "path": "maple/solvation/models/mace_mdp.py"
+    },
+    {
+      "actual_sha256": "f40acb3e815ef3f3c6fe85be71b1906e49e2cc9ef6ac92fe6416a371b4264ac0",
+      "expected_sha256": "9ed523c1fe1d81508cf14e6455f19b8e8c054eb2055fba8a96e5f2ca1a53c1a9",
+      "path": "maple/solvation/models/mace_mdp_polar_hybrid.py"
+    },
+    {
+      "actual_sha256": "405253b92253a8833b431c2a75143b9cff4e9df4d27f88e63d7e3c95eeffe85a",
+      "expected_sha256": "2aedd9e8ede2df159d54341bdd26f37e3f8221a3836b308199bc33981c68c3f9",
+      "path": "maple/solvation/models/mace_polar_separated.py"
+    }
+  ],
+  "evidence_artifact": {
+    "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-v1",
+    "path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-4cf8db40.json",
+    "sha256": "1a248e06218c0cb968e87992a7444923a246064c3fa7fa7362c00cf394587589",
+    "source_hash_field": "source_files_sha256"
+  },
+  "matching": [
+    "maple/__init__.py",
+    "maple/function/__init__.py",
+    "maple/function/calculator/__init__.py",
+    "maple/function/calculator/calculator_base.py",
+    "maple/function/calculator/extra_correction/__init__.py",
+    "maple/function/calculator/extra_correction/implicit/__init__.py",
+    "maple/function/calculator/extra_correction/implicit/continuum_derivative.py",
+    "maple/function/calculator/extra_correction/implicit/correction.py",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py",
+    "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py",
+    "maple/function/calculator/extra_correction/implicit/pyscf_runtime.py",
+    "maple/function/calculator/extra_correction/implicit/pyscf_smd_cds.py",
+    "maple/function/calculator/extra_correction/implicit/result.py",
+    "maple/function/calculator/extra_correction/implicit/route2_body_frame.py",
+    "maple/function/calculator/extra_correction/implicit/route2_domain.py",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_cpcm.py",
+    "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py",
+    "maple/function/calculator/extra_correction/implicit/route2_field_state.py",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_topology_surface.py",
+    "maple/function/calculator/extra_correction/implicit/route2_force_admission.py",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py",
+    "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_p0.py",
+    "maple/function/calculator/extra_correction/implicit/route2_mace_plugin.py",
+    "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py",
+    "maple/function/calculator/extra_correction/implicit/route2_p1_audit.py",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py",
+    "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin.py",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_contracts.py",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_errors.py",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_legacy.py",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_registry.py",
+    "maple/function/calculator/extra_correction/implicit/route2_plugin_spaces.py",
+    "maple/function/calculator/extra_correction/implicit/route2_pminus1.py",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py",
+    "maple/function/calculator/extra_correction/implicit/route2_root_study.py",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py",
+    "maple/function/calculator/extra_correction/implicit/smd.py",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py",
+    "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py",
+    "maple/function/calculator/mace/_macepol_calculator.py",
+    "maple/function/calculator/mace/_macepol_long_range.py",
+    "maple/function/calculator/set_calculator.py",
+    "maple/function/read/__init__.py",
+    "maple/function/read/filereader/__init__.py",
+    "maple/function/read/filereader/mol2_reader.py",
+    "maple/function/read/filereader/post_reader.py",
+    "maple/function/read/filereader/xyz_reader.py",
+    "maple/function/read/filereader/xyz_traj_reader.py",
+    "maple/function/route2_energy_ledger.py",
+    "maple/function/route2_model_contracts.py",
+    "maple/function/route2_smd_profiles.py",
+    "maple/function/route2_solvents.py",
+    "maple/function/utility/__init__.py",
+    "maple/function/utility/molecules.py",
+    "maple/solvation/__init__.py",
+    "maple/solvation/api/capabilities.py",
+    "maple/solvation/api/provenance.py",
+    "maple/solvation/api/result.py",
+    "maple/solvation/api/units.py",
+    "maple/solvation/continuum/harmonic_coefficients.py",
+    "maple/solvation/continuum/harmonic_point_source.py",
+    "maple/solvation/continuum/harmonic_single_layer.py",
+    "maple/solvation/coupling/__init__.py",
+    "maple/solvation/coupling/exact_gto.py",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py",
+    "maple/solvation/coupling/metrics.py",
+    "maple/solvation/coupling/operator.py",
+    "maple/solvation/coupling/spaces.py",
+    "maple/solvation/experimental/mace_mdp_polar_pcmsolver.py",
+    "maple/solvation/models/__init__.py",
+    "maple/solvation/models/base.py",
+    "maple/solvation/models/bundle.py",
+    "maple/solvation/models/equation_adapter.py",
+    "maple/solvation/models/field_energy.py",
+    "maple/solvation/models/mace_polar.py",
+    "maple/solvation/models/mace_polar_feature_vjp.py",
+    "maple/solvation/models/mace_polar_variational.py",
+    "maple/solvation/models/passive_polarization.py",
+    "maple/solvation/models/passive_training.py",
+    "maple/solvation/models/runtime/__init__.py",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py",
+    "maple/solvation/release/__init__.py",
+    "maple/solvation/release/box_convergence.py",
+    "maple/solvation/release/conjugacy.py",
+    "maple/solvation/release/coupled_conjugacy.py",
+    "maple/solvation/release/electrostatic_decomposition.py",
+    "maple/solvation/release/evidence.py",
+    "maple/solvation/release/farfield_source.py",
+    "maple/solvation/release/field_semantics.py",
+    "maple/solvation/release/harmonic_surface_mep.py",
+    "maple/solvation/release/pes_panel.py",
+    "maple/solvation/release/pes_validation.py",
+    "maple/solvation/release/radial_embedding.py",
+    "maple/solvation/release/residual_force.py",
+    "maple/solvation/release/root_well_posedness.py",
+    "maple/solvation/release/source_mep.py",
+    "maple/solvation/release/symmetry_panel.py",
+    "maple/solvation/release/variational_stability.py",
+    "tools/route2_release/run_mace_mdp_polar_hybrid_harmonic_force_admission.py"
+  ],
+  "missing": [],
+  "report_sha256": "ebf1a8db2fc1e77ba658f5f3b5deb022be4de047cea94e4f9169a4dd781662f8",
+  "repository": {
+    "dirty": true,
+    "head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+    "status_porcelain": "M docs/implicit-solvation/benchmarks/route2-matched-qm-pcmsolver-four-prereg-v3.json\n M docs/route2/CAPABILITY_MATRIX.md\n M docs/route2/MIGRATION.md\n M docs/route2/SCALAR_REGISTRY.md\n M docs/route2/USER_GUIDE.md\n M maple/function/calculator/extra_correction/implicit/continuum_response.py\n M maple/function/calculator/extra_correction/implicit/route2_derivative.py\n M maple/function/calculator/extra_correction/implicit/route2_electronic_model.py\n M maple/function/calculator/extra_correction/implicit/route2_engine.py\n M maple/solvation/api/__init__.py\n M maple/solvation/api/profiles.py\n M maple/solvation/api/scalar_registry.py\n M maple/solvation/api/state_registry.py\n M maple/solvation/continuum/__init__.py\n M maple/solvation/continuum/functional.py\n M maple/solvation/continuum/harmonic_exposure.py\n M maple/solvation/continuum/harmonic_torch_functional.py\n M maple/solvation/continuum/harmonic_torch_primitives.py\n M maple/solvation/continuum/radial_gto_ddx.py\n M maple/solvation/coupling/adjoint.py\n M maple/solvation/coupling/fixed_point.py\n M maple/solvation/coupling/linearization.py\n M maple/solvation/coupling/separated_ledgers.py\n M maple/solvation/coupling/separated_operators.py\n M maple/solvation/coupling/separated_state.py\n M maple/solvation/coupling/state_equation.py\n M maple/solvation/derivatives/__init__.py\n M maple/solvation/derivatives/scalar_finite_difference.py\n M maple/solvation/experimental/__init__.py\n M maple/solvation/experimental/mace_mdp_polar_harmonic.py\n M maple/solvation/models/mace_mdp.py\n M maple/solvation/models/mace_mdp_polar_hybrid.py\n M maple/solvation/models/mace_polar_separated.py\n M tests/route2_vnext/test_api_contracts.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_energy.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_harmonic.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_harmonic_admission.py\n M tests/route2_vnext/test_radial_gto_ddx.py\n M tests/route2_vnext/test_scalar_finite_difference_force.py\n M tests/route2_vnext/test_state_equation.py\n M tests/solvation/test_route2_smd.py\n?? GOAL.md\n?? docs/implicit-solvation/benchmarks/route2-mace-mdp-polar-harmonic-ddpcm-general-source-four-prereg-v1.json\n?? docs/implicit-solvation/benchmarks/route2-mnsol10-harmonic-ddcosmo-preregistration-v1.json\n?? docs/implicit-solvation/benchmarks/route2-mnsol10-harmonic-ddpcm-preregistration-v1.json\n?? docs/route2/HYBRID_HARMONIC_EXPERIMENTAL.md\n?? docs/route2/PURE_MACE_POLAR_FROZEN_DDX.md\n?? docs/route2/SMOOTH_PARTITION_HARMONIC_DDCOSMO.md\n?? docs/route2/SMOOTH_PARTITION_HARMONIC_DDPCM.md\n?? docs/route2/evidence/mace-mdp-polar-ddx-external-mep-four-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-ddx-water-analytic-force-canary-v1.json\n?? docs/route2/evidence/mace-mdp-polar-ddx-water-force-canary-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-harmonic-ddpcm-general-source-four-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-harmonic-ddpcm-general-source-water-force-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicated-4cf8db40.json\n?? docs/route2/evidence/mace-polar-frozen-ddx-water-derivative-canary-v1.json\n?? docs/route2/evidence/mace-polar-point-l1-harmonic-ddcosmo-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/mace-polar-point-l1-harmonic-ddpcm-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/mace-polar-point-l1-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/mace-polar-radial-gto-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/operational-harmonic-ddpcm-water-hvp-canary-4cf8db40.json\n?? maple/solvation/continuum/harmonic_ddcosmo_functional.py\n?? maple/solvation/continuum/harmonic_ddpcm_functional.py\n?? maple/solvation/continuum/harmonic_ddpcm_gaussian.py\n?? maple/solvation/continuum/harmonic_ddpcm_hybrid.py\n?? maple/solvation/continuum/harmonic_ddpcm_primitives.py\n?? maple/solvation/continuum/harmonic_ddpcm_separated.py\n?? maple/solvation/continuum/harmonic_schwarz_primitives.py\n?? maple/solvation/continuum/mace_polar_point_ddx.py\n?? maple/solvation/continuum/separated_source_ddx.py\n?? maple/solvation/coupling/operational_pes.py\n?? maple/solvation/coupling/permanent_induced_ledgers.py\n?? maple/solvation/coupling/permanent_induced_state.py\n?? maple/solvation/coupling/separated_fixed_point.py\n?? maple/solvation/derivatives/molecular_virial.py\n?? maple/solvation/experimental/harmonic_ddpcm_operational.py\n?? maple/solvation/experimental/mace_mdp_polar_ddx.py\n?? maple/solvation/experimental/mace_polar_frozen_ddx.py\n?? maple/solvation/release/admission.py\n?? maple/solvation/solvent_terms.py\n?? tests/route2_vnext/test_audit_source_hash_lineage.py\n?? tests/route2_vnext/test_harmonic_ddcosmo_accuracy_artifact.py\n?? tests/route2_vnext/test_harmonic_ddcosmo_functional.py\n?? tests/route2_vnext/test_harmonic_ddpcm_accuracy_artifact.py\n?? tests/route2_vnext/test_harmonic_ddpcm_functional.py\n?? tests/route2_vnext/test_harmonic_ddpcm_gaussian.py\n?? tests/route2_vnext/test_harmonic_ddpcm_hybrid.py\n?? tests/route2_vnext/test_harmonic_ddpcm_separated.py\n?? tests/route2_vnext/test_harmonic_point_torch_functional.py\n?? tests/route2_vnext/test_mace_mdp_polar_hybrid_ddx.py\n?? tests/route2_vnext/test_mace_polar_frozen_ddx.py\n?? tests/route2_vnext/test_mace_polar_frozen_ddx_real.py\n?? tests/route2_vnext/test_mace_polar_point_ddx.py\n?? tests/route2_vnext/test_operational_implicit_pes.py\n?? tests/route2_vnext/test_release_admission.py\n?? tests/route2_vnext/test_separated_source_ddx.py\n?? tests/route2_vnext/test_solvent_terms.py\n?? tools/route2_release/audit_source_hash_lineage.py\n?? tools/route2_release/run_mace_mdp_polar_ddx_water_analytic_force_canary.py\n?? tools/route2_release/run_mace_mdp_polar_harmonic_ddpcm_four.py\n?? tools/route2_release/run_mace_mdp_polar_harmonic_ddpcm_water_canary.py\n?? tools/route2_release/run_mace_polar_frozen_ddx_water_canary.py\n?? tools/route2_release/run_mace_polar_harmonic_ddpcm_mutual_scf_water.py\n?? tools/route2_release/run_mace_polar_radial_gto_mnsol10.py\n?? tools/route2_release/run_operational_harmonic_ddpcm_hvp_water_canary.py",
+    "tree": "ac96348b6e7f937f1028aa39f48b89a7f76c30a9"
+  },
+  "schema_version": "route2-source-hash-lineage-audit-v1"
+}

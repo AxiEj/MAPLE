@@ -302,7 +302,7 @@ class PCMSolverExternalMEPCavityResponse:
             self._cavity_configuration_digest = (
                 self._live_cavity_configuration_sha256()
             )
-        except (AttributeError, FileNotFoundError):
+        except (AttributeError, FileNotFoundError, TypeError):
             # Lightweight algebra tests use an intentionally file-free fake
             # session.  It may exercise the numerical response, but it cannot
             # be promoted to a content-addressed public runtime.

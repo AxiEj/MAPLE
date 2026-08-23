@@ -80,7 +80,7 @@ DDX_WATER_194_CONFIGURATION_CONTRACT_ID = DDX_WATER_DDPCM_194_CONFIGURATION_CONT
 DDX_WATER_DIELECTRIC = 78.39
 DDX_WATER_LMAX = 8
 DDX_WATER_LEBEDEV_POINTS = 194
-_STATE_CONTRACT = "ddx-radial-gto-state-v1"
+_STATE_CONTRACT = "ddx-radial-gto-state-v2"
 _IMPLEMENTATION_FILES = (
     "continuum/radial_gto_ddx.py",
     "coupling/exact_gto.py",
@@ -166,6 +166,42 @@ def _geometry_sha256(positions_angstrom: np.ndarray, symbols: tuple[str, ...]) -
     )
 
 
+def _cavity_topology_sha256(
+    cavity_points_bohr: np.ndarray,
+    positions_angstrom: np.ndarray,
+    radii_angstrom: np.ndarray,
+    owners: np.ndarray,
+) -> str:
+    """Hash only the discrete exposed-node topology, not its coordinates.
+
+    ddX uses laboratory-fixed Lebedev directions.  Expressing each exposed
+    point in its parent-sphere frame therefore identifies the active grid
+    nodes while remaining invariant to continuous translations of the
+    parent centres.  A changed exposed-node set changes this digest even when
+    the total number of cavity points happens to remain constant.
+    """
+
+    positions_bohr = np.asarray(positions_angstrom, dtype=float) / Bohr
+    radii_bohr = np.asarray(radii_angstrom, dtype=float) / Bohr
+    parent = np.asarray(owners, dtype=np.int64)
+    directions = (
+        np.asarray(cavity_points_bohr, dtype=float) - positions_bohr[parent]
+    ) / radii_bohr[parent, None]
+    if directions.shape != (len(parent), 3) or not np.all(np.isfinite(directions)):
+        raise RuntimeError("ddX cavity topology directions are invalid.")
+    # The public pyddx cavity coordinates contain roundoff at roughly 1e-15.
+    # Twelve decimals retain the exact Lebedev-node identity without hashing
+    # irrelevant reconstruction noise.
+    quantized = np.round(directions, decimals=12)
+    return _sha(
+        {
+            "contract": "ddx-exposed-lebedev-node-topology-v1",
+            "owners": parent.tolist(),
+            "parent_directions": quantized.tolist(),
+        }
+    )
+
+
 def _runtime() -> Any:
     try:
         module = importlib.import_module("pyddx")
@@ -192,10 +228,28 @@ def _radial_coefficients(values: np.ndarray) -> np.ndarray:
     return result
 
 
-class _RadialDDXProblem:
-    """One geometry-local ddX model plus the exact linear source data map."""
+class RadialDDXProblem:
+    """One prepared ddX geometry plus the exact radial source/receiver map.
 
-    __slots__ = ("model", "phi_matrix", "positions", "psi_matrix")
+    ``solve_general`` deliberately accepts an independently assembled ddX
+    ``(psi, phi)`` pair.  This is the small reusable boundary needed by
+    heterogeneous solute models: a permanent point-multipole source can be
+    combined with a finite-width induced source without pretending that both
+    branches share one source kernel.  The returned eight-channel field is
+    still the exact derivative of the same ddX scalar with respect to the
+    radial-GTO source coordinates.
+    """
+
+    __slots__ = (
+        "_dielectric_scaling",
+        "_runtime",
+        "_solver_tolerance",
+        "cavity_topology_sha256",
+        "model",
+        "phi_matrix",
+        "positions",
+        "psi_matrix",
+    )
 
     def __init__(
         self,
@@ -203,13 +257,128 @@ class _RadialDDXProblem:
         positions: np.ndarray,
         phi_matrix: np.ndarray,
         psi_matrix: np.ndarray,
+        *,
+        runtime: Any,
+        solver_tolerance: float,
+        dielectric_scaling: float,
+        cavity_topology_sha256: str,
     ) -> None:
         self.model = model
         self.positions = np.array(positions, copy=True)
         self.phi_matrix = np.array(phi_matrix, copy=True)
         self.psi_matrix = np.array(psi_matrix, copy=True)
+        self._runtime = runtime
+        self._solver_tolerance = float(solver_tolerance)
+        self._dielectric_scaling = float(dielectric_scaling)
+        self.cavity_topology_sha256 = _digest(
+            cavity_topology_sha256, "cavity_topology_sha256"
+        )
         for array in (self.positions, self.phi_matrix, self.psi_matrix):
             array.setflags(write=False)
+
+    def solve_general(
+        self,
+        psi: object,
+        phi: object,
+    ) -> tuple[Any, float, np.ndarray]:
+        """Solve one general-source ddX state and return ``(state,E,dE/dc)``.
+
+        ``psi`` and ``phi`` are the two source objects required by ddX.  The
+        gradient is only with respect to the prepared radial-GTO coordinates;
+        any independent permanent-source derivative remains owned by that
+        source adapter.
+        """
+
+        psi_values = np.asarray(psi, dtype=float)
+        phi_values = np.asarray(phi, dtype=float)
+        expected_psi_shape = (int(self.model.n_basis), len(self.positions))
+        expected_phi_shape = (int(self.model.n_cav),)
+        if psi_values.shape != expected_psi_shape or not np.all(
+            np.isfinite(psi_values)
+        ):
+            raise ValueError(
+                "ddX psi must be finite with shape " f"{expected_psi_shape}."
+            )
+        if phi_values.shape != expected_phi_shape or not np.all(
+            np.isfinite(phi_values)
+        ):
+            raise ValueError(
+                "ddX phi must be finite with shape " f"{expected_phi_shape}."
+            )
+        state = self._runtime.State(self.model, psi_values, phi_values)
+        state.fill_guess(self._solver_tolerance)
+        state.solve(self._solver_tolerance)
+        state.fill_guess_adjoint(self._solver_tolerance)
+        state.solve_adjoint(self._solver_tolerance)
+        forward = np.asarray(state.x, dtype=float).reshape(-1)
+        adjoint = np.asarray(state.xi, dtype=float)
+        if not np.all(np.isfinite(forward)) or not np.all(np.isfinite(adjoint)):
+            raise RuntimeError("ddX general-source solve returned non-finite states.")
+        raw_field = 0.5 * (self.psi_matrix.T @ forward - self.phi_matrix.T @ adjoint)
+        field = (
+            self._dielectric_scaling
+            * HARTREE_TO_EV
+            * raw_field.reshape(len(self.positions), 8)
+        )
+        energy = self._dielectric_scaling * HARTREE_TO_EV * float(state.energy())
+        if not math.isfinite(energy) or not np.all(np.isfinite(field)):
+            raise RuntimeError("ddX general-source energy/field is non-finite.")
+        return state, energy, field
+
+    def external_mep_model_field(self, state: Any) -> np.ndarray:
+        """Return the boundary-MEP receiver used by an operational model.
+
+        ddX's general-source energy derivative contains equal ``psi`` and
+        ``phi`` contributions only when the represented density is supported
+        inside the cavity.  A normalized Gaussian has nonzero tails outside
+        every finite union of spheres, so that identity cannot be assumed for
+        MACE-POLAR's radial source.  The operational external-MEP receiver is
+        therefore the complete ``phi``-side adjoint contraction,
+
+        ``-D_phi.T @ xi``,
+
+        rather than the gradient of the general-source energy.  The two
+        objects are intentionally exposed separately by the higher-level
+        separated-source adapter.
+        """
+
+        adjoint = np.asarray(getattr(state, "xi", None), dtype=float)
+        if adjoint.shape != (int(self.model.n_cav),) or not np.all(
+            np.isfinite(adjoint)
+        ):
+            raise RuntimeError("ddX external-MEP adjoint state is invalid.")
+        field = (
+            -self._dielectric_scaling
+            * HARTREE_TO_EV
+            * (self.phi_matrix.T @ adjoint).reshape(len(self.positions), 8)
+        )
+        if not np.all(np.isfinite(field)):
+            raise RuntimeError("ddX external-MEP model field is non-finite.")
+        return field
+
+    def external_mep_model_field_vjp(
+        self,
+        psi: object,
+        phi: object,
+    ) -> np.ndarray:
+        """Apply the transpose of the external-MEP radial field map.
+
+        If ``K = -D_phi.T L^{-T} D_psi`` is the operational receiver map,
+        this method returns ``K.T`` applied to the radial cotangent encoded by
+        ``(psi, phi)``.  The forward ddX solution supplies the required
+        ``D_psi.T L^{-1} D_phi`` contraction without forming ``K``.
+        """
+
+        state, _energy, _energy_gradient = self.solve_general(psi, phi)
+        forward = np.asarray(state.x, dtype=float).reshape(-1)
+        result = (
+            self._dielectric_scaling
+            * HARTREE_TO_EV
+            * (self.psi_matrix.T @ forward).reshape(len(self.positions), 8)
+        )
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError("ddX external-MEP model-field VJP is non-finite.")
+        return result
 
 
 def _cavity_parent_indices(
@@ -243,6 +412,7 @@ class RadialGTODDXState:
     configuration_sha256: str
     provenance_sha256: str
     geometry_sha256: str
+    cavity_topology_sha256: str
     state_hash: str
     pyddx_version: str
     continuum_model: str
@@ -295,6 +465,7 @@ class RadialGTODDXState:
             "configuration_sha256",
             "provenance_sha256",
             "geometry_sha256",
+            "cavity_topology_sha256",
             "state_hash",
         ):
             _digest(getattr(self, name), name)
@@ -320,6 +491,7 @@ class RadialGTODDXState:
                 "configuration_sha256": self.configuration_sha256,
                 "provenance_sha256": self.provenance_sha256,
                 "geometry_sha256": self.geometry_sha256,
+                "cavity_topology_sha256": self.cavity_topology_sha256,
                 "pyddx_version": self.pyddx_version,
                 "continuum_model": self.continuum_model,
                 "atom_count": self.atom_count,
@@ -563,7 +735,9 @@ class RadialGTODDXBackend:
             raise RuntimeError("ddX radial configuration fingerprint changed.")
         return self._configuration_sha256
 
-    def _problem(self, geometry: Any) -> _RadialDDXProblem:
+    def prepare_problem(self, geometry: Any) -> RadialDDXProblem:
+        """Prepare one reusable geometry-local ddX general-source problem."""
+
         self.configuration_sha256()
         positions = _positions(geometry, self.symbols)
         model = self._pyddx.Model(
@@ -585,6 +759,12 @@ class RadialGTODDXBackend:
             raise RuntimeError("pyddx did not retain the radial model contract.")
         cavity = np.asarray(model.cavity, dtype=float).T
         owners = _cavity_parent_indices(cavity, positions, self.cavity_radii_angstrom)
+        topology_sha256 = _cavity_topology_sha256(
+            cavity,
+            positions,
+            self.cavity_radii_angstrom,
+            owners,
+        )
         owned = OwnedFixedSurfaceGeometry(
             positions,
             cavity,
@@ -602,7 +782,21 @@ class RadialGTODDXBackend:
             psi_matrix[:, column] = np.asarray(
                 model.multipole_psi(multipoles), dtype=float
             ).reshape(-1)
-        return _RadialDDXProblem(model, positions, phi_matrix, psi_matrix)
+        return RadialDDXProblem(
+            model,
+            positions,
+            phi_matrix,
+            psi_matrix,
+            runtime=self._pyddx,
+            solver_tolerance=self._solver_tolerance,
+            dielectric_scaling=self._dielectric_scaling,
+            cavity_topology_sha256=topology_sha256,
+        )
+
+    def _problem(self, geometry: Any) -> RadialDDXProblem:
+        """Compatibility alias for the pre-vNext internal spelling."""
+
+        return self.prepare_problem(geometry)
 
     @staticmethod
     def _ddx_total_multipoles(source: np.ndarray) -> np.ndarray:
@@ -659,8 +853,13 @@ class RadialGTODDXBackend:
             return problem, values, state, energy, field
         return problem, values, state, energy, field
 
-    def build_state(self, geometry: Any, source: object) -> RadialGTODDXState:
-        problem, values, _state, energy, field = self._solve(geometry, source)
+    def _state_from_solution(
+        self,
+        problem: RadialDDXProblem,
+        values: np.ndarray,
+        energy: float,
+        field: np.ndarray,
+    ) -> RadialGTODDXState:
         geometry_digest = _geometry_sha256(problem.positions, self.symbols)
         payload = {
             "contract": _STATE_CONTRACT,
@@ -672,6 +871,7 @@ class RadialGTODDXBackend:
             "configuration_sha256": self.configuration_sha256(),
             "provenance_sha256": self.provenance_sha256,
             "geometry_sha256": geometry_digest,
+            "cavity_topology_sha256": problem.cavity_topology_sha256,
             "pyddx_version": TESTED_PYDDX_VERSION,
             "continuum_model": self._continuum_model,
             "atom_count": len(self.symbols),
@@ -688,6 +888,7 @@ class RadialGTODDXBackend:
             configuration_sha256=self.configuration_sha256(),
             provenance_sha256=self.provenance_sha256,
             geometry_sha256=geometry_digest,
+            cavity_topology_sha256=problem.cavity_topology_sha256,
             state_hash=_sha(payload),
             pyddx_version=TESTED_PYDDX_VERSION,
             continuum_model=self._continuum_model,
@@ -698,6 +899,10 @@ class RadialGTODDXBackend:
             polarization_energy_ev=energy,
             scalar_id=self.scalar_id,
         )
+
+    def build_state(self, geometry: Any, source: object) -> RadialGTODDXState:
+        problem, values, _state, energy, field = self._solve(geometry, source)
+        return self._state_from_solution(problem, values, energy, field)
 
     def energy(self, geometry: Any, source: object) -> float:
         return float(self._solve(geometry, source)[3])
@@ -729,10 +934,12 @@ class RadialGTODDXBackend:
             name="source VJP",
         )
 
-    def _energy_coordinate_gradient(self, geometry: Any, source: object) -> np.ndarray:
-        problem, values, state, _energy, _field = self._solve(
-            geometry, source, coordinate=True
-        )
+    def _energy_coordinate_gradient_from_solution(
+        self,
+        problem: RadialDDXProblem,
+        values: np.ndarray,
+        state: Any,
+    ) -> np.ndarray:
         coefficients = _radial_coefficients(values)
         cavity = np.asarray(problem.model.cavity, dtype=float).T
         electric_field = np.zeros_like(cavity)
@@ -769,6 +976,39 @@ class RadialGTODDXBackend:
             raise RuntimeError("ddX radial coordinate gradient is invalid.")
         return result
 
+    def _energy_coordinate_gradient(self, geometry: Any, source: object) -> np.ndarray:
+        problem, values, state, _energy, _field = self._solve(
+            geometry, source, coordinate=True
+        )
+        return self._energy_coordinate_gradient_from_solution(problem, values, state)
+
+    def fixed_source_coordinate_gradient(
+        self, geometry: Any, source: object
+    ) -> np.ndarray:
+        """Return ``partial G(R,c)/partial R`` at fixed radial source ``c``.
+
+        This is the nuclear derivative of the same ddX polarization scalar
+        returned by :meth:`energy`.  It deliberately excludes the derivative
+        of any geometry-dependent model source; a higher-level PES must add
+        ``(dc/dR)^T dG/dc`` exactly once.
+        """
+
+        return self._energy_coordinate_gradient(geometry, source).copy()
+
+    def build_state_with_fixed_source_coordinate_gradient(
+        self, geometry: Any, source: object
+    ) -> tuple[RadialGTODDXState, np.ndarray]:
+        """Solve once and return the immutable state plus its fixed-source gradient."""
+
+        problem, values, raw_state, energy, field = self._solve(
+            geometry, source, coordinate=True
+        )
+        state = self._state_from_solution(problem, values, energy, field)
+        gradient = self._energy_coordinate_gradient_from_solution(
+            problem, values, raw_state
+        )
+        return state, gradient.copy()
+
     def coordinate_vjp(
         self, geometry: Any, source: object, field_cotangent: object
     ) -> np.ndarray:
@@ -800,6 +1040,7 @@ class RadialGTODDXBackend:
                     "ddx_source_commit": DDX_SOURCE_COMMIT,
                     "source_map": "joint-radial-gto-psi-phi-D-and-D-star-v1",
                     "coordinate_derivative": "same-energy-polarization-identity-v1",
+                    "fixed_source_coordinate_gradient": "public-same-scalar-v1",
                     "rotation_status": "finite-grid-not-structurally-equivariant",
                     "inner_solve_evidence": "requested-tolerance-only",
                     "capabilities": "none",
@@ -835,6 +1076,7 @@ __all__ = [
     "DDX_PCM_PROFILE_ID",
     "DDX_RADIAL_PROVIDER_ID",
     "DDX_WATER_194_CONFIGURATION_CONTRACT_ID",
+    "RadialDDXProblem",
     "RadialGTODDXBackend",
     "RadialGTODDXState",
     "build_water_radial_gto_ddpcm_194_candidate",

@@ -714,6 +714,8 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
         session,
         cavity_radii_angstrom=provider.coulomb_radii_angstrom,
     )
+    with pytest.raises(RuntimeError, match="lacks content-addressed"):
+        response.configuration_sha256()
     reaction_field = FixedCavityPCMReactionFieldLinearMap(
         response,
         atoms.get_positions(),

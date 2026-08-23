@@ -29,6 +29,7 @@ from maple.solvation.coupling.spaces import (
 from maple.solvation.coupling.state_equation import (
     ReducedStateEquation,
     geometry_sha256,
+    provider_behavior_sha256,
 )
 
 SCALAR_ID = OPERATIONAL_CPCM_ELECTROSTATIC_V1
@@ -62,6 +63,17 @@ def _q(atom_count: int) -> np.ndarray:
 
 
 _NESTED_PROVIDER_SCALE = np.asarray([1.0])
+
+
+class AdaptiveExecutionProvider:
+    """Exercise attribute, call, and container bytecode specialization."""
+
+    def __init__(self) -> None:
+        self.scale = 2.0
+
+    def evaluate(self, values):
+        indexed = {index: value for index, value in enumerate(values)}
+        return self.scale * sum(indexed.values())
 
 
 def _nested_provider_scale() -> float:
@@ -616,3 +628,16 @@ def test_equation_fingerprint_recursively_binds_helper_global_arrays(monkeypatch
     with pytest.raises(ValueError, match="configuration drifted"):
         equation.fingerprint_sha256()
     assert equation._construction_fingerprint == before
+
+
+def test_provider_behavior_hash_is_stable_after_runtime_specialization():
+    provider = AdaptiveExecutionProvider()
+    before = provider_behavior_sha256(
+        provider, ("evaluate",), label="adaptive_execution_provider"
+    )
+    for _ in range(256):
+        assert provider.evaluate((1.0, 2.0, 3.0)) == pytest.approx(12.0)
+    after = provider_behavior_sha256(
+        provider, ("evaluate",), label="adaptive_execution_provider"
+    )
+    assert after == before

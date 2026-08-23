@@ -18,6 +18,8 @@ from typing import Any, Protocol, runtime_checkable
 import numpy as np
 
 from maple.solvation.api.scalar_registry import (
+    OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
+    OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI1_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
     get_scalar_definition,
@@ -29,6 +31,9 @@ from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
 from maple.solvation.release.field_semantics import FieldSemanticsManifest
 
 from .separated_state import SeparatedOperationalStateEquation
+from .separated_fixed_point import SeparatedFixedPointState
+from .adjoint import AdjointOptions, AdjointResult, solve_reduced_adjoint
+from .linearization import SeparatedReducedLinearization
 from .state_equation import geometry_sha256, provider_behavior_sha256
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -123,6 +128,54 @@ class OperationalLedgerEvaluation:
             "total_energy_eV": self.total_energy_eV,
             "capabilities": "none",
         }
+
+
+@dataclass(frozen=True, slots=True)
+class SeparatedOperationalGradientResult:
+    """Complete operational first derivative of one bound separated scalar."""
+
+    ledger: OperationalLedgerEvaluation
+    adjoint: AdjointResult
+    direct_coordinate_gradient_eV_per_angstrom: tuple[tuple[float, ...], ...]
+    residual_coordinate_pullback_eV_per_angstrom: tuple[tuple[float, ...], ...]
+    total_coordinate_gradient_eV_per_angstrom: tuple[tuple[float, ...], ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.ledger, OperationalLedgerEvaluation):
+            raise TypeError("ledger must be OperationalLedgerEvaluation.")
+        if not isinstance(self.adjoint, AdjointResult) or not self.adjoint.converged:
+            raise ValueError("a converged adjoint result is required.")
+        arrays = tuple(
+            np.asarray(getattr(self, name), dtype=float)
+            for name in (
+                "direct_coordinate_gradient_eV_per_angstrom",
+                "residual_coordinate_pullback_eV_per_angstrom",
+                "total_coordinate_gradient_eV_per_angstrom",
+            )
+        )
+        if (
+            any(array.ndim != 2 or array.shape[1] != 3 for array in arrays)
+            or any(not np.all(np.isfinite(array)) for array in arrays)
+            or arrays[0].shape != arrays[1].shape
+            or arrays[0].shape != arrays[2].shape
+        ):
+            raise ValueError("coordinate gradients must be finite atom-by-3 arrays.")
+        if not np.allclose(arrays[2], arrays[0] - arrays[1], rtol=0.0, atol=1.0e-12):
+            raise ValueError("total gradient does not close direct minus residual VJP.")
+
+    def gradient_array(self) -> np.ndarray:
+        result = np.asarray(
+            self.total_coordinate_gradient_eV_per_angstrom, dtype=float
+        )
+        result.setflags(write=False)
+        return result
+
+    def forces_array(self) -> np.ndarray:
+        result = -np.asarray(
+            self.total_coordinate_gradient_eV_per_angstrom, dtype=float
+        )
+        result.setflags(write=False)
+        return result
 
 
 def _array_sha256(values: object) -> str:
@@ -335,9 +388,101 @@ class _SeparatedLedgerBase:
             total_energy_eV=total,
         )
 
+    def _validate_primal_state(
+        self, geometry: object, state: SeparatedFixedPointState
+    ) -> None:
+        if not isinstance(state, SeparatedFixedPointState):
+            raise TypeError("state must be SeparatedFixedPointState.")
+        if not state.converged:
+            raise ValueError("implicit differentiation requires a converged root.")
+        identities = {
+            "state_equation_id": self.equation.state_equation_id,
+            "geometry_sha256": geometry_sha256(geometry),
+            "equation_sha256": self.equation.fingerprint_sha256(),
+            "source_space_sha256": self.equation.source_space.metadata_hash(),
+            "receiver_space_sha256": self.equation.receiver_space.metadata_hash(),
+            "continuum_configuration_sha256": (
+                self.equation.continuum.configuration_sha256()
+            ),
+        }
+        for name, expected in identities.items():
+            if getattr(state, name) != expected:
+                raise ValueError(f"primal state has a mismatched {name}.")
+        y = state.y_array()
+        source = self.equation.source(y)
+        boundary = self.equation.boundary_state(y)
+        field = self.equation.continuum.native_field_from_boundary(boundary)
+        residual = self.equation.residual(geometry, y)
+        for name, current, stored in (
+            ("source", source, state.source_array()),
+            ("boundary state", boundary, state.boundary_state_array()),
+            ("native field", field, state.field_array()),
+            ("residual", residual, state.actual_unmixed_residual),
+        ):
+            if not np.array_equal(current, np.asarray(stored, dtype=float)):
+                raise ValueError(f"stored primal {name} does not match the equation.")
+        if float(np.linalg.norm(residual)) > state.primal_tolerance:
+            raise ValueError("primal residual exceeds its recorded tolerance.")
 
-class FrozenVacuumContinuumLedger(_SeparatedLedgerBase):
-    """Phi0: frozen vacuum energy plus the signed continuum stationary energy."""
+
+class _FrozenVacuumContinuumLedgerBase(_SeparatedLedgerBase):
+    """Shared Phi0 implementation using the continuum-owned scalar contract."""
+
+    continuum_component_name = "smooth_harmonic_continuum_stationary_energy"
+
+    def _components(
+        self,
+        geometry: object,
+        source: np.ndarray,
+        boundary_state: np.ndarray,
+        native_field: np.ndarray,
+    ) -> tuple[tuple[str, float], ...]:
+        del boundary_state, native_field
+        if self.vacuum is None:  # pragma: no cover - constructor invariant
+            raise RuntimeError("Phi0 vacuum provider is absent.")
+        vacuum = float(self.vacuum.evaluate_energy(geometry))
+        continuum = float(self.equation.continuum.continuum_energy_eV(source))
+        if not np.isfinite(vacuum) or not np.isfinite(continuum):
+            raise RuntimeError("Phi0 ledger produced a non-finite component.")
+        return (
+            ("macepolar_vacuum_energy", vacuum),
+            (self.continuum_component_name, continuum),
+        )
+
+    def reduced_gradient(
+        self, geometry: object, reduced_coordinates: object
+    ) -> np.ndarray:
+        """Return ``T.T @ dG/dc`` for the selected Phi0 ledger.
+
+        The fixed-point state and the scalar are deliberately distinct.  This
+        method supplies the exact reduced scalar gradient required on the
+        right-hand side of the operational implicit adjoint; it does not make
+        the electronic state equation stationary or variational.
+        """
+
+        self.configuration_sha256()
+        if geometry_sha256(geometry) != self.equation.continuum.geometry_sha256:
+            raise ValueError("geometry does not match the ledger continuum snapshot.")
+        y = np.asarray(reduced_coordinates, dtype=float)
+        if y.shape != (self.equation.reduced_dimension,) or not np.all(
+            np.isfinite(y)
+        ):
+            raise ValueError("reduced_coordinates have an invalid shape.")
+        source_gradient = self.equation.continuum.continuum_source_gradient(
+            self.equation.source(y)
+        )
+        result = self.equation.coordinates.reduce_source_cotangent(
+            source_gradient
+        )
+        if result.shape != (self.equation.reduced_dimension,) or not np.all(
+            np.isfinite(result)
+        ):
+            raise RuntimeError("Phi0 reduced gradient is invalid.")
+        return result
+
+
+class FrozenVacuumContinuumLedger(_FrozenVacuumContinuumLedgerBase):
+    """Legacy smooth-harmonic CPCM Phi0 ledger."""
 
     implementation_entry_point = (
         "maple.solvation.coupling.separated_ledgers:FrozenVacuumContinuumLedger"
@@ -359,24 +504,129 @@ class FrozenVacuumContinuumLedger(_SeparatedLedgerBase):
             ),
         )
 
-    def _components(
+
+
+class HarmonicDDPCMFrozenVacuumLedger(_FrozenVacuumContinuumLedgerBase):
+    """Phi0 for finite-dielectric smooth harmonic ddPCM.
+
+    The continuum provider owns ``G_ddPCM=1/2 c.T C X``.  This class does not
+    reinterpret the composite ddPCM boundary variables as a symmetric CPCM
+    surface charge and therefore does not reuse the old CPCM half-coupling
+    formula or scalar identity.
+    """
+
+    implementation_entry_point = (
+        "maple.solvation.coupling.separated_ledgers:"
+        "HarmonicDDPCMFrozenVacuumLedger"
+    )
+    continuum_component_name = "smooth_harmonic_ddpcm_stationary_energy"
+
+    def __init__(
+        self,
+        *,
+        equation: SeparatedOperationalStateEquation,
+        vacuum: SeparatedVacuumScalarProvider,
+        field_semantics_manifest: FieldSemanticsManifest,
+    ) -> None:
+        scalar_id = equation.continuum.scalar_id
+        if scalar_id not in (
+            OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_DDPCM_V1,
+            OPERATIONAL_MACEPOLAR_GTO1P5_NATIVEFIELD8_SMOOTH_HARMONIC_DDPCM_PHI0_V2,
+        ):
+            raise ValueError("continuum is not bound to a supported ddPCM Phi0 scalar.")
+        super().__init__(
+            equation=equation,
+            vacuum=vacuum,
+            field_semantics_manifest=field_semantics_manifest,
+            scalar_id=scalar_id,
+        )
+
+    def direct_coordinate_gradient(
+        self, geometry: object, reduced_coordinates: object
+    ) -> np.ndarray:
+        """Return ``partial_R(E_vac+G_ddPCM)`` at fixed reduced state."""
+
+        self.configuration_sha256()
+        coordinate_gradient = getattr(self.vacuum, "coordinate_gradient", None)
+        continuum_gradient = getattr(
+            self.equation.continuum,
+            "continuum_energy_position_gradient",
+            None,
+        )
+        if not callable(coordinate_gradient) or not callable(continuum_gradient):
+            raise TypeError(
+                "Phi0 force requires vacuum and continuum coordinate gradients."
+            )
+        y = np.asarray(reduced_coordinates, dtype=float)
+        if y.shape != (self.equation.reduced_dimension,) or not np.all(
+            np.isfinite(y)
+        ):
+            raise ValueError("reduced_coordinates have an invalid shape.")
+        vacuum = np.asarray(coordinate_gradient(geometry), dtype=float)
+        continuum = np.asarray(
+            continuum_gradient(self.equation.source(y)), dtype=float
+        )
+        expected = (self.equation.coordinates.atom_count, 3)
+        if (
+            vacuum.shape != expected
+            or continuum.shape != expected
+            or not np.all(np.isfinite(vacuum))
+            or not np.all(np.isfinite(continuum))
+        ):
+            raise ValueError(
+                "vacuum and continuum coordinate gradients must be finite "
+                f"with shape {expected}."
+            )
+        return vacuum + continuum
+
+    def implicit_gradient(
         self,
         geometry: object,
-        source: np.ndarray,
-        boundary_state: np.ndarray,
-        native_field: np.ndarray,
-    ) -> tuple[tuple[str, float], ...]:
-        del native_field
-        if self.vacuum is None:  # pragma: no cover - constructor invariant
-            raise RuntimeError("Phi0 vacuum provider is absent.")
-        vacuum = float(self.vacuum.evaluate_energy(geometry))
-        rhs = self.equation.continuum.source_rhs(source)
-        continuum = -0.5 * float(np.vdot(rhs, boundary_state))
-        if not np.isfinite(vacuum) or not np.isfinite(continuum):
-            raise RuntimeError("Phi0 ledger produced a non-finite component.")
-        return (
-            ("macepolar_vacuum_energy", vacuum),
-            ("smooth_harmonic_continuum_stationary_energy", continuum),
+        state: SeparatedFixedPointState,
+        *,
+        adjoint_options: AdjointOptions = AdjointOptions(),
+    ) -> SeparatedOperationalGradientResult:
+        """Differentiate the registered Phi0 scalar along its operational root."""
+
+        self.configuration_sha256()
+        self._validate_primal_state(geometry, state)
+        ledger = self.evaluate_root(
+            geometry,
+            state.y_array(),
+            root_tolerance=state.primal_tolerance,
+        )
+        reduced_gradient = self.reduced_gradient(geometry, state.y_array())
+        linearization = SeparatedReducedLinearization.at(
+            self.equation, geometry, state.y_array()
+        )
+        adjoint = solve_reduced_adjoint(
+            linearization, reduced_gradient, options=adjoint_options
+        )
+        direct = self.direct_coordinate_gradient(geometry, state.y_array())
+        residual_pullback = np.asarray(
+            self.equation.coordinate_vjp(
+                geometry, state.y_array(), adjoint.solution_array()
+            ),
+            dtype=float,
+        )
+        if residual_pullback.shape != direct.shape or not np.all(
+            np.isfinite(residual_pullback)
+        ):
+            raise ValueError(
+                "residual and direct coordinate gradients must have equal shape."
+            )
+        total = direct - residual_pullback
+        as_tuple = lambda values: tuple(  # noqa: E731
+            tuple(float(value) for value in row) for row in values
+        )
+        return SeparatedOperationalGradientResult(
+            ledger=ledger,
+            adjoint=adjoint,
+            direct_coordinate_gradient_eV_per_angstrom=as_tuple(direct),
+            residual_coordinate_pullback_eV_per_angstrom=as_tuple(
+                residual_pullback
+            ),
+            total_coordinate_gradient_eV_per_angstrom=as_tuple(total),
         )
 
 
@@ -451,7 +701,9 @@ ExternalEnthalpyOperationalLedger = NormalizedPhi1DeltaLedger
 __all__ = [
     "ExternalEnthalpyOperationalLedger",
     "FrozenVacuumContinuumLedger",
+    "HarmonicDDPCMFrozenVacuumLedger",
     "NormalizedPhi1DeltaLedger",
     "OperationalLedgerEvaluation",
+    "SeparatedOperationalGradientResult",
     "SeparatedVacuumScalarProvider",
 ]

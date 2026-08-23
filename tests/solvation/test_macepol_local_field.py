@@ -9,11 +9,11 @@ import numpy as np
 import pytest
 from ase import Atoms
 
-
 torch = pytest.importorskip("torch")
 
 from maple.function.calculator.mace._macepol_calculator import (
     MACEPolCalculator,
+    _resolve_route2_checkpoint_source,
     _LocalReactionFieldProjector,
     _validated_route2_checkpoint_provenance,
 )
@@ -209,10 +209,8 @@ def _calculator_with_model(model, recorder: _FieldRecorder):
     # exercises the established laboratory-frame path.
     calculator._route2_jgp94_d2_canonical_mace = False
     calculator._reaction_projector = recorder
-    calculator._long_range_evaluator = (
-        MACEPolarLongRangeEvaluator.from_profile(
-            MACEPOL_MOLECULAR_REALSPACE_PROFILE
-        )
+    calculator._long_range_evaluator = MACEPolarLongRangeEvaluator.from_profile(
+        MACEPOL_MOLECULAR_REALSPACE_PROFILE
     )
     calculator.model = model
     calculator._batch_dict = lambda _atoms: {"synthetic": torch.tensor(1.0)}
@@ -356,10 +354,7 @@ def test_polar_state_copies_immutable_numpy_field_inputs_without_warning(
         state, _ = calculator.polar_state(atoms, **kwargs)
 
     assert state.density_coefficients.shape == (2, 4)
-    assert not any(
-        "not writable" in str(item.message)
-        for item in caught
-    )
+    assert not any("not writable" in str(item.message) for item in caught)
 
 
 @pytest.mark.parametrize(
@@ -473,6 +468,7 @@ def test_route2_checkpoint_provenance_hashes_full_checkpoint_and_fails_closed(
         "resolved_path": str(checkpoint.resolve()),
         "size_bytes": checkpoint.stat().st_size,
         "sha256": expected_sha,
+        "parameter_source": "upstream-cache",
     }
 
     checkpoint.write_bytes(b"different learned weights")
@@ -482,6 +478,67 @@ def test_route2_checkpoint_provenance_hashes_full_checkpoint_and_fails_closed(
             identifier="polar-1-m",
             release_url=macepol_module._ROUTE2_MACE_POLAR_RELEASE_URL,
         )
+
+
+def test_route2_explicit_checkpoint_path_bypasses_downloader_and_cache(
+    monkeypatch, tmp_path
+):
+    checkpoint = tmp_path / "supplied.model"
+    content = b"explicit official checkpoint"
+    checkpoint.write_bytes(content)
+    monkeypatch.setattr(
+        macepol_module, "_ROUTE2_MACE_POLAR_CHECKPOINT_SIZE_BYTES", len(content)
+    )
+    monkeypatch.setattr(
+        macepol_module,
+        "_ROUTE2_MACE_POLAR_CHECKPOINT_SHA256",
+        hashlib.sha256(content).hexdigest(),
+    )
+    calls = []
+
+    def forbidden_download(model):
+        calls.append(model)
+        raise AssertionError("downloader must not be called")
+
+    resolved, provenance = _resolve_route2_checkpoint_source(
+        model_source="polar-1-m",
+        model_path=str(checkpoint),
+        polar_model_urls={"polar-1-m": "unused"},
+        downloader=forbidden_download,
+    )
+    assert resolved == str(checkpoint)
+    assert calls == []
+    assert provenance["sha256"] == hashlib.sha256(content).hexdigest()
+    assert provenance["parameter_source"] == "explicit-supplied-path"
+
+
+def test_route2_cache_lane_still_downloads_and_validates(monkeypatch, tmp_path):
+    checkpoint = tmp_path / "cached.model"
+    content = b"cached official checkpoint"
+    checkpoint.write_bytes(content)
+    monkeypatch.setattr(
+        macepol_module, "_ROUTE2_MACE_POLAR_CHECKPOINT_SIZE_BYTES", len(content)
+    )
+    monkeypatch.setattr(
+        macepol_module,
+        "_ROUTE2_MACE_POLAR_CHECKPOINT_SHA256",
+        hashlib.sha256(content).hexdigest(),
+    )
+    calls = []
+
+    def downloader(model):
+        calls.append(model)
+        return str(checkpoint)
+
+    resolved, provenance = _resolve_route2_checkpoint_source(
+        model_source="polar-1-m",
+        model_path=None,
+        polar_model_urls={"polar-1-m": macepol_module._ROUTE2_MACE_POLAR_RELEASE_URL},
+        downloader=downloader,
+    )
+    assert resolved == str(checkpoint)
+    assert calls == ["polar-1-m"]
+    assert provenance["parameter_source"] == "upstream-cache"
 
 
 def test_intrinsic_energy_field_gradient_matches_exact_quadratic_model():
@@ -755,10 +812,8 @@ def test_fixed_box_force_pullback_matches_centered_energy_difference():
         _PositionFieldModel(recorder),
         recorder,
     )
-    calculator._long_range_evaluator = (
-        MACEPolarLongRangeEvaluator.from_profile(
-            MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
-        )
+    calculator._long_range_evaluator = MACEPolarLongRangeEvaluator.from_profile(
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
     )
 
     def centered_batch(atoms):
@@ -865,10 +920,8 @@ def test_fixed_box_density_vjp_matches_centered_pairing_difference():
         _PositionDependentDensityModel(recorder),
         recorder,
     )
-    calculator._long_range_evaluator = (
-        MACEPolarLongRangeEvaluator.from_profile(
-            MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
-        )
+    calculator._long_range_evaluator = MACEPolarLongRangeEvaluator.from_profile(
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
     )
 
     def centered_batch(atoms):

@@ -45,6 +45,11 @@ class _Permanent:
     def evaluate_source(self, _geometry: object) -> np.ndarray:
         return np.asarray([[-0.15, 0.01, -0.02, 0.03], [0.15, -0.02, 0.01, -0.01]])
 
+    def source_position_vjp(
+        self, geometry: object, _source_cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3))
+
 
 class _Responsive:
     provider_id = "test.hybrid.response.v1"
@@ -68,6 +73,9 @@ class _Responsive:
     def vacuum_energy_ev(self, _geometry: object) -> float:
         return -123.456
 
+    def vacuum_forces_ev_per_angstrom(self, geometry: object) -> np.ndarray:
+        return np.zeros((len(geometry), 3))
+
     def evaluate_source(self, _geometry: object, field: object) -> np.ndarray:
         return self.zero + (self.jacobian @ np.asarray(field).reshape(-1)).reshape(2, 4)
 
@@ -80,6 +88,11 @@ class _Responsive:
         self, _geometry: object, _field: object, cotangent: object
     ) -> np.ndarray:
         return (self.jacobian.T @ np.asarray(cotangent).reshape(-1)).reshape(2, 8)
+
+    def coordinate_vjp(
+        self, geometry: object, _field: object, _source_cotangent: object
+    ) -> np.ndarray:
+        return np.zeros((len(geometry), 3))
 
 
 class _Response:

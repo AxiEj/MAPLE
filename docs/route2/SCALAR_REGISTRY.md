@@ -2,17 +2,24 @@
 
 This document mirrors the machine-readable registry in
 `maple.solvation.api.scalar_registry`. Registration defines an identity; it
-does **not** admit a capability. Every current `E/F/H/V/M` capability is false
-and every scalar is disabled.
+does **not** by itself admit a capability. The historical MACE-MDP permanent +
+MACE-POLAR induced + smooth harmonic-Galerkin electrostatic scalar has a
+replicated `E/F` record at commit `4cf8db40`, but the current provider bytes no
+longer match that frozen runtime binding. Every scalar/profile and every
+`E/F/H/V/M` capability therefore remains disabled pending a fresh clean replay.
 
 `maple.solvation.api.profiles.PROFILE_REGISTRY` is the sole admission registry.
 Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-All current profiles are disabled, have no capabilities, and have empty
-admission evidence. Multiple profiles may share one scalar formula while
-binding different coupling or physical-continuum configuration contracts.
+The historical artifact
+`route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1` is not
+bound into the current disabled profile/scalar because evidence from different
+implementation bytes cannot be carried forward.
+Multiple profiles may share one scalar formula while binding different
+coupling or physical-continuum configuration contracts; evidence from one
+identity cannot admit another.
 
 `Route2Result` accepts only a registered `profile_id`; it derives scalar ID,
 state-equation ID, and capabilities from that profile. Callers cannot attach
@@ -26,6 +33,114 @@ declare an admitted domain, or carry force leaves.
 Public ASE units are declared centrally as energy `eV`, forces `eV/A`, and
 Hessian `eV/A^2`. Historical Hartree-reporting jobs use the dispatcher-bound
 non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
+
+## Historical MACE-MDP + MACE-POLAR harmonic E/F record
+
+- Profile:
+  `route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1`.
+- Scalar:
+  `route2-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1`.
+- Ledger:
+
+  \[
+    E(R)=E_{\rm vac}^{\rm MACE\text{-}POLAR}(R)
+      -\frac12 b(R,c^*)^T A(R)^{-1}b(R,c^*).
+  \]
+
+- State: a two-start operational root combining unchanged MACE-MDP permanent
+  point monopoles/dipoles with the field-induced increment of MACE-POLAR.
+- Continuum: a fixed-dimensional smooth harmonic-Galerkin coefficient model;
+  its mathematical definition contains no laboratory-fixed surface grid and
+  therefore removes the old GEPOL active-point switching mechanism.
+- Force: the fourth-order Richardson numerical gradient of this exact scalar;
+  every stencil point fully rebuilds the harmonic operator and re-solves both
+  root starts. Runtime guards reject excessive local Richardson error, root or
+  charge failure, replay disagreement, or topology drift.
+- Historical replicated result: two independent clean executions at candidate head
+  `4cf8db40` produced identical measurement SHA-256
+  `a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30`.
+  The maximum local Richardson estimate was `1.4104595417549493e-5 eV/A`;
+  water rotation energy and relative force-covariance errors were
+  `2.9654074751306325e-9 eV` and `2.4243672701543782e-8`; the guarded closed-loop
+  work was `4.7405289175354166e-8 eV`.
+- Current disposition: disabled. The provenance-bearing MACE-MDP/MACE-POLAR
+  provider implementation has changed since `4cf8db40`; the current registry
+  deliberately carries no evidence ID and no capability until the complete
+  admission protocol is rerun twice on the final tree.
+- Scope: the exact content-addressed checkpoint/adaptor binding, `float64` CUDA,
+  experimental conductor-limit electrostatics using SMD-water Coulomb radii,
+  neutral singlets, and numerical force only.
+- Not admitted: quantitative solvation accuracy, a complete solvation free
+  energy, named-solvent transfer, nonpolar/CDS, analytic force, Hessian/FREQ,
+  TS/IRC, MD/NVE, or a strict Tier-V common functional.
+
+See [HYBRID_HARMONIC_EXPERIMENTAL.md](HYBRID_HARMONIC_EXPERIMENTAL.md) for the
+runtime and claim boundary.
+
+### Pure MACE-POLAR Gaussian-source Phi0 v2
+
+The disabled pure MACE-POLAR scalar is
+
+```text
+route2-operational-macepolar-source-gto1p5-nativefield8-
+smoothharmonic-ddpcm-general-source-phi0-v2
+```
+
+with disabled profile
+
+```text
+route2-profile-operational-macepolar-source-gto1p5-nativefield8-
+smoothharmonic-ddpcm-general-source-phi0-v2
+```
+
+It preserves the checkpoint semantics rather than substituting a point source:
+the original four output coefficients occupy only the `1.5 A` Gaussian source
+block, while continuum feedback is projected into the distinct native
+`1.5/3.0 A` eight-channel receiver.  The registered Phi0 ledger contains
+MACE-POLAR vacuum energy plus the stationary finite-dielectric harmonic-ddPCM
+electrostatic energy; it excludes conditioned-raw energy, internal-polarization
+closure, CDS/nonpolar terms, and any strict common-functional claim.
+
+The model-independent `OperationalImplicitPES` facade can internally evaluate
+this exact scalar's E/F, molecular virial, Richardson HVP, and assembled
+Richardson Hessian.  In the source-bound real water canary, the root and
+adjoint residuals are `6.88e-13` and `1.44e-13`; the maximum HVP Richardson
+error is `4.19e-5 eV/A^2`, and the two-direction projected Hessian bilinear
+asymmetry is `2.48e-9 eV/A^2`.  This is derivative evidence at one geometry,
+not chemical-accuracy, FREQ, workflow, or public admission evidence.
+
+### Finite-dielectric heterogeneous general-source Phi0 v2
+
+The current scientific successor has scalar ID
+
+```text
+route2-operational-macemdppoint-macepolarinduced-gto1p5-nativefield8-
+smoothharmonic-ddpcm-general-source-phi0-v2
+```
+
+and remains disabled.  Its exact continuum contract is
+`route2-harmonic-ddpcm-general-source-psi-phi-primal-adjoint-v2`:
+permanent and induced branches share the energy-side `psi=p+d`, but use
+different forward `phi` kernels (point and 1.5-A Gaussian).  The checkpoint
+field is the complete 1.5/3.0-A phi-side adjoint.  No false source/receiver
+symmetry is assumed.
+
+The v2 ledger has an analytic implicit coordinate gradient.  One real water
+direction reaches `1.0641e-7 eV/A` central-FD error, and the blind four-case
+cross-backend electrostatic diagnostic has `0.846696 kcal/mol` MAE.  These are
+candidate results, not profile admission: distorted-domain, complete-solvation,
+workflow, and release evidence remain incomplete.
+
+Both this hybrid scalar and the pure Gaussian-source scalar above use the same
+`OperationalImplicitPES` contract.  The real hybrid water HVP canary reports
+root/adjoint residuals `8.28e-13`/`5.27e-16`, maximum Richardson HVP error
+`1.26e-3 eV/A^2`, and projected bilinear asymmetry `6.90e-8 eV/A^2`.  The
+common canary artifact is
+[`evidence/operational-harmonic-ddpcm-water-hvp-canary-4cf8db40.json`](evidence/operational-harmonic-ddpcm-water-hvp-canary-4cf8db40.json),
+SHA-256
+`eaaa9fc49d5c8efb13cb0993929c76b3f2201d109f5501e81986a420a066f7cc`.
+All registered E/F/H/V/M capabilities for these two v2 identities remain
+false.
 
 ## `route2-operational-cpcm-fixedtopology-electrostatic-v1`
 

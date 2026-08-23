@@ -163,6 +163,46 @@ ATOMIC_L1_PAIRING = PairingMetric(
     gauge="continuum-zero-at-infinity",
     field_convention="positive-energy-dual: pair(c,u)=c^T Q u",
 )
+def atomic_l1_source_convention_contract() -> dict[str, object]:
+    """Return a fresh complete JSON contract for the checkpoint-native source."""
+
+    return {
+        "schema_id": "maple.route2.atomic-l1-source-convention-contract.v2",
+        "source_space_id": "maple.route2.atomic-l1-source-space.v1",
+        "representation": (
+            "atom-centred net monopole plus checkpoint-native real-spherical l=1"
+        ),
+        "component_order": list(ATOMIC_L1_PAIRING.source_components),
+        "units": list(ATOMIC_L1_PAIRING.source_units),
+        "charge_component": 0,
+        "angular_basis": "checkpoint-native e3nn real l<=1 coefficient basis",
+        "coefficient_normalization": (
+            "physical unit monopole/dipole coefficients; the public energy pairing "
+            "applies no diagonal rescaling"
+        ),
+        "laboratory_frame_handedness": "right-handed Cartesian x,y,z",
+        "rotation_action": (
+            "monopole scalar plus real-l1 vector under the checkpoint O(3) action; "
+            "Cartesian interpretation is only through the frozen pairing map"
+        ),
+        "source_l1_to_cartesian_field_components": [
+            "potential_gradient_y",
+            "potential_gradient_z",
+            "potential_gradient_x",
+        ],
+        "phase_and_sign_map": "positive permutation with no sign flips",
+        "pairing_metric": ATOMIC_L1_PAIRING.metadata(),
+        "physical_source_kernel": "excluded-from-representation-contract",
+    }
+
+
+def atomic_l1_source_convention_contract_sha256() -> str:
+    encoded = json.dumps(
+        atomic_l1_source_convention_contract(),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 # The official MACE-POLAR-1 receiver contains two radial ``l<=1`` GTO
 # channels.  This layout keeps the physical potential/gradient values (before
@@ -244,5 +284,7 @@ __all__ = [
     "PAIRING_REGISTRY",
     "PairingMetric",
     "QPairing",
+    "atomic_l1_source_convention_contract",
+    "atomic_l1_source_convention_contract_sha256",
     "get_pairing_metric",
 ]

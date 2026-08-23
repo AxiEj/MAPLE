@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
-from typing import Any, Literal, Protocol
+from typing import Any, Callable, Literal, Protocol
 
 import numpy as np
 
@@ -242,7 +242,9 @@ def roots_numerically_equivalent(
     )
 
 
-def _array_content_sha256(values: object) -> str:
+def array_content_sha256(values: object) -> str:
+    """Hash an array's exact dtype, shape, and contiguous byte content."""
+
     array = np.ascontiguousarray(np.asarray(values))
     header = json.dumps(
         {"dtype": array.dtype.str, "shape": list(array.shape)},
@@ -282,10 +284,10 @@ def compute_root_hash(
         # This remains diagnostic only; scientific identity is machine-bound by
         # the geometry/equation/scalar/profile fields above.
         "root_context_id": root_context_id,
-        "dimensionless_y_content_sha256": _array_content_sha256(y),
-        "source_content_sha256": _array_content_sha256(source),
-        "field_content_sha256": _array_content_sha256(field),
-        "actual_unmixed_residual_content_sha256": _array_content_sha256(residual),
+        "dimensionless_y_content_sha256": array_content_sha256(y),
+        "source_content_sha256": array_content_sha256(source),
+        "field_content_sha256": array_content_sha256(field),
+        "actual_unmixed_residual_content_sha256": array_content_sha256(residual),
         "initialization": initialization,
         "converged": converged,
         "actual_unmixed_residual_norm": residual_norm,
@@ -331,6 +333,77 @@ def _anderson_step(
     gamma = np.linalg.lstsq(delta_f, f_history[-1], rcond=None)[0]
     accelerated = mapped - (delta_x + delta_f) @ gamma
     return x_history[-1] + damping * (accelerated - x_history[-1]), depth
+
+
+def iterate_reduced_fixed_point(
+    *,
+    mapping: Callable[[np.ndarray], object],
+    residual: Callable[[np.ndarray], object],
+    dimension: int,
+    initial_y: object,
+    options: FixedPointOptions,
+) -> tuple[np.ndarray, bool, tuple[IterationRecord, ...]]:
+    """Run the shared deterministic reduced-space Picard/Anderson loop.
+
+    Scientific identity, state hashing, and provider/profile admission remain
+    the caller's responsibility.  Keeping only this numerical iteration core
+    shared lets square and rectangular source/field state equations use one
+    convergence rule without pretending their state records are identical.
+    """
+
+    if type(dimension) is not int or dimension < 1:
+        raise ValueError("dimension must be a positive integer.")
+    if not isinstance(options, FixedPointOptions):
+        raise TypeError("options must be FixedPointOptions.")
+    y = np.asarray(initial_y, dtype=float)
+    if y.shape != (dimension,) or not np.all(np.isfinite(y)):
+        raise ValueError(f"initial_y must be finite with shape ({dimension},).")
+    y = np.array(y, copy=True)
+    x_history: list[np.ndarray] = []
+    f_history: list[np.ndarray] = []
+    records: list[IterationRecord] = []
+    converged = False
+
+    for iteration in range(options.max_iterations + 1):
+        # Never use a mixed/extrapolated residual for the convergence gate.
+        actual = np.asarray(residual(y), dtype=float)
+        if actual.shape != (dimension,) or not np.all(np.isfinite(actual)):
+            raise ValueError(
+                f"fixed-point residual must be finite with shape ({dimension},)."
+            )
+        residual_norm = float(np.linalg.norm(actual))
+        if residual_norm <= options.tolerance:
+            records.append(IterationRecord(iteration, residual_norm, 0.0, 0))
+            converged = True
+            break
+        if iteration == options.max_iterations:
+            records.append(IterationRecord(iteration, residual_norm, 0.0, 0))
+            break
+
+        mapped = np.asarray(mapping(y), dtype=float)
+        if mapped.shape != (dimension,) or not np.all(np.isfinite(mapped)):
+            raise ValueError(
+                f"fixed-point map must be finite with shape ({dimension},)."
+            )
+        fixed_point_residual = mapped - y
+        x_history.append(np.array(y, copy=True))
+        f_history.append(np.array(fixed_point_residual, copy=True))
+        if options.method == "anderson":
+            next_y, depth = _anderson_step(
+                x_history, f_history, mapped, options.damping, options.history
+            )
+        else:
+            next_y = y + options.damping * fixed_point_residual
+            depth = 0
+        if not np.all(np.isfinite(next_y)):
+            raise ValueError(
+                "Fixed-point update produced non-finite reduced coordinates."
+            )
+        step_norm = float(np.linalg.norm(next_y - y))
+        records.append(IterationRecord(iteration, residual_norm, step_norm, depth))
+        y = next_y
+
+    return y, converged, tuple(records)
 
 
 def solve_fixed_point(
@@ -426,41 +499,13 @@ def solve_fixed_point(
         if initial_y is None
         else equation._y(initial_y, "initial reduced coordinates")
     )
-    x_history: list[np.ndarray] = []
-    f_history: list[np.ndarray] = []
-    records: list[IterationRecord] = []
-    converged = False
-
-    for iteration in range(options.max_iterations + 1):
-        # Never use a mixed/extrapolated residual for the convergence gate.
-        residual = np.asarray(equation.residual(geometry, y), dtype=float)
-        residual_norm = float(np.linalg.norm(residual))
-        if residual_norm <= options.tolerance:
-            records.append(IterationRecord(iteration, residual_norm, 0.0, 0))
-            converged = True
-            break
-        if iteration == options.max_iterations:
-            records.append(IterationRecord(iteration, residual_norm, 0.0, 0))
-            break
-
-        mapped = np.asarray(equation.fixed_point_map(geometry, y), dtype=float)
-        fixed_point_residual = mapped - y
-        x_history.append(np.array(y, copy=True))
-        f_history.append(np.array(fixed_point_residual, copy=True))
-        if options.method == "anderson":
-            next_y, depth = _anderson_step(
-                x_history, f_history, mapped, options.damping, options.history
-            )
-        else:
-            next_y = y + options.damping * fixed_point_residual
-            depth = 0
-        if not np.all(np.isfinite(next_y)):
-            raise ValueError(
-                "Fixed-point update produced non-finite reduced coordinates."
-            )
-        step_norm = float(np.linalg.norm(next_y - y))
-        records.append(IterationRecord(iteration, residual_norm, step_norm, depth))
-        y = next_y
+    y, converged, records = iterate_reduced_fixed_point(
+        mapping=lambda value: equation.fixed_point_map(geometry, value),
+        residual=lambda value: equation.residual(geometry, value),
+        dimension=equation.reduced_dimension,
+        initial_y=y,
+        options=options,
+    )
 
     final = equation.evaluate(geometry, y)
     final_residual = np.asarray(final.residual, dtype=float)
@@ -483,7 +528,7 @@ def solve_fixed_point(
         initialization=initialization,
         converged=converged and final_norm <= options.tolerance,
         residual_norm=final_norm,
-        iterations=tuple(records),
+            iterations=records,
     )
     state = FixedPointState(
         state_equation_id=equation.state_equation_id,
@@ -501,7 +546,7 @@ def solve_fixed_point(
         field=final.field,
         actual_unmixed_residual=tuple(float(value) for value in final_residual),
         actual_unmixed_residual_norm=final_norm,
-        iterations=tuple(records),
+        iterations=records,
         root_hash=root_hash,
     )
     if require_convergence and not state.converged:
@@ -517,7 +562,9 @@ __all__ = [
     "ROOT_EQUIVALENCE_ABSOLUTE_TOLERANCE",
     "ROOT_EQUIVALENCE_CONTRACT",
     "ScalarStateBinding",
+    "array_content_sha256",
     "compute_root_hash",
+    "iterate_reduced_fixed_point",
     "roots_numerically_equivalent",
     "solve_fixed_point",
 ]

@@ -256,7 +256,7 @@ def _numpy_runtime() -> dict[str, object] | None:
             np.show_config()
     except Exception as error:  # diagnostic only; never hides the exception text
         return {"version": np.__version__, "show_config_error": repr(error)}
-    return {"version": np.__version__, "show_config": stream.getvalue()}
+    return {"version": np.__version__, "show_config": stream.getvalue().strip()}
 
 
 def _torch_runtime() -> dict[str, object] | None:

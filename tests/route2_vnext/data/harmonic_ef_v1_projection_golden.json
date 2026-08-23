@@ -1,0 +1,422 @@
+{
+  "science": {
+    "aggregate": {
+      "all_execution_gates_passed": true,
+      "benzene_h4_difference_eV_per_A": 0.0,
+      "maximum_local_richardson_error_eV_per_A": 0.0,
+      "water_closed_loop_guarded_absolute_work_eV": 0.0,
+      "water_independent_directional_error_eV_per_A": 0.0,
+      "water_rotation_energy_error_eV": 0.0,
+      "water_rotation_force_relative_error": 0.0,
+      "water_translation_energy_error_eV": 0.0,
+      "water_translation_force_relative_error": 0.0
+    },
+    "benzene_gepol_regression": {
+      "asset_sha256": {
+        "mol2": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "projection_result": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "atom_count": 12,
+      "cavity_radii_angstrom": [
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7,
+        1.7
+      ],
+      "center_energy_eV": -4.0,
+      "center_polarization_energy_eV": -1.0,
+      "center_root_sha256": "0999794457d3f650857f8b287470d4c019ccc1b52e127f3948599b40cea9f9b3",
+      "coefficient_topology_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "compound_id": "mobley_3053621",
+      "force_convergence": {
+        "atom_index": 0,
+        "axis_index": 0,
+        "center_state_sha256": "0999794457d3f650857f8b287470d4c019ccc1b52e127f3948599b40cea9f9b3",
+        "coarse_step_angstrom": 0.0005,
+        "displaced_state_sha256": {
+          "minus_h": "361d7f49b6e0d504d8d64131f7693d4967c34a902597f132e1be21f3a6d56eb5",
+          "minus_h2": "b36aa469e52d88bcac48011d84de2dcade9fbda4682af14b3231be1371d02269",
+          "minus_h4": "42e980e6700b988da1456ca99535f1dc1ee4ffc9d60d451f76667f97fcfe03c4",
+          "plus_h": "13fabb827184a5f0eab782e2dfa0e7cd0df6ea8a1089baa5e994878aa847b9af",
+          "plus_h2": "40880c707a88ed9481cb69c7b8b2aef1caacfb7108b08d0f62fa369e53e2c0c0",
+          "plus_h4": "c5d94130de154b502101fd5117647faffbf9172cf55f49843aca14082be3e3dc"
+        },
+        "energy_derivative_h2_eV_per_A": 0.0,
+        "energy_derivative_h4_eV_per_A": 0.0,
+        "energy_derivative_h_eV_per_A": 0.0,
+        "fine_step_angstrom": 0.00025,
+        "gate_passed": true,
+        "h4_difference_eV_per_A": 0.0,
+        "independent_step_angstrom": 0.000125,
+        "local_error_estimate_eV_per_A": 0.0,
+        "maximum_h4_difference_eV_per_A": 0.0002,
+        "maximum_local_error_eV_per_A": 0.0002,
+        "richardson_energy_derivative_eV_per_A": 0.0,
+        "richardson_force_eV_per_A": -0.0,
+        "topology_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "gate_passed": true,
+      "name": "benzene",
+      "root_summary": {
+        "maximum_cold_iterations": 1,
+        "maximum_primal_residual_eV": 0.0,
+        "maximum_replay_energy_difference_eV": 0.0,
+        "maximum_replay_field_difference_eV": 0.0,
+        "maximum_total_charge_error_e": 0.0,
+        "maximum_wide_iterations": 1,
+        "state_count": 8,
+        "topology_ids": [
+          "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        ]
+      }
+    },
+    "water_force_symmetry_loop": {
+      "cavity_radii_angstrom": [
+        1.5,
+        1.2,
+        1.2
+      ],
+      "center_energy_eV": -4.0,
+      "center_force": {
+        "error_estimates_eV_per_A": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "evaluation_sha256": "8e8d16174c2fafd6333066b36d2be9ef89c4b14b2bc6d1f69eeb94cb12f613da",
+        "finite": true,
+        "forces_eV_per_A": [
+          [
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          [
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          [
+            -0.0,
+            -0.0,
+            -0.0
+          ]
+        ],
+        "maximum_error_estimate_eV_per_A": 0.0,
+        "net_force_norm_eV_per_A": 0.0
+      },
+      "center_polarization_energy_eV": -1.0,
+      "center_root_sha256": "758f8c008678193da6c986ea28281d36851340514340dd145f407bde3fa5f768",
+      "closed_loop": {
+        "absolute_work_eV": 0.0,
+        "cartesian_dofs": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "closed_loop_work_eV": 0.0,
+        "edges": [
+          {
+            "displacement_angstrom": 0.002,
+            "force_component": {
+              "atom_index": 0,
+              "axis_index": 0,
+              "displaced_state_sha256": [
+                "2f8461a96b35f5a3050ac0983956338356035aa860d24b505ce25e449f618cce",
+                "75a90fa0a708d9058a0b6b7c00173fdcf1a5dce73f405980a2673f367359905e",
+                "68eb413ab8c46c1579ebcb37b9dfbf85a4f94337f929205538d46ecdc4d2dfe1",
+                "8126abc40ca16c86765338f146518c7c96fd07acb610ce13e83b4dc5f17316fb"
+              ],
+              "error_estimate_eV_per_A": 0.0,
+              "force_eV_per_A": -0.0
+            },
+            "label": "bottom",
+            "midpoint_offsets_angstrom": [
+              0.0,
+              -0.001
+            ],
+            "work_eV": -0.0,
+            "work_error_bound_eV": 0.0
+          },
+          {
+            "displacement_angstrom": 0.002,
+            "force_component": {
+              "atom_index": 1,
+              "axis_index": 1,
+              "displaced_state_sha256": [
+                "c3d8b45ba072cba8a78c41a01eb8ecee65e89c43299c9520ad934d0e505d8628",
+                "6869bfd0dd0bfe5908e0616f2e80d5e1fd2fbedccd4cef1b75c0b7222009ec37",
+                "7970864201582683095e47251f6c2a3eb7e70736e8478274248d2e02b7fba5cc",
+                "db9e3a9d7ceab48c1596026f557da9c6c67f98efbff6fa5bf0cd074ddc91bb15"
+              ],
+              "error_estimate_eV_per_A": 0.0,
+              "force_eV_per_A": -0.0
+            },
+            "label": "right",
+            "midpoint_offsets_angstrom": [
+              0.001,
+              0.0
+            ],
+            "work_eV": -0.0,
+            "work_error_bound_eV": 0.0
+          },
+          {
+            "displacement_angstrom": -0.002,
+            "force_component": {
+              "atom_index": 0,
+              "axis_index": 0,
+              "displaced_state_sha256": [
+                "a41e9b98e4a73312640635c0919734987465bdeb10df67e28f02f15bbd14dfa2",
+                "b7b1dbf1ca7776693a207a387e5a5e16d16260c8bc4dff59a0f9836346b146cf",
+                "ee4d84e24fbd72624ed328d4e1d2610fca8e4d4a9049071b3613cbdec0f14bb9",
+                "387e5d42d5a2fe521754770fa896c5f01b5aec42d7baa60925b6ecd2414d51a7"
+              ],
+              "error_estimate_eV_per_A": 0.0,
+              "force_eV_per_A": -0.0
+            },
+            "label": "top",
+            "midpoint_offsets_angstrom": [
+              0.0,
+              0.001
+            ],
+            "work_eV": 0.0,
+            "work_error_bound_eV": 0.0
+          },
+          {
+            "displacement_angstrom": -0.002,
+            "force_component": {
+              "atom_index": 1,
+              "axis_index": 1,
+              "displaced_state_sha256": [
+                "6e5a0539d58edc497016c6d529b2de19b6dc64dc8c420fb69e8a390a0774aa66",
+                "eb1625eac08920b4938567896f60768addb28f25d42bd271c4de9b0926dee376",
+                "e98af43f2fe6fc1e6c697e562173bb42d19ca111ce66dfee2ec5910ae3d39d9f",
+                "e80acf5c4bc2d723b6f22b6596706010cc0c7219f12653116f97f15995103279"
+              ],
+              "error_estimate_eV_per_A": 0.0,
+              "force_eV_per_A": -0.0
+            },
+            "label": "left",
+            "midpoint_offsets_angstrom": [
+              -0.001,
+              0.0
+            ],
+            "work_eV": 0.0,
+            "work_error_bound_eV": 0.0
+          }
+        ],
+        "gate_passed": true,
+        "guarded_absolute_work_eV": 0.0,
+        "half_width_angstrom": 0.001,
+        "maximum_guarded_absolute_work_eV": 2e-07,
+        "numerical_work_error_bound_eV": 0.0,
+        "orientation": "counterclockwise"
+      },
+      "coefficient_topology_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "gate_passed": true,
+      "geometry_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239,
+          0.9266,
+          0.0
+        ]
+      ],
+      "independent_h4_directional_check": {
+        "absolute_error_eV_per_A": 0.0,
+        "direction": [
+          [
+            0.103504300549424,
+            -0.11686037739894775,
+            0.4774564367023317
+          ],
+          [
+            0.5244998836496971,
+            -0.14172922173961294,
+            0.5659998043298206
+          ],
+          [
+            0.1002707076562551,
+            -0.17904318681106332,
+            -0.30002017717356555
+          ]
+        ],
+        "energy_derivative_eV_per_A": 0.0,
+        "gate_passed": true,
+        "maximum_error_eV_per_A": 0.0005,
+        "minus_state_sha256": "74711cffe78e1461ca36a65c1172e48358d2effc7dd81e606f71182dc9404c67",
+        "negative_force_projection_eV_per_A": -0.0,
+        "plus_state_sha256": "8deb80591f708708003f167dd3391ada06d5b7ed59bfef7d562dd57c23ba96a4",
+        "seed": 20260816,
+        "step_angstrom": 0.000125
+      },
+      "root_gate_passed": true,
+      "root_summary": {
+        "maximum_cold_iterations": 1,
+        "maximum_primal_residual_eV": 0.0,
+        "maximum_replay_energy_difference_eV": 0.0,
+        "maximum_replay_field_difference_eV": 0.0,
+        "maximum_total_charge_error_e": 0.0,
+        "maximum_wide_iterations": 1,
+        "state_count": 133,
+        "topology_ids": [
+          "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        ]
+      },
+      "rotation": {
+        "energy_absolute_error_eV": 0.0,
+        "force_maximum_absolute_error_eV_per_A": 0.0,
+        "force_relative_error": 0.0,
+        "gate_passed": true,
+        "rotated_force": {
+          "error_estimates_eV_per_A": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "evaluation_sha256": "6c43490dc463206aab84a58d946b9a59fd50225b33b6e497c23efa797d36a36d",
+          "finite": true,
+          "forces_eV_per_A": [
+            [
+              -0.0,
+              -0.0,
+              -0.0
+            ],
+            [
+              -0.0,
+              -0.0,
+              -0.0
+            ],
+            [
+              -0.0,
+              -0.0,
+              -0.0
+            ]
+          ],
+          "maximum_error_estimate_eV_per_A": 0.0,
+          "net_force_norm_eV_per_A": 0.0
+        },
+        "rotated_root_sha256": "f2be1c7097c53a86c57b084ffd8e4297c93aef8bc2a794d617e173d9e38803ba",
+        "rotation_matrix": [
+          [
+            0.4533868309579021,
+            0.6964744525723685,
+            -0.5562047450606388
+          ],
+          [
+            0.14451546425771397,
+            0.5583292263827628,
+            0.8169355883772005
+          ],
+          [
+            0.8795201317220249,
+            -0.4507680244658498,
+            0.15248778972372506
+          ]
+        ],
+        "seed": 20260817
+      },
+      "system": "water",
+      "translation": {
+        "energy_absolute_error_eV": 0.0,
+        "force_maximum_absolute_error_eV_per_A": 0.0,
+        "force_relative_error": 0.0,
+        "gate_passed": true,
+        "translated_force": {
+          "error_estimates_eV_per_A": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "evaluation_sha256": "cc322dd3085fecac59da55815b3f7b407b27cdefaa7d09a332a357b54dd88d65",
+          "finite": true,
+          "forces_eV_per_A": [
+            [
+              -0.0,
+              -0.0,
+              -0.0
+            ],
+            [
+              -0.0,
+              -0.0,
+              -0.0
+            ],
+            [
+              -0.0,
+              -0.0,
+              -0.0
+            ]
+          ],
+          "maximum_error_estimate_eV_per_A": 0.0,
+          "net_force_norm_eV_per_A": 0.0
+        },
+        "translated_root_sha256": "2c0cdd0fc36510cb2ac9b0fbe877f7b9e54d7b0e35fc4dc6aa18b6032f19fdd4",
+        "translation_angstrom": [
+          4.2,
+          -3.1,
+          1.7
+        ]
+      }
+    }
+  },
+  "scope": "archive-only-v1-shape-adapter-compatibility-non-admitting",
+  "sha256": "8b6c5090b06b5ee7bc9bc4ac2749711f6bca30ac32a4e99d2cbe987afc207966"
+}

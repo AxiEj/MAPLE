@@ -10,6 +10,9 @@ OPERATIONAL_STATE_EQUATION_ID = "route2-constrained-mutual-polarization-root-v1"
 SEPARATED_OPERATIONAL_STATE_EQUATION_ID = (
     "route2-separated-source-boundary-nativefield-root-v1"
 )
+PERMANENT_INDUCED_SEPARATED_OPERATIONAL_STATE_EQUATION_ID = (
+    "route2-separated-permanent-induced-boundary-nativefield-root-v1"
+)
 MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID = (
     "route2-mace-mdp-permanent-macepolar-induced-pcmsolver-field-root-v1"
 )
@@ -65,6 +68,24 @@ _STATE_ENTRIES = (
             "A c = q_tot and A T = 0",
             "unique smooth admitted root",
             "no operational assertion that L_R equals B_R adjoint",
+        ),
+    ),
+    StateEquationDefinition(
+        state_equation_id=(
+            PERMANENT_INDUCED_SEPARATED_OPERATIONAL_STATE_EQUATION_ID
+        ),
+        exact_formula=(
+            "p=M_perm(R); d=c_ref+Ty; A_R sigma="
+            "B_point,R p+B_GTO,R d; u=L_R sigma; "
+            "r(R,y)=y-T_plus Pi_0[M_resp(R,u)-M_resp(R,0)]=0"
+        ),
+        coordinates="dimensionless reduced zero-charge induced-source coordinates y",
+        constraints=(
+            "permanent point and induced Gaussian source maps remain distinct",
+            "induced source has exactly zero total charge",
+            "source, continuum, and native field are distinct spaces",
+            "unique smooth admitted root",
+            "no assertion that the operational root is stationary for its ledger",
         ),
     ),
     StateEquationDefinition(
@@ -131,6 +152,7 @@ __all__ = [
     "MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID",
     "MACE_MDP_POLAR_HYBRID_STATE_EQUATION_ID",
     "OPERATIONAL_STATE_EQUATION_ID",
+    "PERMANENT_INDUCED_SEPARATED_OPERATIONAL_STATE_EQUATION_ID",
     "SEPARATED_OPERATIONAL_STATE_EQUATION_ID",
     "STATE_REGISTRY",
     "VARIATIONAL_STATE_EQUATION_ID",

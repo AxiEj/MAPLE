@@ -1,0 +1,444 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-ef-revalidation-v2",
+  "schema_version": "route2-exposure-aware-retrospective-ef-revalidation-protocol-v2",
+  "status": "prepared-exposure-aware-retrospective-revalidation-awaiting-clean-commit-content-addressed-freeze-before-h1-seal",
+  "protocol_classification": {
+    "label": "route2-h1-exposure-aware-ef-revalidation-v2",
+    "is_blind_preregistration": false,
+    "is_retrospective_revalidation": true,
+    "freeze_boundary": "This tracked draft is prepared but not frozen. Only a future clean committed protocol byte SHA256 bound by the computation seal freezes the protocol and creates the H1 identity; no cold replay, aggregate result, or admission overlay may precede that seal.",
+    "purpose": "Prepare retrospective revalidation for the pre-H1 development checkout after acknowledged exposure to the H0/4cf8db40 outcomes; historical passes are disclosed evidence, not transferable admission.",
+    "is_frozen": false,
+    "h1_identity_exists": false
+  },
+  "prospective_h1_identity_contract": {
+    "profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-local-electrostatic-ef-v2",
+    "scalar_id": "route2-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-local-electrostatic-ef-v2",
+    "state_id": "route2-mace-mdp-permanent-macepolar-induced-harmonic-local-field-root-v2",
+    "claim_boundary_id": "maple-route2-harmonic-electrostatic-ef-only-v2",
+    "lifecycle": "Reserved contract values only; these fields do not constitute an H1 identity until a clean committed protocol byte SHA256 is bound by a valid computation seal."
+  },
+  "target_capabilities": {
+    "E": true,
+    "F": true,
+    "H": false,
+    "V": false,
+    "M": false
+  },
+  "parent_bindings": {
+    "v1_preregistration": {
+      "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-prereg-v1",
+      "relative_path": "docs/route2/preregistrations/mace-mdp-polar-hybrid-harmonic-force-admission-v1.json",
+      "sha256": "c9ec2660006efd9449c7bbdb11daa23018c08dee4bcb30c2fb6452d788fe4120"
+    },
+    "v1_parent_panel": {
+      "artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+      "relative_path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+      "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+      "record_count": 4,
+      "record_order": [
+        "mobley_3053621",
+        "mobley_3867265",
+        "mobley_3034976",
+        "mobley_352111"
+      ]
+    }
+  },
+  "exposure_inventory": {
+    "disclosure": "The protocol authors know that H0 at git head 4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c produced two passing cold-process measurements with the same measurement SHA256. This makes the planned replay an exposure-aware retrospective revalidation, never a blind preregistration.",
+    "historical_execution_git_head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+    "historical_execution_git_tree": "ac96348b6e7f937f1028aa39f48b89a7f76c30a9",
+    "known_pass_count": 2,
+    "known_measurement_sha256": "a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30",
+    "historical_replicates": [
+      {
+        "label": "a",
+        "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-v1",
+        "relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-4cf8db40.json",
+        "sha256": "1a248e06218c0cb968e87992a7444923a246064c3fa7fa7362c00cf394587589",
+        "measurement_sha256": "a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30",
+        "observed_outcome": "candidate-energy-force-gate-passed"
+      },
+      {
+        "label": "b",
+        "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-v1",
+        "relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-4cf8db40.json",
+        "sha256": "3c393008037697526f06731e3de0e983f740e5cc3f0a02b5ad2dc54347c7e415",
+        "measurement_sha256": "a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30",
+        "observed_outcome": "candidate-energy-force-gate-passed"
+      }
+    ],
+    "historical_aggregate": {
+      "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1",
+      "relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicated-4cf8db40.json",
+      "sha256": "33b5eae63396219dea2e8c062352dbc1eb05eb52329ee6a6b854deaf756eea77",
+      "status": "admitted-experimental-electrostatic-energy-and-numerical-force"
+    },
+    "transfer_rule": "H0 results cannot activate or validate the pre-H1 development checkout because its implementation lineage drifted; a future H1 identity requires a clean committed protocol byte SHA256, a new computation seal, and two new cold-process records.",
+    "cavity_identity_disclosure": {
+      "historical_v1_benzene_input": "legacy frozen projection-result cavity radii, retained as H0 evidence only",
+      "prospective_h1_benzene_input": "canonical smd-water-coulomb-radii-v1 values computed from the sealed benzene symbols",
+      "projection_result_role_in_h1": "captured provenance and comparison asset only; its rounded radii are not the H1 continuum input",
+      "scientific_change": "H1 uses the declared canonical cavity provider identity rather than silently labelling legacy rounded projection radii as canonical"
+    }
+  },
+  "historical_lineage_audit": {
+    "schema_version": "route2-source-hash-lineage-audit-v1",
+    "source_evidence_relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-4cf8db40.json",
+    "source_evidence_sha256": "1a248e06218c0cb968e87992a7444923a246064c3fa7fa7362c00cf394587589",
+    "report_sha256": "ebf1a8db2fc1e77ba658f5f3b5deb022be4de047cea94e4f9169a4dd781662f8",
+    "counts": {
+      "total": 131,
+      "matching": 109,
+      "drifted": 22,
+      "missing": 0
+    },
+    "drifted_paths": [
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py",
+      "maple/function/calculator/extra_correction/implicit/route2_derivative.py",
+      "maple/function/calculator/extra_correction/implicit/route2_electronic_model.py",
+      "maple/function/calculator/extra_correction/implicit/route2_engine.py",
+      "maple/solvation/api/__init__.py",
+      "maple/solvation/api/profiles.py",
+      "maple/solvation/api/scalar_registry.py",
+      "maple/solvation/api/state_registry.py",
+      "maple/solvation/continuum/__init__.py",
+      "maple/solvation/continuum/functional.py",
+      "maple/solvation/continuum/harmonic_exposure.py",
+      "maple/solvation/continuum/harmonic_torch_functional.py",
+      "maple/solvation/continuum/harmonic_torch_primitives.py",
+      "maple/solvation/coupling/separated_operators.py",
+      "maple/solvation/coupling/state_equation.py",
+      "maple/solvation/derivatives/__init__.py",
+      "maple/solvation/derivatives/scalar_finite_difference.py",
+      "maple/solvation/experimental/__init__.py",
+      "maple/solvation/experimental/mace_mdp_polar_harmonic.py",
+      "maple/solvation/models/mace_mdp.py",
+      "maple/solvation/models/mace_mdp_polar_hybrid.py",
+      "maple/solvation/models/mace_polar_separated.py"
+    ],
+    "conclusion": "The H0 source ledger is not identical to the pre-H1 development checkout: 22 of 131 bound paths drifted and no path is missing. Historical admission is retained as exposed evidence only and cannot be transferred.",
+    "report_relative_path": "docs/route2/evidence/mace-mdp-polar-hybrid-pre-h1-lineage-observation-20260823.json",
+    "raw_file_sha256": "c50f41353edec90a73def498c3b3c36940a9ff2094a3afad16577666a6385032",
+    "repository_snapshot": {
+      "head": "4cf8db400de6081d34db0e0426d0c2fc5c8f3d5c",
+      "tree": "ac96348b6e7f937f1028aa39f48b89a7f76c30a9",
+      "dirty": true,
+      "status_porcelain": "M docs/implicit-solvation/benchmarks/route2-matched-qm-pcmsolver-four-prereg-v3.json\n M docs/route2/CAPABILITY_MATRIX.md\n M docs/route2/MIGRATION.md\n M docs/route2/SCALAR_REGISTRY.md\n M docs/route2/USER_GUIDE.md\n M maple/function/calculator/extra_correction/implicit/continuum_response.py\n M maple/function/calculator/extra_correction/implicit/route2_derivative.py\n M maple/function/calculator/extra_correction/implicit/route2_electronic_model.py\n M maple/function/calculator/extra_correction/implicit/route2_engine.py\n M maple/solvation/api/__init__.py\n M maple/solvation/api/profiles.py\n M maple/solvation/api/scalar_registry.py\n M maple/solvation/api/state_registry.py\n M maple/solvation/continuum/__init__.py\n M maple/solvation/continuum/functional.py\n M maple/solvation/continuum/harmonic_exposure.py\n M maple/solvation/continuum/harmonic_torch_functional.py\n M maple/solvation/continuum/harmonic_torch_primitives.py\n M maple/solvation/continuum/radial_gto_ddx.py\n M maple/solvation/coupling/adjoint.py\n M maple/solvation/coupling/fixed_point.py\n M maple/solvation/coupling/linearization.py\n M maple/solvation/coupling/separated_ledgers.py\n M maple/solvation/coupling/separated_operators.py\n M maple/solvation/coupling/separated_state.py\n M maple/solvation/coupling/state_equation.py\n M maple/solvation/derivatives/__init__.py\n M maple/solvation/derivatives/scalar_finite_difference.py\n M maple/solvation/experimental/__init__.py\n M maple/solvation/experimental/mace_mdp_polar_harmonic.py\n M maple/solvation/models/mace_mdp.py\n M maple/solvation/models/mace_mdp_polar_hybrid.py\n M maple/solvation/models/mace_polar_separated.py\n M tests/route2_vnext/test_api_contracts.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_energy.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_harmonic.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_harmonic_admission.py\n M tests/route2_vnext/test_radial_gto_ddx.py\n M tests/route2_vnext/test_scalar_finite_difference_force.py\n M tests/route2_vnext/test_state_equation.py\n M tests/solvation/test_route2_smd.py\n?? GOAL.md\n?? docs/implicit-solvation/benchmarks/route2-mace-mdp-polar-harmonic-ddpcm-general-source-four-prereg-v1.json\n?? docs/implicit-solvation/benchmarks/route2-mnsol10-harmonic-ddcosmo-preregistration-v1.json\n?? docs/implicit-solvation/benchmarks/route2-mnsol10-harmonic-ddpcm-preregistration-v1.json\n?? docs/route2/HYBRID_HARMONIC_EXPERIMENTAL.md\n?? docs/route2/PURE_MACE_POLAR_FROZEN_DDX.md\n?? docs/route2/SMOOTH_PARTITION_HARMONIC_DDCOSMO.md\n?? docs/route2/SMOOTH_PARTITION_HARMONIC_DDPCM.md\n?? docs/route2/evidence/mace-mdp-polar-ddx-external-mep-four-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-ddx-water-analytic-force-canary-v1.json\n?? docs/route2/evidence/mace-mdp-polar-ddx-water-force-canary-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-harmonic-ddpcm-general-source-four-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-harmonic-ddpcm-general-source-water-force-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-a-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicate-b-4cf8db40.json\n?? docs/route2/evidence/mace-mdp-polar-hybrid-harmonic-force-admission-replicated-4cf8db40.json\n?? docs/route2/evidence/mace-polar-frozen-ddx-water-derivative-canary-v1.json\n?? docs/route2/evidence/mace-polar-point-l1-harmonic-ddcosmo-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/mace-polar-point-l1-harmonic-ddpcm-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/mace-polar-point-l1-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/mace-polar-radial-gto-mnsol10-accuracy-v1.json\n?? docs/route2/evidence/operational-harmonic-ddpcm-water-hvp-canary-4cf8db40.json\n?? maple/solvation/continuum/harmonic_ddcosmo_functional.py\n?? maple/solvation/continuum/harmonic_ddpcm_functional.py\n?? maple/solvation/continuum/harmonic_ddpcm_gaussian.py\n?? maple/solvation/continuum/harmonic_ddpcm_hybrid.py\n?? maple/solvation/continuum/harmonic_ddpcm_primitives.py\n?? maple/solvation/continuum/harmonic_ddpcm_separated.py\n?? maple/solvation/continuum/harmonic_schwarz_primitives.py\n?? maple/solvation/continuum/mace_polar_point_ddx.py\n?? maple/solvation/continuum/separated_source_ddx.py\n?? maple/solvation/coupling/operational_pes.py\n?? maple/solvation/coupling/permanent_induced_ledgers.py\n?? maple/solvation/coupling/permanent_induced_state.py\n?? maple/solvation/coupling/separated_fixed_point.py\n?? maple/solvation/derivatives/molecular_virial.py\n?? maple/solvation/experimental/harmonic_ddpcm_operational.py\n?? maple/solvation/experimental/mace_mdp_polar_ddx.py\n?? maple/solvation/experimental/mace_polar_frozen_ddx.py\n?? maple/solvation/release/admission.py\n?? maple/solvation/solvent_terms.py\n?? tests/route2_vnext/test_audit_source_hash_lineage.py\n?? tests/route2_vnext/test_harmonic_ddcosmo_accuracy_artifact.py\n?? tests/route2_vnext/test_harmonic_ddcosmo_functional.py\n?? tests/route2_vnext/test_harmonic_ddpcm_accuracy_artifact.py\n?? tests/route2_vnext/test_harmonic_ddpcm_functional.py\n?? tests/route2_vnext/test_harmonic_ddpcm_gaussian.py\n?? tests/route2_vnext/test_harmonic_ddpcm_hybrid.py\n?? tests/route2_vnext/test_harmonic_ddpcm_separated.py\n?? tests/route2_vnext/test_harmonic_point_torch_functional.py\n?? tests/route2_vnext/test_mace_mdp_polar_hybrid_ddx.py\n?? tests/route2_vnext/test_mace_polar_frozen_ddx.py\n?? tests/route2_vnext/test_mace_polar_frozen_ddx_real.py\n?? tests/route2_vnext/test_mace_polar_point_ddx.py\n?? tests/route2_vnext/test_operational_implicit_pes.py\n?? tests/route2_vnext/test_release_admission.py\n?? tests/route2_vnext/test_separated_source_ddx.py\n?? tests/route2_vnext/test_solvent_terms.py\n?? tools/route2_release/audit_source_hash_lineage.py\n?? tools/route2_release/run_mace_mdp_polar_ddx_water_analytic_force_canary.py\n?? tools/route2_release/run_mace_mdp_polar_harmonic_ddpcm_four.py\n?? tools/route2_release/run_mace_mdp_polar_harmonic_ddpcm_water_canary.py\n?? tools/route2_release/run_mace_polar_frozen_ddx_water_canary.py\n?? tools/route2_release/run_mace_polar_harmonic_ddpcm_mutual_scf_water.py\n?? tools/route2_release/run_mace_polar_radial_gto_mnsol10.py\n?? tools/route2_release/run_operational_harmonic_ddpcm_hvp_water_canary.py"
+    }
+  },
+  "inherited_v1_contract": {
+    "target_capabilities": {
+      "E": true,
+      "F": true,
+      "H": false,
+      "V": false,
+      "M": false
+    },
+    "exact_scalar": "E_exp(R)=E_vac^MACEPOLAR(R)-0.5*b(u*)^T*A_harm(R)^-1*b(u*); b=B_point_harm*c_MDP+B_GTO1p5_harm*(M_POLAR(R,u*)-M_POLAR(R,0)); u*=-S8_harm(R)^T*A_harm(R)^-1*b(u*)",
+    "included_components": [
+      "macepolar_zero_field_vacuum_energy",
+      "hybrid_smooth_harmonic_half_coupling_electrostatic"
+    ],
+    "excluded_components": [
+      "macepolar_field_conditioned_raw_energy_difference",
+      "mace_mdp_polarizability_response",
+      "nonpolar_smd_cds",
+      "thermal_and_standard_state_terms",
+      "complete_solvation_free_energy_claim",
+      "analytic_coordinate_derivative",
+      "strict_common_functional_claim"
+    ],
+    "predecessor_failure": {
+      "profile_id": "route2-profile-experimental-macemdppoint-macepolarinduced-pcmsolver-electrostatic-v1",
+      "mechanism": "PCMSolver GEPOL active surface cardinality changed under 0.00025-A displacements",
+      "benzene_atom0_x_richardson_local_error_ev_per_angstrom": 0.023995674686,
+      "frozen_threshold_ev_per_angstrom": 0.0002,
+      "decision": "predecessor remains disabled; its tolerance is not relaxed"
+    },
+    "prior_observation_boundary": {
+      "scope": "One development-only benzene atom-0/x stencil was run before this full admission contract was frozen; no water full-Cartesian, translation-force, rotation-force, or closed-loop result had been observed.",
+      "benzene_atom0_x_richardson_local_error_ev_per_angstrom": 1.7219766353451793e-07,
+      "benzene_atom0_x_independent_h4_difference_ev_per_angstrom": 3.941143707567041e-08,
+      "threshold_policy": "The 2e-4 eV/A local-force threshold is inherited unchanged from the failed predecessor preregistration; the full panel and symmetry/loop thresholds were frozen before their execution."
+    },
+    "parent_panel": {
+      "artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+      "relative_path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+      "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+      "record_count": 4
+    },
+    "frozen_runtime_contract": {
+      "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+      "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "mace_polar_long_range_evaluator": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+      "permanent_source_kernel": "invariant exterior point multipoles projected to complete harmonic coefficients",
+      "induced_source_kernel": "normalized sigma=1.5-A Gaussian multipoles projected to complete harmonic coefficients",
+      "receiver_kernel": "minus exact transpose of the normalized sigma=1.5/3.0-A Gaussian harmonic source operator",
+      "continuum": "smooth weighted harmonic Galerkin A=E.T*K*E with fixed coefficient topology",
+      "transition_width_angstrom2": 0.18,
+      "surface_lmax": 1,
+      "exposure_lmax": 2,
+      "exposure_radial_quadrature_order": 32,
+      "source_radial_quadrature_order": 32,
+      "green_radial_quadrature_order": 32,
+      "root_method": "undamped Picard",
+      "root_tolerance_ev": 1e-10,
+      "maximum_root_iterations": 40,
+      "second_start": "twice the permanent-source reaction field",
+      "total_charge_tolerance_e": 1e-08,
+      "multi_start_field_tolerance_ev": 2e-09,
+      "multi_start_energy_tolerance_ev": 1e-10,
+      "force_derivative": "fourth-order central Richardson derivative of the complete re-solved scalar",
+      "force_coarse_step_angstrom": 0.0005,
+      "force_fine_step_angstrom": 0.00025,
+      "independent_force_step_angstrom": 0.000125,
+      "force_maximum_local_error_estimate_ev_per_angstrom": 0.0002,
+      "force_topology_policy": "identical fixed coefficient topology hash at center and every stencil point",
+      "force_displacement_policy": "rebuild E,K,point/Gaussian source maps,A,b and both-start root at every point"
+    },
+    "force_panel": {
+      "gepol_regression_compound_id": "mobley_3053621",
+      "gepol_regression_cartesian_dof": [
+        0,
+        0
+      ],
+      "water_geometry_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239,
+          0.9266,
+          0.0
+        ]
+      ],
+      "water_full_cartesian_force": true,
+      "independent_direction_seed": 20260816,
+      "maximum_independent_directional_error_ev_per_angstrom": 0.0005,
+      "maximum_benzene_h4_difference_ev_per_angstrom": 0.0002,
+      "translation_angstrom": [
+        4.2,
+        -3.1,
+        1.7
+      ],
+      "maximum_translation_energy_error_ev": 1e-07,
+      "maximum_translation_force_relative_error": 2e-05,
+      "maximum_translation_force_absolute_error_ev_per_angstrom": 5e-05,
+      "maximum_net_force_norm_ev_per_angstrom": 0.001,
+      "rotation_seed": 20260817,
+      "maximum_rotation_energy_error_ev": 1e-07,
+      "maximum_rotation_force_relative_error": 2e-05,
+      "maximum_rotation_force_absolute_error_ev_per_angstrom": 5e-05,
+      "closed_loop_cartesian_dofs": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "closed_loop_half_width_angstrom": 0.001,
+      "maximum_closed_loop_work_abs_ev": 2e-07
+    },
+    "admission_gates": {
+      "clean_content_addressed_execution": true,
+      "two_independent_processes_same_measurement_sha256": true,
+      "benzene_predecessor_failure_coordinate_passes_h_h2_h4": true,
+      "water_full_cartesian_h_h2_force_is_finite": true,
+      "all_local_richardson_error_estimates_below_2e-4_ev_per_angstrom": true,
+      "independent_h4_directional_derivative_below_5e-4_ev_per_angstrom": true,
+      "translation_energy_and_net_force_gates_pass": true,
+      "rotation_energy_and_force_covariance_gates_pass": true,
+      "closed_loop_work_plus_numerical_error_bound_gate_passes": true,
+      "all_roots_converge_from_both_starts": true,
+      "all_final_residuals_and_total_charge_errors_pass": true,
+      "accuracy_threshold": null
+    },
+    "decision_rule": {
+      "pass": "Attach the two replicated evidence artifacts and admit only experimental electrostatic E plus runtime-error-bounded numerical scalar-gradient F for this exact profile. Keep H/V/M false and retain all per-call root/topology/Richardson guards.",
+      "fail": "Keep E/F/H/V/M false, retain the run as negative evidence, and do not relax the frozen force/root/symmetry/loop thresholds."
+    },
+    "claim_boundary": "A replicated pass addresses the GEPOL active-point force blocker and admits one experimental electrostatic scalar plus its numerical scalar-gradient force. It does not admit chemical accuracy, complete solvation free energy, analytic force, Hessian/frequency, MD, or Tier V.",
+    "fit_calibration_or_case_selection": false
+  },
+  "prospective_h1_scientific_settings": {
+    "continuum": {
+      "profile_id": "smooth-weighted-harmonic-galerkin-cpcm-candidate-v1",
+      "transition_width_angstrom2": 0.18,
+      "surface_lmax": 1,
+      "exposure_lmax": 2,
+      "exposure_radial_quadrature_order": 32,
+      "source_radial_quadrature_order": 32,
+      "green_radial_quadrature_order": 32
+    },
+    "cavity": {
+      "profile_id": "smooth-weighted-overlap-harmonic-cavity-candidate-v1",
+      "radii_provider_id": "smd-water-coulomb-radii-v1"
+    },
+    "source_receiver": {
+      "permanent_source_kernel": "invariant exterior point multipoles projected to complete harmonic coefficients",
+      "induced_source_kernel": "normalized sigma=1.5-A Gaussian multipoles projected to complete harmonic coefficients",
+      "receiver_kernel": "minus exact transpose of the normalized sigma=1.5/3.0-A Gaussian harmonic source operator",
+      "long_range_evaluator_id": "graph-longrange-analytic-gaussian-multipole-realspace-v1",
+      "source_space_id": "maple.route2.atomic-l1-source-space.v1",
+      "source_space_contract_sha256": "e1a5668e2fe296b92885c0d42cb8298dcd40af37cfa907ac99a40f3c638cdfcd",
+      "receiver_space_id": "maple.route2.mace-polar-native-radial-field-space.v1",
+      "receiver_space_contract_sha256": "050844a5cbcacfda5ad8b49b70541b5ea73337954631633ae83e63d61f9bbba0"
+    },
+    "energy_ledger": {
+      "exact_scalar": "E_exp(R)=E_vac^MACEPOLAR(R)-0.5*b(u*)^T*A_harm(R)^-1*b(u*); b=B_point_harm*c_MDP+B_GTO1p5_harm*(M_POLAR(R,u*)-M_POLAR(R,0)); u*=-S8_harm(R)^T*A_harm(R)^-1*b(u*)",
+      "included_components": [
+        "macepolar_zero_field_vacuum_energy",
+        "hybrid_smooth_harmonic_half_coupling_electrostatic"
+      ],
+      "excluded_components": [
+        "macepolar_field_conditioned_raw_energy_difference",
+        "mace_mdp_polarizability_response",
+        "nonpolar_smd_cds",
+        "thermal_and_standard_state_terms",
+        "complete_solvation_free_energy_claim",
+        "analytic_coordinate_derivative",
+        "strict_common_functional_claim"
+      ]
+    },
+    "root_algorithm": {
+      "method": "undamped Picard",
+      "tolerance_ev": 1e-10,
+      "maximum_iterations": 40,
+      "second_start": "twice the permanent-source reaction field",
+      "total_charge_tolerance_e": 1e-08,
+      "multi_start_field_tolerance_ev": 2e-09,
+      "multi_start_energy_tolerance_ev": 1e-10,
+      "evidence_scope": "endpoint-defined-gates-only; solver-trajectory-reconstruction-not-claimed"
+    },
+    "force_stencil": {
+      "derivative": "fourth-order central Richardson derivative of the complete re-solved scalar",
+      "coarse_step_angstrom": 0.0005,
+      "fine_step_angstrom": 0.00025,
+      "independent_step_angstrom": 0.000125,
+      "maximum_local_error_ev_per_angstrom": 0.0002,
+      "topology_policy": "identical fixed coefficient topology hash at center and every stencil point",
+      "displacement_policy": "rebuild E,K,point/Gaussian source maps,A,b and both-start root at every point"
+    }
+  },
+  "runtime_guards": [
+    "cublas-workspace-config-fixed",
+    "cuda-device-required",
+    "deterministic-algorithms-required",
+    "deterministic-debug-mode-required",
+    "float64-required",
+    "independent-cold-processes-required",
+    "pythonhashseed-explicit"
+  ],
+  "domain_guards": [
+    "local-force-panel-domain",
+    "neutral-singlet",
+    "per-call-root-replay-charge-topology-richardson",
+    "supported-elements-intersection"
+  ],
+  "claim_boundary": {
+    "id": "maple-route2-harmonic-electrostatic-ef-only-v2",
+    "candidate_admission": "Only the exact experimental electrostatic scalar E and its runtime-error-bounded fourth-order Richardson numerical scalar-gradient F may become true after the complete v2 sequence passes.",
+    "protocol_does_not_admit": "Preparing this protocol admits no capability. Historical H0 passes admit no capability for the pre-H1 development checkout. Only a future clean committed protocol SHA256 bound by a valid computation seal, two sealed cold runs, mechanical aggregation, and a valid data-only overlay may activate E/F for the resulting H1 identity.",
+    "non_admissions": [
+      "chemical_accuracy",
+      "complete_solvation",
+      "named_solvent_thermodynamics",
+      "analytic_force",
+      "broad_distorted_pes",
+      "hessian_hvp_workflows",
+      "opt_freq_ts_irc",
+      "md_nve",
+      "tier_v"
+    ]
+  },
+  "frozen_execution_sequence": [
+    "protocol",
+    "computation_seal",
+    "cold_replicate_a",
+    "cold_replicate_b",
+    "mechanical_aggregator",
+    "data_only_admission_overlay"
+  ],
+  "sequence_invariants": {
+    "protocol_precedes_computation_seal": true,
+    "computation_seal_precedes_both_cold_runs": true,
+    "cold_runs_are_independent_processes": true,
+    "mechanical_aggregator_has_no_discretionary_thresholds": true,
+    "overlay_is_data_only_and_cannot_change_science": true,
+    "failure_retains_negative_evidence": true,
+    "failure_capabilities": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "V": false,
+      "M": false
+    }
+  },
+  "post_freeze_prohibitions": {
+    "fit": false,
+    "calibration": false,
+    "case_selection": false,
+    "threshold_changes": false,
+    "panel_changes": false,
+    "geometry_changes": false,
+    "scientific_setting_changes": false,
+    "decision_rule_changes": false,
+    "post_run_protocol_changes": false,
+    "policy": "No fit, calibration, case selection, threshold relaxation, panel or geometry substitution, scientific-setting change, decision-rule change, or other post-run protocol change is allowed. Any such change creates a new protocol identity and requires a new seal and fresh cold runs."
+  },
+  "execution_state": {
+    "computation_seal": null,
+    "cold_replicate_a": null,
+    "cold_replicate_b": null,
+    "aggregate_result": null,
+    "admission_overlay": null,
+    "capabilities_currently_admitted_by_this_protocol": {
+      "E": false,
+      "F": false,
+      "H": false,
+      "V": false,
+      "M": false
+    }
+  },
+  "verified_pro_schema_amendment": {
+    "amendment_id": "route2-rich-v2-source-space-and-h0-archive-amendment-20260823",
+    "reason": "Historical H0 rich leaves are non-identifiable; verified Pro approved an archive-only v1 compatibility gate and required machine-checkable rich-v2 representation contracts before H1 execution.",
+    "verified_pro_audit": {
+      "relative_path": "docs/route2/evidence/rich-v2-source-space-pro-q3-audit.json",
+      "raw_file_sha256": "024e8ab3617f34f48e35fc1b88e2257ee741fac49ba0b84d9cc62f99f298d436",
+      "audit_sha256": "d9e1023e5c098456107a74cb665cfac893c6314787d197ba9bb994e80015f229",
+      "verdict": "APPROVE",
+      "terminal_marker": "MAPLE RICH V2 SOURCE SPACE AUDIT COMPLETE"
+    },
+    "required_contract_refinements": [
+      "bind-source-and-receiver-space-convention-digests",
+      "type-audit-coefficient-sum-as-nonoperational-and-forbid-dispatch",
+      "kernel-tag-permanent-point-and-induced-gto-branches-separately",
+      "retain-polar-final-and-zero-reference-arrays-and-derive-induced",
+      "limit-replay-claim-to-endpoint-defined-gates",
+      "bind-state-specific-vacuum-energy-and-add-exactly-once",
+      "separate-state-content-from-solve-occurrence-identity",
+      "use-acyclic-hash-dag-and-recompute-prepared-inputs-from-captured-objects"
+    ],
+    "historical_h0_archive_policy": {
+      "real_h0_v1_bytes_and_digest": "pin-exactly-as-observed-archive-evidence",
+      "historical_rich_preimage": "non-identifiable-do-not-fabricate",
+      "synthetic_rich_golden": "adapter-compatibility-only",
+      "archive_gate": "independent-of-h1-admission",
+      "admission_transfer_to_h1": false
+    },
+    "h1_admission_requirement": "two-independent-clean-sealed-replays-plus-mechanical-aggregation-and-data-only-overlay",
+    "capability_effect_before_h1_overlay": "none"
+  }
+}

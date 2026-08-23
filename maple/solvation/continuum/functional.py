@@ -73,6 +73,8 @@ class ContinuumEnergyFunctional:
             "source_vjp",
             "mixed_coordinate_source_vjp",
             "coordinate_partial",
+            "coordinate_hvp",
+            "coordinate_hessian",
         }
     )
 
@@ -457,6 +459,82 @@ class ContinuumEnergyFunctional:
         if result.shape != tuple(positions.shape) or not np.all(np.isfinite(result)):
             raise RuntimeError("continuum coordinate partial is invalid.")
         return result
+
+    def coordinate_hvp(
+        self, geometry: object, source: object, coordinate_direction: object
+    ) -> np.ndarray:
+        """Return a fixed-source coordinate Hessian-vector product.
+
+        The action is generated from the same sealed scalar graph; subclasses
+        cannot provide an independent second-derivative implementation.
+        """
+
+        torch = _torch()
+        values = _source_values(self.source_space, source)
+        positions = self._positions_tensor(
+            geometry, atom_count=values.shape[0], requires_grad=False
+        )
+        source_tensor = self._source_tensor(values, requires_grad=False)
+        direction = np.asarray(coordinate_direction, dtype=float)
+        if direction.shape != tuple(positions.shape) or not np.all(
+            np.isfinite(direction)
+        ):
+            raise ValueError(
+                "coordinate_direction must be finite with shape "
+                f"{tuple(positions.shape)}."
+            )
+        direction_tensor = torch.as_tensor(
+            direction, dtype=positions.dtype, device=positions.device
+        )
+
+        def scalar(candidate):
+            return self.energy_torch(candidate, source_tensor)
+
+        _, action = torch.autograd.functional.hvp(
+            scalar,
+            positions,
+            direction_tensor,
+            create_graph=False,
+            strict=False,
+        )
+        result = np.asarray(action.detach().cpu(), dtype=float).copy()
+        if result.shape != direction.shape or not np.all(np.isfinite(result)):
+            raise RuntimeError("continuum coordinate HVP is invalid.")
+        return result
+
+    def coordinate_hessian(self, geometry: object, source: object) -> np.ndarray:
+        """Return the dense fixed-source coordinate Hessian for small systems."""
+
+        torch = _torch()
+        values = _source_values(self.source_space, source)
+        positions = self._positions_tensor(
+            geometry, atom_count=values.shape[0], requires_grad=False
+        )
+        source_tensor = self._source_tensor(values, requires_grad=False)
+
+        def scalar(candidate):
+            return self.energy_torch(candidate, source_tensor)
+
+        tensor = torch.autograd.functional.hessian(
+            scalar,
+            positions,
+            create_graph=False,
+            strict=False,
+            vectorize=True,
+        )
+        atom_count = values.shape[0]
+        result = np.asarray(tensor.detach().cpu(), dtype=float).reshape(
+            3 * atom_count, 3 * atom_count
+        )
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError("continuum coordinate Hessian is invalid.")
+        asymmetry = float(np.max(np.abs(result - result.T)))
+        tolerance = 2.0e-10 * max(1.0, float(np.max(np.abs(result))))
+        if asymmetry > tolerance:
+            raise RuntimeError(
+                "same-scalar continuum coordinate Hessian lost symmetry."
+            )
+        return np.array(result, copy=True)
 
 
 __all__ = ["ContinuumEnergyFunctional"]

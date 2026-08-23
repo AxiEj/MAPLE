@@ -48,6 +48,9 @@ _ATOMIC_FIELD_VOLT_PER_ANGSTROM = (
 POLARIZABILITY_BOHR3_PER_EANGSTROM2_PER_VOLT = (
     _ATOMIC_FIELD_VOLT_PER_ANGSTROM / _BOHR_RADIUS_ANGSTROM
 )
+from .checkpoint_bytes import (
+    sealed_checkpoint_descriptor as _sealed_checkpoint_descriptor,
+)
 
 
 def _hash(payload: object) -> str:
@@ -473,10 +476,85 @@ class MACE_MDPMomentAdapter:
             public_polarizability_eangstrom2_per_volt=public_alpha,
         )
 
+    def source_position_vjp(
+        self, atoms: object, source_cotangent: object
+    ) -> np.ndarray:
+        """Return ``d<c(R),bar_c>/dR`` from the native MACE-MDP graph.
+
+        The source coordinates use the repository's raw real-spherical order
+        ``[q,y,z,x]``.  Positions remain in Angstrom, so a cotangent carrying
+        the dual source units produces an ``(N,3)`` coordinate gradient per
+        Angstrom.  No finite differences or reconstructed receiver model are
+        used here.
+        """
+
+        charge, multiplicity = model_charge_and_multiplicity(atoms)
+        if (charge, multiplicity) != (0, 1):
+            raise ValueError(
+                "Frozen MACE-MDP candidate supports neutral singlets only."
+            )
+        positions = np.asarray(getattr(atoms, "positions"), dtype=float)
+        cotangent = np.asarray(source_cotangent, dtype=float)
+        if (
+            positions.ndim != 2
+            or positions.shape[1] != 3
+            or cotangent.shape != (len(positions), 4)
+            or not np.all(np.isfinite(positions))
+            or not np.all(np.isfinite(cotangent))
+        ):
+            raise ValueError(
+                "MACE-MDP source cotangent must be finite with shape (N,4)."
+            )
+
+        torch = __import__("torch")
+        calculator = self._calculator
+        batch = calculator._atoms_to_batch(atoms)
+        data = calculator._clone_batch(batch).to_dict()
+        position_tensor = data["positions"].detach().clone().requires_grad_(True)
+        data["positions"] = position_tensor
+        output = calculator.models[0](
+            data,
+            compute_dielectric_derivatives=False,
+            training=False,
+        )
+        charges = output.get("charges")
+        dipoles = output.get("atomic_dipoles")
+        if (
+            charges is None
+            or dipoles is None
+            or tuple(charges.shape) != (len(positions),)
+            or tuple(dipoles.shape) != (len(positions), 3)
+        ):
+            raise RuntimeError(
+                "MACE-MDP did not return differentiable atomic q/p values."
+            )
+        # Cartesian [x,y,z] -> raw real-spherical [y,z,x].
+        raw_source = torch.cat((charges[:, None], dipoles[:, (1, 2, 0)]), dim=1)
+        cotangent_tensor = torch.as_tensor(
+            cotangent,
+            dtype=raw_source.dtype,
+            device=raw_source.device,
+        )
+        contraction = torch.sum(raw_source * cotangent_tensor)
+        (gradient,) = torch.autograd.grad(
+            contraction,
+            position_tensor,
+            create_graph=False,
+            retain_graph=False,
+            allow_unused=False,
+        )
+        result = np.asarray(gradient.detach().cpu().numpy(), dtype=float)
+        if result.shape != positions.shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-MDP source position VJP must be finite with shape (N,3)."
+            )
+        return result.copy()
+
 
 def build_mace_mdp_moment_adapter(
     *,
-    checkpoint_path: str | Path,
+    checkpoint_path: str | Path | None = None,
+    checkpoint_bytes: bytes | None = None,
     device: str = "cpu",
     expected_checkpoint_sha256: str = MACE_MDP_EXPECTED_CHECKPOINT_SHA256,
 ) -> MACE_MDPMomentAdapter:
@@ -484,8 +562,16 @@ def build_mace_mdp_moment_adapter(
 
     if device != "cpu":
         raise ValueError("The frozen MACE-MDP coefficient profile is CPU/float64 only.")
-    checkpoint = Path(checkpoint_path).expanduser().resolve(strict=True)
-    checkpoint_sha = _sha256_file(checkpoint)
+    if checkpoint_bytes is None:
+        if checkpoint_path is None:
+            raise ValueError("checkpoint_path or checkpoint_bytes is required.")
+        checkpoint = Path(checkpoint_path).expanduser().resolve(strict=True)
+        checkpoint_sha = _sha256_file(checkpoint)
+    else:
+        if type(checkpoint_bytes) is not bytes or not checkpoint_bytes:
+            raise TypeError("checkpoint_bytes must be nonempty exact bytes.")
+        checkpoint = None
+        checkpoint_sha = hashlib.sha256(checkpoint_bytes).hexdigest()
     if checkpoint_sha != _digest(
         expected_checkpoint_sha256, name="expected_checkpoint_sha256"
     ):
@@ -494,12 +580,16 @@ def build_mace_mdp_moment_adapter(
     calculator_type = getattr(mace_module, "MACECalculator", None)
     if calculator_type is None:
         raise RuntimeError("Installed MACE runtime has no MACECalculator.")
-    calculator = calculator_type(
-        model_paths=str(checkpoint),
-        model_type=MACE_MDP_MODEL_TYPE,
-        default_dtype="float64",
-        device=device,
-    )
+    calculator_kwargs = {
+        "model_type": MACE_MDP_MODEL_TYPE,
+        "default_dtype": "float64",
+        "device": device,
+    }
+    if checkpoint_bytes is None:
+        calculator = calculator_type(model_paths=str(checkpoint), **calculator_kwargs)
+    else:
+        with _sealed_checkpoint_descriptor(checkpoint_bytes) as proc_path:
+            calculator = calculator_type(model_paths=proc_path, **calculator_kwargs)
     sources: dict[str, str] = {}
     for label, value in (
         ("mace_calculator", calculator_type),

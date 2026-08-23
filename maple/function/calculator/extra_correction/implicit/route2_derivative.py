@@ -168,6 +168,58 @@ class TotalSolvationCoordinateGradient:
         )
 
 
+@dataclass(frozen=True)
+class FrozenSourcePCMCoordinateGradient:
+    """Component ledger for a frozen-source PCM half-coupling chain rule."""
+
+    source_energy_cotangent_ev: np.ndarray
+    fixed_source_continuum_position_gradient_ev_per_angstrom: np.ndarray
+    source_response_position_gradient_ev_per_angstrom: np.ndarray
+    continuum_position_gradient_ev_per_angstrom: np.ndarray = field(init=False)
+
+    def __post_init__(self) -> None:
+        source_cotangent = _validated_block(
+            self.source_energy_cotangent_ev,
+            expected_shape=None,
+            name="source_energy_cotangent_ev",
+        ).copy()
+        fixed_source = _validated_coordinate_block(
+            self.fixed_source_continuum_position_gradient_ev_per_angstrom,
+            atom_count=source_cotangent.shape[0],
+            name=(
+                "fixed_source_continuum_position_gradient_ev_per_angstrom"
+            ),
+        ).copy()
+        source_response = _validated_coordinate_block(
+            self.source_response_position_gradient_ev_per_angstrom,
+            atom_count=source_cotangent.shape[0],
+            name="source_response_position_gradient_ev_per_angstrom",
+        ).copy()
+        total = fixed_source + source_response
+        for values in (source_cotangent, fixed_source, source_response, total):
+            values.setflags(write=False)
+        object.__setattr__(
+            self,
+            "source_energy_cotangent_ev",
+            source_cotangent,
+        )
+        object.__setattr__(
+            self,
+            "fixed_source_continuum_position_gradient_ev_per_angstrom",
+            fixed_source,
+        )
+        object.__setattr__(
+            self,
+            "source_response_position_gradient_ev_per_angstrom",
+            source_response,
+        )
+        object.__setattr__(
+            self,
+            "continuum_position_gradient_ev_per_angstrom",
+            total,
+        )
+
+
 def assemble_total_solvation_coordinate_gradient(
     continuum_position_gradient_ev_per_angstrom: np.ndarray,
     cds_position_gradient_hartree_per_angstrom: np.ndarray,
@@ -345,6 +397,98 @@ def pcm_half_coupling_source_gradient(
         name="nonlinear PCM half-coupling source response",
     )
     return project_neutral_density_tangent(direct + response)
+
+
+def frozen_source_pcm_half_coupling_coordinate_gradient(
+    reaction_field: FullReactionFieldPositionDerivative,
+    *,
+    source: np.ndarray,
+    field: np.ndarray,
+    source_position_vjp: Callable[[np.ndarray], np.ndarray],
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
+) -> FrozenSourcePCMCoordinateGradient:
+    """Differentiate ``0.5*<c0(R), P_R c0(R)>`` without a fixed point.
+
+    The first coordinate term differentiates the complete continuum map at a
+    fixed source.  The second contracts the zero-field electronic source
+    response ``dc0/dR`` with the exact source cotangent of the same PCM scalar.
+    No field-conditioned model state, response Jacobian, or fixed-point
+    adjoint participates in this identity.
+    """
+
+    source_values = _validated_block(
+        source,
+        expected_shape=None,
+        name="Frozen PCM source",
+    )
+    field_values = _validated_block(
+        field,
+        expected_shape=source_values.shape,
+        name="Frozen PCM reaction field",
+    )
+    if reaction_field.atom_count != source_values.shape[0]:
+        raise ValueError(
+            "Reaction-field atom count does not match the frozen PCM source."
+        )
+    if getattr(reaction_field, "reciprocal_energy_pairing", False) is not True:
+        raise ValueError(
+            "The frozen PCM coordinate gradient requires a reciprocal "
+            "reaction-field energy pairing."
+        )
+    derivative_version = getattr(
+        reaction_field,
+        "full_position_derivative_contract_version",
+        None,
+    )
+    if derivative_version is None:
+        raise NotImplementedError(
+            "The reaction-field backend does not provide a complete frozen-source "
+            "coordinate derivative."
+        )
+    if derivative_version != (
+        FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
+    ):
+        raise ValueError(
+            "Unsupported full reaction-field coordinate-derivative contract "
+            "version."
+        )
+    continuum_vjp = getattr(reaction_field, "full_position_vjp", None)
+    if not callable(continuum_vjp):
+        raise NotImplementedError(
+            "The reaction-field backend does not provide a complete frozen-source "
+            "coordinate derivative."
+        )
+    if not callable(source_position_vjp):
+        raise TypeError("Frozen PCM differentiation requires a source position VJP.")
+
+    source_cotangent = pcm_half_coupling_source_gradient(
+        reaction_field,
+        source=source_values,
+        field=field_values,
+        pairing=pairing,
+    )
+    fixed_source_gradient = _validated_coordinate_block(
+        continuum_vjp(
+            source_values,
+            0.5 * pairing.density_to_field_order(source_values),
+        ),
+        atom_count=source_values.shape[0],
+        name="Frozen PCM fixed-source continuum position VJP",
+    )
+    source_response_gradient = _validated_coordinate_block(
+        source_position_vjp(source_cotangent),
+        atom_count=source_values.shape[0],
+        name="Frozen PCM electronic-source position VJP",
+    )
+    return FrozenSourcePCMCoordinateGradient(
+        source_energy_cotangent_ev=source_cotangent,
+        fixed_source_continuum_position_gradient_ev_per_angstrom=(
+            fixed_source_gradient
+        ),
+        source_response_position_gradient_ev_per_angstrom=(
+            source_response_gradient
+        ),
+    )
 
 
 def fixed_cavity_model_feature_energy_density_gradient(
@@ -696,6 +840,7 @@ def pcm_half_coupling_continuum_coordinate_gradient(
 __all__ = [
     "FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION",
     "FixedSurfaceReactionField",
+    "FrozenSourcePCMCoordinateGradient",
     "FullReactionFieldPositionDerivative",
     "TotalSolvationCoordinateGradient",
     "assemble_total_solvation_coordinate_gradient",
@@ -703,6 +848,7 @@ __all__ = [
     "fixed_cavity_energy_density_gradient",
     "fixed_cavity_model_feature_energy_density_gradient",
     "fixed_surface_solvation_coordinate_gradient",
+    "frozen_source_pcm_half_coupling_coordinate_gradient",
     "pcm_half_coupling_continuum_coordinate_gradient",
     "pcm_half_coupling_energy_density_gradient",
     "pcm_half_coupling_source_gradient",

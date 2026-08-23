@@ -1,0 +1,74 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-harmonic-ddpcm-general-source-four-prereg-v1",
+  "schema_version": 1,
+  "created_at_utc": "2026-08-16T03:46:14Z",
+  "purpose": "Blind minimal cross-backend electrostatic accuracy diagnostic after repairing the harmonic backend to preserve heterogeneous MACE-MDP point-permanent and MACE-POLAR Gaussian-induced source semantics.",
+  "case_ids": [
+    "mobley_3034976",
+    "mobley_3053621",
+    "mobley_352111",
+    "mobley_3867265"
+  ],
+  "reference": {
+    "definition": "Frozen gas-density QM/PCMSolver electrostatic polarization component on the inherited per-case SMD intrinsic cavity.",
+    "parent_asset_manifest": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+    "parent_asset_manifest_sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef",
+    "reference_evidence": "docs/route2/evidence/mace-mdp-polar-ddx-external-mep-four-4cf8db40.json",
+    "reference_evidence_sha256": "0ecb59682dfc9aef0f8f639b1a4f10d54404221a89e4fb2f45d9005da8e6dc62"
+  },
+  "candidate": {
+    "energy_ledger": "MACE-POLAR zero-field vacuum energy plus the heterogeneous general-source finite-dielectric harmonic-ddPCM stationary polarization scalar; only the continuum component is compared here",
+    "permanent_source": "unchanged MACE-MDP exterior point monopoles and dipoles",
+    "induced_source": "MACE-POLAR field-induced increment in the checkpoint 1.5-A normalized Gaussian multipole basis",
+    "model_drive": "complete phi-side ddPCM adjoint projected into the checkpoint-native 1.5/3.0-A eight-channel field",
+    "continuum": "finite-dielectric smooth-partition harmonic ddPCM",
+    "dielectric": 78.355,
+    "transition_width_angstrom2": 0.08,
+    "surface_lmax": 3,
+    "partition_lmax": 6,
+    "partition_radial_quadrature_order": 96,
+    "source_radial_quadrature_order": 128,
+    "double_layer_radial_quadrature_order": 128,
+    "receiver_radial_quadrature_order": 128,
+    "dtype": "float64",
+    "continuum_device": "cpu",
+    "mace_mdp_device": "cpu",
+    "mace_polar_device": "cuda",
+    "root_method": "anderson",
+    "root_tolerance": 1e-10,
+    "root_max_iterations": 100,
+    "root_damping": 0.5,
+    "root_history": 6,
+    "root_starts": [
+      "cold-zero",
+      "deterministic-wide-0.05"
+    ],
+    "cold_wide_agreement": {
+      "maximum_induced_source_absolute_difference_e": 2e-9,
+      "maximum_native_field_absolute_difference_eV_per_e": 2e-9,
+      "maximum_continuum_energy_absolute_difference_eV": 1e-9
+    }
+  },
+  "decision_rule": {
+    "primary_metric": "mean absolute error of the electrostatic polarization component in kcal/mol",
+    "target_mae_kcal_mol": 1.5,
+    "additional_required_reports": [
+      "per-case signed and absolute errors",
+      "maximum absolute error",
+      "cold/wide root agreement",
+      "root residuals",
+      "checkpoint, continuum, source, runner, and asset hashes"
+    ],
+    "no_posthoc_changes": [
+      "case membership",
+      "source kernels",
+      "cavity radii",
+      "dielectric",
+      "harmonic orders",
+      "energy ledger",
+      "reference values",
+      "empirical scaling or fitting"
+    ]
+  },
+  "claim_boundary": "Passing establishes only a four-case fixed-geometry cross-backend electrostatic diagnostic for the exact candidate. It does not establish total solvation free energy, matched-backend decomposition, transferable chemical accuracy, force-domain admission, public E/F/H/V/M, or Tier V."
+}

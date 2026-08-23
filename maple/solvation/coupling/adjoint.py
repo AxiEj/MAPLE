@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.sparse.linalg import LinearOperator, gmres
 
-from .linearization import ReducedLinearization
+from .linearization import ReducedLinearizationOperator
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ class AdjointConvergenceError(RuntimeError):
 
 
 def solve_reduced_adjoint(
-    linearization: ReducedLinearization,
+    linearization: ReducedLinearizationOperator,
     scalar_reduced_gradient: object,
     *,
     options: AdjointOptions = AdjointOptions(),
@@ -65,6 +65,10 @@ def solve_reduced_adjoint(
 
     if not isinstance(options, AdjointOptions):
         raise TypeError("options must be AdjointOptions.")
+    if not isinstance(linearization, ReducedLinearizationOperator):
+        raise TypeError(
+            "linearization must satisfy ReducedLinearizationOperator."
+        )
     rhs = np.asarray(scalar_reduced_gradient, dtype=float)
     if rhs.shape != (linearization.dimension,) or not np.all(np.isfinite(rhs)):
         raise ValueError(

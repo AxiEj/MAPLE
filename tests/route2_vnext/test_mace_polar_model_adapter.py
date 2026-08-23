@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 import hashlib
+import os
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -30,6 +32,9 @@ from maple.solvation.models.mace_polar_separated import (
     MACEPolarOriginalSourceNativeFieldAdapter,
     NativeSemanticsCanary,
 )
+from maple.solvation.models import mace_polar as mace_polar_module
+from maple.solvation.models import checkpoint_bytes as checkpoint_bytes_module
+from maple.solvation.models.mace_polar import build_official_mace_polar_1_m_adapter
 from maple.solvation.models.mace_polar_variational import (
     MACEPolarDifferentiableFieldGraph,
     MACEPolarVariationalFieldEnergy,
@@ -250,6 +255,66 @@ def _adapter(tmp_path):
     )
     calculator = _FakeMACEPolarCalculator(checkpoint, release)
     return MACEPolarLocalFieldModelAdapter(calculator, release), calculator
+
+
+class _CapturedBuilderCalculator(_FakeMACEPolarCalculator):
+    release: MACEPolarReleaseContract | None = None
+    consumed_bytes: bytes | None = None
+    descriptor: int | None = None
+    swap_path: Path | None = None
+
+    def __init__(self, *, model_path: str, **kwargs: object):
+        del kwargs
+        release = type(self).release
+        assert release is not None
+        if type(self).swap_path is not None:
+            type(self).swap_path.write_bytes(b"attacker replacement")
+        type(self).consumed_bytes = Path(model_path).read_bytes()
+        type(self).descriptor = int(model_path.rsplit("/", 1)[1])
+        super().__init__(model_path, release)
+        self.mace_polar_checkpoint_provenance["parameter_source"] = (
+            "captured-bytes-procfd"
+        )
+
+
+def _captured_release(content: bytes) -> MACEPolarReleaseContract:
+    return MACEPolarReleaseContract(
+        provider_id="maple.route2.model.test-captured-polar.impl.v1",
+        model_profile_id="route2-test-captured-polar-v1",
+        long_range_evaluator_profile="test-molecular-realspace-v1",
+        checkpoint_identifier="test-captured-polar",
+        checkpoint_release_url="file://captured-polar.model",
+        checkpoint_sha256=hashlib.sha256(content).hexdigest(),
+        checkpoint_size_bytes=len(content),
+        mace_torch_version="test-mace-1",
+        graph_longrange_version="0.4.0",
+        upstream_commit="test-upstream-commit",
+        release_status="test-only-unadmitted",
+        long_range_symmetry_contract_id="test-so3-unadmitted-v1",
+        structural_so3_equivariance_admitted=False,
+        long_range_symmetry_claim_boundary="test evaluator has no SO3 proof",
+    )
+
+
+def _install_captured_builder(
+    content: bytes, monkeypatch: pytest.MonkeyPatch
+) -> MACEPolarReleaseContract:
+    release = _captured_release(content)
+    _CapturedBuilderCalculator.release = release
+    _CapturedBuilderCalculator.consumed_bytes = None
+    _CapturedBuilderCalculator.descriptor = None
+    _CapturedBuilderCalculator.swap_path = None
+    monkeypatch.setattr(
+        mace_polar_module,
+        "_VNextModelOnlyMACEPolCalculator",
+        _CapturedBuilderCalculator,
+    )
+    monkeypatch.setattr(
+        mace_polar_module,
+        "_RELEASE_CONTRACT_BY_EVALUATOR",
+        {release.long_range_evaluator_profile: release},
+    )
+    return release
 
 
 class _FakeDifferentiableFieldGraph:
@@ -704,6 +769,89 @@ def test_mace_polar_adapter_fails_closed_on_runtime_or_checkpoint_drift(tmp_path
     checkpoint.write_bytes(checkpoint.read_bytes() + b"tampered")
     with pytest.raises(RuntimeError, match="checkpoint file identity changed"):
         adapter.configuration_sha256()
+
+
+def test_captured_polar_checkpoint_consumes_sealed_procfd_and_binds_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    content = b"captured MACE-POLAR checkpoint"
+    release = _install_captured_builder(content, monkeypatch)
+    adapter = build_official_mace_polar_1_m_adapter(
+        checkpoint_bytes=content,
+        long_range_evaluator_profile=release.long_range_evaluator_profile,
+    )
+    assert _CapturedBuilderCalculator.consumed_bytes == content
+    assert adapter.provenance.checkpoint_sha256 == release.checkpoint_sha256
+    assert adapter._checkpoint_parameter_source == "captured-bytes-procfd"
+    assert adapter.configuration_sha256()
+    with pytest.raises(OSError):
+        os.fstat(_CapturedBuilderCalculator.descriptor)
+
+
+def test_captured_polar_checkpoint_ignores_path_swap_and_creates_no_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    content = b"authoritative captured polar bytes"
+    release = _install_captured_builder(content, monkeypatch)
+    path = tmp_path / "polar.model"
+    path.write_bytes(b"original path")
+    before = {item.name for item in tmp_path.iterdir()}
+    _CapturedBuilderCalculator.swap_path = path
+    build_official_mace_polar_1_m_adapter(
+        checkpoint_path=path,
+        checkpoint_bytes=content,
+        long_range_evaluator_profile=release.long_range_evaluator_profile,
+    )
+    assert _CapturedBuilderCalculator.consumed_bytes == content
+    assert path.read_bytes() == b"attacker replacement"
+    assert {item.name for item in tmp_path.iterdir()} == before
+
+
+def test_captured_polar_checkpoint_rejects_wrong_bytes_before_load(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release = _install_captured_builder(b"official", monkeypatch)
+    with pytest.raises(RuntimeError, match="do not match"):
+        build_official_mace_polar_1_m_adapter(
+            checkpoint_bytes=b"wrong",
+            long_range_evaluator_profile=release.long_range_evaluator_profile,
+        )
+    assert _CapturedBuilderCalculator.consumed_bytes is None
+
+
+def test_captured_polar_checkpoint_fails_closed_without_sealing_or_procfs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    content = b"captured polar secure bytes"
+    release = _install_captured_builder(content, monkeypatch)
+    real_fcntl = checkpoint_bytes_module.fcntl.fcntl
+
+    def reject_sealing(fd: int, operation: int, *args: object):
+        if operation == checkpoint_bytes_module._F_ADD_SEALS:
+            raise OSError("no sealing")
+        return real_fcntl(fd, operation, *args)
+
+    monkeypatch.setattr(checkpoint_bytes_module.fcntl, "fcntl", reject_sealing)
+    with pytest.raises(RuntimeError, match="sealing is unavailable"):
+        build_official_mace_polar_1_m_adapter(
+            checkpoint_bytes=content,
+            long_range_evaluator_profile=release.long_range_evaluator_profile,
+        )
+
+    monkeypatch.setattr(checkpoint_bytes_module.fcntl, "fcntl", real_fcntl)
+    real_stat = checkpoint_bytes_module.os.stat
+
+    def reject_proc(path: object, *args: object, **kwargs: object):
+        if str(path).startswith("/proc/self/fd/"):
+            raise FileNotFoundError("no procfs")
+        return real_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(checkpoint_bytes_module.os, "stat", reject_proc)
+    with pytest.raises(RuntimeError, match="proc/self/fd"):
+        build_official_mace_polar_1_m_adapter(
+            checkpoint_bytes=content,
+            long_range_evaluator_profile=release.long_range_evaluator_profile,
+        )
 
 
 def test_native_semantics_canary_reads_checkpoint_spaces_without_paper_defaults(

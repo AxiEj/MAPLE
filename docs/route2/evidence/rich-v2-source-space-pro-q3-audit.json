@@ -1,0 +1,47 @@
+{
+  "schema_version": "maple-route2-verified-pro-rich-v2-source-space-audit-v1",
+  "audit_id": "route2-rich-v2-source-space-pro-q3-20260823",
+  "mode_verification": {
+    "relative_path": "docs/route2/evidence/rich-v2-source-space-pro-q3-mode-verification.txt",
+    "sha256": "df55961b70f52a12b765cdffb354f3e0687da7277bc1050d52a8473e59d72583",
+    "required_exact_lines": [
+      "composer=Pro",
+      "power=Pro, 5 of 5."
+    ]
+  },
+  "prompt": {
+    "relative_path": "docs/route2/reviews/rich-v2-source-space-pro-q3-prompt.md",
+    "sha256": "2834f81f9cbfa31538972539754a5f0f5478d6c563278fe456b539dd0db7df0e",
+    "submitted_utc": "2026-08-23T15:47:21.7531305Z",
+    "characters_submitted": 4268
+  },
+  "runtime_observation": {
+    "pro_thinking_observed": true,
+    "observation_scope": "post-submit UI Automation exposed exact accessible name Pro thinking; no inference from answer length or subscription status"
+  },
+  "response": {
+    "relative_path": "docs/route2/reviews/rich-v2-source-space-pro-q3-response.md",
+    "sha256": "252323ec9b93fbefd6c77e9181addb5e2269ca73031497217f5c39d60ae6fbb2",
+    "verdict": "APPROVE",
+    "terminal_marker": "MAPLE RICH V2 SOURCE SPACE AUDIT COMPLETE"
+  },
+  "required_contract_refinements": [
+    "bind-source-and-receiver-space-convention-digests",
+    "type-audit-coefficient-sum-as-nonoperational-and-forbid-dispatch",
+    "kernel-tag-permanent-point-and-induced-gto-branches-separately",
+    "retain-polar-final-and-zero-reference-arrays-and-derive-induced",
+    "limit-replay-claim-to-endpoint-defined-gates",
+    "bind-state-specific-vacuum-energy-and-add-exactly-once",
+    "separate-state-content-from-solve-occurrence-identity",
+    "use-acyclic-hash-dag-and-recompute-prepared-inputs-from-captured-objects"
+  ],
+  "h0_archive_amendment": {
+    "historical_rich_preimage_identifiable": false,
+    "historical_v1_object_role": "observed-archive-evidence-only",
+    "synthetic_rich_golden_role": "deterministic-adapter-compatibility-only",
+    "admission_transfer_to_h1": false,
+    "h1_requirement": "two-independent-clean-sealed-replays-plus-mechanical-aggregation"
+  },
+  "capability_effect": "none-before-valid-h1-overlay",
+  "audit_sha256": "d9e1023e5c098456107a74cb665cfac893c6314787d197ba9bb994e80015f229"
+}

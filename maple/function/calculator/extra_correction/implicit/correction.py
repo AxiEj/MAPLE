@@ -15,6 +15,9 @@ import numpy as np
 
 from .ddpcm_smd import PyDDXSMDImplicitSolvation
 from .fc_aswig_smd import FixedTopologyASWIGAqueousSMDImplicitSolvation
+from .mace_polar_ef_smooth_smd import (
+    MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic,
+)
 from .result import SolvationResult
 from .smd import SMDImplicitSolvation
 from .source_receiver_contract import route2_source_receiver_contract
@@ -160,12 +163,14 @@ class ImplicitSolvationCorrection:
             "pcmsolver": SMDImplicitSolvation,
             "pyddx": PyDDXSMDImplicitSolvation,
             "fc-aswig": FixedTopologyASWIGAqueousSMDImplicitSolvation,
+            "torch-smooth-pcm": MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic,
         }
         try:
             provider_type = providers[provider_name]
         except KeyError as exc:
             raise ValueError(
-                "Route 2 provider must be pcmsolver, pyddx, or fc-aswig."
+                "Route 2 provider must be pcmsolver, pyddx, fc-aswig, "
+                "or torch-smooth-pcm."
             ) from exc
 
         self.method = "smd"

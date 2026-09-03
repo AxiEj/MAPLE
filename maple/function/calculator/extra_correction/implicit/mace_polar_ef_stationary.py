@@ -18,7 +18,7 @@ import hashlib
 import json
 import math
 from types import MappingProxyType
-from typing import Protocol
+from typing import Literal, Protocol
 
 import numpy as np
 import torch
@@ -113,6 +113,10 @@ class MACEPolarEFSCFSettings:
     maximum_positive_uniform_field_curvature: float = (
         MACE_POLAR_EF_MAXIMUM_POSITIVE_CURVATURE
     )
+    electronic_passivity_policy: Literal[
+        "require-passive",
+        "record-known-failure-diagnostic",
+    ] = "require-passive"
 
     def __post_init__(self) -> None:
         positive_names = (
@@ -146,6 +150,11 @@ class MACEPolarEFSCFSettings:
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                 raise ValueError(f"{name} must be a positive integer.")
+        if self.electronic_passivity_policy not in {
+            "require-passive",
+            "record-known-failure-diagnostic",
+        }:
+            raise ValueError("Unsupported electronic passivity policy.")
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -165,6 +174,7 @@ class MACEPolarEFSCFSettings:
             "maximum_positive_uniform_field_curvature": (
                 self.maximum_positive_uniform_field_curvature
             ),
+            "electronic_passivity_policy": self.electronic_passivity_policy,
         }
 
 
@@ -266,7 +276,12 @@ class MACEPolarEFStationaryResult:
 class MACEPolarEFStationaryCoupling:
     """Backend-neutral stationary MACE-POLAR-EF/PCM evaluator."""
 
-    def __init__(self, config: MACEPolarEFStationaryConfig) -> None:
+    def __init__(
+        self,
+        config: MACEPolarEFStationaryConfig,
+        *,
+        electronic_model: MACEPolarEFEnergyModel | None = None,
+    ) -> None:
         electronic = getattr(config, "electronic", None)
         continuum = getattr(config, "continuum_functional", None)
         scf = getattr(config, "scf", None)
@@ -282,7 +297,15 @@ class MACEPolarEFStationaryCoupling:
         if int(getattr(continuum, "atom_count", -1)) != electronic.atom_count:
             raise ValueError("Electronic and continuum atom counts must match.")
         self.config = config
-        self.electronic = MACEPolarEFEnergyModel(electronic)
+        if electronic_model is None:
+            electronic_model = MACEPolarEFEnergyModel(electronic)
+        elif not isinstance(electronic_model, MACEPolarEFEnergyModel):
+            raise TypeError("electronic_model must be MACEPolarEFEnergyModel.")
+        elif electronic_model.config.as_identity() != electronic.as_identity():
+            raise ValueError(
+                "Injected MACE-POLAR-EF evaluator identity does not match config."
+            )
+        self.electronic = electronic_model
 
     @property
     def atom_count(self) -> int:
@@ -352,8 +375,17 @@ class MACEPolarEFStationaryCoupling:
             "maximum_positive_curvature": audit.maximum_positive_curvature,
             "tolerance": audit.tolerance,
             "passivity_passed": audit.passivity_passed,
+            "policy": self.config.scf.electronic_passivity_policy,
+            "known_failure_continuation": (
+                not audit.passivity_passed
+                and self.config.scf.electronic_passivity_policy
+                == "record-known-failure-diagnostic"
+            ),
         }
-        if not audit.passivity_passed:
+        if (
+            not audit.passivity_passed
+            and self.config.scf.electronic_passivity_policy == "require-passive"
+        ):
             label = str(self.config.continuum_functional.label)
             raise MACEPolarEFPassivityError(
                 "MACE-POLAR-EF-v2 failed the required external-potential "

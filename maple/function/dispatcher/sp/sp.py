@@ -89,7 +89,19 @@ class SinglePoint(JobABC):
             return []
         provenance = solvation.get("provenance", {})
         standard_state = provenance.get("standard_state", "provider-defined")
-        return [
+        warning_lines = []
+        if provenance.get("known_nonpassive_diagnostic") is True:
+            warning_lines = [
+                (
+                    "*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; "
+                    "scientifically_valid=false. ***\n"
+                ),
+                (
+                    "This value must not be used as a physical prediction, "
+                    "accuracy result, force field, or solution-phase PES.\n"
+                ),
+            ]
+        return warning_lines + [
             f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
             (
                 "Solvation free-energy correction (Delta G_solv, "

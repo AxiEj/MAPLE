@@ -8,8 +8,8 @@ from ..route2_smd_profiles import (
     validate_route2_smd_response_mode,
 )
 from ..route2_model_contracts import (
-    route2_model_family_label,
     validate_route2_input_model_family,
+    validate_route2_input_model_options,
 )
 from ..route2_solvents import normalize_route2_solvent_name
 
@@ -166,6 +166,7 @@ class CommandControl:
         "response",
         "standard_state",
         "cavity_policy",
+        "acknowledge_known_nonpassive",
         "write_shell",
         "shell_cutoff",
         "solvent_pdb",
@@ -539,7 +540,12 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
-        for key in ("randomize", "write_shell", "experimental"):
+        for key in (
+            "randomize",
+            "write_shell",
+            "experimental",
+            "acknowledge_known_nonpassive",
+        ):
             if key in solv_params and not isinstance(solv_params[key], bool):
                 msg = f"Solvation {key} must be 'true' or 'false'."
                 cls._log_error(output_path, msg)
@@ -683,10 +689,16 @@ class CommandControl:
                 provider = str(
                     solv_params.get("provider", "pcmsolver")
                 ).lower()
-                if provider not in {"pcmsolver", "pyddx", "fc-aswig"}:
+                if provider not in {
+                    "pcmsolver",
+                    "pyddx",
+                    "fc-aswig",
+                    "torch-smooth-pcm",
+                }:
                     msg = (
-                    "Route 2 provider must be provider=pcmsolver "
-                    "or provider=pyddx or provider=fc-aswig."
+                        "Route 2 provider must be provider=pcmsolver, "
+                        "provider=pyddx, provider=fc-aswig, or "
+                        "provider=torch-smooth-pcm."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -714,6 +726,16 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
+                if (
+                    provider == "torch-smooth-pcm"
+                    and int(params.get("verbose", 0)) >= 1
+                ):
+                    msg = (
+                        "Route 2 provider=torch-smooth-pcm is energy-only. "
+                        "Use #sp without verbose=1."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
                 if "charge" in params:
                     msg = (
                         "Route 2 obtains its electrostatic source from the "
@@ -736,6 +758,7 @@ class CommandControl:
                     "response",
                     "standard_state",
                     "cavity_policy",
+                    "acknowledge_known_nonpassive",
                 }
                 route_conflicts = sorted(
                     set(solv_params).difference(allowed_smd_options)
@@ -782,14 +805,37 @@ class CommandControl:
                     msg = str(exc)
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
-                if params.get("model_options"):
-                    model_label = route2_model_family_label(
-                        profile_spec.electronic_model_family
+                try:
+                    validate_route2_input_model_options(
+                        params.get("model_options"),
+                        expected_model_family=(
+                            profile_spec.electronic_model_family
+                        ),
                     )
+                except (TypeError, ValueError) as exc:
+                    msg = str(exc)
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg) from exc
+                acknowledgement = solv_params.get(
+                    "acknowledge_known_nonpassive"
+                )
+                if (
+                    profile_spec.known_nonpassive_diagnostic
+                    and acknowledgement is not True
+                ):
                     msg = (
-                        f"Route 2 uses the frozen unmodified {model_label} "
-                        "profile; remove "
-                        "all #model(...) options, including model_path and module."
+                        "The selected profile is a known-nonpassive diagnostic; "
+                        "set acknowledge_known_nonpassive=true explicitly."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if (
+                    not profile_spec.known_nonpassive_diagnostic
+                    and "acknowledge_known_nonpassive" in solv_params
+                ):
+                    msg = (
+                        "acknowledge_known_nonpassive is valid only for a "
+                        "known-nonpassive diagnostic profile."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -804,7 +850,10 @@ class CommandControl:
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
                 cavity_policy = None
-                if provider in {"pyddx", "fc-aswig"} and "cavity_policy" in solv_params:
+                if (
+                    provider in {"pyddx", "fc-aswig", "torch-smooth-pcm"}
+                    and "cavity_policy" in solv_params
+                ):
                     msg = (
                         "Route 2 cavity_policy is specific to the "
                         "PCMSolver/GePol provider and is not valid for "

@@ -15,6 +15,7 @@ from types import MappingProxyType
 import numpy as np
 
 from .mace_polar_ef import MACEPolarEFConfig
+from .mace_polar_ef import MACEPolarEFEnergyModel
 from .mace_polar_ef_stationary import (
     MACEPolarEFSCFSettings,
     MACEPolarEFStationaryCoupling,
@@ -189,10 +190,15 @@ class MACEPolarEFSmoothPCMConfig:
 class MACEPolarEFSmoothPCMCoupling(MACEPolarEFStationaryCoupling):
     """Stationary smooth-PCM connection guarded by EF passivity."""
 
-    def __init__(self, config: MACEPolarEFSmoothPCMConfig) -> None:
+    def __init__(
+        self,
+        config: MACEPolarEFSmoothPCMConfig,
+        *,
+        electronic_model: MACEPolarEFEnergyModel | None = None,
+    ) -> None:
         if not isinstance(config, MACEPolarEFSmoothPCMConfig):
             raise TypeError("config must be MACEPolarEFSmoothPCMConfig.")
-        super().__init__(config)
+        super().__init__(config, electronic_model=electronic_model)
 
 
 MACEPolarEFSmoothPCMResult = MACEPolarEFStationaryResult

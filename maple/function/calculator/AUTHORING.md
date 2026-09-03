@@ -218,6 +218,7 @@ backend that switches tasks for periodic input.
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-POLAR (`macepols/m/l`) | no; fail-fast; Route 2 adds a per-atom local reaction potential/gradient through the pretrained GTO field projector | yes (`spin = mult`) | analytic + numerical gas phase; Route 2 has an explicit pyddx single-point force candidate but no solution Hessian | yes; SMD is locked to `macepolm` | no | no |
+| MACE-POLAR-EF-v2 (`macepolarefv2`) | no; fail-fast; exact checkpoint is CUDA:0-bound | reads explicit neutral-singlet metadata only | gas-phase first derivative only; no Hessian | one water-only, energy-only known-nonpassive smooth-PCM diagnostic with two acknowledgements | no | no |
 | UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
 
 Both MACE-POLAR and UMA use an upstream field named `spin`, but checkpoint

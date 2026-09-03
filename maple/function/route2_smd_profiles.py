@@ -14,6 +14,7 @@ from typing import Literal, cast
 
 from .route2_energy_ledger import (
     LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1,
     PCM_HALF_COUPLING_ONLY_V1,
     Route2ElectrostaticEnergyLedger,
     validate_route2_electrostatic_energy_ledger,
@@ -22,6 +23,9 @@ from .route2_solvents import SUPPORTED_ROUTE2_SMD_SOLVENTS
 from .route2_model_contracts import (
     ROUTE2_ATOMIC_L1_SOURCE_SPACE,
     ROUTE2_FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    ROUTE2_KNOWN_NONPASSIVE_ENERGY_CONJUGATE_DIAGNOSTIC,
+    ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
+    ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING,
     ROUTE2_MACE_POLAR_MODEL_FAMILY,
     ROUTE2_MACE_POLAR_PROFILE_BINDING,
 )
@@ -78,6 +82,10 @@ DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE = (
 DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE = (
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-omp4-v1"
 )
+MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE = (
+    "mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-"
+    "water-known-nonpassive-v1"
+)
 
 MACEPOL_MOLECULAR_REALSPACE_PROFILE = (
     "graph-longrange-molecular-realspace-v1"
@@ -92,18 +100,31 @@ class Route2SMDProfileSpec:
     """One frozen audited combination, not an open run-time plug-in schema."""
 
     name: str
-    provider: Literal["pcmsolver", "pyddx", "fc-aswig"]
+    provider: Literal[
+        "pcmsolver",
+        "pyddx",
+        "fc-aswig",
+        "torch-smooth-pcm",
+    ]
     cavity: Literal[
         "canonical-smd",
         "gaff2-carbonyl-o",
         "fixed-topology-smd",
+        "smooth-fixed-dimensional-spheres-v1",
     ]
     mace_long_range_evaluator: str
-    electrostatics_model: Literal["iefpcm", "ddpcm", "ddcosmo", "cpcm"]
+    electrostatics_model: Literal[
+        "iefpcm",
+        "ddpcm",
+        "ddcosmo",
+        "cpcm",
+        "smooth-ddpcm",
+    ]
     solute_source: Literal["point-multipole-l1"]
     reaction_field_projector: Literal[
         "local-jet",
         "exact-gto-v1",
+        "native-atomwise-potential-gradient-v1",
     ]
     model_field_gauge: Literal[
         "continuum-zero-at-infinity",
@@ -142,6 +163,7 @@ class Route2SMDProfileSpec:
     ddpcm_n_proc: int = 1
     default_eligible: bool = False
     force_release_eligible: bool = False
+    known_nonpassive_diagnostic: bool = False
     pcmsolver_cavity_generation: Literal[
         "legacy-builtin-solvent-probe-v1",
         "intrinsic-probe0-noaddsph-v1",
@@ -192,6 +214,37 @@ class Route2SMDProfileSpec:
                 "A Route-2 public force profile must be the bounded "
                 "water-only JGP94-D2 fixed-topology direct-CPCM profile."
             )
+        if self.known_nonpassive_diagnostic and (
+            self.provider != "torch-smooth-pcm"
+            or self.cavity != "smooth-fixed-dimensional-spheres-v1"
+            or self.electrostatics_model != "smooth-ddpcm"
+            or self.electronic_model_family
+            != ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY
+            or self.electronic_profile_binding
+            != ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING
+            or self.electronic_energy_semantics
+            != ROUTE2_KNOWN_NONPASSIVE_ENERGY_CONJUGATE_DIAGNOSTIC
+            or self.reaction_field_projector
+            != "native-atomwise-potential-gradient-v1"
+            or self.electrostatic_energy_ledger
+            != MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1
+            or self.supported_solvents != _WATER_ONLY
+            or self.default_eligible
+            or self.force_release_eligible
+        ):
+            raise ValueError(
+                "A known-nonpassive diagnostic profile must be the exact "
+                "water-only MACE-POLAR-EF-v2/smooth-ddPCM energy profile."
+            )
+        if (
+            self.electronic_model_family
+            == ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY
+            and not self.known_nonpassive_diagnostic
+        ):
+            raise ValueError(
+                "The current MACE-POLAR-EF-v2 checkpoint may appear only in "
+                "its known-nonpassive diagnostic profile."
+            )
 
     def supports_solvent(self, solvent: str) -> bool:
         return str(solvent).strip().lower() in self.supported_solvents
@@ -208,6 +261,33 @@ _WATER_ONLY = frozenset({"water"})
 
 
 _PROFILE_SPECS = {
+    MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE: Route2SMDProfileSpec(
+        name=MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE,
+        provider="torch-smooth-pcm",
+        cavity="smooth-fixed-dimensional-spheres-v1",
+        mace_long_range_evaluator=(
+            "mace-polar-ef-v2-native-atomwise-local-jet-v1"
+        ),
+        electrostatics_model="smooth-ddpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector=(
+            "native-atomwise-potential-gradient-v1"
+        ),
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="pyscf-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=_WATER_ONLY,
+        electronic_model_family=ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
+        electronic_profile_binding=ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING,
+        electronic_energy_semantics=(
+            ROUTE2_KNOWN_NONPASSIVE_ENERGY_CONJUGATE_DIAGNOSTIC
+        ),
+        electrostatic_energy_ledger=(
+            MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1
+        ),
+        known_nonpassive_diagnostic=True,
+    ),
     CANONICAL_SMD_PROFILE: Route2SMDProfileSpec(
         name=CANONICAL_SMD_PROFILE,
         provider="pcmsolver",
@@ -558,6 +638,11 @@ SUPPORTED_FC_ASWIG_SMD_PROFILES = frozenset(
     for name, spec in _PROFILE_SPECS.items()
     if spec.provider == "fc-aswig"
 )
+SUPPORTED_TORCH_SMOOTH_PCM_SMD_PROFILES = frozenset(
+    name
+    for name, spec in _PROFILE_SPECS.items()
+    if spec.provider == "torch-smooth-pcm"
+)
 SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
     name
     for name, spec in _PROFILE_SPECS.items()
@@ -576,6 +661,8 @@ def route2_smd_profiles_for_provider(provider: str) -> frozenset[str]:
         return SUPPORTED_PYDDX_SMD_PROFILES
     if normalized == "fc-aswig":
         return SUPPORTED_FC_ASWIG_SMD_PROFILES
+    if normalized == "torch-smooth-pcm":
+        return SUPPORTED_TORCH_SMOOTH_PCM_SMD_PROFILES
     raise ValueError(f"Unsupported Route 2 SMD provider: {provider}.")
 
 
@@ -623,6 +710,10 @@ def validate_route2_smd_response_mode(
     normalized = str(response).strip().lower()
     if normalized not in SUPPORTED_ROUTE2_SMD_RESPONSE_MODES:
         raise ValueError("SMD response must be frozen or scf.")
+    if profile_spec.provider == "torch-smooth-pcm" and normalized != "scf":
+        raise ValueError(
+            "The MACE-POLAR-EF/smooth-PCM diagnostic requires response='scf'."
+        )
     if (
         profile_spec.provider == "pyddx"
         and normalized == "frozen"
@@ -671,6 +762,7 @@ __all__ = [
     "GAFF2_CARBONYL_O_PROFILE",
     "MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE",
     "MACEPOL_MOLECULAR_REALSPACE_PROFILE",
+    "MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE",
     "PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE",
     "PCMSOLVER_EXACT_GTO_FIELD_PROFILE",
     "PCMSOLVER_INTRINSIC_CAVITY_PROFILE",
@@ -682,6 +774,7 @@ __all__ = [
     "SUPPORTED_PYDDX_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_RESPONSE_MODES",
+    "SUPPORTED_TORCH_SMOOTH_PCM_SMD_PROFILES",
     "Route2SMDProfileSpec",
     "Route2SMDResponseMode",
     "route2_smd_profile_spec",

@@ -16,7 +16,7 @@ dynamics, and related post-processing workflows.
 | **Dynamics** | NVE, NVT, NPT |
 | **Analysis** | Frequency, PES Scan, Single Point |
 | **ML Potentials** | ANI, AIMNet2, MACE, MACEPol, UMA |
-| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental MACE-POLAR/SMD implicit-solvation correction, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
+| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental MACE-POLAR/SMD implicit-solvation correction, an explicitly acknowledged known-nonpassive MACE-POLAR-EF/smooth-PCM diagnostic, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
 
 ## Installation
 
@@ -90,6 +90,11 @@ Model checkpoint boundary:
 - MAPLE auto-downloads only the model files hosted at https://huggingface.co/Wayne7815/MAPLE_models.
 - Auto-downloads use a pinned HuggingFace revision by default; set `MAPLE_MODEL_REVISION` only when intentionally refreshing model assets.
 - Route-2 MACE-POLAR-1-M uses MACE's official `polar-1-m` download/cache path in float64. MAPLE does not bundle, mirror, modify, or silently replace that checkpoint.
+- The local `macepol-ef-v2.pt` asset is accepted only by exact SHA-256 through
+  an explicit `model_path`. Its sole implicit-solvent profile is a water-only,
+  energy-only known-nonpassive diagnostic requiring
+  `acknowledge_known_nonpassive=true`; it is not an accuracy or production
+  capability.
 - Other backend-specific or local checkpoints must be present in `maple/function/calculator/model/` or supplied through an explicit model path when that backend supports one.
 - UMA checkpoints are resolved through an explicit path, a local `maple/function/calculator/model/uma-*.pt` file, or FAIR-Chem's official model-loading path.
 

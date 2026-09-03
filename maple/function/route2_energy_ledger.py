@@ -13,16 +13,21 @@ from typing import Literal
 Route2ElectrostaticEnergyLedger = Literal[
     "legacy-mace-field-energy-plus-pcm-v1",
     "pcm-half-coupling-only-v1",
+    "mace-ef-known-nonpassive-common-scalar-diagnostic-v1",
 ]
 
 LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1: Route2ElectrostaticEnergyLedger = (
     "legacy-mace-field-energy-plus-pcm-v1"
 )
 PCM_HALF_COUPLING_ONLY_V1: Route2ElectrostaticEnergyLedger = "pcm-half-coupling-only-v1"
+MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1: (
+    Route2ElectrostaticEnergyLedger
+) = "mace-ef-known-nonpassive-common-scalar-diagnostic-v1"
 SUPPORTED_ROUTE2_ELECTROSTATIC_ENERGY_LEDGERS = frozenset(
     {
         LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
         PCM_HALF_COUPLING_ONLY_V1,
+        MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1,
     }
 )
 
@@ -50,6 +55,12 @@ def route2_energy_composition_description(
     """Describe the selected leaf-only electrostatic accounting rule."""
 
     selected = validate_route2_electrostatic_energy_ledger(ledger)
+    if selected == MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1:
+        return (
+            "known-nonpassive diagnostic only: delta_G_solv = "
+            "[E_MACE-EF(R,f)-<c,f>-E_MACE-EF(R,0)] + "
+            f"E_{continuum_symbol}(R,c) + G_CDS at the numerical stationary root"
+        )
     if selected == PCM_HALF_COUPLING_ONLY_V1:
         return (
             "delta_G_solv = 0.5*<c_MACE-POLAR, f_reac_PCM> "
@@ -65,6 +76,7 @@ def route2_energy_composition_description(
 
 __all__ = [
     "LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1",
+    "MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1",
     "PCM_HALF_COUPLING_ONLY_V1",
     "SUPPORTED_ROUTE2_ELECTROSTATIC_ENERGY_LEDGERS",
     "Route2ElectrostaticEnergyLedger",

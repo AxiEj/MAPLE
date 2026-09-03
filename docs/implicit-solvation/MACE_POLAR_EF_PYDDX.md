@@ -1,15 +1,36 @@
-# MACE-POLAR-EF v2 + standard pyddx/ddPCM
+# MACE-POLAR-EF v2 + PCM adapters
 
-## Status: blocked before MAPLE exposure
+## Status: explicit known-nonpassive diagnostic exposure
 
 The standard `pyddx==0.8.0` ddPCM PyTorch bridge is implemented and retains
 the upstream cavity, operator, solve, adjoint source derivative, and analytic
-coordinate derivative. The supplied `macepol-ef-v2.pt` checkpoint is **not**
-registered in MAPLE, because its electronic response fails a required
-passivity test after correcting the spin input to singlet multiplicity `1`.
+coordinate derivative. The supplied `macepol-ef-v2.pt` checkpoint is also
+connected to the smooth PCM and registered under one deliberately alarming,
+energy-only diagnostic profile. Its electronic response is known to fail the
+required passivity test after correcting the spin input to singlet
+multiplicity `1`.
 
-No public provider/profile, force, optimization, frequency, dynamics,
-Hessian, or chemical-accuracy capability is opened.
+The diagnostic is not a scientific prediction route. It requires both
+`experimental=true` and `acknowledge_known_nonpassive=true`; force,
+optimization, frequency, dynamics, Hessian, default selection, and
+chemical-accuracy capability remain closed.
+
+### Explicit input
+
+```text
+#model=mace-polar-ef-v2(model_path=/absolute/path/macepol-ef-v2.pt)
+#sp
+#device=gpu0
+#solv(implicit=water,method=smd,provider=torch-smooth-pcm,profile=mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-water-known-nonpassive-v1,response=scf,standard_state=1m,experimental=true,acknowledge_known_nonpassive=true)
+
+0 1
+O   0.000000   0.000000   0.000000
+H   0.957200   0.000000   0.000000
+H  -0.239987   0.927297   0.000000
+```
+
+Every normal output prints `KNOWN-NONPASSIVE DIAGNOSTIC` and
+`scientifically_valid=false` before the energy decomposition.
 
 ## Connection to `torch-smooth-pcm-v1`
 
@@ -36,7 +57,7 @@ The smooth path has the distinct private identity
 It preserves the EF float32 geometry as the common coordinate identity and
 promotes those exact values to CPU float64 for the smooth PCM.
 
-Normal evaluation of the supplied checkpoint stops before PCM iteration:
+The private default policy stops before PCM iteration:
 
 ```text
 MACEPolarEFPassivityError:
@@ -44,11 +65,12 @@ MACE-POLAR-EF-v2 failed the required external-potential
 concavity/passivity gate; refusing torch-smooth-pcm-v1 coupling.
 ```
 
-A test-only passivity mock closes the plumbing equations, half-coupling
-identity, source residual, field replay, and translation-gradient checks. It
-is not exposed as a runtime bypass and its numerical energy is not scientific
-evidence. The connection therefore exists, while executable/admitted coupling
-for the supplied checkpoint remains closed.
+The explicit public diagnostic profile instead uses the profile-owned policy
+`record-known-failure-diagnostic`: it records the failed eigenvalues and
+continues only because the input contains the second acknowledgement above.
+This is not an admission bypass—provenance fixes `scientifically_valid=false`,
+`accuracy_certified=false`, `solution_phase_pes=false`, and
+`release_admitted=false`.
 
 ## What the EF wrapper actually adds
 
@@ -135,8 +157,8 @@ step 2e-3: 1.785 to 1.792
 They are positive rather than non-positive. The corresponding polarizability
 would have the wrong sign. Reversing the field convention cannot repair a
 Hessian sign. At a diagnostic ddPCM root, the full local field Hessian is also
-indefinite. Therefore the coupling fails before constructing or solving the
-ddPCM fixed point.
+indefinite. Standard/private admission therefore fails; only the explicitly
+acknowledged known-invalid smooth-PCM diagnostic is allowed to continue.
 
 The adapter additionally:
 
@@ -165,9 +187,9 @@ The adapter additionally:
 python docs/implicit-solvation/benchmarks/audit_mace_polar_ef_v2_water.py --checkpoint "$PWD/macepol-ef-v2.pt" --output /tmp/mace-polar-ef-v2-water-audit.json
 ```
 
-The coupling code remains behind the passivity gate so that a corrected,
-provenance-bound checkpoint can reuse the same standard ddPCM/autograd work.
-It is not an escape hatch for this failed checkpoint.
+The default coupling code remains behind the passivity gate so that a
+corrected, provenance-bound checkpoint can reuse the same stationary core.
+The exposed diagnostic records rather than conceals the failed gate.
 
 ## Larger `macepol-ef-L.pt` candidate
 

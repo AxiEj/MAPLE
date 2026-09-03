@@ -5,13 +5,17 @@
 `torch-smooth-pcm-v1` is a **private, non-admitted, fixed-dimensional, smooth-partition moving-cavity finite-dielectric PCM scalar** implemented in PyTorch under
 `maple/function/calculator/extra_correction/implicit/torch_smooth_pcm/`.
 
-This milestone is a **new internal model family**, not a pyddx update, not a pyddx replacement, and not public MAPLE provider support. Historical evidence from the source lineage commit is **not transferable** to the new path, bytes, identities, or hashes.
+This milestone is a **new continuum model family**, not a pyddx update and not
+a pyddx replacement. One exact MAPLE profile now exposes it only as a
+known-nonpassive MACE-POLAR-EF energy diagnostic. Historical evidence from the
+source lineage commit is **not transferable** to the new path, bytes,
+identities, or hashes.
 
-This document records the exact private continuum contract. A separate
-MACE-POLAR-EF stationary adapter now consumes this scalar, but the supplied EF
-checkpoint fails its mandatory passivity gate before the PCM iteration. This
-does **not** open any public capability, legal distribution claim, or
-scientific admission.
+This document records the exact continuum contract. The private default
+MACE-POLAR-EF coupling stops at the failed electronic passivity gate; the one
+public diagnostic profile records that known failure and continues only after
+an additional explicit acknowledgement. This opens diagnostic execution, not
+a scientifically valid capability, legal distribution claim, or admission.
 
 ## Frozen private identities
 
@@ -199,7 +203,9 @@ Important scope points:
 
 ## Direct internal construction API
 
-This milestone is **directly constructible only inside its private package**. It is not wired into public provider selection, parser dispatch, profile registries, or calculator factories.
+The continuum remains directly constructible inside its private package. It
+is additionally wired to one exact public diagnostic provider/profile; this
+does not create a generic smooth-PCM provider or an admitted continuum model.
 
 The current private entrypoint is the class
 `maple.function.calculator.extra_correction.implicit.torch_smooth_pcm.TorchSmoothPCM`.
@@ -219,7 +225,10 @@ Its internal surface currently exposes:
 - debug inspection via `debug_geometry_matrices(...)`, `debug_primal_state(...)`, and `audit(...)`;
 - provenance accessors `configuration_sha256()` and `execution_provenance()`.
 
-This is an **internal construction API only**. There is no public provider keyword, no public profile ID, and no public capability declaration.
+The direct construction API remains internal. The only public wrapper is the
+energy-only `provider=torch-smooth-pcm` known-nonpassive MACE-POLAR-EF profile;
+it requires two explicit acknowledgements and declares no force/PES
+capability.
 
 ## Configuration identity versus execution provenance
 
@@ -306,13 +315,15 @@ No jitter, pseudoinverse, diagonal shift, block deletion, tolerance loosening af
 
 ## Protected current boundaries
 
-This milestone is not allowed to modify or silently replace the current pyddx Route-2 path. In particular:
+The smooth diagnostic does not silently replace the current pyddx Route-2
+path. In particular:
 
-- pyddx/ddPCM provider, parser, profile, registry, cache, and ledger behavior remain unchanged;
-- the protected files recorded in the transplant audit must remain byte-identical;
-- the private model is rejected by public parser/provider selection;
-- no new public provider string is exposed;
-- `macepol-ef-v2.pt` is not part of this continuum milestone and is not loaded by the private continuum object.
+- existing pyddx provider/profile behavior remains unchanged;
+- `provider=torch-smooth-pcm` selects only the separately named diagnostic;
+- the continuum object never loads the electronic checkpoint itself;
+- the MACE-POLAR-EF adapter owns checkpoint identity and the stationary
+  coupling owns the cross-model contract;
+- no existing profile is reinterpreted under the new provider.
 
 This is therefore **not** pyddx parity work and not pyddx replacement work. The existing pyddx/ddPCM path remains the separate reference implementation.
 
@@ -320,14 +331,13 @@ This is therefore **not** pyddx parity work and not pyddx replacement work. The 
 
 The following remain closed for this milestone:
 
-- public provider exposure;
-- public parser support;
-- public profile registration;
+- generic or default smooth-PCM provider exposure;
+- any public profile other than the exact known-nonpassive diagnostic;
 - capability admission of any kind;
-- an admitted or passivity-bypassed MACE-POLAR-EF coupling;
+- an admitted MACE-POLAR-EF coupling;
 - MACE-POLAR coupling in general;
 - AIMNet2 coupling;
-- SMD-CDS composition;
+- SMD-CDS composition outside the exact diagnostic profile;
 - public force, PES, OPT, TS, IRC, FREQ, or MD claims;
 - FMM or other compressed acceleration paths;
 - ddX exact active-set identity;
@@ -356,25 +366,20 @@ As of **2026-09-02**, distribution and legal claims for this milestone remain bl
 
 ## Current workspace evidence snapshot
 
-The current private implementation lives in untracked local files under
-`maple/function/calculator/extra_correction/implicit/torch_smooth_pcm/` with matching private tests under `tests/solvation/`.
+The continuum and guarded coupling were committed on branch `MAPLE-EF` in
+commit `c5d556e38e4732a6bbcf6e6cc67066e6230d33bd`. The subsequent public
+diagnostic wiring has a separate change history and does not alter that saved
+private checkpoint.
 
-The protected-file SHA-256 values observed in this workspace match the transplant audit baseline for:
-
-- `ddpcm_smd.py`
-- `pyddx_pcm_response.py`
-- `correction.py`
-- `set_calculator.py`
-- `command_control.py`
-- `route2_smd_profiles.py`
-
-That match supports the protected-boundary claim only. It is **not** scientific admission and does **not** transfer historical evidence.
+Public wiring intentionally changes parser, factory, profile registry, and
+provider dispatch bytes. Existing pyddx behavior must therefore be protected
+by fresh regression tests rather than by the earlier byte-identity claim.
 
 A fresh local targeted `torch_smooth_pcm` test run on **2026-09-03** produced
-`186 passed`. The separate guarded MACE-POLAR-EF/smooth-PCM
-connection tests produced `5 passed`; normal evaluation was verified to stop
-at the failed electronic passivity gate before continuum iteration. These are
-private mathematical and plumbing checks, not scientific admission.
+`186 passed`. The public guarded MACE-POLAR-EF/smooth-PCM test module produced
+`9 passed`, and a focused Route-2 compatibility run produced `237 passed`.
+The full solvation suite produced `1655 passed, 5 skipped`. These are
+mathematical, plumbing, and regression checks, not scientific admission.
 
 ## Stop condition for this document
 

@@ -16,17 +16,18 @@ from typing import Literal
 
 from maple.function.route2_smd_profiles import route2_smd_profile_spec
 
-
 ROUTE2_SOURCE_RECEIVER_CONTRACT_VERSION = "route2-source-receiver-contract-v1"
 
 ContinuumPairingStatus = Literal[
     "point-multipole-local-jet-dual",
     "known-nonconjugate-point-source-gto-receiver",
+    "energy-conjugate-local-jet-known-nonpassive",
 ]
 
 Route2PublicCapability = Literal[
     "experimental-energy-only",
     "bounded-experimental-energy-and-conservative-forces",
+    "known-invalid-diagnostic-energy-only",
 ]
 
 
@@ -61,15 +62,14 @@ class Route2SourceReceiverContract:
         if self.continuum_pairing_status not in (
             "point-multipole-local-jet-dual",
             "known-nonconjugate-point-source-gto-receiver",
+            "energy-conjugate-local-jet-known-nonpassive",
         ):
             raise ValueError("Unsupported Route-2 continuum pairing status.")
         if self.continuum_pairing_established != (
             self.continuum_pairing_status
-            == "point-multipole-local-jet-dual"
+            != "known-nonconjugate-point-source-gto-receiver"
         ):
-            raise ValueError(
-                "Continuum pairing status and established flag disagree."
-            )
+            raise ValueError("Continuum pairing status and established flag disagree.")
         if self.common_stationary_electronic_functional_established:
             raise ValueError(
                 "Legacy Route-2 profiles do not establish a common stationary "
@@ -78,11 +78,11 @@ class Route2SourceReceiverContract:
         if self.public_capability not in (
             "experimental-energy-only",
             "bounded-experimental-energy-and-conservative-forces",
+            "known-invalid-diagnostic-energy-only",
         ):
             raise ValueError("Unsupported Route-2 public capability.")
         if not self.prohibited_claims or not all(
-            isinstance(claim, str) and claim.strip()
-            for claim in self.prohibited_claims
+            isinstance(claim, str) and claim.strip() for claim in self.prohibited_claims
         ):
             raise ValueError("Source/receiver contract requires prohibited claims.")
         if self.contract_version != ROUTE2_SOURCE_RECEIVER_CONTRACT_VERSION:
@@ -121,14 +121,35 @@ def route2_source_receiver_contract(
         "solution-phase PES",
         "analytic solution-phase forces",
     )
+    if spec.known_nonpassive_diagnostic:
+        return Route2SourceReceiverContract(
+            profile=spec.name,
+            solute_source=spec.solute_source,
+            reaction_field_receiver=spec.reaction_field_projector,
+            continuum_pairing_status=("energy-conjugate-local-jet-known-nonpassive"),
+            continuum_pairing_established=True,
+            common_stationary_electronic_functional_established=False,
+            public_capability="known-invalid-diagnostic-energy-only",
+            next_required_physical_gate=(
+                "replace-checkpoint-and-pass-electronic-passivity"
+            ),
+            prohibited_claims=(
+                "physically valid implicit-solvent prediction",
+                "variational SCRF",
+                "stable electronic polarization",
+                "chemical accuracy",
+                "solution-phase PES",
+                "analytic solution-phase forces",
+                "geometry optimization",
+                "molecular dynamics",
+            ),
+        )
     if spec.reaction_field_projector == "exact-gto-v1":
         return Route2SourceReceiverContract(
             profile=spec.name,
             solute_source=spec.solute_source,
             reaction_field_receiver=spec.reaction_field_projector,
-            continuum_pairing_status=(
-                "known-nonconjugate-point-source-gto-receiver"
-            ),
+            continuum_pairing_status=("known-nonconjugate-point-source-gto-receiver"),
             continuum_pairing_established=False,
             common_stationary_electronic_functional_established=False,
             public_capability="experimental-energy-only",

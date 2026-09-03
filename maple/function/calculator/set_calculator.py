@@ -19,8 +19,8 @@ from ..route2_smd_profiles import (
 )
 from ..route2_solvents import normalize_route2_solvent_name
 from ..route2_model_contracts import (
-    route2_model_family_label,
     validate_route2_input_model_family,
+    validate_route2_input_model_options,
 )
 from .calculator_base import (
     _IMPLICIT_SOLVENT_FACTORY_TOKEN,
@@ -56,6 +56,7 @@ _BUILTIN_NAME_TO_MODULE = {
     'macepols': 'maple.function.calculator.mace._macepol_calculator',
     'macepolm': 'maple.function.calculator.mace._macepol_calculator',
     'macepoll': 'maple.function.calculator.mace._macepol_calculator',
+    'macepolarefv2': 'maple.function.calculator.mace._macepolef_calculator',
     'uma': 'maple.function.calculator.uma._uma_calculator',
 }
 
@@ -247,9 +248,15 @@ class SetCalculator:
             provider = str(
                 self.solvation_options.get('provider', 'pcmsolver')
             ).lower()
-            if provider not in {'pcmsolver', 'pyddx', 'fc-aswig'}:
+            if provider not in {
+                'pcmsolver',
+                'pyddx',
+                'fc-aswig',
+                'torch-smooth-pcm',
+            }:
                 raise ValueError(
-                    "Route 2 provider must be pcmsolver, pyddx, or fc-aswig."
+                    "Route 2 provider must be pcmsolver, pyddx, fc-aswig, "
+                    "or torch-smooth-pcm."
                 )
             if 'profile' not in self.solvation_options:
                 raise ValueError(
@@ -272,13 +279,28 @@ class SetCalculator:
                 self.model,
                 expected_model_family=profile_spec.electronic_model_family,
             )
-            if self.model_options:
-                model_label = route2_model_family_label(
-                    profile_spec.electronic_model_family
-                )
+            validate_route2_input_model_options(
+                self.model_options,
+                expected_model_family=profile_spec.electronic_model_family,
+            )
+            acknowledgement = self.solvation_options.get(
+                'acknowledge_known_nonpassive'
+            )
+            if (
+                profile_spec.known_nonpassive_diagnostic
+                and acknowledgement is not True
+            ):
                 raise ValueError(
-                    f"Route 2 uses the frozen unmodified {model_label} profile; "
-                    "custom model options are disabled."
+                    "The selected profile is a known-nonpassive diagnostic; "
+                    "set acknowledge_known_nonpassive=true explicitly."
+                )
+            if (
+                not profile_spec.known_nonpassive_diagnostic
+                and 'acknowledge_known_nonpassive' in self.solvation_options
+            ):
+                raise ValueError(
+                    "acknowledge_known_nonpassive is valid only for a "
+                    "known-nonpassive diagnostic profile."
                 )
             if (
                 "mol2" not in self.atoms.info
@@ -293,7 +315,7 @@ class SetCalculator:
             ).lower()
             validate_route2_smd_response_mode(profile_spec, response)
             if (
-                provider in {'pyddx', 'fc-aswig'}
+                provider in {'pyddx', 'fc-aswig', 'torch-smooth-pcm'}
                 and 'cavity_policy' in self.solvation_options
             ):
                 raise ValueError(

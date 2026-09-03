@@ -44,19 +44,24 @@ ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING = (
 # Input-model names are mapped to scientific families in one dependency-free
 # registry.  Parser/factory validation uses the profile's expected family;
 # continuum providers never inspect the input spelling.
+_ROUTE2_INPUT_MODEL_FAMILY_REGISTRY = {
+    "macepolm": ROUTE2_MACE_POLAR_MODEL_FAMILY,
+    "macepolefv2": ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
+    "macepolarefv2": ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
+}
 _ROUTE2_INPUT_MODEL_FAMILIES = MappingProxyType(
-    {
-        "macepolm": ROUTE2_MACE_POLAR_MODEL_FAMILY,
-        "macepolefv2": ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
-        "macepolarefv2": ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
-    }
+    _ROUTE2_INPUT_MODEL_FAMILY_REGISTRY
 )
+_ROUTE2_MODEL_FAMILY_LABEL_REGISTRY = {
+    ROUTE2_MACE_POLAR_MODEL_FAMILY: "official MACE-POLAR-1-M",
+    ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY: "MACE-POLAR-EF-v2",
+}
 _ROUTE2_MODEL_FAMILY_LABELS = MappingProxyType(
-    {
-        ROUTE2_MACE_POLAR_MODEL_FAMILY: "official MACE-POLAR-1-M",
-        ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY: "MACE-POLAR-EF-v2",
-    }
+    _ROUTE2_MODEL_FAMILY_LABEL_REGISTRY
 )
+_ROUTE2_EXPLICIT_MODEL_PATH_FAMILIES = {
+    ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
+}
 
 
 def normalize_route2_input_model_name(value: object) -> str:
@@ -69,6 +74,43 @@ def route2_input_model_family(value: object) -> str | None:
     """Return the registered Route-2 family for one input model selector."""
 
     return _ROUTE2_INPUT_MODEL_FAMILIES.get(normalize_route2_input_model_name(value))
+
+
+def register_route2_input_model_family(
+    model_name: object,
+    model_family: object,
+    *,
+    label: object | None = None,
+    explicit_model_path: bool = False,
+) -> None:
+    """Register one plug-in model selector without replacing an identity."""
+
+    name = normalize_route2_input_model_name(model_name)
+    family = str(model_family).strip()
+    if not name or not family:
+        raise ValueError("Route-2 model name and family must be non-empty.")
+    label_value = None if label is None else str(label).strip()
+    if label is not None and not label_value:
+        raise ValueError("Route-2 model-family label must be non-empty.")
+    existing_label = _ROUTE2_MODEL_FAMILY_LABEL_REGISTRY.get(family)
+    if (
+        label_value is not None
+        and existing_label is not None
+        and existing_label != label_value
+    ):
+        raise ValueError(
+            f"Route-2 model family {family!r} already has a label."
+        )
+    existing = _ROUTE2_INPUT_MODEL_FAMILY_REGISTRY.get(name)
+    if existing is not None and existing != family:
+        raise ValueError(
+            f"Route-2 model selector {name!r} is already registered."
+        )
+    _ROUTE2_INPUT_MODEL_FAMILY_REGISTRY[name] = family
+    if label_value is not None:
+        _ROUTE2_MODEL_FAMILY_LABEL_REGISTRY[family] = label_value
+    if explicit_model_path:
+        _ROUTE2_EXPLICIT_MODEL_PATH_FAMILIES.add(family)
 
 
 def route2_model_family_label(model_family: str) -> str:
@@ -118,7 +160,7 @@ def validate_route2_input_model_options(
         raise TypeError("Route-2 model options must be a mapping.")
 
     expected = str(expected_model_family).strip()
-    if expected == ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY:
+    if expected in _ROUTE2_EXPLICIT_MODEL_PATH_FAMILIES:
         model_path = options.get("model_path")
         if (
             set(options) != {"model_path"}
@@ -150,6 +192,7 @@ __all__ = [
     "ROUTE2_MACE_POLAR_MODEL_FAMILY",
     "ROUTE2_MACE_POLAR_PROFILE_BINDING",
     "normalize_route2_input_model_name",
+    "register_route2_input_model_family",
     "route2_input_model_family",
     "route2_model_family_label",
     "validate_route2_input_model_family",

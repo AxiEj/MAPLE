@@ -91,15 +91,21 @@ class SinglePoint(JobABC):
         standard_state = provenance.get("standard_state", "provider-defined")
         warning_lines = []
         if provenance.get("known_nonpassive_diagnostic") is True:
+            derivative_message = (
+                "Derivative workflows use this known-nonpassive diagnostic "
+                "scalar and are not physical predictions.\n"
+                if provenance.get("diagnostic_derivative_eligible") is True
+                else (
+                    "This value must not be used as a physical prediction, "
+                    "accuracy result, force field, or solution-phase PES.\n"
+                )
+            )
             warning_lines = [
                 (
                     "*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; "
                     "scientifically_valid=false. ***\n"
                 ),
-                (
-                    "This value must not be used as a physical prediction, "
-                    "accuracy result, force field, or solution-phase PES.\n"
-                ),
+                derivative_message,
             ]
         return warning_lines + [
             f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",

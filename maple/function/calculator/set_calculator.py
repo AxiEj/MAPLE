@@ -302,6 +302,27 @@ class SetCalculator:
                     "acknowledge_known_nonpassive is valid only for a "
                     "known-nonpassive diagnostic profile."
                 )
+            derivative_acknowledgement = self.solvation_options.get(
+                'acknowledge_unvalidated_derivatives'
+            )
+            if (
+                profile_spec.diagnostic_derivative_eligible
+                and derivative_acknowledgement is not True
+            ):
+                raise ValueError(
+                    "The selected profile exposes unvalidated diagnostic "
+                    "derivatives; set "
+                    "acknowledge_unvalidated_derivatives=true explicitly."
+                )
+            if (
+                not profile_spec.diagnostic_derivative_eligible
+                and 'acknowledge_unvalidated_derivatives'
+                in self.solvation_options
+            ):
+                raise ValueError(
+                    "acknowledge_unvalidated_derivatives is valid only for "
+                    "a diagnostic derivative profile."
+                )
             if (
                 "mol2" not in self.atoms.info
                 and profile_spec.uses_gaff2_carbonyl_oxygen
@@ -616,9 +637,11 @@ class SetCalculator:
 
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         requested_name = self.model
-        self._validate_solvent_config()
-
         cls = self._discover_calculator_class(requested_name)
+        # Plug-ins may register a checkpoint spec, model family, and complete
+        # Route-2 profile alongside their calculator class. Discover them
+        # before validating the cross-layer solvation identity.
+        self._validate_solvent_config()
         name = self.model
         self._validate_model_options(cls)
         self._validate_against_class(cls)

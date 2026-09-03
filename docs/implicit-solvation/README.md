@@ -16,24 +16,26 @@ SMD intrinsic Coulomb-sphere electrostatic cavity (`probe=0`, no added
 spheres, explicit water dielectric). No profile is a complete MAPLE solution-phase PES for generic molecules.
 All calculations therefore require `experimental=true`.
 
-One deliberately separate diagnostic profile connects the exact local
+Two deliberately separate diagnostic profiles connect the exact local
 `macepol-ef-v2.pt` TorchScript checkpoint to MAPLE's fixed-dimensional smooth
-PCM. The checkpoint is known to fail the electronic passivity/concavity gate,
-so this route is **not a physical prediction API**. It is energy-only,
-water-only, CUDA-device-0-only, never default-selected, and requires the
-additional acknowledgement shown verbatim below:
+PCM. The original v1 profile remains water-only and energy-only. The v2
+profile supports all 11 registered SMD solvents, analytic first derivatives,
+finite-difference Hessians from those derivatives, `SP`, L-BFGS `OPT`, `FREQ`,
+and P-RFO `TS`. Both remain CUDA-device-0-only and never default selected. The
+v2 input requires both acknowledgements:
 
 ```text
 #model=mace-polar-ef-v2(model_path=/absolute/path/macepol-ef-v2.pt)
-#sp
+#sp(verbose=1)
 #device=gpu0
-#solv(implicit=water,method=smd,provider=torch-smooth-pcm,profile=mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-water-known-nonpassive-v1,response=scf,standard_state=1m,experimental=true,acknowledge_known_nonpassive=true)
+#solv(implicit=methanol,method=smd,provider=torch-smooth-pcm,profile=mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2,response=scf,standard_state=1m,experimental=true,acknowledge_known_nonpassive=true,acknowledge_unvalidated_derivatives=true)
 ```
 
-Its output and audit ledger fix `scientifically_valid=false`, retain the failed
-passivity eigenvalues, and prohibit accuracy, force, optimization, dynamics,
-or solution-phase-PES claims. Omitting either acknowledgement fails before
-model execution.
+Replace the task line with `#opt(method=lbfgs)`, `#freq`, or
+`#ts(method=prfo)` as needed. Registered solvents are water, methanol,
+ethanol, acetonitrile, DMSO, DMF, THF, chloroform, dichloromethane, toluene,
+and hexane. Audit ledgers distinguish diagnostic derivatives from formally
+admitted forces.
 
 The no-training Route-2 V0 scalar-response alternative is also frozen as a
 rejected diagnostic, not a new profile.  Its preregistered one-water CUDA

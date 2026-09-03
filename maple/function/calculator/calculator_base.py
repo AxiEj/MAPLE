@@ -418,7 +418,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             return np.asarray(self._analytic_hessian(atoms))
         if mode == 'numerical':
-            if getattr(self, 'solvent_correction', None) is not None:
+            correction = getattr(self, 'solvent_correction', None)
+            if correction is not None and "numerical_hessian" not in set(
+                getattr(correction, "supported_properties", {"energy"})
+            ):
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             return numerical_hessian_from_atoms(self, atoms, delta)
         raise ValueError(f"Unknown hessian mode: {mode!r}")

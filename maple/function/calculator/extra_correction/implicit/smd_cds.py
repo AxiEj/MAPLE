@@ -22,7 +22,6 @@ from ....route2_smd_profiles import (
     GAFF2_CARBONYL_O_PROFILE,
     SUPPORTED_DDPCM_SMD_PROFILES,
     SUPPORTED_PCMSOLVER_SMD_PROFILES,
-    SUPPORTED_ROUTE2_SMD_PROFILES,
     route2_smd_profile_spec,
 )
 from ....route2_solvents import route2_solvent_spec
@@ -32,6 +31,17 @@ HARTREE_TO_KCAL_MOL = 627.5094740631
 SASA_PROBE_RADIUS_ANGSTROM = 0.4
 SASA_GRID_POINTS = 5810
 GAFF2_CARBONYL_O_RADIUS_ANGSTROM = 1.70
+
+# Retain historical imports from this module while new code reads profiles
+# directly from route2_smd_profiles.
+_PROFILE_COMPATIBILITY_EXPORTS = (
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    DDPCM_GAFF2_CARBONYL_O_PROFILE,
+    DDPCM_SMD_PROFILE,
+    GAFF2_CARBONYL_O_PROFILE,
+    SUPPORTED_DDPCM_SMD_PROFILES,
+    SUPPORTED_PCMSOLVER_SMD_PROFILES,
+)
 
 
 # Atomic-number-indexed SMD Coulomb radii for the Route-2 element domain.
@@ -183,9 +193,6 @@ def route2_coulomb_radii(
     normalized_symbols = validate_smd_symbols(tuple(symbols))
     solvent_spec = route2_solvent_spec(solvent)
     normalized_profile = str(profile).strip().lower()
-    if normalized_profile not in SUPPORTED_ROUTE2_SMD_PROFILES:
-        raise ValueError(f"Unsupported Route 2 SMD profile: {profile}.")
-
     profile_spec = route2_smd_profile_spec(normalized_profile)
     if not profile_spec.supports_solvent(solvent_spec.name):
         raise ValueError(

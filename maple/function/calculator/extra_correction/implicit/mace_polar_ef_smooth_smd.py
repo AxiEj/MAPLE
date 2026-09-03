@@ -1,4 +1,4 @@
-"""Known-nonpassive MACE-POLAR-EF/smooth-PCM single-point diagnostic."""
+"""Known-nonpassive MACE-POLAR-EF/smooth-PCM diagnostic provider."""
 
 from __future__ import annotations
 
@@ -14,15 +14,13 @@ from ....route2_energy_ledger import (
     MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1,
     route2_energy_composition_description,
 )
-from ....route2_model_contracts import (
-    ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
-    ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING,
-)
 from ....route2_smd_profiles import (
-    MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE,
     route2_smd_profile_spec,
 )
-from ....route2_solvents import normalize_route2_solvent_name
+from ....route2_solvents import (
+    normalize_route2_solvent_name,
+    route2_solvent_spec,
+)
 from ...calculator_base import EV2HARTREE
 from .mace_polar_ef import MACEPolarEFEnergyModel
 from .mace_polar_ef_smooth_pcm import (
@@ -53,7 +51,7 @@ SMOOTH_PCM_SCF_MIXING = 0.5
 
 @dataclass
 class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
-    """Explicitly acknowledged energy-only diagnostic; never a prediction API."""
+    """Explicitly acknowledged energy/derivative diagnostic provider."""
 
     atoms: Any
     solvation_options: dict[str, Any]
@@ -75,6 +73,15 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
         self.solvation_options["implicit"] = self.solvent
         self.profile_spec = route2_smd_profile_spec(self.profile)
         self._validate_options()
+        self.derivatives_enabled = bool(
+            self.profile_spec.diagnostic_derivative_eligible
+        )
+        self.supported_properties = frozenset(
+            {"energy", "forces", "numerical_hessian"}
+            if self.derivatives_enabled
+            else {"energy"}
+        )
+        self.solvent_spec = route2_solvent_spec(self.solvent)
         validate_route2_domain(self.atoms)
         self._reference_numbers = np.asarray(self.atoms.numbers, dtype=int).copy()
         radii = route2_coulomb_radii(
@@ -91,7 +98,7 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             partition_radial_quadrature_order=(SMOOTH_PCM_PARTITION_RADIAL_ORDER),
             source_radial_quadrature_order=SMOOTH_PCM_SOURCE_RADIAL_ORDER,
             double_layer_radial_quadrature_order=(SMOOTH_PCM_DOUBLE_LAYER_RADIAL_ORDER),
-            dielectric=78.355,
+            dielectric=self.solvent_spec.descriptors.dielectric,
             source_shell_clearance_angstrom=(
                 SMOOTH_PCM_SOURCE_SHELL_CLEARANCE_ANGSTROM
             ),
@@ -109,13 +116,27 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             "standard_state": "1M(gas)->1M(solution)",
             "known_nonpassive_diagnostic": True,
             "known_nonpassive_acknowledged": True,
-            "electronic_model_family": ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
-            "electronic_profile_binding": (ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING),
+            "diagnostic_derivative_eligible": self.derivatives_enabled,
+            "unvalidated_derivatives_acknowledged": self.derivatives_enabled,
+            "electronic_model_family": (
+                self.profile_spec.electronic_model_family
+            ),
+            "electronic_profile_binding": (
+                self.profile_spec.electronic_profile_binding
+            ),
             "scientifically_valid": False,
-            "intended_use": "implementation-diagnostic-only-not-prediction",
+            "intended_use": (
+                "energy-force-fd-hessian-workflow-diagnostic-only-not-prediction"
+                if self.derivatives_enabled
+                else "implementation-diagnostic-only-not-prediction"
+            ),
             "accuracy_certified": False,
             "solution_phase_pes": False,
-            "forces_available": False,
+            "diagnostic_solution_phase_scalar_available": (
+                self.derivatives_enabled
+            ),
+            "forces_available": self.derivatives_enabled,
+            "numerical_hessian_available": self.derivatives_enabled,
             "default_eligible": False,
             "release_admitted": False,
             "electrostatic_energy_ledger": (
@@ -140,12 +161,31 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             raise ValueError("The diagnostic requires method=smd.")
         if self.provider != "torch-smooth-pcm":
             raise ValueError("The diagnostic requires provider=torch-smooth-pcm.")
-        if self.profile != MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE:
-            raise ValueError("Unsupported MACE-POLAR-EF smooth-PCM profile.")
         if not self.profile_spec.known_nonpassive_diagnostic:
             raise ValueError("Profile is not classified as known nonpassive.")
-        if self.solvent != "water":
-            raise ValueError("The diagnostic is water-only.")
+        if not self.profile_spec.supports_solvent(self.solvent):
+            raise ValueError(
+                f"Profile={self.profile} does not support solvent={self.solvent}."
+            )
+        derivative_acknowledgement = self.solvation_options.get(
+            "acknowledge_unvalidated_derivatives"
+        )
+        if (
+            self.profile_spec.diagnostic_derivative_eligible
+            and derivative_acknowledgement is not True
+        ):
+            raise ValueError(
+                "The diagnostic derivative profile requires "
+                "acknowledge_unvalidated_derivatives=true."
+            )
+        if (
+            not self.profile_spec.diagnostic_derivative_eligible
+            and "acknowledge_unvalidated_derivatives" in self.solvation_options
+        ):
+            raise ValueError(
+                "acknowledge_unvalidated_derivatives is valid only for the "
+                "diagnostic derivative profile."
+            )
         if self.response != "scf":
             raise ValueError("The diagnostic requires response=scf.")
         if self.standard_state != "1m":
@@ -172,7 +212,7 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             raise TypeError("The diagnostic requires MACEPolarEFCalculator.")
         if (
             getattr(calculator, "route2_smd_profile", None)
-            != ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING
+            != self.profile_spec.electronic_profile_binding
         ):
             raise TypeError("MACE-POLAR-EF profile binding mismatch.")
         evaluator_factory = getattr(calculator, "mace_polar_ef_evaluator", None)
@@ -208,6 +248,8 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
         gas_energy_ev: float,
         cds: PySCFSMDCDSResult,
         components: dict[str, float],
+        correction_forces_hartree_per_angstrom: np.ndarray | None,
+        diagnostic_derivative_evidence: dict[str, object] | None,
     ) -> None:
         if self.audit_dir is None:
             return
@@ -221,6 +263,11 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             coordinate_gradient_ev_per_angstrom=(
                 coupled.coordinate_gradient_ev_per_angstrom
             ),
+            correction_forces_hartree_per_angstrom=(
+                np.empty((0, 3), dtype=float)
+                if correction_forces_hartree_per_angstrom is None
+                else correction_forces_hartree_per_angstrom
+            ),
         )
         payload = {
             "schema_version": 1,
@@ -233,6 +280,7 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             "continuum_energy_ev": coupled.continuum_energy_ev,
             "source_field_pairing_ev": coupled.source_field_pairing_ev,
             "components_hartree": components,
+            "diagnostic_derivative_evidence": diagnostic_derivative_evidence,
             "iterations": coupled.iterations,
             "maximum_source_residual": coupled.maximum_source_residual,
             "maximum_field_replay_difference": (
@@ -260,8 +308,10 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
         need_forces: bool = False,
         calculator=None,
     ) -> SolvationResult:
-        if need_forces:
-            raise NotImplementedError("The known-nonpassive diagnostic is energy-only.")
+        if need_forces and not self.derivatives_enabled:
+            raise NotImplementedError(
+                "The selected known-nonpassive diagnostic is energy-only."
+            )
         self._validate_atoms(atoms)
         coupling = self._coupling_for_calculator(calculator, atoms)
         positions = np.asarray(atoms.get_positions(), dtype=float)
@@ -294,12 +344,57 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             components["solute_polarization"] + components["pcm_polarization"]
         )
         components["delta_g_solv"] = components["electrostatic"] + components["cds"]
+        correction_forces = None
+        derivative_evidence = None
+        if need_forces:
+            gas_gradient_method = getattr(
+                calculator,
+                "mace_polar_ef_gas_gradient_ev_per_angstrom",
+                None,
+            )
+            if not callable(gas_gradient_method):
+                raise TypeError("Calculator has no gas-gradient cache boundary.")
+            gas_gradient = np.asarray(
+                gas_gradient_method(atoms),
+                dtype=float,
+            )
+            if gas_gradient.shape != positions.shape or not np.all(
+                np.isfinite(gas_gradient)
+            ):
+                raise ValueError("MACE-POLAR-EF gas gradient is malformed.")
+            combined_gradient = (
+                coupled.coordinate_gradient_ev_per_angstrom * EV2HARTREE
+                + cds.position_gradient_hartree_per_angstrom
+            )
+            correction_gradient = (
+                combined_gradient - gas_gradient * EV2HARTREE
+            )
+            correction_forces = -correction_gradient
+            derivative_evidence = {
+                "scope": "known-nonpassive-diagnostic-derivative-v1",
+                "scalar": (
+                    "E_MACE-EF(R,f)+U_smooth_PCM(R,c)-<c,f>+G_CDS"
+                ),
+                "first_derivative": "stationary-envelope-analytic",
+                "hessian": "central-finite-difference-of-analytic-forces",
+                "maximum_combined_net_force_hartree_per_angstrom": float(
+                    np.max(np.abs(np.sum(-combined_gradient, axis=0)))
+                ),
+                "maximum_source_residual": coupled.maximum_source_residual,
+                "maximum_field_replay_difference": (
+                    coupled.maximum_field_replay_difference
+                ),
+                "scientifically_valid": False,
+                "release_admitted": False,
+            }
         self._write_audit(
             atoms,
             coupled=coupled,
             gas_energy_ev=gas_energy_ev,
             cds=cds,
             components=components,
+            correction_forces_hartree_per_angstrom=correction_forces,
+            diagnostic_derivative_evidence=derivative_evidence,
         )
         runtime_provenance = {
             **self.provenance,
@@ -317,12 +412,14 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
                 coupled.maximum_field_replay_difference
             ),
             "cds_provider": dict(cds.runtime_provenance),
+            "diagnostic_derivative_evidence": derivative_evidence,
             "audit_directory": (
                 None if self.audit_dir is None else str(self.audit_dir)
             ),
         }
         return SolvationResult(
             energy_hartree=components["delta_g_solv"],
+            forces_hartree_per_angstrom=correction_forces,
             components_hartree=components,
             provenance=runtime_provenance,
         )

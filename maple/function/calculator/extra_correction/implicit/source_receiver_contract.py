@@ -28,6 +28,7 @@ Route2PublicCapability = Literal[
     "experimental-energy-only",
     "bounded-experimental-energy-and-conservative-forces",
     "known-invalid-diagnostic-energy-only",
+    "known-invalid-diagnostic-energy-force-numerical-hessian",
 ]
 
 
@@ -79,6 +80,7 @@ class Route2SourceReceiverContract:
             "experimental-energy-only",
             "bounded-experimental-energy-and-conservative-forces",
             "known-invalid-diagnostic-energy-only",
+            "known-invalid-diagnostic-energy-force-numerical-hessian",
         ):
             raise ValueError("Unsupported Route-2 public capability.")
         if not self.prohibited_claims or not all(
@@ -122,6 +124,7 @@ def route2_source_receiver_contract(
         "analytic solution-phase forces",
     )
     if spec.known_nonpassive_diagnostic:
+        derivative_capability = spec.diagnostic_derivative_eligible
         return Route2SourceReceiverContract(
             profile=spec.name,
             solute_source=spec.solute_source,
@@ -129,19 +132,36 @@ def route2_source_receiver_contract(
             continuum_pairing_status=("energy-conjugate-local-jet-known-nonpassive"),
             continuum_pairing_established=True,
             common_stationary_electronic_functional_established=False,
-            public_capability="known-invalid-diagnostic-energy-only",
+            public_capability=(
+                "known-invalid-diagnostic-energy-force-numerical-hessian"
+                if derivative_capability
+                else "known-invalid-diagnostic-energy-only"
+            ),
             next_required_physical_gate=(
                 "replace-checkpoint-and-pass-electronic-passivity"
             ),
             prohibited_claims=(
-                "physically valid implicit-solvent prediction",
-                "variational SCRF",
-                "stable electronic polarization",
-                "chemical accuracy",
-                "solution-phase PES",
-                "analytic solution-phase forces",
-                "geometry optimization",
-                "molecular dynamics",
+                (
+                    "physically valid implicit-solvent prediction",
+                    "variational SCRF",
+                    "stable electronic polarization",
+                    "chemical accuracy",
+                    "physically valid solution-phase PES",
+                    "physically predictive solution-phase forces",
+                    "physically predictive geometry optimization",
+                    "molecular dynamics",
+                )
+                if derivative_capability
+                else (
+                    "physically valid implicit-solvent prediction",
+                    "variational SCRF",
+                    "stable electronic polarization",
+                    "chemical accuracy",
+                    "solution-phase PES",
+                    "analytic solution-phase forces",
+                    "geometry optimization",
+                    "molecular dynamics",
+                )
             ),
         )
     if spec.reaction_field_projector == "exact-gto-v1":

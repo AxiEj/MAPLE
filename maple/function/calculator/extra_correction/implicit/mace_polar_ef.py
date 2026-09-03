@@ -26,18 +26,25 @@ import numpy as np
 import torch
 
 from .electrostatic_pairing import MACE_POLAR_L1_PAIRING
-
-MACE_POLAR_EF_MODEL_ID = "mace-polar-ef-v2-energy-functional"
-MACE_POLAR_EF_CHECKPOINT_SHA256 = (
-    "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b"
+from .mace_polar_ef_specs import (
+    MACE_POLAR_EF_V2_CHECKPOINT_SPEC,
+    MACEPolarEFCheckpointSpec,
 )
-MACE_POLAR_EF_CHECKPOINT_SIZE = 34_581_570
-MACE_POLAR_EF_AUTOGRAD_ORDER = 1
+
+MACE_POLAR_EF_MODEL_ID = MACE_POLAR_EF_V2_CHECKPOINT_SPEC.model_id
+MACE_POLAR_EF_CHECKPOINT_SHA256 = (
+    MACE_POLAR_EF_V2_CHECKPOINT_SPEC.checkpoint_sha256
+)
+MACE_POLAR_EF_CHECKPOINT_SIZE = MACE_POLAR_EF_V2_CHECKPOINT_SPEC.checkpoint_size
+MACE_POLAR_EF_AUTOGRAD_ORDER = MACE_POLAR_EF_V2_CHECKPOINT_SPEC.autograd_order
 MACE_POLAR_EF_PASSIVITY_FIELD_STEP = 1.0e-3
 MACE_POLAR_EF_MAXIMUM_POSITIVE_CURVATURE = 1.0e-2
 
 
-def _wrapper_source(checkpoint_bytes: bytes) -> tuple[str, str]:
+def _wrapper_source(
+    checkpoint_bytes: bytes,
+    spec: MACEPolarEFCheckpointSpec,
+) -> tuple[str, str]:
     buffer = io.BytesIO(checkpoint_bytes)
     if not zipfile.is_zipfile(buffer):
         raise ValueError("MACE-POLAR-EF checkpoint must be a TorchScript zip archive.")
@@ -49,13 +56,11 @@ def _wrapper_source(checkpoint_bytes: bytes) -> tuple[str, str]:
         if len(candidates) != 1:
             raise ValueError("Unable to identify the checkpoint wrapper source.")
         source = archive.read(candidates[0]).decode("utf-8")
-    required = (
-        "class PolarMACEEFTraceable",
-        "external_field0 = torch.neg(external_field)",
-        "external_potential_values = torch.unsqueeze(external_potential, -1)",
-    )
-    if any(text not in source for text in required):
-        raise ValueError("Checkpoint wrapper does not expose the audited EF semantics.")
+    if any(text not in source for text in spec.wrapper_source_fragments):
+        raise ValueError(
+            f"Checkpoint wrapper does not expose the registered {spec.name} "
+            "EF semantics."
+        )
     return source, hashlib.sha256(source.encode("utf-8")).hexdigest()
 
 
@@ -65,6 +70,7 @@ class MACEPolarEFConfig:
 
     checkpoint_path: str
     atomic_numbers: tuple[int, ...]
+    checkpoint_spec: MACEPolarEFCheckpointSpec = MACE_POLAR_EF_V2_CHECKPOINT_SPEC
     total_charge: int = 0
     spin_multiplicity: int = 1
     device: str = "cuda"
@@ -76,15 +82,22 @@ class MACEPolarEFConfig:
         path = Path(self.checkpoint_path).expanduser().resolve()
         if not path.is_file():
             raise FileNotFoundError(path)
+        if not isinstance(self.checkpoint_spec, MACEPolarEFCheckpointSpec):
+            raise TypeError("checkpoint_spec must be MACEPolarEFCheckpointSpec.")
+        spec = self.checkpoint_spec
         checkpoint_bytes = path.read_bytes()
-        if len(checkpoint_bytes) != MACE_POLAR_EF_CHECKPOINT_SIZE:
-            raise ValueError("MACE-POLAR-EF checkpoint size does not match v2.")
+        if len(checkpoint_bytes) != spec.checkpoint_size:
+            raise ValueError(
+                f"MACE-EF checkpoint size does not match spec={spec.name}."
+            )
         if (
             hashlib.sha256(checkpoint_bytes).hexdigest()
-            != MACE_POLAR_EF_CHECKPOINT_SHA256
+            != spec.checkpoint_sha256
         ):
-            raise ValueError("MACE-POLAR-EF checkpoint SHA256 does not match v2.")
-        _source, wrapper_sha256 = _wrapper_source(checkpoint_bytes)
+            raise ValueError(
+                f"MACE-EF checkpoint SHA256 does not match spec={spec.name}."
+            )
+        _source, wrapper_sha256 = _wrapper_source(checkpoint_bytes, spec)
         object.__setattr__(self, "checkpoint_path", str(path))
         object.__setattr__(self, "_checkpoint_bytes", checkpoint_bytes)
         object.__setattr__(self, "_wrapper_source_sha256", wrapper_sha256)
@@ -93,10 +106,13 @@ class MACEPolarEFConfig:
         if not numbers or any(
             isinstance(value, bool)
             or not isinstance(value, int)
-            or not 1 <= value <= 83
+            or value not in spec.supported_atomic_numbers
             for value in numbers
         ):
-            raise ValueError("atomic_numbers must contain integers in [1, 83].")
+            raise ValueError(
+                "atomic_numbers contain an element outside the registered "
+                f"checkpoint spec={spec.name}."
+            )
         object.__setattr__(self, "atomic_numbers", numbers)
 
         for name in ("total_charge", "spin_multiplicity"):
@@ -114,13 +130,16 @@ class MACEPolarEFConfig:
                 "MACE-POLAR-EF charge and spin multiplicity violate electron-count parity."
             )
         device = torch.device(self.device)
-        if device.type != "cuda":
-            raise ValueError("The supplied traced checkpoint is CUDA-only.")
-        if device.index is None:
-            device = torch.device("cuda", 0)
-        if device.index != 0:
+        if device.type != spec.device_type:
             raise ValueError(
-                "The supplied traced checkpoint embeds CUDA device 0 constants."
+                f"Checkpoint spec={spec.name} requires {spec.device_type}."
+            )
+        if device.index is None:
+            device = torch.device(spec.device_type, spec.device_index)
+        if device.index != spec.device_index:
+            raise ValueError(
+                "The supplied traced checkpoint embeds "
+                f"{spec.device_type.upper()} device {spec.device_index} constants."
             )
         object.__setattr__(self, "device", str(device))
         margin = float(self.cutoff_margin_angstrom)
@@ -146,20 +165,28 @@ class MACEPolarEFConfig:
         """Return path-independent scientific and inference identity."""
 
         return {
-            "model_id": MACE_POLAR_EF_MODEL_ID,
-            "checkpoint_sha256": MACE_POLAR_EF_CHECKPOINT_SHA256,
-            "checkpoint_size": MACE_POLAR_EF_CHECKPOINT_SIZE,
+            "model_id": self.checkpoint_spec.model_id,
+            "model_family": self.checkpoint_spec.model_family,
+            "checkpoint_spec": self.checkpoint_spec.name,
+            "checkpoint_sha256": self.checkpoint_spec.checkpoint_sha256,
+            "checkpoint_size": self.checkpoint_spec.checkpoint_size,
             "wrapper_source_sha256": self.wrapper_source_sha256,
             "atomic_numbers": list(self.atomic_numbers),
             "total_charge": self.total_charge,
             "spin_multiplicity": self.spin_multiplicity,
-            "checkpoint_spin_input_semantics": "multiplicity (singlet=1)",
+            "checkpoint_spin_input_semantics": (
+                "multiplicity (singlet=1)"
+                if self.checkpoint_spec.spin_input_semantics == "multiplicity"
+                else "two-s (singlet=0)"
+            ),
             "device": self.device,
-            "dtype": "torch.float32",
-            "field_input": "atomwise [potential, grad_x, grad_y, grad_z]",
+            "dtype": f"torch.{self.checkpoint_spec.tensor_dtype}",
+            "field_input": self.checkpoint_spec.field_input,
             "maple_vector_input": "electrostatic potential gradient grad(V)",
-            "checkpoint_vector_input": "physical electric field E=-grad(V)",
-            "wrapper_internal_vector": "grad(V) after its built-in negation",
+            "checkpoint_vector_input": (
+                self.checkpoint_spec.checkpoint_vector_input
+            ),
+            "wrapper_internal_vector": self.checkpoint_spec.wrapper_internal_vector,
             "external_potential_role": "explicit q_i*V_i energy coupling",
             "external_gradient_role": "learned field response and energy coupling",
             "source_definition": "Q * dE_model/d[potential,gradient]",
@@ -167,7 +194,7 @@ class MACEPolarEFConfig:
             "checkpoint_converter_lineage": None,
             "checkpoint_upstream_provenance_available": False,
             "passivity_gate_required_before_continuum_coupling": True,
-            "autograd_order": MACE_POLAR_EF_AUTOGRAD_ORDER,
+            "autograd_order": self.checkpoint_spec.autograd_order,
             "cutoff_margin_angstrom": self.cutoff_margin_angstrom,
             "publicly_registered": False,
             "release_admitted": False,
@@ -253,24 +280,33 @@ class MACEPolarEFEnergyModel:
             io.BytesIO(config._checkpoint_bytes), map_location=self.device
         ).eval()
         schema = str(self.model.forward.schema)
-        expected_schema_parts = (
-            "Tensor external_field",
-            "Tensor external_potential",
-            "Tensor local_or_ghost",
-            "-> ((Tensor, Tensor, Tensor))",
-        )
-        if any(part not in schema for part in expected_schema_parts):
+        if any(
+            part not in schema
+            for part in config.checkpoint_spec.forward_schema_fragments
+        ):
             raise ValueError(
-                "MACE-POLAR-EF forward schema is not the audited v2 schema."
+                "MACE-POLAR-EF forward schema does not match checkpoint spec="
+                f"{config.checkpoint_spec.name}."
             )
         model_numbers = tuple(
             int(value) for value in self.model.atomic_numbers.tolist()
         )
-        if model_numbers != tuple(range(1, 84)):
-            raise ValueError("MACE-POLAR-EF element table does not match v2.")
+        if model_numbers != config.checkpoint_spec.supported_atomic_numbers:
+            raise ValueError(
+                "MACE-POLAR-EF element table does not match checkpoint spec="
+                f"{config.checkpoint_spec.name}."
+            )
         self.cutoff_angstrom = float(self.model.r_max.detach().cpu())
-        if not np.isclose(self.cutoff_angstrom, 6.0, atol=0.0, rtol=0.0):
-            raise ValueError("MACE-POLAR-EF cutoff does not match v2.")
+        if not np.isclose(
+            self.cutoff_angstrom,
+            config.checkpoint_spec.cutoff_angstrom,
+            atol=0.0,
+            rtol=0.0,
+        ):
+            raise ValueError(
+                "MACE-POLAR-EF cutoff does not match checkpoint spec="
+                f"{config.checkpoint_spec.name}."
+            )
         self.runtime_provenance = MappingProxyType(
             {
                 "torch_version": str(torch.__version__),
@@ -320,7 +356,9 @@ class MACEPolarEFEnergyModel:
         if edge_index.shape[1] == 0 and self.atom_count > 1:
             raise ValueError("MACE-POLAR-EF molecular graph contains no edges.")
 
-        node_attributes = positions.new_zeros((self.atom_count, 83))
+        node_attributes = positions.new_zeros(
+            (self.atom_count, self.config.checkpoint_spec.node_attribute_width)
+        )
         for atom_index, atomic_number in enumerate(self.config.atomic_numbers):
             node_attributes[atom_index, atomic_number - 1] = 1.0
         edge_count = edge_index.shape[1]
@@ -332,7 +370,10 @@ class MACEPolarEFEnergyModel:
         )
         cell = positions.new_zeros((3, 3))
         total_charge = positions.new_tensor([float(self.config.total_charge)])
-        total_spin = positions.new_tensor([float(self.config.spin_multiplicity)])
+        spin_value = self.config.spin_multiplicity
+        if self.config.checkpoint_spec.spin_input_semantics == "two-s":
+            spin_value -= 1
+        total_spin = positions.new_tensor([float(spin_value)])
         local_or_ghost = positions.new_ones((self.atom_count,))
         return (
             node_attributes,
@@ -371,7 +412,10 @@ class MACEPolarEFEnergyModel:
         # MAPLE/pyddx carries the electrostatic potential jet [V, grad(V)].
         # The traced wrapper API is field-facing and negates its vector input
         # before the underlying PolarMACE energy, so provide E=-grad(V) here.
-        checkpoint_electric_field = -field_cartesian[:, 1:]
+        checkpoint_electric_field = (
+            self.config.checkpoint_spec.gradient_to_checkpoint_vector_scale
+            * field_cartesian[:, 1:]
+        )
         checkpoint_potential = field_cartesian[:, 0]
         energy, node_energy, density = self.model(
             positions,
@@ -533,7 +577,9 @@ class MACEPolarEFEnergyModel:
                 "positive_curvature_tolerance_rationale": (
                     "100x float32 source-difference noise allowance"
                 ),
-                "checkpoint_sha256": MACE_POLAR_EF_CHECKPOINT_SHA256,
+                "checkpoint_sha256": (
+                    self.config.checkpoint_spec.checkpoint_sha256
+                ),
                 "spin_multiplicity": self.config.spin_multiplicity,
                 "passed": passed,
             },

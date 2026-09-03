@@ -91,10 +91,9 @@ Model checkpoint boundary:
 - Auto-downloads use a pinned HuggingFace revision by default; set `MAPLE_MODEL_REVISION` only when intentionally refreshing model assets.
 - Route-2 MACE-POLAR-1-M uses MACE's official `polar-1-m` download/cache path in float64. MAPLE does not bundle, mirror, modify, or silently replace that checkpoint.
 - The local `macepol-ef-v2.pt` asset is accepted only by exact SHA-256 through
-  an explicit `model_path`. Its sole implicit-solvent profile is a water-only,
-  energy-only known-nonpassive diagnostic requiring
-  `acknowledge_known_nonpassive=true`; it is not an accuracy or production
-  capability.
+  an explicit `model_path`. Its v2 diagnostic profile supports 11 registered
+  solvents, analytic first derivatives, numerical Hessians, SP, L-BFGS OPT,
+  FREQ, and P-RFO TS with explicit nonpassive/derivative acknowledgements.
 - Other backend-specific or local checkpoints must be present in `maple/function/calculator/model/` or supplied through an explicit model path when that backend supports one.
 - UMA checkpoints are resolved through an explicit path, a local `maple/function/calculator/model/uma-*.pt` file, or FAIR-Chem's official model-loading path.
 

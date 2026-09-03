@@ -11,10 +11,7 @@ import torch
 from ase.calculators.calculator import all_changes
 
 from ...route2_model_contracts import ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING
-from ...route2_smd_profiles import (
-    MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE,
-    validate_route2_smd_profile,
-)
+from ...route2_smd_profiles import validate_route2_smd_profile
 from ..calculator_base import (
     CalcABC,
     _IMPLICIT_SOLVENT_FACTORY_TOKEN,
@@ -23,6 +20,10 @@ from ..calculator_base import (
 from ..extra_correction.implicit.mace_polar_ef import (
     MACEPolarEFConfig,
     MACEPolarEFEnergyModel,
+)
+from ..extra_correction.implicit.mace_polar_ef_specs import (
+    MACE_POLAR_EF_V2_CHECKPOINT_SPEC,
+    MACEPolarEFCheckpointSpec,
 )
 
 
@@ -73,18 +74,26 @@ class _GasState:
 
 @register_calculator
 class MACEPolarEFCalculator(CalcABC):
-    """Exact-checkpoint gas model plus guarded Route-2 diagnostic hook."""
+    """Reusable atomwise-potential MACE-EF calculator.
+
+    Compatible checkpoint families may subclass this class and override the
+    registry-facing class attributes without copying inference or solvent code.
+    """
 
     implemented_properties = ["energy", "forces", "free_energy"]
     MODEL_NAMES = ("macepolarefv2",)
     MODEL_ENERGY_UNIT = "eV"
-    SUPPORTED_HESSIAN_MODES = ()
+    SUPPORTED_HESSIAN_MODES = ("numerical",)
     SUPPORTS_CHARGE_MULT = True
     SUPPORTS_PBC = False
     CHECKPOINT_FILENAME = None
     REQUIRES_LOCAL_MODEL_FILE = False
     OPTION_KEYS = ()
     MODEL_PATH_OPTION = "model_path"
+    CHECKPOINT_SPEC: MACEPolarEFCheckpointSpec = MACE_POLAR_EF_V2_CHECKPOINT_SPEC
+    ROUTE2_PROFILE_BINDING = ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING
+    SUPPORTED_TOTAL_CHARGES = (0,)
+    SUPPORTED_SPIN_MULTIPLICITIES = (1,)
 
     @classmethod
     def build_kwargs_from_options(
@@ -105,8 +114,9 @@ class MACEPolarEFCalculator(CalcABC):
         profile = str(solvation_options.get("profile", "")).lower()
         spec = validate_route2_smd_profile(provider, profile)
         if (
-            spec.name != MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE
-            or not spec.known_nonpassive_diagnostic
+            not spec.known_nonpassive_diagnostic
+            or spec.electronic_profile_binding != cls.ROUTE2_PROFILE_BINDING
+            or spec.electronic_model_family != cls.CHECKPOINT_SPEC.model_family
         ):
             raise ValueError(
                 "MACE-POLAR-EF-v2 is exposed only through its exact "
@@ -131,12 +141,22 @@ class MACEPolarEFCalculator(CalcABC):
         if not path.is_file():
             raise FileNotFoundError(path)
         device_value = torch.device(device)
-        if device_value.type != "cuda":
-            raise ValueError("MACE-POLAR-EF-v2 requires CUDA device 0.")
+        checkpoint_spec = type(self).CHECKPOINT_SPEC
+        if device_value.type != checkpoint_spec.device_type:
+            raise ValueError(
+                f"{checkpoint_spec.name} requires device type "
+                f"{checkpoint_spec.device_type}."
+            )
         if device_value.index is None:
-            device_value = torch.device("cuda", 0)
-        if device_value.index != 0:
-            raise ValueError("MACE-POLAR-EF-v2 requires CUDA device 0.")
+            device_value = torch.device(
+                checkpoint_spec.device_type,
+                checkpoint_spec.device_index,
+            )
+        if device_value.index != checkpoint_spec.device_index:
+            raise ValueError(
+                f"{checkpoint_spec.name} requires device index "
+                f"{checkpoint_spec.device_index}."
+            )
         route2_smd = str(implicit).strip().lower() == "smd"
         if route2_smd and (
             _implicit_solvent_factory_token is not _IMPLICIT_SOLVENT_FACTORY_TOKEN
@@ -149,15 +169,15 @@ class MACEPolarEFCalculator(CalcABC):
         self.device = device_value
         self.model_path = str(path)
         self.route2_smd_profile = (
-            ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING if route2_smd else None
+            type(self).ROUTE2_PROFILE_BINDING if route2_smd else None
         )
         self._evaluator: MACEPolarEFEnergyModel | None = None
         self._atomic_numbers: tuple[int, ...] | None = None
         self._last_gas_state: _GasState | None = None
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
-    @staticmethod
-    def _state_metadata(atoms) -> tuple[int, int]:
+    @classmethod
+    def _state_metadata(cls, atoms) -> tuple[int, int]:
         try:
             charge = int(atoms.info.get("charge", 0))
             multiplicity = int(atoms.info.get("mult", 1))
@@ -165,10 +185,15 @@ class MACEPolarEFCalculator(CalcABC):
             raise ValueError(
                 "MACE-POLAR-EF-v2 requires integer charge and multiplicity."
             ) from exc
-        if charge != 0 or multiplicity != 1:
+        if (
+            charge not in cls.SUPPORTED_TOTAL_CHARGES
+            or multiplicity not in cls.SUPPORTED_SPIN_MULTIPLICITIES
+        ):
             raise ValueError(
-                "The exposed MACE-POLAR-EF-v2 diagnostic supports only "
-                "charge=0 and multiplicity=1."
+                f"The exposed {cls.CHECKPOINT_SPEC.name} adapter supports "
+                f"charges={cls.SUPPORTED_TOTAL_CHARGES} and "
+                "spin multiplicities="
+                f"{cls.SUPPORTED_SPIN_MULTIPLICITIES}."
             )
         return charge, multiplicity
 
@@ -179,6 +204,7 @@ class MACEPolarEFCalculator(CalcABC):
             config = MACEPolarEFConfig(
                 checkpoint_path=self.model_path,
                 atomic_numbers=numbers,
+                checkpoint_spec=type(self).CHECKPOINT_SPEC,
                 total_charge=charge,
                 spin_multiplicity=multiplicity,
                 device=str(self.device),
@@ -226,6 +252,18 @@ class MACEPolarEFCalculator(CalcABC):
 
     def mace_polar_ef_gas_energy_ev(self, atoms) -> float:
         return self._gas_state(atoms, require_gradient=False).energy_ev
+
+    def mace_polar_ef_gas_gradient_ev_per_angstrom(
+        self,
+        atoms,
+    ) -> np.ndarray:
+        gradient = self._gas_state(
+            atoms,
+            require_gradient=True,
+        ).coordinate_gradient_ev_per_angstrom
+        if gradient is None:
+            raise RuntimeError("MACE-POLAR-EF gas gradient is unavailable.")
+        return np.array(gradient, dtype=float, copy=True)
 
     def calculate(
         self,

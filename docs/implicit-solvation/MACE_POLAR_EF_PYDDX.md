@@ -5,23 +5,25 @@
 The standard `pyddx==0.8.0` ddPCM PyTorch bridge is implemented and retains
 the upstream cavity, operator, solve, adjoint source derivative, and analytic
 coordinate derivative. The supplied `macepol-ef-v2.pt` checkpoint is also
-connected to the smooth PCM and registered under one deliberately alarming,
-energy-only diagnostic profile. Its electronic response is known to fail the
+connected to the smooth PCM and registered under explicit diagnostic
+profiles. Its electronic response is known to fail the
 required passivity test after correcting the spin input to singlet
 multiplicity `1`.
 
-The diagnostic is not a scientific prediction route. It requires both
-`experimental=true` and `acknowledge_known_nonpassive=true`; force,
-optimization, frequency, dynamics, Hessian, default selection, and
-chemical-accuracy capability remain closed.
+The v2 multi-solvent derivative profile requires `experimental=true`,
+`acknowledge_known_nonpassive=true`, and
+`acknowledge_unvalidated_derivatives=true`. It exposes analytic first
+derivatives, numerical Hessians formed from those derivatives, L-BFGS OPT,
+FREQ, and P-RFO TS. Default selection and chemical-accuracy admission remain
+closed.
 
 ### Explicit input
 
 ```text
 #model=mace-polar-ef-v2(model_path=/absolute/path/macepol-ef-v2.pt)
-#sp
+#sp(verbose=1)
 #device=gpu0
-#solv(implicit=water,method=smd,provider=torch-smooth-pcm,profile=mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-water-known-nonpassive-v1,response=scf,standard_state=1m,experimental=true,acknowledge_known_nonpassive=true)
+#solv(implicit=methanol,method=smd,provider=torch-smooth-pcm,profile=mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2,response=scf,standard_state=1m,experimental=true,acknowledge_known_nonpassive=true,acknowledge_unvalidated_derivatives=true)
 
 0 1
 O   0.000000   0.000000   0.000000
@@ -31,6 +33,10 @@ H  -0.239987   0.927297   0.000000
 
 Every normal output prints `KNOWN-NONPASSIVE DIAGNOSTIC` and
 `scientifically_valid=false` before the energy decomposition.
+
+The same profile accepts water, methanol, ethanol, acetonitrile, DMSO, DMF,
+THF, chloroform, dichloromethane, toluene, and hexane. Replace the task line
+with `#opt(method=lbfgs)`, `#freq`, or `#ts(method=prfo)` for those workflows.
 
 ## Connection to `torch-smooth-pcm-v1`
 

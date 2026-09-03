@@ -88,6 +88,7 @@ class CommandControl:
         "md": {"nve", "nvt", "npt"},
     }
     GLOBAL_PARAMS = {
+        "model",
         "model_options",
         "device",
         "gpuid",
@@ -167,6 +168,7 @@ class CommandControl:
         "standard_state",
         "cavity_policy",
         "acknowledge_known_nonpassive",
+        "acknowledge_unvalidated_derivatives",
         "write_shell",
         "shell_cutoff",
         "solvent_pdb",
@@ -545,6 +547,7 @@ class CommandControl:
             "write_shell",
             "experimental",
             "acknowledge_known_nonpassive",
+            "acknowledge_unvalidated_derivatives",
         ):
             if key in solv_params and not isinstance(solv_params[key], bool):
                 msg = f"Solvation {key} must be 'true' or 'false'."
@@ -708,7 +711,7 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if task != "sp":
+                if task != "sp" and provider != "torch-smooth-pcm":
                     msg = (
                         "Route 2 SMD remains single-point only while the "
                         "solution-phase PES validation gate is open."
@@ -722,16 +725,6 @@ class CommandControl:
                     msg = (
                         "Route 2 SMD v1 does not provide forces/gradients; "
                         "the PCMSolver/GePol provider remains energy-only. "
-                        "Use #sp without verbose=1."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if (
-                    provider == "torch-smooth-pcm"
-                    and int(params.get("verbose", 0)) >= 1
-                ):
-                    msg = (
-                        "Route 2 provider=torch-smooth-pcm is energy-only. "
                         "Use #sp without verbose=1."
                     )
                     cls._log_error(output_path, msg)
@@ -759,6 +752,7 @@ class CommandControl:
                     "standard_state",
                     "cavity_policy",
                     "acknowledge_known_nonpassive",
+                    "acknowledge_unvalidated_derivatives",
                 }
                 route_conflicts = sorted(
                     set(solv_params).difference(allowed_smd_options)
@@ -836,6 +830,71 @@ class CommandControl:
                     msg = (
                         "acknowledge_known_nonpassive is valid only for a "
                         "known-nonpassive diagnostic profile."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                derivative_acknowledgement = solv_params.get(
+                    "acknowledge_unvalidated_derivatives"
+                )
+                if (
+                    profile_spec.diagnostic_derivative_eligible
+                    and derivative_acknowledgement is not True
+                ):
+                    msg = (
+                        "The selected profile exposes unvalidated diagnostic "
+                        "derivatives; set "
+                        "acknowledge_unvalidated_derivatives=true explicitly."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if (
+                    not profile_spec.diagnostic_derivative_eligible
+                    and "acknowledge_unvalidated_derivatives" in solv_params
+                ):
+                    msg = (
+                        "acknowledge_unvalidated_derivatives is valid only for "
+                        "a diagnostic derivative profile."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if task != "sp":
+                    if not profile_spec.diagnostic_derivative_eligible:
+                        msg = (
+                            "Route 2 SMD remains single-point only for the "
+                            "selected profile."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task not in {"opt", "freq", "ts"}:
+                        msg = (
+                            "The diagnostic derivative profile supports only "
+                            "SP, OPT, FREQ, and TS tasks."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    method_name = str(params.get("method") or "").lower()
+                    if task == "opt" and method_name not in {"", "lbfgs"}:
+                        msg = (
+                            "The diagnostic derivative profile supports OPT "
+                            "only with method=lbfgs."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task == "ts" and method_name != "prfo":
+                        msg = (
+                            "The diagnostic derivative profile supports TS "
+                            "only with method=prfo."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                if (
+                    task == "sp"
+                    and provider == "torch-smooth-pcm"
+                    and int(params.get("verbose", 0)) >= 1
+                    and not profile_spec.diagnostic_derivative_eligible
+                ):
+                    msg = (
+                        "The selected torch-smooth-pcm profile is energy-only."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)

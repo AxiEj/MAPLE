@@ -106,6 +106,27 @@ def _public_force_record(result: SolvationResult) -> dict[str, Any]:
         return {
             "forces_evaluated": False,
             "force_admission": None,
+            "diagnostic_derivative_evidence": None,
+        }
+    diagnostic_evidence = result.provenance.get(
+        "diagnostic_derivative_evidence"
+    )
+    if (
+        result.provenance.get("known_nonpassive_diagnostic") is True
+        and result.provenance.get("unvalidated_derivatives_acknowledged") is True
+        and isinstance(diagnostic_evidence, Mapping)
+    ):
+        if diagnostic_evidence.get("release_admitted") is not False:
+            raise ValueError(
+                "A diagnostic derivative record must retain "
+                "release_admitted=false."
+            )
+        return {
+            "forces_evaluated": True,
+            "force_admission": None,
+            "diagnostic_derivative_evidence": _json_ready(
+                dict(diagnostic_evidence)
+            ),
         }
     if not isinstance(force_admission, Mapping):
         raise ValueError(
@@ -119,6 +140,7 @@ def _public_force_record(result: SolvationResult) -> dict[str, Any]:
     return {
         "forces_evaluated": True,
         "force_admission": _json_ready(dict(force_admission)),
+        "diagnostic_derivative_evidence": None,
     }
 
 

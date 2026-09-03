@@ -1,0 +1,33 @@
+{
+  "artifact": "opencosmors-python-open24a-activity-oracle-v1",
+  "source": {
+    "repository": "https://github.com/TUHH-TVT/openCOSMO-RS_py",
+    "commit": "3db6614925ded5fc47a77d1e34f4a1975e518a9b",
+    "parameterization": "openCOSMORS24a"
+  },
+  "temperature_k": 298.15,
+  "solute": {
+    "sigma_e_per_angstrom2": [-0.0214, 0.0042, 0.0267],
+    "sigma_orthogonal_e_per_angstrom2": [-0.0023, 0.0017, -0.0044],
+    "areas_angstrom2": [11.2, 13.7, 19.4],
+    "atomic_numbers": [6, 8, 1],
+    "cavity_area_angstrom2": 44.3,
+    "cavity_volume_angstrom3": 57.1
+  },
+  "solvent": {
+    "sigma_e_per_angstrom2": [-0.0161, -0.0012, 0.0198],
+    "sigma_orthogonal_e_per_angstrom2": [-0.0031, 0.0006, 0.0029],
+    "areas_angstrom2": [9.5, 21.0, 17.8],
+    "atomic_numbers": [8, 6, 1],
+    "cavity_area_angstrom2": 48.3,
+    "cavity_volume_angstrom3": 62.8
+  },
+  "expected": {
+    "residual_log_activity": -29.63226496644239,
+    "combinatorial_log_activity": -0.0041856282442192675,
+    "total_log_activity": -29.636450594686607,
+    "cosmospace_iterations": 124,
+    "union_segment_type_count": 24
+  },
+  "claim_boundary": "Synthetic equation-level parity oracle only; it is not a molecule, solvent prediction, accuracy result, ionic validation, or force admission."
+}

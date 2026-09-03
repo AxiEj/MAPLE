@@ -41,6 +41,7 @@ OPEN_COSMORS_24A_AUDITED_RADII_ANGSTROM = {
     "S": 2.16,
     "Cl": 2.05,
     "Br": 2.16,
+    "I": 2.32,
 }
 
 # Exact nine-decimal radius tokens observed in the audited ORCA 6 conductor
@@ -56,6 +57,7 @@ OPEN_COSMORS_24A_AUDITED_RADII_BOHR = {
     "S": 4.081808449,
     "Cl": 3.873938575,
     "Br": 4.081808449,
+    "I": 4.384164631,
 }
 
 
@@ -543,6 +545,7 @@ def _atomic_number(symbol: str) -> int:
         "S": 16,
         "Cl": 17,
         "Br": 35,
+        "I": 53,
     }
     try:
         return numbers[symbol]

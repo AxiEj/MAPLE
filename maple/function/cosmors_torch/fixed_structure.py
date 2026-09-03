@@ -62,6 +62,35 @@ def _integer(value: object, *, name: str, minimum: int | None = None) -> int:
     return value
 
 
+def _positive_float(value: object, *, name: str) -> float:
+    result = float(value)
+    if not math.isfinite(result) or result <= 0.0:
+        raise ValueError(f"{name} must be finite and positive.")
+    return result
+
+
+def _validate_fixed_structure_cutoff_margins(
+    species_payloads: Sequence[dict[str, Any]],
+    *,
+    acknowledged: bool,
+) -> list[str]:
+    reduced = [
+        str(item["name"])
+        for item in species_payloads
+        if _positive_float(
+            item.get("cutoff_margin_angstrom", 0.05),
+            name=f"{item['name']} cutoff_margin_angstrom",
+        )
+        < 0.05
+    ]
+    if reduced and not acknowledged:
+        raise ValueError(
+            "Reduced MACE cutoff topology margins are fixed-structure-only; "
+            "set acknowledge_fixed_structure_cutoff_margin=true explicitly."
+        )
+    return reduced
+
+
 def _load_species(
     payload: dict[str, Any],
     *,
@@ -102,12 +131,17 @@ def _load_species(
         name=f"{name} ring_atom_count",
         minimum=0,
     )
+    cutoff_margin = _positive_float(
+        payload.get("cutoff_margin_angstrom", 0.05),
+        name=f"{name} cutoff_margin_angstrom",
+    )
     electronic_config = MACEPolarEFConfig(
         checkpoint_path=str(checkpoint_path),
         atomic_numbers=atomic_numbers,
         total_charge=charge,
         spin_multiplicity=multiplicity,
         device=device,
+        cutoff_margin_angstrom=cutoff_margin,
     )
     electronic = MACEPolarEFEnergyModel(electronic_config)
     gas = electronic.evaluate(
@@ -151,6 +185,7 @@ def _load_species(
         "charge": charge,
         "multiplicity": multiplicity,
         "ring_atom_count": ring_atom_count,
+        "cutoff_margin_angstrom": cutoff_margin,
         "gas_energy_ev": gas.energy_ev,
         "conductor_total_energy_ev": coupled.total_energy_ev,
         "conductor_total_minus_gas_ev": coupled.total_energy_ev - gas.energy_ev,
@@ -204,6 +239,13 @@ def evaluate_fixed_structure_payload(
     names = [str(item["name"]).strip() for item in species_payloads]
     if len(set(names)) != len(names):
         raise ValueError("Transition-state and reactant names must be unique.")
+    cutoff_margin_acknowledged = (
+        payload.get("acknowledge_fixed_structure_cutoff_margin") is True
+    )
+    reduced_cutoff_margins = _validate_fixed_structure_cutoff_margins(
+        species_payloads,
+        acknowledged=cutoff_margin_acknowledged,
+    )
 
     profiles = {}
     ring_counts = {}
@@ -315,6 +357,8 @@ def evaluate_fixed_structure_payload(
         "angular_degree": angular_degree,
         "reference_solvent": reference_solvent,
         "acknowledge_unvalidated_ions": acknowledge_ions,
+        "acknowledge_fixed_structure_cutoff_margin": cutoff_margin_acknowledged,
+        "reduced_cutoff_margin_species": reduced_cutoff_margins,
         "parameterization_scope": "neutral-molecules",
         "diagnostic_only": True,
         "diagnostic_reasons": diagnostic_reasons,

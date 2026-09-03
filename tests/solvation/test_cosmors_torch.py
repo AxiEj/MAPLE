@@ -16,6 +16,9 @@ from maple.function.cosmors_torch.cosmospace import (
     molecule_residual_log_activity,
     solve_cosmospace,
 )
+from maple.function.cosmors_torch.fixed_structure import (
+    _validate_fixed_structure_cutoff_margins,
+)
 from maple.function.cosmors_torch.kse import (
     GAS_CONSTANT_KCAL_PER_MOL_K,
     ActivationSolvationFreeEnergy,
@@ -215,6 +218,30 @@ def test_kse_rejects_a_changed_reaction_identity():
 
     with pytest.raises(ValueError, match="same reaction"):
         compute_relative_kinetic_solvent_effect(target, reference)
+
+
+def test_reduced_fixed_structure_cutoff_margin_requires_acknowledgement():
+    species = [
+        {"name": "reactant"},
+        {"name": "transition-state", "cutoff_margin_angstrom": 0.001},
+    ]
+
+    with pytest.raises(ValueError, match="fixed-structure-only"):
+        _validate_fixed_structure_cutoff_margins(species, acknowledged=False)
+
+    assert _validate_fixed_structure_cutoff_margins(
+        species,
+        acknowledged=True,
+    ) == ["transition-state"]
+
+
+@pytest.mark.parametrize("value", [0.0, -0.1, math.inf, math.nan])
+def test_fixed_structure_cutoff_margin_must_be_finite_and_positive(value):
+    with pytest.raises(ValueError, match="finite and positive"):
+        _validate_fixed_structure_cutoff_margins(
+            [{"name": "species", "cutoff_margin_angstrom": value}],
+            acknowledged=True,
+        )
 
 
 def test_kse_json_cli_writes_a_hash_bound_result(tmp_path):

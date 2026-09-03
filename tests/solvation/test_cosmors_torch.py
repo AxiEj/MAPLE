@@ -23,10 +23,12 @@ from maple.function.cosmors_torch.fixed_structure import (
     _validate_fixed_structure_cutoff_margins,
 )
 from maple.function.cosmors_torch.ionic_es import (
+    MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY,
     PARAMETERIZATION_C_NEUTRAL_IDENTITY,
     POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
     PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE,
     PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    electron_attachment_fractions,
     parameterization_c_neutral_hbond_weights,
     polyatomic_anion_neutral_solvent_cross_energy,
     replace_polyatomic_anion_cross_contacts,
@@ -298,6 +300,31 @@ def test_parameterization_c_neutral_requires_surface_acknowledgement(tmp_path):
         evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
 
 
+def test_atomwise_ionic_localization_requires_the_ionic_model(tmp_path):
+    checkpoint = tmp_path / "checkpoint.pt"
+    checkpoint.write_bytes(b"identity-only")
+    payload = {
+        "checkpoint_path": str(checkpoint),
+        "ionic_contact_localization_model": (
+            MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY
+        ),
+    }
+
+    with pytest.raises(ValueError, match="requires ionic_short_range_model"):
+        evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
+
+    payload.update(
+        {
+            "ionic_short_range_model": POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+            "acknowledge_ionic_es_surface_mismatch": True,
+            "acknowledge_ionic_es_domain_extrapolation": True,
+            "acknowledge_unvalidated_ions": True,
+        }
+    )
+    with pytest.raises(ValueError, match="unvalidated extension"):
+        evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
+
+
 def test_parameterization_c_polyatomic_anion_source_values_are_frozen():
     parameters = PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE
     oracle = json.loads(IONIC_ES_ORACLE.read_text(encoding="utf-8"))
@@ -335,6 +362,31 @@ def test_parameterization_c_neutral_hbond_switches_follow_parent_elements():
         acceptor,
         torch.tensor([0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], dtype=torch.float64),
     )
+
+
+def test_electron_attachment_fractions_are_smooth_normalized_and_shift_invariant():
+    anion = torch.tensor([-0.5, -0.5], dtype=torch.float64, requires_grad=True)
+    reference = torch.tensor([-0.1, 0.1], dtype=torch.float64)
+
+    observed = electron_attachment_fractions(anion, reference)
+    shifted = electron_attachment_fractions(anion + 0.2, reference + 0.2)
+
+    torch.testing.assert_close(observed.sum(), torch.tensor(1.0, dtype=torch.float64))
+    torch.testing.assert_close(observed, shifted)
+    torch.testing.assert_close(
+        observed,
+        torch.tensor([0.4, 0.6], dtype=torch.float64),
+        atol=2.0e-15,
+        rtol=0.0,
+    )
+    observed.square().sum().backward()
+    assert anion.grad is not None
+    assert bool(torch.isfinite(anion.grad).all())
+    with pytest.raises(ValueError, match="one-electron"):
+        electron_attachment_fractions(
+            torch.tensor([-0.2, -0.2], dtype=torch.float64),
+            reference,
+        )
 
 
 def test_parameterization_c_modified_sg_uses_published_volume_exponent():
@@ -435,6 +487,31 @@ def test_ionic_es_replaces_only_symmetric_cross_contacts():
     assert not bool(torch.equal(observed[:2, 2:], base[:2, 2:]))
 
 
+def test_atomwise_ionic_weights_convexly_blend_each_solute_segment():
+    base = torch.arange(16, dtype=torch.float64).reshape(4, 4)
+    base = 0.5 * (base + base.T)
+    arguments = {
+        "solute_segment_count": 2,
+        "solute_sigma_e_per_angstrom2": torch.tensor([0.03, 0.02], dtype=torch.float64),
+        "solute_sigma_orthogonal_e_per_angstrom2": torch.zeros(2, dtype=torch.float64),
+        "solvent_sigma_e_per_angstrom2": torch.tensor(
+            [-0.02, -0.01], dtype=torch.float64
+        ),
+        "solvent_sigma_orthogonal_e_per_angstrom2": torch.zeros(2, dtype=torch.float64),
+        "solvent_class": "organic",
+    }
+    full = replace_polyatomic_anion_cross_contacts(base, **arguments)
+    localized = replace_polyatomic_anion_cross_contacts(
+        base,
+        solute_ionic_contact_weight=torch.tensor([0.0, 1.0], dtype=torch.float64),
+        **arguments,
+    )
+
+    torch.testing.assert_close(localized[0, 2:], base[0, 2:])
+    torch.testing.assert_close(localized[1, 2:], full[1, 2:])
+    torch.testing.assert_close(localized, localized.T)
+
+
 def test_infinite_dilution_ionic_es_is_explicit_and_identity_tagged():
     payload = {
         "sigma_e_per_angstrom2": [0.03, 0.02],
@@ -481,6 +558,32 @@ def test_infinite_dilution_ionic_es_is_explicit_and_identity_tagged():
             discretize=False,
             ionic_es_solvent_class="organic",
         )
+    with pytest.raises(ValueError, match="nonzero segment weights"):
+        infinite_dilution_activity(
+            anion,
+            water,
+            discretize=False,
+            ionic_es_solvent_class="water",
+            ionic_contact_localization_model=(
+                MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY
+            ),
+        )
+    localized_anion = replace(
+        anion,
+        ionic_contact_weight=torch.tensor([0.4, 0.6], dtype=torch.float64),
+    )
+    localized = infinite_dilution_activity(
+        localized_anion,
+        water,
+        discretize=False,
+        ionic_es_solvent_class="water",
+        ionic_contact_localization_model=(
+            MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY
+        ),
+    )
+    assert MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY in (
+        localized.interaction_model_identity
+    )
 
 
 def test_kse_json_cli_writes_a_hash_bound_result(tmp_path):
@@ -682,8 +785,18 @@ def test_sigma_average_and_open24a_gridding_preserve_autograd_and_area():
         },
         name="grid-test",
     )
+    profile = replace(
+        profile,
+        ionic_contact_weight=torch.tensor([0.2, 0.5, 0.9], dtype=torch.float64),
+    )
     gridded = discretize_open24a_profile(profile)
     assert float(gridded.cavity_area_angstrom2) == pytest.approx(9.0, abs=1.0e-13)
+    assert float(
+        torch.sum(gridded.areas_angstrom2 * gridded.ionic_contact_weight)
+    ) == pytest.approx(
+        float(torch.sum(profile.areas_angstrom2 * profile.ionic_contact_weight)),
+        abs=2.0e-13,
+    )
     assert gridded.discretization == "open24a-bilinear-0.001"
 
 
@@ -747,6 +860,41 @@ def test_torch_segment_cosmo_coordinate_gradient_matches_finite_difference():
     numeric = (model.energy(plus, source) - model.energy(minus, source)) / (2 * step)
     assert analytic[1, 0] == pytest.approx(numeric, abs=2.0e-6, rel=2.0e-5)
     np.testing.assert_allclose(analytic.sum(axis=0), np.zeros(3), atol=2.0e-10)
+
+
+def test_sigma_profile_maps_parent_atom_ionic_weights_to_segments():
+    model = TorchSegmentCOSMO(
+        TorchSegmentCOSMOConfig(
+            atomic_numbers=(6, 1),
+            radii_angstrom=(2.0, 1.3),
+            angular_degree=2,
+        )
+    )
+    geometry = np.array([[0.0, 0.0, 0.0], [1.35, 0.1, 0.0]], dtype=np.float64)
+    source = np.array(
+        [[-0.2, 0.01, -0.02, 0.03], [0.2, -0.01, 0.02, -0.03]],
+        dtype=np.float64,
+    )
+    surface = model.surface(geometry, source, name="localized")
+    profile = build_sigma_profile(
+        surface,
+        parent_atom_ionic_contact_weights=torch.tensor(
+            [0.25, 0.75], dtype=torch.float64
+        ),
+    )
+
+    torch.testing.assert_close(
+        profile.ionic_contact_weight[profile.atomic_numbers == 6],
+        torch.full_like(
+            profile.ionic_contact_weight[profile.atomic_numbers == 6], 0.25
+        ),
+    )
+    torch.testing.assert_close(
+        profile.ionic_contact_weight[profile.atomic_numbers == 1],
+        torch.full_like(
+            profile.ionic_contact_weight[profile.atomic_numbers == 1], 0.75
+        ),
+    )
 
 
 def test_full_open24a_energy_requires_total_electronic_difference_and_flags_ions():
@@ -894,6 +1042,7 @@ def test_native_sigma_profile_json_round_trip_is_exact(tmp_path):
         "atomic_numbers",
         "hydrogen_bond_donor_weight",
         "hydrogen_bond_acceptor_weight",
+        "ionic_contact_weight",
     ):
         torch.testing.assert_close(
             getattr(restored, field),

@@ -227,10 +227,12 @@ Enable the overlay explicitly:
 {
   "neutral_cosmospace_model": "cosmo-rs-es-parameterization-c-neutral-2020",
   "ionic_short_range_model": "cosmo-rs-es-parameterization-c-polyatomic-anion-sr-2020",
+  "ionic_contact_localization_model": "mace-ef-electron-attachment-fraction-localization-v1",
   "acknowledge_unvalidated_ions": true,
   "acknowledge_parameterization_c_surface_mismatch": true,
   "acknowledge_ionic_es_surface_mismatch": true,
   "acknowledge_ionic_es_domain_extrapolation": true,
+  "acknowledge_local_ionic_contact_extrapolation": true,
   "solvents": [
     {
       "name": "methanol",
@@ -249,6 +251,24 @@ Enable the overlay explicitly:
 The solvent class is checked against the solvent profile. The current adapter
 supports polyatomic anions only; it rejects cations and monatomic anions rather
 than silently applying the wrong published contact class.
+
+The optional atomwise localization mode evaluates the anion and its
+one-electron-oxidized neutral-radical reference at the same geometry, in the
+gas phase and at zero external field. For atom `a`, it forms
+
+```text
+delta_q[a] = q_anion[a] - q_neutral_reference[a]
+attachment[a] = smooth_negative(delta_q[a])
+w[a] = attachment[a] / sum_b attachment[b]
+```
+
+with a fixed `1e-8 e` numerical smoothing scale. Each surface segment inherits
+the weight of its parent atom, and its neutral/ionic cross-contact energy is
+the convex interpolation `(1-w)*E_neutral + w*E_ionic`. The weights sum to one
+electron, use no KSE or experimental target, and remain continuous in the MACE-
+EF atomwise monopoles. The neutral reference multiplicity is inferred from
+electron parity and can be overridden per species with
+`ionic_reference_multiplicity`.
 
 When `neutral_cosmospace_model` selects Parameterization C, the activity layer
 also uses the published Table 6.11 neutral values for `a_eff`, misfit, hydrogen

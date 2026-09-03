@@ -29,10 +29,13 @@ from .kse import (
     compute_relative_kinetic_solvent_effect,
 )
 from .ionic_es import (
+    ELECTRON_ATTACHMENT_SMOOTHING_E,
+    MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY,
     PARAMETERIZATION_C_NEUTRAL_IDENTITY,
     POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
     PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE,
     PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    electron_attachment_fractions,
     parameterization_c_neutral_provenance,
 )
 from .mace_ef_segment_cosmo import (
@@ -126,6 +129,7 @@ def _load_species(
     device: str,
     angular_degree: int,
     scf_payload: dict[str, Any],
+    ionic_contact_localization_model: str | None = None,
 ):
     import torch
 
@@ -175,6 +179,68 @@ def _load_species(
         positions,
         np.zeros((len(atomic_numbers), 4), dtype=float),
     )
+    atom_ionic_contact_weights = None
+    localization_record = None
+    if ionic_contact_localization_model is not None and charge < 0:
+        if charge != -1:
+            raise ValueError(
+                "Electron-attachment localization currently requires charge=-1."
+            )
+        reference_charge = charge + 1
+        reference_electron_count = sum(atomic_numbers) - reference_charge
+        default_reference_multiplicity = 1 if reference_electron_count % 2 == 0 else 2
+        reference_multiplicity = _integer(
+            payload.get(
+                "ionic_reference_multiplicity",
+                default_reference_multiplicity,
+            ),
+            name=f"{name} ionic_reference_multiplicity",
+            minimum=1,
+        )
+        reference_config = MACEPolarEFConfig(
+            checkpoint_path=str(checkpoint_path),
+            atomic_numbers=atomic_numbers,
+            total_charge=reference_charge,
+            spin_multiplicity=reference_multiplicity,
+            device=device,
+            cutoff_margin_angstrom=cutoff_margin,
+        )
+        reference_electronic = MACEPolarEFEnergyModel(reference_config)
+        reference_gas = reference_electronic.evaluate(
+            positions,
+            np.zeros((len(atomic_numbers), 4), dtype=float),
+        )
+        anion_monopoles = np.asarray(
+            gas.conjugate_source_raw[:, 0],
+            dtype=np.float64,
+        )
+        reference_monopoles = np.asarray(
+            reference_gas.conjugate_source_raw[:, 0],
+            dtype=np.float64,
+        )
+        attachment = electron_attachment_fractions(
+            anion_monopoles,
+            reference_monopoles,
+        )
+        atom_ionic_contact_weights = attachment.detach().cpu().numpy()
+        localization_record = {
+            "identity": ionic_contact_localization_model,
+            "source_state": "gas-phase-zero-external-field-same-geometry",
+            "anion_charge": charge,
+            "anion_multiplicity": multiplicity,
+            "reference_charge": reference_charge,
+            "reference_multiplicity": reference_multiplicity,
+            "smoothing_e": ELECTRON_ATTACHMENT_SMOOTHING_E,
+            "symbols": list(symbols),
+            "anion_atom_monopoles_e": anion_monopoles.tolist(),
+            "reference_atom_monopoles_e": reference_monopoles.tolist(),
+            "attachment_delta_monopoles_e": (
+                anion_monopoles - reference_monopoles
+            ).tolist(),
+            "atom_ionic_contact_weights": atom_ionic_contact_weights.tolist(),
+            "weight_sum": float(atom_ionic_contact_weights.sum()),
+        }
+        del reference_electronic
     continuum = TorchSegmentCOSMO(
         TorchSegmentCOSMOConfig(
             atomic_numbers=atomic_numbers,
@@ -198,7 +264,10 @@ def _load_species(
     surface = coupling.surface_from_result(positions, coupled, name=name)
     total_difference_hartree = (coupled.total_energy_ev - gas.energy_ev) / HARTREE_EV
     profile = replace(
-        build_sigma_profile(surface),
+        build_sigma_profile(
+            surface,
+            parent_atom_ionic_contact_weights=atom_ionic_contact_weights,
+        ),
         dielectric_energy_hartree=(
             surface.dielectric_energy_hartree.new_tensor(total_difference_hartree)
         ),
@@ -231,6 +300,7 @@ def _load_species(
         "mace_source_charge_e": float(surface.molecular_charge_e),
         "electronic_passivity": dict(coupled.provenance["electronic_passivity"]),
         "continuum_configuration_sha256": continuum.config.configuration_sha256,
+        "ionic_contact_localization": localization_record,
     }
     del coupling, electronic
     torch.cuda.empty_cache()
@@ -304,6 +374,24 @@ def evaluate_fixed_structure_payload(
                 "acknowledge_unvalidated_ions=true."
             )
     use_ionic_short_range = ionic_short_range_model is not None
+    ionic_contact_localization_model = payload.get("ionic_contact_localization_model")
+    if ionic_contact_localization_model is not None:
+        ionic_contact_localization_model = str(ionic_contact_localization_model).strip()
+        if (
+            ionic_contact_localization_model
+            != MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY
+        ):
+            raise ValueError("Unknown ionic_contact_localization_model.")
+        if not use_ionic_short_range:
+            raise ValueError(
+                "Ionic contact localization requires ionic_short_range_model."
+            )
+        if payload.get("acknowledge_local_ionic_contact_extrapolation") is not True:
+            raise ValueError(
+                "The atomwise localization rule is an unvalidated extension; set "
+                "acknowledge_local_ionic_contact_extrapolation=true explicitly."
+            )
+    use_local_ionic_contacts = ionic_contact_localization_model is not None
     provider_identity = (
         "mace-polar-ef-v2+torch-segment-cosmo-swig-v1"
         "+openCOSMO-RS-24a-solute-ledger"
@@ -313,6 +401,8 @@ def evaluate_fixed_structure_payload(
     )
     if use_ionic_short_range:
         provider_identity += f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
+    if use_local_ionic_contacts:
+        provider_identity += f"+{ionic_contact_localization_model}"
 
     transition_payload = dict(payload["transition_state"])
     reactant_payloads = [dict(item) for item in payload["reactants"]]
@@ -341,6 +431,7 @@ def evaluate_fixed_structure_payload(
             device=device,
             angular_degree=angular_degree,
             scf_payload=scf_payload,
+            ionic_contact_localization_model=ionic_contact_localization_model,
         )
         profiles[record["name"]] = profile
         ring_counts[record["name"]] = rings
@@ -423,6 +514,11 @@ def evaluate_fixed_structure_payload(
                 ionic_es_solvent_class=species_ionic_class,
                 cosmospace_parameters=cosmospace_parameters,
                 combinatorial_parameters=combinatorial_parameters,
+                ionic_contact_localization_model=(
+                    ionic_contact_localization_model
+                    if species_ionic_class is not None
+                    else None
+                ),
             )
             state = SolvationFreeEnergy(
                 species=species_name,
@@ -489,6 +585,13 @@ def evaluate_fixed_structure_payload(
             if use_parameterization_c_neutral
             else "hybrid-neutral-open24a-plus-ionic-es-short-range"
         )
+    if use_local_ionic_contacts:
+        diagnostic_reasons.extend(
+            (
+                "mace-ef-electron-attachment-localization-unvalidated",
+                "anionic-ts-local-contact-model-extrapolation",
+            )
+        )
     if passivity_failures:
         diagnostic_reasons.append("mace-ef-electronic-passivity-failed")
     output = {
@@ -542,6 +645,21 @@ def evaluate_fixed_structure_payload(
         output["experimental_neutral_baseline"] = {
             **parameterization_c_neutral_provenance(),
             "surface_convention_mismatch": True,
+            "not_admitted": True,
+        }
+    if use_local_ionic_contacts:
+        output["experimental_ionic_contact_localization"] = {
+            "identity": ionic_contact_localization_model,
+            "definition": (
+                "normalized smooth negative part of q_anion-q_neutral-reference"
+            ),
+            "smoothing_e": ELECTRON_ATTACHMENT_SMOOTHING_E,
+            "source_state": "gas-phase-zero-external-field-same-geometry",
+            "applied_species": {
+                name: species_records[name]["ionic_contact_localization"]
+                for name in sorted(ionic_es_applied_species)
+            },
+            "current_reaction_values_fitted": False,
             "not_admitted": True,
         }
     return output

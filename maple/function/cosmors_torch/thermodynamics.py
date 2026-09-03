@@ -18,6 +18,7 @@ from .cosmospace import (
 )
 from .ionic_es import (
     IonicESSolventClass,
+    MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY,
     PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2,
     PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT,
     PARAMETERIZATION_C_NEUTRAL_IDENTITY,
@@ -247,6 +248,7 @@ def infinite_dilution_activity(
     temperature_k: float = 298.15,
     discretize: bool = True,
     ionic_es_solvent_class: IonicESSolventClass | None = None,
+    ionic_contact_localization_model: str | None = None,
     cosmospace_parameters: COSMOSPACEParameters = OPEN_COSMORS_24A_PARAMETERS,
     solvation_parameters: OpenCOSMORS24aSolvationParameters = (
         OPEN_COSMORS_24A_SOLVATION_PARAMETERS
@@ -286,12 +288,26 @@ def infinite_dilution_activity(
             raise ValueError(
                 "ionic_es_solvent_class disagrees with the solvent profile identity."
             )
+    if ionic_contact_localization_model is not None:
+        if (
+            ionic_contact_localization_model
+            != MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY
+        ):
+            raise ValueError("Unknown ionic_contact_localization_model.")
+        if ionic_es_solvent_class is None:
+            raise ValueError(
+                "Ionic contact localization requires the ionic short-range model."
+            )
     solute = (
         discretize_open24a_profile(solute_profile) if discretize else solute_profile
     )
     solvent = (
         discretize_open24a_profile(solvent_profile) if discretize else solvent_profile
     )
+    if ionic_contact_localization_model is not None and not bool(
+        (solute.ionic_contact_weight > 0.0).any().detach()
+    ):
+        raise ValueError("Ionic contact localization requires nonzero segment weights.")
     sigma = torch.cat((solute.sigma_e_per_angstrom2, solvent.sigma_e_per_angstrom2))
     orthogonal = torch.cat(
         (
@@ -339,6 +355,11 @@ def infinite_dilution_activity(
                 solvent.sigma_orthogonal_e_per_angstrom2
             ),
             solvent_class=ionic_es_solvent_class,
+            solute_ionic_contact_weight=(
+                solute.ionic_contact_weight
+                if ionic_contact_localization_model is not None
+                else None
+            ),
         )
         hybrid_prefix = (
             ""
@@ -349,6 +370,8 @@ def infinite_dilution_activity(
             f"{hybrid_prefix}{cosmospace_parameters.name}"
             f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
         )
+        if ionic_contact_localization_model is not None:
+            interaction_identity += f"+{ionic_contact_localization_model}"
     solvent_areas = torch.cat(
         (
             torch.zeros(
@@ -474,6 +497,7 @@ def open24a_solvation_free_energy(
     acknowledge_unvalidated_ions: bool = False,
     discretize: bool = True,
     ionic_es_solvent_class: IonicESSolventClass | None = None,
+    ionic_contact_localization_model: str | None = None,
     cosmospace_parameters: COSMOSPACEParameters = OPEN_COSMORS_24A_PARAMETERS,
     combinatorial_parameters: OpenCOSMORS24aSolvationParameters | None = None,
     parameters: OpenCOSMORS24aSolvationParameters = (
@@ -506,6 +530,7 @@ def open24a_solvation_free_energy(
         temperature_k=temperature,
         discretize=discretize,
         ionic_es_solvent_class=ionic_es_solvent_class,
+        ionic_contact_localization_model=ionic_contact_localization_model,
         cosmospace_parameters=cosmospace_parameters,
         solvation_parameters=(
             parameters if combinatorial_parameters is None else combinatorial_parameters
@@ -564,6 +589,19 @@ def open24a_solvation_free_energy(
     )
     if not bool(torch.isfinite(total).detach()):
         raise FloatingPointError("open24a solvation free energy is non-finite.")
+    if cosmospace_parameters.name == PARAMETERIZATION_C_NEUTRAL_IDENTITY:
+        parameterization_identity = (
+            "hybrid-openCOSMO-RS-24a-solute-ledger"
+            f"+{PARAMETERIZATION_C_NEUTRAL_IDENTITY}"
+        )
+    else:
+        parameterization_identity = "openCOSMO-RS-24a-neutral-ORCA6"
+    if ionic_es_solvent_class is not None:
+        if cosmospace_parameters.name != PARAMETERIZATION_C_NEUTRAL_IDENTITY:
+            parameterization_identity = f"hybrid-{parameterization_identity}"
+        parameterization_identity += f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
+    if ionic_contact_localization_model is not None:
+        parameterization_identity += f"+{ionic_contact_localization_model}"
     return OpenCOSMORS24aSolvationResult(
         delta_g_solvation_kcal_mol=total,
         dielectric_kcal_mol=dielectric,
@@ -575,22 +613,7 @@ def open24a_solvation_free_energy(
         solvent_liquid_molar_volume_cm3_mol=liquid_volume,
         activity=activity,
         ionic_parameterization_validated=False if ionic else True,
-        parameterization_identity=(
-            "hybrid-openCOSMO-RS-24a-solute-ledger"
-            f"+{PARAMETERIZATION_C_NEUTRAL_IDENTITY}"
-            + (
-                f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
-                if ionic_es_solvent_class is not None
-                else ""
-            )
-            if cosmospace_parameters.name == PARAMETERIZATION_C_NEUTRAL_IDENTITY
-            else (
-                "hybrid-openCOSMO-RS-24a-neutral-ORCA6"
-                f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
-                if ionic_es_solvent_class is not None
-                else "openCOSMO-RS-24a-neutral-ORCA6"
-            )
-        ),
+        parameterization_identity=parameterization_identity,
     )
 
 

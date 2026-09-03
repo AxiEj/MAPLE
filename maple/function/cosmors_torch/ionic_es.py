@@ -29,6 +29,10 @@ POLYATOMIC_ANION_SHORT_RANGE_IDENTITY = (
     "cosmo-rs-es-parameterization-c-polyatomic-anion-sr-2020"
 )
 PARAMETERIZATION_C_NEUTRAL_IDENTITY = "cosmo-rs-es-parameterization-c-neutral-2020"
+MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY = (
+    "mace-ef-electron-attachment-fraction-localization-v1"
+)
+ELECTRON_ATTACHMENT_SMOOTHING_E = 1.0e-8
 IonicESSolventClass = Literal["water", "organic"]
 
 PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2 = 116.85
@@ -68,7 +72,7 @@ def _torch():
 
 def _float64_vector(value: object, *, name: str):
     torch = _torch()
-    tensor = value if isinstance(value, torch.Tensor) else torch.as_tensor(value)
+    tensor = value if isinstance(value, torch.Tensor) else torch.tensor(value)
     if not tensor.is_floating_point():
         tensor = tensor.to(dtype=torch.float64)
     if tensor.dtype != torch.float64 or tensor.ndim != 1:
@@ -111,6 +115,44 @@ class PolyatomicAnionShortRangeParameters:
 
 
 PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE = PolyatomicAnionShortRangeParameters()
+
+
+def electron_attachment_fractions(
+    anion_atom_monopoles_e: object,
+    neutral_reference_atom_monopoles_e: object,
+    *,
+    smoothing_e: float = ELECTRON_ATTACHMENT_SMOOTHING_E,
+):
+    """Return a smooth, normalized per-atom distribution of one added electron."""
+
+    torch = _torch()
+    anion = _float64_vector(
+        anion_atom_monopoles_e,
+        name="anion_atom_monopoles_e",
+    )
+    reference = _float64_vector(
+        neutral_reference_atom_monopoles_e,
+        name="neutral_reference_atom_monopoles_e",
+    )
+    if reference.shape != anion.shape or reference.device != anion.device:
+        raise ValueError("Anion and reference monopoles must share shape and device.")
+    smoothing = float(smoothing_e)
+    if not math.isfinite(smoothing) or smoothing <= 0.0:
+        raise ValueError("smoothing_e must be finite and positive.")
+    delta = anion - reference
+    added_electron = -float(delta.sum().detach())
+    if not math.isclose(added_electron, 1.0, rel_tol=0.0, abs_tol=1.0e-5):
+        raise ValueError(
+            "Electron-attachment localization requires a one-electron charge change."
+        )
+    smooth_negative = 0.5 * (torch.sqrt(delta.square() + smoothing * smoothing) - delta)
+    total = smooth_negative.sum()
+    if not bool(torch.isfinite(total).detach()) or float(total.detach()) <= 0.0:
+        raise FloatingPointError("Electron-attachment weights cannot be normalized.")
+    weights = smooth_negative / total
+    if not bool(torch.isfinite(weights).all().detach()):
+        raise FloatingPointError("Electron-attachment weights are non-finite.")
+    return weights
 
 
 def parameterization_c_neutral_provenance() -> dict[str, object]:
@@ -286,6 +328,7 @@ def replace_polyatomic_anion_cross_contacts(
     solvent_sigma_e_per_angstrom2: object,
     solvent_sigma_orthogonal_e_per_angstrom2: object,
     solvent_class: IonicESSolventClass,
+    solute_ionic_contact_weight: object | None = None,
     parameters: PolyatomicAnionShortRangeParameters = (
         PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE
     ),
@@ -302,7 +345,7 @@ def replace_polyatomic_anion_cross_contacts(
         raise TypeError("neutral_interaction_energy_j_per_mol must be square float64.")
     if not 0 < solute_segment_count < base.shape[0]:
         raise ValueError("solute_segment_count does not split the interaction matrix.")
-    cross = polyatomic_anion_neutral_solvent_cross_energy(
+    ionic_cross = polyatomic_anion_neutral_solvent_cross_energy(
         solute_sigma_e_per_angstrom2,
         solute_sigma_orthogonal_e_per_angstrom2,
         solvent_sigma_e_per_angstrom2,
@@ -311,8 +354,23 @@ def replace_polyatomic_anion_cross_contacts(
         parameters=parameters,
     )
     expected = (solute_segment_count, base.shape[0] - solute_segment_count)
-    if cross.shape != expected or cross.device != base.device:
+    if ionic_cross.shape != expected or ionic_cross.device != base.device:
         raise ValueError("Ionic cross block is incompatible with the base matrix.")
+    if solute_ionic_contact_weight is None:
+        weights = base.new_ones(solute_segment_count)
+    else:
+        weights = _float64_vector(
+            solute_ionic_contact_weight,
+            name="solute_ionic_contact_weight",
+        )
+        if weights.shape != (solute_segment_count,) or weights.device != base.device:
+            raise ValueError(
+                "Ionic contact weights must match the solute segment axis."
+            )
+        if bool(((weights < 0.0) | (weights > 1.0)).any().detach()):
+            raise ValueError("Ionic contact weights must lie in [0, 1].")
+    neutral_cross = base[:solute_segment_count, solute_segment_count:]
+    cross = neutral_cross + weights[:, None] * (ionic_cross - neutral_cross)
     upper = torch.cat(
         (base[:solute_segment_count, :solute_segment_count], cross), dim=1
     )
@@ -327,6 +385,8 @@ __all__ = [
     "IONIC_ES_PAPER_DOI",
     "IONIC_ES_THESIS_URL",
     "IonicESSolventClass",
+    "ELECTRON_ATTACHMENT_SMOOTHING_E",
+    "MACE_EF_ELECTRON_ATTACHMENT_LOCALIZATION_IDENTITY",
     "PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2",
     "PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT",
     "PARAMETERIZATION_C_NEUTRAL_HB_ACCEPTOR_ATOMIC_NUMBERS",
@@ -336,6 +396,7 @@ __all__ = [
     "PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE",
     "PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE",
     "PolyatomicAnionShortRangeParameters",
+    "electron_attachment_fractions",
     "parameterization_c_neutral_hbond_weights",
     "parameterization_c_neutral_provenance",
     "polyatomic_anion_neutral_solvent_cross_energy",

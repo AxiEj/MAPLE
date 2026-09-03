@@ -201,9 +201,11 @@ class SigmaProfile:
     molecular_charge_e: Any
     source_identity: str
     molecule_atomic_numbers: tuple[int, ...]
+    ionic_contact_weight: Any | None = None
     discretization: str = "continuous-segments"
 
     def __post_init__(self) -> None:
+        torch = _torch()
         sigma = _float64_tensor(
             self.sigma_e_per_angstrom2,
             name="sigma_e_per_angstrom2",
@@ -234,6 +236,15 @@ class SigmaProfile:
             name="hydrogen_bond_acceptor_weight",
             device=device,
         )
+        ionic_contact = (
+            torch.zeros_like(sigma)
+            if self.ionic_contact_weight is None
+            else _float64_tensor(
+                self.ionic_contact_weight,
+                name="ionic_contact_weight",
+                device=device,
+            )
+        )
         volume = _float64_tensor(
             self.cavity_volume_angstrom3,
             name="cavity_volume_angstrom3",
@@ -255,13 +266,15 @@ class SigmaProfile:
             )
         if any(
             value.shape != sigma.shape
-            for value in (orthogonal, areas, numbers, donor, acceptor)
+            for value in (orthogonal, areas, numbers, donor, acceptor, ionic_contact)
         ):
             raise ValueError("All sigma-profile descriptors must share shape (S,).")
         if bool((areas <= 0.0).any().detach()):
             raise ValueError("Sigma-profile areas must be positive.")
         if bool(((donor < 0.0) | (acceptor < 0.0)).any().detach()):
             raise ValueError("Hydrogen-bond weights must be nonnegative.")
+        if bool(((ionic_contact < 0.0) | (ionic_contact > 1.0)).any().detach()):
+            raise ValueError("Ionic contact weights must lie in [0, 1].")
         if volume.ndim != 0 or dielectric.ndim != 0 or molecular_charge.ndim != 0:
             raise ValueError("Sigma-profile molecule properties must be scalars.")
         if float(volume.detach()) <= 0.0:
@@ -292,6 +305,7 @@ class SigmaProfile:
         object.__setattr__(self, "atomic_numbers", numbers)
         object.__setattr__(self, "hydrogen_bond_donor_weight", donor)
         object.__setattr__(self, "hydrogen_bond_acceptor_weight", acceptor)
+        object.__setattr__(self, "ionic_contact_weight", ionic_contact)
         object.__setattr__(self, "cavity_volume_angstrom3", volume)
         object.__setattr__(self, "dielectric_energy_hartree", dielectric)
         object.__setattr__(self, "dielectric_energy_role", dielectric_role)
@@ -374,7 +388,11 @@ def sigma_average(
     return averaged, distances2
 
 
-def build_sigma_profile(surface: COSMOSurface) -> SigmaProfile:
+def build_sigma_profile(
+    surface: COSMOSurface,
+    *,
+    parent_atom_ionic_contact_weights: object | None = None,
+) -> SigmaProfile:
     """Convert a conductor surface to continuous open24a segment descriptors."""
 
     if not isinstance(surface, COSMOSurface):
@@ -403,6 +421,21 @@ def build_sigma_profile(surface: COSMOSurface) -> SigmaProfile:
         dtype=_torch().int64,
         device=sigma.device,
     )[surface.segment_parent_atom_indices]
+    if parent_atom_ionic_contact_weights is None:
+        ionic_contact = _torch().zeros_like(sigma)
+    else:
+        atom_weights = _float64_tensor(
+            parent_atom_ionic_contact_weights,
+            name="parent_atom_ionic_contact_weights",
+            device=sigma.device,
+        )
+        if atom_weights.shape != (len(surface.atomic_numbers),):
+            raise ValueError(
+                "parent_atom_ionic_contact_weights must match the atom count."
+            )
+        if bool(((atom_weights < 0.0) | (atom_weights > 1.0)).any().detach()):
+            raise ValueError("Parent-atom ionic contact weights must lie in [0, 1].")
+        ionic_contact = atom_weights[surface.segment_parent_atom_indices]
     # openCOSMO-RS 24a enables both donor and acceptor switches for every
     # parameterized element; the sigma thresholds in the interaction equation
     # select the physical sign continuously.
@@ -421,6 +454,7 @@ def build_sigma_profile(surface: COSMOSurface) -> SigmaProfile:
         molecular_charge_e=surface.molecular_charge_e,
         source_identity=surface.source_identity,
         molecule_atomic_numbers=surface.atomic_numbers,
+        ionic_contact_weight=ionic_contact,
     )
 
 
@@ -481,8 +515,15 @@ def discretize_open24a_profile(profile: SigmaProfile) -> SigmaProfile:
     clustered_areas = torch.zeros(
         unique_keys.shape[0], dtype=torch.float64, device=sigma.device
     ).scatter_add(0, inverse, expanded_areas)
+    expanded_ionic_area = (profile.areas_angstrom2 * profile.ionic_contact_weight)[
+        :, None
+    ].expand(-1, 4).reshape(-1) * interpolation
+    clustered_ionic_area = torch.zeros(
+        unique_keys.shape[0], dtype=torch.float64, device=sigma.device
+    ).scatter_add(0, inverse, expanded_ionic_area)
     keep = clustered_areas > 0.0
     unique_keys = unique_keys[keep]
+    clustered_ionic_area = clustered_ionic_area[keep]
     clustered_areas = clustered_areas[keep]
     clustered_sigma = lower + step * unique_keys[:, 0].to(dtype=torch.float64)
     clustered_orthogonal = lower + step * unique_keys[:, 1].to(dtype=torch.float64)
@@ -495,6 +536,7 @@ def discretize_open24a_profile(profile: SigmaProfile) -> SigmaProfile:
         atomic_numbers=unique_keys[:, 2],
         hydrogen_bond_donor_weight=weights,
         hydrogen_bond_acceptor_weight=weights,
+        ionic_contact_weight=clustered_ionic_area / clustered_areas,
         discretization="open24a-bilinear-0.001",
     )
     if not bool(
@@ -711,6 +753,7 @@ def sigma_profile_payload(profile: SigmaProfile) -> dict[str, object]:
         "atomic_numbers": vector(profile.atomic_numbers),
         "hydrogen_bond_donor_weight": vector(profile.hydrogen_bond_donor_weight),
         "hydrogen_bond_acceptor_weight": vector(profile.hydrogen_bond_acceptor_weight),
+        "ionic_contact_weight": vector(profile.ionic_contact_weight),
         "cavity_volume_angstrom3": scalar(profile.cavity_volume_angstrom3),
         "dielectric_energy_hartree": scalar(profile.dielectric_energy_hartree),
         "dielectric_energy_role": profile.dielectric_energy_role,
@@ -763,6 +806,13 @@ def read_sigma_profile(path: str | Path) -> SigmaProfile:
         ),
         hydrogen_bond_acceptor_weight=torch.tensor(
             payload["hydrogen_bond_acceptor_weight"], dtype=torch.float64
+        ),
+        ionic_contact_weight=torch.tensor(
+            payload.get(
+                "ionic_contact_weight",
+                [0.0] * len(payload["sigma_e_per_angstrom2"]),
+            ),
+            dtype=torch.float64,
         ),
         cavity_volume_angstrom3=torch.tensor(
             payload["cavity_volume_angstrom3"], dtype=torch.float64

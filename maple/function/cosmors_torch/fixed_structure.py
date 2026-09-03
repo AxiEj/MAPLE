@@ -95,6 +95,22 @@ def _validate_fixed_structure_cutoff_margins(
     return reduced
 
 
+def _canonicalize_declared_profile_charge(profile, *, declared_charge: int):
+    """Bind ionic identity to the requested charge instead of float noise."""
+
+    observed = float(profile.molecular_charge_e.detach())
+    if abs(observed - declared_charge) > 1.0e-5:
+        raise RuntimeError(
+            "MACE-EF source charge disagrees with the declared molecular charge."
+        )
+    return replace(
+        profile,
+        molecular_charge_e=profile.molecular_charge_e.new_tensor(
+            float(declared_charge)
+        ),
+    )
+
+
 def _load_species(
     payload: dict[str, Any],
     *,
@@ -180,6 +196,10 @@ def _load_species(
             surface.dielectric_energy_hartree.new_tensor(total_difference_hartree)
         ),
         dielectric_energy_role="total-solvated-minus-gas",
+    )
+    profile = _canonicalize_declared_profile_charge(
+        profile,
+        declared_charge=charge,
     )
     result = {
         "name": name,
@@ -295,8 +315,8 @@ def evaluate_fixed_structure_payload(
     ionic_es_applied_species: set[str] = set()
     if use_ionic_short_range:
         for species_name, species_profile in profiles.items():
-            species_charge = float(species_profile.molecular_charge_e.detach())
-            if abs(species_charge) <= 2.0e-8:
+            species_charge = int(species_records[species_name]["charge"])
+            if species_charge == 0:
                 continue
             if (
                 species_charge >= 0.0
@@ -404,8 +424,7 @@ def evaluate_fixed_structure_payload(
             reference,
         ).as_dict()
     ionic_species = any(
-        abs(float(profile.molecular_charge_e.detach())) > 2.0e-8
-        for profile in profiles.values()
+        int(record["charge"]) != 0 for record in species_records.values()
     )
     passivity_failures = sorted(
         name

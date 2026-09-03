@@ -18,6 +18,7 @@ from maple.function.cosmors_torch.cosmospace import (
     solve_cosmospace,
 )
 from maple.function.cosmors_torch.fixed_structure import (
+    _canonicalize_declared_profile_charge,
     evaluate_fixed_structure_payload,
     _validate_fixed_structure_cutoff_margins,
 )
@@ -487,6 +488,27 @@ def _synthetic_profile(payload, *, name):
         source_identity="synthetic-open24a-equation-oracle",
         molecule_atomic_numbers=tuple(payload["atomic_numbers"]),
     )
+
+
+def test_declared_charge_canonicalization_ignores_only_float_noise():
+    profile = replace(
+        _synthetic_profile(
+            {
+                "sigma_e_per_angstrom2": [0.0],
+                "sigma_orthogonal_e_per_angstrom2": [0.0],
+                "areas_angstrom2": [1.0],
+                "atomic_numbers": [6],
+                "cavity_volume_angstrom3": 1.0,
+            },
+            name="neutral",
+        ),
+        molecular_charge_e=torch.tensor(-3.0e-8, dtype=torch.float64),
+    )
+
+    canonical = _canonicalize_declared_profile_charge(profile, declared_charge=0)
+    assert float(canonical.molecular_charge_e) == 0.0
+    with pytest.raises(RuntimeError, match="disagrees"):
+        _canonicalize_declared_profile_charge(profile, declared_charge=-1)
 
 
 def test_open24a_activity_matches_frozen_upstream_equation_oracle():

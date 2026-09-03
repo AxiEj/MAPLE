@@ -36,7 +36,7 @@ class PySCFSMDCDSResult:
     energy_hartree: float
     energy_kcal_mol: float
     position_gradient_hartree_per_angstrom: np.ndarray
-    runtime_provenance: Mapping[str, str]
+    runtime_provenance: Mapping[str, Any]
 
     def __post_init__(self) -> None:
         gradient = np.asarray(
@@ -79,6 +79,8 @@ def pyscf_smd_cds(
     positions_angstrom: np.ndarray,
     *,
     solvent: str,
+    total_charge: int = 0,
+    spin_multiplicity: int = 1,
     _runtime: _PySCFSMDCDSRuntime | None = None,
 ) -> PySCFSMDCDSResult:
     """Return official PySCF SMD CDS energy and gradient.
@@ -88,11 +90,15 @@ def pyscf_smd_cds(
     """
 
     solvent_spec = route2_solvent_spec(solvent)
-    runtime = (
-        _load_pyscf_smd_cds_runtime()
-        if _runtime is None
-        else _runtime
-    )
+    if isinstance(total_charge, bool) or not isinstance(total_charge, int):
+        raise TypeError("PySCF SMD CDS total_charge must be an integer.")
+    if (
+        isinstance(spin_multiplicity, bool)
+        or not isinstance(spin_multiplicity, int)
+        or spin_multiplicity < 1
+    ):
+        raise ValueError("PySCF SMD CDS spin_multiplicity must be a positive integer.")
+    runtime = _load_pyscf_smd_cds_runtime() if _runtime is None else _runtime
     version = require_tested_pyscf_version(
         runtime.version,
         feature="The optional PySCF SMD CDS bridge",
@@ -124,8 +130,8 @@ def pyscf_smd_cds(
         ),
         unit="Angstrom",
         basis="sto-3g",
-        charge=0,
-        spin=0,
+        charge=total_charge,
+        spin=spin_multiplicity - 1,
         verbose=0,
     )
     smd_object = runtime.smd.SMD(
@@ -138,28 +144,30 @@ def pyscf_smd_cds(
     if not np.isfinite(energy_hartree):
         raise RuntimeError("PySCF SMD CDS energy must be finite.")
     gradient_bohr = np.asarray(gradient_bohr, dtype=float)
-    if (
-        gradient_bohr.shape != expected_shape
-        or not np.all(np.isfinite(gradient_bohr))
-    ):
+    if gradient_bohr.shape != expected_shape or not np.all(np.isfinite(gradient_bohr)):
         raise RuntimeError(
             "PySCF SMD CDS gradient must be finite with shape "
             f"{expected_shape}; received {gradient_bohr.shape}."
         )
 
+    runtime_provenance: dict[str, Any] = {
+        "provider": "pyscf-smd-libsolvent-cds",
+        "pyscf_version": version,
+        "solvent": solvent_spec.name,
+        "pyscf_smd_solvent": solvent_spec.pyscf_smd_name,
+        "upstream_entrypoint": "pyscf.solvent.smd.get_cds_legacy",
+    }
+    if total_charge != 0 or spin_multiplicity != 1:
+        runtime_provenance.update(
+            total_charge=total_charge,
+            spin_multiplicity=spin_multiplicity,
+            pyscf_spin_two_s=spin_multiplicity - 1,
+        )
     return PySCFSMDCDSResult(
         energy_hartree=energy_hartree,
         energy_kcal_mol=energy_hartree * HARTREE_TO_KCAL_MOL,
-        position_gradient_hartree_per_angstrom=(
-            gradient_bohr / Bohr
-        ),
-        runtime_provenance={
-            "provider": "pyscf-smd-libsolvent-cds",
-            "pyscf_version": version,
-            "solvent": solvent_spec.name,
-            "pyscf_smd_solvent": solvent_spec.pyscf_smd_name,
-            "upstream_entrypoint": "pyscf.solvent.smd.get_cds_legacy",
-        },
+        position_gradient_hartree_per_angstrom=(gradient_bohr / Bohr),
+        runtime_provenance=runtime_provenance,
     )
 
 
@@ -167,6 +175,8 @@ def pyscf_smd_water_cds(
     symbols,
     positions_angstrom: np.ndarray,
     *,
+    total_charge: int = 0,
+    spin_multiplicity: int = 1,
     _runtime: _PySCFSMDCDSRuntime | None = None,
 ) -> PySCFSMDCDSResult:
     """Backward-compatible aqueous wrapper around :func:`pyscf_smd_cds`."""
@@ -175,6 +185,8 @@ def pyscf_smd_water_cds(
         symbols,
         positions_angstrom,
         solvent="water",
+        total_charge=total_charge,
+        spin_multiplicity=spin_multiplicity,
         _runtime=_runtime,
     )
 

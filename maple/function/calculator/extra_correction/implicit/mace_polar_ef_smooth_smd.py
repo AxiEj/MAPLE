@@ -245,6 +245,8 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             atoms.get_chemical_symbols(),
             positions,
             solvent=self.solvent,
+            total_charge=int(atoms.info.get("charge", 0)),
+            spin_multiplicity=int(atoms.info.get("mult", 1)),
         )
 
     def _coupling_for_calculator(

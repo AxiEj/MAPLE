@@ -129,10 +129,23 @@ def test_pyscf_smd_cds_routes_canonical_name_to_upstream_name(fake_runtime):
 
     assert _FakeSMD.last_object.solvent == "N,N-dimethylformamide"
     assert result.runtime_provenance["solvent"] == "dimethylformamide"
-    assert (
-        result.runtime_provenance["pyscf_smd_solvent"]
-        == "N,N-dimethylformamide"
+    assert result.runtime_provenance["pyscf_smd_solvent"] == "N,N-dimethylformamide"
+
+
+def test_pyscf_smd_cds_passes_charge_and_multiplicity_explicitly(fake_runtime):
+    result = pyscf_smd_cds(
+        ("C", "N"),
+        np.zeros((2, 3)),
+        solvent="water",
+        total_charge=-1,
+        spin_multiplicity=1,
+        _runtime=fake_runtime,
     )
+
+    assert _FakeGTO.last_kwargs["charge"] == -1
+    assert _FakeGTO.last_kwargs["spin"] == 0
+    assert result.runtime_provenance["total_charge"] == -1
+    assert result.runtime_provenance["spin_multiplicity"] == 1
 
 
 def test_pyscf_smd_cds_rejects_untested_runtime(fake_runtime):

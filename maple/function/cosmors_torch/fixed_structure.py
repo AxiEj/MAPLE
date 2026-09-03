@@ -27,6 +27,10 @@ from .kse import (
     SolvationFreeEnergy,
     compute_relative_kinetic_solvent_effect,
 )
+from .ionic_es import (
+    POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+)
 from .mace_ef_segment_cosmo import (
     MACEPolarEFSegmentCOSMOConfig,
     MACEPolarEFSegmentCOSMOCoupling,
@@ -230,6 +234,31 @@ def evaluate_fixed_structure_payload(
             "electronic_passivity_policy is owned by this diagnostic workflow."
         )
     acknowledge_ions = payload.get("acknowledge_unvalidated_ions") is True
+    ionic_short_range_model = payload.get("ionic_short_range_model")
+    if ionic_short_range_model is not None:
+        ionic_short_range_model = str(ionic_short_range_model).strip()
+        if ionic_short_range_model != POLYATOMIC_ANION_SHORT_RANGE_IDENTITY:
+            raise ValueError("Unknown ionic_short_range_model.")
+        if payload.get("acknowledge_ionic_es_surface_mismatch") is not True:
+            raise ValueError(
+                "The published ionic parameters use a different COSMO surface; "
+                "set acknowledge_ionic_es_surface_mismatch=true explicitly."
+            )
+        if payload.get("acknowledge_ionic_es_domain_extrapolation") is not True:
+            raise ValueError(
+                "The current solvent combinations and anionic transition state "
+                "are outside the published validation domain; set "
+                "acknowledge_ionic_es_domain_extrapolation=true explicitly."
+            )
+        if not acknowledge_ions:
+            raise ValueError(
+                "The ionic short-range overlay also requires "
+                "acknowledge_unvalidated_ions=true."
+            )
+    use_ionic_short_range = ionic_short_range_model is not None
+    provider_identity = FIXED_STRUCTURE_PROVIDER_IDENTITY
+    if use_ionic_short_range:
+        provider_identity += f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
 
     transition_payload = dict(payload["transition_state"])
     reactant_payloads = [dict(item) for item in payload["reactants"]]
@@ -263,6 +292,26 @@ def evaluate_fixed_structure_payload(
         ring_counts[record["name"]] = rings
         species_records[record["name"]] = record
 
+    ionic_es_applied_species: set[str] = set()
+    if use_ionic_short_range:
+        for species_name, species_profile in profiles.items():
+            species_charge = float(species_profile.molecular_charge_e.detach())
+            if abs(species_charge) <= 2.0e-8:
+                continue
+            if (
+                species_charge >= 0.0
+                or len(species_profile.molecule_atomic_numbers) < 2
+            ):
+                raise ValueError(
+                    "The selected ionic_short_range_model supports only "
+                    "polyatomic anions."
+                )
+            ionic_es_applied_species.add(species_name)
+        if not ionic_es_applied_species:
+            raise ValueError(
+                "The selected ionic_short_range_model requires a polyatomic anion."
+            )
+
     solvent_payloads = [dict(item) for item in payload["solvents"]]
     if not solvent_payloads:
         raise ValueError("At least one solvent profile is required.")
@@ -275,6 +324,7 @@ def evaluate_fixed_structure_payload(
 
     activations = {}
     solvent_records = {}
+    ionic_es_solvent_classes: dict[str, str] = {}
     for solvent_payload, solvent_name in zip(
         solvent_payloads, solvent_names, strict=True
     ):
@@ -285,17 +335,38 @@ def evaluate_fixed_structure_payload(
         else:
             solvent_profile = build_sigma_profile(parse_orca_cosmo(solvent_path))
             profile_format = "orca-cosmo-interoperability"
+        solvent_is_water = sorted(solvent_profile.molecule_atomic_numbers) == [1, 1, 8]
+        inferred_solvent_class = "water" if solvent_is_water else "organic"
+        requested_solvent_class = solvent_payload.get("ionic_es_solvent_class")
+        if requested_solvent_class is not None:
+            requested_solvent_class = str(requested_solvent_class).strip().lower()
+            if requested_solvent_class != inferred_solvent_class:
+                raise ValueError(
+                    f"{solvent_name} ionic_es_solvent_class disagrees with its profile."
+                )
+        ionic_es_solvent_class = (
+            inferred_solvent_class if use_ionic_short_range else None
+        )
+        if use_ionic_short_range:
+            ionic_es_solvent_classes[solvent_name] = inferred_solvent_class
         volume = solvent_payload.get("liquid_molar_volume_cm3_mol")
         states = {}
         energy_records = {}
         for species_name in names:
+            species_profile = profiles[species_name]
+            species_ionic_class = (
+                ionic_es_solvent_class
+                if species_name in ionic_es_applied_species
+                else None
+            )
             result = open24a_solvation_free_energy(
-                profiles[species_name],
+                species_profile,
                 solvent_profile,
                 temperature_k=temperature,
                 ring_atom_count=ring_counts[species_name],
                 solvent_liquid_molar_volume_cm3_mol=volume,
                 acknowledge_unvalidated_ions=acknowledge_ions,
+                ionic_es_solvent_class=species_ionic_class,
             )
             state = SolvationFreeEnergy(
                 species=species_name,
@@ -305,7 +376,7 @@ def evaluate_fixed_structure_payload(
                 ),
                 temperature_k=temperature,
                 standard_state="open24a-1atm-gas-to-pure-liquid",
-                provider_identity=FIXED_STRUCTURE_PROVIDER_IDENTITY,
+                provider_identity=provider_identity,
             )
             states[species_name] = state
             energy_records[species_name] = result.as_dict()
@@ -344,15 +415,23 @@ def evaluate_fixed_structure_payload(
     diagnostic_reasons = ["mace-ef-surface-outside-open24a-orca-fit-domain"]
     if ionic_species:
         diagnostic_reasons.append("open24a-ionic-parameterization-unvalidated")
+    if use_ionic_short_range:
+        diagnostic_reasons.extend(
+            (
+                "published-ionic-es-surface-convention-mismatch",
+                "published-ionic-es-current-solvent-and-ts-domain-extrapolation",
+                "hybrid-neutral-open24a-plus-ionic-es-short-range",
+            )
+        )
     if passivity_failures:
         diagnostic_reasons.append("mace-ef-electronic-passivity-failed")
-    return {
+    output = {
         "schema_version": 1,
         "workflow": "MACE-EF -> Torch segment COSMO -> Torch openCOSMO-RS 24a",
         "external_executable_invoked": False,
         "checkpoint_path": str(checkpoint),
         "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
-        "provider_identity": FIXED_STRUCTURE_PROVIDER_IDENTITY,
+        "provider_identity": provider_identity,
         "temperature_k": temperature,
         "angular_degree": angular_degree,
         "reference_solvent": reference_solvent,
@@ -369,9 +448,21 @@ def evaluate_fixed_structure_payload(
         "claim_boundary": (
             "The implementation is executable and equation-tested. MACE-EF "
             "segment surfaces are not the ORCA BP86/def2-TZVPD surfaces used "
-            "to fit open24a, and open24a ions remain unvalidated diagnostics."
+            "to fit open24a, and ionic extensions remain unvalidated diagnostics."
         ),
     }
+    if use_ionic_short_range:
+        output["experimental_ionic_short_range"] = {
+            **PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE.as_dict(),
+            "applied_species": sorted(ionic_es_applied_species),
+            "solvent_classes": ionic_es_solvent_classes,
+            "surface_convention_mismatch": True,
+            "domain_extrapolation": True,
+            "source_cyanide_solvent_coverage": ["dimethylsulfoxide"],
+            "source_sn2_transition_state_coverage": False,
+            "not_admitted": True,
+        }
+    return output
 
 
 def main(argv: Sequence[str] | None = None) -> int:

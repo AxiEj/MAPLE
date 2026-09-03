@@ -1,0 +1,57 @@
+{
+  "identity": "cosmo-rs-es-parameterization-c-polyatomic-anion-sr-2020",
+  "implemented_contact_classes": [
+    "polyatomic-anion-water",
+    "polyatomic-anion-organic-solvent"
+  ],
+  "parameters": {
+    "anion_threshold_e_per_angstrom2": 0.0175,
+    "effective_segment_area_angstrom2": 6.25,
+    "hydrogen_bond_threshold_e_per_angstrom2": 0.0085,
+    "organic_attraction_j_angstrom2_per_mol_e2": 143278000.0,
+    "organic_misfit_j_angstrom2_per_mol_e2": 5408000.0,
+    "organic_threshold_e_per_angstrom2": 0.0094,
+    "orthogonal_misfit_factor": 2.4,
+    "water_attraction_j_angstrom2_per_mol_e2": 25454000.0,
+    "water_misfit_j_angstrom2_per_mol_e2": 473000.0
+  },
+  "schema_version": 1,
+  "scope": {
+    "adapter_status": "experimental-not-admitted",
+    "cyanide_anion_present_in_source_numerical_si": true,
+    "cyanide_anion_source_solvents": [
+      "dimethylsulfoxide"
+    ],
+    "current_cyanide_solvent_combinations_validated_by_source": false,
+    "neutral_base_in_current_adapter": "openCOSMO-RS-24a",
+    "pdh_long_range_included": false,
+    "single_ion_reference_scale_correction_included": false,
+    "sn2_transition_state_validated_by_source": false,
+    "surface_convention_in_current_adapter": "MACE-EF Torch segment COSMO",
+    "surface_convention_matches_source_parameterization": false
+  },
+  "sources": {
+    "paper": {
+      "doi": "10.1021/acs.jpca.0c01606",
+      "url": "https://doi.org/10.1021/acs.jpca.0c01606"
+    },
+    "supporting_information": {
+      "data_doi": "10.1021/acs.jpca.0c01606.s002",
+      "data_md5": "d1ed0742b8efe07cffbba79791b728db",
+      "numerical_doi": "10.1021/acs.jpca.0c01606.s001",
+      "numerical_md5": "b2ab20bd7846b132eb0612102c0cf278"
+    },
+    "thesis": {
+      "equations": [
+        "6.25",
+        "6.26"
+      ],
+      "pdf_sha256": "56c37227024920cc72c50be0b7105e46ab2d9c517293a91c5d5a981c08bb9593",
+      "tables": [
+        "6.12",
+        "6.13"
+      ],
+      "url": "https://tore.tuhh.de/bitstream/11420/7623/3/Dissertation.Simon.Mueller.Application.and.Refinement.of.COSMO-RS-ES.pdf"
+    }
+  }
+}

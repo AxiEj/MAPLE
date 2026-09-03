@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 import math
 from pathlib import Path
@@ -17,7 +18,14 @@ from maple.function.cosmors_torch.cosmospace import (
     solve_cosmospace,
 )
 from maple.function.cosmors_torch.fixed_structure import (
+    evaluate_fixed_structure_payload,
     _validate_fixed_structure_cutoff_margins,
+)
+from maple.function.cosmors_torch.ionic_es import (
+    POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    polyatomic_anion_neutral_solvent_cross_energy,
+    replace_polyatomic_anion_cross_contacts,
 )
 from maple.function.cosmors_torch.kse import (
     GAS_CONSTANT_KCAL_PER_MOL_K,
@@ -53,6 +61,10 @@ ORACLE = (
 ACTIVITY_ORACLE = (
     ROOT / "docs/implicit-solvation/benchmarks/"
     "opencosmors-python-open24a-activity-oracle-v1.json"
+)
+IONIC_ES_ORACLE = (
+    ROOT / "docs/implicit-solvation/benchmarks/"
+    "cosmors-es-parameterization-c-polyatomic-anion-v1.json"
 )
 
 
@@ -241,6 +253,159 @@ def test_fixed_structure_cutoff_margin_must_be_finite_and_positive(value):
         _validate_fixed_structure_cutoff_margins(
             [{"name": "species", "cutoff_margin_angstrom": value}],
             acknowledged=True,
+        )
+
+
+def test_ionic_es_requires_explicit_surface_and_domain_acknowledgements(tmp_path):
+    checkpoint = tmp_path / "checkpoint.pt"
+    checkpoint.write_bytes(b"identity-only")
+    payload = {
+        "checkpoint_path": str(checkpoint),
+        "ionic_short_range_model": POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    }
+
+    with pytest.raises(ValueError, match="surface_mismatch"):
+        evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
+
+    payload["acknowledge_ionic_es_surface_mismatch"] = True
+    with pytest.raises(ValueError, match="domain_extrapolation"):
+        evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
+
+    payload["acknowledge_ionic_es_domain_extrapolation"] = True
+    with pytest.raises(ValueError, match="acknowledge_unvalidated_ions"):
+        evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
+
+
+def test_parameterization_c_polyatomic_anion_source_values_are_frozen():
+    parameters = PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE
+    oracle = json.loads(IONIC_ES_ORACLE.read_text(encoding="utf-8"))
+    for name, expected in oracle["parameters"].items():
+        assert getattr(parameters, name) == expected
+    provenance = parameters.as_dict()
+    assert provenance["source_equations"] == ["6.25", "6.26"]
+    assert provenance["pdh_long_range_included"] is False
+    assert provenance["single_ion_reference_scale_correction_included"] is False
+
+
+@pytest.mark.parametrize("solvent_class", ["water", "organic"])
+def test_parameterization_c_cross_energy_matches_published_equation(solvent_class):
+    parameters = PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE
+    anion_sigma = torch.tensor([0.03], dtype=torch.float64, requires_grad=True)
+    anion_orthogonal = torch.tensor([0.002], dtype=torch.float64)
+    solvent_sigma = torch.tensor([-0.02], dtype=torch.float64)
+    solvent_orthogonal = torch.tensor([-0.001], dtype=torch.float64)
+
+    observed = polyatomic_anion_neutral_solvent_cross_energy(
+        anion_sigma,
+        anion_orthogonal,
+        solvent_sigma,
+        solvent_orthogonal,
+        solvent_class=solvent_class,
+    )
+    if solvent_class == "water":
+        misfit_coefficient = parameters.water_misfit_j_angstrom2_per_mol_e2
+        attraction_coefficient = parameters.water_attraction_j_angstrom2_per_mol_e2
+        solvent_strength = min(
+            0.0,
+            -0.02 + parameters.hydrogen_bond_threshold_e_per_angstrom2,
+        )
+        anion_strength = max(
+            0.0,
+            0.03 - parameters.hydrogen_bond_threshold_e_per_angstrom2,
+        )
+    else:
+        misfit_coefficient = parameters.organic_misfit_j_angstrom2_per_mol_e2
+        attraction_coefficient = parameters.organic_attraction_j_angstrom2_per_mol_e2
+        solvent_strength = min(
+            0.0,
+            -0.02 + parameters.organic_threshold_e_per_angstrom2,
+        )
+        anion_strength = max(
+            0.0,
+            0.03 - parameters.anion_threshold_e_per_angstrom2,
+        )
+    sigma_sum = 0.01
+    orthogonal_sum = 0.001
+    expected = (
+        0.5
+        * parameters.effective_segment_area_angstrom2
+        * (
+            misfit_coefficient
+            * sigma_sum
+            * (sigma_sum + parameters.orthogonal_misfit_factor * orthogonal_sum)
+            + attraction_coefficient * anion_strength * solvent_strength
+        )
+    )
+    assert float(observed.detach()) == pytest.approx(expected, abs=1.0e-10)
+    observed.sum().backward()
+    assert anion_sigma.grad is not None
+    assert bool(torch.isfinite(anion_sigma.grad).all())
+
+
+def test_ionic_es_replaces_only_symmetric_cross_contacts():
+    base = torch.arange(16, dtype=torch.float64).reshape(4, 4)
+    base = 0.5 * (base + base.T)
+    observed = replace_polyatomic_anion_cross_contacts(
+        base,
+        solute_segment_count=2,
+        solute_sigma_e_per_angstrom2=torch.tensor([0.03, 0.02], dtype=torch.float64),
+        solute_sigma_orthogonal_e_per_angstrom2=torch.zeros(2, dtype=torch.float64),
+        solvent_sigma_e_per_angstrom2=torch.tensor([-0.02, -0.01], dtype=torch.float64),
+        solvent_sigma_orthogonal_e_per_angstrom2=torch.zeros(2, dtype=torch.float64),
+        solvent_class="organic",
+    )
+
+    torch.testing.assert_close(observed, observed.T)
+    torch.testing.assert_close(observed[:2, :2], base[:2, :2])
+    torch.testing.assert_close(observed[2:, 2:], base[2:, 2:])
+    assert not bool(torch.equal(observed[:2, 2:], base[:2, 2:]))
+
+
+def test_infinite_dilution_ionic_es_is_explicit_and_identity_tagged():
+    payload = {
+        "sigma_e_per_angstrom2": [0.03, 0.02],
+        "sigma_orthogonal_e_per_angstrom2": [0.001, -0.001],
+        "areas_angstrom2": [20.0, 20.0],
+        "atomic_numbers": [6, 7],
+        "cavity_volume_angstrom3": 25.0,
+    }
+    anion = replace(
+        _synthetic_profile(payload, name="CN-"),
+        molecular_charge_e=torch.tensor(-1.0, dtype=torch.float64),
+        molecule_atomic_numbers=(6, 7),
+    )
+    water = replace(
+        _synthetic_profile(
+            {
+                **payload,
+                "sigma_e_per_angstrom2": [-0.03, 0.02],
+                "atomic_numbers": [8, 1],
+            },
+            name="water",
+        ),
+        molecule_atomic_numbers=(8, 1, 1),
+    )
+
+    baseline = infinite_dilution_activity(anion, water, discretize=False)
+    experimental = infinite_dilution_activity(
+        anion,
+        water,
+        discretize=False,
+        ionic_es_solvent_class="water",
+    )
+
+    assert POLYATOMIC_ANION_SHORT_RANGE_IDENTITY in (
+        experimental.interaction_model_identity
+    )
+    assert float(experimental.total_log_activity) != pytest.approx(
+        float(baseline.total_log_activity)
+    )
+    with pytest.raises(ValueError, match="disagrees"):
+        infinite_dilution_activity(
+            anion,
+            water,
+            discretize=False,
+            ionic_es_solvent_class="organic",
         )
 
 

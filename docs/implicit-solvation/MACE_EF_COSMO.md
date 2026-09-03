@@ -203,3 +203,55 @@ parameterization and independent validation are available.
 The CLI enforces this boundary: a charged species is rejected unless
 `acknowledge_unvalidated_ions` is true, and the output remains
 `diagnostic_only=true` even when the calculation completes.
+
+## Experimental published ionic short-range overlay
+
+For fixed-structure screening only, the Torch backend can replace the neutral
+solute-solvent cross contacts of a polyatomic anion with the published
+COSMO-RS-ES Parameterization C equations 6.25 and 6.26 and the numerical
+values in Tables 6.12 and 6.13 of Simon Mueller's thesis. The associated paper
+is Kröger et al., DOI `10.1021/acs.jpca.0c01606`.
+
+The implementation intentionally does not include:
+
+- the Pitzer-Debye-Hueckel term, because it tends to zero for a single ion at
+  infinite dilution in a neutral solvent;
+- the solvent-specific proton-scale corrections, because those correct the
+  experimental single-ion target convention rather than the forward model;
+- CCM cluster corrections, because they require solvent-specific explicit
+  cluster quantum chemistry.
+
+Enable the overlay explicitly:
+
+```json
+{
+  "ionic_short_range_model": "cosmo-rs-es-parameterization-c-polyatomic-anion-sr-2020",
+  "acknowledge_unvalidated_ions": true,
+  "acknowledge_ionic_es_surface_mismatch": true,
+  "acknowledge_ionic_es_domain_extrapolation": true,
+  "solvents": [
+    {
+      "name": "methanol",
+      "profile": "methanol.torch-cosmors.json",
+      "ionic_es_solvent_class": "organic"
+    },
+    {
+      "name": "water",
+      "profile": "water.torch-cosmors.json",
+      "ionic_es_solvent_class": "water"
+    }
+  ]
+}
+```
+
+The solvent class is checked against the solvent profile. The current adapter
+supports polyatomic anions only; it rejects cations and monatomic anions rather
+than silently applying the wrong published contact class.
+
+This remains a hybrid model: the neutral interactions and solvation ledger are
+open24a, while only the anion-solvent short-range contacts use Parameterization
+C. The published values were fitted with another COSMO surface convention and
+were not validated for anionic transition states. Outputs therefore record
+the exact equations and parameters, set `not_admitted=true`, and retain
+`diagnostic_only=true`. The mode is not used unless requested explicitly, so
+the existing open24a baseline remains unchanged.

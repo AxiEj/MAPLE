@@ -15,6 +15,12 @@ from .cosmospace import (
     molecule_residual_log_activity,
     solve_cosmospace,
 )
+from .ionic_es import (
+    IonicESSolventClass,
+    POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    replace_polyatomic_anion_cross_contacts,
+)
 from .surface import SigmaProfile, discretize_open24a_profile
 
 HARTREE_TO_KCAL_PER_MOL = 627.5094740631
@@ -87,6 +93,7 @@ class InfiniteDilutionActivity:
     cosmospace: COSMOSPACEResult
     solute_profile: SigmaProfile
     solvent_profile: SigmaProfile
+    interaction_model_identity: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,6 +139,7 @@ class OpenCOSMORS24aSolvationResult:
                 "combinatorial": scalar(self.activity.combinatorial_log_activity),
                 "total": scalar(self.activity.total_log_activity),
             },
+            "interaction_model_identity": (self.activity.interaction_model_identity),
             "solvent_liquid_molar_volume_cm3_mol": scalar(
                 self.solvent_liquid_molar_volume_cm3_mol
             ),
@@ -218,6 +226,7 @@ def infinite_dilution_activity(
     *,
     temperature_k: float = 298.15,
     discretize: bool = True,
+    ionic_es_solvent_class: IonicESSolventClass | None = None,
 ) -> InfiniteDilutionActivity:
     """Solve residual plus combinatorial activity of a solute in pure solvent."""
 
@@ -232,6 +241,21 @@ def infinite_dilution_activity(
         raise ValueError("temperature_k must be finite and positive.")
     if abs(float(solvent_profile.molecular_charge_e.detach())) > 2.0e-8:
         raise ValueError("The open24a solvent profile must be neutral.")
+    if ionic_es_solvent_class is not None:
+        solute_charge = float(solute_profile.molecular_charge_e.detach())
+        if solute_charge >= -2.0e-8:
+            raise ValueError(
+                "The Parameterization C short-range overlay requires an anion."
+            )
+        if len(solute_profile.molecule_atomic_numbers) < 2:
+            raise ValueError(
+                "Only the published polyatomic-anion contact class is supported."
+            )
+        solvent_is_water = sorted(solvent_profile.molecule_atomic_numbers) == [1, 1, 8]
+        if (ionic_es_solvent_class == "water") != solvent_is_water:
+            raise ValueError(
+                "ionic_es_solvent_class disagrees with the solvent profile identity."
+            )
     solute = (
         discretize_open24a_profile(solute_profile) if discretize else solute_profile
     )
@@ -252,6 +276,25 @@ def infinite_dilution_activity(
         temperature_k=temperature,
     )
     solute_count = solute.areas_angstrom2.numel()
+    interaction_identity = OPEN_COSMORS_24A_PARAMETERS.name
+    if ionic_es_solvent_class is not None:
+        interaction = replace_polyatomic_anion_cross_contacts(
+            interaction,
+            solute_segment_count=solute_count,
+            solute_sigma_e_per_angstrom2=solute.sigma_e_per_angstrom2,
+            solute_sigma_orthogonal_e_per_angstrom2=(
+                solute.sigma_orthogonal_e_per_angstrom2
+            ),
+            solvent_sigma_e_per_angstrom2=solvent.sigma_e_per_angstrom2,
+            solvent_sigma_orthogonal_e_per_angstrom2=(
+                solvent.sigma_orthogonal_e_per_angstrom2
+            ),
+            solvent_class=ionic_es_solvent_class,
+        )
+        interaction_identity = (
+            f"hybrid-{OPEN_COSMORS_24A_PARAMETERS.name}"
+            f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
+        )
     solvent_areas = torch.cat(
         (
             torch.zeros(
@@ -267,10 +310,14 @@ def infinite_dilution_activity(
         interaction,
         temperature_k=temperature,
     )
+    segment_area = (
+        PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE.effective_segment_area_angstrom2
+        if ionic_es_solvent_class is not None
+        else OPEN_COSMORS_24A_PARAMETERS.effective_segment_area_angstrom2
+    )
     counts = torch.cat(
         (
-            solute.areas_angstrom2
-            / OPEN_COSMORS_24A_PARAMETERS.effective_segment_area_angstrom2,
+            solute.areas_angstrom2 / segment_area,
             torch.zeros_like(solvent.areas_angstrom2),
         )
     )
@@ -291,6 +338,7 @@ def infinite_dilution_activity(
         cosmospace=cosmospace,
         solute_profile=solute,
         solvent_profile=solvent,
+        interaction_model_identity=interaction_identity,
     )
 
 
@@ -360,6 +408,7 @@ def open24a_solvation_free_energy(
     total_solvated_minus_gas_hartree: float | object | None = None,
     acknowledge_unvalidated_ions: bool = False,
     discretize: bool = True,
+    ionic_es_solvent_class: IonicESSolventClass | None = None,
     parameters: OpenCOSMORS24aSolvationParameters = (
         OPEN_COSMORS_24A_SOLVATION_PARAMETERS
     ),
@@ -389,6 +438,7 @@ def open24a_solvation_free_energy(
         solvent_profile,
         temperature_k=temperature,
         discretize=discretize,
+        ionic_es_solvent_class=ionic_es_solvent_class,
     )
     reference = solute_profile.dielectric_energy_hartree
     if total_solvated_minus_gas_hartree is None:
@@ -453,7 +503,13 @@ def open24a_solvation_free_energy(
         eta_kcal_mol=eta,
         solvent_liquid_molar_volume_cm3_mol=liquid_volume,
         activity=activity,
-        ionic_parameterization_validated=not ionic,
+        ionic_parameterization_validated=False if ionic else True,
+        parameterization_identity=(
+            "hybrid-openCOSMO-RS-24a-neutral-ORCA6"
+            f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
+            if ionic_es_solvent_class is not None
+            else "openCOSMO-RS-24a-neutral-ORCA6"
+        ),
     )
 
 

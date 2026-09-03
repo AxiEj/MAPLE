@@ -1,0 +1,54 @@
+{
+  "combinatorial": {
+    "coordination_number": 10.0,
+    "standard_area_angstrom2": 116.85,
+    "volume_exponent": 0.645
+  },
+  "cosmospace_parameters": {
+    "averaging_radius_angstrom": 0.5,
+    "effective_segment_area_angstrom2": 6.25,
+    "hydrogen_bond_coefficient_j_angstrom2_per_mol_e2": 19616220.0,
+    "hydrogen_bond_sigma_threshold_e_per_angstrom2": 0.0085,
+    "hydrogen_bond_temperature_coefficient": 1.5,
+    "misfit_alpha_j_angstrom2_per_mol_e2": 4583860.0,
+    "misfit_orthogonal_factor": 2.4
+  },
+  "hbond_acceptor_atomic_numbers": [
+    6,
+    7,
+    8,
+    9,
+    15,
+    16,
+    17,
+    35,
+    53
+  ],
+  "hbond_donor_atomic_numbers": [
+    1
+  ],
+  "identity": "cosmo-rs-es-parameterization-c-neutral-2020",
+  "schema_version": 1,
+  "scope": {
+    "adapter_status": "experimental-not-admitted",
+    "open24a_solute_only_ledger_retained": true,
+    "surface_convention_in_current_adapter": "MACE-EF solute plus ORCA solvent profiles",
+    "surface_convention_matches_source_parameterization": false
+  },
+  "sources": {
+    "paper": {
+      "doi": "10.1021/acs.jpca.0c01606",
+      "url": "https://doi.org/10.1021/acs.jpca.0c01606"
+    },
+    "thesis": {
+      "equations": [
+        "6.21",
+        "2.39",
+        "2.41"
+      ],
+      "pdf_sha256": "56c37227024920cc72c50be0b7105e46ab2d9c517293a91c5d5a981c08bb9593",
+      "table": "6.11",
+      "url": "https://tore.tuhh.de/bitstream/11420/7623/3/Dissertation.Simon.Mueller.Application.and.Refinement.of.COSMO-RS-ES.pdf"
+    }
+  }
+}

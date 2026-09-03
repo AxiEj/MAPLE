@@ -18,6 +18,8 @@ from dataclasses import asdict, dataclass
 import math
 from typing import Any, Literal
 
+from .cosmospace import COSMOSPACEParameters
+
 IONIC_ES_PAPER_DOI = "10.1021/acs.jpca.0c01606"
 IONIC_ES_THESIS_URL = (
     "https://tore.tuhh.de/bitstream/11420/7623/3/"
@@ -26,7 +28,34 @@ IONIC_ES_THESIS_URL = (
 POLYATOMIC_ANION_SHORT_RANGE_IDENTITY = (
     "cosmo-rs-es-parameterization-c-polyatomic-anion-sr-2020"
 )
+PARAMETERIZATION_C_NEUTRAL_IDENTITY = "cosmo-rs-es-parameterization-c-neutral-2020"
 IonicESSolventClass = Literal["water", "organic"]
+
+PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2 = 116.85
+PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT = 0.645
+PARAMETERIZATION_C_NEUTRAL_HB_DONOR_ATOMIC_NUMBERS = (1,)
+PARAMETERIZATION_C_NEUTRAL_HB_ACCEPTOR_ATOMIC_NUMBERS = (
+    6,
+    7,
+    8,
+    9,
+    15,
+    16,
+    17,
+    35,
+    53,
+)
+
+PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE = COSMOSPACEParameters(
+    name=PARAMETERIZATION_C_NEUTRAL_IDENTITY,
+    effective_segment_area_angstrom2=6.25,
+    averaging_radius_angstrom=0.5,
+    misfit_alpha_j_angstrom2_per_mol_e2=4.58386e6,
+    misfit_orthogonal_factor=2.4,
+    hydrogen_bond_coefficient_j_angstrom2_per_mol_e2=1.961622e7,
+    hydrogen_bond_temperature_coefficient=1.5,
+    hydrogen_bond_sigma_threshold_e_per_angstrom2=0.0085,
+)
 
 
 def _torch():
@@ -82,6 +111,76 @@ class PolyatomicAnionShortRangeParameters:
 
 
 PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE = PolyatomicAnionShortRangeParameters()
+
+
+def parameterization_c_neutral_provenance() -> dict[str, object]:
+    """Return the frozen published neutral-baseline identity and values."""
+
+    parameters = PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE
+    return {
+        "identity": PARAMETERIZATION_C_NEUTRAL_IDENTITY,
+        "paper_doi": IONIC_ES_PAPER_DOI,
+        "thesis_url": IONIC_ES_THESIS_URL,
+        "source_table": "6.11",
+        "source_equations": ["6.21", "2.39", "2.41"],
+        "combinatorial_standard_area_angstrom2": (
+            PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2
+        ),
+        "combinatorial_volume_exponent": (
+            PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT
+        ),
+        "neutral_hbond_donor_atomic_numbers": list(
+            PARAMETERIZATION_C_NEUTRAL_HB_DONOR_ATOMIC_NUMBERS
+        ),
+        "neutral_hbond_acceptor_atomic_numbers": list(
+            PARAMETERIZATION_C_NEUTRAL_HB_ACCEPTOR_ATOMIC_NUMBERS
+        ),
+        "published_cosmospace_parameters": {
+            "effective_segment_area_angstrom2": (
+                parameters.effective_segment_area_angstrom2
+            ),
+            "averaging_radius_angstrom": parameters.averaging_radius_angstrom,
+            "misfit_alpha_j_angstrom2_per_mol_e2": (
+                parameters.misfit_alpha_j_angstrom2_per_mol_e2
+            ),
+            "misfit_orthogonal_factor": parameters.misfit_orthogonal_factor,
+            "hydrogen_bond_coefficient_j_angstrom2_per_mol_e2": (
+                parameters.hydrogen_bond_coefficient_j_angstrom2_per_mol_e2
+            ),
+            "hydrogen_bond_temperature_coefficient": (
+                parameters.hydrogen_bond_temperature_coefficient
+            ),
+            "hydrogen_bond_sigma_threshold_e_per_angstrom2": (
+                parameters.hydrogen_bond_sigma_threshold_e_per_angstrom2
+            ),
+        },
+        "numerical_solver": {
+            "successive_substitution_mixing": (
+                parameters.successive_substitution_mixing
+            ),
+            "convergence_relative": parameters.convergence_relative,
+            "maximum_iterations": parameters.maximum_iterations,
+        },
+        "open24a_solute_only_ledger_retained": True,
+    }
+
+
+def parameterization_c_neutral_hbond_weights(atomic_numbers: object):
+    """Return Parameterization C donor/acceptor switches by parent element."""
+
+    torch = _torch()
+    numbers = (
+        atomic_numbers
+        if isinstance(atomic_numbers, torch.Tensor)
+        else torch.as_tensor(atomic_numbers)
+    )
+    if numbers.dtype != torch.int64 or numbers.ndim != 1:
+        raise TypeError("atomic_numbers must be a one-dimensional torch.int64 tensor.")
+    donor = numbers == PARAMETERIZATION_C_NEUTRAL_HB_DONOR_ATOMIC_NUMBERS[0]
+    acceptor = torch.zeros_like(donor)
+    for atomic_number in PARAMETERIZATION_C_NEUTRAL_HB_ACCEPTOR_ATOMIC_NUMBERS:
+        acceptor |= numbers == atomic_number
+    return donor.to(dtype=torch.float64), acceptor.to(dtype=torch.float64)
 
 
 def polyatomic_anion_neutral_solvent_cross_energy(
@@ -228,9 +327,17 @@ __all__ = [
     "IONIC_ES_PAPER_DOI",
     "IONIC_ES_THESIS_URL",
     "IonicESSolventClass",
+    "PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2",
+    "PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT",
+    "PARAMETERIZATION_C_NEUTRAL_HB_ACCEPTOR_ATOMIC_NUMBERS",
+    "PARAMETERIZATION_C_NEUTRAL_HB_DONOR_ATOMIC_NUMBERS",
+    "PARAMETERIZATION_C_NEUTRAL_IDENTITY",
     "POLYATOMIC_ANION_SHORT_RANGE_IDENTITY",
+    "PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE",
     "PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE",
     "PolyatomicAnionShortRangeParameters",
+    "parameterization_c_neutral_hbond_weights",
+    "parameterization_c_neutral_provenance",
     "polyatomic_anion_neutral_solvent_cross_energy",
     "replace_polyatomic_anion_cross_contacts",
 ]

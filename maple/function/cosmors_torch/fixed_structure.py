@@ -22,14 +22,18 @@ from maple.function.calculator.extra_correction.implicit.mace_polar_ef_stationar
 )
 from maple.function.mlip_cosmo_rs import open_cosmors_24a_cavity_radii
 
+from .cosmospace import OPEN_COSMORS_24A_PARAMETERS
 from .kse import (
     ActivationSolvationFreeEnergy,
     SolvationFreeEnergy,
     compute_relative_kinetic_solvent_effect,
 )
 from .ionic_es import (
+    PARAMETERIZATION_C_NEUTRAL_IDENTITY,
     POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE,
     PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    parameterization_c_neutral_provenance,
 )
 from .mace_ef_segment_cosmo import (
     MACEPolarEFSegmentCOSMOConfig,
@@ -41,7 +45,10 @@ from .segment_cosmo import (
     TorchSegmentCOSMOConfig,
 )
 from .surface import build_sigma_profile, parse_orca_cosmo, read_sigma_profile
-from .thermodynamics import open24a_solvation_free_energy
+from .thermodynamics import (
+    PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS,
+    open24a_solvation_free_energy,
+)
 
 FIXED_STRUCTURE_PROVIDER_IDENTITY = (
     "mace-polar-ef-v2+torch-segment-cosmo-swig-v1+openCOSMO-RS-24a"
@@ -254,6 +261,27 @@ def evaluate_fixed_structure_payload(
             "electronic_passivity_policy is owned by this diagnostic workflow."
         )
     acknowledge_ions = payload.get("acknowledge_unvalidated_ions") is True
+    neutral_cosmospace_model = str(
+        payload.get(
+            "neutral_cosmospace_model",
+            OPEN_COSMORS_24A_PARAMETERS.name,
+        )
+    ).strip()
+    if neutral_cosmospace_model == OPEN_COSMORS_24A_PARAMETERS.name:
+        cosmospace_parameters = OPEN_COSMORS_24A_PARAMETERS
+        combinatorial_parameters = None
+        use_parameterization_c_neutral = False
+    elif neutral_cosmospace_model == PARAMETERIZATION_C_NEUTRAL_IDENTITY:
+        if payload.get("acknowledge_parameterization_c_surface_mismatch") is not True:
+            raise ValueError(
+                "Parameterization C was fitted with another COSMO surface; set "
+                "acknowledge_parameterization_c_surface_mismatch=true explicitly."
+            )
+        cosmospace_parameters = PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE
+        combinatorial_parameters = PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS
+        use_parameterization_c_neutral = True
+    else:
+        raise ValueError("Unknown neutral_cosmospace_model.")
     ionic_short_range_model = payload.get("ionic_short_range_model")
     if ionic_short_range_model is not None:
         ionic_short_range_model = str(ionic_short_range_model).strip()
@@ -276,7 +304,13 @@ def evaluate_fixed_structure_payload(
                 "acknowledge_unvalidated_ions=true."
             )
     use_ionic_short_range = ionic_short_range_model is not None
-    provider_identity = FIXED_STRUCTURE_PROVIDER_IDENTITY
+    provider_identity = (
+        "mace-polar-ef-v2+torch-segment-cosmo-swig-v1"
+        "+openCOSMO-RS-24a-solute-ledger"
+        f"+{PARAMETERIZATION_C_NEUTRAL_IDENTITY}"
+        if use_parameterization_c_neutral
+        else FIXED_STRUCTURE_PROVIDER_IDENTITY
+    )
     if use_ionic_short_range:
         provider_identity += f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
 
@@ -387,6 +421,8 @@ def evaluate_fixed_structure_payload(
                 solvent_liquid_molar_volume_cm3_mol=volume,
                 acknowledge_unvalidated_ions=acknowledge_ions,
                 ionic_es_solvent_class=species_ionic_class,
+                cosmospace_parameters=cosmospace_parameters,
+                combinatorial_parameters=combinatorial_parameters,
             )
             state = SolvationFreeEnergy(
                 species=species_name,
@@ -434,19 +470,35 @@ def evaluate_fixed_structure_payload(
     diagnostic_reasons = ["mace-ef-surface-outside-open24a-orca-fit-domain"]
     if ionic_species:
         diagnostic_reasons.append("open24a-ionic-parameterization-unvalidated")
-    if use_ionic_short_range:
+    if use_parameterization_c_neutral:
         diagnostic_reasons.extend(
             (
+                "published-parameterization-c-surface-convention-mismatch",
+                "hybrid-open24a-solute-ledger-plus-parameterization-c-activity",
+            )
+        )
+    if use_ionic_short_range:
+        diagnostic_reasons.extend(
+            [
                 "published-ionic-es-surface-convention-mismatch",
                 "published-ionic-es-current-solvent-and-ts-domain-extrapolation",
-                "hybrid-neutral-open24a-plus-ionic-es-short-range",
-            )
+            ]
+        )
+        diagnostic_reasons.append(
+            "parameterization-c-neutral-plus-ionic-es-short-range"
+            if use_parameterization_c_neutral
+            else "hybrid-neutral-open24a-plus-ionic-es-short-range"
         )
     if passivity_failures:
         diagnostic_reasons.append("mace-ef-electronic-passivity-failed")
     output = {
         "schema_version": 1,
-        "workflow": "MACE-EF -> Torch segment COSMO -> Torch openCOSMO-RS 24a",
+        "workflow": (
+            "MACE-EF -> Torch segment COSMO -> Torch COSMO-RS-ES "
+            "Parameterization C activity -> open24a solute-only ledger"
+            if use_parameterization_c_neutral
+            else "MACE-EF -> Torch segment COSMO -> Torch openCOSMO-RS 24a"
+        ),
         "external_executable_invoked": False,
         "checkpoint_path": str(checkpoint),
         "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
@@ -454,10 +506,15 @@ def evaluate_fixed_structure_payload(
         "temperature_k": temperature,
         "angular_degree": angular_degree,
         "reference_solvent": reference_solvent,
+        "neutral_cosmospace_model": neutral_cosmospace_model,
         "acknowledge_unvalidated_ions": acknowledge_ions,
         "acknowledge_fixed_structure_cutoff_margin": cutoff_margin_acknowledged,
         "reduced_cutoff_margin_species": reduced_cutoff_margins,
-        "parameterization_scope": "neutral-molecules",
+        "parameterization_scope": (
+            "experimental-parameterization-c-activity-transfer"
+            if use_parameterization_c_neutral
+            else "neutral-molecules"
+        ),
         "diagnostic_only": True,
         "diagnostic_reasons": diagnostic_reasons,
         "electronic_passivity_failures": passivity_failures,
@@ -466,8 +523,8 @@ def evaluate_fixed_structure_payload(
         "relative_kinetic_solvent_effects": kse,
         "claim_boundary": (
             "The implementation is executable and equation-tested. MACE-EF "
-            "segment surfaces are not the ORCA BP86/def2-TZVPD surfaces used "
-            "to fit open24a, and ionic extensions remain unvalidated diagnostics."
+            "segment surfaces do not match the source parameterization surface "
+            "convention, and ionic extensions remain unvalidated diagnostics."
         ),
     }
     if use_ionic_short_range:
@@ -479,6 +536,12 @@ def evaluate_fixed_structure_payload(
             "domain_extrapolation": True,
             "source_cyanide_solvent_coverage": ["dimethylsulfoxide"],
             "source_sn2_transition_state_coverage": False,
+            "not_admitted": True,
+        }
+    if use_parameterization_c_neutral:
+        output["experimental_neutral_baseline"] = {
+            **parameterization_c_neutral_provenance(),
+            "surface_convention_mismatch": True,
             "not_admitted": True,
         }
     return output

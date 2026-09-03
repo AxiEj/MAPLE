@@ -17,9 +17,13 @@ from .kse import (
 from .ionic_es import (
     IONIC_ES_PAPER_DOI,
     IONIC_ES_THESIS_URL,
+    PARAMETERIZATION_C_NEUTRAL_IDENTITY,
     POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE,
     PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
     PolyatomicAnionShortRangeParameters,
+    parameterization_c_neutral_hbond_weights,
+    parameterization_c_neutral_provenance,
     polyatomic_anion_neutral_solvent_cross_energy,
     replace_polyatomic_anion_cross_contacts,
 )
@@ -44,6 +48,7 @@ from .surface import (
 )
 from .thermodynamics import (
     OPEN_COSMORS_24A_SOLVATION_PARAMETERS,
+    PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS,
     InfiniteDilutionActivity,
     OpenCOSMORS24aSolvationParameters,
     OpenCOSMORS24aSolvationResult,
@@ -65,9 +70,12 @@ __all__ = [
     "IONIC_ES_PAPER_DOI",
     "IONIC_ES_THESIS_URL",
     "OPEN_COSMORS_24A_SOLVATION_PARAMETERS",
+    "PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS",
+    "PARAMETERIZATION_C_NEUTRAL_IDENTITY",
     "OpenCOSMORS24aSolvationParameters",
     "OpenCOSMORS24aSolvationResult",
     "POLYATOMIC_ANION_SHORT_RANGE_IDENTITY",
+    "PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE",
     "PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE",
     "PolyatomicAnionShortRangeParameters",
     "SigmaProfile",
@@ -85,6 +93,8 @@ __all__ = [
     "infinite_dilution_activity",
     "molecule_residual_log_activity",
     "open24a_solvation_free_energy",
+    "parameterization_c_neutral_hbond_weights",
+    "parameterization_c_neutral_provenance",
     "parse_orca_cosmo",
     "polyatomic_anion_neutral_solvent_cross_energy",
     "read_sigma_profile",

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import math
 from types import MappingProxyType
 from typing import Any, Mapping
@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from .cosmospace import (
     GAS_CONSTANT_J_PER_MOL_K,
     OPEN_COSMORS_24A_PARAMETERS,
+    COSMOSPACEParameters,
     COSMOSPACEResult,
     build_segment_interaction_energy,
     molecule_residual_log_activity,
@@ -17,8 +18,12 @@ from .cosmospace import (
 )
 from .ionic_es import (
     IonicESSolventClass,
+    PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2,
+    PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT,
+    PARAMETERIZATION_C_NEUTRAL_IDENTITY,
     POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
     PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    parameterization_c_neutral_hbond_weights,
     replace_polyatomic_anion_cross_contacts,
 )
 from .surface import SigmaProfile, discretize_open24a_profile
@@ -33,6 +38,7 @@ class OpenCOSMORS24aSolvationParameters:
 
     combinatorial_standard_area_angstrom2: float = 41.623570
     combinatorial_coordination_number: float = 10.0
+    combinatorial_volume_exponent: float = 1.0
     eta_kcal_mol: float = -4.448499
     ring_atom_kcal_mol: float = 0.26302510
     reference_pressure_pa: float = 101325.0
@@ -58,6 +64,7 @@ class OpenCOSMORS24aSolvationParameters:
         positive = (
             self.combinatorial_standard_area_angstrom2,
             self.combinatorial_coordination_number,
+            self.combinatorial_volume_exponent,
             self.ring_atom_kcal_mol,
             self.reference_pressure_pa,
         )
@@ -83,6 +90,13 @@ class OpenCOSMORS24aSolvationParameters:
 
 
 OPEN_COSMORS_24A_SOLVATION_PARAMETERS = OpenCOSMORS24aSolvationParameters()
+PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS = replace(
+    OPEN_COSMORS_24A_SOLVATION_PARAMETERS,
+    combinatorial_standard_area_angstrom2=(
+        PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2
+    ),
+    combinatorial_volume_exponent=(PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,6 +108,7 @@ class InfiniteDilutionActivity:
     solute_profile: SigmaProfile
     solvent_profile: SigmaProfile
     interaction_model_identity: str
+    combinatorial_model_identity: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,6 +155,9 @@ class OpenCOSMORS24aSolvationResult:
                 "total": scalar(self.activity.total_log_activity),
             },
             "interaction_model_identity": (self.activity.interaction_model_identity),
+            "combinatorial_model_identity": (
+                self.activity.combinatorial_model_identity
+            ),
             "solvent_liquid_molar_volume_cm3_mol": scalar(
                 self.solvent_liquid_molar_volume_cm3_mol
             ),
@@ -202,7 +220,9 @@ def staverman_guggenheim_infinite_dilution(
             raise ValueError("Staverman-Guggenheim inputs must be positive scalars.")
         values.append(tensor)
     solute_volume, solvent_volume, solute_area, solvent_area = values
-    phi_prime = solute_volume / solvent_volume
+    phi_prime = (solute_volume / solvent_volume) ** (
+        parameters.combinatorial_volume_exponent
+    )
     theta_prime = solute_area / solvent_area
     ratio = phi_prime / theta_prime
     relative_area = solute_area / parameters.combinatorial_standard_area_angstrom2
@@ -227,6 +247,10 @@ def infinite_dilution_activity(
     temperature_k: float = 298.15,
     discretize: bool = True,
     ionic_es_solvent_class: IonicESSolventClass | None = None,
+    cosmospace_parameters: COSMOSPACEParameters = OPEN_COSMORS_24A_PARAMETERS,
+    solvation_parameters: OpenCOSMORS24aSolvationParameters = (
+        OPEN_COSMORS_24A_SOLVATION_PARAMETERS
+    ),
 ) -> InfiniteDilutionActivity:
     """Solve residual plus combinatorial activity of a solute in pure solvent."""
 
@@ -235,6 +259,12 @@ def infinite_dilution_activity(
         solvent_profile, SigmaProfile
     ):
         raise TypeError("solute_profile and solvent_profile must be SigmaProfile.")
+    if not isinstance(cosmospace_parameters, COSMOSPACEParameters):
+        raise TypeError("cosmospace_parameters must be COSMOSPACEParameters.")
+    if not isinstance(solvation_parameters, OpenCOSMORS24aSolvationParameters):
+        raise TypeError(
+            "solvation_parameters must be OpenCOSMORS24aSolvationParameters."
+        )
     _same_device(solute_profile, solvent_profile)
     temperature = float(temperature_k)
     if not math.isfinite(temperature) or temperature <= 0.0:
@@ -262,21 +292,40 @@ def infinite_dilution_activity(
     solvent = (
         discretize_open24a_profile(solvent_profile) if discretize else solvent_profile
     )
-    descriptors = tuple(
-        torch.cat((getattr(solute, name), getattr(solvent, name)))
-        for name in (
-            "sigma_e_per_angstrom2",
-            "sigma_orthogonal_e_per_angstrom2",
-            "hydrogen_bond_donor_weight",
-            "hydrogen_bond_acceptor_weight",
+    sigma = torch.cat((solute.sigma_e_per_angstrom2, solvent.sigma_e_per_angstrom2))
+    orthogonal = torch.cat(
+        (
+            solute.sigma_orthogonal_e_per_angstrom2,
+            solvent.sigma_orthogonal_e_per_angstrom2,
         )
     )
+    if cosmospace_parameters.name == PARAMETERIZATION_C_NEUTRAL_IDENTITY:
+        donor, acceptor = parameterization_c_neutral_hbond_weights(
+            torch.cat((solute.atomic_numbers, solvent.atomic_numbers))
+        )
+    else:
+        donor = torch.cat(
+            (
+                solute.hydrogen_bond_donor_weight,
+                solvent.hydrogen_bond_donor_weight,
+            )
+        )
+        acceptor = torch.cat(
+            (
+                solute.hydrogen_bond_acceptor_weight,
+                solvent.hydrogen_bond_acceptor_weight,
+            )
+        )
     interaction = build_segment_interaction_energy(
-        *descriptors,
+        sigma,
+        orthogonal,
+        donor,
+        acceptor,
         temperature_k=temperature,
+        parameters=cosmospace_parameters,
     )
     solute_count = solute.areas_angstrom2.numel()
-    interaction_identity = OPEN_COSMORS_24A_PARAMETERS.name
+    interaction_identity = cosmospace_parameters.name
     if ionic_es_solvent_class is not None:
         interaction = replace_polyatomic_anion_cross_contacts(
             interaction,
@@ -291,8 +340,13 @@ def infinite_dilution_activity(
             ),
             solvent_class=ionic_es_solvent_class,
         )
+        hybrid_prefix = (
+            ""
+            if cosmospace_parameters.name == PARAMETERIZATION_C_NEUTRAL_IDENTITY
+            else "hybrid-"
+        )
         interaction_identity = (
-            f"hybrid-{OPEN_COSMORS_24A_PARAMETERS.name}"
+            f"{hybrid_prefix}{cosmospace_parameters.name}"
             f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
         )
     solvent_areas = torch.cat(
@@ -309,11 +363,12 @@ def infinite_dilution_activity(
         solvent_areas,
         interaction,
         temperature_k=temperature,
+        parameters=cosmospace_parameters,
     )
     segment_area = (
         PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE.effective_segment_area_angstrom2
         if ionic_es_solvent_class is not None
-        else OPEN_COSMORS_24A_PARAMETERS.effective_segment_area_angstrom2
+        else cosmospace_parameters.effective_segment_area_angstrom2
     )
     counts = torch.cat(
         (
@@ -330,6 +385,15 @@ def infinite_dilution_activity(
         solvent.cavity_volume_angstrom3,
         solute.cavity_area_angstrom2,
         solvent.cavity_area_angstrom2,
+        parameters=solvation_parameters,
+    )
+    combinatorial_identity = (
+        "cosmo-rs-es-parameterization-c-modified-sg-2020"
+        if solvation_parameters.combinatorial_volume_exponent
+        == PARAMETERIZATION_C_COMBINATORIAL_VOLUME_EXPONENT
+        and solvation_parameters.combinatorial_standard_area_angstrom2
+        == PARAMETERIZATION_C_COMBINATORIAL_STANDARD_AREA_ANGSTROM2
+        else "openCOSMO-RS-24a-staverman-guggenheim"
     )
     return InfiniteDilutionActivity(
         residual_log_activity=residual,
@@ -339,6 +403,7 @@ def infinite_dilution_activity(
         solute_profile=solute,
         solvent_profile=solvent,
         interaction_model_identity=interaction_identity,
+        combinatorial_model_identity=combinatorial_identity,
     )
 
 
@@ -409,6 +474,8 @@ def open24a_solvation_free_energy(
     acknowledge_unvalidated_ions: bool = False,
     discretize: bool = True,
     ionic_es_solvent_class: IonicESSolventClass | None = None,
+    cosmospace_parameters: COSMOSPACEParameters = OPEN_COSMORS_24A_PARAMETERS,
+    combinatorial_parameters: OpenCOSMORS24aSolvationParameters | None = None,
     parameters: OpenCOSMORS24aSolvationParameters = (
         OPEN_COSMORS_24A_SOLVATION_PARAMETERS
     ),
@@ -439,6 +506,10 @@ def open24a_solvation_free_energy(
         temperature_k=temperature,
         discretize=discretize,
         ionic_es_solvent_class=ionic_es_solvent_class,
+        cosmospace_parameters=cosmospace_parameters,
+        solvation_parameters=(
+            parameters if combinatorial_parameters is None else combinatorial_parameters
+        ),
     )
     reference = solute_profile.dielectric_energy_hartree
     if total_solvated_minus_gas_hartree is None:
@@ -505,10 +576,20 @@ def open24a_solvation_free_energy(
         activity=activity,
         ionic_parameterization_validated=False if ionic else True,
         parameterization_identity=(
-            "hybrid-openCOSMO-RS-24a-neutral-ORCA6"
-            f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
-            if ionic_es_solvent_class is not None
-            else "openCOSMO-RS-24a-neutral-ORCA6"
+            "hybrid-openCOSMO-RS-24a-solute-ledger"
+            f"+{PARAMETERIZATION_C_NEUTRAL_IDENTITY}"
+            + (
+                f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
+                if ionic_es_solvent_class is not None
+                else ""
+            )
+            if cosmospace_parameters.name == PARAMETERIZATION_C_NEUTRAL_IDENTITY
+            else (
+                "hybrid-openCOSMO-RS-24a-neutral-ORCA6"
+                f"+{POLYATOMIC_ANION_SHORT_RANGE_IDENTITY}"
+                if ionic_es_solvent_class is not None
+                else "openCOSMO-RS-24a-neutral-ORCA6"
+            )
         ),
     )
 
@@ -517,6 +598,7 @@ __all__ = [
     "HARTREE_TO_KCAL_PER_MOL",
     "InfiniteDilutionActivity",
     "OPEN_COSMORS_24A_SOLVATION_PARAMETERS",
+    "PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS",
     "OpenCOSMORS24aSolvationParameters",
     "OpenCOSMORS24aSolvationResult",
     "estimate_open24a_liquid_molar_volume_cm3_mol",

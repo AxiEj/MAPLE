@@ -23,8 +23,11 @@ from maple.function.cosmors_torch.fixed_structure import (
     _validate_fixed_structure_cutoff_margins,
 )
 from maple.function.cosmors_torch.ionic_es import (
+    PARAMETERIZATION_C_NEUTRAL_IDENTITY,
     POLYATOMIC_ANION_SHORT_RANGE_IDENTITY,
+    PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE,
     PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE,
+    parameterization_c_neutral_hbond_weights,
     polyatomic_anion_neutral_solvent_cross_energy,
     replace_polyatomic_anion_cross_contacts,
 )
@@ -49,9 +52,11 @@ from maple.function.cosmors_torch.surface import (
     write_sigma_profile,
 )
 from maple.function.cosmors_torch.thermodynamics import (
+    PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS,
     estimate_open24a_liquid_molar_volume_cm3_mol,
     infinite_dilution_activity,
     open24a_solvation_free_energy,
+    staverman_guggenheim_infinite_dilution,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -66,6 +71,10 @@ ACTIVITY_ORACLE = (
 IONIC_ES_ORACLE = (
     ROOT / "docs/implicit-solvation/benchmarks/"
     "cosmors-es-parameterization-c-polyatomic-anion-v1.json"
+)
+PARAMETERIZATION_C_NEUTRAL_ORACLE = (
+    ROOT / "docs/implicit-solvation/benchmarks/"
+    "cosmors-es-parameterization-c-neutral-v1.json"
 )
 
 
@@ -277,6 +286,18 @@ def test_ionic_es_requires_explicit_surface_and_domain_acknowledgements(tmp_path
         evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
 
 
+def test_parameterization_c_neutral_requires_surface_acknowledgement(tmp_path):
+    checkpoint = tmp_path / "checkpoint.pt"
+    checkpoint.write_bytes(b"identity-only")
+    payload = {
+        "checkpoint_path": str(checkpoint),
+        "neutral_cosmospace_model": PARAMETERIZATION_C_NEUTRAL_IDENTITY,
+    }
+
+    with pytest.raises(ValueError, match="surface_mismatch"):
+        evaluate_fixed_structure_payload(payload, base_directory=tmp_path)
+
+
 def test_parameterization_c_polyatomic_anion_source_values_are_frozen():
     parameters = PUBLISHED_POLYATOMIC_ANION_SHORT_RANGE
     oracle = json.loads(IONIC_ES_ORACLE.read_text(encoding="utf-8"))
@@ -286,6 +307,58 @@ def test_parameterization_c_polyatomic_anion_source_values_are_frozen():
     assert provenance["source_equations"] == ["6.25", "6.26"]
     assert provenance["pdh_long_range_included"] is False
     assert provenance["single_ion_reference_scale_correction_included"] is False
+
+    neutral = json.loads(PARAMETERIZATION_C_NEUTRAL_ORACLE.read_text(encoding="utf-8"))
+    observed_neutral = PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE
+    for name, expected in neutral["cosmospace_parameters"].items():
+        assert getattr(observed_neutral, name) == expected
+    assert (
+        PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS.combinatorial_standard_area_angstrom2
+        == neutral["combinatorial"]["standard_area_angstrom2"]
+    )
+    assert (
+        PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS.combinatorial_volume_exponent
+        == neutral["combinatorial"]["volume_exponent"]
+    )
+
+
+def test_parameterization_c_neutral_hbond_switches_follow_parent_elements():
+    donor, acceptor = parameterization_c_neutral_hbond_weights(
+        torch.tensor([1, 6, 7, 8, 9, 15, 16, 17, 35, 53, 2], dtype=torch.int64)
+    )
+
+    torch.testing.assert_close(
+        donor,
+        torch.tensor([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=torch.float64),
+    )
+    torch.testing.assert_close(
+        acceptor,
+        torch.tensor([0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], dtype=torch.float64),
+    )
+
+
+def test_parameterization_c_modified_sg_uses_published_volume_exponent():
+    observed = staverman_guggenheim_infinite_dilution(
+        40.0,
+        20.0,
+        60.0,
+        30.0,
+        parameters=PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS,
+    )
+    parameters = PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS
+    phi_prime = 2.0**parameters.combinatorial_volume_exponent
+    theta_prime = 2.0
+    ratio = phi_prime / theta_prime
+    expected = (
+        math.log(phi_prime)
+        + 1.0
+        - phi_prime
+        - 0.5
+        * parameters.combinatorial_coordination_number
+        * (60.0 / parameters.combinatorial_standard_area_angstrom2)
+        * (math.log(ratio) + 1.0 - ratio)
+    )
+    assert float(observed) == pytest.approx(expected, abs=2.0e-15)
 
 
 @pytest.mark.parametrize("solvent_class", ["water", "organic"])
@@ -509,6 +582,47 @@ def test_declared_charge_canonicalization_ignores_only_float_noise():
     assert float(canonical.molecular_charge_e) == 0.0
     with pytest.raises(RuntimeError, match="disagrees"):
         _canonicalize_declared_profile_charge(profile, declared_charge=-1)
+
+
+def test_parameterization_c_neutral_baseline_threads_through_activity():
+    solute = _synthetic_profile(
+        {
+            "sigma_e_per_angstrom2": [-0.02, 0.02],
+            "sigma_orthogonal_e_per_angstrom2": [0.001, -0.001],
+            "areas_angstrom2": [20.0, 20.0],
+            "atomic_numbers": [1, 6],
+            "cavity_volume_angstrom3": 30.0,
+        },
+        name="solute",
+    )
+    solvent = _synthetic_profile(
+        {
+            "sigma_e_per_angstrom2": [-0.025, 0.02],
+            "sigma_orthogonal_e_per_angstrom2": [0.001, -0.001],
+            "areas_angstrom2": [22.0, 18.0],
+            "atomic_numbers": [1, 8],
+            "cavity_volume_angstrom3": 25.0,
+        },
+        name="solvent",
+    )
+
+    baseline = infinite_dilution_activity(solute, solvent, discretize=False)
+    parameterization_c = infinite_dilution_activity(
+        solute,
+        solvent,
+        discretize=False,
+        cosmospace_parameters=PUBLISHED_PARAMETERIZATION_C_NEUTRAL_COSMOSPACE,
+        solvation_parameters=(PARAMETERIZATION_C_NEUTRAL_COMBINATORIAL_PARAMETERS),
+    )
+
+    assert (
+        parameterization_c.interaction_model_identity
+        == PARAMETERIZATION_C_NEUTRAL_IDENTITY
+    )
+    assert "parameterization-c" in parameterization_c.combinatorial_model_identity
+    assert float(parameterization_c.total_log_activity) != pytest.approx(
+        float(baseline.total_log_activity)
+    )
 
 
 def test_open24a_activity_matches_frozen_upstream_equation_oracle():

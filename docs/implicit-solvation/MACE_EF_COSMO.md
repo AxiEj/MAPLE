@@ -225,8 +225,10 @@ Enable the overlay explicitly:
 
 ```json
 {
+  "neutral_cosmospace_model": "cosmo-rs-es-parameterization-c-neutral-2020",
   "ionic_short_range_model": "cosmo-rs-es-parameterization-c-polyatomic-anion-sr-2020",
   "acknowledge_unvalidated_ions": true,
+  "acknowledge_parameterization_c_surface_mismatch": true,
   "acknowledge_ionic_es_surface_mismatch": true,
   "acknowledge_ionic_es_domain_extrapolation": true,
   "solvents": [
@@ -248,10 +250,17 @@ The solvent class is checked against the solvent profile. The current adapter
 supports polyatomic anions only; it rejects cations and monatomic anions rather
 than silently applying the wrong published contact class.
 
-This remains a hybrid model: the neutral interactions and solvation ledger are
-open24a, while only the anion-solvent short-range contacts use Parameterization
-C. The published values were fitted with another COSMO surface convention and
-were not validated for anionic transition states. Outputs therefore record
-the exact equations and parameters, set `not_admitted=true`, and retain
-`diagnostic_only=true`. The mode is not used unless requested explicitly, so
+When `neutral_cosmospace_model` selects Parameterization C, the activity layer
+also uses the published Table 6.11 neutral values for `a_eff`, misfit, hydrogen
+bonding, element-dependent hydrogen-bond switches, and the modified
+Staverman-Guggenheim volume fraction from equation 6.21 with `p=0.645` and
+`A_norm=116.85 angstrom^2`. The solute-only energy ledger remains open24a:
+those terms cancel from a fixed-geometry relative KSE, while the source table
+does not provide every element parameter required here (notably iodine).
+
+This remains a hybrid model whenever either experimental option is selected.
+The published values were fitted with another COSMO surface convention and
+were not validated for anionic transition states. Outputs therefore record the
+exact equations and parameters, set `not_admitted=true`, and retain
+`diagnostic_only=true`. Neither mode is used unless requested explicitly, so
 the existing open24a baseline remains unchanged.

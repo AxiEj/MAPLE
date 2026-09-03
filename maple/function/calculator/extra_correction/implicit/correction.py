@@ -172,8 +172,8 @@ class ImplicitSolvationCorrection:
                 "set experimental=true explicitly."
             )
         method = str(self.solvation_options.get("method", "")).lower()
-        if method != "smd":
-            raise ValueError("The Route-2 branch supports method='smd' only.")
+        if method not in {"smd", "cosmo"}:
+            raise ValueError("The Route-2 branch supports method=smd or cosmo.")
         if "profile" not in self.solvation_options:
             raise ValueError(
                 "Route 2 SMD requires an explicit versioned profile."
@@ -186,16 +186,17 @@ class ImplicitSolvationCorrection:
             "pyddx": PyDDXSMDImplicitSolvation,
             "fc-aswig": FixedTopologyASWIGAqueousSMDImplicitSolvation,
             "torch-smooth-pcm": MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic,
+            "torch-smooth-cosmo": MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic,
         }
         try:
             provider_type = providers[provider_name]
         except KeyError as exc:
             raise ValueError(
                 "Route 2 provider must be pcmsolver, pyddx, fc-aswig, "
-                "or torch-smooth-pcm."
+                "torch-smooth-pcm, or torch-smooth-cosmo."
             ) from exc
 
-        self.method = "smd"
+        self.method = method
         self.mode = str(self.solvation_options.get("response", "scf")).lower()
         self.source_receiver_contract = route2_source_receiver_contract(
             str(self.solvation_options["profile"])

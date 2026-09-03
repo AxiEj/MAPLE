@@ -1,0 +1,29 @@
+{
+  "algorithm": "COSMOspace successive substitution",
+  "artifact": "opencosmors-python-cosmospace-oracle-v1",
+  "convergence_relative": 1e-06,
+  "gamma": [
+    1.0052003434287686,
+    1.1719021645212213,
+    1.0022660645138406
+  ],
+  "gas_constant_j_mol_k": 8.31446261815324,
+  "interaction_energy_j_mol": [
+    [0.0, 1200.0, -350.0],
+    [1200.0, 0.0, 700.0],
+    [-350.0, 700.0, 0.0]
+  ],
+  "iterations": 14,
+  "maximum_iterations": 1000,
+  "mixing": 0.7,
+  "segment_mole_fractions": [0.2, 0.3, 0.5],
+  "tau": [
+    [1.0, 0.6162672596072066, 1.151641607658849],
+    [0.6162672596072066, 1.0, 0.7539895135603982],
+    [1.151641607658849, 0.7539895135603982, 1.0]
+  ],
+  "temperature_k": 298.15,
+  "upstream_git_head": "3db6614925ded5fc47a77d1e34f4a1975e518a9b",
+  "upstream_license": "LGPL-3.0",
+  "upstream_repository": "https://github.com/TUHH-TVT/openCOSMO-RS_py"
+}

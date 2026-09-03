@@ -16,7 +16,7 @@ dynamics, and related post-processing workflows.
 | **Dynamics** | NVE, NVT, NPT |
 | **Analysis** | Frequency, PES Scan, Single Point |
 | **ML Potentials** | ANI, AIMNet2, MACE, MACEPol, UMA |
-| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental MACE-POLAR/SMD implicit-solvation correction, an explicitly acknowledged known-nonpassive MACE-POLAR-EF/smooth-PCM diagnostic, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
+| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental MACE-POLAR/SMD implicit-solvation correction, acknowledged MACE-POLAR-EF smooth-ddPCM/conductor-COSMO diagnostics, batched Torch COSMOspace and fixed-structure KSE analysis, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
 
 ## Installation
 

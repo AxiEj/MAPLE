@@ -1,7 +1,7 @@
 import os
 import re
 from pathlib import Path
-from typing import Any, List, Union
+from typing import List, Union
 
 from ase import Atoms
 import numpy as np
@@ -246,7 +246,7 @@ class InputReader():
                 if isinstance(atoms_or_list, list)
                 else [atoms_or_list]
             )
-            if implicit_method == "smd":
+            if implicit_method in {"smd", "cosmo"}:
                 if len(targets) != 1:
                     raise ValueError(
                         "Route 2 SMD currently accepts exactly one molecule."

@@ -1,5 +1,10 @@
 # MAPLE implicit solvation: Route 2 research/innovation route
 
+The separate MACE-EF COSMO/COSMO-RS work is documented in
+[`MACE_EF_COSMO.md`](MACE_EF_COSMO.md). It keeps differentiable conductor
+COSMO in the MAPLE energy/force layer and fixed-structure COSMO-RS/KSE in a
+statistical-thermodynamics layer.
+
 This branch contains only the MACE-POLAR + SMD continuum route. It does not
 contain the fixed-charge PB/GB implementation. The default
 PCMSolver--IEFPCM/GePol profile remains an energy proof-of-concept. Separate,

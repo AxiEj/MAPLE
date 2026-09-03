@@ -35,6 +35,7 @@ from .pyscf_smd_cds import PySCFSMDCDSResult, pyscf_smd_cds
 from .result import SolvationResult
 from .route2_domain import validate_route2_domain
 from .smd_cds import route2_coulomb_radii
+from .torch_smooth_cosmo import TorchSmoothCOSMO
 from .torch_smooth_pcm import TorchSmoothPCM
 
 SMOOTH_PCM_TRANSITION_WIDTH_ANGSTROM2 = 0.08
@@ -89,7 +90,7 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             solvent=self.solvent,
             profile=self.profile,
         )
-        self.continuum = TorchSmoothPCM(
+        continuum_kwargs = dict(
             atomic_numbers=tuple(int(value) for value in self._reference_numbers),
             radii_angstrom=tuple(float(value) for value in radii),
             transition_width_angstrom2=(SMOOTH_PCM_TRANSITION_WIDTH_ANGSTROM2),
@@ -98,21 +99,30 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             partition_radial_quadrature_order=(SMOOTH_PCM_PARTITION_RADIAL_ORDER),
             source_radial_quadrature_order=SMOOTH_PCM_SOURCE_RADIAL_ORDER,
             double_layer_radial_quadrature_order=(SMOOTH_PCM_DOUBLE_LAYER_RADIAL_ORDER),
-            dielectric=self.solvent_spec.descriptors.dielectric,
             source_shell_clearance_angstrom=(
                 SMOOTH_PCM_SOURCE_SHELL_CLEARANCE_ANGSTROM
             ),
         )
+        if self.profile_spec.electrostatics_model == "smooth-cosmo":
+            self.continuum = TorchSmoothCOSMO(**continuum_kwargs)
+            continuum_symbol = "smooth-COSMO"
+        else:
+            self.continuum = TorchSmoothPCM(
+                **continuum_kwargs,
+                dielectric=self.solvent_spec.descriptors.dielectric,
+            )
+            continuum_symbol = "smooth-ddPCM"
         self._coupling: MACEPolarEFSmoothPCMCoupling | None = None
         if self.audit_dir is not None:
             self.audit_dir = Path(self.audit_dir).resolve()
             self.audit_dir.mkdir(parents=True, exist_ok=True)
         self.provenance = {
             "provider": self.provider,
-            "method": "smd",
+            "method": str(self.solvation_options.get("method", "")),
             "profile": self.profile,
             "solvent": self.solvent,
             "response": self.response,
+            "electrostatics_model": self.profile_spec.electrostatics_model,
             "standard_state": "1M(gas)->1M(solution)",
             "known_nonpassive_diagnostic": True,
             "known_nonpassive_acknowledged": True,
@@ -144,7 +154,7 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             ),
             "energy_composition": route2_energy_composition_description(
                 MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1,
-                continuum_symbol="smooth-ddPCM",
+                continuum_symbol=continuum_symbol,
             ),
             "continuum": dict(self.continuum.execution_provenance()),
             "continuum_configuration_sha256": (self.continuum.configuration_sha256()),
@@ -157,10 +167,20 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             raise ValueError(
                 "The diagnostic requires acknowledge_known_nonpassive=true."
             )
-        if str(self.solvation_options.get("method", "")).lower() != "smd":
-            raise ValueError("The diagnostic requires method=smd.")
-        if self.provider != "torch-smooth-pcm":
-            raise ValueError("The diagnostic requires provider=torch-smooth-pcm.")
+        method = str(self.solvation_options.get("method", "")).lower()
+        expected_method = (
+            "cosmo"
+            if self.profile_spec.electrostatics_model == "smooth-cosmo"
+            else "smd"
+        )
+        if method != expected_method:
+            raise ValueError(
+                f"The selected profile requires method={expected_method}."
+            )
+        if self.provider != self.profile_spec.provider:
+            raise ValueError(
+                "The diagnostic provider does not match its profile."
+            )
         if not self.profile_spec.known_nonpassive_diagnostic:
             raise ValueError("Profile is not classified as known nonpassive.")
         if not self.profile_spec.supports_solvent(self.solvent):
@@ -202,6 +222,30 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
             raise ValueError(
                 "The diagnostic does not permit atom identity/order changes."
             )
+
+    def _evaluate_nonpolar(
+        self,
+        atoms,
+        positions: np.ndarray,
+    ) -> PySCFSMDCDSResult:
+        if self.profile_spec.nonpolar_model == "none":
+            return PySCFSMDCDSResult(
+                energy_hartree=0.0,
+                energy_kcal_mol=0.0,
+                position_gradient_hartree_per_angstrom=np.zeros_like(positions),
+                runtime_provenance={
+                    "provider": "none",
+                    "pyscf_version": "not-used",
+                    "solvent": self.solvent,
+                    "pyscf_smd_solvent": "not-used",
+                    "upstream_entrypoint": "not-used",
+                },
+            )
+        return pyscf_smd_cds(
+            atoms.get_chemical_symbols(),
+            positions,
+            solvent=self.solvent,
+        )
 
     def _coupling_for_calculator(
         self,
@@ -324,11 +368,7 @@ class MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic:
         if not callable(gas_energy_method):
             raise TypeError("Calculator has no gas-energy cache boundary.")
         gas_energy_ev = float(cast(float, gas_energy_method(atoms)))
-        cds = pyscf_smd_cds(
-            atoms.get_chemical_symbols(),
-            positions,
-            solvent=self.solvent,
-        )
+        cds = self._evaluate_nonpolar(atoms, positions)
         components = {
             "solute_polarization": (
                 coupled.electronic_energy_ev

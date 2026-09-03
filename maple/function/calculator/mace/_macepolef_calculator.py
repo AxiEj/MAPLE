@@ -129,7 +129,7 @@ class MACEPolarEFCalculator(CalcABC):
         device: torch.device | str,
         model: str = "macepolarefv2",
         model_path: str | None = None,
-        implicit: Literal["smd", "none"] = "none",
+        implicit: Literal["smd", "cosmo", "none"] = "none",
         solvent: str = "none",
         _implicit_solvent_factory_token=None,
     ) -> None:
@@ -157,19 +157,19 @@ class MACEPolarEFCalculator(CalcABC):
                 f"{checkpoint_spec.name} requires device index "
                 f"{checkpoint_spec.device_index}."
             )
-        route2_smd = str(implicit).strip().lower() == "smd"
-        if route2_smd and (
+        route2_continuum = str(implicit).strip().lower() in {"smd", "cosmo"}
+        if route2_continuum and (
             _implicit_solvent_factory_token is not _IMPLICIT_SOLVENT_FACTORY_TOKEN
         ):
             raise ValueError(
-                "Direct MACEPolarEFCalculator(implicit='smd') construction "
+                "Direct MACEPolarEFCalculator implicit-solvent construction "
                 "is disabled; use MAPLE's SetCalculator factory."
             )
 
         self.device = device_value
         self.model_path = str(path)
         self.route2_smd_profile = (
-            type(self).ROUTE2_PROFILE_BINDING if route2_smd else None
+            type(self).ROUTE2_PROFILE_BINDING if route2_continuum else None
         )
         self._evaluator: MACEPolarEFEnergyModel | None = None
         self._atomic_numbers: tuple[int, ...] | None = None

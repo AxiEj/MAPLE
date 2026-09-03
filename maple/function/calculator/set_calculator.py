@@ -209,10 +209,10 @@ class SetCalculator:
                 )
             return
 
-        if self.implicit != 'smd':
+        if self.implicit not in {'smd', 'cosmo'}:
             raise ValueError(
                 "Unsupported implicit solvation method: "
-                f"{self.implicit!r}; expected 'gbsa' or 'smd'."
+                f"{self.implicit!r}; expected gbsa, smd, or cosmo."
             )
         self.solvent = normalize_route2_solvent_name(self.solvent)
         configured_solvent = normalize_route2_solvent_name(
@@ -227,7 +227,7 @@ class SetCalculator:
         self.solvation_options['implicit'] = configured_solvent
         if self.atoms is None:
             raise ValueError("Implicit solvation requires one molecule.")
-        if self.implicit == 'smd':
+        if self.implicit in {'smd', 'cosmo'}:
             from .extra_correction.implicit.route2_domain import (
                 validate_route2_domain,
             )
@@ -253,10 +253,11 @@ class SetCalculator:
                 'pyddx',
                 'fc-aswig',
                 'torch-smooth-pcm',
+                'torch-smooth-cosmo',
             }:
                 raise ValueError(
                     "Route 2 provider must be pcmsolver, pyddx, fc-aswig, "
-                    "or torch-smooth-pcm."
+                    "torch-smooth-pcm, or torch-smooth-cosmo."
                 )
             if 'profile' not in self.solvation_options:
                 raise ValueError(
@@ -336,7 +337,12 @@ class SetCalculator:
             ).lower()
             validate_route2_smd_response_mode(profile_spec, response)
             if (
-                provider in {'pyddx', 'fc-aswig', 'torch-smooth-pcm'}
+                provider in {
+                    'pyddx',
+                    'fc-aswig',
+                    'torch-smooth-pcm',
+                    'torch-smooth-cosmo',
+                }
                 and 'cavity_policy' in self.solvation_options
             ):
                 raise ValueError(
@@ -684,7 +690,7 @@ class SetCalculator:
 
         resolved_path_str = str(resolved_model_path) if resolved_model_path is not None else None
         kwargs = cls.build_kwargs_from_options(name, options, resolved_model_path=resolved_path_str)
-        if self.implicit == 'smd':
+        if self.implicit in {'smd', 'cosmo'}:
             kwargs.update(
                 cls.build_implicit_solvent_kwargs(
                     self.solvation_options,
@@ -702,7 +708,7 @@ class SetCalculator:
             **kwargs,
         )
 
-        if self.implicit == 'smd':
+        if self.implicit in {'smd', 'cosmo'}:
             from .extra_correction.implicit import ImplicitSolvationCorrection
 
             calculator.solvent_correction = ImplicitSolvationCorrection(

@@ -36,6 +36,7 @@ route2-pyddx = [
 
 [project.scripts]
 maple = "maple.main:main"
+maple-cosmors-kse = "maple.function.cosmors_torch.kse:main"
 
 [tool.setuptools.packages.find]
 include = ["maple*"]

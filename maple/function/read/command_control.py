@@ -570,8 +570,8 @@ class CommandControl:
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            if method not in {"gbsa", "smd"}:
-                msg = "Implicit solvation method must be 'gbsa' or 'smd'."
+            if method not in {"gbsa", "smd", "cosmo"}:
+                msg = "Implicit solvation method must be gbsa, smd, or cosmo."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -581,15 +581,15 @@ class CommandControl:
             raise ValueError(msg)
 
         if implicit is not None:
-            if method not in {"gbsa", "smd"}:
-                msg = "Implicit solvation requires method=gbsa or method=smd."
+            if method not in {"gbsa", "smd", "cosmo"}:
+                msg = "Implicit solvation requires method=gbsa, smd, or cosmo."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if str(implicit).strip().lower() in {"", "none"}:
                 msg = "Implicit solvation requires a real solvent name, not 'none'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            if method == "smd":
+            if method in {"smd", "cosmo"}:
                 try:
                     implicit = normalize_route2_solvent_name(implicit)
                 except ValueError as exc:
@@ -688,7 +688,7 @@ class CommandControl:
                     raise ValueError(msg)
                 return
 
-            if method == "smd":
+            if method in {"smd", "cosmo"}:
                 provider = str(
                     solv_params.get("provider", "pcmsolver")
                 ).lower()
@@ -697,11 +697,13 @@ class CommandControl:
                     "pyddx",
                     "fc-aswig",
                     "torch-smooth-pcm",
+                    "torch-smooth-cosmo",
                 }:
                     msg = (
                         "Route 2 provider must be provider=pcmsolver, "
                         "provider=pyddx, provider=fc-aswig, or "
-                        "provider=torch-smooth-pcm."
+                        "provider=torch-smooth-pcm, or "
+                        "provider=torch-smooth-cosmo."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -711,7 +713,10 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if task != "sp" and provider != "torch-smooth-pcm":
+                if task != "sp" and provider not in {
+                    "torch-smooth-pcm",
+                    "torch-smooth-cosmo",
+                }:
                     msg = (
                         "Route 2 SMD remains single-point only while the "
                         "solution-phase PES validation gate is open."
@@ -788,6 +793,24 @@ class CommandControl:
                     msg = str(exc)
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
+                if method == "cosmo" and (
+                    provider != "torch-smooth-cosmo"
+                    or profile_spec.electrostatics_model != "smooth-cosmo"
+                    or profile_spec.nonpolar_model != "none"
+                ):
+                    msg = (
+                        "method=cosmo requires the pure conductor profile with "
+                        "provider=torch-smooth-cosmo and no SMD-CDS term."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if method == "smd" and provider == "torch-smooth-cosmo":
+                    msg = (
+                        "provider=torch-smooth-cosmo is a pure conductor model; "
+                        "use method=cosmo."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
                 try:
                     validate_route2_input_model_family(
                         model_name,
@@ -889,7 +912,8 @@ class CommandControl:
                         raise ValueError(msg)
                 if (
                     task == "sp"
-                    and provider == "torch-smooth-pcm"
+                    and provider
+                    in {"torch-smooth-pcm", "torch-smooth-cosmo"}
                     and int(params.get("verbose", 0)) >= 1
                     and not profile_spec.diagnostic_derivative_eligible
                 ):
@@ -910,7 +934,13 @@ class CommandControl:
                     raise ValueError(msg) from exc
                 cavity_policy = None
                 if (
-                    provider in {"pyddx", "fc-aswig", "torch-smooth-pcm"}
+                    provider
+                    in {
+                        "pyddx",
+                        "fc-aswig",
+                        "torch-smooth-pcm",
+                        "torch-smooth-cosmo",
+                    }
                     and "cavity_policy" in solv_params
                 ):
                     msg = (

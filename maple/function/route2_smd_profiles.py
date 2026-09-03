@@ -90,6 +90,10 @@ MACE_POLAR_EF_SMOOTH_PCM_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE = (
     "mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-"
     "multisolv-derivatives-known-nonpassive-v2"
 )
+MACE_POLAR_EF_SMOOTH_COSMO_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE = (
+    "mace-polar-ef-v2-smooth-cosmo-l3-p6-r96-128-128-"
+    "multisolv-derivatives-known-nonpassive-v1"
+)
 
 MACEPOL_MOLECULAR_REALSPACE_PROFILE = (
     "graph-longrange-molecular-realspace-v1"
@@ -109,6 +113,7 @@ class Route2SMDProfileSpec:
         "pyddx",
         "fc-aswig",
         "torch-smooth-pcm",
+        "torch-smooth-cosmo",
     ]
     cavity: Literal[
         "canonical-smd",
@@ -123,6 +128,7 @@ class Route2SMDProfileSpec:
         "ddcosmo",
         "cpcm",
         "smooth-ddpcm",
+        "smooth-cosmo",
     ]
     solute_source: Literal["point-multipole-l1"]
     reaction_field_projector: Literal[
@@ -138,12 +144,14 @@ class Route2SMDProfileSpec:
         "native-water-smd-cds",
         "pyscf-smd-cds",
         "fixed-topology-aqueous-smd-cds",
+        "none",
     ]
     dielectric_policy: Literal[
         "pcmsolver-water-keyword",
         "explicit-smd-water-78.355-v1",
         "legacy-water-78.39",
         "pyscf-smd-2.13.1",
+        "conductor-infinity-binary64-v1",
     ]
     coulomb_radii_policy: Literal[
         "smd-water-reference-smd18-v1",
@@ -219,10 +227,16 @@ class Route2SMDProfileSpec:
                 "A Route-2 public force profile must be the bounded "
                 "water-only JGP94-D2 fixed-topology direct-CPCM profile."
             )
+        smooth_diagnostic_pair = (
+            self.provider,
+            self.electrostatics_model,
+        ) in {
+            ("torch-smooth-pcm", "smooth-ddpcm"),
+            ("torch-smooth-cosmo", "smooth-cosmo"),
+        }
         if self.known_nonpassive_diagnostic and (
-            self.provider != "torch-smooth-pcm"
+            not smooth_diagnostic_pair
             or self.cavity != "smooth-fixed-dimensional-spheres-v1"
-            or self.electrostatics_model != "smooth-ddpcm"
             or self.electronic_energy_semantics
             != ROUTE2_KNOWN_NONPASSIVE_ENERGY_CONJUGATE_DIAGNOSTIC
             or self.reaction_field_projector
@@ -277,6 +291,38 @@ _WATER_ONLY = frozenset({"water"})
 
 
 _PROFILE_SPECS = {
+    MACE_POLAR_EF_SMOOTH_COSMO_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE: (
+        Route2SMDProfileSpec(
+            name=(
+                MACE_POLAR_EF_SMOOTH_COSMO_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE
+            ),
+            provider="torch-smooth-cosmo",
+            cavity="smooth-fixed-dimensional-spheres-v1",
+            mace_long_range_evaluator=(
+                "mace-polar-ef-v2-native-atomwise-local-jet-v1"
+            ),
+            electrostatics_model="smooth-cosmo",
+            solute_source="point-multipole-l1",
+            reaction_field_projector=(
+                "native-atomwise-potential-gradient-v1"
+            ),
+            model_field_gauge="continuum-zero-at-infinity",
+            nonpolar_model="none",
+            dielectric_policy="conductor-infinity-binary64-v1",
+            coulomb_radii_policy="pyscf-smd-2.13.1",
+            supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
+            electronic_model_family=ROUTE2_MACE_POLAR_EF_V2_MODEL_FAMILY,
+            electronic_profile_binding=ROUTE2_MACE_POLAR_EF_V2_PROFILE_BINDING,
+            electronic_energy_semantics=(
+                ROUTE2_KNOWN_NONPASSIVE_ENERGY_CONJUGATE_DIAGNOSTIC
+            ),
+            electrostatic_energy_ledger=(
+                MACE_EF_KNOWN_NONPASSIVE_COMMON_SCALAR_DIAGNOSTIC_V1
+            ),
+            known_nonpassive_diagnostic=True,
+            diagnostic_derivative_eligible=True,
+        )
+    ),
     MACE_POLAR_EF_SMOOTH_PCM_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE: (
         Route2SMDProfileSpec(
             name=(
@@ -691,6 +737,11 @@ SUPPORTED_TORCH_SMOOTH_PCM_SMD_PROFILES = frozenset(
     for name, spec in _PROFILE_SPECS.items()
     if spec.provider == "torch-smooth-pcm"
 )
+SUPPORTED_TORCH_SMOOTH_COSMO_SMD_PROFILES = frozenset(
+    name
+    for name, spec in _PROFILE_SPECS.items()
+    if spec.provider == "torch-smooth-cosmo"
+)
 SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
     name
     for name, spec in _PROFILE_SPECS.items()
@@ -720,7 +771,13 @@ def register_route2_smd_profile(
 
 def route2_smd_profiles_for_provider(provider: str) -> frozenset[str]:
     normalized = str(provider).strip().lower()
-    if normalized in {"pcmsolver", "pyddx", "fc-aswig", "torch-smooth-pcm"}:
+    if normalized in {
+        "pcmsolver",
+        "pyddx",
+        "fc-aswig",
+        "torch-smooth-pcm",
+        "torch-smooth-cosmo",
+    }:
         return frozenset(
             name
             for name, spec in _PROFILE_SPECS.items()
@@ -773,7 +830,10 @@ def validate_route2_smd_response_mode(
     normalized = str(response).strip().lower()
     if normalized not in SUPPORTED_ROUTE2_SMD_RESPONSE_MODES:
         raise ValueError("SMD response must be frozen or scf.")
-    if profile_spec.provider == "torch-smooth-pcm" and normalized != "scf":
+    if profile_spec.provider in {
+        "torch-smooth-pcm",
+        "torch-smooth-cosmo",
+    } and normalized != "scf":
         raise ValueError(
             "The MACE-POLAR-EF/smooth-PCM diagnostic requires response='scf'."
         )
@@ -827,6 +887,7 @@ __all__ = [
     "MACEPOL_MOLECULAR_REALSPACE_PROFILE",
     "MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE",
     "MACE_POLAR_EF_SMOOTH_PCM_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE",
+    "MACE_POLAR_EF_SMOOTH_COSMO_MULTISOLVENT_DERIVATIVE_DIAGNOSTIC_PROFILE",
     "PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE",
     "PCMSOLVER_EXACT_GTO_FIELD_PROFILE",
     "PCMSOLVER_INTRINSIC_CAVITY_PROFILE",
@@ -839,6 +900,7 @@ __all__ = [
     "SUPPORTED_ROUTE2_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_RESPONSE_MODES",
     "SUPPORTED_TORCH_SMOOTH_PCM_SMD_PROFILES",
+    "SUPPORTED_TORCH_SMOOTH_COSMO_SMD_PROFILES",
     "Route2SMDProfileSpec",
     "Route2SMDResponseMode",
     "route2_smd_profile_spec",

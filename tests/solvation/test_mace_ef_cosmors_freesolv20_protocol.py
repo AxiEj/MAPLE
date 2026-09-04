@@ -228,3 +228,23 @@ def test_runner_atomic_writer_never_leaves_temporary_file(
         "value": 3,
     }
     assert not output.with_suffix(".json.tmp").exists()
+
+
+def test_failed_frozen_control_attempt_is_preserved_without_scientific_result():
+    raw = (
+        BENCHMARKS
+        / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2-attempt1.json"
+    )
+    failure = _json(
+        "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2-attempt1-failure.json"
+    )
+
+    assert failure["status"] == "execution-failed-after-record-evaluation"
+    assert failure["scientific_result_available"] is False
+    assert failure["failure"] == {
+        "error": "_summary() takes 1 positional argument but 2 were given",
+        "error_type": "TypeError",
+        "stage": "post-record aggregate summary",
+    }
+    assert failure["raw_partial_artifact"]["sha256"] == _sha256(raw)
+    assert failure["raw_partial_artifact"]["record_count"] == 20

@@ -1,0 +1,1951 @@
+{
+  "admission_eligible": false,
+  "artifact": "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2",
+  "claim_boundary": {
+    "does_establish": [
+      "A paired mechanism intervention that removes the MACE-EF electronic fixed point at the same 20 geometries."
+    ],
+    "does_not_establish": [
+      "Frozen dielectric energy as a total hydration free energy.",
+      "Accuracy or admission of frozen MACE-EF sources or open24a surface transfer."
+    ]
+  },
+  "completed_at_utc": "2026-09-04T11:32:35+00:00",
+  "diagnostic_only": true,
+  "execution_git_head": "80126abeca87a048eceb61b6c1bfd57568358606",
+  "failures": [],
+  "method": {
+    "angular_degree": 4,
+    "checkpoint_path": "/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt",
+    "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+    "description": "Evaluate the same checkpoint once at zero field, freeze its energy-conjugate atomwise l<=1 source, and solve the same Torch segment conductor without an electronic fixed point.",
+    "device": "cuda:0",
+    "frozen_energy_ledger": "one-half source/reaction-field pairing (Torch segment-COSMO boundary energy)",
+    "full_cosmospace_parameter_sha256": "a06b4554ce14f123616ec1997ac280d374dfad3f06f2e57e5532b0da09d9d147",
+    "geometry_relaxation_or_conformer_averaging": false,
+    "post_hoc_shift_or_rescaling": false
+  },
+  "primary_artifact": {
+    "artifact": "mace-ef-cosmors-freesolv20-diverse-v3",
+    "path": "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3.json",
+    "sha256": "a23c847d7e6ec8f18662d205edaaf36a0d5e0d6ea3a863c6481a38c515b6c83f"
+  },
+  "records": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_2008055",
+      "experimental_kcal_mol": 1.83,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -0.07008073855192945,
+        "signed_difference_from_experiment_kcal_mol": -1.9000807385519296
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 1.715160691745787,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 1.715160691745787,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.6375185502937293,
+            "dielectric": -0.07008073855192945,
+            "minus_element_surface": -2.028463326075423,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.21425699920379981,
+            "residual": 6.3536847636576566,
+            "total": 6.139427764453857
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -0.11483930825421318
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": 1.5402227832009636,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": 1.5402227832009636,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.462580641748906,
+            "dielectric": -0.07008073855192945,
+            "minus_element_surface": -2.028463326075423,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.21425699920379981,
+            "residual": 6.058423409543366,
+            "total": 5.844166410339566
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -0.28977721679903645
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_2008055.frozen.torch-cosmors.json",
+        "sha256": "b27a7c18243c61a273ce6b71c9a876e953a2db23cd37fb946a16a62a33b62c58"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -0.07008073855192945,
+        "source_charge_e": 4.470348358154297e-08,
+        "source_maximum_absolute_component": 0.38767504692077637,
+        "surface_area_angstrom2": 77.6623759362021,
+        "surface_segment_count": 400
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_2008055.xyz",
+        "sha256": "797c90082fd11a241f7a4d1fe72fbd1b22aa49cf85bf234eaf4d84e4e12a3633"
+      },
+      "name": "ethane",
+      "ordinal": 1,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -0.07852867586878716,
+        "scf_minus_frozen_kcal_mol": -0.00844793731685771,
+        "signed_difference_from_experiment_kcal_mol": -1.9085286758687872
+      }
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "experimental_kcal_mol": -0.9,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -1.0012278452651087,
+        "signed_difference_from_experiment_kcal_mol": -0.10122784526510864
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 0.19678194966857188,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 0.19678194966857188,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.560985362668911,
+            "dielectric": -1.0012278452651087,
+            "minus_element_surface": -2.961011173814641,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.3393495662976165,
+            "residual": 9.725217283875061,
+            "total": 9.385867717577444
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.0967819496685718
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -0.23150148743472787,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -0.23150148743472787,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.132701925565612,
+            "dielectric": -1.0012278452651087,
+            "minus_element_surface": -2.961011173814641,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.3393495662976165,
+            "residual": 9.002357678225655,
+            "total": 8.663008111928038
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.6684985125652722
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_3053621.frozen.torch-cosmors.json",
+        "sha256": "ad3e5aa2b6217146e251d336c6342053fcb3611bd25d7525bda4951372495ae6"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -1.0012278452651087,
+        "source_charge_e": 1.4901161193847656e-08,
+        "source_maximum_absolute_component": 0.12551349401474,
+        "surface_area_angstrom2": 118.1833072145765,
+        "surface_segment_count": 600
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_3053621.xyz",
+        "sha256": "f7efac6039715d82db30c34c7d42ba6748a4293d27bbb6aad45b8e268cb157ac"
+      },
+      "name": "benzene",
+      "ordinal": 2,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -1.2388036372191227,
+        "scf_minus_frozen_kcal_mol": -0.23757579195401402,
+        "signed_difference_from_experiment_kcal_mol": -0.33880363721912266
+      }
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "experimental_kcal_mol": -5.1,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -5.014538808075265,
+        "signed_difference_from_experiment_kcal_mol": 0.08546119192473434
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -4.150384209415005,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -4.150384209415005,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 2.0700777260855943,
+            "dielectric": -5.014538808075265,
+            "minus_element_surface": -1.3821093335047439,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.13134536168303865,
+            "residual": 3.6252361804889373,
+            "total": 3.4938908188058986
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.9496157905849945
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -3.3510237157613503,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -3.3510237157613503,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 2.869438219739249,
+            "dielectric": -5.014538808075265,
+            "minus_element_surface": -1.3821093335047439,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.13134536168303865,
+            "residual": 4.974402085951743,
+            "total": 4.843056724268704
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.7489762842386494
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_1636752.frozen.torch-cosmors.json",
+        "sha256": "01cc07e427c57eeaf73cca55cbbcaeb653b8f6ba3970d966b5e9ad873badbc3b"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -5.014538808075265,
+        "source_charge_e": -2.2351741790771484e-08,
+        "source_maximum_absolute_component": 0.5109831094741821,
+        "surface_area_angstrom2": 67.32246449602322,
+        "surface_segment_count": 300
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_1636752.xyz",
+        "sha256": "b9647468f4182c31d77fd9220ba9a2cf5457b98a6d27a9f5228f0388820a1b09"
+      },
+      "name": "methanol",
+      "ordinal": 3,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -8.510409441087518,
+        "scf_minus_frozen_kcal_mol": -3.4958706330122524,
+        "signed_difference_from_experiment_kcal_mol": -3.410409441087518
+      }
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "experimental_kcal_mol": -1.91,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -1.792641439617237,
+        "signed_difference_from_experiment_kcal_mol": 0.11735856038276293
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 0.43402825122668176,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 0.43402825122668176,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.118633935988182,
+            "dielectric": -1.792641439617237,
+            "minus_element_surface": -2.0681504512236737,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.33289551629828756,
+            "residual": 7.284352997164157,
+            "total": 6.951457480865869
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.344028251226682
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -0.003023707977309442,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -0.003023707977309442,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.6815819767841913,
+            "dielectric": -1.792641439617237,
+            "minus_element_surface": -2.0681504512236737,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.33289551629828756,
+            "residual": 6.546693822167162,
+            "total": 6.213798305868875
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.9069762920226905
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_7015518.frozen.torch-cosmors.json",
+        "sha256": "572953f0ec6002e67b51ea150e593054edd89aa684f1fe698083a5f2eeb6463f"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -1.792641439617237,
+        "source_charge_e": 3.725290298461914e-08,
+        "source_maximum_absolute_component": 0.2776423990726471,
+        "surface_area_angstrom2": 88.66794553910842,
+        "surface_segment_count": 450
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_7015518.xyz",
+        "sha256": "8395fb1623cf82ed0cff5f486155cb4737654922d99d14058bea9104c9e7f8d8"
+      },
+      "name": "methoxymethane",
+      "ordinal": 4,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -2.125581025066558,
+        "scf_minus_frozen_kcal_mol": -0.3329395854493211,
+        "signed_difference_from_experiment_kcal_mol": -0.21558102506655819
+      }
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "experimental_kcal_mol": -3.8,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -4.976692684119296,
+        "signed_difference_from_experiment_kcal_mol": -1.1766926841192964
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -2.9330786394151582,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -2.9330786394151582,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.109392726820948,
+            "dielectric": -4.976692684119296,
+            "minus_element_surface": -2.24196488819622,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.5498635112810684,
+            "residual": 7.485723618455507,
+            "total": 6.935860107174439
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.8669213605848416
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -3.0156505554143997,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -3.0156505554143997,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.0268208108217065,
+            "dielectric": -4.976692684119296,
+            "minus_element_surface": -2.24196488819622,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.5498635112810684,
+            "residual": 7.346358194845788,
+            "total": 6.7964946835647195
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.7843494445856001
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_3867265.frozen.torch-cosmors.json",
+        "sha256": "d226d5db02aa93d48f81c09fa38acc969aeca2cdc38ad5cab9206935d513103c"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -4.976692684119296,
+        "source_charge_e": -5.960464477539063e-08,
+        "source_maximum_absolute_component": 0.678731381893158,
+        "surface_area_angstrom2": 104.71263719699775,
+        "surface_segment_count": 500
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_3867265.xyz",
+        "sha256": "ff417e8b500f81ab52977b17f28a5632962a819fc649acf5485d22e345dc58f4"
+      },
+      "name": "acetone",
+      "ordinal": 5,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -5.968996966535341,
+        "scf_minus_frozen_kcal_mol": -0.9923042824160451,
+        "signed_difference_from_experiment_kcal_mol": -2.1689969665353415
+      }
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "experimental_kcal_mol": -2.94,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -4.674453848610289,
+        "signed_difference_from_experiment_kcal_mol": -1.7344538486102894
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -2.0338328152958196,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -2.0338328152958196,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.373607323805775,
+            "dielectric": -4.674453848610289,
+            "minus_element_surface": -2.909172496570715,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.9853257129241506,
+            "residual": 10.054935542510245,
+            "total": 9.069609829586094
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.9061671847041803
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -2.168001030117707,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -2.168001030117707,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.239439108983888,
+            "dielectric": -4.674453848610289,
+            "minus_element_surface": -2.909172496570715,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.9853257129241506,
+            "residual": 9.828485545954711,
+            "total": 8.84315983303056
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.7719989698822931
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_6973347.frozen.torch-cosmors.json",
+        "sha256": "1692922453d820d5c03b2141d769ec7f81a07a9170b62abf22d0c1b2aef4e2ee"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -4.674453848610289,
+        "source_charge_e": 1.4901161193847656e-08,
+        "source_maximum_absolute_component": 0.8541532158851624,
+        "surface_area_angstrom2": 136.3900135735729,
+        "surface_segment_count": 700
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_6973347.xyz",
+        "sha256": "983bef2db842901725c374d320f41596eb80a550573fa40e8667d41ec5faa50a"
+      },
+      "name": "ethyl acetate",
+      "ordinal": 6,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -5.183253594596488,
+        "scf_minus_frozen_kcal_mol": -0.5087997459861988,
+        "signed_difference_from_experiment_kcal_mol": -2.243253594596488
+      }
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "experimental_kcal_mol": -3.88,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -4.952326968335619,
+        "signed_difference_from_experiment_kcal_mol": -1.0723269683356191
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -2.2588711871862266,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -2.2588711871862266,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.018782594000499,
+            "dielectric": -4.952326968335619,
+            "minus_element_surface": -1.5015130189305173,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.26821322460595914,
+            "residual": 7.051140952883307,
+            "total": 6.782927728277348
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.6211288128137733
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -3.036126371286189,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -3.036126371286189,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.241527409900537,
+            "dielectric": -4.952326968335619,
+            "minus_element_surface": -1.5015130189305173,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.26821322460595914,
+            "residual": 5.739284534462109,
+            "total": 5.47107130985615
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.8438736287138111
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_7532833.frozen.torch-cosmors.json",
+        "sha256": "acc70efa54a032a38f98bbab5835911c846d20d5086fe0cadb186e08cb4afce9"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -4.952326968335619,
+        "source_charge_e": -5.960464477539063e-08,
+        "source_maximum_absolute_component": 0.49356609582901,
+        "surface_area_angstrom2": 83.77998133779825,
+        "surface_segment_count": 300
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_7532833.xyz",
+        "sha256": "f1b132ce3ac8a3875758838f34239405e8b64650242e57cf3838b7f43eb99fae"
+      },
+      "name": "acetonitrile",
+      "ordinal": 7,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": true,
+        "predicted_kcal_mol": -6.790314393166325,
+        "scf_minus_frozen_kcal_mol": -1.8379874248307058,
+        "signed_difference_from_experiment_kcal_mol": -2.910314393166325
+      }
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "experimental_kcal_mol": -5.49,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -3.3316371984566873,
+        "signed_difference_from_experiment_kcal_mol": 2.158362801543313
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -1.5965269616513353,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -1.5965269616513353,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 6.1750715473450075,
+            "dielectric": -3.3316371984566873,
+            "minus_element_surface": -3.0379969166190657,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.5540237698611377,
+            "residual": 10.976350194065253,
+            "total": 10.422326424204115
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 3.893473038348665
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -2.3088944480580267,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -2.3088944480580267,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.462704060938316,
+            "dielectric": -3.3316371984566873,
+            "minus_element_surface": -3.0379969166190657,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.5540237698611377,
+            "residual": 9.774011659135642,
+            "total": 9.219987889274504
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 3.1811055519419735
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_4883284.frozen.torch-cosmors.json",
+        "sha256": "6f658efecf245f94403205e828e9b2556353c0ad15af23819dc92a448b70093f"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -3.3316371984566873,
+        "source_charge_e": 7.450580596923828e-09,
+        "source_maximum_absolute_component": 0.8424209952354431,
+        "surface_area_angstrom2": 132.18903073888058,
+        "surface_segment_count": 700
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_4883284.xyz",
+        "sha256": "4af0660f6bc19ce153e79b8d43757c6dd02099ea68184e260869488e39d39f10"
+      },
+      "name": "aniline",
+      "ordinal": 8,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": true,
+        "predicted_kcal_mol": -4.379149970628505,
+        "scf_minus_frozen_kcal_mol": -1.0475127721718174,
+        "signed_difference_from_experiment_kcal_mol": 1.1108500293714956
+      }
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "experimental_kcal_mol": -0.63,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -1.8041693137147232,
+        "signed_difference_from_experiment_kcal_mol": -1.174169313714723
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 0.07114269742961277,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 0.07114269742961277,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.543763105436505,
+            "dielectric": -1.8041693137147232,
+            "minus_element_surface": -2.844637300371579,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.39700928339252783,
+            "residual": 8.066002576186966,
+            "total": 7.668993292794438
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.7011426974296128
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -0.4196094482372885,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -0.4196094482372885,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.053010959769604,
+            "dielectric": -1.8041693137147232,
+            "minus_element_surface": -2.844637300371579,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.39700928339252783,
+            "residual": 7.2377078728295405,
+            "total": 6.840698589437013
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.2103905517627115
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_2198613.frozen.torch-cosmors.json",
+        "sha256": "9c2ba9099e12701fb37e3c2a2b6b01a34e146328a7552458e9849833997acb8c"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -1.8041693137147232,
+        "source_charge_e": -1.4901161193847656e-08,
+        "source_maximum_absolute_component": 0.43299588561058044,
+        "surface_area_angstrom2": 97.15500686898687,
+        "surface_segment_count": 400
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_2198613.xyz",
+        "sha256": "a086e483adfee09f189e3999459ea974f60a38709f927e0fff3031ee06f42d0a"
+      },
+      "name": "chloroethane",
+      "ordinal": 9,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -2.133488270678001,
+        "scf_minus_frozen_kcal_mol": -0.32931895696327795,
+        "signed_difference_from_experiment_kcal_mol": -1.5034882706780013
+      }
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "experimental_kcal_mol": -9.28,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -8.555307528732182,
+        "signed_difference_from_experiment_kcal_mol": 0.7246924712678169
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -7.5622464548298165,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -7.5622464548298165,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.5968193004047393,
+            "dielectric": -8.555307528732182,
+            "minus_element_surface": -2.7799444325817833,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.7029180723593256,
+            "residual": 6.773653374821275,
+            "total": 6.07073530246195
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.7177535451701829
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -6.78063302488807,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 114,
+          "delta_g_solvation_kcal_mol": -6.78063302488807,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.378432730346485,
+            "dielectric": -8.555307528732182,
+            "minus_element_surface": -2.7799444325817833,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.7029180723593256,
+            "residual": 8.09286566927593,
+            "total": 7.389947596916604
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.499366975111929
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_8578590.frozen.torch-cosmors.json",
+        "sha256": "3fd1aa1ee1b84d558873fb23c0859aef10b95f4e12a23b90b4cf872e98e1960e"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -8.555307528732182,
+        "source_charge_e": -1.1920928955078125e-07,
+        "source_maximum_absolute_component": 0.5398035645484924,
+        "surface_area_angstrom2": 117.25381183317329,
+        "surface_segment_count": 500
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_8578590.xyz",
+        "sha256": "f6521faee4bea495917ba114c9227ff3d7168717986852f237f53a371c5afb8c"
+      },
+      "name": "methylsulfinylmethane",
+      "ordinal": 10,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": true,
+        "predicted_kcal_mol": -11.06179970330434,
+        "scf_minus_frozen_kcal_mol": -2.5064921745721573,
+        "signed_difference_from_experiment_kcal_mol": -1.7817997033043405
+      }
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "experimental_kcal_mol": -9.71,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -8.314815097148147,
+        "signed_difference_from_experiment_kcal_mol": 1.3951849028518541
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -6.796227764967206,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -6.796227764967206,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.196144988269507,
+            "dielectric": -8.314815097148147,
+            "minus_element_surface": -1.8537438621679765,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.524344443102543,
+            "residual": 5.918819002859041,
+            "total": 5.394474559756498
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.913772235032795
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -6.13379308490129,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -6.13379308490129,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.8585796683354228,
+            "dielectric": -8.314815097148147,
+            "minus_element_surface": -1.8537438621679765,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.524344443102543,
+            "residual": 7.036880618408846,
+            "total": 6.512536175306303
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 3.5762069150987106
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_8048190.frozen.torch-cosmors.json",
+        "sha256": "f9578fde630c29afcb8dad78c356e72fedb93f717840fe07dba9d8f366991048"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -8.314815097148147,
+        "source_charge_e": -1.6391277313232422e-07,
+        "source_maximum_absolute_component": 0.9159455299377441,
+        "surface_area_angstrom2": 101.45430460447054,
+        "surface_segment_count": 450
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_8048190.xyz",
+        "sha256": "57e9596f6f4583af59ce113fbf59a196acb171665d0d030c95dc5ad4efd78ddc"
+      },
+      "name": "acetamide",
+      "ordinal": 11,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": true,
+        "predicted_kcal_mol": -10.910603520817636,
+        "scf_minus_frozen_kcal_mol": -2.5957884236694895,
+        "signed_difference_from_experiment_kcal_mol": -1.2006035208176353
+      }
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "experimental_kcal_mol": -6.69,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -11.404197175287845,
+        "signed_difference_from_experiment_kcal_mol": -4.714197175287844
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -10.634398536380578,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -10.634398536380578,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 2.1661983913179648,
+            "dielectric": -11.404197175287845,
+            "minus_element_surface": -1.572585958490107,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.3653198442775332,
+            "residual": 4.021443754875565,
+            "total": 3.656123910598032
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -3.944398536380578
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -9.08537385310076,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 114,
+          "delta_g_solvation_kcal_mol": -9.08537385310076,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.7152230745977812,
+            "dielectric": -11.404197175287845,
+            "minus_element_surface": -1.572585958490107,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.3653198442775332,
+            "residual": 6.635897816583239,
+            "total": 6.270577972305706
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -2.39537385310076
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_3034976.frozen.torch-cosmors.json",
+        "sha256": "1070106e86b69f87c5f7085d7c7b5a9aebf51afcd911ed8c48450bcd9fc31934"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -11.404197175287845,
+        "source_charge_e": 1.1920928955078125e-07,
+        "source_maximum_absolute_component": 0.9113802909851074,
+        "surface_area_angstrom2": 92.05089113711213,
+        "surface_segment_count": 400
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_3034976.xyz",
+        "sha256": "1d78f5ee54b511a0f62c512b45e5a0ea321ee15584ddb796d96d89e79d11726d"
+      },
+      "name": "acetic acid",
+      "ordinal": 12,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -18.125518990664396,
+        "scf_minus_frozen_kcal_mol": -6.721321815376552,
+        "signed_difference_from_experiment_kcal_mol": -11.435518990664395
+      }
+    },
+    {
+      "chemical_class": "aldehyde",
+      "compound_id": "mobley_2146331",
+      "experimental_kcal_mol": -2.75,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -3.7859154390576357,
+        "signed_difference_from_experiment_kcal_mol": -1.0359154390576357
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -1.6981845567056055,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -1.6981845567056055,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 2.998560576410975,
+            "dielectric": -3.7859154390576357,
+            "minus_element_surface": -1.0870159001383546,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.07542298845311331,
+            "residual": 5.136413276661469,
+            "total": 5.060990288208355
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.0518154432943945
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -2.2736994673478703,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -2.2736994673478703,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 2.42304566576871,
+            "dielectric": -3.7859154390576357,
+            "minus_element_surface": -1.0870159001383546,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.07542298845311331,
+            "residual": 4.1650554203643555,
+            "total": 4.089632431911242
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 0.4763005326521297
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_2146331.frozen.torch-cosmors.json",
+        "sha256": "ef15381bf54a1a084070a07280524e520388d7af89d3cf18473875ec184cbe16"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -3.7859154390576357,
+        "source_charge_e": 1.4901161193847656e-08,
+        "source_maximum_absolute_component": 0.34633317589759827,
+        "surface_area_angstrom2": 61.3911305395698,
+        "surface_segment_count": 200
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_2146331.xyz",
+        "sha256": "32a276c299153878e76a4dfb69dd3d9a9eb9fa2e7734f0fb46ae582d235988db"
+      },
+      "name": "formaldehyde",
+      "ordinal": 13,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -4.49961565942447,
+        "scf_minus_frozen_kcal_mol": -0.7137002203668343,
+        "signed_difference_from_experiment_kcal_mol": -1.74961565942447
+      }
+    },
+    {
+      "chemical_class": "phenol",
+      "compound_id": "mobley_20524",
+      "experimental_kcal_mol": -6.6,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -5.3759824360927855,
+        "signed_difference_from_experiment_kcal_mol": 1.2240175639072142
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -4.312622500843007,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -4.312622500843007,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.361491899282494,
+            "dielectric": -5.3759824360927855,
+            "minus_element_surface": -2.896167570112125,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.4919679766102725,
+            "residual": 9.541129312898546,
+            "total": 9.049161336288273
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.2873774991569924
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -4.212682956370804,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -4.212682956370804,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.461431443754696,
+            "dielectric": -5.3759824360927855,
+            "minus_element_surface": -2.896167570112125,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.4919679766102725,
+            "residual": 9.709807934221306,
+            "total": 9.217839957611034
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.3873170436291957
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_20524.frozen.torch-cosmors.json",
+        "sha256": "f6c106cfcdde2857b2351bbfbee27f904d1b7840b33aac2d30e371e60ed1742f"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -5.3759824360927855,
+        "source_charge_e": 3.725290298461914e-08,
+        "source_maximum_absolute_component": 0.5044248104095459,
+        "surface_area_angstrom2": 128.21586232660994,
+        "surface_segment_count": 650
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_20524.xyz",
+        "sha256": "58c3d6414eec0f9f0901b115d1813826e551f8db99864f921446cfab647909ff"
+      },
+      "name": "phenol",
+      "ordinal": 14,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -10.510540875080114,
+        "scf_minus_frozen_kcal_mol": -5.134558438987328,
+        "signed_difference_from_experiment_kcal_mol": -3.9105408750801143
+      }
+    },
+    {
+      "chemical_class": "aliphatic amine",
+      "compound_id": "mobley_2410897",
+      "experimental_kcal_mol": -4.5,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -1.8164891444226552,
+        "signed_difference_from_experiment_kcal_mol": 2.683510855577345
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 0.4754539318046582,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 0.4754539318046582,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.304353436334729,
+            "dielectric": -1.8164891444226552,
+            "minus_element_surface": -2.188596566186826,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.4273277158638879,
+            "residual": 7.692243792490325,
+            "total": 7.264916076626437
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 4.975453931804658
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": 0.11984093151431985,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": 0.11984093151431985,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.948740436044391,
+            "dielectric": -1.8164891444226552,
+            "minus_element_surface": -2.188596566186826,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.4273277158638879,
+            "residual": 7.092037828672782,
+            "total": 6.664710112808894
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 4.61984093151432
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_2410897.frozen.torch-cosmors.json",
+        "sha256": "47f328252a439a9fd2fadba345b6cffa57e310478f63fc1251aab3db421515fa"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -1.8164891444226552,
+        "source_charge_e": -1.1920928955078125e-07,
+        "source_maximum_absolute_component": 0.8910825252532959,
+        "surface_area_angstrom2": 94.7355747345045,
+        "surface_segment_count": 500
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_2410897.xyz",
+        "sha256": "e2c780ff728e63bb92cd45103375f2fb5b24ebe052e1ba407b78679008c77149"
+      },
+      "name": "ethanamine",
+      "ordinal": 15,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": true,
+        "predicted_kcal_mol": -2.1588639356439523,
+        "scf_minus_frozen_kcal_mol": -0.3423747912212971,
+        "signed_difference_from_experiment_kcal_mol": 2.3411360643560477
+      }
+    },
+    {
+      "chemical_class": "nitro compound",
+      "compound_id": "mobley_1952272",
+      "experimental_kcal_mol": -4.02,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -8.523146884451053,
+        "signed_difference_from_experiment_kcal_mol": -4.503146884451054
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -5.795205917136647,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -5.795205917136647,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.7029376059936907,
+            "dielectric": -8.523146884451053,
+            "minus_element_surface": -1.1511828447586954,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.33329400381828944,
+            "residual": 6.583136481306741,
+            "total": 6.249842477488452
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -1.7752059171366472
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -6.277495514652342,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -6.277495514652342,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.2206480084779967,
+            "dielectric": -8.523146884451053,
+            "minus_element_surface": -1.1511828447586954,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.33329400381828944,
+            "residual": 5.76912492244994,
+            "total": 5.435830918631651
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -2.2574955146523425
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_1952272.frozen.torch-cosmors.json",
+        "sha256": "f52a12e9ff11c0cacab886c3c5409c1ef0232f4940ea0db4c11f4b029195c319"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -8.523146884451053,
+        "source_charge_e": -1.4901161193847656e-08,
+        "source_maximum_absolute_component": 0.7229936122894287,
+        "surface_area_angstrom2": 87.96169234671765,
+        "surface_segment_count": 350
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_1952272.xyz",
+        "sha256": "45807875b76ab87494def94353692a6b9ecc9faef637c459c87e567940a8200f"
+      },
+      "name": "nitromethane",
+      "ordinal": 16,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -9.487069296967304,
+        "scf_minus_frozen_kcal_mol": -0.9639224125162507,
+        "signed_difference_from_experiment_kcal_mol": -5.4670692969673045
+      }
+    },
+    {
+      "chemical_class": "thioether",
+      "compound_id": "mobley_9073553",
+      "experimental_kcal_mol": -1.61,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -1.1521603023705331,
+        "signed_difference_from_experiment_kcal_mol": 0.45783969762946697
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 0.8430493494533855,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 0.8430493494533855,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.812165824812319,
+            "dielectric": -1.1521603023705331,
+            "minus_element_surface": -2.99314237906781,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.4601205635287714,
+            "residual": 8.582125733680572,
+            "total": 8.1220051701518
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.4530493494533854
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": 0.43812576702902994,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": 0.43812576702902994,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.407242242387963,
+            "dielectric": -1.1521603023705331,
+            "minus_element_surface": -2.99314237906781,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.4601205635287714,
+            "residual": 7.898693044597111,
+            "total": 7.43857248106834
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.0481257670290303
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_9073553.frozen.torch-cosmors.json",
+        "sha256": "1932ff9bdf0ea888f1fa86598a5d7728a6276e0b84938f6a5699576fc77154d8"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -1.1521603023705331,
+        "source_charge_e": -7.450580596923828e-09,
+        "source_maximum_absolute_component": 0.4465043842792511,
+        "surface_area_angstrom2": 104.18689296093308,
+        "surface_segment_count": 450
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_9073553.xyz",
+        "sha256": "ef046e268a9474ea21ab55b37b667c1fb3007e376523a41ba9d1d2dce93ec793"
+      },
+      "name": "methylsulfanylmethane",
+      "ordinal": 17,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -1.4616401901103662,
+        "scf_minus_frozen_kcal_mol": -0.30947988773983304,
+        "signed_difference_from_experiment_kcal_mol": 0.14835980988963393
+      }
+    },
+    {
+      "chemical_class": "thiol",
+      "compound_id": "mobley_525934",
+      "experimental_kcal_mol": -1.2,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -1.1183525398645324,
+        "signed_difference_from_experiment_kcal_mol": 0.08164746013546753
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": 0.450004679579596,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": 0.450004679579596,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.9563643827134127,
+            "dielectric": -1.1183525398645324,
+            "minus_element_surface": -2.5641933693486942,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.2526159587456349,
+            "residual": 6.930193818950821,
+            "total": 6.6775778602051865
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.650004679579596
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": 0.092755570175024,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": 0.092755570175024,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 3.5991152733088403,
+            "dielectric": -1.1183525398645324,
+            "minus_element_surface": -2.5641933693486942,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.2526159587456349,
+            "residual": 6.327226419395501,
+            "total": 6.0746104606498665
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 1.292755570175024
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_525934.frozen.torch-cosmors.json",
+        "sha256": "a00d3191f6a245f072e63a09784c3ef57b4003cc25e3f21754dbf70006ff20dc"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -1.1183525398645324,
+        "source_charge_e": 7.450580596923828e-09,
+        "source_maximum_absolute_component": 0.424883097410202,
+        "surface_area_angstrom2": 83.83779762039232,
+        "surface_segment_count": 300
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_525934.xyz",
+        "sha256": "ad0fff17fe9577e569717f8ec54e3d3b9f510081165e34c1175ba62389125cdb"
+      },
+      "name": "methanethiol",
+      "ordinal": 18,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -1.4153775582010355,
+        "scf_minus_frozen_kcal_mol": -0.2970250183365031,
+        "signed_difference_from_experiment_kcal_mol": -0.21537755820103555
+      }
+    },
+    {
+      "chemical_class": "vicinal diol",
+      "compound_id": "mobley_4639255",
+      "experimental_kcal_mol": -9.3,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -12.310023530725614,
+        "signed_difference_from_experiment_kcal_mol": -3.010023530725613
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -13.22012949796162,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -13.22012949796162,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 0.9001841937243537,
+            "dielectric": -12.310023530725614,
+            "minus_element_surface": -1.9864763670397703,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.5316850984008118,
+            "residual": 2.0510219088282207,
+            "total": 1.5193368104274088
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -3.9201294979616197
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -10.077055576053,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 114,
+          "delta_g_solvation_kcal_mol": -10.077055576053,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 4.043258115632973,
+            "dielectric": -12.310023530725614,
+            "minus_element_surface": -1.9864763670397703,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -0.0
+          },
+          "log_activity": {
+            "combinatorial": -0.5316850984008118,
+            "residual": 7.355922773275619,
+            "total": 6.824237674874808
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": -0.7770555760529998
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_4639255.frozen.torch-cosmors.json",
+        "sha256": "40f5b97a8d69116535ca7d6ecc71f2e817f10e10c649e968c37d139f251851cd"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -12.310023530725614,
+        "source_charge_e": 0.0,
+        "source_maximum_absolute_component": 0.5267320871353149,
+        "surface_area_angstrom2": 101.8246601959113,
+        "surface_segment_count": 500
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_4639255.xyz",
+        "sha256": "8de1e09893a7b56df7425f59d95c17318408f0fafd7701192d864efba0801e8a"
+      },
+      "name": "ethylene glycol",
+      "ordinal": 19,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -21.84055541432884,
+        "scf_minus_frozen_kcal_mol": -9.530531883603226,
+        "signed_difference_from_experiment_kcal_mol": -12.54055541432884
+      }
+    },
+    {
+      "chemical_class": "nitrogen heteroaromatic",
+      "compound_id": "mobley_1520842",
+      "experimental_kcal_mol": -4.93,
+      "frozen_dielectric_mechanism_only": {
+        "not_total_hydration_free_energy": true,
+        "predicted_kcal_mol": -3.2182758212449536,
+        "signed_difference_from_experiment_kcal_mol": 1.7117241787550461
+      },
+      "frozen_full_open24a": {
+        "predicted_kcal_mol": -1.8436288649283457,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 155,
+          "delta_g_solvation_kcal_mol": -1.8436288649283457,
+          "diagnostic_only": false,
+          "interaction_model_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.866458999230668,
+            "dielectric": -3.2182758212449536,
+            "minus_element_surface": -3.0898476489934694,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.7106390092407988,
+            "residual": 10.612087142336534,
+            "total": 9.901448133095736
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 3.086371135071654
+      },
+      "frozen_no_hydrogen_bond": {
+        "predicted_kcal_mol": -2.2554649618242975,
+        "result": {
+          "combinatorial_model_identity": "openCOSMO-RS-24a-staverman-guggenheim",
+          "cosmospace_iterations": 113,
+          "delta_g_solvation_kcal_mol": -2.2554649618242975,
+          "diagnostic_only": false,
+          "interaction_model_identity": "open24a-ablation-no-hydrogen-bond",
+          "ionic_parameterization_validated": true,
+          "ledger_kcal_mol": {
+            "chemical_potential": 5.454622902334716,
+            "dielectric": -3.2182758212449536,
+            "minus_element_surface": -3.0898476489934694,
+            "minus_eta": 4.448499,
+            "minus_reference_state": -4.27231279392059,
+            "minus_ring": -1.5781506
+          },
+          "log_activity": {
+            "combinatorial": -0.7106390092407988,
+            "residual": 9.91698746580481,
+            "total": 9.206348456564012
+          },
+          "parameterization_identity": "openCOSMO-RS-24a-neutral-ORCA6",
+          "profile_discretization": "open24a-bilinear-0.001",
+          "schema_version": 1,
+          "solvent_liquid_molar_volume_cm3_mol": 18.06863632
+        },
+        "signed_error_kcal_mol": 2.6745350381757023
+      },
+      "frozen_profile": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/profiles/mobley_1520842.frozen.torch-cosmors.json",
+        "sha256": "762a5254ac6248c569e53444507dfca3dbcdccc5862454a09a6d6eab69e2c001"
+      },
+      "frozen_source": {
+        "dielectric_kcal_mol": -3.2182758212449536,
+        "source_charge_e": 1.4901161193847656e-08,
+        "source_maximum_absolute_component": 0.46259424090385437,
+        "surface_area_angstrom2": 134.7745796462259,
+        "surface_segment_count": 700
+      },
+      "generated_xyz": {
+        "path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3/xyz/mobley_1520842.xyz",
+        "sha256": "07756f68852ddc5c6fa288a64dd33e8b85374659b9f6e74031e4a143033ef6a8"
+      },
+      "name": "4-methylpyridine",
+      "ordinal": 20,
+      "scf_dielectric_primary": {
+        "not_total_hydration_free_energy": true,
+        "passivity_passed": false,
+        "predicted_kcal_mol": -4.278141387225496,
+        "scf_minus_frozen_kcal_mol": -1.0598655659805423,
+        "signed_difference_from_experiment_kcal_mol": 0.6518586127745039
+      }
+    }
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "rdkit": "2024.9.2"
+  },
+  "runtime_seconds": 15.40982962299995,
+  "scf_response_shift": {
+    "interpretation": "paired dielectric-component mechanism diagnostic, not total hydration accuracy",
+    "maximum_absolute_kcal_mol": 9.530531883603226,
+    "mean_absolute_kcal_mol": 1.9482908881235255,
+    "mean_kcal_mol": -1.9482908881235255
+  },
+  "schema_version": 1,
+  "scientific_status": "complete-mechanism-diagnostic",
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_mace_ef_cosmors_freesolv20.py": "30d4632431726bfeba1c892319a1f07d303d0c353fe51545f538383c0cb54a58",
+    "docs/implicit-solvation/benchmarks/run_mace_ef_cosmors_freesolv20_frozen_source_ablation.py": "c0a3a400e90a34378a25cdb946f99f22d6fba6b49254d6456ccde4c19310e069",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef.py": "8399aa9909094390d7d1aaadced3545c71c58c474bf2aad5d0a60a3d5c1e78ac",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef_specs.py": "880524d495de391d267245d01d9871b88f08aba9b59e5c819eec805dc748d59a",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py": "e9bf3c1a7151e4bc87f189bb1f4837f1f083f54667106a30dbd30863ce15484f",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/cosmors_torch/cosmospace.py": "ceb628131352dcac1d3d8e6c7fc13f3ebfdbde2532e2877a8587406d9bf29c0e",
+    "maple/function/cosmors_torch/fixed_structure.py": "61276b997d0bc4ec473a7574efd51ac74f65c71ae39a4be4b82564c94d84b51b",
+    "maple/function/cosmors_torch/ionic_es.py": "39b2ae8ab50bc05c9d46c46520067ccb4760a77fe13bd89a785c1c6494796f50",
+    "maple/function/cosmors_torch/kse.py": "14d4189231cd19b405e1011289d74b12948c2a5a7ac4247220e6bc62423f3249",
+    "maple/function/cosmors_torch/mace_ef_segment_cosmo.py": "6f7ef90fcf2139b7721e408f75be2e4ed6b122b37d5a4a78660761cbe5fd7caa",
+    "maple/function/cosmors_torch/segment_cosmo.py": "f8f7e389bf8e5e4fcb899f5f4975a0a2d364036bf734659e46939dd6f231f17b",
+    "maple/function/cosmors_torch/surface.py": "502d9dec8a9e750075e69519b0765968e7fe71f7fbcbd05d09549a67f9096bcf",
+    "maple/function/cosmors_torch/thermodynamics.py": "899c178c4ec60f7572a9e34509b0534f2148c1ea90bd34b6a960a15976560f2c",
+    "maple/function/mlip_cosmo_rs.py": "8ffd3824e4d1f26c667fdd2dbe7d4522f69f6202770e9c71c4c5791c789343f5",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7"
+  },
+  "started_at_utc": "2026-09-04T11:32:19+00:00",
+  "status": "complete",
+  "summaries": {
+    "frozen_full_open24a": {
+      "count": 20,
+      "mae_kcal_mol": 2.1134715081829016,
+      "maximum_absolute_error_kcal_mol": 4.975453931804658,
+      "mean_signed_error_kcal_mol": 1.1380141822095964,
+      "rmse_kcal_mol": 2.4732654999378383,
+      "within_1_kcal_mol_count": 5,
+      "within_2_kcal_mol_count": 11,
+      "worst_record": {
+        "compound_id": "mobley_2410897",
+        "name": "ethanamine",
+        "signed_error_kcal_mol": 4.975453931804658
+      }
+    },
+    "frozen_no_hydrogen_bond": {
+      "count": 20,
+      "mae_kcal_mol": 1.7705160084852092,
+      "maximum_absolute_error_kcal_mol": 4.61984093151432,
+      "mean_signed_error_kcal_mol": 1.1985457924246954,
+      "rmse_kcal_mol": 2.122211121973238,
+      "within_1_kcal_mol_count": 8,
+      "within_2_kcal_mol_count": 11,
+      "worst_record": {
+        "compound_id": "mobley_2410897",
+        "name": "ethanamine",
+        "signed_error_kcal_mol": 4.61984093151432
+      }
+    }
+  },
+  "water_frozen_source": {
+    "dielectric_kcal_mol": -8.161969108974414,
+    "profile_path": ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2/water.frozen.torch-cosmors.json",
+    "profile_sha256": "2f7a480a17f026c8c65a262c2fa04b8e88131184edd99fd3b1297eb0ef5176e3",
+    "source_charge_e": 2.9802322387695312e-08,
+    "source_maximum_absolute_component": 0.7550387382507324,
+    "surface_area_angstrom2": 41.92905131046111,
+    "surface_segment_count": 150
+  }
+}

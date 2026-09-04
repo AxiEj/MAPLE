@@ -156,6 +156,26 @@ fitting, hydrogen-bond fitting, or error-based record removal is permitted.
 Regardless of aggregate accuracy, a failed electronic passivity gate keeps the
 self-consistent route diagnostic-only.
 
+The clean v3 replay completed all 20 records but is a negative result: the full
+self-consistent arm has `MAE=9.1927 kcal/mol`, `RMSE=15.5941 kcal/mol`, and a
+maximum absolute error of `52.2502 kcal/mol`. Fifteen of twenty molecular
+passivity audits fail, and the MACE-EF surface is not equivalent to the ORCA
+surface convention used to parameterize open24a.
+
+The preregistered 2x2 intervention identifies the ordering of effects within
+this panel. For the hydrogen-bond counterfactual
+`H=G_full-G_no_hydrogen_bond`, switching only the solute from frozen to
+self-consistent at frozen water changes `H` by `4.0259 kcal/mol` mean absolute,
+whereas switching only water at frozen solute changes it by `0.7384 kcal/mol`.
+The mean-absolute nonlinear interaction is `2.4416 kcal/mol`, so the water
+profile is an additional amplifier rather than an independent negligible
+detail. Removing the hydrogen-bond interaction reduces the full frozen-to-SCF
+total difference from `7.8538` to `2.0346 kcal/mol` mean absolute. Thus the
+current evidence supports solute-response-driven sigma-tail amplification with
+water/cross amplification, while also falsifying the stronger claim that the
+hydrogen-bond term is the only defect. These are bounded mechanism statements,
+not a validated replacement model or a general FreeSolv ranking.
+
 ## Relative kinetic solvent effects
 
 The KSE calculator supports any provenance-identified provider, including

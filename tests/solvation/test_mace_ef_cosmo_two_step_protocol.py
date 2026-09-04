@@ -107,6 +107,8 @@ def test_two_step_response_applies_exactly_two_unmixed_maps_and_no_third():
     assert result["map_applications"] == 2
     assert result["electronic_evaluation_count"] == 3
     assert result["third_map_evaluated"] is False
+    assert result["source_updates"]["coordinate_invariant_norm"] is False
+    assert result["source_updates"]["mathematical_contraction_claimed"] is False
     assert len(electronic.fields) == 3
     assert continuum.drive_count == 3
     np.testing.assert_allclose(electronic.fields[0], np.zeros((2, 4)))
@@ -138,3 +140,17 @@ def test_two_step_source_and_empty_distribution_fail_closed():
         "count": 0,
         "units": "kcal/mol",
     }
+    assert runner.OUTPUT_PATH.name == "mace-ef-cosmo-freesolv20-two-step-v2.json"
+    assert runner.ARTIFACT_ID == "mace-ef-cosmo-freesolv20-two-step-v2"
+
+
+def test_two_step_converged_comparator_requires_exact_continuum_identity():
+    runner = _load_runner()
+    continuum = SimpleNamespace(config=SimpleNamespace(configuration_sha256="a" * 64))
+    primary_record = {"mace_ef_surface": {"continuum_configuration_sha256": "a" * 64}}
+    assert (
+        runner._require_matching_continuum_config(continuum, primary_record) == "a" * 64
+    )
+    primary_record["mace_ef_surface"]["continuum_configuration_sha256"] = "b" * 64
+    with pytest.raises(RuntimeError, match="continuum configurations differ"):
+        runner._require_matching_continuum_config(continuum, primary_record)

@@ -47,7 +47,8 @@ PRIMARY_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-diverse-v3.json"
 PREREGISTRATION_PATH = SCRIPT_DIR / "mace-ef-cosmo-freesolv20-two-step-prereg-v1.json"
 BUNDLE_MANIFEST_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-profile-bundle-v1.json"
 BUNDLE_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
-OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmo-freesolv20-two-step-v1.json"
+OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmo-freesolv20-two-step-v2.json"
+ARTIFACT_ID = "mace-ef-cosmo-freesolv20-two-step-v2"
 HARTREE_TO_KCAL_MOL = 627.5094740631
 EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL / HARTREE_EV
 MAP_APPLICATION_COUNT = 2
@@ -109,6 +110,19 @@ def _source_array(state: object) -> np.ndarray:
     return source
 
 
+def _require_matching_continuum_config(
+    continuum: object,
+    primary_record: dict[str, object],
+) -> str:
+    observed = str(continuum.config.configuration_sha256)
+    expected = str(primary_record["mace_ef_surface"]["continuum_configuration_sha256"])
+    if observed != expected:
+        raise RuntimeError(
+            "Two-step and converged comparator continuum configurations differ."
+        )
+    return observed
+
+
 def _two_step_response(
     electronic: object,
     continuum: object,
@@ -163,6 +177,12 @@ def _two_step_response(
         "third_map_evaluated": False,
         "stages": stages,
         "source_updates": {
+            "metric_definition": (
+                "maximum absolute raw source-component change without "
+                "charge/dipole nondimensionalization"
+            ),
+            "coordinate_invariant_norm": False,
+            "mathematical_contraction_claimed": False,
             "first_maximum_absolute_component": first_update,
             "second_maximum_absolute_component": second_update,
             "second_to_first_ratio": (
@@ -223,7 +243,7 @@ def main() -> int:
 
     artifact: dict[str, object] = {
         "schema_version": 1,
-        "artifact": preregistration["preregistration_id"],
+        "artifact": ARTIFACT_ID,
         "status": "running",
         "scientific_status": "running-partial-component-diagnostic",
         "diagnostic_only": True,
@@ -290,6 +310,10 @@ def main() -> int:
                     angular_degree=angular_degree,
                 )
             )
+            observed_continuum_sha256 = _require_matching_continuum_config(
+                continuum,
+                primary_record,
+            )
             result = _two_step_response(electronic, continuum, positions)
             experimental = float(primary_record["experimental_kcal_mol"])
             converged = (
@@ -318,6 +342,17 @@ def main() -> int:
                     ]
                 ),
                 "converged_boundary_energy_kcal_mol": converged,
+                "continuum": {
+                    "configuration_sha256": observed_continuum_sha256,
+                    "matches_converged_comparator": True,
+                    "cavity_radii_identity": (
+                        "audited-openCOSMO-RS-24a-ORCA6-conductor-radii"
+                    ),
+                    "radii_angstrom": [
+                        float(value) for value in open_cosmors_24a_cavity_radii(symbols)
+                    ],
+                    "finite_dielectric_scaling": False,
+                },
                 **result,
             }
             artifact["records"].append(record)
@@ -381,7 +416,13 @@ def main() -> int:
     ]
     artifact["summaries"] = {
         "stages": stage_summaries,
-        "source_update": {
+        "source_update_raw_component_max": {
+            "metric_definition": (
+                "maximum absolute raw source-component change without "
+                "charge/dipole nondimensionalization"
+            ),
+            "coordinate_invariant_norm": False,
+            "mathematical_contraction_claimed": False,
             "first_maximum_absolute_component": _distribution(
                 [
                     float(record["source_updates"]["first_maximum_absolute_component"])
@@ -397,8 +438,10 @@ def main() -> int:
                 units="source-component",
             ),
             "second_to_first_ratio": _distribution(ratios, units="dimensionless"),
-            "contracting_record_count": sum(value < 1.0 for value in ratios),
-            "amplifying_or_equal_record_count": sum(value >= 1.0 for value in ratios),
+            "second_update_smaller_record_count": sum(value < 1.0 for value in ratios),
+            "second_update_not_smaller_record_count": sum(
+                value >= 1.0 for value in ratios
+            ),
         },
         "electronic_passivity": {
             "passed_count": sum(
@@ -408,6 +451,10 @@ def main() -> int:
                 record["electronic_passivity_passed"] is not True for record in records
             ),
             "two_step_route_admission_eligible": False,
+            "audit_source": (
+                "inherited primary same-geometry/checkpoint uniform-field audit"
+            ),
+            "c2_state_passivity_recomputed": False,
         },
     }
     artifact["runtime_seconds"] = time.perf_counter() - started
@@ -430,6 +477,8 @@ def main() -> int:
         "iteration_count_was_user_specified_before_this_run": True,
         "iteration_count_may_not_be_changed_using_this_result": True,
         "stationary_solution_claimed": False,
+        "two_step_self_consistent_solution_claimed": False,
+        "mathematical_contraction_claimed": False,
     }
     _write_json_atomic(OUTPUT_PATH, artifact)
     print(json.dumps(artifact["summaries"], indent=2, sort_keys=True), flush=True)

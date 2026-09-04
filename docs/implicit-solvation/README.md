@@ -1,5 +1,10 @@
 # MAPLE implicit solvation: Route 2 research/innovation route
 
+[`SALVAGE_AUDIT_20260904.md`](SALVAGE_AUDIT_20260904.md) separates the results
+that were stopped by physics from those stopped by a protocol or implementation
+policy, and records a subsample-bias finding affecting the published
+confirmation-123 aggregate. Read it before opening a new V0 branch.
+
 The separate MACE-EF COSMO/COSMO-RS work is documented in
 [`MACE_EF_COSMO.md`](MACE_EF_COSMO.md). It keeps differentiable conductor
 COSMO in the MAPLE energy/force layer and fixed-structure COSMO-RS/KSE in a

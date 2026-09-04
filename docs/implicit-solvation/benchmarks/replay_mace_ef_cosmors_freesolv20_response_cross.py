@@ -134,7 +134,17 @@ def _arm_state(name: str) -> tuple[str, str, str]:
     return solute, water, interaction
 
 
-def run(*, output_path: Path, device: str, tolerance_kcal_mol: float) -> int:
+def run(
+    *,
+    output_path: Path,
+    device: str,
+    tolerance_kcal_mol: float,
+    torch_threads: int,
+) -> int:
+    import torch
+
+    torch.set_num_threads(torch_threads)
+    torch.set_num_interop_threads(torch_threads)
     primary = json.loads(PRIMARY_PATH.read_text(encoding="utf-8"))
     frozen = json.loads(FROZEN_PATH.read_text(encoding="utf-8"))
     reference = json.loads(CROSS_PATH.read_text(encoding="utf-8"))
@@ -232,14 +242,18 @@ def run(*, output_path: Path, device: str, tolerance_kcal_mol: float) -> int:
     passed = maximum <= tolerance_kcal_mol
     output: dict[str, object] = {
         "schema_version": 1,
-        "artifact": "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v1",
+        "artifact": "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v2",
         "status": "pass" if passed else "fail",
         "scientific_result": False,
         "asset_source": "committed-profile-bundle-only",
         "created_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "execution_git_head": execution_git_head,
         "source_files_sha256": source_files_sha256,
-        "runtime": {**_runtime_versions(), "device": device},
+        "runtime": {
+            **_runtime_versions(),
+            "device": device,
+            "torch_threads": torch_threads,
+        },
         "inputs": {
             "primary_sha256": expected_inputs["primary"],
             "frozen_control_sha256": expected_inputs["frozen_control"],
@@ -285,13 +299,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--tolerance-kcal-mol", type=float, default=1.0e-9)
+    parser.add_argument("--torch-threads", type=int, default=1)
     args = parser.parse_args(argv)
     if not np.isfinite(args.tolerance_kcal_mol) or args.tolerance_kcal_mol <= 0.0:
         parser.error("--tolerance-kcal-mol must be finite and positive")
+    if args.torch_threads < 1:
+        parser.error("--torch-threads must be positive")
     return run(
         output_path=args.output.expanduser().resolve(),
         device=str(args.device),
         tolerance_kcal_mol=float(args.tolerance_kcal_mol),
+        torch_threads=int(args.torch_threads),
     )
 
 

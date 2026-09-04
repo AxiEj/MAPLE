@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import tarfile
 
 import numpy as np
 import pytest
@@ -17,6 +18,8 @@ CROSS_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-response-cross-v1.json"
 PREREGISTRATION_PATH = (
     BENCHMARKS / "mace-ef-cosmors-freesolv20-response-cross-prereg-v1.json"
 )
+BUNDLE_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
+BUNDLE_MANIFEST_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.json"
 
 
 def _load(path: Path) -> dict[str, object]:
@@ -206,3 +209,47 @@ def test_response_cross_freezes_twenty_record_tail_metrics_and_passivity_stop():
     assert artifact["electronic_passivity"]["scf_route_admission_eligible"] is False
     assert artifact["interpretation"]["hard_stop_applied"] is True
     assert artifact["interpretation"]["automatic_root_cause_verdict"] is None
+
+
+def test_profile_bundle_is_deterministic_complete_and_source_bound():
+    manifest = _load(BUNDLE_MANIFEST_PATH)
+
+    assert _sha256(BUNDLE_MANIFEST_PATH) == (
+        "14d9a9436e6e837bd766507c43d2cf5b1879dd1d8c0118c4fe754a7cddea85a7"
+    )
+    assert manifest["status"] == "complete"
+    assert manifest["scientific_result"] is False
+    assert manifest["archive"] == {
+        "format": "deterministic-ustar-gzip-mtime-zero",
+        "member_count": 63,
+        "path": (
+            "docs/implicit-solvation/benchmarks/"
+            "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
+        ),
+        "sha256": "989688eca71577c11fa623c599adbf4538394e9be3841613d73df36218b356c3",
+    }
+    assert _sha256(BUNDLE_PATH) == manifest["archive"]["sha256"]
+    assert manifest["input_artifacts"]["primary"]["sha256"] == _sha256(PRIMARY_PATH)
+    assert manifest["input_artifacts"]["frozen_control"]["sha256"] == _sha256(
+        FROZEN_PATH
+    )
+    assert manifest["input_artifacts"]["response_cross"]["sha256"] == _sha256(
+        CROSS_PATH
+    )
+    assert_source_files_match_execution_commit(ROOT, manifest)
+
+    with tarfile.open(BUNDLE_PATH, mode="r:gz") as archive:
+        members = archive.getmembers()
+        assert [member.name for member in members] == sorted(manifest["member_sha256"])
+        assert len(members) == 63
+        for member in members:
+            assert member.isfile()
+            assert member.mtime == 0
+            assert member.uid == member.gid == 0
+            assert member.uname == member.gname == ""
+            extracted = archive.extractfile(member)
+            assert extracted is not None
+            assert (
+                hashlib.sha256(extracted.read()).hexdigest()
+                == manifest["member_sha256"][member.name]
+            )

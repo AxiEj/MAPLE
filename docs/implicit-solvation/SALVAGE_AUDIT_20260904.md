@@ -71,28 +71,59 @@ numbers that miss by 10% and 25%.
 
 **The ceilings 0.20 / 0.30 were carried over from the *response* source gate
 and applied unchanged to a *static* source.** They are not derived anywhere
-from a solvation-energy tolerance. That is a category error: `∂V/∂E` and `V`
-are different quantities, they enter the polarization scalar
-`E_pol = ½⟨V, QV⟩` differently, and a relative MEP norm does not map linearly
-onto a `ΔG_solv` error — surface-integrated errors partially cancel, and the
-cancellation depends on the error's direction in function space, which no
-Frobenius norm records.
+from a solvation-energy tolerance. `∂V/∂E` and `V` are different quantities
+that enter the polarization scalar differently, so reusing one ceiling for the
+other leaves the criterion undetermined until the propagation is done.
 
-Nobody has ever propagated a rejected `v₀` candidate through `Q` to a kcal/mol
-number. The route has therefore never tested the thing it says it cares about.
+> **Correction (2026-09-04, same day).** An earlier revision of this section
+> implied the borrowed ceiling was probably too strict and that GFN2 might be
+> recoverable by re-adjudication. **That was wrong.** The propagation has now
+> been carried out in
+> [`ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md`](ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md)
+> and gives the opposite result: by the envelope theorem
+> `δG* = ⟨q*, δv₀⟩`, so `ε_F^max = τ / (2κρ|ΔG_pol|)` with `κ, ρ ≥ 1`. Even at
+> `κ=ρ=1` and with the route's entire 1.5 kcal/mol budget spent on this one
+> term, the derived ceiling is **0.1129** — the inherited `0.20` is **1.77×
+> too loose**, and a source sitting exactly at it could carry 2.657 kcal/mol
+> of polarization error on its own.
+>
+> `reject-gfn2-molden-permanent-source` therefore **stands**, now on a derived
+> criterion and robustly for every `κ ≥ 1, ρ ≥ 1` (GFN2 exceeds the derived
+> ceiling by 1.95×). The salvage in S1 is not GFN2. It is that the `v₀` search
+> has been screening against a criterion ~2× too permissive to reach the
+> route's own target, so any candidate cleared at `0.20` was never actually
+> cleared.
+>
+> The deeper finding is that the gate cannot decide its own question: the
+> deciding quantity is the single inner product `⟨q*, δv₀⟩`, and the frozen
+> artifact stores only two norms, which bound it across a factor-of-κ range
+> but cannot evaluate it.
 
-**Recovery action (no new QM, no re-fit, no threshold weakening):**
+Until 2026-09-04 nobody had propagated any `v₀` candidate through `Q` to a
+kcal/mol number, so the route had never tested the thing it says it cares
+about. That propagation is now done and registered.
 
-1. Derive the static-source ceiling *from* a declared `ΔG_solv` tolerance by
-   propagating a source perturbation through the existing `Q` operator, rather
-   than inheriting the response ceiling. Register it before re-adjudicating.
-2. Re-adjudicate the already-recorded GFN2 norms against that derived ceiling.
-   This reads existing artifacts; it does not re-run xTB.
-3. If it admits, feed `v₀` into the existing KKT solve and produce the route's
-   first variational `ΔG_solv`.
+**Status of the recovery (steps 1-2 complete):**
 
-If the derived ceiling still rejects GFN2, that is a real answer and the
-`v₀` search continues with a defensible criterion instead of a borrowed one.
+1. ~~Derive the static-source ceiling from a declared `ΔG_solv` tolerance.~~
+   **Done** — equation (4) of
+   [`ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md`](ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md),
+   executable as
+   [`benchmarks/derive_static_source_ceiling.py`](benchmarks/derive_static_source_ceiling.py).
+2. ~~Re-adjudicate the recorded GFN2 norms.~~ **Done — rejection upheld**,
+   by 1.95× against the most permissive licensable ceiling. No new QM was run;
+   the static MEP was recovered from the frozen ± field records
+   (`V(+E)+V(-E) = 2V(0)+O(E²)`, six reconstructions agreeing to 2.3e-6
+   hartree/e).
+3. **Open:** re-screen every other `v₀` candidate against equation (4), and
+   register `⟨q*, δv₀⟩` rather than norms for all future candidates. The `v₀`
+   search continues — against a target roughly 2× tighter than the one that
+   has been in use.
+
+The salvage here is not a recovered candidate. It is that the search criterion
+was quantitatively wrong in the permissive direction, which means the search
+had no chance of delivering the route's accuracy target regardless of how many
+candidates it screened.
 
 ---
 
@@ -241,7 +272,7 @@ Its value from here is as a control, which is how the register already treats it
 
 | item | blocked by | recoverable | next action |
 | --- | --- | --- | --- |
-| S1 V0-RK KKT (`v₀`) | protocol — borrowed ceiling, never propagated to energy | **yes** | derive ceiling from a `ΔG_solv` tolerance; re-adjudicate recorded norms |
+| S1 V0-RK KKT (`v₀`) | protocol — borrowed ceiling was 1.77× too loose | **criterion fixed; search open** | ceiling derived and GFN2 rejection upheld; re-screen other candidates, register `⟨q*, δv₀⟩` |
 | S2 46 fail-closed records | implementation — GePol `probe=0` policy | **yes** | re-run panel on the ddX path; disclose subsample bias |
 | S3 FC-aSWIG force-v3 | presentation | **n/a — already works** | present as a bounded feature |
 | S4 `cosmors_torch` | protocol — no relative-quantity gate exists | **yes** | implement the T1 relative/KSE validator |
@@ -250,3 +281,9 @@ Its value from here is as a control, which is how the register already treats it
 Three of the four recoverable items are blocked by a gate that was never
 derived from the quantity the route cares about. None requires new training,
 fitting, or a weakened threshold.
+
+**S1 is now closed as a criterion problem and reopened as a search problem.**
+Deriving the ceiling did not recover a candidate — it showed the gate had been
+1.77× too permissive, so the rejection stands and the target is tighter than
+anyone was aiming at. That is still the most valuable of the four: it is the
+difference between a `v₀` search that can succeed and one that cannot.

@@ -1,0 +1,350 @@
+{
+  "artifact": "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v2",
+  "asset_source": "committed-profile-bundle-only",
+  "claim_boundary": "Numerical replay of the committed 20x8 profile-level calculation only; no source-generation, accuracy, passivity, force, or admission claim is added.",
+  "created_at_utc": "2026-09-04T11:56:48+00:00",
+  "execution_git_head": "20e8511e6b10f36afc447bda9c041408d4bd0e89",
+  "inputs": {
+    "frozen_control_sha256": "e020795286af6b56a38fcdc1fe441de8328d87265b32a78416dbdb560162556d",
+    "preregistration_sha256": "31d136f1945f3e6f4971fb7062ec641e35c68e9fd52eb26e466627ee6944d0b9",
+    "primary_sha256": "a23c847d7e6ec8f18662d205edaaf36a0d5e0d6ea3a863c6481a38c515b6c83f",
+    "profile_bundle_manifest_sha256": "14d9a9436e6e837bd766507c43d2cf5b1879dd1d8c0118c4fe754a7cddea85a7",
+    "profile_bundle_sha256": "989688eca71577c11fa623c599adbf4538394e9be3841613d73df36218b356c3",
+    "response_cross_sha256": "f34a4c70a0f996d05ed69136f897302bb4aaa7297b88c20aedb5fcc5da49247b"
+  },
+  "maximum_absolute_prediction_difference_kcal_mol": 4.263256414560601e-14,
+  "method": {
+    "arm_count": 8,
+    "full_parameter_sha256": "a06b4554ce14f123616ec1997ac280d374dfad3f06f2e57e5532b0da09d9d147",
+    "no_hydrogen_bond_parameter_sha256": "63089b53c5936ec06bb7b4a6dfc0392ef1bde7b13cbd17fa6259c9e588003263",
+    "prediction_count": 160,
+    "record_count": 20,
+    "tolerance_kcal_mol": 1e-09
+  },
+  "per_arm_maximum_absolute_difference_kcal_mol": {
+    "frozen_solute__frozen_water__full": 8.881784197001252e-15,
+    "frozen_solute__frozen_water__no_hydrogen_bond": 4.440892098500626e-15,
+    "frozen_solute__self_consistent_water__full": 7.993605777301127e-15,
+    "frozen_solute__self_consistent_water__no_hydrogen_bond": 8.881784197001252e-15,
+    "self_consistent_solute__frozen_water__full": 1.0658141036401503e-14,
+    "self_consistent_solute__frozen_water__no_hydrogen_bond": 7.105427357601002e-15,
+    "self_consistent_solute__self_consistent_water__full": 4.263256414560601e-14,
+    "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 5.773159728050814e-15
+  },
+  "records": [
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -1.7763568394002505e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 4.440892098500626e-16,
+        "frozen_solute__self_consistent_water__full": -1.7763568394002505e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__full": -1.3322676295501878e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 4.440892098500626e-16,
+        "self_consistent_solute__self_consistent_water__full": -1.7763568394002505e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 0.0
+      },
+      "compound_id": "mobley_2008055",
+      "ordinal": 1
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -4.440892098500626e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": -3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -5.329070518200751e-15,
+        "self_consistent_solute__frozen_water__full": 2.6645352591003757e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__full": 3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -5.329070518200751e-15
+      },
+      "compound_id": "mobley_3053621",
+      "ordinal": 2
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 1.7763568394002505e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -8.881784197001252e-16,
+        "frozen_solute__self_consistent_water__full": 3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__frozen_water__full": 0.0,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__full": 7.105427357601002e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 0.0
+      },
+      "compound_id": "mobley_1636752",
+      "ordinal": 3
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 1.7763568394002505e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__full": -1.7763568394002505e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "self_consistent_solute__frozen_water__full": -8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 8.881784197001252e-16,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -4.440892098500626e-15
+      },
+      "compound_id": "mobley_7015518",
+      "ordinal": 4
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 0.0,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": 6.217248937900877e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -4.440892098500626e-15,
+        "self_consistent_solute__frozen_water__full": 0.0,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 2.6645352591003757e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -4.440892098500626e-15
+      },
+      "compound_id": "mobley_3867265",
+      "ordinal": 5
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -2.6645352591003757e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -8.881784197001252e-16,
+        "frozen_solute__self_consistent_water__full": 1.3322676295501878e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -4.440892098500626e-16,
+        "self_consistent_solute__frozen_water__full": -1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 1.7763568394002505e-15,
+        "self_consistent_solute__self_consistent_water__full": -2.220446049250313e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 1.3322676295501878e-15
+      },
+      "compound_id": "mobley_6973347",
+      "ordinal": 6
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 0.0,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -1.7763568394002505e-15,
+        "frozen_solute__self_consistent_water__full": 5.329070518200751e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__full": -7.105427357601002e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__full": 3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 1.7763568394002505e-15
+      },
+      "compound_id": "mobley_7532833",
+      "ordinal": 7
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -2.6645352591003757e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__full": -4.440892098500626e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__full": 8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__full": 6.217248937900877e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 8.881784197001252e-16
+      },
+      "compound_id": "mobley_4883284",
+      "ordinal": 8
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 0.0,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": -2.6645352591003757e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -4.440892098500626e-15,
+        "self_consistent_solute__frozen_water__full": -1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 1.7763568394002505e-15,
+        "self_consistent_solute__self_consistent_water__full": -5.329070518200751e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -5.329070518200751e-15
+      },
+      "compound_id": "mobley_2198613",
+      "ordinal": 9
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 3.552713678800501e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": 5.329070518200751e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__full": -1.0658141036401503e-14,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__full": 3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -1.7763568394002505e-15
+      },
+      "compound_id": "mobley_8578590",
+      "ordinal": 10
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 7.105427357601002e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -1.7763568394002505e-15,
+        "frozen_solute__self_consistent_water__full": 5.329070518200751e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__full": 0.0,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 3.552713678800501e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 3.552713678800501e-15
+      },
+      "compound_id": "mobley_8048190",
+      "ordinal": 11
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 3.552713678800501e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": 3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__full": 7.105427357601002e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 2.842170943040401e-14,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -3.552713678800501e-15
+      },
+      "compound_id": "mobley_3034976",
+      "ordinal": 12
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 8.881784197001252e-16,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": 5.329070518200751e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__frozen_water__full": -8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 1.7763568394002505e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 0.0
+      },
+      "compound_id": "mobley_2146331",
+      "ordinal": 13
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -3.552713678800501e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__full": -1.7763568394002505e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -8.881784197001252e-15,
+        "self_consistent_solute__frozen_water__full": 0.0,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 4.263256414560601e-14,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 3.552713678800501e-15
+      },
+      "compound_id": "mobley_20524",
+      "ordinal": 14
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -8.881784197001252e-16,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -3.552713678800501e-15,
+        "frozen_solute__self_consistent_water__full": 0.0,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": -7.993605777301127e-15,
+        "self_consistent_solute__frozen_water__full": -8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": -8.881784197001252e-16,
+        "self_consistent_solute__self_consistent_water__full": 8.881784197001252e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 3.552713678800501e-15
+      },
+      "compound_id": "mobley_2410897",
+      "ordinal": 15
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 3.552713678800501e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": 7.993605777301127e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__full": 1.7763568394002505e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__self_consistent_water__full": 5.329070518200751e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 0.0
+      },
+      "compound_id": "mobley_1952272",
+      "ordinal": 16
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 4.440892098500626e-16,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 1.7763568394002505e-15,
+        "frozen_solute__self_consistent_water__full": 2.220446049250313e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 1.3322676295501878e-15,
+        "self_consistent_solute__frozen_water__full": -4.440892098500626e-16,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 8.881784197001252e-16,
+        "self_consistent_solute__self_consistent_water__full": -3.9968028886505635e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -5.773159728050814e-15
+      },
+      "compound_id": "mobley_9073553",
+      "ordinal": 17
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 2.220446049250313e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 2.6645352591003757e-15,
+        "frozen_solute__self_consistent_water__full": 8.881784197001252e-16,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__full": 0.0,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": -8.881784197001252e-16,
+        "self_consistent_solute__self_consistent_water__full": -1.7763568394002505e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -3.552713678800501e-15
+      },
+      "compound_id": "mobley_525934",
+      "ordinal": 18
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": 0.0,
+        "frozen_solute__frozen_water__no_hydrogen_bond": 0.0,
+        "frozen_solute__self_consistent_water__full": 7.105427357601002e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 0.0,
+        "self_consistent_solute__frozen_water__full": 0.0,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 7.105427357601002e-15,
+        "self_consistent_solute__self_consistent_water__full": 0.0,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": 0.0
+      },
+      "compound_id": "mobley_4639255",
+      "ordinal": 19
+    },
+    {
+      "arm_difference_kcal_mol": {
+        "frozen_solute__frozen_water__full": -8.881784197001252e-15,
+        "frozen_solute__frozen_water__no_hydrogen_bond": -4.440892098500626e-15,
+        "frozen_solute__self_consistent_water__full": 4.440892098500626e-15,
+        "frozen_solute__self_consistent_water__no_hydrogen_bond": 8.881784197001252e-16,
+        "self_consistent_solute__frozen_water__full": -3.552713678800501e-15,
+        "self_consistent_solute__frozen_water__no_hydrogen_bond": 5.329070518200751e-15,
+        "self_consistent_solute__self_consistent_water__full": -2.6645352591003757e-15,
+        "self_consistent_solute__self_consistent_water__no_hydrogen_bond": -8.881784197001252e-16
+      },
+      "compound_id": "mobley_1520842",
+      "ordinal": 20
+    }
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cpu",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "rdkit": "2024.9.2",
+    "torch_threads": 1
+  },
+  "schema_version": 1,
+  "scientific_result": false,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-profile-bundle-v1.json": "14d9a9436e6e837bd766507c43d2cf5b1879dd1d8c0118c4fe754a7cddea85a7",
+    "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz": "989688eca71577c11fa623c599adbf4538394e9be3841613d73df36218b356c3",
+    "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-response-cross-prereg-v1.json": "31d136f1945f3e6f4971fb7062ec641e35c68e9fd52eb26e466627ee6944d0b9",
+    "docs/implicit-solvation/benchmarks/replay_mace_ef_cosmors_freesolv20_response_cross.py": "c521f27053d578765c9db0cfbef01320bda84997edbf45f2ef0ab370f41084ff",
+    "docs/implicit-solvation/benchmarks/run_mace_ef_cosmors_freesolv20.py": "30d4632431726bfeba1c892319a1f07d303d0c353fe51545f538383c0cb54a58",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef.py": "8399aa9909094390d7d1aaadced3545c71c58c474bf2aad5d0a60a3d5c1e78ac",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef_specs.py": "880524d495de391d267245d01d9871b88f08aba9b59e5c819eec805dc748d59a",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py": "e9bf3c1a7151e4bc87f189bb1f4837f1f083f54667106a30dbd30863ce15484f",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/cosmors_torch/cosmospace.py": "ceb628131352dcac1d3d8e6c7fc13f3ebfdbde2532e2877a8587406d9bf29c0e",
+    "maple/function/cosmors_torch/fixed_structure.py": "61276b997d0bc4ec473a7574efd51ac74f65c71ae39a4be4b82564c94d84b51b",
+    "maple/function/cosmors_torch/ionic_es.py": "39b2ae8ab50bc05c9d46c46520067ccb4760a77fe13bd89a785c1c6494796f50",
+    "maple/function/cosmors_torch/kse.py": "14d4189231cd19b405e1011289d74b12948c2a5a7ac4247220e6bc62423f3249",
+    "maple/function/cosmors_torch/mace_ef_segment_cosmo.py": "6f7ef90fcf2139b7721e408f75be2e4ed6b122b37d5a4a78660761cbe5fd7caa",
+    "maple/function/cosmors_torch/segment_cosmo.py": "f8f7e389bf8e5e4fcb899f5f4975a0a2d364036bf734659e46939dd6f231f17b",
+    "maple/function/cosmors_torch/surface.py": "502d9dec8a9e750075e69519b0765968e7fe71f7fbcbd05d09549a67f9096bcf",
+    "maple/function/cosmors_torch/thermodynamics.py": "899c178c4ec60f7572a9e34509b0534f2148c1ea90bd34b6a960a15976560f2c",
+    "maple/function/mlip_cosmo_rs.py": "8ffd3824e4d1f26c667fdd2dbe7d4522f69f6202770e9c71c4c5791c789343f5",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7"
+  },
+  "status": "pass"
+}

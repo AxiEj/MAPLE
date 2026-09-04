@@ -23,8 +23,11 @@ PREREGISTRATION_PATH = (
 BUNDLE_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
 BUNDLE_MANIFEST_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.json"
 REPLAY_RUNNER_PATH = BENCHMARKS / "replay_mace_ef_cosmors_freesolv20_response_cross.py"
-REPLAY_ARTIFACT_PATH = (
+REPLAY_ARTIFACT_V1_PATH = (
     BENCHMARKS / "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v1.json"
+)
+REPLAY_ARTIFACT_PATH = (
+    BENCHMARKS / "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v2.json"
 )
 
 
@@ -264,10 +267,13 @@ def test_profile_bundle_is_deterministic_complete_and_source_bound():
 def test_bundle_only_replay_recomputes_all_160_arms_without_local_omx(
     tmp_path: Path,
 ):
+    assert _sha256(REPLAY_ARTIFACT_V1_PATH) == (
+        "8ea32da0e926f87d42071ab4bc554f8a7b3952e42137354e1f4a5e36d833d81d"
+    )
     committed = _load(REPLAY_ARTIFACT_PATH)
 
     assert _sha256(REPLAY_ARTIFACT_PATH) == (
-        "8ea32da0e926f87d42071ab4bc554f8a7b3952e42137354e1f4a5e36d833d81d"
+        "1a689040c11d2b8afb40d5f3e132ac1831e39509e14ce20f8e21858580f56521"
     )
     assert committed["status"] == "pass"
     assert committed["scientific_result"] is False
@@ -276,8 +282,9 @@ def test_bundle_only_replay_recomputes_all_160_arms_without_local_omx(
     assert committed["method"]["arm_count"] == 8
     assert committed["method"]["prediction_count"] == 160
     assert committed["maximum_absolute_prediction_difference_kcal_mol"] == (
-        pytest.approx(2.842170943040401e-14)
+        pytest.approx(4.263256414560601e-14)
     )
+    assert committed["runtime"]["torch_threads"] == 1
     assert_source_files_match_execution_commit(ROOT, committed)
     assert ".omx" not in REPLAY_RUNNER_PATH.read_text(encoding="utf-8")
 

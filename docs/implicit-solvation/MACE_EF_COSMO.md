@@ -198,7 +198,7 @@ and reports only the conductor-boundary half-coupling component
 `U_segment_COSMO(c2)`. It contains no COSMOspace/COSMO-RS activity, hydrogen-
 bond or misfit interaction, SMD-CDS, element/ring/eta correction, standard-
 state correction, or field-conditioned MACE-EF intrinsic-energy difference.
-The corrected v2 result uses the audited open24a/ORCA6 conductor cavity radii
+The corrected v3 result uses the audited open24a/ORCA6 conductor cavity radii
 but no open24a thermodynamics; every record fails closed unless its exact
 `TorchSegmentCOSMOConfig` hash matches the previously converged comparator.
 

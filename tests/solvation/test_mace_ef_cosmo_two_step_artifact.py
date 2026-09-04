@@ -12,7 +12,8 @@ from artifact_source_binding import assert_source_files_match_execution_commit
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 ARTIFACT_V1_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v1.json"
-ARTIFACT_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v2.json"
+ARTIFACT_V2_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v2.json"
+ARTIFACT_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v3.json"
 PREREGISTRATION_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-prereg-v1.json"
 PRIMARY_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-diverse-v3.json"
 BUNDLE_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
@@ -36,18 +37,39 @@ def _all_keys(value: object) -> set[str]:
     return set()
 
 
+def _assert_distribution_matches_primitives(
+    distribution: dict[str, object],
+    values: list[float],
+    *,
+    units: str,
+) -> None:
+    array = np.asarray(values, dtype=np.float64)
+    assert distribution["count"] == array.size
+    assert distribution["units"] == units
+    assert distribution["mean"] == pytest.approx(np.mean(array))
+    assert distribution["mean_absolute"] == pytest.approx(np.mean(np.abs(array)))
+    assert distribution["median_absolute"] == pytest.approx(np.median(np.abs(array)))
+    assert distribution["maximum_absolute"] == pytest.approx(np.max(np.abs(array)))
+    assert distribution["rmse"] == pytest.approx(np.sqrt(np.mean(array**2)))
+
+
 def test_two_step_artifact_is_complete_source_bound_and_partial_only():
     v1 = _load(ARTIFACT_V1_PATH)
     assert _sha256(ARTIFACT_V1_PATH) == (
         "7796395485a194f67997563b26123e41ae677be88c92f2e7124e233571540bff"
     )
     assert_source_files_match_execution_commit(ROOT, v1)
+    v2 = _load(ARTIFACT_V2_PATH)
+    assert _sha256(ARTIFACT_V2_PATH) == (
+        "d7747841158fed7692129826fefa2b59fd18d3d0cbf9c49a9763705f2453e1eb"
+    )
+    assert_source_files_match_execution_commit(ROOT, v2)
     artifact = _load(ARTIFACT_PATH)
 
     assert _sha256(ARTIFACT_PATH) == (
-        "d7747841158fed7692129826fefa2b59fd18d3d0cbf9c49a9763705f2453e1eb"
+        "951e19ecdaf9af4b58818cdbff2295711eb6e2bd4e746379e1b0bf5816e2d3c7"
     )
-    assert artifact["artifact"] == "mace-ef-cosmo-freesolv20-two-step-v2"
+    assert artifact["artifact"] == "mace-ef-cosmo-freesolv20-two-step-v3"
     assert artifact["status"] == "complete"
     assert artifact["scientific_status"] == ("complete-partial-component-diagnostic")
     assert artifact["diagnostic_only"] is True
@@ -149,79 +171,72 @@ def test_two_step_summary_freezes_response_amplification_without_accuracy_claim(
     summaries = artifact["summaries"]
 
     expected_partial_mean_absolute = {
-        "c0": 1.5531019396694563,
-        "c1": 3.5718428525545773,
-        "c2": 5.149706025135921,
+        "c0": 1.5531021223938226,
+        "c1": 3.5718436868235974,
+        "c2": 5.149706823443946,
     }
     for index, (stage, expected) in enumerate(expected_partial_mean_absolute.items()):
-        observed = summaries["stages"][stage][
+        partial_distribution = summaries["stages"][stage][
             "partial_component_difference_from_total_freesolv_label"
         ]
-        primitive = np.asarray(
-            [
-                float(
-                    record["stages"][index][
-                        "partial_minus_total_freesolv_label_kcal_mol"
-                    ]
-                )
-                for record in artifact["records"]
-            ]
-        )
-        assert observed["count"] == 20
-        assert observed["mean_absolute"] == pytest.approx(expected)
-        assert observed["mean"] == pytest.approx(np.mean(primitive))
-        assert observed["mean_absolute"] == pytest.approx(np.mean(np.abs(primitive)))
-        assert observed["median_absolute"] == pytest.approx(
-            np.median(np.abs(primitive))
-        )
-        assert observed["maximum_absolute"] == pytest.approx(np.max(np.abs(primitive)))
-        assert observed["rmse"] == pytest.approx(np.sqrt(np.mean(primitive**2)))
-        assert observed["units"] == "kcal/mol"
-    c2_converged = summaries["stages"]["c2"]["difference_from_converged_boundary"]
-    c2_converged_primitive = np.asarray(
-        [
-            float(record["stages"][2]["difference_from_converged_boundary_kcal_mol"])
+        partial_values = [
+            float(
+                record["stages"][index]["partial_minus_total_freesolv_label_kcal_mol"]
+            )
             for record in artifact["records"]
         ]
-    )
-    assert c2_converged["mean_absolute"] == pytest.approx(1.3564897508181877)
-    assert c2_converged["maximum_absolute"] == pytest.approx(7.569310309114897)
-    assert c2_converged["mean_absolute"] == pytest.approx(
-        np.mean(np.abs(c2_converged_primitive))
-    )
+        converged_values = [
+            float(
+                record["stages"][index]["difference_from_converged_boundary_kcal_mol"]
+            )
+            for record in artifact["records"]
+        ]
+        _assert_distribution_matches_primitives(
+            partial_distribution,
+            partial_values,
+            units="kcal/mol",
+        )
+        _assert_distribution_matches_primitives(
+            summaries["stages"][stage]["difference_from_converged_boundary"],
+            converged_values,
+            units="kcal/mol",
+        )
+        assert partial_distribution["mean_absolute"] == pytest.approx(expected)
+    c2_converged = summaries["stages"]["c2"]["difference_from_converged_boundary"]
+    assert c2_converged["mean_absolute"] == pytest.approx(1.3564889515598142)
+    assert c2_converged["maximum_absolute"] == pytest.approx(7.569307470337179)
 
     updates = summaries["source_update_raw_component_max"]
-    ratios = np.asarray(
-        [
-            float(record["source_updates"]["second_to_first_ratio"])
-            for record in artifact["records"]
-        ]
-    )
-    first_updates = np.asarray(
-        [
-            float(record["source_updates"]["first_maximum_absolute_component"])
-            for record in artifact["records"]
-        ]
-    )
-    second_updates = np.asarray(
-        [
-            float(record["source_updates"]["second_maximum_absolute_component"])
-            for record in artifact["records"]
-        ]
-    )
+    ratios = [
+        float(record["source_updates"]["second_to_first_ratio"])
+        for record in artifact["records"]
+    ]
+    first_updates = [
+        float(record["source_updates"]["first_maximum_absolute_component"])
+        for record in artifact["records"]
+    ]
+    second_updates = [
+        float(record["source_updates"]["second_maximum_absolute_component"])
+        for record in artifact["records"]
+    ]
     assert updates["second_update_smaller_record_count"] == 20
     assert updates["second_update_not_smaller_record_count"] == 0
     assert updates["coordinate_invariant_norm"] is False
     assert updates["mathematical_contraction_claimed"] is False
-    assert updates["first_maximum_absolute_component"]["mean"] == pytest.approx(
-        np.mean(first_updates)
+    _assert_distribution_matches_primitives(
+        updates["first_maximum_absolute_component"],
+        first_updates,
+        units="source-component",
     )
-    assert updates["second_maximum_absolute_component"]["mean"] == pytest.approx(
-        np.mean(second_updates)
+    _assert_distribution_matches_primitives(
+        updates["second_maximum_absolute_component"],
+        second_updates,
+        units="source-component",
     )
-    assert updates["second_to_first_ratio"]["mean"] == pytest.approx(np.mean(ratios))
-    assert updates["second_to_first_ratio"]["maximum_absolute"] == pytest.approx(
-        np.max(np.abs(ratios))
+    _assert_distribution_matches_primitives(
+        updates["second_to_first_ratio"],
+        ratios,
+        units="raw-coordinate numerical ratio",
     )
     assert summaries["electronic_passivity"] == {
         "audit_source": (

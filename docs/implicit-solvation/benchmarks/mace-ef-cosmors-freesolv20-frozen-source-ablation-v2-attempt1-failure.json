@@ -1,0 +1,18 @@
+{
+  "artifact": "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2-attempt1-failure",
+  "disposition": "Preserved as execution evidence; no scientific contrast was declared from this incomplete artifact.",
+  "execution_git_head": "0904c85140da7c5cc6da5184de4736b4b18efb09",
+  "failure": {
+    "error": "_summary() takes 1 positional argument but 2 were given",
+    "error_type": "TypeError",
+    "stage": "post-record aggregate summary"
+  },
+  "raw_partial_artifact": {
+    "path": "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-frozen-source-ablation-v2-attempt1.json",
+    "record_count": 20,
+    "sha256": "17c26a991010f16d049031614f8dead2e72ac60e270924a89b46786813254186"
+  },
+  "schema_version": 1,
+  "scientific_result_available": false,
+  "status": "execution-failed-after-record-evaluation"
+}

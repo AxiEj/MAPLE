@@ -40,11 +40,11 @@ from maple.function.mlip_cosmo_rs import open_cosmors_24a_cavity_radii  # noqa: 
 from run_mace_ef_cosmors_freesolv20 import (  # noqa: E402
     _bind_source_files,
     _canonical_sha256,
+    _git_blob_sha256,
     _repository_relative,
     _resolve_artifact_path,
     _runtime_versions,
     _sha256_file,
-    _summary,
     _write_json_atomic,
 )
 
@@ -53,6 +53,41 @@ OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2
 WORK_DIR = REPOSITORY_ROOT / ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2"
 EPSILON_COEFFICIENT = 1.0e-30
 HARTREE_TO_KCAL_MOL = 627.5094740631
+
+
+def _assert_source_compatible(artifact: dict[str, object], commit: str) -> None:
+    hashes = artifact.get("source_files_sha256")
+    if not isinstance(hashes, dict) or not hashes:
+        raise RuntimeError("Input artifact lacks committed source-file binding.")
+    for relative, expected in hashes.items():
+        if _git_blob_sha256(commit, str(relative)) != expected:
+            raise RuntimeError(
+                f"Input artifact source {relative!r} is incompatible with {commit}."
+            )
+
+
+def _prediction_summary(
+    records: list[dict[str, object]], key: str
+) -> dict[str, object]:
+    errors = np.asarray(
+        [float(record[key]["signed_error_kcal_mol"]) for record in records]
+    )
+    absolute = np.abs(errors)
+    worst = int(np.argmax(absolute))
+    return {
+        "count": len(records),
+        "mean_signed_error_kcal_mol": float(np.mean(errors)),
+        "mae_kcal_mol": float(np.mean(absolute)),
+        "rmse_kcal_mol": float(np.sqrt(np.mean(errors**2))),
+        "maximum_absolute_error_kcal_mol": float(np.max(absolute)),
+        "within_1_kcal_mol_count": int(np.sum(absolute <= 1.0)),
+        "within_2_kcal_mol_count": int(np.sum(absolute <= 2.0)),
+        "worst_record": {
+            "compound_id": records[worst]["compound_id"],
+            "name": records[worst]["name"],
+            "signed_error_kcal_mol": float(errors[worst]),
+        },
+    }
 
 
 def _frozen_profile(
@@ -117,8 +152,7 @@ def main() -> int:
     if primary.get("status") != "complete":
         raise ValueError("Frozen-source v2 requires a complete primary artifact.")
     execution_git_head, source_files_sha256 = _bind_source_files((Path(__file__),))
-    if primary.get("execution_git_head") != execution_git_head:
-        raise RuntimeError("Primary and frozen-source runner must use one Git tree.")
+    _assert_source_compatible(primary, execution_git_head)
 
     checkpoint = Path(primary["model"]["checkpoint_path"])
     if _sha256_file(checkpoint) != primary["model"]["checkpoint_sha256"]:
@@ -310,8 +344,10 @@ def main() -> int:
 
     records = artifact["records"]
     artifact["summaries"] = {
-        "frozen_full_open24a": _summary(records, "frozen_full_open24a"),
-        "frozen_no_hydrogen_bond": _summary(records, "frozen_no_hydrogen_bond"),
+        "frozen_full_open24a": _prediction_summary(records, "frozen_full_open24a"),
+        "frozen_no_hydrogen_bond": _prediction_summary(
+            records, "frozen_no_hydrogen_bond"
+        ),
     }
     response_shifts = np.asarray(
         [

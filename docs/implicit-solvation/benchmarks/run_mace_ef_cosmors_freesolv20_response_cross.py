@@ -28,6 +28,7 @@ from maple.function.cosmors_torch.thermodynamics import (  # noqa: E402
 from run_mace_ef_cosmors_freesolv20 import (  # noqa: E402
     _bind_source_files,
     _canonical_sha256,
+    _git_blob_sha256,
     _repository_relative,
     _resolve_artifact_path,
     _runtime_versions,
@@ -42,6 +43,17 @@ PREREGISTRATION_PATH = (
 )
 OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-response-cross-v1.json"
 EPSILON_COEFFICIENT = 1.0e-30
+
+
+def _assert_source_compatible(artifact: dict[str, object], commit: str) -> None:
+    hashes = artifact.get("source_files_sha256")
+    if not isinstance(hashes, dict) or not hashes:
+        raise RuntimeError("Input artifact lacks committed source-file binding.")
+    for relative, expected in hashes.items():
+        if _git_blob_sha256(commit, str(relative)) != expected:
+            raise RuntimeError(
+                f"Input artifact source {relative!r} is incompatible with {commit}."
+            )
 
 
 def _to_device(profile, device: str):
@@ -172,12 +184,8 @@ def main() -> int:
     execution_git_head, source_files_sha256 = _bind_source_files(
         (Path(__file__), PREREGISTRATION_PATH)
     )
-    if {
-        primary.get("execution_git_head"),
-        frozen.get("execution_git_head"),
-        execution_git_head,
-    } != {execution_git_head}:
-        raise RuntimeError("All response-cross inputs must use one committed Git tree.")
+    _assert_source_compatible(primary, execution_git_head)
+    _assert_source_compatible(frozen, execution_git_head)
     if frozen["primary_artifact"]["sha256"] != _sha256_file(PRIMARY_PATH):
         raise RuntimeError(
             "Frozen control is not bound to the current primary artifact."

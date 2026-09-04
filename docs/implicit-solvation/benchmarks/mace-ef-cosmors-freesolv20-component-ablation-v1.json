@@ -1,0 +1,829 @@
+{
+  "artifact": "mace-ef-cosmors-freesolv20-component-ablation-v1",
+  "completed_at_utc": "2026-09-04T05:29:30+00:00",
+  "failures": [],
+  "method": {
+    "description": "Reuse the frozen primary inputs and MACE-EF surface path; set one or both positive COSMOspace interaction coefficients to 1e-30.",
+    "epsilon_coefficient": 1e-30,
+    "interpretation": "Mechanism attribution only; ablated variants are not fitted physical models.",
+    "maximum_iterations": 20000,
+    "rt_kcal_mol": 0.5924849497137639,
+    "temperature_k": 298.15
+  },
+  "passivity": {
+    "failed_count": 15,
+    "passed_count": 5
+  },
+  "primary_artifact": {
+    "path": "/home/axie/MAPLE/MACE-EF-COS/docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-diverse-v2.json",
+    "sha256": "d4424d3a9fee178f553df7a2eb2615d2152eb343bd331b8f2c61ca16349a9e73"
+  },
+  "records": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_2008055",
+      "experimental_kcal_mol": 1.83,
+      "mace_ef_passivity_passed": false,
+      "name": "ethane",
+      "ordinal": 1,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 3.83164547977323,
+          "residual_log_activity": 9.94016022449275,
+          "signed_error_kcal_mol": 2.00164547977323
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 3.660901614544091,
+          "residual_kcal_mol": 5.718651502659691,
+          "residual_log_activity": 9.651977666981137,
+          "signed_error_kcal_mol": 1.830901614544091
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 2.726959350663389,
+          "residual_kcal_mol": 4.784709238778988,
+          "residual_log_activity": 8.075663763426455,
+          "signed_error_kcal_mol": 0.8969593506633888
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -2.0577498881156,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -3.8877498881156
+        }
+      }
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "experimental_kcal_mol": -0.9,
+      "mace_ef_passivity_passed": false,
+      "name": "benzene",
+      "ordinal": 2,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 3.191957422376734,
+          "residual_log_activity": 15.181475293201148,
+          "signed_error_kcal_mol": 4.091957422376734
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 2.757594614767446,
+          "residual_kcal_mol": 8.560432915758055,
+          "residual_log_activity": 14.44835505086449,
+          "signed_error_kcal_mol": 3.657594614767446
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 1.4783291250943558,
+          "residual_kcal_mol": 7.2811674260849655,
+          "residual_log_activity": 12.289202332654321,
+          "signed_error_kcal_mol": 2.3783291250943557
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -5.80283830099061,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.902838300990609
+        }
+      }
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "experimental_kcal_mol": -5.1,
+      "mace_ef_passivity_passed": false,
+      "name": "methanol",
+      "ordinal": 3,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -23.632189896614356,
+          "residual_log_activity": -23.355934595819303,
+          "signed_error_kcal_mol": -18.532189896614355
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -4.42677629112438,
+          "residual_kcal_mol": 5.368135014954146,
+          "residual_log_activity": 9.060373630667838,
+          "signed_error_kcal_mol": 0.6732237088756197
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -25.44547390501438,
+          "residual_kcal_mol": -15.650562598935851,
+          "residual_log_activity": -26.415122622940572,
+          "signed_error_kcal_mol": -20.34547390501438
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -9.794911306078527,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.694911306078527
+        }
+      }
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "experimental_kcal_mol": -1.91,
+      "mace_ef_passivity_passed": false,
+      "name": "methoxymethane",
+      "ordinal": 4,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 2.557066179150553,
+          "residual_log_activity": 11.429567480307224,
+          "signed_error_kcal_mol": 4.467066179150553
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 2.0741309112406614,
+          "residual_kcal_mol": 6.288911966408016,
+          "residual_log_activity": 10.614467033206937,
+          "signed_error_kcal_mol": 3.984130911240661
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 1.2311005432937638,
+          "residual_kcal_mol": 5.445881598461119,
+          "residual_log_activity": 9.191594826319362,
+          "signed_error_kcal_mol": 3.1411005432937635
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -4.2147810551673555,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -2.3047810551673553
+        }
+      }
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "experimental_kcal_mol": -3.8,
+      "mace_ef_passivity_passed": false,
+      "name": "acetone",
+      "ordinal": 5,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -0.5212133628348452,
+          "residual_log_activity": 13.231300431852095,
+          "signed_error_kcal_mol": 3.2787866371651546
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -1.3950401698316117,
+          "residual_kcal_mol": 6.965520173253487,
+          "residual_log_activity": 11.756450820596553,
+          "signed_error_kcal_mol": 2.404959830168388
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -2.1467823845769853,
+          "residual_kcal_mol": 6.213777958508111,
+          "residual_log_activity": 10.48765535987042,
+          "signed_error_kcal_mol": 1.6532176154230145
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -8.3605603430851,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.5605603430851
+        }
+      }
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "experimental_kcal_mol": -2.94,
+      "mace_ef_passivity_passed": false,
+      "name": "ethyl acetate",
+      "ordinal": 6,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 1.8758477993046654,
+          "residual_log_activity": 17.51247520373487,
+          "signed_error_kcal_mol": 4.815847799304665
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 0.944421197544683,
+          "residual_kcal_mol": 9.444449181694624,
+          "residual_log_activity": 15.940403526296059,
+          "signed_error_kcal_mol": 3.884421197544683
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -0.2022335060158591,
+          "residual_kcal_mol": 8.297794478134081,
+          "residual_log_activity": 14.005072166209183,
+          "signed_error_kcal_mol": 2.737766493984141
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -8.50002798414994,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -5.56002798414994
+        }
+      }
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "experimental_kcal_mol": -3.88,
+      "mace_ef_passivity_passed": true,
+      "name": "acetonitrile",
+      "ordinal": 7,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -1.6599000555037904,
+          "residual_log_activity": 11.164258018309173,
+          "signed_error_kcal_mol": 2.2200999444962095
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -2.9092096145888213,
+          "residual_kcal_mol": 5.365346474512562,
+          "residual_log_activity": 9.055667113746301,
+          "signed_error_kcal_mol": 0.9707903854111786
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -3.300483252749558,
+          "residual_kcal_mol": 4.974072836351826,
+          "residual_log_activity": 8.395272890484149,
+          "signed_error_kcal_mol": 0.5795167472504419
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -8.274556089101383,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.394556089101383
+        }
+      }
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "experimental_kcal_mol": -5.49,
+      "mace_ef_passivity_passed": true,
+      "name": "aniline",
+      "ordinal": 8,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -1.1116855236724499,
+          "residual_log_activity": 13.562667162806907,
+          "signed_error_kcal_mol": 4.37831447632755
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 0.25403534797441374,
+          "residual_kcal_mol": 9.401397542125842,
+          "residual_log_activity": 15.867740685510684,
+          "signed_error_kcal_mol": 5.744035347974414
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -2.716432836187213,
+          "residual_kcal_mol": 6.430929357964216,
+          "residual_log_activity": 10.854164921946237,
+          "signed_error_kcal_mol": 2.7735671638127872
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -9.147362194151428,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -3.6573621941514283
+        }
+      }
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "experimental_kcal_mol": -0.63,
+      "mace_ef_passivity_passed": false,
+      "name": "chloroethane",
+      "ordinal": 9,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 2.4340784170872842,
+          "residual_log_activity": 12.61000756664754,
+          "signed_error_kcal_mol": 3.064078417087284
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 1.9735331420562128,
+          "residual_kcal_mol": 7.0106938293451355,
+          "residual_log_activity": 11.832695214843989,
+          "signed_error_kcal_mol": 2.6035331420562127
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 0.948472038415328,
+          "residual_kcal_mol": 5.98563272570425,
+          "residual_log_activity": 10.102590333469191,
+          "signed_error_kcal_mol": 1.578472038415328
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -5.037160687288923,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.407160687288923
+        }
+      }
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "experimental_kcal_mol": -9.28,
+      "mace_ef_passivity_passed": true,
+      "name": "methylsulfinylmethane",
+      "ordinal": 10,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -5.435441301747719,
+          "residual_log_activity": 14.593757644100046,
+          "signed_error_kcal_mol": 3.84455869825228
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -6.672256587997914,
+          "residual_kcal_mol": 7.409769140396044,
+          "residual_log_activity": 12.506257152988926,
+          "signed_error_kcal_mol": 2.607743412002085
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -7.494284880598348,
+          "residual_kcal_mol": 6.58774084779561,
+          "residual_log_activity": 11.118832387182529,
+          "signed_error_kcal_mol": 1.785715119401651
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -14.08202572839396,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.802025728393961
+        }
+      }
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "experimental_kcal_mol": -9.71,
+      "mace_ef_passivity_passed": true,
+      "name": "acetamide",
+      "ordinal": 11,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -12.699221258776843,
+          "residual_log_activity": 0.3368952210661318,
+          "signed_error_kcal_mol": -2.9892212587768423
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -6.24408833330663,
+          "residual_kcal_mol": 6.6547369948523505,
+          "residual_log_activity": 11.2319089253952,
+          "signed_error_kcal_mol": 3.465911666693371
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -13.861715157819292,
+          "residual_kcal_mol": -0.9628898296603106,
+          "residual_log_activity": -1.6251717957148,
+          "signed_error_kcal_mol": -4.151715157819291
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -12.89882532815898,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -3.1888253281589787
+        }
+      }
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "experimental_kcal_mol": -6.69,
+      "mace_ef_passivity_passed": false,
+      "name": "acetic acid",
+      "ordinal": 12,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1511,
+          "predicted_kcal_mol": -39.90237004117049,
+          "residual_log_activity": -34.05291288388112,
+          "signed_error_kcal_mol": -33.212370041170495
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -12.031961628016484,
+          "residual_kcal_mol": 7.6945711221328095,
+          "residual_log_activity": 12.986947813358201,
+          "signed_error_kcal_mol": -5.341961628016484
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 912,
+          "predicted_kcal_mol": -42.65940062922475,
+          "residual_kcal_mol": -22.93286787907545,
+          "residual_log_activity": -38.70624543316176,
+          "signed_error_kcal_mol": -35.96940062922475
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -19.726532750149296,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -13.036532750149295
+        }
+      }
+    },
+    {
+      "chemical_class": "aldehyde",
+      "compound_id": "mobley_2146331",
+      "experimental_kcal_mol": -2.75,
+      "mace_ef_passivity_passed": false,
+      "name": "formaldehyde",
+      "ordinal": 13,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -0.46373313445399766,
+          "residual_log_activity": 8.42404923605692,
+          "signed_error_kcal_mol": 2.2862668655460023
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -1.3110498572842104,
+          "residual_kcal_mol": 4.144082497261432,
+          "residual_log_activity": 6.994409730177087,
+          "signed_error_kcal_mol": 1.4389501427157896
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -1.738822902048076,
+          "residual_kcal_mol": 3.716309452497566,
+          "residual_log_activity": 6.27241156807942,
+          "signed_error_kcal_mol": 1.011177097951924
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -5.455132354545642,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -2.7051323545456416
+        }
+      }
+    },
+    {
+      "chemical_class": "phenol",
+      "compound_id": "mobley_20524",
+      "experimental_kcal_mol": -6.6,
+      "mace_ef_passivity_passed": false,
+      "name": "phenol",
+      "ordinal": 14,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -27.310514803487607,
+          "residual_log_activity": -20.608726699133076,
+          "signed_error_kcal_mol": -20.710514803487605
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -4.7826813256323035,
+          "residual_kcal_mol": 10.31747252106514,
+          "residual_log_activity": 17.413898067874342,
+          "signed_error_kcal_mol": 1.8173186743676961
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -29.909441407875228,
+          "residual_kcal_mol": -14.809287561177783,
+          "residual_log_activity": -24.995213073905617,
+          "signed_error_kcal_mol": -23.309441407875227
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -15.100153846697443,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -8.500153846697444
+        }
+      }
+    },
+    {
+      "chemical_class": "aliphatic amine",
+      "compound_id": "mobley_2410897",
+      "experimental_kcal_mol": -4.5,
+      "mace_ef_passivity_passed": true,
+      "name": "ethanamine",
+      "ordinal": 15,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 2.175766109431163,
+          "residual_log_activity": 11.139903373370606,
+          "signed_error_kcal_mol": 6.675766109431163
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 2.4365076404094514,
+          "residual_kcal_mol": 6.8609671306311855,
+          "residual_log_activity": 11.57998550671337,
+          "signed_error_kcal_mol": 6.9365076404094514
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 0.9257191132391136,
+          "residual_kcal_mol": 5.350178603460849,
+          "residual_log_activity": 9.03006668109558,
+          "signed_error_kcal_mol": 5.425719113239113
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -4.424459490221736,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": 0.07554050977826421
+        }
+      }
+    },
+    {
+      "chemical_class": "nitro compound",
+      "compound_id": "mobley_1952272",
+      "experimental_kcal_mol": -4.02,
+      "mace_ef_passivity_passed": false,
+      "name": "nitromethane",
+      "ordinal": 16,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": -4.314822153955808,
+          "residual_log_activity": 10.708656286832216,
+          "signed_error_kcal_mol": -0.294822153955808
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -4.769395755944473,
+          "residual_kcal_mol": 5.890142604177117,
+          "residual_log_activity": 9.94142147749527,
+          "signed_error_kcal_mol": -0.749395755944473
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -5.89341928580896,
+          "residual_kcal_mol": 4.76611907431263,
+          "residual_log_activity": 8.044287161412615,
+          "signed_error_kcal_mol": -1.8734192858089607
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -10.659538360121589,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -6.639538360121589
+        }
+      }
+    },
+    {
+      "chemical_class": "thioether",
+      "compound_id": "mobley_9073553",
+      "experimental_kcal_mol": -1.61,
+      "mace_ef_passivity_passed": false,
+      "name": "methylsulfanylmethane",
+      "ordinal": 17,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 3.402220123321188,
+          "residual_log_activity": 13.423853417958675,
+          "signed_error_kcal_mol": 5.012220123321188
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 3.002379989908549,
+          "residual_kcal_mol": 7.5535911923256505,
+          "residual_log_activity": 12.749000959391248,
+          "signed_error_kcal_mol": 4.612379989908549
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 1.8676497106119236,
+          "residual_kcal_mol": 6.418860913029026,
+          "residual_log_activity": 10.833795721106586,
+          "signed_error_kcal_mol": 3.4776497106119235
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -4.551211202417102,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -2.9412112024171018
+        }
+      }
+    },
+    {
+      "chemical_class": "thiol",
+      "compound_id": "mobley_525934",
+      "experimental_kcal_mol": -1.2,
+      "mace_ef_passivity_passed": false,
+      "name": "methanethiol",
+      "ordinal": 18,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 2.488590954990375,
+          "residual_log_activity": 10.872253250540252,
+          "signed_error_kcal_mol": 3.6885909549903753
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 2.1239785008081373,
+          "residual_kcal_mol": 6.077034142332463,
+          "residual_log_activity": 10.25685824638811,
+          "signed_error_kcal_mol": 3.3239785008081375
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": 1.2121157815428911,
+          "residual_kcal_mol": 5.165171423067217,
+          "residual_log_activity": 8.7178103436426,
+          "signed_error_kcal_mol": 2.412115781542891
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -3.953055641524326,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -2.753055641524326
+        }
+      }
+    },
+    {
+      "chemical_class": "vicinal diol",
+      "compound_id": "mobley_4639255",
+      "experimental_kcal_mol": -9.3,
+      "mace_ef_passivity_passed": false,
+      "name": "ethylene glycol",
+      "ordinal": 19,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1511,
+          "predicted_kcal_mol": -61.550199741164946,
+          "residual_log_activity": -63.43508572936827,
+          "signed_error_kcal_mol": -52.25019974116495
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": -17.148073985584823,
+          "residual_kcal_mol": 6.817789293613814,
+          "residual_log_activity": 11.507109669043178,
+          "signed_error_kcal_mol": -7.848073985584822
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 912,
+          "predicted_kcal_mol": -63.260860178154616,
+          "residual_kcal_mol": -39.29499689895598,
+          "residual_log_activity": -66.32235454746966,
+          "signed_error_kcal_mol": -53.96086017815462
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -23.965863279198636,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -14.665863279198636
+        }
+      }
+    },
+    {
+      "chemical_class": "nitrogen heteroaromatic",
+      "compound_id": "mobley_1520842",
+      "experimental_kcal_mol": -4.93,
+      "mace_ef_passivity_passed": false,
+      "name": "4-methylpyridine",
+      "ordinal": 20,
+      "variants": {
+        "full_primary": {
+          "cosmospace_iterations": 1510,
+          "predicted_kcal_mol": 1.0893433185066952,
+          "residual_log_activity": 17.35122410286158,
+          "signed_error_kcal_mol": 6.019343318506695
+        },
+        "no_hydrogen_bond": {
+          "cosmospace_iterations": 506,
+          "predicted_kcal_mol": 0.15693805871216338,
+          "residual_kcal_mol": 9.347935064778971,
+          "residual_log_activity": 15.777506364161761,
+          "signed_error_kcal_mol": 5.086938058712163
+        },
+        "no_misfit": {
+          "cosmospace_iterations": 911,
+          "predicted_kcal_mol": -0.9906763337039566,
+          "residual_kcal_mol": 8.200320672362851,
+          "residual_log_activity": 13.84055523490431,
+          "signed_error_kcal_mol": 3.939323666296043
+        },
+        "no_misfit_or_hydrogen_bond": {
+          "cosmospace_iterations": 1,
+          "predicted_kcal_mol": -9.190997006066807,
+          "residual_kcal_mol": 0.0,
+          "residual_log_activity": 0.0,
+          "signed_error_kcal_mol": -4.260997006066807
+        }
+      }
+    }
+  ],
+  "runtime_seconds": 94.02370568300012,
+  "schema_version": 1,
+  "started_at_utc": "2026-09-04T05:27:56+00:00",
+  "status": "complete",
+  "summaries": {
+    "full_primary": {
+      "count": 20,
+      "mae_kcal_mol": 9.191693016044956,
+      "maximum_absolute_error_kcal_mol": 52.25019974116495,
+      "mean_signed_error_kcal_mol": -3.607238773472049,
+      "median_absolute_error_kcal_mol": 4.235135949352142,
+      "rmse_kcal_mol": 15.591991638801892,
+      "within_1_kcal_mol_count": 1,
+      "within_2_kcal_mol_count": 1,
+      "worst_record": {
+        "compound_id": "mobley_4639255",
+        "name": "ethylene glycol",
+        "signed_error_kcal_mol": -52.25019974116495
+      }
+    },
+    "no_hydrogen_bond": {
+      "count": 20,
+      "mae_kcal_mol": 3.4491375103872857,
+      "maximum_absolute_error_kcal_mol": 7.848073985584822,
+      "mean_signed_error_kcal_mol": 2.055194373432708,
+      "median_absolute_error_kcal_mol": 3.394945083750754,
+      "rmse_kcal_mol": 3.97388673560689,
+      "within_1_kcal_mol_count": 3,
+      "within_2_kcal_mol_count": 6,
+      "worst_record": {
+        "compound_id": "mobley_4639255",
+        "name": "ethylene glycol",
+        "signed_error_kcal_mol": -7.848073985584822
+      }
+    },
+    "no_misfit": {
+      "count": 20,
+      "mae_kcal_mol": 8.6700470065439,
+      "maximum_absolute_error_kcal_mol": 53.96086017815462,
+      "mean_signed_error_kcal_mol": -5.290984049845823,
+      "median_absolute_error_kcal_mol": 2.7556668288984643,
+      "rmse_kcal_mol": 16.259986785778928,
+      "within_1_kcal_mol_count": 2,
+      "within_2_kcal_mol_count": 7,
+      "worst_record": {
+        "compound_id": "mobley_4639255",
+        "name": "ethylene glycol",
+        "signed_error_kcal_mol": -53.96086017815462
+      }
+    },
+    "no_misfit_or_hydrogen_bond": {
+      "count": 20,
+      "mae_kcal_mol": 5.096941192759045,
+      "maximum_absolute_error_kcal_mol": 14.665863279198636,
+      "mean_signed_error_kcal_mol": -5.089387141781218,
+      "median_absolute_error_kcal_mol": 4.400858388195153,
+      "rmse_kcal_mol": 6.110004892297457,
+      "within_1_kcal_mol_count": 1,
+      "within_2_kcal_mol_count": 1,
+      "worst_record": {
+        "compound_id": "mobley_4639255",
+        "name": "ethylene glycol",
+        "signed_error_kcal_mol": -14.665863279198636
+      }
+    }
+  }
+}

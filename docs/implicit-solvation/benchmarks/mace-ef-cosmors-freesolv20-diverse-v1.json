@@ -1,0 +1,299 @@
+{
+  "artifact": "mace-ef-cosmors-freesolv20-diverse-v1",
+  "comparison": {
+    "claim_boundary": "Fixed FreeSolv conformers and a MACE-EF surface outside the ORCA surface convention used to fit open24a; diagnostic only.",
+    "error_definition": "predicted_kcal_mol - experimental_kcal_mol",
+    "experimental_quantity": "FreeSolv hydration free energy",
+    "geometry_relaxation_or_conformer_averaging": false,
+    "post_hoc_shift_or_rescaling": false,
+    "predicted_quantity": "MACE-EF/Torch-segment-COSMO/openCOSMO-RS-24a solvation free energy",
+    "prediction_standard_state": "open24a-1atm-gas-to-pure-liquid ledger as implemented",
+    "solvent": "water",
+    "temperature_k": 298.15
+  },
+  "completed_at_utc": "2026-09-04T05:01:03+00:00",
+  "dataset": {
+    "dataset_dir": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/.omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset",
+    "expected_record_count": 642,
+    "name": "FreeSolv",
+    "prepared_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/.omx/benchmarks/neutral-water-freesolv-route1-20260723/prepared.json",
+    "repository_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "version": "0.52"
+  },
+  "failures": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_9055303",
+      "error": "MACE-POLAR-EF/PCM source equation did not converge.",
+      "error_type": "RuntimeError",
+      "name": "methane",
+      "ordinal": 1,
+      "runtime_seconds": 6.75038069600032
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "benzene",
+      "ordinal": 2,
+      "runtime_seconds": 4.553057725000144
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "methanol",
+      "ordinal": 3,
+      "runtime_seconds": 4.5184188159996665
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "methoxymethane",
+      "ordinal": 4,
+      "runtime_seconds": 4.862013155000113
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "acetone",
+      "ordinal": 5,
+      "runtime_seconds": 4.830902616000003
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "ethyl acetate",
+      "ordinal": 6,
+      "runtime_seconds": 4.558534429999781
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "acetonitrile",
+      "ordinal": 7,
+      "runtime_seconds": 4.252189335999901
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "aniline",
+      "ordinal": 8,
+      "runtime_seconds": 4.677692719999868
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "chloroethane",
+      "ordinal": 9,
+      "runtime_seconds": 4.7310184620000655
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "methylsulfinylmethane",
+      "ordinal": 10,
+      "runtime_seconds": 4.573184669000057
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "acetamide",
+      "ordinal": 11,
+      "runtime_seconds": 4.904708892000144
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "acetic acid",
+      "ordinal": 12,
+      "runtime_seconds": 4.722389558000032
+    },
+    {
+      "chemical_class": "aldehyde",
+      "compound_id": "mobley_2146331",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "formaldehyde",
+      "ordinal": 13,
+      "runtime_seconds": 4.772893423000369
+    },
+    {
+      "chemical_class": "phenol",
+      "compound_id": "mobley_20524",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "phenol",
+      "ordinal": 14,
+      "runtime_seconds": 5.060926162999749
+    },
+    {
+      "chemical_class": "aliphatic amine",
+      "compound_id": "mobley_2410897",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "ethanamine",
+      "ordinal": 15,
+      "runtime_seconds": 4.21451441399995
+    },
+    {
+      "chemical_class": "nitro compound",
+      "compound_id": "mobley_1952272",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "nitromethane",
+      "ordinal": 16,
+      "runtime_seconds": 4.502642325000124
+    },
+    {
+      "chemical_class": "thioether",
+      "compound_id": "mobley_9073553",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "methylsulfanylmethane",
+      "ordinal": 17,
+      "runtime_seconds": 4.258375169999908
+    },
+    {
+      "chemical_class": "thiol",
+      "compound_id": "mobley_525934",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "methanethiol",
+      "ordinal": 18,
+      "runtime_seconds": 4.113723480000317
+    },
+    {
+      "chemical_class": "phosphate ester",
+      "compound_id": "mobley_6115639",
+      "error": "No audited openCOSMO-RS 24a cavity radius is available for: P",
+      "error_type": "ValueError",
+      "name": "trimethyl phosphate",
+      "ordinal": 19,
+      "runtime_seconds": 0.8849663430000874
+    },
+    {
+      "chemical_class": "nitrogen heteroaromatic",
+      "compound_id": "mobley_1520842",
+      "error": "COSMOspace did not converge within the iteration cap.",
+      "error_type": "RuntimeError",
+      "name": "4-methylpyridine",
+      "ordinal": 20,
+      "runtime_seconds": 4.627754315999937
+    }
+  ],
+  "model": {
+    "angular_degree": 4,
+    "checkpoint_path": "/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt",
+    "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+    "cuda_version": "13.0",
+    "device": "cuda:0",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "neutral_cosmospace_model": "openCOSMO-RS-24a",
+    "torch_version": "2.12.0+cu130"
+  },
+  "records": [],
+  "repository_commit": "01381f66bbab4a0786c6522d09ec1f0edb31ccce",
+  "schema_version": 1,
+  "selection": {
+    "path": "/home/axie/MAPLE/MACE-EF-COS/docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-selection-v1.json",
+    "selection_id": "mace-ef-cosmors-freesolv20-diverse-v1",
+    "sha256": "8133478621c535c21fc5c7e5e2f7509260bac5ea3239e2640996dc9253df335d"
+  },
+  "started_at_utc": "2026-09-04T04:59:27+00:00",
+  "status": "complete-with-failures",
+  "summary": null,
+  "total_record_runtime_seconds": 90.67850692599995,
+  "water_profile": {
+    "liquid_molar_volume_cm3_mol": 18.06863632,
+    "path": "/home/axie/MAPLE/MACE-EF-COS/.omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v1/water.torch-cosmors.json",
+    "sha256": "26299f3281cb4b7d53bd5f02ce4696ec01a1b7fa4f482b3e79fc49d00d93b5b1",
+    "source": {
+      "atom_indices": null,
+      "boundary_polarization_energy_ev": -1.4479227409808235,
+      "cavity_volume_angstrom3": 24.875839733260396,
+      "charge": 0,
+      "conductor_total_energy_ev": -2080.477126087144,
+      "conductor_total_minus_gas_ev": -0.6675557746439154,
+      "continuum_configuration_sha256": "b8031896277f72a832069ec9376bbe7ab1e192801fa2943b709d7a5117474ff5",
+      "cutoff_margin_angstrom": 0.05,
+      "electronic_passivity": {
+        "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+        "coordinate_origin": "unweighted-atomic-centroid",
+        "criterion": "ground-state-energy-concavity-in-affine-external-potential",
+        "energy_hessian": [
+          [
+            3.6706910561177253,
+            -0.0034468501881601554,
+            0.0
+          ],
+          [
+            -0.0034468501881601554,
+            3.668856807053089,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            3.6709783016704023
+          ]
+        ],
+        "energy_hessian_eigenvalues": [
+          3.6662071552218825,
+          3.6709783016704023,
+          3.673340707948932
+        ],
+        "energy_hessian_units": "e^2 angstrom^2/eV",
+        "external_drive": "per-atom V_i=g dot (R_i-centroid), grad(V)_i=g",
+        "field_step_ev_per_e_angstrom": 0.001,
+        "known_failure_continuation": true,
+        "maximum_positive_curvature": 3.673340707948932,
+        "passed": false,
+        "passivity_passed": false,
+        "polarizability_definition": "alpha=-d2E/dE2",
+        "policy": "record-known-failure-diagnostic",
+        "positive_curvature_tolerance_rationale": "100x float32 source-difference noise allowance",
+        "spin_multiplicity": 1,
+        "tolerance": 0.01
+      },
+      "gas_energy_ev": -2079.8095703125,
+      "ionic_contact_localization": null,
+      "mace_source_charge_e": 3.958913197266156e-09,
+      "maximum_field_replay_difference": 0.0,
+      "maximum_source_residual": 4.285038188478474e-05,
+      "multiplicity": 1,
+      "name": "water",
+      "ring_atom_count": 0,
+      "scf_iterations": 25,
+      "surface_area_angstrom2": 41.92905131046111,
+      "surface_screening_charge_e": -3.9589131001216415e-09,
+      "surface_segment_count": 150,
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ],
+      "xyz": "/home/axie/MAPLE/MACE-EF-COS/.omx/benchmarks/mace-ef-cosmors-freesolv20-diverse-v1/xyz/water.xyz"
+    }
+  }
+}

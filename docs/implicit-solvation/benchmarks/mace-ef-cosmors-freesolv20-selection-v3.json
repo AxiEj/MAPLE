@@ -1,0 +1,158 @@
+{
+  "dataset": {
+    "expected_record_count": 642,
+    "name": "FreeSolv",
+    "repository_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "version": "0.52"
+  },
+  "prepared_manifest": {
+    "dataset_artifact_sha256": {
+      "database.json": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a",
+      "database.txt": "2d13f095713bc39b85f85dd7b4e5483fbb12fc694bf253bb1d92a4c4d484f260",
+      "mol2files_gaff.tar.gz": "15ece6114442a8eb5e720c0ad25bb48e4a6a35392da36f72b80a6f2f415fd133"
+    },
+    "protocol_fingerprint": "76ed1ea6483678d113353d7371ca1e015c780a38937fa5333d7c40ec9db8c676",
+    "protocol_id": "maple-neutral-water-freesolv-v1",
+    "selected_record_manifest_sha256": "c70e4f7feaeb46736ff21579a6bf6755a88a17fbb019024ccfc4fa4f8a415d94",
+    "sha256": "e82f328d8b6a989dfc6367dc7b0c3019bbb09c0cb5929429202732e201d53bd7"
+  },
+  "records": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_2008055",
+      "ordinal": 1,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "ordinal": 2,
+      "ring_atom_count": 6
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "ordinal": 3,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "ordinal": 4,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "ordinal": 5,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "ordinal": 6,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "ordinal": 7,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "ordinal": 8,
+      "ring_atom_count": 6
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "ordinal": 9,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "ordinal": 10,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "ordinal": 11,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "ordinal": 12,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "aldehyde",
+      "compound_id": "mobley_2146331",
+      "ordinal": 13,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "phenol",
+      "compound_id": "mobley_20524",
+      "ordinal": 14,
+      "ring_atom_count": 6
+    },
+    {
+      "chemical_class": "aliphatic amine",
+      "compound_id": "mobley_2410897",
+      "ordinal": 15,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "nitro compound",
+      "compound_id": "mobley_1952272",
+      "ordinal": 16,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "thioether",
+      "compound_id": "mobley_9073553",
+      "ordinal": 17,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "thiol",
+      "compound_id": "mobley_525934",
+      "ordinal": 18,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "vicinal diol",
+      "compound_id": "mobley_4639255",
+      "ordinal": 19,
+      "ring_atom_count": 0
+    },
+    {
+      "chemical_class": "nitrogen heteroaromatic",
+      "compound_id": "mobley_1520842",
+      "ordinal": 20,
+      "ring_atom_count": 6
+    }
+  ],
+  "schema_version": 1,
+  "selection_id": "mace-ef-cosmors-freesolv20-diverse-v3",
+  "selection_policy": {
+    "candidate_predictions_used": false,
+    "charge": 0,
+    "experimental_values_used_to_rank_candidates": false,
+    "geometry": "exact pinned FreeSolv GAFF MOL2 conformer without optimization",
+    "multiplicity": 1,
+    "purpose": "A compact chemistry-diverse diagnostic of the MACE-EF/Torch-COSMO-RS water solvation-energy route."
+  },
+  "selection_revision_reason": "Byte-bound clean replay of v2 with no record changes; adds immutable prepared-manifest and selected-record provenance before executing v3.",
+  "source_selection": {
+    "record_changes": [],
+    "selection_id": "mace-ef-cosmors-freesolv20-diverse-v2",
+    "sha256": "df0fdb715b48d4d9cee399590385d1b23247112fd7ab57fb5d56d4b572c28c91"
+  },
+  "status": "frozen-before-clean-replay"
+}

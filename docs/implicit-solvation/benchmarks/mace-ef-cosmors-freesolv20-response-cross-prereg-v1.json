@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "preregistration_id": "mace-ef-cosmors-freesolv20-response-cross-v1",
+  "status": "frozen-before-response-cross-execution",
+  "primary_selection_id": "mace-ef-cosmors-freesolv20-diverse-v3",
+  "record_policy": {
+    "record_count": 20,
+    "use_all_primary_records": true,
+    "post_hoc_record_selection": false,
+    "experimental_values_used_to_define_arms": false
+  },
+  "fixed_conditions": [
+    "geometry",
+    "checkpoint",
+    "cavity radii",
+    "angular degree",
+    "sigma averaging and gridding",
+    "open24a parameters",
+    "COSMOspace convergence settings",
+    "solvation-energy ledger"
+  ],
+  "source_states": [
+    "frozen-zero-field",
+    "self-consistent"
+  ],
+  "interaction_models": [
+    "full-open24a",
+    "no-hydrogen-bond-counterfactual"
+  ],
+  "arms": [
+    "frozen_solute__frozen_water__full",
+    "frozen_solute__frozen_water__no_hydrogen_bond",
+    "self_consistent_solute__frozen_water__full",
+    "self_consistent_solute__frozen_water__no_hydrogen_bond",
+    "frozen_solute__self_consistent_water__full",
+    "frozen_solute__self_consistent_water__no_hydrogen_bond",
+    "self_consistent_solute__self_consistent_water__full",
+    "self_consistent_solute__self_consistent_water__no_hydrogen_bond"
+  ],
+  "tail_metrics": [
+    "area_weighted_sigma_second_moment_e2_per_angstrom2",
+    "area_weighted_sigma_fourth_moment_e4_per_angstrom6",
+    "negative_hb_active_area_angstrom2",
+    "positive_hb_active_area_angstrom2",
+    "negative_hb_excess_area_e",
+    "positive_hb_excess_area_e"
+  ],
+  "primary_estimand": "H(state_solute,state_water)=G_full-G_no_hydrogen_bond",
+  "contrasts": {
+    "solute_response_at_frozen_water": "H(self_consistent,frozen)-H(frozen,frozen)",
+    "solute_response_at_self_consistent_water": "H(self_consistent,self_consistent)-H(frozen,self_consistent)",
+    "water_response_at_frozen_solute": "H(frozen,self_consistent)-H(frozen,frozen)",
+    "water_response_at_self_consistent_solute": "H(self_consistent,self_consistent)-H(self_consistent,frozen)",
+    "nonlinear_interaction": "H(self_consistent,self_consistent)-H(self_consistent,frozen)-H(frozen,self_consistent)+H(frozen,frozen)"
+  },
+  "interpretation_contract": {
+    "solute_tail_hypothesis_falsified_if": "Switching solute frozen-to-SCF has only replay-scale influence on H while switching water has material influence.",
+    "water_tail_hypothesis_falsified_if": "Switching water frozen-to-SCF has only replay-scale influence on H while switching solute has material influence.",
+    "cross_incompatibility_supported_if": "Both single-side contrasts are small while the nonlinear interaction is material.",
+    "hydrogen_bond_specific_hypothesis_falsified_if": "SCF/frozen contrasts in no-HB total energies remain comparable to the full-model contrasts.",
+    "tail_descriptor_hypothesis_falsified_if": "Large H changes occur without increases in the preregistered sigma-tail metrics."
+  },
+  "hard_stop": "Any confirmed MACE-EF passivity failure keeps the SCF route diagnostic-only regardless of accuracy metrics.",
+  "forbidden_repairs": [
+    "post-hoc energy shift",
+    "response scaling or tempering",
+    "hydrogen-bond coefficient fitting",
+    "cavity-radius fitting",
+    "record removal based on model error"
+  ],
+  "claim_boundary": {
+    "does_establish": "Mechanism attribution within the exact frozen 20-record panel.",
+    "does_not_establish": "General accuracy, causal sufficiency of passivity failure, parameter transfer validity, forces, or release admission."
+  }
+}

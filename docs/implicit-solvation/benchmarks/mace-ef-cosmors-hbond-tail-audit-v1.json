@@ -1,0 +1,166 @@
+{
+  "artifact": "mace-ef-cosmors-hbond-tail-audit-v1",
+  "created_at_utc": "2026-09-04T05:48:38+00:00",
+  "failures": [],
+  "records": [
+    {
+      "compound_id": "mobley_1636752",
+      "frozen": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 6.768622556476071e-07,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.0034027334916408303,
+        "negative_hb_active_area_angstrom2": 5.593601513759373,
+        "negative_hb_excess_area_e": 0.0357917914163193,
+        "positive_hb_active_area_angstrom2": 8.922236189546089,
+        "positive_hb_excess_area_e": 0.019614858461744947,
+        "sigma_max_e_per_angstrom2": 0.01350977444598854,
+        "sigma_min_e_per_angstrom2": -0.021197083446988254,
+        "total_area_angstrom2": 67.32246449602322
+      },
+      "name": "methanol",
+      "scf": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 1.0892636059766641e-05,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.012081225635442859,
+        "negative_hb_active_area_angstrom2": 6.969091240302461,
+        "negative_hb_excess_area_e": 0.1480486378768217,
+        "positive_hb_active_area_angstrom2": 13.901240917870155,
+        "positive_hb_excess_area_e": 0.10573928681782234,
+        "sigma_max_e_per_angstrom2": 0.021869134405939662,
+        "sigma_min_e_per_angstrom2": -0.043472471584611656,
+        "total_area_angstrom2": 67.32246449602322
+      },
+      "scf_to_frozen_ratio": {
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 3.5504472110794603,
+        "negative_hb_active_area_angstrom2": 1.245904132276781,
+        "negative_hb_excess_area_e": 4.136385244168549,
+        "positive_hb_active_area_angstrom2": 1.5580444882369078,
+        "positive_hb_excess_area_e": 5.390774907912117
+      }
+    },
+    {
+      "compound_id": "mobley_3034976",
+      "frozen": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 1.2842622248972746e-06,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.006385382871918031,
+        "negative_hb_active_area_angstrom2": 7.87764073833225,
+        "negative_hb_excess_area_e": 0.05829292849266892,
+        "positive_hb_active_area_angstrom2": 15.614067314091574,
+        "positive_hb_excess_area_e": 0.035561059254666634,
+        "sigma_max_e_per_angstrom2": 0.014997476239871493,
+        "sigma_min_e_per_angstrom2": -0.022691762308936138,
+        "total_area_angstrom2": 92.05089113711213
+      },
+      "name": "acetic acid",
+      "scf": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 1.78371270213354e-05,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.018447061889103937,
+        "negative_hb_active_area_angstrom2": 14.262043823114084,
+        "negative_hb_excess_area_e": 0.2217480219045307,
+        "positive_hb_active_area_angstrom2": 26.017045382700807,
+        "positive_hb_excess_area_e": 0.13771780794833322,
+        "sigma_max_e_per_angstrom2": 0.019484205972850926,
+        "sigma_min_e_per_angstrom2": -0.049135019423999456,
+        "total_area_angstrom2": 92.05089113711213
+      },
+      "scf_to_frozen_ratio": {
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 2.888951572540996,
+        "negative_hb_active_area_angstrom2": 1.8104460836498435,
+        "negative_hb_excess_area_e": 3.804029539061815,
+        "positive_hb_active_area_angstrom2": 1.666256770855639,
+        "positive_hb_excess_area_e": 3.872713885210286
+      }
+    },
+    {
+      "compound_id": "mobley_20524",
+      "frozen": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 5.098840746042517e-07,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.0035954112163214154,
+        "negative_hb_active_area_angstrom2": 7.8952022604119065,
+        "negative_hb_excess_area_e": 0.03572794886367366,
+        "positive_hb_active_area_angstrom2": 5.948216133556814,
+        "positive_hb_excess_area_e": 0.006660449503050926,
+        "sigma_max_e_per_angstrom2": 0.011534527139553373,
+        "sigma_min_e_per_angstrom2": -0.018022801784233936,
+        "total_area_angstrom2": 128.21586232660994
+      },
+      "name": "phenol",
+      "scf": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 1.042270869524232e-05,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.013512227294867991,
+        "negative_hb_active_area_angstrom2": 11.96279268852058,
+        "negative_hb_excess_area_e": 0.18579790436066843,
+        "positive_hb_active_area_angstrom2": 11.937357278673655,
+        "positive_hb_excess_area_e": 0.07883425606973915,
+        "sigma_max_e_per_angstrom2": 0.019768788915755058,
+        "sigma_min_e_per_angstrom2": -0.04247454768942977,
+        "total_area_angstrom2": 128.21586232660994
+      },
+      "scf_to_frozen_ratio": {
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 3.7581868893129835,
+        "negative_hb_active_area_angstrom2": 1.5151977484483672,
+        "negative_hb_excess_area_e": 5.200351832947739,
+        "positive_hb_active_area_angstrom2": 2.0068802159573775,
+        "positive_hb_excess_area_e": 11.836176527369188
+      }
+    },
+    {
+      "compound_id": "mobley_4639255",
+      "frozen": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 1.6285819410951006e-06,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.0077488036884706376,
+        "negative_hb_active_area_angstrom2": 12.137330993475945,
+        "negative_hb_excess_area_e": 0.0673391750417397,
+        "positive_hb_active_area_angstrom2": 20.63129685935624,
+        "positive_hb_excess_area_e": 0.07476739964522905,
+        "sigma_max_e_per_angstrom2": 0.01953937866740168,
+        "sigma_min_e_per_angstrom2": -0.022462635827278463,
+        "total_area_angstrom2": 101.8246601959113
+      },
+      "name": "ethylene glycol",
+      "scf": {
+        "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 2.3640842338845814e-05,
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.027131983035981504,
+        "negative_hb_active_area_angstrom2": 16.5158390645553,
+        "negative_hb_excess_area_e": 0.28930585006571774,
+        "positive_hb_active_area_angstrom2": 30.29109605972324,
+        "positive_hb_excess_area_e": 0.29506928223927664,
+        "sigma_max_e_per_angstrom2": 0.033785688868715885,
+        "sigma_min_e_per_angstrom2": -0.04666254533604162,
+        "total_area_angstrom2": 101.8246601959113
+      },
+      "scf_to_frozen_ratio": {
+        "area_weighted_sigma_second_moment_e2_per_angstrom2": 3.50144152914222,
+        "negative_hb_active_area_angstrom2": 1.3607471917370375,
+        "negative_hb_excess_area_e": 4.296248801479876,
+        "positive_hb_active_area_angstrom2": 1.4682109547556776,
+        "positive_hb_excess_area_e": 3.946496516387877
+      }
+    }
+  ],
+  "schema_version": 1,
+  "status": "complete",
+  "threshold_e_per_angstrom2": 0.009611246,
+  "water": {
+    "frozen": {
+      "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 1.1852422591251197e-06,
+      "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.0058248254809500615,
+      "negative_hb_active_area_angstrom2": 12.779961190757259,
+      "negative_hb_excess_area_e": 0.06603942676867587,
+      "positive_hb_active_area_angstrom2": 14.126996759922873,
+      "positive_hb_excess_area_e": 0.046984045641634435,
+      "sigma_max_e_per_angstrom2": 0.015744163512543295,
+      "sigma_min_e_per_angstrom2": -0.01889717848216616,
+      "total_area_angstrom2": 41.92905131046111
+    },
+    "scf": {
+      "area_weighted_sigma_fourth_moment_e4_per_angstrom6": 2.1468080694809093e-05,
+      "area_weighted_sigma_second_moment_e2_per_angstrom2": 0.024137558362313533,
+      "negative_hb_active_area_angstrom2": 15.80183775629562,
+      "negative_hb_excess_area_e": 0.2863896554115292,
+      "positive_hb_active_area_angstrom2": 19.45229371524504,
+      "positive_hb_excess_area_e": 0.25567802812062124,
+      "sigma_max_e_per_angstrom2": 0.029236270609431927,
+      "sigma_min_e_per_angstrom2": -0.04250899744981088,
+      "total_area_angstrom2": 41.92905131046111
+    }
+  }
+}

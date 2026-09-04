@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "selection_id": "mace-ef-cosmors-freesolv20-diverse-v2",
+  "status": "frozen-after-v1-runtime-domain-failures-before-v2-evaluation",
+  "selection_revision_reason": "Replace methane with its next homolog ethane after persistent electronic-continuum SCF nonconvergence; replace the unsupported phosphorus record with ethylene glycol because the audited cavity-radius table has no P radius. No numerical prediction was used to choose either replacement.",
+  "dataset": {
+    "name": "FreeSolv",
+    "version": "0.52",
+    "repository_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "expected_record_count": 642
+  },
+  "selection_policy": {
+    "candidate_predictions_used": false,
+    "experimental_values_used_to_rank_candidates": false,
+    "geometry": "exact pinned FreeSolv GAFF MOL2 conformer without optimization",
+    "charge": 0,
+    "multiplicity": 1,
+    "purpose": "A compact chemistry-diverse diagnostic of the MACE-EF/Torch-COSMO-RS water solvation-energy route."
+  },
+  "records": [
+    {"ordinal": 1, "compound_id": "mobley_2008055", "chemical_class": "alkane", "ring_atom_count": 0},
+    {"ordinal": 2, "compound_id": "mobley_3053621", "chemical_class": "aromatic hydrocarbon", "ring_atom_count": 6},
+    {"ordinal": 3, "compound_id": "mobley_1636752", "chemical_class": "alcohol", "ring_atom_count": 0},
+    {"ordinal": 4, "compound_id": "mobley_7015518", "chemical_class": "ether", "ring_atom_count": 0},
+    {"ordinal": 5, "compound_id": "mobley_3867265", "chemical_class": "ketone", "ring_atom_count": 0},
+    {"ordinal": 6, "compound_id": "mobley_6973347", "chemical_class": "ester", "ring_atom_count": 0},
+    {"ordinal": 7, "compound_id": "mobley_7532833", "chemical_class": "nitrile", "ring_atom_count": 0},
+    {"ordinal": 8, "compound_id": "mobley_4883284", "chemical_class": "aromatic amine", "ring_atom_count": 6},
+    {"ordinal": 9, "compound_id": "mobley_2198613", "chemical_class": "haloalkane", "ring_atom_count": 0},
+    {"ordinal": 10, "compound_id": "mobley_8578590", "chemical_class": "sulfoxide", "ring_atom_count": 0},
+    {"ordinal": 11, "compound_id": "mobley_8048190", "chemical_class": "amide", "ring_atom_count": 0},
+    {"ordinal": 12, "compound_id": "mobley_3034976", "chemical_class": "carboxylic acid", "ring_atom_count": 0},
+    {"ordinal": 13, "compound_id": "mobley_2146331", "chemical_class": "aldehyde", "ring_atom_count": 0},
+    {"ordinal": 14, "compound_id": "mobley_20524", "chemical_class": "phenol", "ring_atom_count": 6},
+    {"ordinal": 15, "compound_id": "mobley_2410897", "chemical_class": "aliphatic amine", "ring_atom_count": 0},
+    {"ordinal": 16, "compound_id": "mobley_1952272", "chemical_class": "nitro compound", "ring_atom_count": 0},
+    {"ordinal": 17, "compound_id": "mobley_9073553", "chemical_class": "thioether", "ring_atom_count": 0},
+    {"ordinal": 18, "compound_id": "mobley_525934", "chemical_class": "thiol", "ring_atom_count": 0},
+    {"ordinal": 19, "compound_id": "mobley_4639255", "chemical_class": "vicinal diol", "ring_atom_count": 0},
+    {"ordinal": 20, "compound_id": "mobley_1520842", "chemical_class": "nitrogen heteroaromatic", "ring_atom_count": 6}
+  ]
+}

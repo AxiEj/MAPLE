@@ -130,6 +130,32 @@ BP86/def2-TZVPD protocol used to fit open24a. Therefore this is an executable
 new model identity, not numerical openCOSMO-RS-24a equivalence. Surface-order
 convergence must be checked for reported calculations.
 
+### FreeSolv-20 diagnostic evidence lanes
+
+The `mace-ef-cosmors-freesolv20-diverse-v1` and `-v2` artifacts are retained as
+exploratory evidence. They were produced before their runner bytes were tracked,
+so their internal arithmetic can be checked but their recorded Git HEAD does not
+bind the exact execution script. They are not admission evidence and must not be
+silently replaced or relabelled.
+
+The `-v3` selection is record-identical to v2 and adds a byte-bound prepared
+manifest, upstream FreeSolv artifact hashes, and an ordered selected-record
+digest. Its runner fails unless the selection, runner, and transitive
+provenance-bearing source files match committed Git objects. It also stores and
+hashes every generated geometry and sigma profile so derived diagnostics reuse
+the exact primary surfaces rather than regenerating an approximately matching
+state.
+
+The frozen-source control compares a zero-field energy-conjugate source with the
+self-consistent source at each fixed geometry. Its dielectric-only comparison is
+a mechanism component, not a prediction of total hydration free energy. The
+preregistered response-cross experiment then evaluates all 20 records with
+frozen/self-consistent solute and water profiles under both full open24a and a
+no-hydrogen-bond counterfactual. No response scaling, energy shift, cavity
+fitting, hydrogen-bond fitting, or error-based record removal is permitted.
+Regardless of aggregate accuracy, a failed electronic passivity gate keeps the
+self-consistent route diagnostic-only.
+
 ## Relative kinetic solvent effects
 
 The KSE calculator supports any provenance-identified provider, including

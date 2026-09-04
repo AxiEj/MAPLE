@@ -11,7 +11,8 @@ from artifact_source_binding import assert_source_files_match_execution_commit
 
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
-ARTIFACT_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v1.json"
+ARTIFACT_V1_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v1.json"
+ARTIFACT_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-v2.json"
 PREREGISTRATION_PATH = BENCHMARKS / "mace-ef-cosmo-freesolv20-two-step-prereg-v1.json"
 PRIMARY_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-diverse-v3.json"
 BUNDLE_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
@@ -36,12 +37,17 @@ def _all_keys(value: object) -> set[str]:
 
 
 def test_two_step_artifact_is_complete_source_bound_and_partial_only():
+    v1 = _load(ARTIFACT_V1_PATH)
+    assert _sha256(ARTIFACT_V1_PATH) == (
+        "7796395485a194f67997563b26123e41ae677be88c92f2e7124e233571540bff"
+    )
+    assert_source_files_match_execution_commit(ROOT, v1)
     artifact = _load(ARTIFACT_PATH)
 
     assert _sha256(ARTIFACT_PATH) == (
-        "7796395485a194f67997563b26123e41ae677be88c92f2e7124e233571540bff"
+        "d7747841158fed7692129826fefa2b59fd18d3d0cbf9c49a9763705f2453e1eb"
     )
-    assert artifact["artifact"] == "mace-ef-cosmo-freesolv20-two-step-v1"
+    assert artifact["artifact"] == "mace-ef-cosmo-freesolv20-two-step-v2"
     assert artifact["status"] == "complete"
     assert artifact["scientific_status"] == ("complete-partial-component-diagnostic")
     assert artifact["diagnostic_only"] is True
@@ -65,6 +71,10 @@ def test_two_step_artifact_is_complete_source_bound_and_partial_only():
     assert artifact["interpretation"]["automatic_accuracy_verdict"] is None
     assert artifact["interpretation"]["stationary_solution_claimed"] is False
     assert (
+        artifact["interpretation"]["two_step_self_consistent_solution_claimed"] is False
+    )
+    assert artifact["interpretation"]["mathematical_contraction_claimed"] is False
+    assert (
         artifact["interpretation"][
             "iteration_count_may_not_be_changed_using_this_result"
         ]
@@ -80,6 +90,8 @@ def test_two_step_artifact_is_complete_source_bound_and_partial_only():
 
 def test_two_step_artifact_reconstructs_exactly_two_maps_and_cosmo_identity():
     artifact = _load(ARTIFACT_PATH)
+    primary = _load(PRIMARY_PATH)
+    primary_by_id = {record["compound_id"]: record for record in primary["records"]}
 
     for record in artifact["records"]:
         assert record["map_applications"] == 2
@@ -110,6 +122,19 @@ def test_two_step_artifact_reconstructs_exactly_two_maps_and_cosmo_identity():
             float(stage["cosmo_boundary_energy_kcal_mol"]) for stage in record["stages"]
         ]
         assert energies[2] < energies[1] < energies[0]
+        continuum = record["continuum"]
+        expected_config = primary_by_id[record["compound_id"]]["mace_ef_surface"][
+            "continuum_configuration_sha256"
+        ]
+        assert continuum["configuration_sha256"] == expected_config
+        assert continuum["matches_converged_comparator"] is True
+        assert continuum["cavity_radii_identity"] == (
+            "audited-openCOSMO-RS-24a-ORCA6-conductor-radii"
+        )
+        assert continuum["finite_dielectric_scaling"] is False
+        assert len(continuum["radii_angstrom"]) == int(
+            primary_by_id[record["compound_id"]]["atom_count"]
+        )
         for stage in record["stages"]:
             expected = float(stage["cosmo_boundary_energy_kcal_mol"]) - float(
                 record["experimental_total_hydration_label_kcal_mol"]
@@ -124,9 +149,9 @@ def test_two_step_summary_freezes_response_amplification_without_accuracy_claim(
     summaries = artifact["summaries"]
 
     expected_partial_mean_absolute = {
-        "c0": 1.5531018241764498,
-        "c1": 3.5718436584885334,
-        "c2": 5.149706786997065,
+        "c0": 1.5531019396694563,
+        "c1": 3.5718428525545773,
+        "c2": 5.149706025135921,
     }
     for index, (stage, expected) in enumerate(expected_partial_mean_absolute.items()):
         observed = summaries["stages"][stage][
@@ -159,13 +184,13 @@ def test_two_step_summary_freezes_response_amplification_without_accuracy_claim(
             for record in artifact["records"]
         ]
     )
-    assert c2_converged["mean_absolute"] == pytest.approx(1.356489023600237)
-    assert c2_converged["maximum_absolute"] == pytest.approx(7.569309948877795)
+    assert c2_converged["mean_absolute"] == pytest.approx(1.3564897508181877)
+    assert c2_converged["maximum_absolute"] == pytest.approx(7.569310309114897)
     assert c2_converged["mean_absolute"] == pytest.approx(
         np.mean(np.abs(c2_converged_primitive))
     )
 
-    updates = summaries["source_update"]
+    updates = summaries["source_update_raw_component_max"]
     ratios = np.asarray(
         [
             float(record["source_updates"]["second_to_first_ratio"])
@@ -184,8 +209,10 @@ def test_two_step_summary_freezes_response_amplification_without_accuracy_claim(
             for record in artifact["records"]
         ]
     )
-    assert updates["contracting_record_count"] == 20
-    assert updates["amplifying_or_equal_record_count"] == 0
+    assert updates["second_update_smaller_record_count"] == 20
+    assert updates["second_update_not_smaller_record_count"] == 0
+    assert updates["coordinate_invariant_norm"] is False
+    assert updates["mathematical_contraction_claimed"] is False
     assert updates["first_maximum_absolute_component"]["mean"] == pytest.approx(
         np.mean(first_updates)
     )
@@ -197,6 +224,10 @@ def test_two_step_summary_freezes_response_amplification_without_accuracy_claim(
         np.max(np.abs(ratios))
     )
     assert summaries["electronic_passivity"] == {
+        "audit_source": (
+            "inherited primary same-geometry/checkpoint uniform-field audit"
+        ),
+        "c2_state_passivity_recomputed": False,
         "failed_count": 15,
         "passed_count": 5,
         "two_step_route_admission_eligible": False,

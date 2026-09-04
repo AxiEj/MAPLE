@@ -47,8 +47,8 @@ PRIMARY_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-diverse-v3.json"
 PREREGISTRATION_PATH = SCRIPT_DIR / "mace-ef-cosmo-freesolv20-two-step-prereg-v1.json"
 BUNDLE_MANIFEST_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-profile-bundle-v1.json"
 BUNDLE_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
-OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmo-freesolv20-two-step-v2.json"
-ARTIFACT_ID = "mace-ef-cosmo-freesolv20-two-step-v2"
+OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmo-freesolv20-two-step-v3.json"
+ARTIFACT_ID = "mace-ef-cosmo-freesolv20-two-step-v3"
 HARTREE_TO_KCAL_MOL = 627.5094740631
 EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL / HARTREE_EV
 MAP_APPLICATION_COUNT = 2
@@ -437,7 +437,10 @@ def main() -> int:
                 ],
                 units="source-component",
             ),
-            "second_to_first_ratio": _distribution(ratios, units="dimensionless"),
+            "second_to_first_ratio": _distribution(
+                ratios,
+                units="raw-coordinate numerical ratio",
+            ),
             "second_update_smaller_record_count": sum(value < 1.0 for value in ratios),
             "second_update_not_smaller_record_count": sum(
                 value >= 1.0 for value in ratios

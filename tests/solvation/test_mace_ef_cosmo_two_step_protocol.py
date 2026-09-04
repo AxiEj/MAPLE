@@ -140,8 +140,8 @@ def test_two_step_source_and_empty_distribution_fail_closed():
         "count": 0,
         "units": "kcal/mol",
     }
-    assert runner.OUTPUT_PATH.name == "mace-ef-cosmo-freesolv20-two-step-v2.json"
-    assert runner.ARTIFACT_ID == "mace-ef-cosmo-freesolv20-two-step-v2"
+    assert runner.OUTPUT_PATH.name == "mace-ef-cosmo-freesolv20-two-step-v3.json"
+    assert runner.ARTIFACT_ID == "mace-ef-cosmo-freesolv20-two-step-v3"
 
 
 def test_two_step_converged_comparator_requires_exact_continuum_identity():

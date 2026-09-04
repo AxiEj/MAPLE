@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tarfile
 
 import numpy as np
@@ -20,6 +22,10 @@ PREREGISTRATION_PATH = (
 )
 BUNDLE_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz"
 BUNDLE_MANIFEST_PATH = BENCHMARKS / "mace-ef-cosmors-freesolv20-profile-bundle-v1.json"
+REPLAY_RUNNER_PATH = BENCHMARKS / "replay_mace_ef_cosmors_freesolv20_response_cross.py"
+REPLAY_ARTIFACT_PATH = (
+    BENCHMARKS / "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v1.json"
+)
 
 
 def _load(path: Path) -> dict[str, object]:
@@ -253,3 +259,46 @@ def test_profile_bundle_is_deterministic_complete_and_source_bound():
                 hashlib.sha256(extracted.read()).hexdigest()
                 == manifest["member_sha256"][member.name]
             )
+
+
+def test_bundle_only_replay_recomputes_all_160_arms_without_local_omx(
+    tmp_path: Path,
+):
+    committed = _load(REPLAY_ARTIFACT_PATH)
+
+    assert _sha256(REPLAY_ARTIFACT_PATH) == (
+        "8ea32da0e926f87d42071ab4bc554f8a7b3952e42137354e1f4a5e36d833d81d"
+    )
+    assert committed["status"] == "pass"
+    assert committed["scientific_result"] is False
+    assert committed["asset_source"] == "committed-profile-bundle-only"
+    assert committed["method"]["record_count"] == 20
+    assert committed["method"]["arm_count"] == 8
+    assert committed["method"]["prediction_count"] == 160
+    assert committed["maximum_absolute_prediction_difference_kcal_mol"] == (
+        pytest.approx(2.842170943040401e-14)
+    )
+    assert_source_files_match_execution_commit(ROOT, committed)
+    assert ".omx" not in REPLAY_RUNNER_PATH.read_text(encoding="utf-8")
+
+    output = tmp_path / "bundle-replay.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(REPLAY_RUNNER_PATH),
+            "--device",
+            "cpu",
+            "--output",
+            str(output),
+        ],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    replayed = _load(output)
+    assert replayed["status"] == "pass"
+    assert replayed["asset_source"] == "committed-profile-bundle-only"
+    assert replayed["method"]["prediction_count"] == 160
+    assert replayed["maximum_absolute_prediction_difference_kcal_mol"] <= 1.0e-9

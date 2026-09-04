@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "preregistration_id": "mace-ef-cosmo-freesolv20-two-step-v1",
+  "status": "frozen-before-two-step-execution",
+  "request_origin": "user-specified after inspection of the converged MACE-EF/open24a result",
+  "record_selection": {
+    "primary_artifact": "mace-ef-cosmors-freesolv20-diverse-v3",
+    "record_count": 20,
+    "use_all_primary_records": true,
+    "error_based_record_removal": false
+  },
+  "response_map": {
+    "initial_source": "c0 = Q*dE_MACE-EF/df evaluated at zero external field",
+    "continuum_drive": "f_k = P_COSMO(c_k)",
+    "first_update": "c1 = Q*dE_MACE-EF/df evaluated at f0",
+    "second_update": "c2 = Q*dE_MACE-EF/df evaluated at f1",
+    "reported_source": "c2",
+    "map_applications": 2,
+    "mixing": "none",
+    "anderson_acceleration": false,
+    "no_third_model_evaluation": true
+  },
+  "reported_energy": {
+    "primary_component": "U_segment_COSMO(c2)",
+    "identity": "conductor-boundary half-coupling energy",
+    "finite_dielectric_scaling": false,
+    "included_terms": [
+      "Torch segment-COSMO conductor polarization"
+    ],
+    "excluded_terms": [
+      "COSMO-RS or COSMOspace activity",
+      "hydrogen-bond interaction",
+      "misfit interaction",
+      "Staverman-Guggenheim combinatorial term",
+      "SMD-CDS or another nonpolar term",
+      "element surface correction",
+      "eta",
+      "ring correction",
+      "standard-state or reference-state correction",
+      "field-conditioned MACE-EF intrinsic energy difference"
+    ]
+  },
+  "comparators": [
+    "zero-field frozen source c0",
+    "one-map source c1",
+    "previously recorded converged source boundary energy"
+  ],
+  "primary_questions": [
+    "How far is U_segment_COSMO(c2) from the converged boundary energy?",
+    "Does the second unmixed update contract or amplify the source change relative to the first?",
+    "Does truncation avoid the large response amplification seen at the converged root?"
+  ],
+  "experimental_label_policy": {
+    "FreeSolv_values_may_be_reported": true,
+    "comparison_name": "partial-component difference from total FreeSolv label",
+    "must_not_be_called": [
+      "hydration free-energy MAE",
+      "chemical accuracy",
+      "model validation"
+    ]
+  },
+  "forbidden_repairs": [
+    "choose a different iteration count after seeing these results",
+    "mix or scale c2 to improve experimental agreement",
+    "fit COSMO energy or cavity radii",
+    "add a post-hoc constant shift",
+    "promote c2 as a stationary or variational solution"
+  ],
+  "claim_boundary": {
+    "does_establish": "A reproducible two-map response and conductor-COSMO component diagnostic on the frozen FreeSolv-20 geometries.",
+    "does_not_establish": "A complete hydration free energy, a converged root, stationary energy, passivity, forces, PES, or release admission."
+  }
+}

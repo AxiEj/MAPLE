@@ -125,15 +125,16 @@ def main() -> int:
         raise RuntimeError("MACE-EF checkpoint bytes drifted from the primary.")
     device = str(primary["model"]["device"])
     angular_degree = int(primary["model"]["angular_degree"])
+    maximum_iterations = int(primary["model"]["cosmospace_maximum_iterations"])
     full_parameters = replace(
         OPEN_COSMORS_24A_PARAMETERS,
-        maximum_iterations=20000,
+        maximum_iterations=maximum_iterations,
     )
     no_hb_parameters = replace(
         OPEN_COSMORS_24A_PARAMETERS,
         name="open24a-ablation-no-hydrogen-bond",
         hydrogen_bond_coefficient_j_angstrom2_per_mol_e2=EPSILON_COEFFICIENT,
-        maximum_iterations=20000,
+        maximum_iterations=maximum_iterations,
     )
     WORK_DIR.mkdir(parents=True, exist_ok=True)
     profile_dir = WORK_DIR / "profiles"

@@ -49,7 +49,7 @@ from run_mace_ef_cosmors_freesolv20 import (  # noqa: E402
 )
 
 PRIMARY_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-diverse-v3.json"
-OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2.json"
+OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v3.json"
 WORK_DIR = REPOSITORY_ROOT / ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2"
 EPSILON_COEFFICIENT = 1.0e-30
 HARTREE_TO_KCAL_MOL = 627.5094740631
@@ -69,6 +69,17 @@ def _assert_source_compatible(artifact: dict[str, object], commit: str) -> None:
 def _prediction_summary(
     records: list[dict[str, object]], key: str
 ) -> dict[str, object]:
+    if not records:
+        return {
+            "count": 0,
+            "mean_signed_error_kcal_mol": None,
+            "mae_kcal_mol": None,
+            "rmse_kcal_mol": None,
+            "maximum_absolute_error_kcal_mol": None,
+            "within_1_kcal_mol_count": 0,
+            "within_2_kcal_mol_count": 0,
+            "worst_record": None,
+        }
     errors = np.asarray(
         [float(record[key]["signed_error_kcal_mol"]) for record in records]
     )
@@ -188,7 +199,7 @@ def main() -> int:
     write_sigma_profile(water, water_profile_path)
     artifact: dict[str, object] = {
         "schema_version": 1,
-        "artifact": "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2",
+        "artifact": "mace-ef-cosmors-freesolv20-frozen-source-ablation-v3",
         "status": "running",
         "scientific_status": "running-mechanism-diagnostic",
         "admission_eligible": False,
@@ -349,18 +360,21 @@ def main() -> int:
             records, "frozen_no_hydrogen_bond"
         ),
     }
-    response_shifts = np.asarray(
-        [
-            float(item["scf_dielectric_primary"]["scf_minus_frozen_kcal_mol"])
-            for item in records
-        ]
-    )
-    artifact["scf_response_shift"] = {
-        "interpretation": "paired dielectric-component mechanism diagnostic, not total hydration accuracy",
-        "mean_kcal_mol": float(np.mean(response_shifts)),
-        "mean_absolute_kcal_mol": float(np.mean(np.abs(response_shifts))),
-        "maximum_absolute_kcal_mol": float(np.max(np.abs(response_shifts))),
-    }
+    if records:
+        response_shifts = np.asarray(
+            [
+                float(item["scf_dielectric_primary"]["scf_minus_frozen_kcal_mol"])
+                for item in records
+            ]
+        )
+        artifact["scf_response_shift"] = {
+            "interpretation": "paired dielectric-component mechanism diagnostic, not total hydration accuracy",
+            "mean_kcal_mol": float(np.mean(response_shifts)),
+            "mean_absolute_kcal_mol": float(np.mean(np.abs(response_shifts))),
+            "maximum_absolute_kcal_mol": float(np.max(np.abs(response_shifts))),
+        }
+    else:
+        artifact["scf_response_shift"] = None
     artifact["runtime_seconds"] = time.perf_counter() - started
     artifact["completed_at_utc"] = (
         datetime.now(timezone.utc).replace(microsecond=0).isoformat()

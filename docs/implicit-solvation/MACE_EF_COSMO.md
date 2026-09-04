@@ -162,19 +162,26 @@ maximum absolute error of `52.2502 kcal/mol`. Fifteen of twenty molecular
 passivity audits fail, and the MACE-EF surface is not equivalent to the ORCA
 surface convention used to parameterize open24a.
 
-The preregistered 2x2 intervention identifies the ordering of effects within
-this panel. For the hydrogen-bond counterfactual
+The preregistered 2x2 intervention reports descriptive contrasts within this
+panel. For the hydrogen-bond counterfactual
 `H=G_full-G_no_hydrogen_bond`, switching only the solute from frozen to
 self-consistent at frozen water changes `H` by `4.0259 kcal/mol` mean absolute,
 whereas switching only water at frozen solute changes it by `0.7384 kcal/mol`.
 The mean-absolute nonlinear interaction is `2.4416 kcal/mol`, so the water
-profile is an additional amplifier rather than an independent negligible
-detail. Removing the hydrogen-bond interaction reduces the full frozen-to-SCF
-total difference from `7.8538` to `2.0346 kcal/mol` mean absolute. Thus the
-current evidence supports solute-response-driven sigma-tail amplification with
-water/cross amplification, while also falsifying the stronger claim that the
-hydrogen-bond term is the only defect. These are bounded mechanism statements,
-not a validated replacement model or a general FreeSolv ranking.
+profile and cross term are not numerically negligible in the same aggregate.
+Removing the hydrogen-bond interaction changes the full frozen-to-SCF total
+difference from `7.8538` to `2.0346 kcal/mol` mean absolute. Because no
+quantitative materiality or comparability threshold was preregistered, these
+numbers do not issue an automatic root-cause verdict, identify a unique driver,
+or formally falsify an alternative mechanism. They remain bounded descriptive
+mechanism evidence, not a validated replacement model or a general FreeSolv
+ranking.
+
+Source generation still requires the hash-pinned external FreeSolv inputs and
+MACE-EF checkpoint. The committed profile bundle supports a narrower clean-
+checkout replay: `replay_mace_ef_cosmors_freesolv20_response_cross.py` reads no
+`.omx` state, checkpoint, or dataset and recomputes all 160 profile-level arm
+values directly from the 63 committed geometry/profile members.
 
 ## Relative kinetic solvent effects
 

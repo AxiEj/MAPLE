@@ -41,7 +41,7 @@ FROZEN_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2
 PREREGISTRATION_PATH = (
     SCRIPT_DIR / "mace-ef-cosmors-freesolv20-response-cross-prereg-v1.json"
 )
-OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-response-cross-v1.json"
+OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-response-cross-v2.json"
 EPSILON_COEFFICIENT = 1.0e-30
 
 
@@ -133,6 +133,17 @@ def _evaluate_arm(
 
 
 def _arm_summary(records: list[dict[str, object]], arm: str) -> dict[str, object]:
+    if not records:
+        return {
+            "count": 0,
+            "mean_signed_error_kcal_mol": None,
+            "mae_kcal_mol": None,
+            "rmse_kcal_mol": None,
+            "maximum_absolute_error_kcal_mol": None,
+            "within_1_kcal_mol_count": 0,
+            "within_2_kcal_mol_count": 0,
+            "worst_record": None,
+        }
     errors = np.asarray(
         [float(record["arms"][arm]["signed_error_kcal_mol"]) for record in records]
     )
@@ -154,9 +165,19 @@ def _arm_summary(records: list[dict[str, object]], arm: str) -> dict[str, object
     }
 
 
-def _distribution(values: list[float]) -> dict[str, float]:
+def _distribution(values: list[float]) -> dict[str, float | int | None]:
+    if not values:
+        return {
+            "count": 0,
+            "mean_kcal_mol": None,
+            "mean_absolute_kcal_mol": None,
+            "median_absolute_kcal_mol": None,
+            "rmse_kcal_mol": None,
+            "maximum_absolute_kcal_mol": None,
+        }
     array = np.asarray(values, dtype=float)
     return {
+        "count": len(values),
         "mean_kcal_mol": float(np.mean(array)),
         "mean_absolute_kcal_mol": float(np.mean(np.abs(array))),
         "median_absolute_kcal_mol": float(np.median(np.abs(array))),
@@ -283,7 +304,7 @@ def main() -> int:
 
     artifact: dict[str, object] = {
         "schema_version": 1,
-        "artifact": "mace-ef-cosmors-freesolv20-response-cross-v1",
+        "artifact": "mace-ef-cosmors-freesolv20-response-cross-v2",
         "status": "running",
         "scientific_status": "running-mechanism-diagnostic",
         "admission_eligible": False,

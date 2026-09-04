@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import sys
 from types import ModuleType
 
 import pytest
@@ -21,17 +22,20 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-@pytest.fixture(scope="module")
-def runner() -> ModuleType:
-    spec = importlib.util.spec_from_file_location(
-        "run_mace_ef_cosmors_freesolv20",
-        RUNNER,
-    )
+def _load_module(name: str, path: Path) -> ModuleType:
+    if str(BENCHMARKS) not in sys.path:
+        sys.path.insert(0, str(BENCHMARKS))
+    spec = importlib.util.spec_from_file_location(name, path)
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+@pytest.fixture(scope="module")
+def runner() -> ModuleType:
+    return _load_module("run_mace_ef_cosmors_freesolv20", RUNNER)
 
 
 def test_exploratory_v1_failure_artifact_is_preserved_byte_for_byte():
@@ -248,3 +252,34 @@ def test_failed_frozen_control_attempt_is_preserved_without_scientific_result():
     }
     assert failure["raw_partial_artifact"]["sha256"] == _sha256(raw)
     assert failure["raw_partial_artifact"]["record_count"] == 20
+
+
+def test_derived_runners_finalize_empty_record_summaries_without_crashing():
+    frozen_runner = _load_module(
+        "run_mace_ef_cosmors_freesolv20_frozen_empty_test",
+        BENCHMARKS / "run_mace_ef_cosmors_freesolv20_frozen_source_ablation.py",
+    )
+    cross_runner = _load_module(
+        "run_mace_ef_cosmors_freesolv20_response_cross_empty_test",
+        BENCHMARKS / "run_mace_ef_cosmors_freesolv20_response_cross.py",
+    )
+
+    assert frozen_runner._prediction_summary([], "unused") == {
+        "count": 0,
+        "mean_signed_error_kcal_mol": None,
+        "mae_kcal_mol": None,
+        "rmse_kcal_mol": None,
+        "maximum_absolute_error_kcal_mol": None,
+        "within_1_kcal_mol_count": 0,
+        "within_2_kcal_mol_count": 0,
+        "worst_record": None,
+    }
+    assert cross_runner._arm_summary([], "unused")["count"] == 0
+    assert cross_runner._distribution([]) == {
+        "count": 0,
+        "mean_kcal_mol": None,
+        "mean_absolute_kcal_mol": None,
+        "median_absolute_kcal_mol": None,
+        "rmse_kcal_mol": None,
+        "maximum_absolute_kcal_mol": None,
+    }

@@ -50,7 +50,7 @@ from run_mace_ef_cosmors_freesolv20 import (  # noqa: E402
 
 PRIMARY_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-diverse-v3.json"
 OUTPUT_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v3.json"
-WORK_DIR = REPOSITORY_ROOT / ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v2"
+WORK_DIR = REPOSITORY_ROOT / ".omx/benchmarks/mace-ef-cosmors-freesolv20-frozen-v3"
 EPSILON_COEFFICIENT = 1.0e-30
 HARTREE_TO_KCAL_MOL = 627.5094740631
 

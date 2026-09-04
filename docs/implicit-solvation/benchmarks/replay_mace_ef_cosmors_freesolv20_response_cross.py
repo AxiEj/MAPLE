@@ -242,7 +242,7 @@ def run(
     passed = maximum <= tolerance_kcal_mol
     output: dict[str, object] = {
         "schema_version": 1,
-        "artifact": "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v2",
+        "artifact": "mace-ef-cosmors-freesolv20-response-cross-bundle-replay-v3",
         "status": "pass" if passed else "fail",
         "scientific_result": False,
         "asset_source": "committed-profile-bundle-only",
@@ -252,7 +252,10 @@ def run(
         "runtime": {
             **_runtime_versions(),
             "device": device,
-            "torch_threads": torch_threads,
+            "torch_version": str(torch.__version__),
+            "torch_threads_requested": torch_threads,
+            "torch_num_threads": torch.get_num_threads(),
+            "torch_num_interop_threads": torch.get_num_interop_threads(),
         },
         "inputs": {
             "primary_sha256": expected_inputs["primary"],

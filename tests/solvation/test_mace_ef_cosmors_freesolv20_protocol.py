@@ -283,3 +283,7 @@ def test_derived_runners_finalize_empty_record_summaries_without_crashing():
         "rmse_kcal_mol": None,
         "maximum_absolute_kcal_mol": None,
     }
+    assert frozen_runner.OUTPUT_PATH.name.endswith("frozen-source-ablation-v3.json")
+    assert frozen_runner.WORK_DIR.name.endswith("frozen-v3")
+    assert cross_runner.FROZEN_PATH.name.endswith("frozen-source-ablation-v3.json")
+    assert cross_runner.OUTPUT_PATH.name.endswith("response-cross-v2.json")

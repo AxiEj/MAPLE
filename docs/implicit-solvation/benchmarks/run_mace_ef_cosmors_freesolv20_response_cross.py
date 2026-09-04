@@ -37,7 +37,7 @@ from run_mace_ef_cosmors_freesolv20 import (  # noqa: E402
 )
 
 PRIMARY_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-diverse-v3.json"
-FROZEN_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v2.json"
+FROZEN_PATH = SCRIPT_DIR / "mace-ef-cosmors-freesolv20-frozen-source-ablation-v3.json"
 PREREGISTRATION_PATH = (
     SCRIPT_DIR / "mace-ef-cosmors-freesolv20-response-cross-prereg-v1.json"
 )

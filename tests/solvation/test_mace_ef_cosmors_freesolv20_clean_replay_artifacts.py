@@ -306,6 +306,11 @@ def test_bundle_only_replay_recomputes_all_160_arms_without_local_omx(
     assert completed.returncode == 0, completed.stderr
     replayed = _load(output)
     assert replayed["status"] == "pass"
+    assert replayed["artifact"].endswith("bundle-replay-v3")
     assert replayed["asset_source"] == "committed-profile-bundle-only"
     assert replayed["method"]["prediction_count"] == 160
+    assert replayed["runtime"]["torch_version"]
+    assert replayed["runtime"]["torch_threads_requested"] == 1
+    assert replayed["runtime"]["torch_num_threads"] == 1
+    assert replayed["runtime"]["torch_num_interop_threads"] == 1
     assert replayed["maximum_absolute_prediction_difference_kcal_mol"] <= 1.0e-9

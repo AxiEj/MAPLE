@@ -1,0 +1,1370 @@
+{
+  "admission_eligible": false,
+  "artifact": "mace-ef-cosmo-freesolv20-two-step-v1",
+  "claim_boundary": {
+    "does_establish": "A reproducible two-map response and conductor-COSMO component diagnostic on the frozen FreeSolv-20 geometries.",
+    "does_not_establish": "A complete hydration free energy, a converged root, stationary energy, passivity, forces, PES, or release admission."
+  },
+  "completed_at_utc": "2026-09-04T13:02:04+00:00",
+  "diagnostic_only": true,
+  "execution_git_head": "e6e36e20a4225d8e71503d365817678d34b2695b",
+  "failures": [],
+  "geometry_bundle": {
+    "manifest_path": "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-profile-bundle-v1.json",
+    "manifest_sha256": "14d9a9436e6e837bd766507c43d2cf5b1879dd1d8c0118c4fe754a7cddea85a7",
+    "path": "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz",
+    "sha256": "989688eca71577c11fa623c599adbf4538394e9be3841613d73df36218b356c3"
+  },
+  "interpretation": {
+    "automatic_accuracy_verdict": null,
+    "iteration_count_may_not_be_changed_using_this_result": true,
+    "iteration_count_was_user_specified_before_this_run": true,
+    "reason": "The reported conductor-COSMO term is only one component of total hydration free energy.",
+    "stationary_solution_claimed": false
+  },
+  "method": {
+    "angular_degree": 4,
+    "checkpoint_path": "/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt",
+    "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+    "reported_energy": {
+      "excluded_terms": [
+        "COSMO-RS or COSMOspace activity",
+        "hydrogen-bond interaction",
+        "misfit interaction",
+        "Staverman-Guggenheim combinatorial term",
+        "SMD-CDS or another nonpolar term",
+        "element surface correction",
+        "eta",
+        "ring correction",
+        "standard-state or reference-state correction",
+        "field-conditioned MACE-EF intrinsic energy difference"
+      ],
+      "finite_dielectric_scaling": false,
+      "identity": "conductor-boundary half-coupling energy",
+      "included_terms": [
+        "Torch segment-COSMO conductor polarization"
+      ],
+      "primary_component": "U_segment_COSMO(c2)"
+    },
+    "response_map": {
+      "anderson_acceleration": false,
+      "continuum_drive": "f_k = P_COSMO(c_k)",
+      "first_update": "c1 = Q*dE_MACE-EF/df evaluated at f0",
+      "initial_source": "c0 = Q*dE_MACE-EF/df evaluated at zero external field",
+      "map_applications": 2,
+      "mixing": "none",
+      "no_third_model_evaluation": true,
+      "reported_source": "c2",
+      "second_update": "c2 = Q*dE_MACE-EF/df evaluated at f1"
+    }
+  },
+  "preregistration": {
+    "id": "mace-ef-cosmo-freesolv20-two-step-v1",
+    "path": "docs/implicit-solvation/benchmarks/mace-ef-cosmo-freesolv20-two-step-prereg-v1.json",
+    "sha256": "0dc659557e5c4bcfd8f1b70baf37f902bf305cb8c073a6f67e987c0a019ea486"
+  },
+  "primary_artifact": {
+    "artifact": "mace-ef-cosmors-freesolv20-diverse-v3",
+    "path": "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-diverse-v3.json",
+    "sha256": "a23c847d7e6ec8f18662d205edaaf36a0d5e0d6ea3a863c6481a38c515b6c83f"
+  },
+  "records": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_2008055",
+      "converged_boundary_energy_kcal_mol": -0.09037182093893308,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": 1.83,
+      "map_applications": 2,
+      "name": "ethane",
+      "ordinal": 1,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.0015479903668165207,
+        "second_maximum_absolute_component": 0.0002293270081281662,
+        "second_to_first_ratio": 0.14814498400257017
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.0030389864403033724,
+          "cosmo_boundary_energy_kcal_mol": -0.0700806921632236,
+          "difference_from_converged_boundary_kcal_mol": 0.020291128775709474,
+          "field_maximum_absolute_component": 0.06871078299409344,
+          "half_coupling_identity_error_ev": 1.734723475976807e-18,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.9000806921632236,
+          "source_charge_e": -2.9802322387695312e-08,
+          "source_field_pairing_ev": -0.006077972880606741,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.38767510652542114
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.003775924623474544,
+          "cosmo_boundary_energy_kcal_mol": -0.08707489038445311,
+          "difference_from_converged_boundary_kcal_mol": 0.0032969305544799654,
+          "field_maximum_absolute_component": 0.07798885156606117,
+          "half_coupling_identity_error_ev": 1.3010426069826053e-18,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.9170748903844532,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.007551849246949091,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.3887348771095276
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.003912763851413018,
+          "cosmo_boundary_energy_kcal_mol": -0.09023047794543348,
+          "difference_from_converged_boundary_kcal_mol": 0.00014134299349959079,
+          "field_maximum_absolute_component": 0.07961758708543663,
+          "half_coupling_identity_error_ev": 4.336808689942018e-18,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.9202304779454336,
+          "source_charge_e": -2.9802322387695312e-08,
+          "source_field_pairing_ev": -0.007825527702826044,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.38887447118759155
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "converged_boundary_energy_kcal_mol": -1.6662849078488995,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -0.9,
+      "map_applications": 2,
+      "name": "benzene",
+      "ordinal": 2,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.009372356347739697,
+        "second_maximum_absolute_component": 0.0029884064570069313,
+        "second_to_first_ratio": 0.31885326871162306
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.0434173528147187,
+          "cosmo_boundary_energy_kcal_mol": -1.001227941262754,
+          "difference_from_converged_boundary_kcal_mol": 0.6650569665861454,
+          "field_maximum_absolute_component": 0.2076306271719455,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.10122794126275403,
+          "source_charge_e": 1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.08683470562943743,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.12551350891590118
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.06375595645128647,
+          "cosmo_boundary_energy_kcal_mol": -1.4702472832318607,
+          "difference_from_converged_boundary_kcal_mol": 0.19603762461703877,
+          "field_maximum_absolute_component": 0.25238970189903026,
+          "half_coupling_identity_error_ev": 4.163336342344337e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.5702472832318607,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.12751191290257302,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.12690478563308716
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.06990906942958691,
+          "cosmo_boundary_energy_kcal_mol": -1.612141439375171,
+          "difference_from_converged_boundary_kcal_mol": 0.05414346847372853,
+          "field_maximum_absolute_component": 0.2647840176657326,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.7121414393751709,
+          "source_charge_e": 1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.13981813885917382,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.12720753252506256
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "converged_boundary_energy_kcal_mol": -17.134315990667492,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -5.1,
+      "map_applications": 2,
+      "name": "methanol",
+      "ordinal": 3,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.1063619926571846,
+        "second_maximum_absolute_component": 0.07059508562088013,
+        "second_to_first_ratio": 0.6637247371663597
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.21745099481902921,
+          "cosmo_boundary_energy_kcal_mol": -5.014539066840273,
+          "difference_from_converged_boundary_kcal_mol": 12.119776923827219,
+          "field_maximum_absolute_component": 0.8776798279378007,
+          "half_coupling_identity_error_ev": 8.326672684688674e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 0.08546093315972669,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.4349019896380586,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.5109831094741821
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.4180867619216179,
+          "cosmo_boundary_energy_kcal_mol": -9.641309770642792,
+          "difference_from_converged_boundary_kcal_mol": 7.4930062200247,
+          "field_maximum_absolute_component": 1.3059841052740295,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -4.541309770642792,
+          "source_charge_e": 3.725290298461914e-08,
+          "source_field_pairing_ev": -0.8361735238432358,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.5041054487228394
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.5718373721156145,
+          "cosmo_boundary_energy_kcal_mol": -13.186883071008564,
+          "difference_from_converged_boundary_kcal_mol": 3.9474329196589277,
+          "field_maximum_absolute_component": 1.5765877014783807,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -8.086883071008565,
+          "source_charge_e": -7.450580596923828e-09,
+          "source_field_pairing_ev": -1.1436747442312287,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.5014222264289856
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "converged_boundary_energy_kcal_mol": -2.6374129848824515,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -1.91,
+      "map_applications": 2,
+      "name": "methoxymethane",
+      "ordinal": 4,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.027474097907543182,
+        "second_maximum_absolute_component": 0.00538383424282074,
+        "second_to_first_ratio": 0.19596036459281072
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.07773627435340846,
+          "cosmo_boundary_energy_kcal_mol": -1.7926410729010276,
+          "difference_from_converged_boundary_kcal_mol": 0.8447719119814239,
+          "field_maximum_absolute_component": 0.3888611913477872,
+          "half_coupling_identity_error_ev": 2.7755575615628914e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 0.11735892709897233,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.15547254870681687,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.2776423692703247
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.10510825932610848,
+          "cosmo_boundary_energy_kcal_mol": -2.4238540415830068,
+          "difference_from_converged_boundary_kcal_mol": 0.2135589432994447,
+          "field_maximum_absolute_component": 0.45398072733805006,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.5138540415830068,
+          "source_charge_e": 2.2351741790771484e-08,
+          "source_field_pairing_ev": -0.21021651865221694,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.2753332853317261
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.11208838883321873,
+          "cosmo_boundary_energy_kcal_mol": -2.5848196519456494,
+          "difference_from_converged_boundary_kcal_mol": 0.05259333293680202,
+          "field_maximum_absolute_component": 0.4689264418539296,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.6748196519456495,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -0.22417677766643743,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.2748594582080841
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "converged_boundary_energy_kcal_mol": -7.498002645484895,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -3.8,
+      "map_applications": 2,
+      "name": "acetone",
+      "ordinal": 5,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.04633300006389618,
+        "second_maximum_absolute_component": 0.00901372916996479,
+        "second_to_first_ratio": 0.19454231665409707
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.21580977784300487,
+          "cosmo_boundary_energy_kcal_mol": -4.976691704264237,
+          "difference_from_converged_boundary_kcal_mol": 2.5213109412206585,
+          "field_maximum_absolute_component": 0.754976134607914,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.176691704264237,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.43161955568600974,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.6787313222885132
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.2925270596068798,
+          "cosmo_boundary_energy_kcal_mol": -6.745834249815279,
+          "difference_from_converged_boundary_kcal_mol": 0.7521683956696164,
+          "field_maximum_absolute_component": 0.8891175507249496,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -2.945834249815279,
+          "source_charge_e": 7.450580596923828e-08,
+          "source_field_pairing_ev": -0.5850541192137595,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.6617647409439087
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.31436672838672075,
+          "cosmo_boundary_energy_kcal_mol": -7.249468976317714,
+          "difference_from_converged_boundary_kcal_mol": 0.24853366916718134,
+          "field_maximum_absolute_component": 0.9256599641019034,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -3.449468976317714,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.6287334567734413,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.6580867171287537
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "converged_boundary_energy_kcal_mol": -6.054259459555683,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -2.94,
+      "map_applications": 2,
+      "name": "ethyl acetate",
+      "ordinal": 6,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.03930426388978958,
+        "second_maximum_absolute_component": 0.006700068712234497,
+        "second_to_first_ratio": 0.17046671401916355
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.20270347875237024,
+          "cosmo_boundary_energy_kcal_mol": -4.674453267202237,
+          "difference_from_converged_boundary_kcal_mol": 1.3798061923534464,
+          "field_maximum_absolute_component": 0.7148469124818919,
+          "half_coupling_identity_error_ev": 2.7755575615628914e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.734453267202237,
+          "source_charge_e": -9.685754776000977e-08,
+          "source_field_pairing_ev": -0.40540695750474054,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.8541532754898071
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.25044574110163514,
+          "cosmo_boundary_energy_kcal_mol": -5.775415991649501,
+          "difference_from_converged_boundary_kcal_mol": 0.2788434679061824,
+          "field_maximum_absolute_component": 0.8201469936272008,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -2.835415991649501,
+          "source_charge_e": -6.705522537231445e-08,
+          "source_field_pairing_ev": -0.5008914822032704,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.8428658246994019
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.25998471366592757,
+          "cosmo_boundary_energy_kcal_mol": -5.995389924723345,
+          "difference_from_converged_boundary_kcal_mol": 0.05886953483233803,
+          "field_maximum_absolute_component": 0.8429177338234902,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -3.0553899247233454,
+          "source_charge_e": -8.195638656616211e-08,
+          "source_field_pairing_ev": -0.5199694273318554,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.841433048248291
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "converged_boundary_energy_kcal_mol": -10.144775419952529,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": true,
+      "experimental_total_hydration_label_kcal_mol": -3.88,
+      "map_applications": 2,
+      "name": "acetonitrile",
+      "ordinal": 7,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.09753527492284775,
+        "second_maximum_absolute_component": 0.039784952998161316,
+        "second_to_first_ratio": 0.40790322300964416
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.21475313687156497,
+          "cosmo_boundary_energy_kcal_mol": -4.952324984602554,
+          "difference_from_converged_boundary_kcal_mol": 5.192450435349975,
+          "field_maximum_absolute_component": 0.7395614673410632,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.0723249846025542,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.42950627374313005,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.49356597661972046
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.3466521516240391,
+          "cosmo_boundary_energy_kcal_mol": -7.993988523113726,
+          "difference_from_converged_boundary_kcal_mol": 2.1507868968388024,
+          "field_maximum_absolute_component": 0.9262944600457106,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -4.1139885231137265,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.6933043032480785,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.4928300976753235
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.40375215011731863,
+          "cosmo_boundary_energy_kcal_mol": -9.310745769496368,
+          "difference_from_converged_boundary_kcal_mol": 0.8340296504561611,
+          "field_maximum_absolute_component": 0.992059491283068,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -5.430745769496368,
+          "source_charge_e": -5.960464477539063e-08,
+          "source_field_pairing_ev": -0.8075043002346375,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.49260517954826355
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "converged_boundary_energy_kcal_mol": -6.103940864478007,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": true,
+      "experimental_total_hydration_label_kcal_mol": -5.49,
+      "map_applications": 2,
+      "name": "aniline",
+      "ordinal": 8,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.02547179814428091,
+        "second_maximum_absolute_component": 0.008148889988660812,
+        "second_to_first_ratio": 0.3199181283748691
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.1444734475260372,
+          "cosmo_boundary_energy_kcal_mol": -3.331636846928848,
+          "difference_from_converged_boundary_kcal_mol": 2.772304017549159,
+          "field_maximum_absolute_component": 0.40141853703712704,
+          "half_coupling_identity_error_ev": 8.326672684688674e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 2.1583631530711522,
+          "source_charge_e": -8.940696716308594e-08,
+          "source_field_pairing_ev": -0.28894689505207455,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.8424209356307983
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.22114075044244846,
+          "cosmo_boundary_energy_kcal_mol": -5.099626852877434,
+          "difference_from_converged_boundary_kcal_mol": 1.0043140116005729,
+          "field_maximum_absolute_component": 0.486747934247113,
+          "half_coupling_identity_error_ev": 1.6653345369377348e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 0.390373147122566,
+          "source_charge_e": -7.450580596923828e-09,
+          "source_field_pairing_ev": -0.44228150088489726,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.8386462926864624
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.24937454120909472,
+          "cosmo_boundary_energy_kcal_mol": -5.750713535291417,
+          "difference_from_converged_boundary_kcal_mol": 0.3532273291865904,
+          "field_maximum_absolute_component": 0.5144287590098804,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.2607135352914165,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.49874908241818944,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.8376576900482178
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "converged_boundary_energy_kcal_mol": -2.505645374962716,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -0.63,
+      "map_applications": 2,
+      "name": "chloroethane",
+      "ordinal": 9,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.038565970957279205,
+        "second_maximum_absolute_component": 0.004486203193664551,
+        "second_to_first_ratio": 0.11632543100325585
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.07823617515236585,
+          "cosmo_boundary_energy_kcal_mol": -1.8041690591859498,
+          "difference_from_converged_boundary_kcal_mol": 0.7014763157767661,
+          "field_maximum_absolute_component": 0.4113442156053099,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.17416905918595,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -0.15647235030473172,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.43299582600593567
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.1034105162286752,
+          "cosmo_boundary_energy_kcal_mol": -2.3847031556805405,
+          "difference_from_converged_boundary_kcal_mol": 0.12094221928217541,
+          "field_maximum_absolute_component": 0.4788410273298505,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.7547031556805406,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.2068210324573504,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.43535569310188293
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.10771784330935961,
+          "cosmo_boundary_energy_kcal_mol": -2.4840324778467915,
+          "difference_from_converged_boundary_kcal_mol": 0.0216128971159244,
+          "field_maximum_absolute_component": 0.49148861982188097,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.8540324778467916,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -0.2154356866187192,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.43580517172813416
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "converged_boundary_energy_kcal_mol": -14.701156076239915,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": true,
+      "experimental_total_hydration_label_kcal_mol": -9.28,
+      "map_applications": 2,
+      "name": "methylsulfinylmethane",
+      "ordinal": 10,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.0864295344799757,
+        "second_maximum_absolute_component": 0.02348112314939499,
+        "second_to_first_ratio": 0.27167938935081476
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.37099319084837784,
+          "cosmo_boundary_energy_kcal_mol": -8.555306222393604,
+          "difference_from_converged_boundary_kcal_mol": 6.145849853846311,
+          "field_maximum_absolute_component": 1.145983719620281,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 0.7246937776063955,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.7419863816967558,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.5398035049438477
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.5434379646982326,
+          "cosmo_boundary_energy_kcal_mol": -12.531977177898746,
+          "difference_from_converged_boundary_kcal_mol": 2.169178898341169,
+          "field_maximum_absolute_component": 1.3866680619900884,
+          "half_coupling_identity_error_ev": 3.3306690738754696e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -3.2519771778987465,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -1.0868759293964645,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.5435628890991211
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.6018549255968608,
+          "cosmo_boundary_energy_kcal_mol": -13.87910429882106,
+          "difference_from_converged_boundary_kcal_mol": 0.8220517774188547,
+          "field_maximum_absolute_component": 1.4597954042359427,
+          "half_coupling_identity_error_ev": 2.220446049250313e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -4.599104298821061,
+          "source_charge_e": -8.940696716308594e-08,
+          "source_field_pairing_ev": -1.203709851193722,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.5446699857711792
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "converged_boundary_energy_kcal_mol": -16.518837160538332,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": true,
+      "experimental_total_hydration_label_kcal_mol": -9.71,
+      "map_applications": 2,
+      "name": "acetamide",
+      "ordinal": 11,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.06681842356920242,
+        "second_maximum_absolute_component": 0.019629279151558876,
+        "second_to_first_ratio": 0.29377046184319583
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.3605644515281001,
+          "cosmo_boundary_energy_kcal_mol": -8.314813780485265,
+          "difference_from_converged_boundary_kcal_mol": 8.204023380053068,
+          "field_maximum_absolute_component": 1.0028326401922976,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 1.395186219514736,
+          "source_charge_e": 4.470348358154297e-08,
+          "source_field_pairing_ev": -0.7211289030562005,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.9159455299377441
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.5401343520024854,
+          "cosmo_boundary_energy_kcal_mol": -12.455794059314622,
+          "difference_from_converged_boundary_kcal_mol": 4.063043101223711,
+          "field_maximum_absolute_component": 1.2530705100385557,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -2.745794059314621,
+          "source_charge_e": 4.470348358154297e-08,
+          "source_field_pairing_ev": -1.0802687040049708,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.9080930948257446
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.623387757079734,
+          "cosmo_boundary_energy_kcal_mol": -14.375663189160553,
+          "difference_from_converged_boundary_kcal_mol": 2.143173971377779,
+          "field_maximum_absolute_component": 1.3612057463243286,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -4.6656631891605524,
+          "source_charge_e": -7.450580596923828e-08,
+          "source_field_pairing_ev": -1.2467755141594679,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.9057682156562805
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "converged_boundary_energy_kcal_mol": -32.75857068049989,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -6.69,
+      "map_applications": 2,
+      "name": "acetic acid",
+      "ordinal": 12,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.11868326738476753,
+        "second_maximum_absolute_component": 0.06454606354236603,
+        "second_to_first_ratio": 0.5438514203784908
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.49453278822058744,
+          "cosmo_boundary_energy_kcal_mol": -11.404197016571064,
+          "difference_from_converged_boundary_kcal_mol": 21.35437366392883,
+          "field_maximum_absolute_component": 1.146245369861787,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -4.714197016571064,
+          "source_charge_e": 1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.989065576441175,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.9113800525665283
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.88853388415675,
+          "cosmo_boundary_energy_kcal_mol": -20.49007813472391,
+          "difference_from_converged_boundary_kcal_mol": 12.268492545775985,
+          "field_maximum_absolute_component": 1.552553121416523,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -13.800078134723908,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -1.7770677683135,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.8817431926727295
+        },
+        {
+          "cosmo_boundary_energy_ev": -1.168920896025348,
+          "cosmo_boundary_energy_kcal_mol": -26.955956233004525,
+          "difference_from_converged_boundary_kcal_mol": 5.802614447495369,
+          "field_maximum_absolute_component": 1.7949275846218742,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -20.265956233004523,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -2.337841792050696,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.8708102107048035
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "aldehyde",
+      "compound_id": "mobley_2146331",
+      "converged_boundary_energy_kcal_mol": -6.000365225372931,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -2.75,
+      "map_applications": 2,
+      "name": "formaldehyde",
+      "ordinal": 13,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.04244852811098099,
+        "second_maximum_absolute_component": 0.008656427264213562,
+        "second_to_first_ratio": 0.2039276189172325
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.16417282435167738,
+          "cosmo_boundary_energy_kcal_mol": -3.7859152684499437,
+          "difference_from_converged_boundary_kcal_mol": 2.2144499569229876,
+          "field_maximum_absolute_component": 0.5508462020619678,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -1.0359152684499437,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.32834564870335475,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.34633317589759827
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.22912244879832772,
+          "cosmo_boundary_energy_kcal_mol": -5.283689189582774,
+          "difference_from_converged_boundary_kcal_mol": 0.7166760357901572,
+          "field_maximum_absolute_component": 0.6533340123659876,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -2.5336891895827742,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.45824489759665554,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.33851978182792664
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.24979473921512066,
+          "cosmo_boundary_energy_kcal_mol": -5.760403531507709,
+          "difference_from_converged_boundary_kcal_mol": 0.23996169386522226,
+          "field_maximum_absolute_component": 0.6829833787335353,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -3.010403531507709,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.4995894784302413,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.33718615770339966
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "phenol",
+      "compound_id": "mobley_20524",
+      "converged_boundary_energy_kcal_mol": -21.01755186212259,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -6.6,
+      "map_applications": 2,
+      "name": "phenol",
+      "ordinal": 14,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.11510470509529114,
+        "second_maximum_absolute_component": 0.07468506693840027,
+        "second_to_first_ratio": 0.6488446052363466
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.23312460573922542,
+          "cosmo_boundary_energy_kcal_mol": -5.3759811211439965,
+          "difference_from_converged_boundary_kcal_mol": 15.641570740978594,
+          "field_maximum_absolute_component": 0.9583321152101535,
+          "half_coupling_identity_error_ev": 2.7755575615628914e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 1.2240188788560031,
+          "source_charge_e": -1.043081283569336e-07,
+          "source_field_pairing_ev": -0.4662492114784508,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.5044246912002563
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.5031563585400285,
+          "cosmo_boundary_energy_kcal_mol": -11.603061272393255,
+          "difference_from_converged_boundary_kcal_mol": 9.414490589729336,
+          "field_maximum_absolute_component": 1.480966351626287,
+          "half_coupling_identity_error_ev": 2.220446049250313e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -5.003061272393255,
+          "source_charge_e": 1.4901161193847656e-08,
+          "source_field_pairing_ev": -1.0063127170800565,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.49849802255630493
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.7247636060364232,
+          "cosmo_boundary_energy_kcal_mol": -16.71344580289606,
+          "difference_from_converged_boundary_kcal_mol": 4.30410605922653,
+          "field_maximum_absolute_component": 1.810173304347448,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -10.113445802896061,
+          "source_charge_e": 2.2351741790771484e-08,
+          "source_field_pairing_ev": -1.4495272120728464,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.49569272994995117
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "aliphatic amine",
+      "compound_id": "mobley_2410897",
+      "converged_boundary_energy_kcal_mol": -2.705470372384396,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": true,
+      "experimental_total_hydration_label_kcal_mol": -4.5,
+      "map_applications": 2,
+      "name": "ethanamine",
+      "ordinal": 15,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.018700508400797844,
+        "second_maximum_absolute_component": 0.005059912800788879,
+        "second_to_first_ratio": 0.2705762160227153
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.07877040147787163,
+          "cosmo_boundary_energy_kcal_mol": -1.8164886109176528,
+          "difference_from_converged_boundary_kcal_mol": 0.888981761466743,
+          "field_maximum_absolute_component": 0.3901673835552878,
+          "half_coupling_identity_error_ev": 1.1102230246251565e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 2.683511389082347,
+          "source_charge_e": 8.940696716308594e-08,
+          "source_field_pairing_ev": -0.1575408029557435,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.891082227230072
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.10565046108725831,
+          "cosmo_boundary_energy_kcal_mol": -2.4363575112298492,
+          "difference_from_converged_boundary_kcal_mol": 0.2691128611545466,
+          "field_maximum_absolute_component": 0.47455436949307916,
+          "half_coupling_identity_error_ev": 8.326672684688674e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 2.0636424887701508,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.21130092217451646,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.8867085576057434
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.11364120852103282,
+          "cosmo_boundary_energy_kcal_mol": -2.620628524628816,
+          "difference_from_converged_boundary_kcal_mol": 0.0848418477555799,
+          "field_maximum_absolute_component": 0.500716023042101,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 1.879371475371184,
+          "source_charge_e": 1.1175870895385742e-07,
+          "source_field_pairing_ev": -0.22728241704206562,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.8857356309890747
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "nitro compound",
+      "compound_id": "mobley_1952272",
+      "converged_boundary_energy_kcal_mol": -10.555789657392047,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -4.02,
+      "map_applications": 2,
+      "name": "nitromethane",
+      "ordinal": 16,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.0515592903830111,
+        "second_maximum_absolute_component": 0.010707449167966843,
+        "second_to_first_ratio": 0.2076725472446566
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.3695985650833584,
+          "cosmo_boundary_energy_kcal_mol": -8.523145388233557,
+          "difference_from_converged_boundary_kcal_mol": 2.0326442691584905,
+          "field_maximum_absolute_component": 1.0184992397411445,
+          "half_coupling_identity_error_ev": 1.6653345369377348e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -4.503145388233557,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.7391971301667165,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.7229935526847839
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.4352497364284607,
+          "cosmo_boundary_energy_kcal_mol": -10.037097365173564,
+          "difference_from_converged_boundary_kcal_mol": 0.5186922922184838,
+          "field_maximum_absolute_component": 1.126624788593632,
+          "half_coupling_identity_error_ev": 2.220446049250313e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -6.017097365173564,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.870499472856921,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.7026863098144531
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.4512358151547159,
+          "cosmo_boundary_energy_kcal_mol": -10.405745098264438,
+          "difference_from_converged_boundary_kcal_mol": 0.1500445591276094,
+          "field_maximum_absolute_component": 1.1521354602946279,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -6.385745098264438,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.9024716303094318,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.7001297473907471
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "thioether",
+      "compound_id": "mobley_9073553",
+      "converged_boundary_energy_kcal_mol": -1.8037694147888932,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -1.61,
+      "map_applications": 2,
+      "name": "methylsulfanylmethane",
+      "ordinal": 17,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.026723138988018036,
+        "second_maximum_absolute_component": 0.0037681609392166138,
+        "second_to_first_ratio": 0.14100742210359943
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.049962405423614194,
+          "cosmo_boundary_energy_kcal_mol": -1.1521604400041172,
+          "difference_from_converged_boundary_kcal_mol": 0.651608974784776,
+          "field_maximum_absolute_component": 0.23637346348131938,
+          "half_coupling_identity_error_ev": 6.938893903907228e-18,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 0.4578395599958829,
+          "source_charge_e": 2.2351741790771484e-08,
+          "source_field_pairing_ev": -0.09992481084722837,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.4465044438838959
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.07153618318208997,
+          "cosmo_boundary_energy_kcal_mol": -1.6496635738906285,
+          "difference_from_converged_boundary_kcal_mol": 0.15410584089826473,
+          "field_maximum_absolute_component": 0.29158969687595565,
+          "half_coupling_identity_error_ev": 2.7755575615628914e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.039663573890628356,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.1430723663641799,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.4492150545120239
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.07665267664209942,
+          "cosmo_boundary_energy_kcal_mol": -1.7676527160502342,
+          "difference_from_converged_boundary_kcal_mol": 0.03611669873865897,
+          "field_maximum_absolute_component": 0.30500910565875905,
+          "half_coupling_identity_error_ev": 4.163336342344337e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.15765271605023412,
+          "source_charge_e": 0.0,
+          "source_field_pairing_ev": -0.15330535328419875,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.4498770236968994
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "thiol",
+      "compound_id": "mobley_525934",
+      "converged_boundary_energy_kcal_mol": -1.827511980456704,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -1.2,
+      "map_applications": 2,
+      "name": "methanethiol",
+      "ordinal": 18,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.03364843875169754,
+        "second_maximum_absolute_component": 0.0045033469796180725,
+        "second_to_first_ratio": 0.133835243080658
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.04849635759478448,
+          "cosmo_boundary_energy_kcal_mol": -1.118352573925412,
+          "difference_from_converged_boundary_kcal_mol": 0.7091594065312918,
+          "field_maximum_absolute_component": 0.32340955169119195,
+          "half_coupling_identity_error_ev": 2.7755575615628914e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 0.08164742607458786,
+          "source_charge_e": 6.705522537231445e-08,
+          "source_field_pairing_ev": -0.09699271518956891,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.4248829782009125
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.07106099777100376,
+          "cosmo_boundary_energy_kcal_mol": -1.6387055379898618,
+          "difference_from_converged_boundary_kcal_mol": 0.18880644246684208,
+          "field_maximum_absolute_component": 0.38629998873417437,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.4387055379898619,
+          "source_charge_e": 1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.1421219955420075,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.42740410566329956
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.07702285051803591,
+          "cosmo_boundary_energy_kcal_mol": -1.776189128421914,
+          "difference_from_converged_boundary_kcal_mol": 0.05132285203478992,
+          "field_maximum_absolute_component": 0.3993235167594338,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.576189128421914,
+          "source_charge_e": -1.4901161193847656e-08,
+          "source_field_pairing_ev": -0.15404570103607182,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.4279932975769043
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "vicinal diol",
+      "compound_id": "mobley_4639255",
+      "converged_boundary_energy_kcal_mol": -42.02635244468022,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -9.3,
+      "map_applications": 2,
+      "name": "ethylene glycol",
+      "ordinal": 19,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.11822154745459557,
+        "second_maximum_absolute_component": 0.07032856345176697,
+        "second_to_first_ratio": 0.5948878606818906
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.5338132961415674,
+          "cosmo_boundary_energy_kcal_mol": -12.310027048293897,
+          "difference_from_converged_boundary_kcal_mol": 29.716325396386324,
+          "field_maximum_absolute_component": 1.1028358194539793,
+          "half_coupling_identity_error_ev": 0.0,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -3.010027048293896,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -1.0676265922831347,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.5267322063446045
+        },
+        {
+          "cosmo_boundary_energy_ev": -1.0921384768633948,
+          "cosmo_boundary_energy_kcal_mol": -25.185311583369536,
+          "difference_from_converged_boundary_kcal_mol": 16.841040861310685,
+          "field_maximum_absolute_component": 1.6771285655170376,
+          "half_coupling_identity_error_ev": 2.220446049250313e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -15.885311583369536,
+          "source_charge_e": -7.450580596923828e-09,
+          "source_field_pairing_ev": -2.18427695372679,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.5167747139930725
+        },
+        {
+          "cosmo_boundary_energy_ev": -1.494198782652034,
+          "cosmo_boundary_energy_kcal_mol": -34.457042495802426,
+          "difference_from_converged_boundary_kcal_mol": 7.569309948877795,
+          "field_maximum_absolute_component": 2.0070523304209815,
+          "half_coupling_identity_error_ev": 2.220446049250313e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -25.157042495802425,
+          "source_charge_e": -2.9802322387695312e-08,
+          "source_field_pairing_ev": -2.9883975653040684,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.5122196674346924
+        }
+      ],
+      "third_map_evaluated": false
+    },
+    {
+      "chemical_class": "nitrogen heteroaromatic",
+      "compound_id": "mobley_1520842",
+      "converged_boundary_energy_kcal_mol": -6.024788917956125,
+      "electronic_evaluation_count": 3,
+      "electronic_passivity_passed": false,
+      "experimental_total_hydration_label_kcal_mol": -4.93,
+      "map_applications": 2,
+      "name": "4-methylpyridine",
+      "ordinal": 20,
+      "source_updates": {
+        "first_maximum_absolute_component": 0.026414349675178528,
+        "second_maximum_absolute_component": 0.009284868836402893,
+        "second_to_first_ratio": 0.3515085152797781
+      },
+      "stages": [
+        {
+          "cosmo_boundary_energy_ev": -0.13955766249780388,
+          "cosmo_boundary_energy_kcal_mol": -3.2182761511602247,
+          "difference_from_converged_boundary_kcal_mol": 2.8065127667959007,
+          "field_maximum_absolute_component": 0.6425456448312504,
+          "half_coupling_identity_error_ev": 2.7755575615628914e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": 1.711723848839775,
+          "source_charge_e": -3.725290298461914e-08,
+          "source_field_pairing_ev": -0.2791153249956078,
+          "source_index": 0,
+          "source_maximum_absolute_component": 0.4625941812992096
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.2170395851044782,
+          "cosmo_boundary_energy_kcal_mol": -5.005051733439887,
+          "difference_from_converged_boundary_kcal_mol": 1.019737184516238,
+          "field_maximum_absolute_component": 0.813120266119811,
+          "half_coupling_identity_error_ev": 1.3877787807814457e-16,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.07505173343988769,
+          "source_charge_e": 2.9802322387695312e-08,
+          "source_field_pairing_ev": -0.43407917020895614,
+          "source_index": 1,
+          "source_maximum_absolute_component": 0.4633609652519226
+        },
+        {
+          "cosmo_boundary_energy_ev": -0.24583702383527198,
+          "cosmo_boundary_energy_kcal_mol": -5.669136446690726,
+          "difference_from_converged_boundary_kcal_mol": 0.35565247126539923,
+          "field_maximum_absolute_component": 0.8665426410425581,
+          "half_coupling_identity_error_ev": 5.551115123125783e-17,
+          "not_total_hydration_free_energy": true,
+          "partial_minus_total_freesolv_label_kcal_mol": -0.7391364466907264,
+          "source_charge_e": -4.470348358154297e-08,
+          "source_field_pairing_ev": -0.49167404767054407,
+          "source_index": 2,
+          "source_maximum_absolute_component": 0.4635697603225708
+        }
+      ],
+      "third_map_evaluated": false
+    }
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cuda:0",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "rdkit": "2024.9.2",
+    "torch_version": "2.12.0+cu130"
+  },
+  "runtime_seconds": 94.49611318799998,
+  "schema_version": 1,
+  "scientific_status": "complete-partial-component-diagnostic",
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/mace-ef-cosmo-freesolv20-two-step-prereg-v1.json": "0dc659557e5c4bcfd8f1b70baf37f902bf305cb8c073a6f67e987c0a019ea486",
+    "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-profile-bundle-v1.json": "14d9a9436e6e837bd766507c43d2cf5b1879dd1d8c0118c4fe754a7cddea85a7",
+    "docs/implicit-solvation/benchmarks/mace-ef-cosmors-freesolv20-profile-bundle-v1.tar.gz": "989688eca71577c11fa623c599adbf4538394e9be3841613d73df36218b356c3",
+    "docs/implicit-solvation/benchmarks/run_mace_ef_cosmo_freesolv20_two_step.py": "92c60fb3db5737b44c5a02ed36516217d69fe38da3068b751e25cd5969453d05",
+    "docs/implicit-solvation/benchmarks/run_mace_ef_cosmors_freesolv20.py": "30d4632431726bfeba1c892319a1f07d303d0c353fe51545f538383c0cb54a58",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef.py": "8399aa9909094390d7d1aaadced3545c71c58c474bf2aad5d0a60a3d5c1e78ac",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef_specs.py": "880524d495de391d267245d01d9871b88f08aba9b59e5c819eec805dc748d59a",
+    "maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py": "e9bf3c1a7151e4bc87f189bb1f4837f1f083f54667106a30dbd30863ce15484f",
+    "maple/function/calculator/extra_correction/implicit/route2_fixed_point.py": "bb581de5b993915a235418cc5db0996df24471375412ff1303a3673778b8f567",
+    "maple/function/cosmors_torch/cosmospace.py": "ceb628131352dcac1d3d8e6c7fc13f3ebfdbde2532e2877a8587406d9bf29c0e",
+    "maple/function/cosmors_torch/fixed_structure.py": "61276b997d0bc4ec473a7574efd51ac74f65c71ae39a4be4b82564c94d84b51b",
+    "maple/function/cosmors_torch/ionic_es.py": "39b2ae8ab50bc05c9d46c46520067ccb4760a77fe13bd89a785c1c6494796f50",
+    "maple/function/cosmors_torch/kse.py": "14d4189231cd19b405e1011289d74b12948c2a5a7ac4247220e6bc62423f3249",
+    "maple/function/cosmors_torch/mace_ef_segment_cosmo.py": "6f7ef90fcf2139b7721e408f75be2e4ed6b122b37d5a4a78660761cbe5fd7caa",
+    "maple/function/cosmors_torch/segment_cosmo.py": "f8f7e389bf8e5e4fcb899f5f4975a0a2d364036bf734659e46939dd6f231f17b",
+    "maple/function/cosmors_torch/surface.py": "502d9dec8a9e750075e69519b0765968e7fe71f7fbcbd05d09549a67f9096bcf",
+    "maple/function/cosmors_torch/thermodynamics.py": "899c178c4ec60f7572a9e34509b0534f2148c1ea90bd34b6a960a15976560f2c",
+    "maple/function/mlip_cosmo_rs.py": "8ffd3824e4d1f26c667fdd2dbe7d4522f69f6202770e9c71c4c5791c789343f5",
+    "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7"
+  },
+  "started_at_utc": "2026-09-04T13:00:29+00:00",
+  "status": "complete",
+  "summaries": {
+    "electronic_passivity": {
+      "failed_count": 15,
+      "passed_count": 5,
+      "two_step_route_admission_eligible": false
+    },
+    "source_update": {
+      "amplifying_or_equal_record_count": 0,
+      "contracting_record_count": 20,
+      "first_maximum_absolute_component": {
+        "count": 20,
+        "maximum_absolute": 0.11868326738476753,
+        "mean": 0.0548359238775447,
+        "mean_absolute": 0.0548359238775447,
+        "median_absolute": 0.040876396000385284,
+        "rmse": 0.06636968636707404,
+        "units": "source-component"
+      },
+      "second_maximum_absolute_component": {
+        "count": 20,
+        "maximum_absolute": 0.07468506693840027,
+        "mean": 0.022099037980660798,
+        "mean_absolute": 0.022099037980660798,
+        "median_absolute": 0.008835078217089176,
+        "rmse": 0.03374896450106428,
+        "units": "source-component"
+      },
+      "second_to_first_ratio": {
+        "count": 20,
+        "maximum_absolute": 0.6637247371663597,
+        "mean": 0.3098700233836885,
+        "mean_absolute": 0.3098700233836885,
+        "median_absolute": 0.27112780268676506,
+        "rmse": 0.353678546420766,
+        "units": "dimensionless"
+      }
+    },
+    "stages": {
+      "c0": {
+        "difference_from_converged_boundary": {
+          "count": 20,
+          "maximum_absolute": 29.716325396386324,
+          "mean": 5.829137250213691,
+          "mean_absolute": 5.829137250213691,
+          "median_absolute": 2.367880449071823,
+          "rmse": 9.743923000876151,
+          "units": "kcal/mol"
+        },
+        "partial_component_difference_from_total_freesolv_label": {
+          "count": 20,
+          "maximum_absolute": 4.714197016571064,
+          "mean": -0.489121412846492,
+          "mean_absolute": 1.5531018241764498,
+          "median_absolute": 1.20035529156012,
+          "rmse": 2.026998589047121,
+          "units": "kcal/mol"
+        }
+      },
+      "c1": {
+        "difference_from_converged_boundary": {
+          "count": 20,
+          "maximum_absolute": 16.841040861310685,
+          "mean": 2.9918165681609215,
+          "mean_absolute": 2.9918165681609215,
+          "median_absolute": 0.7344222157298868,
+          "rmse": 5.515700610860303,
+          "units": "kcal/mol"
+        },
+        "partial_component_difference_from_total_freesolv_label": {
+          "count": 20,
+          "maximum_absolute": 15.885311583369536,
+          "mean": -3.3264420948992615,
+          "mean_absolute": 3.5718436584885334,
+          "median_absolute": 2.6397416244486975,
+          "rmse": 5.453327752181627,
+          "units": "kcal/mol"
+        }
+      },
+      "c2": {
+        "difference_from_converged_boundary": {
+          "count": 20,
+          "maximum_absolute": 7.569309948877795,
+          "mean": 1.356489023600237,
+          "mean_absolute": 1.356489023600237,
+          "median_absolute": 0.2442476815162018,
+          "rmse": 2.563696564784572,
+          "units": "kcal/mol"
+        },
+        "partial_component_difference_from_total_freesolv_label": {
+          "count": 20,
+          "maximum_absolute": 25.157042495802425,
+          "mean": -4.961769639459947,
+          "mean_absolute": 5.149706786997065,
+          "median_absolute": 3.032896728115527,
+          "rmse": 8.268444073146952,
+          "units": "kcal/mol"
+        }
+      }
+    }
+  }
+}

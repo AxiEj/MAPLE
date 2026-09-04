@@ -183,6 +183,42 @@ checkout replay: `replay_mace_ef_cosmors_freesolv20_response_cross.py` reads no
 `.omx` state, checkpoint, or dataset and recomputes all 160 profile-level arm
 values directly from the 63 committed geometry/profile members.
 
+### User-specified two-map MACE-EF/conductor-COSMO diagnostic
+
+The frozen `mace-ef-cosmo-freesolv20-two-step-v1` protocol applies exactly two
+unmixed response maps,
+
+```text
+c0 = MACE-EF(0)
+c1 = MACE-EF(P_COSMO(c0))
+c2 = MACE-EF(P_COSMO(c1))
+```
+
+and reports only the conductor-boundary half-coupling component
+`U_segment_COSMO(c2)`. It contains no COSMOspace/COSMO-RS activity, hydrogen-
+bond or misfit interaction, SMD-CDS, element/ring/eta correction, standard-
+state correction, or field-conditioned MACE-EF intrinsic-energy difference.
+
+All 20 second source updates are smaller than their first updates; the mean and
+maximum second/first ratios are `0.3099` and `0.6637` in the frozen raw-
+component maximum metric. This is only observed second-update shrinkage; the
+mixed charge/dipole coordinate metric is not a norm-invariant contraction,
+convergence, or passivity proof. The `c2` boundary component still differs from
+the previously converged boundary component by `1.3565 kcal/mol` mean absolute
+and `7.5693 kcal/mol` maximum absolute.
+
+For descriptive orientation only, the mean absolute difference between this
+partial component and the *total* FreeSolv label changes from `1.5531` at `c0`
+to `3.5718` at `c1` and `5.1497 kcal/mol` at `c2`. These numbers are explicitly
+not hydration-free-energy MAEs: the comparison omits all non-electrostatic and
+standard-state terms. It nevertheless shows that the response map already
+drives the conductor component progressively more negative before any
+COSMO-RS term is evaluated. The inherited same-geometry/checkpoint uniform-field
+audit fails for 15/20
+molecules; passivity was not recomputed at a `c2` state. This inherited failure
+still keeps the two-map result diagnostic-only, and the iteration count cannot
+be retuned from this result.
+
 ## Relative kinetic solvent effects
 
 The KSE calculator supports any provenance-identified provider, including

@@ -282,6 +282,18 @@ Three of the four recoverable items are blocked by a gate that was never
 derived from the quantity the route cares about. None requires new training,
 fitting, or a weakened threshold.
 
+> **Second correction (2026-09-05).** Two errors in the S1 follow-up work were
+> found by independent review and are recorded in sections 9.1-9.2 of
+> [`ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md`](ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md):
+> the ceiling is a *sufficient admission* criterion only, so exceeding it
+> certifies nothing and the claim that it re-supported the GFN2 rejection is
+> withdrawn; and the released degree of freedom is a near-uniform offset
+> (charge penetration, most likely), not outlying charge. What survives is that
+> the charge-neutral representation floor `0.2461` exceeds the ceiling `0.1129`,
+> so the gate cannot be passed by any atom-centred source, and that all four
+> re-measured candidates still sit 1.5-2.9x above the `0.0763` achievable floor
+> — genuine model error, not only a measurement artifact.
+
 **S1 is now closed as a criterion problem and reopened as a search problem.**
 Deriving the ceiling did not recover a candidate — it showed the gate had been
 1.77× too permissive, so the rejection stands and the target is tighter than

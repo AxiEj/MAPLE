@@ -153,9 +153,11 @@ def main() -> int:
     print(f"\n  charge-neutral l<=1 representation floor  {floor:.4f}")
     if floor > CEILING_TAU_1_5:
         print("  -> The floor EXCEEDS the ceiling. In this representation the gate")
-        print("     cannot be passed by any source, MLIP or QM. The measured error")
-        print("     is dominated by charge lying outside the cavity, not by source")
-        print("     quality.")
+        print("     cannot be passed by any source, MLIP or QM.")
+        print("     NOTE: the released degree of freedom is a near-uniform offset,")
+        print("     NOT enclosed charge -- cos(g, constant) = 0.996 on this surface")
+        print("     and a free constant alone recovers 99.7% of the gap. See")
+        print("     ROUTE2_V0_STATIC_SOURCE_CEILING_DERIVATION.md section 9.2.")
     return 0
 
 

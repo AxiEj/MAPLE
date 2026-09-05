@@ -191,3 +191,91 @@ in use**, and tighter still under a realistic error allocation.
 Any $v_0$ candidate previously screened against `0.20` was screened against a
 criterion that could not deliver the route's accuracy target. That screen
 should be re-run against equation (4) before any further permanent-source work.
+
+---
+
+## 8. Addendum (2026-09-05): the gate is unpassable by construction
+
+Running the MLIP sources on this surface returned a decisive negative
+(`route2-v0-mace-zero-field-static-mep-acetone-516-v1`, harness validated by
+reproducing the GFN2 numbers exactly):
+
+| source | eps_F | eps_maxabs |
+| --- | --- | --- |
+| MACE-POLAR-1-M `l<=1` | 0.3224217790 | 0.5313041398 |
+| MACE-EF auxiliary density | 0.2954775346 | 0.3140626053 |
+| MACE-EF energy-conjugate | 0.2777210207 | 0.3414157680 |
+| GFN2 MOLDEN (recorded, rejected) | 0.2199987983 | 0.3760559034 |
+
+All three MLIP sources score worse than the rejected QM source, and all miss
+the derived `0.1129` ceiling by 2.5-2.9x. Every arm nevertheless reproduced the
+molecular dipole well (`0.037 e*bohr` for two of them), repeating the pattern
+already recorded for the response source: a correct molecular moment does not
+imply a correct cavity-surface MEP.
+
+Before concluding anything about model quality, the **representation floor** was
+measured by fitting the best possible atom-centred source directly to the QM
+reference
+([`benchmarks/measure_static_source_representation_floor.py`](benchmarks/measure_static_source_representation_floor.py)):
+
+| best achievable fit | eps_F | sum q | max abs q |
+| --- | --- | --- | --- |
+| `l<=1`, free enclosed charge | 0.076329 | +0.0448 e | 0.757 e |
+| `l<=1`, charge-neutral | **0.246061** | 0 | 1.184 e |
+| `l<=2`, free enclosed charge | **0.022590** | +0.0437 e | 0.913 e |
+| `l<=2`, charge-neutral | 0.218312 | 0 | 6.694 e |
+
+**The charge-neutral floor `0.2461` exceeds the derived ceiling `0.1129`.** In
+this representation no source of any kind — MLIP, semi-empirical, or
+all-electron DFT — can pass the gate. The gate has been rejecting candidates
+for a property none of them could have had.
+
+### Why: charge outside the cavity
+
+Imposing the enclosed charge and scanning it gives a sharp minimum:
+
+```
+Q = +0.0000 e -> eps_F = 0.246061
+Q = +0.0437 e -> eps_F = 0.076545      <- minimum
+Q = +0.1000 e -> eps_F = 0.298133
+```
+
+The preferred value is stable across basis size (`+0.0448` at `l<=1`,
+`+0.0437` at `l<=2`, agreeing to 2%), it is a single well-determined degree of
+freedom, and the charge-neutral residual is spatially diffuse rather than
+concentrated at the closest points (mean absolute residual by nearest-atom
+distance quartile: `0.0075 / 0.0084 / 0.0050 / 0.0069`).
+
+That is the signature of **outlying charge**: roughly `0.044 e` of acetone's 32
+electrons — about `0.14%` — lies outside this cavity. An atom-centred source
+constrained to zero net enclosed charge cannot represent a reference that
+includes it, and forcing neutrality drives the coefficients to unphysical
+values (`max|q| = 6.694 e` at `l<=2`). This is the effect COSMO addresses with
+an explicit outlying-charge correction; it is a property of the cavity and the
+representation, not of the source model.
+
+### Consequence
+
+`eps_F` as currently measured conflates two things:
+
+1. genuine source-model error, and
+2. an outlying-charge artifact that no interior source can avoid.
+
+Only (1) is what the gate intends to measure. The gate must therefore either
+allow the enclosed charge as a fitted degree of freedom, apply an
+outlying-charge correction, or move the evaluation surface outward — and then
+re-measure every candidate. Until that is done, no static-MEP rejection on this
+surface, **including the GFN2 rejection upheld in section 5 of this document**,
+distinguishes a bad source from a good source measured badly.
+
+Section 5's arithmetic is unchanged; its scientific weight is not. The derived
+ceiling of section 4 stands, because it is a statement about energy
+propagation, not about this measurement.
+
+### What this does not say
+
+This is one molecule, one cavity, and one reference. It does not establish that
+any MLIP source is adequate; the corrected comparison has not been run. It says
+the existing comparison cannot answer the question. The immediate next step is
+to re-measure all four recorded candidates with the enclosed charge free, which
+requires only the already-computed candidate MEP vectors and no new model run.

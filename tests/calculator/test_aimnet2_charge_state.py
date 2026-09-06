@@ -7,7 +7,12 @@ from ase import Atoms
 
 from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNET2_RAW_CHARGE_TOLERANCE_E,
+    AIMNet2ChargePositionResponse,
+    AIMNet2ChargeState,
     AIMNet2Calculator,
+)
+from maple.function.calculator.aimnet._aimnet2_float64_source import (
+    AIMNet2ReconstructedFloat64SourceCalculator,
 )
 
 
@@ -223,9 +228,7 @@ def test_charge_position_response_differentiates_energy_and_projected_charges(
         atol=2.0e-7,
     )
     expected_charge_vjp = np.zeros((3, 3))
-    expected_charge_vjp[:, 0] = 0.1 * (
-        cotangent - float(np.mean(cotangent))
-    )
+    expected_charge_vjp[:, 0] = 0.1 * (cotangent - float(np.mean(cotangent)))
     np.testing.assert_allclose(
         response.charge_position_vjp_ev_per_angstrom,
         expected_charge_vjp,
@@ -237,14 +240,8 @@ def test_charge_position_response_differentiates_energy_and_projected_charges(
         abs=1.0e-15,
     )
     assert response.charge_cotangent_ev_per_e.flags.writeable is False
-    assert (
-        response.intrinsic_energy_gradient_ev_per_angstrom.flags.writeable
-        is False
-    )
-    assert (
-        response.charge_position_vjp_ev_per_angstrom.flags.writeable
-        is False
-    )
+    assert response.intrinsic_energy_gradient_ev_per_angstrom.flags.writeable is False
+    assert response.charge_position_vjp_ev_per_angstrom.flags.writeable is False
 
 
 def test_charge_position_response_rejects_invalid_cotangent(monkeypatch):
@@ -258,3 +255,133 @@ def test_charge_position_response_rejects_invalid_cotangent(monkeypatch):
             _water(),
             np.zeros((3, 1)),
         )
+
+
+def _float64_response_state(*, energy_ev: float = -12.5) -> AIMNet2ChargeState:
+    return AIMNet2ChargeState(
+        energy_ev=energy_ev,
+        raw_charges_e=np.asarray([-0.7, 0.35, 0.35]),
+        charges_e=np.asarray([-0.7, 0.35, 0.35]),
+        requested_total_charge_e=0.0,
+        raw_charge_residual_e=0.0,
+        charge_projection_per_atom_e=0.0,
+        model_name="aimnet2",
+    )
+
+
+def _float64_response(
+    state: AIMNet2ChargeState,
+    *,
+    intrinsic_energy_gradient_ev_per_angstrom: np.ndarray,
+) -> AIMNet2ChargePositionResponse:
+    return AIMNet2ChargePositionResponse(
+        charge_state=state,
+        charge_cotangent_ev_per_e=np.zeros(3),
+        intrinsic_energy_gradient_ev_per_angstrom=np.asarray(
+            intrinsic_energy_gradient_ev_per_angstrom,
+            dtype=float,
+        ),
+        charge_position_vjp_ev_per_angstrom=np.zeros((3, 3)),
+    )
+
+
+def test_float64_response_reports_embedded_d3_intrinsic_mismatch_when_repeat_passes():
+    calculator = object.__new__(AIMNet2ReconstructedFloat64SourceCalculator)
+    calculator._last_charge_state = None
+    calculator._last_ordinary_decomposed_response_parity = None
+
+    state = _float64_response_state()
+    ordinary = _float64_response(
+        state,
+        intrinsic_energy_gradient_ev_per_angstrom=np.zeros((3, 3)),
+    )
+    decomposed = _float64_response(
+        state,
+        intrinsic_energy_gradient_ev_per_angstrom=np.asarray(
+            [[2.0e-7, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+        ),
+    )
+    repeat = _float64_response(
+        state,
+        intrinsic_energy_gradient_ev_per_angstrom=np.asarray(
+            [[2.0e-7, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+        ),
+    )
+
+    calculator._validated_forward = lambda atoms, requires_grad: (
+        "ordinary",
+        "ordinary",
+    )
+    repeated = iter((("decomp", "decomp"), ("repeat", "repeat")))
+    calculator._validated_decomposed_forward = lambda atoms: next(repeated)
+
+    def _response_from_output(atoms, cotangent, data, output):
+        if output == "ordinary":
+            return ordinary
+        if output == "decomp":
+            return decomposed
+        if output == "repeat":
+            return repeat
+        raise AssertionError(output)
+
+    calculator._response_from_output = _response_from_output
+
+    response = calculator.charge_position_response(_water(), np.zeros(3))
+
+    assert response is decomposed
+    parity = calculator.last_ordinary_decomposed_parity()
+    assert parity["energy_absolute_error_eV"] == pytest.approx(0.0)
+    assert parity["charge_max_absolute_error_e"] == pytest.approx(0.0)
+    assert parity["charge_vjp_max_absolute_error_eV_per_A"] == pytest.approx(0.0)
+    assert parity["intrinsic_gradient_max_absolute_error_eV_per_A"] == pytest.approx(
+        0.0
+    )
+    assert parity[
+        "repeat_intrinsic_gradient_max_absolute_error_eV_per_A"
+    ] == pytest.approx(0.0)
+    assert parity[
+        "ordinary_forward_intrinsic_gradient_report_only_max_absolute_error_eV_per_A"
+    ] == pytest.approx(2.0e-7)
+
+
+def test_float64_response_hard_gates_smooth_repeat_intrinsic_mismatch():
+    calculator = object.__new__(AIMNet2ReconstructedFloat64SourceCalculator)
+    calculator._last_charge_state = None
+    calculator._last_ordinary_decomposed_response_parity = None
+
+    state = _float64_response_state()
+    ordinary = _float64_response(
+        state,
+        intrinsic_energy_gradient_ev_per_angstrom=np.zeros((3, 3)),
+    )
+    decomposed = _float64_response(
+        state,
+        intrinsic_energy_gradient_ev_per_angstrom=np.zeros((3, 3)),
+    )
+    repeat = _float64_response(
+        state,
+        intrinsic_energy_gradient_ev_per_angstrom=np.asarray(
+            [[2.0e-7, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+        ),
+    )
+
+    calculator._validated_forward = lambda atoms, requires_grad: (
+        "ordinary",
+        "ordinary",
+    )
+    repeated = iter((("decomp", "decomp"), ("repeat", "repeat")))
+    calculator._validated_decomposed_forward = lambda atoms: next(repeated)
+
+    def _response_from_output(atoms, cotangent, data, output):
+        if output == "ordinary":
+            return ordinary
+        if output == "decomp":
+            return decomposed
+        if output == "repeat":
+            return repeat
+        raise AssertionError(output)
+
+    calculator._response_from_output = _response_from_output
+
+    with pytest.raises(RuntimeError, match="public-first-order repeat"):
+        calculator.charge_position_response(_water(), np.zeros(3))

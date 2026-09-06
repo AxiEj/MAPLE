@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import hashlib
 import json
-import math
 import os
+import platform
 from pathlib import Path, PurePosixPath
 import tarfile
 import tempfile
@@ -13,7 +14,6 @@ from typing import Any, Iterable
 import urllib.request
 
 import numpy as np
-
 
 REQUIRED_PROTOCOL_KEYS = {
     "schema_version",
@@ -32,6 +32,11 @@ REQUIRED_PROTOCOL_KEYS = {
     "literature",
 }
 HEX = frozenset("0123456789abcdef")
+_SINGLE_THREAD_ENVIRONMENT = (
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+)
 
 
 def canonical_json_bytes(value: Any) -> bytes:
@@ -67,6 +72,87 @@ def write_json_atomic(path: str | os.PathLike[str], value: Any) -> None:
     os.replace(temporary, destination)
 
 
+@contextmanager
+def single_threaded_numerics():
+    """Limit already-loaded BLAS/OpenMP pools for a private evidence run."""
+
+    try:
+        from threadpoolctl import threadpool_limits
+    except ImportError as exc:
+        raise ImportError(
+            "Private numerical evidence requires threadpoolctl to verify and "
+            "limit effective BLAS/OpenMP threads."
+        ) from exc
+    for name in _SINGLE_THREAD_ENVIRONMENT:
+        os.environ[name] = "1"
+    with threadpool_limits(limits=1):
+        yield
+
+
+def numerical_runtime_identity(*, torch_module: Any | None = None) -> dict[str, Any]:
+    """Return a hash-ready identity of effective numerical libraries/threads."""
+
+    try:
+        from threadpoolctl import threadpool_info
+    except ImportError as exc:
+        raise ImportError(
+            "Private numerical evidence requires threadpoolctl runtime inspection."
+        ) from exc
+    pools = []
+    for raw in threadpool_info():
+        count = raw.get("num_threads")
+        if isinstance(count, bool) or not isinstance(count, int) or count != 1:
+            raise RuntimeError(
+                "Private numerical evidence requires every effective BLAS/OpenMP "
+                "thread pool to use exactly one thread."
+            )
+        library = Path(str(raw.get("filepath", ""))).resolve()
+        if not library.is_file():
+            raise RuntimeError("A numerical runtime library path is unavailable.")
+        pools.append(
+            {
+                key: raw.get(key)
+                for key in (
+                    "user_api",
+                    "internal_api",
+                    "num_threads",
+                    "prefix",
+                    "version",
+                    "threading_layer",
+                    "architecture",
+                )
+            }
+            | {
+                "library_path": str(library),
+                "library_sha256": sha256_file(library),
+            }
+        )
+    if not pools:
+        raise RuntimeError("No effective BLAS/OpenMP runtime was detected.")
+    pools.sort(key=lambda item: (str(item["user_api"]), str(item["library_path"])))
+    payload: dict[str, Any] = {
+        "python_implementation": platform.python_implementation(),
+        "python_version": platform.python_version(),
+        "numpy_version": np.__version__,
+        "thread_environment": {
+            name: os.environ.get(name) for name in _SINGLE_THREAD_ENVIRONMENT
+        },
+        "threadpools": pools,
+    }
+    if torch_module is not None:
+        torch_threads = int(torch_module.get_num_threads())
+        torch_interop_threads = int(torch_module.get_num_interop_threads())
+        if torch_threads != 1 or torch_interop_threads != 1:
+            raise RuntimeError(
+                "Private numerical evidence requires one Torch intra-op and "
+                "one Torch inter-op thread."
+            )
+        payload["torch_version"] = str(torch_module.__version__)
+        payload["torch_num_threads"] = torch_threads
+        payload["torch_num_interop_threads"] = torch_interop_threads
+    return payload
+
+
 def load_json(path: str | os.PathLike[str]) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -81,9 +167,13 @@ def load_protocol(path: str | os.PathLike[str]) -> tuple[dict[str, Any], str]:
         raise ValueError("Benchmark protocol must be a JSON object.")
     missing = sorted(REQUIRED_PROTOCOL_KEYS - set(protocol))
     if missing:
-        raise ValueError("Benchmark protocol is missing required keys: " + ", ".join(missing))
+        raise ValueError(
+            "Benchmark protocol is missing required keys: " + ", ".join(missing)
+        )
     if protocol["schema_version"] != 1 or protocol["result_schema_version"] != 1:
-        raise ValueError("Only benchmark protocol/result schema version 1 is supported.")
+        raise ValueError(
+            "Only benchmark protocol/result schema version 1 is supported."
+        )
 
     dataset = protocol["dataset"]
     if not _is_hex(str(dataset.get("commit", "")), 40):
@@ -110,7 +200,11 @@ def load_protocol(path: str | os.PathLike[str]) -> tuple[dict[str, Any], str]:
 
     partition = protocol["partition"]
     fraction = partition.get("development_fraction")
-    if not isinstance(fraction, (int, float)) or isinstance(fraction, bool) or not 0 < fraction < 1:
+    if (
+        not isinstance(fraction, (int, float))
+        or isinstance(fraction, bool)
+        or not 0 < fraction < 1
+    ):
         raise ValueError("development_fraction must be strictly between zero and one.")
     if not str(partition.get("seed", "")):
         raise ValueError("Partition seed must be non-empty.")
@@ -126,7 +220,11 @@ def load_protocol(path: str | os.PathLike[str]) -> tuple[dict[str, Any], str]:
     methods = protocol["methods"]
     for key in ("density_models", "solvation_models"):
         values = methods.get(key)
-        if not isinstance(values, list) or not values or len(values) != len(set(values)):
+        if (
+            not isinstance(values, list)
+            or not values
+            or len(values) != len(set(values))
+        ):
             raise ValueError(f"methods.{key} must be a non-empty unique list.")
     statistics = protocol["statistics"]
     if int(statistics.get("bootstrap_resamples", 0)) <= 0:
@@ -153,7 +251,9 @@ def fetch_and_verify_artifacts(
             if source_dir is not None:
                 source = source_dir / name
                 if not source.is_file():
-                    raise FileNotFoundError(f"Pinned dataset artifact not found in source dir: {source}")
+                    raise FileNotFoundError(
+                        f"Pinned dataset artifact not found in source dir: {source}"
+                    )
                 destination.write_bytes(source.read_bytes())
             else:
                 with urllib.request.urlopen(artifact["url"], timeout=120) as response:
@@ -173,7 +273,12 @@ def safe_extract_tar(archive_path: Path, destination: Path) -> None:
     with tarfile.open(archive_path, "r:gz") as archive:
         for member in archive.getmembers():
             path = PurePosixPath(member.name)
-            if path.is_absolute() or ".." in path.parts or member.issym() or member.islnk():
+            if (
+                path.is_absolute()
+                or ".." in path.parts
+                or member.issym()
+                or member.islnk()
+            ):
                 raise ValueError(f"Unsafe path in dataset archive: {member.name!r}.")
             if not (member.isdir() or member.isfile()):
                 raise ValueError(f"Unsupported archive entry type: {member.name!r}.")
@@ -239,7 +344,11 @@ def rotatable_bond_proxy(atoms) -> int:
 def classify_candidate(atoms, groups: list[str]) -> dict[str, Any]:
     symbols = atoms.get_chemical_symbols()
     heavy = [symbol for symbol in symbols if symbol != "H"]
-    hetero = [symbol for symbol in heavy if symbol != "C" and symbol not in {"F", "Cl", "Br", "I"}]
+    hetero = [
+        symbol
+        for symbol in heavy
+        if symbol != "C" and symbol not in {"F", "Cl", "Br", "I"}
+    ]
     halogen_count = sum(symbol in {"F", "Cl", "Br", "I"} for symbol in heavy)
     rotatable = rotatable_bond_proxy(atoms)
     if halogen_count:
@@ -249,10 +358,16 @@ def classify_candidate(atoms, groups: list[str]) -> dict[str, Any]:
     else:
         element_class = "hydrocarbon"
     heavy_count = len(heavy)
-    size_bin = "small" if heavy_count <= 6 else "medium" if heavy_count <= 12 else "large"
+    size_bin = (
+        "small" if heavy_count <= 6 else "medium" if heavy_count <= 12 else "large"
+    )
     hetero_count = len(hetero) + halogen_count
-    hetero_bin = "zero" if hetero_count == 0 else "one" if hetero_count == 1 else "multiple"
-    flexibility = "rigid" if rotatable == 0 else "limited" if rotatable <= 3 else "flexible"
+    hetero_bin = (
+        "zero" if hetero_count == 0 else "one" if hetero_count == 1 else "multiple"
+    )
+    flexibility = (
+        "rigid" if rotatable == 0 else "limited" if rotatable <= 3 else "flexible"
+    )
     return {
         "elements": sorted(set(symbols)),
         "atom_count": len(symbols),
@@ -269,7 +384,9 @@ def classify_candidate(atoms, groups: list[str]) -> dict[str, Any]:
 
 
 def expected_attempt_ids(
-    candidate_ids: Iterable[str], charge_methods: Iterable[str], gb_models: Iterable[str]
+    candidate_ids: Iterable[str],
+    charge_methods: Iterable[str],
+    gb_models: Iterable[str],
 ) -> list[str]:
     return [
         f"{compound_id}__{charge_method}__{gb_model}"
@@ -281,7 +398,13 @@ def expected_attempt_ids(
 
 def _metric_values(errors: np.ndarray) -> dict[str, float | int | None]:
     if errors.size == 0:
-        return {"n": 0, "mse": None, "mae": None, "rmse": None, "max_absolute_error": None}
+        return {
+            "n": 0,
+            "mse": None,
+            "mae": None,
+            "rmse": None,
+            "max_absolute_error": None,
+        }
     absolute = np.abs(errors)
     return {
         "n": int(errors.size),
@@ -307,7 +430,9 @@ def summarize_errors(
     metrics["expected_count"] = int(expected_count)
     metrics["failure_count"] = int(expected_count - len(values))
     metrics["failure_rate"] = (
-        float((expected_count - len(values)) / expected_count) if expected_count else None
+        float((expected_count - len(values)) / expected_count)
+        if expected_count
+        else None
     )
     if values.size == 0:
         metrics["bootstrap_ci"] = {"mse": None, "mae": None, "rmse": None}
@@ -329,7 +454,9 @@ def summarize_errors(
     return metrics
 
 
-def ensure_confirmation_lock(work_dir: Path, protocol_fingerprint: str) -> dict[str, Any]:
+def ensure_confirmation_lock(
+    work_dir: Path, protocol_fingerprint: str
+) -> dict[str, Any]:
     path = work_dir / "confirmation-lock.json"
     if not path.is_file():
         raise ValueError(
@@ -338,7 +465,9 @@ def ensure_confirmation_lock(work_dir: Path, protocol_fingerprint: str) -> dict[
         )
     lock = load_json(path)
     if lock.get("protocol_fingerprint") != protocol_fingerprint:
-        raise ValueError("Confirmation lock protocol fingerprint does not match this protocol.")
+        raise ValueError(
+            "Confirmation lock protocol fingerprint does not match this protocol."
+        )
     for key in ("proposed_default", "pass_rule", "frozen_at_utc"):
         if not str(lock.get(key, "")).strip():
             raise ValueError(f"Confirmation lock is missing {key}.")

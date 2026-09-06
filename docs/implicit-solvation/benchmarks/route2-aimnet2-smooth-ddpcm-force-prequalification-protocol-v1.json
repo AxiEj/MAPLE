@@ -1,0 +1,103 @@
+{
+  "artifact": "route2-aimnet2-smooth-ddpcm-force-prequalification-protocol-v1",
+  "schema_version": 1,
+  "status": "preregistered-not-executed",
+  "scientific_question": "Does the exact one-shot AIMNet2 vacuum plus smooth-partition ddPCM plus PySCF SMD-CDS total scalar have a reproducible same-scalar first derivative over a target-free multi-solvent stress panel?",
+  "scalar": {
+    "scalar_id": "route2-candidate-aimnet2-frozen-charge-multisolvent-smoothpartitionharmonic-ddpcm-pyscf-smdcds-v1",
+    "profile_id": "route2-profile-candidate-aimnet2-frozen-charge-multisolvent-smoothpartitionharmonic-ddpcm-pyscf-smdcds-v1",
+    "aimnet2_source_evaluation": "one-shot-per-geometry",
+    "aimnet2_runtime_kind": "aimnet-reconstructed-float64-runtime-v4",
+    "aimnet2_multisolvent_provider": "maple.route2.model.aimnet2-frozen-charge-multisolvent-float64.impl.v1",
+    "continuum_field_supplied_to_aimnet2": false,
+    "electronic_scf_iteration": false,
+    "energy_ledger": "E_AIMNet2(R)+G_smooth_ddPCM(R,q_NQE(R))+G_PySCF_SMD_CDS(R)",
+    "gradient_ledger": "grad(E_AIMNet2)+partial_R G_ddPCM+J_q^T partial_q G_ddPCM+grad(G_PySCF_SMD_CDS)",
+    "strict_original_smd_equivalence": false
+  },
+  "selection": {
+    "origin_artifact": "matched-qm-attribution-prereg-v2",
+    "origin_artifact_canonical_sha256": "457cc8e0f870232da0d9a387ccb22866a27ecc4554488406e3a76550d5f022c9",
+    "private_manifest_file_sha256": "eefd04ef6fe908177b6723963f3e166aa2c1a23784c49123122dd4170aa939af",
+    "record_count": 24,
+    "geometry_group_count": 14,
+    "stratum_record_counts": {
+      "high_epsilon_nonwater": 8,
+      "low_epsilon_nonwater": 8,
+      "water": 8
+    },
+    "selection_reads_experimental_targets": false,
+    "selection_reads_aimnet2_or_continuum_outputs": false,
+    "role": "target-free deterministic geometry-space stress panel; not random, representative, iid, unseen, or a population accuracy estimator"
+  },
+  "pinned_inputs": {
+    "mnsol_dataset_zip_sha256": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+    "mnsol_protocol_sha256": "70c34de4b9812f557c123cd124f1b49d4b58e33467e6ba893f4c267b905b9a21",
+    "prior_private_653_sha256": "6e2515b43fa9afc0108fb31a5ecaf45274fcc29ad04ed5a2aac6fcbe5c63dcda",
+    "aimnet2_checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d",
+    "aimnet2_checkpoint_bytes": 11613188
+  },
+  "stages": {
+    "gate0_full_cartesian_canary": {
+      "panel_record_ordinal": 11,
+      "selection_index": 362,
+      "atom_count": 6,
+      "solvent": "water",
+      "mode": "full-cartesian"
+    },
+    "gate1_directional_panel": {
+      "record_count": 24,
+      "directions_per_record": 3,
+      "direction_policy": "translation-and-rotation-projected breathing plus two SHA256-derived geometry-only Cartesian directions"
+    },
+    "gate2_full_cartesian_panel": {
+      "record_count": 24,
+      "directions_per_record": "3N",
+      "opening_condition": "gate0 and gate1 pass without threshold, panel, source-domain, or method changes"
+    }
+  },
+  "finite_difference": {
+    "scheme": "central",
+    "steps_angstrom": [0.0004, 0.0002, 0.0001],
+    "fresh_aimnet2_source_at_every_displaced_geometry": true,
+    "frozen_center_charges_in_stencil": false,
+    "leaves": ["vacuum", "continuum", "electrostatic_total", "nonpolar", "total"]
+  },
+  "thresholds": {
+    "replay_energy_absolute_eV": 1e-10,
+    "replay_source_max_absolute_e": 1e-10,
+    "replay_gradient_max_absolute_eV_per_A": 1e-9,
+    "directional_all_step_max_absolute_eV_per_A": 0.002,
+    "directional_terminal_absolute_eV_per_A": 0.0005,
+    "directional_terminal_relative": 0.002,
+    "directional_relative_denominator_floor_eV_per_A": 0.001,
+    "cartesian_step_rms_eV_per_A": 0.0005,
+    "cartesian_step_max_eV_per_A": 0.002,
+    "observed_central_order_minimum": 1.5,
+    "numerical_plateau_eV_per_A": 0.00005,
+    "terminal_growth_maximum": 1.25,
+    "net_gradient_norm_eV_per_A": 0.00001,
+    "torque_norm_eV": 0.0001,
+    "maximum_algebraic_degree": 192
+  },
+  "source_response_thresholds": {
+    "energy_absolute_error_eV": 1e-6,
+    "charge_max_absolute_error_e": 1e-10,
+    "intrinsic_gradient_max_absolute_error_eV_per_A": 1e-7,
+    "charge_vjp_max_absolute_error_eV_per_A": 1e-10,
+    "repeat_energy_absolute_error_eV": 1e-8,
+    "repeat_charge_max_absolute_error_e": 1e-10,
+    "repeat_intrinsic_gradient_max_absolute_error_eV_per_A": 1e-7,
+    "repeat_charge_vjp_max_absolute_error_eV_per_A": 1e-10
+  },
+  "execution_contract": {
+    "clean_committed_checkout": true,
+    "one_private_shard_per_record": true,
+    "output_below_ignored_omx_only": true,
+    "repeat_in_second_cold_process": true,
+    "negative_results_retained": true,
+    "no_threshold_or_panel_changes_after_results": true
+  },
+  "capabilities": {"E": false, "F": false, "H": false, "V": false, "M": false},
+  "claim_boundary": "Passing is first-derivative prequalification for one disabled fixed-charge comparator only. It does not repair the failed 653-record accuracy result or admit public E/F/H/V/M, OPT, FREQ, TS, IRC, MD, stress, or virial support."
+}

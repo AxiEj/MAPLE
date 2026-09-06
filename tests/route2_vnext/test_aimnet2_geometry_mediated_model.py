@@ -13,6 +13,7 @@ from maple.solvation.api.profiles import (
     AIMNET2_POINT_L0_GEOMETRY_MEDIATED_COUPLING_ID,
 )
 from maple.solvation.models import (
+    AIMNET2_WB97M_D3_FROZEN_CHARGE_MULTISOLVENT_FLOAT64_CONTRACT,
     AIMNET2_WB97M_D3_FROZEN_CHARGE_WATER_FLOAT64_CONTRACT,
     AIMNet2CheckpointContract,
     AIMNet2GeometryMediatedModelAdapter,
@@ -31,6 +32,10 @@ def test_water_frozen_charge_contract_is_float64_and_separately_versioned():
     assert contract.inference_dtype == "float64"
     assert "frozen-charge-water" in contract.provider_id
     assert contract.publication_doi == "10.1039/D4SC08572H"
+    assert (
+        AIMNET2_WB97M_D3_FROZEN_CHARGE_MULTISOLVENT_FLOAT64_CONTRACT.supported_atomic_numbers
+        == (1, 6, 7, 8)
+    )
 
 
 class _FakeAIMNet2Calculator:
@@ -93,6 +98,16 @@ class _FakeAIMNet2Calculator:
             charge_tangent_residual_e_per_angstrom=abs(float(np.sum(charge_jvp))),
         )
 
+    @staticmethod
+    def last_ordinary_decomposed_parity():
+        return {
+            "energy_absolute_error_eV": 1.0e-9,
+            "charge_max_absolute_error_e": 0.0,
+            "intrinsic_gradient_max_absolute_error_eV_per_A": 0.0,
+            "charge_vjp_max_absolute_error_eV_per_A": 0.0,
+            "ordinary_forward_intrinsic_gradient_report_only_max_absolute_error_eV_per_A": 2.0e-7,
+        }
+
 
 class _NoSecondOrderAIMNet2Calculator(_FakeAIMNet2Calculator):
     charge_position_second_order = None
@@ -143,6 +158,12 @@ def test_aimnet2_adapter_embeds_geometry_charges_and_exposes_vacuum_gradient(
     charges = calculator._charges(atoms)
     np.testing.assert_allclose(source.source[:, 0], charges)
     np.testing.assert_array_equal(source.source[:, 1:], 0.0)
+
+    parity = adapter.last_source_response_parity()
+    assert parity["energy_absolute_error_eV"] == pytest.approx(1.0e-9)
+    assert parity[
+        "ordinary_forward_intrinsic_gradient_report_only_max_absolute_error_eV_per_A"
+    ] == pytest.approx(2.0e-7)
     np.testing.assert_allclose(source.fixed_field_forces_eV_per_A, -atoms.positions)
     assert adapter.field_independent is True
     assert adapter.electronic_mutual_polarization is False
@@ -331,6 +352,11 @@ def test_aimnet2_adapter_binds_optional_runtime_provenance(tmp_path):
     adapter = AIMNet2GeometryMediatedModelAdapter(
         calculator, baseline.checkpoint_contract
     )
+
+    exported = adapter.calculator_runtime_provenance()
+    assert exported == runtime
+    exported["source_sha256"] = "f" * 64
+    assert adapter.calculator_runtime_provenance() == runtime
 
     runtime["source_sha256"] = "2" * 64
     with pytest.raises(ValueError, match="runtime provenance drifted"):

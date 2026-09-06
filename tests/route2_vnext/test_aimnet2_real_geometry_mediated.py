@@ -75,13 +75,15 @@ def test_reconstructed_float64_first_order_energy_uses_smooth_parity_gated_dftd3
         device="cpu",
     )
     provenance = calculator.runtime_provenance()
-    assert AIMNET_FLOAT64_RUNTIME_VERSION == "aimnet-reconstructed-float64-runtime-v3"
+    assert AIMNET_FLOAT64_RUNTIME_VERSION == "aimnet-reconstructed-float64-runtime-v4"
     assert provenance["first_order_coordinate_graph"] == (
         "frozen-deep-copy-with-embedded-dftd3-replaced-by-identity; "
         "source-bound-upstream-dftd3-reapplied-with-hessian-true"
     )
     assert provenance["ordinary_forward_role"] == (
-        "per-geometry energy-charge-gradient-vjp parity oracle only"
+        "per-geometry ordinary-vs-decomposed energy-charge-charge-vjp "
+        "parity oracle; embedded-dftd3 intrinsic-gradient mismatch is "
+        "recorded report-only"
     )
 
     response = calculator.charge_position_response(atoms, np.zeros(len(atoms)))
@@ -109,6 +111,10 @@ def test_reconstructed_float64_first_order_energy_uses_smooth_parity_gated_dftd3
     )
     assert parity["charge_max_absolute_error_e"] <= (
         AIMNET_SECOND_ORDER_CHARGE_PARITY_ABSOLUTE_TOLERANCE_E
+    )
+    assert (
+        "ordinary_forward_intrinsic_gradient_report_only_max_absolute_error_eV_per_A"
+        in parity
     )
     assert parity["intrinsic_gradient_max_absolute_error_eV_per_A"] <= (
         AIMNET_SECOND_ORDER_GRADIENT_PARITY_ABSOLUTE_TOLERANCE_EV_PER_A

@@ -15,6 +15,7 @@ Consequently this provider is diagnostic and admits no public capability.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 import hashlib
 import inspect
@@ -644,6 +645,24 @@ class AIMNet2GeometryMediatedModelAdapter:
             )
         return current
 
+    def calculator_runtime_provenance(self) -> dict[str, object]:
+        """Return the validated external calculator-runtime provenance payload."""
+
+        self.configuration_sha256()
+        provider = getattr(self._calculator, "runtime_provenance", None)
+        if not callable(provider):
+            raise NotImplementedError(
+                "This AIMNet2 calculator exposes no runtime provenance payload."
+            )
+        payload = provider()
+        if not isinstance(payload, dict):
+            raise TypeError("AIMNet2 runtime_provenance() must return a dictionary.")
+        if _runtime_provenance_sha256(self._calculator) != (
+            self._calculator_runtime_provenance_sha256
+        ):
+            raise ValueError("AIMNet2 runtime provenance drifted.")
+        return copy.deepcopy(payload)
+
     def neighbor_topology(self, atoms: object) -> AIMNet2NeighborTopologyState:
         """Return hard neighbor membership and distance from every cutoff event.
 
@@ -690,6 +709,34 @@ class AIMNet2GeometryMediatedModelAdapter:
             active_pairs_by_graph=tuple(active),
             minimum_cutoff_margin_angstrom=min(margins) if margins else None,
         )
+
+    def last_source_response_parity(self) -> dict[str, float]:
+        """Return the source runtime's most recent first-order parity ledger."""
+
+        self.configuration_sha256()
+        provider = getattr(self._calculator, "last_ordinary_decomposed_parity", None)
+        if not callable(provider):
+            raise NotImplementedError(
+                "This AIMNet2 source runtime exposes no first-order parity ledger."
+            )
+        raw = provider()
+        if not isinstance(raw, dict) or not raw:
+            raise ValueError("AIMNet2 source-response parity ledger is malformed.")
+        result: dict[str, float] = {}
+        for name, value in raw.items():
+            number = float(value)
+            if (
+                not isinstance(name, str)
+                or not name
+                or not math.isfinite(number)
+                or number < 0.0
+            ):
+                raise ValueError(
+                    "AIMNet2 source-response parity entries must be named, "
+                    "finite, and non-negative."
+                )
+            result[name] = number
+        return result
 
     def _charge_state(self, atoms: object) -> object:
         self.configuration_sha256()

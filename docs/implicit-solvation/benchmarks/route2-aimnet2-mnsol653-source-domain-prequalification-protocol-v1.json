@@ -1,0 +1,85 @@
+{
+    "artifact": "route2-aimnet2-mnsol653-source-domain-prequalification-protocol-v1",
+    "schema_version": 1,
+    "status": "preregistered-not-executed",
+    "scientific_question": "Does the source-bound AIMNet2 float64 runtime expose finite, charge-conserving, repeat-parity-gated first-order energy and NQE-charge coordinate response for every atomic number actually present in the frozen 653-record MNSol matrix?",
+    "runtime": {
+        "kind": "aimnet-reconstructed-float64-runtime-v4",
+        "checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d",
+        "checkpoint_bytes": 11613188,
+        "charge_head": "output['charges'] after upstream NSE plus MAPLE affine numerical-residue cleanup",
+        "continuum_field_supplied_to_aimnet2": false,
+        "electronic_scf_iteration": false
+    },
+    "selection": {
+        "expected_atomic_numbers": [
+            1,
+            6,
+            7,
+            8,
+            9,
+            15,
+            16,
+            17,
+            35,
+            53
+        ],
+        "expected_geometry_count": 15,
+        "base_geometry_policy": "first occurrence of each geometry_sha256 in the frozen 24-record target-free matched-QM attribution panel",
+        "coverage_completion_policy": "for each still-missing atomic number in ascending order, select the not-yet-selected 653-panel geometry minimizing (geometry_sha256, opaque_record_id); one geometry may close multiple elements",
+        "selection_reads_experimental_targets": false,
+        "selection_reads_aimnet2_or_continuum_outputs": false,
+        "reselection_after_any_result": false,
+        "role": "source-domain derivative availability audit only; not random, representative, iid, unseen, or a population accuracy estimator"
+    },
+    "response": {
+        "charge_cotangent_policy": "normalized zero-mean linear atom-index ramp; geometry/target/model-output independent",
+        "requested_total_charge_e": 0,
+        "multiplicity": 1,
+        "ordinary_vs_decomposed_hard_gates": [
+            "energy",
+            "charges",
+            "charge_position_vjp"
+        ],
+        "ordinary_embedded_dftd3_intrinsic_gradient_difference": "report-only",
+        "decomposed_repeat_hard_gates": [
+            "energy",
+            "charges",
+            "intrinsic_gradient",
+            "charge_position_vjp"
+        ]
+    },
+    "thresholds": {
+        "raw_charge_residual_absolute_e": 0.0001,
+        "projected_charge_sum_absolute_e": 1e-10,
+        "ordinary_decomposed_energy_absolute_eV": 1e-6,
+        "ordinary_decomposed_charge_max_absolute_e": 1e-10,
+        "ordinary_decomposed_charge_vjp_max_absolute_eV_per_A": 1e-10,
+        "decomposed_repeat_energy_absolute_eV": 1e-8,
+        "decomposed_repeat_charge_max_absolute_e": 1e-10,
+        "decomposed_repeat_intrinsic_gradient_max_absolute_eV_per_A": 1e-7,
+        "decomposed_repeat_charge_vjp_max_absolute_eV_per_A": 1e-10
+    },
+    "pinned_inputs": {
+        "mnsol_dataset_zip_sha256": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+        "mnsol_protocol_sha256": "70c34de4b9812f557c123cd124f1b49d4b58e33467e6ba893f4c267b905b9a21",
+        "prior_private_653_sha256": "6e2515b43fa9afc0108fb31a5ecaf45274fcc29ad04ed5a2aac6fcbe5c63dcda",
+        "selection_manifest_file_sha256": "eefd04ef6fe908177b6723963f3e166aa2c1a23784c49123122dd4170aa939af",
+        "selection_manifest_canonical_sha256": "457cc8e0f870232da0d9a387ccb22866a27ecc4554488406e3a76550d5f022c9"
+    },
+    "execution_contract": {
+        "clean_committed_checkout": true,
+        "private_output_below_ignored_omx_only": true,
+        "all_selected_geometries_attempted": true,
+        "negative_results_retained": true,
+        "no_domain_widening_before_a_passing_hash_bound_artifact": true
+    },
+    "capabilities": {
+        "E": false,
+        "F": false,
+        "H": false,
+        "V": false,
+        "M": false
+    },
+    "claim_boundary": "Passing proves only source-runtime first-order availability over the exact 653-panel element union. It does not prove solvation accuracy, same-total-scalar forces, public E/F/H/V/M, OPT, FREQ, TS, IRC, MD, stress, or virial support."
+}

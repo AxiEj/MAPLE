@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-3drism-single-solvent-pilot-v1",
+  "status": "research_only_not_accuracy_validated",
+  "claim_scope": "Label-free numerical qualification of one fixed-geometry solute with one all-site cSPCE water susceptibility and the AmberTools 3D-RISM-KH solver. This is not an MNSol/FreeSolv score, a non-water solvent result, a force result, a runtime provider, or evidence for the requested 15-solvent accuracy target.",
+  "route1_boundary": {
+    "gas_phase_mm_energy_reported": false,
+    "bonded_mm_energy_reported": false,
+    "experimental_solvation_labels_loaded": false,
+    "experimental_residual_fit": false,
+    "energy_calibration": false,
+    "endpoint_selection_from_labels": false,
+    "mlip_retraining": false,
+    "product_runtime_change": false,
+    "solute_charge_source": "frozen AM1-BCC charges"
+  },
+  "solute": {
+    "compound_id": "mobley_1017962",
+    "description": "One existing fixed-geometry methyl-hexanoate benchmark input; no hydration label is read.",
+    "mol2": "route1-mm-reference-reweighting-raw/inputs/mobley_1017962/m.mol2",
+    "mol2_sha256": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+    "topology_model": "GAFF2 atom types and Lennard-Jones parameters with the MOL2 AM1-BCC charge column",
+    "topology_is_solute_solvent_interaction_input_only": true
+  },
+  "solvent_asset": {
+    "asset_contract": "route1_custom_solvent_asset_contract_v1.json",
+    "asset_contract_sha256": "9bf7e40bfe3cc46538931ab89ae3eccf91d6ba9a61b9f7c65c24d1b4a239fe66",
+    "amber_data_subdirectory": "rism1d/cSPCE",
+    "files": {
+      "mdl": {
+        "name": "cSPCE.mdl",
+        "sha256": "bbb50363d96bb8a377840d9e355995b3a76e55e178c8a24e46b4b43c92a31ddd"
+      },
+      "rism1d_input": {
+        "name": "cSPCE.inp",
+        "sha256": "319d02d0b18ec76944eb604fa4459dbcea3ff8da446afe2f731f507fdc7bc5d1"
+      },
+      "xvv": {
+        "name": "cSPCE_pse3.xvv",
+        "sha256": "9e6cc013756b0fc9af24550112e11323b68f152fa8a3ca111db6bf2924dcdbc6"
+      }
+    },
+    "manifest": {
+      "schema_version": 1,
+      "manifest_kind": "route1-custom-solvent-3drism-asset",
+      "solvent": {
+        "canonical_name": "water-cSPCE",
+        "temperature_kelvin": 298.0,
+        "pressure_bar": 1.0,
+        "dielectric_constant": 78.497,
+        "species_density_angstrom_minus3": 0.03332951556615,
+        "standard_state": {
+          "provider_output": "excess_chemical_potential",
+          "benchmark_target": "1M_ideal_gas_to_1M_ideal_solution",
+          "conversion_status": "not_yet_applied"
+        }
+      },
+      "site_types": [
+        {
+          "name": "O",
+          "multiplicity": 1,
+          "mass_amu": 16.0,
+          "charge_e": -0.8476,
+          "lj_epsilon_kcal_mol": 0.1553,
+          "lj_size_angstrom": 1.7767
+        },
+        {
+          "name": "H1",
+          "multiplicity": 2,
+          "mass_amu": 1.008,
+          "charge_e": 0.4238,
+          "lj_epsilon_kcal_mol": 0.01553,
+          "lj_size_angstrom": 0.654237952
+        }
+      ],
+      "site_coordinates_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.333314,
+          0.942816,
+          0.0
+        ]
+      ],
+      "rism": {
+        "theory": "drism",
+        "closure": "pse3",
+        "grid_spacing_angstrom": 0.025,
+        "grid_points": 16384
+      },
+      "assets": {
+        "mdl": {
+          "relative_path": "cSPCE.mdl",
+          "sha256": "bbb50363d96bb8a377840d9e355995b3a76e55e178c8a24e46b4b43c92a31ddd"
+        },
+        "rism1d_input": {
+          "relative_path": "cSPCE.inp",
+          "sha256": "319d02d0b18ec76944eb604fa4459dbcea3ff8da446afe2f731f507fdc7bc5d1"
+        },
+        "xvv": {
+          "relative_path": "cSPCE_pse3.xvv",
+          "sha256": "9e6cc013756b0fc9af24550112e11323b68f152fa8a3ca111db6bf2924dcdbc6"
+        }
+      },
+      "provenance": {
+        "molecular_model_reference": "AmberTools 26 bundled cSPC/E water asset; bundled README states derivation from the Amber SPC model.",
+        "susceptibility_generation": {
+          "generator": "rism1d",
+          "executable_version": "AmberTools 26 bundled precomputed PSE3 susceptibility",
+          "source_inputs_immutable": true
+        }
+      },
+      "containment": {
+        "experimental_values_loaded": false,
+        "experimental_residual_fit": false,
+        "endpoint_selection": false,
+        "energy_calibration": false,
+        "runtime_provider_enabled": false,
+        "accuracy_claim": "none"
+      }
+    }
+  },
+  "solver": {
+    "executable": "rism3d.snglpnt",
+    "topology_executables": [
+      "parmchk2",
+      "tleap"
+    ],
+    "closure_3d": "kh",
+    "maximum_steps": 10000,
+    "primary_quantity": "rism_excessChemicalPotential",
+    "primary_convention": "raw_kh_excess_chemical_potential",
+    "diagnostic_quantities": [
+      "rism_excessChemicalPotentialGF",
+      "rism_excessChemicalPotentialPCPLUS",
+      "rism_partialMolarVolume"
+    ],
+    "pc_plus_is_primary": false,
+    "standard_state_conversion_applied": false,
+    "forces_requested": false,
+    "solute_potential_energy_reported": false
+  },
+  "cases": [
+    {
+      "id": "grid_sensitivity",
+      "grid_spacing_angstrom": 0.35,
+      "buffer_angstrom": 14.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "grid",
+      "maximum_primary_difference_kcal_mol": 0.02
+    },
+    {
+      "id": "buffer_sensitivity",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 12.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "buffer",
+      "maximum_primary_difference_kcal_mol": 0.01
+    },
+    {
+      "id": "tolerance_sensitivity",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 14.0,
+      "tolerance": 0.0001,
+      "comparison_to_reference": "tolerance",
+      "maximum_primary_difference_kcal_mol": 0.005
+    },
+    {
+      "id": "reference",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 14.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "self",
+      "maximum_primary_difference_kcal_mol": 0.0
+    },
+    {
+      "id": "reference_repeat",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 14.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "independent_process_determinism",
+      "maximum_primary_difference_kcal_mol": 1e-08
+    }
+  ],
+  "admission": {
+    "reference_case": "reference",
+    "all_cases_must_converge": true,
+    "all_case_thresholds_must_pass": true,
+    "asset_audit_status_required": "physical_asset_consistent_not_accuracy_validated",
+    "next_gate": "independent_review_then_one_predeclared_nonwater_asset_pilot",
+    "result_if_passed": "one_water_solver_pilot_numerically_qualified_not_accuracy_validated",
+    "result_if_failed": "pilot_failed_no_provider_or_accuracy_claim"
+  },
+  "prohibited_interpretations": [
+    "No experimental hydration value is read, fit, scored, or used to choose an endpoint.",
+    "The internally evaluated MM terms are not extracted or included in the reported Route 1 quantity.",
+    "The PC+ diagnostic is not the primary physical claim and cannot be selected after labels.",
+    "One water solute cannot establish water accuracy, non-water support, 15-solvent accuracy, ranking, force, optimization, sampling, or production readiness."
+  ]
+}

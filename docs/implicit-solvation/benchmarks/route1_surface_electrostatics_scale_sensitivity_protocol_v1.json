@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-surface-electrostatics-scale-sensitivity-v1",
+  "designation": "post-v1 reviewer-informed adversarial sensitivity analysis",
+  "claim_scope": "Development-only statistical sensitivity analysis testing whether the v1 exposed-surface field association survives control for the frozen CHA polar-energy magnitude and surface area. The design was created after the v1 result and is not an independent confirmation, an energy model, a residual correction, a first-shell mechanism proof, or a ranking claim.",
+  "historical_boundary": {
+    "v1_result_was_seen_before_this_design": true,
+    "independent_confirmation": false,
+    "source_artifacts_contain_historical_experimental_labels": true,
+    "experimental_hydration_values_referenced_by_runner": false,
+    "published_explicit_charging_is_experimental_truth": false,
+    "radius_profile_agreement_is_independent_replication": false,
+    "no_energy_fit": true,
+    "no_residual_correction": true,
+    "no_endpoint_selection": true,
+    "no_radius_selection": true,
+    "no_provider_implementation": true,
+    "no_threshold_tuning": true,
+    "no_first_shell_causal_claim": true,
+    "no_ranking_certification": true
+  },
+  "source_evidence": {
+    "expected_case_count": 526,
+    "source_partition": "development",
+    "surface_artifact": "docs/implicit-solvation/benchmarks/route1-freesolv-surface-electrostatics-label-free-2026-07-29.json",
+    "surface_artifact_sha256": "d8998bd8f4a7a01405b19066b7566290f724e2a90087bac4c267f0db18b274b2",
+    "surface_artifact_content_sha256": "dae9d6869eef3861e2782e940b183e87e4f2043b9575eb021d1575fdea7d1cf6",
+    "component_mismatch_artifact": "docs/implicit-solvation/benchmarks/route1-freesolv-explicit-component-diagnostic-2026-07-29.json",
+    "component_mismatch_artifact_sha256": "79c34b684ea544c3c4f7451aa3e6927faadc44f0e1ca50ff735ff3ea57151bd4",
+    "component_mismatch_artifact_content_sha256": "20bc79047836527a0cbef34fcdd5153e8d383c3622ff1a3c6b0762b15bf86bd9",
+    "component_energy_artifact": "docs/implicit-solvation/benchmarks/route1-chagb-component-attribution-2026-07-25.json",
+    "component_energy_artifact_sha256": "a40b4cf76e55e7ed55b86dbc5bcb44a2c24ac3735abd45f4da8c89ddf9a0f0ab",
+    "component_energy_artifact_content_sha256": "52f5dbf0ab53bccb50478bcc20c2fc7b5b1fe2a578cad475929de96987821272",
+    "prepared_identity_artifact": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/prepared.json",
+    "prepared_identity_artifact_sha256": "e82f328d8b6a989dfc6367dc7b0c3019bbb09c0cb5929429202732e201d53bd7"
+  },
+  "variables": {
+    "outcome": "Y_i=abs(G_CHA,polar,i-G_published,charging,i)",
+    "primary_scale_control": "Z_i=abs(G_CHA,polar,i)",
+    "geometry_control": "A_i=surface_area_angstrom2",
+    "candidate_proxies": [
+      "Fn2",
+      "Phi2"
+    ],
+    "radius_profiles": [
+      "primary Bondi-family SAS proxy",
+      "control mbondi2 SAS proxy"
+    ]
+  },
+  "statistics": {
+    "primary": [
+      "partial Spearman(Y,Fn2 | rank(Z),rank(A))",
+      "partial Spearman(Y,Phi2 | rank(Z),rank(A))"
+    ],
+    "secondary": [
+      "partial Spearman(Y,Fn2 | rank(Z))",
+      "partial Spearman(Y,Phi2 | rank(Z))"
+    ],
+    "descriptive_stratification": "Within each of four deterministic equal-count strata sorted by (Z,compound_id), report Spearman(Y,Fn2) and Spearman(Y,Phi2).",
+    "partial_rank_definition": "Pearson correlation of rank residuals after weighted least-squares projection on an intercept and the listed control ranks. This is a diagnostic statistic and never modifies an energy.",
+    "bootstrap_unit": "structure_group_sha256",
+    "bootstrap_resamples": 5000,
+    "bootstrap_seed": 2718,
+    "familywise_confidence_level": 0.95,
+    "family_size_per_radius_profile": 2,
+    "interval": "two-sided percentile interval with Bonferroni tail probability alpha/(2*2)",
+    "p_values_reported": false,
+    "predictive_model_fit": false
+  },
+  "decision_rule": {
+    "both_primary_partial_intervals_include_zero": "scale_association_only_stop_surface_proxy_to_provider_inference",
+    "any_primary_partial_interval_excludes_zero_but_radius_profiles_disagree": "surface_definition_sensitive_or_unresolved",
+    "same_primary_partial_interval_excludes_zero_with_same_sign_in_both_radius_profiles": "candidate_for_new_pre_registered_independent_confirmation_only",
+    "energy_correction_allowed": false,
+    "provider_implementation_allowed": false,
+    "endpoint_selection_allowed": false,
+    "radius_selection_allowed": false,
+    "parameter_update_allowed": false,
+    "ranking_certification_allowed": false,
+    "multisolvent_claim_allowed": false,
+    "maximum_error_claim_allowed": false
+  }
+}

@@ -73,12 +73,22 @@
     {
       "path": "maple/function/calculator/extra_correction/implicit/amber_chagb.py",
       "historical_sha256": [
-        "151573f30a0c65f4dd67487d68deded2e7474262e3e4e77ab84c15ba40aca715"
+        "151573f30a0c65f4dd67487d68deded2e7474262e3e4e77ab84c15ba40aca715",
+        "e02ad1e74fbbf7d3969681da34fd04d1f4f4879729a878bf354f69b36264484c",
+        "7874d57cb58e4e0e9c01d26a883e5c48da2543ef8c20f837eeaef5f4f6162b0a",
+        "d874aec3e661ad9786545ac0c5daa976c3c5f9a67081cc60c25c1f044161d6e0"
       ],
-      "current_sha256": "e02ad1e74fbbf7d3969681da34fd04d1f4f4879729a878bf354f69b36264484c",
-      "change_class": "citation-and-parameter-source-ledger-without-formula-change",
+      "current_sha256": "b9fa7b55cc4a94d441152f71dcd8a52bb837ac1dfc103612306d116cd76285aa",
+      "change_class": "prepared-topology-coordinate-only-runtime-optimization-with-live-component-parity",
       "historical_numerical_results_recomputed": false,
-      "scientific_claim_reuse_authorized": false
+      "scientific_claim_reuse_authorized": false,
+      "reason": "The runtime now prepares the typed MOL2, frcmod, and prmtop once per provider instance from its construction-coordinate identity, then writes only coordinates for each GBNSR6/PBSA call. The formula, fixed charges, atom types, radii, components, SP-only boundary, and force rejection are unchanged. Historical artifacts remain byte-for-byte unchanged and are not reused as proof for this implementation.",
+      "postchange_evidence": {
+        "path": "docs/implicit-solvation/benchmarks/route1-chagb-prepared-provider-parity-2026-07-29.json",
+        "content_sha256": "8a93a2f084001d1233b1a1bae0a2812231a946c4f40f96c020a01ed1f8987c40",
+        "validated_date": "2026-07-29",
+        "scope": "one pinned fixed-charge molecule, three rigid translations, and one nonrigid coordinate probe; component parity plus cold/warm latency only"
+      }
     },
     {
       "path": "maple/function/calculator/extra_correction/implicit/apbs_pb.py",
@@ -230,5 +240,6 @@
       "scientific_claim_reuse_authorized": false
     }
   ],
-  "content_sha256": "67ab26c78e2b14ee25dfe38f8412bd88d2e6446469d8aef3cda59a0dddfdde5a"
+  "content_sha256": "c1ef168c23f070adc65c61ff80eca6be98b38d83bae2367339c83e5277e49184",
+  "last_updated_date": "2026-07-29"
 }

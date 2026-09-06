@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-charge-continuity-diagnostic-v1",
+  "claim_scope": "Retrospective, label-exposed diagnostic over 65 strict heavy-atom matched-pair edges from the already frozen 116-case FreeSolv water reserve. Pair edges enumerate only non-uniquified embeddings of the single SMARTS returned by RDKit FindMCS; distinct non-isomorphic maximum-MCS patterns are not enumerated. It asks whether within-AM1-BCC remote-heavy-atom charge drift co-varies descriptively with fixed-endpoint delta-delta-G error. Pair edges share molecules and graph components, so they are not independent observations. This is not a charge-model comparison, fitted correction, causal attribution, threshold calibration, endpoint selection, protein-ligand ranking result, broad-solvent validation, or certified-ranking claim.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "evaluation_design": {
+    "designation": "label-exposed-retrospective-charge-continuity-diagnostic",
+    "historical_label_exposure": true,
+    "pair_phase_reads_labels": false,
+    "diagnostic_phase_reads_labels": true,
+    "selection_reads_labels": false,
+    "pair_edges_are_independent": false,
+    "independent_blind_confirmation": false,
+    "charge_model_comparison_available": false,
+    "certified_ranking_available": false,
+    "no_fit": true,
+    "no_residual": true,
+    "no_endpoint_selection": true,
+    "no_threshold_tuning": true
+  },
+  "pair_mapping_boundary": {
+    "mcs_pattern_enumeration": "single_rdkit_findmcs_smarts_only",
+    "distinct_maximum_mcs_patterns_audited": false,
+    "mapping_enumeration_scope": "cross_product_of_nonuniquified_embeddings_of_single_rdkit_findmcs_smarts"
+  },
+  "source_evidence": {
+    "source_manifest": "route1_freesolv_reserve_source_manifest.json",
+    "source_manifest_sha256": "24969fefd4e41b18f6f7c7c85523d2ec9bc888ecee882c75783e8526a95f1c81",
+    "energy_artifact": "route1-freesolv-reserve-energy-2026-07-25.json",
+    "energy_artifact_sha256": "dbfaac870c0d3c93d46891ad5d1554c6c5a80fa6e5967ba9afe8b9cc80956787",
+    "energy_artifact_content_sha256": "edca6a2be686059041f9a12f7a76371da01d81679377a1711e47f6e23d0c702d",
+    "score_artifact": "route1-freesolv-reserve-score-2026-07-25.json",
+    "score_artifact_sha256": "1902a97d77b576c9ab464e2dd9459552e8643392e46c7b4d6056b02e70b764b2",
+    "score_artifact_content_sha256": "073ae9eab5158c82f250ef9db92e8d83ca191a1bd7b30666ed95009690cd5f66",
+    "pair_protocol": "route1_charge_continuity_protocol_v1.json",
+    "pair_protocol_sha256": "01009105334d45fd7998a7ac200eb5d00694dfabf6cb9cf63130e77c5e2db4f2",
+    "pair_artifact": "route1-freesolv-reserve-charge-continuity-pairs-2026-07-29.json",
+    "pair_artifact_sha256": "ac630294091e6de63ddb069ba4d30ef2d34f7998c905e4bbadce7b94f01d6275",
+    "pair_artifact_content_sha256": "0311b4f5a0e4b3b0bbd4e3d745904313d02d9dc9ac3efc56c2240c0e18cb2282",
+    "expected_case_count": 116,
+    "expected_pair_count": 65
+  },
+  "endpoints": [
+    "am1bcc_obc2_ace",
+    "am1bcc_chagb_pbsa_cavity_dispersion"
+  ],
+  "diagnostic_statistics": {
+    "lower_value_is_better": true,
+    "fixed_experimental_delta_thresholds_kcal_mol": [
+      0.5,
+      1.0,
+      2.0
+    ],
+    "experimental_uncertainty_z": 1.96,
+    "charge_drift_metrics": [
+      "remote_heavy_atom_charge_l2_e",
+      "remote_heavy_atom_charge_rms_e",
+      "remote_heavy_atom_charge_max_abs_e"
+    ],
+    "reported_pair_metrics": [
+      "forced_sign_accuracy",
+      "answered_sign_accuracy",
+      "delta_delta_mae_kcal_mol",
+      "delta_delta_rmse_kcal_mol"
+    ],
+    "reported_descriptive_association": "spearman_rho_charge_drift_vs_absolute_delta_delta_error",
+    "p_values_reported": false,
+    "confidence_intervals_reported": false,
+    "regression_fit_reported": false,
+    "bootstrap_performed": false
+  },
+  "pre_registered_decision_rule": {
+    "conclusion": "diagnostic_signal_only_insufficient_for_threshold_or_certification",
+    "endpoint_selection_allowed": false,
+    "charge_method_selection_allowed": false,
+    "energy_correction_allowed": false,
+    "abstention_threshold_selection_allowed": false,
+    "certified_order_allowed": false,
+    "failure_action": "Report descriptive diagnostic aggregates only; do not alter energies, select an endpoint or charge method, tune an abstention threshold, infer causality, or claim certified ranking."
+  }
+}

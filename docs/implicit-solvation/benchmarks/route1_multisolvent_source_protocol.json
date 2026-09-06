@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-mnsol-multisolvent-source-audit-v1",
+  "benchmark_kind": "route1-mnsol-multisolvent-source-audit",
+  "claim_scope": "Pre-registered label-free source and geometry audit for a Route 1 multi-solvent evaluation. It establishes only that the selected MNSol-v2012 solvent panel has neutral absolute records and matching supplied geometries. It does not read experimental DeltaGsolv values into records or artifacts, fit or tune a model, run a solvent calculation, score an error, select a method, or claim that any accuracy target has been met.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "dataset": {
+    "name": "Minnesota Solvation Database",
+    "version": "2012",
+    "doi": "10.13020/3eks-j059",
+    "homepage": "https://comp.chem.umn.edu/mnsol/",
+    "manual": "https://comp.chem.umn.edu/mnsol/MNSol-v2012_Manual.pdf",
+    "acquisition_policy": "user-supplied-no-auto-download",
+    "redistribution_policy": "MAPLE does not redistribute the MNSol archive or row-level data.",
+    "license_note": "The official MNSol site states that academic, government, and non-profit use is free, while commercial use requires a separate license; this audit therefore binds only a user-supplied archive.",
+    "archive": {
+      "name": "MNSolDatabase_v2012.zip",
+      "sha256": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+      "size_bytes": 6277260
+    },
+    "table": {
+      "name": "MNSol_alldata.txt",
+      "sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156",
+      "size_bytes": 672925,
+      "expected_rows": 3037
+    }
+  },
+  "panel": [
+    {
+      "canonical_name": "water",
+      "mnsol_name": "water",
+      "expected_all_records": 533,
+      "expected_neutral_absolute_records": 390,
+      "rationale": "High-dielectric protic reference; its final confirmation must remain separate from label-exposed FreeSolv work."
+    },
+    {
+      "canonical_name": "ethanol",
+      "mnsol_name": "ethanol",
+      "expected_all_records": 8,
+      "expected_neutral_absolute_records": 8,
+      "rationale": "Protic polar nonaqueous solvent."
+    },
+    {
+      "canonical_name": "acetonitrile",
+      "mnsol_name": "acetonitrile",
+      "expected_all_records": 76,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Polar aprotic solvent with ionic entries excluded from the neutral Route 1 gate."
+    },
+    {
+      "canonical_name": "dimethylsulfoxide",
+      "mnsol_name": "dimethylsulfoxide",
+      "expected_all_records": 78,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Strongly polar aprotic hydrogen-bond acceptor."
+    },
+    {
+      "canonical_name": "dimethylformamide",
+      "mnsol_name": "dimethylformamide",
+      "expected_all_records": 7,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Polar aprotic amide solvent."
+    },
+    {
+      "canonical_name": "tetrahydrofuran",
+      "mnsol_name": "tetrahydrofuran",
+      "expected_all_records": 7,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Moderate-polarity ether solvent."
+    },
+    {
+      "canonical_name": "chloroform",
+      "mnsol_name": "chloroform",
+      "expected_all_records": 109,
+      "expected_neutral_absolute_records": 109,
+      "rationale": "Low-dielectric halogenated solvent with a substantial neutral panel."
+    },
+    {
+      "canonical_name": "dichloromethane",
+      "mnsol_name": "methylenechloride",
+      "expected_all_records": 11,
+      "expected_neutral_absolute_records": 11,
+      "rationale": "Halogenated solvent with intermediate dielectric response."
+    },
+    {
+      "canonical_name": "toluene",
+      "mnsol_name": "toluene",
+      "expected_all_records": 51,
+      "expected_neutral_absolute_records": 51,
+      "rationale": "Low-dielectric aromatic solvent."
+    },
+    {
+      "canonical_name": "hexane",
+      "mnsol_name": "hexane",
+      "expected_all_records": 59,
+      "expected_neutral_absolute_records": 59,
+      "rationale": "Low-dielectric aliphatic hydrocarbon solvent."
+    },
+    {
+      "canonical_name": "cyclohexane",
+      "mnsol_name": "cyclohexane",
+      "expected_all_records": 92,
+      "expected_neutral_absolute_records": 92,
+      "rationale": "Nonaromatic low-dielectric cyclic hydrocarbon."
+    },
+    {
+      "canonical_name": "diethyl ether",
+      "mnsol_name": "diethylether",
+      "expected_all_records": 72,
+      "expected_neutral_absolute_records": 72,
+      "rationale": "Low-to-moderate-polarity ether solvent."
+    },
+    {
+      "canonical_name": "1-octanol",
+      "mnsol_name": "octanol",
+      "expected_all_records": 247,
+      "expected_neutral_absolute_records": 247,
+      "rationale": "Long-chain amphiphilic alcohol that contrasts water's solvent response."
+    },
+    {
+      "canonical_name": "ethyl acetate",
+      "mnsol_name": "ethylacetate",
+      "expected_all_records": 24,
+      "expected_neutral_absolute_records": 24,
+      "rationale": "Ester solvent with a distinct carbonyl-rich local response."
+    },
+    {
+      "canonical_name": "nitrobenzene",
+      "mnsol_name": "nitrobenzene",
+      "expected_all_records": 15,
+      "expected_neutral_absolute_records": 15,
+      "rationale": "Polar aromatic solvent not representable by dielectric screening alone."
+    }
+  ],
+  "evaluation_design": {
+    "experimental_values_loaded": false,
+    "fit_or_tuning_allowed": false,
+    "source_rows_redistributed": false,
+    "pooled_random_split_is_sufficient": false,
+    "per_solvent_reporting_required": true,
+    "leave_one_solvent_out_sensitivity_required": true
+  },
+  "literature": {
+    "database": "Marenich, Cramer, and Truhlar, Minnesota Solvation Database, MNSol-v2012 manual and DOI 10.13020/3eks-j059.",
+    "standard_state": "MNSol-v2012 reports solvation and transfer free energies at the 1 M ideal-gas to 1 M ideal-solution standard state; any later score must preserve that convention.",
+    "selection_boundary": "This coverage gate is deliberately pre-score and cannot be used to select a method from experimental values."
+  }
+}

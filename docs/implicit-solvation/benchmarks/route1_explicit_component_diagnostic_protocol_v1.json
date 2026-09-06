@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-explicit-component-diagnostic-v1",
+  "claim_scope": "Retrospective, label-exposed diagnostic over the frozen 526-case FreeSolv development partition. It compares the fixed AM1-BCC CHA-GB polar and PBSA(inp=2) cavity/dispersion components with the published FreeSolv calculated charging and van-der-Waals components for the same compound identifiers. The published calculation is an auxiliary force-field/sampling decomposition, not experimental truth. This audit does not fit, select, calibrate, correct, replace, or certify any endpoint; it only separates disagreement with experiment into an explicit-reference residual and a continuum-endpoint-versus-explicit-reference residual, subject to published-component rounding.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "evaluation_design": {
+    "designation": "label-exposed-retrospective-component-diagnostic",
+    "historical_label_exposure": true,
+    "endpoint_energy_phase_reads_labels": false,
+    "diagnostic_phase_reads_labels": true,
+    "selection_reads_labels": false,
+    "independent_blind_confirmation": false,
+    "published_explicit_calculation_is_experimental_truth": false,
+    "no_fit": true,
+    "no_residual": true,
+    "no_endpoint_selection": true,
+    "no_threshold_tuning": true,
+    "no_force_claim": true,
+    "no_ranking_certification": true
+  },
+  "source_evidence": {
+    "component_artifact": "route1-chagb-component-attribution-2026-07-25.json",
+    "component_artifact_sha256": "a40b4cf76e55e7ed55b86dbc5bcb44a2c24ac3735abd45f4da8c89ddf9a0f0ab",
+    "component_artifact_content_sha256": "52f5dbf0ab53bccb50478bcc20c2fc7b5b1fe2a578cad475929de96987821272",
+    "freesolv_database": "../../../.omx/vendor-audits/freesolv-current-20260726-v1/database.json",
+    "freesolv_database_sha256": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a",
+    "freesolv_repository": "https://github.com/MobleyLab/FreeSolv",
+    "freesolv_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "expected_case_count": 526
+  },
+  "endpoint": {
+    "method_id": "chagb_pbsa_cavity_dispersion",
+    "polar_component_key": "chagb_polar",
+    "baseline_polar_component_key": "obc2_polar",
+    "nonpolar_component_key": "pbsa_cavity_dispersion",
+    "published_total_key": "calc",
+    "published_charging_key": "calc_charging",
+    "published_vdw_key": "calc_vdw"
+  },
+  "fixed_diagnostic_gates": {
+    "absolute_error_threshold_kcal_mol": 1.5,
+    "published_component_sum_rounding_tolerance_kcal_mol": 0.0011,
+    "component_tie_tolerance_kcal_mol": 1e-12,
+    "reported_associations": [
+      "pearson_r_route_error_vs_polar_mismatch",
+      "spearman_rho_route_error_vs_polar_mismatch",
+      "pearson_r_route_error_vs_nonpolar_mismatch",
+      "spearman_rho_route_error_vs_nonpolar_mismatch"
+    ],
+    "p_values_reported": false,
+    "confidence_intervals_reported": false,
+    "regression_fit_reported": false,
+    "bootstrap_performed": false
+  },
+  "pre_registered_decision_rule": {
+    "conclusion": "diagnostic_bottleneck_decomposition_not_endpoint_evidence",
+    "endpoint_selection_allowed": false,
+    "charge_method_selection_allowed": false,
+    "energy_correction_allowed": false,
+    "parameter_update_allowed": false,
+    "certified_ranking_allowed": false,
+    "failure_action": "Regardless of the aggregate result, do not alter any Route 1 energy, choose a profile or charge model, introduce a correction, or claim that either polar or nonpolar mismatch is causal. Use the result only to pre-register the next independently evaluated physical hypothesis."
+  }
+}

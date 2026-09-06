@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-rank-contract-v1",
+  "claim_scope": "Retrospective, label-exposed FreeSolv water-hydration ranking diagnostic for two fixed Route 1 endpoints. The current source split is molecule-hash based and the series are structure-derived Bemis-Murcko scaffolds, so this is not a congeneric-series, protein-ligand, broad-solvent, series-disjoint, independent-blind, or certified-ranking claim.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "evaluation_design": {
+    "designation": "label-exposed-molecule-split-structure-derived-ranking-diagnostic",
+    "historical_label_exposure": true,
+    "energy_phase_reads_labels": false,
+    "score_phase_reads_labels": true,
+    "series_assignment_reads_labels": false,
+    "series_disjoint_split": false,
+    "congeneric_or_target_series_proven": false,
+    "independent_blind_confirmation": false,
+    "certified_ranking_available": false,
+    "no_fit": true,
+    "no_residual": true,
+    "no_endpoint_selection": true,
+    "reserve_tuning_allowed": false
+  },
+  "source_evidence": {
+    "source_manifest": "route1_freesolv_reserve_source_manifest.json",
+    "source_manifest_sha256": "24969fefd4e41b18f6f7c7c85523d2ec9bc888ecee882c75783e8526a95f1c81",
+    "score_artifact": "route1-freesolv-reserve-score-2026-07-25.json",
+    "score_artifact_sha256": "1902a97d77b576c9ab464e2dd9459552e8643392e46c7b4d6056b02e70b764b2",
+    "expected_case_count": 116
+  },
+  "series_derivation": {
+    "kind": "rdkit-bemis-murcko-from-pinned-mol2-v1",
+    "rdkit_required_version": "2024.09.2",
+    "min_series_size": 2,
+    "labels_read": false,
+    "binding_or_congeneric_series_proven": false,
+    "empty_scaffold_policy": "exclude-from-series-metrics",
+    "singleton_scaffold_policy": "exclude-from-series-metrics"
+  },
+  "endpoints": {
+    "am1bcc_obc2_ace": {
+      "role": "force-capable product baseline",
+      "task_scope": [
+        "SP",
+        "OPT",
+        "SCAN"
+      ]
+    },
+    "am1bcc_chagb_pbsa_cavity_dispersion": {
+      "role": "fixed-geometry SP-only ranking candidate",
+      "task_scope": [
+        "SP"
+      ],
+      "force_capable": false
+    }
+  },
+  "ranking_statistics": {
+    "lower_value_is_better": true,
+    "series_macro_metrics": [
+      "kendall_tau_b",
+      "spearman_rho"
+    ],
+    "pair_metrics": [
+      "forced_sign_accuracy",
+      "delta_delta_mae",
+      "delta_delta_rmse"
+    ],
+    "fixed_experimental_delta_thresholds_kcal_mol": [
+      0.5,
+      1.0,
+      2.0
+    ],
+    "experimental_uncertainty_z": 1.96,
+    "top_k": [
+      1,
+      3,
+      5
+    ],
+    "confidence_margin_thresholds_kcal_mol": [
+      0.0,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260729,
+    "bootstrap_unit": "complete_series"
+  },
+  "pre_registered_decision_rule": {
+    "endpoint_selection_allowed": false,
+    "reserve_tuning_allowed": false,
+    "energy_correction_allowed": false,
+    "certified_order_allowed": false,
+    "future_certification_requires": [
+      "predeclared_congeneric_or_target_series",
+      "series-disjoint-calibration-and-test-split",
+      "external-independent-test-series",
+      "fixed-abstention-calibration-before-test",
+      "explicit-applicability-domain-and-ood-policy"
+    ],
+    "failure_action": "Report the diagnostic only; do not alter energies, select an endpoint, tune a threshold, or claim certified ranking from this reserve."
+  }
+}

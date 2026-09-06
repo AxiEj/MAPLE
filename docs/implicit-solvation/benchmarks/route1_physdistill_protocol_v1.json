@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-physdistill-v1",
+  "status": "research_only_unimplemented",
+  "proposed_isolated_branch": "route1-physdistill",
+  "claim_scope": "Pre-registration for a differentiable physical implicit-solvent research model. This is not a Route 1 runtime, benchmark result, trained checkpoint, accuracy claim, or replacement for route1-fast or route1-rank.",
+  "route1_boundary": {
+    "gas_phase_mlip_retraining": false,
+    "gas_phase_mm_energy": false,
+    "bonded_mm_energy": false,
+    "experimental_hydration_residual_target": false,
+    "direct_unstructured_total_energy_residual": false,
+    "route1_runtime_promotion": false,
+    "conservative_force_required": true
+  },
+  "functional_form": {
+    "long_range_backbone": "analytic GB/CHA with fixed-charge electrostatics",
+    "learned_outputs_only": [
+      "bounded_environment_dependent_born_radius",
+      "bounded_cavity_or_exposure_descriptor",
+      "bounded_polar_nonpolar_coupling_descriptor"
+    ],
+    "born_radius_constraint": "R_tilde_i = R_intrinsic_i + (R_max_i-R_intrinsic_i) sigmoid(f_theta_i), with R_max_i > R_intrinsic_i > 0",
+    "force_definition": "F_theta(R) = -grad_R G_theta(R,q_fixed)",
+    "prohibited_outputs": [
+      "arbitrary_total_solvation_energy_residual",
+      "element_or_functional_group_experimental_offset",
+      "posthoc_linear_energy_calibration"
+    ]
+  },
+  "teacher_boundary": {
+    "preferred_order": [
+      "explicit_solvent_conditional_mean_energy_and_force",
+      "validated_high_quality_continuum_or_pmf_reference",
+      "frozen_chagb_pbsa_teacher_only",
+      "experimental_freesolv_external_validation_only"
+    ],
+    "training_and_validation_separation_required": true,
+    "external_scaffold_and_chemical_transformation_holdout_required": true,
+    "no_teacher_or_experimental_overlap_with_final_test": true
+  },
+  "loss_contract": {
+    "energy_term": "||G_theta-G_teacher||^2",
+    "force_term": "||grad_R G_theta-grad_R G_teacher||^2",
+    "pair_difference_term": "sum_(a,b) |(G_theta^a-G_theta^b)-(G_teacher^a-G_teacher^b)|^2",
+    "physical_regularization": [
+      "positive_bounded_radii",
+      "translation_rotation_and_same_element_permutation_invariance",
+      "dielectric_limit",
+      "infinite_separation_additivity",
+      "contact_and_dissociation_continuity",
+      "fixed_total_charge",
+      "charge_hydration_asymmetry_direction"
+    ]
+  },
+  "required_pre_promotion_gates": [
+    "all_3N_finite_difference_force_parity",
+    "conservative_closed_loop_work_test",
+    "dissociation_and_dielectric_limit_tests",
+    "scaffold_holdout_and_functional_group_transformation_holdout",
+    "charged_species_holdout",
+    "series_level_relative_ranking_evaluation",
+    "separate_external_final_test_never_seen_by_teacher_selection",
+    "speed_and_memory_benchmark_against_route1_fast_and_route1_rank"
+  ],
+  "failure_action": "Keep route1-physdistill unimplemented and do not expose a runtime option, certified ranker, or accuracy claim."
+}

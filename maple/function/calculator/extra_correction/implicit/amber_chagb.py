@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import dataclass
 import hashlib
 import json
 import math
@@ -277,6 +278,43 @@ def _run(
     return completed
 
 
+def _canonical_json_sha256(value: object) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _write_amber_inpcrd(path: Path, positions_angstrom: np.ndarray) -> None:
+    """Write coordinate-only Amber ASCII input with the standard 12.7f layout."""
+    positions = np.asarray(positions_angstrom, dtype=np.float64)
+    if (
+        positions.ndim != 2
+        or positions.shape[1:] != (3,)
+        or not np.isfinite(positions).all()
+    ):
+        raise ValueError(
+            "CHA-GB coordinate-only evaluation requires a finite (N, 3) "
+            "coordinate array."
+        )
+    values = positions.reshape(-1)
+    lines = ["MAPLE Route-1 CHA-GB coordinate evaluation", f"{len(positions):6d}"]
+    for start in range(0, len(values), 6):
+        lines.append("".join(f"{value:12.7f}" for value in values[start : start + 6]))
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+@dataclass(frozen=True)
+class _PreparedTopology:
+    """Immutable AmberTools topology files for one typed, fixed-charge molecule."""
+
+    directory: Path
+    mol2: Path
+    frcmod: Path
+    leap_input: Path
+    prmtop: Path
+    initial_inpcrd: Path
+
+
 class AmberToolsChaGB:
     """Locked CHA-GB EGB plus PBSA ECAVITY+EDISPER, without MM gas energy."""
 
@@ -321,6 +359,17 @@ class AmberToolsChaGB:
         self.charges = np.asarray(charges, dtype=np.float64).copy()
         if self.charges.shape != (len(atoms),) or not np.isfinite(self.charges).all():
             raise ValueError("AmberTools CHA-GB requires one finite charge per atom.")
+        self._topology_reference_positions = np.asarray(
+            atoms.get_positions(), dtype=np.float64
+        ).copy()
+        if (
+            self._topology_reference_positions.shape != (len(atoms), 3)
+            or not np.isfinite(self._topology_reference_positions).all()
+        ):
+            raise ValueError(
+                "AmberTools CHA-GB requires finite initial coordinates for "
+                "topology preparation."
+            )
         self.timeout = float(timeout)
         if self.timeout <= 0:
             raise ValueError("AmberTools CHA-GB timeout must be positive.")
@@ -385,6 +434,38 @@ class AmberToolsChaGB:
                 "Tan, Tan, and Luo, JPCB 2007, DOI:10.1021/jp073399n",
             ],
         }
+        self._charge_vector_sha256 = _canonical_json_sha256(self.charges.tolist())
+        self._atom_type_vector_sha256 = _canonical_json_sha256(self.atom_types)
+        self._topology_reference_coordinate_sha256 = _canonical_json_sha256(
+            self._topology_reference_positions.tolist()
+        )
+        self._solvation_profile_sha256 = _canonical_json_sha256(
+            {
+                "profile": self._provenance["profile"],
+                "radii": self._provenance["radii"],
+                "polar_parameters": _POLAR_PARAMETERS,
+                "nonpolar_parameters": _NONPOLAR_PARAMETERS,
+            }
+        )
+        self._executable_bundle_sha256 = _canonical_json_sha256(
+            self._provenance["executables"]
+        )
+        self._topology_cache_fingerprint = _canonical_json_sha256(
+            {
+                "source_mol2_sha256": self.source_sha256,
+                "charge_vector_sha256": self._charge_vector_sha256,
+                "atom_type_vector_sha256": self._atom_type_vector_sha256,
+                "topology_reference_coordinate_sha256": (
+                    self._topology_reference_coordinate_sha256
+                ),
+                "solvation_profile_sha256": self._solvation_profile_sha256,
+                "executable_bundle_sha256": self._executable_bundle_sha256,
+            }
+        )
+        self._prepared_directory = None
+        self._prepared_topology: _PreparedTopology | None = None
+        self._preparation_commands: list[dict[str, object]] = []
+        self._preparation_lock = threading.Lock()
 
     @property
     def provenance(self) -> dict[str, object]:
@@ -430,8 +511,149 @@ class AmberToolsChaGB:
             "/\n"
         )
 
+    def _prepared_topology_provenance(
+        self,
+        prepared: _PreparedTopology,
+        *,
+        cache_hit: bool,
+    ) -> dict[str, object]:
+        return {
+            "cache_scope": "provider-instance",
+            "cache_hit": cache_hit,
+            "source_mol2_sha256": self.source_sha256,
+            "charge_vector_sha256": self._charge_vector_sha256,
+            "atom_type_vector_sha256": self._atom_type_vector_sha256,
+            "topology_reference_coordinate_sha256": (
+                self._topology_reference_coordinate_sha256
+            ),
+            "solvation_profile_sha256": self._solvation_profile_sha256,
+            "executable_bundle_sha256": self._executable_bundle_sha256,
+            "topology_cache_fingerprint": self._topology_cache_fingerprint,
+            "prepared_mol2_sha256": _sha256_file(prepared.mol2),
+            "frcmod_sha256": _sha256_file(prepared.frcmod),
+            "topology_sha256": _sha256_file(prepared.prmtop),
+            "initial_inpcrd_sha256": _sha256_file(prepared.initial_inpcrd),
+        }
+
+    def _prepare_topology(self) -> tuple[_PreparedTopology, bool]:
+        with self._preparation_lock:
+            if self._prepared_topology is not None:
+                return self._prepared_topology, True
+            temporary = tempfile.TemporaryDirectory(prefix="maple-chagb-prepared-")
+            work = Path(temporary.name)
+            commands: list[dict[str, object]] = []
+            try:
+                mol2 = work / "molecule.mol2"
+                mol2.write_text(
+                    render_typed_mol2(
+                        self.source_text,
+                        self._topology_reference_positions,
+                        self.charges,
+                    ),
+                    encoding="utf-8",
+                )
+                frcmod = work / "molecule.frcmod"
+                command = [
+                    str(self.executables["parmchk2"]),
+                    "-i",
+                    mol2.name,
+                    "-f",
+                    "mol2",
+                    "-o",
+                    frcmod.name,
+                    "-s",
+                    "gaff2",
+                ]
+                completed = _run(
+                    command,
+                    cwd=work,
+                    timeout=self.timeout,
+                    label="parmchk2",
+                    audit_dir=self.audit_dir,
+                )
+                commands.append(
+                    {
+                        "label": "parmchk2",
+                        "command": command,
+                        "returncode": completed.returncode,
+                    }
+                )
+                require_no_frcmod_nonbonded_overrides(
+                    frcmod.read_text(encoding="utf-8")
+                )
+
+                leap_input = work / "tleap.in"
+                leap_input.write_text(
+                    "\n".join(
+                        [
+                            "source leaprc.gaff2",
+                            "set default PBradii bondi",
+                            f"MOL = loadmol2 {mol2.name}",
+                            f"loadamberparams {frcmod.name}",
+                            "saveamberparm MOL molecule.prmtop molecule.inpcrd",
+                            "quit",
+                        ]
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                command = [str(self.executables["tleap"]), "-f", leap_input.name]
+                completed = _run(
+                    command,
+                    cwd=work,
+                    timeout=self.timeout,
+                    label="tleap",
+                    audit_dir=self.audit_dir,
+                )
+                commands.append(
+                    {
+                        "label": "tleap",
+                        "command": command,
+                        "returncode": completed.returncode,
+                    }
+                )
+                prmtop = work / "molecule.prmtop"
+                initial_inpcrd = work / "molecule.inpcrd"
+                if not prmtop.is_file() or not initial_inpcrd.is_file():
+                    raise RuntimeError(
+                        "AmberTools tleap did not create "
+                        "molecule.prmtop/molecule.inpcrd."
+                    )
+            except Exception:
+                temporary.cleanup()
+                raise
+            prepared = _PreparedTopology(
+                directory=work,
+                mol2=mol2,
+                frcmod=frcmod,
+                leap_input=leap_input,
+                prmtop=prmtop,
+                initial_inpcrd=initial_inpcrd,
+            )
+            self._prepared_directory = temporary
+            self._prepared_topology = prepared
+            self._preparation_commands = commands
+            return prepared, False
+
+    def prepare_topology(self) -> dict[str, object]:
+        """Prepare one immutable GAFF2/Bondi topology for coordinate-only calls."""
+        prepared, cache_hit = self._prepare_topology()
+        return self._prepared_topology_provenance(prepared, cache_hit=cache_hit)
+
+    def close(self) -> None:
+        """Release the provider-instance prepared topology cache immediately."""
+        with self._preparation_lock:
+            temporary = self._prepared_directory
+            self._prepared_directory = None
+            self._prepared_topology = None
+            self._preparation_commands = []
+        if temporary is not None:
+            temporary.cleanup()
+
     def _write_audit(
         self,
+        *,
+        prepared: _PreparedTopology,
         work: Path,
         commands: list[dict[str, object]],
         result: SolvationResult,
@@ -439,29 +661,45 @@ class AmberToolsChaGB:
         if self.audit_dir is None:
             return
         self.audit_dir.mkdir(parents=True, exist_ok=True)
-        for name in (
-            "molecule.mol2",
-            "molecule.frcmod",
-            "tleap.in",
-            "leap.log",
-            "gbnsr6.in",
-            "gbnsr6.out",
-            "pbsa.in",
-            "pbsa.out",
-            "parmchk2.stdout.log",
-            "parmchk2.stderr.log",
-            "tleap.stdout.log",
-            "tleap.stderr.log",
-            "gbnsr6.stdout.log",
-            "gbnsr6.stderr.log",
-            "pbsa.stdout.log",
-            "pbsa.stderr.log",
+        for directory, names in (
+            (
+                prepared.directory,
+                (
+                    "molecule.mol2",
+                    "molecule.frcmod",
+                    "tleap.in",
+                    "leap.log",
+                    "parmchk2.stdout.log",
+                    "parmchk2.stderr.log",
+                    "tleap.stdout.log",
+                    "tleap.stderr.log",
+                ),
+            ),
+            (
+                work,
+                (
+                    "coordinates.inpcrd",
+                    "gbnsr6.in",
+                    "gbnsr6.out",
+                    "pbsa.in",
+                    "pbsa.out",
+                    "gbnsr6.stdout.log",
+                    "gbnsr6.stderr.log",
+                    "pbsa.stdout.log",
+                    "pbsa.stderr.log",
+                ),
+            ),
         ):
-            source = work / name
-            if source.is_file():
-                shutil.copy2(source, self.audit_dir / name)
+            for name in names:
+                source = directory / name
+                if source.is_file():
+                    shutil.copy2(source, self.audit_dir / name)
         (self.audit_dir / "amber-chagb.commands.json").write_text(
-            json.dumps(commands, indent=2, sort_keys=True),
+            json.dumps(
+                self._preparation_commands + commands,
+                indent=2,
+                sort_keys=True,
+            ),
             encoding="utf-8",
         )
         (self.audit_dir / "amber-chagb.result.json").write_text(
@@ -476,12 +714,6 @@ class AmberToolsChaGB:
             ),
             encoding="utf-8",
         )
-
-    def _copy_to_audit(self, path: Path) -> None:
-        if self.audit_dir is None or not path.is_file():
-            return
-        self.audit_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, self.audit_dir / path.name)
 
     @contextmanager
     def _serialized_gbnsr6(self):
@@ -498,105 +730,27 @@ class AmberToolsChaGB:
                 finally:
                     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
-    def evaluate(
-        self,
-        atoms,
-        need_forces: bool = False,
-        calculator=None,
-    ) -> SolvationResult:
-        if need_forces:
-            raise NotImplementedError(
-                "AmberTools CHA-GB/cavity-dispersion is SP-energy-only; "
-                "no energy-consistent solvent forces are available."
+    def evaluate_coordinates(self, positions_angstrom) -> SolvationResult:
+        """Evaluate fixed topology/charges at one finite coordinate array."""
+        positions = np.asarray(positions_angstrom, dtype=np.float64)
+        if (
+            positions.shape != (len(self.symbols), 3)
+            or not np.isfinite(positions).all()
+        ):
+            raise ValueError(
+                "CHA-GB coordinate-only evaluation requires a finite (N, 3) "
+                "coordinate array matching the prepared molecule."
             )
-        if list(atoms.get_chemical_symbols()) != self.symbols:
-            raise ValueError("CHA-GB atom count/order changed after provider setup.")
-
+        prepared, cache_hit = self._prepare_topology()
         commands: list[dict[str, object]] = []
-        with tempfile.TemporaryDirectory(prefix="maple-chagb-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="maple-chagb-coordinate-") as temporary:
             work = Path(temporary)
-            mol2 = work / "molecule.mol2"
-            mol2.write_text(
-                render_typed_mol2(
-                    self.source_text,
-                    atoms.get_positions(),
-                    self.charges,
-                ),
-                encoding="utf-8",
-            )
-            self._copy_to_audit(mol2)
-            frcmod = work / "molecule.frcmod"
-            command = [
-                str(self.executables["parmchk2"]),
-                "-i",
-                mol2.name,
-                "-f",
-                "mol2",
-                "-o",
-                frcmod.name,
-                "-s",
-                "gaff2",
-            ]
-            completed = _run(
-                command,
-                cwd=work,
-                timeout=self.timeout,
-                label="parmchk2",
-                audit_dir=self.audit_dir,
-            )
-            self._copy_to_audit(frcmod)
-            commands.append(
-                {
-                    "label": "parmchk2",
-                    "command": command,
-                    "returncode": completed.returncode,
-                }
-            )
-            require_no_frcmod_nonbonded_overrides(frcmod.read_text(encoding="utf-8"))
-
-            leap_input = work / "tleap.in"
-            leap_input.write_text(
-                "\n".join(
-                    [
-                        "source leaprc.gaff2",
-                        "set default PBradii bondi",
-                        f"MOL = loadmol2 {mol2.name}",
-                        f"loadamberparams {frcmod.name}",
-                        "saveamberparm MOL molecule.prmtop molecule.inpcrd",
-                        "quit",
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            self._copy_to_audit(leap_input)
-            command = [str(self.executables["tleap"]), "-f", leap_input.name]
-            completed = _run(
-                command,
-                cwd=work,
-                timeout=self.timeout,
-                label="tleap",
-                audit_dir=self.audit_dir,
-            )
-            self._copy_to_audit(work / "leap.log")
-            commands.append(
-                {
-                    "label": "tleap",
-                    "command": command,
-                    "returncode": completed.returncode,
-                }
-            )
-            prmtop = work / "molecule.prmtop"
-            inpcrd = work / "molecule.inpcrd"
-            if not prmtop.is_file() or not inpcrd.is_file():
-                raise RuntimeError(
-                    "AmberTools tleap did not create molecule.prmtop/molecule.inpcrd."
-                )
+            coordinate_path = work / "coordinates.inpcrd"
+            _write_amber_inpcrd(coordinate_path, positions)
 
             gb_input = work / "gbnsr6.in"
             gb_output = work / "gbnsr6.out"
             gb_input.write_text(self._gbnsr6_input(), encoding="utf-8")
-            self._copy_to_audit(gb_input)
             command = [
                 str(self.executables["gbnsr6"]),
                 "-O",
@@ -605,9 +759,9 @@ class AmberToolsChaGB:
                 "-o",
                 gb_output.name,
                 "-p",
-                prmtop.name,
+                str(prepared.prmtop),
                 "-c",
-                inpcrd.name,
+                coordinate_path.name,
             ]
             with self._serialized_gbnsr6():
                 completed = _run(
@@ -617,7 +771,6 @@ class AmberToolsChaGB:
                     label="gbnsr6",
                     audit_dir=self.audit_dir,
                 )
-            self._copy_to_audit(gb_output)
             commands.append(
                 {
                     "label": "gbnsr6",
@@ -625,14 +778,11 @@ class AmberToolsChaGB:
                     "returncode": completed.returncode,
                 }
             )
-            polar = parse_gbnsr6_components(gb_output.read_text(encoding="utf-8"))[
-                "polar"
-            ]
+            polar = parse_gbnsr6_components(gb_output.read_text(encoding="utf-8"))["polar"]
 
             pb_input = work / "pbsa.in"
             pb_output = work / "pbsa.out"
             pb_input.write_text(self._pbsa_input(), encoding="utf-8")
-            self._copy_to_audit(pb_input)
             command = [
                 str(self.executables["pbsa"]),
                 "-O",
@@ -641,9 +791,9 @@ class AmberToolsChaGB:
                 "-o",
                 pb_output.name,
                 "-p",
-                prmtop.name,
+                str(prepared.prmtop),
                 "-c",
-                inpcrd.name,
+                coordinate_path.name,
             ]
             completed = _run(
                 command,
@@ -652,7 +802,6 @@ class AmberToolsChaGB:
                 label="pbsa",
                 audit_dir=self.audit_dir,
             )
-            self._copy_to_audit(pb_output)
             commands.append(
                 {
                     "label": "pbsa",
@@ -666,7 +815,15 @@ class AmberToolsChaGB:
             total = polar + cavity + dispersion
             provenance = {
                 **self.provenance,
-                "generated_mol2_sha256": _sha256_file(mol2),
+                "generated_mol2_sha256": _sha256_file(prepared.mol2),
+                "prepared_topology": self._prepared_topology_provenance(
+                    prepared,
+                    cache_hit=cache_hit,
+                ),
+                "coordinate_input": {
+                    "format": "amber-inpcrd",
+                    "sha256": _sha256_file(coordinate_path),
+                },
                 "reported_formula": "EGB + ECAVITY + EDISPER",
             }
             result = SolvationResult(
@@ -679,5 +836,40 @@ class AmberToolsChaGB:
                 },
                 provenance=provenance,
             )
-            self._write_audit(work, commands, result)
+            self._write_audit(
+                prepared=prepared,
+                work=work,
+                commands=commands,
+                result=result,
+            )
             return result
+
+    def evaluate_coordinate_batch(self, positions_angstrom) -> list[SolvationResult]:
+        """Serially score conformers/poses while reusing one prepared topology."""
+        positions = np.asarray(positions_angstrom, dtype=np.float64)
+        if (
+            positions.ndim != 3
+            or positions.shape[0] == 0
+            or positions.shape[1:] != (len(self.symbols), 3)
+            or not np.isfinite(positions).all()
+        ):
+            raise ValueError(
+                "CHA-GB coordinate batches require a non-empty finite "
+                "(B, N, 3) array matching the prepared molecule."
+            )
+        return [self.evaluate_coordinates(item) for item in positions]
+
+    def evaluate(
+        self,
+        atoms,
+        need_forces: bool = False,
+        calculator=None,
+    ) -> SolvationResult:
+        if need_forces:
+            raise NotImplementedError(
+                "AmberTools CHA-GB/cavity-dispersion is SP-energy-only; "
+                "no energy-consistent solvent forces are available."
+            )
+        if list(atoms.get_chemical_symbols()) != self.symbols:
+            raise ValueError("CHA-GB atom count/order changed after provider setup.")
+        return self.evaluate_coordinates(atoms.get_positions())

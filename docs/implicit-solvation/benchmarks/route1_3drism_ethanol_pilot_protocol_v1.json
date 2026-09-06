@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-3drism-single-solvent-pilot-v1",
+  "status": "research_only_not_accuracy_validated",
+  "claim_scope": "Label-free numerical qualification of one fixed-geometry solute with one literature-sourced four-site ethanol susceptibility and the AmberTools 3D-RISM-KH solver. This pilot measures only asset consistency, solver convergence, grid/buffer/tolerance sensitivity, and independent-process determinism. It is not an MNSol/FreeSolv score, does not claim any ethanol target-panel performance, is not a runtime provider, and is not force or standard-state-validated evidence for any requested 15-solvent target.",
+  "route1_boundary": {
+    "gas_phase_mm_energy_reported": false,
+    "bonded_mm_energy_reported": false,
+    "experimental_solvation_labels_loaded": false,
+    "experimental_residual_fit": false,
+    "energy_calibration": false,
+    "endpoint_selection_from_labels": false,
+    "mlip_retraining": false,
+    "product_runtime_change": false,
+    "solute_charge_source": "frozen AM1-BCC charges"
+  },
+  "solute": {
+    "compound_id": "mobley_1017962",
+    "description": "One existing fixed-geometry methyl-hexanoate benchmark input; no hydration label is read.",
+    "mol2": "route1-mm-reference-reweighting-raw/inputs/mobley_1017962/m.mol2",
+    "mol2_sha256": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+    "topology_model": "GAFF2 atom types and Lennard-Jones parameters with the MOL2 AM1-BCC charge column",
+    "topology_is_solute_solvent_interaction_input_only": true
+  },
+  "solvent_asset": {
+    "asset_contract": "route1_custom_solvent_asset_contract_v1.json",
+    "asset_contract_sha256": "9bf7e40bfe3cc46538931ab89ae3eccf91d6ba9a61b9f7c65c24d1b4a239fe66",
+    "amber_data_subdirectory": "rism1d/ethanol-adf4-site",
+    "files": {
+      "mdl": {
+        "name": "ethanol_adf4.mdl",
+        "sha256": "114fa832fcda52227f96d4bcec9480b5484cab4ab75e4f384ec7a6b1fd2f077e"
+      },
+      "rism1d_input": {
+        "name": "ethanol_adf4_kh.inp",
+        "sha256": "71ebc45f07c783ba7718ccc7a2390685e1220026a543324c6521d4b848d9b170"
+      },
+      "xvv": {
+        "name": "ethanol_adf4_kh.xvv",
+        "sha256": "aee345c3b7edb59d46509b6e0afaa65e533e4383abc6703c02ea8e0ac69b7c7c"
+      },
+      "rism1d_stdout": {
+        "name": "ethanol_adf4_kh.rism1d.out",
+        "sha256": "10de93f1f9cc38c746e8e4054f89a277a89c66953e32c72008fdb84845b01824"
+      },
+      "generation_evidence": {
+        "name": "generation_evidence.json",
+        "sha256": "aab6f052c3990f9f4f76bffae821b3bc5c894716be088b9b5ac54a40532cf1ca"
+      }
+    },
+    "manifest": {
+      "schema_version": 1,
+      "manifest_kind": "route1-custom-solvent-3drism-asset",
+      "solvent": {
+        "canonical_name": "ethanol-ADF4",
+        "temperature_kelvin": 298.15,
+        "pressure_bar": 1.0,
+        "dielectric_constant": 24.35,
+        "species_density_angstrom_minus3": 0.010267682852133002,
+        "standard_state": {
+          "provider_output": "excess_chemical_potential",
+          "benchmark_target": "1M_ideal_gas_to_1M_ideal_solution",
+          "conversion_status": "not_yet_applied"
+        }
+      },
+      "site_types": [
+        {
+          "name": "H",
+          "multiplicity": 1,
+          "mass_amu": 1.008,
+          "charge_e": 0.435,
+          "lj_epsilon_kcal_mol": 0.056,
+          "lj_size_angstrom": 0.561231024
+        },
+        {
+          "name": "O",
+          "multiplicity": 1,
+          "mass_amu": 16.0,
+          "charge_e": -0.7000000000000001,
+          "lj_epsilon_kcal_mol": 0.17,
+          "lj_size_angstrom": 1.72297924
+        },
+        {
+          "name": "CH2",
+          "multiplicity": 1,
+          "mass_amu": 14.026,
+          "charge_e": 0.265,
+          "lj_epsilon_kcal_mol": 0.207,
+          "lj_size_angstrom": 2.11864712
+        },
+        {
+          "name": "CH3",
+          "multiplicity": 1,
+          "mass_amu": 15.034,
+          "charge_e": 0.0,
+          "lj_epsilon_kcal_mol": 0.175,
+          "lj_size_angstrom": 2.19160715
+        }
+      ],
+      "site_coordinates_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.945
+        ],
+        [
+          1.356103,
+          0.0,
+          1.398746
+        ],
+        [
+          1.342751,
+          0.0,
+          2.928687
+        ]
+      ],
+      "rism": {
+        "theory": "drism",
+        "closure": "kh",
+        "grid_spacing_angstrom": 0.025,
+        "grid_points": 4096
+      },
+      "assets": {
+        "mdl": {
+          "relative_path": "ethanol_adf4.mdl",
+          "sha256": "114fa832fcda52227f96d4bcec9480b5484cab4ab75e4f384ec7a6b1fd2f077e"
+        },
+        "rism1d_input": {
+          "relative_path": "ethanol_adf4_kh.inp",
+          "sha256": "71ebc45f07c783ba7718ccc7a2390685e1220026a543324c6521d4b848d9b170"
+        },
+        "xvv": {
+          "relative_path": "ethanol_adf4_kh.xvv",
+          "sha256": "aee345c3b7edb59d46509b6e0afaa65e533e4383abc6703c02ea8e0ac69b7c7c"
+        },
+        "rism1d_stdout": {
+          "relative_path": "ethanol_adf4_kh.rism1d.out",
+          "sha256": "10de93f1f9cc38c746e8e4054f89a277a89c66953e32c72008fdb84845b01824"
+        },
+        "generation_evidence": {
+          "relative_path": "generation_evidence.json",
+          "sha256": "aab6f052c3990f9f4f76bffae821b3bc5c894716be088b9b5ac54a40532cf1ca"
+        }
+      },
+      "provenance": {
+        "molecular_model_reference": "SCM ADF 2026.1 official 3D-RISM documentation Table 7: a four-site united-atom ethanol model (H/O/CH2/CH3), independently re-expressed in Amber MDL units. Source density is 0.78546 g/cm3 at 298.15 K from Calvar et al.; nearby literature values vary slightly. The reported 17.0499 M input is the rounded conversion using the conventional ethanol molar mass 46.06844 g/mol. The explicit MDL site masses sum to 46.068 and define the site model, but are not the mass used for that 17.0499 M rounding. They follow the AmberTools 26 dat/leap/parm/parm10.dat convention C=12.01, H=1.008, O=16.00 amu, giving CH2=14.026 and CH3=15.034; source sha256 dc0c02d28fb7ee4f04d0a5edee3cd62968ba5e9bdb69e0f728bf01d242d7d062. ADF documentation also reports Weight=47.07; this file does not use that value. Sources: 3D-RISM Table 7 https://www.scm.com/doc/ADF/Input/3D-RISM.html; Calvar et al. https://doi.org/10.1021/je900998f; dielectric ThermoML https://trc.nist.gov/ThermoML/10.1021/je060248p.html",
+        "susceptibility_generation": {
+          "generator": "rism1d",
+          "executable_version": "AmberTools 26 rism1d executable sha256 7c5c87d61ead9802c7a2df1a71a4d528d4da2db357e654d5514c603fd4c6918d",
+          "source_inputs_immutable": true
+        }
+      },
+      "containment": {
+        "experimental_values_loaded": false,
+        "experimental_residual_fit": false,
+        "endpoint_selection": false,
+        "energy_calibration": false,
+        "runtime_provider_enabled": false,
+        "accuracy_claim": "none"
+      }
+    }
+  },
+  "solver": {
+    "executable": "rism3d.snglpnt",
+    "topology_executables": [
+      "parmchk2",
+      "tleap"
+    ],
+    "closure_3d": "kh",
+    "maximum_steps": 10000,
+    "primary_quantity": "rism_excessChemicalPotential",
+    "primary_convention": "raw_kh_excess_chemical_potential",
+    "diagnostic_quantities": [
+      "rism_excessChemicalPotentialGF",
+      "rism_excessChemicalPotentialPCPLUS",
+      "rism_partialMolarVolume"
+    ],
+    "pc_plus_is_primary": false,
+    "standard_state_conversion_applied": false,
+    "forces_requested": false,
+    "solute_potential_energy_reported": false
+  },
+  "cases": [
+    {
+      "id": "grid_sensitivity",
+      "grid_spacing_angstrom": 0.35,
+      "buffer_angstrom": 14.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "grid",
+      "maximum_primary_difference_kcal_mol": 0.02
+    },
+    {
+      "id": "buffer_sensitivity",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 12.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "buffer",
+      "maximum_primary_difference_kcal_mol": 0.01
+    },
+    {
+      "id": "tolerance_sensitivity",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 14.0,
+      "tolerance": 0.0001,
+      "comparison_to_reference": "tolerance",
+      "maximum_primary_difference_kcal_mol": 0.005
+    },
+    {
+      "id": "reference",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 14.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "self",
+      "maximum_primary_difference_kcal_mol": 0.0
+    },
+    {
+      "id": "reference_repeat",
+      "grid_spacing_angstrom": 0.3,
+      "buffer_angstrom": 14.0,
+      "tolerance": 1e-05,
+      "comparison_to_reference": "independent_process_determinism",
+      "maximum_primary_difference_kcal_mol": 1e-08
+    }
+  ],
+  "admission": {
+    "reference_case": "reference",
+    "all_cases_must_converge": true,
+    "all_case_thresholds_must_pass": true,
+    "asset_audit_status_required": "physical_asset_consistent_not_accuracy_validated",
+    "next_gate": "independent_review_then_standard_state_and_prospective_accuracy_gate",
+    "result_if_passed": "one_nonwater_solver_pilot_numerically_qualified_not_accuracy_validated",
+    "result_if_failed": "nonwater_pilot_failed_no_provider_or_accuracy_claim"
+  },
+  "prohibited_interpretations": [
+    "No experimental ethanol solvation value is read, fit, scored, or used to choose an endpoint.",
+    "The ADF documentation is a literature parameter source only; ADF software is not a runtime dependency.",
+    "Ethanol is in the target panel, but this artifact is an early numerical-only candidate and does not qualify ethanol accuracy.",
+    "The internally evaluated MM terms are not extracted or included in the reported Route 1 quantity.",
+    "The raw KH excess chemical potential has not yet been converted to MNSol\u2019s standard-state convention.",
+    "The PC+ diagnostic is not the primary physical claim and cannot be selected after labels.",
+    "A single-solvent numerical pilot cannot establish accuracy, 15-solvent support, ranking, force, optimization, sampling, or production readiness."
+  ]
+}

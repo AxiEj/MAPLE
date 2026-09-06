@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-misin-coarse-grain-asset-audit-v1",
+  "benchmark_kind": "route1-misin-coarse-grain-asset-audit",
+  "claim_scope": "Label-free provenance audit of only the allowlisted molecular-model and XVV members in the Misin, Palmer, and Fedorov (2016) supporting ZIP. The source ZIP also contains per-solute solvation-result CSV files; this audit never opens those members, never copies solvent assets into MAPLE, never runs or scores a model, and establishes no accuracy claim.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "source": {
+    "publication_doi": "10.1021/acs.jpcb.6b05352",
+    "supporting_dataset_doi": "10.1021/acs.jpcb.6b05352.s002",
+    "supporting_dataset_url": "https://acs.figshare.com/articles/dataset/Predicting_Solvation_Free_Energies_Using_Parameter-Free_Solvent_Models/3444299",
+    "license": "CC-BY-NC-4.0",
+    "acquisition_policy": "user-supplied-no-auto-download",
+    "archive": {
+      "name": "jp6b05352_si_002.zip",
+      "md5": "5c19ab11ec1073b560a87e7f6802d105",
+      "sha256": "90f808aab50b4f5820e0ee7c11d1662624dc76ead92ec0c7216b580b3af7278e",
+      "size_bytes": 8202464
+    },
+    "asset_prefix": "si_files/susceptibility_files/",
+    "result_prefix": "si_files/solvation_free_energies/"
+  },
+  "required_panel_canonical_names": [
+    "water",
+    "ethanol",
+    "acetonitrile",
+    "dimethylsulfoxide",
+    "dimethylformamide",
+    "tetrahydrofuran",
+    "chloroform",
+    "dichloromethane",
+    "toluene",
+    "hexane",
+    "cyclohexane",
+    "diethyl ether",
+    "1-octanol",
+    "ethyl acetate",
+    "nitrobenzene"
+  ],
+  "candidate_assets": [
+    {"canonical_name": "acetonitrile", "source_stem": "acetonitrile"},
+    {"canonical_name": "dimethylsulfoxide", "source_stem": "dmso"},
+    {"canonical_name": "chloroform", "source_stem": "chloroform"},
+    {"canonical_name": "toluene", "source_stem": "toluene"},
+    {"canonical_name": "cyclohexane", "source_stem": "cyclohexane"},
+    {"canonical_name": "diethyl ether", "source_stem": "diethylether"},
+    {"canonical_name": "1-octanol", "source_stem": "octanol"},
+    {"canonical_name": "ethyl acetate", "source_stem": "ethylacetate"}
+  ],
+  "expected_model": {
+    "closure": "hnc",
+    "temperature_k": 298.15,
+    "generator_dieleps": 2.0,
+    "xvv_dielectric": 1.0,
+    "xvv_grid_points": 16384,
+    "site_count": 1,
+    "species_count": 1,
+    "site_charge": 0.0
+  },
+  "containment": {
+    "experimental_values_loaded": false,
+    "label_file_content_read": false,
+    "assets_redistributed": false,
+    "candidate_is_general_multisolvent_provider": false,
+    "candidate_can_count_toward_15_solvent_gate": false,
+    "candidate_can_select_or_score_against_mnsol": false
+  },
+  "literature": {
+    "article": "Misin, Palmer, and Fedorov, J. Phys. Chem. B 2016, DOI 10.1021/acs.jpcb.6b05352.",
+    "scope_boundary": "The paper's one-site, neutral corresponding-states construction is a nonpolar lead. It cannot supply molecular electrostatics or hydrogen-bond sites for the complete Route 1 panel."
+  }
+}

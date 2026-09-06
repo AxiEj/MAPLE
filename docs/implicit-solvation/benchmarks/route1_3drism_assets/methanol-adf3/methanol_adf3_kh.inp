@@ -1,0 +1,20 @@
+&PARAMETERS
+  exchem_sc=1
+  exchem_sm=1
+  exchem_pr=1
+  selftest=-1
+  THEORY='DRISM', CLOSURE='KH',
+  NR=4096, DR=0.025,
+  OUTLIST='uxgbtenqs', ROUT=0, KOUT=0,
+  MDIIS_NVEC=20, MDIIS_DEL=0.1, TOLERANCE=1.e-8,
+  KSAVE=-1,
+  PROGRESS=1,
+  MAXSTEP=1000,
+  SMEAR=1, ADBCOR=0.5,
+  TEMPERATURE=298.15, DIEPS=32.63, NSP=1
+/
+&SPECIES
+  DENSITY=24.550,
+  UNITS='M'
+  MODEL="methanol_adf3.mdl"
+/

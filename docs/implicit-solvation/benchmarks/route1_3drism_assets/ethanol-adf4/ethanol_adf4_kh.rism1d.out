@@ -1,0 +1,274 @@
+reading input data file: kh_nr4096_d0p1_tol1e8.inp
+tabulating potentials and intramolecular functions ...
+relaxing RISM:
+step=   1     Res=  7.0010099344797228E-01     MDIIS=  1
+step=   2     Res=  5.7712599385407293E-01     MDIIS=  2
+step=   3     Res=  8.8194563083735766E-01     MDIIS=  3
+step=   4     Res=  3.1192686759680111E-01     MDIIS=  4
+step=   5     Res=  2.1744253579445727E-01     MDIIS=  5
+step=   6     Res=  1.9883941412724929E-01     MDIIS=  6
+step=   7     Res=  1.6478405589668269E-01     MDIIS=  7
+step=   8     Res=  1.3925417411536339E-01     MDIIS=  8
+step=   9     Res=  1.3854297793956594E-01     MDIIS=  9
+step=  10     Res=  1.1095172087469286E-01     MDIIS= 10
+step=  11     Res=  8.8566388961112602E-02     MDIIS= 11
+step=  12     Res=  1.2418496103973609E-01     MDIIS= 12
+step=  13     Res=  6.8688828271282074E-02     MDIIS= 13
+step=  14     Res=  6.9542550113645157E-02     MDIIS= 14
+step=  15     Res=  6.5680767671582499E-02     MDIIS= 15
+step=  16     Res=  6.5867166487977469E-02     MDIIS= 16
+step=  17     Res=  5.2997632927548090E-02     MDIIS= 17
+step=  18     Res=  5.9370378622695161E-02     MDIIS= 18
+step=  19     Res=  5.8983315724773548E-02     MDIIS= 19
+step=  20     Res=  4.9267592764301586E-02     MDIIS= 20
+step=  21     Res=  4.6928842025082920E-02     MDIIS= 20
+step=  22     Res=  4.5389005213661800E-02     MDIIS= 20
+step=  23     Res=  5.2611749927164206E-02     MDIIS= 20
+step=  24     Res=  5.9921462964202685E-02     MDIIS= 20
+step=  25     Res=  5.6663302129052032E-02     MDIIS= 20
+step=  26     Res=  6.1291821319094768E-02     MDIIS= 20
+step=  27     Res=  4.5995018756922905E-02     MDIIS= 20
+step=  28     Res=  5.9960680193881580E-02     MDIIS= 20
+step=  29     Res=  4.2339335288583323E-02     MDIIS= 20
+step=  30     Res=  3.5495662101307238E-02     MDIIS= 20
+step=  31     Res=  3.2786368402451686E-02     MDIIS= 20
+step=  32     Res=  2.9759850516882517E-02     MDIIS= 20
+step=  33     Res=  2.0262475239883039E-02     MDIIS= 20
+step=  34     Res=  1.9797959713743773E-02     MDIIS= 20
+step=  35     Res=  1.8723265897666271E-02     MDIIS= 20
+step=  36     Res=  1.5825637369986583E-02     MDIIS= 20
+step=  37     Res=  1.3296188801531378E-02     MDIIS= 20
+step=  38     Res=  1.1323643388778729E-02     MDIIS= 20
+step=  39     Res=  1.1254939221471002E-02     MDIIS= 20
+step=  40     Res=  1.0656486544107557E-02     MDIIS= 20
+step=  41     Res=  1.0947592889840395E-02     MDIIS= 20
+step=  42     Res=  9.5102652371837192E-03     MDIIS= 20
+step=  43     Res=  9.0201198696692828E-03     MDIIS= 20
+step=  44     Res=  8.3763952198048792E-03     MDIIS= 20
+step=  45     Res=  8.3457605137044338E-03     MDIIS= 20
+step=  46     Res=  7.7688191942666433E-03     MDIIS= 20
+step=  47     Res=  7.2936649426982129E-03     MDIIS= 20
+step=  48     Res=  7.1133340002429253E-03     MDIIS= 20
+step=  49     Res=  7.1390903484771567E-03     MDIIS= 20
+step=  50     Res=  5.9103509712011854E-03     MDIIS= 20
+step=  51     Res=  5.4584185221697255E-03     MDIIS= 20
+step=  52     Res=  4.9190937143086576E-03     MDIIS= 20
+step=  53     Res=  3.9600677533309795E-03     MDIIS= 20
+step=  54     Res=  3.7265621214346450E-03     MDIIS= 20
+step=  55     Res=  3.4374508665613139E-03     MDIIS= 20
+step=  56     Res=  3.2933229317266581E-03     MDIIS= 20
+step=  57     Res=  2.7356059302852363E-03     MDIIS= 20
+step=  58     Res=  2.6361096368982474E-03     MDIIS= 20
+step=  59     Res=  2.4269734272209329E-03     MDIIS= 20
+step=  60     Res=  2.3402870236570493E-03     MDIIS= 20
+step=  61     Res=  2.1610092739984856E-03     MDIIS= 20
+step=  62     Res=  2.0746218186038089E-03     MDIIS= 20
+step=  63     Res=  1.9776375517254014E-03     MDIIS= 20
+step=  64     Res=  1.7279494328430185E-03     MDIIS= 20
+step=  65     Res=  1.6578369187557117E-03     MDIIS= 20
+step=  66     Res=  1.4687149998095469E-03     MDIIS= 20
+step=  67     Res=  1.3286113039869118E-03     MDIIS= 20
+step=  68     Res=  1.1651260465405013E-03     MDIIS= 20
+step=  69     Res=  1.1135378680454764E-03     MDIIS= 20
+step=  70     Res=  9.3369042099382686E-04     MDIIS= 20
+step=  71     Res=  8.0157732612062631E-04     MDIIS= 20
+step=  72     Res=  7.4046199779555526E-04     MDIIS= 20
+step=  73     Res=  7.0378380651481905E-04     MDIIS= 20
+step=  74     Res=  6.0166268088308037E-04     MDIIS= 20
+step=  75     Res=  5.7751194089443263E-04     MDIIS= 20
+step=  76     Res=  5.0143827644723944E-04     MDIIS= 20
+step=  77     Res=  4.6501575750195753E-04     MDIIS= 20
+step=  78     Res=  3.0813437010160084E-04     MDIIS= 20
+step=  79     Res=  2.9031360053154376E-04     MDIIS= 20
+step=  80     Res=  1.9879159941296520E-04     MDIIS= 20
+step=  81     Res=  1.9220779528127512E-04     MDIIS= 20
+step=  82     Res=  1.4819826847995888E-04     MDIIS= 20
+step=  83     Res=  1.2820800133806314E-04     MDIIS= 20
+step=  84     Res=  1.2056050290893315E-04     MDIIS= 20
+step=  85     Res=  1.0765657020968427E-04     MDIIS= 20
+step=  86     Res=  1.0087769142959469E-04     MDIIS= 20
+step=  87     Res=  9.2166380889675890E-05     MDIIS= 20
+step=  88     Res=  8.4278789628168077E-05     MDIIS= 20
+step=  89     Res=  7.9984253555245564E-05     MDIIS= 20
+step=  90     Res=  7.2553222040810239E-05     MDIIS= 20
+step=  91     Res=  7.0312583463378537E-05     MDIIS= 20
+step=  92     Res=  5.1275153175434779E-05     MDIIS= 20
+step=  93     Res=  4.9827520771544177E-05     MDIIS= 20
+step=  94     Res=  4.3292704881069269E-05     MDIIS= 20
+step=  95     Res=  4.1126789207530178E-05     MDIIS= 20
+step=  96     Res=  3.2554099729605183E-05     MDIIS= 20
+step=  97     Res=  2.4506792441733705E-05     MDIIS= 20
+step=  98     Res=  1.6158869564807719E-05     MDIIS= 20
+step=  99     Res=  1.5483746691781005E-05     MDIIS= 20
+step= 100     Res=  1.1504573678002162E-05     MDIIS= 20
+step= 101     Res=  1.0603975272235897E-05     MDIIS= 20
+step= 102     Res=  1.0236849555236183E-05     MDIIS= 20
+step= 103     Res=  8.0757381229996959E-06     MDIIS= 20
+step= 104     Res=  7.0384436794099927E-06     MDIIS= 20
+step= 105     Res=  5.3383492811252674E-06     MDIIS= 20
+step= 106     Res=  4.2419696223755976E-06     MDIIS= 20
+step= 107     Res=  3.9442122749995325E-06     MDIIS= 20
+step= 108     Res=  3.2432500144333142E-06     MDIIS= 20
+step= 109     Res=  2.9316214877827725E-06     MDIIS= 20
+step= 110     Res=  2.7949711347251801E-06     MDIIS= 20
+step= 111     Res=  2.2614659318505490E-06     MDIIS= 20
+step= 112     Res=  1.6527335463638763E-06     MDIIS= 20
+step= 113     Res=  1.5898254969623431E-06     MDIIS= 20
+step= 114     Res=  7.0701678523339450E-07     MDIIS= 20
+step= 115     Res=  4.8705623621981524E-07     MDIIS= 20
+step= 116     Res=  4.5567060819768181E-07     MDIIS= 20
+step= 117     Res=  3.1254127734460163E-07     MDIIS= 20
+step= 118     Res=  2.9992150103696737E-07     MDIIS= 20
+step= 119     Res=  2.1461454871947407E-07     MDIIS= 20
+step= 120     Res=  1.1153069833079502E-07     MDIIS= 20
+step= 121     Res=  1.0324674533717118E-07     MDIIS= 20
+step= 122     Res=  7.7910071328762730E-08     MDIIS= 20
+step= 123     Res=  6.4494741136938807E-08     MDIIS= 20
+step= 124     Res=  5.8302566925219399E-08     MDIIS= 20
+step= 125     Res=  4.5233847522710140E-08     MDIIS= 20
+step= 126     Res=  4.2827090935012075E-08     MDIIS= 20
+step= 127     Res=  3.9117654230263857E-08     MDIIS= 20
+step= 128     Res=  3.5930371654561605E-08     MDIIS= 20
+step= 129     Res=  3.2845628802401513E-08     MDIIS= 20
+step= 130     Res=  2.9436512171428094E-08     MDIIS= 20
+step= 131     Res=  2.8213049668877538E-08     MDIIS= 20
+step= 132     Res=  2.2445262320100233E-08     MDIIS= 20
+step= 133     Res=  1.7781643869405091E-08     MDIIS= 20
+step= 134     Res=  1.6942770920224169E-08     MDIIS= 20
+step= 135     Res=  1.5177386497680354E-08     MDIIS= 20
+step= 136     Res=  1.0308351096189050E-08     MDIIS= 20
+step= 137     Res=  9.5735929061237814E-09     MDIIS= 20
+saving Cvv to file: kh_nr4096_d0p1_tol1e8.sav ...
+done.
+relaxing RISM DT:
+step=   1     Res=  9.2770943013533624E-01     MDIIS=  1
+step=   2     Res=  8.2484978674088527E-01     MDIIS=  2
+step=   3     Res=  3.1748669300767485E-01     MDIIS=  3
+step=   4     Res=  2.0924512519635649E-01     MDIIS=  4
+step=   5     Res=  1.5139693002009350E-01     MDIIS=  5
+step=   6     Res=  1.2166177562610074E-01     MDIIS=  6
+step=   7     Res=  1.0179439379906584E-01     MDIIS=  7
+step=   8     Res=  7.6782994004748167E-02     MDIIS=  8
+step=   9     Res=  5.6137850705850929E-02     MDIIS=  9
+step=  10     Res=  1.7684489604588699E-01     MDIIS= 10
+step=  11     Res=  4.2886391117418918E-02     MDIIS= 11
+step=  12     Res=  3.5200820284678261E-02     MDIIS= 12
+step=  13     Res=  2.7439474988184723E-02     MDIIS= 13
+step=  14     Res=  2.0935877166042109E-02     MDIIS= 14
+step=  15     Res=  1.6774822820565440E-02     MDIIS= 15
+step=  16     Res=  1.4574788644371133E-02     MDIIS= 16
+step=  17     Res=  1.4210976498510719E-02     MDIIS= 17
+step=  18     Res=  1.2805704846098370E-02     MDIIS= 18
+step=  19     Res=  1.0627481515109763E-02     MDIIS= 19
+step=  20     Res=  7.4484379658925105E-03     MDIIS= 20
+step=  21     Res=  6.1127307337862516E-03     MDIIS= 20
+step=  22     Res=  4.9172458734072977E-03     MDIIS= 20
+step=  23     Res=  4.7359136041160701E-03     MDIIS= 20
+step=  24     Res=  6.2150534443839592E-03     MDIIS= 20
+step=  25     Res=  4.1567613089502587E-03     MDIIS= 20
+step=  26     Res=  7.4848150376483789E-03     MDIIS= 20
+step=  27     Res=  2.9993012761353722E-03     MDIIS= 20
+step=  28     Res=  2.2008863382711155E-03     MDIIS= 20
+step=  29     Res=  2.2249149151485734E-03     MDIIS= 20
+step=  30     Res=  2.1180841303305308E-03     MDIIS= 20
+step=  31     Res=  2.0214948054577521E-03     MDIIS= 20
+step=  32     Res=  1.9824044529576390E-03     MDIIS= 20
+step=  33     Res=  1.7120658096639219E-03     MDIIS= 20
+step=  34     Res=  1.4500469962886835E-03     MDIIS= 20
+step=  35     Res=  8.0041566520650887E-04     MDIIS= 20
+step=  36     Res=  3.4144788511937351E-04     MDIIS= 20
+step=  37     Res=  2.8334583298902217E-04     MDIIS= 20
+step=  38     Res=  2.7695253119717052E-04     MDIIS= 20
+step=  39     Res=  2.5802728604312498E-04     MDIIS= 20
+step=  40     Res=  2.0301283492322076E-04     MDIIS= 20
+step=  41     Res=  1.6580863158122933E-04     MDIIS= 20
+step=  42     Res=  1.2558862390985172E-04     MDIIS= 20
+step=  43     Res=  1.0457410181376509E-04     MDIIS= 20
+step=  44     Res=  1.0338312884977679E-04     MDIIS= 20
+step=  45     Res=  7.5823548136967235E-05     MDIIS= 20
+step=  46     Res=  7.3497192163399387E-05     MDIIS= 20
+step=  47     Res=  5.2859416828734868E-05     MDIIS= 20
+step=  48     Res=  4.8446960397507557E-05     MDIIS= 20
+step=  49     Res=  4.3994478714614362E-05     MDIIS= 20
+step=  50     Res=  3.1814939579277958E-05     MDIIS= 20
+step=  51     Res=  2.9875493287164501E-05     MDIIS= 20
+step=  52     Res=  1.8280130586587138E-05     MDIIS= 20
+step=  53     Res=  1.2236929445503608E-05     MDIIS= 20
+step=  54     Res=  1.1339563524789423E-05     MDIIS= 20
+step=  55     Res=  5.7810138888362203E-06     MDIIS= 20
+step=  56     Res=  3.3282815445313471E-06     MDIIS= 20
+step=  57     Res=  2.6815608362034705E-06     MDIIS= 20
+step=  58     Res=  2.2623892745854196E-06     MDIIS= 20
+step=  59     Res=  2.2091319132334086E-06     MDIIS= 20
+step=  60     Res=  1.3405267271200741E-06     MDIIS= 20
+step=  61     Res=  1.2530860821587846E-06     MDIIS= 20
+step=  62     Res=  7.6379840186114782E-07     MDIIS= 20
+step=  63     Res=  5.1948197770467902E-07     MDIIS= 20
+step=  64     Res=  4.3758849634000404E-07     MDIIS= 20
+step=  65     Res=  4.1936995236447808E-07     MDIIS= 20
+step=  66     Res=  4.1316131483050477E-07     MDIIS= 20
+step=  67     Res=  3.7618769267620872E-07     MDIIS= 20
+step=  68     Res=  3.7134469011014542E-07     MDIIS= 20
+step=  69     Res=  2.5925936089423858E-07     MDIIS= 20
+step=  70     Res=  2.4799396706022852E-07     MDIIS= 20
+step=  71     Res=  1.3029244708972024E-07     MDIIS= 20
+step=  72     Res=  1.0918141580095600E-07     MDIIS= 20
+step=  73     Res=  1.0387253058608242E-07     MDIIS= 20
+step=  74     Res=  7.3130885711951549E-08     MDIIS= 20
+step=  75     Res=  4.3521497399476500E-08     MDIIS= 20
+step=  76     Res=  4.2031878729673041E-08     MDIIS= 20
+step=  77     Res=  2.4375140086704638E-08     MDIIS= 20
+step=  78     Res=  1.6138409442248273E-08     MDIIS= 20
+step=  79     Res=  9.5695710460183020E-09     MDIIS= 20
+outputting Uvv(R) to file: kh_nr4096_d0p1_tol1e8.uvv
+outputting Xvv(K) to file: kh_nr4096_d0p1_tol1e8.xvv
+outputting Gvv(R) to file: kh_nr4096_d0p1_tol1e8.gvv
+outputting Gvv_dT(R) to file: kh_nr4096_d0p1_tol1e8.gvv_dT
+outputting Bvv(R) to file: kh_nr4096_d0p1_tol1e8.bvv
+outputting thermodynamics to file: kh_nr4096_d0p1_tol1e8.therm
+outputting running coordination number to file: kh_nr4096_d0p1_tol1e8.exnvv
+outputting Nvv(R = infty) to file: kh_nr4096_d0p1_tol1e8.n00
+outputting Nvv(R = infty) to file: kh_nr4096_d0p1_tol1e8.q00
+outputting running coordination number to file: kh_nr4096_d0p1_tol1e8.nvv
+outputting Svv(R) to file: kh_nr4096_d0p1_tol1e8.svv
+
+CPU Timer summary for Total                 
+    Input                                            0.000   (  0.01%)
+    Output                                           1.825   ( 99.99%)
+  I/O                                              1.825   (  0.84%)
+    Thermodynamics                                   0.051   (  0.02%)
+      Potential                                        0.328   (  0.23%)
+          FFT                                              5.490   (  3.95%)
+            Overlap                                          6.735   ( 16.73%)
+            Restart                                          0.004   (  0.01%)
+            Lapack                                           0.040   (  0.10%)
+            Project                                         32.938   ( 81.81%)
+          MDIIS Advance                                   40.260   ( 28.94%)
+          Other                                           93.386   ( 67.12%)
+        R1RISM                                         139.136   ( 99.93%)
+        Other                                            0.096   (  0.07%)
+      RXRISM                                         139.232   ( 99.77%)
+    Solve 1D-RISM                                  139.560   ( 64.59%)
+          FFT dT                                           6.418   (  8.40%)
+            Overlap                                          1.255   (  6.15%)
+            Restart                                          0.004   (  0.02%)
+            Lapack                                           0.015   (  0.07%)
+            Project                                         18.181   ( 89.04%)
+          MDIIS Advance                                   20.420   ( 26.74%)
+          Other                                           49.540   ( 64.86%)
+        R1RISM dT                                       76.378   ( 99.92%)
+        Other                                            0.060   (  0.08%)
+      RXRISM dT                                       76.439   (100.00%)
+    Solve 1D-RISM dT                                76.439   ( 35.37%)
+    Other                                            0.035   (  0.02%)
+  1D-RISM Total                                  216.084   ( 99.16%)
+Total                                          217.922   (100.00%)
+
+1D-RISM memory allocation summary
+Type         Current         Maximum
+Integer             8 B      0.00000 GB
+Real              400 B      0.03040 GB
+Logical             0 B      0.00000 GB
+Character           8 B      0.00000 GB
+---------------------------------------
+Total             416 B      0.03040 GB

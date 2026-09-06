@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "manifest_kind": "route1-custom-solvent-3drism-asset",
+  "solvent": {
+    "canonical_name": "ethanol-ADF4",
+    "temperature_kelvin": 298.15,
+    "pressure_bar": 1.0,
+    "dielectric_constant": 24.35,
+    "species_density_angstrom_minus3": 0.010267682852133002,
+    "standard_state": {
+      "provider_output": "excess_chemical_potential",
+      "benchmark_target": "1M_ideal_gas_to_1M_ideal_solution",
+      "conversion_status": "not_yet_applied"
+    }
+  },
+  "site_types": [
+    {
+      "name": "H",
+      "multiplicity": 1,
+      "mass_amu": 1.008,
+      "charge_e": 0.435,
+      "lj_epsilon_kcal_mol": 0.056,
+      "lj_size_angstrom": 0.561231024
+    },
+    {
+      "name": "O",
+      "multiplicity": 1,
+      "mass_amu": 16.0,
+      "charge_e": -0.7000000000000001,
+      "lj_epsilon_kcal_mol": 0.17,
+      "lj_size_angstrom": 1.72297924
+    },
+    {
+      "name": "CH2",
+      "multiplicity": 1,
+      "mass_amu": 14.026,
+      "charge_e": 0.265,
+      "lj_epsilon_kcal_mol": 0.207,
+      "lj_size_angstrom": 2.11864712
+    },
+    {
+      "name": "CH3",
+      "multiplicity": 1,
+      "mass_amu": 15.034,
+      "charge_e": 0.0,
+      "lj_epsilon_kcal_mol": 0.175,
+      "lj_size_angstrom": 2.19160715
+    }
+  ],
+  "site_coordinates_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.945
+    ],
+    [
+      1.356103,
+      0.0,
+      1.398746
+    ],
+    [
+      1.342751,
+      0.0,
+      2.928687
+    ]
+  ],
+  "rism": {
+    "theory": "drism",
+    "closure": "kh",
+    "grid_spacing_angstrom": 0.025,
+    "grid_points": 4096
+  },
+  "assets": {
+    "mdl": {
+      "relative_path": "ethanol_adf4.mdl",
+      "sha256": "114fa832fcda52227f96d4bcec9480b5484cab4ab75e4f384ec7a6b1fd2f077e"
+    },
+    "rism1d_input": {
+      "relative_path": "ethanol_adf4_kh.inp",
+      "sha256": "71ebc45f07c783ba7718ccc7a2390685e1220026a543324c6521d4b848d9b170"
+    },
+    "xvv": {
+      "relative_path": "ethanol_adf4_kh.xvv",
+      "sha256": "aee345c3b7edb59d46509b6e0afaa65e533e4383abc6703c02ea8e0ac69b7c7c"
+    },
+    "rism1d_stdout": {
+      "relative_path": "ethanol_adf4_kh.rism1d.out",
+      "sha256": "10de93f1f9cc38c746e8e4054f89a277a89c66953e32c72008fdb84845b01824"
+    },
+    "generation_evidence": {
+      "relative_path": "generation_evidence.json",
+      "sha256": "aab6f052c3990f9f4f76bffae821b3bc5c894716be088b9b5ac54a40532cf1ca"
+    }
+  },
+  "provenance": {
+    "molecular_model_reference": "SCM ADF 2026.1 official 3D-RISM documentation Table 7: a four-site united-atom ethanol model (H/O/CH2/CH3), independently re-expressed in Amber MDL units. Source density is 0.78546 g/cm3 at 298.15 K from Calvar et al.; nearby literature values vary slightly. The reported 17.0499 M input is the rounded conversion using the conventional ethanol molar mass 46.06844 g/mol. The explicit MDL site masses sum to 46.068 and define the site model, but are not the mass used for that 17.0499 M rounding. They follow the AmberTools 26 dat/leap/parm/parm10.dat convention C=12.01, H=1.008, O=16.00 amu, giving CH2=14.026 and CH3=15.034; source sha256 dc0c02d28fb7ee4f04d0a5edee3cd62968ba5e9bdb69e0f728bf01d242d7d062. ADF documentation also reports Weight=47.07; this file does not use that value. Sources: 3D-RISM Table 7 https://www.scm.com/doc/ADF/Input/3D-RISM.html; Calvar et al. https://doi.org/10.1021/je900998f; dielectric ThermoML https://trc.nist.gov/ThermoML/10.1021/je060248p.html",
+    "susceptibility_generation": {
+      "generator": "rism1d",
+      "executable_version": "AmberTools 26 rism1d executable sha256 7c5c87d61ead9802c7a2df1a71a4d528d4da2db357e654d5514c603fd4c6918d",
+      "source_inputs_immutable": true
+    }
+  },
+  "containment": {
+    "experimental_values_loaded": false,
+    "experimental_residual_fit": false,
+    "endpoint_selection": false,
+    "energy_calibration": false,
+    "runtime_provider_enabled": false,
+    "accuracy_claim": "none"
+  }
+}

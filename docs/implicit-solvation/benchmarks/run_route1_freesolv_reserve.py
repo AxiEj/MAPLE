@@ -294,6 +294,8 @@ def _evaluate_case(
             existing.get("status") == "success"
             and existing.get("protocol_fingerprint") == fingerprint
             and existing.get("source_mol2_sha256") == row["source_mol2_sha256"]
+            and existing.get("source_structure_group_sha256")
+            == row.get("structure_group_sha256")
             and core.artifact_content_sha256(existing) == existing.get("content_sha256")
         ):
             return {"compound_id": compound_id, "status": "skipped"}
@@ -445,6 +447,7 @@ def _evaluate_case(
             "compound_id": compound_id,
             "status": "success",
             "source_mol2_sha256": row["source_mol2_sha256"],
+            "source_structure_group_sha256": row.get("structure_group_sha256"),
             "dataset_record_sha256": row["dataset_record_sha256"],
             "am1bcc_charges_e": charges,
             "am1bcc_charge_vector_sha256": charge_hash,
@@ -491,6 +494,12 @@ def _load_energy_record(
         raise ValueError(f"Energy record protocol mismatch: {path}.")
     if record.get("source_mol2_sha256") != row["source_mol2_sha256"]:
         raise ValueError(f"Energy record source mismatch: {path}.")
+    if row.get("structure_group_sha256") is not None:
+        record_group = record.get("source_structure_group_sha256")
+        if record_group is not None and (
+            record_group != row["structure_group_sha256"]
+        ):
+            raise ValueError(f"Energy record structure-group mismatch: {path}.")
     if core.artifact_content_sha256(record) != record.get("content_sha256"):
         raise ValueError(f"Energy record content hash mismatch: {path}.")
     if "experimental" in json.dumps(record, sort_keys=True).lower():
@@ -737,6 +746,7 @@ def score(args: argparse.Namespace) -> dict[str, Any]:
                 ),
                 "predictions_kcal_mol": predictions,
                 "signed_errors_kcal_mol": signed_errors,
+                "structure_group_sha256": source["structure_group_sha256"],
                 "bins": source["bins"],
             }
         )

@@ -1018,6 +1018,44 @@ the three displayed solvent components. No bonded, nonbonded gas-phase, or
 other MM energy is included. The profile supports SP energy only and rejects
 all derivative requests.
 
+### Prepared topology and coordinate-only evaluation
+
+The runtime cache changes the execution graph, not the potential.  For one
+provider instance, MAPLE prepares once from the finite coordinates supplied at
+provider construction (rather than whichever pose happens to be scored first):
+
+\[
+(\text{typed MOL2},q_{\mathrm{fixed}})
+\xrightarrow{\mathrm{parmchk2},\ \mathrm{tleap}}
+(\mathrm{frcmod},\mathrm{prmtop}).
+\]
+
+Later conformers or poses retain those immutable files and replace only the
+Amber coordinate input,
+
+\[
+(\mathrm{prmtop},R)
+\xrightarrow{\mathrm{GBNSR6},\ \mathrm{PBSA}}
+E_{\mathrm{GB}}^{\mathrm{CHA}}(R)+E_{\mathrm{CAVITY}}(R)+E_{\mathrm{DISPER}}(R).
+\]
+
+The cache fingerprint binds the source-MOL2 SHA256, construction-coordinate
+SHA256, fixed-charge-vector SHA256, atom-type-vector SHA256, full
+polar/nonpolar profile SHA256, and the AmberTools executable-bundle SHA256. It
+is provider-instance-local; it is not
+a cross-molecule topology cache, a fitted energy correction, or a persistent
+external GBNSR6/PBSA process. The GBNSR6 in-process/POSIX serialization remains
+in force.
+
+The live parity artifact
+`route1-chagb-prepared-provider-parity-2026-07-29.json` compares this path
+against the prior fresh-`parmchk2`/`tleap` workflow on one pinned fixed-AM1-BCC
+methyl-hexanoate and four coordinate arrays (including one nonrigid probe).
+Every displayed solvent
+component and their total agree within `1e-9 kcal mol^-1` (observed maximum
+`0.0`). This proves only that narrow execution parity; it does not create
+forces or establish a general accuracy, ranking, or throughput claim.
+
 Both energy phases consume a label-free source manifest.  Experimental
 FreeSolv values are opened only by the separate summary phase after all 526
 energy records exist.  No residual correction, experimental refit, or
@@ -1087,6 +1125,481 @@ correction and charge/radius/nonpolar pairing; the gas-phase MLIP cancels from
 the paired hydration score. MLIP quality contributes instead through combined
 forces, relaxed geometries, conformer populations, and reorganization terms,
 none of which this reserve establishes.
+
+### Series-level relative-ranking diagnostic (not a certification)
+
+Absolute hydration error does not determine whether a same-series direction is
+right.  For a predeclared series (s) and members (i,j), Route 1 therefore
+measures the uncalibrated score difference
+
+\[
+\Delta\Delta G^{\mathrm{pred}}_{s,ij}
+=\widehat G_{s,i}-\widehat G_{s,j}
+\]
+
+against the experimental difference
+
+\[
+\Delta\Delta G^{\mathrm{exp}}_{s,ij}
+=G_{s,i}-G_{s,j}.
+\]
+
+It reports Kendall \(\tau_b\), Spearman \(\rho\), forced pair-direction
+accuracy, and the MAE/RMSE of
+\(\Delta\Delta G^{\mathrm{pred}}-\Delta\Delta G^{\mathrm{exp}}\).  A pair is
+also reported separately only when it is experimentally distinguishable:
+
+\[
+\left|\Delta\Delta G^{\mathrm{exp}}_{s,ij}\right|
+>z\sqrt{\sigma_i^2+\sigma_j^2},\qquad z=1.96.
+\]
+
+Fixed \(0.5\), \(1.0\), and \(2.0\) kcal/mol difference gates are displayed
+alongside that uncertainty gate.  These are free-energy differences, not
+percentage relative errors, so they remain well defined near zero and when a
+free energy changes sign.  Per-series metrics are macro-averaged,
+
+\[
+\overline{\tau}_{\mathrm{macro}}
+=\frac{1}{S}\sum_{s=1}^{S}\tau_s,
+\]
+
+and bootstrap resampling draws complete series rather than overlapping pairs.
+Top-\(k\) overlap/enrichment and best-of-top-\(k\) regret are also reported
+only for an unambiguous top-\(k\) boundary.
+
+The first implementation consumes the already frozen 116-record score only
+after its label-free energy phase.  It derives seven evaluable, **structure
+only** Bemis--Murcko scaffold groups (48 members) from hash-pinned MOL2 files;
+the old `structure_group_sha256` field is merely the hash of one molecule's
+canonical SMILES and cannot define a series because it is unique for all 642
+prepared molecules.  Thus these groups are a water-hydration structural
+diagnostic, not a matched-pair proof, a congeneric medicinal-chemistry series,
+or a protein--ligand benchmark.
+
+On this explicitly limited diagnostic, AM1-BCC/OBC-II/ACE gives macro
+\(\tau_b/\rho=0.093/0.122\), while fixed-geometry
+AM1-BCC/CHA-GB/PBSA gives \(0.375/0.433\).  The candidate-minus-baseline
+complete-series bootstrap intervals are \([-0.101,0.902]\) for \(\tau_b\) and
+\([-0.060,0.911]\) for \(\rho\), so neither interval rules out no improvement.
+The result is evidence that direct ranking measurement is necessary; it is
+not evidence to promote an endpoint or claim a generally correct trend.
+
+For a future selective ranker, a predeclared margin
+\(m_{s,ij}=|\Delta\Delta G^{\mathrm{pred}}_{s,ij}|\) can yield a retrospective
+coverage--risk curve, but Route 1 currently emits no `certified` ordering:
+there is no series-disjoint calibration set, no external independent test
+series, and no fixed conformal threshold.  A future abstention rule must be
+calibrated before a series-disjoint test, retain the raw energies unchanged,
+and return `uncertain` outside its stated applicability domain.
+
+### Matched-pair charge continuity is a diagnostic, not an energy correction
+
+For one structure-only matched-core mapping \(m\) between molecules \(i\) and
+\(j\), let \(\mathcal R_m\) contain only mapped **heavy atoms** that are at
+least three heavy-atom bonds from the transformation attachment in both
+molecules. The charge-continuity audit measures
+
+\[
+D_{q,2}^{(m)}
+=
+\left[
+\sum_{(a,b)\in\mathcal R_m}
+\left(q_{i,a}-q_{j,b}\right)^2
+\right]^{1/2},
+\qquad
+D_{q,\mathrm{RMS}}^{(m)}
+=\frac{D_{q,2}^{(m)}}{\sqrt{|\mathcal R_m|}},
+\]
+
+together with
+\(\max_{(a,b)\in\mathcal R_m}|q_{i,a}-q_{j,b}|\). Hydrogens are not included,
+so these quantities must not be described as total common-core charge drift.
+RDKit `2024.09.2` first returns one `FindMCS` SMARTS from element, bond-order,
+and ring topology before any charge or experimental value is examined. The
+audit enumerates every non-uniquified embedding of that **single returned
+SMARTS** on both molecules; it does not enumerate distinct, non-isomorphic
+maximum-MCS pattern alternatives. If those audited embeddings give a nonzero
+interval for a reported charge metric, that pair is mapping-ambiguous and is
+excluded from the main diagnostic rather than choosing the embedding that best
+explains an error.
+
+The reason this norm is useful but cannot become a kcal/mol threshold follows
+from the fixed-geometry GB quadratic form. With
+
+\[
+G_{\mathrm{polar}}(q)
+=-\frac{c}{2}q^\mathsf{T}Kq,
+\qquad c=1-\varepsilon_{\mathrm{out}}^{-1},
+\]
+
+a charge perturbation \(\delta q\) at a *fixed* geometry and kernel gives
+
+\[
+G_{\mathrm{polar}}(q+\delta q)-G_{\mathrm{polar}}(q)
+=-c\,q^\mathsf{T}K\delta q
+-\frac{c}{2}\delta q^\mathsf{T}K\delta q,
+\]
+
+and therefore
+
+\[
+\left|\delta G_{\mathrm{polar}}\right|
+\le
+c\,\lVert Kq\rVert_2\lVert\delta q\rVert_2
++\frac{c}{2}\lVert K\rVert_2\lVert\delta q\rVert_2^2.
+\]
+
+A real matched pair changes atom count, geometry, radii, and thus the kernel
+\(K\); the audit also observes only a remote heavy-atom subvector. Without a
+uniform kernel bound and an independently calibrated series distribution,
+\(D_q\) cannot be converted into an energy-error bar, an abstention threshold,
+or a causal decomposition. It is only a representation-fragility feature to
+test against held-out series.
+
+The frozen 116-case reserve contains complete AM1-BCC vectors for both Route 1
+endpoints but no same-record ABCG2, RESP, or RESP2 vectors. Consequently this
+audit can test **within-AM1-BCC continuity** and OBC-II-versus-CHA endpoint
+order disagreement only. It cannot be reported as a charge-model comparison,
+and any later alternate-charge study must be generated and frozen as a new
+label-free artifact before opening its evaluation labels.
+
+The implemented audit keeps that boundary physical. A first process reads only
+the frozen source manifest, hash-pinned MOL2 files, AM1-BCC vectors, and sealed
+endpoint energies. For the single SMARTS returned by RDKit `FindMCS`, it
+enumerates all non-uniquified embedding pairs subject to an exact
+element/bond-order, complete-ring, connected-core, single-attachment, `1..3`
+changed-heavy-atom, and remote-distance contract. The embedding cross-product
+is capped; timeout or overflow fails closed. All structure-valid embeddings of
+that returned SMARTS must have identical remote-heavy-atom count and charge
+metrics before the lexicographically first embedding may represent the pair.
+Distinct maximum-MCS SMARTS patterns are an unaudited limitation, not silently
+treated as invariant. Mapping-variant embeddings remain in a label-free
+sensitivity appendix and are excluded from scoring. Only a second process may
+open the already frozen score artifact, after checking the complete
+source--energy--score and pair-protocol--pair-artifact hash chains.
+
+Of `6670` possible molecule pairs, `65` satisfy this strict label-free
+contract and form five dependent graph components with `(members, edges)`
+equal to `(13,52)`, `(6,6)`, `(4,5)`, `(2,1)`, and `(2,1)`. Nine candidate
+pairs fail the mapping-enumeration cap; one has a charge-metric-variant
+mapping and one has a remote-count-variant mapping. One of the 65 accepted
+pairs is an exact experimental tie, leaving 64 experimentally distinct edges.
+The retrospective label-open aggregates are:
+
+| fixed experimental gate | edges | OBC-II/ACE sign accuracy | CHA-GB/PBSA sign accuracy | OBC-II/ACE \(\Delta\Delta G\) MAE | CHA-GB/PBSA \(\Delta\Delta G\) MAE |
+|---|---:|---:|---:|---:|---:|
+| nonzero \(|\Delta\Delta G_{\rm exp}|\) | 64 | 0.953 | 0.922 | 1.088 | 1.187 |
+| \(\ge 0.5\) kcal/mol | 59 | 0.949 | 0.949 | 1.151 | 1.230 |
+| \(\ge 1.0\) kcal/mol | 47 | 1.000 | 1.000 | 1.276 | 1.337 |
+| \(\ge 2.0\) kcal/mol | 39 | 1.000 | 1.000 | 1.475 | 1.547 |
+| \(>1.96\sqrt{\sigma_i^2+\sigma_j^2}\) | 41 | 1.000 | 1.000 | 1.266 | 1.438 |
+
+All errors are kcal/mol. The endpoints disagree in direction on six of the 64
+distinct edges, four of the `0.5`-kcal/mol edges, and none of the `1.0`,
+`2.0`, or uncertainty-gated edges. These observations are not independent:
+most edges share molecules inside the 13-member component. No p-value,
+confidence interval, regression, bootstrap, or endpoint comparison decision is
+therefore reported.
+
+Most importantly for the bottleneck hypothesis, the descriptive Spearman
+association between \(D_{q,2}\) and absolute \(\Delta\Delta G\) error is only
+`0.158` for OBC-II/ACE and `-0.025` for CHA-GB/PBSA across the 64 distinct
+edges. At the predeclared uncertainty gate it is `0.062` and `0.007`.
+The RMS and maximum-absolute charge-drift variants lead to the same qualitative
+boundary. This frozen subset therefore does **not** establish remote
+within-AM1-BCC heavy-atom drift as the dominant CHA ranking bottleneck and
+does not support a \(D_q\)-based abstention threshold. The exact conclusion is
+`diagnostic_signal_only_insufficient_for_threshold_or_certification`.
+
+### Published explicit-component comparison is a bottleneck diagnostic, not a target
+
+The frozen water endpoint can also be compared with the *published calculated*
+FreeSolv decomposition on the same 526 development identifiers.  This is not
+a comparison to a second experimental label: `database.json` reports the
+FreeSolv GAFF/AM1-BCC explicit-solvent calculation and its charging and van der
+Waals legs.  Let those published values be
+\(G_{\mathrm{calc}}\), \(G_{\mathrm{chg}}\), and
+\(G_{\mathrm{vdW}}\), and let the fixed Route 1 components be
+\(G_{\mathrm{CHA}}\) and \(G_{\mathrm{PBSA,np}}\).  The source rounds
+
+\[
+G_{\mathrm{calc}}
+=G_{\mathrm{chg}}+G_{\mathrm{vdW}}+r_{\mathrm{round}},
+\qquad |r_{\mathrm{round}}|\leq 0.0011\ \mathrm{kcal\ mol^{-1}}.
+\]
+
+The diagnostic reports the *descriptive* component differences
+
+\[
+\delta_{\mathrm{polar}}
+=G_{\mathrm{CHA}}-G_{\mathrm{chg}},
+\qquad
+\delta_{\mathrm{np}}
+=G_{\mathrm{PBSA,np}}-G_{\mathrm{vdW}},
+\]
+
+and their total, with the rounding convention explicit,
+
+\[
+\widehat G_{\mathrm{Route\ 1}}-G_{\mathrm{calc}}
+=\delta_{\mathrm{polar}}+\delta_{\mathrm{np}}-r_{\mathrm{round}}.
+\]
+
+For experimental hydration value \(G_{\mathrm{exp}}\), the exact accounting
+identity is
+
+\[
+\underbrace{\widehat G_{\mathrm{Route\ 1}}-G_{\mathrm{exp}}}_{e_{\mathrm{Route\ 1}}}
+=
+\underbrace{G_{\mathrm{calc}}-G_{\mathrm{exp}}}_{e_{\mathrm{published\ explicit}}}
++
+\underbrace{\left(\widehat G_{\mathrm{Route\ 1}}-G_{\mathrm{calc}}\right)}_{\delta_{\mathrm{continuum-vs-explicit}}}.
+\]
+
+It is an identity, **not** a causal error decomposition: the published
+calculation has its own charge, force-field, conformational, finite-sampling,
+and standard-state approximations.  Consequently neither \(\delta\) is a
+residual to add to Route 1, nor is \(G_{\mathrm{calc}}\) a teacher or a
+replacement target.
+
+The hash-pinned replay
+`benchmarks/route1-freesolv-explicit-component-diagnostic-2026-07-29.json`
+checks that identity to `1.8e-15 kcal mol^-1`.  Its CHA polar mismatch has
+MAE/RMSE/bias/max `0.879/1.296/-0.556/7.629 kcal mol^-1`; the nonpolar mismatch
+has `0.426/0.586/+0.083/2.752`.  The full continuum-versus-published-explicit
+difference has MAE/RMSE/max `0.936/1.280/7.881`.  On the identical charge and
+geometry inputs, OBC-II polar versus published charging is markedly worse
+(`2.070/2.743/-1.891/12.285`), while CHA reduces paired absolute polar mismatch
+by `1.190 kcal mol^-1` on average (458/526 cases; 147/170 Route 1 tails).
+Therefore the evidence retains CHA rather than just reverting a radius model,
+but it does **not** prove that the residual CHA discrepancy is causal or that
+any particular nonlinear replacement is valid.  A scalar nonpolar change is
+likewise not supported: polar discrepancy is larger in 357/526 cases and in
+125/170 cases where Route 1 itself exceeds the predeclared `1.5 kcal mol^-1`
+absolute-error gate.  The descriptive route-error associations are
+Pearson/Spearman `0.551/0.548` for polar mismatch but only `0.039/0.077` for
+nonpolar mismatch.  These associations carry no p-values, confidence
+intervals, regression, or causal interpretation.
+
+The same identity prevents an overclaim in the opposite direction.  The
+published explicit calculation itself exceeds `1.5 kcal mol^-1` on 123/526
+records (MAE/RMSE/max `1.135/1.568/10.775`), whereas Route 1 exceeds it on
+170/526.  The fixed-gate table contains 71 records where both exceed, 99 Route
+1-only, 52 published-explicit-only, and 304 neither.  Therefore merely
+approaching this particular explicit calculation cannot by itself satisfy the
+user's per-record experimental gate; conversely, the 52 published-explicit-only
+records prove that Route 1 is not simply a degraded copy of it.  Any next
+physical hypothesis must be pre-registered and independently evaluated against
+experiment without endpoint selection, charge switching, parameter fitting, or
+an energy correction.
+
+### Scale-controlled surface-electrostatics falsification
+
+The component diagnostic above motivated, but did not establish, a missing
+nonlinear-interface or first-shell mechanism.  A separate label-free process
+therefore evaluates only four quantities on a deterministic union-sphere SAS
+quadrature.  For accessible surface points \(s_k\), areas \(a_k\), outward
+normals \(n_k\), solute charges \(q_i\), and atomic positions \(R_i\),
+
+\[
+A=\sum_k a_k,
+\qquad
+\phi_k=\sum_i\frac{q_i}{\lVert s_k-R_i\rVert},
+\]
+
+\[
+E_{n,k}
+=
+\sum_i q_i
+\frac{(s_k-R_i)\mathbin{\cdot}n_k}
+{\lVert s_k-R_i\rVert^3},
+\]
+
+\[
+\Phi_2
+=
+\left(\frac{1}{A}\sum_k a_k\phi_k^2\right)^{1/2},
+\qquad
+F_{n,2}
+=
+\left(\frac{1}{A}\sum_k a_kE_{n,k}^2\right)^{1/2}.
+\]
+
+With
+\(\overline E_n=A^{-1}\sum_k a_kE_{n,k}\), the signed heterogeneity proxy is
+
+\[
+\Gamma_n
+=
+\frac{
+A^{-1}\sum_k a_k(E_{n,k}-\overline E_n)^3
+}{
+\left[
+A^{-1}\sum_k a_k(E_{n,k}-\overline E_n)^2
+\right]^{3/2}
+}.
+\]
+
+These are geometry/electrostatics descriptors, not a solvent free-energy
+functional.  In particular, the SAS proxy is neither the actual CHA/GBNSR6
+dielectric interface nor an explicit first solvent shell.
+
+The raw development-set statistic uses
+
+\[
+Y_i
+=
+\left|
+G_{\mathrm{CHA,p},i}-G_{\mathrm{published,charging},i}
+\right|,
+\qquad
+Z_i=\left|G_{\mathrm{CHA,p},i}\right|.
+\]
+
+Because \(F_{n,2}\), \(\Phi_2\), and \(Z\) all measure electrostatic scale, a
+raw rank association does not identify an extra nonlinear mechanism.  The
+post-v1 adversarial statistic rank-transforms every variable and residualizes
+both \(Y\) and a candidate proxy \(F\) against
+
+\[
+X=[\mathbf 1,\operatorname{rank}(Z),\operatorname{rank}(A)].
+\]
+
+Writing \(P_X=XX^+\), where \(X^+\) is the Moore--Penrose pseudoinverse, its
+point statistic is
+
+\[
+\rho_{\mathrm{partial}}
+=
+\operatorname{corr}
+\left[
+(I-P_X)\operatorname{rank}(Y),
+(I-P_X)\operatorname{rank}(F)
+\right].
+\]
+
+Cluster-bootstrap replicates use the exactly equivalent count-weighted
+least-squares projection after resampling complete
+`structure_group_sha256` units.  In this artifact all 526 realized groups are
+singletons, so it remains a molecule-level development sensitivity analysis,
+not a series-disjoint confirmation.  Bonferroni intervals cover the two
+predeclared proxies within each radius view.
+
+The unadjusted Bondi-family correlations are `0.512` for \(F_{n,2}\) and
+`0.488` for \(\Phi_2\), while
+\(\rho(F_{n,2},Z)=0.822\),
+\(\rho(\Phi_2,Z)=0.779\), and
+\(\rho(F_{n,2},\Phi_2)=0.960\).  After controlling \(Z\) and \(A\), the
+Bondi-family partial values collapse to `0.061` and `0.062`, with simultaneous
+95% intervals `[-0.053,0.173]` and `[-0.044,0.170]`; mbondi2 gives `0.059`
+`[-0.055,0.169]` and `0.062` `[-0.045,0.169]`.  All intervals cross zero.
+The \(\Gamma_n\) interval also crosses zero, and 464/526 radius vectors are
+identical between the two radius views, so their agreement is not independent
+replication.
+
+The mathematically supported decision is therefore narrow: **stop the
+inference from these surface proxies to a new first-shell/nonlinear provider**.
+This does not prove that every nonlinear interface theory is false.  It means
+that this post-result, label-exposed development sensitivity cannot identify
+one, select a radius or endpoint, modify an energy, certify a rank, or support
+the requested maximum-error/multi-solvent claims.
+
+### Fail-closed split-conformal selective ranking
+
+`benchmarks/selective_ranking.py` implements the decision contract but does
+not activate it for the current FreeSolv scaffold diagnostic. A qualifying
+calibration artifact has one complete-series score
+
+\[
+R_s=\max_{i<j}
+\left|
+\Delta\Delta G^{\mathrm{pred}}_{s,ij}
+-\Delta\Delta G^{\mathrm{exp}}_{s,ij}
+\right|,
+\]
+
+never an overlapping-pair sample. For \(m\) exchangeable calibration series
+within one exact declared domain and desired miscoverage \(\alpha\), the
+implemented split-conformal radius is the order statistic
+
+\[
+q_{1-\alpha}
+=R_{(\lceil(m+1)(1-\alpha)\rceil)},
+\qquad
+\lceil(m+1)(1-\alpha)\rceil\le m.
+\]
+
+If the displayed finite-sample condition fails, no finite empirical radius can
+support the requested target coverage: the implementation returns
+`out_of_domain` instead of clamping the rank to \(m\).  In particular,
+\(\alpha<1/(m+1)\) cannot be advertised from only \(m\) calibration series.
+
+For an already computed pair difference
+\(d=\widehat G_{\mathrm{first}}-\widehat G_{\mathrm{second}}\), it returns
+the *interval* \([d-q,d+q]\), without changing \(d\). It certifies
+`first_better` only if \(d<-q\), `second_better` only if \(d>q\), and returns
+`uncertain` when the interval crosses zero. An absent qualified calibration or
+an unseen/undersupported exact domain returns `out_of_domain`. A charge-scheme
+or endpoint-order disagreement also forces `uncertain`; it never averages the
+disagreeing scores.
+
+The coverage statement is conditional on exchangeability of complete series in
+that declared domain. The calibration artifact binds \(\alpha\), the minimum
+domain sample size, endpoint fingerprint, domain schema, calibration/test
+manifests, explicit held-out series IDs, and a series-disjointness audit before
+the calibrator is constructed.  Each prediction must then arrive as a sealed,
+label-blind evidence artifact whose series ID belongs to that held-out
+manifest, and whose test-energy, endpoint, domain-schema, and disagreement
+protocol fingerprints exactly match the calibration contract.  Its full
+content hash must also have been pre-enumerated in the calibration-bound
+prediction-evidence manifest, so resealing a different delta or ligand pair
+does not make it trusted.  A calibration series, an unregistered series, or a
+delta from another endpoint fails closed.
+Those hashes make silent prediction-time retuning and scalar substitution
+detectable; they do not independently prove that an external data source or
+the hashed disagreement computation is scientifically honest.
+The current FreeSolv structure groups satisfy none of the activation
+conditions. Thus the code can refuse safely today, but no `certified` Route 1
+prediction is currently scientifically authorized.
+
+### `route1-physdistill` research-only pre-registration
+
+`benchmarks/route1_physdistill_protocol_v1.json` records a separate proposed
+research branch; it is intentionally not imported by any Route 1 runtime. The
+candidate keeps an analytic GB/CHA long-range backbone and permits learning
+only bounded physical intermediates, for example
+
+\[
+\widetilde R_i
+=R_i^{\mathrm{intrinsic}}
++\left(R_i^{\max}-R_i^{\mathrm{intrinsic}}\right)
+\sigma\!\left(f_{\theta,i}\right),
+\qquad R_i^{\max}>R_i^{\mathrm{intrinsic}}>0,
+\]
+
+not an arbitrary total-energy residual. Its potential must remain a scalar
+\(G_\theta(R,q_{\mathrm{fixed}})\) with
+\(F_\theta=-\nabla_R G_\theta\). A future teacher-distillation loss may combine
+energy, conservative force, and fixed pair-difference terms,
+
+\[
+\mathcal L=
+\lambda_E\lVert G_\theta-G_T\rVert^2
++\lambda_F\lVert\nabla_R G_\theta-\nabla_R G_T\rVert^2
++\lambda_\Delta\sum_{a,b}
+\left|\left(G_\theta^a-G_\theta^b\right)
+-\left(G_T^a-G_T^b\right)\right|^2
++\lambda_{\mathrm{phys}}\mathcal L_{\mathrm{limits}}.
+\]
+
+Experimental FreeSolv values remain external validation only; no learned
+element/class correction, linear calibration, or experimental residual is
+allowed. Before any runtime promotion, the protocol requires all-\(3N\)
+finite-difference and closed-loop conservative-force checks, dielectric and
+dissociation limits, scaffold/transformation/charged holdouts, series ranking,
+and a final dataset absent from teacher selection. No training data, model,
+checkpoint, or `route1-physdistill` runtime has been created here.
 
 - Mukhopadhyay et al., “Introducing Charge Hydration Asymmetry into the
   Generalized Born Model,” *J. Chem. Theory Comput.* (2014),
@@ -1360,6 +1873,657 @@ item, not a current redistributable Route 1 provider.
   SI PDF. Table S4 is parsed from the layout-preserving extraction; Table S10
   is cross-checked between `pdftotext -layout` and `-raw` extraction modes.
 
+## No-fit multi-solvent 3D-RISM research gate (not integrated)
+
+The product Route 1 contract remains the fixed-charge PB/GB composition at the
+top of this ledger.  A water GB calculation cannot be made into a physically
+defined arbitrary-solvent model merely by changing its outer dielectric.
+OpenMM exposes that dielectric in the polar GB term, but its surface-area term
+does not acquire a solvent molecular structure, density, dispersion response,
+or hydrogen-bond response from \(\epsilon_s\).  Therefore no non-water
+`#solv` option, no custom-solvent public API, and no silent water-parameter
+reuse is introduced by this research gate.
+
+The first label-free mathematical candidate worth testing is a **separate,
+benchmark-only 3D-RISM solvent functional**, not a term to bolt onto the
+current PB/GB implementation.  For solvent \(s\), solute geometry \(R\), and
+solvent site \(\gamma\), write the site distribution as
+
+\[
+h_{\gamma,s}(\mathbf r;R)
+=\sum_\alpha
+\left(c_{\alpha,s}(\cdot;R)*\chi_{\alpha\gamma,s}\right)(\mathbf r),
+\]
+
+where \(c\) is the solute--solvent direct correlation function and
+\(\chi_s\) is the solvent's site--site susceptibility.  With
+
+\[
+d_{\gamma,s}(\mathbf r;R)
+=-\beta u_{\gamma,s}(\mathbf r;R)
+ +h_{\gamma,s}(\mathbf r;R)-c_{\gamma,s}(\mathbf r;R),
+\]
+
+the Kovalenko--Hirata closure is
+
+\[
+g_{\gamma,s}(\mathbf r;R)=
+\begin{cases}
+\exp(d_{\gamma,s}), & d_{\gamma,s}\leq0,\\
+1+d_{\gamma,s}, & d_{\gamma,s}>0.
+\end{cases}
+\]
+
+The solver then defines a fixed-geometry excess chemical potential
+
+\[
+W_s^{\mathrm{RISM}}(R)
+=\mu_{\mathrm{3D\mbox{-}RISM}}^{\mathrm{ex}}
+\left[u_s(R),\chi_s,\text{closure}\right].
+\]
+
+If, and only if, a future independent provider passes all numerical and
+scientific gates, its ensemble calculation must retain the gas MLIP rather
+than introduce a gas-phase MM energy:
+
+\[
+U_{g}(R)=E_{\mathrm{MLIP,gas}}(R),\qquad
+U_{s}(R)=E_{\mathrm{MLIP,gas}}(R)+W_s^{\mathrm{RISM}}(R),
+\]
+
+\[
+Z_x=\int_\Omega \exp[-\beta U_x(R)]\,dR,\qquad
+\Delta G_{s,\mathrm{conf}}
+=-\beta^{-1}\ln\frac{Z_s}{Z_g}.
+\]
+
+The final \(1\,\mathrm M\) ideal-gas to \(1\,\mathrm M\) ideal-solution
+standard-state mapping is a separately declared thermodynamic step.  It must
+be bound to the MNSol convention and the provider's own convention before any
+comparison; a fixed-geometry \(\mu^{\mathrm{ex}}\), an implicit-program
+default, and an ensemble \(\Delta G\) are not interchangeable.
+
+For a neutral solute at infinite dilution, the concentration-standard-state
+mapping of a genuine excess chemical potential follows directly from
+
+\[
+\mu_{\mathrm{soln}}(C)
+=k_{\mathrm B}T\ln\!\left(
+\frac{C\Lambda^3}{q_{\mathrm{int}}}
+\right)+\mu^{\mathrm{ex}},
+\qquad
+\mu_{\mathrm{gas}}^{\mathrm{id}}(C)
+=k_{\mathrm B}T\ln\!\left(
+\frac{C\Lambda^3}{q_{\mathrm{int}}}
+\right).
+\]
+
+At equal standard concentrations, the ideal translational and internal terms
+therefore cancel:
+
+\[
+\Delta G^*_{1\,\mathrm M\rightarrow1\,\mathrm M}
+=\mu_{\mathrm{soln}}(C^\circ)-\mu_{\mathrm{gas}}^{\mathrm{id}}(C^\circ)
+=\mu^{\mathrm{ex}},
+\qquad C^\circ=1\,\mathrm{mol\,L^{-1}}.
+\]
+
+Thus a neutral 3D-RISM excess-chemical-potential quantity has a **zero**
+concentration-standard-state shift before comparison to MNSol's Ben-Naim
+quantity.  This statement does not select raw KH, GF, PC, or PC+: those remain
+different approximations to the solvent excess work.  It also does not cover
+single-ion conventions, surface/Galvani potentials, a
+fixed-geometry-to-ensemble approximation, or a temperature mismatch.
+
+MNSol's starred quantity is explicitly the Ben-Naim
+\(1\,\mathrm M\) gas to \(1\,\mathrm M\) solution standard state.  If
+\(\Delta G^\circ_{1\,\mathrm{atm}\rightarrow1\,\mathrm M}\) denotes a
+provider quantity using a \(1\,\mathrm{atm}\) ideal-gas reference, then
+
+\[
+\Delta G^*_{1\,\mathrm M\rightarrow1\,\mathrm M}
+=
+\Delta G^\circ_{1\,\mathrm{atm}\rightarrow1\,\mathrm M}
+-RT\ln\!\left(\frac{C^\circ RT}{P^\circ}\right).
+\]
+
+At \(298\,\mathrm K\), \(C^\circ=1\,\mathrm{mol\,L^{-1}}\), and
+\(P^\circ=1\,\mathrm{atm}\), the dimensionless ratio is approximately
+\(24.46\), so the subtracted term is approximately
+\(1.89\,\mathrm{kcal\,mol^{-1}}\).  Conversely, no \(1.89\) term is applied to
+the neutral excess chemical potential above because the ideal terms cancel at
+equal concentration.  A future scoring protocol must still bind the exact
+Amber output field, sign, closure/pressure convention, temperature, and
+solute ensemble before opening MNSol labels.
+
+Amber's names also separate three mathematical layers that must not be
+collapsed.  `rism_excessChemicalPotential` is the closure functional (KH in
+the present pilots), while the Gaussian-fluctuation value is a distinct
+alternative functional.  PC/PC+ are pressure/ensemble corrections involving
+bulk density and partial molar volume; the \(RT\ln(24.46)\) term is instead a
+gas-standard-state conversion.  Neither the presence of PC+ nor the string
+``excess chemical potential`` proves that a \(1\,\mathrm{atm}\) reference has
+already been converted to the MNSol \(1\,\mathrm M\) convention.  Therefore
+Route 1 keeps all four quantities separately named and applies no universal
+\(\pm1.89\,\mathrm{kcal\,mol^{-1}}\) rule without a source-level convention
+binding.
+
+Pressure corrections are also mathematical model choices, not free offsets.
+For a predeclared 3D-RISM pressure \(P_s^{\mathrm{RISM}}\), ideal pressure
+\(P_s^{\mathrm{id}}\), and partial molar volume \(\bar V_s\), the common
+forms are
+
+\[
+W_s^{\mathrm{PC}}
+=W_s^{\mathrm{closure}}-P_s^{\mathrm{RISM}}\bar V_s,
+\qquad
+W_s^{\mathrm{PC+}}
+=W_s^{\mathrm{PC}}+P_s^{\mathrm{id}}\bar V_s.
+\]
+
+The closure, grid, buffer, temperature, site model, susceptibility/XVV asset
+hash, and exactly one of the raw/PC/PC+ conventions must be frozen before any
+experimental values are opened.  Per-molecule correction selection, a global
+intercept, a fitted universal correction, and a solvent-specific error offset
+are prohibited.  Amber exposes PC+ directly in the present executable but not
+the rigorous PC endpoint as an independently named output; that implementation
+fact is not permission to promote PC+ after inspecting labels.
+
+MNSol declares \(298\,\mathrm K\).  The existing methanol and ethanol
+research assets are at \(298.15\,\mathrm K\), so they remain numerical-only
+assets and are not eligible for an MNSol accuracy score.  An accuracy protocol
+would first need a source-bound \(298.00\,\mathrm K\) susceptibility, including
+density and dielectric at that state, or a prospectively derived temperature
+treatment.  The \(0.15\,\mathrm K\) difference cannot be excused after seeing
+an error.
+
+The required asset for every solvent is consequently not a scalar setting but
+
+\[
+\mathcal A_s=
+\bigl(
+\text{site topology}_s,q_s,\mathrm{LJ}_s,T_s,\rho_s,
+\epsilon_s,\text{1D closure}_s,\chi_s
+\bigr),
+\]
+
+with a content hash for the final XVV file and every source input.  A change in
+temperature, pressure/density, molecular model, or 1D-RISM closure changes
+\(\mathcal A_s\) and requires a new susceptibility; reusing a water XVV for a
+named organic solvent is a category error, not a conservative approximation.
+The inspected local AmberTools 26 installation contains only SPC/cSPCE water
+XVV assets (including a cSPCE/NaCl mixture), not solvent-specific assets for
+the other fourteen MNSol panel solvents.  This is a local availability gate,
+not a statement that AmberTools cannot in principle accept another XVV: it
+means the present checkout must fail closed rather than call those solvents
+supported.
+
+The executable source-level form of this gate is
+`benchmarks/route1_custom_solvent_asset_contract_v1.json` plus
+`benchmarks/route1_custom_solvent_asset_audit.py`.  It accepts a prospective
+single-solvent manifest only when its molecular site types and coordinates,
+MDL, 1D-RISM input, and final XVV agree.  In particular, it checks the
+Amber file conventions before the reduced-unit relations.  For a manifest
+charge \(q_i^{(e)}\) in electron-charge units, the MDL field is not an
+arbitrary proportional vector:
+
+\[
+q_i^{\mathrm{MDL}}=18.2223\,q_i^{(e)}.
+\]
+
+Amber's MDL flag is named `LJSIGMA`, but the source reads it as the per-site
+\(R_{\min}/2\), doubles it internally, and uses the pair potential
+
+\[
+u_{ij}^{\mathrm{LJ}}(r)
+=\epsilon_{ij}
+\left[
+\left(\frac{R_{\min,ij}}{r}\right)^{12}
+-2\left(\frac{R_{\min,ij}}{r}\right)^6
+\right],
+\qquad
+R_{\min,ij}
+=\frac{R_{\min,i}}2+\frac{R_{\min,j}}2.
+\]
+
+Therefore a source parameter using the conventional
+\(4\epsilon[(\sigma/r)^{12}-(\sigma/r)^6]\) form must be converted exactly as
+
+\[
+\left(\frac{R_{\min,i}}2\right)_{\mathrm{MDL}}
+=2^{-5/6}\sigma_i,
+\]
+
+whereas a source already reporting Amber \(R_{\min}/2\) is copied without that
+conversion.  Treating conventional \(\sigma\) as the MDL value would change
+the potential and is rejected as a unit error.  After those mappings, the XVV
+audit checks the declared-temperature relations
+
+\[
+q^{\mathrm{XVV}}_i
+=\frac{q^{\mathrm{MDL}}_i}{\sqrt{k_{\mathrm B}T}},
+\qquad
+\epsilon^{\mathrm{XVV}}_i
+=\frac{\epsilon^{\mathrm{MDL}}_i}{k_{\mathrm B}T},
+\]
+
+as well as site multiplicities, **indexed site identity**, proper-rotation
+rigid geometry, site/species density, dielectric, closure, grid, and content
+hashes.  The complete `grid_points * site_type_count^2` XVV correlation array
+must have exactly the declared length and every token must parse as a finite
+number.  The documented `g/cm3` and `kg/m3` density conversions include the
+required factor of \(1000\) between mass-density and molar units.  This makes a
+water XVV renamed as an organic solvent, a temperature-mismatched XVV, a
+site-type coordinate swap, or a malformed/extended correlation payload fail
+before experimental scoring.  The small rounding tolerance in that audit is
+limited to independently rounded text MDL/XVV quantities and the documented
+`rism1d` density-unit conversion; it is not a fitted thermodynamic parameter.
+A merely proportional but non-\(18.2223\) MDL charge vector now fails closed.
+A passing asset audit says only that one physical *input* has internally
+consistent metadata and a structurally valid finite payload.  When a local
+generation log and sealed evidence record are supplied, the manifest and
+primary audit artifact cross-hash both; that binding still does **not** prove
+executable replay or regeneration parity.  It does not make a solvent
+provider, establish a standard-state conversion, or imply numerical
+convergence, force availability, accuracy, or ranking utility.
+
+### Literature disposition: what the nonaqueous 3D-RISM evidence does and does not buy
+
+The 3D-RISM path remains worth a **prospective physical** test because the KH
+functional supplies a molecular solvent structure and an analytical excess
+chemical potential rather than a FreeSolv/MNSol residual.  It is not, however,
+evidence that a generic 15-solvent, all-record sub-(1) kcal/mol Route 1
+method already exists.  The published evidence must stay bound to its exact
+solvent model, correction convention, source panel, and metric:
+
+| source / endpoint | relevant published result | admissible inference for Route 1 |
+| --- | --- | --- |
+| Misin, Palmer, and Fedorov (2016), corresponding-states one-site 3D-RISM/PC+ | Its Table 3 reports RMSEs of 2.23 (acetonitrile, (N=7)), 1.86 (chloroform, (N=107)), 2.21 (diethyl ether, (N=70)), 2.65 (DMSO, (N=7)), 3.02 (ethyl acetate, (N=22)), and 2.24 kcal/mol (octanol, (N=245)). | A coarse nonpolar/corresponding-states construction is not a shortcut to the requested polar/protic multi-solvent accuracy, even though its parameter source is not an experimental solvation residual. |
+| Sergiievskyi *et al.* 3D-RISM pressure analysis | The pressure correction PC has a thermodynamic derivation; the extra PC+ ideal-gas term is explicitly described as ad hoc at molecular solute size. | Raw/PC and PC+ are distinct frozen model conventions. PC+ cannot be silently rebranded as an entirely first-principles correction merely because it has no per-solute residual at runtime. |
+| Published all-site 3D-RISM-KH studies in individual solvents | Some reports give much smaller errors for selected solvents/models, for example chloroform or octanol. | These are useful feasibility evidence only. Their force fields, closures/corrections, source records, geometry/standard-state policies, and MAE versus RMSE definitions differ; their numbers must not be pooled or ranked against the Misin table or MAPLE artifacts. |
+
+The practical disposition is therefore deliberately narrow:
+
+1. the only currently admissible **new** physical research comparator is an
+   all-site molecular DRISM/3D-RISM-KH calculation with a complete, frozen
+   asset bundle \(\mathcal A_s\), using one predeclared raw or PC convention;
+2. PC+ may be retained as a separately labeled benchmark comparator, never a
+   hidden accuracy correction or a selector tuned after MNSol labels; and
+3. the coarse one-site published assets, universal correction, SMD descriptor
+   terms, multi-solvent regression models, and fitted PBSA surface profiles do
+   not satisfy the requested no-residual physical route.
+
+Most importantly, this comparator does **not** satisfy or redefine the Route 1
+product formula.  A full 3D-RISM excess functional is not evidence for the
+existing PB/GB decomposition \(G_{\mathrm{polar}}+G_{\mathrm{nonpolar}}\).
+Its numerical or prospective accuracy evidence must remain benchmark-only
+unless a future project explicitly adopts a different route contract.
+
+Before that candidate receives any accuracy claim, each solvent must first pass
+the asset contract, a 1D-RISM self-consistency/convergence check, 3D-RISM grid
+and closure convergence at fixed geometry, standard-state closure, and a
+label-blind energy run.  Only then may the separate scorer inspect the frozen
+per-solvent MNSol labels.  A source-wide mean or an impressive result in one
+solvent cannot replace the required per-record maximum-error and independent
+external-test gates.
+
+The executable falsification boundary is frozen in
+`benchmarks/route1_multisolvent_accuracy_contract_v1.json`.  It content-binds
+the 15-solvent/1,106-record label-free source audit and the single-solvent
+physical-asset contract.  Its first complete-panel milestone is
+\(\max_i|\widehat{\Delta G_i}-\Delta G_i|<1.5\) kcal/mol over every one of the
+1,106 records; the stronger internal target is the same maximum below
+\(1.0\) kcal/mol.  These are strict per-record conditions, not pooled-error
+targets.  The final external test must be sourced and hash-frozen without
+MNSol/FreeSolv record overlap or prior use, then evaluated once with the same
+complete-denominator \(<1.5\) kcal/mol condition.  At present none of the
+required 15-solvent asset set, sealed energy artifact, score, or external
+protocol exists.  The contract also records that 3D-RISM cannot satisfy the
+fixed PB/GB Route 1 product accuracy gate, so the equations above remain a
+research hypothesis rather than a Route 1 accuracy result or runtime
+capability.
+
+The first label-free numerical pilot is frozen separately in
+`benchmarks/route1_3drism_single_solvent_pilot_protocol_v1.json` and
+`benchmarks/route1-3drism-single-solvent-pilot-2026-07-29.json`.  It uses the
+AmberTools cSPCE molecular model and the `cSPCE_pse3.xvv` whose pinned 1D input
+actually declares DRISM/PSE3; it does not substitute the separately named KH
+XVV without an equally pinned generation input.  The 3D closure is
+prospectively fixed to KH, and the primary quantity is the uncorrected
+\(\mu^{\mathrm{ex}}_{\mathrm{KH}}\).  GF and PC+ are diagnostic outputs only.
+For one fixed methyl-hexanoate geometry, changing `0.30 -> 0.35 A` grid spacing,
+`14 -> 12 A` buffer, or `1e-5 -> 1e-4` solver tolerance changes the primary
+quantity by `0.006905`, `0.000434`, and `0.001754 kcal/mol`, respectively.
+An independent repeat at the reference settings differs by
+`7.11e-13 kcal/mol`.  The sealed artifact records both the byte-for-byte
+SHA-256 and a reproducibility SHA-256 for every generated topology file.
+For `molecule.prmtop` only, the latter replaces the single wall-clock
+`%VERSION ... DATE` field with a declared sentinel before hashing
+(`amber_prmtop_version_date_header_v1`); every molecular-topology byte remains
+bound, and the raw hash is retained as provenance.  These results qualify one
+asset/solver combination
+numerically; they do not apply the outstanding standard-state conversion,
+inspect a hydration label, establish accuracy, supply forces, or authorize a
+water/non-water product endpoint.
+
+### First qualified non-water numerical candidate: three-site methanol
+
+The first non-water asset to pass the same label-free numerical gate is the
+three-site H/O/CH3 methanol model tabulated in the official ADF 3D-RISM
+documentation.  ADF states that its solvent table is compiled from the
+literature; MAPLE does not depend on or execute ADF.  The published site
+parameters are independently re-expressed in the audited Amber MDL convention:
+
+| site | \(q/e\) | conventional \(\sigma\) (A) | \(\epsilon\) (kcal/mol) | coordinate (A) |
+| --- | ---: | ---: | ---: | --- |
+| H | +0.435 | 1.000 | 0.056 | \((0,0,0)\) |
+| O | -0.700 | 3.070 | 0.170 | \((0,0,0.945)\) |
+| CH3 | +0.265 | 3.775 | 0.207 | \((1.35136,0,1.39716)\) |
+
+The committed MDL therefore uses \(18.2223q/e\) for `CHG` and
+\(2^{-5/6}\sigma\) for `LJSIGMA`.  The bulk state is frozen independently of
+any solvation label at \(T=298.15\,\mathrm K\), \(24.550\,\mathrm{mol\,L^{-1}}\),
+and \(\epsilon_r=32.63\).  The molar density is the NIST equation-of-state value
+at 298.15 K; the dielectric is the NBS 25-degree-Celsius recommended value.
+AmberTools `rism1d` with DRISM/KH, 4096 radial points, \(0.025\,\AA\) spacing,
+and a \(10^{-8}\) residual threshold converges the primary RISM solve in
+90 iterations at \(4.1372\times10^{-9}\).  Its subsequent temperature-
+derivative solve converges in 66 iterations at \(4.8501\times10^{-9}\);
+the committed generation log and sealed cross-hash artifact retain both
+records rather than conflating the derivative solve with the primary one.
+
+The immutable inputs and susceptibility are stored under
+`benchmarks/route1_3drism_assets/methanol-adf3/`; the protocol and sealed
+fixed-geometry result are
+`benchmarks/route1_3drism_methanol_pilot_protocol_v1.json` and
+`benchmarks/route1-3drism-methanol-pilot-2026-07-29.json`.  The numerical
+thresholds were copied unchanged from the water pilot before this 3D result
+was run.  Relative to the `0.30 A`, `14 A`, `1e-5` raw-KH reference, the
+predeclared probes give:
+
+| probe | \(\left|\Delta\mu^{\mathrm{ex}}_{\mathrm{KH}}\right|\) (kcal/mol) | frozen gate (kcal/mol) |
+| --- | ---: | ---: |
+| `0.35 A` grid | 0.004939 | 0.020 |
+| `12 A` buffer | 0.001124 | 0.010 |
+| `1e-4` tolerance | 0.000437 | 0.005 |
+| independent reference repeat | \(2.98\times10^{-14}\) | \(1.0\times10^{-8}\) |
+
+All five cases converge, so this is the first result with status
+`one_nonwater_solver_pilot_numerically_qualified_not_accuracy_validated`.
+The reference raw-KH value, `3.212676996 kcal/mol`, is a solver output, not an
+accuracy score or yet an MNSol-comparable value: the raw functional's
+standard-state mapping remains unproved, no MNSol value has been opened, and
+neither PC nor PC+ has been selected.  This result counts as one **numerically qualified
+research asset**, not one accuracy-qualified solvent and not one production
+custom-solvent option.
+
+This success is model-specific rather than evidence that any methanol topology
+will converge.  A separate source-complete all-atom Amber methanol model based
+on the bundled Caldwell--Kollman files failed the bounded DRISM/KH matrix:
+residuals after 1,000 steps remained `7.2166`, `101.149`, `4.3361`, and
+`0.5645` over the two tested radial grids and MDIIS step widths.  It was not
+promoted or substituted after failure.  The accepted three-site asset is
+therefore selected by provenance plus prospective numerical convergence, not
+by an experimental error comparison.
+
+### Second qualified non-water numerical candidate: four-site united-atom ethanol
+
+The second non-water asset uses the H/O/CH2/CH3 united-atom ethanol model in
+Table 7 of the official ADF 3D-RISM documentation:
+
+| site | \(q/e\) | conventional \(\sigma\) (A) | \(\epsilon\) (kcal/mol) | coordinate (A) |
+| --- | ---: | ---: | ---: | --- |
+| H | +0.435 | 1.000 | 0.056 | \((0,0,0)\) |
+| O | -0.700 | 3.070 | 0.170 | \((0,0,0.945)\) |
+| CH2 | +0.265 | 3.775 | 0.207 | \((1.356103,0,1.398746)\) |
+| CH3 | 0.000 | 3.905 | 0.175 | \((1.342751,0,2.928687)\) |
+
+The same audited translations \(q_{\mathrm{MDL}}=18.2223q/e\) and
+\((R_{\min}/2)_{\mathrm{MDL}}=2^{-5/6}\sigma\) are applied.  The thermodynamic
+state is independently sourced at \(298.15\,\mathrm K\): Calvar *et al.*
+report \(0.78546\,\mathrm{g\,cm^{-3}}\), which with the conventional ethanol
+molar mass \(46.06844\,\mathrm{g\,mol^{-1}}\) gives
+\(17.049850\,\mathrm{mol\,L^{-1}}\), rounded to the committed `17.0499 M`
+input.  The explicit MDL site masses instead sum to `46.068`; they define the
+site model and follow the pinned AmberTools `parm10.dat` convention
+(`C=12.01`, `H=1.008`, `O=16.00`), but are not the mass used for that
+concentration rounding.  The ADF table's separate `Weight=47.07` header is
+therefore documented but not used.  NIST ThermoML records the committed static relative permittivity
+\(\epsilon_r=24.35\) at \(298.15\,\mathrm K\) and \(100\,\mathrm{kPa}\).
+
+AmberTools DRISM/KH with 4096 radial points, \(0.025\,\AA\) spacing, and a
+\(10^{-8}\) threshold converges the primary 1D solve in 137 iterations at
+\(9.5736\times10^{-9}\); the temperature-derivative solve converges in 79
+iterations at \(9.5696\times10^{-9}\).  The immutable inputs, XVV, full log,
+and cross-hash evidence are stored under
+`benchmarks/route1_3drism_assets/ethanol-adf4/`.  The frozen protocol and
+fixed-geometry result are
+`benchmarks/route1_3drism_ethanol_pilot_protocol_v1.json` and
+`benchmarks/route1-3drism-ethanol-pilot-2026-07-29.json`.
+
+| probe | \(\left|\Delta\mu^{\mathrm{ex}}_{\mathrm{KH}}\right|\) (kcal/mol) | frozen gate (kcal/mol) |
+| --- | ---: | ---: |
+| `0.35 A` grid | 0.001464 | 0.020 |
+| `12 A` buffer | 0.000645 | 0.010 |
+| `1e-4` tolerance | 0.000570 | 0.005 |
+| independent reference repeat | \(2.44\times10^{-14}\) | \(1.0\times10^{-8}\) |
+
+All five cases converge.  The raw-KH reference value,
+`-2.681003137 kcal/mol`, remains an unconverted solver output.  Ethanol is a
+member of the frozen 15-solvent target panel, but no ethanol solvation label
+was opened and this result supplies no standard-state, accuracy, force,
+runtime, ranking, or endpoint-selection evidence.  It is therefore a second
+**numerically qualified research asset**, not an accuracy-qualified panel
+solvent.
+
+### Failed label-free thermodynamic-consistency qualification
+
+The next prospective experiment was frozen before execution in
+`benchmarks/route1_3drism_thermodynamic_consistency_protocol_v1.json`, with
+result
+`benchmarks/route1-3drism-ethanol-thermodynamic-consistency-2026-07-29.json`.
+It neither reads an experimental solvation value nor changes the Route 1
+product formula.
+
+Rigid translation and bonded-parameter independence pass at roundoff scale.
+For the latter, all bond, angle, and dihedral force constants are multiplied
+by \(1.5\), while the charge vector, atom-type indices, and LJ \(A/B\) tables
+are proven unchanged.  The maximum change among raw KH, GF, and PC+ is
+\(1.95\times10^{-14}\,\mathrm{kcal\,mol^{-1}}\), and the PMV change is
+\(7.39\times10^{-13}\,\AA^3\).  This is direct executable evidence that the
+reported solvent quantities do not include the bonded MM energy.
+
+The full qualification fails for two distinct reasons:
+
+1. the proper rotation changes the automatically generated Cartesian domain
+   from \(112\times108\times128\) to \(126\times120\times108\).  The raw-KH
+   change is \(0.004713\), but the GF change is
+   \(0.020285\,\mathrm{kcal\,mol^{-1}}\), above the predeclared \(0.01\)
+   gate.  Because the quadrature domain changed, this is a failed numerical
+   qualification, not evidence that the continuous scalar functional lacks
+   rotational invariance.  A new test must freeze a common grid before
+   execution rather than loosen this threshold afterward.
+2. setting the prmtop charge and LJ \(A/B\) coefficients to zero does not
+   create \(u_{uv}=0\) in Amber.  Its solute constructor explicitly maps zero
+   \(B\) to \(\sigma=0.7\,\AA\) and zero \(A\) to
+   \(\epsilon=10^{-2}\); see the pinned
+   [AmberClassic source](https://github.com/Amber-MD/AmberClassic/blob/0b35bfeb96026ffa4e5876391a0828f39b3cfc8d/src/rism/rism3d_solute_c.F90#L167-L180).
+   The observed raw-KH/GF values \(9.43298/5.78621\) therefore diagnose this
+   fallback and cannot be interpreted as a zero-interaction-limit failure of
+   the KH functional itself.
+
+The correct mathematical zero-interaction requirement remains
+
+\[
+u_{uv}(\mathbf r)\equiv0
+\Longrightarrow h_{uv}(\mathbf r)=c_{uv}(\mathbf r)=0
+\Longrightarrow
+\mu_{\mathrm{KH}}^{\mathrm{ex}}
+=\mu_{\mathrm{GF}}^{\mathrm{ex}}=0.
+\]
+
+A future executable probe must predeclare an explicit solute- or pair-potential
+override, verify the resulting tabulated \(u_{uv}\) directly, and use one fixed
+grid for every rigid orientation.  This failed experiment does not authorize
+endpoint switching, threshold relaxation, an accuracy score, or product
+promotion; work returns to the CHA-GB/PBSA ranking mainline.
+
+### Rejected first non-water candidate: three-site acetonitrile
+
+The first prospective non-water candidate was deliberately investigated
+without opening any solvation label.  The strongest open, executable source
+found is the RISMiCal acetonitrile example at commit
+`e337cdebecc2dcb3ae3dc16d939d0cb1422deea1` (MIT license).  It freezes a
+three-site model at \(298\,\mathrm K\) and \(19.18\,\mathrm M\):
+
+| site | \(q/e\) | conventional \(\sigma\) (A) | \(\epsilon\) (J/mol) | axial coordinate (A) |
+| --- | ---: | ---: | ---: | ---: |
+| N | -0.430 | 3.200 | 711.3 | +1.157 |
+| C | +0.280 | 3.650 | 627.6 | 0.000 |
+| CH3 | +0.150 | 3.775 | 866.1 | -1.458 |
+
+Its supplied charge-up/KH calculation converges below \(10^{-8}\), but the
+input does **not** enable DRISM: this is a plain 1D-RISM result and cannot be
+reported as proof that the same model converges under Amber DRISM.  The
+deterministic Amber translation used the fixed \(18.2223\) charge factor,
+\(2^{-5/6}\sigma\) radii, and J/mol-to-kcal/mol epsilon conversion.  With the
+chemistry and thermodynamic state frozen, the exploratory Amber DRISM/KH
+results were:
+
+- the water-like default `NR=16384`, `DR=0.025 A`, `MDIIS_DEL=0.3`,
+  `tolerance=1e-12` entered a restart/stagnation state at residual
+  \(5.8451\times10^{-1}\);
+- `NR=2048`, `MDIIS_DEL=0.1` decayed smoothly but remained near
+  \(1.7\times10^{-6}\) after 3,000 steps;
+- changing `MDIIS_RESTART` from 10 to 100 or 1,000 did not remove that
+  residual floor;
+- tolerance homotopy converged at \(10^{-5}\), then failed the next
+  \(10^{-6}\) stage at \(1.56294\times10^{-6}\); and
+- cross-process charge continuation was unstable rather than reproducing
+  RISMiCal's in-process plain-RISM charge-up.
+
+The separate pyRISM six-site acetonitrile input is technically parseable as a
+DRISM/KH model, but its exact site parameters have no explicit literature
+provenance beside the checked-in TOML and the repository contains no
+preconverged acetonitrile susceptibility.  It is therefore not substituted
+after the three-site failure.
+
+The scientific conclusion is narrow: neither acetonitrile candidate currently
+satisfies both source provenance and Amber DRISM convergence.  No acetonitrile
+XVV or pilot is committed and no label is opened.  The later methanol success
+does not repair this solvent-specific failure or count acetonitrile toward the
+15-solvent gate.  A future acetonitrile attempt must introduce new
+source-complete evidence or a genuinely different, prospectively declared
+solver/model route; merely loosening the residual threshold or relabeling
+plain RISM as DRISM is prohibited.
+
+There are also tempting but inadmissible shortcuts.  The 3D-RISM universal
+correction is a regression
+\(\Delta G_{\mathrm{UC}}=\Delta G_{\mathrm{GF}}+a\rho\bar V+b\) against
+experimental values, so it violates the no-fit rule even when its reported
+average error is small.  The cavity-corrected and learned/descriptive RISM
+variants similarly require a separate provenance review before they could
+enter a no-fit screen; they are not silently treated as PC or PC+.
+
+Misin, Palmer, and Fedorov's corresponding-states PC+ construction is the
+useful narrower counterexample: it estimates coarse-grained **nonpolar**
+solvent Lennard--Jones parameters from critical-point properties and reports
+non-aqueous 3D-RISM calculations without electrostatics.  The exact published
+supporting archive has now been audited without opening its result tables in
+`benchmarks/route1-misin-coarse-grain-asset-audit-2026-07-29.json`.  It names
+only eight of the required fifteen solvents, and each allowlisted asset is an
+HNC, 298.15 K, one-site/one-species model with zero site charge and
+`epsilon_XVV=1.0`.  Its 1D generator inputs show `DIEps=2.0`, but the frozen
+XVV assets themselves contain no molecular electrostatic or hydrogen-bond
+sites.  The archive also contains 21 per-solute result CSV members, which the
+audit detects by metadata only and never reads.
+
+Thus the **corresponding-states idea** remains a literature lead for a
+separately predeclared nonpolar-only investigation, but these published assets
+are not a physical molecular solvent definition for the polar, protic, or
+hydrogen-bonding members of the required panel.  They are not vendored,
+installed, scored against MNSol, counted toward the 15-solvent gate, or mixed
+with another endpoint and called a single all-solvent solution.  Nor can the
+paper's average error be substituted for the user's per-record
+maximum-error gate.
+
+This explains the custom-solvent boundary precisely.  A physically specified
+3D-RISM solvent needs molecular site positions, charges, Lennard--Jones
+parameters, temperature, density, and the resulting \(\chi_s\) (or a
+verified equivalent susceptibility asset), not merely a dielectric constant.
+Conversely, the SMD family accepts bulk descriptors such as dielectric,
+refractive index, surface tension, and hydrogen-bond acidity/basicity because
+it is a distinct density/IEF-PCM plus CDS model with its own published
+parameterization.  Mixing SMD descriptor terms into water-calibrated GB/SASA
+would define an unvalidated hybrid and is excluded.  Likewise, the recent
+27-organic-solvent PBSA study reports SASA parameters fitted to 1,246 MNSol
+values; it is useful literature evidence that a multi-solvent benchmark is
+necessary, but its fitted profile is ineligible under Route 1's no-fit rule.
+
+The committed source audit
+`benchmarks/route1-mnsol-multisolvent-source-audit-2026-07-29.json` freezes a
+15-solvent, 1,106-neutral-record MNSol coverage gate without reading or
+redistributing \(\Delta G_{\mathrm{solv}}\) values.  A later prospective
+calculation must report each solvent separately, retain the same solvent set,
+perform leave-one-solvent-out sensitivity only without label fitting, and meet
+the user's strict maximum-absolute-error gate for every evaluated record.  It
+must then be followed by a separately sourced external set that was absent
+from source selection, method selection, fitting, and all prior scoring.  This
+coverage artifact is not an accuracy result and does not establish a
+non-water runtime provider.
+
+-  3D-RISM implementation and AmberTools context: Case et al., *AmberTools*,
+  *J. Chem. Inf. Model.* (2023), DOI `10.1021/acs.jcim.3c01153`.
+- Pressure-correction derivation and convention analysis:
+  <https://arxiv.org/abs/1511.04475>.
+- Nonaqueous corresponding-states 3D-RISM/PC+ result table (not adopted as a
+  general molecular solvent model): Misin, Palmer, and Fedorov, *J. Phys.
+  Chem. B* (2016), DOI `10.1021/acs.jpcb.6b05352`, open manuscript
+  <https://strathprints.strath.ac.uk/56683/1/Misin_etal_JPCB_2016_Predicting_solvation_free_energies_using_parameter_free.pdf>.
+- 3D-RISM-KH solvent structure and analytic thermodynamic functional example:
+  Roy and Kovalenko, *J. Phys. Chem. B* (2015), DOI
+  `10.1021/acs.jpcb.5b01291`.
+- Amber RISM asset/XVV workflow: AmberTools Users' Manual, RISM chapter,
+  <https://ics.uci.edu/~sources/amber/AmberTools.pdf>.
+- Amber MDL charge and Lennard--Jones conventions: AmberClassic source,
+  `constants_rism.F90`, `solvmdl_c.F90`, and `rism1d_potential_c.F90` at
+  commit `0b35bfeb96026ffa4e5876391a0828f39b3cfc8d`,
+  <https://github.com/Amber-MD/AmberClassic>.
+- Open acetonitrile plain-RISM source model and convergence record:
+  RISMiCal `example/acetonitrile_vv` at commit
+  `e337cdebecc2dcb3ae3dc16d939d0cb1422deea1`,
+  <https://github.com/rismical-dev/rismical/tree/master/example/acetonitrile_vv>.
+- pyRISM DRISM/XRISM implementation and unqualified acetonitrile input lead:
+  <https://github.com/2AUK/pyRISM>.
+- Literature-compiled three-site methanol parameters:
+  ADF 3D-RISM documentation, Table 6,
+  <https://www.scm.com/doc/ADF/Input/3D-RISM.html>.
+- Methanol density at 298.15 K: Goodwin, *J. Phys. Chem. Ref. Data* 16
+  (1987), <https://srd.nist.gov/jpcrdreprint/1.555786.pdf>.
+- Methanol dielectric constant at 25 degrees Celsius: Maryott and Smith,
+  NBS Circular 514,
+  <https://nvlpubs.nist.gov/nistpubs/Legacy/circ/nbscircular514.pdf>.
+- Literature-compiled four-site united-atom ethanol parameters:
+  ADF 3D-RISM documentation, Table 7,
+  <https://www.scm.com/doc/ADF/Input/3D-RISM.html>.
+- Ethanol density at 298.15 K: Calvar *et al.*, *J. Chem. Eng. Data* 55
+  (2010), DOI `10.1021/je900998f`.
+- Ethanol static relative permittivity at 298.15 K and 100 kPa:
+  Uosaki *et al.*, NIST ThermoML record for *J. Chem. Eng. Data* 51
+  (2006), <https://trc.nist.gov/ThermoML/10.1021/je060248p.html>.
+- Rejected bundled all-atom methanol model provenance: Caldwell and Kollman,
+  *J. Phys. Chem.* (1995), DOI `10.1021/j100016a067`.
+- Parameter-free nonpolar corresponding-states PC+ lead: Misin, Palmer, and
+  Fedorov, *J. Phys. Chem. B* (2016), DOI `10.1021/acs.jpcb.6b05352`.
+- OpenMM GBSAOBC dielectric definition:
+  <https://docs.openmm.org/latest/userguide/theory/02_standard_forces.html>.
+- SMD density/IEF-PCM/CDS model: Marenich, Cramer, and Truhlar, *J. Phys.
+  Chem. B* (2009), DOI `10.1021/jp810292n`.
+- Multi-solvent PBSA parameter study (not adopted because it fits its SASA
+  parameters): DOI `10.1021/acs.jpcb.6c00810`.
+- MNSol source and standard-state manual:
+  <https://comp.chem.umn.edu/mnsol/MNSol-v2012_Manual.pdf>.
+
 ## Atomic charge providers
 
 - AM1-BCC is invoked through AmberTools Antechamber `-c bcc`; see Jakalian et
@@ -1369,6 +2533,18 @@ item, not a current redistributable Route 1 provider.
 - ABCG2 is invoked through AmberTools24+ Antechamber `-c abcg2`; see “ABCG2: A
   Milestone Charge Model for Accurate Solvation Free Energy Calculation,”
   *J. Chem. Theory Comput.* (2025), DOI `10.1021/acs.jctc.5c00038`.
+- The same-model transfer boundary is documented by “Evaluation of the ABCG2
+  Charge Model in Protein--Ligand Binding Free-Energy Calculations,”
+  *J. Chem. Inf. Model.* (2025), DOI `10.1021/acs.jcim.5c02161`: stronger
+  hydration/solvation behavior did not establish a general protein--ligand
+  relative-ranking advantage. Route 1 therefore does not select a charge
+  method from hydration performance alone.
+- Charge assignment can also depend materially on the input conformer; see
+  “Evaluating the Functional Importance of Conformer-Dependent Atomic Partial
+  Charge Assignment,” *J. Comput. Chem.* (2025), DOI
+  `10.1002/jcc.70112`. This motivates a future prospectively frozen
+  same-record sensitivity study, not reinterpretation of the current
+  single-vector reserve as charge-model uncertainty.
 - Antechamber's finite-precision provider path can leave a small residual from
   the declared integer charge.  MAPLE no longer accepts a molecule-independent
   `0.01 e` allowance.  The runtime derives a per-molecule upper bound from the

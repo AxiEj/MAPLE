@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-chagb-prepared-provider-v1",
+  "claim_scope": "Engineering/runtime parity and latency for one fixed-charge methyl-hexanoate topology and three fixed coordinate arrays. This does not establish hydration accuracy, relative-ranking accuracy, force support, optimization/sampling support, universal latency, or a new default Route-1 endpoint.",
+  "route_contract": {
+    "formula": "E_solution(R) = E_MLIP,gas(R) + EGB(R,q_fixed) + ECAVITY(R) + EDISPER(R)",
+    "gas_phase_mm_energy_used": false,
+    "bonded_mm_energy_used": false,
+    "hydration_label_fit_or_residual": false,
+    "fixed_charge_geometry": "keep",
+    "supported_tasks": [
+      "sp"
+    ],
+    "force_requests_fail_closed": true
+  },
+  "source": {
+    "compound_id": "mobley_1017962",
+    "mol2": "route1-mm-reference-reweighting-raw/inputs/mobley_1017962/m.mol2",
+    "mol2_sha256": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+    "charge_source": "frozen AM1-BCC charge column in the pinned MOL2",
+    "label_reads": false
+  },
+  "coordinate_cases": [
+    {
+      "id": "source",
+      "translation_angstrom": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": "translation_plus",
+      "translation_angstrom": [
+        0.0123456,
+        -0.0076543,
+        0.004321
+      ]
+    },
+    {
+      "id": "translation_minus",
+      "translation_angstrom": [
+        -0.0098765,
+        0.0032109,
+        -0.0065432
+      ]
+    },
+    {
+      "id": "nonrigid_coordinate_probe",
+      "translation_angstrom": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "atom_displacements": [
+        {
+          "atom_index": 0,
+          "delta_angstrom": [
+            0.0111,
+            -0.0067,
+            0.0044
+          ]
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "legacy_reference": "For every coordinate array, render typed MOL2 plus fixed charges, run parmchk2 and tleap, then run GBNSR6 and PBSA.",
+    "prepared_provider": "Prepare typed MOL2, frcmod, and prmtop once in the provider instance; every coordinate array writes only Amber inpcrd before GBNSR6 and PBSA.",
+    "component_parity_tolerance_kcal_mol": 1e-09,
+    "warm_coordinate_count": 3,
+    "persistent_external_worker_claimed": false
+  },
+  "prohibited_interpretations": [
+    "No experimental hydration value is read, fit, or used as a target.",
+    "No gas-phase MM or bonded MM energy is added.",
+    "No prediction energy is linearly calibrated or residual-corrected.",
+    "No force, geometry optimization, scan, sampling, protein-ligand, or universal-throughput claim is made."
+  ]
+}

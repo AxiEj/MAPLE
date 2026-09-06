@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "policy_id": "maple-route1-exploratory-policy-v1",
+  "effective_date": "2026-09-05",
+  "status": "active_exploratory_policy_partial_delivery",
+  "scope": "Prospective Route 1 exploratory measurements performed on or after the effective date. Historical protocols, artifacts, results, and their original decision rules remain immutable evidence.",
+  "experimental_accuracy": {
+    "experimental_accuracy_threshold_kcal_mol": null,
+    "accuracy_based_method_promotion_allowed": false,
+    "accuracy_based_method_rejection_required": false,
+    "interpretation": "Report experimental-error measurements descriptively. No fixed per-record or aggregate experimental-error value promotes or rejects a method under this exploratory policy.",
+    "required_metrics": [
+      "bias_kcal_mol",
+      "mae_kcal_mol",
+      "rmse_kcal_mol",
+      "maximum_absolute_error_kcal_mol",
+      "requested_record_count",
+      "attempted_record_count",
+      "successful_record_count",
+      "failed_record_count"
+    ],
+    "failure_denominator_policy": "Retain every attempted record and provider failure in the declared denominator; never replace a failed record after evaluation.",
+    "label_use_policy": "Selection, model definition, parameter choice, and endpoint choice must be frozen without experimental labels. Labels may be opened only for the declared descriptive scoring phase."
+  },
+  "correctness_gates": {
+    "numerical_validity_retained": true,
+    "force_energy_consistency_retained": true,
+    "hessian_validity_retained": true,
+    "provenance_and_seal_validation_retained": true,
+    "required_checks": [
+      "finite energies and forces for every successful evaluation",
+      "all-3N finite-difference agreement for the exact reported scalar potential before force promotion",
+      "step-size convergence and numerical-stability checks",
+      "finite symmetric composed Hessian for FREQ",
+      "one imaginary vibrational mode and a converged saddle for a TS result",
+      "source, configuration, executable, input, and result hashes",
+      "manifest seal verification and complete success/failure accounting"
+    ],
+    "interpretation": "Relaxing an experimental-error target does not relax mathematical, numerical, task-semantic, or provenance requirements."
+  },
+  "requested_task_scope": {
+    "goals": [
+      "SP",
+      "OPT",
+      "FREQ",
+      "TS"
+    ],
+    "chagb_pbsa_currently_delivered": [
+      "SP"
+    ],
+    "chagb_pbsa_not_delivered": [
+      "OPT",
+      "FREQ",
+      "TS"
+    ],
+    "runtime_force_enabled": false,
+    "runtime_hessian_enabled": false,
+    "runtime_ts_enabled": false,
+    "blocker": "The current CHA-GB/PBSA cavity-dispersion provider reports a scalar energy only. Its current all-3N centered-difference feasibility probe is not step-converged, so it is not promoted to force, Hessian, optimization, frequency, or transition-state work."
+  },
+  "current_force_probe": {
+    "artifact": ".omx/context/route1-chagb-derivative-feasibility-20260905.json",
+    "designation": "current-source benchmark-only derivative feasibility diagnostic",
+    "finite_difference_steps_angstrom": [
+      0.001,
+      0.003,
+      0.01
+    ],
+    "adjacent_step_force_rms_kcal_mol_angstrom": [
+      3.600651332203967,
+      1.5543473137167199
+    ],
+    "accuracy_threshold_used": false,
+    "force_promotion_allowed": false
+  },
+  "multisolvent_pilot": {
+    "requested_solvents": 15,
+    "requested_distinct_solutes_per_solvent": 20,
+    "requested_solvent_solute_pairs": 300,
+    "source_selectable_pairs": 222,
+    "solvents_with_full_20": 8,
+    "solvents_with_shortfall": 7,
+    "selection_status": "source_panel_preparation_only",
+    "energy_calculations_completed": false,
+    "accuracy_scoring_completed": false,
+    "runtime_nonwater_solvents_enabled": false,
+    "current_product_parameters": "water only",
+    "selection_rule": "For each solvent, select min(20, eligible) distinct canonical FileHandle records by a stable label-independent identity hash with FileHandle tie-break; retain explicit shortfall counts and do not replace records after evaluation.",
+    "per_solvent_counts": [
+      {"solvent": "water", "eligible": 390, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "ethanol", "eligible": 8, "requested": 20, "selected": 8, "shortfall": 12},
+      {"solvent": "acetonitrile", "eligible": 7, "requested": 20, "selected": 7, "shortfall": 13},
+      {"solvent": "dimethylsulfoxide", "eligible": 7, "requested": 20, "selected": 7, "shortfall": 13},
+      {"solvent": "dimethylformamide", "eligible": 7, "requested": 20, "selected": 7, "shortfall": 13},
+      {"solvent": "tetrahydrofuran", "eligible": 7, "requested": 20, "selected": 7, "shortfall": 13},
+      {"solvent": "chloroform", "eligible": 109, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "dichloromethane", "eligible": 11, "requested": 20, "selected": 11, "shortfall": 9},
+      {"solvent": "toluene", "eligible": 51, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "hexane", "eligible": 59, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "cyclohexane", "eligible": 92, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "diethyl ether", "eligible": 72, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "1-octanol", "eligible": 247, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "ethyl acetate", "eligible": 24, "requested": 20, "selected": 20, "shortfall": 0},
+      {"solvent": "nitrobenzene", "eligible": 15, "requested": 20, "selected": 15, "shortfall": 5}
+    ],
+    "physical_model_blocker": "The current Route 1 product parameters are water-only. A solvent name or dielectric constant is insufficient; each nonwater calculation requires a frozen solvent-specific physical model, parameters, state, standard-state convention, and provenance before energy evaluation."
+  },
+  "historical_evidence": {
+    "supersession_kind": "prospective_policy_only",
+    "historical_protocols_resealed": false,
+    "historical_results_relabelled": false,
+    "preserved_references": [
+      "docs/implicit-solvation/benchmarks/route1_multisolvent_accuracy_contract_v1.json",
+      "docs/implicit-solvation/VALIDATION_STATUS.md",
+      "docs/implicit-solvation/benchmarks/README.md"
+    ],
+    "interpretation": "The former per-record 1.5 and 1.0 kcal/mol targets remain recorded as historical prospective rules. They are not operative decision thresholds for new exploratory pilots under this policy."
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-selective-ranking-v1",
+  "status": "blocked_no_qualified_calibration",
+  "claim_scope": "A fail-closed split-conformal decision contract for already-computed Route 1 pair differences. It returns a direction only after qualified complete-series calibration and never changes an energy. No calibration artifact or certified result is supplied by this protocol.",
+  "route1_boundary": {
+    "energy_correction_applied": false,
+    "energy_residual_fit": false,
+    "endpoint_selection": false,
+    "fixed_prediction_required": true,
+    "lower_free_energy_is_better": true
+  },
+  "calibration_requirements": {
+    "calibrated_before_test_labels": true,
+    "series_disjoint_from_test": true,
+    "external_independent_series": true,
+    "bootstrap_or_conformal_unit": "complete_series",
+    "record": "maximum_pair_error_kcal_mol per calibration series",
+    "domain_policy": "exact declared-domain match; no global fallback",
+    "minimum_series_per_domain": "must be fixed before test labels are opened",
+    "finite_sample_attainability": "for miscoverage alpha, each exact domain needs enough independent series that ceil((n+1)*(1-alpha)) <= n; otherwise return out_of_domain rather than clamp the quantile",
+    "sealed_parameter_binding": "miscoverage, minimum_series_per_domain, and the complete-series maximum-error statistic are read from the calibration artifact rather than supplied at prediction time",
+    "sealed_provenance_binding": [
+      "calibration_series_manifest_sha256",
+      "held_out_test_series_manifest_sha256",
+      "series_disjointness_audit_sha256",
+      "held_out_test_series_ids",
+      "domain_schema_sha256",
+      "endpoint_fingerprint_sha256",
+      "pair_disagreement_audit_protocol_sha256",
+      "prediction_evidence_manifest_sha256",
+      "allowed_prediction_evidence_sha256"
+    ]
+  },
+  "required_pair_metadata": [
+    "sealed_prediction_evidence",
+    "series_id",
+    "first_id",
+    "second_id",
+    "domain",
+    "held_out_test_series_manifest_sha256",
+    "test_energy_artifact_sha256",
+    "endpoint_fingerprint_sha256",
+    "domain_schema_sha256",
+    "pair_disagreement_audit_protocol_sha256",
+    "pair_disagreement_audit_artifact_sha256",
+    "charge_order_disagreement",
+    "endpoint_order_disagreement"
+  ],
+  "required_output_fields": [
+    "rank_prediction",
+    "rank_interval",
+    "rank_status",
+    "rank_coverage",
+    "ood_reasons",
+    "charge_sensitivity",
+    "endpoint_disagreement",
+    "prediction_evidence_sha256",
+    "energy_correction_applied"
+  ],
+  "allowed_rank_status": [
+    "certified",
+    "uncertain",
+    "out_of_domain"
+  ],
+  "current_free_solv_scaffold_diagnostic_allowed_as_calibration": false,
+  "failure_action": "Return out_of_domain when qualified calibration or declared-domain support is absent; return uncertain when the conformal interval crosses zero or charge/endpoint order disagrees."
+}

@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "manifest_kind": "route1-custom-solvent-3drism-asset",
+  "solvent": {
+    "canonical_name": "methanol-ADF3",
+    "temperature_kelvin": 298.15,
+    "pressure_bar": 1.0,
+    "dielectric_constant": 32.63,
+    "species_density_angstrom_minus3": 0.014784355565800001,
+    "standard_state": {
+      "provider_output": "excess_chemical_potential",
+      "benchmark_target": "1M_ideal_gas_to_1M_ideal_solution",
+      "conversion_status": "not_yet_applied"
+    }
+  },
+  "site_types": [
+    {
+      "name": "H",
+      "multiplicity": 1,
+      "mass_amu": 1.008,
+      "charge_e": 0.435,
+      "lj_epsilon_kcal_mol": 0.056,
+      "lj_size_angstrom": 0.561231024
+    },
+    {
+      "name": "O",
+      "multiplicity": 1,
+      "mass_amu": 16.0,
+      "charge_e": -0.7,
+      "lj_epsilon_kcal_mol": 0.17,
+      "lj_size_angstrom": 1.72297924
+    },
+    {
+      "name": "CH3",
+      "multiplicity": 1,
+      "mass_amu": 15.034,
+      "charge_e": 0.265,
+      "lj_epsilon_kcal_mol": 0.207,
+      "lj_size_angstrom": 2.11864712
+    }
+  ],
+  "site_coordinates_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.945
+    ],
+    [
+      1.35136,
+      0.0,
+      1.39716
+    ]
+  ],
+  "rism": {
+    "theory": "drism",
+    "closure": "kh",
+    "grid_spacing_angstrom": 0.025,
+    "grid_points": 4096
+  },
+  "assets": {
+    "mdl": {
+      "relative_path": "methanol_adf3.mdl",
+      "sha256": "571a1d230bf6efcc5f76c4a2292e369a45f444eaefb980539cc77143a7bf296f"
+    },
+    "rism1d_input": {
+      "relative_path": "methanol_adf3_kh.inp",
+      "sha256": "0122293b5c84b3eda8f1243d9f51e59c19741fca8ed533b8fa46b0d4ae8e5a8f"
+    },
+    "xvv": {
+      "relative_path": "methanol_adf3_kh.xvv",
+      "sha256": "2035e47acdea9d378466e37821d6445414e4fda834da4424f196fe9a3cafd2ad"
+    },
+    "rism1d_stdout": {
+      "relative_path": "methanol_adf3_kh.rism1d.out",
+      "sha256": "ae1883f9427e59c18ca2ee9e4adda94748e21d476f0f54f58c0976fd62f0f7bc"
+    },
+    "generation_evidence": {
+      "relative_path": "generation_evidence.json",
+      "sha256": "9fc8eeed88135da192c93a5d070b41cd764c7192d296ce876d478c7e32a7c3dd"
+    }
+  },
+  "provenance": {
+    "molecular_model_reference": "SCM ADF 2026.1 official 3D-RISM documentation Table 6, a literature-compiled three-site methanol model (H/O/CH3), independently re-expressed in Amber MDL units; https://www.scm.com/doc/ADF/Input/3D-RISM.html. Bulk density 24.550 mol/L at 298.15 K from Goodwin, J. Phys. Chem. Ref. Data 16 (1987), https://srd.nist.gov/jpcrdreprint/1.555786.pdf. Dielectric constant 32.63 at 25 C from NBS Circular 514, https://nvlpubs.nist.gov/nistpubs/Legacy/circ/nbscircular514.pdf.",
+    "susceptibility_generation": {
+      "generator": "rism1d",
+      "executable_version": "AmberTools 26 rism1d executable sha256 7c5c87d61ead9802c7a2df1a71a4d528d4da2db357e654d5514c603fd4c6918d",
+      "source_inputs_immutable": true
+    }
+  },
+  "containment": {
+    "experimental_values_loaded": false,
+    "experimental_residual_fit": false,
+    "endpoint_selection": false,
+    "energy_calibration": false,
+    "runtime_provider_enabled": false,
+    "accuracy_claim": "none"
+  }
+}

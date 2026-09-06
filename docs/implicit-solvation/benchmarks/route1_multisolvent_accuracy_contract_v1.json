@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-multisolvent-accuracy-contract-v1",
+  "status": "blocked_research_comparator_not_product_route1_candidate",
+  "claim_scope": "Pre-registered falsification contract for a separate no-residual multi-solvent 3D-RISM research comparator. It cannot satisfy or redefine the fixed-charge PB/GB Route 1 product contract. This file does not open MNSol labels, select a product endpoint, run 1D- or 3D-RISM, create a solvent asset, score an energy, enable a runtime option, or establish any accuracy claim.",
+  "route1_boundary": {
+    "gas_phase_mm_energy": false,
+    "bonded_mm_energy": false,
+    "experimental_solvation_residual": false,
+    "experimental_energy_calibration": false,
+    "chemistry_specific_label_switch": false,
+    "mlip_retraining": false,
+    "fixed_solute_charge": "AM1-BCC",
+    "product_runtime_change": false
+  },
+  "source_evidence": {
+    "coverage_artifact": "route1-mnsol-multisolvent-source-audit-2026-07-29.json",
+    "coverage_artifact_file_sha256": "fd5e8362edafdfa14de27e6299830cb2f89539f1a595651d9c47b5fcd8df7b8c",
+    "coverage_artifact_content_sha256": "57b2bd7d1565790d76bab6c05f56e27af556f14ec82ff641ac8822115f55213a",
+    "source_protocol": "route1_multisolvent_source_protocol.json",
+    "source_protocol_file_sha256": "8158bd2e71dc01fdc6fd52a4d3393425c7f5ac155c8b90d918612d260e80d82b",
+    "panel_solvents": 15,
+    "neutral_absolute_records": 1106,
+    "experimental_values_loaded_by_this_contract": false
+  },
+  "candidate_admission": {
+    "current_research_candidate": "all-site molecular DRISM/3D-RISM-KH",
+    "route_identity": "separate_benchmark_only_3drism_research_comparator",
+    "candidate_is_product_route1_endpoint": false,
+    "candidate_may_satisfy_product_route1_accuracy_gate": false,
+    "product_route1_formula_remains_unchanged": true,
+    "minimum_solvent_count": 15,
+    "required_asset_audit_count": 15,
+    "asset_contract": "route1_custom_solvent_asset_contract_v1.json",
+    "asset_contract_file_sha256": "9bf7e40bfe3cc46538931ab89ae3eccf91d6ba9a61b9f7c65c24d1b4a239fe66",
+    "all_assets_must_be_physical_asset_consistent_not_accuracy_validated": true,
+    "solver_profile_frozen_before_labels": [
+      "solute representation and fixed charge vector",
+      "solvent MDL and XVV hashes",
+      "temperature and density",
+      "1D-RISM theory and closure",
+      "3D-RISM closure",
+      "grid spacing, buffer, tolerance, and convergence rule",
+      "exactly one primary raw-or-PC free-energy convention",
+      "standard-state conversion"
+    ],
+    "pc_plus_policy": "predeclared_comparator_only_not_primary_physical_claim",
+    "candidate_selection_from_mnsol_labels": false,
+    "solvent_specific_error_offset": false,
+    "global_intercept_or_slope": false,
+    "posthoc_record_exclusion": false
+  },
+  "thermodynamic_admission": {
+    "mnsol_target_temperature_kelvin": 298.0,
+    "existing_298_15_kelvin_assets_are_accuracy_eligible": false,
+    "mnsol_standard_state": "Ben-Naim 1 M ideal gas to 1 M ideal solution",
+    "neutral_excess_chemical_potential_standard_state_shift_kcal_mol": 0.0,
+    "rt_ln_24_46_is_a_pressure_standard_state_shift": true,
+    "rt_ln_24_46_applied_to_neutral_excess_chemical_potential": false,
+    "pressure_correction_is_not_a_standard_state_conversion": true,
+    "fixed_geometry_energy_can_promote_absolute_solvation_accuracy": false,
+    "ensemble_protocol_required_before_absolute_solvation_scoring": true
+  },
+  "label_separation": {
+    "asset_and_solver_selection_before_labels": true,
+    "label_free_energy_artifact_sealed_before_scoring": true,
+    "energy_artifact_contains_experimental_values": false,
+    "score_phase_is_separate": true,
+    "failed_score_may_change_same_candidate": false,
+    "failed_score_may_select_another_precomputed_endpoint": false,
+    "labels_may_be_used_for_residual_training": false,
+    "labels_may_be_used_for_charge_or_solvent_parameter_tuning": false
+  },
+  "required_reporting": {
+    "complete_denominator_required": true,
+    "all_provider_failures_retained": true,
+    "per_solvent_reporting_required": true,
+    "pooled_metric_can_promote_candidate": false,
+    "metrics_per_solvent": [
+      "record_count",
+      "failure_count",
+      "mse_kcal_mol",
+      "mae_kcal_mol",
+      "rmse_kcal_mol",
+      "maximum_absolute_error_kcal_mol"
+    ],
+    "record_level_absolute_errors_retained_in_sealed_nonredistributed_score": true,
+    "leave_one_solvent_out_is_sensitivity_only_not_refitting": true,
+    "relative_ranking_claim_uses_separate_series_contract": true,
+    "binding_affinity_claim_from_solvent_only_score": false
+  },
+  "accuracy_gates": {
+    "development_physical_milestone": {
+      "required_solvents": 15,
+      "required_records": 1106,
+      "coverage_fraction": 1.0,
+      "every_record_absolute_error_strictly_below_kcal_mol": 1.5
+    },
+    "ultimate_internal_target": {
+      "required_solvents": 15,
+      "required_records": 1106,
+      "coverage_fraction": 1.0,
+      "every_record_absolute_error_strictly_below_kcal_mol": 1.0
+    },
+    "aggregate_mae_or_rmse_cannot_substitute_for_maximum_error": true,
+    "cross_panel_metric_ranking_allowed": false,
+    "current_gate_status": "not_evaluated"
+  },
+  "external_final": {
+    "status": "not_selected",
+    "selection_must_precede_any_label_access": true,
+    "independently_sourced_experimental_provenance": true,
+    "source_archive_and_table_hashes_required": true,
+    "record_identity_overlap_with_mnsol_or_freesolv": false,
+    "used_in_model_asset_solver_or_threshold_selection": false,
+    "used_in_any_previous_score": false,
+    "complete_denominator_required": true,
+    "all_provider_failures_retained": true,
+    "every_record_absolute_error_strictly_below_kcal_mol": 1.5,
+    "ultimate_sub_kcal_target_reported_separately": true,
+    "one_shot_only": true
+  },
+  "activation": {
+    "qualified_15_solvent_assets_present": false,
+    "qualified_label_free_energy_artifact_present": false,
+    "qualified_score_artifact_present": false,
+    "qualified_external_final_protocol_present": false,
+    "accuracy_claim_allowed": false,
+    "custom_solvent_runtime_allowed": false
+  },
+  "failure_action": "Keep the multi-solvent candidate research-only and fail closed. Do not expose a solvent name, custom-solvent API, fitted correction, certified ranking status, or accuracy claim. A failed MNSol score cannot be repaired on the same labels; a materially new physical candidate requires a new pre-label protocol and a new independent final set."
+}

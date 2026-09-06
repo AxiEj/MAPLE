@@ -29,7 +29,9 @@ BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
 if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
-from source_compatibility import validate_frozen_source
+from source_compatibility import (  # pyright: ignore[reportMissingImports]
+    validate_frozen_source,
+)
 
 
 def test_component_parsers_use_final_provider_blocks():
@@ -151,6 +153,103 @@ def test_provider_composes_only_egb_cavity_dispersion_and_audits(
     assert (audit / "amber-chagb.commands.json").is_file()
     recorded = json.loads((audit / "amber-chagb.result.json").read_text())
     assert recorded["energy_hartree"] == pytest.approx(result.energy_hartree)
+
+
+def test_provider_prepares_topology_once_and_reuses_it_for_coordinates(
+    water_mol2, tmp_path, monkeypatch
+):
+    """Topology setup is immutable per provider; only coordinates vary per call."""
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    executable = _fake_ambertools_bundle(tmp_path / "amber-bin")
+    calls: list[str] = []
+    prepared_mol2_text: list[str] = []
+
+    def fake_run(command, **kwargs):
+        cwd = Path(kwargs["cwd"])
+        label = Path(command[0]).name
+        calls.append(label)
+        if label == "parmchk2":
+            prepared_mol2_text.append(
+                (cwd / "molecule.mol2").read_text(encoding="utf-8")
+            )
+            (cwd / "molecule.frcmod").write_text(
+                "MASS\n\nBOND\n\nNONBON\n\n", encoding="utf-8"
+            )
+        elif label == "tleap":
+            (cwd / "molecule.prmtop").write_text("topology", encoding="utf-8")
+            (cwd / "molecule.inpcrd").write_text("coordinates", encoding="utf-8")
+            (cwd / "leap.log").write_text("ok", encoding="utf-8")
+        elif label == "gbnsr6":
+            (cwd / "gbnsr6.out").write_text(
+                "EGB = -6.0 ESURF = 1.0\n", encoding="utf-8"
+            )
+        elif label == "pbsa":
+            (cwd / "pbsa.out").write_text(
+                "ECAVITY = 2.0 EDISPER = -1.0\n", encoding="utf-8"
+            )
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(amber_chagb.subprocess, "run", fake_run)
+    provider = AmberToolsChaGB(
+        atoms,
+        atoms.get_initial_charges(),
+        executable=str(executable),
+    )
+
+    reference_positions = atoms.get_positions().copy()
+    shifted = atoms.copy()
+    shifted.positions = reference_positions + np.asarray([0.01, 0.0, 0.0])
+    first = provider.evaluate(shifted)
+    prepared = provider.prepare_topology()
+    second = provider.evaluate(atoms)
+    batched = provider.evaluate_coordinate_batch(
+        np.asarray([reference_positions, shifted.get_positions()])
+    )
+
+    assert calls.count("parmchk2") == 1
+    assert calls.count("tleap") == 1
+    assert calls.count("gbnsr6") == 4
+    assert calls.count("pbsa") == 4
+    assert prepared["cache_scope"] == "provider-instance"
+    assert isinstance(prepared["topology_sha256"], str)
+    assert len(prepared["topology_sha256"]) == 64
+    assert isinstance(prepared["topology_reference_coordinate_sha256"], str)
+    assert len(prepared["topology_reference_coordinate_sha256"]) == 64
+    assert prepared_mol2_text == [
+        render_typed_mol2(
+            provider.source_text,
+            reference_positions,
+            provider.charges,
+        )
+    ]
+    assert first.provenance["prepared_topology"]["cache_hit"] is False
+    assert second.provenance["prepared_topology"]["cache_hit"] is True
+    assert second.provenance["coordinate_input"]["format"] == "amber-inpcrd"
+    assert len(batched) == 2
+    assert all(
+        item.provenance["prepared_topology"]["cache_hit"] is True
+        for item in batched
+    )
+    assert first.energy_hartree == pytest.approx(second.energy_hartree)
+
+
+def test_provider_coordinate_api_validates_shape_before_external_energy_tools(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    executable = _fake_ambertools_bundle(tmp_path / "amber-bin")
+    provider = AmberToolsChaGB(
+        atoms,
+        atoms.get_initial_charges(),
+        executable=str(executable),
+    )
+
+    def unexpected_run(*_args, **_kwargs):
+        raise AssertionError("invalid coordinates must fail before external execution")
+
+    monkeypatch.setattr(amber_chagb.subprocess, "run", unexpected_run)
+    with pytest.raises(ValueError, match="finite .*N, 3"):
+        provider.evaluate_coordinates(np.zeros((len(atoms), 2)))
 
 
 def test_chagb_rejects_source_mol2_drift_before_resolving_tools(water_mol2):

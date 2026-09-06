@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "artifact_type": "route1-precision-output-source-patch-record",
+  "status": "output_only_experimental_build_not_derivative_admission",
+  "upstream": {
+    "name": "AmberTools26 RC7",
+    "archive_url": "https://ambermd.org/downloads/ambertools26_rc7.tar.bz2",
+    "archive_sha256": "5d46eef3c2bb7d5bf9e8c0c38add34406ea67e3f0e4097ac9d11d8a544538c9c",
+    "packaging_reference": "conda-forge/ambertools-feedstock@9c4788183342a307e1c1a0093ac35ec8964f77f1"
+  },
+  "scope": "Add full-double-precision component records after unchanged human-readable outputs. No physics, fitted parameter, force, or runtime default change.",
+  "distribution": "This record contains our patches/build recipes only, not upstream source, binaries or datasets. Recipes are captured as executed; rebuilding requires preparing the corresponding pristine/patched source layout and adapting local paths.",
+  "preserved_local_evidence": [
+    ".omx/benchmarks/route1-numerical-repair-20260905/precision-build/gbnsr6-at26/",
+    ".omx/benchmarks/route1-numerical-repair-20260905/precision-build/pbsa/"
+  ],
+  "patches": [
+    {
+      "component": "gbnsr6",
+      "patch_sha256": "533a385373811ea724b254dd50386f6ae176a8e3fb28aa6d6d921990b8afa2b5",
+      "unified_diff": "diff --git a/src/gbnsr6/pb_write.F90 b/src/gbnsr6/pb_write.F90\nindex f48cfca8..a35798d1 100644\n--- a/src/gbnsr6/pb_write.F90\n+++ b/src/gbnsr6/pb_write.F90\n@@ -131,0 +132 @@ subroutine prntmd(nstep,nitp,nits,time,ener,fac,iout7,rms)\n+   write(6,9090) ehbond,esurf\n@@ -188,0 +190,2 @@ subroutine prntmd(nstep,nitp,nits,time,ener,fac,iout7,rms)\n+   9090 format (1x,'MAPLE_GBNSR6_ENERGY_V1 EGB=',1x,es24.16e3,1x, &\n+         'ESURF=',1x,es24.16e3)\n",
+      "executed_build_recipe": "#!/usr/bin/env bash\nset -euo pipefail\n\nHERE=$(cd \"$(dirname \"$0\")\" && pwd)\nROOT=$(cd \"$HERE/../../..\" && pwd)\nSOURCE=\"$HERE/patched/src/gbnsr6\"\nBUILD=\"$ROOT/.omx/benchmarks/route1-numerical-repair-20260905/precision-build/gbnsr6-at26\"\nPREFIX=/home/axie/miniconda3/envs/maple-ambertools\n\nmkdir -p \"$BUILD/bin\" \"$BUILD/logs\"\nfind \"$SOURCE\" -maxdepth 1 -type f \\( -name '*.o' -o -name '*.mod' \\) -delete\ncp \"$HERE/pristine/src/gbnsr6/pb_write.F90\" \"$SOURCE/pb_write.F90\"\npatch -s -d \"$HERE/patched\" -p1 < \"$HERE/precision-output.patch\"\n\ncat > \"$HERE/patched/src/config.h\" <<EOF\nFC=/usr/bin/gfortran\nPBSAFLAG=\nFPPFLAGS=-cpp\nFFLAGS=-ffree-line-length-none -fallow-argument-mismatch -fno-inline-arg-packing -I$SOURCE -I$HERE/patched/src/include -I$PREFIX/include\nAMBERFFLAGS=\nFOPTFLAGS=-O2\nLIBDIR=$PREFIX/lib\nVB=\nEOF\n\nobjects=(gbnsr6 pb_read gb_read pb_write getcoor runmd runmin force pb_init \\\n  sa_driver np_force variable_module pb_exmol NSR6routines pb_list timer egb ene \\\n  locmem myopen rdparm decomp rgroup rfree debug svdcmp svbksb parms pythag \\\n  memory_module gen_dx_file)\n\ntargets=()\nfor object in \"${objects[@]}\"; do targets+=(\"$object.o\"); done\nmake -C \"$SOURCE\" -j1 \"${targets[@]}\"\n\nlink_objects=()\nfor object in \"${objects[@]}\"; do link_objects+=(\"$SOURCE/$object.o\"); done\n/usr/bin/gfortran -o \"$BUILD/bin/gbnsr6\" \"${link_objects[@]}\" \\\n  -L\"$PREFIX/lib\" -Wl,-rpath,\"$PREFIX/lib\" \\\n  -lamber_common -lblas -llapack -lm -lxblas-amb\n",
+      "build_recipe_sha256": "6aa2c2e5f744de394208b1b19375af1550a3c68d803bdc31a5288787c986c690"
+    },
+    {
+      "component": "pbsa",
+      "patch_sha256": "e697b03a8cebce12997fd324b04f0dd00030128a52d419fd45d90f19a25fe62b",
+      "unified_diff": "diff --git a/pb_write.F90 b/pb_write.F90\nindex cf55e483..e1fa9e13 100644\n--- a/pb_write.F90\n+++ b/pb_write.F90\n@@ -131,0 +132 @@ subroutine prntmd(nstep,nitp,nits,time,ener,fac,iout7,rms)\n+   if ( ipb >= 1         ) write(6,9090) esurf,edisp\n@@ -188,0 +190,2 @@ subroutine prntmd(nstep,nitp,nits,time,ener,fac,iout7,rms)\n+   9090 format (1x,'MAPLE_PBSA_ENERGY_V1 ECAVITY=',1x,es24.16e3,1x, &\n+         'EDISPER=',1x,es24.16e3)\n",
+      "executed_build_recipe": "#!/usr/bin/env bash\nset -euo pipefail\n\nHERE=$(cd \"$(dirname \"$0\")\" && pwd)\nROOT=$(cd \"$HERE/../../..\" && pwd)\nSRC=\"$ROOT/.omx/vendor/route1-ambertools26-precision-20260905/source-unverified/ambertools26_src/AmberTools/src\"\nBUILD=\"$ROOT/.omx/benchmarks/route1-numerical-repair-20260905/precision-build/pbsa\"\nPREFIX=/home/axie/miniconda3/envs/maple-ambertools\nOBJ=\"$BUILD/obj\"\nMOD=\"$OBJ/mod\"\n\nmkdir -p \"$HERE/patched\" \"$BUILD/bin\" \"$BUILD/logs\" \"$MOD\"\nfind \"$OBJ\" -type f -delete\n\ncp \"$HERE/pristine/pb_write.F90\" \"$HERE/patched/pb_write.F90\"\npatch -s -d \"$HERE/patched\" -p1 < \"$HERE/precision-output.patch\"\n\npython - \"$HERE/patched/pb_write.F90\" \"$HERE/patched/pb_write_override.F90\" <<'PY'\nfrom pathlib import Path\nimport sys\n\nsource = Path(sys.argv[1]).read_text()\nend = source.index(\"end subroutine prntmd\\n\") + len(\"end subroutine prntmd\\n\")\nPath(sys.argv[2]).write_text(source[:end] + \"\\n#endif /*ifndef SANDER*/\\n\")\nPY\n\npython - \"$SRC/sander/decomp.F90\" \"$HERE/patched/decomp_interface.F90\" <<'PY'\nfrom pathlib import Path\nimport sys\n\nsource = Path(sys.argv[1]).read_text()\nPath(sys.argv[2]).write_text(source[:source.index(\"\\ncontains\\n\")] + \"\\nend module decomp\\n\")\nPY\n\ncommon=(-cpp -c -ffree-line-length-none -fallow-argument-mismatch \\\n  -I\"$SRC/pbsa\" -I\"$SRC/include\" -I\"$SRC/lib\" -I\"$MOD\" -J\"$MOD\")\n\n# Generate exact RC7 module interfaces used by the executable-only objects.\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/memory_module.F90\" -o \"$OBJ/mod-memory_module.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/parms.F90\" -o \"$OBJ/mod-parms.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/timer.F90\" -o \"$OBJ/mod-timer.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/sa_driver.F90\" -o \"$OBJ/mod-sa_driver.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/lib/random.F90\" -o \"$OBJ/mod-random.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$HERE/patched/decomp_interface.F90\" -o \"$OBJ/mod-decomp-interface.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/pb_force.F90\" -o \"$OBJ/mod-pb_force.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/np_force.F90\" -o \"$OBJ/mod-np_force.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/density.F90\" -o \"$OBJ/mod-density.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/egb.F90\" -o \"$OBJ/mod-egb.o\"\n/usr/bin/gfortran \"${common[@]}\" -O0 \"$SRC/pbsa/pbsa_lib.F90\" -o \"$OBJ/mod-pbsa_lib.o\"\n\n# Compile the exact RC7 program/driver and its executable-only helpers.\n/usr/bin/gfortran \"${common[@]}\" -O2 \"$SRC/pbsa/pbsa.F90\" -o \"$OBJ/pbsa-full-main.o\"\n/usr/bin/gfortran \"${common[@]}\" -O2 \"$HERE/patched/pb_write_override.F90\" -o \"$OBJ/pb_write.o\"\nfor source in pb_read rdparm locmem debug force runmd runmin getcoor pb_chkfrc rdpqr ene egb; do\n  /usr/bin/gfortran \"${common[@]}\" -O2 \"$SRC/pbsa/$source.F90\" -o \"$OBJ/$source.o\"\ndone\n\nobjects=(pbsa-full-main pb_write pb_read rdparm locmem debug force runmd runmin getcoor pb_chkfrc rdpqr ene egb)\nlink_objects=()\nfor object in \"${objects[@]}\"; do link_objects+=(\"$OBJ/$object.o\"); done\n\n# libpbsa.so supplies the exact installed AT26 PB/SA computational core.\n/usr/bin/gfortran -o \"$BUILD/bin/pbsa\" \"${link_objects[@]}\" \\\n  -L\"$PREFIX/lib\" -Wl,-rpath,\"$PREFIX/lib\" -Wl,--no-as-needed \\\n  -lpbsa -lamber_common -llapack -lblas -lm -Wl,--as-needed\n",
+      "build_recipe_sha256": "be37a749e3043f6e0207b093af34bf4ea73a9aa3c83b9fb84f9ba38184e92dbf"
+    }
+  ],
+  "capability_boundary": {
+    "full_chagb_force": false,
+    "runtime_opt_freq_ts_enabled": false,
+    "accuracy_claim": false
+  }
+}

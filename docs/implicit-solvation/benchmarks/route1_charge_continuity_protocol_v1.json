@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-charge-continuity-pairs-v1",
+  "claim_scope": "Label-free, retrospective structure-and-charge sidecar over the already frozen 116-case FreeSolv reserve energy artifact. It identifies strict heavy-atom matched-pair edges from all non-uniquified embeddings of the single SMARTS returned by RDKit FindMCS 2024.09.2 and measures within-AM1-BCC remote-heavy-atom charge drift. Distinct maximum-MCS pattern alternatives are not enumerated. This is not a charge-model comparison, accuracy score, fitted correction, threshold calibration, endpoint selection, or certified-ranking result.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "evaluation_design": {
+    "historical_label_exposure": true,
+    "this_phase_reads_experimental_labels": false,
+    "this_phase_reads_score_artifact": false,
+    "this_phase_reads_series_artifact": false,
+    "no_fit": true,
+    "no_residual": true,
+    "no_endpoint_selection": true,
+    "no_threshold_tuning": true,
+    "certified_ranking_available": false
+  },
+  "source_evidence": {
+    "source_manifest": "route1_freesolv_reserve_source_manifest.json",
+    "source_manifest_sha256": "24969fefd4e41b18f6f7c7c85523d2ec9bc888ecee882c75783e8526a95f1c81",
+    "energy_artifact": "route1-freesolv-reserve-energy-2026-07-25.json",
+    "energy_artifact_sha256": "dbfaac870c0d3c93d46891ad5d1554c6c5a80fa6e5967ba9afe8b9cc80956787",
+    "energy_artifact_content_sha256": "edca6a2be686059041f9a12f7a76371da01d81679377a1711e47f6e23d0c702d",
+    "expected_case_count": 116
+  },
+  "pair_audit_design": {
+    "source_root_relative_path": ".omx/benchmarks/neutral-water-freesolv-route1-20260723",
+    "rdkit_required_version": "2024.09.2",
+    "mcs_timeout_seconds": 10,
+    "minimum_matched_heavy_atoms": 3,
+    "minimum_unmatched_heavy_atoms_each_side": 1,
+    "maximum_unmatched_heavy_atoms_each_side": 3,
+    "unmatched_component_count_each_side": 1,
+    "core_substituent_boundary_edge_count_each_side": 1,
+    "minimum_remote_heavy_atoms": 2,
+    "minimum_attachment_distance_bonds": 3,
+    "maximum_mapping_enumeration": 1024,
+    "mapping_metric_tolerance_e": 0.0,
+    "mcs_atom_compare": "CompareElements",
+    "mcs_bond_compare": "CompareOrderExact",
+    "ring_matches_ring_only": true,
+    "complete_rings_only": true,
+    "matched_core_connected": true,
+    "substructure_matches_uniquified": false,
+    "mcs_pattern_enumeration": "single_rdkit_findmcs_smarts_only",
+    "distinct_maximum_mcs_patterns_audited": false,
+    "mapping_enumeration_scope": "cross_product_of_nonuniquified_embeddings_of_single_rdkit_findmcs_smarts",
+    "mapping_selection": "all_strict_embeddings_of_returned_smarts_must_be_metric_invariant_then_lexicographic",
+    "hydrogens_in_charge_drift": false
+  },
+  "endpoints": [
+    "am1bcc_obc2_ace",
+    "am1bcc_chagb_pbsa_cavity_dispersion"
+  ],
+  "pre_registered_decision_rule": {
+    "metric_variant_structural_mapping_is_evaluable": false,
+    "endpoint_selection_allowed": false,
+    "charge_method_selection_allowed": false,
+    "energy_correction_allowed": false,
+    "abstention_threshold_selection_allowed": false,
+    "certified_order_allowed": false,
+    "failure_action": "Report the label-free sidecar only; do not infer accuracy or tune a decision rule."
+  }
+}

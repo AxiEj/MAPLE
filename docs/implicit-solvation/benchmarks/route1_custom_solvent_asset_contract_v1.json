@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-custom-solvent-3drism-asset-contract-v1",
+  "benchmark_kind": "route1-custom-solvent-3drism-asset-audit",
+  "claim_scope": "Label-free integrity and physical-input audit for one prospective 3D-RISM solvent asset. Passing establishes only that a supplied molecular site model, 1D-RISM input, and XVV susceptibility agree with one another. It does not run a solvation calculation, read an experimental solvation value, fit a parameter, enable a Route 1 runtime solvent, or establish any accuracy or ranking claim.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "required_physical_inputs": {
+    "molecular_site_model": [
+      "site names and multiplicities",
+      "site coordinates",
+      "site masses",
+      "site charges",
+      "site Lennard-Jones parameters"
+    ],
+    "thermodynamic_state": [
+      "temperature_kelvin",
+      "pressure_bar",
+      "dielectric_constant",
+      "species_density_angstrom_minus3"
+    ],
+    "susceptibility": [
+      "rism1d theory",
+      "closure",
+      "grid",
+      "content-hashed XVV"
+    ],
+    "standard_state": [
+      "provider output convention",
+      "MNSol target convention",
+      "conversion status"
+    ]
+  },
+  "containment": {
+    "experimental_values_loaded": false,
+    "experimental_residual_fit": false,
+    "endpoint_selection": false,
+    "energy_calibration": false,
+    "runtime_provider_enabled": false,
+    "accuracy_claim": "none"
+  },
+  "literature": {
+    "amber_rism_workflow": "AmberTools Users' Manual, RISM chapter: 1D-RISM constructs the bulk-solvent XVV consumed by rism3d.snglpnt; the supplied molecular model and thermodynamic state define that susceptibility.",
+    "theory": "Sergiievskyi, Jeanmairet, Levesque, and Borgis, Solvation free-energy pressure corrections in the Three Dimensional Reference Interaction Site Model, arXiv:1511.04475.",
+    "local_provider_boundary": "A validated asset may be wired only into a separate benchmark-only 3D-RISM candidate after numerical, standard-state, force, multi-solvent, and independent external validation gates pass."
+  }
+}

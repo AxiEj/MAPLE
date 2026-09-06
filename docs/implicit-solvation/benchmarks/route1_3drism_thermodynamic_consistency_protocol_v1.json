@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-3drism-thermodynamic-consistency-v1",
+  "status": "research_comparator_only_no_accuracy_claim",
+  "claim_scope": "Prospective, label-free numerical and thermodynamic-limit checks for one fixed-geometry ethanol 3D-RISM research comparator. This protocol does not score MNSol, does not select an accuracy endpoint, does not validate conformational free energies, and cannot satisfy or redefine the fixed-charge PB/GB Route 1 product contract.",
+  "route_boundary": {
+    "product_route1_formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "product_route1_formula_unchanged": true,
+    "candidate_route_identity": "separate_3drism_research_comparator",
+    "candidate_may_satisfy_product_route1_accuracy_gate": false,
+    "experimental_solvation_labels_loaded": false,
+    "experimental_residual_fit": false,
+    "energy_calibration": false,
+    "endpoint_selection_from_labels": false,
+    "product_runtime_change": false
+  },
+  "bound_pilot": {
+    "protocol": "route1_3drism_ethanol_pilot_protocol_v1.json",
+    "protocol_file_sha256": "47d41e2775bdc0c7c5481f76dcbf8cdac747f0358cc1185e8e6f76695f6ab7f8",
+    "artifact": "route1-3drism-ethanol-pilot-2026-07-29.json",
+    "artifact_file_sha256": "04d732a80a5a770a41c4431093785bb8d3b45bdfab6bc31b43a0f398c2309b05",
+    "artifact_content_sha256": "32b2ed35ce077acef4a3471897251a69825a7cf0278c23acdcdb4e0f6fff63f9",
+    "required_admission_status": "one_nonwater_solver_pilot_numerically_qualified_not_accuracy_validated"
+  },
+  "thermodynamic_reference": {
+    "target_dataset": "MNSol-v2012",
+    "target_temperature_kelvin": 298.0,
+    "asset_temperature_kelvin": 298.15,
+    "target_standard_state": "Ben-Naim ideal gas 1 mol/L to ideal solution 1 mol/L",
+    "neutral_excess_chemical_potential_standard_state_shift_kcal_mol": 0.0,
+    "rt_ln_24_46_is_pressure_standard_state_conversion_not_applied": true,
+    "pressure_correction_is_not_standard_state_conversion": true,
+    "ions_require_an_additional_extrathermodynamic_convention": true,
+    "fixed_geometry_is_not_an_absolute_solvation_free_energy_ensemble": true,
+    "accuracy_temperature_eligible": false,
+    "accuracy_ensemble_eligible": false
+  },
+  "numerical_profile": {
+    "closure_3d": "kh",
+    "grid_spacing_angstrom": 0.3,
+    "buffer_angstrom": 14.0,
+    "tolerance": 1e-05,
+    "maximum_steps": 10000,
+    "centering": 1,
+    "raw_kh_is_a_probe_not_a_selected_accuracy_endpoint": true,
+    "gf_pc_plus_and_partial_molar_volume_are_diagnostics": true
+  },
+  "probes": {
+    "translation": {
+      "vector_angstrom": [
+        37.0,
+        -19.0,
+        11.0
+      ],
+      "maximum_energy_difference_kcal_mol": 1e-08,
+      "maximum_partial_molar_volume_difference_angstrom3": 1e-06
+    },
+    "rotation": {
+      "euler_degrees_xyz": [
+        37.0,
+        53.0,
+        71.0
+      ],
+      "rotation_about_centroid": true,
+      "maximum_energy_difference_kcal_mol": 0.01,
+      "maximum_partial_molar_volume_difference_angstrom3": 0.5,
+      "energy_threshold_rule": "one_half_of_the_existing_predeclared_0.02_kcal_mol_grid_sensitivity_gate",
+      "partial_molar_volume_threshold_rule": "ceil_to_0.1_of_twice_the_prior_label_free_maximum_pmv_sensitivity"
+    },
+    "bonded_parameter_independence": {
+      "scaled_prmtop_flags": [
+        "BOND_FORCE_CONSTANT",
+        "ANGLE_FORCE_CONSTANT",
+        "DIHEDRAL_FORCE_CONSTANT"
+      ],
+      "scale_factor": 1.5,
+      "required_unchanged_prmtop_flags": [
+        "CHARGE",
+        "ATOM_TYPE_INDEX",
+        "LENNARD_JONES_ACOEF",
+        "LENNARD_JONES_BCOEF"
+      ],
+      "maximum_energy_difference_kcal_mol": 1e-08,
+      "maximum_partial_molar_volume_difference_angstrom3": 1e-06
+    },
+    "zero_interaction_limit": {
+      "zeroed_prmtop_flags": [
+        "CHARGE",
+        "LENNARD_JONES_ACOEF",
+        "LENNARD_JONES_BCOEF"
+      ],
+      "maximum_absolute_raw_kh_kcal_mol": 0.005,
+      "maximum_absolute_gf_kcal_mol": 0.005,
+      "pc_plus_is_not_required_to_vanish": true,
+      "partial_molar_volume_is_only_required_to_be_finite": true
+    }
+  },
+  "admission": {
+    "all_numerical_probes_must_pass": true,
+    "experimental_labels_must_remain_closed": true,
+    "accuracy_admission_must_remain_false": true,
+    "product_route1_admission_must_remain_false": true,
+    "result_if_passed": "research_comparator_consistency_qualified_accuracy_blocked",
+    "result_if_failed": "research_comparator_consistency_failed_accuracy_blocked",
+    "next_gate": "return_to_fixed_charge_chagb_pbsa_ranking_mainline"
+  },
+  "prohibited_interpretations": [
+    "Passing these probes is not an MNSol or FreeSolv accuracy result.",
+    "Passing these probes does not select raw KH, GF, PC, or PC+ as an accuracy endpoint.",
+    "Passing these probes does not make a fixed MNSol geometry an ensemble solvation free energy.",
+    "Passing these probes does not promote 3D-RISM into the PB/GB Route 1 product.",
+    "The 298.15 K ethanol asset is not eligible for the declared 298.00 K MNSol accuracy gate."
+  ]
+}

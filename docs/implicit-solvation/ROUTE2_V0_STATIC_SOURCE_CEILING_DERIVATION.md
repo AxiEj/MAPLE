@@ -191,3 +191,192 @@ in use**, and tighter still under a realistic error allocation.
 Any $v_0$ candidate previously screened against `0.20` was screened against a
 criterion that could not deliver the route's accuracy target. That screen
 should be re-run against equation (4) before any further permanent-source work.
+
+---
+
+## 8. Addendum (2026-09-05): the gate is unpassable by construction
+
+Running the MLIP sources on this surface returned a decisive negative
+(`route2-v0-mace-zero-field-static-mep-acetone-516-v1`, harness validated by
+reproducing the GFN2 numbers exactly):
+
+| source | eps_F | eps_maxabs |
+| --- | --- | --- |
+| MACE-POLAR-1-M `l<=1` | 0.3224217790 | 0.5313041398 |
+| MACE-EF auxiliary density | 0.2954775346 | 0.3140626053 |
+| MACE-EF energy-conjugate | 0.2777210207 | 0.3414157680 |
+| GFN2 MOLDEN (recorded, rejected) | 0.2199987983 | 0.3760559034 |
+
+All three MLIP sources score worse than the rejected QM source, and all miss
+the derived `0.1129` ceiling by 2.5-2.9x. Every arm nevertheless reproduced the
+molecular dipole well (`0.037 e*bohr` for two of them), repeating the pattern
+already recorded for the response source: a correct molecular moment does not
+imply a correct cavity-surface MEP.
+
+Before concluding anything about model quality, the **representation floor** was
+measured by fitting the best possible atom-centred source directly to the QM
+reference
+([`benchmarks/measure_static_source_representation_floor.py`](benchmarks/measure_static_source_representation_floor.py)):
+
+| best achievable fit | eps_F | sum q | max abs q |
+| --- | --- | --- | --- |
+| `l<=1`, free enclosed charge | 0.076329 | +0.0448 e | 0.757 e |
+| `l<=1`, charge-neutral | **0.246061** | 0 | 1.184 e |
+| `l<=2`, free enclosed charge | **0.022590** | +0.0437 e | 0.913 e |
+| `l<=2`, charge-neutral | 0.218312 | 0 | 6.694 e |
+
+**The charge-neutral floor `0.2461` exceeds the derived ceiling `0.1129`.** In
+this representation no source of any kind — MLIP, semi-empirical, or
+all-electron DFT — can pass the gate. The gate has been rejecting candidates
+for a property none of them could have had.
+
+### Why: charge outside the cavity
+
+Imposing the enclosed charge and scanning it gives a sharp minimum:
+
+```
+Q = +0.0000 e -> eps_F = 0.246061
+Q = +0.0437 e -> eps_F = 0.076545      <- minimum
+Q = +0.1000 e -> eps_F = 0.298133
+```
+
+The preferred value is stable across basis size (`+0.0448` at `l<=1`,
+`+0.0437` at `l<=2`, agreeing to 2%), it is a single well-determined degree of
+freedom, and the charge-neutral residual is spatially diffuse rather than
+concentrated at the closest points (mean absolute residual by nearest-atom
+distance quartile: `0.0075 / 0.0084 / 0.0050 / 0.0069`).
+
+That is the signature of **outlying charge**: roughly `0.044 e` of acetone's 32
+electrons — about `0.14%` — lies outside this cavity. An atom-centred source
+constrained to zero net enclosed charge cannot represent a reference that
+includes it, and forcing neutrality drives the coefficients to unphysical
+values (`max|q| = 6.694 e` at `l<=2`). This is the effect COSMO addresses with
+an explicit outlying-charge correction; it is a property of the cavity and the
+representation, not of the source model.
+
+### Consequence
+
+`eps_F` as currently measured conflates two things:
+
+1. genuine source-model error, and
+2. an outlying-charge artifact that no interior source can avoid.
+
+Only (1) is what the gate intends to measure. The gate must therefore either
+allow the enclosed charge as a fitted degree of freedom, apply an
+outlying-charge correction, or move the evaluation surface outward — and then
+re-measure every candidate. Until that is done, no static-MEP rejection on this
+surface, **including the GFN2 rejection upheld in section 5 of this document**,
+distinguishes a bad source from a good source measured badly.
+
+Section 5's arithmetic is unchanged; its scientific weight is not. The derived
+ceiling of section 4 stands, because it is a statement about energy
+propagation, not about this measurement.
+
+### What this does not say
+
+This is one molecule, one cavity, and one reference. It does not establish that
+any MLIP source is adequate; the corrected comparison has not been run. It says
+the existing comparison cannot answer the question. The immediate next step is
+to re-measure all four recorded candidates with the enclosed charge free, which
+requires only the already-computed candidate MEP vectors and no new model run.
+
+---
+
+## 9. Corrections (2026-09-05, after independent review)
+
+An independent re-measurement found two errors in this document. Both are
+corrected here rather than edited away.
+
+### 9.1 Section 5 inverts the Cauchy-Schwarz bound (logic error)
+
+Equation (2) is an **upper** bound:
+$|\delta G^\*|\le\varepsilon_F\cdot2\kappa\rho|\Delta G_{\rm pol}|$. Therefore
+
+* $\varepsilon_F\le\varepsilon_F^{\max}\;\Rightarrow\;|\delta G^\*|\le\tau$ —
+  the source is **certified admissible**;
+* $\varepsilon_F>\varepsilon_F^{\max}\;\Rightarrow$ the bound exceeds $\tau$ and
+  says **nothing** about $|\delta G^\*|$.
+
+Section 5 read the second case as a rejection ("REJECT, by 1.95x"). That does
+not follow. Exceeding the ceiling means the bound **cannot certify** the source,
+not that its energy error exceeds the tolerance. Equation (4) is a *sufficient
+admission criterion only*; it is not a rejection criterion.
+
+**Therefore section 5's claim that it re-supports
+`reject-gfn2-molden-permanent-source` is withdrawn.** The original rejection
+still stands on its own preregistered terms; this document does not add to it,
+and never could have. This also removes an internal contradiction: section 6
+already says the norms cannot decide the question and only
+$\langle q^\*,\delta v_0\rangle$ can, which section 5 then ignored.
+
+The derivation itself (sections 2-4) is unaffected. What changes is what may be
+concluded from a candidate sitting *above* the ceiling: nothing, without $q^\*$.
+
+### 9.2 Section 8 misattributes the released degree of freedom
+
+Section 8 called the extra degree of freedom **outlying charge**, estimated at
+`+0.044 e`. That attribution is wrong.
+
+On this surface the enclosed-charge mode
+$g_k=\sum_a|s_k-\mathbf R_a|^{-1}$ is nearly collinear with a constant:
+$\cos(g,\mathbf 1)=0.996127$ (independently confirmed). Separating the two:
+
+| `l<=1` fit | eps_F | fitted constant |
+| --- | --- | --- |
+| charge-neutral, no constant | 0.246061 | — |
+| charge-neutral, **free constant** | **0.076842** | `+0.008905` hartree/e |
+| free enclosed charge, no constant | 0.076329 | — |
+
+**A constant alone recovers 99.7% of the gap.** The `+0.0437 e` of section 8 was
+the least-squares route to a near-uniform offset, not a measured enclosed
+charge. Adding both parameters together improves only `0.076842 -> 0.075950`
+while driving the coefficients into a sign fight (`Q=+0.128 e`, `c=-0.0166`),
+which is the expected signature of a degenerate pair.
+
+The physical reading changes accordingly. A near-uniform positive offset of
+`~0.0089 hartree/e` at a surface that sits `1.20-1.85` Å from the nearest
+nucleus is the signature of **charge penetration** — the points lie inside the
+tail of the electron density, so an atom-centred point-multipole source
+over-screens the nuclei — rather than of charge outside the cavity, which would
+appear as a decaying $Q/r$ shape and does not win the fit.
+
+This data cannot fully separate charge penetration from a difference in the
+zero convention between the two potentials. The discriminating test is cheap:
+penetration decays as the evaluation surface moves outward, a gauge constant
+does not. That test has not been run, so **the mechanism is stated as the
+leading explanation, not as a result.**
+
+### 9.3 What survives
+
+The correction is to the *mechanism and its name*, not to the structural
+conclusion:
+
+* the charge-neutral `l<=1` representation floor is `0.246061`, and it still
+  **exceeds** the derived ceiling `0.1129`;
+* releasing one degree of freedom still collapses it to `0.0768` (`l<=1`) and
+  `0.0226` (`l<=2`, free charge);
+* so the gate as constructed still cannot be passed by any atom-centred source,
+  MLIP or QM, and one extra degree of freedom still fixes it.
+
+### 9.4 Candidates re-measured with the degree of freedom released
+
+From `route2-v0-static-source-charge-release-acetone-516-v1` (no new QM; MACE
+raw vectors were regenerated by one forward pass each, raw eps_F reproducing to
+`5e-7`):
+
+| candidate | eps_F raw | + charge mode | + charge and constant |
+| --- | --- | --- | --- |
+| GFN2 MOLDEN | 0.219999 | 0.155776 | 0.139841 |
+| MACE-POLAR-1-M `l<=1` | 0.322422 | 0.231777 | 0.217447 |
+| MACE-EF-v2 auxiliary | 0.295477 | **0.113387** | **0.111590** |
+| MACE-EF-v2 energy-conjugate | 0.277721 | 0.231687 | 0.157891 |
+
+Every candidate remains above the `0.076329` achievable `l<=1` floor, by 1.5x
+to 2.9x. **So there is genuine source-model error beyond the representation
+issue**, and the earlier framing — that the floor explained the failures — was
+too generous to the models. The best corrected candidate, MACE-EF auxiliary at
+`0.1116`, is the checkpoint's diagnostic density output, which
+`mace_polar_ef.py` explicitly does not treat as energy-conjugate; the
+energy-conjugate source is worse (`0.1579`). None of these are admissions:
+the parameters were fitted against the frozen QM reference, which is an oracle
+diagnostic, not a production procedure.

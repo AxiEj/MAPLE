@@ -1,0 +1,108 @@
+{
+  "schema": "maple-pure-frozen-workflow-summary-v1",
+  "status": "experimental-workflow-canaries-passed-with-regression-review-gaps",
+  "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1",
+  "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1",
+  "scientific_release_admitted": false,
+  "confirmation_partition_opened": false,
+  "model_or_accuracy_fit_performed": false,
+  "raw_artifacts": {
+    "water": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflows-water-v1.json",
+      "sha256": "3e247268baa5f94096e9e60c3a4dc2846a62564823e46a5844fad679feccd2bf"
+    },
+    "ammonia_ts": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflows-ammonia-ts-v1.json",
+      "sha256": "647dd038a84f114ff3f91ad9e5f864b420c46518b02a8c52b4651671c5f6c13b"
+    }
+  },
+  "current_source_files_verified": 341,
+  "results": {
+    "sp": {
+      "pass": true,
+      "energy_difference_from_original_eV": 0.0,
+      "max_force_difference_from_original_eV_per_A": 0.0
+    },
+    "opt": {
+      "pass": true,
+      "fixture": "water",
+      "method": "lbfgs",
+      "iterations": 8,
+      "maximum_force_hartree_per_A": 1.5716020877495682e-05
+    },
+    "freq": {
+      "pass": true,
+      "fixture": "optimized-water",
+      "internal_mode_statuses": [
+        "positive",
+        "positive",
+        "positive"
+      ],
+      "topology_changing_stencil_samples": 22,
+      "maximum_endpoint_work_discrepancy_eV_per_A": 0.0005110601025955442
+    },
+    "ts": {
+      "pass": true,
+      "fixture": "NH3-inversion",
+      "method": "prfo",
+      "iterations": 3,
+      "final_mode_statuses": [
+        "negative",
+        "positive",
+        "positive",
+        "positive",
+        "positive",
+        "positive"
+      ],
+      "optimizer_converged": true,
+      "endpoint_heights_angstrom": [
+        -0.3776991076627476,
+        0.3777289707950446
+      ],
+      "endpoint_energy_drops_eV": [
+        0.2116330621272482,
+        0.21196266940796704
+      ]
+    }
+  },
+  "verification": {
+    "focused_tests_passed": 171,
+    "full_route2_solvation_tests_passed": 2216,
+    "full_tests_skipped": 12,
+    "full_tests_failed": 1,
+    "remaining_failed_test": "test_preregistration_binds_current_sources_and_inherited_assets",
+    "failure_scope": "historical matched-QM/PCMSolver preregistration, not the new pure workflow canary",
+    "hash_mismatches_already_in_base_commit": 6,
+    "additional_bound_files_changed_by_workflow_work": 4,
+    "historical_preregistration_hashes_modified": false,
+    "independent_review": "known findings addressed and regression-tested; final independent re-review unavailable after native-agent usage limit"
+  },
+  "claim_boundary": "Real exact-checkpoint numerical/workflow evidence for these declared water and NH3 fixtures, not universal reaction/geometry/frequency accuracy, strict variational admission, or MD/IRC permission.",
+  "workflow_logs": {
+    "water-sp": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflow-logs-v1/water-sp.txt",
+      "sha256": "f2792ff4d9ab69aa25d3623c4cc5c8549bd20ab52c71f748933a81278654b26e"
+    },
+    "water-opt": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflow-logs-v1/water-opt.txt",
+      "sha256": "d4b90fe48ed4b61919bea5d45ead894a225b69a6f862f632f58c9507fd291300"
+    },
+    "water-freq": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflow-logs-v1/water-freq.txt",
+      "sha256": "351ce45ed1159d4b33772326125f5010a82ef6d7a7c29039e1c1945d3d9ac60c"
+    },
+    "ammonia-ts": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflow-logs-v1/ammonia-ts.txt",
+      "sha256": "64046659450bcd7cab870ccd7d665ab06c754c5ec7867d49836d64a5cc872793"
+    },
+    "ammonia-plus": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflow-logs-v1/ammonia-plus.txt",
+      "sha256": "39443ef2faefab3f557173041358f83a50b00e1628056ed91920ad40981d8e35"
+    },
+    "ammonia-minus": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflow-logs-v1/ammonia-minus.txt",
+      "sha256": "569d9c1cb758ab3ca4e6cc776114673bca9385a9911c8b7b366cbd122d61e245"
+    }
+  },
+  "content_sha256": "bd0ccd3deb88dd2bb12b57703a51c1239c5f1dacfc4a96a84659584ebd6bcd49"
+}

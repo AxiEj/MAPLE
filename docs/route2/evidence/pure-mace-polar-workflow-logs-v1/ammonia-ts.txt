@@ -1,0 +1,90 @@
+Parsing # commands...
+Global parameter: model = macepolm
+Global parameter: device = cpu
+Global parameter: level = extratight
+Task set to 'ts'
+Global nested parameter: solv = {'method': 'smd', 'provider': 'pyddx', 'profile': 'pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1', 'implicit': 'water', 'response': 'frozen', 'experimental': True}
+
+Starting Transition State Search (TS) with RS-PRFO...
+Hessian recalc interval: 8; update method: bofill
+Trust radius adaptation: eta_shrink=0.75, eta_expand=1.75
+Convergence thresholds: f_max=0.000300, f_rms=0.000200, dp_max=0.000300, dp_rms=0.000200
+
+----------------------------------------------------------------------
+                             Iteration: 1                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0052               0.0002               0.0006
+1    H                0.9929               0.0001               0.0007
+2    H               -0.5043               0.8646               0.0007
+3    H               -0.5043              -0.8642               0.0007
+
+
+Energy:                  -56.548386 Convergence criteria  Is converged 
+Maximum Force:             0.002432     0.000300                No
+RMS Force:                 0.001214     0.000200                No
+Maximum Displacement:      0.027055     0.000300                No
+RMS Displacement:          0.011333     0.000200                No
+
+Model change: -1.114352e-03  Actual change: -1.062324e-03  rho: 0.953
+Trust radius (MW):  0.100000  Step norm (MW):  0.043725  On boundary: False
+
+----------------------------------------------------------------------
+                             Iteration: 2                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0048               0.0002               0.0005
+1    H                0.9949               0.0001               0.0006
+2    H               -0.5046               0.8660               0.0006
+3    H               -0.5048              -0.8656               0.0006
+
+
+Energy:                  -56.548390 Convergence criteria  Is converged 
+Maximum Force:             0.000344     0.000300                No
+RMS Force:                 0.000172     0.000200                Yes
+Maximum Displacement:      0.001933     0.000300                No
+RMS Displacement:          0.000812     0.000200                No
+
+Model change: -5.678106e-06  Actual change: -4.864756e-06  rho: 0.857
+Trust radius (MW):  0.100000  Step norm (MW):  0.003128  On boundary: False
+
+----------------------------------------------------------------------
+                             Iteration: 3                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001               0.0005
+1    H                0.9946              -0.0000               0.0007
+2    H               -0.5045               0.8658               0.0006
+3    H               -0.5048              -0.8654               0.0006
+
+
+Energy:                  -56.548391 Convergence criteria  Is converged 
+Maximum Force:             0.000005     0.000300                Yes
+RMS Force:                 0.000002     0.000200                Yes
+Maximum Displacement:      0.000235     0.000300                Yes
+RMS Displacement:          0.000107     0.000200                Yes
+
+Model change: -9.939462e-08  Actual change: -1.000445e-07  rho: 1.007
+Trust radius (MW):  0.100000  Step norm (MW):  0.000423  On boundary: False
+Hessian evaluation SHA256: d2cd0c8368cb8b682c37822e7b9dec5abcb017e0c978285210cab87b055fd89c
+Stencil h/h2: 0.004/0.002 A; maximum Richardson: 1.66351186e-03 eV/A^2; raw antisymmetry: 1.42236164e-05 eV/A^2
+Topology coverage: partial; changed samples: 40; maximum endpoint work discrepancy: 4.55613093e-04 eV/A
+
+Pure frozen TS final-mode validation
+  optimizer_converged: true
+  index_one_resolved: true
+  resolved_negative_count: 1
+  resolved_positive_count: 5
+  uncertain_count: 0
+  Richardson-derived numerical uncertainty: 8.38011444e-04 eV/A^2/amu
+
+
+----------------------------------------------------------------------
+                          Normal Termination                          
+

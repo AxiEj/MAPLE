@@ -350,6 +350,54 @@ def calculate_Hessian(atoms: Atoms):
     H = calc.get_hessian(atoms)
     return to_numpy_f64(H)
 
+
+def _is_pure_frozen_total_pes(atoms: Atoms) -> bool:
+    from maple.function.calculator.route2 import (
+        is_pure_mace_polar_workflow_calculator,
+    )
+
+    return is_pure_mace_polar_workflow_calculator(getattr(atoms, "calc", None))
+
+
+def _pure_frozen_ts_postcondition(atoms: Atoms) -> tuple[dict, object]:
+    """Evaluate the exact final Hessian index without relabelling weak modes."""
+
+    calc = atoms.calc
+    if not _is_pure_frozen_total_pes(atoms):
+        raise RuntimeError(
+            "pure frozen TS postcondition requires the registered "
+            "PureMACEPolarDDXCalculator."
+        )
+    evaluation = calc.get_hessian_evaluation(atoms)
+    from maple.solvation.derivatives.molecular_modes import (
+        analyze_hessian_evaluation, hessian_numerical_diagnostics,
+    )
+
+    analysis = analyze_hessian_evaluation(atoms, evaluation)
+    uncertainty = analysis.uncertainty_eV_per_A2_amu
+    eigenvalues = analysis.eigenvalues_eV_per_A2_amu
+    diagnostic = {
+        "optimizer_converged": True,
+        "index_one_resolved": analysis.is_resolved_index_one,
+        "workflow_success": analysis.is_resolved_index_one,
+        "resolved_negative_count": analysis.resolved_negative_count,
+        "resolved_positive_count": analysis.resolved_positive_count,
+        "uncertain_count": analysis.uncertain_count,
+        "internal_mode_count": analysis.internal_dimension,
+        "rigid_rank": analysis.rigid_rank,
+        "eigenvalues_eV_per_A2_amu": tuple(float(value) for value in eigenvalues),
+        "eigenvalue_intervals_eV_per_A2_amu": (
+            analysis.eigenvalue_intervals_eV_per_A2_amu
+        ),
+        "mode_statuses": analysis.statuses,
+        "richardson_numerical_uncertainty_eV_per_A2_amu": uncertainty,
+        "hessian_evaluation_sha256": evaluation.evaluation_sha256,
+        "hessian_numerics": hessian_numerical_diagnostics(evaluation),
+    }
+    raw_calc = getattr(calc, "raw_calculator", calc)
+    raw_calc.last_ts_validation = diagnostic
+    return diagnostic, analysis
+
 def _bfgs_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
     """BFGS update of Hessian approximation."""
     H = to_numpy_f64(H)
@@ -475,6 +523,9 @@ class PRFO(JobABC):
         # Mode tracking
         self.tracked_mode_vec_mw = None
         self.tracked_mode_idx = None
+        self.optimizer_converged = False
+        self.workflow_success = False
+        self.mode_analysis = None
     
     def atoms_to_xyz(self, atoms: Atoms) -> str:
         """Convert Atoms object to XYZ format string."""
@@ -844,21 +895,116 @@ class PRFO(JobABC):
                     # Check convergence
                     if self.check_convergence(atoms):
                         converged = True
+                        self.optimizer_converged = True
+                        if _is_pure_frozen_total_pes(atoms):
+                            # Preserve the converged geometry even if the
+                            # scientific Hessian postcondition rejects it.
+                            write_xyz(
+                                ts_file,
+                                atoms,
+                                energy=E_new,
+                                iteration=iteration + 1,
+                            )
+                            try:
+                                diagnostic, self.mode_analysis = (
+                                    _pure_frozen_ts_postcondition(atoms)
+                                )
+                            except Exception as exc:
+                                raw_calc = getattr(atoms.calc, "raw_calculator", atoms.calc)
+                                raw_calc.last_ts_validation = {
+                                    "optimizer_converged": True,
+                                    "index_one_resolved": False,
+                                    "workflow_success": False,
+                                    "postcondition_error": str(exc),
+                                }
+                                log_info(
+                                    [
+                                        "\nTS scientific postcondition failed: ",
+                                        f"{exc}\n",
+                                        f'{"Abnormal Termination".center(70)}\n\n',
+                                    ],
+                                    self.output,
+                                )
+                                raise RuntimeError(
+                                    "PRFO optimizer converged, but the pure frozen "
+                                    "TS Hessian postcondition could not be evaluated."
+                                ) from exc
+                            self.workflow_success = bool(
+                                diagnostic["workflow_success"]
+                            )
+                            from maple.solvation.derivatives.molecular_modes import (
+                                hessian_numerical_summary,
+                            )
+
+                            log_info(
+                                [hessian_numerical_summary(
+                                    atoms.calc.get_hessian_evaluation(atoms)
+                                ) + "\n"],
+                                self.output,
+                            )
+                            log_info(
+                                [
+                                    "\nPure frozen TS final-mode validation\n",
+                                    "  optimizer_converged: true\n",
+                                    "  index_one_resolved: "
+                                    f"{str(diagnostic['index_one_resolved']).lower()}\n",
+                                    "  resolved_negative_count: "
+                                    f"{diagnostic['resolved_negative_count']}\n",
+                                    "  resolved_positive_count: "
+                                    f"{diagnostic['resolved_positive_count']}\n",
+                                    "  uncertain_count: "
+                                    f"{diagnostic['uncertain_count']}\n",
+                                    "  Richardson-derived numerical uncertainty: "
+                                    f"{diagnostic['richardson_numerical_uncertainty_eV_per_A2_amu']:.8e} "
+                                    "eV/A^2/amu\n",
+                                ],
+                                self.output,
+                            )
+                            if not self.workflow_success:
+                                log_info(
+                                    [
+                                        "TS scientific postcondition failed: exactly "
+                                        "one resolved-negative internal mode and all "
+                                        "other internal modes resolved-positive are "
+                                        "required.\n",
+                                        f'{"Abnormal Termination".center(70)}\n\n',
+                                    ],
+                                    self.output,
+                                )
+                                raise RuntimeError(
+                                    "PRFO optimizer converged, but the final pure "
+                                    "frozen Hessian is not a resolved index-one saddle."
+                                )
+                        else:
+                            self.workflow_success = True
+
                         info_message = [
                             '\n\n' + '-' * 70 + '\n',
                             f'{"Normal Termination".center(70)}\n\n'
                         ]
                         log_info(info_message, self.output)
-                        
-                        # Write final TS structure
-                        write_xyz(ts_file, atoms, energy=E_new,
-                                iteration=iteration + 1)
-                        
+                        if not _is_pure_frozen_total_pes(atoms):
+                            # Preserve the legacy ordering: success is logged
+                            # before its final structure is written.
+                            write_xyz(
+                                ts_file,
+                                atoms,
+                                energy=E_new,
+                                iteration=iteration + 1,
+                            )
                         return atoms
             
             iteration += 1
         
         # Maximum iterations reached
+        if _is_pure_frozen_total_pes(atoms):
+            raw_calc = getattr(atoms.calc, "raw_calculator", atoms.calc)
+            raw_calc.last_ts_validation = {
+                "optimizer_converged": False,
+                "index_one_resolved": False,
+                "workflow_success": False,
+                "reason": "maximum_iterations_reached",
+            }
         log_info([f'\n\n{"Maximum Iterations Reached".center(70)}\n\n'],
                 self.output)
         
@@ -870,5 +1016,12 @@ class PRFO(JobABC):
             f"\nWrote trajectory to: {traj_file}\n",
             f"Wrote final TS structure to: {ts_file}\n"
         ], self.output)
-        
+
+        if _is_pure_frozen_total_pes(atoms):
+            raise RuntimeError(
+                "Pure frozen PRFO reached the maximum iteration limit; "
+                "optimizer convergence and the index-one TS postcondition "
+                "were not established."
+            )
+
         return atoms

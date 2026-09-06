@@ -1,0 +1,88 @@
+Parsing # commands...
+Global parameter: model = macepolm
+Global parameter: device = cpu
+Global parameter: level = extratight
+Task set to 'freq'
+Global nested parameter: solv = {'method': 'smd', 'provider': 'pyddx', 'profile': 'pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1', 'implicit': 'water', 'response': 'frozen', 'experimental': True}
+Starting frequency analysis calculation, Number of atoms: 3------------------------------------------------------------
+VIBRATIONAL FREQUENCIES
+------------------------------------------------------------
+
+Scaling factor for frequencies = 1.000000000 (already applied!)
+
+     0:     1598.37 cm**-1
+     1:     3795.44 cm**-1
+     2:     3889.83 cm**-1
+
+
+
+------------------------------------------------------------
+THERMOCHEMISTRY AT 298.15K
+------------------------------------------------------------
+
+Temperature         ...   298.15 K
+Pressure            ...   1.00 atm
+Total Mass          ...   18.02 AMU
+
+------------------------------------------------------------
+INNER ENERGY
+------------------------------------------------------------
+
+Zero point energy                ...        13.27 kcal/mol
+Thermal vibrational correction   ...         0.00 kcal/mol
+Thermal rotational correction    ...         0.89 kcal/mol
+Thermal translational correction ...         1.48 kcal/mol
+------------------------------------------------------------
+Total thermal correction         ...        15.64 kcal/mol
+
+------------------------------------------------------------
+ENTROPY
+------------------------------------------------------------
+
+Translational entropy            ...     0.034609 kcal/(mol*K)
+Rotational entropy               ...     0.011860 kcal/(mol*K)
+Vibrational entropy              ...     0.000008 kcal/(mol*K)
+------------------------------------------------------------
+Total entropy                    ...     0.046477 kcal/(mol*K)
+
+------------------------------------------------------------
+GIBBS FREE ENERGY
+------------------------------------------------------------
+
+Total enthalpy correction        ...        15.64 kcal/mol
+Total entropy correction         ...        -0.01 kcal/mol
+------------------------------------------------------------
+Final Gibbs free energy corr.    ...         1.79 kcal/mol
+
+
+------------------------------------------------------------
+NORMAL MODES
+------------------------------------------------------------
+
+These modes are the Cartesian displacements weighted by the diagonal matrix
+M(i,i)=1/sqrt(m[i]) where m[i] is the mass of the displaced atom
+Thus, these vectors are normalized but *not* orthogonal
+
+                 0              1              2    
+     0      -0.040216      -0.028879      -0.054689  
+     1      -0.054664      -0.039429       0.040139  
+     2      -0.000548      -0.000395       0.000434  
+     3      -0.012378       0.689181       0.678795  
+     4       0.677703      -0.026239       0.012710  
+     5       0.006986      -0.000533      -0.000127  
+     6       0.650694      -0.230805       0.189234  
+     7       0.189925       0.652052      -0.649798  
+     8       0.001709       0.006805      -0.006766  
+
+
+======================================================================
+PURE FROZEN SOLUTION-PES MODE DIAGNOSTICS
+======================================================================
+Hessian evaluation SHA256: 4b7c6358f8c24d5e22e1b27f8b0a3b66cc054e4d3f3c1fdfe8fecbd3d91f17cc
+Stencil h/h2: 0.004/0.002 A; maximum Richardson: 4.64264408e-03 eV/A^2; raw antisymmetry: 2.44712560e-05 eV/A^2
+Topology coverage: partial; changed samples: 22; maximum endpoint work discrepancy: 5.11060103e-04 eV/A
+Rigid rank: 6; internal modes: 3
+Richardson-derived numerical uncertainty estimate: 4.80815978e-03 eV/A^2/amu
+Mode statuses: positive, positive, positive
+WARNING: These are curvature diagnostics for the frozen-source solution PES. The inherited ideal-gas RRHO translational, rotational, and standard-state terms do not constitute a full solution free energy.
+Frequency analysis completedOutput file: .omx/pure-workflows/water-final-1/freq.out

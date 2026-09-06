@@ -1,5 +1,21 @@
 # Route 2 conservative-vNext user guide
 
+## Pure frozen-source experimental task interface
+
+The exact pure point-l1 ddPCM/SMD scalar now has a separate, explicitly
+experimental MAPLE task profile:
+`pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1`.
+It supports SP, LBFGS/RFO OPT, MW FREQ, and P-RFO TS on CPU with the existing
+neutral-singlet domain. It does not route through the legacy SCF correction.
+Its bounded numerical-noise policy records topology changes rather than
+rejecting their hashes alone; energy-work, Richardson, and raw-antisymmetry
+checks remain enforced. A P-RFO result must also pass a resolved index-one
+internal-Hessian check before normal termination.
+
+See [input syntax, numerical policy, and scientific boundaries](PURE_MACE_POLAR_WORKFLOWS.md).
+This experimental task availability is distinct from the scientific/release
+admission tiers described below; the historical tier flags are not promoted.
+
 ## Current public status
 
 There is one narrowly admitted **experimental programmatic** Route-2 profile:

@@ -1,0 +1,165 @@
+Parsing # commands...
+Global parameter: model = macepolm
+Global parameter: device = cpu
+Global parameter: level = extratight
+Task set to 'opt'
+Global nested parameter: solv = {'method': 'smd', 'provider': 'pyddx', 'profile': 'pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1', 'implicit': 'water', 'response': 'frozen', 'experimental': True}
+
+======================================================================
+LBFGS Parameters
+======================================================================
+memory:     5
+curvature:  70.0
+max_step:   0.1
+max_iter:   128
+verbose:    1
+======================================================================
+
+
+----------------------------------------------------------------------
+                             Iteration: 1                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001              -0.0183
+1    H                0.9945              -0.0000               0.0867
+2    H               -0.5045               0.8657               0.0867
+3    H               -0.5047              -0.8653               0.0867
+
+
+Energy:                  -56.549538 Convergence criteria  Is converged 
+Maximum Force:             0.019700     0.000300  No
+RMS Force:                 0.007726     0.000200  No
+Maximum Displacement:      0.000280     0.000300  Yes
+RMS Displacement:          0.000111     0.000200  Yes
+
+----------------------------------------------------------------------
+                             Iteration: 2                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001              -0.1183
+1    H                0.9590              -0.0000               0.1200
+2    H               -0.4867               0.8349               0.1200
+3    H               -0.4869              -0.8345               0.1200
+
+
+Energy:                  -56.553151 Convergence criteria  Is converged 
+Maximum Force:             0.042694     0.000300  No
+RMS Force:                 0.017118     0.000200  No
+Maximum Displacement:      0.100000     0.000300  No
+RMS Displacement:          0.037772     0.000200  No
+
+----------------------------------------------------------------------
+                             Iteration: 3                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001              -0.2183
+1    H                0.9244              -0.0000               0.1534
+2    H               -0.4694               0.8050               0.1534
+3    H               -0.4697              -0.8046               0.1533
+
+
+Energy:                  -56.555805 Convergence criteria  Is converged 
+Maximum Force:             0.019646     0.000300  No
+RMS Force:                 0.011665     0.000200  No
+Maximum Displacement:      0.100000     0.000300  No
+RMS Displacement:          0.037552     0.000200  No
+
+----------------------------------------------------------------------
+                             Iteration: 4                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0002              -0.2388
+1    H                0.9390              -0.0000               0.1602
+2    H               -0.4767               0.8176               0.1601
+3    H               -0.4769              -0.8172               0.1601
+
+
+Energy:                  -56.555847 Convergence criteria  Is converged 
+Maximum Force:             0.022260     0.000300  No
+RMS Force:                 0.010399     0.000200  No
+Maximum Displacement:      0.020459     0.000300  No
+RMS Displacement:          0.009982     0.000200  No
+
+----------------------------------------------------------------------
+                             Iteration: 5                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001              -0.2160
+1    H                0.9392              -0.0000               0.1526
+2    H               -0.4768               0.8178               0.1526
+3    H               -0.4771              -0.8174               0.1525
+
+
+Energy:                  -56.556147 Convergence criteria  Is converged 
+Maximum Force:             0.002216     0.000300  No
+RMS Force:                 0.001230     0.000200  No
+Maximum Displacement:      0.022718     0.000300  No
+RMS Displacement:          0.007574     0.000200  No
+
+----------------------------------------------------------------------
+                             Iteration: 6                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001              -0.2258
+1    H                0.9322              -0.0000               0.1559
+2    H               -0.4733               0.8117               0.1559
+3    H               -0.4735              -0.8113               0.1558
+
+
+Energy:                  -56.556158 Convergence criteria  Is converged 
+Maximum Force:             0.002586     0.000300  No
+RMS Force:                 0.001313     0.000200  No
+Maximum Displacement:      0.009782     0.000300  No
+RMS Displacement:          0.004809     0.000200  No
+
+----------------------------------------------------------------------
+                             Iteration: 7                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0002              -0.2228
+1    H                0.9351              -0.0000               0.1549
+2    H               -0.4748               0.8142               0.1549
+3    H               -0.4750              -0.8138               0.1548
+
+
+Energy:                  -56.556168 Convergence criteria  Is converged 
+Maximum Force:             0.000029     0.000300  Yes
+RMS Force:                 0.000016     0.000200  Yes
+Maximum Displacement:      0.003005     0.000300  No
+RMS Displacement:          0.001771     0.000200  No
+
+----------------------------------------------------------------------
+                             Iteration: 8                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    N               -0.0049               0.0001              -0.2228
+1    H                0.9351              -0.0000               0.1549
+2    H               -0.4748               0.8142               0.1549
+3    H               -0.4750              -0.8138               0.1548
+
+
+Energy:                  -56.556168 Convergence criteria  Is converged 
+Maximum Force:             0.000081     0.000300  Yes
+RMS Force:                 0.000038     0.000200  Yes
+Maximum Displacement:      0.000028     0.000300  Yes
+RMS Displacement:          0.000015     0.000200  Yes
+
+LBFGS converged at iteration 8.
+Final frame written to .omx/pure-workflows/ammonia-ts-1/endpoint-plus_opt.xyz
+Optimization trajectory written to .omx/pure-workflows/ammonia-ts-1/endpoint-plus_opt_traj.xyz

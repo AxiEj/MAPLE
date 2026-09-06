@@ -17,6 +17,9 @@ from maple.solvation.api.profiles import (
     MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX40_EVALUATOR_ID,
     MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID,
 )
+from maple.solvation.api.scalar_registry import (
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+)
 
 from .route2_energy_ledger import (
     LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
@@ -58,6 +61,9 @@ DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE = (
 )
 DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE = (
     "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2"
+)
+PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE = (
+    "pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1"
 )
 DDCOSMO_MULTISOLVENT_SMD_PROFILE = (
     "smd-ddcosmo-l15-n1202-multisolv-v1"
@@ -149,6 +155,16 @@ class Route2SMDProfileSpec:
     ddpcm_n_proc: int = 1
     default_eligible: bool = False
     force_release_eligible: bool = False
+    execution_route: Literal[
+        "legacy-additive-correction",
+        "pure-frozen-total-pes",
+    ] = "legacy-additive-correction"
+    scalar_contract_id: str | None = None
+    allowed_response_modes: tuple[Literal["frozen", "scf"], ...] = (
+        "frozen",
+        "scf",
+    )
+    experimental_task_allowlist: tuple[str, ...] = ("sp",)
     pcmsolver_cavity_generation: Literal[
         "legacy-builtin-solvent-probe-v1",
         "intrinsic-probe0-noaddsph-v1",
@@ -178,6 +194,32 @@ class Route2SMDProfileSpec:
             raise ValueError("Route-2 model-field evaluator must be non-empty.")
         if not str(self.electronic_energy_semantics).strip():
             raise ValueError("Route-2 electronic energy semantics must be non-empty.")
+        if self.execution_route not in {
+            "legacy-additive-correction",
+            "pure-frozen-total-pes",
+        }:
+            raise ValueError("Unsupported Route-2 execution route.")
+        if not self.allowed_response_modes or any(
+            mode not in {"frozen", "scf"} for mode in self.allowed_response_modes
+        ):
+            raise ValueError("Route-2 allowed response modes are invalid.")
+        if not self.experimental_task_allowlist or any(
+            task not in {"sp", "opt", "freq", "ts"}
+            for task in self.experimental_task_allowlist
+        ):
+            raise ValueError("Route-2 experimental task allowlist is invalid.")
+        if self.execution_route == "pure-frozen-total-pes" and (
+            self.provider != "pyddx"
+            or self.electrostatics_model != "ddpcm"
+            or self.nonpolar_model != "pyscf-smd-cds"
+            or self.scalar_contract_id
+            != EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+            or self.allowed_response_modes != ("frozen",)
+        ):
+            raise ValueError(
+                "The pure frozen total-PES route requires the registered point-l1 "
+                "ddPCM/PySCF-SMD scalar and response=frozen."
+            )
         if self.mace_geometry_frame_policy not in {
             "laboratory-v1",
             "jgp94-d2-canonical-v1",
@@ -399,6 +441,34 @@ _PROFILE_SPECS = {
         coulomb_radii_policy="pyscf-smd-2.13.1",
         supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
         electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    ),
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE: Route2SMDProfileSpec(
+        name=PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE,
+        provider="pyddx",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="pyscf-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+        execution_route="pure-frozen-total-pes",
+        scalar_contract_id=(
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+        ),
+        allowed_response_modes=("frozen",),
+        experimental_task_allowlist=("sp", "opt", "freq", "ts"),
+        electronic_profile_binding=(
+            "official-mace-polar-1-m/float64/cpu/zero-field-radial-gto-source/v1"
+        ),
+        electronic_energy_semantics=(
+            "zero-field-vacuum-energy-plus-frozen-source-ddpcm-plus-"
+            "pyscf-smd-cds-v1"
+        ),
     ),
     DDCOSMO_MULTISOLVENT_SMD_PROFILE: Route2SMDProfileSpec(
         name=DDCOSMO_MULTISOLVENT_SMD_PROFILE,
@@ -630,6 +700,11 @@ def validate_route2_smd_response_mode(
     normalized = str(response).strip().lower()
     if normalized not in SUPPORTED_ROUTE2_SMD_RESPONSE_MODES:
         raise ValueError("SMD response must be frozen or scf.")
+    if normalized not in profile_spec.allowed_response_modes:
+        allowed = ", ".join(profile_spec.allowed_response_modes)
+        raise ValueError(
+            f"Route 2 profile={profile_spec.name} requires response in: {allowed}."
+        )
     if (
         profile_spec.provider == "pyddx"
         and normalized == "frozen"
@@ -684,6 +759,7 @@ __all__ = [
     "PCMSOLVER_INTRINSIC_CAVITY_PROFILE",
     "PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE",
     "PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE",
+    "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE",
     "SUPPORTED_DDPCM_SMD_PROFILES",
     "SUPPORTED_FC_ASWIG_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",

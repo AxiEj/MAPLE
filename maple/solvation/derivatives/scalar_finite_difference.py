@@ -22,6 +22,7 @@ RICHARDSON_HVP_CONTRACT = "scalar-force-central-richardson-hvp-v2"
 RICHARDSON_HESSIAN_CONTRACT = "scalar-force-central-richardson-hessian-v2"
 REQUIRE_COMPLETE_TOPOLOGY_OBSERVATION_V1 = "require-complete-topology-observation-v1"
 OBSERVED_COMPONENTS_ONLY_EXPERIMENTAL_V1 = "observed-components-only-experimental-v1"
+BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1 = "bounded-topology-noise-experimental-v1"
 TOPOLOGY_OBSERVATION_COVERAGES = ("complete", "partial", "unobservable")
 _TOPOLOGY_GUARD_POLICIES = (
     REQUIRE_COMPLETE_TOPOLOGY_OBSERVATION_V1,
@@ -91,16 +92,23 @@ def normalize_topology_observation(
     return str(coverage), normalized
 
 
-def _topology_guard_policy(value: object) -> str:
-    if value not in _TOPOLOGY_GUARD_POLICIES:
-        raise ValueError(
-            "topology_guard_policy must be one of " f"{_TOPOLOGY_GUARD_POLICIES}."
-        )
+def _topology_guard_policy(
+    value: object,
+    *,
+    allow_bounded_noise: bool = False,
+) -> str:
+    policies = _TOPOLOGY_GUARD_POLICIES
+    if allow_bounded_noise:
+        policies += (BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1,)
+    if value not in policies:
+        raise ValueError("topology_guard_policy must be one of " f"{policies}.")
     return str(value)
 
 
 def _topology_guard_status(coverage: str, policy: str) -> str:
-    _topology_guard_policy(policy)
+    _topology_guard_policy(policy, allow_bounded_noise=True)
+    if policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
+        return "bounded-topology-noise-experimental"
     if coverage == "complete":
         return "complete"
     if policy == REQUIRE_COMPLETE_TOPOLOGY_OBSERVATION_V1:
@@ -118,6 +126,7 @@ def _validate_topology_stencil_sample(
     sample: "ScalarEnergySample",
     *,
     derivative_name: str,
+    reject_topology_change: bool = True,
 ) -> None:
     if (
         sample.topology_observation_coverage != center.topology_observation_coverage
@@ -128,7 +137,7 @@ def _validate_topology_stencil_sample(
             "finite-difference topology observation metadata drifted during "
             f"{derivative_name} evaluation."
         )
-    if sample.topology_id != center.topology_id:
+    if reject_topology_change and sample.topology_id != center.topology_id:
         raise FiniteDifferenceTopologyChangeError(
             "finite-difference displacement changed the continuum topology "
             f"observable projection; {derivative_name} fails closed for observed "
@@ -721,7 +730,12 @@ class RichardsonScalarForce:
 
 @dataclass(frozen=True, slots=True)
 class RichardsonScalarHVPEvaluation:
-    """One fourth-order Hessian-vector product from conservative forces."""
+    """One fourth-order Hessian-vector product from conservative forces.
+
+    Bounded-noise diagnostics use the same ``(+h, -h, +h/2, -h/2)`` order as
+    ``displaced_force_sha256`` and are included in ``evaluation_sha256``.
+    Legacy policies leave those tuples empty and retain their historical hash.
+    """
 
     contract_id: str
     provider_configuration_sha256: str
@@ -737,6 +751,9 @@ class RichardsonScalarHVPEvaluation:
     hvp_eV_per_A2: np.ndarray
     error_estimates_eV_per_A2: np.ndarray
     displaced_force_sha256: tuple[str, str, str, str]
+    displaced_topology_ids: tuple[str, ...] = ()
+    displaced_topology_changed: tuple[bool, ...] = ()
+    energy_force_discrepancies_eV_per_A: tuple[float, ...] = ()
     evaluation_sha256: str = ""
 
     def __post_init__(self) -> None:
@@ -764,7 +781,8 @@ class RichardsonScalarHVPEvaluation:
             "partial": "partial-experimental",
             "unobservable": "unobservable-experimental",
         }[coverage]
-        if self.topology_guard_status != expected_status:
+        bounded_status = "bounded-topology-noise-experimental"
+        if self.topology_guard_status not in (expected_status, bounded_status):
             raise ValueError("topology_guard_status is inconsistent with HVP coverage.")
         reductions = self.topology_step_reductions_used
         if type(reductions) is not int or reductions < 0:
@@ -792,6 +810,41 @@ class RichardsonScalarHVPEvaluation:
             raise ValueError("A Richardson HVP requires four displaced forces.")
         for index, digest in enumerate(state_ids):
             _digest(digest, name=f"displaced_force_sha256[{index}]")
+        topology_ids = tuple(self.displaced_topology_ids)
+        topology_changed = tuple(self.displaced_topology_changed)
+        discrepancies = tuple(
+            float(value) for value in self.energy_force_discrepancies_eV_per_A
+        )
+        bounded_diagnostics = bool(topology_ids or topology_changed or discrepancies)
+        if bounded_diagnostics:
+            if self.topology_guard_status != bounded_status:
+                raise ValueError(
+                    "bounded topology diagnostics require the bounded-noise status."
+                )
+            if not (
+                len(topology_ids)
+                == len(topology_changed)
+                == len(discrepancies)
+                == len(state_ids)
+            ):
+                raise ValueError(
+                    "bounded topology diagnostics must cover every displaced force."
+                )
+            if any(not isinstance(value, str) or not value for value in topology_ids):
+                raise ValueError("displaced topology IDs must be non-empty strings.")
+            if any(type(value) is not bool for value in topology_changed):
+                raise ValueError("displaced topology change flags must be booleans.")
+            central_topology = self.central_sample.energy_sample.topology_id
+            if topology_changed != tuple(
+                value != central_topology for value in topology_ids
+            ):
+                raise ValueError("displaced topology change flags are inconsistent.")
+            if any(not np.isfinite(value) or value < 0.0 for value in discrepancies):
+                raise ValueError(
+                    "energy-force discrepancies must be finite and non-negative."
+                )
+        elif self.topology_guard_status == bounded_status:
+            raise ValueError("bounded-noise HVP requires displaced diagnostics.")
         direction_copy = np.frombuffer(
             np.ascontiguousarray(direction, dtype=np.float64).tobytes(),
             dtype=np.float64,
@@ -818,6 +871,14 @@ class RichardsonScalarHVPEvaluation:
             "error_estimates_eV_per_A2": errors_copy.tolist(),
             "displaced_force_sha256": list(state_ids),
         }
+        if bounded_diagnostics:
+            payload.update(
+                {
+                    "displaced_topology_ids": list(topology_ids),
+                    "displaced_topology_changed": list(topology_changed),
+                    "energy_force_discrepancies_eV_per_A": list(discrepancies),
+                }
+            )
         expected = _canonical_sha256(payload)
         if self.evaluation_sha256 and self.evaluation_sha256 != expected:
             raise ValueError("evaluation_sha256 does not match HVP content.")
@@ -830,6 +891,9 @@ class RichardsonScalarHVPEvaluation:
         object.__setattr__(self, "hvp_eV_per_A2", hvp_copy)
         object.__setattr__(self, "error_estimates_eV_per_A2", errors_copy)
         object.__setattr__(self, "displaced_force_sha256", state_ids)
+        object.__setattr__(self, "displaced_topology_ids", topology_ids)
+        object.__setattr__(self, "displaced_topology_changed", topology_changed)
+        object.__setattr__(self, "energy_force_discrepancies_eV_per_A", discrepancies)
         object.__setattr__(self, "evaluation_sha256", expected)
 
     @property
@@ -839,7 +903,11 @@ class RichardsonScalarHVPEvaluation:
 
 @dataclass(frozen=True, slots=True)
 class RichardsonScalarHessianEvaluation:
-    """Full symmetric Cartesian Hessian with numerical diagnostics."""
+    """Full symmetric Cartesian Hessian with numerical diagnostics.
+
+    Bounded-noise displaced diagnostics are concatenated column by column;
+    each column uses ``(+h, -h, +h/2, -h/2)`` stencil order.
+    """
 
     contract_id: str
     provider_configuration_sha256: str
@@ -856,6 +924,9 @@ class RichardsonScalarHessianEvaluation:
     error_estimates_eV_per_A2: np.ndarray
     displaced_force_sha256: tuple[str, ...]
     maximum_antisymmetry_eV_per_A2: float
+    displaced_topology_ids: tuple[str, ...] = ()
+    displaced_topology_changed: tuple[bool, ...] = ()
+    energy_force_discrepancies_eV_per_A: tuple[float, ...] = ()
     evaluation_sha256: str = ""
 
     def __post_init__(self) -> None:
@@ -883,7 +954,8 @@ class RichardsonScalarHessianEvaluation:
             "partial": "partial-experimental",
             "unobservable": "unobservable-experimental",
         }[coverage]
-        if self.topology_guard_status != expected_status:
+        bounded_status = "bounded-topology-noise-experimental"
+        if self.topology_guard_status not in (expected_status, bounded_status):
             raise ValueError(
                 "topology_guard_status is inconsistent with Hessian coverage."
             )
@@ -922,6 +994,41 @@ class RichardsonScalarHessianEvaluation:
             raise ValueError("Every Hessian column requires four displaced forces.")
         for index, digest in enumerate(state_ids):
             _digest(digest, name=f"displaced_force_sha256[{index}]")
+        topology_ids = tuple(self.displaced_topology_ids)
+        topology_changed = tuple(self.displaced_topology_changed)
+        discrepancies = tuple(
+            float(value) for value in self.energy_force_discrepancies_eV_per_A
+        )
+        bounded_diagnostics = bool(topology_ids or topology_changed or discrepancies)
+        if bounded_diagnostics:
+            if self.topology_guard_status != bounded_status:
+                raise ValueError(
+                    "bounded topology diagnostics require the bounded-noise status."
+                )
+            if not (
+                len(topology_ids)
+                == len(topology_changed)
+                == len(discrepancies)
+                == len(state_ids)
+            ):
+                raise ValueError(
+                    "bounded topology diagnostics must cover every Hessian stencil."
+                )
+            if any(not isinstance(value, str) or not value for value in topology_ids):
+                raise ValueError("displaced topology IDs must be non-empty strings.")
+            if any(type(value) is not bool for value in topology_changed):
+                raise ValueError("displaced topology change flags must be booleans.")
+            central_topology = self.central_sample.energy_sample.topology_id
+            if topology_changed != tuple(
+                value != central_topology for value in topology_ids
+            ):
+                raise ValueError("displaced topology change flags are inconsistent.")
+            if any(not np.isfinite(value) or value < 0.0 for value in discrepancies):
+                raise ValueError(
+                    "energy-force discrepancies must be finite and non-negative."
+                )
+        elif self.topology_guard_status == bounded_status:
+            raise ValueError("bounded-noise Hessian requires displaced diagnostics.")
         raw_copy = np.frombuffer(
             np.ascontiguousarray(raw, dtype=np.float64).tobytes(), dtype=np.float64
         ).reshape(raw.shape)
@@ -949,6 +1056,14 @@ class RichardsonScalarHessianEvaluation:
             "maximum_antisymmetry_eV_per_A2": antisymmetry,
             "displaced_force_sha256": list(state_ids),
         }
+        if bounded_diagnostics:
+            payload.update(
+                {
+                    "displaced_topology_ids": list(topology_ids),
+                    "displaced_topology_changed": list(topology_changed),
+                    "energy_force_discrepancies_eV_per_A": list(discrepancies),
+                }
+            )
         expected = _canonical_sha256(payload)
         if self.evaluation_sha256 and self.evaluation_sha256 != expected:
             raise ValueError("evaluation_sha256 does not match Hessian content.")
@@ -961,6 +1076,9 @@ class RichardsonScalarHessianEvaluation:
         object.__setattr__(self, "hessian_eV_per_A2", symmetric_copy)
         object.__setattr__(self, "error_estimates_eV_per_A2", errors_copy)
         object.__setattr__(self, "displaced_force_sha256", state_ids)
+        object.__setattr__(self, "displaced_topology_ids", topology_ids)
+        object.__setattr__(self, "displaced_topology_changed", topology_changed)
+        object.__setattr__(self, "energy_force_discrepancies_eV_per_A", discrepancies)
         object.__setattr__(self, "maximum_antisymmetry_eV_per_A2", antisymmetry)
         object.__setattr__(self, "evaluation_sha256", expected)
 
@@ -978,6 +1096,7 @@ class RichardsonScalarHessian:
     maximum_antisymmetry_eV_per_A2: float = 5.0e-3
     maximum_topology_step_reductions: int = 0
     topology_guard_policy: str = REQUIRE_COMPLETE_TOPOLOGY_OBSERVATION_V1
+    maximum_energy_force_discrepancy_eV_per_A: float | None = None
 
     def __post_init__(self) -> None:
         coarse = float(self.coarse_step_angstrom)
@@ -996,19 +1115,42 @@ class RichardsonScalarHessian:
             raise ValueError(
                 "maximum_topology_step_reductions must be an integer in [0,20]."
             )
-        policy = _topology_guard_policy(self.topology_guard_policy)
+        policy = _topology_guard_policy(
+            self.topology_guard_policy,
+            allow_bounded_noise=True,
+        )
+        discrepancy = self.maximum_energy_force_discrepancy_eV_per_A
+        if policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
+            if discrepancy is None:
+                discrepancy = 3.0e-3
+            discrepancy = float(discrepancy)
+            if not np.isfinite(discrepancy) or discrepancy <= 0.0:
+                raise ValueError(
+                    "maximum_energy_force_discrepancy_eV_per_A must be positive "
+                    "and finite."
+                )
+        elif discrepancy is not None:
+            raise ValueError(
+                "maximum_energy_force_discrepancy_eV_per_A is only valid with "
+                f"{BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1}."
+            )
         object.__setattr__(self, "coarse_step_angstrom", coarse)
         object.__setattr__(self, "maximum_error_eV_per_A2", error)
         object.__setattr__(self, "maximum_antisymmetry_eV_per_A2", antisymmetry)
         object.__setattr__(self, "maximum_topology_step_reductions", reductions)
         object.__setattr__(self, "topology_guard_policy", policy)
+        object.__setattr__(
+            self,
+            "maximum_energy_force_discrepancy_eV_per_A",
+            discrepancy,
+        )
 
     @property
     def fine_step_angstrom(self) -> float:
         return 0.5 * self.coarse_step_angstrom
 
     def policy_payload(self) -> dict[str, object]:
-        return {
+        payload = {
             "contract": "scalar-richardson-hessian-derivative-policy-v1",
             "requested_coarse_step_angstrom": self.coarse_step_angstrom,
             "maximum_error_eV_per_A2": self.maximum_error_eV_per_A2,
@@ -1016,6 +1158,11 @@ class RichardsonScalarHessian:
             "maximum_topology_step_reductions": (self.maximum_topology_step_reductions),
             "topology_guard_policy": self.topology_guard_policy,
         }
+        if self.topology_guard_policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
+            payload["maximum_energy_force_discrepancy_eV_per_A"] = (
+                self.maximum_energy_force_discrepancy_eV_per_A
+            )
+        return payload
 
     def policy_sha256(self) -> str:
         return _canonical_sha256(self.policy_payload())
@@ -1041,23 +1188,71 @@ class RichardsonScalarHessian:
         direction_norm = float(np.linalg.norm(vector))
         stencil_direction = vector / direction_norm
         fine_step_angstrom = 0.5 * coarse_step_angstrom
+        bounded_noise = (
+            self.topology_guard_policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1
+        )
         samples = []
-        for delta in (
+        deltas = (
             coarse_step_angstrom,
             -coarse_step_angstrom,
             fine_step_angstrom,
             -fine_step_angstrom,
-        ):
-            sample = provider.force_sample(
-                _directionally_displaced(geometry, stencil_direction, delta)
-            )
-            _validate_topology_stencil_sample(
-                center.energy_sample,
-                sample.energy_sample,
-                derivative_name="Hessian",
-            )
-            samples.append(sample)
+        )
+        try:
+            for delta in deltas:
+                sample = provider.force_sample(
+                    _directionally_displaced(geometry, stencil_direction, delta)
+                )
+                _validate_topology_stencil_sample(
+                    center.energy_sample,
+                    sample.energy_sample,
+                    derivative_name="Hessian",
+                    reject_topology_change=not bounded_noise,
+                )
+                samples.append(sample)
+        except BaseException:
+            # Providers commonly cache their most recent geometry.  A rejected
+            # stencil must not leave that cache silently pointing at a displacement.
+            if bounded_noise:
+                provider.force_sample(geometry)
+            raise
         plus_coarse, minus_coarse, plus_fine, minus_fine = samples
+        discrepancies: tuple[float, ...] = ()
+        topology_ids: tuple[str, ...] = ()
+        topology_changed: tuple[bool, ...] = ()
+        if bounded_noise:
+            center_energy = center.energy_sample.energy_eV
+            center_force_along_direction = float(
+                np.sum(center.forces_eV_per_A * stencil_direction)
+            )
+            discrepancies = tuple(
+                abs(
+                    sample.energy_sample.energy_eV
+                    - center_energy
+                    + 0.5
+                    * delta
+                    * (
+                        center_force_along_direction
+                        + float(np.sum(sample.forces_eV_per_A * stencil_direction))
+                    )
+                )
+                / abs(delta)
+                for delta, sample in zip(deltas, samples)
+            )
+            maximum_discrepancy = max(discrepancies)
+            assert self.maximum_energy_force_discrepancy_eV_per_A is not None
+            if maximum_discrepancy > self.maximum_energy_force_discrepancy_eV_per_A:
+                provider.force_sample(geometry)
+                raise RuntimeError(
+                    "Hessian stencil energy-force discrepancy exceeds the admitted "
+                    f"bound: {maximum_discrepancy:.6e} > "
+                    f"{self.maximum_energy_force_discrepancy_eV_per_A:.6e} eV/A."
+                )
+            topology_ids = tuple(sample.energy_sample.topology_id for sample in samples)
+            topology_changed = tuple(
+                topology_id != center.energy_sample.topology_id
+                for topology_id in topology_ids
+            )
         derivative_coarse = (
             plus_coarse.forces_eV_per_A - minus_coarse.forces_eV_per_A
         ) / (2.0 * coarse_step_angstrom)
@@ -1070,11 +1265,15 @@ class RichardsonScalarHessian:
         errors = np.abs(hvp - hvp_fine)
         maximum_error = float(np.max(errors))
         if maximum_error > self.maximum_error_eV_per_A2:
+            if bounded_noise:
+                provider.force_sample(geometry)
             raise RuntimeError(
                 "Richardson HVP error estimate exceeds the admitted bound: "
                 f"{maximum_error:.6e} > {self.maximum_error_eV_per_A2:.6e} eV/A^2."
             )
         if provider.configuration_sha256() != configuration:
+            if bounded_noise:
+                provider.force_sample(geometry)
             raise RuntimeError(
                 "scalar provider configuration drifted during HVP evaluation."
             )
@@ -1099,6 +1298,9 @@ class RichardsonScalarHessian:
             displaced_force_sha256=tuple(
                 sample.evaluation_sha256 for sample in samples
             ),
+            displaced_topology_ids=topology_ids,
+            displaced_topology_changed=topology_changed,
+            energy_force_discrepancies_eV_per_A=discrepancies,
         )
 
     def evaluate_hvp(
@@ -1174,6 +1376,9 @@ class RichardsonScalarHessian:
             raw = np.empty((dimension, dimension), dtype=float)
             errors = np.empty_like(raw)
             state_ids: list[str] = []
+            topology_ids: list[str] = []
+            topology_changed: list[bool] = []
+            discrepancies: list[float] = []
             try:
                 for column in range(dimension):
                     direction = np.zeros_like(positions)
@@ -1191,11 +1396,16 @@ class RichardsonScalarHessian:
                     raw[:, column] = evaluated.hvp_eV_per_A2.reshape(-1)
                     errors[:, column] = evaluated.error_estimates_eV_per_A2.reshape(-1)
                     state_ids.extend(evaluated.displaced_force_sha256)
+                    topology_ids.extend(evaluated.displaced_topology_ids)
+                    topology_changed.extend(evaluated.displaced_topology_changed)
+                    discrepancies.extend(evaluated.energy_force_discrepancies_eV_per_A)
             except FiniteDifferenceTopologyChangeError as exc:
                 last_topology_error = exc
                 continue
             antisymmetry = float(np.max(np.abs(raw - raw.T)))
             if antisymmetry > self.maximum_antisymmetry_eV_per_A2:
+                if self.topology_guard_policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
+                    provider.force_sample(geometry)
                 raise RuntimeError(
                     "Numerical scalar Hessian antisymmetry exceeds the admitted bound: "
                     f"{antisymmetry:.6e} > "
@@ -1203,6 +1413,8 @@ class RichardsonScalarHessian:
                 )
             symmetric = 0.5 * (raw + raw.T)
             if provider.configuration_sha256() != configuration:
+                if self.topology_guard_policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
+                    provider.force_sample(geometry)
                 raise RuntimeError(
                     "scalar provider configuration drifted during Hessian evaluation."
                 )
@@ -1226,6 +1438,9 @@ class RichardsonScalarHessian:
                 error_estimates_eV_per_A2=errors,
                 displaced_force_sha256=tuple(state_ids),
                 maximum_antisymmetry_eV_per_A2=antisymmetry,
+                displaced_topology_ids=tuple(topology_ids),
+                displaced_topology_changed=tuple(topology_changed),
+                energy_force_discrepancies_eV_per_A=tuple(discrepancies),
             )
         if self.maximum_topology_step_reductions == 0:
             assert last_topology_error is not None
@@ -1238,6 +1453,7 @@ class RichardsonScalarHessian:
 
 
 __all__ = [
+    "BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1",
     "FiniteDifferenceTopologyChangeError",
     "FiniteDifferenceTopologyObservationError",
     "OBSERVED_COMPONENTS_ONLY_EXPERIMENTAL_V1",

@@ -13,6 +13,13 @@ CLI restriction.
 
 ## Conservative-vNext registry
 
+The tier columns below are scientific/release admissions, not experimental
+task availability. The distinct pure frozen-source input profile
+`pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1` exposes experimental
+SP, LBFGS/RFO OPT, MW FREQ and P-RFO TS without setting these tier flags.
+See [the workflow contract](PURE_MACE_POLAR_WORKFLOWS.md) for its exact scalar,
+practical numerical budgets and TS postcondition.
+
 | scalar/profile | E | F | H | V | M | current disposition |
 | --- | :---: | :---: | :---: | :---: | :---: | --- |
 | `route2-operational-cpcm-fixedtopology-electrostatic-v1` | no | no | no | no | no | scalar/state kernel implemented; legacy-width profile remains unadmitted |

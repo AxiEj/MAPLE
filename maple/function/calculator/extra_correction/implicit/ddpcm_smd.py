@@ -494,6 +494,11 @@ class PyDDXSMDImplicitSolvation:
             raise ValueError(
                 "The pyddx Route-2 profile must be one of: " f"{supported}."
             )
+        if self.profile_spec.execution_route != "legacy-additive-correction":
+            raise ValueError(
+                "A total-PES workflow profile cannot use the legacy pyddx "
+                "correction; construct its registered total-PES calculator."
+            )
         if not self.profile_spec.supports_solvent(self.solvent):
             raise ValueError(
                 f"Route 2 profile={self.profile} does not support "

@@ -1,0 +1,144 @@
+{
+  "schema": "maple-pure-frozen-workflow-canary-v1",
+  "purpose": "source-bound experimental workflow consistency, not new energy-accuracy or physical derivative certification",
+  "base_commit": "7c54df105f4cce1d65a3e101138c9758323ec5fd",
+  "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1",
+  "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "device": "cpu",
+  "dtype": "float64",
+  "solvent": "water",
+  "hessian_policy": {
+    "step_angstrom": 0.004,
+    "maximum_error_eV_per_A2": 0.05,
+    "maximum_antisymmetry_eV_per_A2": 0.05,
+    "maximum_energy_force_discrepancy_eV_per_A": 0.003,
+    "topology_policy": "bounded-topology-noise-experimental-v1"
+  },
+  "fixtures": {
+    "water_sp": {
+      "symbols": "OH2",
+      "positions_angstrom": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.9572,
+          0,
+          0
+        ],
+        [
+          -0.239,
+          0.9266,
+          0
+        ]
+      ]
+    },
+    "water_opt": {
+      "symbols": "OH2",
+      "positions_angstrom": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1.0,
+          0.02,
+          0
+        ],
+        [
+          -0.27,
+          0.95,
+          0.01
+        ]
+      ]
+    },
+    "ammonia_ts": {
+      "symbols": "NH3",
+      "positions_angstrom": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1.02,
+          0,
+          0
+        ],
+        [
+          -0.51,
+          0.8833459118601273,
+          0
+        ],
+        [
+          -0.51,
+          -0.8833459118601273,
+          0
+        ]
+      ]
+    }
+  },
+  "water_opt": {
+    "method": "lbfgs",
+    "max_iter": 128,
+    "max_step": 0.1,
+    "level": "extratight"
+  },
+  "freq": {
+    "method": "mw",
+    "treat_imag_as_real": false,
+    "require_resolved_minimum": true
+  },
+  "ts": {
+    "method": "prfo",
+    "max_iter": 40,
+    "recalc": 8,
+    "hessian_update": "bofill",
+    "trust_radius": 0.1,
+    "level": "extratight",
+    "initial_index_one_required": true,
+    "final_index_one_required": true
+  },
+  "endpoint_checks": {
+    "mode_step_angstrom": 0.15,
+    "method": "lbfgs",
+    "max_iter": 128,
+    "max_step": 0.1,
+    "level": "extratight",
+    "minimum_energy_drop_eV": 0.001,
+    "minimum_abs_signed_height_angstrom": 0.02,
+    "opposite_orientations_required": true
+  },
+  "sp_baseline": {
+    "energy_eV": -2080.189658306336,
+    "forces_eV_per_A": [
+      [
+        -0.19960362423381195,
+        -0.27653979048121063,
+        0.0003644271581329499
+      ],
+      [
+        0.3654025090391035,
+        -0.0739895780123511,
+        -0.00018188295703057107
+      ],
+      [
+        -0.16579888480528243,
+        0.35052936849356825,
+        -0.0001825442011023798
+      ]
+    ],
+    "energy_replay_tolerance_eV": 1e-08,
+    "force_replay_tolerance_eV_per_A": 1e-07
+  },
+  "confirmation_partition_opened": false,
+  "labels_used": false,
+  "no_threshold_increase_after_failure": true,
+  "no_automatic_model_or_fixture_substitution": true,
+  "workflow_access_is_experimental": true,
+  "global_release_admission": false
+}

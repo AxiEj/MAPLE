@@ -1115,6 +1115,81 @@ class MWFrequency(FrequencyBase):
         return freqs_sorted, modes_sorted
 
 
+class PureFrozenMWFrequency(FrequencyBase):
+    """Internal-mode analysis for the pure frozen total-PES workflow.
+
+    The calculator evaluation is always in the public ASE eV unit contract,
+    even when this job is reached through ``LegacyHartreeJobView``.  Keeping
+    the evaluation intact here avoids a second or missing eV/Hartree
+    conversion at the legacy dispatcher boundary.
+    """
+
+    _EV_PER_HARTREE = 27.211386245988
+
+    def get_hessian(self) -> np.ndarray:
+        calc = self.atoms.calc
+        from maple.function.calculator.route2 import (
+            is_pure_mace_polar_workflow_calculator,
+        )
+
+        if not is_pure_mace_polar_workflow_calculator(calc):
+            raise RuntimeError(
+                "pure frozen frequency workflow requires the registered "
+                "PureMACEPolarDDXCalculator"
+            )
+        evaluation = calc.get_hessian_evaluation(self.atoms)
+        from maple.solvation.derivatives.molecular_modes import (
+            analyze_hessian_evaluation,
+        )
+
+        self.hessian_evaluation = evaluation
+        self.mode_analysis = analyze_hessian_evaluation(self.atoms, evaluation)
+        raw_calc = getattr(calc, "raw_calculator", calc)
+        raw_calc.last_frequency_mode_analysis = self.mode_analysis
+        return evaluation.hessian_eV_per_A2
+
+    def compute_frequencies(self, hessian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        analysis = getattr(self, "mode_analysis", None)
+        if analysis is None:
+            raise RuntimeError("pure frozen Hessian evaluation was not analyzed.")
+        # Existing MWFrequency uses 2721.1383 for Ha/A^2/amu.  These
+        # eigenvalues are eV/A^2/amu from the raw immutable evaluation.
+        conversion = 2721.1383 / np.sqrt(self._EV_PER_HARTREE)
+        eigenvalues = analysis.eigenvalues_eV_per_A2_amu
+        frequencies = np.sign(eigenvalues) * np.sqrt(np.abs(eigenvalues)) * conversion
+        return frequencies, analysis.modes_cartesian
+
+    def _write_output(self, freqs, modes, thermo) -> None:
+        super()._write_output(freqs, modes, thermo)
+        analysis = self.mode_analysis
+        with open(self.output, "a", encoding="utf-8") as stream:
+            stream.write("\n" + "=" * 70 + "\n")
+            stream.write("PURE FROZEN SOLUTION-PES MODE DIAGNOSTICS\n")
+            stream.write("=" * 70 + "\n")
+            from maple.solvation.derivatives.molecular_modes import (
+                hessian_numerical_summary,
+            )
+
+            stream.write(hessian_numerical_summary(self.hessian_evaluation) + "\n")
+            stream.write(
+                f"Rigid rank: {analysis.rigid_rank}; internal modes: "
+                f"{analysis.internal_dimension}\n"
+            )
+            stream.write(
+                f"{analysis.uncertainty_label}: "
+                f"{analysis.uncertainty_eV_per_A2_amu:.8e} eV/A^2/amu\n"
+            )
+            stream.write(
+                "Mode statuses: " + ", ".join(analysis.statuses) + "\n"
+            )
+            stream.write(
+                "WARNING: These are curvature diagnostics for the frozen-source "
+                "solution PES. The inherited ideal-gas RRHO translational, "
+                "rotational, and standard-state terms do not constitute a full "
+                "solution free energy.\n"
+            )
+
+
 class NonMWFrequency(FrequencyBase):
     """
     Non-mass-weighted frequency analysis.
@@ -1278,6 +1353,22 @@ class Frequency:
         with timer("Frequency Calculation"):
             method = self.params.method.lower()
 
+            from maple.function.calculator.route2 import (
+                is_pure_mace_polar_workflow_calculator,
+            )
+
+            pure_frozen_workflow = is_pure_mace_polar_workflow_calculator(self.atoms.calc)
+            if pure_frozen_workflow:
+                if method != "mw":
+                    raise ValueError(
+                        "pure frozen total-PES FREQ requires method='mw'."
+                    )
+                if bool(self.params.treat_imag_as_real):
+                    raise ValueError(
+                        "pure frozen total-PES FREQ forbids treat_imag_as_real; "
+                        "raw mode signs and uncertainty must be preserved."
+                    )
+
             common_kwargs = dict(
                 output=self.output,
                 atoms=self.atoms,
@@ -1287,7 +1378,9 @@ class Frequency:
                 device=self.params.device
             )
 
-            if method == "both":
+            if pure_frozen_workflow:
+                job = PureFrozenMWFrequency(**common_kwargs)
+            elif method == "both":
                 job = BothFrequency(**common_kwargs)
             elif method == "nonmw":
                 job = NonMWFrequency(**common_kwargs)
@@ -1299,9 +1392,10 @@ class Frequency:
             if hasattr(self, "print_params"):
                 job._print = self.print_params
             job.run()
+            self.mode_analysis = getattr(job, "mode_analysis", None)
 
 # Public API
 __all__ = [
-    'FrequencyBase', 'MWFrequency', 'NonMWFrequency', 'BothFrequency', 'ThermoResults',
+    'FrequencyBase', 'MWFrequency', 'PureFrozenMWFrequency', 'NonMWFrequency', 'BothFrequency', 'ThermoResults',
     'FrequencyParams', 'PrintParams', 'FrequencyDriver'
 ]

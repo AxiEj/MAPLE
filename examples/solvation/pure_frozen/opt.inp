@@ -1,0 +1,10 @@
+#model=macepolm
+#device=cpu
+#level=extratight
+#solv(method=smd,provider=pyddx,profile=pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1,implicit=water,response=frozen,experimental=true)
+#opt(method=lbfgs,max_iter=128,max_step=0.1)
+
+0 1
+O 0.000000000000000 0.000000000000000 0.000000000000000
+H 1.000000000000000 0.020000000000000 0.000000000000000
+H -0.270000000000000 0.950000000000000 0.010000000000000

@@ -1,0 +1,30 @@
+Parsing # commands...
+Global parameter: model = macepolm
+Global parameter: device = cpu
+Global parameter: level = extratight
+Task set to 'sp'
+Global nested parameter: solv = {'method': 'smd', 'provider': 'pyddx', 'profile': 'pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1', 'implicit': 'water', 'response': 'frozen', 'experimental': True}
+ [EXPERIMENTAL] Route 2 pure frozen total-PES workflow.
+ [INFO] profile=pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1
+ [INFO] execution_route=pure-frozen-total-pes
+ [INFO] scalar_contract_id=route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1
+ [INFO] model=macepolm device=cpu dtype=float64 response=frozen
+ [INFO] ddPCM=l15/n1202/tol1e-12/eta0.1/nproc1; CDS=PySCF-SMD
+ [INFO] Hessian policy: Richardson h=0.004 A, component/antisymmetry=0.05 eV/A^2, work=0.003 eV/A.
+ [WARNING] Experimental task access is not physical or release certification.
+Parsing # commands...
+Global parameter: model = macepolm
+Global parameter: device = cpu
+Global parameter: level = extratight
+Task set to 'sp'
+Global nested parameter: solv = {'method': 'smd', 'provider': 'pyddx', 'profile': 'pure-macepolar-frozen-point-l1-ddpcm-smd-workflow-v1', 'implicit': 'water', 'response': 'frozen', 'experimental': True}
+
+Charge: 0, Multiplicity: 1
+Energy: -76.4455599396 Hartree
+
+Gradients (Hartree/Angstrom):
+  Gradient = -Force
+  Atom  El        Gx              Gy              Gz
+  1    O       0.00733530      0.01016265     -0.00001339
+  2    H      -0.01342829      0.00271907      0.00000668
+  3    H       0.00609300     -0.01288172      0.00000671

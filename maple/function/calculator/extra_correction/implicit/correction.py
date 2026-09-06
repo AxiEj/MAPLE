@@ -153,6 +153,14 @@ class ImplicitSolvationCorrection:
             raise ValueError(
                 "Route 2 SMD requires an explicit versioned profile."
             )
+        from maple.function.route2_smd_profiles import route2_smd_profile_spec
+
+        profile_spec = route2_smd_profile_spec(str(self.solvation_options["profile"]))
+        if profile_spec.execution_route != "legacy-additive-correction":
+            raise ValueError(
+                "A total-PES workflow profile cannot be attached as a legacy "
+                "ImplicitSolvationCorrection; use its registered calculator."
+            )
         provider_name = str(
             self.solvation_options.get("provider", "pcmsolver")
         ).lower()

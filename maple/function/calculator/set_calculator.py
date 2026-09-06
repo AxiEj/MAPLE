@@ -596,6 +596,36 @@ class SetCalculator:
         requested_name = self.model
         self._validate_solvent_config()
 
+        if self.implicit == 'smd':
+            profile_spec = route2_smd_profile_spec(
+                self.solvation_options['profile']
+            )
+            if profile_spec.execution_route == 'pure-frozen-total-pes':
+                from .route2 import PureMACEPolarDDXCalculator
+
+                calculator = PureMACEPolarDDXCalculator(
+                    atoms=self.atoms,
+                    solvent=self.solvent,
+                    device=self.device,
+                    model=requested_name,
+                    profile_spec=profile_spec,
+                )
+                self.log_info(
+                    [
+                        " [EXPERIMENTAL] Route 2 pure frozen total-PES workflow.\n",
+                        f" [INFO] profile={profile_spec.name}\n",
+                        f" [INFO] execution_route={profile_spec.execution_route}\n",
+                        f" [INFO] scalar_contract_id={profile_spec.scalar_contract_id}\n",
+                        " [INFO] model=macepolm device=cpu dtype=float64 response=frozen\n",
+                        " [INFO] ddPCM=l15/n1202/tol1e-12/eta0.1/nproc1; CDS=PySCF-SMD\n",
+                        " [INFO] Hessian policy: Richardson h=0.004 A, "
+                        "component/antisymmetry=0.05 eV/A^2, work=0.003 eV/A.\n",
+                        " [WARNING] Experimental task access is not physical or "
+                        "release certification.\n",
+                    ]
+                )
+                return calculator
+
         cls = self._discover_calculator_class(requested_name)
         name = self.model
         self._validate_model_options(cls)

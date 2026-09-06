@@ -88,6 +88,7 @@ class CommandControl:
         "md": {"nve", "nvt", "npt"},
     }
     GLOBAL_PARAMS = {
+        "model",
         "model_options",
         "device",
         "gpuid",
@@ -696,13 +697,6 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if task != "sp":
-                    msg = (
-                        "Route 2 SMD remains single-point only while the "
-                        "solution-phase PES validation gate is open."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
                 if (
                     provider == "pcmsolver"
                     and int(params.get("verbose", 0)) >= 1
@@ -771,6 +765,60 @@ class CommandControl:
                     msg = str(exc)
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
+                if task not in profile_spec.experimental_task_allowlist:
+                    if profile_spec.execution_route == "legacy-additive-correction":
+                        msg = (
+                            "Route 2 SMD remains single-point only while the "
+                            "solution-phase PES validation gate is open."
+                        )
+                    else:
+                        allowed = ", ".join(profile_spec.experimental_task_allowlist)
+                        msg = (
+                            f"Route 2 profile={profile_spec.name} permits only "
+                            f"experimental task(s): {allowed}."
+                        )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if profile_spec.execution_route == "pure-frozen-total-pes":
+                    device = str(params.get("device") or "cpu").strip().lower()
+                    if device != "cpu" or params.get("gpuid") is not None:
+                        msg = (
+                            f"Route 2 profile={profile_spec.name} requires "
+                            "#device=cpu and does not accept gpuid."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task == "opt":
+                        method_name = str(params.get("method") or "lbfgs").lower()
+                        if method_name not in {"lbfgs", "rfo"}:
+                            msg = (
+                                f"Route 2 profile={profile_spec.name} supports OPT "
+                                "only with method=lbfgs or method=rfo."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                    elif task == "freq":
+                        if str(params.get("method") or "mw").lower() != "mw":
+                            msg = (
+                                f"Route 2 profile={profile_spec.name} supports FREQ "
+                                "only with method=mw."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        if params.get("treat_imag_as_real") is not False:
+                            msg = (
+                                f"Route 2 profile={profile_spec.name} requires "
+                                "treat_imag_as_real=false."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                    elif task == "ts" and str(params.get("method") or "").lower() != "prfo":
+                        msg = (
+                            f"Route 2 profile={profile_spec.name} supports TS only "
+                            "with method=prfo."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
                 try:
                     validate_route2_input_model_family(
                         model_name,

@@ -1,0 +1,179 @@
+{
+  "arm_definitions": {
+    "centered_v": "both scalar sites receive graphwise V-mean(V), terminal qV unchanged; no output-gradient projection",
+    "original": "unchanged released archive",
+    "raw_v": "both scalar sites receive raw V, terminal qV unchanged; gauge comparison",
+    "roundtrip": "all ZIP member payloads unchanged; container control",
+    "zero_scalar": "remove both norm overrides; scalar projection receives zero"
+  },
+  "arms": [
+    "original",
+    "roundtrip",
+    "zero_scalar",
+    "raw_v",
+    "centered_v"
+  ],
+  "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+  "fixed_conditions": {
+    "constant_offsets_ev_per_e": [
+      0.01,
+      -0.01
+    ],
+    "electrostatic_input": "[V,grad(V)]; wrapper receives -grad(V)",
+    "gauge_only_geometries": [
+      {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "geometry_source": "existing audit_mace_polar_ef_v2_water.py canary",
+        "multiplicity": 2,
+        "name": "water-cation-gauge-only",
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.9572,
+            0.0,
+            0.0
+          ],
+          [
+            -0.239987,
+            0.927297,
+            0.0
+          ]
+        ],
+        "total_charge": 1
+      }
+    ],
+    "geometries": [
+      {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "geometry_source": "existing audit_mace_polar_ef_v2_water.py canary",
+        "multiplicity": 1,
+        "name": "water",
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.9572,
+            0.0,
+            0.0
+          ],
+          [
+            -0.239987,
+            0.927297,
+            0.0
+          ]
+        ],
+        "total_charge": 0
+      },
+      {
+        "atomic_numbers": [
+          6,
+          8,
+          1,
+          1,
+          1,
+          1
+        ],
+        "geometry_sha256": "b9647468f4182c31d77fd9220ba9a2cf5457b98a6d27a9f5228f0388820a1b09",
+        "geometry_source": "committed FreeSolv-20 v3 profile bundle geometries/mobley_1636752.xyz",
+        "multiplicity": 1,
+        "name": "methanol",
+        "positions_angstrom": [
+          [
+            0.283,
+            0.768,
+            0.724
+          ],
+          [
+            -0.311,
+            2.001,
+            0.362
+          ],
+          [
+            -0.065,
+            0.472,
+            1.716
+          ],
+          [
+            1.371,
+            0.874,
+            0.724
+          ],
+          [
+            -0.007,
+            0.007,
+            -0.004
+          ],
+          [
+            0.022,
+            2.23,
+            -0.522
+          ]
+        ],
+        "total_charge": 0
+      }
+    ],
+    "matrix_order_normalization_spin_factor": "retain archived matrix and c2=0.5",
+    "nonuniform_potential_amplitude_ev_per_e": 0.001,
+    "nonzero_center_ev_per_e_angstrom": [
+      0.0013,
+      -0.0007,
+      0.0009
+    ],
+    "steps_ev_per_e_angstrom": [
+      0.002,
+      0.001,
+      0.0005,
+      0.00025,
+      0.000125
+    ]
+  },
+  "forbidden_changes": [
+    "learned tensors",
+    "constants or other archive member payloads",
+    "terminal raw qV coupling",
+    "field signs/channel permutation",
+    "cavity/COSMO-RS parameters",
+    "post-hoc response or energy corrections"
+  ],
+  "gates": {
+    "all_non_model_source_members_byte_equal": true,
+    "all_state_dict_tensors_byte_equal": true,
+    "charge_drift_tolerance_e": 2e-05,
+    "curvature_units": "e^2 angstrom^2/eV",
+    "gauge_energy_abs_tolerance_ev": 0.001,
+    "gauge_source_abs_tolerance": 2e-05,
+    "maximum_positive_uniform_curvature": 0.01,
+    "note": "charge/passivity thresholds retained from existing adapter; finite total-energy tolerance reflects float32, not chemical accuracy",
+    "roundtrip_density_abs_tolerance": 2e-06,
+    "roundtrip_energy_abs_tolerance_ev": 0.001,
+    "roundtrip_source_abs_tolerance": 2e-05
+  },
+  "gauge_derivation": "E(V)=F(PV,g)+q(PV,g)^T V with P removing graphwise constant; if sum(q)=Q, then E(V+C)=E(V)+Q*C. Differentiate full scalar; do not project final conjugate source.",
+  "parent_protocol_sha256": "97d53ae689af0590f3c1193b04fe149e38a0ac78f659d84a6b74e1c19fe31e39",
+  "preregistration_id": "mace-ef-v2-trace-input-ablation-v1",
+  "primary_candidate": "centered_v",
+  "schema_version": 1,
+  "scope_boundary": "modified traced program with unchanged serialized tensor payloads; NOT restored eager, new pretrained weights, original export parity, or admission",
+  "stop_rules": [
+    "do not evaluate modified arms if roundtrip control fails",
+    "do not weaken charge/gauge/passivity gates or choose response scaling after results",
+    "do not register any derived model or run a chemical panel based only on these canaries",
+    "do not infer charged-solvation or TS accuracy from the charged gauge canary"
+  ],
+  "user_scope": "handle existing V2 directly; same branch; no training or eager-recovery claim"
+}

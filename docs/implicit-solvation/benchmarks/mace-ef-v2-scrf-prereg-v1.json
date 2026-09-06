@@ -1,0 +1,155 @@
+{
+  "angular_degree": 4,
+  "candidate_sha256": "0cac472aa566363a00f5f3fbc41e7fb8bc5e1f5bb8aa8cba654ebac3fe4dc902",
+  "candidate_state_dict_sha256": "d31ed9f905dbb4a169e15732b9d1c233d9ca5063827c208e578035a9ade25b7c",
+  "claim_boundary": "fixed-geometry conductor roots for water/methanol molecules, NOT two liquid solvents; local/root-basin evidence only; no global uniqueness, force, full chemical accuracy or release admission",
+  "continuum_configuration_sha256": {
+    "methanol": "3cca67119eab5b0e470d3572e49537493fcb897751003baab646777eb3d7a50d",
+    "water": "b8031896277f72a832069ec9376bbe7ab1e192801fa2943b709d7a5117474ff5"
+  },
+  "continuum_reciprocity_relative_tolerance": 1e-08,
+  "electronic_reciprocity_absolute_tolerance": 0.01,
+  "extra_neutral_seed_amplitude": 0.01,
+  "fd_chain_relative_tolerance": 0.01,
+  "fd_step_relative_tolerance": 0.01,
+  "field_fd_steps": [
+    0.002,
+    0.001,
+    0.0005
+  ],
+  "forbidden_changes": [
+    "weights or trace program",
+    "cavity/radii",
+    "SCF mixing/thresholds selected after data",
+    "response projection or eigenvalue clipping",
+    "new public profile or regulator",
+    "experimental-label fitting"
+  ],
+  "gauge_energy_abs_tolerance_ev": 0.001,
+  "gauge_offsets_ev_per_e": [
+    0.01,
+    -0.01
+  ],
+  "gauge_source_abs_tolerance": 2e-05,
+  "geometry_policy": "existing input geometry rounded through float32 and back to float64 by stock stationary core; record exact canonical coordinates",
+  "input_audit_sha256": "14957b97b9098d4dce95ae53ce199a6b2f9467eee8aa7d7195565c55a7e11fdc",
+  "metric": {
+    "basis": "existing FixedChargeCoordinates Helmert charge basis + Cartesian reordered dipoles",
+    "charge_scale_e": 1.0,
+    "dipole_scale_e_angstrom": 1.0,
+    "energy_scale_ev": 1.0,
+    "field_scale": "dual to source metric: 1 eV/e and 1 eV/(e Angstrom)"
+  },
+  "model_binding": "new private immutable checkpoint spec passed directly; no registry or production source changes",
+  "molecules": [
+    {
+      "atomic_numbers": [
+        8,
+        1,
+        1
+      ],
+      "geometry_source": "existing audit_mace_polar_ef_v2_water.py canary",
+      "multiplicity": 1,
+      "name": "water",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239987,
+          0.927297,
+          0.0
+        ]
+      ],
+      "total_charge": 0
+    },
+    {
+      "atomic_numbers": [
+        6,
+        8,
+        1,
+        1,
+        1,
+        1
+      ],
+      "geometry_sha256": "b9647468f4182c31d77fd9220ba9a2cf5457b98a6d27a9f5228f0388820a1b09",
+      "geometry_source": "committed FreeSolv-20 v3 profile bundle geometries/mobley_1636752.xyz",
+      "multiplicity": 1,
+      "name": "methanol",
+      "positions_angstrom": [
+        [
+          0.283,
+          0.768,
+          0.724
+        ],
+        [
+          -0.311,
+          2.001,
+          0.362
+        ],
+        [
+          -0.065,
+          0.472,
+          1.716
+        ],
+        [
+          1.371,
+          0.874,
+          0.724
+        ],
+        [
+          -0.007,
+          0.007,
+          -0.004
+        ],
+        [
+          0.022,
+          2.23,
+          -0.522
+        ]
+      ],
+      "total_charge": 0
+    }
+  ],
+  "positive_electronic_curvature_tolerance": 0.01,
+  "preregistration_id": "mace-ef-v2-scrf-water-methanol-v1",
+  "record_policy": "save both molecules and all declared seed outcomes incl failures; save every response/map FD electronic state and raw H/J before any symmetry processing",
+  "root_energy_abs_tolerance_ev": 0.001,
+  "root_source_max_abs_tolerance": 0.001,
+  "scf_settings": {
+    "anderson_coefficient_l1_limit": 100.0,
+    "anderson_depth": 6,
+    "anderson_regularization": 1e-12,
+    "anderson_step_ratio_limit": 100.0,
+    "charge_drift_tolerance": 2e-05,
+    "electronic_passivity_policy": "require-passive",
+    "maximum_iterations": 100,
+    "maximum_positive_uniform_field_curvature": 0.01,
+    "mixing": 0.5,
+    "passivity_field_step_ev_per_e_angstrom": 0.001,
+    "source_residual_tolerance": 5e-05
+  },
+  "schema_version": 1,
+  "seed_policy": "stock evaluate is primary; independent seed driver reuses stock next_fixed_point_density and validators; never substitutes a seed as a fabricated energy gradient",
+  "seed_scales": [
+    1.0,
+    0.5,
+    1.5
+  ],
+  "source_fd_steps": [
+    0.002,
+    0.001,
+    0.0005
+  ],
+  "stability_definition": "On T=-sym(K) positive support use C=I+sqrt(T)^T sym(H) sqrt(T); retain raw J=H K and independently FD F(c); never test positive definiteness of saddle L",
+  "stability_resolution": "report all three steps; primary finest step; joint margin must exceed last-two-step C operator difference and Gamma antisymmetry as a diagnostic resolution check, not a rigorous error bound",
+  "support_absolute": 1e-10,
+  "support_relative": 1e-10
+}

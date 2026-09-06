@@ -1,0 +1,118 @@
+{
+  "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+  "constant_offsets_ev_per_e": [
+    0.001,
+    -0.001
+  ],
+  "gradient_units": "e angstrom",
+  "interpretation": {
+    "fitted_curvature_offset_is_polarizability": false,
+    "new_admission_thresholds": false,
+    "new_checkpoint_export_permitted_without_eager_provenance": false,
+    "note": "retain existing passivity gate; diagnostics do not select tolerances, modify weights or open admission",
+    "physical_response_pass_inferred_from_projection_equivalence": false
+  },
+  "matrix_units": "e^2 angstrom^2/eV",
+  "measurements": [
+    "raw central differences of energy gradient; columns are Cartesian perturbation axes",
+    "both gradient sides and center gradient; axis derivative jump",
+    "symmetric eigenvalues and raw antisymmetric residual",
+    "native uniform and local affine GTO projection equivalence with checkpoint matrix and native forward",
+    "legacy projection reconstruction for even scalar feature comparison",
+    "constant potential and nonuniform V-only charge/density changes"
+  ],
+  "molecules": [
+    {
+      "atomic_numbers": [
+        8,
+        1,
+        1
+      ],
+      "geometry_source": "existing audit_mace_polar_ef_v2_water.py canary",
+      "multiplicity": 1,
+      "name": "water",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239987,
+          0.927297,
+          0.0
+        ]
+      ],
+      "total_charge": 0
+    },
+    {
+      "atomic_numbers": [
+        6,
+        8,
+        1,
+        1,
+        1,
+        1
+      ],
+      "geometry_sha256": "b9647468f4182c31d77fd9220ba9a2cf5457b98a6d27a9f5228f0388820a1b09",
+      "geometry_source": "committed FreeSolv-20 v3 profile bundle geometries/mobley_1636752.xyz",
+      "multiplicity": 1,
+      "name": "methanol",
+      "positions_angstrom": [
+        [
+          0.283,
+          0.768,
+          0.724
+        ],
+        [
+          -0.311,
+          2.001,
+          0.362
+        ],
+        [
+          -0.065,
+          0.472,
+          1.716
+        ],
+        [
+          1.371,
+          0.874,
+          0.724
+        ],
+        [
+          -0.007,
+          0.007,
+          -0.004
+        ],
+        [
+          0.022,
+          2.23,
+          -0.522
+        ]
+      ],
+      "total_charge": 0
+    }
+  ],
+  "nonzero_center_ev_per_e_angstrom": [
+    0.0013,
+    -0.0007,
+    0.0009
+  ],
+  "preregistration_id": "mace-ef-cos-input-semantics-v1",
+  "projection_test_float64_atol": 1e-14,
+  "schema_version": 1,
+  "scope": "unchanged CUDA checkpoint response and projection-only diagnostics; no model surgery",
+  "selection_policy": "water and methanol chosen for interface diagnostics before this scan, not for experimental error",
+  "steps_ev_per_e_angstrom": [
+    0.002,
+    0.001,
+    0.0005,
+    0.00025,
+    0.000125
+  ]
+}

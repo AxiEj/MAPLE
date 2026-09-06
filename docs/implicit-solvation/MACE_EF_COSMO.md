@@ -222,6 +222,39 @@ molecules; passivity was not recomputed at a `c2` state. This inherited failure
 still keeps the two-map result diagnostic-only, and the iteration count cannot
 be retuned from this result.
 
+### Input-semantics P0 follow-up
+
+The unchanged CUDA checkpoint has now been checked with five field steps on
+water and methanol, preserving raw Hessians and derivative jumps rather than
+only their symmetric spectra. The archive itself contains the two field-norm
+scalar substitutions. Native/local affine equivalence was tested at the
+projection layer only; no repaired checkpoint or full-model eager equivalence
+is claimed. The matching original eager asset remains unavailable in the
+checked local and public upstream sources. See
+[`MACE_EF_COS_INPUT_SEMANTICS_P0.md`](MACE_EF_COS_INPUT_SEMANTICS_P0.md)
+for the measured evidence and the precise asset gate. Existing conductor and
+COSMO-RS results and admission boundaries remain unchanged.
+
+### V2 corrected-input program and full SCRF follow-up
+
+The subsequent [same-tensor V2 input experiment](MACE_EF_V2_TRACE_INPUT_CORRECTION.md)
+changes only the two scalar-potential input sites in a separately identified
+copy of the traced program: internal graph-mean-centered V, with raw terminal
+qV retained. It does not restore the original eager model or replace the
+released checkpoint/default calculation entry point. Weight files and `.omx`
+runtime artifacts are not committed; the checked-in recipes and hashes bind
+their reconstruction from the original V2 asset.
+
+The [full conductor SCRF audit](MACE_EF_V2_SCRF_AUDIT.md) then finds reproducible
+roots for the fixed water and methanol molecular geometries in 26 and 25
+iterations, with positive local supported joint curvature. It also confirms a
+small positive electronic potential/charge-response mode for methanol. Passing
+the inherited `0.01` numerical gate is not a strict physical-passivity
+certificate. The full FreeSolv-20/COSMO-RS paired panel has not been rerun.
+
+Publication of these scripts, protocols, raw measurements and tests does not
+change the frozen execution provenance or open scientific/public admission.
+
 ## Relative kinetic solvent effects
 
 The KSE calculator supports any provenance-identified provider, including

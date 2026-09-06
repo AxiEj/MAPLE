@@ -1,0 +1,18 @@
+{
+  "base_preregistration_sha256": "0cfae8ecc5ece5579d3364a79d6a79cd3b6825f2cdd95b73e191e88d0f77a967",
+  "center_repeats": 3,
+  "claim_boundary": "targeted local mode confirmation, not global-domain passivity or chemical admission",
+  "confirmation_id": "mace-ef-v2-scrf-extremal-mode-confirmation-v1",
+  "field_linearity_tolerance": 1e-08,
+  "output": "all raw directional derivatives and source/field states, predicted curvature, charge-vs-gradient mode norm split, sign persistence and repeat spread; no threshold retuning or response correction",
+  "pilot_sha256": "6693a2c97614fc5edb273f95a20b0f2e1fd36b89b7b7e36fa31fc0f7b2f4e4b1",
+  "projection_tolerance": 1e-08,
+  "realization": "solve K*z=mode on continuum support; use actual continuum drive of c_root +/- h*D*B*z, retain raw potential including its gauge representative",
+  "registration_context": "Follow-up after pilot exposed a stable positive methanol eigenvalue below legacy numeric tolerance; no model/solver/threshold change",
+  "selection": "largest eigenvector of the symmetric finest-step electronic Hessian restricted to the positive continuum-response support; both molecules, including negative control",
+  "steps": [
+    0.002,
+    0.001,
+    0.0005
+  ]
+}

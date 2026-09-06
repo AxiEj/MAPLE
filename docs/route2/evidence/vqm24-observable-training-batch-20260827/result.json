@@ -1,0 +1,976 @@
+{
+  "aggregate": {
+    "maximum_dipole_nonlinearity": 0.00030263854647953067,
+    "maximum_electron_count_error_e": 1.7053025658242404e-13,
+    "maximum_enthalpy_mep_conjugacy_relative": 1.3367431176735478e-05,
+    "maximum_mep_nonlinearity": 0.0003384574689567132,
+    "mean_dipole_nonlinearity": 0.00013382063313339688,
+    "mean_mep_nonlinearity": 0.0001671421292562859,
+    "record_count": 32,
+    "total_elapsed_seconds": 43244.015505013995
+  },
+  "artifact": "route2-vqm24-observable-training-batch-result-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "density_or_partition_coefficient_label_emitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_observable_training_batch_generated": true,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "quadratic_response_adequacy_passed": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T23:55:02.599674+00:00",
+  "gates": {
+    "dipole_nonlinearity_maximum": true,
+    "dipole_nonlinearity_mean": true,
+    "electron_count": true,
+    "enthalpy_mep_conjugacy": false,
+    "mep_nonlinearity_maximum": true,
+    "mep_nonlinearity_mean": true,
+    "no_curvature_labels": true,
+    "record_count": true
+  },
+  "records": [
+    {
+      "audit_point_count": 132,
+      "dipole_nonlinearity_by_mode": [
+        7.95526236891806e-05,
+        0.0001354633354222386,
+        0.00017405627358015187,
+        0.00012987749406059647
+      ],
+      "elapsed_seconds": 1082.643889474999,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.8360230811099076e-07,
+      "fit_point_count": 130,
+      "formula": "C3H6O",
+      "maximum_electron_count_error_e": 2.842170943040401e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00013115839605993946,
+        0.00015413817651841117,
+        0.00020525928371670639,
+        0.0001606295299996753
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "dcefe453fd06acd786248e7fc594974d86ed17660f07203b90468b028d6b675c",
+      "observable_npz_sha256": "54cc25b08d1a22b27e13b830ce99281aa59a4f7a24c892c47872c3e2678e8675",
+      "record_id": "base-hcno-135247-970f059c1f95",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 133,
+      "dipole_nonlinearity_by_mode": [
+        0.000237531023589327,
+        0.00013707543367165621,
+        0.00014116144574437034,
+        6.767015355281011e-05
+      ],
+      "elapsed_seconds": 1331.108028106999,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.2269884368246272e-07,
+      "fit_point_count": 127,
+      "formula": "C2H5NO2",
+      "maximum_electron_count_error_e": 7.815970093361102e-14,
+      "mep_nonlinearity_by_mode": [
+        0.0002655670687099326,
+        0.0001900354313223149,
+        0.00015361625358011557,
+        9.071359029890214e-05
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "456ba25e8d36e6ed08a7cef8a70e36a4ab36e8116932036c0f9a554d9dc02047",
+      "observable_npz_sha256": "2e110fb6e7def9115c5336e9167761c92e860815421c55dd8c0e31f9f89ed618",
+      "record_id": "base-hcno-156765-3c8bc817c95e",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 129,
+      "dipole_nonlinearity_by_mode": [
+        0.00018078479864842202,
+        5.0925539612169744e-05,
+        0.00019773326816683882,
+        0.00019622675062840126
+      ],
+      "elapsed_seconds": 1168.2456250180003,
+      "enthalpy_slope_vs_zero_source_mep_relative": 3.5921800439852825e-06,
+      "fit_point_count": 130,
+      "formula": "H4N4O",
+      "maximum_electron_count_error_e": 5.684341886080802e-14,
+      "mep_nonlinearity_by_mode": [
+        0.0002054838176719305,
+        0.00017165254701787298,
+        0.00020913635763652503,
+        0.00020853370868165454
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "a5f5181c6d72a75f086a908e20aa38d66769ea212d56c3882516a03cca3d778f",
+      "observable_npz_sha256": "96de995be5beaeb5a4d30cfe526800cfe8895395d4ce1a408c9b9df1191408c0",
+      "record_id": "base-hcno-162863-745ab5d78c8b",
+      "scf_cycle_range": [
+        8,
+        9
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 97,
+      "dipole_nonlinearity_by_mode": [
+        0.00013427857076228983,
+        6.610241509807119e-05,
+        0.0001455206336949212,
+        0.00015175606741536692
+      ],
+      "elapsed_seconds": 721.8228931080012,
+      "enthalpy_slope_vs_zero_source_mep_relative": 3.430349634766974e-06,
+      "fit_point_count": 96,
+      "formula": "C2HN3",
+      "maximum_electron_count_error_e": 3.552713678800501e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00016145024912667886,
+        9.02538423191777e-05,
+        0.00019380423231552164,
+        0.0001741122195537426
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "9d342d8d4baa5fd9b49c996db25eff61a214c37c8c84a356b99a23881cb7384f",
+      "observable_npz_sha256": "d33ed17b837167fc83e9f858c55c9b2970373ea3248d5718f883e2de42716149",
+      "record_id": "base-hcno-208608-7e6419f2ee92",
+      "scf_cycle_range": [
+        9,
+        11
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 112,
+      "dipole_nonlinearity_by_mode": [
+        9.34300706009318e-05,
+        0.00023497044662107634,
+        0.0002543076926652753,
+        0.00011569144453839154
+      ],
+      "elapsed_seconds": 1001.0472558869988,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.0973459321915314e-07,
+      "fit_point_count": 116,
+      "formula": "CH3N3O",
+      "maximum_electron_count_error_e": 1.7053025658242404e-13,
+      "mep_nonlinearity_by_mode": [
+        0.00012978664074030983,
+        0.00024413846452328336,
+        0.00026297495597782193,
+        0.00015826011070529516
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "5b3b12efc5b99ef9a3532ad8f7bc5053dd2f2cc781f5e760305c7ce173617321",
+      "observable_npz_sha256": "22e7d29dcad22ee89ca13589b243f833bdc3989b054cb3fa7ca76fc48e09b3bf",
+      "record_id": "base-hcno-229457-b412c4e75aed",
+      "scf_cycle_range": [
+        8,
+        9
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 150,
+      "dipole_nonlinearity_by_mode": [
+        0.00016823052977518797,
+        7.856188239795304e-05,
+        0.00013673784053428925,
+        0.00023469583040252172
+      ],
+      "elapsed_seconds": 1362.365627346,
+      "enthalpy_slope_vs_zero_source_mep_relative": 5.189832281211907e-07,
+      "fit_point_count": 158,
+      "formula": "C3H8N2",
+      "maximum_electron_count_error_e": 6.394884621840902e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00018428123595975554,
+        0.00013687848670879265,
+        0.00016111927481638564,
+        0.0002885565613260879
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "b1f5e5e6d292120302d3b89cf9c850a9e252e26d9ccba55fbbe9dbba8423b7dc",
+      "observable_npz_sha256": "94067ad6edd3cf2915e409caef0c9791220d3d9102a956e84e049d7042016f2c",
+      "record_id": "base-hcno-399849-fa20b6e144ad",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 144,
+      "dipole_nonlinearity_by_mode": [
+        5.6792127566082366e-05,
+        0.00018487308361437503,
+        0.00030263854647953067,
+        9.427339752514541e-05
+      ],
+      "elapsed_seconds": 1311.0715725249993,
+      "enthalpy_slope_vs_zero_source_mep_relative": 2.2971256194438518e-07,
+      "fit_point_count": 137,
+      "formula": "C4H5N",
+      "maximum_electron_count_error_e": 1.1368683772161603e-13,
+      "mep_nonlinearity_by_mode": [
+        0.00010969663619034697,
+        0.00020156712287359952,
+        0.0003384574689567132,
+        0.00012859522612871104
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "5bfee54a00acaa65be00f9748a311284bb5e5024cda86e5606fe8dc889b6cb7a",
+      "observable_npz_sha256": "9d5196edee5c7e0e9478c030e46621a1c38f10c046dc400e346c4a05496849ed",
+      "record_id": "base-hcno-404508-6cb9b5d441de",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 145,
+      "dipole_nonlinearity_by_mode": [
+        0.0001220340180997875,
+        0.00011170123360745186,
+        8.60632571858938e-05,
+        9.935313383260885e-05
+      ],
+      "elapsed_seconds": 1632.391130076001,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.6256460183318913e-07,
+      "fit_point_count": 143,
+      "formula": "C2H7NO2",
+      "maximum_electron_count_error_e": 3.552713678800501e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00015478990825370273,
+        0.00013111577642216938,
+        0.0001065587236180949,
+        0.00013307437859864506
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "c9e11f0543d60a2d01eedbdb0ce582b449dacbbedde663444e9dabe5b9c16646",
+      "observable_npz_sha256": "63655febcf50612a178f268bac891141a09139773b8a01060034eea3dffe042d",
+      "record_id": "base-hcno-432908-c1096072c51b",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 131,
+      "dipole_nonlinearity_by_mode": [
+        8.244850796127152e-05,
+        0.00024113136039256985,
+        0.000253233130525366,
+        0.0002597335625953115
+      ],
+      "elapsed_seconds": 1087.7426605269993,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.0746865860768141e-06,
+      "fit_point_count": 126,
+      "formula": "CH4N4",
+      "maximum_electron_count_error_e": 1.1368683772161603e-13,
+      "mep_nonlinearity_by_mode": [
+        0.0001245256012370589,
+        0.00023775313444872453,
+        0.0002466289705887478,
+        0.00025604570529730975
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "a7b5eb409f1b8d7a5a761f3b0452a05647843a8642a210356e853c8d6ba48bd5",
+      "observable_npz_sha256": "a4c12865a01a377169cef1b16f7e839be181a9e122cd316abb9945eddbc76d56",
+      "record_id": "base-hcno-436944-1c3caaef7cd3",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 101,
+      "dipole_nonlinearity_by_mode": [
+        0.00016753662992341627,
+        7.912110836146214e-05,
+        7.631132059561155e-05,
+        0.00017111151475973654
+      ],
+      "elapsed_seconds": 724.3013514160011,
+      "enthalpy_slope_vs_zero_source_mep_relative": 5.266696108509172e-06,
+      "fit_point_count": 109,
+      "formula": "C3H2N2",
+      "maximum_electron_count_error_e": 7.815970093361102e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00017918571052035647,
+        0.00011633959739483966,
+        0.00011151074123251616,
+        0.0001807844711892942
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "16bcfaf24840cc4cf6ba12718769b038a335ef40df45ba5f07537c73643794dd",
+      "observable_npz_sha256": "29513c3dee3661c28cd6d1f4595b941796c09913481e2413054f7392d0ff3e55",
+      "record_id": "base-hcno-440770-f59ae1366672",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 142,
+      "dipole_nonlinearity_by_mode": [
+        6.283782474772463e-05,
+        0.00012664392132279736,
+        8.963269298231258e-05,
+        8.111018442722948e-05
+      ],
+      "elapsed_seconds": 1473.8141146140006,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.1872808779710655e-07,
+      "fit_point_count": 133,
+      "formula": "CH6N4",
+      "maximum_electron_count_error_e": 5.684341886080802e-14,
+      "mep_nonlinearity_by_mode": [
+        9.843410144893229e-05,
+        0.00015191336476055078,
+        0.00011631111166442599,
+        0.00010583009417041342
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "1e4473db9914d24509c6e3becf55c38afd57ecfd2386a7ba4fca5f0af9f5a236",
+      "observable_npz_sha256": "905465b8f2ddc96cbb3cab1603e8234fbb76f7b5a9e009eff9090c1e794116ea",
+      "record_id": "base-hcno-460236-0c750047a5e1",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 146,
+      "dipole_nonlinearity_by_mode": [
+        9.919074545426345e-05,
+        0.00014716226306248892,
+        0.00012659517571716805,
+        0.00010983712438815262
+      ],
+      "elapsed_seconds": 1722.4394484069999,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.1191336140827556e-07,
+      "fit_point_count": 141,
+      "formula": "CH7N3O",
+      "maximum_electron_count_error_e": 5.684341886080802e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00013488957605099614,
+        0.00016763144332938528,
+        0.0001429171992779951,
+        0.00012025572621343213
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "af0d5fdaa15d8865068edabc943d53146819b3e78f1e8736811c0ca5fef7253e",
+      "observable_npz_sha256": "c04b4d5405df1e71811f62fb4aa06a9c1b0d18d726182ed078635da3d4604e6e",
+      "record_id": "base-hcno-481244-549dfd678c85",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "base-hcno"
+    },
+    {
+      "audit_point_count": 135,
+      "dipole_nonlinearity_by_mode": [
+        0.00020419430499190772,
+        6.922301527828513e-05,
+        0.00012502088688818796,
+        0.00012234164615475908
+      ],
+      "elapsed_seconds": 1733.943787962,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.4798787393376134e-06,
+      "fit_point_count": 131,
+      "formula": "CH4BrOPS",
+      "maximum_electron_count_error_e": 1.1368683772161603e-13,
+      "mep_nonlinearity_by_mode": [
+        0.0002411696011977118,
+        0.00010545708995531218,
+        0.0001470333623885867,
+        0.00015103180738517926
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "91e6e2f3213f4eaa315cb773c0e66a2a51fed6f79b518ed95ad2a7405728daec",
+      "observable_npz_sha256": "a0602557ece4ea1d921d94bece46eb0fb59d0bb004091cb5a50d645dd0ca4e42",
+      "record_id": "bromine-101221-5abef0a88d16",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "bromine"
+    },
+    {
+      "audit_point_count": 124,
+      "dipole_nonlinearity_by_mode": [
+        0.0001029477915367086,
+        0.00015814949312834052,
+        0.0001504358070870821,
+        0.0002336879997377956
+      ],
+      "elapsed_seconds": 1203.6681660960003,
+      "enthalpy_slope_vs_zero_source_mep_relative": 3.8428025348970497e-07,
+      "fit_point_count": 121,
+      "formula": "H4BrN2P",
+      "maximum_electron_count_error_e": 1.5631940186722204e-13,
+      "mep_nonlinearity_by_mode": [
+        0.0001461149212448062,
+        0.00019531843344194495,
+        0.0001717364054855073,
+        0.00027276731605515984
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "d6deea703a3c390498bbab5c4aefec14bef7f410a19c965b8bf72aaf60c7b3e1",
+      "observable_npz_sha256": "cfeffc52a4866189c8ce6c08072adaef0aa32afd832e5196147ee55b1a4ed6c3",
+      "record_id": "bromine-10426-6bb8a046ac22",
+      "scf_cycle_range": [
+        8,
+        9
+      ],
+      "stratum": "bromine"
+    },
+    {
+      "audit_point_count": 133,
+      "dipole_nonlinearity_by_mode": [
+        0.00018048554864465193,
+        4.2040022063764014e-05,
+        0.00014407560820387828,
+        7.919164064370224e-05
+      ],
+      "elapsed_seconds": 1584.0982852870002,
+      "enthalpy_slope_vs_zero_source_mep_relative": 9.606379367229204e-06,
+      "fit_point_count": 126,
+      "formula": "CH4BrNOS",
+      "maximum_electron_count_error_e": 9.947598300641403e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00021096375760296942,
+        9.357978381092813e-05,
+        0.00017117561529234686,
+        0.00010504153137926646
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "bed463190d722066034b2a570dbcf24f0db29d3e83ace79675e05c739aecce48",
+      "observable_npz_sha256": "1cb6a76b369ada05e5cc1c739301582ad2bd10c39e19d7ae81d418ec677af40f",
+      "record_id": "bromine-447833-84c7dcaffea3",
+      "scf_cycle_range": [
+        8,
+        9
+      ],
+      "stratum": "bromine"
+    },
+    {
+      "audit_point_count": 112,
+      "dipole_nonlinearity_by_mode": [
+        0.00010979743134946002,
+        8.720280661919528e-05,
+        8.517683498293632e-05,
+        0.00017735561519211256
+      ],
+      "elapsed_seconds": 986.6182055470017,
+      "enthalpy_slope_vs_zero_source_mep_relative": 8.56189761644533e-06,
+      "fit_point_count": 109,
+      "formula": "CHBrNOP",
+      "maximum_electron_count_error_e": 9.947598300641403e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00011762455543687412,
+        0.00012799940860794322,
+        0.00011890840517750055,
+        0.00022200548293336268
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "aaa966a6a0aa812e63956c94f17210ddc6d7b57d9353e759252deb07f5f1429e",
+      "observable_npz_sha256": "890ff4142a177d37f7ccab9502cc11e422aff87c0b218952681d76ee82b9384b",
+      "record_id": "bromine-63727-71eb4b0867c9",
+      "scf_cycle_range": [
+        9,
+        11
+      ],
+      "stratum": "bromine"
+    },
+    {
+      "audit_point_count": 122,
+      "dipole_nonlinearity_by_mode": [
+        0.00011376364540527977,
+        8.652599069207901e-05,
+        0.00010777552833047608,
+        0.0001878406917728364
+      ],
+      "elapsed_seconds": 1057.7050981909997,
+      "enthalpy_slope_vs_zero_source_mep_relative": 3.926765403166347e-07,
+      "fit_point_count": 125,
+      "formula": "CH5ClN2",
+      "maximum_electron_count_error_e": 7.105427357601002e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00013297703779155208,
+        0.00012558925311210995,
+        0.00014065965194158973,
+        0.0002323001486732357
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "dd04bf78edb4b7aa23d9323cfef63f6f773d5706c7ed9974c20323de4715c226",
+      "observable_npz_sha256": "9bdf8506d2662e4f5d3ab33c582261f02921e4da67644870d56df3004c138c00",
+      "record_id": "chlorine-141648-a14bf52170de",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "chlorine"
+    },
+    {
+      "audit_point_count": 137,
+      "dipole_nonlinearity_by_mode": [
+        0.00012958908219378953,
+        6.0332368376989345e-05,
+        8.407566867333587e-05,
+        0.00017050050306898718
+      ],
+      "elapsed_seconds": 1462.1351957340012,
+      "enthalpy_slope_vs_zero_source_mep_relative": 2.4197720458277436e-07,
+      "fit_point_count": 139,
+      "formula": "H4ClNOP2",
+      "maximum_electron_count_error_e": 7.105427357601002e-14,
+      "mep_nonlinearity_by_mode": [
+        0.0001299219153162286,
+        8.969914500004249e-05,
+        0.00010975772256990532,
+        0.00019331079836461878
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "6ae6b83b382a09a9c8b0602b6ee65420401e1a213b16af1160bfaad486964783",
+      "observable_npz_sha256": "9a5f485d0710fffe8dbf501eb4b8dcad5c1336598cce35ae2f30a646cf3db908",
+      "record_id": "chlorine-610177-ac8ad6afa4f7",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "chlorine"
+    },
+    {
+      "audit_point_count": 129,
+      "dipole_nonlinearity_by_mode": [
+        0.00013755780259848058,
+        6.353061869160287e-05,
+        5.903264769351221e-05,
+        0.00017022693127586718
+      ],
+      "elapsed_seconds": 1529.7420272340023,
+      "enthalpy_slope_vs_zero_source_mep_relative": 2.5747332328936533e-07,
+      "fit_point_count": 124,
+      "formula": "H2ClNP2S",
+      "maximum_electron_count_error_e": 9.947598300641403e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00018505866733417323,
+        0.00012237817151566853,
+        0.00011023083363502677,
+        0.00018786568517760408
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "dc08b3cba0dcf16a6abc7461cd42ff80eb4f7ee09837d9437afb285ae95716f7",
+      "observable_npz_sha256": "05085677fe47262c02e4a8fb6ba3b428d5b7881737ab99b3822e886c89b1fb09",
+      "record_id": "chlorine-636384-976484d18c73",
+      "scf_cycle_range": [
+        10,
+        11
+      ],
+      "stratum": "chlorine"
+    },
+    {
+      "audit_point_count": 157,
+      "dipole_nonlinearity_by_mode": [
+        0.0001342826652558311,
+        0.00010405463813251927,
+        0.00017753813771157945,
+        0.00013184309292814614
+      ],
+      "elapsed_seconds": 1857.5336406789975,
+      "enthalpy_slope_vs_zero_source_mep_relative": 4.1318174651776104e-07,
+      "fit_point_count": 156,
+      "formula": "CH4ClPS2",
+      "maximum_electron_count_error_e": 1.1368683772161603e-13,
+      "mep_nonlinearity_by_mode": [
+        0.0001645762437659012,
+        0.00016415178290195347,
+        0.00019283946856931756,
+        0.00020117677902550986
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "9712ea512b419ede061ad126941fa96b395550c1e3439a8acc45040a0f4d21fc",
+      "observable_npz_sha256": "1e492f88e2b2f0e47210f90385a5e69e01e7cf4b894a5cb88a15e8a3c441e129",
+      "record_id": "chlorine-784-a7040c282ac8",
+      "scf_cycle_range": [
+        9,
+        9
+      ],
+      "stratum": "chlorine"
+    },
+    {
+      "audit_point_count": 92,
+      "dipole_nonlinearity_by_mode": [
+        5.7974604423878e-05,
+        0.00016037115495103868,
+        5.765463428112314e-05,
+        0.00015116283009004367
+      ],
+      "elapsed_seconds": 466.28870815100163,
+      "enthalpy_slope_vs_zero_source_mep_relative": 2.1037371166098485e-07,
+      "fit_point_count": 89,
+      "formula": "HF2NO",
+      "maximum_electron_count_error_e": 7.105427357601002e-14,
+      "mep_nonlinearity_by_mode": [
+        8.074433117734757e-05,
+        0.00017193421179888423,
+        8.081310660148107e-05,
+        0.00017140458189440958
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "ae78d491ff7dc2f5dcfb790a1c0c67cc3d7c614e556e804b00a5f273d99658e9",
+      "observable_npz_sha256": "35389f41b2611cdb427e5754b751a9536001de5f7a7a119f7de621bd59e668fe",
+      "record_id": "fluorine-139037-710a4fc89944",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "fluorine"
+    },
+    {
+      "audit_point_count": 126,
+      "dipole_nonlinearity_by_mode": [
+        7.971881901139265e-05,
+        9.867746799132158e-05,
+        0.00011201324066681464,
+        6.283218883270381e-05
+      ],
+      "elapsed_seconds": 1375.1660032069994,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.4665121441553453e-07,
+      "fit_point_count": 137,
+      "formula": "C2H5FN2",
+      "maximum_electron_count_error_e": 1.1368683772161603e-13,
+      "mep_nonlinearity_by_mode": [
+        9.60998859684049e-05,
+        0.00013562100693361974,
+        0.0001369167438201495,
+        7.713225720566252e-05
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "3b34967d9d465946aa5c913b16fefc82cb6e01847c5fb7844eb72541d85aa098",
+      "observable_npz_sha256": "14dc86729051250a7ea22e048de64c8711454b65f955954c4feb3634048eea93",
+      "record_id": "fluorine-278363-5c9234fb4b84",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "fluorine"
+    },
+    {
+      "audit_point_count": 139,
+      "dipole_nonlinearity_by_mode": [
+        6.319908357894272e-05,
+        0.00014162060450634888,
+        0.00017570501051977555,
+        5.7910783130082754e-05
+      ],
+      "elapsed_seconds": 1500.4152772609996,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.5403889069910088e-07,
+      "fit_point_count": 137,
+      "formula": "C2H6FNO",
+      "maximum_electron_count_error_e": 9.947598300641403e-14,
+      "mep_nonlinearity_by_mode": [
+        8.366565953523565e-05,
+        0.00015310934414431085,
+        0.00019489721599402863,
+        0.00013359678290933828
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "8bf7c53c3e70c8f6d541e4772b24f8eb3d6070df8fd087e99e4e63695e239de9",
+      "observable_npz_sha256": "caab35f1caba2447b3d961dabe6c8ec89b7d3f6ec3a377ba83cf495d04dc2e1e",
+      "record_id": "fluorine-412002-081c6cc3a31b",
+      "scf_cycle_range": [
+        7,
+        8
+      ],
+      "stratum": "fluorine"
+    },
+    {
+      "audit_point_count": 129,
+      "dipole_nonlinearity_by_mode": [
+        4.262331849535714e-05,
+        0.00019630013101662802,
+        6.351316315776543e-05,
+        0.00013478633503118343
+      ],
+      "elapsed_seconds": 1398.4419261860003,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.524386540857138e-07,
+      "fit_point_count": 122,
+      "formula": "CH5FN2O",
+      "maximum_electron_count_error_e": 7.815970093361102e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00011734705452032421,
+        0.0002471916946237198,
+        8.931912741366485e-05,
+        0.0001454735753266505
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "b33f826598abc52cc6e51ab0cd390f1183088f8b8de03e4c5564f14cddea1c0c",
+      "observable_npz_sha256": "765249a281913628be7ccf0a5bac8a96ef9a4c26065a651663804b40777b918d",
+      "record_id": "fluorine-469465-70c76c720826",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "fluorine"
+    },
+    {
+      "audit_point_count": 139,
+      "dipole_nonlinearity_by_mode": [
+        9.506587536125744e-05,
+        0.0002235286810131499,
+        0.00021708644510083465,
+        0.00013243096212020984
+      ],
+      "elapsed_seconds": 1615.7017818669992,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.4150470106877298e-06,
+      "fit_point_count": 136,
+      "formula": "CH4NP3",
+      "maximum_electron_count_error_e": 5.684341886080802e-14,
+      "mep_nonlinearity_by_mode": [
+        0.0001495851331438555,
+        0.00025550172995025545,
+        0.000236453203088475,
+        0.00019866050784628824
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "410a5b1b4958b6c8eb1e0645033f0c434526c13dc0368a037fcf6f1cf8d977c8",
+      "observable_npz_sha256": "ea8b2a29ccc95fffb2c9d254198305a492d15d450a742c64d1a717d87a3b275b",
+      "record_id": "phosphorus-351029-1256947e5905",
+      "scf_cycle_range": [
+        9,
+        9
+      ],
+      "stratum": "phosphorus"
+    },
+    {
+      "audit_point_count": 140,
+      "dipole_nonlinearity_by_mode": [
+        0.0001547270740850013,
+        0.00017424729428603303,
+        0.00011093354791533167,
+        0.00018463976472418454
+      ],
+      "elapsed_seconds": 1456.2026837979975,
+      "enthalpy_slope_vs_zero_source_mep_relative": 9.767399754963157e-06,
+      "fit_point_count": 142,
+      "formula": "H3FP2S2",
+      "maximum_electron_count_error_e": 9.947598300641403e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00020483663279450038,
+        0.0002197347994301725,
+        0.00013201669178711882,
+        0.000198081131069531
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "2e2148b35d7305ddbf89ecb63816cde9858b870549d6813b132a683291d92a28",
+      "observable_npz_sha256": "80dc20d93e863e2884961d4f2fc1d4479d6064079df0da6eb2e9b3c4a6666e63",
+      "record_id": "phosphorus-598182-ea0696054cba",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "phosphorus"
+    },
+    {
+      "audit_point_count": 140,
+      "dipole_nonlinearity_by_mode": [
+        0.00020826847656900716,
+        0.00012705684723868937,
+        0.00012276314012071984,
+        0.0002609272447476769
+      ],
+      "elapsed_seconds": 1435.979738486003,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.8868271905871567e-07,
+      "fit_point_count": 139,
+      "formula": "C2H5O2P",
+      "maximum_electron_count_error_e": 4.263256414560601e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00023117108870962714,
+        0.0001819675485414762,
+        0.00013696084000781368,
+        0.00027187257470102493
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "f05c107549c1a66be69dfefa16e1ed0977bc9ef4dcd2bedd67c7c667e1823b26",
+      "observable_npz_sha256": "3a9bcfaf0f05d6233754683bd12e2c5dcd8cbd3cfa910cf63928005cdcfc0f13",
+      "record_id": "phosphorus-66144-d15ba6ea626a",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "phosphorus"
+    },
+    {
+      "audit_point_count": 121,
+      "dipole_nonlinearity_by_mode": [
+        0.0002118652202611492,
+        0.00011520383373655844,
+        7.75095794783257e-05,
+        0.00018874198890856723
+      ],
+      "elapsed_seconds": 1457.0441308590016,
+      "enthalpy_slope_vs_zero_source_mep_relative": 6.797448050024362e-06,
+      "fit_point_count": 127,
+      "formula": "CH2P2S2",
+      "maximum_electron_count_error_e": 1.2789769243681803e-13,
+      "mep_nonlinearity_by_mode": [
+        0.0002216184166573637,
+        0.0001842261502166178,
+        0.00015385733449350196,
+        0.0002441491585559162
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "156d6e3fffd958776e399d83ca40c0efe657210b11948bff9c434e2032b8eff9",
+      "observable_npz_sha256": "a6d12a07e93b490de531ba7c52b7c166606952fe8cd93b291f5bfd9b6da2a00d",
+      "record_id": "phosphorus-696398-7400c7789c7c",
+      "scf_cycle_range": [
+        9,
+        11
+      ],
+      "stratum": "phosphorus"
+    },
+    {
+      "audit_point_count": 136,
+      "dipole_nonlinearity_by_mode": [
+        0.0001312911328838124,
+        0.0001294659006748412,
+        7.244982210065144e-05,
+        0.00017021588517983824
+      ],
+      "elapsed_seconds": 1435.4005590030001,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.9767400074263053e-07,
+      "fit_point_count": 135,
+      "formula": "C3H4S2",
+      "maximum_electron_count_error_e": 7.815970093361102e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00021315527400432623,
+        0.0002515801721218102,
+        0.00012898279187767268,
+        0.0002063697343653158
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "7fd0162304cd4ce8b3a7ef2287c63baa3ef670fa75f26f83ea2177e556e7dc23",
+      "observable_npz_sha256": "32d7a015586200f47bbffcc9d2b7ec26ddf8e0aa26354d047190bb368e386f21",
+      "record_id": "sulfur-122602-190c2fbc8b99",
+      "scf_cycle_range": [
+        8,
+        9
+      ],
+      "stratum": "sulfur"
+    },
+    {
+      "audit_point_count": 122,
+      "dipole_nonlinearity_by_mode": [
+        0.00016334932720542665,
+        0.00010010950650214483,
+        0.0001617467757554021,
+        0.00012089548340508293
+      ],
+      "elapsed_seconds": 1457.9384334139995,
+      "enthalpy_slope_vs_zero_source_mep_relative": 9.439224671616283e-06,
+      "fit_point_count": 128,
+      "formula": "CH4N2S2",
+      "maximum_electron_count_error_e": 8.526512829121202e-14,
+      "mep_nonlinearity_by_mode": [
+        0.00019552672141835258,
+        0.00012624500475252816,
+        0.00017332081455206813,
+        0.00016305080770958612
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "ab69a1d28088fae6ec06775217830227ec13c35f9a193508077c4f105c93994f",
+      "observable_npz_sha256": "d154049c678898ae95d0ec547b4654a5334a2610d8720aba7bc9b6c504d775d6",
+      "record_id": "sulfur-221028-692cd68117c4",
+      "scf_cycle_range": [
+        8,
+        9
+      ],
+      "stratum": "sulfur"
+    },
+    {
+      "audit_point_count": 157,
+      "dipole_nonlinearity_by_mode": [
+        0.00013431410489577473,
+        0.00016906642622338858,
+        0.0001510028085622023,
+        9.876049391103522e-05
+      ],
+      "elapsed_seconds": 2115.590846594998,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.2954845188210808e-06,
+      "fit_point_count": 154,
+      "formula": "H6O2S3",
+      "maximum_electron_count_error_e": 7.105427357601002e-14,
+      "mep_nonlinearity_by_mode": [
+        0.0002092423367842808,
+        0.00023907592156539488,
+        0.00020730191829188986,
+        0.00011653005196477905
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "0686ef691091c9dc214bbccaf09f72fc7c72b89bef6b8c1150c9b72f7ff02718",
+      "observable_npz_sha256": "bbf156708bac43abcf3c850bea5d73fc3f97f599bf17bad4d0f0129c925c1bff",
+      "record_id": "sulfur-379175-938cde712eac",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "sulfur"
+    },
+    {
+      "audit_point_count": 131,
+      "dipole_nonlinearity_by_mode": [
+        0.00014693932181084895,
+        0.00010360756618675426,
+        5.409965065258881e-05,
+        0.00019716359446963537
+      ],
+      "elapsed_seconds": 1495.407412950999,
+      "enthalpy_slope_vs_zero_source_mep_relative": 1.3367431176735478e-05,
+      "fit_point_count": 127,
+      "formula": "H3FS4",
+      "maximum_electron_count_error_e": 1.5631940186722204e-13,
+      "mep_nonlinearity_by_mode": [
+        0.00017037427614994985,
+        0.0001275105078540899,
+        0.00010821662092588865,
+        0.00021497706236226123
+      ],
+      "numerical_energy_curvature_label_emitted": false,
+      "observable_json_sha256": "3c285aeffafc9b2622ab97562317c96c2f028dd56dd11d54c4eb7a5ec3fe4c2e",
+      "observable_npz_sha256": "c2057534dac3b95fd46e9df42ae8723462d79df8bef3bc1527c08679601fd19e",
+      "record_id": "sulfur-389495-2e00c04d8f40",
+      "scf_cycle_range": [
+        8,
+        8
+      ],
+      "stratum": "sulfur"
+    }
+  ],
+  "result_sha256": "aff5eedd0b8dffa69a1f082d6ef6948f885a631961b598c1eef7ef84bbd6d294",
+  "schema_version": 1,
+  "source": {
+    "observable_runner_sha256": "89e91658cebf6dfcfcfc4e7d3bea0fd60be2b5cbb7666978f8a094ab9fabec71",
+    "preregistration_file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "preregistration_path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e",
+    "sealer_path": "tools/route2_release/seal_vqm24_observable_training_batch.py",
+    "sealer_sha256": "5a3acc8d9fd83188995c701e28ba59a0ecaf6d558e0dd6ec687fd113cbd400d8"
+  },
+  "status": "fail"
+}

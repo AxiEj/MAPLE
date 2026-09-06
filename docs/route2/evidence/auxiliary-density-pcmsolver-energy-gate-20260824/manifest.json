@@ -1,0 +1,48 @@
+{
+  "aggregate": {
+    "maximum_actual_energy_error_kcal_per_mol": 0.16549425509197638,
+    "maximum_constraint_absolute_error": 4.320099833421409e-12,
+    "maximum_energy_error_upper_bound_kcal_per_mol": 0.48021401418474585,
+    "maximum_reciprocity_relative_defect": 4.015377123199711e-16,
+    "mean_actual_energy_error_kcal_per_mol": 0.1276112700278051,
+    "mean_energy_error_upper_bound_kcal_per_mol": 0.3300610463956254
+  },
+  "artifact": "route2-auxiliary-density-pcmsolver-energy-gate-evidence-v1",
+  "claim_boundary": {
+    "allowed_decision": "reject or retain make_auxbasis as a representation oracle",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false
+  },
+  "decision": "fail-terminate-make_auxbasis-for-scalar-head-role",
+  "files": {
+    "README.md": {
+      "bytes": 1579,
+      "sha256": "d90138719cca34176a51764f43b81ac3b06ccab46c819ec518642e75ef8c2fb0"
+    },
+    "failed-unbound-import.log": {
+      "bytes": 1028,
+      "sha256": "2a5eec9281f876202c8a3629eb1de7a46e8ef49daeae7cc6167c8b163630131b"
+    },
+    "preregistration.json": {
+      "bytes": 19416,
+      "sha256": "f857ebc0143e71ad3ffafe6dd6bbdbc55b0fcffb80325568c8f4f9844d9b0977"
+    },
+    "result.json": {
+      "bytes": 24840,
+      "sha256": "3e3394e7700a545960c44fd23d5916965a2b04d2a5947ef041a3984ed455ae66"
+    },
+    "run.log": {
+      "bytes": 25787,
+      "sha256": "a4ffb8c0119dd7756d58348daa74c048b8ce58964ab059ec439096c23c2f404c"
+    }
+  },
+  "gates": {
+    "all_cases": true,
+    "constraints": true,
+    "maximum_bound": true,
+    "mean_bound": false,
+    "reciprocity": true
+  },
+  "manifest_sha256": "9f2d4c57c9a98273f1ed7dfaf9660529b822a999be25571fc85c51997718760c"
+}

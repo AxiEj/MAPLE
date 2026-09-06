@@ -1,0 +1,21 @@
+{
+  "artifact": "route2-four-case-make-auxbasis-density-oracle-v1",
+  "basis": "pyscf.df.make_auxbasis with frozen def2-TZVPD orbital basis",
+  "claim_boundary": {
+    "allowed_use": "mechanistic representation qualification only; requires a prospective broader panel before training",
+    "capability_admitted": false,
+    "fit_or_training_performed": false,
+    "four_qm_mep_cases_previously_opened": true,
+    "preregistered": false,
+    "solvation_target_read": false
+  },
+  "created_utc": "2026-08-23T18:09:25.019322+00:00",
+  "hard_constraints": "electron count and electronic first moment via cavity-independent Coulomb-metric projection",
+  "key_result": {
+    "maximum_constrained_area_relative_error": 0.026843548937921465,
+    "mean_constrained_area_relative_error": 0.01866693372816389,
+    "mean_raw_area_relative_error": 0.01920120020821677
+  },
+  "result_sha256": "6da54bd2ffbc5b6c3742ddd48c5c9596c9bc667c1054cf7c8091627622358083",
+  "source_sha256": "71d4df8d4a6c94fb08c261328201c3d123da51251066f98c59f4b483ebe011f4"
+}

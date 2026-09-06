@@ -1,0 +1,2 @@
+cea827c55be9104252d7e3b066197d7dd0f90adb18c4359ae42da2177cfe56e3  docs/route2/evidence/mdp-polar-hidden-feature-decoder-pro-20260819/prompt.md
+cea827c55be9104252d7e3b066197d7dd0f90adb18c4359ae42da2177cfe56e3  /mnt/c/Users/29860/AppData/Local/Temp/maple_hidden_decoder_pro_prompt.txt

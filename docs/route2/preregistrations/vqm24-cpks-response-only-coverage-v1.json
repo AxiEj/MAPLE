@@ -1,0 +1,792 @@
+{
+  "artifact": "route2-vqm24-cpks-response-only-coverage-prereg-v1",
+  "claim_boundary": {
+    "experimental_solvation_target_read": false,
+    "maple_capability_admitted": false,
+    "model_fit_or_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "train_split_QM_response_generator_coverage_only": true,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T09:34:21.743819+00:00",
+  "decision": {
+    "all_32_records_must_pass_every_gate": true,
+    "any_provider_failure_stops_expanded_response_generation": true,
+    "energy_curvature_target_or_gate": false,
+    "success_authorizes_only_twelve_mode_cpks_generation": true
+  },
+  "gates": {
+    "checkpoint_canonical_fock_residual_relative_maximum": 1e-05,
+    "checkpoint_rebuilt_energy_abs_hartree_maximum": 1e-05,
+    "dipole_symmetric_relative_maximum": 0.00058,
+    "direct_cpks_residual_relative_frobenius_maximum": 1e-05,
+    "direct_cpks_residual_relative_infinity_maximum": 2e-05,
+    "electron_number_derivative_abs_maximum": 1e-10,
+    "energy_identity_abs_hartree_per_e2_maximum": 1e-10,
+    "mep_symmetric_relative_maximum": 0.00058,
+    "passivity_maximum_eigenvalue_hartree_per_e2": 1e-08,
+    "reciprocity_relative_frobenius_maximum": 1e-06
+  },
+  "output_root": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1",
+  "parent": {
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e"
+  },
+  "pilot": {
+    "file_sha256": "fd32eab8113dc5b6e138e218b16d46217d8b44008056314a9be2fac1568a06af",
+    "path": "docs/route2/evidence/vqm24-cpks-response-only-pilot-20260827/result.json",
+    "payload_sha256": "19b710d0d3ddc3c3e21e4b0e0f2d14d9887aa306781d1a29336b62365d2168f3"
+  },
+  "preregistration_sha256": "6c09bf65c0257c06ad3e4a2e4375cf7cdb1185fa43a8cbfd45a490e1180158fb",
+  "records": [
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/observable-dense-v2/result.npz",
+          "sha256": "caab35f1caba2447b3d961dabe6c8ec89b7d3f6ec3a377ba83cf495d04dc2e1e"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/gas/gas.chk",
+          "sha256": "43e26491bd87ea01c306f81d40967cb42286fb60f768eca59f22fa3656987160"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/dense-localized-modes-v2.npz",
+          "sha256": "67b715deb9fd54329986b55c16e7cfc8e8cde07f5d5f31ad2dc27af2b6ef9a82"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/dense-surface-v2.npz",
+          "sha256": "762b97a74e0c5cecdd1cf413b7bb517444e6d3d838a3c06bd81e1d5bcab44418"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/fluorine-412002-081c6cc3a31b",
+      "record_id": "fluorine-412002-081c6cc3a31b",
+      "selection_record_sha256": "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/observable-dense-v2/result.npz",
+          "sha256": "905465b8f2ddc96cbb3cab1603e8234fbb76f7b5a9e009eff9090c1e794116ea"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/gas/gas.chk",
+          "sha256": "e872b693277374a1a4709e5d108f34239facbf2f54a1f46a027be9cf0cb2dad0"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/dense-localized-modes-v2.npz",
+          "sha256": "60691ac36087a75b48455162f7c42dac6d5973a5d05aac1455c3d93eff45e519"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/dense-surface-v2.npz",
+          "sha256": "7d0ffafacc3e1b1378c9ccf5493535e1f746e67051b44190672879930b646718"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-460236-0c750047a5e1",
+      "record_id": "base-hcno-460236-0c750047a5e1",
+      "selection_record_sha256": "0c750047a5e1d79f448d409199141755f6a64b4d35738e7a797311a7ac630eec"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/observable-dense-v2/result.npz",
+          "sha256": "ea8b2a29ccc95fffb2c9d254198305a492d15d450a742c64d1a717d87a3b275b"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/gas/gas.chk",
+          "sha256": "b2ca2fd198f107471e68da620e0a2a8884db08800aa9dcfb8e724e3ea5365574"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/dense-localized-modes-v2.npz",
+          "sha256": "c749d9ee7c6493dbeae33ad7552e9191a4c3381dd9f4586c26286207af971f3e"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/dense-surface-v2.npz",
+          "sha256": "2fed26300c146c5bf7a7a567bc555bf9df02ebf22c6a513c21bb7abaa3bb9332"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/phosphorus-351029-1256947e5905",
+      "record_id": "phosphorus-351029-1256947e5905",
+      "selection_record_sha256": "1256947e5905faa4818050cfa469e5d337d08c128377563d6fff979843981661"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/observable-dense-v2/result.npz",
+          "sha256": "32d7a015586200f47bbffcc9d2b7ec26ddf8e0aa26354d047190bb368e386f21"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/gas/gas.chk",
+          "sha256": "60759c08f57777e176baaf634ad03a1a68b9312d41e5d7c5f3fa42b1ac787095"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/dense-localized-modes-v2.npz",
+          "sha256": "0cb9961f501f84f484741ec97ffbce0e0ab9b1a98f4e1faa9972867e63705d51"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/dense-surface-v2.npz",
+          "sha256": "bfbbb9670f987b69a863ec55a89edb7452a360d34ff57591ff83740e5ac5ff35"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/sulfur-122602-190c2fbc8b99",
+      "record_id": "sulfur-122602-190c2fbc8b99",
+      "selection_record_sha256": "190c2fbc8b9986ba63860d36f411d67bfee87f21aeb177776d9bcf2d681b3b18"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/observable-dense-v2/result.npz",
+          "sha256": "a4c12865a01a377169cef1b16f7e839be181a9e122cd316abb9945eddbc76d56"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/gas/gas.chk",
+          "sha256": "d8b75f389a5aa2e0925cfd78d3dc8d02329eee8b1033266b59bd58bd08b96466"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/dense-localized-modes-v2.npz",
+          "sha256": "1a75929edabab9a4b2a3456f303fe1776cde31dc3fb58666354d96fe977d904f"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/dense-surface-v2.npz",
+          "sha256": "7c7040dd4f83e33b5739b329b2379697216f5abfbe3d7d424a06d3a0030ba2aa"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-436944-1c3caaef7cd3",
+      "record_id": "base-hcno-436944-1c3caaef7cd3",
+      "selection_record_sha256": "1c3caaef7cd3392b67d4b8b8ec1e84a9ae39c6c2213e869b250e8b57583b6d90"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/observable-dense-v2/result.npz",
+          "sha256": "c2057534dac3b95fd46e9df42ae8723462d79df8bef3bc1527c08679601fd19e"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/gas/gas.chk",
+          "sha256": "46dee9c525ab4c81415627b5223cb9902a4dde221972d434bd6b51178a326eca"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/dense-localized-modes-v2.npz",
+          "sha256": "3c39c3f7958d1266abd0116796a533d1ce3b9e15cdc92deb3d38dc832f4aa5f0"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/dense-surface-v2.npz",
+          "sha256": "786d25aba0ca896367d15feabb251e7662c0866cca97b86732194a98d0aa39de"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/sulfur-389495-2e00c04d8f40",
+      "record_id": "sulfur-389495-2e00c04d8f40",
+      "selection_record_sha256": "2e00c04d8f404aba122f77452f5fc364cd6581bc4ac20c0c99394d25adfeb938"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/observable-dense-v2/result.npz",
+          "sha256": "2e110fb6e7def9115c5336e9167761c92e860815421c55dd8c0e31f9f89ed618"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/gas/gas.chk",
+          "sha256": "6f08a6040f7c0e4e00434978880f3cce17769adf4bf936fbe07e4d7967639a06"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/dense-localized-modes-v2.npz",
+          "sha256": "2c69ddce8bb53ac410816b92d0093049c1c2d1df10dd5a5d18595ffe31c0c079"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/dense-surface-v2.npz",
+          "sha256": "9eb938cf09e4e98e3bdcfa5bbc791902f02137b338ae83ae12620bf68b9a914f"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-156765-3c8bc817c95e",
+      "record_id": "base-hcno-156765-3c8bc817c95e",
+      "selection_record_sha256": "3c8bc817c95e2292beb3f7e33a5ca9124b8e0d4a205120c26d07ac3b7e590a44"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/observable-dense-v2/result.npz",
+          "sha256": "c04b4d5405df1e71811f62fb4aa06a9c1b0d18d726182ed078635da3d4604e6e"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/gas/gas.chk",
+          "sha256": "59c9f2fea8aabe1e2b8171332755c35464f9fb2052cf57d5fe60c0794d57516f"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/dense-localized-modes-v2.npz",
+          "sha256": "96bf8252bc1546005e5c3ab6e6a178f56e2fe37e689973d5235b7ed09946eeb2"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/dense-surface-v2.npz",
+          "sha256": "d37f56dd263e0d051519431312d1dd616ec46e130528ff691516ab2078d418b9"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-481244-549dfd678c85",
+      "record_id": "base-hcno-481244-549dfd678c85",
+      "selection_record_sha256": "549dfd678c854f033529dc0a5ec0bba0e093178bebb6e9570f2a1d510b81bce4"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/observable-dense-v2/result.npz",
+          "sha256": "a0602557ece4ea1d921d94bece46eb0fb59d0bb004091cb5a50d645dd0ca4e42"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/gas/gas.chk",
+          "sha256": "9dbcc076e515c637866a89beae3a34a18b106444623f4f559d42e94a2213c03c"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/dense-localized-modes-v2.npz",
+          "sha256": "350f6f8ab84888ee4a6a7075d1e881360b4ae21c0b7dffcbc87a0242c9d3f3cf"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/dense-surface-v2.npz",
+          "sha256": "3d7058a5562a2ba2c7b412b8c7bb22578433f90788b89da8082069973aab5ac0"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/bromine-101221-5abef0a88d16",
+      "record_id": "bromine-101221-5abef0a88d16",
+      "selection_record_sha256": "5abef0a88d160c5745e94e7ae6e4a61db94c7a3ea74c33d99afb87fadee8bf64"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/observable-dense-v2/result.npz",
+          "sha256": "14dc86729051250a7ea22e048de64c8711454b65f955954c4feb3634048eea93"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/gas/gas.chk",
+          "sha256": "93fdb7d3a32a3b044cfa7e7effdaa64990c5e4a8a571d55e4fce81c84a263075"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/dense-localized-modes-v2.npz",
+          "sha256": "63ef3d498c66569820deda530744aa4a7b788dd3c298d1c6fd4d4c4f8d92070d"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/dense-surface-v2.npz",
+          "sha256": "a7f6b85924a1a6673627d5408a998ae4a0e9f101038f09bbbb39d2898f19e04d"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/fluorine-278363-5c9234fb4b84",
+      "record_id": "fluorine-278363-5c9234fb4b84",
+      "selection_record_sha256": "5c9234fb4b842cbefccd9df2232bb86ee2b1a1c7eb1fea51fc7b942918b173f7"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/observable-dense-v2/result.npz",
+          "sha256": "d154049c678898ae95d0ec547b4654a5334a2610d8720aba7bc9b6c504d775d6"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/gas/gas.chk",
+          "sha256": "7f9a2f206f000dc7d2ffc4bb43494f4d25a718a60a2d41acc3d2334cb76c4e67"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/dense-localized-modes-v2.npz",
+          "sha256": "5534cd1fc3af0f562894ae319701a14dfb6b10cbc2aac5ad8e6265b20edd89c0"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/dense-surface-v2.npz",
+          "sha256": "7a65e0005a73856c9cc2106251ace69ce77c22bca2ea273647a5a0e77d9eecec"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/sulfur-221028-692cd68117c4",
+      "record_id": "sulfur-221028-692cd68117c4",
+      "selection_record_sha256": "692cd68117c45da0ace8ee3c3f701101c093109b560674c637207ee5b3e6112b"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/observable-dense-v2/result.npz",
+          "sha256": "cfeffc52a4866189c8ce6c08072adaef0aa32afd832e5196147ee55b1a4ed6c3"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/gas/gas.chk",
+          "sha256": "467ef26193e0e60ae81307ef2b958d99d7a6f3ddc939d5c587227685e669d475"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/dense-localized-modes-v2.npz",
+          "sha256": "0604193c40e8ee72f6f12a3cbafd74c2ccc3891c627694af8c4d255b14c3d6c0"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/dense-surface-v2.npz",
+          "sha256": "9eed279e5e97494a22783ff249716dbb845a6b044fda3315d6216071a8005810"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/bromine-10426-6bb8a046ac22",
+      "record_id": "bromine-10426-6bb8a046ac22",
+      "selection_record_sha256": "6bb8a046ac22e3d3d0c702d3915f28559a6031f13428d385bd032bb65ab978db"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/observable-dense-v2/result.npz",
+          "sha256": "9d5196edee5c7e0e9478c030e46621a1c38f10c046dc400e346c4a05496849ed"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/gas/gas.chk",
+          "sha256": "83b7409a35bb4e396828917d2f779bf9f1332a7c95715f9a78a71cf255a67b32"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/dense-localized-modes-v2.npz",
+          "sha256": "51db38835e6c20deda59300f1d537f2189d109f16574476fc74ae96c167177b9"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/dense-surface-v2.npz",
+          "sha256": "2cb73c49a375dfdb33e93d890164287ad93d2bbda6d59c6b1d16512c20dfb7bd"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-404508-6cb9b5d441de",
+      "record_id": "base-hcno-404508-6cb9b5d441de",
+      "selection_record_sha256": "6cb9b5d441de514008b986d2e160f906a3f90521617217a128b92bc22de87f5e"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/observable-dense-v2/result.npz",
+          "sha256": "765249a281913628be7ccf0a5bac8a96ef9a4c26065a651663804b40777b918d"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/gas/gas.chk",
+          "sha256": "7bc23742bc085ab9b229670003b701c0e717dc4d788ef530750374ec3a6b4d6a"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/dense-localized-modes-v2.npz",
+          "sha256": "0cb3868a4c1fd655ee8cf66674c5819b49609d9a0960c03663ed5b378c25ddf7"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/dense-surface-v2.npz",
+          "sha256": "528b37cffdfed17ea1360c1dfd921918f38c47553c9cf25b4a6953399d12c1dc"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/fluorine-469465-70c76c720826",
+      "record_id": "fluorine-469465-70c76c720826",
+      "selection_record_sha256": "70c76c72082658882dfba613043632d0f47e934267aa33c8edcc3a6786586bb3"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/observable-dense-v2/result.npz",
+          "sha256": "35389f41b2611cdb427e5754b751a9536001de5f7a7a119f7de621bd59e668fe"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/gas/gas.chk",
+          "sha256": "f1f938a6fcc5cd35de00792298246d7c5bafe1d4e8cb7497f400f9f2a7d0243a"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/dense-localized-modes-v2.npz",
+          "sha256": "a55d6e3fc2e48e0dc7c75fcae906ae41872d7cd6bb6093ac7110f6c4eb8013e8"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/dense-surface-v2.npz",
+          "sha256": "702036bbf92a1d86d86e2380bad9af9e1a4714dd451daec85e8ed6abf5bedf09"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/fluorine-139037-710a4fc89944",
+      "record_id": "fluorine-139037-710a4fc89944",
+      "selection_record_sha256": "710a4fc899445ea32e9ee299a28c37717816569e6280081289896763623f250c"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/observable-dense-v2/result.npz",
+          "sha256": "890ff4142a177d37f7ccab9502cc11e422aff87c0b218952681d76ee82b9384b"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/gas/gas.chk",
+          "sha256": "749ce8d9f6bd092dfcd4b3bfa1daa7f5c064447a01c6f8908af95dcac3ef3206"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/dense-localized-modes-v2.npz",
+          "sha256": "fafa4be8d896dee42eabd207275eb1cecaae7c141c5255e3e399fadd7664d662"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/dense-surface-v2.npz",
+          "sha256": "007f81a88b7d121b39d7bd6dd2562113490b0088b928a2d4524cba2d1f9ede0a"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/bromine-63727-71eb4b0867c9",
+      "record_id": "bromine-63727-71eb4b0867c9",
+      "selection_record_sha256": "71eb4b0867c97cbabfd963f4990a54696f7448eb669674d2a9065d275539d94f"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/observable-dense-v2/result.npz",
+          "sha256": "a6d12a07e93b490de531ba7c52b7c166606952fe8cd93b291f5bfd9b6da2a00d"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/gas/gas.chk",
+          "sha256": "31c809315a69c408cd71f69ae8aa2fe430ffcfdc66e5f330a09425b278ac053a"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/dense-localized-modes-v2.npz",
+          "sha256": "58a5212d5441526f98ef32504af3266717cbffc9dd5a4c50abf6afc27cf8aa86"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/dense-surface-v2.npz",
+          "sha256": "0e085374f9c193601e04e638a33302b8704bbcffa6dc7eab793ffba474b3b4c1"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/phosphorus-696398-7400c7789c7c",
+      "record_id": "phosphorus-696398-7400c7789c7c",
+      "selection_record_sha256": "7400c7789c7cddf2a428423122920f006c0f88cbdc25efcf581f9590f82f92a4"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/observable-dense-v2/result.npz",
+          "sha256": "96de995be5beaeb5a4d30cfe526800cfe8895395d4ce1a408c9b9df1191408c0"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/gas/gas.chk",
+          "sha256": "93c2a4577e434152d2f73252b0259289603199a4ec1219417ceb781e5ade7826"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/dense-localized-modes-v2.npz",
+          "sha256": "16932fbb65a197d825713d82bee6d646d71391ff34b7b5f5d985e93814ab256c"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/dense-surface-v2.npz",
+          "sha256": "2fdb474bfe7d71682c0b596cae9a1a047c7e17775d36791f511928e57cae621a"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-162863-745ab5d78c8b",
+      "record_id": "base-hcno-162863-745ab5d78c8b",
+      "selection_record_sha256": "745ab5d78c8bb0911db7dd3925d7d98c6defc19412654ddca9745afd4ff7d79b"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/observable-dense-v2/result.npz",
+          "sha256": "d33ed17b837167fc83e9f858c55c9b2970373ea3248d5718f883e2de42716149"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/gas/gas.chk",
+          "sha256": "bda139d03d2ec5a0c63bbe6f72791d4d29f7c6902e95fd6eefdf70b03a3a3420"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/dense-localized-modes-v2.npz",
+          "sha256": "3a63be542147404bfa05ea5b0afbadeccbd3def800913c1e44e1f9cc87f9df54"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/dense-surface-v2.npz",
+          "sha256": "10d2182225197e577b9ddd73ee267ea03ad1c3b0214f63b25a018f47c2757b34"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-208608-7e6419f2ee92",
+      "record_id": "base-hcno-208608-7e6419f2ee92",
+      "selection_record_sha256": "7e6419f2ee92ddeb473cf58eb1675ef92b8298c6e3355cc9fa914ca1863abfd5"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/observable-dense-v2/result.npz",
+          "sha256": "1cb6a76b369ada05e5cc1c739301582ad2bd10c39e19d7ae81d418ec677af40f"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/gas/gas.chk",
+          "sha256": "a5873243bca6444ce9a5dc640774259d5be795dae27b521562cb6f56f907b8b2"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/dense-localized-modes-v2.npz",
+          "sha256": "b651312bdaab0373fa4789b8f912fc94e7c7878799e6cf2f0265629572cb412f"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/dense-surface-v2.npz",
+          "sha256": "77083f5977aae73c93c0156058b61cb4ac7930453932687d22a72982485b7562"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/bromine-447833-84c7dcaffea3",
+      "record_id": "bromine-447833-84c7dcaffea3",
+      "selection_record_sha256": "84c7dcaffea3d665200f3eadeaf128acfbd72925df1bd26764644aff7b0d8231"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/observable-dense-v2/result.npz",
+          "sha256": "bbf156708bac43abcf3c850bea5d73fc3f97f599bf17bad4d0f0129c925c1bff"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/gas/gas.chk",
+          "sha256": "9b9d3ef57b28ca1b835e06130f45d0f7919c73a81f0332d37e9b0a7ec3a394de"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/dense-localized-modes-v2.npz",
+          "sha256": "4de97f4101daeaedafcd4f4fce32fa091cb18049a0305d56a28eff0a29e04954"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/dense-surface-v2.npz",
+          "sha256": "daa69ef81c8bc5456fc23dc5026aeadbd11267d94fb239721d5c03e7bafa2231"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/sulfur-379175-938cde712eac",
+      "record_id": "sulfur-379175-938cde712eac",
+      "selection_record_sha256": "938cde712eac59de5400446c18c4cd6e995f2fd4f148c74ae7aca57c31cab3ed"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/observable-dense-v2/result.npz",
+          "sha256": "54cc25b08d1a22b27e13b830ce99281aa59a4f7a24c892c47872c3e2678e8675"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/gas/gas.chk",
+          "sha256": "77d8564a1188c58ce5de4d0faab2e9bbd5fa72c731d2cf6bc9411e0a8913030e"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/dense-localized-modes-v2.npz",
+          "sha256": "9424e3aa96088511b8c5976c2bc55523f129727a34f902d03e39f994a6ba7f57"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/dense-surface-v2.npz",
+          "sha256": "61ac94a432583398bb585b16b300579465ce31d94a7d5074727eb6124f09cf57"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-135247-970f059c1f95",
+      "record_id": "base-hcno-135247-970f059c1f95",
+      "selection_record_sha256": "970f059c1f95df68ab562190b88541b48bec61d4c94fd273a3dee16268fd86fd"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/observable-dense-v2/result.npz",
+          "sha256": "05085677fe47262c02e4a8fb6ba3b428d5b7881737ab99b3822e886c89b1fb09"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/gas/gas.chk",
+          "sha256": "69a0d64609099bbca9f5f849528fb9b77bb3263605a7ff27b6e94ee8bb07072e"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/dense-localized-modes-v2.npz",
+          "sha256": "a597d95cdbbc98118f99a86834650ce81fba2c28d1de9f2a313149c38d930751"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/dense-surface-v2.npz",
+          "sha256": "b64a47ea32f441447985426d4477bf4a16ef2be1e5f60ad3b1874d1b68e0ad25"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/chlorine-636384-976484d18c73",
+      "record_id": "chlorine-636384-976484d18c73",
+      "selection_record_sha256": "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/observable-dense-v2/result.npz",
+          "sha256": "9bdf8506d2662e4f5d3ab33c582261f02921e4da67644870d56df3004c138c00"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/gas/gas.chk",
+          "sha256": "4b88ec9de2fb99f3e0987d41e67c795ce4ce591780959299d6c8249ca6085d5d"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/dense-localized-modes-v2.npz",
+          "sha256": "3f65cef33f0615db46bff91238e91ac9b876bfe66c9498109875ce6fe1d26ef4"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/dense-surface-v2.npz",
+          "sha256": "f4a28d432201637d8311a04f19d34f733670ad0175fa1978fc059b4c0c73e51f"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/chlorine-141648-a14bf52170de",
+      "record_id": "chlorine-141648-a14bf52170de",
+      "selection_record_sha256": "a14bf52170dea71bd865316ce52048bbd65fcf33bd5a789e8fe8baa718348602"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/observable-dense-v2/result.npz",
+          "sha256": "1e492f88e2b2f0e47210f90385a5e69e01e7cf4b894a5cb88a15e8a3c441e129"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/gas/gas.chk",
+          "sha256": "b9c38c902a20d1d280fc44e8cd53de435d0b609ce764d54d115ceefd99cb34d6"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/dense-localized-modes-v2.npz",
+          "sha256": "bcd59e0f49b1a9fcb577c0736091b0be6d659103c2d782783140121f542f6c3f"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/dense-surface-v2.npz",
+          "sha256": "ee5835846ddbb7629c9cc386992a45e7b4f3afdc980fcd31b612b2b5429dae0c"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/chlorine-784-a7040c282ac8",
+      "record_id": "chlorine-784-a7040c282ac8",
+      "selection_record_sha256": "a7040c282ac8e9c04889c1df017919eda981ace596b50be46caa82a3abe0a6c3"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/observable-dense-v2/result.npz",
+          "sha256": "9a5f485d0710fffe8dbf501eb4b8dcad5c1336598cce35ae2f30a646cf3db908"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/gas/gas.chk",
+          "sha256": "c639de592b0023067d798defefccc0179372ca7aa4825eeec5cff793235e8dc0"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/dense-localized-modes-v2.npz",
+          "sha256": "f6daacf9446b0af694be2be04e36f11a59adbe43004206e538d4edf825048743"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/dense-surface-v2.npz",
+          "sha256": "cf75193f74415bf317038056c1ecdc78dadb7e0c12e9a6d77b495ec2fc1091ff"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/chlorine-610177-ac8ad6afa4f7",
+      "record_id": "chlorine-610177-ac8ad6afa4f7",
+      "selection_record_sha256": "ac8ad6afa4f740de2ae08cd09ee5b6710d75b194ad22aed0a9663d11dea92773"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/observable-dense-v2/result.npz",
+          "sha256": "22e7d29dcad22ee89ca13589b243f833bdc3989b054cb3fa7ca76fc48e09b3bf"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/gas/gas.chk",
+          "sha256": "1ea9807da16b7d32c01c4fd483da4456ed48c4a3ad16ac83b31ddb5d256db879"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/dense-localized-modes-v2.npz",
+          "sha256": "3000fdc4533a6b0167f24df396d6839aa30167aa442e5e074c392002ff79f040"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/dense-surface-v2.npz",
+          "sha256": "6b2223f2f3b21d06e3ed7fbb63252167f2731d97aed5ecc9503fc518a650a1d2"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-229457-b412c4e75aed",
+      "record_id": "base-hcno-229457-b412c4e75aed",
+      "selection_record_sha256": "b412c4e75aedda1dac83ce4c498c8fd73797531e056b8213421a65719ee384d9"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/observable-dense-v2/result.npz",
+          "sha256": "63655febcf50612a178f268bac891141a09139773b8a01060034eea3dffe042d"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/gas/gas.chk",
+          "sha256": "d37e69ab43f57a0bafe156744af928d622b6d8fd473a9c5798b991c0526ad6c9"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/dense-localized-modes-v2.npz",
+          "sha256": "1fb6ef8bf6224088ece33ae07839a4a864536023f005e4afd44076bad57beaec"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/dense-surface-v2.npz",
+          "sha256": "9326840021180b93805b6e43cc6a282dbb08ba2567726c3cea5576a00deddba9"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-432908-c1096072c51b",
+      "record_id": "base-hcno-432908-c1096072c51b",
+      "selection_record_sha256": "c1096072c51bc6def3e63c2ea20fa18acb0d8a9281714573fe383b6edd09abe4"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/observable-dense-v2/result.npz",
+          "sha256": "3a9bcfaf0f05d6233754683bd12e2c5dcd8cbd3cfa910cf63928005cdcfc0f13"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/gas/gas.chk",
+          "sha256": "eaa8186ecbcfc5a0ea17fbea4e735c5f83726dea04a9a263eb200712816394d1"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/dense-localized-modes-v2.npz",
+          "sha256": "d9220cd1afc46195e52f4b628278d7ffbe2022b85afc00a79433dda09db446e6"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/dense-surface-v2.npz",
+          "sha256": "20ac4fe3880cf3db839b0d197d328fd15009cec7799c44fa03d1ffa2f71a2646"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/phosphorus-66144-d15ba6ea626a",
+      "record_id": "phosphorus-66144-d15ba6ea626a",
+      "selection_record_sha256": "d15ba6ea626a099aef06c30eba949ab6c4afab6fdd1381bfa569f1a66034108a"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/observable-dense-v2/result.npz",
+          "sha256": "80dc20d93e863e2884961d4f2fc1d4479d6064079df0da6eb2e9b3c4a6666e63"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/gas/gas.chk",
+          "sha256": "466cedbdd367b896ebcf6b542c993f8d8fd3a4adc5fada8a21cfedfbf079233c"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/dense-localized-modes-v2.npz",
+          "sha256": "2cf21944c0eb2d2d7e47b781f481c54cd9aeb612257239755293330b6d31a4d9"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/dense-surface-v2.npz",
+          "sha256": "d59b752cc48f1ebb8444cbdedd15b31bfa68da1ea8f563fa6bb6a2c82892ece3"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/phosphorus-598182-ea0696054cba",
+      "record_id": "phosphorus-598182-ea0696054cba",
+      "selection_record_sha256": "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/observable-dense-v2/result.npz",
+          "sha256": "29513c3dee3661c28cd6d1f4595b941796c09913481e2413054f7392d0ff3e55"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/gas/gas.chk",
+          "sha256": "0180b7e451f99ba5de019d1cb1e5d1cdbb6d364f077222cae9b4b0e364dfc5ca"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/dense-localized-modes-v2.npz",
+          "sha256": "3503d51bd9dfc74ecea79fd8f4e0fa089b037117053cd1ce050d986a46c7a32b"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/dense-surface-v2.npz",
+          "sha256": "753ed54dba07868932c82871715b956a1cb6d933e4c5f2b66ce228cfee2efc06"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-440770-f59ae1366672",
+      "record_id": "base-hcno-440770-f59ae1366672",
+      "selection_record_sha256": "f59ae1366672f5434cf08f68b4d52bbdbeddb809d8f33e45bb3743c7b509d60c"
+    },
+    {
+      "inputs": {
+        "finite_field_observable": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/observable-dense-v2/result.npz",
+          "sha256": "94067ad6edd3cf2915e409caef0c9791220d3d9102a956e84e049d7042016f2c"
+        },
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/gas/gas.chk",
+          "sha256": "9169c5ee98cf5aa29d39fb2d5681a8c70161bd64d620a21988d8e100c56d3dcf"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/dense-localized-modes-v2.npz",
+          "sha256": "6cfe954599ea3e106b01389b0cb4915766fa3d8766bd9bdc726f7f5d62986e09"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/dense-surface-v2.npz",
+          "sha256": "f71f83b0437c9e107c75e23cd629ddec78d7ae30dcd8c3de46933f4d1c491ad2"
+        }
+      },
+      "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-cpks-response-only-coverage-v1/base-hcno-399849-fa20b6e144ad",
+      "record_id": "base-hcno-399849-fa20b6e144ad",
+      "selection_record_sha256": "fa20b6e144ad2e4f0d79bf95de902efb424e8d49809b2756b97f514bc5f24bef"
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "builder_path": "tools/route2_release/create_vqm24_cpks_response_only_coverage_preregistration.py",
+    "builder_sha256": "32e007ede1c75281e50dbbeec5893c6ce8b08d505939b857788d8d07577740fa",
+    "cpks_runner_path": "tools/route2_release/run_vqm24_static_cpks_response.py",
+    "cpks_runner_sha256": "c4ba8cbb4a6b45946ac61e5b553cc5e1be44c0cb86e1b034f05dec4ad0c3128b",
+    "record_runner_path": "tools/route2_release/run_vqm24_cpks_response_only_coverage_record.py",
+    "record_runner_sha256": "22af15ff8d036836519b511f0c99dd49e002d10e9de5617fbe95deffa4d6d39f",
+    "sealer_path": "tools/route2_release/seal_vqm24_cpks_response_only_coverage.py",
+    "sealer_sha256": "97fb7d31dbee628f17a59fdedbc63fc27ab9affb5874962d1139371281611e73"
+  },
+  "status": "locked-before-coverage-execution"
+}

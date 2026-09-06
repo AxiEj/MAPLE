@@ -1,0 +1,9 @@
+{
+  "maple/function/calculator/route2/_mace_mdp_polar_hybrid_ddx_calculator.py": "e92f4ba4ab929cfed8cd02239e924f49f299c5713014f07ef8efbc998e4ef332",
+  "maple/function/dispatcher/frequency/frequency.py": "bc31c80cb4bd8eac940d5348a0e2efd1c3b776cef5addec1fdc8fe74218d6f6f",
+  "maple/function/dispatcher/ts/algorithm/neb.py": "516dd5b47c46af044c8233345b10d0a542b6c708d70572d4bfdf7f95053c9cc7",
+  "maple/function/read/command_control.py": "44aff2fbb0c927dba5a0246c1acaa6ae38e14b8e52f37d43e7ca97440780b120",
+  "tests/calculator/test_mace_mdp_polar_hybrid_calculator.py": "8d04086df15698d01061b56f93084dae3e13b8a2ef3380266381ac970dc141d6",
+  "tests/test_frequency_vibrational_only.py": "448f938617caeb2b5c6a6ddb55c4fac0209bc7f12d6760266cb77923472dd7cf",
+  "tests/test_hybrid_neb_workflow.py": "89c03ce6ffc90f89d6c47e8e5b2f8064f5364dd984e3c76e43e547b8eb8b0580"
+}

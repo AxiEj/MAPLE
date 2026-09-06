@@ -1,0 +1,210 @@
+{
+  "artifact_kind": "target-independent-nonuniform-work-terminal-audit",
+  "artifact_sha256": "cd02627600c396d5d67fd634604f91402ea721d6fcdbfc069ce0775816207915",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "This artifact establishes the current continuum half-work and the absence of an official arbitrary-nonuniform upstream explicit-work endpoint. It reads no solvation target, selects neither Phi0 nor Phi_raw by accuracy, and admits no E/F/H/V/M capability.",
+  "conditioned_raw_energy": {
+    "endpoint_energy_difference_eV": -0.0075003197475780325,
+    "endpoint_gradient_dot_field_eV": -0.0071635412126536,
+    "endpoint_gradient_dot_field_minus_energy_difference_eV": 0.00033677853492443226,
+    "endpoint_identity_absolute_error_eV": 4.590008928495592e-13,
+    "integrated_work_eV": -0.0075003197480370334,
+    "interpretation": "The same-graph charging line integral reproduces the raw energy difference. A single endpoint gradient contraction need not.",
+    "passed": true,
+    "quadrature_refinement_absolute_error_eV": 0.0,
+    "refined_integrated_work_eV": -0.0075003197480370334
+  },
+  "configuration": {
+    "continuum": "ddPCM",
+    "continuum_configuration_sha256": "31857a58e66bdabcdcbde85e5a6d646a87fb9949912c18767cbf1da32ea4275f",
+    "continuum_provenance_sha256": "ef200fb3f425c1b3917c309210f0f3dd84bc885ad02d6a831933118cf1ec3a8e",
+    "dielectric": 78.39,
+    "evaluator_configuration_sha256": "e6ca5ce4a6260d1b3463bd676d3b65ca095fcc879f92914190211c5fafb3d888",
+    "hybrid_configuration_sha256": "7a83c2ef61c037385e76ce33b63500d1afdaacdff21dd685cc8dbdd8e3d7601e",
+    "hybrid_provenance_sha256": "9070f11d236ef3adc5f1e22cdcca089604eb327a1f6fbfffff5813c40abb806f",
+    "induced_source": "MACE-POLAR zero-anchored 1.5-A Gaussian q/p",
+    "lmax": 8,
+    "mdp_checkpoint": {
+      "bytes": 51716861,
+      "resolved_path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "model_drive": "external-MEP 1.5/3.0-A phi-side receiver",
+    "n_lebedev": 194,
+    "permanent_source": "MACE-MDP point q/p",
+    "polar_checkpoint": {
+      "bytes": 68133235,
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "polar_device": "cuda"
+  },
+  "continuum_half_work": {
+    "absolute_error_eV": 5.329070518200751e-15,
+    "energy_dual_work_eV": -0.5341975145018621,
+    "interpretation": "The source couples to the continuum scalar through its own direct-sum energy cotangents. The MLIP model field is a different receiver and is not an admitted endpoint work.",
+    "model_field_minus_energy_gradient_l2": 1.2632168333582887,
+    "naive_native_endpoint_absolute_mismatch_eV": 0.4151136037004871,
+    "naive_native_endpoint_work_eV": -0.11908391080137502,
+    "polarization_energy_eV": -0.26709875725093374,
+    "twice_polarization_energy_eV": -0.5341975145018675
+  },
+  "decision": {
+    "explicit_nonuniform_endpoint_correction_admitted": false,
+    "next_scientific_gate": "matched target-independent electronic-distortion and same-equation continuum-component comparison of preregistered operational ledgers",
+    "phi0_operational_scalar_remains_available": true,
+    "phi_raw_operational_scalar_remains_available": true,
+    "physical_ledger_selected": false,
+    "pro_outcome": "C",
+    "tier_v_admitted": false,
+    "uniform_work_extrapolates_to_nonuniform": false
+  },
+  "exact_command": "tools/route2_release/run_hybrid_ddx_nonuniform_work_audit.py --polar-device cuda --output /tmp/route2-hybrid-ddx-nonuniform-work-audit-20260817c.json",
+  "execution": {
+    "git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "git_head_tree": "4d0dbe5405acc456cb6efed0f1f05c54423339a0",
+    "source_files_sha256": {
+      "maple/solvation/continuum/radial_gto_ddx.py": "c00af50c8b47d938b0c6a11b2036f3b5c991102230ae502fdab94c1b8b5ba337",
+      "maple/solvation/continuum/separated_source_ddx.py": "165558b730c0b474d8ca4579e63382ac27e50782d5e449393208d213946e5efd",
+      "maple/solvation/experimental/mace_mdp_polar_ddx.py": "b8322f1745576b2425cbaea863e182865700f36ac94eb9530ecdb60d43779730",
+      "maple/solvation/models/mace_mdp.py": "8db70e65e806851bd524ce2f40298bd482e0466afc66a886be6fe8e58bd8e2df",
+      "maple/solvation/models/mace_mdp_polar_hybrid.py": "f40acb3e815ef3f3c6fe85be71b1906e49e2cc9ef6ac92fe6416a371b4264ac0",
+      "maple/solvation/models/mace_polar_separated.py": "7ed58cbfa1c53da0efd410ae62ef5e0e9131613957e06c2648ac614b1778f0c0",
+      "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+      "tools/route2_release/run_hybrid_ddx_nonuniform_work_audit.py": "a2ed8189feae140646a8c4b0ad9719bf7490995b19a068d1410eedbe2d2fdfbd"
+    },
+    "working_tree_status": "M GOAL.md\n M maple/solvation/continuum/separated_source_ddx.py\n M maple/solvation/experimental/mace_mdp_polar_harmonic.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_harmonic.py\n M tests/route2_vnext/test_separated_source_ddx.py\n?? docs/route2/evidence/HARMONIC_POINT_PERMANENT_PRO_AUDIT_2026-08-17.md\n?? docs/route2/evidence/HYBRID_DDX_MAINLINE_REPLAY_2026-08-17.md\n?? docs/route2/evidence/hybrid-ddx-nonuniform-work-20260817/\n?? docs/route2/evidence/hybrid-ddx-source-ledger-pro-20260817/\n?? tests/route2_vnext/test_hybrid_harmonic_analytic_audit.py\n?? tools/route2_release/run_hybrid_ddx_nonuniform_work_audit.py"
+  },
+  "gates": {
+    "continuum_energy_dual_half_work": true,
+    "continuum_state_replay": true,
+    "model_field_distinct_from_energy_gradient": true,
+    "naive_native_endpoint_rejected": true,
+    "native_raw_charging_identity": true,
+    "reaction_field_materially_nonuniform": true,
+    "root_residual": true,
+    "upstream_arbitrary_nonuniform_work_api_absent": true,
+    "upstream_uniform_work_branch_verified": true
+  },
+  "measurement_sha256": "d91edf0e5a7e29ec20708add487c70583d3ad811447e7ef735e2d5948aca8593",
+  "root": {
+    "cold_iterations": 7,
+    "continuum_state_sha256": "5917109840b12501ca15c0e30423120cfea834b21056097c7069281e8ce6e393",
+    "native_field_l2": 0.5145741436546598,
+    "primal_residual_eV": 4.3452669630021775e-13,
+    "root_sha256": "c4c3119393a491aa9cfb6d7799ce96471deaea25971e02e53de6a9979d5eb76c",
+    "uniform_subspace_coefficients": [
+      -0.10095507028815495,
+      -0.13045920268136643,
+      0.0
+    ],
+    "uniform_subspace_projection_relative_residual": 0.5799277131715507,
+    "uniform_subspace_projection_residual_l2": 0.2984158063868559,
+    "wide_iterations": 7
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-17T01:42:03.648677+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "mace-torch": "0.3.16",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 1,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 14.539850367997133,
+  "schema_version": "route2-hybrid-ddx-nonuniform-work-audit-v1",
+  "status": "pass-outcome-c-no-upstream-nonuniform-work-endpoint",
+  "upstream_work_surface": {
+    "candidate_arbitrary_nonuniform_parameters": [],
+    "forward_parameter_names": [
+      "self",
+      "data",
+      "training",
+      "compute_force",
+      "compute_virials",
+      "compute_stress",
+      "compute_displacement",
+      "compute_hessian",
+      "compute_edge_forces",
+      "compute_atomic_stresses",
+      "lammps_mliap",
+      "use_pbc_evaluator",
+      "fermi_level",
+      "external_field"
+    ],
+    "forward_signature": "(self, data: Dict[str, torch.Tensor], training: bool = False, compute_force: bool = True, compute_virials: bool = False, compute_stress: bool = False, compute_displacement: bool = False, compute_hessian: bool = False, compute_edge_forces: bool = False, compute_atomic_stresses: bool = False, lammps_mliap: bool = False, use_pbc_evaluator: bool = False, fermi_level: Optional[torch.Tensor] = None, external_field: Optional[torch.Tensor] = None) -> Dict[str, Optional[torch.Tensor]]",
+    "matching_source_lines": [
+      {
+        "line": 606,
+        "text": "external_field: Optional[torch.Tensor] = None,"
+      },
+      {
+        "line": 638,
+        "text": "external_potential = torch.hstack("
+      },
+      {
+        "line": 806,
+        "text": "half_external_field = 0.5 * self.external_field_contribution("
+      },
+      {
+        "line": 928,
+        "text": "+ torch.sum(external_potential[:, 1:] * total_dipole, dim=-1)"
+      }
+    ],
+    "module": "mace.modules.extensions",
+    "official_arbitrary_nonuniform_explicit_work_api_detected": false,
+    "official_uniform_E_dot_mu_branch_verified": true,
+    "qualname": "PolarMACE",
+    "resolved_path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/modules/extensions.py",
+    "sha256": "5ce5372251097f9d6fd17f69f6c63738a6d32278683586522fc70be4d9010e06",
+    "source_markers": {
+      "half_field_added_to_both_spin_channels": true,
+      "uniform_dipole_explicit_work": true,
+      "uniform_external_field_parameter": true,
+      "uniform_external_potential_construction": true
+    }
+  }
+}

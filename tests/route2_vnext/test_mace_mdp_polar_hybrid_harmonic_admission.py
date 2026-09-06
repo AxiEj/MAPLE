@@ -12,6 +12,7 @@ from maple.solvation.api.profiles import (
 )
 from maple.solvation.api.scalar_registry import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
+    MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
     MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
     SCALAR_REGISTRY,
 )
@@ -35,6 +36,9 @@ RUNNER = (
 ADMISSION = (
     ROOT / "docs/route2/evidence/"
     "mace-mdp-polar-hybrid-harmonic-force-admission-replicated-4cf8db40.json"
+)
+ANALYTIC_FORCE_EVIDENCE = (
+    ROOT / "docs/route2/evidence/hybrid-harmonic-analytic-force-20260819"
 )
 
 
@@ -95,10 +99,38 @@ def test_harmonic_force_admission_is_honest_and_narrowly_enabled() -> None:
     assert profile.capabilities.molecular_dynamics is False
     assert profile.evidence_artifact_ids == (
         MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+        MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
     )
     assert scalar.enabled is True
     assert scalar.admitted_capabilities == profile.capabilities
     assert scalar.evidence_artifact_ids == profile.evidence_artifact_ids
+
+
+def test_analytic_force_evidence_is_content_bound_and_narrow() -> None:
+    manifest = json.loads(
+        (ANALYTIC_FORCE_EVIDENCE / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["artifact_id"] == (
+        MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID
+    )
+    assert manifest["pro_audit"]["verified_mode"] == "Pro, 5 of 5"
+    assert manifest["pro_audit"]["verdict"] == "GO, conditionally"
+    assert "does not admit chemical accuracy" in manifest["claim_boundary"]
+    for relative, expected in manifest["raw_files_sha256"].items():
+        assert _sha256_file(ANALYTIC_FORCE_EVIDENCE / relative) == expected
+    for relative, expected in manifest["implementation_sources_sha256"].items():
+        assert _sha256_file(ROOT / relative) == expected
+
+    checks = manifest["real_checkpoint_checks"]
+    assert checks["water"]["adjoint_residual_eV"] < 1.0e-9
+    assert (
+        checks["water"]["stored_gpu_richardson_all_component_max_abs_error_eV_per_A"]
+        < 2.0e-8
+    )
+    assert (
+        checks["benzene"]["stored_gpu_richardson_component_abs_error_eV_per_A"] < 1.0e-8
+    )
+    assert checks["water_symmetry_loop"]["closed_loop_abs_work_eV"] < 1.0e-8
 
 
 def test_harmonic_force_admission_freezes_required_force_symmetry_loop_gates() -> None:

@@ -1,0 +1,88 @@
+You are reviewing a zero-training scientific composition for a hybrid
+MACE-MDP + MACE-POLAR implicit-solvent model.  Please reason critically and
+mathematically; do not propose fitting to solvation targets.
+
+Frozen semantics:
+
+* MACE-POLAR supplies the zero-field atomwise q/p source and its native
+  nonlinear response to an 8-channel two-width potential feature u.
+* MACE-MDP supplies a supervised molecular polarizability alpha_D (3x3,
+  symmetric positive definite).  Its latent atomwise q/p and atomwise alpha
+  decomposition are not treated as physical observables.
+* U maps the three affine-potential coordinates g=grad(phi) into the exact
+  native MACE-POLAR U8 field.  Physical E=-g.  G recovers g by averaging the
+  duplicated gradient channels over atoms and the two radial blocks.  G never
+  mixes potential values with gradients because they have different units;
+  it ignores the constant-potential gauge.  Nonuniform fields are ker(G).
+* At zero field, let J_P be the MACE-POLAR source Jacobian and C be the exact
+  source-to-molecular-dipole map.  Define C_P = C J_P U.  In all seven
+  target-free opened-tail diagnostic geometries, -sym(C_P) is positive
+  definite and C_P is nonsingular.
+
+Proposed topology-preserving composition:
+
+    X = C_P^{-1} (-alpha_D)
+    T = I + U (X-I) G
+    M_corr(R,u) = M_POLAR(R, T(R) u)
+
+Thus T U g = U X g, T leaves ker(G) unchanged, M_corr(R,0)=M_POLAR(R,0),
+charge response is unchanged, and the corrected molecular susceptibility on
+the uniform subspace is exactly C J_P U X = -alpha_D.  Unlike a rejected
+alternative, it never inserts MDP atomwise alpha into the source; it retains
+the POLAR response span.
+
+Target-free numerical diagnostics on seven already-opened geometries:
+
+* relative molecular susceptibility mismatch POLAR vs MDP: 0.246--0.328;
+* X singular values across cases: 1.108--2.154;
+* cond(X): 1.17--1.69;
+* relative source-Jacobian change ||J_P X-J_P||/||J_P||: 0.356--0.584;
+* molecular closure error: <=2.7e-15;
+* direct replacement by latent MDP atomwise alpha would change the atomwise
+  source Jacobian by 2.16--2.75 times and has therefore been rejected.
+
+No checkpoint is trained, no scale/radius/width/CDS is fitted, and no
+experimental or MBIS target is read by this construction.  It is presently an
+operational response candidate, not a Tier-V/common-functional claim.
+
+There is one nearby alternative that should be compared rather than silently
+assumed equivalent:
+
+    M_tangent(R,u) = M_POLAR(R,u) + J_P U (X-I) G u.
+
+It gives the same zero-field uniform susceptibility and charge conservation,
+keeps the correction in POLAR's zero-field uniform tangent span, and leaves all
+second and higher field derivatives of M_POLAR unchanged.  In contrast,
+M_POLAR(Tu) changes nonlinear uniform/nonuniform mixed derivatives by the input
+coordinate transform.  The tangent form is not literally evaluation at a
+different native checkpoint field.  Please decide which, if either, has the
+stronger physical justification.
+
+Please answer these questions:
+
+1. Is this construction mathematically and physically defensible as a
+   zero-training hybrid response, or is there a fundamental category error?
+2. Is the gradient-channel chart G the correct dimensionally and gauge-valid
+   direct-sum projector?  If a metric-aware projector is still required,
+   derive it using the physical field/source duality and state exactly which
+   metric must appear without mixing potential and gradient units.
+3. Does the geometry-dependent X preserve SO(3), translation, permutation,
+   charge gauge, and source/receiver covariance?  State sufficient algebraic
+   conditions and identify any hidden origin dependence.
+4. What nonlinear response terms are changed beyond the zero-field
+   susceptibility?  Does M_POLAR(Tu) create double counting or uncontrolled
+   mixed uniform/nonuniform derivatives?  Compare it explicitly with the
+   additive tangent form above and give a decisive preference or rejection.
+5. Can any operational scalar ledger be used with an implicit adjoint, and
+   what coordinate derivatives of U, U+, C_P, alpha_D, X, and T are mandatory
+   for a conservative nuclear force?  Do not call it a common variational
+   functional unless that actually follows.
+6. Give terminal, target-independent gates for passivity, root stability,
+   reciprocity/curl, gauge work, finite-field behavior, and response magnitude
+   before any solvation-accuracy panel is opened.
+7. If this should be rejected, propose the nearest zero-training alternative
+   that still uses only MDP's supervised molecular alpha and POLAR's own
+   atomwise source topology.  Post-training is explicitly a final fallback.
+
+Distinguish structural proof, finite numerical evidence, and chemical
+calibration.  We need a decisive go/no-go audit, not encouragement.

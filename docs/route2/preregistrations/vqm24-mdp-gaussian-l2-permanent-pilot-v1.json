@@ -1,0 +1,78 @@
+{
+  "architecture": {
+    "elements": [
+      1,
+      6,
+      7,
+      8,
+      9,
+      15,
+      16,
+      17,
+      35
+    ],
+    "id": "Q-A-element-linear-carriers-development-pilot",
+    "l2_induced_response": false,
+    "maximum_expected_parameter_count": 64,
+    "new_message_passing": false,
+    "permanent_l2": "Gaussian sigma 1.5 A; element gains on MDP STF alpha and two explicit pair STF carriers",
+    "permanent_radial": "MDP q/p plus shared radial mixing, element radial-null, local antisymmetric transfer, element dipole scale"
+  },
+  "artifact": "route2-vqm24-mdp-gaussian-l2-permanent-pilot-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "coefficient_label_used": false,
+    "experimental_solvation_target_read": false,
+    "model_selected_or_admitted": false,
+    "pcm_or_cavity_used": false,
+    "response_target_used": false,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T00:12:44.348275+00:00",
+  "decision": {
+    "per_molecule_coefficient_span_failures_not_used_as_labels_or_initialization": true,
+    "purpose": "capacity and fit/audit pilot only; not model selection or admission",
+    "stop_after_fixed_2000_epochs": true
+  },
+  "mdp_features": {
+    "checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "energy_role": "none",
+    "file_sha256": "e2bcb6e2ea649ebe7cfdb653d8f72949b9dd8c3becbaeff12fc3f0acb26232a9",
+    "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-frozen-mdp-features-v1/manifest.json",
+    "result_sha256": "1823ea199dfe6dc455552b8477ecf2462078a0ae67b23e01f620b4c17796bace"
+  },
+  "parent": {
+    "file_sha256": "36152f69865ae52f41de2b528725b453162b8caf2ec265ac2fd973b6270fe190",
+    "path": "docs/route2/preregistrations/vqm24-permanent-p13-zero-field-mep-v1.json",
+    "preregistration_sha256": "e9788ed3a12fa1862d57d2082717c422bb4a42826d30793c0cc89b8be1cf5d22"
+  },
+  "preregistration_sha256": "d31f20b411155e1d97d999a262c795795ecb7ee382af0f844534b642b172e67a",
+  "schema_version": 1,
+  "source": {
+    "gaussian_l2_sha256": "dc377258bb229780da44bf88576b99f5e54a5e1e5f2a1536af391c1cff40c61c",
+    "quadrupole_basis_sha256": "339133ec1847821fb543d735f4ce79d211013fdd31b2d8b9fa30296980ac0829",
+    "radial_coupling_sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "runner_path": "tools/route2_release/train_vqm24_mdp_gaussian_l2_permanent_pilot.py",
+    "runner_sha256": "3c33b058b7be7568792f074cf672e32d6a482d06e04540f3f25cb4ebb9850978"
+  },
+  "status": "locked-before-q-a-development-training",
+  "training": {
+    "audit_points_used_in_gradient": false,
+    "device": "cuda",
+    "dipole_loss_weight": 0.1,
+    "dtype": "float64",
+    "epochs": 2000,
+    "learning_rate": 0.003,
+    "mep_loss_weight": 0.9,
+    "optimizer": "Adam",
+    "pair_cutoff_angstrom": 5.0,
+    "pair_radial_scales_angstrom": [
+      1.5,
+      3.0
+    ],
+    "records": 32,
+    "seed": 20260827,
+    "validation_or_blind_opened": false,
+    "weight_decay": 0.0001
+  }
+}

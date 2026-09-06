@@ -1,0 +1,19 @@
+{
+  "artifact": "route2-mdp-mbis-source-error-decomposition-evidence-v1",
+  "claim_boundary": {
+    "experimental_solvation_targets_read": false,
+    "fitting_or_calibration_performed": false,
+    "hybrid_integration_admitted": false,
+    "public_capability_admitted": false,
+    "source_diagnostic_only": true
+  },
+  "external_record_directory": "/tmp/maple-mdp-mbis-source-decomposition-full-1786958708371538663",
+  "files_sha256": {
+    "README.md": "6a8c74dadf52b9c34795b6bdfe07114f4b97aab684d50dbed9d3274c8f25d33b",
+    "aggregate.json": "aff9479eac19871dfb2da706a95f7b77120e1fbab861dc0be5e7ab34c6dce787",
+    "preregistration": "70aab9945717dee5a7a1b3d59f392a919a450f686826daf89a663a4695d91179",
+    "runner": "4b2ea8dfe9a09d71486c5839f91864fe1d68e9304d6c2876ab77997a9d3b4db1",
+    "source_head": "ee476dda6d30191fbaa025aa4e857a7687e797af9d1c9ad75ba5552968282d32"
+  },
+  "source_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b"
+}

@@ -1,0 +1,170 @@
+{
+  "artifact": "route2-vqm24-localized-field-qm-gate0-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "pcm_or_cavity_label_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-23T21:05:44.975647+00:00",
+  "input_files": {
+    "atomic_reference_manifest": {
+      "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.json",
+      "sha256": "bc85c8375fee448ceb78f7394a23a459e9c17ea6e70f672f3e3937072112736f"
+    },
+    "atomic_reference_table": {
+      "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz",
+      "sha256": "d81363187ce6092b23031f5626e0d794bbad4f44646f1e06e41b1112768fefc6"
+    },
+    "modes": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/localized-modes.npz",
+      "sha256": "8374df4d6423467aae8fc5960758edb1a18f70a7e21e89ec57551962eec0cd4d"
+    },
+    "mol2": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/geometry.mol2",
+      "sha256": "67b6f4989dc5ac5940a92ddd71deb2d15ed5a2950526e91f218c3330278dba1b"
+    },
+    "surface": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/surface.npz",
+      "sha256": "ccd6a5698da6397b30a2376cc559eb429748101e6f7f5ea3dee902b3357d021b"
+    }
+  },
+  "outputs": {
+    "gas_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/gas",
+    "response_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/qm-response"
+  },
+  "preregistration_sha256": "d31bc3a48db605cacbaf063f7d753b4aec7efe6f3ec0d761778aee53b9ce6131",
+  "probe_protocol": {
+    "atomic_radius": "isolated frozen atomic-reference density radius at 0.0001 e/bohr^3",
+    "candidate_directions": 26,
+    "cavity_or_solvent_used": false,
+    "clearance_angstrom": 1.0,
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "mode_count": 4,
+    "mode_selection": "geometry-only farthest exterior points"
+  },
+  "qm_protocol": {
+    "basis": "def2-tzvpd",
+    "maximum_memory_mb": 8000,
+    "method": "omegaB97M-V",
+    "nonlocal_grid": [
+      50,
+      194
+    ],
+    "nonlocal_prune": "sg1_prune",
+    "reference": "RKS density fitting",
+    "semilocal_grid_level": 3,
+    "threads": 8
+  },
+  "schema_version": 1,
+  "selection": {
+    "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-geometry-selection-v1.json",
+    "record": {
+      "atomic_numbers": [
+        7,
+        6,
+        7,
+        7,
+        7,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "atomic_numbers_sha256": "cfdc165b693c34bac5508e966f01033c5491c415932224a26fd0ae6f3b1d0d85",
+      "chemical_formula_hill": "CH6N4",
+      "configuration_hash": "10894138762301137325592694151706237111733509984721528088892359935519139653394755299738782124206846992039284909151702830217451002104112429758477825442223824",
+      "dataset_index": 460236,
+      "molecule_group_sha256": "e7d2b2f66bb35b0539e5f337b5dd21baa1c8e2d8c60a1f90ed5b11a2cb1732a9",
+      "names": [
+        "Vector-QM24_DFT_all__DFT_all__199649"
+      ],
+      "positions_angstrom": [
+        [
+          1.179191996999,
+          -0.759429545629,
+          -0.238848909132
+        ],
+        [
+          0.423401446738,
+          0.370069071513,
+          0.074273442804
+        ],
+        [
+          0.974456631422,
+          1.523906752546,
+          0.096068808199
+        ],
+        [
+          -0.921467467621,
+          0.091944760699,
+          0.327387711131
+        ],
+        [
+          -1.551064577381,
+          -1.029238468878,
+          -0.241385695952
+        ],
+        [
+          2.165406968242,
+          -0.51564267991,
+          -0.239010678444
+        ],
+        [
+          0.998903548292,
+          -1.554083611615,
+          0.368092462653
+        ],
+        [
+          0.267570199794,
+          2.253261676981,
+          0.222309215583
+        ],
+        [
+          -1.510959449346,
+          0.915695195713,
+          0.268853052449
+        ],
+        [
+          -1.453643024219,
+          -1.819901419161,
+          0.394735057277
+        ],
+        [
+          -1.077968848772,
+          -1.284505196714,
+          -1.110445657719
+        ]
+      ],
+      "positions_angstrom_sha256": "d64e3714e531f81f98e14c4eaf512a581eec6d9698dc91440bca5236651b357b",
+      "record_sha256": "0c750047a5e1d79f448d409199141755f6a64b4d35738e7a797311a7ac630eec",
+      "selection_score_sha256": "00046e8183c9c592ab35111c92021d6d4891f66b7d46070d711a0436667198f1",
+      "split": "train",
+      "stratum": "base-hcno",
+      "structure_hash": "4702460804824630421165184728610216181397283472840587497636715705957037180989816237909445697322173280879418083009378953452800262482090734103073219284874376"
+    },
+    "selection_sha256": "fdcfb665b64973155d619d806a25c96af4efe7586ba727cf20cba627745825f1",
+    "sha256": "f3b0b5b9bab07263af68c73bd6cf82714aa14aa07434a069ddb70fff2e093d94"
+  },
+  "source": {
+    "clean_snapshot": "/tmp/maple-route2-vqm24-qm-gate0-source",
+    "clean_snapshot_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "creator_path": "tools/route2_release/prepare_vqm24_nonuniform_qm_gate0.py",
+    "creator_sha256": "59c85e01973c63f8ff1e93ef3cb48bfd5ac1f495c6c14a18ac537c50671cd68a",
+    "gas_runner": {
+      "path": "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+      "sha256": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb"
+    },
+    "response_runner": {
+      "path": "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/route2_qm_localized_point_charge_response.py",
+      "sha256": "75be973ef0940e976d69d56dd22941c1235ce80d1dfac552d152b05bad2b1fe6"
+    }
+  },
+  "status": "locked-before-first-vqm24-qm-gate0-execution"
+}

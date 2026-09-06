@@ -32,6 +32,7 @@ INHERITED = (
     "route2-gto-pcm-energy-projection-four-prereg-v1.json"
 )
 RUNNER = REPO_ROOT / "tools/route2_release/run_matched_qm_pcmsolver_decomposition.py"
+FROZEN_SOURCE_GIT_HEAD = "9e964f06bc54285bd5a66015067df3485e060f51"
 
 
 def _sha256(path: Path) -> str:
@@ -44,6 +45,13 @@ def _sha256(path: Path) -> str:
 
 def _payload() -> dict[str, object]:
     return json.loads(PREREGISTRATION_V3.read_text(encoding="utf-8"))
+
+
+def _frozen_git_blob_sha256(relative: str) -> str:
+    content = subprocess.check_output(
+        ["git", "-C", str(REPO_ROOT), "show", f"{FROZEN_SOURCE_GIT_HEAD}:{relative}"]
+    )
+    return hashlib.sha256(content).hexdigest()
 
 
 def test_preregistration_freezes_source_independent_matched_reference() -> None:
@@ -82,7 +90,7 @@ def test_preregistration_freezes_source_independent_matched_reference() -> None:
     )
 
 
-def test_preregistration_binds_current_sources_and_inherited_assets() -> None:
+def test_preregistration_binds_frozen_sources_and_inherited_assets() -> None:
     payload = _payload()
     inherited = payload["inherited_asset_contract"]
     assert inherited["path"] == str(INHERITED.relative_to(REPO_ROOT))
@@ -90,7 +98,7 @@ def test_preregistration_binds_current_sources_and_inherited_assets() -> None:
     source_hashes = payload["execution_contract"]["source_sha256"]
     assert source_hashes
     for relative, expected in source_hashes.items():
-        assert _sha256(REPO_ROOT / relative) == expected
+        assert _frozen_git_blob_sha256(relative) == expected
     cases = payload["cases"]
     assert len(cases) == 4
     assert len({case["case_id"] for case in cases}) == 4

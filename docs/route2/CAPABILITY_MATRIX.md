@@ -11,6 +11,27 @@ CLI restriction.
 | V | strict common variational electronic-continuum functional |
 | M | public MD release gate |
 
+## Experimental daily availability
+
+The release-admission registry below is intentionally stricter than runtime
+availability. The exact named-solvent hybrid daily surface currently has these
+**experimental callable** properties and workflows:
+
+| model name | E | F | H | molecular virial | SP | first-order OPT | FREQ | TS | strict V | MD |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `macemdppolarhybridddx` | yes | yes | yes, guarded Richardson | yes, nonperiodic | yes | yes | vibrations only | NEB/CINEB candidates only | no | no |
+
+Here strict `V` means a common variational MACE--continuum functional; it does
+**not** mean the separately callable molecular virial. These experimental
+entries are usable through the normal calculator/dispatcher boundary even
+though production release admission remains `no`. The current accuracy panel
+and broader derivative/path validation do not establish production admission.
+FREQ does not add gas-phase thermochemistry; its numerical guards retain the
+explicit partial-observation policy for PySCF-SMD topology. NEB/CINEB requires
+matched atom order and content-bound PES identity, and does not certify a
+first-order saddle. PRFO/NEBTS, Dimer, IRC and charged/open-shell tasks remain
+unsupported. The `1.5 kcal/mol` target is not an experimental availability gate.
+
 ## Conservative-vNext registry
 
 | scalar/profile | E | F | H | V | M | current disposition |
@@ -20,8 +41,9 @@ CLI restriction.
 | `route2-operational-macepolar-analytic-gaussian-multipole-smoothharmonicgalerkin-cpcm-v1` | no | no | no | no | no | closed negative for quantitative solvation on the unchanged source: all twenty equilibrium rigid panels pass twice, but the original four-channel source fails all four matched QM/PCMSolver fixed-source cases by `2.824` to `11.828 kcal/mol`; no ledger or force evidence may advance on this identity |
 | `route2-research-macepolar-original-source-fixed-radial-embedding-v1` | no | no | no | no | no | terminal negative: a preregistered universal `sigma=0.75 A` map improves train and held-out distant surface MEPs, but all four matched intrinsic-cavity PCMSolver energies still miss by `1.829` to `4.888 kcal/mol`; no additional radial patches are authorized |
 | `mace-mdp-route2-independent-variational-polarization-candidate-v1` | no | no | no | no | no | terminal negative for the unchanged permanent source: frozen MACE-MDP atomic charges/dipoles pass `3/4` matched QM/PCMSolver cases, but 2-acetoxyethyl acetate misses by `1.824 kcal/mol` under the preregistered all-case `1 kcal/mol` gate; no KKT, source patch, ledger, or force work is authorized on this identity |
-| `route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1` | **yes** | **yes** | no | no | no | experimental same-scalar E/F admission only: fixed-dimensional smooth harmonic assembly removes the GEPOL active-point mechanism, and two clean identical runs pass `h/h2/h4`, independent directional, translation, rotation-force, and guarded closed-loop gates; force is runtime-guarded fourth-order Richardson, while chemical accuracy, complete solvation, named-solvent transfer, analytic force, Hessian, MD, and Tier V remain unadmitted |
+| `route2-profile-experimental-macemdppoint-macepolarinduced-smoothharmonicgalerkin-electrostatic-v1` | **yes** | **yes** | no | no | no | experimental same-scalar E/F admission only: fixed-dimensional smooth harmonic assembly removes the GEPOL active-point mechanism; the original replicated Richardson panel passes `h/h2/h4`, directional, translation, rotation-force, and guarded-loop gates, and the default matrix-free implicit-adjoint force matches its stored water/benzene values while passing same-graph FD, covariance, and loop canaries. Chemical accuracy, complete solvation, named-solvent transfer, Hessian, MD, and Tier V remain unadmitted |
 | `maple.route2.experimental.mace-mdp-polar-separated-ddx-pes.impl.v1` | no | no | no | no | no | **callable but not registry-admitted** MACE-MDP permanent + MACE-POLAR induced operational ddX surface: `E_vac + E_ddX,pol` exposes analytic block-adjoint F, a declared-origin molecular virial, and error-estimated Richardson HVP/H of that same force. Exposed ddX cavity topology is guarded, but this electrostatic-only identity has no CDS/nonpolar completion, chemical or derivative-accuracy panel, global root uniqueness/nonsingularity proof, broad covariance/distorted-PES evidence, FREQ/OPT/MD workflow admission, or strict common-functional Tier V claim |
+| `route2-experimental-mace-mdp-polar-separated-ddx-smd-daily-v1` | no | no | no | no | no | **MAPLE-callable experimental daily surface, not registry-admitted** under model name `macemdppolarhybridddx`: the explicit scalar is `E_vac + E_ddX,pol + E_SMD-CDS`; E/F, a declared-origin molecular virial, direct Richardson H, SP, and first-order OPT are wired through the normal calculator boundary. The frozen development result remains `1.696313 kcal/mol` MAE with a `14.904481 kcal/mol` maximum error, and PySCF-SMD topology is unobservable to the H backend. Experimental mass-weighted FREQ is vibrational-only (no gas thermochemistry), and E/F-only NEB/CINEB exposes TS candidates with same-PES validation. Numerical derivative guards remain enforced under the explicitly partial topology-observation policy; PRFO/NEBTS, Dimer, production E/F/H/FREQ/TS, strict Tier V, IRC/MD, and chemical-accuracy claims remain `no` |
 | `route2-profile-diagnostic-fixedbox40-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | earlier derivative/path panels pass, but the frozen all-panel water canary fails rotation energy and force covariance; retained as negative evidence, not admissible |
 | `route2-profile-diagnostic-fixedbox{32,48,56}-cpcm590-radialgto-electrostatic-v1` | no | no | no | no | no | preregistered box controls passed at one equilibrium water geometry; distinct identities, no adaptive selection, no public capability |
 | `route2-profile-diagnostic-fixedbox48-cpcm1202-radialgto-electrostatic-v1` | no | no | no | no | no | separately versioned higher-order candidate; same scalar and unchanged symmetry thresholds, no executed release evidence yet |

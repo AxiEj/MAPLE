@@ -1,0 +1,108 @@
+{
+  "aggregate_sha256": "cfc4f6569cbe3841db7b63fc0cdfd660de09291c2c5febfc18cd9b9682ca7417",
+  "artifact": "route2-mdp-polar-uniform-response-source-gate-v1-aggregate",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "cds_or_standard_state_used": false,
+    "experimental_solvation_targets_read": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "mnsol_or_freesolv_imported": false,
+    "post_training_or_fitting_performed": false,
+    "pure_mace_polar_in_scope": false,
+    "selection_disjoint_from_prior_sixty_molecules": true,
+    "source_or_energy_result_used_for_selection": false
+  },
+  "decision": "reject-both-polar-point-source-candidates",
+  "fixed_source_ddpcm_energy": {
+    "mdp_latent_point": {
+      "mae_kcal_mol": 7.799107050481112,
+      "maximum_kcal_mol": 19.013767340820376,
+      "q95_kcal_mol": 13.048261686536254
+    },
+    "polar_uniform_response_point": {
+      "mae_kcal_mol": 1.4283269437639652,
+      "maximum_kcal_mol": 4.493629958311033,
+      "q95_kcal_mol": 3.5452883380295117
+    },
+    "polar_zero_point": {
+      "mae_kcal_mol": 1.4609576214392324,
+      "maximum_kcal_mol": 4.530936108560474,
+      "q95_kcal_mol": 3.6708781889672437
+    }
+  },
+  "global_relative_mep_rmse": {
+    "1.00": {
+      "mdp_latent_point": {
+        "reference_qp": 0.29978291211001407,
+        "reference_qpqo": 0.318905516113294
+      },
+      "polar_uniform_response_point": {
+        "reference_qp": 0.3105517864327751,
+        "reference_qpqo": 0.2791352066750453
+      },
+      "polar_zero_point": {
+        "reference_qp": 0.31053623946857056,
+        "reference_qpqo": 0.27927903026554146
+      }
+    },
+    "1.25": {
+      "mdp_latent_point": {
+        "reference_qp": 0.2309552338206163,
+        "reference_qpqo": 0.23096507976051978
+      },
+      "polar_uniform_response_point": {
+        "reference_qp": 0.233286185972527,
+        "reference_qpqo": 0.19615936565498435
+      },
+      "polar_zero_point": {
+        "reference_qp": 0.23341434505965397,
+        "reference_qpqo": 0.19660372607402846
+      }
+    },
+    "1.50": {
+      "mdp_latent_point": {
+        "reference_qp": 0.19256439150154536,
+        "reference_qpqo": 0.18471530990859794
+      },
+      "polar_uniform_response_point": {
+        "reference_qp": 0.1908829808904155,
+        "reference_qpqo": 0.15392376412135705
+      },
+      "polar_zero_point": {
+        "reference_qp": 0.19147128702147215,
+        "reference_qpqo": 0.15503700276045143
+      }
+    }
+  },
+  "polar_zero_gates": {
+    "energy_mae": true,
+    "energy_maximum": false,
+    "energy_q95": false,
+    "paired_improvement_vs_mdp": true,
+    "qpqo_mep_improvement_vs_mdp": true
+  },
+  "polar_zero_passed": false,
+  "preregistration_sha256": "834c8a9f06ed2974467049c58485cf3d4809ff77ba93aaf0193b07ba697d0ef5",
+  "record_count": 60,
+  "selected_candidate": null,
+  "uniform_response_gates": {
+    "closure": true,
+    "conditioning": true,
+    "energy_mae": true,
+    "energy_maximum": false,
+    "energy_q95": false,
+    "field_norm": true,
+    "mae_material_improvement_vs_polar_zero": false,
+    "paired_improvement_vs_polar_zero": false,
+    "qpqo_mep_no_worsening": true,
+    "tail_no_worsening": true
+  },
+  "uniform_response_passed": false,
+  "uniform_response_summary": {
+    "maximum_dipole_residual_eangstrom": 9.999688404416578e-10,
+    "maximum_jacobian_condition_number": 3.461870300462992,
+    "maximum_potential_gradient_norm_ev_per_e_angstrom": 0.07690826942967369,
+    "minimum_jacobian_singular_value": 0.8335334053333833
+  }
+}

@@ -25,6 +25,7 @@ from maple.solvation.api import (
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_PROFILE_V1,
     EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1,
     ForceComponent,
+    MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
     MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
     MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
     OPERATIONAL_CPCM_ELECTROSTATIC_PROFILE_V1,
@@ -126,6 +127,7 @@ def test_authoritative_profile_registry_is_immutable_and_narrowly_admitted():
             )
             assert profile.evidence_artifact_ids == (
                 MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+                MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
             )
         else:
             assert profile.enabled is False
@@ -396,6 +398,7 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
             )
             assert entry.evidence_artifact_ids == (
                 MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+                MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
             )
         else:
             assert entry.enabled is False

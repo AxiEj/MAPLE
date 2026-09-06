@@ -1,0 +1,50 @@
+{
+  "aggregate": {
+    "maximum_actual_energy_error_kcal_per_mol": 0.2141899369364487,
+    "maximum_constraint_absolute_error": 8.526512829121202e-14,
+    "maximum_energy_error_upper_bound_kcal_per_mol": 1.0107770256291955,
+    "maximum_grid_electron_count_error": 9.53736996933685e-06,
+    "maximum_grid_first_moment_l2_error_bohr_e": 3.081778387435906e-05,
+    "maximum_local_metric_condition_number": 55119.017463653785,
+    "maximum_reciprocity_relative_defect": 4.173136938779794e-16,
+    "mean_actual_energy_error_kcal_per_mol": 0.09364118674335965,
+    "mean_energy_error_upper_bound_kcal_per_mol": 0.7072101734976285
+  },
+  "artifact": "route2-partitioned-local-density-pcmsolver-gate-evidence-v1",
+  "claim_boundary": {
+    "allowed_decision": "reject or retain partitioned local labels for scalar-head training",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false
+  },
+  "decision": "fail-reject-partitioned-local-coefficient-labels",
+  "files": {
+    "README.md": {
+      "bytes": 1208,
+      "sha256": "6bbc889ef5b975104ca862aaba1c75b1141aad39835566ce53ab57492084c502"
+    },
+    "preregistration.json": {
+      "bytes": 21004,
+      "sha256": "cdba62dfd4a35d49fa1a6dadc6216339f6b5c7b1787b66488f12ef60bc4e4d52"
+    },
+    "result.json": {
+      "bytes": 30870,
+      "sha256": "0f48b2ea8fe51469b3814e086262b1a0b7063c8cf6e0e118ee1cbd63de640905"
+    },
+    "run.log": {
+      "bytes": 31590,
+      "sha256": "bc5c86d8fa6c5d68350b133fc32dec13613db65c359fb261c74e70892e00fd32"
+    }
+  },
+  "gates": {
+    "all_cases": false,
+    "constraints": true,
+    "grid_electron_count": false,
+    "grid_first_moment": false,
+    "local_condition": true,
+    "maximum_bound": false,
+    "mean_bound": false,
+    "reciprocity": true
+  },
+  "manifest_sha256": "71571599adc128c9f31211a465db6aadfa32da16bcd9be2646b1745624b99714"
+}

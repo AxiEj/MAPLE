@@ -1,0 +1,532 @@
+{
+  "aggregate": {
+    "maximum_audit_mep_max_absolute_hartree_per_e_per_source_e": 0.013244405549587092,
+    "maximum_audit_mep_relative": 0.20079982955174475,
+    "maximum_dipole_response_relative": 0.12050459672522885,
+    "maximum_individual_audit_to_fit_ratio": 1.0178152425623181,
+    "maximum_induced_charge_residual_e": 2.7755575615628914e-17,
+    "maximum_source_point_reciprocity_relative": 2.404452006318166e-16,
+    "maximum_source_point_response_relative": 0.23083669062152545,
+    "maximum_source_point_symmetric_eigenvalue_hartree_per_e2": -0.005035832564165365,
+    "mean_audit_mep_relative": 0.11432149320211824,
+    "mean_audit_to_fit_ratio": 0.9953531875417788,
+    "mean_dipole_response_relative": 0.07641270844354761,
+    "mean_fit_mep_relative": 0.11485520379399973,
+    "mean_l2_source_fraction": 0.47013505191114147,
+    "mean_source_point_response_relative": 0.12928644387305185,
+    "selection_score": 0.10673973625040412
+  },
+  "architecture": {
+    "backbone_parameters_trainable": false,
+    "full_p13_induced_response": true,
+    "include_edges": true,
+    "new_message_passing": false,
+    "response_source_implemented_separately": false,
+    "trainable_parameter_count": 634
+  },
+  "gate_passed": false,
+  "gates": {
+    "audit_mep_absolute": false,
+    "charge": true,
+    "individual_fit_audit_generalization": true,
+    "mean_audit_mep": false,
+    "mean_dipole_response": true,
+    "mean_fit_audit_generalization": true,
+    "mean_source_point_response": false,
+    "passivity": true,
+    "reciprocity": true,
+    "worst_audit_mep": false,
+    "worst_dipole_response": true,
+    "worst_source_point_response": false
+  },
+  "metrics": [
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0034634891924199586,
+      "audit_mep_relative": 0.10069787457147299,
+      "dipole_response_relative": 0.07421322334700424,
+      "fit_mep_relative": 0.10002755469373682,
+      "l2_source_fraction": 0.5090161239796914,
+      "maximum_induced_charge_residual_e": 1.734723475976807e-18,
+      "record_id": "fluorine-412002-081c6cc3a31b",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006785865420036733,
+      "source_point_reciprocity_relative": 1.398753079181422e-16,
+      "source_point_response_relative": 0.09224831190459463
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0025649417082496337,
+      "audit_mep_relative": 0.07355714028913202,
+      "dipole_response_relative": 0.05215769133478924,
+      "fit_mep_relative": 0.07331403988316097,
+      "l2_source_fraction": 0.47303975892166455,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "base-hcno-460236-0c750047a5e1",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006448304357940984,
+      "source_point_reciprocity_relative": 1.3615943348167134e-16,
+      "source_point_response_relative": 0.037800273451477524
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.010049172455664682,
+      "audit_mep_relative": 0.12906513141489773,
+      "dipole_response_relative": 0.09886730859794539,
+      "fit_mep_relative": 0.1306652495249409,
+      "l2_source_fraction": 0.46271884837989025,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "phosphorus-351029-1256947e5905",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.013348760065775539,
+      "source_point_reciprocity_relative": 7.975410907933294e-17,
+      "source_point_response_relative": 0.1368637202795607
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.008673914159409359,
+      "audit_mep_relative": 0.1291389198319347,
+      "dipole_response_relative": 0.07556675596657117,
+      "fit_mep_relative": 0.13193908067421303,
+      "l2_source_fraction": 0.42455284251894704,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "sulfur-122602-190c2fbc8b99",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.007389267549332039,
+      "source_point_reciprocity_relative": 7.676388592571214e-17,
+      "source_point_response_relative": 0.1582393300759517
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.004982664075279239,
+      "audit_mep_relative": 0.10578949660364469,
+      "dipole_response_relative": 0.0885851125668292,
+      "fit_mep_relative": 0.10705949080342164,
+      "l2_source_fraction": 0.4582639646656549,
+      "maximum_induced_charge_residual_e": 8.673617379884035e-18,
+      "record_id": "base-hcno-436944-1c3caaef7cd3",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006469790251680388,
+      "source_point_reciprocity_relative": 1.1399751356377361e-16,
+      "source_point_response_relative": 0.1315776882346511
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0066021030371617995,
+      "audit_mep_relative": 0.09832647837806231,
+      "dipole_response_relative": 0.04228535652224277,
+      "fit_mep_relative": 0.09990090143573381,
+      "l2_source_fraction": 0.4531496074408034,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "sulfur-389495-2e00c04d8f40",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.009777586763033553,
+      "source_point_reciprocity_relative": 1.2671705165659674e-16,
+      "source_point_response_relative": 0.11760170035388584
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.009750613692058867,
+      "audit_mep_relative": 0.14133985040598576,
+      "dipole_response_relative": 0.0876873317825128,
+      "fit_mep_relative": 0.14478069777018554,
+      "l2_source_fraction": 0.49333947372681936,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "base-hcno-156765-3c8bc817c95e",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.007486907429297225,
+      "source_point_reciprocity_relative": 3.141845572056439e-17,
+      "source_point_response_relative": 0.19888343130844496
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.003773894608200507,
+      "audit_mep_relative": 0.09286763520941696,
+      "dipole_response_relative": 0.0589429639874678,
+      "fit_mep_relative": 0.0963859890667329,
+      "l2_source_fraction": 0.5119011787818892,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "base-hcno-481244-549dfd678c85",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.007341396074786369,
+      "source_point_reciprocity_relative": 1.1011267238666042e-16,
+      "source_point_response_relative": 0.11516980911292153
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.008988574016852338,
+      "audit_mep_relative": 0.09434977542356777,
+      "dipole_response_relative": 0.04503507981514535,
+      "fit_mep_relative": 0.09407448163442404,
+      "l2_source_fraction": 0.45272885306416694,
+      "maximum_induced_charge_residual_e": 3.469446951953614e-18,
+      "record_id": "bromine-101221-5abef0a88d16",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.011372972387070794,
+      "source_point_reciprocity_relative": 7.646372838627447e-17,
+      "source_point_response_relative": 0.12989102692676238
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.003412515081688626,
+      "audit_mep_relative": 0.09127341878247941,
+      "dipole_response_relative": 0.0690063340356901,
+      "fit_mep_relative": 0.09206215983016862,
+      "l2_source_fraction": 0.4920138346489627,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "fluorine-278363-5c9234fb4b84",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006281166217508092,
+      "source_point_reciprocity_relative": 1.3074940287361893e-16,
+      "source_point_response_relative": 0.06384191390434793
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.006796314116437146,
+      "audit_mep_relative": 0.11576208996982429,
+      "dipole_response_relative": 0.07667745948670626,
+      "fit_mep_relative": 0.11540978682128708,
+      "l2_source_fraction": 0.45117529522380667,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "sulfur-221028-692cd68117c4",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.008691903552332153,
+      "source_point_reciprocity_relative": 1.567967425437635e-16,
+      "source_point_response_relative": 0.1398629025048534
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.010092891749978822,
+      "audit_mep_relative": 0.13381167106974445,
+      "dipole_response_relative": 0.09469433823765007,
+      "fit_mep_relative": 0.13146950986200379,
+      "l2_source_fraction": 0.44380628177916825,
+      "maximum_induced_charge_residual_e": 8.673617379884035e-18,
+      "record_id": "bromine-10426-6bb8a046ac22",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.00835354599892828,
+      "source_point_reciprocity_relative": 6.757010877244839e-17,
+      "source_point_response_relative": 0.15462612354645103
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.01263056559952588,
+      "audit_mep_relative": 0.165124027719069,
+      "dipole_response_relative": 0.12050459672522885,
+      "fit_mep_relative": 0.16637027028265636,
+      "l2_source_fraction": 0.4782139920054592,
+      "maximum_induced_charge_residual_e": 1.5612511283791264e-17,
+      "record_id": "base-hcno-404508-6cb9b5d441de",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006422693294807745,
+      "source_point_reciprocity_relative": 6.976007415144453e-17,
+      "source_point_response_relative": 0.23083669062152545
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.007459024906337472,
+      "audit_mep_relative": 0.10655796206353511,
+      "dipole_response_relative": 0.05101477384706864,
+      "fit_mep_relative": 0.10481130530245653,
+      "l2_source_fraction": 0.5011637358276116,
+      "maximum_induced_charge_residual_e": 8.673617379884035e-18,
+      "record_id": "fluorine-469465-70c76c720826",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.005998015655890585,
+      "source_point_reciprocity_relative": 1.211190307146012e-16,
+      "source_point_response_relative": 0.14428882028395293
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0021895029729256214,
+      "audit_mep_relative": 0.07899762038832095,
+      "dipole_response_relative": 0.06274569311685517,
+      "fit_mep_relative": 0.07977679929183523,
+      "l2_source_fraction": 0.4821604377807979,
+      "maximum_induced_charge_residual_e": 1.734723475976807e-18,
+      "record_id": "fluorine-139037-710a4fc89944",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.005035832564165365,
+      "source_point_reciprocity_relative": 9.453355967678577e-17,
+      "source_point_response_relative": 0.09311237261128562
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.00781453717818368,
+      "audit_mep_relative": 0.11461241066681577,
+      "dipole_response_relative": 0.07773255500659516,
+      "fit_mep_relative": 0.1131164483452527,
+      "l2_source_fraction": 0.4448915858234615,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "bromine-63727-71eb4b0867c9",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.00805689959950651,
+      "source_point_reciprocity_relative": 9.370248665949452e-17,
+      "source_point_response_relative": 0.11515478592815909
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.011370213923178621,
+      "audit_mep_relative": 0.11081499468565506,
+      "dipole_response_relative": 0.0812104621390085,
+      "fit_mep_relative": 0.11055896864651726,
+      "l2_source_fraction": 0.4592759996187521,
+      "maximum_induced_charge_residual_e": 2.7755575615628914e-17,
+      "record_id": "phosphorus-696398-7400c7789c7c",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.011259874497821374,
+      "source_point_reciprocity_relative": 4.076043305445485e-17,
+      "source_point_response_relative": 0.13628848903190383
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.007858242147667921,
+      "audit_mep_relative": 0.11989166501240789,
+      "dipole_response_relative": 0.051407030464840305,
+      "fit_mep_relative": 0.12006081268419087,
+      "l2_source_fraction": 0.4560764486862936,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "base-hcno-162863-745ab5d78c8b",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.00603278020732822,
+      "source_point_reciprocity_relative": 6.511640926059572e-17,
+      "source_point_response_relative": 0.13470505770045998
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.008140153442496512,
+      "audit_mep_relative": 0.1204336307636865,
+      "dipole_response_relative": 0.10250975096891637,
+      "fit_mep_relative": 0.1197456380878768,
+      "l2_source_fraction": 0.43112958454193206,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "base-hcno-208608-7e6419f2ee92",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.0055777060278432685,
+      "source_point_reciprocity_relative": 1.7205063574355748e-16,
+      "source_point_response_relative": 0.1574896496077712
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0073586810405477585,
+      "audit_mep_relative": 0.11576549158043535,
+      "dipole_response_relative": 0.068442528379526,
+      "fit_mep_relative": 0.11573746341633669,
+      "l2_source_fraction": 0.4398382953290384,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "bromine-447833-84c7dcaffea3",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.01059249365614442,
+      "source_point_reciprocity_relative": 8.766581789844334e-17,
+      "source_point_response_relative": 0.14604357606670923
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.013244405549587092,
+      "audit_mep_relative": 0.20079982955174475,
+      "dipole_response_relative": 0.11232969852075002,
+      "fit_mep_relative": 0.20122149674976877,
+      "l2_source_fraction": 0.42909226437350023,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "sulfur-379175-938cde712eac",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.011136916232744015,
+      "source_point_reciprocity_relative": 7.437728569626591e-17,
+      "source_point_response_relative": 0.21853555613178013
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.003932423340565337,
+      "audit_mep_relative": 0.10173936518045262,
+      "dipole_response_relative": 0.089879896556469,
+      "fit_mep_relative": 0.10103033173495342,
+      "l2_source_fraction": 0.5185941529938365,
+      "maximum_induced_charge_residual_e": 8.673617379884035e-18,
+      "record_id": "base-hcno-135247-970f059c1f95",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006338801668666515,
+      "source_point_reciprocity_relative": 4.854626222874655e-17,
+      "source_point_response_relative": 0.09881704052699579
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.009372790566441636,
+      "audit_mep_relative": 0.13553981405003807,
+      "dipole_response_relative": 0.11174566340660849,
+      "fit_mep_relative": 0.13672445352123397,
+      "l2_source_fraction": 0.45611254743619084,
+      "maximum_induced_charge_residual_e": 2.0816681711721685e-17,
+      "record_id": "chlorine-636384-976484d18c73",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.011837495467515226,
+      "source_point_reciprocity_relative": 1.401077121728237e-16,
+      "source_point_response_relative": 0.13828873152855256
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.004763537589877787,
+      "audit_mep_relative": 0.09632673154807683,
+      "dipole_response_relative": 0.06572793096732325,
+      "fit_mep_relative": 0.09688203194607917,
+      "l2_source_fraction": 0.4632455676517081,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "chlorine-141648-a14bf52170de",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006952703703825127,
+      "source_point_reciprocity_relative": 1.0158147457034745e-16,
+      "source_point_response_relative": 0.1059571835634077
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.006053458523958027,
+      "audit_mep_relative": 0.133708329107874,
+      "dipole_response_relative": 0.08515489476688354,
+      "fit_mep_relative": 0.1357463197114556,
+      "l2_source_fraction": 0.426814460371858,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "chlorine-784-a7040c282ac8",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.012896103020065264,
+      "source_point_reciprocity_relative": 8.453652900105292e-17,
+      "source_point_response_relative": 0.13265047940028113
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.00815943135736124,
+      "audit_mep_relative": 0.11310046300727691,
+      "dipole_response_relative": 0.08217545852665022,
+      "fit_mep_relative": 0.11151117587928645,
+      "l2_source_fraction": 0.4485293254237223,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "chlorine-610177-ac8ad6afa4f7",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.00785953174421644,
+      "source_point_reciprocity_relative": 4.552006564796699e-17,
+      "source_point_response_relative": 0.1263482782701118
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.00447236305283677,
+      "audit_mep_relative": 0.10833798467120348,
+      "dipole_response_relative": 0.09013601317403566,
+      "fit_mep_relative": 0.10826000499145695,
+      "l2_source_fraction": 0.4367178904172653,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "base-hcno-229457-b412c4e75aed",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.005574162206779322,
+      "source_point_reciprocity_relative": 1.643750531847677e-16,
+      "source_point_response_relative": 0.09935041009372778
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0034992322214333765,
+      "audit_mep_relative": 0.08694766022254166,
+      "dipole_response_relative": 0.03956466411110452,
+      "fit_mep_relative": 0.08969561233784529,
+      "l2_source_fraction": 0.5120888331117375,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "base-hcno-432908-c1096072c51b",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.007637167483360025,
+      "source_point_reciprocity_relative": 1.327169201830366e-16,
+      "source_point_response_relative": 0.08760248941021659
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.0037426456621149178,
+      "audit_mep_relative": 0.09396177505230777,
+      "dipole_response_relative": 0.06129107662072961,
+      "fit_mep_relative": 0.09522668382571933,
+      "l2_source_fraction": 0.5027776016356884,
+      "maximum_induced_charge_residual_e": 1.3877787807814457e-17,
+      "record_id": "phosphorus-66144-d15ba6ea626a",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.009051660042423883,
+      "source_point_reciprocity_relative": 9.646111271501029e-17,
+      "source_point_response_relative": 0.07607516184456654
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.009816756854335355,
+      "audit_mep_relative": 0.15224835614897098,
+      "dipole_response_relative": 0.08727662145812803,
+      "fit_mep_relative": 0.15497745320674527,
+      "l2_source_fraction": 0.4743470409403796,
+      "maximum_induced_charge_residual_e": 6.938893903907228e-18,
+      "record_id": "phosphorus-598182-ea0696054cba",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.01113758507093249,
+      "source_point_reciprocity_relative": 1.2670857074361527e-16,
+      "source_point_response_relative": 0.1706950776827738
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.004122453492500285,
+      "audit_mep_relative": 0.08784573696282569,
+      "dipole_response_relative": 0.03910324739872669,
+      "fit_mep_relative": 0.08800702305251856,
+      "l2_source_fraction": 0.5200729914536314,
+      "maximum_induced_charge_residual_e": 1.734723475976807e-17,
+      "record_id": "base-hcno-440770-f59ae1366672",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.006742078031559226,
+      "source_point_reciprocity_relative": 2.404452006318166e-16,
+      "source_point_response_relative": 0.11243725663323681
+    },
+    {
+      "audit_mep_max_absolute_hartree_per_e_per_source_e": 0.007650179371488396,
+      "audit_mep_relative": 0.1095544521343819,
+      "dipole_response_relative": 0.10153515835752083,
+      "fit_mep_relative": 0.10881728639379719,
+      "l2_source_fraction": 0.5374728426021981,
+      "maximum_induced_charge_residual_e": 1.0408340855860843e-17,
+      "record_id": "base-hcno-399849-fa20b6e144ad",
+      "source_point_maximum_symmetric_eigenvalue_hartree_per_e2": -0.00832021134811404,
+      "source_point_reciprocity_relative": 7.398598913287587e-17,
+      "source_point_response_relative": 0.1358828653963391
+    }
+  ],
+  "relative_score_improvement_over_previous": 0.12846684869447064,
+  "training": {
+    "checkpoint_sha256": "d9ee85b5b42aa09121a9516c6d78ead17d813c4ceb335a9469487ebd9ccbab89",
+    "dipole_scale_eangstrom_per_source_e": 0.5506831244451371,
+    "history": [
+      {
+        "dipole_loss": 1.1646453640834649,
+        "epoch": 0.0,
+        "loss": 1.0380073933511107,
+        "mep_loss": 1.0102088144098622
+      },
+      {
+        "dipole_loss": 0.2915657769316663,
+        "epoch": 100.0,
+        "loss": 0.22151912071348395,
+        "mep_loss": 0.20614302544607807
+      },
+      {
+        "dipole_loss": 0.15485713744955035,
+        "epoch": 200.0,
+        "loss": 0.1050630891636161,
+        "mep_loss": 0.09413268832036226
+      },
+      {
+        "dipole_loss": 0.057218134216903006,
+        "epoch": 300.0,
+        "loss": 0.045848851530166,
+        "mep_loss": 0.04335315533063837
+      },
+      {
+        "dipole_loss": 0.029159476046008426,
+        "epoch": 400.0,
+        "loss": 0.02990301786229836,
+        "mep_loss": 0.03006623435855713
+      },
+      {
+        "dipole_loss": 0.02165804508481689,
+        "epoch": 500.0,
+        "loss": 0.024991505530261898,
+        "mep_loss": 0.025723240749993728
+      },
+      {
+        "dipole_loss": 0.01847350106589582,
+        "epoch": 600.0,
+        "loss": 0.022709850512291324,
+        "mep_loss": 0.023639780878573265
+      },
+      {
+        "dipole_loss": 0.016157568598136534,
+        "epoch": 700.0,
+        "loss": 0.021151106265626246,
+        "mep_loss": 0.022247248680441062
+      },
+      {
+        "dipole_loss": 0.014451837112711625,
+        "epoch": 800.0,
+        "loss": 0.01991055449809399,
+        "mep_loss": 0.021108809533909634
+      },
+      {
+        "dipole_loss": 0.01309631618683468,
+        "epoch": 900.0,
+        "loss": 0.01887278249599498,
+        "mep_loss": 0.020140787295566752
+      },
+      {
+        "dipole_loss": 0.012015997591302256,
+        "epoch": 1000.0,
+        "loss": 0.0179783593222593,
+        "mep_loss": 0.019287170433932795
+      },
+      {
+        "dipole_loss": 0.011164901589669986,
+        "epoch": 1100.0,
+        "loss": 0.01720610175527244,
+        "mep_loss": 0.01853221886479493
+      },
+      {
+        "dipole_loss": 0.010461634053268441,
+        "epoch": 1200.0,
+        "loss": 0.01652745568864141,
+        "mep_loss": 0.017858977511040354
+      },
+      {
+        "dipole_loss": 0.009877473010286708,
+        "epoch": 1300.0,
+        "loss": 0.015936907169544292,
+        "mep_loss": 0.01726702686303986
+      },
+      {
+        "dipole_loss": 0.009386548641003727,
+        "epoch": 1400.0,
+        "loss": 0.015432921135122936,
+        "mep_loss": 0.016760173633832032
+      },
+      {
+        "dipole_loss": 0.008961812210997094,
+        "epoch": 1499.0,
+        "loss": 0.015005923302046916,
+        "mep_loss": 0.016332679395204195
+      }
+    ],
+    "mep_scale_hartree_per_e_per_source_e": 0.012206458593382215
+  }
+}

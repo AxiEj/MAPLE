@@ -1,0 +1,62 @@
+{
+  "artifact": "route2-vqm24-cpks-response-only-pilot-protocol-v1",
+  "claim_boundary": {
+    "existing_opened_evidence_only": true,
+    "maple_capability_admitted": false,
+    "new_QM_execution_or_model_training_authorized": false,
+    "no_gate_threshold_changed": true,
+    "target_scope_narrowed_to_predeclared_training_observables": true,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T09:08:29.447218+00:00",
+  "decision": {
+    "all_four_rare_element_records_must_pass_required_gates": true,
+    "curvature_failure_is_retained_as_a_diagnostic": true,
+    "failure_stops_cpks_response_generator_route": true,
+    "success_authorizes_only_full_32_record_coverage_preregistration": true
+  },
+  "excluded_gate_names": [
+    "curvature_absolute"
+  ],
+  "parent": {
+    "file_sha256": "0ffac2be0a3027960ace9b148e7eb6eef41c264da934ff6b4e410bc244a1b674",
+    "path": "docs/route2/evidence/vqm24-static-cpks-gate-b-20260824/result.json",
+    "payload_sha256": "f6651e2957015f6d5bf94249c6c9e509e35e9176a0d610f6e7423e813e7cda01",
+    "status": "fail"
+  },
+  "protocol_sha256": "2228dd56f520351883361068d4d14e1ed7ca428149cab7bfd11d1a6fcf13b4d6",
+  "required_gate_names": [
+    "checkpoint_canonical_fock",
+    "checkpoint_rebuilt_energy",
+    "cpks_residual_frobenius",
+    "cpks_residual_infinity",
+    "dipole_global_relative",
+    "dipole_mode_relative",
+    "dipole_within_two_step",
+    "electron_number",
+    "energy_identity",
+    "mep_global_relative",
+    "mep_mode_relative",
+    "mep_within_two_step",
+    "passivity",
+    "reciprocity"
+  ],
+  "schema_version": 1,
+  "source": {
+    "builder_path": "tools/route2_release/create_vqm24_cpks_response_only_pilot_protocol.py",
+    "builder_sha256": "639c20913b7568cda4354a4247ba4d0f8f8006ad8812a9216dd56ba1bcae9985",
+    "sealer_path": "tools/route2_release/seal_vqm24_cpks_response_only_pilot.py",
+    "sealer_sha256": "5df3dad260ad0f7cdd32752bcdbd352a414affa0b5bebd5c09f5c621ee43a43e"
+  },
+  "status": "locked-before-response-only-assessment",
+  "target_contract": {
+    "energy_curvature_target": false,
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e",
+    "training_targets": [
+      "induced exterior MEP",
+      "induced molecular dipole"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+You are a mathematical/physical-science auditor for a zero-training MACE-MDP + MACE-POLAR + ddPCM hybrid. Give a decisive recommendation; do not suggest fitting to solvation targets, residual ML, arbitrary element interpolation, or hiding an unsupported element.
+
+Local facts already verified:
+1. MACE-MDP supplies permanent point monopoles/dipoles and a molecular polarizability. MACE-POLAR supplies a nonlinear residual response. A canonical atomic-density-translation (ADT) branch allocates the requested molecular induced dipole among atoms by minimum Coulomb self-work of spherical free-atom translation tangents.
+2. For each atom A with positive spherical density n_A(r), N_A=integral n_A, an induced dipole p_A is represented by infinitesimal electron-cloud displacement d_A=-p_A/N_A. Its finite-density boundary potential tangent is
+   V_A(s)=p_A dot (s-R_A) * [N_A(<|s-R_A|)/(N_A |s-R_A|^3)].
+   The far-field ddPCM psi block is independently the exact point dipole p_A. The boundary phi block uses the finite-density tangent above. The self-work metric is
+   kappa_A = 4/[3 sqrt(pi) N_A^2] sum_ab N_a N_b [alpha_a alpha_b/(alpha_a+alpha_b)]^(3/2).
+   Therefore uniform rescaling n_A -> c n_A leaves both phi per unit p and kappa invariant.
+3. Existing H,C,N,O,F,P,S,Cl,Br radial shapes are nonnegative Gaussian expansions of spherically averaged isolated-atom HF densities. The asset also exposes a separate neutral-atom penetration primitive Z/r - V_e(r), so current metadata requires integral n_A=Z_A.
+4. The frozen 505-development execution found one iodine molecule (Z=53) and failed closed because iodine is absent. This is an element-domain failure, not a root failure. The other immutable shards continue and must not be changed.
+5. The current atomic method is PySCF AtomSphAverageRHF/def2-TZVPD. For iodine, def2-TZVPD is paired with ECP28: with ECP there are 25 explicit electrons/effective nuclear charge 25; without ECP PySCF can converge a 53-electron calculation but the basis was optimized for the ECP and does not constitute a defensible all-electron density.
+6. Literature on ECP electron-density force fields explicitly uses effective atomic numbers with ECP densities; screened-charge/penetration models often treat nucleus+core as a point effective core and smear only outer valence density.
+
+We need ONE scientifically defensible way to support iodine without changing the already-frozen non-iodine mathematics or using any solvation target. Compare these options:
+A. Use the converged 53-electron def2-TZVPD calculation without its ECP.
+B. Use the 25-electron ECP valence pseudo-density with effective point core +25, and split the ADT radial-shape asset from the full neutral-penetration asset. Normalize the ADT tangent by N_eff=25.
+C. Scale that 25-electron pseudo-density to integrate 53, retain division by 53, exploiting scale invariance, while still calling it a neutral full-atom density.
+D. Generate an all-electron scalar-relativistic spherical iodine density with a genuine all-electron basis (for example X2C-compatible x2c/Dyall basis), fit its radial density by the same nonnegative Gaussian projection, and bind method/basis/runtime hashes.
+E. Keep iodine unsupported and report a 504-record supported-domain result.
+
+Questions:
+1. Which option is the best first operational ADT extension, and which option is the best reference/audit standard? Give a GO/NO-GO for A-E.
+2. Prove whether B and C are exactly identical for the ADT phi tangent and kappa, and explain why they are NOT equivalent for the separate neutral-atom penetration potential Z/r-V_e(r).
+3. For B, what is the correct point-core charge, explicit-electron count, translation displacement, and far-field dipole normalization? Does translating only the 25 valence pseudo-electrons relative to the effective +25 core correctly produce prescribed p at long range?
+4. For D, identify the minimum relativistic/picture-change precautions needed before calling the radial density a reference. Is spin-free X2C sufficient for the spherical radial shape used only at a PCM cavity, or is two-component spin-orbit essential?
+5. Give a finite target-free validation gate comparing B against D at cavity-relevant radii and in the actual ADT surface operator. Specify quantities and reasonable numerical acceptance criteria without using any solvation energies or experimental targets.
+6. State whether adding iodine via a content-addressed per-element radial-shape registry may reuse old non-iodine numerical records if all actually used element shapes/operators are bitwise unchanged, or whether strict scientific comparison requires a full rerun because the provider contract/profile changes.
+
+Separate mathematical identity, physical approximation, provenance policy, and recommended implementation. End with exactly one marker line:
+USE ECP-VALENCE ADT WITH ALL-ELECTRON AUDIT
+or
+REQUIRE ALL-ELECTRON ADT BEFORE IODINE
+or
+KEEP IODINE OUT OF DOMAIN

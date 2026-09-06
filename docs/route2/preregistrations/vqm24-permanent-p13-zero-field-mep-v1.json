@@ -1,0 +1,3035 @@
+{
+  "artifact": "route2-vqm24-permanent-p13-zero-field-mep-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "density_or_partition_coefficient_label_emitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T20:53:02.731640+00:00",
+  "parent": {
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e"
+  },
+  "preregistration_sha256": "e9788ed3a12fa1862d57d2082717c422bb4a42826d30793c0cc89b8be1cf5d22",
+  "protocol": {
+    "audit_angular_grid": "same rule under frozen audit rotation",
+    "cavity_or_solvent_used": false,
+    "each_partition_exceeds_13N_minus_1": true,
+    "field_response_generated": false,
+    "fit_angular_grid": "PySCF 86-point Lebedev order 15",
+    "gas_scf_reused_without_rerun": true,
+    "purpose": "zero-field full molecular MEP for P13 permanent source"
+  },
+  "records": [
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/gas/gas.chk",
+          "sha256": "43e26491bd87ea01c306f81d40967cb42286fb60f768eca59f22fa3656987160"
+        },
+        "surface": {
+          "audit_point_count": 243,
+          "fit_point_count": 236,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/permanent-p13-surface-v1.npz",
+          "sha256": "20d75ab10958006ce727b9018d4ea90456e217c2203ef66dd5093b8eaba4e78f"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-412002-081c6cc3a31b/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "fluorine-412002-081c6cc3a31b",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          6,
+          6,
+          8,
+          9,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "eb02933930ac101672047f77c964405c87ef16b9765dd947f3463c370eea24c6",
+        "chemical_formula_hill": "C2H6FNO",
+        "configuration_hash": "782986221835957316735479383947839932420352510298622900628260303340780698823110035812883839507259271626848561052846584318051418632916889249748240352598350",
+        "dataset_index": 412002,
+        "molecule_group_sha256": "8c0543ee73ac25a758eb5557435a489a618fda6b39336ad46e0efce5e4783037",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__151415"
+        ],
+        "positions_angstrom": [
+          [
+            1.832953263597,
+            0.67092046152,
+            -0.287630501627
+          ],
+          [
+            1.129762516697,
+            -0.20596099258,
+            0.632117876073
+          ],
+          [
+            -0.007614663903,
+            -1.01661631508,
+            0.019905020473
+          ],
+          [
+            -0.946767716903,
+            -0.21359507638,
+            -0.674042049027
+          ],
+          [
+            -1.569851077703,
+            0.58566953612,
+            0.329046336273
+          ],
+          [
+            2.247566392197,
+            0.12145455682,
+            -1.041245916327
+          ],
+          [
+            1.151088234397,
+            1.27929649972,
+            -0.741911695827
+          ],
+          [
+            1.844502629697,
+            -0.90912835618,
+            1.091143112073
+          ],
+          [
+            0.722562625797,
+            0.40275197442,
+            1.454150839073
+          ],
+          [
+            0.353096404697,
+            -1.66525233558,
+            -0.797502379527
+          ],
+          [
+            -0.528745729803,
+            -1.64459334008,
+            0.762998800873
+          ]
+        ],
+        "positions_angstrom_sha256": "ac0f452357eb22ec855f6f4b499269c6f637bdcbd10e52d425ff55090dfabfd4",
+        "record_sha256": "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6",
+        "selection_score_sha256": "0020d1946b9038feda96ef0eaac34141d33b33d2528197f1aa0d4dadbbe4cdcf",
+        "split": "train",
+        "stratum": "fluorine",
+        "structure_hash": "6878547474887160815620205626284130641507381444454258327495692381774149196235313590168696678846069801898382053109300603739471047991152181374782198696054671"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/gas/gas.chk",
+          "sha256": "e872b693277374a1a4709e5d108f34239facbf2f54a1f46a027be9cf0cb2dad0"
+        },
+        "surface": {
+          "audit_point_count": 231,
+          "fit_point_count": 230,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/permanent-p13-surface-v1.npz",
+          "sha256": "c3fdf0f7cb74e6e5280a95bc5eb766d05f09b1bc4ddf9f3f451d21e488551a07"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-460236-0c750047a5e1/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-460236-0c750047a5e1",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          6,
+          7,
+          7,
+          7,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "cfdc165b693c34bac5508e966f01033c5491c415932224a26fd0ae6f3b1d0d85",
+        "chemical_formula_hill": "CH6N4",
+        "configuration_hash": "10894138762301137325592694151706237111733509984721528088892359935519139653394755299738782124206846992039284909151702830217451002104112429758477825442223824",
+        "dataset_index": 460236,
+        "molecule_group_sha256": "e7d2b2f66bb35b0539e5f337b5dd21baa1c8e2d8c60a1f90ed5b11a2cb1732a9",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__199649"
+        ],
+        "positions_angstrom": [
+          [
+            1.179191996999,
+            -0.759429545629,
+            -0.238848909132
+          ],
+          [
+            0.423401446738,
+            0.370069071513,
+            0.074273442804
+          ],
+          [
+            0.974456631422,
+            1.523906752546,
+            0.096068808199
+          ],
+          [
+            -0.921467467621,
+            0.091944760699,
+            0.327387711131
+          ],
+          [
+            -1.551064577381,
+            -1.029238468878,
+            -0.241385695952
+          ],
+          [
+            2.165406968242,
+            -0.51564267991,
+            -0.239010678444
+          ],
+          [
+            0.998903548292,
+            -1.554083611615,
+            0.368092462653
+          ],
+          [
+            0.267570199794,
+            2.253261676981,
+            0.222309215583
+          ],
+          [
+            -1.510959449346,
+            0.915695195713,
+            0.268853052449
+          ],
+          [
+            -1.453643024219,
+            -1.819901419161,
+            0.394735057277
+          ],
+          [
+            -1.077968848772,
+            -1.284505196714,
+            -1.110445657719
+          ]
+        ],
+        "positions_angstrom_sha256": "d64e3714e531f81f98e14c4eaf512a581eec6d9698dc91440bca5236651b357b",
+        "record_sha256": "0c750047a5e1d79f448d409199141755f6a64b4d35738e7a797311a7ac630eec",
+        "selection_score_sha256": "00046e8183c9c592ab35111c92021d6d4891f66b7d46070d711a0436667198f1",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "4702460804824630421165184728610216181397283472840587497636715705957037180989816237909445697322173280879418083009378953452800262482090734103073219284874376"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/gas/gas.chk",
+          "sha256": "b2ca2fd198f107471e68da620e0a2a8884db08800aa9dcfb8e724e3ea5365574"
+        },
+        "surface": {
+          "audit_point_count": 242,
+          "fit_point_count": 242,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/permanent-p13-surface-v1.npz",
+          "sha256": "eb69b16b4233edaa8ce4339045067b37659066d09a19d954db407bceee879436"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-351029-1256947e5905/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "phosphorus-351029-1256947e5905",
+      "selection_record": {
+        "atomic_numbers": [
+          15,
+          6,
+          7,
+          15,
+          15,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "6d34ae77ad2f64b1109a090db8ccc3bc1afa7095d452d4393c8d0e9f73399937",
+        "chemical_formula_hill": "CH4NP3",
+        "configuration_hash": "12575421137307685476125918559140993624074152201758997557796865094249072421241867527727923084693746899437822515700521700462679531830602627983905267345586785",
+        "dataset_index": 351029,
+        "molecule_group_sha256": "f6c7375460e80fa1a843932eae13cad0b34cc8d67d6f821906c63e90b9e300e4",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__744245"
+        ],
+        "positions_angstrom": [
+          [
+            2.019549665988,
+            -0.836359075458,
+            0.064449855023
+          ],
+          [
+            0.700305282773,
+            0.214560386067,
+            0.124247832552
+          ],
+          [
+            -0.624766110747,
+            0.167359876088,
+            0.398107814022
+          ],
+          [
+            -1.830026495923,
+            -1.043618023723,
+            -0.005608876489
+          ],
+          [
+            -0.183130012293,
+            1.785481261515,
+            -0.21647694847
+          ],
+          [
+            2.93433480823,
+            0.164508612569,
+            -0.392728262707
+          ],
+          [
+            -1.114146257829,
+            -1.66961054596,
+            -1.084533033188
+          ],
+          [
+            -1.388624434374,
+            -2.013795258296,
+            0.946928857591
+          ],
+          [
+            -0.285742630109,
+            1.542973084184,
+            -1.635845307922
+          ]
+        ],
+        "positions_angstrom_sha256": "2d5f550f052e651105dcff6b38e79f33e6ff0a30079a25687abb91cb084a3285",
+        "record_sha256": "1256947e5905faa4818050cfa469e5d337d08c128377563d6fff979843981661",
+        "selection_score_sha256": "0003a4bee3a43cedab05e8c9f67e8dc8a237edee1713145afe0cdadeab0935ef",
+        "split": "train",
+        "stratum": "phosphorus",
+        "structure_hash": "5514266712806547858361630783416960923020424562730776520256311260758922594672181684931377269706298930469968878904327933375661710325954088957932551437510701"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/gas/gas.chk",
+          "sha256": "60759c08f57777e176baaf634ad03a1a68b9312d41e5d7c5f3fa42b1ac787095"
+        },
+        "surface": {
+          "audit_point_count": 229,
+          "fit_point_count": 230,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/permanent-p13-surface-v1.npz",
+          "sha256": "9cb6628ad33581d2dd94184fd0ca36f7509732484431bd8aa35e826996acdb57"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-122602-190c2fbc8b99/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "sulfur-122602-190c2fbc8b99",
+      "selection_record": {
+        "atomic_numbers": [
+          16,
+          16,
+          6,
+          6,
+          6,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "81943468e6e04bf4c9231aadfbf9be8053994b33b412c6980cb947243c098afa",
+        "chemical_formula_hill": "C3H4S2",
+        "configuration_hash": "8087215785044206588361838474287725086174849914882217381250428409148483066906009359387809218083589529594017322400476503292429826192472849439964975538217338",
+        "dataset_index": 122602,
+        "molecule_group_sha256": "6fd87ab8e08f322fcc149ba29730732693f119aac8a731a64b5254188458f4e2",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__646890"
+        ],
+        "positions_angstrom": [
+          [
+            -2.082507031161,
+            -0.574483147481,
+            -0.354245859888
+          ],
+          [
+            -0.462782255803,
+            0.563044327875,
+            -0.124725297466
+          ],
+          [
+            3.305899683259,
+            0.688288601074,
+            0.477807753693
+          ],
+          [
+            2.210208880467,
+            0.048944013249,
+            0.39407219828
+          ],
+          [
+            0.884599233736,
+            -0.571792066255,
+            0.453621425712
+          ],
+          [
+            0.102292050489,
+            0.730894925706,
+            -1.363243961949
+          ],
+          [
+            3.000215576514,
+            -0.033951395367,
+            -0.576439894946
+          ],
+          [
+            0.808798713369,
+            -1.491574977926,
+            -0.141635854985
+          ],
+          [
+            0.622890099072,
+            -0.812357633303,
+            1.493602022927
+          ]
+        ],
+        "positions_angstrom_sha256": "85a375f1780bb1267c51c7d175f541ff4eec73fbfd1a9a04a0d7fed87b804e98",
+        "record_sha256": "190c2fbc8b9986ba63860d36f411d67bfee87f21aeb177776d9bcf2d681b3b18",
+        "selection_score_sha256": "0006c00f1c25339e87e3b6a54ad129bf080519a978cea519009d03a3fb2c3d38",
+        "split": "train",
+        "stratum": "sulfur",
+        "structure_hash": "6306254129889178527995427582172438309239045091007970695498784191148781681527701749212340288038429942342623102977208274371110274800892524287248546310583474"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/gas/gas.chk",
+          "sha256": "d8b75f389a5aa2e0925cfd78d3dc8d02329eee8b1033266b59bd58bd08b96466"
+        },
+        "surface": {
+          "audit_point_count": 214,
+          "fit_point_count": 216,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/permanent-p13-surface-v1.npz",
+          "sha256": "e7422fdb4a28b32c55129d9537b71977140d9770f76c4dbf45416be94cedae84"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-436944-1c3caaef7cd3/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-436944-1c3caaef7cd3",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          6,
+          7,
+          7,
+          7,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "9de1050b494f076577e6d16eaaea88779419dff73f8a3677417926c43661b071",
+        "chemical_formula_hill": "CH4N4",
+        "configuration_hash": "5372188519906989384644110409089056754826714376481568290067538066839307931470208893293866231434821988315433411485355563880720541566428996652691563786437022",
+        "dataset_index": 436944,
+        "molecule_group_sha256": "cb1c0496b1591a1a6bbd787c1f3f5f53e4b800aec9e9a9417b413aee2bd3c8a7",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__176357"
+        ],
+        "positions_angstrom": [
+          [
+            -1.960642473086,
+            0.725762384897,
+            0.02236185339
+          ],
+          [
+            -1.113731403886,
+            -0.069528456803,
+            0.09085944609
+          ],
+          [
+            -0.098787537686,
+            -0.959224893803,
+            0.09516319379
+          ],
+          [
+            1.176464726714,
+            -0.493936159903,
+            -0.34490475691
+          ],
+          [
+            1.566609167514,
+            0.774590928397,
+            0.09843180169
+          ],
+          [
+            -0.032558952386,
+            -1.514105744203,
+            0.94369440969
+          ],
+          [
+            1.126866143514,
+            -0.463533312203,
+            -1.36187855641
+          ],
+          [
+            0.795844927614,
+            1.451369289297,
+            0.06058948249
+          ],
+          [
+            1.872069331114,
+            0.698427406197,
+            1.06739420589
+          ]
+        ],
+        "positions_angstrom_sha256": "b3d214bf896207e975c8529489cf12b1995950f8a45621bb023fac57b42a8e59",
+        "record_sha256": "1c3caaef7cd3392b67d4b8b8ec1e84a9ae39c6c2213e869b250e8b57583b6d90",
+        "selection_score_sha256": "000694a23620100ae52319a47da724aa7a78fb2dcf60ce8f20c51b554709db00",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "4606913297528723053722537698935174736846931465954143855587380499770635405297784673805423956401757201772259527792323118370185884469369166844597806561348137"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/gas/gas.chk",
+          "sha256": "46dee9c525ab4c81415627b5223cb9902a4dde221972d434bd6b51178a326eca"
+        },
+        "surface": {
+          "audit_point_count": 227,
+          "fit_point_count": 239,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/permanent-p13-surface-v1.npz",
+          "sha256": "2a1e1c03d475475233150c084f5fa4fa83657c83160c4186ed11dfea2d660e2e"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-389495-2e00c04d8f40/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "sulfur-389495-2e00c04d8f40",
+      "selection_record": {
+        "atomic_numbers": [
+          9,
+          16,
+          16,
+          16,
+          16,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "e4024febad69f0942353a3ce7a5e74efc1a339f81ebafac58d2b6070aa819d30",
+        "chemical_formula_hill": "H3FS4",
+        "configuration_hash": "4372552145739465630672042679762835481414011537447730790620265167166663120057750542235520119350979971467289001361252721363937305323392797138316480033545039",
+        "dataset_index": 389495,
+        "molecule_group_sha256": "20c94196ce6a450343a3cb4855b3824e4dc1ae17cc5c69669ce24212955a6c81",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__782711"
+        ],
+        "positions_angstrom": [
+          [
+            -0.318104611151,
+            -2.542713476908,
+            -0.164625309995
+          ],
+          [
+            -2.156166620431,
+            -0.107519611419,
+            0.171007764914
+          ],
+          [
+            -0.685880841946,
+            1.378727238297,
+            0.270504885466
+          ],
+          [
+            0.949057846461,
+            0.711816149226,
+            -0.808193434379
+          ],
+          [
+            2.148829812265,
+            -0.362791036505,
+            0.491831643329
+          ],
+          [
+            -2.547320119003,
+            0.086925095211,
+            -1.111359211325
+          ],
+          [
+            -1.082078921644,
+            -2.009244882788,
+            -0.063808833093
+          ],
+          [
+            1.509724247815,
+            -1.545247097739,
+            0.308237630909
+          ]
+        ],
+        "positions_angstrom_sha256": "ba3556e30b5f1f0c2c96c02babb7ad111da65fa0e3d42d3e7e0f838bd14951db",
+        "record_sha256": "2e00c04d8f404aba122f77452f5fc364cd6581bc4ac20c0c99394d25adfeb938",
+        "selection_score_sha256": "000193c620a1da71ffd7f3080c8ad6e859e3cc67ba97d5e9aba83d73443379da",
+        "split": "train",
+        "stratum": "sulfur",
+        "structure_hash": "6028795888235035422580568635937732793595362143253272640488836297729133114303546292136755676622859312528699435985800512048293472282010870752524713150613244"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/gas/gas.chk",
+          "sha256": "6f08a6040f7c0e4e00434978880f3cce17769adf4bf936fbe07e4d7967639a06"
+        },
+        "surface": {
+          "audit_point_count": 227,
+          "fit_point_count": 223,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/permanent-p13-surface-v1.npz",
+          "sha256": "61fefa9200842a3bfba1904c4980c31b2759363f332a9a8f9e95df75961cce72"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-156765-3c8bc817c95e/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-156765-3c8bc817c95e",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          8,
+          6,
+          6,
+          8,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "13fdedb27e6dc806f58831271e96a0679e8db686ba44797484f94efb6af52f50",
+        "chemical_formula_hill": "C2H5NO2",
+        "configuration_hash": "6934923959470535418250936238565836400677129367084996096625994865797925495091722211723840464077927115034222487233282667827216066748210391331285308007894183",
+        "dataset_index": 156765,
+        "molecule_group_sha256": "e3ca59325c25e0f048998164987fa074ef53f4af01b94575a10aba31ec111d6b",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__25693"
+        ],
+        "positions_angstrom": [
+          [
+            -1.447508226708,
+            0.883894903406,
+            0.043539109081
+          ],
+          [
+            -1.099811863208,
+            -0.450249253794,
+            0.348769698281
+          ],
+          [
+            -0.067737519608,
+            -0.959288851894,
+            -0.443635069319
+          ],
+          [
+            1.283171257892,
+            -0.301610136494,
+            -0.268589661219
+          ],
+          [
+            1.479226894992,
+            0.712805903606,
+            0.353022007681
+          ],
+          [
+            -0.598711755008,
+            1.433503573406,
+            0.205947916781
+          ],
+          [
+            -1.628751937908,
+            0.916096507106,
+            -0.966958161119
+          ],
+          [
+            0.033538698192,
+            -2.025440848394,
+            -0.179229627319
+          ],
+          [
+            -0.308785533608,
+            -0.927465705194,
+            -1.531005158519
+          ],
+          [
+            2.121343658792,
+            -0.831495237694,
+            -0.791308401719
+          ]
+        ],
+        "positions_angstrom_sha256": "ef66f64068fd2e02167a0b5a9a2f7c6d846dfaf958b41ab4e206dbf59a6bd1c5",
+        "record_sha256": "3c8bc817c95e2292beb3f7e33a5ca9124b8e0d4a205120c26d07ac3b7e590a44",
+        "selection_score_sha256": "001f5b792d52631d2bd8fa6d01209b316329145583ca8fc7566ab7921fdca3c1",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "520848402475550518829200196051675522776782014331205921010231676680670845852376419095003853230935666328124549233503401567517441251900460954078458261152476"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/gas/gas.chk",
+          "sha256": "59c9f2fea8aabe1e2b8171332755c35464f9fb2052cf57d5fe60c0794d57516f"
+        },
+        "surface": {
+          "audit_point_count": 246,
+          "fit_point_count": 237,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/permanent-p13-surface-v1.npz",
+          "sha256": "2bd0f1df9fd59958520e59f0dd24091dfb3d4c5cf8c056d4f1d637a12d073de4"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-481244-549dfd678c85/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-481244-549dfd678c85",
+      "selection_record": {
+        "atomic_numbers": [
+          6,
+          7,
+          8,
+          7,
+          7,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "bbd999a32ebcbec04dece3a031efacbfe02be50595c7387c2ea36dfdc4c62f02",
+        "chemical_formula_hill": "CH7N3O",
+        "configuration_hash": "10474909790475882518809197611166986502197720704965107779564065039327181145209899530344504579035047989674122807392210190645652697244686832712816756624929769",
+        "dataset_index": 481244,
+        "molecule_group_sha256": "44bb29be9eaec9615b8c0056511b351f60142028cd4911276996a6766acfae3a",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__220657"
+        ],
+        "positions_angstrom": [
+          [
+            -1.163606266443,
+            -0.903949889579,
+            0.505774810296
+          ],
+          [
+            -0.573705529594,
+            0.001441662259,
+            -0.477623322797
+          ],
+          [
+            -0.735932050444,
+            1.305783713398,
+            -0.006807010701
+          ],
+          [
+            0.807203017488,
+            -0.197580276709,
+            -0.689777625065
+          ],
+          [
+            1.538388411367,
+            -0.226901903392,
+            0.526397754127
+          ],
+          [
+            -2.234311206454,
+            -0.674858371379,
+            0.572821618591
+          ],
+          [
+            -0.709633572853,
+            -0.804016850672,
+            1.509895220291
+          ],
+          [
+            -1.048411101898,
+            -1.939796139482,
+            0.149777562071
+          ],
+          [
+            -0.135103337259,
+            1.356591976395,
+            0.76155952267
+          ],
+          [
+            0.889279407692,
+            -1.063495160909,
+            -1.223308836136
+          ],
+          [
+            2.437251356766,
+            0.216920053273,
+            0.355284739143
+          ],
+          [
+            1.716361297718,
+            -1.174031015814,
+            0.866151250379
+          ]
+        ],
+        "positions_angstrom_sha256": "48e51f3df1cdca3e5c5b109f202268f2756fae427f53f17378d845a348c578b5",
+        "record_sha256": "549dfd678c854f033529dc0a5ec0bba0e093178bebb6e9570f2a1d510b81bce4",
+        "selection_score_sha256": "0004f2e90f65ab1785a8050f79ddf4206eb044af1bf68b46c6cedd501cd31712",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "6495970893550390210192853026730554940856822829797292601611757191339489449672651298409903050079087459471727952265568438449381136254345033415069714823382933"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/gas/gas.chk",
+          "sha256": "9dbcc076e515c637866a89beae3a34a18b106444623f4f559d42e94a2213c03c"
+        },
+        "surface": {
+          "audit_point_count": 226,
+          "fit_point_count": 230,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/permanent-p13-surface-v1.npz",
+          "sha256": "01d781ddaa1f115b7a000368ea40f040e8438bff79b35be460c15b9aa642e3f3"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-101221-5abef0a88d16/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "bromine-101221-5abef0a88d16",
+      "selection_record": {
+        "atomic_numbers": [
+          8,
+          6,
+          35,
+          16,
+          15,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "10ff7cf2acf09e583eda71a4c611dae483338acd0be78bccfe0e6d20ec97d01f",
+        "chemical_formula_hill": "CH4BrOPS",
+        "configuration_hash": "4867501118432713782588703590201032803319583332072713604317701196844738953439790159511235800835136664040002504334853881111324353187039579050798065417945711",
+        "dataset_index": 101221,
+        "molecule_group_sha256": "3e477103cae0927e4413c68476d168f2bd22175e41718e7946a1feec1ee67cb1",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__625509"
+        ],
+        "positions_angstrom": [
+          [
+            -0.272070482204,
+            -2.241194371682,
+            -0.339906488704
+          ],
+          [
+            0.018539730474,
+            -1.029620301484,
+            0.216517610006
+          ],
+          [
+            -1.456804857438,
+            0.271646098602,
+            -0.103511227495
+          ],
+          [
+            1.630064207002,
+            -0.429074663417,
+            -0.415239497388
+          ],
+          [
+            2.086894224066,
+            1.320983091147,
+            0.701895393519
+          ],
+          [
+            -0.319879204957,
+            -2.137028338879,
+            -1.301386140232
+          ],
+          [
+            0.048127461186,
+            -1.146591360826,
+            1.305979303216
+          ],
+          [
+            1.740655013398,
+            0.835455864428,
+            2.001967227194
+          ],
+          [
+            0.855300825535,
+            2.01940640625,
+            0.516917157202
+          ]
+        ],
+        "positions_angstrom_sha256": "821045f6245f3fdc503c2840a22edbd3e2a11d0b68d4858217f03c87fde8b6cd",
+        "record_sha256": "5abef0a88d160c5745e94e7ae6e4a61db94c7a3ea74c33d99afb87fadee8bf64",
+        "selection_score_sha256": "0007bb4e0d78b21484eacf3238eac22cd18c43ee788c76c1856225355f12f34a",
+        "split": "train",
+        "stratum": "bromine",
+        "structure_hash": "12408231367108328146040508538807250563278962492058010115891305323397287814603499465942954678823748763106788751508294607099473267632278004482684383962824553"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/gas/gas.chk",
+          "sha256": "93fdb7d3a32a3b044cfa7e7effdaa64990c5e4a8a571d55e4fce81c84a263075"
+        },
+        "surface": {
+          "audit_point_count": 222,
+          "fit_point_count": 223,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/permanent-p13-surface-v1.npz",
+          "sha256": "174b11ef77e483e632cd40255b011239c0ce84777402e378d277c168488483ac"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-278363-5c9234fb4b84/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "fluorine-278363-5c9234fb4b84",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          7,
+          6,
+          6,
+          9,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "65c8b7ff6e897e34ce8900e82bd7d896bf268e2b631b80e9d2cbb6fb4416082f",
+        "chemical_formula_hill": "C2H5FN2",
+        "configuration_hash": "8990610055589323137559729395881024955486789561102400510278277471037236469645613925334931585294960999334758192825368946353454080905404781081212986829350856",
+        "dataset_index": 278363,
+        "molecule_group_sha256": "2e547b8c62bcdb91d15d584919bd698e56ce209a0a3120b5da0f4e289e418c83",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__671579"
+        ],
+        "positions_angstrom": [
+          [
+            -1.256715246221,
+            1.012991549332,
+            0.03357591196
+          ],
+          [
+            -1.357923366172,
+            -0.340077732517,
+            -0.059442415452
+          ],
+          [
+            -0.301287946037,
+            -1.032887523748,
+            0.149587528925
+          ],
+          [
+            1.044145427665,
+            -0.466530174975,
+            0.494051368173
+          ],
+          [
+            1.459506206393,
+            0.475336163543,
+            -0.461700135109
+          ],
+          [
+            -0.370837014106,
+            1.402757494563,
+            -0.288246445391
+          ],
+          [
+            -2.049756225768,
+            1.450443676528,
+            -0.421331704348
+          ],
+          [
+            -0.424490772908,
+            -2.118805839871,
+            0.105471258325
+          ],
+          [
+            1.004320362383,
+            0.061309090637,
+            1.463435817979
+          ],
+          [
+            1.811394343244,
+            -1.252606809554,
+            0.539831700976
+          ]
+        ],
+        "positions_angstrom_sha256": "f32ec8c134e1fd652198c492c0f517257b939124a24043170952bf5f30e32761",
+        "record_sha256": "5c9234fb4b842cbefccd9df2232bb86ee2b1a1c7eb1fea51fc7b942918b173f7",
+        "selection_score_sha256": "003d701c5c3fc7224e9d69613846db6e93ee906bd249d3b14c901fb0f8c04df9",
+        "split": "train",
+        "stratum": "fluorine",
+        "structure_hash": "8939222734544121735560260022805288175847349495386501870597130045474114526284866315164888687000202098659810391603888171420684785529656758102500759036338690"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/gas/gas.chk",
+          "sha256": "7f9a2f206f000dc7d2ffc4bb43494f4d25a718a60a2d41acc3d2334cb76c4e67"
+        },
+        "surface": {
+          "audit_point_count": 224,
+          "fit_point_count": 220,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/permanent-p13-surface-v1.npz",
+          "sha256": "34dfa3c32cfb43d63d3fd65caab1997606838de1fab3515af0c8a67753f5d791"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-221028-692cd68117c4/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "sulfur-221028-692cd68117c4",
+      "selection_record": {
+        "atomic_numbers": [
+          16,
+          7,
+          6,
+          16,
+          7,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "2d00889983e4f7be2869977129d1a76d789526cf6b6faf2df531e7783ac514b0",
+        "chemical_formula_hill": "CH4N2S2",
+        "configuration_hash": "13199287125468829434862081589036531782091699220948462434757631408201589941268344277173024423318268529256980264879744146946590568050014720115386671112618842",
+        "dataset_index": 221028,
+        "molecule_group_sha256": "a33630403f7dd3ebff6721ea23ef3f9b48ff69946b13bb8e4e056ae1569c65d8",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__89956"
+        ],
+        "positions_angstrom": [
+          [
+            -1.804434841989,
+            -0.199251496283,
+            0.553861854007
+          ],
+          [
+            -0.946310734589,
+            0.555418585817,
+            -0.725919402693
+          ],
+          [
+            0.454972777211,
+            0.677773344717,
+            -0.672227427293
+          ],
+          [
+            1.572035941911,
+            -0.718382086183,
+            -0.174208619693
+          ],
+          [
+            1.067142342611,
+            0.847429898317,
+            0.588160541107
+          ],
+          [
+            -1.164182432989,
+            -1.402508272283,
+            0.563510885607
+          ],
+          [
+            -1.261232046589,
+            0.240440389517,
+            -1.639723502093
+          ],
+          [
+            0.838229351011,
+            1.228786876117,
+            -1.539469963793
+          ],
+          [
+            1.863609001211,
+            1.482334546417,
+            0.489794157707
+          ]
+        ],
+        "positions_angstrom_sha256": "af5e8344b282522865f87847ab314e931f2005ad188c5c6f02b831d7af0a77eb",
+        "record_sha256": "692cd68117c45da0ace8ee3c3f701101c093109b560674c637207ee5b3e6112b",
+        "selection_score_sha256": "00055e33bee160ae045bc16f2171a45bc712379b477618f7f5bcb815fd5c380d",
+        "split": "train",
+        "stratum": "sulfur",
+        "structure_hash": "7747256797239570674236660505458255931477187990409521930874561338003562568509868495975441911541656169564337712135104020401601759556124491416137091180544113"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/gas/gas.chk",
+          "sha256": "467ef26193e0e60ae81307ef2b958d99d7a6f3ddc939d5c587227685e669d475"
+        },
+        "surface": {
+          "audit_point_count": 212,
+          "fit_point_count": 214,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/permanent-p13-surface-v1.npz",
+          "sha256": "7b2d97b72f88d7d7ef836c386720f8bc2bc71815cea1f4f0cfd9de6006a2266a"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-10426-6bb8a046ac22/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "bromine-10426-6bb8a046ac22",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          15,
+          7,
+          35,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "c47896891d37dd104a7966585003fffd45a00291e7b3ef3b505ad22e43177bed",
+        "chemical_formula_hill": "H4BrN2P",
+        "configuration_hash": "3172984497908680719329447067966903917726778001169194202756877241486971974295681216391211505238436622467408213865177948233182013965132911026718066501887279",
+        "dataset_index": 10426,
+        "molecule_group_sha256": "34a2638dd6543b32c24cf3b8ead5f43be7153028f1399488942205fbe1d6e01c",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__534714"
+        ],
+        "positions_angstrom": [
+          [
+            -2.419336177076,
+            0.938165480002,
+            -0.199298344333
+          ],
+          [
+            -1.652399769509,
+            -0.555614055817,
+            -0.541324856695
+          ],
+          [
+            -0.308678281005,
+            -0.811829297596,
+            0.580528283732
+          ],
+          [
+            1.230163621136,
+            0.182614887832,
+            0.121141263595
+          ],
+          [
+            -2.578848552885,
+            1.207509649119,
+            0.768704871051
+          ],
+          [
+            -2.04401791353,
+            1.719695342136,
+            -0.729185895188
+          ],
+          [
+            -2.508290787193,
+            -1.365151557562,
+            0.267756468583
+          ],
+          [
+            -0.509893703776,
+            -0.541341291598,
+            1.546428346937
+          ]
+        ],
+        "positions_angstrom_sha256": "c38488aca8940087aebc69fdef91e67e1df79874ba72a8620028d8cbc9e99353",
+        "record_sha256": "6bb8a046ac22e3d3d0c702d3915f28559a6031f13428d385bd032bb65ab978db",
+        "selection_score_sha256": "000abad5924a2cab8a1cb7ca45325143cb460cf317078f859f1290ca6ab76a17",
+        "split": "train",
+        "stratum": "bromine",
+        "structure_hash": "11155599951919838882264634608895113189510731577707734431519232402929052061847767223387196264825333891921669106970513449273347002381629160891751296806546"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/gas/gas.chk",
+          "sha256": "83b7409a35bb4e396828917d2f779bf9f1332a7c95715f9a78a71cf255a67b32"
+        },
+        "surface": {
+          "audit_point_count": 230,
+          "fit_point_count": 236,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/permanent-p13-surface-v1.npz",
+          "sha256": "4d1ef40396b177c02cfd1880eebefb00ae03ab2d8759e0902338548fdbf2b2d7"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-404508-6cb9b5d441de/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-404508-6cb9b5d441de",
+      "selection_record": {
+        "atomic_numbers": [
+          6,
+          7,
+          6,
+          6,
+          6,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "82c3712c398943bf4652f4766f104d0c9b40eeb836055ec8635d7026d31db338",
+        "chemical_formula_hill": "C4H5N",
+        "configuration_hash": "13291090933700606849189965279606734483809524215796021018739349567205191026282168776701788639307049234660905128432979527475518432117758320751641224087680404",
+        "dataset_index": 404508,
+        "molecule_group_sha256": "03dce6ab0bd55869498843f8c9bbc8e2a05e1ac27e61c0974a20373d9e03e668",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__143921"
+        ],
+        "positions_angstrom": [
+          [
+            -1.92383962151,
+            -0.545594025472,
+            0.152568842968
+          ],
+          [
+            -0.88940882751,
+            0.467141026028,
+            0.269704992968
+          ],
+          [
+            0.38111080499,
+            0.213431155928,
+            -0.001081082132
+          ],
+          [
+            1.33863250469,
+            -0.777348794572,
+            -0.426479040732
+          ],
+          [
+            1.68145435339,
+            0.544681412928,
+            -0.114555091032
+          ],
+          [
+            -2.68565965411,
+            -0.253039052572,
+            -0.586179950932
+          ],
+          [
+            -1.44671601371,
+            -1.475807257872,
+            -0.180279590132
+          ],
+          [
+            -2.41631854311,
+            -0.725546167972,
+            1.120448099168
+          ],
+          [
+            -1.15199144221,
+            1.397473726428,
+            0.568712254268
+          ],
+          [
+            2.46779432949,
+            1.291634748028,
+            -0.031814550832
+          ]
+        ],
+        "positions_angstrom_sha256": "d01c02e78ed69074772281729f53b70d885f8fe66350f28ea7c5009d8d6448ca",
+        "record_sha256": "6cb9b5d441de514008b986d2e160f906a3f90521617217a128b92bc22de87f5e",
+        "selection_score_sha256": "0011d46f2d8a7c3f2af07a63820516bfc7d74f662f02216e976cc2bf9b5d9543",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "1784241386392584281047203059081761074220478943777493649334747530343564842534513476677556184664961440063710304766664025884684355361501010080181300277689282"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/gas/gas.chk",
+          "sha256": "7bc23742bc085ab9b229670003b701c0e717dc4d788ef530750374ec3a6b4d6a"
+        },
+        "surface": {
+          "audit_point_count": 216,
+          "fit_point_count": 219,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/permanent-p13-surface-v1.npz",
+          "sha256": "a863040a064f8b25711c0bbc57075176a1c0947dad22ed48e4591645a635a1ca"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-469465-70c76c720826/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "fluorine-469465-70c76c720826",
+      "selection_record": {
+        "atomic_numbers": [
+          8,
+          7,
+          9,
+          6,
+          7,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "ffe0ee9c2570037a1276a9ca611b9bbeb6b42b1983f41c502a61e6e8466d41b2",
+        "chemical_formula_hill": "CH5FN2O",
+        "configuration_hash": "10974357078974187722640314639199836332839364837075334378772958207835592509880230152189488045343802205758462956313933508148207181467808738317863334404212736",
+        "dataset_index": 469465,
+        "molecule_group_sha256": "2a4533f62d50a01953be54ee8940f8d58e08abc064d770dca0bf53fdb83cbf7b",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__208878"
+        ],
+        "positions_angstrom": [
+          [
+            -0.670394209093,
+            -1.245251720822,
+            -0.183980098948
+          ],
+          [
+            -0.569346321907,
+            -0.090283198051,
+            0.557709790619
+          ],
+          [
+            -0.990017337846,
+            0.950843480916,
+            -0.350553450955
+          ],
+          [
+            0.883465157459,
+            0.171087800346,
+            0.692880315964
+          ],
+          [
+            1.670529446523,
+            0.14415330431,
+            -0.501206716676
+          ],
+          [
+            -1.560851044321,
+            -1.561935713201,
+            0.017960650147
+          ],
+          [
+            1.229866834017,
+            -0.592029322162,
+            1.405345244243
+          ],
+          [
+            0.94387237569,
+            1.154589683202,
+            1.177316956439
+          ],
+          [
+            1.289508219353,
+            0.821060983212,
+            -1.161555711959
+          ],
+          [
+            1.580466086628,
+            -0.768490382757,
+            -0.946004124628
+          ]
+        ],
+        "positions_angstrom_sha256": "9f805705ce8a895dc2145916c2b3160f37b086ba63d872f4b09dea14d759ea50",
+        "record_sha256": "70c76c72082658882dfba613043632d0f47e934267aa33c8edcc3a6786586bb3",
+        "selection_score_sha256": "00301811fdafba8a87ebd702b3e3b91a0309837a308b9c37656d7c095f1679fa",
+        "split": "train",
+        "stratum": "fluorine",
+        "structure_hash": "6799082471046721967512455721657661016704566401035584295038022138857778919771869702194641006555218453088739459637529471666366114708316506463650861204600351"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/gas/gas.chk",
+          "sha256": "f1f938a6fcc5cd35de00792298246d7c5bafe1d4e8cb7497f400f9f2a7d0243a"
+        },
+        "surface": {
+          "audit_point_count": 163,
+          "fit_point_count": 160,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/permanent-p13-surface-v1.npz",
+          "sha256": "1a3d7b86f2ff0a950759e9563b0a3b32d179be8b5fff471ab4ef9dfe1cc1d857"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/fluorine-139037-710a4fc89944/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "fluorine-139037-710a4fc89944",
+      "selection_record": {
+        "atomic_numbers": [
+          8,
+          7,
+          9,
+          9,
+          1
+        ],
+        "atomic_numbers_sha256": "2d521c4e075ad2a11925c116881de7572221f82f4f789af00c4cb65af58e0402",
+        "chemical_formula_hill": "HF2NO",
+        "configuration_hash": "4111126848402724461780792382429072034151632906817652852114827801667064813349622180707890757513498847622414930197921655005625082008481438010550393188145224",
+        "dataset_index": 139037,
+        "molecule_group_sha256": "fd3b35fafb35c2ca56940918f65603d260c92e1e7ff9e21c7a6d88a81e66b257",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__7965"
+        ],
+        "positions_angstrom": [
+          [
+            -4.4608793e-05,
+            -1.288118377509,
+            -0.054302005502
+          ],
+          [
+            -2.738993e-06,
+            -0.068207564509,
+            0.483029147998
+          ],
+          [
+            -1.069847174393,
+            0.598381364591,
+            -0.127951414202
+          ],
+          [
+            1.069888853907,
+            0.598307185091,
+            -0.127949733402
+          ],
+          [
+            -3.9665693e-05,
+            -1.167576164309,
+            -1.025598451102
+          ]
+        ],
+        "positions_angstrom_sha256": "10566b90461c41e6656fb47424767164db0f76af5a970406b9a5a32b69a14db9",
+        "record_sha256": "710a4fc899445ea32e9ee299a28c37717816569e6280081289896763623f250c",
+        "selection_score_sha256": "0037613bc088905695e696307c3cdd709eab91181282e9c883e82d219432e5b8",
+        "split": "train",
+        "stratum": "fluorine",
+        "structure_hash": "3881290234796781243172334300131397455583947803050814237075446239678733518338635058607884353358498091513006856511762734826274122188771084879191647682383270"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/gas/gas.chk",
+          "sha256": "749ce8d9f6bd092dfcd4b3bfa1daa7f5c064447a01c6f8908af95dcac3ef3206"
+        },
+        "surface": {
+          "audit_point_count": 189,
+          "fit_point_count": 185,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/permanent-p13-surface-v1.npz",
+          "sha256": "6b9a7970848906568ca8362afcfaf8cf80d1fe0d5ad5c9571c407a407dd5b05e"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-63727-71eb4b0867c9/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "bromine-63727-71eb4b0867c9",
+      "selection_record": {
+        "atomic_numbers": [
+          15,
+          6,
+          35,
+          7,
+          8,
+          1
+        ],
+        "atomic_numbers_sha256": "e1a4a74d62bfd7e4491ba69646ed28baba541784b33e1c3590054034c55b25b7",
+        "chemical_formula_hill": "CHBrNOP",
+        "configuration_hash": "6469239606348709385887886751030196553059574828542839221909635442238377358203465083339017710934933410519438699078847747021195597050856119306848237254457060",
+        "dataset_index": 63727,
+        "molecule_group_sha256": "e63155c776555cdd66d475a8a664e9afb2907d64f167375267a1e2b0d6d854f1",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__588015"
+        ],
+        "positions_angstrom": [
+          [
+            -1.965982476793,
+            -1.067739981559,
+            -5.7343254e-05
+          ],
+          [
+            -0.694805057615,
+            0.041171519154,
+            1.052704e-05
+          ],
+          [
+            1.164589318682,
+            -0.265809302288,
+            -2.2034233e-05
+          ],
+          [
+            -1.167377836955,
+            1.407451389156,
+            9.7088949e-05
+          ],
+          [
+            -0.323494318738,
+            2.257240764771,
+            0.00013400022
+          ],
+          [
+            -1.145810740359,
+            -2.240394022531,
+            -0.000113262713
+          ]
+        ],
+        "positions_angstrom_sha256": "6fed567b3ccbf7e3e003e90787e3015faa8845c9b758588a8c169af1b24d68d0",
+        "record_sha256": "71eb4b0867c97cbabfd963f4990a54696f7448eb669674d2a9065d275539d94f",
+        "selection_score_sha256": "0002697d1423910d3afdc9ebbcd8ed826e7e6451a3b55cf97bb3e7a95fd4622d",
+        "split": "train",
+        "stratum": "bromine",
+        "structure_hash": "11162584896581379635343949487744503913848938474350722165534013124777051934175135923683495205728374203554329732115515887128459914945635506806244363398909554"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/gas/gas.chk",
+          "sha256": "31c809315a69c408cd71f69ae8aa2fe430ffcfdc66e5f330a09425b278ac053a"
+        },
+        "surface": {
+          "audit_point_count": 210,
+          "fit_point_count": 207,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/permanent-p13-surface-v1.npz",
+          "sha256": "f22b018f56749a84799d8915fe8123548715d8258d5098d1c55d75fd959ee562"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-696398-7400c7789c7c/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "phosphorus-696398-7400c7789c7c",
+      "selection_record": {
+        "atomic_numbers": [
+          15,
+          16,
+          15,
+          6,
+          16,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "8868d9bbd3c4138d2f79d68720638620775043f998596e0a78a320044ba1d861",
+        "chemical_formula_hill": "CH2P2S2",
+        "configuration_hash": "10590761731238729016952826620853864710915122022893435805269749310749171418307064476613618320220930769887072698379133701872278913628080957551713722040327732",
+        "dataset_index": 696398,
+        "molecule_group_sha256": "9af666e8c3720352c8023d335b4c05c96690e85d2b3a656273f250875b05658a",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__435811"
+        ],
+        "positions_angstrom": [
+          [
+            0.847722389812,
+            -1.429461328418,
+            0.179923847916
+          ],
+          [
+            -1.19192333419,
+            0.898898098572,
+            0.509809485995
+          ],
+          [
+            0.833367145391,
+            1.437614939072,
+            -0.180866162705
+          ],
+          [
+            1.775183774273,
+            0.008748831682,
+            -0.000991238026
+          ],
+          [
+            -1.183589172896,
+            -0.910490630517,
+            -0.508463659015
+          ],
+          [
+            1.289797454283,
+            -2.278429302952,
+            -0.87260588025
+          ],
+          [
+            1.268367323414,
+            2.291430845864,
+            0.870674011509
+          ]
+        ],
+        "positions_angstrom_sha256": "929b21c91251a0b3d7779bb126451c504a05ae9da7d278926510eaae5b618fa2",
+        "record_sha256": "7400c7789c7cddf2a428423122920f006c0f88cbdc25efcf581f9590f82f92a4",
+        "selection_score_sha256": "0004f509cee03f7524f02293402776798e248d9f811fc168ee7f2ab94f618fc9",
+        "split": "train",
+        "stratum": "phosphorus",
+        "structure_hash": "7429093076144313580609687992070856972881030561681061043279482162082013874782000009723694028324948360641946432197729695283664770807902461153978387505304795"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/gas/gas.chk",
+          "sha256": "93c2a4577e434152d2f73252b0259289603199a4ec1219417ceb781e5ade7826"
+        },
+        "surface": {
+          "audit_point_count": 222,
+          "fit_point_count": 226,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/permanent-p13-surface-v1.npz",
+          "sha256": "80ca1eca320457691e523c3a4761cebf04de14595bee54e730d5882cbc9891a4"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-162863-745ab5d78c8b/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-162863-745ab5d78c8b",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          7,
+          7,
+          8,
+          7,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "f5a7976ebe3a69bf132c784ea54cf994967e3dcd8c9b1096d4a48ae0a4fe5dbc",
+        "chemical_formula_hill": "H4N4O",
+        "configuration_hash": "12602751787390623603459425941379627496309762080941576957676358642069666181006184526533316966818910964084121333586133133889850094586409937471575214140557102",
+        "dataset_index": 162863,
+        "molecule_group_sha256": "60be4e724524d66ceb99f33e3379625211609bedd982c2365f2b7a5e3572cd15",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__31791"
+        ],
+        "positions_angstrom": [
+          [
+            2.232059575821,
+            0.164742167075,
+            -0.116976025693
+          ],
+          [
+            1.040505960921,
+            -0.488383297225,
+            -0.048289481493
+          ],
+          [
+            0.085665612721,
+            0.287291811975,
+            0.022451313407
+          ],
+          [
+            -1.088652511179,
+            -0.474036585125,
+            0.007408606307
+          ],
+          [
+            -2.187281899479,
+            0.384059495175,
+            0.078619168207
+          ],
+          [
+            2.200012439921,
+            1.112656763275,
+            0.262927375107
+          ],
+          [
+            2.955618028621,
+            -0.408628210225,
+            0.303040124507
+          ],
+          [
+            -2.095826879779,
+            1.032298676175,
+            -0.709930675193
+          ],
+          [
+            -2.051677246179,
+            0.955770385175,
+            0.918331387807
+          ]
+        ],
+        "positions_angstrom_sha256": "14129131013f968ace4623f61fb95712536507e6da3dbfc079f01664e32280bb",
+        "record_sha256": "745ab5d78c8bb0911db7dd3925d7d98c6defc19412654ddca9745afd4ff7d79b",
+        "selection_score_sha256": "002508e5c0e70df9d8af77ad4b82fbcbade979b9c831eddfd7bf39fb5fa486e6",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "12671648415430181327131635575546904800355781355054576907254305196114974464611918967315809600005977152606945537071715530912459425934227745898007045814098003"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/gas/gas.chk",
+          "sha256": "bda139d03d2ec5a0c63bbe6f72791d4d29f7c6902e95fd6eefdf70b03a3a3420"
+        },
+        "surface": {
+          "audit_point_count": 161,
+          "fit_point_count": 159,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/permanent-p13-surface-v1.npz",
+          "sha256": "71bae1d0e172f5fb3138b697bbe71b29223862677c3ace0c78ea8712310d79de"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-208608-7e6419f2ee92/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-208608-7e6419f2ee92",
+      "selection_record": {
+        "atomic_numbers": [
+          6,
+          7,
+          7,
+          7,
+          6,
+          1
+        ],
+        "atomic_numbers_sha256": "0f2d07d3e76022a9ebfb2a01e915bc615e0c46636234687465c22709fe33641c",
+        "chemical_formula_hill": "C2HN3",
+        "configuration_hash": "8342756400716933589923698500330258385311901471165456530002255642207980975491767007734159348013473125527081554039529834091454979095776213006405610377552712",
+        "dataset_index": 208608,
+        "molecule_group_sha256": "448c2414a5d4f989fe0e44406482bf8d58c11e2186f6dd037b5a17fee3d4c3a3",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__77536"
+        ],
+        "positions_angstrom": [
+          [
+            1.184719176024,
+            0.654436263101,
+            8.743805e-06
+          ],
+          [
+            0.757672233424,
+            -0.662682477699,
+            4.5318105e-05
+          ],
+          [
+            -0.595934843876,
+            -0.910866615299,
+            2.3362105e-05
+          ],
+          [
+            -1.189927288676,
+            0.288729099801,
+            -4.5577395e-05
+          ],
+          [
+            -0.099978700576,
+            0.968644802901,
+            -4.3532395e-05
+          ],
+          [
+            1.370211592824,
+            -1.474009175599,
+            9.3223205e-05
+          ]
+        ],
+        "positions_angstrom_sha256": "cbfaa45b5bea57ecf0d5f418a329eb6b945e6df9efde27f2a4db1d16af83087a",
+        "record_sha256": "7e6419f2ee92ddeb473cf58eb1675ef92b8298c6e3355cc9fa914ca1863abfd5",
+        "selection_score_sha256": "001f8b8e99256b07cf42a235abf2c7ec6abb2a576575d16c728c07eaf05d3064",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "7993788371113578482344423212517906977090654017878602644981344218440278959620774375362603200647502601173649524398421535322068315041033609924032066155487165"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/gas/gas.chk",
+          "sha256": "a5873243bca6444ce9a5dc640774259d5be795dae27b521562cb6f56f907b8b2"
+        },
+        "surface": {
+          "audit_point_count": 220,
+          "fit_point_count": 216,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/permanent-p13-surface-v1.npz",
+          "sha256": "302ff3a9454df4efb28ac4539b590ad4a2f4fe8a12ba5773bc4c90d0da38d0ad"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/bromine-447833-84c7dcaffea3/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "bromine-447833-84c7dcaffea3",
+      "selection_record": {
+        "atomic_numbers": [
+          8,
+          6,
+          35,
+          7,
+          16,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "de128c57cd0ca5be30d12f138fac7ba80313f04891d0d71318a7f28707c237eb",
+        "chemical_formula_hill": "CH4BrNOS",
+        "configuration_hash": "6657438541799547949670479184910547240587783646353758927274479908822080608765779007540228184062858817693364507330150974370817386234456880765038524448208653",
+        "dataset_index": 447833,
+        "molecule_group_sha256": "06bbac90fbd8aca31db1157a428ca1301aba825f6734c8cf6e993d3d1c940c7e",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__187246"
+        ],
+        "positions_angstrom": [
+          [
+            0.188687156675,
+            2.190664130236,
+            -0.154066417023
+          ],
+          [
+            0.405298468283,
+            0.919440816414,
+            0.279973242129
+          ],
+          [
+            -1.274548805483,
+            -0.199595944735,
+            -0.154355141918
+          ],
+          [
+            1.56029178482,
+            0.308479333955,
+            -0.25610765829
+          ],
+          [
+            2.120405811138,
+            -1.127090529877,
+            0.489187756025
+          ],
+          [
+            -0.000145169739,
+            2.176511569534,
+            -1.101937119593
+          ],
+          [
+            0.435680758166,
+            0.900712750187,
+            1.37395847626
+          ],
+          [
+            1.550454521518,
+            0.243785169974,
+            -1.27312085349
+          ],
+          [
+            1.05125286085,
+            -1.937074496628,
+            0.23906267902
+          ]
+        ],
+        "positions_angstrom_sha256": "9897b2f768c0e06b17415fd2c2c6bbceaa8eaea23310c346e85446d9cca984b1",
+        "record_sha256": "84c7dcaffea3d665200f3eadeaf128acfbd72925df1bd26764644aff7b0d8231",
+        "selection_score_sha256": "00022fe9d98d54f1b29fd972d8eb766f12c1643f7a1466976d31154ef4895fc1",
+        "split": "train",
+        "stratum": "bromine",
+        "structure_hash": "3785443477850874887861443491828106259306042970798932898995475784629548495470241005888276960045219407707828289314429194074278032061537799939533726703952230"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/gas/gas.chk",
+          "sha256": "9b9d3ef57b28ca1b835e06130f45d0f7919c73a81f0332d37e9b0a7ec3a394de"
+        },
+        "surface": {
+          "audit_point_count": 270,
+          "fit_point_count": 266,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/permanent-p13-surface-v1.npz",
+          "sha256": "1531162fe59a2e8e495d2e47552d14c7b7f082f29f25970b5866674e38c1736b"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/sulfur-379175-938cde712eac/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "sulfur-379175-938cde712eac",
+      "selection_record": {
+        "atomic_numbers": [
+          8,
+          16,
+          8,
+          16,
+          16,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "52a7fbd3c3cb52becbae1ee99aa9a6e15d6af1f44615b03640a201f0899720c4",
+        "chemical_formula_hill": "H6O2S3",
+        "configuration_hash": "5065836365097435979525203702217352640166098381994613235191343966213602014870256444633128300654040609700288578949874920428732665816556558366549501280774264",
+        "dataset_index": 379175,
+        "molecule_group_sha256": "cff85fce81d399558bcd873735d29a9089410de849e7b4e28ae25a72b654f0d4",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__772391"
+        ],
+        "positions_angstrom": [
+          [
+            -2.094629095733,
+            -0.131416205972,
+            -0.554640808099
+          ],
+          [
+            -1.528178748007,
+            0.918414131676,
+            0.600108374745
+          ],
+          [
+            -0.499792662208,
+            1.848643674752,
+            0.021757452113
+          ],
+          [
+            2.571394601729,
+            0.669258949769,
+            -0.236316858858
+          ],
+          [
+            0.220002332363,
+            -2.411894756352,
+            -0.079502037044
+          ],
+          [
+            -1.503783458384,
+            -0.914651457332,
+            -0.500338171769
+          ],
+          [
+            -2.716520985232,
+            1.616350303225,
+            0.523341673811
+          ],
+          [
+            2.532284070616,
+            0.756530131205,
+            -1.583850509617
+          ],
+          [
+            1.357844225224,
+            1.279456579067,
+            -0.089407863498
+          ],
+          [
+            1.200656747285,
+            -1.468752692671,
+            -0.182700287287
+          ],
+          [
+            0.230754947978,
+            -2.375109686137,
+            1.271449289335
+          ]
+        ],
+        "positions_angstrom_sha256": "5e1f6fcc7c3e91b7d420bcd9d5b7d8f0a357b704717723b821b8015d4876674b",
+        "record_sha256": "938cde712eac59de5400446c18c4cd6e995f2fd4f148c74ae7aca57c31cab3ed",
+        "selection_score_sha256": "0006b3d4d80ef9de9c151c61d71f0e6596dd1edbce9c596a0d5409d5f6dd45a4",
+        "split": "train",
+        "stratum": "sulfur",
+        "structure_hash": "5306274649277559558340815339710373295313775105321105820655992242912971085658788318531956123789971868982384137577776461565556984536656840870195431486604177"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/gas/gas.chk",
+          "sha256": "77d8564a1188c58ce5de4d0faab2e9bbd5fa72c731d2cf6bc9411e0a8913030e"
+        },
+        "surface": {
+          "audit_point_count": 229,
+          "fit_point_count": 233,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/permanent-p13-surface-v1.npz",
+          "sha256": "2094c8df584cf591ac814df9b54392c359a4455f2dc043cbdef566544ad6a9e9"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-135247-970f059c1f95/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-135247-970f059c1f95",
+      "selection_record": {
+        "atomic_numbers": [
+          6,
+          6,
+          6,
+          8,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "1e44f198e62ffd1b9af54a744f76be82f55c1c5df6cf25095f815558ddd57f81",
+        "chemical_formula_hill": "C3H6O",
+        "configuration_hash": "6256706578351925517471366204715177740337150708979489908370238393353597131291195422440765228114411299387723260572687938683887775145434534776697837614158064",
+        "dataset_index": 135247,
+        "molecule_group_sha256": "f518c7318d5a7cbc4415e48b7dedb73b95c7a6983d74eb4c5a37da24d25871fa",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__4175"
+        ],
+        "positions_angstrom": [
+          [
+            -1.84682130877,
+            0.098962195709,
+            -0.265331533413
+          ],
+          [
+            -0.71322193187,
+            -0.203322061591,
+            0.366055600587
+          ],
+          [
+            0.60871659513,
+            -0.413248930491,
+            -0.316030546913
+          ],
+          [
+            1.62695036583,
+            0.404177795109,
+            0.227859021587
+          ],
+          [
+            -2.78624508697,
+            0.238704118109,
+            0.274924460087
+          ],
+          [
+            -1.87865801197,
+            0.209458309809,
+            -1.354391008513
+          ],
+          [
+            -0.69929112237,
+            -0.301472796091,
+            1.458275352587
+          ],
+          [
+            0.49602319393,
+            -0.266844870991,
+            -1.408351715813
+          ],
+          [
+            0.94955729953,
+            -1.449356072591,
+            -0.160962052413
+          ],
+          [
+            1.33184284773,
+            1.317995662409,
+            0.137834307187
+          ]
+        ],
+        "positions_angstrom_sha256": "be71303e5c5e565a0b0fa4d160792765b569e287e3990d6a31125a8285cf098e",
+        "record_sha256": "970f059c1f95df68ab562190b88541b48bec61d4c94fd273a3dee16268fd86fd",
+        "selection_score_sha256": "00268bb99fedf1d6ea1a9af17988decfbcf5127bf1eeea477c678e1f50bbc0b1",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "11571937106851065763907923065946949562060717460527997794519057791360899219864582093785077296677837130346399546636478194695148202128735755994179664024479250"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/gas/gas.chk",
+          "sha256": "69a0d64609099bbca9f5f849528fb9b77bb3263605a7ff27b6e94ee8bb07072e"
+        },
+        "surface": {
+          "audit_point_count": 220,
+          "fit_point_count": 215,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/permanent-p13-surface-v1.npz",
+          "sha256": "be84c364b3bc32b050977f693f6277c6e403df3ae81fcad969757a1bd89bc9b9"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-636384-976484d18c73/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "chlorine-636384-976484d18c73",
+      "selection_record": {
+        "atomic_numbers": [
+          16,
+          15,
+          15,
+          7,
+          17,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "5f4d60518ca0071e06f7855e5541d0003205df43eb42efa88fa500a8e843268a",
+        "chemical_formula_hill": "H2ClNP2S",
+        "configuration_hash": "1873959709977122984326329613250063920871343841023082678572917261682043857950257215512023519116883169816592895368748781477516447794561505100569617199701855",
+        "dataset_index": 636384,
+        "molecule_group_sha256": "ba6411e090cbad7916a88ec0e7fb2fcdbc4f88deffe9a98b5390aa6e55829d6c",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__375797"
+        ],
+        "positions_angstrom": [
+          [
+            2.642235000849,
+            -0.13502191524,
+            0.62938214046
+          ],
+          [
+            1.122855744871,
+            -0.493040249665,
+            -0.51604343615
+          ],
+          [
+            -0.234032864173,
+            1.214876213666,
+            -0.069795522508
+          ],
+          [
+            -1.731841356828,
+            0.55196558888,
+            -0.665644631305
+          ],
+          [
+            -2.429691643734,
+            -0.80193355528,
+            0.191928757596
+          ],
+          [
+            -0.305229714811,
+            0.996192764028,
+            1.343540600308
+          ],
+          [
+            -2.466364507223,
+            1.258599711799,
+            -0.715923259007
+          ]
+        ],
+        "positions_angstrom_sha256": "a8456bc15292f61e64452db86d3a105391321c919ddeae33c07afb8f69a2449f",
+        "record_sha256": "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0",
+        "selection_score_sha256": "0000dd41f19f2938bd20087593f4b0634067c3c017df7c82373fc1902bd4615f",
+        "split": "train",
+        "stratum": "chlorine",
+        "structure_hash": "8660121617955623908459331318388667059010407694266866122043638777036696163590930183227238756764143916077136242956183885276162942145515139385545563775354864"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/gas/gas.chk",
+          "sha256": "4b88ec9de2fb99f3e0987d41e67c795ce4ce591780959299d6c8249ca6085d5d"
+        },
+        "surface": {
+          "audit_point_count": 214,
+          "fit_point_count": 215,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/permanent-p13-surface-v1.npz",
+          "sha256": "cf2038a54edde1537b5edc5183d3d36d819ec29496b65541b9ed434f8e5d03a6"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-141648-a14bf52170de/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "chlorine-141648-a14bf52170de",
+      "selection_record": {
+        "atomic_numbers": [
+          17,
+          7,
+          6,
+          7,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "486d7a6f330454d36443ff98e3679ce9120274a731e13dcbb01df583498f0c81",
+        "chemical_formula_hill": "CH5ClN2",
+        "configuration_hash": "454066800407270563465148426611286304138865550149252867948074001030580562038253415120192307981257661207158587627066780168171906791912345272458999155400690",
+        "dataset_index": 141648,
+        "molecule_group_sha256": "bd617195f03d24139b95174ba0c28308bdebecbd633eec902400441602df2756",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__10576"
+        ],
+        "positions_angstrom": [
+          [
+            1.328717646708,
+            -0.106524456711,
+            0.154982816916
+          ],
+          [
+            -0.275811116492,
+            -0.820672684411,
+            0.333165819716
+          ],
+          [
+            -1.215387120792,
+            -0.141512607111,
+            -0.560411810784
+          ],
+          [
+            -1.553011691692,
+            1.159657741089,
+            -0.029765794684
+          ],
+          [
+            -0.128700604092,
+            -1.765001157811,
+            -0.032177355684
+          ],
+          [
+            -2.118486070892,
+            -0.774320967511,
+            -0.535470067084
+          ],
+          [
+            -0.835952357192,
+            -0.128363653811,
+            -1.606623414184
+          ],
+          [
+            -2.353146973792,
+            1.530985529489,
+            -0.539371792684
+          ],
+          [
+            -0.784977476992,
+            1.807805314889,
+            -0.206668409384
+          ]
+        ],
+        "positions_angstrom_sha256": "a9cfe6b309f76039f64557a723933deb36ecada8e980d7394faf68bbdc80e80c",
+        "record_sha256": "a14bf52170dea71bd865316ce52048bbd65fcf33bd5a789e8fe8baa718348602",
+        "selection_score_sha256": "0002a51c65a461cd4c55ff74bb6b0459fe8004eee0d52d00c4c9634508684752",
+        "split": "train",
+        "stratum": "chlorine",
+        "structure_hash": "11856120575925328641700592021742701463370766797770564304399410214617061020337930491454620398539798644547425081873524573513389707554269220072536950709085778"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/gas/gas.chk",
+          "sha256": "b9c38c902a20d1d280fc44e8cd53de435d0b609ce764d54d115ceefd99cb34d6"
+        },
+        "surface": {
+          "audit_point_count": 269,
+          "fit_point_count": 267,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/permanent-p13-surface-v1.npz",
+          "sha256": "4380e417542dbf8969e9f17f84be06c37fd95f2ffa88bfeba5c6c41a569155cd"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-784-a7040c282ac8/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "chlorine-784-a7040c282ac8",
+      "selection_record": {
+        "atomic_numbers": [
+          17,
+          16,
+          16,
+          6,
+          15,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "46faa4bea8cb3527511047a7551888bb309fa2c1d46cfbc668acbbab9ee060c2",
+        "chemical_formula_hill": "CH4ClPS2",
+        "configuration_hash": "12388453202373899592757323807119828758376679663878888323780006575370573115547456546019528770631917656476116493638114898838280383246865929242655507146642484",
+        "dataset_index": 784,
+        "molecule_group_sha256": "a309c69627b6ae7512bbb6faef534e0e5723802e2c3263b36d02f5b6bcdd38ed",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__525072"
+        ],
+        "positions_angstrom": [
+          [
+            2.957365577428,
+            0.896272240427,
+            0.241198116332
+          ],
+          [
+            1.440803437337,
+            -0.476956119943,
+            -0.007730787213
+          ],
+          [
+            -2.100837534174,
+            1.284182409695,
+            -0.044117370816
+          ],
+          [
+            -2.358497753519,
+            -0.265990479532,
+            0.458773593526
+          ],
+          [
+            -1.592760350325,
+            -1.638735275326,
+            -0.332474707175
+          ],
+          [
+            0.955276676445,
+            -0.373332344098,
+            1.251090911011
+          ],
+          [
+            -1.386405910422,
+            1.227401068693,
+            -1.229979972339
+          ],
+          [
+            -1.60384330399,
+            -1.402218637229,
+            -1.74571287324
+          ],
+          [
+            -2.605982864983,
+            -2.627625718182,
+            -0.244012662956
+          ]
+        ],
+        "positions_angstrom_sha256": "8c3880d3afe1975e1d56c0d23ed64914cf91f263dcedef4918106ff14b47a601",
+        "record_sha256": "a7040c282ac8e9c04889c1df017919eda981ace596b50be46caa82a3abe0a6c3",
+        "selection_score_sha256": "000396a0a69081561fa4946f6cee5fd714bd98ff0ce8bbc7d66b7160aedd5d11",
+        "split": "train",
+        "stratum": "chlorine",
+        "structure_hash": "136241647131717219655810514615932562041604893623163537596909072637136417504092950194009067219229755882720345849090302232611500640498789400993285791138817"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/gas/gas.chk",
+          "sha256": "c639de592b0023067d798defefccc0179372ca7aa4825eeec5cff793235e8dc0"
+        },
+        "surface": {
+          "audit_point_count": 241,
+          "fit_point_count": 242,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/permanent-p13-surface-v1.npz",
+          "sha256": "a13b91842a8b90fcebbaedd598aa0d01ff4d42d7fa158c272ea2388a83f0883b"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/chlorine-610177-ac8ad6afa4f7/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "chlorine-610177-ac8ad6afa4f7",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          15,
+          17,
+          15,
+          8,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "d921ba725426ddee308e4d9010a4167a3fd2d8aa94040a3dabaa219616c43a0f",
+        "chemical_formula_hill": "H4ClNOP2",
+        "configuration_hash": "127166027889081282043449593339685403458757771663446772876450443434632922781843114517155883349599439893521948772899268716596488459341918793889893787404349",
+        "dataset_index": 610177,
+        "molecule_group_sha256": "1d41e0a15a26d077d3b452d5adb48df3dd572e3458f3bf3c6eb68c9e2423f023",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__349590"
+        ],
+        "positions_angstrom": [
+          [
+            1.010620142771,
+            -1.893528317119,
+            0.252058058581
+          ],
+          [
+            0.53388482364,
+            -0.557895860192,
+            -0.679672093534
+          ],
+          [
+            1.34462432047,
+            1.164887883191,
+            0.315524976847
+          ],
+          [
+            -1.458998179133,
+            -0.362676623344,
+            0.330972397974
+          ],
+          [
+            -1.966919264573,
+            1.114966869595,
+            -0.29570231791
+          ],
+          [
+            1.915777881455,
+            -2.288671748183,
+            0.012186814563
+          ],
+          [
+            0.875489933547,
+            -1.862943942064,
+            1.261253542753
+          ],
+          [
+            -2.127737634423,
+            -1.164930929096,
+            -0.645501338053
+          ],
+          [
+            -1.712136630982,
+            1.804247969736,
+            0.331692459909
+          ]
+        ],
+        "positions_angstrom_sha256": "806570e0a684ce556db9d0c108b623cca45126f2f794324f5925423650640435",
+        "record_sha256": "ac8ad6afa4f740de2ae08cd09ee5b6710d75b194ad22aed0a9663d11dea92773",
+        "selection_score_sha256": "00056fb742a5c9fa1eb632f8913cd57eb114c47996b9140af320c834b5f847a2",
+        "split": "train",
+        "stratum": "chlorine",
+        "structure_hash": "9691620676369172886656967111210931520098824916035198778031732373531689503054511839031630523660177502045610691088643555177281350194808998905867924145098370"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/gas/gas.chk",
+          "sha256": "1ea9807da16b7d32c01c4fd483da4456ed48c4a3ad16ac83b31ddb5d256db879"
+        },
+        "surface": {
+          "audit_point_count": 196,
+          "fit_point_count": 196,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/permanent-p13-surface-v1.npz",
+          "sha256": "c2d89a50434b318c72e80673927626054d52b4603ca0a2045c2aa9b1cbe2f59b"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-229457-b412c4e75aed/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-229457-b412c4e75aed",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          8,
+          7,
+          7,
+          6,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "96f9a50d49394aa7f3b3a04c3fd8f1163865c237bf25ba66bc6b1fad209a46e0",
+        "chemical_formula_hill": "CH3N3O",
+        "configuration_hash": "3075106287394499932172485574610046763687967770674386412180876589446916768718391563617952887275806307481990464984384289705098247211141191747299514445856153",
+        "dataset_index": 229457,
+        "molecule_group_sha256": "bf782df55f300f2cfb048ac8f2b67d2c11758b08bd14098300afcb8b01289004",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__98385"
+        ],
+        "positions_angstrom": [
+          [
+            1.38265546302,
+            0.113764938323,
+            0.734433889922
+          ],
+          [
+            0.94391246692,
+            -0.069218774577,
+            -0.592615675678
+          ],
+          [
+            -0.42521420818,
+            0.306754185723,
+            -0.731872163478
+          ],
+          [
+            -1.32834062238,
+            -0.726423925977,
+            -0.002653726678
+          ],
+          [
+            -1.05536071698,
+            0.365163363623,
+            0.532856315822
+          ],
+          [
+            2.15391838582,
+            0.780708383223,
+            0.660901174022
+          ],
+          [
+            1.79512465262,
+            -0.782523755777,
+            1.002763804622
+          ],
+          [
+            -1.21021388598,
+            1.002778410223,
+            1.398225262422
+          ]
+        ],
+        "positions_angstrom_sha256": "f253b529c04cb90279a67c1675d15596e6c8f22c60e306ed95d3ed02c7a512f7",
+        "record_sha256": "b412c4e75aedda1dac83ce4c498c8fd73797531e056b8213421a65719ee384d9",
+        "selection_score_sha256": "002a7f13e8061d59eecfecd80b6ea3ae89d3fc1da3902ab59ea843e88f7256ca",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "1050825738206194696869721562107518652727474461896299484893048198483063444145797154067836958223069169861968638774350011401575919178430672918619153211961657"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/gas/gas.chk",
+          "sha256": "d37e69ab43f57a0bafe156744af928d622b6d8fd473a9c5798b991c0526ad6c9"
+        },
+        "surface": {
+          "audit_point_count": 243,
+          "fit_point_count": 246,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/permanent-p13-surface-v1.npz",
+          "sha256": "09baf7f4913318e69e63642fed5392ad47bc2cec67c85acf78c612f70c575e42"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-432908-c1096072c51b/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-432908-c1096072c51b",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          6,
+          8,
+          8,
+          6,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "b9044a904991191a9af8a7abb6ecd8a97fda777e5415ad1f9c9f076ba4af6283",
+        "chemical_formula_hill": "C2H7NO2",
+        "configuration_hash": "11893233954259862750671076537907208985223660009502525028152268753616381661561447178440061654045200496656033633862625190356067720613493832144194758961674826",
+        "dataset_index": 432908,
+        "molecule_group_sha256": "a236f0ded29d7fad50986ba55afc2402caf384fbd52e4979b0cc7b71bbf8a4ea",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__172321"
+        ],
+        "positions_angstrom": [
+          [
+            1.177223144312,
+            -0.863331310999,
+            -0.438863797195
+          ],
+          [
+            0.516983931812,
+            0.047145384101,
+            0.449036525405
+          ],
+          [
+            0.665498903012,
+            1.359579838001,
+            -0.048213094395
+          ],
+          [
+            -0.837343790688,
+            -0.248340323799,
+            0.643325216005
+          ],
+          [
+            -1.576830863288,
+            -0.439003455799,
+            -0.546130909295
+          ],
+          [
+            1.115604314912,
+            -0.495487664899,
+            -1.389403002695
+          ],
+          [
+            2.169415585312,
+            -0.885366682199,
+            -0.214518105295
+          ],
+          [
+            0.955428586912,
+            -0.050826079099,
+            1.456997565805
+          ],
+          [
+            0.116822645612,
+            1.931066317401,
+            0.504645105205
+          ],
+          [
+            -1.488529392888,
+            0.428015479701,
+            -1.224261115595
+          ],
+          [
+            -1.251700287588,
+            -1.350213764199,
+            -1.075488305395
+          ],
+          [
+            -2.627073246588,
+            -0.552150543199,
+            -0.249019860595
+          ]
+        ],
+        "positions_angstrom_sha256": "1fcd38e73e79560519e4df6597340638dd05355581cb9887eb450e9697ba0988",
+        "record_sha256": "c1096072c51bc6def3e63c2ea20fa18acb0d8a9281714573fe383b6edd09abe4",
+        "selection_score_sha256": "002bb062d90092bb7bbc4e6710547f9f1d7ded995d109e16ddc417fa9061b600",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "11052620453333536166262737101622967894854838453479082428409948707741002687425809503583349495546760174024803187805583041713659973638566627063538269290406089"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/gas/gas.chk",
+          "sha256": "eaa8186ecbcfc5a0ea17fbea4e735c5f83726dea04a9a263eb200712816394d1"
+        },
+        "surface": {
+          "audit_point_count": 237,
+          "fit_point_count": 236,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/permanent-p13-surface-v1.npz",
+          "sha256": "d4d20e78e13812aa68b5883d6f35c0098145aed367771710064dc2b4ff7ccfcb"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-66144-d15ba6ea626a/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "phosphorus-66144-d15ba6ea626a",
+      "selection_record": {
+        "atomic_numbers": [
+          8,
+          6,
+          8,
+          15,
+          6,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "59ecc5c7da88a2c3d64261ccf677c852e094138bc4a53187a8da56ace99aaff2",
+        "chemical_formula_hill": "C2H5O2P",
+        "configuration_hash": "3156970245924528821526824886347723110879772485176841755626442692503133654757833254390858790599588427456004259530876045965454748552800024696327161499703201",
+        "dataset_index": 66144,
+        "molecule_group_sha256": "f178c82c50223b1723ec555a20fa8f309730230094c5b61cea0e503d93e5be27",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__590432"
+        ],
+        "positions_angstrom": [
+          [
+            -1.281755723045,
+            1.205399983556,
+            0.417419516443
+          ],
+          [
+            -0.715027659855,
+            0.166114343901,
+            -0.336554384191
+          ],
+          [
+            -1.465345048784,
+            -1.018978611042,
+            -0.289578372754
+          ],
+          [
+            0.924584926507,
+            -0.235263242766,
+            0.499902066077
+          ],
+          [
+            1.992632638459,
+            0.068624173356,
+            -0.735091156809
+          ],
+          [
+            -2.022112196906,
+            1.578224706735,
+            -0.076836174417
+          ],
+          [
+            -0.554840567715,
+            0.486699345839,
+            -1.386485031932
+          ],
+          [
+            -2.231396949364,
+            -0.923408033201,
+            -0.868789561888
+          ],
+          [
+            1.714940576916,
+            0.410203654439,
+            -1.738589833877
+          ],
+          [
+            3.064147205195,
+            -0.074943946765,
+            -0.56195799839
+          ]
+        ],
+        "positions_angstrom_sha256": "a7150c2e1771d832aaa2d080eeac40ca806844ef57c00abf0827973fe5e814b8",
+        "record_sha256": "d15ba6ea626a099aef06c30eba949ab6c4afab6fdd1381bfa569f1a66034108a",
+        "selection_score_sha256": "0003e51f69ad452a8ed1e0978fcb99c74f2e3680864b8dd38e1b21f78635ef34",
+        "split": "train",
+        "stratum": "phosphorus",
+        "structure_hash": "5809856378955327350688344643246839390852338746030493571278252390384336101650561102419961613687639398001827836410498776591877138363616497068717384014991344"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/gas/gas.chk",
+          "sha256": "466cedbdd367b896ebcf6b542c993f8d8fd3a4adc5fada8a21cfedfbf079233c"
+        },
+        "surface": {
+          "audit_point_count": 246,
+          "fit_point_count": 244,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/permanent-p13-surface-v1.npz",
+          "sha256": "b0a4f967788f04ea3d1c64216c88234acbbfe53c5ed7cea2dcece8e61b873b09"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/phosphorus-598182-ea0696054cba/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "phosphorus-598182-ea0696054cba",
+      "selection_record": {
+        "atomic_numbers": [
+          16,
+          15,
+          9,
+          16,
+          15,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "d1fc7920fe7a5f3c5fedf3c01d4fbeab16ab9cf86b59f7182b6c9adc2259bf8f",
+        "chemical_formula_hill": "H3FP2S2",
+        "configuration_hash": "9727495086457396316496088275938418345752691990596400812669919377101516379569861714483465039451278525380623075081441782004806213889208367733286142570985592",
+        "dataset_index": 598182,
+        "molecule_group_sha256": "6357108a8e62b2c9f725f1e2dbc0d869eda9f9737313eb5793ebb6b2116250b4",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__337595"
+        ],
+        "positions_angstrom": [
+          [
+            -1.91230387707,
+            0.765915731746,
+            -0.545133994097
+          ],
+          [
+            -0.541621338173,
+            -0.834290400918,
+            -0.273053540799
+          ],
+          [
+            -1.235593972455,
+            -1.619885542812,
+            0.994339043004
+          ],
+          [
+            1.008166524307,
+            0.05359017989,
+            0.924463615798
+          ],
+          [
+            2.111122310972,
+            0.851927771329,
+            -0.734838987324
+          ],
+          [
+            -1.827751090997,
+            1.273820323484,
+            0.7077718455
+          ],
+          [
+            2.1629283215,
+            2.203015005737,
+            -0.279128683192
+          ],
+          [
+            3.403672787954,
+            0.519534519705,
+            -0.230775877123
+          ]
+        ],
+        "positions_angstrom_sha256": "bc64fbed2f354daad0f9a6ceea80fdab60aedd6cd7dbd30386b4c81c7f2ad04e",
+        "record_sha256": "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6",
+        "selection_score_sha256": "0003a1ea0a3a4cb03398da905675c33e3bec3feb894a9841aa365933dd3d0097",
+        "split": "train",
+        "stratum": "phosphorus",
+        "structure_hash": "12500031721885355794792068710318643287866801651822575249377599448096714799544377399354798466129699074550981619947194104362424689054150984078230502110028955"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/gas/gas.chk",
+          "sha256": "0180b7e451f99ba5de019d1cb1e5d1cdbb6d364f077222cae9b4b0e364dfc5ca"
+        },
+        "surface": {
+          "audit_point_count": 173,
+          "fit_point_count": 179,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/permanent-p13-surface-v1.npz",
+          "sha256": "1c11ef594776ef37c67933cb2c95b437d926af326321720fd547891ed3b65878"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-440770-f59ae1366672/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-440770-f59ae1366672",
+      "selection_record": {
+        "atomic_numbers": [
+          7,
+          6,
+          6,
+          6,
+          7,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "7d90f20b1232c45f7cf40778f90c0cd336a02031b7dbfd131dcb69d69856ca50",
+        "chemical_formula_hill": "C3H2N2",
+        "configuration_hash": "11013420557101806710011291770317272050384934879770736358111925374547040109118540397774497024114414495872318631005237830150052898241478773723307041172314870",
+        "dataset_index": 440770,
+        "molecule_group_sha256": "bd9c70b8e08cd0733823b4d69b32c8698a1fb6aa1a6c6cb78db9875b14906246",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__180183"
+        ],
+        "positions_angstrom": [
+          [
+            -0.810307218494,
+            -0.790339233692,
+            0.000571276196
+          ],
+          [
+            0.095167000506,
+            -0.000606944892,
+            -0.793469044204
+          ],
+          [
+            0.095108207006,
+            0.000601374508,
+            0.793489190796
+          ],
+          [
+            1.373410054506,
+            -4.0291792e-05,
+            4.0721996e-05
+          ],
+          [
+            -0.810260811194,
+            0.790386762808,
+            -0.000632481704
+          ],
+          [
+            1.949130941506,
+            0.930472056708,
+            -0.000645663804
+          ],
+          [
+            1.949076365406,
+            -0.930586369792,
+            0.000771322696
+          ]
+        ],
+        "positions_angstrom_sha256": "a1d03d8101568b3ade1d9308a58bd1ed89f2844a4b8e003c13eb73bdcb05c73b",
+        "record_sha256": "f59ae1366672f5434cf08f68b4d52bbdbeddb809d8f33e45bb3743c7b509d60c",
+        "selection_score_sha256": "002a66f8c8687b7e567745375af672fe49cdf157e0e8f8d042a681bac935ef92",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "4320922271960106944321202074831364284244162262089850006958512202582910080455130096861450250883231613731683578334343423811290125785076684826744072585818366"
+      }
+    },
+    {
+      "inputs": {
+        "checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/gas/gas.chk",
+          "sha256": "9169c5ee98cf5aa29d39fb2d5681a8c70161bd64d620a21988d8e100c56d3dcf"
+        },
+        "surface": {
+          "audit_point_count": 259,
+          "fit_point_count": 261,
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/permanent-p13-surface-v1.npz",
+          "sha256": "ecc60e589ca6241fa4f1ea1ac9b33b6c6b428a5c1297c141bf0ecb54ee9fa803"
+        }
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/permanent-p13-zero-mep/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-observable-training-batch-v1/base-hcno-399849-fa20b6e144ad/permanent-p13-zero-mep/result.npz"
+      },
+      "record_id": "base-hcno-399849-fa20b6e144ad",
+      "selection_record": {
+        "atomic_numbers": [
+          6,
+          7,
+          7,
+          6,
+          6,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "atomic_numbers_sha256": "9a31b20c4adea519410f45c8d43b026d8c83756bea6178fe25407571a9889046",
+        "chemical_formula_hill": "C3H8N2",
+        "configuration_hash": "4723045602170544787288362124057000279444417931093813358777059828669170226806183446171764944881403616878480419521462488423466287140476777655220532383599195",
+        "dataset_index": 399849,
+        "molecule_group_sha256": "07a9f20807954767f8342bceb65b518d6bda0503733f7ba7d6de7e24145d9f78",
+        "names": [
+          "Vector-QM24_DFT_all__DFT_all__139262"
+        ],
+        "positions_angstrom": [
+          [
+            1.791150281404,
+            0.027524469703,
+            0.160775384574
+          ],
+          [
+            0.478909537704,
+            -0.032746095697,
+            -0.424127978526
+          ],
+          [
+            -0.421107151296,
+            1.038134592903,
+            0.026546120674
+          ],
+          [
+            -1.516149275596,
+            0.023238713603,
+            0.035914202774
+          ],
+          [
+            -0.443363676896,
+            -1.067110863697,
+            0.063349292674
+          ],
+          [
+            1.765897887004,
+            0.028681548003,
+            1.276170145574
+          ],
+          [
+            2.301547065604,
+            0.940499679003,
+            -0.179651114426
+          ],
+          [
+            2.376007702404,
+            -0.842381785797,
+            -0.172659383026
+          ],
+          [
+            -0.193094020196,
+            1.195503075803,
+            1.024125647574
+          ],
+          [
+            -2.070662052796,
+            0.061773266403,
+            -0.912348478726
+          ],
+          [
+            -2.217201385396,
+            0.090890748603,
+            0.878203274074
+          ],
+          [
+            -0.549061623796,
+            -1.949425131997,
+            -0.586496101926
+          ],
+          [
+            -0.211894694696,
+            -1.393283621797,
+            1.100559208174
+          ]
+        ],
+        "positions_angstrom_sha256": "f021e9b253fb136ef3fe9622dc6564489943b5d8eca8af57c4d0f521bdc5a664",
+        "record_sha256": "fa20b6e144ad2e4f0d79bf95de902efb424e8d49809b2756b97f514bc5f24bef",
+        "selection_score_sha256": "0023dd2d978d42607e6af53255642a3958a5e5beba2252df148f254ce516e3b4",
+        "split": "train",
+        "stratum": "base-hcno",
+        "structure_hash": "1087111566917826216797022738606760456962518276017633500307587390161740529350168316189409875441488942988286446119824380186797726611420259301130980528565497"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "selection": {
+    "file_sha256": "f3b0b5b9bab07263af68c73bd6cf82714aa14aa07434a069ddb70fff2e093d94",
+    "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-geometry-selection-v1.json",
+    "record_count": 32,
+    "selection_sha256": "fdcfb665b64973155d619d806a25c96af4efe7586ba727cf20cba627745825f1",
+    "split": "train"
+  },
+  "source": {
+    "builder_path": "maple/solvation/reference/permanent_quadrupole_probes.py",
+    "builder_sha256": "4b9a7f87a30d59d1bd9e72c43603720145c46c09398e25691bfc1659e71dad80",
+    "creator_path": "tools/route2_release/prepare_vqm24_permanent_p13_mep_batch.py",
+    "creator_sha256": "67c78c7f7b8e313b53b69f1962ce7efd262576a246e4209be41d643a5f46179c",
+    "runner_path": "tools/route2_release/run_vqm24_zero_field_mep_record.py",
+    "runner_sha256": "65047273fa9f22f30a9edef87c3902d795b9c9a4da44907aa9a6e091da2a5a57"
+  },
+  "status": "locked-before-permanent-p13-zero-field-mep-execution"
+}

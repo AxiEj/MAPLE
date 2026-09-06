@@ -1,0 +1,23 @@
+{
+  "artifact": "route2-acetone-point-multipole-representation-oracle-v1",
+  "claim_boundary": {
+    "allowed_use": "representation falsification only; cannot admit a basis or model",
+    "capability_admitted": false,
+    "fit_or_training_performed": false,
+    "matched_qm_surface_previously_opened": true,
+    "preregistered": false,
+    "solvation_target_read": false
+  },
+  "created_utc": "2026-08-23T18:02:56.539589+00:00",
+  "key_result": {
+    "decision": "point multipoles through l=3 fail this opened one-case representation falsification; radial density/potential resolution is required",
+    "l1_middle_shell_relative_error": 0.25292661653602483,
+    "l2_middle_shell_relative_error": 0.24059218318738998,
+    "l3_coefficient_norm": 16.580005009713872,
+    "l3_middle_shell_relative_error": 0.23946533425845906
+  },
+  "method": "constrained area-weighted linear least-squares oracle for atom-centred point q/p/Q/O through l=3 on 0.95/1.00/1.05 dilated acetone surfaces",
+  "result_sha256": "ba2f2c5e257da7ae98ac474839a69ece6fbf18ca088bd693110e34e9b9b742df",
+  "source_sha256": "56f306483ee2666e9502b1323445e7e1580950a8ffc0bdd79090476447cf67b7",
+  "stored_qm_mep_replay_max_abs_hartree_per_e": 1.702913365875247e-10
+}

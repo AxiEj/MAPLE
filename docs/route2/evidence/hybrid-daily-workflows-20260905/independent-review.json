@@ -1,0 +1,17 @@
+{
+  "codeReviewer": {
+    "agent": "/root/implementation_review",
+    "recommendation": "COMMENT",
+    "remaining_code_change_findings": 0,
+    "limitation": "Formal LSP diagnostics unavailable; pytest, AST/compile, pyflakes and diff checks used."
+  },
+  "architect": {
+    "agent": "/root/architecture_review",
+    "status": "WATCH",
+    "limits": [
+      "Experimental callable delivery only; no real reactive-model TS/barrier validation.",
+      "Real guarded Hessian plus final-source transform/report replay, not final-tree end-to-end checkpoint rerun.",
+      "PySCF-SMD internal topology remains unobservable."
+    ]
+  }
+}

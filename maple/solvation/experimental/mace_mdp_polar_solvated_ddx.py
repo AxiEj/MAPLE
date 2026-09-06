@@ -59,6 +59,9 @@ HYBRID_SOLVATED_DDX_PES_PROVIDER_ID = (
 HYBRID_SOLVATED_DDX_SCALAR_CONTRACT_ID = (
     "mace-mdp-permanent-plus-mace-polar-induced-ddx-plus-solvent-term-v1"
 )
+HYBRID_SOLVATED_DDX_DAILY_PROFILE_ID = (
+    "route2-experimental-mace-mdp-polar-separated-ddx-smd-daily-v1"
+)
 ENERGY_REPLAY_ATOL_EV = 2.0e-10
 _MODULE_PATH = Path(__file__).resolve()
 
@@ -263,7 +266,13 @@ class HybridSolvatedDDXForceEvaluation:
 
 
 class MACE_MDPPolarHybridSolvatedDDXPES:
-    """Composable full-solvation hybrid PES with E/F/virial/HVP/H access."""
+    """Composable full-solvation scalar with derivative access when complete.
+
+    The solvent term cannot repair a missing electrostatic coordinate
+    derivative.  Force-, virial-, HVP-, and Hessian-level entry points therefore
+    inherit the electrostatic provider's explicit capability instead of
+    advertising a class-wide constant.
+    """
 
     __slots__ = (
         "_configuration_sha256",
@@ -276,8 +285,10 @@ class MACE_MDPPolarHybridSolvatedDDXPES:
 
     provider_id = HYBRID_SOLVATED_DDX_PES_PROVIDER_ID
     scalar_contract_id = HYBRID_SOLVATED_DDX_SCALAR_CONTRACT_ID
+    daily_profile_id = HYBRID_SOLVATED_DDX_DAILY_PROFILE_ID
     scientific_status = (
-        "experimental-callable-E-F-molecular-virial-HVP-H; "
+        "experimental-callable-E; conditional-complete-coordinate-derivative-"
+        "F-molecular-virial-HVP-H; "
         "hybrid-full-solvation-accuracy-and-release-admission-pending"
     )
 
@@ -333,6 +344,24 @@ class MACE_MDPPolarHybridSolvatedDDXPES:
     def hessian_backend(self) -> RichardsonScalarHessian:
         return self._hessian_backend
 
+    @property
+    def coordinate_derivative_available(self) -> bool:
+        declared = getattr(
+            self._electrostatic_pes,
+            "coordinate_derivative_available",
+            None,
+        )
+        if type(declared) is not bool:
+            raise RuntimeError(
+                "electrostatic PES must declare a boolean complete-coordinate-"
+                "derivative capability."
+            )
+        return declared
+
+    @property
+    def force_available(self) -> bool:
+        return self.coordinate_derivative_available
+
     def _current_configuration(self) -> str:
         return canonical_metadata_sha256(
             {
@@ -354,6 +383,9 @@ class MACE_MDPPolarHybridSolvatedDDXPES:
                 "energy_ledger": "vacuum-plus-ddx-polarization-plus-solvent-term",
                 "force_derivative_kind": (
                     "analytic-block-adjoint-plus-solvent-gradient-v1"
+                ),
+                "coordinate_derivative_available": (
+                    self.coordinate_derivative_available
                 ),
                 "numerical_force_policy_sha256": (
                     self._numerical_force_backend.policy_sha256()
@@ -445,6 +477,11 @@ class MACE_MDPPolarHybridSolvatedDDXPES:
         *,
         central_state: HybridSolvatedDDXEnergyState | None = None,
     ) -> HybridSolvatedDDXForceEvaluation:
+        if not self.coordinate_derivative_available:
+            raise NotImplementedError(
+                "electrostatic response has no complete coordinate derivative; "
+                "the combined analytic force is unavailable."
+            )
         state = (
             self.solve(geometry)
             if central_state is None
@@ -624,6 +661,7 @@ def build_smd_mace_mdp_polar_hybrid_ddx_pes(
 
 
 __all__ = [
+    "HYBRID_SOLVATED_DDX_DAILY_PROFILE_ID",
     "HYBRID_SOLVATED_DDX_PES_PROVIDER_ID",
     "HYBRID_SOLVATED_DDX_SCALAR_CONTRACT_ID",
     "HybridSolvatedDDXEnergyState",

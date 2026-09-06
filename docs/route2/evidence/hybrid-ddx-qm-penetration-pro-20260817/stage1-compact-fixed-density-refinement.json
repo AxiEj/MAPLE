@@ -1,0 +1,379 @@
+{
+  "artifact": "route2-hybrid-qm-ddpcm-stage1-compact-fixed-density-refinement-v1",
+  "basis": "def2-TZVP",
+  "basis_key": "compact",
+  "claim_boundary": {
+    "cavity_or_basis_selected_by_accuracy": false,
+    "cds_or_standard_state_read": false,
+    "experimental_solvation_targets_read": false,
+    "fixed_gas_density_only": true,
+    "interior_probe_reciprocity_completed": false,
+    "interpretation": "The frozen Q18 refinement gate fails at every preregistered radius. This is sufficient to reject the original matched ledger before orbital minimization, but does not identify which internal ddPCM operator mode causes the failure.",
+    "mace_outputs_read": false,
+    "operator_conditioned_residual_completed": false,
+    "orbital_minimization_completed": false,
+    "public_capability_admitted": false
+  },
+  "cold_replay": {
+    "all_pass": true,
+    "energy_absolute_difference_hartree_max": 1e-09,
+    "items": [
+      {
+        "discretization": [
+          19,
+          2030
+        ],
+        "energy_absolute_difference_hartree": 1.0842021724855044e-18,
+        "energy_replay_gate_pass": true,
+        "operator_frobenius_difference_hartree": 6.92465101867886e-15,
+        "operator_max_absolute_difference_hartree": 5.102255423716784e-16,
+        "operator_replay_gate_pass": true,
+        "original_operator_sha256": "2b146dbda6ae875756321ce4655b6711fe46c2297c2ab4a46d943353415bdae2",
+        "original_record_sha256": "3816b4f6bfc72681aec4a3bc222b6923a1b4b62f9bb27becb2c5729b338d8938",
+        "original_threads": 2,
+        "radius_scale": 1.5,
+        "replay_operator_sha256": "1f0f32468207b1aac611d56a3e20d61aab8bffa03d8b303b125c32278787402e",
+        "replay_record_sha256": "8b4ab6896267f27fd3f7ac6a0fb48175b4b235e26769d46f7913feba4e13f102",
+        "replay_threads": 2
+      },
+      {
+        "discretization": [
+          19,
+          2030
+        ],
+        "energy_absolute_difference_hartree": 1.7211632119540354e-10,
+        "energy_replay_gate_pass": true,
+        "operator_frobenius_difference_hartree": 3.769573065069029e-09,
+        "operator_max_absolute_difference_hartree": 1.6608581177024462e-09,
+        "operator_replay_gate_pass": true,
+        "original_operator_sha256": "a132958b0e51beb9bae87c2443eb63d68ff73ae3e845f927722c20881bb4325d",
+        "original_record_sha256": "6d884d7a628febf69e17ea043eb58ac1e05f6de13083e7c1be7758ed904e540e",
+        "original_threads": 4,
+        "radius_scale": 1.0,
+        "replay_operator_sha256": "c16b3d44eba5a5cf2261d40f0854d33086cd0057602778ddc731fcf0d6385ca7",
+        "replay_record_sha256": "f6bf360cd7e0c4ff5eda2172a018b6eee102f3972c0ee10ad64d234e52624ee6",
+        "replay_threads": 2
+      }
+    ],
+    "operator_max_absolute_difference_hartree_max": 1e-08
+  },
+  "discretizations": [
+    [
+      15,
+      1202
+    ],
+    [
+      17,
+      1730
+    ],
+    [
+      19,
+      2030
+    ]
+  ],
+  "gas_state_npz_sha256": "95cdc59166b07882ff3893f303ccb050f68b72e26c576dad7c7e0320dd79ebc5",
+  "gates": {
+    "all_radius_energy_gates_pass": false,
+    "all_radius_operator_gates_pass": false,
+    "energy_absolute_difference_hartree_max": 1e-06,
+    "operator_relative_difference_max": 0.0001,
+    "passing_radius_scales": []
+  },
+  "profile_input_sha256": "c089201da915f37de02efb108720e5802b58ab55ec40f24a2a6930b1012c2287",
+  "radius_scales": [
+    1.5,
+    1.3,
+    1.2,
+    1.1,
+    1.05,
+    1.025,
+    1.0
+  ],
+  "rows": [
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "2ff5f4113f425b92f62218e179b1812271244823615c7df4497e3409f7308374",
+          "record_self_sha256": "7fa9447a03f854de8754f50193d303aec64cb579227b8622d421b7e4e7d34a78",
+          "record_sha256": "15f804142f39223d89ce2fc6c92240d6850eaa4bb221015d9999765ef2558244"
+        },
+        "high": {
+          "operator_sha256": "2b146dbda6ae875756321ce4655b6711fe46c2297c2ab4a46d943353415bdae2",
+          "record_self_sha256": "cb2e9357c0786062a90eeb34c377e6d073464f808f51a6397df202a4e8f34c1a",
+          "record_sha256": "3816b4f6bfc72681aec4a3bc222b6923a1b4b62f9bb27becb2c5729b338d8938"
+        },
+        "mid": {
+          "operator_sha256": "612a948c5169abbfe7d2cf829e22455c73b8e53377e67465368f1df84de1e6a4",
+          "record_self_sha256": "069eeae0931b0533ff5685135c443a8a1ad05086e57783134d0f636d6bab82e5",
+          "record_sha256": "3f473e4e465e7952e6bc4098c316dc218829c4f1eb444261ba7b57145c76fecb"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 1.213014584559597e-06,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 0.01478004976014921,
+        "operator_spectral_difference_hartree": 0.01478004976014921,
+        "refined_operator_spectral_hartree": 0.023841436486869212
+      },
+      "energies_hartree": {
+        "15_1202": -0.0014204062382290315,
+        "17_1730": -0.001432951627359241,
+        "19_2030": -0.001421619252813591
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 0.010466863067236857,
+        "17_1730": 0.021071109192950903,
+        "19_2030": 0.023841436486923773
+      },
+      "outlying_charge_electron": 0.03409162143217164,
+      "outlying_fraction": 0.0008117052504736877,
+      "radius_scale": 1.5
+    },
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "2aa3802bb5b85510937266212bb34bcc0cde6929afffb9f44fa66b5149c354f2",
+          "record_self_sha256": "dfd08afa023e6f8a059ef22a730c90c162c8cde75c0641f1759fc6b3177add60",
+          "record_sha256": "229072c84062d12acbfcdf5e6c43a65cf0acc31c610540d1615f2bf68f037a97"
+        },
+        "high": {
+          "operator_sha256": "b550595ee288fb1c06b225665a8f72f7157f625a02f0e7e72baaf81294cb9c56",
+          "record_self_sha256": "7e5c82b1bf5327238263fe16eb5c2956fd2f73debb18b72c858e21448b304a95",
+          "record_sha256": "a90d3898567a588642780394b3ed059b0e1693f319edf723e45fdcf7d9f83bf4"
+        },
+        "mid": {
+          "operator_sha256": "7c210849dffa503537fcecf10d6bad3f65433e0292ecb26efbc91cd46d254f12",
+          "record_self_sha256": "f6b16a0594414ca93a14ae3611dcb644aeb4549774708baf57ed8e9962de8939",
+          "record_sha256": "ae491d43ea593b41149e1f12368086f7dc8939f2cdbfa7e2d3e7e9525cdf0227"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 0.0003582670354526467,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 1.038844120833279,
+        "operator_spectral_difference_hartree": 2.260208270659749,
+        "refined_operator_spectral_hartree": 2.17569529954772
+      },
+      "energies_hartree": {
+        "15_1202": -0.002266106125950313,
+        "17_1730": -0.0021522678053443487,
+        "19_2030": -0.0026243731614029597
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 0.10392872995953552,
+        "17_1730": 0.15735305183127676,
+        "19_2030": 2.1756952995577215
+      },
+      "outlying_charge_electron": 0.10420720504156027,
+      "outlying_fraction": 0.002481123863167176,
+      "radius_scale": 1.3
+    },
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "8ca834495437a56ad728dca44c6dff92b969fafb00e2f1539f7a1701e4a2e401",
+          "record_self_sha256": "46e64c5470a083f5a2d0fe78eee1db28a35f66365f1e7370716b2b2423521834",
+          "record_sha256": "a4d2663b2faab11b799285f0b8106beaa97bd2ac943d60edcf581d708c282742"
+        },
+        "high": {
+          "operator_sha256": "0c5cc3e285ee2cf47c77ef4c035389921a9a0cfcad72f01a65d76e3177712cb3",
+          "record_self_sha256": "f1092cacf7c9ffb6cfe763bc55e55264609149d7418c951200fd4acade0b3861",
+          "record_sha256": "7a5cb1e57f06ff109fa8cdaac242684a3e13674416e5e81a4aca354ebeb34aed"
+        },
+        "mid": {
+          "operator_sha256": "4039df531be48ff833560b8ef2bdd84402181f3a038a082e0191e13b2e5ef33f",
+          "record_self_sha256": "942214135f95b008a0c357ea8f322073832fd2e849f927bdb4d9759df4c7d3eb",
+          "record_sha256": "4fbae7b64dbf746f3e6865dc0975f9d64ab30a57398283c2c58f58b1d5173b2f"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 0.00393210806041913,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 1.0067766383518233,
+        "operator_spectral_difference_hartree": 12.022269003139193,
+        "refined_operator_spectral_hartree": 11.941346814344683
+      },
+      "energies_hartree": {
+        "15_1202": -0.0030632505277880004,
+        "17_1730": -0.004568181954028989,
+        "19_2030": 0.0008688575326311291
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 0.11662077563102233,
+        "17_1730": 3.0479382300285867,
+        "19_2030": 11.941346814400564
+      },
+      "outlying_charge_electron": 0.186316000056383,
+      "outlying_fraction": 0.004436095120729737,
+      "radius_scale": 1.2
+    },
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "677a320f0e5825191fe43b9d4a6e1c9520cf34fc3606b3b7c1906aa6505ed36d",
+          "record_self_sha256": "bb9da23cbd1a74566f8198250ad97a96eb0f6acb872bd983edf3255d7f110590",
+          "record_sha256": "144d1591af3934282f713e4b1192ab8876c9f5a1a1fb2433f9c500c9dc2adbfe"
+        },
+        "high": {
+          "operator_sha256": "9998d2d379996306e5059aae8b383adb040042d72db32455003ad012ecb6760d",
+          "record_self_sha256": "56e90c4f89069ee4c0f934ef59f4a81e455c58ac699a3f984e48d1358119bbfc",
+          "record_sha256": "cbb5e56c41c32883bf7eb44ac93ad45d790bb22dc5001e4cea065caba85b9013"
+        },
+        "mid": {
+          "operator_sha256": "d6cc70f6f3976e6f2ded030d27c321d17d742e536b35bdf353bbb870f9e96630",
+          "record_self_sha256": "f6babad1c0c6d329257660b439f092fac21d381b6051d769c5c8f31ba98e33cc",
+          "record_sha256": "805b64ac05ad94594852e2b31de476de22d85f7f11f3828716520d18dcd2eaf8"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 0.01658276849871711,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 1.0838043216603632,
+        "operator_spectral_difference_hartree": 21.434145159601304,
+        "refined_operator_spectral_hartree": 19.77676664618267
+      },
+      "energies_hartree": {
+        "15_1202": -0.005343210105228517,
+        "17_1730": -0.0012825699855271433,
+        "19_2030": -0.02192597860394563
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 2.025144660381628,
+        "17_1730": 18.43245342550494,
+        "19_2030": 19.776766646203633
+      },
+      "outlying_charge_electron": 0.3229361493630407,
+      "outlying_fraction": 0.007688955731462184,
+      "radius_scale": 1.1
+    },
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "70b232e961b89920516116477fb48191b0c4d96700fdd4c57e95cd3e64e81d8e",
+          "record_self_sha256": "9d78dda30a48a52c2cd88b367943dc6628796865d4997b8d7e062437c3ebc3cf",
+          "record_sha256": "0ae76b419a27b8877a9ed094007ee3f2e240697d083c0c5c163e8592477e53fd"
+        },
+        "high": {
+          "operator_sha256": "378a05e932a84e8344bd968036b6efbc29687ea865d6de0741d240e8e5c4502d",
+          "record_self_sha256": "e4272a3ba5db8bc1e00003088f5eff94017479cd929933b4653bd301b7e87df8",
+          "record_sha256": "cbb7512e50d36d98045ea2d27518f650613b7f09b345d2adb17263a5950b1640"
+        },
+        "mid": {
+          "operator_sha256": "f5a24655bc9a2b29bff03c4053b8d999b35f58e503c342d8a9b1998850f4626e",
+          "record_self_sha256": "badc5bc9853d4477695ea00be7e4b70f0e9aa87284a9af200efca25ea4a7a0c7",
+          "record_sha256": "797cbb1467824497312690704777e2c44c02843fb0bae31315d39a7c59a61eb8"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 0.09319742688831843,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 0.9992783352827634,
+        "operator_spectral_difference_hartree": 291.4558546005338,
+        "refined_operator_spectral_hartree": 291.6663399072504
+      },
+      "energies_hartree": {
+        "15_1202": -0.004766411227893477,
+        "17_1730": 0.018111659266758576,
+        "19_2030": -0.09796383811621191
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 2.0085733280492173,
+        "17_1730": 52.59069045205825,
+        "19_2030": 291.6663399086394
+      },
+      "outlying_charge_electron": 0.39123228704999574,
+      "outlying_fraction": 0.009315054204304576,
+      "radius_scale": 1.05
+    },
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "43e2c05d91456bef316d71355f17fe242b8bac570485ab8209c71b6a1bad0690",
+          "record_self_sha256": "d855d3caaf93d35608fd3919091d6e810b737bb3de48f49d50db4890bc26e7ff",
+          "record_sha256": "fdd74cc0d8b43884299c353db3331b5baee2c3861052875521af51cef36ccae1"
+        },
+        "high": {
+          "operator_sha256": "2502d9cc6ca54c8b8e5fb19ba773fc9a4ea609a2a8df8f189f5fe6434d27d634",
+          "record_self_sha256": "c2f09e3a2d17625a0a2a4b0cf8093fb52c38ad467bb29da2b6748f7c0400c028",
+          "record_sha256": "c0aed43e9847cc80855f9bb8e4c3c890f44f036699201a042c00e37e5815d3b9"
+        },
+        "mid": {
+          "operator_sha256": "3c339c66a9e84e134f64cab671fa5ab57b3c71c202e90e24e1173503a681b727",
+          "record_self_sha256": "fe9ed5a1d3ed8eb08bf66574cde8915341277ab88c74a93355c2f2363ac4435e",
+          "record_sha256": "0e2e7911d27ca0cb70731b0c71146ec14b9d178cc04ee1e50fd5807f27313cfb"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 0.11751577551106049,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 1.0045320421082173,
+        "operator_spectral_difference_hartree": 519.4630748222298,
+        "refined_operator_spectral_hartree": 517.1194676199971
+      },
+      "energies_hartree": {
+        "15_1202": -0.0017475149270709737,
+        "17_1730": 0.0304611996013784,
+        "19_2030": -0.11926329043813146
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 2.5004607908865903,
+        "17_1730": 54.05651660578709,
+        "19_2030": 517.119467622444
+      },
+      "outlying_charge_electron": 0.4794897340100674,
+      "outlying_fraction": 0.011416421932836512,
+      "radius_scale": 1.025
+    },
+    {
+      "artifacts": {
+        "base": {
+          "operator_sha256": "f9416c547fae3515164792de345f363ce5553526e62280993b3face3a7d4cc61",
+          "record_self_sha256": "1583eec016544a92e4aada219177054ec025b91486a66f289ec9de86c2a04e03",
+          "record_sha256": "08b101cde68b7bbfa5e8e81317cb598144abca075661349fccda10ab57267577"
+        },
+        "high": {
+          "operator_sha256": "a132958b0e51beb9bae87c2443eb63d68ff73ae3e845f927722c20881bb4325d",
+          "record_self_sha256": "06c8ace3d7f743f7d7aedebe0187f174b970da09c31967905ec1091e4ceea031",
+          "record_sha256": "6d884d7a628febf69e17ea043eb58ac1e05f6de13083e7c1be7758ed904e540e"
+        },
+        "mid": {
+          "operator_sha256": "a83ae0473273772bdfa2eb67fd44897e37b416b56598eba2246344235140d2c7",
+          "record_self_sha256": "03e8e3762ceacc7be4275dcaa84fb8f9f809fea3011a6d9f4de8a6a9c476345b",
+          "record_sha256": "852617219b2a2eb0f56456210e455a67cdcab5cab0cd8bad50872e103b2299dc"
+        }
+      },
+      "base_vs_highest": {
+        "energy_absolute_difference_hartree": 0.056914717790288505,
+        "energy_gate_pass": false,
+        "operator_gate_pass": false,
+        "operator_relative_difference": 1.0129205942430068,
+        "operator_spectral_difference_hartree": 618.8935794995629,
+        "refined_operator_spectral_hartree": 610.9991079429923
+      },
+      "energies_hartree": {
+        "15_1202": 0.004686817649622807,
+        "17_1730": 0.033350453836930305,
+        "19_2030": -0.052227900140665695
+      },
+      "operator_spectral_hartree": {
+        "15_1202": 8.970248891028131,
+        "17_1730": 22.86937034202554,
+        "19_2030": 610.9991079458525
+      },
+      "outlying_charge_electron": 0.5062878267780652,
+      "outlying_fraction": 0.012054471743572052,
+      "radius_scale": 1.0
+    }
+  ],
+  "runner_sha256": "3c501418231e6397c7ef17ae5744e868a9af5553590e0620470c6abd9e212973",
+  "schema_version": 1,
+  "scientific_design_sha256": "8607c85b38210877fb8ff2e060aec04edff3c59121fb8c06ead34fcc613d1aa5",
+  "self_sha256": "ed4a14c1151d268a2fe1189a1555c4b324ff9f86a7a65a066e6d35c9c793edb7",
+  "status": "reject-original-matched-ledger-continuum-discretization-refinement"
+}

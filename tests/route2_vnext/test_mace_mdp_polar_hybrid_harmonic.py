@@ -11,6 +11,7 @@ from maple.solvation.api.profiles import (
     PROFILE_REGISTRY,
 )
 from maple.solvation.api.scalar_registry import (
+    MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
     MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
 )
 from maple.solvation.continuum import (
@@ -101,11 +102,15 @@ def _atoms() -> Atoms:
     return atoms
 
 
-def _hybrid() -> PermanentAnchoredInducedSourceModel:
-    return PermanentAnchoredInducedSourceModel(_Permanent(), _Responsive())
+def _hybrid(*, response_scale: float = 1.0) -> PermanentAnchoredInducedSourceModel:
+    responsive = _Responsive()
+    responsive.jacobian *= response_scale
+    return PermanentAnchoredInducedSourceModel(_Permanent(), responsive)
 
 
-def _continuum() -> SmoothWeightedHarmonicGalerkinFunctionalCandidate:
+def _continuum(
+    *, dielectric: float | None = None
+) -> SmoothWeightedHarmonicGalerkinFunctionalCandidate:
     return SmoothWeightedHarmonicGalerkinFunctionalCandidate(
         atomic_numbers=(6, 8),
         radii_angstrom=(1.8, 1.7),
@@ -117,7 +122,72 @@ def _continuum() -> SmoothWeightedHarmonicGalerkinFunctionalCandidate:
         green_radial_quadrature_order=48,
         dtype=torch.float64,
         device="cpu",
+        dielectric=dielectric,
         scalar_id=SCALAR_ID,
+    )
+
+
+def test_harmonic_hybrid_applies_finite_dielectric_to_field_and_energy() -> None:
+    atoms = _atoms()
+    conductor = MACE_MDPPolarHybridSmoothHarmonicEnergy(
+        atoms,
+        hybrid=_hybrid(response_scale=0.0),
+        continuum=_continuum(dielectric=None),
+    ).solve(atoms)
+    dielectric_two = MACE_MDPPolarHybridSmoothHarmonicEnergy(
+        atoms,
+        hybrid=_hybrid(response_scale=0.0),
+        continuum=_continuum(dielectric=2.0),
+    ).solve(atoms)
+
+    assert dielectric_two.boundary_rhs == pytest.approx(conductor.boundary_rhs)
+    assert dielectric_two.boundary_state == pytest.approx(conductor.boundary_state)
+    assert dielectric_two.native_field_ev == pytest.approx(
+        0.5 * conductor.native_field_ev,
+        rel=2.0e-13,
+        abs=2.0e-13,
+    )
+    assert dielectric_two.polarization_energy_ev == pytest.approx(
+        0.5 * conductor.polarization_energy_ev,
+        rel=2.0e-13,
+        abs=2.0e-13,
+    )
+
+
+def test_harmonic_hybrid_pes_binds_finite_dielectric_as_new_identity() -> None:
+    atoms = _atoms()
+    common = {
+        "atomic_numbers": atoms.numbers,
+        "cavity_radii_angstrom": (1.8, 1.7),
+        "dtype": torch.float64,
+        "device": "cpu",
+        "exposure_radial_quadrature_order": 40,
+        "source_radial_quadrature_order": 48,
+        "green_radial_quadrature_order": 48,
+    }
+    conductor = MACE_MDPPolarHybridSmoothHarmonicPES(
+        hybrid=_hybrid(response_scale=0.0),
+        dielectric=None,
+        **common,
+    )
+    dielectric_two = MACE_MDPPolarHybridSmoothHarmonicPES(
+        hybrid=_hybrid(response_scale=0.0),
+        dielectric=2.0,
+        **common,
+    )
+    conductor_state = conductor.solve(atoms)
+    dielectric_state = dielectric_two.solve(atoms)
+
+    assert dielectric_two.configuration_sha256() != conductor.configuration_sha256()
+    assert dielectric_state.native_field_ev == pytest.approx(
+        0.5 * conductor_state.native_field_ev,
+        rel=2.0e-13,
+        abs=2.0e-13,
+    )
+    assert dielectric_state.polarization_energy_ev == pytest.approx(
+        0.5 * conductor_state.polarization_energy_ev,
+        rel=2.0e-13,
+        abs=2.0e-13,
     )
 
 
@@ -160,6 +230,13 @@ def test_harmonic_hybrid_numerical_force_converges_without_topology_jump() -> No
         ),
     )
     state = pes.solve(atoms)
+    analytic = pes.analytic_force_diagnostic(atoms, central_state=state)
+    assert analytic.adjoint_residual_ev < 1.0e-9
+    np.testing.assert_allclose(
+        np.sum(analytic.total_forces_ev_per_angstrom, axis=0),
+        0.0,
+        atol=2.0e-12,
+    )
     component = pes.numerical_force_component(
         atoms, atom_index=0, axis_index=0, central_state=state
     )
@@ -181,6 +258,87 @@ def test_harmonic_hybrid_numerical_force_converges_without_topology_jump() -> No
     )
 
 
+def test_harmonic_hybrid_analytic_adjoint_matches_resolved_directional_fd() -> None:
+    atoms = _atoms()
+    evaluator = MACE_MDPPolarHybridSmoothHarmonicEnergy(
+        atoms, hybrid=_hybrid(), continuum=_continuum()
+    )
+    state = evaluator.solve(atoms)
+    analytic = evaluator.evaluate_analytic_forces(atoms, central_state=state)
+    direction = np.asarray([[0.31, -0.27, 0.19], [-0.11, 0.23, -0.37]], dtype=float)
+    direction /= np.linalg.norm(direction)
+
+    def resolved_energy(displacement: float) -> float:
+        moved = atoms.copy()
+        moved.positions += displacement * direction
+        moved_evaluator = MACE_MDPPolarHybridSmoothHarmonicEnergy(
+            moved, hybrid=_hybrid(), continuum=_continuum()
+        )
+        return moved_evaluator.solve(moved).total_energy_ev
+
+    derivatives = []
+    for step in (8.0e-4, 4.0e-4, 2.0e-4):
+        derivatives.append(
+            (resolved_energy(step) - resolved_energy(-step)) / (2.0 * step)
+        )
+    force_contraction = float(np.vdot(analytic.total_forces_ev_per_angstrom, direction))
+
+    assert analytic.adjoint_residual_ev < 1.0e-9
+    assert derivatives[-1] == pytest.approx(-force_contraction, abs=2.0e-7)
+    assert abs(derivatives[-1] - derivatives[-2]) < abs(
+        derivatives[-2] - derivatives[-3]
+    )
+
+
+def test_harmonic_hybrid_public_force_uses_analytic_adjoint(monkeypatch) -> None:
+    atoms = _atoms()
+    pes = MACE_MDPPolarHybridSmoothHarmonicPES(
+        hybrid=_hybrid(),
+        atomic_numbers=atoms.numbers,
+        cavity_radii_angstrom=(1.8, 1.7),
+        dtype=torch.float64,
+        device="cpu",
+        exposure_radial_quadrature_order=40,
+        source_radial_quadrature_order=48,
+        green_radial_quadrature_order=48,
+    )
+    monkeypatch.setattr(
+        MACE_MDPPolarHybridSmoothHarmonicPES,
+        "_validate_admitted_runtime",
+        lambda self, geometry: None,
+    )
+    monkeypatch.setattr(
+        MACE_MDPPolarHybridSmoothHarmonicPES,
+        "numerical_force",
+        lambda *args, **kwargs: pytest.fail(
+            "the public force must not invoke the Richardson backend"
+        ),
+    )
+    monkeypatch.setattr(
+        MACE_MDPPolarHybridSmoothHarmonicPES,
+        "analytic_force_diagnostic",
+        lambda *args, **kwargs: pytest.fail(
+            "the public force must use the admitted analytic method directly"
+        ),
+    )
+
+    result = pes.evaluate(atoms, need_forces=True)
+
+    assert result.adjoint_residual is not None
+    assert result.adjoint_residual < 1.0e-9
+    assert result.force_error_estimate_eV_per_A is None
+    assert tuple(item.name for item in result.force_components) == (
+        "macepolar_zero_field_vacuum_force",
+        "continuum_fixed_source_coordinate_force",
+        "mdp_permanent_source_coordinate_force",
+        "macepolar_induced_source_coordinate_force",
+        "macepolar_native_field_geometry_force",
+    )
+    assert dict(result.admitted_domain)["force"] == (
+        "operational-implicit-adjoint-total-derivative-v1"
+    )
+
+
 def test_harmonic_hybrid_public_result_rejects_unbound_test_providers() -> None:
     atoms = _atoms()
     profile = PROFILE_REGISTRY[
@@ -194,6 +352,7 @@ def test_harmonic_hybrid_public_result_rejects_unbound_test_providers() -> None:
     assert profile.capabilities.molecular_dynamics is False
     assert profile.evidence_artifact_ids == (
         MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+        MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
     )
     pes = MACE_MDPPolarHybridSmoothHarmonicPES(
         hybrid=_hybrid(),

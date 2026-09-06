@@ -1,0 +1,144 @@
+{
+  "artifact": "route2-vqm24-localized-field-qm-record-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "pcm_or_cavity_label_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-23T21:27:10.194958+00:00",
+  "input_files": {
+    "ase_vdw_radius_source": {
+      "ase_version": "3.27.0",
+      "path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/data/__init__.py",
+      "sha256": "4bb3b1a8d330c3fcdf2d0321a4d8cc3eae55d1f860034261565661d0203c07e0"
+    },
+    "modes": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/chlorine/localized-modes.npz",
+      "sha256": "1baf5c9d8c3762603afdad3d6fa6b2cbef12e3f127e3907a7392d6e2a9237ec5"
+    },
+    "mol2": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/chlorine/geometry.mol2",
+      "sha256": "7d85a88efcd8860e9db52f895d81017843bdd1dcdacd53ee295c8d10a6ee7773"
+    },
+    "surface": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/chlorine/surface.npz",
+      "sha256": "7fdd8a8bb66af40ac1cc7d79a6b846fc52aa554cd04fe85a7824bbbdf095d70e"
+    }
+  },
+  "outputs": {
+    "gas_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/chlorine/gas",
+    "response_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/chlorine/qm-response"
+  },
+  "preregistration_sha256": "3af4cd9dc2be914d4b97858d9cb44ae996e2d50b73394573eb2d0fd5fa470f5e",
+  "probe_protocol": {
+    "atomic_radius": "ASE standard van der Waals radii",
+    "candidate_directions": 26,
+    "cavity_or_solvent_used": false,
+    "clearance_angstrom": 1.0,
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "mode_count": 4
+  },
+  "qm_protocol": {
+    "basis": "def2-tzvpd",
+    "maximum_memory_mb": 8000,
+    "method": "omegaB97M-V",
+    "nonlocal_grid": [
+      50,
+      194
+    ],
+    "nonlocal_prune": "sg1_prune",
+    "reference": "RKS density fitting",
+    "semilocal_grid_level": 3,
+    "threads": 8
+  },
+  "schema_version": 1,
+  "selection": {
+    "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-geometry-selection-v1.json",
+    "record": {
+      "atomic_numbers": [
+        16,
+        15,
+        15,
+        7,
+        17,
+        1,
+        1
+      ],
+      "atomic_numbers_sha256": "5f4d60518ca0071e06f7855e5541d0003205df43eb42efa88fa500a8e843268a",
+      "chemical_formula_hill": "H2ClNP2S",
+      "configuration_hash": "1873959709977122984326329613250063920871343841023082678572917261682043857950257215512023519116883169816592895368748781477516447794561505100569617199701855",
+      "dataset_index": 636384,
+      "molecule_group_sha256": "ba6411e090cbad7916a88ec0e7fb2fcdbc4f88deffe9a98b5390aa6e55829d6c",
+      "names": [
+        "Vector-QM24_DFT_all__DFT_all__375797"
+      ],
+      "positions_angstrom": [
+        [
+          2.642235000849,
+          -0.13502191524,
+          0.62938214046
+        ],
+        [
+          1.122855744871,
+          -0.493040249665,
+          -0.51604343615
+        ],
+        [
+          -0.234032864173,
+          1.214876213666,
+          -0.069795522508
+        ],
+        [
+          -1.731841356828,
+          0.55196558888,
+          -0.665644631305
+        ],
+        [
+          -2.429691643734,
+          -0.80193355528,
+          0.191928757596
+        ],
+        [
+          -0.305229714811,
+          0.996192764028,
+          1.343540600308
+        ],
+        [
+          -2.466364507223,
+          1.258599711799,
+          -0.715923259007
+        ]
+      ],
+      "positions_angstrom_sha256": "a8456bc15292f61e64452db86d3a105391321c919ddeae33c07afb8f69a2449f",
+      "record_sha256": "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0",
+      "selection_score_sha256": "0000dd41f19f2938bd20087593f4b0634067c3c017df7c82373fc1902bd4615f",
+      "split": "train",
+      "stratum": "chlorine",
+      "structure_hash": "8660121617955623908459331318388667059010407694266866122043638777036696163590930183227238756764143916077136242956183885276162942145515139385545563775354864"
+    },
+    "selection_sha256": "fdcfb665b64973155d619d806a25c96af4efe7586ba727cf20cba627745825f1",
+    "sha256": "f3b0b5b9bab07263af68c73bd6cf82714aa14aa07434a069ddb70fff2e093d94"
+  },
+  "source": {
+    "clean_snapshot": "/tmp/maple-route2-vqm24-qm-gate0-source",
+    "clean_snapshot_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "creator_path": "tools/route2_release/prepare_vqm24_nonuniform_qm_record.py",
+    "creator_sha256": "4ecd4a49e9e9fadab00ed37fa439cc6f37eeaa3cd65863dde78bb059875f0df2",
+    "gas_runner": {
+      "path": "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+      "sha256": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb"
+    },
+    "response_runner": {
+      "path": "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/route2_qm_localized_point_charge_response.py",
+      "sha256": "75be973ef0940e976d69d56dd22941c1235ce80d1dfac552d152b05bad2b1fe6"
+    },
+    "shared_gate0_creator_path": "tools/route2_release/prepare_vqm24_nonuniform_qm_gate0.py",
+    "shared_gate0_creator_sha256": "59c85e01973c63f8ff1e93ef3cb48bfd5ac1f495c6c14a18ac537c50671cd68a"
+  },
+  "status": "locked-before-record-qm-execution"
+}

@@ -1,0 +1,21 @@
+{
+  "artifact": "vqm24-static-cpks-backend-pro-review-v1",
+  "claim": "advisory review plus independently checked local decision; not model training or capability admission",
+  "files_sha256": {
+    "README.md": "c4bbde63c8b4870cb72c5fa54955899baa18399a8b215b974c872cadab33e96f",
+    "SHA256SUMS": "5db25fca5bb1b6cc2dd91b59d07c976c22f63ad4f33c375983330140ac78c648",
+    "answer.md": "5c982cb62e7149d50325e4d1b10bd1aad9d50722c3f7ae362ccd161c962d0871",
+    "capture-console.txt": "ba513cfe44e557f9b51b1ab2f269ce510a3fda93c301525ed8fccc75b49148df",
+    "capture-state.txt": "535e7705ebb682ee38e39de231ec63094f048bf2474c72b42700bec328f44727",
+    "capture.ps1": "ad87e39ac97607f9e962026e094c2a305f8f5319bdc1505c177fd9671b73c582",
+    "local-decision.md": "e85b220d19a3fcd7b6f7fbcc076f39f680995154a4c2dec635c4ea33316c0fa0",
+    "prompt-sha256.txt": "38fd43e1de6ecbaf4670a971ab1ce907db5b98334805a676f5b37fd4329015aa",
+    "prompt.md": "3a9a7bc852a0eedb58bbc1497f4b4e7287462d311e1749ce7170fb08f442eaa4",
+    "submit-console.txt": "5993a1770537509d923c718a784f72b421ed46da3304918a903bffbef45dd03a",
+    "submit-state.txt": "9a2fe53134814abbda0bbb0d219c9008ed9d636224a867b74472f5ef4a59492d",
+    "submit.ps1": "96acaad55ae9feb1b6cb67b45b9f64aabbfe8488cd0512cb51c77963b3f07a03"
+  },
+  "pro_thinking_observed": true,
+  "prompt_exact": true,
+  "verified_model": "Pro, 5 of 5."
+}

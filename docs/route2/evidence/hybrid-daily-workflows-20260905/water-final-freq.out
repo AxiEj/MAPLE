@@ -1,0 +1,70 @@
+Starting frequency analysis calculation, Number of atoms: 3
+HESSIAN DIAGNOSTICS
+------------------------------------------------------------
+Evaluation SHA256: 707ba4b9073f585ceb3ff91d0130325f8dfcb72e9804fac5d5b9ff92a6beda46
+Coarse step: 0.00025 Angstrom
+Fine step: 0.000125 Angstrom
+Maximum error estimate: 1.2267777393049073e-05 eV/Angstrom^2
+Maximum antisymmetry: 2.637573004449223e-08 eV/Angstrom^2
+Topology step reductions used: 3
+Topology guard status: partial-experimental
+Topology observation coverage: partial
+Unobservable topology components: ['pyscf-smd-libsolvent-internal-surface']
+WARNING: Topology observation coverage is partial; listed unobservable topology components were not validated by this Hessian evaluation.
+
+Projecting out translations and rotations...
+
+Frequency analysis summary:
+  Zero frequencies (|ν| < 5.0 cm⁻¹):    6
+  Imaginary frequencies (ν < -5.0 cm⁻¹): 0
+  Real frequencies (ν > 5.0 cm⁻¹):       3
+
+------------------------------------------------------------
+VIBRATIONAL FREQUENCIES
+------------------------------------------------------------
+
+Scaling factor for frequencies = 1.000000000 (already applied!)
+
+     0:        0.00 cm**-1  ***near-zero numerical/uncertain mode***
+     1:       -0.00 cm**-1  ***near-zero numerical/uncertain mode***
+     2:       -0.00 cm**-1  ***near-zero numerical/uncertain mode***
+     3:       -0.00 cm**-1  ***near-zero numerical/uncertain mode***
+     4:       -0.00 cm**-1  ***near-zero numerical/uncertain mode***
+     5:       -0.00 cm**-1  ***near-zero numerical/uncertain mode***
+     6:     1626.37 cm**-1
+     7:     3798.59 cm**-1
+     8:     3866.39 cm**-1
+
+
+
+------------------------------------------------------------
+NORMAL MODES
+------------------------------------------------------------
+
+These modes are the Cartesian displacements weighted by the diagonal matrix
+M(i,i)=1/sqrt(m[i]) where m[i] is the mass of the displaced atom
+Thus, these vectors are normalized but *not* orthogonal
+
+                 0              1              2              3              4              5    
+     0       0.000000       0.000000       0.014896       0.017384      -0.189008      -0.144321  
+     1      -0.000000      -0.000000      -0.037127      -0.054521       0.137580      -0.182142  
+     2      -0.000000      -0.000000      -0.238979      -0.049640      -0.045626       0.029108  
+     3       0.000000       0.000000       0.012773       0.024472      -0.186172      -0.145214  
+     4       0.000000       0.000000       0.154530      -0.694515      -0.118557      -0.101531  
+     5      -0.000315       0.996024      -0.000000      -0.000000      -0.000000       0.000000  
+     6      -0.000000      -0.000000      -0.171333       0.639247       0.059872      -0.222649  
+     7      -0.000000      -0.000000      -0.082474       0.096901       0.198182      -0.201215  
+     8      -0.996024      -0.000315       0.000000      -0.000000       0.000000      -0.000000  
+
+                 6              7              8    
+     0       0.041202      -0.030564      -0.052870  
+     1       0.053040      -0.039365       0.041059  
+     2       0.000000       0.000000       0.000000  
+     3       0.004454       0.689173       0.678657  
+     4      -0.678390      -0.034630       0.007506  
+     5      -0.000000      -0.000000      -0.000000  
+     6      -0.658416      -0.204063       0.160504  
+     7      -0.163466       0.659425      -0.659201  
+     8      -0.000000      -0.000000       0.000000  
+
+Frequency analysis completedOutput file: /home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/.omx/evidence/hybrid-workflows-20260905/water-final-freq.outSummary file written: /home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/.omx/evidence/hybrid-workflows-20260905/water-final-freq.sum

@@ -1,0 +1,76 @@
+{
+  "artifact": "route2-vqm24-frozen-mdp-feature-batch-prereg-v2",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "original_atomic_partition_used_as_training_truth": false,
+    "pcm_or_cavity_used": false,
+    "qm_observable_read": false
+  },
+  "created_utc": "2026-08-27T00:07:59.258362+00:00",
+  "output_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-frozen-mdp-features-v1",
+  "parent": {
+    "disposition": "preflight failed before records because MDP checkpoint has no energy property",
+    "file_sha256": "b2189bfe2f611206c3040f306b964b6e2fa38e9c1b515d7fc74d18d73f091296",
+    "path": "docs/route2/preregistrations/vqm24-frozen-mdp-feature-batch-v1.json",
+    "preregistration_sha256": "4fb94310e5663a858ce1757c393f164c258384d047bb637fceb25bb405f10f97"
+  },
+  "preregistration_sha256": "6e3b570b4c6713dcff37159e322a4f9e6f7d68e68c7eede9dec0662dea0d776b",
+  "protocol": {
+    "backbone_frozen": true,
+    "checkpoint_energy_role": "none",
+    "device": "cpu",
+    "dtype": "float64",
+    "outputs": [
+      "q",
+      "p",
+      "atomic_polarizability",
+      "molecular_dipole",
+      "molecular_polarizability"
+    ]
+  },
+  "record_ids": [
+    "base-hcno-135247-970f059c1f95",
+    "base-hcno-156765-3c8bc817c95e",
+    "base-hcno-162863-745ab5d78c8b",
+    "base-hcno-208608-7e6419f2ee92",
+    "base-hcno-229457-b412c4e75aed",
+    "base-hcno-399849-fa20b6e144ad",
+    "base-hcno-404508-6cb9b5d441de",
+    "base-hcno-432908-c1096072c51b",
+    "base-hcno-436944-1c3caaef7cd3",
+    "base-hcno-440770-f59ae1366672",
+    "base-hcno-460236-0c750047a5e1",
+    "base-hcno-481244-549dfd678c85",
+    "bromine-101221-5abef0a88d16",
+    "bromine-10426-6bb8a046ac22",
+    "bromine-447833-84c7dcaffea3",
+    "bromine-63727-71eb4b0867c9",
+    "chlorine-141648-a14bf52170de",
+    "chlorine-610177-ac8ad6afa4f7",
+    "chlorine-636384-976484d18c73",
+    "chlorine-784-a7040c282ac8",
+    "fluorine-139037-710a4fc89944",
+    "fluorine-278363-5c9234fb4b84",
+    "fluorine-412002-081c6cc3a31b",
+    "fluorine-469465-70c76c720826",
+    "phosphorus-351029-1256947e5905",
+    "phosphorus-598182-ea0696054cba",
+    "phosphorus-66144-d15ba6ea626a",
+    "phosphorus-696398-7400c7789c7c",
+    "sulfur-122602-190c2fbc8b99",
+    "sulfur-221028-692cd68117c4",
+    "sulfur-379175-938cde712eac",
+    "sulfur-389495-2e00c04d8f40"
+  ],
+  "schema_version": 2,
+  "source": {
+    "checkpoint_path": "/home/axie/.cache/mace/MACE-MDP.model",
+    "checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "runner_path": "tools/route2_release/run_vqm24_frozen_mdp_feature_batch.py",
+    "runner_sha256": "5064a4e8538e6a38996e4659815de687267e36b2013ff95f8d2f39e73d6b17dd"
+  },
+  "status": "locked-after-mdp-energy-preflight-failure"
+}

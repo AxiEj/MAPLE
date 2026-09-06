@@ -1,0 +1,58 @@
+{
+  "aggregate": {
+    "maximum_constrained_area_relative_error": 0.19631874998988177,
+    "maximum_constraint_absolute_error": 1.4566126083082054e-11,
+    "mean_constrained_area_relative_error": 0.03669208835457475
+  },
+  "artifact": "route2-auxiliary-density-representation-gate-evidence-v1",
+  "claim_boundary": {
+    "allowed_decision": "reject or retain this basis for later head training",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false
+  },
+  "decision": "fail",
+  "failed_case": {
+    "atom_count": 5,
+    "auxiliary_dimension": 147,
+    "chemical_class": "alkane",
+    "compound_id": "mobley_9055303",
+    "constrained": {
+      "correlation": 0.9969757262195107,
+      "maximum_absolute_error_hartree_per_e": 0.0006943590977188663,
+      "weighted_relative_l2": 0.19631874998988177
+    },
+    "constrained_moment_max_absolute_error": 3.552713678800501e-15,
+    "functional_group": null,
+    "metric_condition_number": 39922107.312478125,
+    "metric_rank": 147,
+    "name": "methane",
+    "raw": {
+      "correlation": 0.9969307098677885,
+      "maximum_absolute_error_hartree_per_e": 0.0006173030755010078,
+      "weighted_relative_l2": 0.1671230839329382
+    },
+    "raw_moment_max_absolute_error": 0.0005039183316988272,
+    "wall_seconds": 0.4916214070017304
+  },
+  "files": {
+    "preregistration.json": {
+      "bytes": 20615,
+      "sha256": "ed779d58583803d974972d36d51c203085ea63ac46a9b65648298938be6aa0e6"
+    },
+    "result.json": {
+      "bytes": 11273,
+      "sha256": "3a79fc1f318cbc0d4dac37e342241803421fb5be138f2d0dcb9ac550313d7770"
+    },
+    "run.log": {
+      "bytes": 12064,
+      "sha256": "4bfb084bea6e3cae7ac1ed9c4cce65dd9157cc7a2efad3b53de2f8af7ab5553d"
+    }
+  },
+  "gates": {
+    "constraints": true,
+    "maximum": false,
+    "mean": true
+  },
+  "manifest_sha256": "a15fb94e5189b62d42fd0302b50bdbcfa79d97f446ef6ec75b9b6711abb5ac4d"
+}

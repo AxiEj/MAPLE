@@ -1,0 +1,95 @@
+{
+  "artifact": "route2-mdp-polar-zero-training-source-gate-preregistration-v1",
+  "candidate_order": [
+    "mdp_latent_point",
+    "mdp_latent_gaussian",
+    "polar_zero_point",
+    "polar_zero_gaussian",
+    "polar_zero_mdp_qmu_point",
+    "polar_zero_mdp_qmu_gaussian"
+  ],
+  "cavity_and_continuum": {
+    "continuum_model": "pcm",
+    "dielectric": 78.39,
+    "eta": 0.1,
+    "fixed_source_energy_radius_scale": 1.0,
+    "fixed_source_energy_reference": "SPICE MBIS point q/p through the identical pyddx ddPCM equation",
+    "lmax": 8,
+    "n_lebedev": 194,
+    "n_proc": 1,
+    "radii": "MAPLE SMD-water Coulomb radii per element",
+    "radius_scales_for_mep": [
+      1.0,
+      1.25,
+      1.5
+    ],
+    "solver_tolerance": 1e-12
+  },
+  "claim_boundary": {
+    "capability_admitted": false,
+    "cds_or_standard_state_used": false,
+    "experimental_solvation_targets_read": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "mnsol_or_freesolv_imported": false,
+    "post_training_or_fitting_performed": false,
+    "pure_mace_polar_in_scope": false,
+    "solvation_result_used_to_select_projection_or_kernel": false
+  },
+  "created_utc": "2026-08-17T10:09:31Z",
+  "inputs": {
+    "gaussian_projection_implementation_sha256": "e416c25aacda35c82cb1c4754e5c2884a0f01e7a3db4a026e56edf0e7f4a0f1d",
+    "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "parent_source_gate_preregistration_sha256": "e3ed4ee5129c994325449bceafa36abc4f338d32e069c289c26ff14cea31cffb",
+    "runner_sha256": "25d0bf077f95d2945325ed4bed855fb6330a9fd183be146aaf8469fbc5f297de",
+    "spice_dataset_sha256": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e"
+  },
+  "no_training_contract": {
+    "fitted_parameters": [],
+    "mdp_role": "unchanged official public total charge, molecular dipole, and polarizability information; latent atomwise q/p retained only as a baseline",
+    "polar_role": "unchanged official zero-field atomwise q/p topology and field-induced source increment",
+    "primary_source": "minimum-Coulomb-change projection of MACE-POLAR zero-field q/p to MACE-MDP total charge and molecular dipole",
+    "selection_rule": "all six candidates and all numerical gates were frozen before reading any candidate cavity-MEP or fixed-source ddPCM energy result",
+    "source_kernels": {
+      "gaussian": "normalized 1.5-A MACE-POLAR monopole/dipole Gaussian density in first radial channel",
+      "point": "pyddx atom-centred exterior point monopoles/dipoles"
+    }
+  },
+  "prelock_activity_disclosure": {
+    "candidate_mep_or_energy_evaluated": false,
+    "geometry_only_smoke": "record 0 model outputs and Gaussian-metric condition numbers were evaluated to establish executable feasibility; no MBIS labels, MEP, ddPCM energy, or solvation target was read",
+    "post_training_result_known": "the earlier failed q/p head and its frozen 60-case result predate this experiment and are context, not candidate selection data"
+  },
+  "primary_candidate": "polar_zero_mdp_qmu_gaussian",
+  "projection": {
+    "constraint": "exact total charge and Cartesian molecular dipole sum_A(q_A R_A + p_A)",
+    "maximum_constraint_condition_number": 1000000000000.0,
+    "maximum_gram_condition_number": 1000000000000.0,
+    "metric": "full analytic Coulomb Gram of equal-width normalized Gaussian monopole/dipole correction densities; no diagonal approximation, pseudoinverse, clipping, or regularization",
+    "sigma_angstrom": 1.5,
+    "source_order": "per atom Cartesian [q,px,py,pz], converted losslessly to raw MACE [q,y,z,x]"
+  },
+  "prospective_decision_rules": {
+    "closure_molecular_dipole_l2_error_eangstrom_maximum": 2e-11,
+    "closure_total_charge_absolute_error_e_maximum": 2e-11,
+    "fixed_source_ddpcm_energy_mae_kcal_mol_maximum": 1.0,
+    "gaussian_kernel_must_not_worsen_qpqo_global_rmse_at_any_radius": true,
+    "paired_energy_improvement_fraction_minimum": 0.7,
+    "primary_qpqo_global_relative_rmse_maximum_by_radius": {
+      "1.00": 0.18,
+      "1.25": 0.14,
+      "1.50": 0.12
+    },
+    "primary_vs_mdp_point_qpqo_rmse_reduction_fraction_minimum": 0.5,
+    "terminal_interpretation": "pass permits source-only hybrid integration research; fail rejects this exact zero-training source/kernel candidate but does not authorize post-training until the remaining preregistered analytic charge-penetration route is also terminally tested"
+  },
+  "schema_version": 1,
+  "selection": {
+    "parent_preregistration": "docs/route2/preregistrations/mdp-mbis-pcm-source-physical-gate-v1.json",
+    "parent_preregistration_sha256": "e3ed4ee5129c994325449bceafa36abc4f338d32e069c289c26ff14cea31cffb",
+    "record_count": 60,
+    "selection_reused_without_change": true
+  },
+  "status": "locked-before-any-candidate-mep-or-energy-result"
+}

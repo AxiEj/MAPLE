@@ -1,0 +1,168 @@
+{
+  "artifact": "route2-vqm24-localized-field-qm-record-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "pcm_or_cavity_label_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-23T21:27:08.935374+00:00",
+  "input_files": {
+    "ase_vdw_radius_source": {
+      "ase_version": "3.27.0",
+      "path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/data/__init__.py",
+      "sha256": "4bb3b1a8d330c3fcdf2d0321a4d8cc3eae55d1f860034261565661d0203c07e0"
+    },
+    "modes": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/localized-modes.npz",
+      "sha256": "fc2759e9d042fba27cba2dff349e9785cc9d56f0db6f55e40ac4b1b5626deb8e"
+    },
+    "mol2": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/geometry.mol2",
+      "sha256": "0884dde510dc63f7546be73da230105528d9e365b4465e1ca97074831349acaf"
+    },
+    "surface": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/surface.npz",
+      "sha256": "6198e5c01527474ff8b03bd85bc3b578df65c347dd7a35a9e235064bb6fd4497"
+    }
+  },
+  "outputs": {
+    "gas_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/gas",
+    "response_directory": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/qm-response"
+  },
+  "preregistration_sha256": "f682d6bb4f1cec6556502886bea4cd3ed6a23fd2d3971cd0f1d83186313f6c35",
+  "probe_protocol": {
+    "atomic_radius": "ASE standard van der Waals radii",
+    "candidate_directions": 26,
+    "cavity_or_solvent_used": false,
+    "clearance_angstrom": 1.0,
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "mode_count": 4
+  },
+  "qm_protocol": {
+    "basis": "def2-tzvpd",
+    "maximum_memory_mb": 8000,
+    "method": "omegaB97M-V",
+    "nonlocal_grid": [
+      50,
+      194
+    ],
+    "nonlocal_prune": "sg1_prune",
+    "reference": "RKS density fitting",
+    "semilocal_grid_level": 3,
+    "threads": 8
+  },
+  "schema_version": 1,
+  "selection": {
+    "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-geometry-selection-v1.json",
+    "record": {
+      "atomic_numbers": [
+        7,
+        6,
+        6,
+        8,
+        9,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "atomic_numbers_sha256": "eb02933930ac101672047f77c964405c87ef16b9765dd947f3463c370eea24c6",
+      "chemical_formula_hill": "C2H6FNO",
+      "configuration_hash": "782986221835957316735479383947839932420352510298622900628260303340780698823110035812883839507259271626848561052846584318051418632916889249748240352598350",
+      "dataset_index": 412002,
+      "molecule_group_sha256": "8c0543ee73ac25a758eb5557435a489a618fda6b39336ad46e0efce5e4783037",
+      "names": [
+        "Vector-QM24_DFT_all__DFT_all__151415"
+      ],
+      "positions_angstrom": [
+        [
+          1.832953263597,
+          0.67092046152,
+          -0.287630501627
+        ],
+        [
+          1.129762516697,
+          -0.20596099258,
+          0.632117876073
+        ],
+        [
+          -0.007614663903,
+          -1.01661631508,
+          0.019905020473
+        ],
+        [
+          -0.946767716903,
+          -0.21359507638,
+          -0.674042049027
+        ],
+        [
+          -1.569851077703,
+          0.58566953612,
+          0.329046336273
+        ],
+        [
+          2.247566392197,
+          0.12145455682,
+          -1.041245916327
+        ],
+        [
+          1.151088234397,
+          1.27929649972,
+          -0.741911695827
+        ],
+        [
+          1.844502629697,
+          -0.90912835618,
+          1.091143112073
+        ],
+        [
+          0.722562625797,
+          0.40275197442,
+          1.454150839073
+        ],
+        [
+          0.353096404697,
+          -1.66525233558,
+          -0.797502379527
+        ],
+        [
+          -0.528745729803,
+          -1.64459334008,
+          0.762998800873
+        ]
+      ],
+      "positions_angstrom_sha256": "ac0f452357eb22ec855f6f4b499269c6f637bdcbd10e52d425ff55090dfabfd4",
+      "record_sha256": "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6",
+      "selection_score_sha256": "0020d1946b9038feda96ef0eaac34141d33b33d2528197f1aa0d4dadbbe4cdcf",
+      "split": "train",
+      "stratum": "fluorine",
+      "structure_hash": "6878547474887160815620205626284130641507381444454258327495692381774149196235313590168696678846069801898382053109300603739471047991152181374782198696054671"
+    },
+    "selection_sha256": "fdcfb665b64973155d619d806a25c96af4efe7586ba727cf20cba627745825f1",
+    "sha256": "f3b0b5b9bab07263af68c73bd6cf82714aa14aa07434a069ddb70fff2e093d94"
+  },
+  "source": {
+    "clean_snapshot": "/tmp/maple-route2-vqm24-qm-gate0-source",
+    "clean_snapshot_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "creator_path": "tools/route2_release/prepare_vqm24_nonuniform_qm_record.py",
+    "creator_sha256": "4ecd4a49e9e9fadab00ed37fa439cc6f37eeaa3cd65863dde78bb059875f0df2",
+    "gas_runner": {
+      "path": "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+      "sha256": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb"
+    },
+    "response_runner": {
+      "path": "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/route2_qm_localized_point_charge_response.py",
+      "sha256": "75be973ef0940e976d69d56dd22941c1235ce80d1dfac552d152b05bad2b1fe6"
+    },
+    "shared_gate0_creator_path": "tools/route2_release/prepare_vqm24_nonuniform_qm_gate0.py",
+    "shared_gate0_creator_sha256": "59c85e01973c63f8ff1e93ef3cb48bfd5ac1f495c6c14a18ac537c50671cd68a"
+  },
+  "status": "locked-before-record-qm-execution"
+}

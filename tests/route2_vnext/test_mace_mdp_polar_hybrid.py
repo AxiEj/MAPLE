@@ -179,14 +179,10 @@ def test_hybrid_coordinate_parts_and_raw_polar_energy_are_delegated():
         0.5 * float(np.vdot(field, field))
     )
     np.testing.assert_array_equal(
-        model.permanent_source_position_vjp(
-            atoms, anchor, np.ones((2, 4))
-        ),
+        model.permanent_source_position_vjp(atoms, anchor, np.ones((2, 4))),
         0.0,
     )
     np.testing.assert_array_equal(
-        model.induced_source_position_vjp(
-            atoms, anchor, field, np.ones((2, 4))
-        ),
+        model.induced_source_position_vjp(atoms, anchor, field, np.ones((2, 4))),
         0.0,
     )

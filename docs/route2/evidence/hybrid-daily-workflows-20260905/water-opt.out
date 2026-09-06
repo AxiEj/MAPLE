@@ -1,0 +1,117 @@
+
+======================================================================
+LBFGS Parameters
+======================================================================
+memory:     5
+curvature:  70.0
+max_step:   0.2
+max_iter:   20
+verbose:    1
+======================================================================
+
+
+----------------------------------------------------------------------
+                             Iteration: 1                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    O                0.0001               0.0001              -0.0000
+1    H                0.9698               0.0001              -0.0000
+2    H               -0.2399               0.9398               0.0000
+
+
+Energy:                  -76.441053 Convergence criteria  Is converged 
+Maximum Force:             0.014043     0.000850  No
+RMS Force:                 0.007820     0.000550  No
+Maximum Displacement:      0.000208     0.001100  Yes
+RMS Displacement:          0.000116     0.000750  Yes
+
+----------------------------------------------------------------------
+                             Iteration: 2                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    O                0.0016               0.0022              -0.0000
+1    H                0.9638               0.0031               0.0000
+2    H               -0.2354               0.9347              -0.0000
+
+
+Energy:                  -76.441171 Convergence criteria  Is converged 
+Maximum Force:             0.003756     0.000850  No
+RMS Force:                 0.002199     0.000550  No
+Maximum Displacement:      0.005943     0.001100  No
+RMS Displacement:          0.003273     0.000750  No
+
+----------------------------------------------------------------------
+                             Iteration: 3                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    O                0.0009               0.0013              -0.0000
+1    H                0.9629               0.0045               0.0000
+2    H               -0.2338               0.9342              -0.0000
+
+
+Energy:                  -76.441184 Convergence criteria  Is converged 
+Maximum Force:             0.003389     0.000850  No
+RMS Force:                 0.001830     0.000550  No
+Maximum Displacement:      0.001620     0.001100  No
+RMS Displacement:          0.000890     0.000750  No
+
+----------------------------------------------------------------------
+                             Iteration: 4                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    O               -0.0016              -0.0021               0.0000
+1    H                0.9609               0.0087              -0.0000
+2    H               -0.2294               0.9334              -0.0000
+
+
+Energy:                  -76.441202 Convergence criteria  Is converged 
+Maximum Force:             0.000426     0.000850  Yes
+RMS Force:                 0.000224     0.000550  Yes
+Maximum Displacement:      0.004473     0.001100  No
+RMS Displacement:          0.002568     0.000750  No
+
+----------------------------------------------------------------------
+                             Iteration: 5                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    O               -0.0020              -0.0018               0.0000
+1    H                0.9612               0.0087              -0.0000
+2    H               -0.2293               0.9331              -0.0000
+
+
+Energy:                  -76.441202 Convergence criteria  Is converged 
+Maximum Force:             0.001395     0.000850  No
+RMS Force:                 0.000773     0.000550  No
+Maximum Displacement:      0.000389     0.001100  Yes
+RMS Displacement:          0.000234     0.000750  Yes
+
+----------------------------------------------------------------------
+                             Iteration: 6                             
+
+
+                             Coordinates                              
+----------------------------------------------------------------------
+0    O               -0.0016              -0.0020               0.0000
+1    H                0.9610               0.0087              -0.0000
+2    H               -0.2294               0.9333              -0.0000
+
+
+Energy:                  -76.441202 Convergence criteria  Is converged 
+Maximum Force:             0.000008     0.000850  Yes
+RMS Force:                 0.000004     0.000550  Yes
+Maximum Displacement:      0.000349     0.001100  Yes
+RMS Displacement:          0.000185     0.000750  Yes
+
+LBFGS converged at iteration 6.
+Final frame written to /home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/.omx/evidence/hybrid-workflows-20260905/water-opt_opt.xyz
+Optimization trajectory written to /home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/.omx/evidence/hybrid-workflows-20260905/water-opt_opt_traj.xyz

@@ -1,0 +1,377 @@
+mobley_9055303 global_condition=2.49323998e+08 constraint_condition=2.48318925e+01 pass=True
+mobley_3053621 global_condition=3.18125631e+10 constraint_condition=3.16764063e+01 pass=False
+mobley_1636752 global_condition=4.91793350e+08 constraint_condition=2.97486513e+01 pass=True
+mobley_7015518 global_condition=1.50778425e+09 constraint_condition=3.23798443e+01 pass=True
+mobley_3867265 global_condition=1.42228129e+09 constraint_condition=3.25774708e+01 pass=True
+mobley_6973347 global_condition=5.02380093e+09 constraint_condition=4.19322933e+01 pass=True
+mobley_7532833 global_condition=1.03678708e+09 constraint_condition=2.85143320e+01 pass=True
+mobley_4883284 global_condition=3.85256658e+10 constraint_condition=3.48109017e+01 pass=False
+mobley_2198613 global_condition=1.16576461e+09 constraint_condition=3.29596838e+01 pass=True
+mobley_8578590 global_condition=9.94834327e+08 constraint_condition=3.78446321e+01 pass=True
+mobley_8048190 global_condition=1.07442069e+09 constraint_condition=3.14059605e+01 pass=True
+mobley_3034976 global_condition=1.01228753e+09 constraint_condition=3.26160170e+01 pass=True
+{
+  "aggregate": {
+    "maximum_constraint_absolute_residual": 3.108624468950438e-14,
+    "maximum_constraint_gram_condition_number": 41.93229331437992,
+    "maximum_global_restricted_condition_number": 38525665813.60515
+  },
+  "artifact": "route2-local-whitened-etb2-condition-gate-v1-result",
+  "claim_boundary": {
+    "allowed_decision": "close auxiliary route on failure or advance to forward-stability and confirmation gates on pass",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "forward_high_precision_gate_completed": false,
+    "model_output_or_training_read": false
+  },
+  "gates": {
+    "all_cases": false,
+    "constraint_condition": true,
+    "constraint_residual": true,
+    "global_condition": false
+  },
+  "preregistration_file_sha256": "086d03f39f3b181126d583f68b25d9f4f1c710cc70d7834e04d03ee385550970",
+  "preregistration_sha256": "0e139cd742a2a03ef430ceda6a1dd6c733cdd882b6e8cf9d2fe9b01885fee41c",
+  "record_count": 12,
+  "records": [
+    {
+      "atom_count": 5,
+      "auxiliary_dimension": 375,
+      "case_passed": true,
+      "compound_id": "mobley_9055303",
+      "constraint_gram_condition_number": 24.831892457499517,
+      "constraint_max_absolute_residual": 3.552713678800501e-15,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 1.2434497875801753e-14,
+        "density_sha256": "a21ccb3131b4f39c2d42a6c0b67ca247aa50277b42d6fdb1d03464834e1bd433",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 10.000000000000012,
+        "mo_orthonormality_inf": 5.4642956826000955e-12,
+        "occupation_sum_e": 10.0,
+        "occupied_orbital_count": 5
+      },
+      "global_restricted_condition_number": 249323998.33908916,
+      "global_restricted_maximum_eigenvalue": 4.547316320893105,
+      "global_restricted_minimum_eigenvalue": 1.8238582531909342e-08,
+      "name": "methane",
+      "translation_covariant_origin_bohr": [
+        -7.235270434995652e-07,
+        0.0003454828065338349,
+        -0.00034643270316103404
+      ],
+      "wall_seconds": 0.825669491001463
+    },
+    {
+      "atom_count": 12,
+      "auxiliary_dimension": 1404,
+      "case_passed": false,
+      "compound_id": "mobley_3053621",
+      "constraint_gram_condition_number": 31.676406310213764,
+      "constraint_max_absolute_residual": 3.108624468950438e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 0.0,
+        "density_sha256": "5782acdb0e2712550440707ed9fb614f504d8c01ddaba04cede08acb5a796adb",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 42.0,
+        "mo_orthonormality_inf": 5.0238924131917884e-11,
+        "occupation_sum_e": 42.0,
+        "occupied_orbital_count": 21
+      },
+      "global_restricted_condition_number": 31812563063.39607,
+      "global_restricted_maximum_eigenvalue": 8.918118401870979,
+      "global_restricted_minimum_eigenvalue": 2.803332250878043e-10,
+      "name": "benzene",
+      "translation_covariant_origin_bohr": [
+        3.481564337289632,
+        -1.998385381314025,
+        2.4218711356715343
+      ],
+      "wall_seconds": 2.9897319150004478
+    },
+    {
+      "atom_count": 6,
+      "auxiliary_dimension": 589,
+      "case_passed": true,
+      "compound_id": "mobley_1636752",
+      "constraint_gram_condition_number": 29.74865125267277,
+      "constraint_max_absolute_residual": 8.881784197001252e-15,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 1.0658141036401503e-14,
+        "density_sha256": "f1a1397bac6ec89a75b4ee8350dee9e8b34bcc6c5fd23fa6788329ba4346e947",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 18.00000000000001,
+        "mo_orthonormality_inf": 2.212471629952794e-12,
+        "occupation_sum_e": 18.0,
+        "occupied_orbital_count": 9
+      },
+      "global_restricted_condition_number": 491793349.9455839,
+      "global_restricted_maximum_eigenvalue": 5.21534101150605,
+      "global_restricted_minimum_eigenvalue": 1.0604740816611527e-08,
+      "name": "methanol",
+      "translation_covariant_origin_bohr": [
+        0.38433109678689953,
+        2.019453467656939,
+        0.9657435979021864
+      ],
+      "wall_seconds": 1.3108778759997222
+    },
+    {
+      "atom_count": 9,
+      "auxiliary_dimension": 870,
+      "case_passed": true,
+      "compound_id": "mobley_7015518",
+      "constraint_gram_condition_number": 32.37984434903195,
+      "constraint_max_absolute_residual": 1.4210854715202004e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 2.4868995751603507e-14,
+        "density_sha256": "ff1545bd08ecc22ca5946f282b19d114909cd178c2b88cfc1653f31bd9227919",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 26.000000000000025,
+        "mo_orthonormality_inf": 6.9471095542894545e-12,
+        "occupation_sum_e": 26.0,
+        "occupied_orbital_count": 13
+      },
+      "global_restricted_condition_number": 1507784252.751843,
+      "global_restricted_maximum_eigenvalue": 7.149799059634674,
+      "global_restricted_minimum_eigenvalue": 4.741924480631524e-09,
+      "name": "methoxymethane",
+      "translation_covariant_origin_bohr": [
+        0.6573706270057784,
+        -1.608073278316745,
+        2.526880594570898
+      ],
+      "wall_seconds": 1.8168424969990156
+    },
+    {
+      "atom_count": 10,
+      "auxiliary_dimension": 1057,
+      "case_passed": true,
+      "compound_id": "mobley_3867265",
+      "constraint_gram_condition_number": 32.57747075589265,
+      "constraint_max_absolute_residual": 1.7763568394002505e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 1.4210854715202004e-14,
+        "density_sha256": "9b5981bf825a8d6c2bb16b3acd7fac7d740469a4bb6be646ea3d8db8385f2184",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 31.999999999999986,
+        "mo_orthonormality_inf": 7.817863160398813e-12,
+        "occupation_sum_e": 32.0,
+        "occupied_orbital_count": 16
+      },
+      "global_restricted_condition_number": 1422281293.2630088,
+      "global_restricted_maximum_eigenvalue": 7.924916058888068,
+      "global_restricted_minimum_eigenvalue": 5.571975175674753e-09,
+      "name": "acetone",
+      "translation_covariant_origin_bohr": [
+        -0.2505458011688659,
+        0.09131985013187001,
+        3.402678609012
+      ],
+      "wall_seconds": 2.425499385999501
+    },
+    {
+      "atom_count": 14,
+      "auxiliary_dimension": 1552,
+      "case_passed": true,
+      "compound_id": "mobley_6973347",
+      "constraint_gram_condition_number": 41.93229331437992,
+      "constraint_max_absolute_residual": 2.4868995751603507e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 2.842170943040401e-14,
+        "density_sha256": "0d723637d907472e3d6250059b81945f3e7c14806e8bb50a88a3f1f1a89c191a",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 47.99999999999997,
+        "mo_orthonormality_inf": 1.2332579402141164e-11,
+        "occupation_sum_e": 48.0,
+        "occupied_orbital_count": 24
+      },
+      "global_restricted_condition_number": 5023800931.8959,
+      "global_restricted_maximum_eigenvalue": 9.219489976507523,
+      "global_restricted_minimum_eigenvalue": 1.8351622808088136e-09,
+      "name": "ethyl acetate",
+      "translation_covariant_origin_bohr": [
+        -4.024870606874815,
+        1.09877215271679,
+        -3.3344294723617254
+      ],
+      "wall_seconds": 4.00231247100055
+    },
+    {
+      "atom_count": 6,
+      "auxiliary_dimension": 702,
+      "case_passed": true,
+      "compound_id": "mobley_7532833",
+      "constraint_gram_condition_number": 28.514331953331798,
+      "constraint_max_absolute_residual": 1.7763568394002505e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 3.552713678800501e-15,
+        "density_sha256": "036854afa04f92c5ea68a3a47e00aa99b0c630b93b6022a80a73130a04b15adf",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 21.999999999999996,
+        "mo_orthonormality_inf": 6.800172731890111e-12,
+        "occupation_sum_e": 22.0,
+        "occupied_orbital_count": 11
+      },
+      "global_restricted_condition_number": 1036787079.6886485,
+      "global_restricted_maximum_eigenvalue": 5.268319087017886,
+      "global_restricted_minimum_eigenvalue": 5.081389602771656e-09,
+      "name": "acetonitrile",
+      "translation_covariant_origin_bohr": [
+        0.35087732677061595,
+        1.4361070404019605,
+        2.2230530532799433
+      ],
+      "wall_seconds": 1.5444098159987334
+    },
+    {
+      "atom_count": 14,
+      "auxiliary_dimension": 1638,
+      "case_passed": false,
+      "compound_id": "mobley_4883284",
+      "constraint_gram_condition_number": 34.81090172258479,
+      "constraint_max_absolute_residual": 1.965094753586527e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 1.4210854715202004e-14,
+        "density_sha256": "27e7ea524f9e421d2e19369349b11d6280b2e967ff7c91ee2a9923ba3ba34f42",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 49.999999999999986,
+        "mo_orthonormality_inf": 5.6482818422409764e-11,
+        "occupation_sum_e": 50.0,
+        "occupied_orbital_count": 25
+      },
+      "global_restricted_condition_number": 38525665813.60515,
+      "global_restricted_maximum_eigenvalue": 9.639186702613028,
+      "global_restricted_minimum_eigenvalue": 2.5020169019918654e-10,
+      "name": "aniline",
+      "translation_covariant_origin_bohr": [
+        3.461406535620515,
+        -2.002027359379564,
+        3.2595658705849404
+      ],
+      "wall_seconds": 7.3518889419992774
+    },
+    {
+      "atom_count": 8,
+      "auxiliary_dimension": 874,
+      "case_passed": true,
+      "compound_id": "mobley_2198613",
+      "constraint_gram_condition_number": 32.95968377151267,
+      "constraint_max_absolute_residual": 1.4210854715202004e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 0.0,
+        "density_sha256": "f04d173e43f8162e2ce38fc2a11f698024d7dee8799c65e53653707120a33ba1",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 34.0,
+        "mo_orthonormality_inf": 8.942624418750711e-12,
+        "occupation_sum_e": 34.0,
+        "occupied_orbital_count": 17
+      },
+      "global_restricted_condition_number": 1165764606.8451924,
+      "global_restricted_maximum_eigenvalue": 6.678894218914053,
+      "global_restricted_minimum_eigenvalue": 5.729196254283757e-09,
+      "name": "chloroethane",
+      "translation_covariant_origin_bohr": [
+        1.6779421820672056,
+        -1.0206626811977246,
+        2.194865896230194
+      ],
+      "wall_seconds": 3.0650749749984243
+    },
+    {
+      "atom_count": 10,
+      "auxiliary_dimension": 1135,
+      "case_passed": true,
+      "compound_id": "mobley_8578590",
+      "constraint_gram_condition_number": 37.84463214078374,
+      "constraint_max_absolute_residual": 2.1316282072803006e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 3.552713678800501e-14,
+        "density_sha256": "6f0771d0875b2144f155d5356bb9f9f13a042ce7b35fab57fea598eb3dd5b69e",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 41.999999999999964,
+        "mo_orthonormality_inf": 5.7672595551353985e-12,
+        "occupation_sum_e": 42.0,
+        "occupied_orbital_count": 21
+      },
+      "global_restricted_condition_number": 994834327.1314765,
+      "global_restricted_maximum_eigenvalue": 7.802595972631768,
+      "global_restricted_minimum_eigenvalue": 7.843110917905211e-09,
+      "name": "methylsulfinylmethane",
+      "translation_covariant_origin_bohr": [
+        2.0105333453240544,
+        0.31234327406338785,
+        2.957521617830176
+      ],
+      "wall_seconds": 4.266353273000277
+    },
+    {
+      "atom_count": 9,
+      "auxiliary_dimension": 1010,
+      "case_passed": true,
+      "compound_id": "mobley_8048190",
+      "constraint_gram_condition_number": 31.405960543044547,
+      "constraint_max_absolute_residual": 7.105427357601002e-15,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 2.4868995751603507e-14,
+        "density_sha256": "61a8f36fc61e70cfcc36689a353dfd0973ff3f8376246fd962bcd7d02fabca61",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 31.999999999999975,
+        "mo_orthonormality_inf": 3.253575187045499e-11,
+        "occupation_sum_e": 32.0,
+        "occupied_orbital_count": 16
+      },
+      "global_restricted_condition_number": 1074420687.8815534,
+      "global_restricted_maximum_eigenvalue": 7.2237978072582925,
+      "global_restricted_minimum_eigenvalue": 6.723435139267032e-09,
+      "name": "acetamide",
+      "translation_covariant_origin_bohr": [
+        -0.9951831444982071,
+        -3.171251509244355,
+        0.9966730978710772
+      ],
+      "wall_seconds": 3.802667673000542
+    },
+    {
+      "atom_count": 8,
+      "auxiliary_dimension": 990,
+      "case_passed": true,
+      "compound_id": "mobley_3034976",
+      "constraint_gram_condition_number": 32.61601697640316,
+      "constraint_max_absolute_residual": 2.1316282072803006e-14,
+      "constraint_rank": 4,
+      "density_record": {
+        "density_binding_residual_e": 2.1316282072803006e-14,
+        "density_sha256": "a1f717009d5e3f6baa4217f40d80c997d63b79542a3adcfa3d1f7d781d40b331",
+        "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+        "electron_count_e": 32.00000000000002,
+        "mo_orthonormality_inf": 4.6085582643964385e-12,
+        "occupation_sum_e": 32.0,
+        "occupied_orbital_count": 16
+      },
+      "global_restricted_condition_number": 1012287528.9014695,
+      "global_restricted_maximum_eigenvalue": 6.782116193360188,
+      "global_restricted_minimum_eigenvalue": 6.6997923018177596e-09,
+      "name": "acetic acid",
+      "translation_covariant_origin_bohr": [
+        -2.2484694742798195,
+        1.22259204758578,
+        1.1676237841224026
+      ],
+      "wall_seconds": 2.700358366000728
+    }
+  ],
+  "result_sha256": "d5f16b7ed39dbfc10002ea1a3e2ae73ca6a3d443bee81aae7d7ea231362321c4",
+  "schema_version": 1,
+  "status": "fail"
+}

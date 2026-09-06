@@ -1,0 +1,1056 @@
+{
+  "aggregate": {
+    "adt": {
+      "dipole_max": 0.561575754529494,
+      "dipole_mean": 0.4672702848977841,
+      "mep_max": 0.652143353741137,
+      "mep_mean": 0.5568608826713934,
+      "mep_pass_count_le_0p2": 0
+    },
+    "original": {
+      "dipole_max": 0.662602286129446,
+      "dipole_mean": 0.550129074331614,
+      "mep_max": 0.7761774432572325,
+      "mep_mean": 0.6694749899548488,
+      "mep_pass_count_le_0p2": 0
+    },
+    "radial_residual": {
+      "dipole_max": 0.9526568241554954,
+      "dipole_mean": 0.9123603077136929,
+      "mep_max": 0.945571325490481,
+      "mep_mean": 0.9162043890276838,
+      "mep_pass_count_le_0p2": 0
+    },
+    "total": {
+      "dipole_max": 0.45388750902169744,
+      "dipole_mean": 0.38004748650514647,
+      "mep_max": 0.5472289165824165,
+      "mep_mean": 0.4645464499424857,
+      "mep_pass_count_le_0p2": 0
+    }
+  },
+  "artifact": "route2-current-radial-adt-freesolv12-nonuniform-replay-unbound-v1",
+  "claim": "reuses frozen no-solvation-target QM response; current profile replay, not preregistered admission",
+  "records": [
+    {
+      "atom_count": 5,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.561575754529494,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6167469889885542,
+            "weighted_relative_by_mode": [
+              0.6167469889885542,
+              0.5406268849440657,
+              0.5944069649552957,
+              0.607135104071323
+            ],
+            "weighted_relative_frobenius": 0.5923234888042105,
+            "weighted_rmse_by_mode": [
+              0.005848571826792437,
+              0.004820852986133209,
+              0.005699699224337663,
+              0.006067557305697529
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.662602286129446,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.8632385120578958,
+            "weighted_relative_by_mode": [
+              0.7220769883220214,
+              0.8632385120578958,
+              0.792446846367702,
+              0.7336924017278466
+            ],
+            "weighted_relative_frobenius": 0.7761774432572325,
+            "weighted_rmse_by_mode": [
+              0.006847409401383685,
+              0.007697630425889858,
+              0.007598680604138804,
+              0.00733233947829114
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.891591978624037,
+          "mep": {
+            "maximum_weighted_relative_mode": 1.0163917509313591,
+            "weighted_relative_by_mode": [
+              0.8687981103569634,
+              1.0163917509313591,
+              0.9372141542105354,
+              0.8791938712968118
+            ],
+            "weighted_relative_frobenius": 0.9233222673439582,
+            "weighted_rmse_by_mode": [
+              0.008238756316812017,
+              0.009063321384887389,
+              0.008986837474547121,
+              0.008786444995749725
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.45388750902169744,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5553949769679092,
+            "weighted_relative_by_mode": [
+              0.4859898976731223,
+              0.5553949769679092,
+              0.5272706478568914,
+              0.48575023820385826
+            ],
+            "weighted_relative_frobenius": 0.5125194846176008,
+            "weighted_rmse_by_mode": [
+              0.004608610782677873,
+              0.004952542331438339,
+              0.005055936891371997,
+              0.004854467130617274
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "surface_rebuild_max_abs_bohr": 1.1599423643815499e-09,
+      "wall_seconds": 2.3169522285461426
+    },
+    {
+      "atom_count": 12,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.38967882032958634,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5022140337899645,
+            "weighted_relative_by_mode": [
+              0.4723298234613755,
+              0.4720948895284384,
+              0.5022140337899645,
+              0.502208364072409
+            ],
+            "weighted_relative_frobenius": 0.48475662042532236,
+            "weighted_rmse_by_mode": [
+              0.00661849488935513,
+              0.006612632438567636,
+              0.005873007658620038,
+              0.005873538697948727
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.40285678370303557,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.551651150551595,
+            "weighted_relative_by_mode": [
+              0.5412321074123667,
+              0.5410769720428639,
+              0.551651150551595,
+              0.5516461306760622
+            ],
+            "weighted_relative_frobenius": 0.5454885696605216,
+            "weighted_rmse_by_mode": [
+              0.007583984239260268,
+              0.007578864369123964,
+              0.006451136794458915,
+              0.006451734236015965
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.8611578775162221,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.8685902648617975,
+            "weighted_relative_by_mode": [
+              0.8649582779044678,
+              0.8649624882414948,
+              0.8685902648617975,
+              0.8685550687434146
+            ],
+            "weighted_relative_frobenius": 0.866445649217883,
+            "weighted_rmse_by_mode": [
+              0.012120178861168758,
+              0.012115528328644067,
+              0.010157496474639692,
+              0.01015811796959324
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.251108991872547,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.3618158883898171,
+            "weighted_relative_by_mode": [
+              0.3262647532969296,
+              0.3260249131576328,
+              0.3618158883898171,
+              0.3617802481834833
+            ],
+            "weighted_relative_frobenius": 0.3412375451631461,
+            "weighted_rmse_by_mode": [
+              0.004571766369626718,
+              0.004566630489647552,
+              0.004231159108573422,
+              0.004231172636449378
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "surface_rebuild_max_abs_bohr": 4.783490936688395e-09,
+      "wall_seconds": 1.3675107955932617
+    },
+    {
+      "atom_count": 6,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.5284902127386191,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5974253162649167,
+            "weighted_relative_by_mode": [
+              0.5657628648423625,
+              0.5570049591419206,
+              0.5880197572394273,
+              0.5974253162649167
+            ],
+            "weighted_relative_frobenius": 0.5795031930586211,
+            "weighted_rmse_by_mode": [
+              0.004686759526392703,
+              0.0048578192963126985,
+              0.0056754831427831545,
+              0.005958843606374397
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.563036287860377,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7147570946682367,
+            "weighted_relative_by_mode": [
+              0.6777763910611277,
+              0.6947897650314431,
+              0.7147570946682367,
+              0.7061156222787349
+            ],
+            "weighted_relative_frobenius": 0.7003100687797569,
+            "weighted_rmse_by_mode": [
+              0.005614675608755074,
+              0.006059484879003285,
+              0.006898733915028122,
+              0.007042943187414115
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.8475873906991592,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9131629789582205,
+            "weighted_relative_by_mode": [
+              0.8885809591012649,
+              0.9131629789582205,
+              0.8839091419284747,
+              0.8722882023514493
+            ],
+            "weighted_relative_frobenius": 0.8881525207127986,
+            "weighted_rmse_by_mode": [
+              0.00736097318122741,
+              0.00796398787309787,
+              0.008531365439689366,
+              0.008700382852863358
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.3790227989819823,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.4701406492976202,
+            "weighted_relative_by_mode": [
+              0.46226011906745645,
+              0.46274369984495706,
+              0.4700457359983708,
+              0.4701406492976202
+            ],
+            "weighted_relative_frobenius": 0.4668584970919102,
+            "weighted_rmse_by_mode": [
+              0.0038293464476755208,
+              0.004035736553974217,
+              0.004536814653167541,
+              0.004689280025290329
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "surface_rebuild_max_abs_bohr": 2.8362627801925555e-09,
+      "wall_seconds": 1.3850913047790527
+    },
+    {
+      "atom_count": 9,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.5031215513341986,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6073640512483397,
+            "weighted_relative_by_mode": [
+              0.6073640512483397,
+              0.5700527368988801,
+              0.5887294932537473,
+              0.606370080780155
+            ],
+            "weighted_relative_frobenius": 0.5945968166256254,
+            "weighted_rmse_by_mode": [
+              0.005426884426206418,
+              0.005158118379036667,
+              0.006786178845274211,
+              0.007279489370247483
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.5358997807685884,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7057920600227221,
+            "weighted_relative_by_mode": [
+              0.6298932591384659,
+              0.7057920600227221,
+              0.6764896961656606,
+              0.6756372235623125
+            ],
+            "weighted_relative_frobenius": 0.6736030441540957,
+            "weighted_rmse_by_mode": [
+              0.005628186112044427,
+              0.006386354736907686,
+              0.007797774899629023,
+              0.008111043309949438
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9019441741020698,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9674067559468003,
+            "weighted_relative_by_mode": [
+              0.8860847571537966,
+              0.9674067559468003,
+              0.8972529532931243,
+              0.8998025811958453
+            ],
+            "weighted_relative_frobenius": 0.909591855998752,
+            "weighted_rmse_by_mode": [
+              0.007917293687391217,
+              0.008753573564086915,
+              0.010342473207594571,
+              0.010802154546789395
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.40393191539597056,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5240521982615262,
+            "weighted_relative_by_mode": [
+              0.4863633606719909,
+              0.5240521982615262,
+              0.4808070190449451,
+              0.49846004472215727
+            ],
+            "weighted_relative_frobenius": 0.49592598007184463,
+            "weighted_rmse_by_mode": [
+              0.004345725997584645,
+              0.004741882812689389,
+              0.005542175920675081,
+              0.005984026442036125
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "surface_rebuild_max_abs_bohr": 3.760909805805568e-09,
+      "wall_seconds": 1.5208170413970947
+    },
+    {
+      "atom_count": 10,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.47985702960601356,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6391900958696943,
+            "weighted_relative_by_mode": [
+              0.5697319688160246,
+              0.5499141561610988,
+              0.6391900958696943,
+              0.5426574269751137
+            ],
+            "weighted_relative_frobenius": 0.5786206768480557,
+            "weighted_rmse_by_mode": [
+              0.00567242521179359,
+              0.005352831110798298,
+              0.007069812940951655,
+              0.006007714982503873
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.5543315956192346,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7074569765966126,
+            "weighted_relative_by_mode": [
+              0.6545822372818497,
+              0.7074569765966126,
+              0.6845178044647752,
+              0.6738114387372717
+            ],
+            "weighted_relative_frobenius": 0.6799567303338503,
+            "weighted_rmse_by_mode": [
+              0.006517220358313484,
+              0.006886343389145758,
+              0.007571163670382414,
+              0.007459710076114084
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9229658543653857,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9714927720827481,
+            "weighted_relative_by_mode": [
+              0.9185807552490506,
+              0.9714927720827481,
+              0.9083821509092762,
+              0.9111122311212926
+            ],
+            "weighted_relative_frobenius": 0.9254048371510321,
+            "weighted_rmse_by_mode": [
+              0.00914567010513972,
+              0.009456451840815661,
+              0.010047233095953838,
+              0.010086847299154255
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.40356234602705054,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5485120721416799,
+            "weighted_relative_by_mode": [
+              0.4792489437837376,
+              0.5026610852137744,
+              0.5485120721416799,
+              0.4447820261767737
+            ],
+            "weighted_relative_frobenius": 0.4955752152572656,
+            "weighted_rmse_by_mode": [
+              0.004771548623282836,
+              0.004892872578336918,
+              0.006066861440678521,
+              0.004924144607225983
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "surface_rebuild_max_abs_bohr": 4.220053639869548e-09,
+      "wall_seconds": 1.540790319442749
+    },
+    {
+      "atom_count": 14,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.45410910736127447,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6760760872856402,
+            "weighted_relative_by_mode": [
+              0.6725723343271667,
+              0.52863713888892,
+              0.6646659385376128,
+              0.6760760872856402
+            ],
+            "weighted_relative_frobenius": 0.652143353741137,
+            "weighted_rmse_by_mode": [
+              0.0056610259072310005,
+              0.004566074318931826,
+              0.008662097203560688,
+              0.009413015473490336
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.5392553968353755,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6905804637070619,
+            "weighted_relative_by_mode": [
+              0.6301030334357798,
+              0.687090160448506,
+              0.6905804637070619,
+              0.6755520047962581
+            ],
+            "weighted_relative_frobenius": 0.676214436008672,
+            "weighted_rmse_by_mode": [
+              0.005303562775999706,
+              0.005934703609755079,
+              0.008999821950665635,
+              0.009405718666703774
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9476147059264869,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9853333882663651,
+            "weighted_relative_by_mode": [
+              0.9084953422419322,
+              0.9853333882663651,
+              0.9174756991956179,
+              0.8842575994969466
+            ],
+            "weighted_relative_frobenius": 0.9141186193358037,
+            "weighted_rmse_by_mode": [
+              0.007646784452077239,
+              0.008510763146920152,
+              0.011956778928408289,
+              0.012311529165354893
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.40052917121773896,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5735117780766774,
+            "weighted_relative_by_mode": [
+              0.557057419004384,
+              0.48852866705548925,
+              0.5735117780766774,
+              0.5413727064306473
+            ],
+            "weighted_relative_frobenius": 0.5472289165824165,
+            "weighted_rmse_by_mode": [
+              0.0046887395152133225,
+              0.004219639591331821,
+              0.007474152775177873,
+              0.00753753868594379
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "surface_rebuild_max_abs_bohr": 5.970141714328747e-09,
+      "wall_seconds": 1.488020420074463
+    },
+    {
+      "atom_count": 6,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.4983256666900906,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7549810310173101,
+            "weighted_relative_by_mode": [
+              0.7549810310173101,
+              0.46652642824950974,
+              0.5696778492553409,
+              0.5716316056792837
+            ],
+            "weighted_relative_frobenius": 0.5887550651362494,
+            "weighted_rmse_by_mode": [
+              0.006621188544103753,
+              0.004788113738541753,
+              0.005607994844629216,
+              0.004885118632289106
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.6522883807847432,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.8787447059669199,
+            "weighted_relative_by_mode": [
+              0.6022336434126674,
+              0.7177426818457345,
+              0.7566569473750682,
+              0.8787447059669199
+            ],
+            "weighted_relative_frobenius": 0.742257428180563,
+            "weighted_rmse_by_mode": [
+              0.00528159296302425,
+              0.007366428539918361,
+              0.007448645345047142,
+              0.0075096829732554885
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9372862287946797,
+          "mep": {
+            "maximum_weighted_relative_mode": 1.0391902116358567,
+            "weighted_relative_by_mode": [
+              0.8271091027989844,
+              0.9684550487705191,
+              0.9076339295132274,
+              1.0391902116358567
+            ],
+            "weighted_relative_frobenius": 0.9383663413226048,
+            "weighted_rmse_by_mode": [
+              0.007253752201955663,
+              0.009939571787127625,
+              0.008934885574670282,
+              0.008880837614502044
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.4328324050811529,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6197343442170469,
+            "weighted_relative_by_mode": [
+              0.6197343442170469,
+              0.4253532910974741,
+              0.4658935327415441,
+              0.5976612342236454
+            ],
+            "weighted_relative_frobenius": 0.521329773426982,
+            "weighted_rmse_by_mode": [
+              0.005435074222710479,
+              0.004365540328507436,
+              0.004586326347734815,
+              0.0051075657855435535
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "surface_rebuild_max_abs_bohr": 3.0702858033748726e-09,
+      "wall_seconds": 1.2883315086364746
+    },
+    {
+      "atom_count": 14,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.3652734477768107,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5064299218274717,
+            "weighted_relative_by_mode": [
+              0.38366877308938885,
+              0.5064299218274717,
+              0.4972317341194618,
+              0.49351218920489126
+            ],
+            "weighted_relative_frobenius": 0.4781025775769384,
+            "weighted_rmse_by_mode": [
+              0.004427628870161791,
+              0.007296021994045668,
+              0.006095063800700782,
+              0.00604453573158839
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.3939423240924177,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.521270965526522,
+            "weighted_relative_by_mode": [
+              0.5206857050843621,
+              0.5163968846333465,
+              0.519552722002419,
+              0.521270965526522
+            ],
+            "weighted_relative_frobenius": 0.5191722679598842,
+            "weighted_rmse_by_mode": [
+              0.006008836845251792,
+              0.007439613785745274,
+              0.006368674344650109,
+              0.006384525136128925
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.8828267941569176,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9415274310161091,
+            "weighted_relative_by_mode": [
+              0.9415274310161091,
+              0.8536548410583256,
+              0.8586175133057354,
+              0.8607266040685224
+            ],
+            "weighted_relative_frobenius": 0.875402690404065,
+            "weighted_rmse_by_mode": [
+              0.01086545043019422,
+              0.012298413318885464,
+              0.01052492864974741,
+              0.01054217672273322
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.24843767071131384,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.3513485275226155,
+            "weighted_relative_by_mode": [
+              0.30932284403560245,
+              0.3492833040991784,
+              0.3513485275226155,
+              0.35020398865272745
+            ],
+            "weighted_relative_frobenius": 0.3420829885357075,
+            "weighted_rmse_by_mode": [
+              0.0035696591709158945,
+              0.005032046012732868,
+              0.004306828274597041,
+              0.004289297344745718
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "surface_rebuild_max_abs_bohr": 5.8391389501366575e-09,
+      "wall_seconds": 1.3286771774291992
+    },
+    {
+      "atom_count": 8,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.4493005499045147,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6022507099510719,
+            "weighted_relative_by_mode": [
+              0.6022507099510719,
+              0.36534259925005075,
+              0.5258383946841608,
+              0.488096957359959
+            ],
+            "weighted_relative_frobenius": 0.48754970040521156,
+            "weighted_rmse_by_mode": [
+              0.004545638372024867,
+              0.003726161651261364,
+              0.005110057975414439,
+              0.005027305645148038
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.5906717276001341,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7037790140999778,
+            "weighted_relative_by_mode": [
+              0.7037790140999778,
+              0.7022329629886165,
+              0.6236307422981561,
+              0.7010755290182469
+            ],
+            "weighted_relative_frobenius": 0.6824755136705313,
+            "weighted_rmse_by_mode": [
+              0.005311948726766287,
+              0.007162136422938531,
+              0.006060396655342046,
+              0.007220944346328585
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9278596197198586,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9679626555350906,
+            "weighted_relative_by_mode": [
+              0.9443884342727195,
+              0.9679626555350906,
+              0.855493958136902,
+              0.9411990165805464
+            ],
+            "weighted_relative_frobenius": 0.9280517338542049,
+            "weighted_rmse_by_mode": [
+              0.007128008707993582,
+              0.009872337182446613,
+              0.008313625950273393,
+              0.009694170508368195
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.36950232981289605,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5361028621549665,
+            "weighted_relative_by_mode": [
+              0.5361028621549665,
+              0.33757061167401825,
+              0.3697663860950997,
+              0.3954934324509143
+            ],
+            "weighted_relative_frobenius": 0.3996202319519125,
+            "weighted_rmse_by_mode": [
+              0.004046370890558111,
+              0.003442912680849642,
+              0.003593361932881229,
+              0.0040735069858531415
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "surface_rebuild_max_abs_bohr": 3.601927645036085e-09,
+      "wall_seconds": 1.2214789390563965
+    },
+    {
+      "atom_count": 10,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.450032601419506,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6465507740435695,
+            "weighted_relative_by_mode": [
+              0.6465507740435695,
+              0.4462193967531446,
+              0.5128521224573763,
+              0.5014179159438048
+            ],
+            "weighted_relative_frobenius": 0.533580716297343,
+            "weighted_rmse_by_mode": [
+              0.007161213586561613,
+              0.0052078981052914655,
+              0.005649774820505383,
+              0.0039476555963016855
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.5623775336732911,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7577311784470634,
+            "weighted_relative_by_mode": [
+              0.6858651750295031,
+              0.6403443852831179,
+              0.6033728228501138,
+              0.7577311784470634
+            ],
+            "weighted_relative_frobenius": 0.6611894754947271,
+            "weighted_rmse_by_mode": [
+              0.007596660938557246,
+              0.007473561963275359,
+              0.006646985422584749,
+              0.005965605998458298
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9526568241554954,
+          "mep": {
+            "maximum_weighted_relative_mode": 1.0294334360417925,
+            "weighted_relative_by_mode": [
+              0.9300411302114596,
+              0.9417846268377464,
+              0.9203144167954916,
+              1.0294334360417925
+            ],
+            "weighted_relative_frobenius": 0.945571325490481,
+            "weighted_rmse_by_mode": [
+              0.010301160318899575,
+              0.010991719341179366,
+              0.010138535049918618,
+              0.008104713724002437
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.4113651865066276,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.567076398476992,
+            "weighted_relative_by_mode": [
+              0.567076398476992,
+              0.39134058059044646,
+              0.41693977773471613,
+              0.5079468332773915
+            ],
+            "weighted_relative_frobenius": 0.4693032748862505,
+            "weighted_rmse_by_mode": [
+              0.006280953286923455,
+              0.004567398645173946,
+              0.0045931678056153275,
+              0.003999057662781922
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "surface_rebuild_max_abs_bohr": 4.403201359082232e-09,
+      "wall_seconds": 1.362767219543457
+    },
+    {
+      "atom_count": 9,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.45436675909564817,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.626683972067839,
+            "weighted_relative_by_mode": [
+              0.6062172075021666,
+              0.5204405035647655,
+              0.626683972067839,
+              0.4526209212303881
+            ],
+            "weighted_relative_frobenius": 0.5504459082422589,
+            "weighted_rmse_by_mode": [
+              0.005519856791401318,
+              0.00526271632276955,
+              0.00703960780240113,
+              0.005286635748209911
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.5583032713787845,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7265595132800209,
+            "weighted_relative_by_mode": [
+              0.6161325810566517,
+              0.7224913470057701,
+              0.7265595132800209,
+              0.6282521999630837
+            ],
+            "weighted_relative_frobenius": 0.6771337297740903,
+            "weighted_rmse_by_mode": [
+              0.005610140342208988,
+              0.007305862973583604,
+              0.008161520393952461,
+              0.007338018159186609
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9348339399981822,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.9946402028987673,
+            "weighted_relative_by_mode": [
+              0.8843159018496142,
+              0.9946402028987673,
+              0.9424426699359135,
+              0.9123204843855793
+            ],
+            "weighted_relative_frobenius": 0.9352032954138185,
+            "weighted_rmse_by_mode": [
+              0.008052059684484176,
+              0.010057843682850022,
+              0.010586558885023516,
+              0.010655950399875531
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.3967405356235343,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5631861082777203,
+            "weighted_relative_by_mode": [
+              0.49207169451083715,
+              0.5032316612748423,
+              0.5631861082777203,
+              0.36390182499574264
+            ],
+            "weighted_relative_frobenius": 0.4820714896431697,
+            "weighted_rmse_by_mode": [
+              0.0044805149889980515,
+              0.005088699783713083,
+              0.006326329535689156,
+              0.004250392119815602
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_8048190",
+      "name": "acetamide",
+      "surface_rebuild_max_abs_bohr": 3.807969051194959e-09,
+      "wall_seconds": 1.301727056503296
+    },
+    {
+      "atom_count": 8,
+      "branches": {
+        "adt": {
+          "dipole_relative_frobenius": 0.473111917987652,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.6766041902001044,
+            "weighted_relative_by_mode": [
+              0.6766041902001044,
+              0.4199518086811757,
+              0.6395680481474874,
+              0.4904753871278824
+            ],
+            "weighted_relative_frobenius": 0.5619524748957485,
+            "weighted_rmse_by_mode": [
+              0.007122888525154996,
+              0.004756100374270832,
+              0.006148705636864667,
+              0.004549798945434873
+            ]
+          }
+        },
+        "original": {
+          "dipole_relative_frobenius": 0.58598352353394,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.7356407108497811,
+            "weighted_relative_by_mode": [
+              0.6567194678676613,
+              0.7356407108497811,
+              0.7040958078123208,
+              0.6937487675573915
+            ],
+            "weighted_relative_frobenius": 0.6997211721842604,
+            "weighted_rmse_by_mode": [
+              0.006913553935480398,
+              0.008331387049359642,
+              0.006769065269799167,
+              0.00643542467953929
+            ]
+          }
+        },
+        "radial_residual": {
+          "dipole_relative_frobenius": 0.9399983045058206,
+          "mep": {
+            "maximum_weighted_relative_mode": 1.0045721631310567,
+            "weighted_relative_by_mode": [
+              0.8847882926049799,
+              1.0045721631310567,
+              0.9106181681243849,
+              0.9636894595280067
+            ],
+            "weighted_relative_frobenius": 0.944821532086805,
+            "weighted_rmse_by_mode": [
+              0.009314527559641057,
+              0.011377129333134943,
+              0.00875453844136785,
+              0.00893947668273928
+            ]
+          }
+        },
+        "total": {
+          "dipole_relative_frobenius": 0.40964897780924625,
+          "mep": {
+            "maximum_weighted_relative_mode": 0.5712663216380925,
+            "weighted_relative_by_mode": [
+              0.5712663216380925,
+              0.423159632025916,
+              0.5516991180284737,
+              0.45045707433480486
+            ],
+            "weighted_relative_frobenius": 0.5008040020816218,
+            "weighted_rmse_by_mode": [
+              0.006013953779978888,
+              0.004792430089955178,
+              0.005303947698295079,
+              0.0041785768981671785
+            ]
+          }
+        }
+      },
+      "compound_id": "mobley_3034976",
+      "name": "acetic acid",
+      "surface_rebuild_max_abs_bohr": 3.3729907755741806e-09,
+      "wall_seconds": 1.223639726638794
+    }
+  ]
+}

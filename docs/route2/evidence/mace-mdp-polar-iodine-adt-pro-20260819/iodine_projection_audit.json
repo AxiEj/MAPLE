@@ -1,0 +1,165 @@
+{
+  "artifact": "route2-iodine-adt-gaussian-projection-audit-v1",
+  "claim_boundary": {
+    "experimental_solvation_targets_read": false,
+    "mace_outputs_read": false,
+    "operational_profile_input": false,
+    "pcm_or_cavity_quantities_used_for_projection": false,
+    "purpose": "iodine-adt-radial-shape-reference-audit-only"
+  },
+  "fits": {
+    "ecp": {
+      "electron_counts": {
+        "bytes_sha256": "7bba983bc25b9d1aa79ad384ff630638895a706e63ec65b500b69385825ce191",
+        "dtype": "float64",
+        "shape": [
+          6
+        ]
+      },
+      "gaussian_exponents_bohr2": {
+        "bytes_sha256": "bd319e4b059dddd388cef6de0cd7fa35d4161a03527889e6ea85f2bc2a28f800",
+        "dtype": "float64",
+        "shape": [
+          6
+        ]
+      },
+      "input_density_normalized_before_projection": true,
+      "metrics": {
+        "absolute_1e-3_isodensity_radius_error_bohr": 0.2595526861985489,
+        "atomic_number": 53,
+        "component_count": 6,
+        "electron_count": 53.0,
+        "electron_count_absolute_error": 0.0,
+        "fitted_1e-3_isodensity_radius_bohr": 5.250514454305683,
+        "maximum_relative_density_error_at_or_above_1e-3": 13.900339735771626,
+        "reference_1e-3_isodensity_radius_bohr": 4.990961768107134,
+        "rms_relative_density_error_at_or_above_1e-3": 2.3856339630071606
+      },
+      "normalization_electrons": 53,
+      "source": {
+        "path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_def2_ecp_atomic_density.json",
+        "sha256": "26bce79272783df2da3c362627b4011e2062e2fd728ee79334bf42d51c3430bf"
+      }
+    },
+    "nr": {
+      "electron_counts": {
+        "bytes_sha256": "5a12c74d8854968c13dc2fe7298f71a5e323c03f0ac7a235c2dc8d2bde5cbb0c",
+        "dtype": "float64",
+        "shape": [
+          19
+        ]
+      },
+      "gaussian_exponents_bohr2": {
+        "bytes_sha256": "30c0691ba578de68f17e863a6324870cf32e7251ab4f963a13e2a3428830af27",
+        "dtype": "float64",
+        "shape": [
+          19
+        ]
+      },
+      "input_density_normalized_before_projection": true,
+      "metrics": {
+        "absolute_1e-3_isodensity_radius_error_bohr": 0.008278125158864391,
+        "atomic_number": 53,
+        "component_count": 19,
+        "electron_count": 52.99999999999999,
+        "electron_count_absolute_error": 7.105427357601002e-15,
+        "fitted_1e-3_isodensity_radius_bohr": 4.5753888857592,
+        "maximum_relative_density_error_at_or_above_1e-3": 0.1405938872188413,
+        "reference_1e-3_isodensity_radius_bohr": 4.567110760600336,
+        "rms_relative_density_error_at_or_above_1e-3": 0.03720126557796763
+      },
+      "normalization_electrons": 53,
+      "source": {
+        "path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_ano_nr_atomic_density.json",
+        "sha256": "d2778707e426f7a0487bc8f63a82dacb9ab37d023e7cbb390f6e78e541e99f55"
+      }
+    },
+    "x2c": {
+      "electron_counts": {
+        "bytes_sha256": "8d8acd5761f3ca17436c55b8cd6b578b7d2004fad510e55f0cfe625b25c183c7",
+        "dtype": "float64",
+        "shape": [
+          22
+        ]
+      },
+      "gaussian_exponents_bohr2": {
+        "bytes_sha256": "7a016218dd08181716ff86880580c2c802f0d10794f32f4cf7a19ff8742d7150",
+        "dtype": "float64",
+        "shape": [
+          22
+        ]
+      },
+      "input_density_normalized_before_projection": true,
+      "metrics": {
+        "absolute_1e-3_isodensity_radius_error_bohr": 0.003039908959026505,
+        "atomic_number": 53,
+        "component_count": 22,
+        "electron_count": 52.999999999999986,
+        "electron_count_absolute_error": 1.4210854715202004e-14,
+        "fitted_1e-3_isodensity_radius_bohr": 4.561950178086955,
+        "maximum_relative_density_error_at_or_above_1e-3": 0.13200034244047168,
+        "reference_1e-3_isodensity_radius_bohr": 4.558910269127929,
+        "rms_relative_density_error_at_or_above_1e-3": 0.03470442078319766
+      },
+      "normalization_electrons": 53,
+      "source": {
+        "path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_ano_x2c_atomic_density.json",
+        "sha256": "3ae8dce38c8ebcd8f4c27feb4c029661f599f1446c78281061fb844ef66c7d0e"
+      }
+    }
+  },
+  "generator": {
+    "path": "tools/route2_release/generate_iodine_adt_assets.py",
+    "sha256": "860f97897d45b21fcccd7d01713f3af4475190969e975c3296cdeeca9b6ac5a8"
+  },
+  "payload_sha256": "f69ac9e37778d54ddf09990ee08f08badb4bf7a6bf0e4eb800f27289405ac67f",
+  "projection_kernel": {
+    "path": "docs/implicit-solvation/benchmarks/generate_route2_rhodrop_atomic_reference_density.py",
+    "sha256": "ff4d8a79ad69405879a740d6af8cd503eb1d998cf500ed0a06482ea062029b98"
+  },
+  "runtime_environment": {
+    "numpy": {
+      "linear_algebra": {
+        "available": true,
+        "blas": {
+          "found": true,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.31.188.0"
+        },
+        "lapack": {
+          "found": true,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.31.188.0"
+        }
+      },
+      "version": "2.4.6"
+    },
+    "python": {
+      "implementation": "CPython",
+      "version": "3.11.14"
+    },
+    "scipy": {
+      "linear_algebra": {
+        "available": true,
+        "blas": {
+          "found": true,
+          "has ilp64": false,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.30 DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.30"
+        },
+        "lapack": {
+          "found": true,
+          "has ilp64": false,
+          "name": "scipy-openblas",
+          "openblas configuration": "OpenBLAS 0.3.30 DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "version": "0.3.30"
+        }
+      },
+      "version": "1.17.1"
+    }
+  },
+  "schema_version": 1
+}

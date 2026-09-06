@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Any, List, Union
 
 from ase import Atoms
 from ..utility import Molecules
@@ -7,13 +7,35 @@ class Dispatcher():
     def __init__(self):
         pass
 
-    def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    def __call__(self, commandcontrol: Any, jobtype: str, atoms: Union[Atoms, Molecules, List[Atoms]], output: str, extra: dict | None = None) -> None:
         from .legacy_units import legacy_hartree_job_calculators
 
+        params = commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol
+        self._validate_calculator_job_contract(atoms, jobtype, params)
         with legacy_hartree_job_calculators(atoms):
             return self._dispatch_legacy(commandcontrol, jobtype, atoms, output, extra)
 
-    def _dispatch_legacy(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    @staticmethod
+    def _validate_calculator_job_contract(atoms, jobtype, params) -> None:
+        """Apply an optional calculator-specific MAPLE workflow contract."""
+
+        if hasattr(atoms, "multiatoms"):
+            structures = atoms.multiatoms
+        elif isinstance(atoms, list):
+            structures = atoms
+        else:
+            structures = (atoms,)
+        seen = set()
+        for structure in structures:
+            calculator = getattr(structure, "calc", None)
+            if calculator is None or id(calculator) in seen:
+                continue
+            seen.add(id(calculator))
+            validator = getattr(calculator, "validate_maple_job", None)
+            if callable(validator):
+                validator(jobtype=jobtype, params=params)
+
+    def _dispatch_legacy(self, commandcontrol: Any, jobtype: str, atoms: Union[Atoms, Molecules, List[Atoms]], output: str, extra: dict | None = None) -> None:
 
         """
         Dispatches the job based on the job type.
@@ -189,27 +211,22 @@ class Dispatcher():
             self.commandcontrol.params['dp_max_th'] = 0.00315
             self.commandcontrol.params['dp_rms_th'] = 0.00210
 
+        def apply_thresholds(structure) -> None:
+            for name in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th"):
+                setattr(structure, name, self.commandcontrol.params[name])
+
         # Apply thresholds to atoms
         if isinstance(atoms, Molecules):
             # Apply to all atoms in Molecules object
             for atom in atoms.multiatoms:
-                atom.f_max_th = self.commandcontrol.params['f_max_th']
-                atom.f_rms_th = self.commandcontrol.params['f_rms_th']
-                atom.dp_max_th = self.commandcontrol.params['dp_max_th']   
-                atom.dp_rms_th = self.commandcontrol.params['dp_rms_th']
+                apply_thresholds(atom)
         elif isinstance(atoms, list):
             # Apply to all atoms in list
             for atom in atoms:
-                atom.f_max_th = self.commandcontrol.params['f_max_th']
-                atom.f_rms_th = self.commandcontrol.params['f_rms_th']
-                atom.dp_max_th = self.commandcontrol.params['dp_max_th']   
-                atom.dp_rms_th = self.commandcontrol.params['dp_rms_th']
+                apply_thresholds(atom)
         else:
             # Single Atoms object
-            atoms.f_max_th = self.commandcontrol.params['f_max_th']
-            atoms.f_rms_th = self.commandcontrol.params['f_rms_th']
-            atoms.dp_max_th = self.commandcontrol.params['dp_max_th']   
-            atoms.dp_rms_th = self.commandcontrol.params['dp_rms_th']
+            apply_thresholds(atoms)
 
 
 

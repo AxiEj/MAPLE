@@ -1,0 +1,50 @@
+{
+  "artifact": "route2-mdp-mbis-source-error-decomposition-preregistration-v1",
+  "claim_boundary": {
+    "experimental_solvation_targets_read": false,
+    "fitting_or_calibration_performed": false,
+    "hybrid_integration_admitted": false,
+    "mnsol_freesolv_or_cds_read": false,
+    "public_capability_admitted": false,
+    "source_diagnostic_only": true
+  },
+  "created_utc": "2026-08-17T09:04:59.185260+00:00",
+  "decomposition": {
+    "comparisons": [
+      "q/p versus q/p/Q",
+      "q/p/Q versus q/p/Q/O",
+      "hard-anchor oracle versus unprojected MBIS q/p",
+      "learned v1 head versus hard-anchor oracle"
+    ],
+    "hard_anchor_oracle": "metric projection of exact MBIS q/p to total charge zero and the frozen MACE-MDP molecular dipole, using the v1 head charge/dipole residual variances",
+    "metrics": [
+      "global area-weighted cavity-MEP RMSE at radius scales 1.0,1.25,1.5",
+      "paired configuration MEP RMSE",
+      "fixed-source ddPCM energy absolute error at radius scale 1.0"
+    ],
+    "multipole_order_chain": [
+      "MBIS q/p",
+      "MBIS q/p/Q",
+      "MBIS q/p/Q/O"
+    ],
+    "quadrupole_tensor": "raw Cartesian label; exterior potential automatically annihilates trace through the harmonic Coulomb Hessian",
+    "same_selection_cavity_and_runtime_as_parent": true
+  },
+  "parent_source_gate": {
+    "aggregate_path": "docs/route2/evidence/mdp-mbis-pcm-source-gate-20260817/aggregate.json",
+    "aggregate_sha256": "19328d772752901ab65f4930ce1cd0ea9f1c09d338f82df2e6e0fe21085e6e8e",
+    "parent_status": "fail",
+    "preregistration_path": "docs/route2/preregistrations/mdp-mbis-pcm-source-physical-gate-v1.json",
+    "preregistration_sha256": "e3ed4ee5129c994325449bceafa36abc4f338d32e069c289c26ff14cea31cffb",
+    "selection_count": 60
+  },
+  "prospective_architecture_decision": {
+    "hard_mdp_dipole_anchor_allowed_if": "oracle-anchor fixed-source energy MAE <=1.0 kcal/mol and global relative MEP RMSE <=0.05 at every radius scale",
+    "no_posthoc_threshold_change": true,
+    "otherwise": "a representation carrying l=3 or a compact density/potential basis is required; q/p/Q alone is terminally insufficient",
+    "otherwise_anchor_policy": "QM molecular dipole becomes the supervised closure of a new source profile; MACE-MDP dipole remains an auxiliary diagnostic, not an exact constraint",
+    "quadrupole_head_allowed_if": "q/p/Q reduces q/p-to-q/p/Q/O global MEP RMSE by at least 50% at every radius scale"
+  },
+  "schema_version": 1,
+  "status": "locked-before-anchor-or-order-decomposition-results"
+}

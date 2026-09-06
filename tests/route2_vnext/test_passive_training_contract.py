@@ -183,6 +183,26 @@ def test_targets_reject_experimental_total_solvation_and_pcm_fitting() -> None:
         replace(_preregistration(), blind_split_used_for_model_selection=True)
 
 
+@pytest.mark.parametrize(
+    "kind",
+    (
+        "exterior_mep",
+        "nonuniform_field_energy",
+        "nonuniform_exterior_mep_response",
+    ),
+)
+def test_observable_supervised_nonuniform_qm_targets_are_allowed(kind: str) -> None:
+    target = replace(
+        _targets()[0],
+        target_id=f"qm-{kind}-v1",
+        kind=kind,
+    )
+
+    assert target.kind == kind
+    assert target.use_for_training is True
+    assert target.objective_weight > 0.0
+
+
 def test_completed_training_run_is_bound_to_plan_seed_code_and_optimizer_audit() -> (
     None
 ):

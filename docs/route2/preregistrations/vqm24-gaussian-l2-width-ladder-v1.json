@@ -1,0 +1,58 @@
+{
+  "already_opened": {
+    "record_ids": [
+      "base-hcno-481244-549dfd678c85",
+      "sulfur-389495-2e00c04d8f40",
+      "bromine-63727-71eb4b0867c9"
+    ],
+    "sigma_angstrom": 1.5
+  },
+  "artifact": "route2-vqm24-gaussian-l2-width-ladder-prereg-v1",
+  "candidate_sigmas_angstrom": [
+    1.0,
+    1.5,
+    2.0
+  ],
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T22:09:55.318630+00:00",
+  "decision": {
+    "coefficients_not_saved_or_used_as_labels": true,
+    "no_fourth_width": true,
+    "no_validation_record_used_for_width_selection": true
+  },
+  "gates": {
+    "audit_max_absolute_hartree_per_e": 0.005,
+    "audit_minus_fit_relative_maximum": 0.02,
+    "audit_relative_mep_error_maximum": 0.05,
+    "audit_to_fit_ratio_maximum": 2.0,
+    "charge_constraint_residual_e_maximum": 1e-08,
+    "full_rank": true
+  },
+  "parent": {
+    "file_sha256": "36152f69865ae52f41de2b528725b453162b8caf2ec265ac2fd973b6270fe190",
+    "path": "docs/route2/preregistrations/vqm24-permanent-p13-zero-field-mep-v1.json",
+    "preregistration_sha256": "e9788ed3a12fa1862d57d2082717c422bb4a42826d30793c0cc89b8be1cf5d22"
+  },
+  "pilot_record_ids": [
+    "base-hcno-481244-549dfd678c85",
+    "sulfur-389495-2e00c04d8f40",
+    "bromine-63727-71eb4b0867c9"
+  ],
+  "preregistration_sha256": "ad215ffb8c11e1c824f63771878e5ea757d50c01a85414d5d971493f58ddd015",
+  "schema_version": 1,
+  "selection_rule": "Among candidates passing every gate on all three pilots, select the candidate with smallest maximum audit relative error; ties within 1e-12 choose smaller sigma. If none pass, close the fixed-width one-channel Gaussian-l2 ladder.",
+  "source": {
+    "gaussian_l2_path": "maple/solvation/coupling/gaussian_quadrupole.py",
+    "gaussian_l2_sha256": "dc377258bb229780da44bf88576b99f5e54a5e1e5f2a1536af391c1cff40c61c",
+    "radial_coupling_path": "maple/solvation/coupling/exact_gto.py",
+    "radial_coupling_sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c"
+  },
+  "status": "locked-before-unopened-width-pilots"
+}

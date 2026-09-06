@@ -1,0 +1,32 @@
+{
+  "adjoint_iterations": 4,
+  "adjoint_residual_eV": 1.926717462489002e-12,
+  "analytic_force_0x_eV_per_A": 0.015910023651522002,
+  "analytic_vs_current_h4_richardson_abs_error_eV_per_A": 4.247073123742062e-09,
+  "analytic_vs_stored_abs_error_eV_per_A": 6.035652880265197e-10,
+  "atom_count": 12,
+  "device": "cpu",
+  "elapsed_seconds": 189.35772966199875,
+  "energy_eV": -6319.337259901052,
+  "fd": [
+    {
+      "derivative_eV_per_A": -0.01591071304574143,
+      "step_angstrom": 0.0005
+    },
+    {
+      "derivative_eV_per_A": -0.015910196452750824,
+      "step_angstrom": 0.00025
+    },
+    {
+      "derivative_eV_per_A": -0.015910063666524366,
+      "step_angstrom": 0.000125
+    }
+  ],
+  "net_force_norm_eV_per_A": 9.020562075079397e-17,
+  "polarization_energy_eV": -0.12556631031246707,
+  "primal_residual_eV": 9.923336846173997e-13,
+  "richardson_h2_h4_derivative_eV_per_A": -0.015910019404448878,
+  "richardson_h_h2_derivative_eV_per_A": -0.01591002425508729,
+  "stored_gpu_richardson_force_0x_eV_per_A": 0.01591002425508729,
+  "system": "benzene"
+}

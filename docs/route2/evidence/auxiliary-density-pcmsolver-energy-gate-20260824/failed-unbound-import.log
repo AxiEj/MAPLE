@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_auxiliary_density_pcmsolver_energy_gate.py", line 655, in <module>
+    main()
+  File "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_auxiliary_density_pcmsolver_energy_gate.py", line 649, in main
+    else run(args)
+         ^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_auxiliary_density_pcmsolver_energy_gate.py", line 570, in run
+    record = _project_case(case, library=library, parser=parser)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_auxiliary_density_pcmsolver_energy_gate.py", line 379, in _project_case
+    from maple.solvation.reference import (
+ImportError: cannot import name 'coulomb_fit_auxiliary_density' from 'maple.solvation.reference' (/home/axie/MAPLE/MAPLE-route2-conservative-vnext/maple/solvation/reference/__init__.py)

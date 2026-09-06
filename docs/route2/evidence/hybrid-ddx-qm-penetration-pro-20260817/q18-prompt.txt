@@ -1,0 +1,132 @@
+You are the advanced mathematical and theoretical-chemistry reviewer for a
+Route-2 implicit-solvation project.  Give a decisive, adversarial answer.  Do
+not suggest fitting a coefficient to the four cases, reading experimental
+hydration targets, hiding a failed component with CDS, or declaring a
+nonstationary construction variational.
+
+## Operational model
+
+The route is deliberately hybrid:
+
+* MACE-MDP supplies permanent point monopoles/dipoles;
+* MACE-POLAR supplies a zero-field-anchored induced 1.5 A Gaussian source;
+* pyddx ddPCM solves the common continuum state;
+* the ddPCM surface state is projected into the MACE-POLAR native 1.5/3.0 A
+  eight-channel external-MEP field;
+* Phi0 = E_vac + G_cont and
+  Phi_raw = E_conditioned_raw(u*) + G_cont are explicit operational ledger
+  candidates;
+* strict common-functional Tier V is already closed for the unchanged
+  checkpoint/source.
+
+Your previous review required one same-geometry, same-cavity,
+same-discrete-pyddx-ddPCM QM reference.  At converged densities it would record
+
+    D_QM = E0[gamma_pcm] - E0[gamma_vac]
+    S_QM = G_dd[gamma_pcm]
+    T_QM = D_QM + S_QM
+
+and compare only G_cont and DeltaE_raw + G_cont with T_QM.  It explicitly
+rejected using the earlier IEFPCM/GEPOL density to select the ledger.
+
+## New local evidence: exact-profile QM/ddPCM collapses
+
+We tested the official Psi4 1.11 + pyddx 0.8 interface on the frozen benzene
+geometry with W97M-V/def2-TZVPD, RKS/DF, water epsilon 78.355, ddPCM lmax=15,
+nleb=1202, eta=0.1, shift=0, and the exact hybrid cavity radii C=1.85 A,
+H=1.20 A.  The official interface's energy/Fock derivative was independently
+checked on its H2 PCM example: directional derivative agreement was about
+3.6e-11 Eh for h=1e-5, so this is not merely an untested Fock hook.
+
+At the converged gas density and the exact hybrid radii:
+
+    G_dd                    = +0.0149328239064 Eh
+    ||V_dd||_F              = 9.941128469
+    min/max AO V_dd         = -1.9610 / +1.4642 Eh
+    ||xi||_2                = 127.2482
+
+Starting PCM-SCF from the converged vacuum orbitals then collapses after the
+first update: total energies run from -232.21 Eh to approximately -1.4e5,
+-2.3e5, and -2.6e5 Eh, while the commutator norm remains O(1e2).  Damping and
+the vacuum-orbital restart do not repair it.
+
+Holding the gas density, all electronic settings, and the ddPCM discretization
+fixed, a radius-scale scan gives:
+
+    scale  G_dd / Eh          ||V_dd||_F
+    1.0   +0.01493282391       9.94113
+    1.1   -0.00817805061       2.05690
+    1.2   -0.00266376576       0.27128
+    1.3   -0.00199232682       0.20391
+    1.5   -0.00133851997       0.11115
+    1.8   -0.00063655343       0.06101
+    2.0   -0.00040912285       0.04254
+
+At radius scale 1.5, the same W97M-V/def2-TZVPD PCM-SCF converges cleanly from
+the vacuum orbitals and yields:
+
+    D_QM = +0.000198617302 Eh
+    S_QM = -0.001642223100 Eh
+    T_QM = -0.001443605798 Eh
+    closure = 4.6e-17 Eh
+
+This strongly suggests an outlying-electron / dielectric polarization
+catastrophe caused by the small SMD-like hybrid cavity together with the
+diffuse AO space.  The operational ML source remains stable at the original
+radii because its permanent point multipoles and induced Gaussian source do
+not have the same freely variational diffuse-electron tail.
+
+## Required decisions
+
+1. State the correct mathematical diagnosis.  Under what conditions does a
+   same-cavity QM/ddPCM electronic functional cease to be bounded below or
+   cease to have the stable stationary branch needed for the proposed matched
+   ledger?  Distinguish continuum-linear-solve stability from electronic SCF
+   stability and from a merely difficult SCF algorithm.
+
+2. Give the sharpest numerical certificate that distinguishes:
+   (a) a recoverable SCF-convergence problem,
+   (b) a metastable stationary point or saddle, and
+   (c) a genuine electron-spill/polarization catastrophe.  Specify diagnostics
+   such as occupied-virtual response/Hessian eigenvalues, density outside the
+   cavity, basis-diffuseness sequences, bounded energy paths, level-shift
+   removal, multiple target-independent starts, and any rigorous stop rule.
+
+3. Decide whether the exact unchanged hybrid profile can still be adjudicated
+   by a quantitative QM component ledger if its matched diffuse-basis
+   QM/ddPCM problem has no stable branch.  In particular, assess these options:
+
+   A. keep the exact cavity but use a non-diffuse QM basis;
+   B. enlarge the cavity and declare a new hybrid profile;
+   C. constrain/project the QM density to eliminate outlying charge;
+   D. converge an IEFPCM/GEPOL density and evaluate ddPCM afterward;
+   E. use only frozen gas/PCM densities without a same-scalar stationary SCF;
+   F. regularize ddPCM or add a short-range dielectric/exclusion functional.
+
+   For each, say what question it can legitimately answer and what conclusion
+   cannot be transported back to the original hybrid profile.
+
+4. Select exactly one immediate highest-information experiment, including a
+   preregistered basis/radius sequence, stability test, tolerances, invariants,
+   and terminal decision table.  It must not use experimental solvation
+   targets or choose settings after seeing agreement with MACE.
+
+5. If the exact-profile matched QM ledger is mathematically unavailable, give
+   the most defensible path for retaining or rejecting Phi0/Phi_raw as an
+   operational conservative scalar.  Is broad target-blind QM source/MEP and
+   fixed-source energy validation plus experimental total-energy validation
+   enough for an empirical operational model, while explicitly giving up a
+   QM component interpretation?  Or must the unchanged-source route close?
+
+6. Explain the consequences for analytic forces.  Separate:
+   * a conservative derivative of a declared operational scalar;
+   * chemical validity of that scalar;
+   * a common electronic-continuum variational functional.
+
+7. End with a finite, non-looping decision tree.  Prefer closing an
+   inadmissible branch over inventing another arbitrary factor or sign.
+
+Separate structural theorems, numerical evidence, and modeling choices.  End
+the complete response with exactly:
+
+HYBRID QM-DDPCM PENETRATION DECISION

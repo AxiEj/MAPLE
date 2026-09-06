@@ -1,0 +1,41 @@
+{
+  "artifact": "route2-spice-mbis-source-label-integrity-v1",
+  "claim_boundary": {
+    "fitting_performed": false,
+    "label_accuracy_proven": false,
+    "solvation_targets_read": false,
+    "unit_and_internal_closure_only": true
+  },
+  "dataset_sha256": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e",
+  "gates": {
+    "charge_units_and_closure": true,
+    "dipole_units_and_closure": true
+  },
+  "interpretation": "SPICE stores these labels at finite precision.  The closure residuals validate the documented e/nm-to-e/Angstrom conversion and dataset internal consistency; they are not a QM source-accuracy benchmark.",
+  "measurements": {
+    "charge_closure_max_abs_e": 0.0006110295653343201,
+    "charge_closure_rmse_e": 0.0001808249485909737,
+    "dipole_component_closure_mae_eangstrom": 0.0003416431468740567,
+    "dipole_component_closure_max_abs_eangstrom": 0.0029765559539303155,
+    "dipole_component_closure_rmse_eangstrom": 0.00047341442071445976,
+    "eligible_atom_count": 42313,
+    "eligible_configuration_count": 770,
+    "eligible_molecule_count": 313,
+    "field_dtypes": {
+      "mbis_charges": [
+        "float32"
+      ],
+      "mbis_dipoles": [
+        "float32"
+      ],
+      "positions": [
+        "float32"
+      ],
+      "scf_dipole": [
+        "float32"
+      ]
+    }
+  },
+  "report_sha256": "ac5c86e8551529fe2c47a79a9341c681614c3a2acadb905a77162a248fdf08c2",
+  "script_sha256": "73b40ad3dba8764b30b8f504c43d1525e9a154ab9fa0c9341d95368e70b8c88b"
+}

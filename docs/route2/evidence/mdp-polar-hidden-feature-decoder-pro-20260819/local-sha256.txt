@@ -1,0 +1,4 @@
+96aa460d14719e94f201f933b461243975139571442ff99cbd581c68bdf6661f  docs/route2/evidence/mdp-polar-hidden-feature-decoder-pro-20260819/equivariant-nonidentifiability-counterexample.py
+a2c16bb23ab4d544232380bd4725328ed2535bce23dc15de9c3d9a909131c51d  docs/route2/evidence/mdp-polar-hidden-feature-decoder-pro-20260819/equivariant-nonidentifiability-counterexample.json
+57334dfec62b408fb2855357a2dcdcbe9e0f55f7ab8e45358c2cbfd41643306d  docs/route2/evidence/mdp-polar-hidden-feature-decoder-pro-20260819/local-derivation.md
+6587c8e4838adc1287a78dddf6e9ee2460be092513fdbccbdc5aff980505f008  docs/route2/evidence/mdp-polar-hidden-feature-decoder-pro-20260819/official-contract.md

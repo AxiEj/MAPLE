@@ -1,0 +1,36 @@
+{
+  "artifact": "route2-mdp-mbis-source-head-evidence-v1",
+  "claim_boundary": {
+    "development_prototype_only": true,
+    "hybrid_energy_or_force_admitted": false,
+    "pcm_or_solvation_accuracy_evaluated": false,
+    "solvation_targets_read": false,
+    "source_accuracy_admitted": false
+  },
+  "execution_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+  "external_inputs_sha256": {
+    "mace_mdp_checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "spice2_ntc1000_hdf5": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e"
+  },
+  "next_required_gates": [
+    "independent exterior and cavity-surface MEP against QM",
+    "fixed-source same-cavity ddPCM polarization energy",
+    "full-data source-head training with molecule-held-out confirmation",
+    "new-profile hybrid development and tail replay"
+  ],
+  "source_files_sha256": {
+    "docs/route2/evidence/mdp-mbis-source-head-prototype-20260817/README.md": "5600b95db46ceb7eb44fff66df3b3e462bb1bfd97d81f4e459bd80143bfc517c",
+    "docs/route2/evidence/mdp-mbis-source-head-prototype-20260817/prototype-report.json": "684a798b61b0b1a45787101abd1e5e0892b2f5a26e770f340a2f5183ede7fb7b",
+    "docs/route2/evidence/mdp-mbis-source-head-prototype-20260817/runtime-audit.json": "7f41d63d18a6179b27994dcd6ba5ff8f6216eb7e172626649a0b1acf4095e85e",
+    "docs/route2/evidence/mdp-mbis-source-head-prototype-20260817/source-head.npz": "ee476dda6d30191fbaa025aa4e857a7687e797af9d1c9ad75ba5552968282d32",
+    "docs/route2/evidence/mdp-mbis-source-head-prototype-20260817/spice-label-integrity.json": "d8a3605b3fb5f567439f3c3becb471a554758dccae7f6f06e2b1674359b768d7",
+    "docs/route2/preregistrations/mdp-mbis-source-head-prototype-v1.json": "46b8652a0420ceeccf3a4e1cf93373c43a32f3c3e2eb0177fdd2d40317fb17c1",
+    "maple/solvation/models/mace_mdp_mbis.py": "06b0037a40b592d76671e853aeaed3ad5680d2f375b580585bb67a8d1d56c55a",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "b2f83ec5f9f993bfd180f3a1ccce4f957041e77557306f43a8a8175d3e579b33",
+    "tests/route2_vnext/test_mace_mdp_mbis_source_adapter.py": "b6d3b6983f4f98e0c665b281328828201c6b96ca6278154f3256a8a06fba8adf",
+    "tests/route2_vnext/test_spice_mbis_source_labels.py": "5eb31715cd26716cc8171f6078527af72eab75fb8f590fd6471604f5a6b67ff4",
+    "tools/route2_release/audit_mdp_mbis_source_runtime.py": "35cab1fc6f129963c614f57baaaa169754eba786d0617681c2af1f3608aa8518",
+    "tools/route2_release/audit_spice_mbis_source_labels.py": "73b40ad3dba8764b30b8f504c43d1525e9a154ab9fa0c9341d95368e70b8c88b",
+    "tools/route2_release/run_mdp_mbis_source_head_prototype.py": "b95f64e392db3e018421c9be510156d69f587181b2c0c19e5cc3f00d7a02e528"
+  }
+}

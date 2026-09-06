@@ -13,6 +13,7 @@ from maple.solvation.api.capabilities import CapabilityStatus
 from maple.solvation.continuum import (
     SEPARATED_SOURCE_DDX_PROVIDER_ID,
     SeparatedSourceDDXBackend,
+    SeparatedGeneralDDXSolution,
     SeparatedSourceDDXState,
     embed_atomic_l1_in_first_radial_channel,
 )
@@ -86,6 +87,21 @@ def test_direct_sum_keeps_operational_field_and_energy_gradient_distinct():
     assert isinstance(backend.capabilities, CapabilityStatus)
     assert backend.capabilities.enabled_tiers == ()
     prepared = backend.prepare(POSITIONS, PERMANENT)
+    assert prepared.cavity_points_bohr.shape == (prepared.cavity_point_count, 3)
+    assert not prepared.cavity_points_bohr.flags.writeable
+    assert prepared.cavity_parent_indices.shape == (prepared.cavity_point_count,)
+    np.testing.assert_allclose(
+        prepared.permanent_point_mep(2.0 * PERMANENT),
+        2.0 * prepared.permanent_point_mep(PERMANENT),
+        rtol=0.0,
+        atol=3.0e-13,
+    )
+    fixed_permanent_energy = prepared.fixed_permanent_source_energy_ev(PERMANENT)
+    assert fixed_permanent_energy == pytest.approx(
+        prepared.solve(np.zeros_like(RADIAL)).polarization_energy_ev,
+        rel=0.0,
+        abs=2.0e-12,
+    )
     state = prepared.solve(RADIAL)
     assert isinstance(state, SeparatedSourceDDXState)
     assert not state.permanent_source.flags.writeable
@@ -108,6 +124,20 @@ def test_direct_sum_keeps_operational_field_and_energy_gradient_distinct():
     assert finite_difference == pytest.approx(expected, abs=3.0e-9)
     assert np.linalg.norm(state.model_field - state.energy_source_gradient) > 1.0e-7
 
+    # The quadratic continuum scalar obeys the exact direct-sum Euler/half-work
+    # identity when each source is contracted with its own energy cotangent.
+    # The MLIP-driving external-MEP receiver is intentionally not that object.
+    assert state.energy_dual_work_ev == pytest.approx(
+        2.0 * state.polarization_energy_ev, abs=3.0e-12
+    )
+    assert state.half_work_identity_residual_ev == pytest.approx(0.0, abs=3.0e-12)
+    naive_native_endpoint_work = MACE_POLAR_RADIAL_GTO_PAIRING.pair(
+        embed_atomic_l1_in_first_radial_channel(state.permanent_source)
+        + state.radial_source,
+        state.model_field,
+    )
+    assert abs(naive_native_endpoint_work - state.energy_dual_work_ev) > 1.0e-5
+
     permanent_direction = np.random.default_rng(14).normal(size=PERMANENT.shape) * 0.01
     permanent_finite_difference = (
         backend.prepare(POSITIONS, PERMANENT + step * permanent_direction)
@@ -126,6 +156,93 @@ def test_direct_sum_keeps_operational_field_and_energy_gradient_distinct():
     vjp = prepared.radial_vjp(cotangent)
     assert np.vdot(cotangent, jvp) == pytest.approx(
         np.vdot(vjp, direction), abs=8.0e-10
+    )
+
+
+@pytest.mark.skipif(
+    importlib.util.find_spec("pyddx") is None,
+    reason="optional pyddx==0.8.0 runtime is unavailable",
+)
+def test_general_problem_data_boundary_replays_existing_source_paths():
+    prepared = _backend().prepare(POSITIONS, PERMANENT)
+    assert prepared.symbols == ("H", "H", "H")
+    permanent_psi, permanent_phi = prepared.bound_permanent_problem_data()
+    replayed_psi, replayed_phi = prepared.point_problem_data(PERMANENT)
+    np.testing.assert_allclose(replayed_psi, permanent_psi, rtol=0.0, atol=2.0e-13)
+    np.testing.assert_allclose(replayed_phi, permanent_phi, rtol=0.0, atol=2.0e-13)
+
+    radial_psi, radial_phi = prepared.radial_problem_data(RADIAL)
+    solution = prepared.solve_problem_data(
+        permanent_psi + radial_psi,
+        permanent_phi + radial_phi,
+    )
+    assert isinstance(solution, SeparatedGeneralDDXSolution)
+    reference = prepared.solve(RADIAL)
+    assert solution.polarization_energy_ev == pytest.approx(
+        reference.polarization_energy_ev, abs=2.0e-12
+    )
+    np.testing.assert_allclose(
+        solution.model_field, reference.model_field, rtol=0.0, atol=2.0e-12
+    )
+    np.testing.assert_allclose(
+        solution.radial_energy_gradient,
+        reference.energy_source_gradient,
+        rtol=0.0,
+        atol=2.0e-12,
+    )
+
+    radial_psi_matrix, radial_phi_matrix = prepared.radial_problem_matrices()
+    point_psi_matrix, point_phi_matrix = prepared.point_problem_matrices()
+    assert not radial_psi_matrix.flags.writeable
+    assert not radial_phi_matrix.flags.writeable
+    assert not point_psi_matrix.flags.writeable
+    assert not point_phi_matrix.flags.writeable
+    np.testing.assert_allclose(
+        (point_psi_matrix @ PERMANENT.reshape(-1)).reshape(permanent_psi.shape),
+        permanent_psi,
+        rtol=0.0,
+        atol=2.0e-13,
+    )
+    np.testing.assert_allclose(
+        point_phi_matrix @ PERMANENT.reshape(-1),
+        permanent_phi,
+        rtol=0.0,
+        atol=2.0e-13,
+    )
+
+    generic_gradient = prepared.problem_data_energy_gradient(
+        solution,
+        psi_matrix=radial_psi_matrix,
+        phi_matrix=radial_phi_matrix,
+        source_shape=RADIAL.shape,
+        name="radial replay",
+    )
+    np.testing.assert_allclose(
+        generic_gradient,
+        reference.energy_source_gradient,
+        rtol=0.0,
+        atol=2.0e-12,
+    )
+
+    direction = np.random.default_rng(101).normal(size=RADIAL.shape) * 0.01
+    direction_psi, direction_phi = prepared.radial_problem_data(direction)
+    np.testing.assert_allclose(
+        prepared.problem_data_model_field_jvp(direction_psi, direction_phi),
+        prepared.radial_jvp(direction),
+        rtol=0.0,
+        atol=2.0e-12,
+    )
+    cotangent = np.random.default_rng(102).normal(size=RADIAL.shape) * 0.01
+    np.testing.assert_allclose(
+        prepared.problem_data_model_field_vjp(
+            cotangent,
+            source_psi_matrix=radial_psi_matrix,
+            source_shape=RADIAL.shape,
+            name="radial replay",
+        ),
+        prepared.radial_vjp(cotangent),
+        rtol=0.0,
+        atol=2.0e-12,
     )
 
 

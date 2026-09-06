@@ -1,0 +1,171 @@
+{
+  "artifact": "route2-mace-mdp-polar-matched-qm-boundary-response-prereg-v1",
+  "candidate_protocol": {
+    "comparison_metrics": [
+      "area-weighted boundary-MEP relative L2",
+      "passive-continuum response norm sqrt(-v^T R v)",
+      "response-metric correlation",
+      "molecular induced-dipole derivative"
+    ],
+    "comparison_surface": "identical frozen PCMSolver cavity",
+    "permanent_source": "MACE-POLAR zero-field point q/p",
+    "uniform_response": "role-separated canonical ADT from negative MACE-MDP molecular polarizability times native uniform gradient"
+  },
+  "claim_boundary": {
+    "can_decide": [
+      "whether current permanent boundary potential matches vacuum QM on one case",
+      "whether the current ADT uniform response matches finite-field QM on three axes",
+      "whether a discrepancy exceeds preregistered finite-field/basis uncertainty"
+    ],
+    "cannot_decide": [
+      "505-molecule solvation accuracy",
+      "nonuniform residual-response accuracy",
+      "a new source projector or fitted repair",
+      "force, Hessian, virial, optimization, frequency, or MD admission"
+    ]
+  },
+  "created_utc": "2026-08-19T20:00:15.445993+00:00",
+  "decision_contract": {
+    "no_capability_admission": true,
+    "no_projector_selected": true,
+    "no_solvation_target_read": true,
+    "no_source_rescaling": true,
+    "not_a_fit": true,
+    "reference_uncertainty": "per axis, max of primary finite-field step difference and primary/control-basis fine-step difference in the same response norm",
+    "resolved_hybrid_defect": "candidate error greater than five times the frozen reference uncertainty envelope"
+  },
+  "inputs": {
+    "case": {
+      "case_id": "mobley_3867265",
+      "files": {
+        "frozen_qm_surface_mep": {
+          "bytes": 7776,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-10/work/qm-surface-mep.npz",
+          "sha256": "3cbd917e8e4898934dea21abea77bf1bdb0577e90cc105f826968473489121cb"
+        },
+        "frozen_surface": {
+          "bytes": 12676,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-10/work/surface.npz",
+          "sha256": "3576e4ad68d34ad5424c768bc3dbe3ec7ddfd9f4f3caa4db04ab9d69702e50bb"
+        },
+        "mol2": {
+          "bytes": 1172,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3867265.mol2",
+          "sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1"
+        },
+        "parent_preregistration": {
+          "bytes": 11893,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+          "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
+        },
+        "pcm_input": {
+          "bytes": 2680,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3867265/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+          "sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8"
+        },
+        "projection_result": {
+          "bytes": 18543,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-10/result.json",
+          "sha256": "188d070d065c73aaff6cee1ec5924ba14c48e8255880891b0314cb909136ff31"
+        },
+        "qm_checkpoint": {
+          "bytes": 356000,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+          "sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+        },
+        "qm_ledger": {
+          "bytes": 2802,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.json",
+          "sha256": "4143e5bfb6e603ea74acb7b0498dfd92c0bf4fdad104c798d57c4badecdc6213"
+        }
+      },
+      "name": "acetone",
+      "prior_target_status": "vacuum-QM surface MEP and fixed-source PCM energy were opened in earlier representation audits; no experimental solvation target is read by this preregistration or runner"
+    },
+    "mace_mdp_checkpoint": {
+      "bytes": 51716861,
+      "path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "mace_polar_checkpoint": {
+      "bytes": 68133235,
+      "path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    }
+  },
+  "preregistration_sha256": "09ba5b53846c81663a1e2d8646d7b57618c3b628bd04afba1f31b21e92e009b5",
+  "reference_protocol": {
+    "atomic_unit_electric_field_volt_per_angstrom": 51.4220674763,
+    "axes": [
+      "x",
+      "y",
+      "z"
+    ],
+    "control_basis": "def2-tzvp",
+    "control_basis_steps_volt_per_angstrom": [
+      0.0005
+    ],
+    "electronic_hcore_perturbation": "-g_dot_r",
+    "field_gradient_steps_volt_per_angstrom": [
+      0.001,
+      0.0005
+    ],
+    "maximum_scf_cycles": 100,
+    "method": "omegaB97M-V",
+    "native_coordinate": "g=grad(phi)=-physical-electric-field",
+    "nonlocal_atom_grid": [
+      50,
+      194
+    ],
+    "nonlocal_prune": "pyscf.dft.gen_grid.sg1_prune",
+    "primary_basis": "def2-tzvpd",
+    "qm_induced_dipole": "-Tr[(dD/dg) r] in e*angstrom",
+    "qm_induced_surface_mep": "-Tr[(dD/dg) r_surface^-1]",
+    "reference": "RKS-density-fitting",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3
+  },
+  "runtime": {
+    "cuda_available_at_lock": true,
+    "numpy_version": "2.4.6",
+    "pcmsolver_library": {
+      "bytes": 1745240,
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    },
+    "polar_device": "cuda",
+    "pyscf_init": {
+      "bytes": 4626,
+      "path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/pyscf/__init__.py",
+      "sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92"
+    },
+    "pyscf_version": "2.13.1",
+    "python_executable": {
+      "bytes": 24666920,
+      "path": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+      "sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+    },
+    "python_version": "3.11.14",
+    "scipy_version": "1.17.1",
+    "threads": 8,
+    "torch_cuda_version": "13.0",
+    "torch_version": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/solvation/coupling/adt_radial_shape.py": "0241c58276afc0a2d151fbcba1a7f2a5c1869592a6d3ff924ef5780f162801dd",
+    "maple/solvation/coupling/atomic_displacement_lift.py": "54afcc5c093161dcd80a02cff400b3a2d6361da17596a2380a1d1faa90dbfbf0",
+    "maple/solvation/models/mace_mdp.py": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "maple/solvation/models/mace_mdp_polar_adt.py": "1634ceb4a66ee5e42dc9f0558c0c5719c4c99cdc78ad6adea7f2a1f1f495cd25",
+    "maple/solvation/models/mace_polar_separated.py": "8cce0f313fbf5b7020d23637e2b13ed9d03b9382c8b7a4e0f5160e3977bb738d",
+    "maple/solvation/reference/pyscf_pcmsolver.py": "ab203e1fc2345af079150127368040ceaa404878c2c75bb91206031701a9d2ba",
+    "maple/solvation/release/qm_boundary_response.py": "b3d13bb7eed793ace7b08c51361dab0abf3c351b8019c5e21bc386944febca19",
+    "tools/route2_release/create_mace_mdp_polar_qm_boundary_response_preregistration.py": "162f54f4aaff0550a88350ede655c0b672324758711045f4c4cdfb53a01a6e19",
+    "tools/route2_release/run_mace_mdp_polar_qm_boundary_response.py": "1c4380760775533fba2bc4a836309229fbab01a0be6ac1a5ca340f837f1b4574"
+  },
+  "source_root": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid",
+  "status": "frozen-before-first-qm-induced-boundary-response-execution"
+}

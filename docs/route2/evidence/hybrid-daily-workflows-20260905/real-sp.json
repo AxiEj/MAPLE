@@ -1,0 +1,67 @@
+{
+  "energy_eV": -2080.066800104359,
+  "forces_eV_per_A": [
+    [
+      0.18185238259805142,
+      0.24376956537715122,
+      -4.959708108706284e-20
+    ],
+    [
+      -0.3966840707038141,
+      0.11854119999160306,
+      -1.5458857317220052e-18
+    ],
+    [
+      0.21483168810576272,
+      -0.3623107653687539,
+      1.316217128745721e-18
+    ]
+  ],
+  "route2": {
+    "profile_id": "route2-experimental-mace-mdp-polar-separated-ddx-smd-daily-v1",
+    "provider_id": "maple.route2.experimental.mace-mdp-polar-separated-ddx-smd.impl.v1",
+    "scalar_contract_id": "mace-mdp-permanent-plus-mace-polar-induced-ddx-plus-solvent-term-v1",
+    "configuration_sha256": "4b9324118945e5edaf50e04617b71b38e9b6e3ae5ab2439f2f075616be720d3e",
+    "state_sha256": "6eb49b279771a02fb6d360290006be68df88740cb9321125ca776bb586522ccb",
+    "electrostatic_root_sha256": "58454034f03f8dc39244e49d79454d45f992e93a34d1081238ead75acf7c848a",
+    "solvent": "water",
+    "topology_observation_coverage": "partial",
+    "unobservable_topology_components": [
+      "pyscf-smd-libsolvent-internal-surface"
+    ],
+    "energy_components_eV": {
+      "vacuum": -2079.861578204463,
+      "ddx_polarization": -0.2683061884045938,
+      "smd_cds": 0.06308428850859095,
+      "solvation_total": -0.20522189989600287
+    },
+    "scientific_status": "experimental-callable-E; conditional-complete-coordinate-derivative-F-molecular-virial-HVP-H; hybrid-full-solvation-accuracy-and-release-admission-pending",
+    "daily_job_capabilities": [
+      "sp",
+      "opt:first-order",
+      "hessian:direct-experimental-richardson",
+      "virial:direct-nonperiodic-molecular"
+    ],
+    "daily_property_availability": {
+      "energy": "experimental",
+      "forces": "experimental-same-scalar-analytic",
+      "hessian": "experimental-richardson",
+      "molecular_virial": "experimental-nonperiodic",
+      "periodic_stress": false,
+      "strict_variational_functional": false,
+      "molecular_dynamics": false
+    },
+    "warnings": [
+      "experimental daily surface; development MAE and tail gates are not production-admitted",
+      "H/FREQ uses an observed-components-only topology policy for the PySCF SMD-CDS term"
+    ],
+    "force_evaluation_sha256": "eaf525502fb3b6e262b3d649c5771423b5ee03f99ff498227266673e251058ff",
+    "force_derivative_kind": "analytic-block-adjoint-plus-solvent-gradient-v1",
+    "adjoint_residual_eV": 1.494159918192773e-11,
+    "molecular_virial_eV": "[[-4.36343154e-01  2.01941787e-01  0.00000000e+00]\n [ 2.01939548e-01 -3.40572119e-01  0.00000000e+00]\n [-1.74744662e-18  1.32474735e-18  0.00000000e+00]]",
+    "molecular_virial_origin_A": "[0.24333333 0.31333333 0.        ]",
+    "molecular_virial_evaluation_sha256": "5054231a7e35c103d0eeb5a0e7472b6b90bc1c17337d9570ced479364f66c5f5"
+  },
+  "status": "pass",
+  "elapsed_s": 52.71973322900067
+}

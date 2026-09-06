@@ -1,0 +1,238 @@
+{
+  "artifact": "route2-vqm24-observable-training-record-level3-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "density_or_partition_coefficient_label_emitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_observable_training_record_generated": true,
+    "model_accuracy_measured": false,
+    "numerical_energy_curvature_label_emitted": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "finite_field_protocol": {
+    "external_nuclear_coupling_included_in_total_enthalpy": true,
+    "field_step_e": 0.001,
+    "mode_count": 4,
+    "numerical_energy_curvature_label_emitted": false,
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "input": {
+    "checkpoint_sha256": "5af555e8d8a6860bc23e60f533c31945a8af6dac832d7eaa69b6cbc113b6b7a3",
+    "modes_npz_sha256": "fc2759e9d042fba27cba2dff349e9785cc9d56f0db6f55e40ac4b1b5626deb8e",
+    "source_points_bohr_sha256": "69a7a4835588a47b10f342210c36cd59f1558b7cfccc9bdf433bcb6197b56399",
+    "surface_npz_sha256": "6198e5c01527474ff8b03bd85bc3b578df65c347dd7a35a9e235064bb6fd4497",
+    "surface_points_bohr_sha256": "c37d29ada48bc6d015487ece1656f3bc98e52cf095824faaf8353eaefa3a167a"
+  },
+  "method": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "PySCF-level-3",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "numerical_checks": {
+    "enthalpy_slope_vs_zero_source_mep_relative": 1.912931778751673e-07,
+    "maximum_electron_count_error_e": 4.973799150320701e-14,
+    "maximum_scf_cycles": 8,
+    "minimum_scf_cycles": 7
+  },
+  "output": {
+    "induced_dipole_sha256": "3f217959054d18aa6ae85110cc816a931824093974a39381e25c28cadd7b0b7e",
+    "induced_surface_mep_sha256": "1d7fed59ac911e88970b75700c65a838e559dccdb77c92fb558c0e53a82ce6e2",
+    "npz_sha256": "5f6b4ba25dc350c6496b53d21552c1748a5e1de58a4a95a0dd4a3dda217a3283",
+    "perturbed_dipole_sha256": "8ffcf530b1d23a1dbd55f250f394a4f8e7be1edc31c0618b18dc7b02c9346633",
+    "perturbed_enthalpy_sha256": "012f7681063e5665f57323047ca08939919099b22021315701c7f9732f94fe2c",
+    "perturbed_surface_mep_sha256": "5343189a5d4a54e92bb33da464ae1c7c0dfa1b276405fe721c6a87f7498a4146",
+    "zero_surface_mep_sha256": "c58e21c1b550bbac6fd0d20362f5f40c76e08f5bc9b5101cc97e53d975d44ca7"
+  },
+  "perturbation_records": [
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "62fa0c322beb4f4c05b6d9e29ad62f92d0d68dd0b6ff2ffed619c19daaa19803",
+      "dipole_e_bohr": [
+        0.33747707503176994,
+        -0.8254661783166244,
+        -0.09486747360677977
+      ],
+      "elapsed_seconds": 129.50877452499992,
+      "electron_count_error_e": 7.105427357601002e-15,
+      "electronic_scf_energy_hartree": -309.5253698907603,
+      "external_nuclear_coupling_hartree": -0.005762306346237906,
+      "mode_index": 0,
+      "scf_cycles": 8,
+      "sign": -1,
+      "surface_mep_sha256": "845162ce82ffec36c87229b99fa74e45e27b2e610e1f54d849965ed4a9ba49dc",
+      "total_external_enthalpy_hartree": -309.53113219710656
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "f03dde42dee4110d7a75572608ebaeff1e8cf0041cdc516eb03e90e447e5f995",
+      "dipole_e_bohr": [
+        0.33899202425378316,
+        -0.8258895445574874,
+        -0.09505833988321616
+      ],
+      "elapsed_seconds": 126.925682188,
+      "electron_count_error_e": 4.973799150320701e-14,
+      "electronic_scf_energy_hartree": -309.53692630472614,
+      "external_nuclear_coupling_hartree": 0.005762306346237906,
+      "mode_index": 0,
+      "scf_cycles": 8,
+      "sign": 1,
+      "surface_mep_sha256": "24f42e83ae9c973d04694bc5355b9a74fc3c5d4de6748ae424fa83cd5948a849",
+      "total_external_enthalpy_hartree": -309.5311639983799
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "046d99f23bb7282effce3081de94cd0ff330edf82e66fce37d9f40a50300e503",
+      "dipole_e_bohr": [
+        0.3390633935864189,
+        -0.8256491166115654,
+        -0.09523418135660022
+      ],
+      "elapsed_seconds": 127.84287066500008,
+      "electron_count_error_e": 0.0,
+      "electronic_scf_energy_hartree": -309.5258661475495,
+      "external_nuclear_coupling_hartree": -0.005282084395740571,
+      "mode_index": 1,
+      "scf_cycles": 8,
+      "sign": -1,
+      "surface_mep_sha256": "4cb9d37ac10d3d57c70b94632b1a25c5c7d64f4bb9fc30d65b943903aa1fac9a",
+      "total_external_enthalpy_hartree": -309.5311482319452
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "f8f74917b6de71d63aadf7c45fd0ceb8ceeeabff340a138f4739fc5fd1e72367",
+      "dipole_e_bohr": [
+        0.3374054344295505,
+        -0.8257065811631212,
+        -0.09469157038887949
+      ],
+      "elapsed_seconds": 128.31893121199982,
+      "electron_count_error_e": 1.4210854715202004e-14,
+      "electronic_scf_energy_hartree": -309.53643005329343,
+      "external_nuclear_coupling_hartree": 0.005282084395740571,
+      "mode_index": 1,
+      "scf_cycles": 8,
+      "sign": 1,
+      "surface_mep_sha256": "545e4ace769d33c1b7e4e39d3d2df0c38507d46944596dd1b86d7241667dcfbc",
+      "total_external_enthalpy_hartree": -309.5311479688977
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "ca8ee700d31eefa85aff2c641740f38ee0b4ef4cdd333d4c5bf3334e3b221d5b",
+      "dipole_e_bohr": [
+        0.33816882274223214,
+        -0.8266536789113459,
+        -0.09499209390245755
+      ],
+      "elapsed_seconds": 128.84363662600003,
+      "electron_count_error_e": 7.105427357601002e-15,
+      "electronic_scf_energy_hartree": -309.5252220205633,
+      "external_nuclear_coupling_hartree": -0.005943981238792126,
+      "mode_index": 2,
+      "scf_cycles": 8,
+      "sign": -1,
+      "surface_mep_sha256": "3c93fa65a04b0bffa4231156df7d68c580ac2e5c97dd871b6b2c1080a447c065",
+      "total_external_enthalpy_hartree": -309.5311660018021
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "a71d3caf9776abf208de36b0fbaee7ac803a53787fb554f4fe495e241b3f3c9d",
+      "dipole_e_bohr": [
+        0.33830020545207873,
+        -0.8247017593621164,
+        -0.09493371232756104
+      ],
+      "elapsed_seconds": 127.72163472400007,
+      "electron_count_error_e": 2.842170943040401e-14,
+      "electronic_scf_energy_hartree": -309.53707418887126,
+      "external_nuclear_coupling_hartree": 0.005943981238792126,
+      "mode_index": 2,
+      "scf_cycles": 8,
+      "sign": 1,
+      "surface_mep_sha256": "1f0ed1288251e8ac1380f7097c13df42ab2f489d8f46b12b8d4a3658193b203b",
+      "total_external_enthalpy_hartree": -309.5311302076325
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "3716505b59e9c889ac789eed68bf3f56258ad57de13dba8f216f6fc1eff5814b",
+      "dipole_e_bohr": [
+        0.3382220463591379,
+        -0.8252037129218541,
+        -0.0943004182720632
+      ],
+      "elapsed_seconds": 115.26071404100003,
+      "electron_count_error_e": 7.105427357601002e-15,
+      "electronic_scf_energy_hartree": -309.52539092166563,
+      "external_nuclear_coupling_hartree": -0.005757187898209469,
+      "mode_index": 3,
+      "scf_cycles": 7,
+      "sign": -1,
+      "surface_mep_sha256": "fcac3544b96387b73b0aa829bfec66748e8e6db9d183a3b3a70326ae715cd64f",
+      "total_external_enthalpy_hartree": -309.53114810956384
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "239d5e248d84fd10b725b3b69205e9e1a98cf0fe5cbe53908dda93c327764f23",
+      "dipole_e_bohr": [
+        0.3382469597254598,
+        -0.8261520854204114,
+        -0.09562552449064465
+      ],
+      "elapsed_seconds": 115.16516011099998,
+      "electron_count_error_e": 1.4210854715202004e-14,
+      "electronic_scf_energy_hartree": -309.53690527756675,
+      "external_nuclear_coupling_hartree": 0.005757187898209469,
+      "mode_index": 3,
+      "scf_cycles": 7,
+      "sign": 1,
+      "surface_mep_sha256": "572447002e867b121e5caf007f0b4bc492bbe3abaabf2808e0b82e90e14a1fc8",
+      "total_external_enthalpy_hartree": -309.53114808966853
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "threads": 8,
+    "total_elapsed_seconds": 999.9066460970001
+  },
+  "schema_version": 1,
+  "source": {
+    "runner_path": "tools/route2_release/run_vqm24_observable_training_record.py",
+    "runner_sha256": "89e91658cebf6dfcfcfc4e7d3bea0fd60be2b5cbb7666978f8a094ab9fabec71",
+    "shared_finite_field_runner_path": "tools/route2_release/run_vqm24_localized_qm_response.py",
+    "shared_finite_field_runner_sha256": "dc6fd9a6c1d55f165a6f298650572cb6a59f461b8aea0ae568c4603aa3cdd87a"
+  },
+  "status": "success",
+  "zero_field": {
+    "checkpoint_density_binding_residual_e": 4.263256414560601e-14,
+    "checkpoint_mo_orthonormality_inf": 3.6424091342441775e-12,
+    "checkpoint_occupation_sum_e": 42.0,
+    "checkpoint_occupied_orbital_count": 21,
+    "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+    "electron_count_e": 41.99999999999996,
+    "energy_hartree": -309.5311480869405,
+    "total_dipole_e_bohr": [
+      0.3382345075228219,
+      -0.8256778806148866,
+      -0.09496294702950353
+    ],
+    "total_source_mep_sha256": "6201f03eaa88e65e3506576ff5c9d3e66918c7afdcafc76768813671b5754ee1",
+    "total_surface_mep_sha256": "c58e21c1b550bbac6fd0d20362f5f40c76e08f5bc9b5101cc97e53d975d44ca7"
+  }
+}

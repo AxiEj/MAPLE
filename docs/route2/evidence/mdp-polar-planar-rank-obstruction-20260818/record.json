@@ -1,0 +1,232 @@
+{
+  "artifact": "route2-target-free-mdp-polar-planar-rank-obstruction-v1",
+  "cases": {
+    "reference": {
+      "absolute_null_plane_alignment": 1.0,
+      "arithmetic_transform_constructor_error": "MACE-POLAR uniform molecular response does not have rank three.",
+      "arithmetic_transform_constructor_status": "rejected",
+      "mdp_molecular_polarizability": [
+        [
+          0.1026696774320429,
+          -0.002129324482283225,
+          0.0
+        ],
+        [
+          -0.0021293244822832244,
+          0.101566729807002,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.09757376161021257
+        ]
+      ],
+      "mdp_molecular_polarizability_eigenvalues": [
+        0.09757376161021257,
+        0.09991862499697982,
+        0.10431778224206509
+      ],
+      "mdp_molecular_polarizability_rank": 3,
+      "minimum_relative_frobenius_residual_in_original_polar_span": 0.559747555955522,
+      "molecular_plane_normal": [
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "polar_uniform_charge_response": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polar_uniform_molecular_dipole_jacobian": [
+        [
+          -0.04648051190364533,
+          0.01643644972068303,
+          0.0
+        ],
+        [
+          0.016436449725852766,
+          -0.037966758708120496,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "polar_uniform_numerical_rank": 2,
+      "polar_uniform_rank_threshold": 3.943670932206983e-17,
+      "polar_uniform_singular_values": [
+        0.05920238313586408,
+        0.025244887475901732,
+        0.0
+      ],
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239987208409,
+          0.926627206485,
+          0.0
+        ]
+      ],
+      "right_null_vector": [
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    "rotated_translated": {
+      "absolute_null_plane_alignment": 0.9999999999999999,
+      "arithmetic_transform_constructor_error": "MACE-POLAR uniform molecular response condition number is too large.",
+      "arithmetic_transform_constructor_status": "rejected",
+      "mdp_molecular_polarizability": [
+        [
+          0.1036069048807864,
+          -0.0010224710939287518,
+          0.0017913964226279231
+        ],
+        [
+          -0.0010224710939287516,
+          0.09974848528204892,
+          0.0005322922894976075
+        ],
+        [
+          0.0017913964226279233,
+          0.0005322922894976087,
+          0.09845477868642209
+        ]
+      ],
+      "mdp_molecular_polarizability_eigenvalues": [
+        0.09757376161021254,
+        0.09991862499697979,
+        0.10431778224206509
+      ],
+      "mdp_molecular_polarizability_rank": 3,
+      "minimum_relative_frobenius_residual_in_original_polar_span": 0.5597475559555221,
+      "molecular_plane_normal": [
+        -0.3213114103796128,
+        -0.3649485982683587,
+        0.8738257825114937
+      ],
+      "polar_uniform_charge_response": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polar_uniform_molecular_dipole_jacobian": [
+        [
+          -0.05297743255629556,
+          0.008730347299251949,
+          -0.015833963397652074
+        ],
+        [
+          0.008730347313198003,
+          -0.022979982470852128,
+          -0.00638725968891829
+        ],
+        [
+          -0.01583396350930108,
+          -0.006387259724059171,
+          -0.008489855466126526
+        ]
+      ],
+      "polar_uniform_numerical_rank": 2,
+      "polar_uniform_rank_threshold": 3.9436709247351965e-17,
+      "polar_uniform_singular_values": [
+        0.05920238302369763,
+        0.025244887469576555,
+        1.5114691783595032e-17
+      ],
+      "positions_angstrom": [
+        [
+          1.7,
+          -0.6,
+          0.9
+        ],
+        [
+          2.4492554324830187,
+          -0.20086825176621576,
+          1.3422012940353383
+        ],
+        [
+          1.0182900429532165,
+          0.07128380418563907,
+          0.929688864907041
+        ]
+      ],
+      "right_null_vector": [
+        0.3213114085536838,
+        0.36494859832525206,
+        -0.8738257831591383
+      ]
+    }
+  },
+  "claim_boundary": {
+    "accuracy_or_capability_admitted": false,
+    "experimental_or_mbis_or_solvation_targets_read": false,
+    "fitting_calibration_or_post_training_performed": false,
+    "pseudoinverse_used_as_production_repair": false,
+    "pure_mace_polar_in_scope": false
+  },
+  "input_sha256": {
+    "mace_mdp_adapter": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "mace_mdp_checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_adapter": "8cce0f313fbf5b7020d23637e2b13ed9d03b9382c8b7a4e0f5160e3977bb738d",
+    "mace_polar_checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "runner": "042a18b8e3322a2298fe34ba6892917a53ef8b663e185bb4acfe236610d4d0d4",
+    "susceptibility_implementation": "dcd069260715f3dc803f8fc15d66b511cb809ba4c0ca8d02e7f5c1e9d3ee57bf"
+  },
+  "mathematical_decision": {
+    "decision": "reject-arithmetic-span-tangent-on-general-domain",
+    "rank_bound": "rank[C_P (I + A)] <= rank(C_P)",
+    "reason": "a rank-two C_P cannot be transformed into the full-rank MDP molecular susceptibility without leaving the original POLAR uniform source span",
+    "restricted_correction": "K = B A G with B = J_P U and G U = I",
+    "target": "-alpha_MDP, rank three",
+    "uniform_corrected_response": "C (J_P + K) U = C_P (I + A)"
+  },
+  "record_sha256": "5d3013969064456b11d88825cb1e1397b2c3ba4f0fc253198f6d656b4f1fffe5",
+  "runtime": {
+    "cuda_available": true,
+    "cuda_runtime": "13.0",
+    "device": "cuda",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "transform": {
+    "rotation_matrix": [
+      [
+        0.7827574514030702,
+        -0.5329631786838883,
+        -0.32131141037961275
+      ],
+      [
+        0.4169784248159049,
+        0.8324310865531193,
+        -0.3649485982683587
+      ],
+      [
+        0.4619737714535501,
+        0.15168630889819565,
+        0.8738257825114937
+      ]
+    ],
+    "translation_angstrom": [
+      1.7,
+      -0.6,
+      0.9
+    ]
+  }
+}

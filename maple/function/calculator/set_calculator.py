@@ -56,6 +56,12 @@ _BUILTIN_NAME_TO_MODULE = {
     'macepols': 'maple.function.calculator.mace._macepol_calculator',
     'macepolm': 'maple.function.calculator.mace._macepol_calculator',
     'macepoll': 'maple.function.calculator.mace._macepol_calculator',
+    'macemdppolarhybrid': (
+        'maple.function.calculator.route2._mace_mdp_polar_hybrid_calculator'
+    ),
+    'macemdppolarhybridddx': (
+        'maple.function.calculator.route2._mace_mdp_polar_hybrid_ddx_calculator'
+    ),
     'uma': 'maple.function.calculator.uma._uma_calculator',
 }
 

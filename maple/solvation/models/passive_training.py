@@ -44,6 +44,9 @@ _TARGET_KINDS = frozenset(
         "dipole",
         "polarizability",
         "far_field_mep",
+        "exterior_mep",
+        "nonuniform_field_energy",
+        "nonuniform_exterior_mep_response",
         "cavity_surface_mep",
         "fixed_source_pcm_energy",
     }

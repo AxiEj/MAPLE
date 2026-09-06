@@ -1,0 +1,37 @@
+{
+  "aggregate_sha256": "6826818ac78b1e0963e650e1f8a9ecaaab6ffdaea7fb593a96d05ecc82752df9",
+  "artifact": "route2-mdp-polar-ewald-gauge-tail-v1-aggregate",
+  "candidate": {
+    "mae_kcal_mol": 4.488881380111399,
+    "maximum_kcal_mol": 7.8118723601510665,
+    "mean_error_reduction_fraction": -0.2089459100451878,
+    "paired_improvement_count": 2,
+    "qpqo_global_relative_mep_rmse": 0.27468629877531614
+  },
+  "claim_boundary": {
+    "adversarial_tail_selected_from_previously_opened_errors": true,
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "pure_mace_polar_in_scope": false,
+    "result_is_independent_accuracy_estimate": false
+  },
+  "decision": "candidate-rejected-by-opened-tail-falsification",
+  "gates": {
+    "far_field_closure": true,
+    "maximum_no_worsening": false,
+    "mean_relative_reduction": false,
+    "paired_improvement_count": false,
+    "qpqo_mep_no_worsening": true
+  },
+  "passed_tail_falsification": false,
+  "polar_zero": {
+    "mae_kcal_mol": 3.7130539446083364,
+    "maximum_kcal_mol": 4.530936108560474,
+    "qpqo_global_relative_mep_rmse": 0.288135980483719
+  },
+  "preregistration_sha256": "156401f6fb636a2bacf28b5e1e00c35d9401e701dc6b647b8ce0d8d12578983c",
+  "record_count": 7
+}

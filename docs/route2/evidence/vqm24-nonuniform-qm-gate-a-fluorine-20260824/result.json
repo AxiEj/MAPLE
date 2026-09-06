@@ -1,0 +1,158 @@
+{
+  "artifact": "route2-vqm24-localized-field-qm-record-level3-result-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_training_datum_generated": true,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-23T23:58:21.501863+00:00",
+  "files": {
+    "gas_checkpoint": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/gas.chk",
+      "sha256": "5af555e8d8a6860bc23e60f533c31945a8af6dac832d7eaa69b6cbc113b6b7a3"
+    },
+    "gas_json": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/gas.json",
+      "sha256": "41557d30924c73a357acce36f860fa422b6ac2f02fa902115ffc9c6b853579df"
+    },
+    "gas_log": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/gas-level3.run.log",
+      "sha256": "3b5b975143ac2b92cf7a4fc17cc278d5c5bd2816fc95d9bbfa70635cdbb175e0"
+    },
+    "preregistration": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/preregistration.json",
+      "sha256": "f13721a28cba7b63c0812fc0b07725c077279e95562ba2ca72d1d1bcd431671a"
+    },
+    "response_json": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/qm-response.json",
+      "sha256": "80ce9414597d1ffe47884c4c034a99b3843f56b1efe64464fdbb060417a80128"
+    },
+    "response_log": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/response-level3.run.log",
+      "sha256": "e7ab460b9f44eec284e39a0991cce7aad05f784e1d1358372a168a0301a6fd37"
+    },
+    "response_npz": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/qm-response.npz",
+      "sha256": "7077a8944a91a4fa0e92318c756e6d86a4933ff620cc4ecb5b3e5845cabb2462"
+    }
+  },
+  "gas": {
+    "density_binding_residual_inf": 1.3877787807814457e-17,
+    "elapsed_seconds": 364.7838059780006,
+    "energy_hartree": -309.5311480869405,
+    "nonlocal_grid_point_count": 129336,
+    "scf_cycles": 17
+  },
+  "gates": {
+    "all_energy_curvatures_negative": true,
+    "all_scf_converged": true,
+    "dipole_step_consistency": true,
+    "electron_count": true,
+    "gas_density_binding": true,
+    "mep_step_consistency": true
+  },
+  "response": {
+    "dipole_step_relative_difference": 0.00013039523831654418,
+    "elapsed_seconds": 2730.6324257119995,
+    "energy_diagnostics": [
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.02162702609590876,
+            "central_slope_hartree_per_e": -5.778206982351246,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.02160584244847996,
+            "central_slope_hartree_per_e": -5.778206982796519,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0009794988610480496,
+        "mode_index": 0,
+        "slope_step_relative_difference": 7.706078252461994e-11
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.026975360217167895,
+            "central_slope_hartree_per_e": -5.281952871788084,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.02696208412089618,
+            "central_slope_hartree_per_e": -5.28195287168387,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0004921564036526404,
+        "mode_index": 1,
+        "slope_step_relative_difference": 1.973011293866683e-11
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.03557008514892207,
+            "central_slope_hartree_per_e": -5.926084151231711,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.03555248895281693,
+            "central_slope_hartree_per_e": -5.926084153941247,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0004946908626018282,
+        "mode_index": 2,
+        "slope_step_relative_difference": 4.5722194226872016e-10
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.025371112618207316,
+            "central_slope_hartree_per_e": -5.757177948548057,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.02535182375140721,
+            "central_slope_hartree_per_e": -5.7571779504712595,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0007602688573564637,
+        "mode_index": 3,
+        "slope_step_relative_difference": 3.3405290901371315e-10
+      }
+    ],
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "maximum_electron_count_error_e": 8.526512829121202e-14,
+    "maximum_scf_cycles": 8,
+    "mep_step_relative_difference": 0.00016285013364582257,
+    "minimum_scf_cycles": 6,
+    "mode_count": 4,
+    "surface_point_count": 71
+  },
+  "result_sha256": "36253c6b836d915b1b64dc9051986e0b22434f2de8a9fc92eda4e827d5b8ecc6",
+  "schema_version": 1,
+  "selection": {
+    "chemical_formula_hill": "C2H6FNO",
+    "dataset_index": 412002,
+    "record_sha256": "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6",
+    "split": "train",
+    "stratum": "fluorine"
+  },
+  "source": {
+    "original_preregistration_file_sha256": "f13721a28cba7b63c0812fc0b07725c077279e95562ba2ca72d1d1bcd431671a",
+    "original_preregistration_path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-record-fluorine-level3-v1.json",
+    "preregistration_sha256": "fd0bc2bb301155f6e1ef37a1d4aab22488ac1e9586199b424e4e2000d8842a5c",
+    "sealer_path": "tools/route2_release/seal_vqm24_nonuniform_qm_record.py",
+    "sealer_sha256": "c1b8dfe29ec4ebba98cdee30992459ce9a1b53c38a0ad06ca8745e92e426c8fe"
+  },
+  "status": "pass-numerical-gate-a-record"
+}

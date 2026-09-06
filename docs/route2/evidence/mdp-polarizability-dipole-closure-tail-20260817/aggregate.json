@@ -1,0 +1,37 @@
+{
+  "aggregate_sha256": "de72c4e1fa876b3e7838149b886993921bb78dbb9ea2873c3c67c5c858ae13b4",
+  "artifact": "route2-mdp-polarizability-dipole-closure-tail-v1-aggregate",
+  "candidate": {
+    "mae_kcal_mol": 3.6379520927840225,
+    "maximum_kcal_mol": 4.501735039008753,
+    "mean_error_reduction_fraction": 0.020226437039640777,
+    "paired_improvement_count": 5,
+    "qpqo_global_relative_mep_rmse": 0.2884257194930305
+  },
+  "claim_boundary": {
+    "adversarial_tail_selected_from_previously_opened_errors": true,
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "pure_mace_polar_in_scope": false,
+    "result_is_independent_accuracy_estimate": false
+  },
+  "decision": "candidate-rejected-by-opened-tail-falsification",
+  "gates": {
+    "closure": true,
+    "maximum_no_worsening": true,
+    "mean_relative_reduction": false,
+    "paired_improvement_count": true,
+    "qpqo_mep_no_worsening": false
+  },
+  "passed_tail_falsification": false,
+  "polar_zero": {
+    "mae_kcal_mol": 3.713053944619662,
+    "maximum_kcal_mol": 4.530936108560463,
+    "qpqo_global_relative_mep_rmse": 0.2881359804837189
+  },
+  "preregistration_sha256": "1a50b56029216c2b1ed298ce9c759e2289a00b1b054079e02d06ed4bd0c93d96",
+  "record_count": 7
+}

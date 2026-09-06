@@ -1,0 +1,66 @@
+{
+  "architecture": {
+    "element_embedding_dimension": 4,
+    "hidden_width": 16,
+    "id": "Q-A-local-invariant-MLP-development-pilot",
+    "maximum_parameter_count": 512,
+    "neighbor_scale_angstrom": 2.0,
+    "new_message_passing": false
+  },
+  "artifact": "route2-vqm24-mdp-gaussian-l2-permanent-mlp-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "coefficient_label_used": false,
+    "experimental_solvation_target_read": false,
+    "model_selected_or_admitted": false,
+    "pcm_or_cavity_used": false,
+    "response_target_used": false,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T00:46:22.349310+00:00",
+  "decision": {
+    "audit_not_gradient": true,
+    "fixed_2000_epochs": true,
+    "no_further_capacity_escalation_on_train_only_pilot": true,
+    "validation_and_blind_remain_closed": true
+  },
+  "failed_pilot": {
+    "file_sha256": "962ad6172b7c51be916c374748c28d09651d658b64feb19a4cbef5ccc738ce27",
+    "maximum_audit_mep_relative": 0.9387083345753456,
+    "mean_audit_mep_relative": 0.32130770092144517,
+    "path": "docs/route2/evidence/vqm24-mdp-gaussian-l2-permanent-pilot-20260827/result.json",
+    "result_sha256": "74de635276a574e6e9785ce088b8ef5064d78f3b080e693d1d986f4b28f3d270"
+  },
+  "parent": {
+    "file_sha256": "994a7b922182a765a8e99adbb3545e75cf30fb3a2c359e5725a983f954351484",
+    "path": "docs/route2/preregistrations/vqm24-mdp-gaussian-l2-permanent-pilot-v1.json",
+    "preregistration_sha256": "d31f20b411155e1d97d999a262c795795ecb7ee382af0f844534b642b172e67a"
+  },
+  "preregistration_sha256": "6abcc21d02311cc242349844f697e01f03136d3c31d9ddda4b66f36c8ab29b78",
+  "schema_version": 1,
+  "source": {
+    "base_runner_sha256": "3c33b058b7be7568792f074cf672e32d6a482d06e04540f3f25cb4ebb9850978",
+    "runner_path": "tools/route2_release/train_vqm24_mdp_gaussian_l2_permanent_mlp.py",
+    "runner_sha256": "e36a61514fc2bc601e6ac4d3b9b5a7a8ef2398d03d06e7ae1253fed6edc8b2de"
+  },
+  "status": "locked-after-element-linear-pilot-failure",
+  "training": {
+    "audit_points_used_in_gradient": false,
+    "device": "cuda",
+    "dipole_loss_weight": 0.1,
+    "dtype": "float64",
+    "epochs": 2000,
+    "learning_rate": 0.003,
+    "mep_loss_weight": 0.9,
+    "optimizer": "Adam",
+    "pair_cutoff_angstrom": 5.0,
+    "pair_radial_scales_angstrom": [
+      1.5,
+      3.0
+    ],
+    "records": 32,
+    "seed": 20260827,
+    "validation_or_blind_opened": false,
+    "weight_decay": 0.0001
+  }
+}

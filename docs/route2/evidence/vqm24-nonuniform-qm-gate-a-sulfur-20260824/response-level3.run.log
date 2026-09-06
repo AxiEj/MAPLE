@@ -1,0 +1,1065 @@
+tot grids = 119208
+tot grids = 119208
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp13x26xr4
+max_memory 8000 MB (current use 164 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+Overwritten attributes  get_hcore  of <class 'pyscf.df.df_jk.DFRKS'>
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a6e477d0> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42287760038
+  HOMO = -0.353407498823389  LUMO = -0.00573338538672189
+cycle= 1 E= -1694.42287760218  delta_E= -1.8e-09  |g|= 2.93e-05  |ddm|= 0.000145
+  HOMO = -0.353411332032754  LUMO = -0.00572758815400749
+cycle= 2 E= -1694.42287760237  delta_E= -1.83e-10  |g|= 2.3e-05  |ddm|= 5.71e-05
+  HOMO = -0.353410279860045  LUMO = -0.00572954271606692
+cycle= 3 E= -1694.4228776025  delta_E= -1.35e-10  |g|= 3.39e-06  |ddm|= 2.48e-05
+  HOMO = -0.353410253540154  LUMO = -0.00572930313206774
+cycle= 4 E= -1694.42287760251  delta_E= -8.19e-12  |g|= 1.36e-06  |ddm|= 7.22e-06
+  HOMO = -0.353410372356925  LUMO = -0.00572925228412739
+cycle= 5 E= -1694.42287760251  delta_E= -1.82e-12  |g|= 5.86e-07  |ddm|= 4.11e-06
+  HOMO = -0.35341036110267  LUMO = -0.0057292378264958
+cycle= 6 E= -1694.42287760251  delta_E= 3.64e-12  |g|= 1.56e-07  |ddm|= 1.03e-06
+  HOMO = -0.353410364941668  LUMO = -0.00572923380199265
+cycle= 7 E= -1694.42287760251  delta_E= -2.73e-12  |g|= 5.97e-08  |ddm|= 5.84e-07
+  HOMO = -0.353410363752547  LUMO = -0.00572923757276272
+Extra cycle  E= -1694.42287760251  delta_E= 1.82e-12  |g|= 3.43e-08  |ddm|= 1.31e-07
+converged SCF energy = -1694.42287760251
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpgynpmow8
+max_memory 8000 MB (current use 202 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7ea8ad0> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42811847886
+  HOMO = -0.353494744353169  LUMO = -0.00578633221323291
+cycle= 1 E= -1694.42811848066  delta_E= -1.8e-09  |g|= 2.93e-05  |ddm|= 0.000145
+  HOMO = -0.353490922113131  LUMO = -0.00579212581204201
+cycle= 2 E= -1694.42811848084  delta_E= -1.8e-10  |g|= 2.29e-05  |ddm|= 5.71e-05
+  HOMO = -0.353491972495505  LUMO = -0.00579017176992232
+cycle= 3 E= -1694.42811848098  delta_E= -1.37e-10  |g|= 3.39e-06  |ddm|= 2.48e-05
+  HOMO = -0.353491998294165  LUMO = -0.00579041195057593
+cycle= 4 E= -1694.42811848136  delta_E= -3.81e-10  |g|= 1.36e-06  |ddm|= 7.22e-06
+  HOMO = -0.353491879946459  LUMO = -0.00579046552423026
+cycle= 5 E= -1694.42811848136  delta_E= -4.55e-13  |g|= 5.85e-07  |ddm|= 4.28e-06
+  HOMO = -0.353491891302931  LUMO = -0.00579048092074289
+cycle= 6 E= -1694.42811848136  delta_E= -2.27e-12  |g|= 1.56e-07  |ddm|= 1.07e-06
+  HOMO = -0.353491887566639  LUMO = -0.00579048501323681
+cycle= 7 E= -1694.42811848136  delta_E= -9.09e-13  |g|= 5.99e-08  |ddm|= 5.86e-07
+  HOMO = -0.353491888761579  LUMO = -0.00579048119063396
+Extra cycle  E= -1694.42811848136  delta_E= 3.64e-12  |g|= 3.45e-08  |ddm|= 1.34e-07
+converged SCF energy = -1694.42811848136
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpney7fogj
+max_memory 8000 MB (current use 202 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907d1da3f50> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42286415284
+  HOMO = -0.35342138134858  LUMO = -0.00571171157643751
+cycle= 1 E= -1694.4228641547  delta_E= -1.86e-09  |g|= 3.03e-05  |ddm|= 0.000227
+  HOMO = -0.353415729013268  LUMO = -0.00571403790253336
+cycle= 2 E= -1694.42286415488  delta_E= -1.8e-10  |g|= 2.37e-05  |ddm|= 6.5e-05
+  HOMO = -0.353417399884292  LUMO = -0.00571413835430597
+cycle= 3 E= -1694.42286415503  delta_E= -1.48e-10  |g|= 4.04e-06  |ddm|= 2.35e-05
+  HOMO = -0.353417430131801  LUMO = -0.00571403419854216
+cycle= 4 E= -1694.42286415541  delta_E= -3.77e-10  |g|= 1.6e-06  |ddm|= 6.9e-06
+  HOMO = -0.353417246768807  LUMO = -0.00571412508456063
+cycle= 5 E= -1694.42286415541  delta_E= -6.82e-12  |g|= 7.05e-07  |ddm|= 4.38e-06
+  HOMO = -0.353417274831871  LUMO = -0.00571414232601378
+cycle= 6 E= -1694.42286415542  delta_E= -2.27e-12  |g|= 2.22e-07  |ddm|= 1.38e-06
+  HOMO = -0.353417274249148  LUMO = -0.00571413576479979
+cycle= 7 E= -1694.42286415541  delta_E= 4.55e-12  |g|= 1.19e-07  |ddm|= 7.56e-07
+  HOMO = -0.35341727067321  LUMO = -0.00571413722513612
+cycle= 8 E= -1694.42286415542  delta_E= -3.64e-12  |g|= 3.43e-08  |ddm|= 3.28e-07
+  HOMO = -0.353417274207637  LUMO = -0.00571413577630552
+Extra cycle  E= -1694.42286415541  delta_E= 2.27e-12  |g|= 2.54e-08  |ddm|= 7.85e-08
+converged SCF energy = -1694.42286415541
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp4o0plv5a
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7ea2390> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42813192641
+  HOMO = -0.3534808631494  LUMO = -0.00580801943827907
+cycle= 1 E= -1694.42813192827  delta_E= -1.86e-09  |g|= 3.02e-05  |ddm|= 0.000227
+  HOMO = -0.353486524516847  LUMO = -0.0058056834665066
+cycle= 2 E= -1694.42813192845  delta_E= -1.78e-10  |g|= 2.36e-05  |ddm|= 6.49e-05
+  HOMO = -0.35348485099793  LUMO = -0.00580558551976434
+cycle= 3 E= -1694.4281319286  delta_E= -1.47e-10  |g|= 4.04e-06  |ddm|= 2.35e-05
+  HOMO = -0.353484821978826  LUMO = -0.00580568914168972
+cycle= 4 E= -1694.42813192861  delta_E= -9.55e-12  |g|= 1.6e-06  |ddm|= 6.89e-06
+  HOMO = -0.353485005388192  LUMO = -0.00580560126903815
+cycle= 5 E= -1694.4281319286  delta_E= 3.18e-12  |g|= 7.04e-07  |ddm|= 4.39e-06
+  HOMO = -0.353484977468376  LUMO = -0.00580558494033639
+cycle= 6 E= -1694.42813192861  delta_E= -4.09e-12  |g|= 2.21e-07  |ddm|= 1.32e-06
+  HOMO = -0.353484978189529  LUMO = -0.00580559149831634
+cycle= 7 E= -1694.42813192861  delta_E= 9.09e-13  |g|= 1.18e-07  |ddm|= 7.53e-07
+  HOMO = -0.353484981762372  LUMO = -0.00580558997866109
+cycle= 8 E= -1694.4281319286  delta_E= 2.27e-12  |g|= 3.42e-08  |ddm|= 3.33e-07
+  HOMO = -0.353484978246265  LUMO = -0.00580559138929066
+Extra cycle  E= -1694.42813192861  delta_E= -3.18e-12  |g|= 2.53e-08  |ddm|= 7.7e-08
+converged SCF energy = -1694.42813192861
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp0ovv92jj
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7e76650> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42300570491
+  HOMO = -0.353422232260072  LUMO = -0.0057320751035386
+cycle= 1 E= -1694.42300570576  delta_E= -8.51e-10  |g|= 1.92e-05  |ddm|= 0.000101
+  HOMO = -0.353421140891854  LUMO = -0.00573066872949885
+cycle= 2 E= -1694.42300570583  delta_E= -6.37e-11  |g|= 1.61e-05  |ddm|= 2.95e-05
+  HOMO = -0.353421260555804  LUMO = -0.00573101739789129
+cycle= 3 E= -1694.42300570588  delta_E= -4.82e-11  |g|= 2.55e-06  |ddm|= 1.03e-05
+  HOMO = -0.353421238479589  LUMO = -0.00573099285952549
+cycle= 4 E= -1694.42300570588  delta_E= -1.82e-12  |g|= 9.79e-07  |ddm|= 3.26e-06
+  HOMO = -0.353421223069969  LUMO = -0.00573100668675511
+cycle= 5 E= -1694.42300570588  delta_E= 1.36e-12  |g|= 3.18e-07  |ddm|= 1.7e-06
+  HOMO = -0.353421216501182  LUMO = -0.0057309985540445
+cycle= 6 E= -1694.42300570588  delta_E= -1.82e-12  |g|= 9.76e-08  |ddm|= 4.45e-07
+  HOMO = -0.353421215079406  LUMO = -0.0057310014057423
+Extra cycle  E= -1694.42300570588  delta_E= 1.82e-12  |g|= 7.81e-08  |ddm|= 1.98e-07
+converged SCF energy = -1694.42300570588
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp9dwsjzuj
+max_memory 8000 MB (current use 201 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7e6ab10> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42799037434
+  HOMO = -0.353480018573379  LUMO = -0.005787637394357
+cycle= 1 E= -1694.42799037519  delta_E= -8.56e-10  |g|= 1.92e-05  |ddm|= 0.000101
+  HOMO = -0.353481112955912  LUMO = -0.00578904227227711
+cycle= 2 E= -1694.42799037525  delta_E= -6.18e-11  |g|= 1.61e-05  |ddm|= 2.95e-05
+  HOMO = -0.353480992590797  LUMO = -0.00578869466494948
+cycle= 3 E= -1694.4279903753  delta_E= -4.91e-11  |g|= 2.55e-06  |ddm|= 1.03e-05
+  HOMO = -0.353481014393609  LUMO = -0.00578871866684065
+cycle= 4 E= -1694.42799037531  delta_E= -2.73e-12  |g|= 9.79e-07  |ddm|= 3.26e-06
+  HOMO = -0.353481029993837  LUMO = -0.00578870503612224
+cycle= 5 E= -1694.42799037568  delta_E= -3.77e-10  |g|= 3.21e-07  |ddm|= 1.7e-06
+  HOMO = -0.353481036542504  LUMO = -0.00578871553722092
+cycle= 6 E= -1694.4279903753  delta_E= 3.79e-10  |g|= 1e-07  |ddm|= 1.03e-06
+  HOMO = -0.35348103835541  LUMO = -0.00578871262877591
+cycle= 7 E= -1694.4279903753  delta_E= -4.55e-13  |g|= 3.59e-08  |ddm|= 5.54e-07
+  HOMO = -0.35348103715285  LUMO = -0.00578870895028756
+Extra cycle  E= -1694.42799037568  delta_E= -3.79e-10  |g|= 4.8e-08  |ddm|= 3.17e-07
+converged SCF energy = -1694.42799037568
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpo4kak7k3
+max_memory 8000 MB (current use 202 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7ea1a10> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42262180141
+  HOMO = -0.353412941459838  LUMO = -0.00571722570774781
+cycle= 1 E= -1694.42262180301  delta_E= -1.61e-09  |g|= 3.86e-05  |ddm|= 0.000153
+  HOMO = -0.353413015407103  LUMO = -0.00572013078625201
+cycle= 2 E= -1694.42262180316  delta_E= -1.5e-10  |g|= 3.58e-05  |ddm|= 6.77e-05
+  HOMO = -0.353412984349135  LUMO = -0.00571886389960652
+cycle= 3 E= -1694.42262180351  delta_E= -3.42e-10  |g|= 3.35e-06  |ddm|= 3.33e-05
+  HOMO = -0.353413041804585  LUMO = -0.00571900917785612
+cycle= 4 E= -1694.42262180351  delta_E= -5.46e-12  |g|= 1.26e-06  |ddm|= 5.93e-06
+  HOMO = -0.353412977284001  LUMO = -0.00571893977106201
+cycle= 5 E= -1694.42262180352  delta_E= -3.64e-12  |g|= 5.31e-07  |ddm|= 4.37e-06
+  HOMO = -0.353412997453055  LUMO = -0.00571898260179198
+cycle= 6 E= -1694.42262180352  delta_E= -4.55e-13  |g|= 1.81e-07  |ddm|= 1.13e-06
+  HOMO = -0.353412997744593  LUMO = -0.00571897159850963
+cycle= 7 E= -1694.42262180352  delta_E= -4.55e-13  |g|= 8.78e-08  |ddm|= 6.85e-07
+  HOMO = -0.353412992997887  LUMO = -0.00571897524153072
+Extra cycle  E= -1694.42262180351  delta_E= 2.73e-12  |g|= 7.41e-08  |ddm|= 1.72e-07
+converged SCF energy = -1694.42262180351
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp7r81380s
+max_memory 8000 MB (current use 202 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7e8de10> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.42837427785
+  HOMO = -0.353489304905928  LUMO = -0.00580249841872097
+cycle= 1 E= -1694.42837427945  delta_E= -1.61e-09  |g|= 3.86e-05  |ddm|= 0.000153
+  HOMO = -0.353489238947943  LUMO = -0.00579958803745032
+cycle= 2 E= -1694.42837427998  delta_E= -5.31e-10  |g|= 3.59e-05  |ddm|= 6.78e-05
+  HOMO = -0.353489268449636  LUMO = -0.00580085830218731
+cycle= 3 E= -1694.42837428033  delta_E= -3.44e-10  |g|= 3.35e-06  |ddm|= 3.34e-05
+  HOMO = -0.35348921091279  LUMO = -0.00580071438890291
+cycle= 4 E= -1694.42837428033  delta_E= -7.73e-12  |g|= 1.26e-06  |ddm|= 5.93e-06
+  HOMO = -0.353489275656873  LUMO = -0.00580078456655143
+cycle= 5 E= -1694.42837428033  delta_E= 1.82e-12  |g|= 5.3e-07  |ddm|= 4.37e-06
+  HOMO = -0.35348925564122  LUMO = -0.00580074176232035
+cycle= 6 E= -1694.42837428034  delta_E= -5e-12  |g|= 1.8e-07  |ddm|= 1.13e-06
+  HOMO = -0.353489255303862  LUMO = -0.00580075254264543
+cycle= 7 E= -1694.42837428033  delta_E= 4.09e-12  |g|= 8.79e-08  |ddm|= 6.86e-07
+  HOMO = -0.353489260065427  LUMO = -0.00580074900875181
+Extra cycle  E= -1694.42837428034  delta_E= -2.73e-12  |g|= 7.44e-08  |ddm|= 1.71e-07
+converged SCF energy = -1694.42837428034
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp1rp082ln
+max_memory 8000 MB (current use 202 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7ea9650> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.41676324217
+  HOMO = -0.353305672962026  LUMO = -0.0056716465811722
+cycle= 1 E= -1694.41676326216  delta_E= -2e-08  |g|= 9.77e-05  |ddm|= 0.000482
+  HOMO = -0.353318478961308  LUMO = -0.00565231412281622
+cycle= 2 E= -1694.41676326413  delta_E= -1.98e-09  |g|= 7.65e-05  |ddm|= 0.00019
+  HOMO = -0.353314966851163  LUMO = -0.00565882938248867
+cycle= 3 E= -1694.41676326567  delta_E= -1.53e-09  |g|= 1.13e-05  |ddm|= 8.26e-05
+  HOMO = -0.353314880620402  LUMO = -0.00565803073929489
+cycle= 4 E= -1694.41676326573  delta_E= -6.28e-11  |g|= 4.53e-06  |ddm|= 2.4e-05
+  HOMO = -0.353315276794275  LUMO = -0.00565786142164862
+cycle= 5 E= -1694.41676326575  delta_E= -1.73e-11  |g|= 1.95e-06  |ddm|= 1.37e-05
+  HOMO = -0.353315239424335  LUMO = -0.00565781314642888
+cycle= 6 E= -1694.41676326575  delta_E= -9.09e-13  |g|= 5.19e-07  |ddm|= 3.45e-06
+  HOMO = -0.353315252234222  LUMO = -0.00565779977463625
+cycle= 7 E= -1694.41676326574  delta_E= 1.82e-12  |g|= 1.99e-07  |ddm|= 1.95e-06
+  HOMO = -0.353315252222129  LUMO = -0.00565780699620448
+cycle= 8 E= -1694.41676326575  delta_E= -1.82e-12  |g|= 5.55e-08  |ddm|= 6.59e-07
+  HOMO = -0.353315252026187  LUMO = -0.00565780517801791
+Extra cycle  E= -1694.41676326575  delta_E= -2.73e-12  |g|= 3.17e-08  |ddm|= 1.64e-07
+converged SCF energy = -1694.41676326575
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpol7yrcjn
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7e99ad0> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.43423283708
+  HOMO = -0.353596491329251  LUMO = -0.0058481362075675
+cycle= 1 E= -1694.43423285746  delta_E= -2.04e-08  |g|= 9.77e-05  |ddm|= 0.000482
+  HOMO = -0.353583779249407  LUMO = -0.00586744291463066
+cycle= 2 E= -1694.43423285944  delta_E= -1.98e-09  |g|= 7.64e-05  |ddm|= 0.00019
+  HOMO = -0.353587275741952  LUMO = -0.0058609298919425
+cycle= 3 E= -1694.43423286097  delta_E= -1.53e-09  |g|= 1.13e-05  |ddm|= 8.26e-05
+  HOMO = -0.353587363337663  LUMO = -0.00586173074481093
+cycle= 4 E= -1694.43423286103  delta_E= -6.64e-11  |g|= 4.53e-06  |ddm|= 2.41e-05
+  HOMO = -0.353586968865232  LUMO = -0.00586189919055406
+cycle= 5 E= -1694.43423286105  delta_E= -1.36e-11  |g|= 1.95e-06  |ddm|= 1.37e-05
+  HOMO = -0.353587006444408  LUMO = -0.00586194766016285
+cycle= 6 E= -1694.43423286105  delta_E= -3.64e-12  |g|= 5.19e-07  |ddm|= 3.45e-06
+  HOMO = -0.353586993670894  LUMO = -0.00586196095479167
+cycle= 7 E= -1694.43423286105  delta_E= 4.55e-12  |g|= 1.99e-07  |ddm|= 1.95e-06
+  HOMO = -0.353586993689337  LUMO = -0.00586195374756229
+cycle= 8 E= -1694.43423286105  delta_E= -5.46e-12  |g|= 5.56e-08  |ddm|= 6.59e-07
+  HOMO = -0.353586993869041  LUMO = -0.00586195554601762
+Extra cycle  E= -1694.43423286105  delta_E= 9.09e-13  |g|= 3.19e-08  |ddm|= 1.64e-07
+converged SCF energy = -1694.43423286105
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpfobz1rui
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7ea2450> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.41671841701
+  HOMO = -0.353351953099687  LUMO = -0.00559945280280616
+cycle= 1 E= -1694.41671843772  delta_E= -2.07e-08  |g|= 0.000101  |ddm|= 0.000757
+  HOMO = -0.353333133165171  LUMO = -0.00560717536973686
+cycle= 2 E= -1694.4167184401  delta_E= -2.39e-09  |g|= 7.89e-05  |ddm|= 0.000216
+  HOMO = -0.353338701850111  LUMO = -0.0056075171134523
+cycle= 3 E= -1694.4167184417  delta_E= -1.6e-09  |g|= 1.35e-05  |ddm|= 7.84e-05
+  HOMO = -0.353338801673748  LUMO = -0.00560717119037798
+cycle= 4 E= -1694.41671844178  delta_E= -7.41e-11  |g|= 5.33e-06  |ddm|= 2.29e-05
+  HOMO = -0.35333819147742  LUMO = -0.00560746379681707
+cycle= 5 E= -1694.4167184418  delta_E= -2.32e-11  |g|= 2.35e-06  |ddm|= 1.46e-05
+  HOMO = -0.353338284589464  LUMO = -0.00560751814913084
+cycle= 6 E= -1694.4167184418  delta_E= 4.55e-13  |g|= 7.38e-07  |ddm|= 4.41e-06
+  HOMO = -0.353338282331352  LUMO = -0.00560749605630882
+cycle= 7 E= -1694.4167184418  delta_E= -3.18e-12  |g|= 3.95e-07  |ddm|= 2.51e-06
+  HOMO = -0.353338270397898  LUMO = -0.0056075011316584
+cycle= 8 E= -1694.4167184418  delta_E= 1.36e-12  |g|= 1.14e-07  |ddm|= 1.11e-06
+  HOMO = -0.35333827876535  LUMO = -0.00560749743922145
+cycle= 9 E= -1694.4167184418  delta_E= -1.36e-12  |g|= 4.1e-08  |ddm|= 3.17e-07
+  HOMO = -0.353338276014065  LUMO = -0.0056074994295511
+Extra cycle  E= -1694.4167184418  delta_E= 1.82e-12  |g|= 2.84e-08  |ddm|= 1.09e-07
+converged SCF energy = -1694.4167184418
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpq7f69uh9
+max_memory 8000 MB (current use 199 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a67baa50> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.43427766224
+  HOMO = -0.353550225874041  LUMO = -0.0059204790388386
+cycle= 1 E= -1694.43427768333  delta_E= -2.11e-08  |g|= 0.000101  |ddm|= 0.000758
+  HOMO = -0.353569118203671  LUMO = -0.00591266398226922
+cycle= 2 E= -1694.43427768496  delta_E= -1.63e-09  |g|= 7.88e-05  |ddm|= 0.000217
+  HOMO = -0.353563539022573  LUMO = -0.00591234108912717
+cycle= 3 E= -1694.43427768656  delta_E= -1.59e-09  |g|= 1.35e-05  |ddm|= 7.84e-05
+  HOMO = -0.353563441165181  LUMO = -0.0059126849867066
+cycle= 4 E= -1694.43427768664  delta_E= -8e-11  |g|= 5.33e-06  |ddm|= 2.29e-05
+  HOMO = -0.353564053492949  LUMO = -0.00591239081883184
+cycle= 5 E= -1694.43427768666  delta_E= -1.96e-11  |g|= 2.35e-06  |ddm|= 1.46e-05
+  HOMO = -0.353563960434614  LUMO = -0.00591233628231569
+cycle= 6 E= -1694.43427768666  delta_E= -6.82e-12  |g|= 7.37e-07  |ddm|= 4.41e-06
+  HOMO = -0.353563962755064  LUMO = -0.0059123582914953
+cycle= 7 E= -1694.43427768666  delta_E= 5e-12  |g|= 3.95e-07  |ddm|= 2.5e-06
+  HOMO = -0.353563974694967  LUMO = -0.00591235324428506
+cycle= 8 E= -1694.43427768666  delta_E= -4.09e-12  |g|= 1.14e-07  |ddm|= 1.11e-06
+  HOMO = -0.353563966316721  LUMO = -0.0059123569233037
+cycle= 9 E= -1694.43427768666  delta_E= 2.73e-12  |g|= 4.1e-08  |ddm|= 3.17e-07
+  HOMO = -0.353563969072895  LUMO = -0.00591235492777037
+Extra cycle  E= -1694.43427768666  delta_E= -9.09e-13  |g|= 2.84e-08  |ddm|= 1.09e-07
+converged SCF energy = -1694.43427768666
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpveh0jiyh
+max_memory 8000 MB (current use 199 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a6a21310> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.41719025725
+  HOMO = -0.353354814161712  LUMO = -0.0056672592225406
+cycle= 1 E= -1694.41719026676  delta_E= -9.52e-09  |g|= 6.4e-05  |ddm|= 0.000336
+  HOMO = -0.353351173998715  LUMO = -0.00566257119649033
+cycle= 2 E= -1694.41719026743  delta_E= -6.72e-10  |g|= 5.36e-05  |ddm|= 9.84e-05
+  HOMO = -0.353351573691539  LUMO = -0.00566373253666607
+cycle= 3 E= -1694.41719026798  delta_E= -5.41e-10  |g|= 8.49e-06  |ddm|= 3.43e-05
+  HOMO = -0.353351500537471  LUMO = -0.00566365138749856
+cycle= 4 E= -1694.417190268  delta_E= -2.05e-11  |g|= 3.26e-06  |ddm|= 1.09e-05
+  HOMO = -0.353351449042738  LUMO = -0.00566369722738518
+cycle= 5 E= -1694.417190268  delta_E= -2.27e-12  |g|= 1.06e-06  |ddm|= 5.67e-06
+  HOMO = -0.353351427161442  LUMO = -0.00566367020540889
+cycle= 6 E= -1694.417190268  delta_E= -9.09e-13  |g|= 3.26e-07  |ddm|= 1.49e-06
+  HOMO = -0.353351421382229  LUMO = -0.00566367552638576
+cycle= 7 E= -1694.417190268  delta_E= -2.73e-12  |g|= 1.17e-07  |ddm|= 5.74e-07
+  HOMO = -0.353351424086751  LUMO = -0.00566368516816447
+cycle= 8 E= -1694.417190268  delta_E= 4.55e-13  |g|= 3.98e-08  |ddm|= 3.29e-07
+  HOMO = -0.353351422380635  LUMO = -0.00566367958476771
+Extra cycle  E= -1694.417190268  delta_E= 4.09e-12  |g|= 3e-08  |ddm|= 8.49e-08
+converged SCF energy = -1694.417190268
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpasr3_8f6
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a7e6aa90> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.433805822
+  HOMO = -0.353547435206163  LUMO = -0.00585246687595212
+cycle= 1 E= -1694.43380583189  delta_E= -9.89e-09  |g|= 6.4e-05  |ddm|= 0.000336
+  HOMO = -0.353551080899613  LUMO = -0.00585715290829116
+cycle= 2 E= -1694.43380583256  delta_E= -6.69e-10  |g|= 5.35e-05  |ddm|= 9.84e-05
+  HOMO = -0.353550680583809  LUMO = -0.00585599369499281
+cycle= 3 E= -1694.43380583311  delta_E= -5.45e-10  |g|= 8.49e-06  |ddm|= 3.43e-05
+  HOMO = -0.353550753788921  LUMO = -0.00585607463256817
+cycle= 4 E= -1694.43380583313  delta_E= -2e-11  |g|= 3.26e-06  |ddm|= 1.09e-05
+  HOMO = -0.353550805708766  LUMO = -0.00585602905627876
+cycle= 5 E= -1694.43380583313  delta_E= -5.46e-12  |g|= 1.06e-06  |ddm|= 5.68e-06
+  HOMO = -0.353550827590914  LUMO = -0.00585605605558381
+cycle= 6 E= -1694.43380583313  delta_E=    0  |g|= 3.26e-07  |ddm|= 1.49e-06
+  HOMO = -0.353550833373791  LUMO = -0.0058560506963089
+cycle= 7 E= -1694.43380583313  delta_E= 3.64e-12  |g|= 1.18e-07  |ddm|= 5.76e-07
+  HOMO = -0.353550830663598  LUMO = -0.005856041046685
+cycle= 8 E= -1694.43380583313  delta_E= -3.64e-12  |g|= 4e-08  |ddm|= 3.31e-07
+  HOMO = -0.353550832374365  LUMO = -0.00585604664102653
+Extra cycle  E= -1694.43380583313  delta_E= -9.09e-13  |g|= 3.01e-08  |ddm|= 8.56e-08
+converged SCF energy = -1694.43380583313
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmp7zv_s_yr
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907c04d6690> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.41591057889
+  HOMO = -0.353323827429778  LUMO = -0.0056178063879583
+cycle= 1 E= -1694.41591059675  delta_E= -1.79e-08  |g|= 0.000129  |ddm|= 0.000511
+  HOMO = -0.353324091021299  LUMO = -0.00562747508369505
+cycle= 2 E= -1694.41591059843  delta_E= -1.67e-09  |g|= 0.000119  |ddm|= 0.000226
+  HOMO = -0.353323984822777  LUMO = -0.00562325480159984
+cycle= 3 E= -1694.41591060228  delta_E= -3.85e-09  |g|= 1.12e-05  |ddm|= 0.000111
+  HOMO = -0.353324176990327  LUMO = -0.00562373902933227
+cycle= 4 E= -1694.41591060233  delta_E= -5.59e-11  |g|= 4.19e-06  |ddm|= 1.97e-05
+  HOMO = -0.353323962153264  LUMO = -0.00562350762800669
+cycle= 5 E= -1694.41591060235  delta_E= -1.59e-11  |g|= 1.77e-06  |ddm|= 1.45e-05
+  HOMO = -0.353324029368025  LUMO = -0.00562365021936174
+cycle= 6 E= -1694.41591060235  delta_E= -4.55e-12  |g|= 6.02e-07  |ddm|= 3.76e-06
+  HOMO = -0.353324030387859  LUMO = -0.00562361372854705
+cycle= 7 E= -1694.41591060235  delta_E= 9.09e-13  |g|= 2.93e-07  |ddm|= 2.28e-06
+  HOMO = -0.35332401694613  LUMO = -0.00562361701230147
+cycle= 8 E= -1694.41591060236  delta_E= -1.82e-12  |g|= 9.64e-08  |ddm|= 8.32e-07
+  HOMO = -0.353324021846457  LUMO = -0.00562362354387548
+Extra cycle  E= -1694.41591060235  delta_E= 1.82e-12  |g|= 8.6e-08  |ddm|= 1.98e-07
+converged SCF energy = -1694.41591060235
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /tmp/tmpv9gqnxbx
+max_memory 8000 MB (current use 205 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0x907a6991080>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0x907a6990fe0>
+small_rho_cutoff = 0
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0x907a67bbb90> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1694.43508550036
+  HOMO = -0.353578372297155  LUMO = -0.00590204891724261
+cycle= 1 E= -1694.43508551861  delta_E= -1.82e-08  |g|= 0.000129  |ddm|= 0.000511
+  HOMO = -0.353578169513312  LUMO = -0.00589233592188365
+cycle= 2 E= -1694.43508552029  delta_E= -1.67e-09  |g|= 0.00012  |ddm|= 0.000226
+  HOMO = -0.353578265230922  LUMO = -0.00589656756566099
+cycle= 3 E= -1694.43508552414  delta_E= -3.85e-09  |g|= 1.12e-05  |ddm|= 0.000111
+  HOMO = -0.35357807392025  LUMO = -0.00589608263702019
+cycle= 4 E= -1694.4350855242  delta_E= -5.96e-11  |g|= 4.19e-06  |ddm|= 1.98e-05
+  HOMO = -0.353578289616012  LUMO = -0.00589631404652506
+cycle= 5 E= -1694.43508552422  delta_E= -1.64e-11  |g|= 1.77e-06  |ddm|= 1.46e-05
+  HOMO = -0.35357822273483  LUMO = -0.00589617124629505
+cycle= 6 E= -1694.43508552422  delta_E=    0  |g|= 6.02e-07  |ddm|= 3.75e-06
+  HOMO = -0.353578221610041  LUMO = -0.00589620765620798
+cycle= 7 E= -1694.43508552422  delta_E= -4.55e-12  |g|= 2.93e-07  |ddm|= 2.27e-06
+  HOMO = -0.353578235075951  LUMO = -0.00589620443593566
+cycle= 8 E= -1694.43508552422  delta_E= -4.55e-13  |g|= 9.65e-08  |ddm|= 8.32e-07
+  HOMO = -0.353578230180848  LUMO = -0.00589619785099195
+Extra cycle  E= -1694.43508552422  delta_E= 3.18e-12  |g|= 8.61e-08  |ddm|= 1.98e-07
+converged SCF energy = -1694.43508552422

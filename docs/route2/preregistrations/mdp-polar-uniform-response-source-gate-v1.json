@@ -1,0 +1,506 @@
+{
+  "artifact": "route2-mdp-polar-uniform-response-source-gate-preregistration-v1",
+  "candidate_order": [
+    "mdp_latent_point",
+    "polar_zero_point",
+    "polar_uniform_response_point"
+  ],
+  "cavity_and_continuum": {
+    "continuum_model": "pcm",
+    "dielectric": 78.39,
+    "eta": 0.1,
+    "fixed_source_energy_radius_scale": 1.0,
+    "fixed_source_reference": "SPICE MBIS point q/p through identical separated-source ddPCM operator",
+    "lmax": 8,
+    "n_lebedev": 194,
+    "n_proc": 1,
+    "radii": "MAPLE SMD water Coulomb radii per element",
+    "radius_scales_for_mep": [
+      1.0,
+      1.25,
+      1.5
+    ],
+    "solver_tolerance": 1e-10
+  },
+  "claim_boundary": {
+    "capability_admitted": false,
+    "cds_or_standard_state_used": false,
+    "experimental_solvation_targets_read": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "mnsol_or_freesolv_imported": false,
+    "post_training_or_fitting_performed": false,
+    "pure_mace_polar_in_scope": false,
+    "selection_disjoint_from_prior_sixty_molecules": true,
+    "source_or_energy_result_used_for_selection": false
+  },
+  "created_utc": "2026-08-17T11:58:57.676739+00:00",
+  "inputs": {
+    "mace_mdp_adapter_sha256": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "mace_polar_separated_adapter_sha256": "7ed58cbfa1c53da0efd410ae62ef5e0e9131613957e06c2648ac614b1778f0c0",
+    "prior_selection_preregistration_sha256": "e3ed4ee5129c994325449bceafa36abc4f338d32e069c289c26ff14cea31cffb",
+    "response_manifold_implementation_sha256": "1ed7f802016f9ead8b0f70fe0024e057dca58870f2dce656a02a2a9dd0f03512",
+    "runner_sha256": "1e2bc6b66a3de900d71fe71cd79b9654e01ee3c887193bdebb05ad6ac2874b0e",
+    "spice_dataset_sha256": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e"
+  },
+  "interpretation": "A pass selects a permanent-source candidate for hybrid research integration only. It does not admit total solvation energy, forces, Tier V, or public capability.",
+  "prospective_decision_rules": {
+    "charge_change_absolute_e_maximum": 1e-08,
+    "dipole_closure_residual_eangstrom_maximum": 1e-08,
+    "fixed_source_energy_mae_kcal_mol_maximum": 1.5,
+    "fixed_source_energy_maximum_kcal_mol_maximum": 4.0,
+    "fixed_source_energy_q95_kcal_mol_maximum": 3.0,
+    "jacobian_condition_number_maximum": 100.0,
+    "paired_improvement_fraction_vs_mdp_minimum": 0.9,
+    "potential_gradient_norm_ev_per_e_angstrom_maximum": 0.25,
+    "response_mae_reduction_fraction_minimum": 0.1,
+    "response_paired_improvement_fraction_minimum": 0.6,
+    "selection_rule": "select response only if every response gate passes; otherwise select polar-zero only if every polar-zero gate passes; otherwise reject both"
+  },
+  "schema_version": 1,
+  "selection": {
+    "configuration_contract": "sha256(selection_salt + -configuration + NUL + molecule) modulo configuration_count",
+    "eligible_contract": "neutral; elements subset H,C,N,O,F,P,S,Cl,Br,I; complete q/p/Q/O labels; molecule identity absent from prior frozen sixty",
+    "eligible_remaining_molecule_count": 253,
+    "molecule_ranking_contract": "ascending sha256(selection_salt + NUL + molecule), first 60",
+    "prior_molecule_count_excluded": 60,
+    "record_count": 60,
+    "records": [
+      {
+        "atom_count": 42,
+        "atomic_numbers_sha256": "354133a3a47b02b8304e218037dbe10cdf816c3db0370382bb66d43a20a58453",
+        "configuration": 0,
+        "molecule": "02N ALA",
+        "positions_raw_sha256": "a3826c5ee271b86bb1f7d2fe51c2cb2c94fa286df848bfa002debeaf0d649ecc"
+      },
+      {
+        "atom_count": 61,
+        "atomic_numbers_sha256": "07c07b4b4ee20d0c401064e9420d2ff418464a83dbbe45cf6c30f0bad0751e6b",
+        "configuration": 5,
+        "molecule": "041 LEU",
+        "positions_raw_sha256": "5bf2c172dc37f358e550bbb7cecfb57f909451404abac0e7552e19814e893101"
+      },
+      {
+        "atom_count": 64,
+        "atomic_numbers_sha256": "00419ebf714e4c4ff0e8578afad3ef58fbc8d9269f9971a6065ffbf4d7984ef4",
+        "configuration": 0,
+        "molecule": "08D TRP",
+        "positions_raw_sha256": "66e30b53e3d7f68e3cd4d0a8778f013991b7162bee8c49e987572c8e9b2ab734"
+      },
+      {
+        "atom_count": 67,
+        "atomic_numbers_sha256": "929fa63af739c50922100bd5bfea965d4735cddce531f095f9d99457b49e61f5",
+        "configuration": 4,
+        "molecule": "08J LEU",
+        "positions_raw_sha256": "1e4e37ede4648d0d7e0c1f2100c2ba54580366bd69892fbe52e22ff839445228"
+      },
+      {
+        "atom_count": 61,
+        "atomic_numbers_sha256": "5872fed53d347cd861d0f131a5affde7b884e33fda0d08117ab103f0d8913b95",
+        "configuration": 0,
+        "molecule": "014 TRP",
+        "positions_raw_sha256": "20eb45174669bc26aaed4b09370c157f4ae108b69446647960733ff3532140d7"
+      },
+      {
+        "atom_count": 44,
+        "atomic_numbers_sha256": "21b1517dc8a8808c25437dc29af6d600c7dfb733baaf9284f1f08f204f01f1bb",
+        "configuration": 7,
+        "molecule": "06K LEU",
+        "positions_raw_sha256": "e57df354ba0b822e88d96355674ce4978f9dc3e1a4665ba29cc003774d1cff78"
+      },
+      {
+        "atom_count": 45,
+        "atomic_numbers_sha256": "9bc3dce79261df409a0ded56f8f06af624f83a2733d442060c22d93a58ad2e40",
+        "configuration": 0,
+        "molecule": "08P THR",
+        "positions_raw_sha256": "4f1eb6456184ab2e5a5bbf8f72a8419be4a760e9be97efdc3e6abde0c1977b61"
+      },
+      {
+        "atom_count": 52,
+        "atomic_numbers_sha256": "97c7d4dba2544913dbe208a6fd838ea3fcf6162a046d7b534a96896db9763012",
+        "configuration": 0,
+        "molecule": "020 CYS",
+        "positions_raw_sha256": "5123244ceb3ba3f947a2f0181b4557ac0ddc004b336b9424db7b4aff59ff1848"
+      },
+      {
+        "atom_count": 57,
+        "atomic_numbers_sha256": "5cc316c24b0b2c03cc4cd1b257dfa06af9854edd1778f31dd7d2fa85fcbc6a1e",
+        "configuration": 0,
+        "molecule": "07V PHE",
+        "positions_raw_sha256": "5e89ef8341ec27ba815a17ae7842778b5d5f2de9e1a1d0cc2befda8a819e83d1"
+      },
+      {
+        "atom_count": 65,
+        "atomic_numbers_sha256": "715c5cc5254951d23a5b78ea39c878761447075ca308e3aedacfb43bee0ac565",
+        "configuration": 0,
+        "molecule": "07Y TYR",
+        "positions_raw_sha256": "189847fa436ab056c93fd7c47a2f65a80ba1ae9de20c920f2e3d019c30f5d3cf"
+      },
+      {
+        "atom_count": 55,
+        "atomic_numbers_sha256": "a9d737c4b43a0ad274b40552334d4356264c2d250226ce73e42d55f7da533fda",
+        "configuration": 0,
+        "molecule": "02Z GLN",
+        "positions_raw_sha256": "88fc7f682978b17613d0333c8d65fd6c619cc04b878112f7c5285e86657c7de0"
+      },
+      {
+        "atom_count": 65,
+        "atomic_numbers_sha256": "e3e47eb7f0f62dcc0e4022d1aea078ec378ffacb80c4dcaacdb7a834a3d503c9",
+        "configuration": 1,
+        "molecule": "06D MET",
+        "positions_raw_sha256": "7c7226a9cde67bfdfbf0ac7b10b171b52196290929d3ce1e9fe2d3b9ae26bf9c"
+      },
+      {
+        "atom_count": 51,
+        "atomic_numbers_sha256": "9dc8b11ca4ae7add0193d670a606ba8eee09b092c84f7dc070308885c4a0fb88",
+        "configuration": 0,
+        "molecule": "020 ALA",
+        "positions_raw_sha256": "11fbe28a9a7457e0fbf4185187c2b9097b5d1196907e6b7526833d2a738c3ba4"
+      },
+      {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "56efc8e1fef28728755370ef8284e287d8e67651ad7ba176b60eb45225acd713",
+        "configuration": 3,
+        "molecule": "08J ALA",
+        "positions_raw_sha256": "e8df855dc09202360df53bb42691fea80049c8d0973bc819d0d0be6550449638"
+      },
+      {
+        "atom_count": 37,
+        "atomic_numbers_sha256": "dc27aca1f1fd4d2dc8b3cc11ae53791ce684ec8c9dd066c58fce2ba1778c90e5",
+        "configuration": 0,
+        "molecule": "05R GLY",
+        "positions_raw_sha256": "a3a7bc46a98f76242810003fed4859dd59f99551dc7f311dac29a8977bb9f8fb"
+      },
+      {
+        "atom_count": 49,
+        "atomic_numbers_sha256": "b5720b7bd7352e4a700144d2bf8da187a5132a03d9a6f85765f1059ccaebf043",
+        "configuration": 0,
+        "molecule": "02N MET",
+        "positions_raw_sha256": "dd244fcb78415310b09790e527de5ec61f5bfcc2dd680bcdac52dba26a5b1c00"
+      },
+      {
+        "atom_count": 44,
+        "atomic_numbers_sha256": "a6538d2f630681d1a9fa5977c289e3c8ad2ea20158c281f22a8b3ce3db318b73",
+        "configuration": 0,
+        "molecule": "07L PRO",
+        "positions_raw_sha256": "402dc3980a5439318c92e0590850a4996e0aa0786b1bf62a864e05032937055b"
+      },
+      {
+        "atom_count": 71,
+        "atomic_numbers_sha256": "d27cc604cbb38c67d57f7dec9448feb75c5a4844ae366698ef3eb7acc4d0ce0b",
+        "configuration": 0,
+        "molecule": "035 TRP",
+        "positions_raw_sha256": "98993b1c77df78fadd6161d89bcaed4446f2b3ae81d3a5b7d36043e2d75fb112"
+      },
+      {
+        "atom_count": 56,
+        "atomic_numbers_sha256": "82d97f1381ef4bfcea7d3e6d3474be454fe2b437834cf5fa5c445524a4d849ae",
+        "configuration": 0,
+        "molecule": "08D VAL",
+        "positions_raw_sha256": "26aec679b0f6ea70fa64067b40304d617ac90e37213abe0b7427d2edb7a13c2c"
+      },
+      {
+        "atom_count": 46,
+        "atomic_numbers_sha256": "e9feb85e4f8f6d4c4a4705421553a85f1d593cfaf2c2f71e73262f2edcd915b4",
+        "configuration": 0,
+        "molecule": "02N THR",
+        "positions_raw_sha256": "b5ac17caea6531ed85573e65bfb6ae81b1185f4bc659423a8a675df9ebfed9f8"
+      },
+      {
+        "atom_count": 52,
+        "atomic_numbers_sha256": "97c7d4dba2544913dbe208a6fd838ea3fcf6162a046d7b534a96896db9763012",
+        "configuration": 0,
+        "molecule": "018 SER",
+        "positions_raw_sha256": "61f06917f12e4f8e19473d0f1b30895f6803a672e06417c9b11dd83fd5ab05ab"
+      },
+      {
+        "atom_count": 47,
+        "atomic_numbers_sha256": "b67a72666bfc5dbee61adfd700697dc2180bd12f5d593a8d0b48414392960af1",
+        "configuration": 2,
+        "molecule": "08D GLY",
+        "positions_raw_sha256": "69c121404ce8035bc53e223b0a1de8a0a8284d0d48818e8d21579f00219220b9"
+      },
+      {
+        "atom_count": 44,
+        "atomic_numbers_sha256": "c7f85622976d2cf4880ab036691ce37dcb2a12d1962a017e58c76aa6dbcdf6c3",
+        "configuration": 0,
+        "molecule": "069 ASN",
+        "positions_raw_sha256": "2993af1b71aedd373c6e6f0b5983ffe2dc7d5c0673a52b401ee230cdce188a1e"
+      },
+      {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "fe5a3f3f2afdab28733e83d7ee5f9398ed8564aad43a8756bcb2da66912630b5",
+        "configuration": 0,
+        "molecule": "07C LEU",
+        "positions_raw_sha256": "1bce2ae3fe24dc32962d1a3f699b2267adfdb5dc200ce4a0ccd9d6cf1005d09a"
+      },
+      {
+        "atom_count": 62,
+        "atomic_numbers_sha256": "ec708ebb94bb0b3141d73eac0b23c54f11036fe1b6d34a2a7ce697b339d4d85f",
+        "configuration": 0,
+        "molecule": "020 TYR",
+        "positions_raw_sha256": "64059c88135dfa038531fddb6a41864cd7b0a805947eb0fc888f03a0aa2e8a98"
+      },
+      {
+        "atom_count": 62,
+        "atomic_numbers_sha256": "ffa1a24ea8c469e6aacbc683b87f78f4343c330569fb707b9acc6e9c4c617cd5",
+        "configuration": 0,
+        "molecule": "03K VAL",
+        "positions_raw_sha256": "89a9141065a8db7cef2dc7bba76fbec391f506d869e1a28ace1b2b4d520b8ccb"
+      },
+      {
+        "atom_count": 43,
+        "atomic_numbers_sha256": "6811dddb639775ae6da1c2d5138e3475418b22a1ffaa4c92447d1b5c796aeca1",
+        "configuration": 0,
+        "molecule": "03W VAL",
+        "positions_raw_sha256": "39293177941290fc62b8775424db66e99d6b9cea83bb0f041b81a4de354c7934"
+      },
+      {
+        "atom_count": 56,
+        "atomic_numbers_sha256": "ec63f6601e635debda982efb01a36688b475ca305f602f8c1ad88583330f5a2f",
+        "configuration": 0,
+        "molecule": "01I ASN",
+        "positions_raw_sha256": "617b6166c81f743af82d286b13d780dfd824ac868cd378528437a40bdf6cee52"
+      },
+      {
+        "atom_count": 57,
+        "atomic_numbers_sha256": "7c768b97a763e91000f60553058c7bd3b080ae712c3c8470d47a36d3d631fe83",
+        "configuration": 0,
+        "molecule": "028 SER",
+        "positions_raw_sha256": "8a3519b08a650779ad060f3b5de03440759fdddf4a9bf4b42244ab0a8d55c62b"
+      },
+      {
+        "atom_count": 47,
+        "atomic_numbers_sha256": "2d6d86066841bf073632c40ab234bae1c407849881e15bc5ba6ea29ef97189b4",
+        "configuration": 0,
+        "molecule": "03V VAL",
+        "positions_raw_sha256": "0f476adbb1f569b03acf2619a6a536b2a5ac2d9252da0471dd6569179a3e4734"
+      },
+      {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "a1c3e6185921d2ef9ec7dae37d1a91a787bb8044c906b2a6867a14073a956feb",
+        "configuration": 0,
+        "molecule": "036 SER",
+        "positions_raw_sha256": "2fbe58f8eefc97b7108530945497e044dc64506d709190e47173419864d61e93"
+      },
+      {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "daf0d443283b00878df4f66455e25d5df99eac5761cb760dd8bea9f5796d4435",
+        "configuration": 0,
+        "molecule": "056 PRO",
+        "positions_raw_sha256": "3a0e1dabfd72f3a8124980dc5647e1e5b16902fc43d0156ecf2ed970b62a83d0"
+      },
+      {
+        "atom_count": 51,
+        "atomic_numbers_sha256": "bb4ad77e9c314617b4440257b650cdcb593d6423d8ba4152e5e746a1d329a2dd",
+        "configuration": 0,
+        "molecule": "08P PHE",
+        "positions_raw_sha256": "04e44ca024c132f0bdf105243c2b1ecf4a81a4414337cc7ea93b24b6c68d2e3c"
+      },
+      {
+        "atom_count": 42,
+        "atomic_numbers_sha256": "a8257c7c2fcff195e95714123d10b53b34a03419dc7debdbdd4c197d7bcd91a3",
+        "configuration": 0,
+        "molecule": "03H ALA",
+        "positions_raw_sha256": "de059869948cc9c6d62a69bbbd49da5624e62c3b26b350225a8ebf96eede24e4"
+      },
+      {
+        "atom_count": 41,
+        "atomic_numbers_sha256": "ed9f9ce0d1f9f9c945555ec0498e5b512d05af3d8eaf37b5116ae947c2e2f94b",
+        "configuration": 0,
+        "molecule": "07L CYS",
+        "positions_raw_sha256": "29a80fc8878391292534b3ec3cdebe0149b9e72103589854fcb51f9f9ae66c64"
+      },
+      {
+        "atom_count": 49,
+        "atomic_numbers_sha256": "bae8fe554a6ad5c1ea7b878e403ce9d67d554374a3a52727cc931910676ba156",
+        "configuration": 0,
+        "molecule": "041 GLY",
+        "positions_raw_sha256": "68b2645ffd3ea77e6d3af01a37c6e0aaa4848a52d1fd7544f19e3bb88e81feb4"
+      },
+      {
+        "atom_count": 52,
+        "atomic_numbers_sha256": "dd26043587069fb4928536c542a81e9f9dd6a11670bfb4368defcecba5893fc5",
+        "configuration": 0,
+        "molecule": "018 CYS",
+        "positions_raw_sha256": "54e821e55abf14a25ebc6036ec5f9d2f73329f244fa6cd3567032aa081963514"
+      },
+      {
+        "atom_count": 44,
+        "atomic_numbers_sha256": "145b9a87b4cd72601b58b0ec7313ea423a3dbff8b1ac3486bfbc266fe1812583",
+        "configuration": 0,
+        "molecule": "040 GLY",
+        "positions_raw_sha256": "4a53c3c4f0e84865369263328fc0f7b496c8d03b0766753917a8de7b35e30067"
+      },
+      {
+        "atom_count": 65,
+        "atomic_numbers_sha256": "5e79b8a183412c0537e8a3cbf6bf9772d8d2e9cb63addfb0390687596787e8fa",
+        "configuration": 0,
+        "molecule": "028 LEU",
+        "positions_raw_sha256": "223efbfcf712b87b68aea5609ed7019690d392320a1a160d12e161b50fdf6a8e"
+      },
+      {
+        "atom_count": 48,
+        "atomic_numbers_sha256": "e820891886eb60bd081580fa30148dc376069fb835b5d4712d7336ba9ad47d50",
+        "configuration": 0,
+        "molecule": "02N VAL",
+        "positions_raw_sha256": "7a2ad8101082b63f8745960e177b80f344de807d1f87f136067a806637ca8a6a"
+      },
+      {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "80ec329f9339f508e80d4e46b8cc1ccb817bf44c44c0030dc4cbc71652db11dd",
+        "configuration": 0,
+        "molecule": "05Q LEU",
+        "positions_raw_sha256": "36912be3f0306a09bab54cadcf198f577d726f2f9501b65cbf04ce7fb826e0ba"
+      },
+      {
+        "atom_count": 60,
+        "atomic_numbers_sha256": "95d07e7d494e24ee603d9e562a85a5bfbc12fda58f480a0c5388f5d00bb163c3",
+        "configuration": 0,
+        "molecule": "056 VAL",
+        "positions_raw_sha256": "c9d319d138cb01ed8fedaded30f0e878cfe9b896741629e0707daad8d232156b"
+      },
+      {
+        "atom_count": 45,
+        "atomic_numbers_sha256": "2c7985b40ca8e84e73ef4837d728730238e316ef0714c4484f8e094eb8b7d33e",
+        "configuration": 0,
+        "molecule": "08P ASN",
+        "positions_raw_sha256": "54ff5b051b2621a5f399524ea21bd2256820adc390456bce6d200a9c71d96b8f"
+      },
+      {
+        "atom_count": 63,
+        "atomic_numbers_sha256": "0332f842cf5d0ac186f0feeff8f3e9c4ed1f7b0b4862de7875faebc494df5ba3",
+        "configuration": 1,
+        "molecule": "056 ILE",
+        "positions_raw_sha256": "ec975e377996b0ea014b7c9f054dd427bbcf24944cb8d44f350c1628439f7a48"
+      },
+      {
+        "atom_count": 66,
+        "atomic_numbers_sha256": "85aed62708ed018e323a5b8128fd7a0681f5564f901604f8757b9cf46ec09ba0",
+        "configuration": 0,
+        "molecule": "06Z PHE",
+        "positions_raw_sha256": "a8d7631ab540cc8db94f75e7a296a42614a0d7f26e082ec89dc8e83488f827fd"
+      },
+      {
+        "atom_count": 52,
+        "atomic_numbers_sha256": "32506a211e8b5307c8279fb7ad4bf9386d57ef6eacb29b53b5d77f4784e488a7",
+        "configuration": 0,
+        "molecule": "04D GLY",
+        "positions_raw_sha256": "877a45712cbdfe7f165268e0f7ea9e1a5282616c40db4771c08db8298d270ebb"
+      },
+      {
+        "atom_count": 51,
+        "atomic_numbers_sha256": "94e7ccbc7bc26f99b60648a0dc3769f6cdc26475841e9b03c535be6a34f6abef",
+        "configuration": 1,
+        "molecule": "03H ILE",
+        "positions_raw_sha256": "2a152afb32c60d9cb634187f58754233d065ea451fb7f2f041a5642832efd47e"
+      },
+      {
+        "atom_count": 67,
+        "atomic_numbers_sha256": "adbbf7f262a61a5a04c767a0faa755071775f609ec9032de07870807de557733",
+        "configuration": 1,
+        "molecule": "08H PHE",
+        "positions_raw_sha256": "725699b5a4c2f3a811bd6f504ac4323bccf3aaad105a39c26f354a733f3c2969"
+      },
+      {
+        "atom_count": 57,
+        "atomic_numbers_sha256": "c849ddcd9e20fb60324fc5c435471c74666207fa4cfcf54f3f95a23963bfd085",
+        "configuration": 0,
+        "molecule": "018 VAL",
+        "positions_raw_sha256": "cc892859b2888b608ad83cbc69128d28ba342dfafa6cb5132111aab3d2351292"
+      },
+      {
+        "atom_count": 57,
+        "atomic_numbers_sha256": "65e0099fd1ccd1c3f95b509e8d0f930cc61698555b3183fdbc915fdf173d23d5",
+        "configuration": 0,
+        "molecule": "040 PHE",
+        "positions_raw_sha256": "cf41918eb0408a81ed6987a4636dbe5f2cf2426ec9cb8131626b3127df2b9784"
+      },
+      {
+        "atom_count": 62,
+        "atomic_numbers_sha256": "7cc9fd8ffb9300f078c23045153323cf52ffe6e8d525ab735e7d38023d30cdfc",
+        "configuration": 1,
+        "molecule": "08J THR",
+        "positions_raw_sha256": "11e3379d722c11ff783595860cabe63e9bbb4b05df45052f32c820262d1a36eb"
+      },
+      {
+        "atom_count": 62,
+        "atomic_numbers_sha256": "6a80fc44845474d7cca32623db109a4dea534d7db5ae2f8f60e31d75ef6ea48c",
+        "configuration": 1,
+        "molecule": "06Z VAL",
+        "positions_raw_sha256": "85437c34e997d72f4feba9f17bc92f18f6bcea630afa6df77b2683df78b647d1"
+      },
+      {
+        "atom_count": 50,
+        "atomic_numbers_sha256": "a14faf64e4139c43674aeb322454a0fffd8bdd17eeb63e5920e712881ae051b6",
+        "configuration": 1,
+        "molecule": "07L PHE",
+        "positions_raw_sha256": "e777830e5e178cb4933ca611a70025ef0d3900e095820b1d19fccced99dbc3f6"
+      },
+      {
+        "atom_count": 57,
+        "atomic_numbers_sha256": "825f80650f7a7c15d7fbfef686181f92ae4c8ded8a166dacf4736a33a14e5263",
+        "configuration": 0,
+        "molecule": "091 ILE",
+        "positions_raw_sha256": "5b499ef7d15cf997c3c61687064ab41f24e099e233b7df7ced14ba350fa59b83"
+      },
+      {
+        "atom_count": 49,
+        "atomic_numbers_sha256": "3763475f50cee8991bd37e9863bdd38e74e7ff2ae9e0b82f98cb61fd0439ea0b",
+        "configuration": 0,
+        "molecule": "07L ILE",
+        "positions_raw_sha256": "a87e90f26bab08188aea0983fe0c5c74b3fe2687f38f47e1bf092d210310a98e"
+      },
+      {
+        "atom_count": 56,
+        "atomic_numbers_sha256": "8e64d10c2ffc71db4e3b8af9f0834ebb42c15ac11128aa6cfde46c09241a149e",
+        "configuration": 0,
+        "molecule": "007 ASN",
+        "positions_raw_sha256": "463a5d66b39ef53a5995862f601bde934c22ed5c99ae64468eb24ceb1f9e6edb"
+      },
+      {
+        "atom_count": 49,
+        "atomic_numbers_sha256": "d16fec26d0722304a92363e7ae9166231948960cca497cca74b9d5ef3f50027d",
+        "configuration": 0,
+        "molecule": "069 ILE",
+        "positions_raw_sha256": "89d482486f95dfed6b9df48f460674214da0119aa8a550c946747c3f402fa36a"
+      },
+      {
+        "atom_count": 36,
+        "atomic_numbers_sha256": "ba6a6d38c1304a5f7d0c362f229f897ff572ec9fff10e9e97396f719379da4af",
+        "configuration": 8,
+        "molecule": "06K CYS",
+        "positions_raw_sha256": "cc9b46d14aaaaf40738f56fdb60482fa5dbceb56ab1e3fd3e8bcff956870c9b8"
+      },
+      {
+        "atom_count": 45,
+        "atomic_numbers_sha256": "af2565dfc4262ce869b1a26ff71c5f0ce45db0bc2cf9d3431e0c0e49edfdbb5e",
+        "configuration": 0,
+        "molecule": "010 MET",
+        "positions_raw_sha256": "e5f764912a728bae0de9422fc0e40f474f5285119ebf65432b5d4d3fdfabcfef"
+      },
+      {
+        "atom_count": 59,
+        "atomic_numbers_sha256": "b9d6c16a714e682ef67211bbee206adfda76fb7e2fd95bf01f8b53e3a7618c7f",
+        "configuration": 2,
+        "molecule": "041 MET",
+        "positions_raw_sha256": "50acda4e4004638905b2f03180ac73e6ba4627200f5a800d00cbcc72498744ac"
+      }
+    ],
+    "selection_salt": "route2-mdp-polar-uniform-response-heldout-v1",
+    "selection_sha256": "0b1e1de6bb569407453ffdd312e0ab49b66083d5498b0730bc94128389b17e83"
+  },
+  "status": "locked-before-any-disjoint-heldout-source-mep-or-energy-result",
+  "uniform_response_solver": {
+    "charge_tolerance_e": 1e-09,
+    "dipole_tolerance_eangstrom": 1e-09,
+    "field_definition": "centroid-gauged affine potential duplicated exactly into both 1.5/3.0 A native receiver blocks",
+    "maximum_gradient_norm_ev_per_e_angstrom": 0.25,
+    "maximum_iterations": 12,
+    "maximum_jacobian_condition_number": 100.0,
+    "minimum_jacobian_singular_value": 1e-06,
+    "minimum_line_search_fraction": 0.000244140625
+  }
+}

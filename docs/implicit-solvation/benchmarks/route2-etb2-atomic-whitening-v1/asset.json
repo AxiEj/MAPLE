@@ -1,0 +1,508 @@
+{
+  "artifact": "route2-etb2-isolated-atom-coulomb-whitening-asset-v1",
+  "asset_sha256": "e52712c0f54622fc532ef0216358a3c802b9cc648ecfc4240c08e52e765d9f58",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "molecular_qm_or_model_output_read": false
+  },
+  "construction": {
+    "angular_contract": "same radial transform for every m; no l mixing",
+    "auxiliary_generator": "pyscf.df.aug_etb(beta=2.0)",
+    "metric": "isolated-atom Coulomb metric",
+    "mode_removal_or_regularization": false,
+    "molecular_geometry_or_cavity_used": false,
+    "orbital_basis_seed": "def2-tzvpd",
+    "transform": "canonical symmetric inverse square root per (element,l)"
+  },
+  "created_utc": "2026-08-23T19:39:10.098720+00:00",
+  "elements": [
+    "H",
+    "C",
+    "N",
+    "O",
+    "F",
+    "P",
+    "S",
+    "Cl",
+    "Br",
+    "I"
+  ],
+  "records": [
+    {
+      "atomic_number": 1,
+      "auxiliary_dimension": 47,
+      "basis_file": "H-etb2-basis.json",
+      "basis_file_sha256": "d93306d1104615334fe6bfd5e01c7f456b097a5feefbf1d94dfaa18fd43e4d6e",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 319441.80156309495,
+          "radial_dimension": 9,
+          "whitened_identity_max_absolute_error": 2.0903279107642447e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 4822.101767437288,
+          "radial_dimension": 6,
+          "whitened_identity_max_absolute_error": 6.197220989683602e-14
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 259.58279646821956,
+          "radial_dimension": 4,
+          "whitened_identity_max_absolute_error": 2.3314683517128287e-15
+        }
+      ],
+      "element": "H",
+      "forbidden_angular_coupling_max_absolute_value": 0.0,
+      "full_identity_max_absolute_error": 2.0903279107642447e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "336bb11157aa6d9030bb9204f3d4cffd5150c75019a2eab3dfc6c6c39d6cd28d",
+      "transform_file": "H-coulomb-whitening.npy",
+      "transform_file_sha256": "bf2a63d5941a15c0ef7e57fa5cf1feee3652f7472b60ae12e13ccb163ee359d0"
+    },
+    {
+      "atomic_number": 6,
+      "auxiliary_dimension": 187,
+      "basis_file": "C-etb2-basis.json",
+      "basis_file_sha256": "3d096f9ea8469671f1eecc8f2bc90fd8a7653dbb494491d5a2739c2c1869cc96",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1302329.7359181591,
+          "radial_dimension": 16,
+          "whitened_identity_max_absolute_error": 1.5216716775512396e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 33257.25112103692,
+          "radial_dimension": 12,
+          "whitened_identity_max_absolute_error": 2.4909306347264707e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 3826.937736804402,
+          "radial_dimension": 10,
+          "whitened_identity_max_absolute_error": 4.4075854077618715e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 560.2179116491541,
+          "radial_dimension": 7,
+          "whitened_identity_max_absolute_error": 1.554312234475219e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 64.7108619152275,
+          "radial_dimension": 4,
+          "whitened_identity_max_absolute_error": 3.552713678800501e-15
+        }
+      ],
+      "element": "C",
+      "forbidden_angular_coupling_max_absolute_value": 2.9408103656352006e-14,
+      "full_identity_max_absolute_error": 1.5216716775512396e-12,
+      "isolated_atom_spin": 0,
+      "transform_array_sha256": "75f7adf30b817dd8a27b6bd0063f56ee6dab701f35c37bb44cb5b1923faea137",
+      "transform_file": "C-coulomb-whitening.npy",
+      "transform_file_sha256": "e439ca3fc248dbcb39e2f765631280bb076ef440131a55f9e1cc58c436f00f29"
+    },
+    {
+      "atomic_number": 7,
+      "auxiliary_dimension": 187,
+      "basis_file": "N-etb2-basis.json",
+      "basis_file_sha256": "1f9151a98237e58ff3df3583695c6aa374e5d1856ffce88b9e0b9a41e3785225",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1302329.7359002058,
+          "radial_dimension": 16,
+          "whitened_identity_max_absolute_error": 3.5546010579423637e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 33257.251120970366,
+          "radial_dimension": 12,
+          "whitened_identity_max_absolute_error": 2.0627189907742901e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 3826.9377368010755,
+          "radial_dimension": 10,
+          "whitened_identity_max_absolute_error": 4.141131881851834e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 560.2179116491556,
+          "radial_dimension": 7,
+          "whitened_identity_max_absolute_error": 1.609823385706477e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 64.7108619152256,
+          "radial_dimension": 4,
+          "whitened_identity_max_absolute_error": 2.570608682871548e-15
+        }
+      ],
+      "element": "N",
+      "forbidden_angular_coupling_max_absolute_value": 1.6998664815411645e-14,
+      "full_identity_max_absolute_error": 3.5546010579423637e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "a97ee2d2bce9ce7ed30b6992c5d065b7d38a37b8a6f6fe6ddb8cccd1b9d1668e",
+      "transform_file": "N-coulomb-whitening.npy",
+      "transform_file_sha256": "8131478ee36d8e7a800db4ea81e16718880c123eaa69f3d232d44cf7d704f406"
+    },
+    {
+      "atomic_number": 8,
+      "auxiliary_dimension": 214,
+      "basis_file": "O-etb2-basis.json",
+      "basis_file_sha256": "67e86ea2e0cb28a22b3f0f0820778256d2122a835a410cd689aec6795e804ce4",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1302329.7359703146,
+          "radial_dimension": 16,
+          "whitened_identity_max_absolute_error": 5.010640132351393e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 42021.85564962804,
+          "radial_dimension": 14,
+          "whitened_identity_max_absolute_error": 2.3447910280083306e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 4463.817105050819,
+          "radial_dimension": 11,
+          "whitened_identity_max_absolute_error": 4.4075854077618715e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 732.3927117049195,
+          "radial_dimension": 8,
+          "whitened_identity_max_absolute_error": 1.095566797029647e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 115.98651157583102,
+          "radial_dimension": 5,
+          "whitened_identity_max_absolute_error": 1.2434497875801753e-14
+        }
+      ],
+      "element": "O",
+      "forbidden_angular_coupling_max_absolute_value": 2.2266097913057764e-14,
+      "full_identity_max_absolute_error": 5.010640132351393e-12,
+      "isolated_atom_spin": 0,
+      "transform_array_sha256": "2ff99316fc2abe9679478200edcd27b23d9557ccd9e9b1e591511a84ec840c99",
+      "transform_file": "O-coulomb-whitening.npy",
+      "transform_file_sha256": "33af018d62be5bae61f60167331dc7e5c824ad94be6f5fff34a1d1e79d0d7232"
+    },
+    {
+      "atomic_number": 9,
+      "auxiliary_dimension": 219,
+      "basis_file": "F-etb2-basis.json",
+      "basis_file_sha256": "d5d6a6c2bdd78a59e1b0b83b95ff0f6726e0f29ac3bbf3fe79ebb28871d6d49a",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1302329.7359285823,
+          "radial_dimension": 16,
+          "whitened_identity_max_absolute_error": 5.509592782004802e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 42021.855649469515,
+          "radial_dimension": 14,
+          "whitened_identity_max_absolute_error": 1.3011813848606835e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 5044.385702754362,
+          "radial_dimension": 12,
+          "whitened_identity_max_absolute_error": 1.0377354757314216e-13
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 732.3927117049524,
+          "radial_dimension": 8,
+          "whitened_identity_max_absolute_error": 8.104628079763643e-15
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 115.98651157584094,
+          "radial_dimension": 5,
+          "whitened_identity_max_absolute_error": 4.440892098500626e-15
+        }
+      ],
+      "element": "F",
+      "forbidden_angular_coupling_max_absolute_value": 1.7763568394002505e-14,
+      "full_identity_max_absolute_error": 5.509592782004802e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "c4552354e762e27eb203e32c124e3bfea916403198c272317c829fe036ef49dc",
+      "transform_file": "F-coulomb-whitening.npy",
+      "transform_file_sha256": "0ebfe3006d3cebe4991b747d009765509add477cff53cb97ea8ca66be0a51327"
+    },
+    {
+      "atomic_number": 15,
+      "auxiliary_dimension": 245,
+      "basis_file": "P-etb2-basis.json",
+      "basis_file_sha256": "e802baab411984a9fa7c81ea5e6a739831c8aee61c4dec30e22263a09eb1fba3",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1541989.2023591318,
+          "radial_dimension": 18,
+          "whitened_identity_max_absolute_error": 4.979825396287445e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 45830.27160872313,
+          "radial_dimension": 15,
+          "whitened_identity_max_absolute_error": 3.554934124849751e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 5565.830702291877,
+          "radial_dimension": 13,
+          "whitened_identity_max_absolute_error": 3.175237850427948e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 896.7339309878544,
+          "radial_dimension": 9,
+          "whitened_identity_max_absolute_error": 7.993605777301127e-15
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 174.78794567877415,
+          "radial_dimension": 6,
+          "whitened_identity_max_absolute_error": 1.0325074129013956e-14
+        }
+      ],
+      "element": "P",
+      "forbidden_angular_coupling_max_absolute_value": 4.013239534131799e-14,
+      "full_identity_max_absolute_error": 4.979825396287445e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "3b1b45cd75aa3ca39589ac5f78e617316af99fc394b21dfa999ef24809605c33",
+      "transform_file": "P-coulomb-whitening.npy",
+      "transform_file_sha256": "cf151d6066fef1589ceaa376581f8b42bb46b623516d9e271d820341eeb3de86"
+    },
+    {
+      "atomic_number": 16,
+      "auxiliary_dimension": 265,
+      "basis_file": "S-etb2-basis.json",
+      "basis_file_sha256": "6682bd2ca1808ff20cb33b4beefcb9e594ef7d3e5b3e3b242cbd969d478ef0ee",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1541989.2022781686,
+          "radial_dimension": 18,
+          "whitened_identity_max_absolute_error": 7.518634500675755e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 49265.51372295589,
+          "radial_dimension": 16,
+          "whitened_identity_max_absolute_error": 2.3092638912203256e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 6440.768250704246,
+          "radial_dimension": 15,
+          "whitened_identity_max_absolute_error": 5.701174509786207e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 1047.6916890566827,
+          "radial_dimension": 10,
+          "whitened_identity_max_absolute_error": 1.7985612998927536e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 174.78794567874317,
+          "radial_dimension": 6,
+          "whitened_identity_max_absolute_error": 2.886579864025407e-15
+        }
+      ],
+      "element": "S",
+      "forbidden_angular_coupling_max_absolute_value": 3.32896154104685e-14,
+      "full_identity_max_absolute_error": 7.518634500675755e-12,
+      "isolated_atom_spin": 0,
+      "transform_array_sha256": "aa5defd59cd255861e98af2b31a80755c6cb04bad9272ae8c51efefa330add28",
+      "transform_file": "S-coulomb-whitening.npy",
+      "transform_file_sha256": "0a4b2e9d26185f72a0e1955f0f14ee13fedd1c753a0cfecfe6fbc01946893c32"
+    },
+    {
+      "atomic_number": 17,
+      "auxiliary_dimension": 265,
+      "basis_file": "Cl-etb2-basis.json",
+      "basis_file_sha256": "9fc97805482cb8d6233e4891b368bb2870797b07ac12fc3dbab8e1949a4707f3",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1541989.2021796342,
+          "radial_dimension": 18,
+          "whitened_identity_max_absolute_error": 2.7657176052494213e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 49265.51372315803,
+          "radial_dimension": 16,
+          "whitened_identity_max_absolute_error": 1.8818280267396403e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 6440.7682506974,
+          "radial_dimension": 15,
+          "whitened_identity_max_absolute_error": 9.08162434143378e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 1047.6916890562088,
+          "radial_dimension": 10,
+          "whitened_identity_max_absolute_error": 1.9317880628477724e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 174.78794567878512,
+          "radial_dimension": 6,
+          "whitened_identity_max_absolute_error": 4.6629367034256575e-15
+        }
+      ],
+      "element": "Cl",
+      "forbidden_angular_coupling_max_absolute_value": 3.3874054789714024e-14,
+      "full_identity_max_absolute_error": 2.7657176052494213e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "b93b3c24c998275854e7744aa44187a98177484b25cee232a713047e834d665e",
+      "transform_file": "Cl-coulomb-whitening.npy",
+      "transform_file_sha256": "44c3922cb18875b47e59926f3e42191e3c3274b6d96c301a267fb6b1b86f68ec"
+    },
+    {
+      "atomic_number": 35,
+      "auxiliary_dimension": 448,
+      "basis_file": "Br-etb2-basis.json",
+      "basis_file_sha256": "dca4177e0a0c8efe5f532b06d937c72bdd93372f162e2adfbb0e939dd7f8396a",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1843032.8195097377,
+          "radial_dimension": 21,
+          "whitened_identity_max_absolute_error": 2.999763950007749e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 57598.33454888174,
+          "radial_dimension": 19,
+          "whitened_identity_max_absolute_error": 5.595524044110789e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 7123.798777005169,
+          "radial_dimension": 17,
+          "whitened_identity_max_absolute_error": 5.0209895445591813e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 1498.7997299094602,
+          "radial_dimension": 14,
+          "whitened_identity_max_absolute_error": 3.674838211509268e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 463.7812193884786,
+          "radial_dimension": 12,
+          "whitened_identity_max_absolute_error": 1.532107773982716e-14
+        },
+        {
+          "angular_momentum": 5,
+          "normalized_condition_number": 92.27102777663387,
+          "radial_dimension": 6,
+          "whitened_identity_max_absolute_error": 4.969819815050418e-15
+        },
+        {
+          "angular_momentum": 6,
+          "normalized_condition_number": 1.0,
+          "radial_dimension": 1,
+          "whitened_identity_max_absolute_error": 0.0
+        }
+      ],
+      "element": "Br",
+      "forbidden_angular_coupling_max_absolute_value": 3.6316040360589945e-14,
+      "full_identity_max_absolute_error": 2.999763950007749e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "fb781df5dd224aa499abef623e34d49a7162fba9bbb93a77c59cdb94c758d6ac",
+      "transform_file": "Br-coulomb-whitening.npy",
+      "transform_file_sha256": "43d9dbfd54bd56087421a7a17ce7dafe81e75abbdfcaf8d2b278496bedc6735f"
+    },
+    {
+      "atomic_number": 53,
+      "auxiliary_dimension": 391,
+      "basis_file": "I-etb2-basis.json",
+      "basis_file_sha256": "26c3639fd8a8595695c0941ea137d79b0380b6caca75e9fdd9c1c23a2dace1b7",
+      "blocks": [
+        {
+          "angular_momentum": 0,
+          "normalized_condition_number": 1170690.8190050616,
+          "radial_dimension": 15,
+          "whitened_identity_max_absolute_error": 1.5768224336134036e-12
+        },
+        {
+          "angular_momentum": 1,
+          "normalized_condition_number": 37827.82890797586,
+          "radial_dimension": 13,
+          "whitened_identity_max_absolute_error": 2.9543034685275416e-13
+        },
+        {
+          "angular_momentum": 2,
+          "normalized_condition_number": 5565.830702310376,
+          "radial_dimension": 13,
+          "whitened_identity_max_absolute_error": 9.57825201738205e-14
+        },
+        {
+          "angular_momentum": 3,
+          "normalized_condition_number": 1183.0438561359126,
+          "radial_dimension": 11,
+          "whitened_identity_max_absolute_error": 5.229150445984487e-14
+        },
+        {
+          "angular_momentum": 4,
+          "normalized_condition_number": 389.48052947774477,
+          "radial_dimension": 10,
+          "whitened_identity_max_absolute_error": 1.3433698597964394e-14
+        },
+        {
+          "angular_momentum": 5,
+          "normalized_condition_number": 92.2710277766367,
+          "radial_dimension": 6,
+          "whitened_identity_max_absolute_error": 1.4432899320127035e-15
+        },
+        {
+          "angular_momentum": 6,
+          "normalized_condition_number": 14.335229391364239,
+          "radial_dimension": 3,
+          "whitened_identity_max_absolute_error": 2.4424906541753444e-15
+        }
+      ],
+      "element": "I",
+      "forbidden_angular_coupling_max_absolute_value": 5.361943809163222e-14,
+      "full_identity_max_absolute_error": 1.5768224336134036e-12,
+      "isolated_atom_spin": 1,
+      "transform_array_sha256": "24beeae1ab41e7306d7cd9b89bea6d84a452edf14e73b88fd6bb18a7e73fd28a",
+      "transform_file": "I-coulomb-whitening.npy",
+      "transform_file_sha256": "d77358d5820ef34b1a940ce185bb9804d02c91fec7125664ec289cdb6b30a1f8"
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+    "python": "3.11.14"
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "maple/solvation/reference/atomic_auxiliary_whitening.py": "c16a5ef496a7ac39ec87e527618f6967d61d6d05f885321b35ca018acdd7d86d",
+    "tools/route2_release/create_atomic_auxiliary_whitening_asset.py": "0b4b8e101e0ab66548646145da8ad8429aa49707b4b183e50d46e0a5d1e8334c"
+  },
+  "status": "frozen-before-any-molecular-local-whitening-audit"
+}

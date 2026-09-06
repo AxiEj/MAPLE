@@ -1,0 +1,152 @@
+{
+  "aggregate_sha256": "2bf5f2face6225d23fb9005a774ad285fcf9d23b3af0b6d3327284cfa8e3af73",
+  "artifact": "route2-mdp-polar-zero-training-source-gate-v1-aggregate",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "cds_or_standard_state_used": false,
+    "experimental_solvation_targets_read": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "mnsol_or_freesolv_imported": false,
+    "post_training_or_fitting_performed": false,
+    "pure_mace_polar_in_scope": false,
+    "solvation_result_used_to_select_projection_or_kernel": false
+  },
+  "decision": "zero-training-projected-polar-gaussian-source-rejected-under-frozen-gates",
+  "fixed_source_ddpcm_energy": {
+    "mdp_latent_gaussian": {
+      "mae_kcal_mol": 28.820235371373983,
+      "maximum_kcal_mol": 55.492237716540046,
+      "paired_improvement_fraction_vs_mdp_latent_point": 0.0,
+      "q95_kcal_mol": 39.73064201369083
+    },
+    "mdp_latent_point": {
+      "mae_kcal_mol": 8.191931309284078,
+      "maximum_kcal_mol": 17.58914110132023,
+      "paired_improvement_fraction_vs_mdp_latent_point": 0.0,
+      "q95_kcal_mol": 12.719588663659074
+    },
+    "polar_zero_gaussian": {
+      "mae_kcal_mol": 28.30963115258353,
+      "maximum_kcal_mol": 54.14230850795396,
+      "paired_improvement_fraction_vs_mdp_latent_point": 0.0,
+      "q95_kcal_mol": 38.89028471983572
+    },
+    "polar_zero_mdp_qmu_gaussian": {
+      "mae_kcal_mol": 28.332834088935694,
+      "maximum_kcal_mol": 54.15118118734197,
+      "paired_improvement_fraction_vs_mdp_latent_point": 0.0,
+      "q95_kcal_mol": 38.88690463595667
+    },
+    "polar_zero_mdp_qmu_point": {
+      "mae_kcal_mol": 2.778986674379109,
+      "maximum_kcal_mol": 17.75392189777781,
+      "paired_improvement_fraction_vs_mdp_latent_point": 0.9,
+      "q95_kcal_mol": 9.06118177655862
+    },
+    "polar_zero_point": {
+      "mae_kcal_mol": 1.345979994611803,
+      "maximum_kcal_mol": 3.37716318812167,
+      "paired_improvement_fraction_vs_mdp_latent_point": 1.0,
+      "q95_kcal_mol": 2.9372330623309537
+    }
+  },
+  "gates": {
+    "closure": true,
+    "conditioning": true,
+    "fixed_source_energy_mae": false,
+    "gaussian_kernel_no_worsening": false,
+    "mep_absolute": false,
+    "mep_baseline_reduction": false,
+    "paired_energy_improvement": false
+  },
+  "global_relative_mep_rmse": {
+    "1.00": {
+      "mdp_latent_gaussian": {
+        "reference_qp": 0.707941404811985,
+        "reference_qpqo": 0.7135564336519291
+      },
+      "mdp_latent_point": {
+        "reference_qp": 0.29757860912714174,
+        "reference_qpqo": 0.3162476851125783
+      },
+      "polar_zero_gaussian": {
+        "reference_qp": 0.7002252379262365,
+        "reference_qpqo": 0.6899472421702213
+      },
+      "polar_zero_mdp_qmu_gaussian": {
+        "reference_qp": 0.7004362921589847,
+        "reference_qpqo": 0.6901589123439774
+      },
+      "polar_zero_mdp_qmu_point": {
+        "reference_qp": 0.3365589179554633,
+        "reference_qpqo": 0.3088652594136242
+      },
+      "polar_zero_point": {
+        "reference_qp": 0.3006600311037676,
+        "reference_qpqo": 0.2673058636027534
+      }
+    },
+    "1.25": {
+      "mdp_latent_gaussian": {
+        "reference_qp": 0.5967498502356954,
+        "reference_qpqo": 0.5904486575314011
+      },
+      "mdp_latent_point": {
+        "reference_qp": 0.23419163413726637,
+        "reference_qpqo": 0.23027600652533667
+      },
+      "polar_zero_gaussian": {
+        "reference_qp": 0.5788856454275076,
+        "reference_qpqo": 0.5584010240902693
+      },
+      "polar_zero_mdp_qmu_gaussian": {
+        "reference_qp": 0.5791866613865876,
+        "reference_qpqo": 0.5586692359400935
+      },
+      "polar_zero_mdp_qmu_point": {
+        "reference_qp": 0.24091561925468055,
+        "reference_qpqo": 0.20039183969459673
+      },
+      "polar_zero_point": {
+        "reference_qp": 0.23185207318810555,
+        "reference_qpqo": 0.18918669158076573
+      }
+    },
+    "1.50": {
+      "mdp_latent_gaussian": {
+        "reference_qp": 0.4801127960901328,
+        "reference_qpqo": 0.46541165384655064
+      },
+      "mdp_latent_point": {
+        "reference_qp": 0.1980070965520823,
+        "reference_qpqo": 0.18606428162539215
+      },
+      "polar_zero_gaussian": {
+        "reference_qp": 0.45419130967944044,
+        "reference_qpqo": 0.4246026203539766
+      },
+      "polar_zero_mdp_qmu_gaussian": {
+        "reference_qp": 0.4544693553252081,
+        "reference_qpqo": 0.42482072162241924
+      },
+      "polar_zero_mdp_qmu_point": {
+        "reference_qp": 0.19562815685133153,
+        "reference_qpqo": 0.1536445575384985
+      },
+      "polar_zero_point": {
+        "reference_qp": 0.19332799767597142,
+        "reference_qpqo": 0.15093643842557938
+      }
+    }
+  },
+  "passed": false,
+  "preregistration_sha256": "529dcd9145059c0bc97c71d20969355c850d85a1b05666499fb5acfa1fb81abc",
+  "primary_candidate": "polar_zero_mdp_qmu_gaussian",
+  "projection_conditioning": {
+    "maximum_constraint_condition_number": 175.76645464041,
+    "maximum_constraint_error": 1.892930256985892e-14,
+    "maximum_gram_condition_number": 43244545522.6678
+  },
+  "record_count": 60
+}

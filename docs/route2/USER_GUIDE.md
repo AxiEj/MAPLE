@@ -11,16 +11,37 @@ smoothharmonicgalerkin-electrostatic-v1
 
 It exposes `E=true` and `F=true` through
 `MACE_MDPPolarHybridSmoothHarmonicPES.evaluate()`. Its force is the
-runtime-guarded fourth-order Richardson gradient of the same registered
-electrostatic scalar. `H/V/M` remain false, and every other conservative-vNext
+matrix-free implicit-adjoint total derivative of the same registered
+electrostatic scalar; the re-solved fourth-order Richardson path remains a
+diagnostic oracle. `H/V/M` remain false, and every other conservative-vNext
 profile remains disabled.
 
-This is not yet a stable general MAPLE calculator feature. It is restricted to
+It is now reachable through MAPLE's normal ASE calculator boundary under the
+explicit experimental model name `macemdppolarhybrid`:
+
+```python
+from maple.function.calculator.set_calculator import SetCalculator
+
+calc = SetCalculator(
+    device="cuda",
+    model="macemdppolarhybrid",
+    output="maple.out",
+    atoms=atoms,
+).set_calculator()
+atoms.calc = calc
+energy_eV = atoms.get_potential_energy()
+forces_eV_per_A = atoms.get_forces()
+```
+
+This is not yet a stable general MAPLE workflow feature. It is restricted to
 the frozen checkpoint/adaptor identity on `float64` CUDA and to neutral-singlet
-conductor-limit electrostatics with SMD-water Coulomb radii;
-chemical accuracy, complete solvation free energy, finite-dielectric solvent
-transfer, nonpolar terms, analytic force, OPT/FREQ/MD, and Tier V are not
-admitted. See
+conductor-limit electrostatics with SMD-water Coulomb radii. Chemical accuracy,
+complete solvation free energy, finite-dielectric solvent transfer, nonpolar
+terms, H/V, FREQ/MD, and Tier V are not admitted. Normal MAPLE
+SP and first-order `LBFGS`/`SD`/`SDCG`/`CG` OPT are enabled as experimental E/F
+workflows; RFO and every H/TS/IRC/MD/scan path are rejected. The calculator
+also rejects Hessian, stress, and any second-solvent request rather than
+silently returning an unsupported result. See
 [HYBRID_HARMONIC_EXPERIMENTAL.md](HYBRID_HARMONIC_EXPERIMENTAL.md).
 
 The older radial-GTO water path remains an internal validation candidate and is
@@ -36,6 +57,109 @@ box, and public workflow gates are still open.
 The stable public legacy Route-2 inputs remain experimental energy-only paths
 with their historical contracts. They must not be interpreted as the vNext
 same-scalar PES described here.
+
+## Experimental named-solvent hybrid daily surface
+
+The separated pyddx-ddPCM plus stock SMD-CDS scalar is now reachable through
+the explicit model name `macemdppolarhybridddx`:
+
+```text
+#model=macemdppolarhybridddx(solvent=water,hessian=numerical)
+#device=cuda
+#sp
+```
+
+The model owns its continuum and solvent ledger, so this input deliberately
+does **not** add a separate `#solv(...)` directive.  Other registered solvents
+are selected with the model-local `solvent=` option, for example
+`solvent=ethanol`.
+
+```python
+calc = SetCalculator(
+    device="cuda",
+    model="macemdppolarhybridddx",
+    solvent="water",
+    model_options={"hessian": "numerical"},
+    output="maple.out",
+    atoms=atoms,
+).set_calculator()
+atoms.calc = calc
+
+energy_eV = atoms.get_potential_energy()
+forces_eV_per_A = atoms.get_forces()
+hessian_eV_per_A2 = calc.get_hessian(atoms)
+molecular_virial_eV = calc.get_molecular_virial(atoms)
+```
+
+MAPLE SP and first-order `LBFGS`/`SD`/`SDCG`/`CG` OPT are enabled for this
+model; H and the molecular virial are direct programmatic calls.  The
+MACE-POLAR graph runs on CUDA; the frozen
+MACE-MDP coefficient adapter intentionally remains CPU/float64 because that is
+its audited inference identity.  The calculator owns both ddX and the solvent
+term, so `implicit=none` is mandatory and prevents accidental double counting.
+
+This is an availability decision, not an accuracy admission. Its frozen
+505-development result is `1.696313 kcal/mol` MAE with a `14.904481 kcal/mol`
+maximum absolute error. The Hessian is a Richardson derivative of the total
+same-scalar analytic force, but the internal PySCF-SMD surface topology is not
+observable. Its backend uses the explicit
+`observed-components-only-experimental-v1` policy; H diagnostics and FREQ output
+report the actual steps, error estimates, `partial-experimental` guard status,
+and unobservable component list. Up to six topology-preserving step halvings
+are allowed without relaxing error or antisymmetry bounds. Experimental `FREQ` now
+selects vibrational-only output for this calculator. It does not compute
+gas-phase translational/rotational thermochemistry or a thermochemical Gibbs
+correction. Explicit requests for gas thermochemistry or hiding small
+imaginary frequencies are rejected. The same guarded numerical Hessian is
+used; an error or topology failure is not silently repaired.
+
+Use these job headers with the `macemdppolarhybridddx` model header above:
+
+```text
+#sp
+#opt(method=lbfgs)
+#freq(method=mw,thermochemistry=none)
+```
+
+Run each job as usual; FREQ should follow a converged optimization. Small
+near-zero frequencies are numerically uncertain, not proof of a saddle.
+The `1.5 kcal/mol` accuracy target does not prevent these experimental jobs.
+
+For atom-order-matched endpoints optimized under the same model and solvent:
+
+```text
+#ts(method=neb)
+#ts(method=neb,refine=cineb)
+```
+
+The second form enables climbing-image refinement. These E/F-only paths do
+not call a Hessian, HVP, or automatic frequency analysis. Their highest-energy
+or climbing images are **TS candidates**, not certified first-order saddles.
+Path images must share the same content-bound PES identity. A max-iteration
+termination is not convergence. Chemical barrier accuracy requires independent
+reference evidence, beyond a converged numerical path.
+
+Both endpoints must satisfy maximum/RMS Cartesian force-component limits of
+`1.0e-3` / `5.0e-4 Hartree/Angstrom`. Caller settings can tighten, not loosen,
+these hybrid limits. Use converged endpoint files or request
+`#ts(method=neb,initial_opt=true)`; failed endpoint optimization does not proceed
+to the hybrid path search.
+
+Periodic stress, strict Tier V, RFO/PRFO, `refine=nebts`, Dimer, IRC/MD,
+charged/open-shell chemistry, solution-phase thermochemistry, and production
+capability flags remain closed. The harmonic `macemdppolarhybrid` profile is
+unchanged by this separate ddX availability extension.
+
+In the Route-2 `E/F/H/V/M` notation, `V` means a strict common variational
+functional. It is not an abbreviation for virial. The nonperiodic molecular
+virial above is callable now; strict `V` remains false for the unchanged
+MACE-MDP + MACE-POLAR checkpoint pair.
+
+This daily surface is also distinct from the running canonical-ADT accuracy
+candidate.  Canonical ADT currently has E and fixed-geometry response
+derivatives only; its complete moving-geometry coordinate VJP is not yet
+implemented, so ADT results cannot silently replace this calculator's force or
+Hessian.
 
 ## Pure MACE-POLAR frozen-source developer API
 
@@ -187,9 +311,11 @@ The following vNext requests are intentionally unsupported today:
 
 ```text
 general stable-calculator conservative-force single point
-solution-phase OPT
-NEB/CINEB, PRFO, Dimer, TS, IRC
-stable-workflow numerical FREQ or HVP
+solution-phase OPT outside the explicit experimental
+  macemdppolarhybrid/macemdppolarhybridddx first-order lane
+NEB/CINEB outside the explicit macemdppolarhybridddx experimental lane
+PRFO, Dimer, NEBTS, IRC
+production-admitted numerical FREQ or HVP
 MD
 fixed-topology SMD-derived CDS
 multi-solvent vNext profiles

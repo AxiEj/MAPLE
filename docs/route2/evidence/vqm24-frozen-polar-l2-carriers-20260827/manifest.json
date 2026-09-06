@@ -1,0 +1,274 @@
+{
+  "artifact": "route2-vqm24-frozen-polar-l2-carrier-batch-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "frozen_zero_field_polar_geometry_carriers_generated": true,
+    "model_accuracy_measured": false,
+    "original_polar_source_or_response_used": false,
+    "pcm_or_cavity_used": false,
+    "qm_observable_read": false
+  },
+  "created_utc": "2026-08-27T02:13:49.132995+00:00",
+  "feature_contract": {
+    "hidden_irreps_per_layer": "512x0e+512x1o",
+    "l2_construction": "STF(v tensor v)",
+    "layer_count": 2,
+    "pca_target_used": false,
+    "raw_l1_multiplicity": 1024,
+    "raw_real_l1_order": "y,z,x",
+    "retained_l1_channels": 2,
+    "stored_vector_order": "x,y,z",
+    "zero_field_only": true
+  },
+  "records": [
+    {
+      "atom_count": 10,
+      "carrier_sha256": "211681144ac4e1596b57ed6b075ac8fbcbc62dbf9d424d2e86168cd2cc4745a6",
+      "npz_sha256": "5c4374915046028e9ce4dc5671b8555cc159b3d2e0db32a1060ae5df2014214d",
+      "record_id": "base-hcno-135247-970f059c1f95",
+      "selection_record_sha256": "970f059c1f95df68ab562190b88541b48bec61d4c94fd273a3dee16268fd86fd"
+    },
+    {
+      "atom_count": 10,
+      "carrier_sha256": "c51aec6c06634d811892ff25d5fc7e7fa0cd9dbdf90bdfe0719edeaabbe41f42",
+      "npz_sha256": "1f4240acf3b3a920e514bf069bc1ad2a7efd28664d7b4010485c1d5c9798246d",
+      "record_id": "base-hcno-156765-3c8bc817c95e",
+      "selection_record_sha256": "3c8bc817c95e2292beb3f7e33a5ca9124b8e0d4a205120c26d07ac3b7e590a44"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "8d874893a8c3c2dccf030c62c2cec89971a8f9487e6e0707333277a984647db6",
+      "npz_sha256": "feafa869094e6cbd8e09b0a7d2a0f10a8efd590ab0787c5afdb574c483c3ef39",
+      "record_id": "base-hcno-162863-745ab5d78c8b",
+      "selection_record_sha256": "745ab5d78c8bb0911db7dd3925d7d98c6defc19412654ddca9745afd4ff7d79b"
+    },
+    {
+      "atom_count": 6,
+      "carrier_sha256": "f9d0602da72bd015daf45e690ca845e844b5200d783c8e71189282f7f2c8025c",
+      "npz_sha256": "a717d726103ab636cba5878c25a46eb74cf781bb174ef99cf7b60798d9c55ad2",
+      "record_id": "base-hcno-208608-7e6419f2ee92",
+      "selection_record_sha256": "7e6419f2ee92ddeb473cf58eb1675ef92b8298c6e3355cc9fa914ca1863abfd5"
+    },
+    {
+      "atom_count": 8,
+      "carrier_sha256": "788de54faf24bc84b0aeb6df36c96f396b069f8f501856c8bfce056959b6d6f5",
+      "npz_sha256": "07e3ac6299ea3ec81fbe4f57d38387716134d5a271827572cdf2527936ee1f1f",
+      "record_id": "base-hcno-229457-b412c4e75aed",
+      "selection_record_sha256": "b412c4e75aedda1dac83ce4c498c8fd73797531e056b8213421a65719ee384d9"
+    },
+    {
+      "atom_count": 13,
+      "carrier_sha256": "b8b586a50eb25154a156dc2e1d4599a71687b0624ed6dadf216108f7b1c1304e",
+      "npz_sha256": "10e5c14277b0e02eeedc4bbffc6301227c6a9e00f6d31f4044ae8d5c5652ef63",
+      "record_id": "base-hcno-399849-fa20b6e144ad",
+      "selection_record_sha256": "fa20b6e144ad2e4f0d79bf95de902efb424e8d49809b2756b97f514bc5f24bef"
+    },
+    {
+      "atom_count": 10,
+      "carrier_sha256": "f6995b283a0fca5e2e16aacbdc0d9a95c7a0c4671019f73b01c4fce567d8e171",
+      "npz_sha256": "2ef6ab6f4a5ee17d2eb7c1aa8e46005b4dd7b05693a950b64b8a1adc37708b50",
+      "record_id": "base-hcno-404508-6cb9b5d441de",
+      "selection_record_sha256": "6cb9b5d441de514008b986d2e160f906a3f90521617217a128b92bc22de87f5e"
+    },
+    {
+      "atom_count": 12,
+      "carrier_sha256": "1076562838febd2ca36799a8fe4ccd7a15687d47871259426339fbf5ceddce44",
+      "npz_sha256": "d1fd91859fb3d8acf92cd09aa1761c3bb93487e1ba0ed23ba3bc963bbe3761b8",
+      "record_id": "base-hcno-432908-c1096072c51b",
+      "selection_record_sha256": "c1096072c51bc6def3e63c2ea20fa18acb0d8a9281714573fe383b6edd09abe4"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "368686918c6b5d78bf7d7a1719e14dffdf27623d864fca88de993b787d7aa0ae",
+      "npz_sha256": "f733ce2e0c0cf01971fc594e92fe704e3556961a18d39105a83f2ed311914b52",
+      "record_id": "base-hcno-436944-1c3caaef7cd3",
+      "selection_record_sha256": "1c3caaef7cd3392b67d4b8b8ec1e84a9ae39c6c2213e869b250e8b57583b6d90"
+    },
+    {
+      "atom_count": 7,
+      "carrier_sha256": "e3ee81a7b4a63504e12ea67c8a5385af15345d5d44522e744f2d0f6da38852e9",
+      "npz_sha256": "cb7313d4a9a29266c9666d38c4f007edd16e24fac5eceedfdf288470f8f3c01c",
+      "record_id": "base-hcno-440770-f59ae1366672",
+      "selection_record_sha256": "f59ae1366672f5434cf08f68b4d52bbdbeddb809d8f33e45bb3743c7b509d60c"
+    },
+    {
+      "atom_count": 11,
+      "carrier_sha256": "ebe822060e9445b4509563cdf3d711f1b26b9b745ce999b48bc704cd8caf700f",
+      "npz_sha256": "fd46e0a03d3f68f948c0f4a4382ad38d2b1372469075e178862221a0fc4a5f4a",
+      "record_id": "base-hcno-460236-0c750047a5e1",
+      "selection_record_sha256": "0c750047a5e1d79f448d409199141755f6a64b4d35738e7a797311a7ac630eec"
+    },
+    {
+      "atom_count": 12,
+      "carrier_sha256": "18cac6c69e910ad9f5692c981398445ff3b8af80b183f3f4db497437af967b4d",
+      "npz_sha256": "fa935d6da40ded1c9d26d947574f03497b9b70472806d9ef6358640dfadac8d1",
+      "record_id": "base-hcno-481244-549dfd678c85",
+      "selection_record_sha256": "549dfd678c854f033529dc0a5ec0bba0e093178bebb6e9570f2a1d510b81bce4"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "4fdb223a1edb3a7df7099a1fe777bf330203ccfb696a986d012a5c5b9abe76f3",
+      "npz_sha256": "90ae36f978b37ab4c5fdd4bf3eaf8c78f5e8c4e02e28b1819d1bf7e1cb3a7f3a",
+      "record_id": "bromine-101221-5abef0a88d16",
+      "selection_record_sha256": "5abef0a88d160c5745e94e7ae6e4a61db94c7a3ea74c33d99afb87fadee8bf64"
+    },
+    {
+      "atom_count": 8,
+      "carrier_sha256": "543cfbbff4f365b70ebef7bb5a8bb4c467902d6ed140f2f44065d36a5ee37dc3",
+      "npz_sha256": "59f7a73eda83e0ef76bf8f4b5b66d1d9846b107976d31d7efde6f8b90a45d146",
+      "record_id": "bromine-10426-6bb8a046ac22",
+      "selection_record_sha256": "6bb8a046ac22e3d3d0c702d3915f28559a6031f13428d385bd032bb65ab978db"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "ac64b81a543c0b02061c6889793b41e4090403922833b5da68afd78dbb14825a",
+      "npz_sha256": "f5816ee26c32cd589ec2529d8e41d140836a17e70660152ee97e74efa9eeea72",
+      "record_id": "bromine-447833-84c7dcaffea3",
+      "selection_record_sha256": "84c7dcaffea3d665200f3eadeaf128acfbd72925df1bd26764644aff7b0d8231"
+    },
+    {
+      "atom_count": 6,
+      "carrier_sha256": "b4ed2754190698c6d0c52383f6486e9fc7c1f3bc8e266e8ca2637db694bf5692",
+      "npz_sha256": "8bc95a7274810b10269409ab4722e9bc2031ce95dbabf647efaecd737e641051",
+      "record_id": "bromine-63727-71eb4b0867c9",
+      "selection_record_sha256": "71eb4b0867c97cbabfd963f4990a54696f7448eb669674d2a9065d275539d94f"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "2c590497b0a6218190121300440fb4a60917906b8ede2b8af3451925e3a60c31",
+      "npz_sha256": "1c89ca36bdd8ba171fd09c56e84941a6b02f64100ad444f4a1a9caa0a3446fa8",
+      "record_id": "chlorine-141648-a14bf52170de",
+      "selection_record_sha256": "a14bf52170dea71bd865316ce52048bbd65fcf33bd5a789e8fe8baa718348602"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "b53fa85b18aa945c3e99def272745e280c207c9ed79695940a04a452bfffea0a",
+      "npz_sha256": "a2f22f3579d74dd731bcbe322f968b83ac7d81a6226c5b33055dd1a8969adfb2",
+      "record_id": "chlorine-610177-ac8ad6afa4f7",
+      "selection_record_sha256": "ac8ad6afa4f740de2ae08cd09ee5b6710d75b194ad22aed0a9663d11dea92773"
+    },
+    {
+      "atom_count": 7,
+      "carrier_sha256": "23aae131501eb92e6c458e51c9e1010917b99c67ac9f44a21a8ff2755a87aa20",
+      "npz_sha256": "0042caad9ce173810a8faa27c2a53ccf4e2264627f5ef040f1eacfd8ea595ef3",
+      "record_id": "chlorine-636384-976484d18c73",
+      "selection_record_sha256": "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "a86e5820c50bcb99f65703bb49065f9926a88e3bc37022f739f31d5fa4d88a15",
+      "npz_sha256": "0df688d3cb261350bc22a5642b16a7920a37eb3bc7aab214360e1613c0be20d4",
+      "record_id": "chlorine-784-a7040c282ac8",
+      "selection_record_sha256": "a7040c282ac8e9c04889c1df017919eda981ace596b50be46caa82a3abe0a6c3"
+    },
+    {
+      "atom_count": 5,
+      "carrier_sha256": "6aa8414e01dcf0412b9e4bab432f494f449f39495d33be0bfa5bcc7ac1425211",
+      "npz_sha256": "50dfa45fa815ee42f77b540baae626e0287023ec1822381714a0999c24aa5e35",
+      "record_id": "fluorine-139037-710a4fc89944",
+      "selection_record_sha256": "710a4fc899445ea32e9ee299a28c37717816569e6280081289896763623f250c"
+    },
+    {
+      "atom_count": 10,
+      "carrier_sha256": "757015096ca9bda8bed3b92d0eeb3d7159f40c69a2983540f74ee4fcd6a9aca9",
+      "npz_sha256": "54713ea58e6dc2e030f7beeb582feb61bc014e864daf2cb64bbdf1bc2b79418b",
+      "record_id": "fluorine-278363-5c9234fb4b84",
+      "selection_record_sha256": "5c9234fb4b842cbefccd9df2232bb86ee2b1a1c7eb1fea51fc7b942918b173f7"
+    },
+    {
+      "atom_count": 11,
+      "carrier_sha256": "a2319a2f8b5ba9cd0f3cd1bd292cf16e96e99d181f7f2cc97fd1b007857ac779",
+      "npz_sha256": "b01c7b1f7a7db93beebeed6066917fa1afbc734de57bc5e2146ef53c75abe6b1",
+      "record_id": "fluorine-412002-081c6cc3a31b",
+      "selection_record_sha256": "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6"
+    },
+    {
+      "atom_count": 10,
+      "carrier_sha256": "65d7debcd7ba4fef4152e50166e71c4c60b09c14705552010e47e83da3eb6f6a",
+      "npz_sha256": "71eae8eb8b458186f0e1221ccc6e132e521152f2d987d93eb6b976d8e0acf1c0",
+      "record_id": "fluorine-469465-70c76c720826",
+      "selection_record_sha256": "70c76c72082658882dfba613043632d0f47e934267aa33c8edcc3a6786586bb3"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "33eaea257492a57ba6e69c0528af514ef4049e850809be169753919cbf2d792b",
+      "npz_sha256": "1059493aafa659c6974f88641b9c5a02683904b1ee99055f924b382278b013a3",
+      "record_id": "phosphorus-351029-1256947e5905",
+      "selection_record_sha256": "1256947e5905faa4818050cfa469e5d337d08c128377563d6fff979843981661"
+    },
+    {
+      "atom_count": 8,
+      "carrier_sha256": "23d90d4c361235b9a8fce22008fa8383f1ec08ec67697a9c4c93c075d52e31a6",
+      "npz_sha256": "cfad5cf24bccde89b715cbb23de0c8d417de4240c30987ef115b77d793468e1e",
+      "record_id": "phosphorus-598182-ea0696054cba",
+      "selection_record_sha256": "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6"
+    },
+    {
+      "atom_count": 10,
+      "carrier_sha256": "05ab7c947cecd8587e6ae2b7ab86e82f36d02069508931fc2dcb2c70beb34227",
+      "npz_sha256": "2f10beb75a6f9ac71324a9b2b41da4a2df5ea08e8f74f44da64c1727466e8991",
+      "record_id": "phosphorus-66144-d15ba6ea626a",
+      "selection_record_sha256": "d15ba6ea626a099aef06c30eba949ab6c4afab6fdd1381bfa569f1a66034108a"
+    },
+    {
+      "atom_count": 7,
+      "carrier_sha256": "f3fe0488217b3a02d660ae33ea3096db51aaf25ed8589c270f1deda0ff04918f",
+      "npz_sha256": "ed33505596d0d8326a3ddcbf6989324326f4b311afe6c28b83f906c74c3140c2",
+      "record_id": "phosphorus-696398-7400c7789c7c",
+      "selection_record_sha256": "7400c7789c7cddf2a428423122920f006c0f88cbdc25efcf581f9590f82f92a4"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "ccac30a9fe917dc9a2f2973e3a01da96a0267e9908b4339550ee0f907bc74ded",
+      "npz_sha256": "9b568ee17a94d68954cd7faf8a545298785abc076885963f442e34a6764c4264",
+      "record_id": "sulfur-122602-190c2fbc8b99",
+      "selection_record_sha256": "190c2fbc8b9986ba63860d36f411d67bfee87f21aeb177776d9bcf2d681b3b18"
+    },
+    {
+      "atom_count": 9,
+      "carrier_sha256": "393ef1135218e36f74220678d9b965cbd2c20e47a921f6f169c3b5b3ae0f1104",
+      "npz_sha256": "20dd821c366c3049c1c8c291438d0ab10b8bf40a86cd499fc92c55dfc2f60845",
+      "record_id": "sulfur-221028-692cd68117c4",
+      "selection_record_sha256": "692cd68117c45da0ace8ee3c3f701101c093109b560674c637207ee5b3e6112b"
+    },
+    {
+      "atom_count": 11,
+      "carrier_sha256": "08440e8a0e32dc7ebcdb61d7b1bd45311789e9a569a18a9a33feb04330f6d924",
+      "npz_sha256": "6315eec1abf19536dd63de608e3af6316f23e2c81be083548aa1dbc5d8d8da7c",
+      "record_id": "sulfur-379175-938cde712eac",
+      "selection_record_sha256": "938cde712eac59de5400446c18c4cd6e995f2fd4f148c74ae7aca57c31cab3ed"
+    },
+    {
+      "atom_count": 8,
+      "carrier_sha256": "b357b3e154c98e1461d43bbe170e6f4d1d6dba088073bc53fe3a74121402cbf2",
+      "npz_sha256": "deb402bca64ff0899cc5933182e73a440f31bf0a3963081f3352c93ec20b06f1",
+      "record_id": "sulfur-389495-2e00c04d8f40",
+      "selection_record_sha256": "2e00c04d8f404aba122f77452f5fc364cd6581bc4ac20c0c99394d25adfeb938"
+    }
+  ],
+  "result_sha256": "5999cca1e54cdcfe5338798d29b510b4f4bb9170a9df61d512003ceaac7a598e",
+  "runtime": {
+    "device": "cuda",
+    "dtype": "float64",
+    "elapsed_seconds": 10.43343813100364,
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "source": {
+    "adapter_configuration_sha256": "5be857eb61c8e16d203d630d297fa5e97cb4681cf31ebb8d3e32379b29e38d5a",
+    "checkpoint_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "pca_npz_sha256": "18adb64928a33454d4c9e998177240f02eabad8640bae46aa37b1284299d09db",
+    "preregistration_file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "preregistration_path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e",
+    "runner_path": "tools/route2_release/extract_vqm24_frozen_polar_l2_carriers.py",
+    "runner_sha256": "7b0750b57c375f4d61156bb802a54e6f13c0717d12f4b04baab050b18d183a8e"
+  },
+  "status": "complete-frozen-polar-l2-carriers"
+}

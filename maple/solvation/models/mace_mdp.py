@@ -1,11 +1,15 @@
 """Frozen MACE-MDP moment coefficients for an independent polarization model.
 
-MACE-MDP predicts permanent atomic charges/dipoles and a molecular
-polarizability, but it does not expose a field-conditioned scalar energy.
-This module therefore does **not** label the checkpoint variational and does
-not admit any Route-2 capability.  It only provides an immutable,
-content-addressed coefficient state that can be screened as the permanent and
-linear-response input of a separately declared quadratic polarization scalar.
+MACE-MDP predicts molecular dipole and polarizability observables as sums of
+learned atomwise charge-like, local-dipole, and polarizability contributions.
+Those atomwise contributions reproduce the public molecular observables, but
+they are not thereby independently supervised physical atomic multipoles or a
+quantitative PCM source.  The checkpoint also does not expose a
+field-conditioned scalar energy.  This module therefore does **not** label the
+checkpoint variational, source-valid, or Route-2 admitted.  It only provides an
+immutable, content-addressed coefficient state whose atomwise partition and
+linear response must pass independent source/MEP gates before any continuum
+use can acquire a physical accuracy claim.
 
 Torch and MACE are imported only by the runtime builder so dependency-light
 Route-2 contract imports remain clean.
@@ -376,7 +380,9 @@ class MACE_MDPMomentAdapter:
                 "checkpoint_sha256": checkpoint,
                 "runtime_sources": [list(item) for item in normalized_sources],
                 "coefficient_semantics": (
-                    "permanent atomic q/p plus molecular-alpha atom partition"
+                    "latent atomwise charge-like/local-dipole contributions "
+                    "closing the public molecular dipole plus a molecular-alpha "
+                    "atom partition; not independently source supervised"
                 ),
                 "energy_role": "coefficients-only-no-field-energy",
             }

@@ -1,0 +1,158 @@
+{
+  "artifact": "route2-vqm24-localized-field-qm-record-level3-result-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_training_datum_generated": true,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-23T23:58:21.632701+00:00",
+  "files": {
+    "gas_checkpoint": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/gas.chk",
+      "sha256": "654285bf8ba5a9badf4b565ea01a2e3526e5a6a3bf3ebda835d5bcb54fc8ce27"
+    },
+    "gas_json": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/gas.json",
+      "sha256": "0ba17c52386997f0b51c3e9eb92ce58dba80fbf3a66dff90538fcd58a30f7126"
+    },
+    "gas_log": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/gas-level3.run.log",
+      "sha256": "744477b5903e0b7a663f1e1a344fb6ebaf5a3196f44f161380a6fcb54850bb1a"
+    },
+    "preregistration": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/preregistration.json",
+      "sha256": "eaaebd1cbc9fe3552ea50081058bb5ae48fb2f71ddc315e9f9626fb0dd06ef87"
+    },
+    "response_json": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/qm-response.json",
+      "sha256": "7c44d85049eddb9ce5a25894ee9e6be6b6681b9a7a5f58d79af2a5b02a16a592"
+    },
+    "response_log": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/response-level3.run.log",
+      "sha256": "85486e201fc24c7832b0deaca8f4a25d65397384e85da1303af8a3bd01b32712"
+    },
+    "response_npz": {
+      "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/qm-response.npz",
+      "sha256": "72c3f4be9c40d9840d9f5ee7187b5809dc5d5bf9c9a02c6bbf10b2cf983843d0"
+    }
+  },
+  "gas": {
+    "density_binding_residual_inf": 1.734723475976807e-18,
+    "elapsed_seconds": 312.94180899300045,
+    "energy_hartree": -1580.7883264402171,
+    "nonlocal_grid_point_count": 119808,
+    "scf_cycles": 16
+  },
+  "gates": {
+    "all_energy_curvatures_negative": true,
+    "all_scf_converged": true,
+    "dipole_step_consistency": true,
+    "electron_count": true,
+    "gas_density_binding": true,
+    "mep_step_consistency": true
+  },
+  "response": {
+    "dipole_step_relative_difference": 0.00027870660461010155,
+    "elapsed_seconds": 2736.562542661999,
+    "energy_diagnostics": [
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.035642086812812425,
+            "central_slope_hartree_per_e": -7.496117272012271,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.03557033778633922,
+            "central_slope_hartree_per_e": -7.496117272808078,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0020130422455345563,
+        "mode_index": 0,
+        "slope_step_relative_difference": 1.0616255681586739e-10
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.04952198651153595,
+            "central_slope_hartree_per_e": -8.758706483907494,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.04944149623042904,
+            "central_slope_hartree_per_e": -8.758706487697054,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0016253443526172198,
+        "mode_index": 1,
+        "slope_step_relative_difference": 4.326621368796035e-10
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.03560166482606696,
+            "central_slope_hartree_per_e": -9.9351469574079,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.035409357224125415,
+            "central_slope_hartree_per_e": -9.935146867633193,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0054016463241557,
+        "mode_index": 2,
+        "slope_step_relative_difference": 9.036072356502328e-09
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.04133148144723641,
+            "central_slope_hartree_per_e": -9.719722836128616,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.04165758582530543,
+            "central_slope_hartree_per_e": -9.719722645741058,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.007828211155503998,
+        "mode_index": 3,
+        "slope_step_relative_difference": 1.9587755882870797e-08
+      }
+    ],
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "maximum_electron_count_error_e": 9.947598300641403e-14,
+    "maximum_scf_cycles": 8,
+    "mep_step_relative_difference": 0.00030040435133064957,
+    "minimum_scf_cycles": 7,
+    "mode_count": 4,
+    "surface_point_count": 76
+  },
+  "result_sha256": "192000a985d7419f3e97904aa889c19631dad4a04a575a9af66ff5f16c3ee2e0",
+  "schema_version": 1,
+  "selection": {
+    "chemical_formula_hill": "H3FP2S2",
+    "dataset_index": 598182,
+    "record_sha256": "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6",
+    "split": "train",
+    "stratum": "phosphorus"
+  },
+  "source": {
+    "original_preregistration_file_sha256": "eaaebd1cbc9fe3552ea50081058bb5ae48fb2f71ddc315e9f9626fb0dd06ef87",
+    "original_preregistration_path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-record-phosphorus-level3-v1.json",
+    "preregistration_sha256": "6910a173640c217a8f87b24c4a6faa6e1b54a3b752c4cc6f88401d04af11e4c0",
+    "sealer_path": "tools/route2_release/seal_vqm24_nonuniform_qm_record.py",
+    "sealer_sha256": "c1b8dfe29ec4ebba98cdee30992459ce9a1b53c38a0ad06ca8745e92e426c8fe"
+  },
+  "status": "pass-numerical-gate-a-record"
+}

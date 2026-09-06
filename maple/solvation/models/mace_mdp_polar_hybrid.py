@@ -32,6 +32,7 @@ from maple.solvation.coupling.state_equation import geometry_sha256
 
 from .base import atom_count
 from .mace_mdp import MACE_MDPMomentAdapter
+from .mace_mdp_mbis import MACE_MDPMBISSourceAdapter
 from .mace_polar_separated import MACEPolarOriginalSourceNativeFieldAdapter
 
 MACE_MDP_PERMANENT_SOURCE_PROVIDER_ID = (
@@ -44,6 +45,18 @@ MACE_MDP_POLAR_HYBRID_PROFILE_ID = (
     "route2-research-mace-mdp-point-permanent-macepolar-gto-induced-v1"
 )
 MACE_MDP_POLAR_HYBRID_CONTRACT = "mace-mdp-permanent-plus-mace-polar-field-increment-v1"
+MACE_MDP_POLAR_ARITHMETIC_TANGENT_HYBRID_PROVIDER_ID = (
+    "maple.route2.model.mace-mdp-permanent-mace-polar-arithmetic-tangent.impl.v1"
+)
+MACE_MDP_POLAR_ARITHMETIC_TANGENT_HYBRID_PROFILE_ID = (
+    "route2-research-mace-mdp-point-permanent-macepolar-arithmetic-tangent-v1"
+)
+MACE_MDP_MBIS_POLAR_HYBRID_PROVIDER_ID = (
+    "maple.route2.model.mace-mdp-mbis-permanent-mace-polar-induced.impl.v1"
+)
+MACE_MDP_MBIS_POLAR_HYBRID_PROFILE_ID = (
+    "route2-research-mace-mdp-mbis-point-permanent-macepolar-gto-induced-v1"
+)
 
 
 @runtime_checkable
@@ -196,6 +209,12 @@ class MACE_MDPPermanentSourceAdapter:
         self._base.configuration_sha256()
         return self._configuration_sha256
 
+    @property
+    def mdp_configuration_sha256(self) -> str:
+        """Return the frozen MDP checkpoint/runtime identity behind this view."""
+
+        return self._base.configuration_sha256()
+
     def evaluate_source(self, geometry: object) -> np.ndarray:
         self.configuration_sha256()
         return self.source_space.validate(
@@ -240,7 +259,6 @@ class PermanentAnchoredInducedSourceModel:
     source_space = ATOMIC_L1_SOURCE_SPACE
     capabilities = ()
     variational_functional_admitted = False
-    coordinate_derivative_available = True
     permanent_source_kernel = "exterior point monopoles and dipoles"
     induced_source_kernel = "checkpoint 1.5-A normalized Gaussian multipoles"
 
@@ -336,6 +354,26 @@ class PermanentAnchoredInducedSourceModel:
     @property
     def long_range_evaluator_profile(self) -> str:
         return str(self._response.long_range_evaluator_profile)
+
+    @property
+    def coordinate_derivative_available(self) -> bool:
+        """Whether the complete induced-response coordinate VJP is available.
+
+        Older structural test doubles predate this explicit capability bit and
+        are treated according to their callable ``coordinate_vjp`` contract.
+        Production wrappers must declare the bit; in particular, a
+        geometry-dependent susceptibility chart remains fail-closed until its
+        full coordinate derivative is implemented.
+        """
+
+        declared = getattr(self._response, "coordinate_derivative_available", None)
+        if declared is None:
+            return callable(getattr(self._response, "coordinate_vjp", None))
+        if type(declared) is not bool:
+            raise RuntimeError(
+                "responsive provider coordinate-derivative capability is not boolean."
+            )
+        return declared
 
     def _current_configuration(self) -> str:
         return canonical_metadata_sha256(
@@ -521,6 +559,11 @@ class PermanentAnchoredInducedSourceModel:
     ) -> np.ndarray:
         """Differentiate ``M(R,u)-M(R,0)`` at fixed native field ``u``."""
 
+        if not self.coordinate_derivative_available:
+            raise NotImplementedError(
+                "responsive provider has no complete coordinate derivative."
+            )
+
         count = self._validate_anchor(geometry, anchor)
         field_values = self.receiver_space.validate(
             field, atom_count=count, name="native receiver field"
@@ -565,9 +608,64 @@ def build_mace_mdp_anchored_mace_polar_hybrid(
     )
 
 
+def build_mace_mdp_arithmetic_tangent_hybrid(
+    *,
+    mdp: MACE_MDPMomentAdapter,
+    response: MACEPolarOriginalSourceNativeFieldAdapter,
+) -> PermanentAnchoredInducedSourceModel:
+    """Build the separately identified zero-training susceptibility candidate.
+
+    The same frozen MACE-MDP adapter supplies both the permanent source and the
+    molecular polarizability used by the response chart.  This construction
+    prevents an accidental cross-checkpoint composition and cannot inherit the
+    original hybrid's accuracy or derivative admission.
+    """
+
+    if not isinstance(mdp, MACE_MDPMomentAdapter):
+        raise TypeError("mdp must be MACE_MDPMomentAdapter.")
+    if not isinstance(response, MACEPolarOriginalSourceNativeFieldAdapter):
+        raise TypeError("response must be MACEPolarOriginalSourceNativeFieldAdapter.")
+    from .mace_mdp_polar_susceptibility import MDPPolarArithmeticTangentResponse
+
+    corrected = MDPPolarArithmeticTangentResponse(mdp=mdp, base=response)
+    return PermanentAnchoredInducedSourceModel(
+        MACE_MDPPermanentSourceAdapter(mdp),
+        corrected,
+        provider_id=MACE_MDP_POLAR_ARITHMETIC_TANGENT_HYBRID_PROVIDER_ID,
+        model_profile_id=MACE_MDP_POLAR_ARITHMETIC_TANGENT_HYBRID_PROFILE_ID,
+    )
+
+
+def build_mace_mdp_mbis_anchored_mace_polar_hybrid(
+    *,
+    permanent: MACE_MDPMBISSourceAdapter,
+    response: MACEPolarOriginalSourceNativeFieldAdapter,
+) -> PermanentAnchoredInducedSourceModel:
+    """Compose the source-supervised permanent head with POLAR increments.
+
+    The returned identity is distinct from the original latent-partition
+    hybrid.  This constructor admits no accuracy or force capability; it only
+    makes the physically motivated successor available to the existing generic
+    separated-source/ddX machinery for subsequent MEP and fixed-source gates.
+    """
+
+    if not isinstance(permanent, MACE_MDPMBISSourceAdapter):
+        raise TypeError("permanent must be MACE_MDPMBISSourceAdapter.")
+    return PermanentAnchoredInducedSourceModel(
+        permanent,
+        response,
+        provider_id=MACE_MDP_MBIS_POLAR_HYBRID_PROVIDER_ID,
+        model_profile_id=MACE_MDP_MBIS_POLAR_HYBRID_PROFILE_ID,
+    )
+
+
 __all__ = [
     "FieldResponsiveAtomicL1SourceProvider",
     "MACE_MDP_PERMANENT_SOURCE_PROVIDER_ID",
+    "MACE_MDP_POLAR_ARITHMETIC_TANGENT_HYBRID_PROFILE_ID",
+    "MACE_MDP_POLAR_ARITHMETIC_TANGENT_HYBRID_PROVIDER_ID",
+    "MACE_MDP_MBIS_POLAR_HYBRID_PROFILE_ID",
+    "MACE_MDP_MBIS_POLAR_HYBRID_PROVIDER_ID",
     "MACE_MDP_POLAR_HYBRID_CONTRACT",
     "MACE_MDP_POLAR_HYBRID_PROFILE_ID",
     "MACE_MDP_POLAR_HYBRID_PROVIDER_ID",
@@ -576,4 +674,6 @@ __all__ = [
     "PermanentAtomicL1SourceProvider",
     "PermanentInducedSourceAnchor",
     "build_mace_mdp_anchored_mace_polar_hybrid",
+    "build_mace_mdp_arithmetic_tangent_hybrid",
+    "build_mace_mdp_mbis_anchored_mace_polar_hybrid",
 ]

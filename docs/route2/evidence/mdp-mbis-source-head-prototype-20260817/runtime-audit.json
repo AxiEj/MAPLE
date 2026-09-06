@@ -1,0 +1,71 @@
+{
+  "artifact": "route2-mdp-mbis-source-runtime-audit-v1",
+  "claim_boundary": {
+    "force_capability_admitted": false,
+    "held_out_molecule_split": true,
+    "hybrid_accuracy_admitted": false,
+    "pcm_energy_evaluated": false,
+    "solvation_targets_read": false,
+    "source_accuracy_admitted": false
+  },
+  "gates": {
+    "constraint_closure": true,
+    "coordinate_vjp": true,
+    "permutation": true,
+    "rotation": true,
+    "translation": true
+  },
+  "identity": {
+    "atom_count": 58,
+    "molecule": "007 VAL",
+    "source_configuration_sha256": "30cfbc88159680d55e0271e0aa071d7a23114a3d0e8a25fbbcabf73ca49cac23",
+    "source_state_sha256": "8a78993406a40de3c5e7c8ebf08f5ec6156cef85e6569dbac5aaa3477b0544e6"
+  },
+  "inputs_sha256": {
+    "audit_script": "35cab1fc6f129963c614f57baaaa169754eba786d0617681c2af1f3608aa8518",
+    "checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "dataset": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e",
+    "runtime_adapter": "06b0037a40b592d76671e853aeaed3ad5680d2f375b580585bb67a8d1d56c55a",
+    "source_head": "ee476dda6d30191fbaa025aa4e857a7687e797af9d1c9ad75ba5552968282d32"
+  },
+  "measurements": {
+    "maximum_permutation_atomic_dipole_error_eangstrom": 6.47051856539349e-16,
+    "maximum_permutation_charge_error_e": 1.1907141939104804e-14,
+    "maximum_rotation_atomic_dipole_error_eangstrom": 1.609823385706477e-15,
+    "maximum_rotation_charge_error_e": 1.8207657603852567e-14,
+    "maximum_rotation_public_dipole_error_eangstrom": 1.5543122344752192e-15,
+    "maximum_translation_atomic_dipole_error_eangstrom": 6.38378239159465e-16,
+    "maximum_translation_charge_error_e": 2.01574867908505e-14,
+    "molecular_dipole_closure_max_error_eangstrom": 1.3877787807814457e-15,
+    "position_vjp_directional_value": -0.9443773621445419,
+    "position_vjp_finite_difference": [
+      {
+        "absolute_error": 2.2322430792698356e-08,
+        "central_difference": -0.9443773398221111,
+        "step_angstrom": 0.0002
+      },
+      {
+        "absolute_error": 5.464804386789979e-09,
+        "central_difference": -0.9443773566797375,
+        "step_angstrom": 0.0001
+      },
+      {
+        "absolute_error": 1.0239122882893525e-09,
+        "central_difference": -0.9443773611206296,
+        "step_angstrom": 5e-05
+      }
+    ],
+    "projection_condition_number": 26.37596558150982,
+    "total_charge_error_e": 2.0816681711721685e-16
+  },
+  "report_sha256": "7d0f398fcebeb926bd1cf5e4fbc105945b6d9cdc156572216cd5e5d04a4d1b18",
+  "runtime": {
+    "cuda": "13.0",
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130"
+  },
+  "wall_seconds": 8.858433248999063
+}

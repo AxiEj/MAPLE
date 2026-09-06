@@ -1,0 +1,12 @@
+{
+  "conclusion": "distinct SO(3)-equivariant decoders preserve Q/mu/alpha but change surface MEP and a nondegenerate continuum scalar",
+  "rotation_covariance_max_abs_error": 1.6653345369377348e-16,
+  "same_molecular_dipole": true,
+  "same_total_charge": true,
+  "same_uniform_field_polarizability": true,
+  "schema_version": 1,
+  "stationary_quadratic_energy_0": -1.1877476951190131,
+  "stationary_quadratic_energy_1": -1.1898695252570182,
+  "stationary_quadratic_energy_difference": -0.002121830138005043,
+  "surface_mep_max_abs_difference": 0.040885985178921114
+}

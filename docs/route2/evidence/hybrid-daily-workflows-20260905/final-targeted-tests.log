@@ -1,0 +1,11 @@
+........................................................................ [ 27%]
+........................................................................ [ 54%]
+........................................................................ [ 81%]
+..................................................                       [100%]
+=============================== warnings summary ===============================
+maple/function/dispatcher/ts/algorithm/neb.py:11
+  /home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/maple/function/dispatcher/ts/algorithm/neb.py:11: DeprecationWarning: lib2to3 package is deprecated and may not be able to parse Python 3.10+
+    from lib2to3.pgen2 import driver
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+266 passed, 1 warning in 18.48s

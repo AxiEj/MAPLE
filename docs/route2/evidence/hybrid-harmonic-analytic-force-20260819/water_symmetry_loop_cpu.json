@@ -1,0 +1,52 @@
+{
+  "center_adjoint_residual_eV": 9.49982428703671e-11,
+  "center_energy_eV": -2080.2295876398484,
+  "center_net_force_norm_eV_per_A": 2.7755575615628914e-17,
+  "closed_loop_abs_work_eV": 2.1359930086608733e-09,
+  "closed_loop_edges": [
+    {
+      "adjoint_residual_eV": 9.516314455023902e-11,
+      "displacement_A": 0.002,
+      "force_component_eV_per_A": -0.49840077433939495,
+      "label": "bottom",
+      "primal_residual_eV": 1.2949996922092637e-14,
+      "work_eV": -0.00099680154867879
+    },
+    {
+      "adjoint_residual_eV": 1.7773559501019148e-13,
+      "displacement_A": 0.002,
+      "force_component_eV_per_A": 0.4433140306059617,
+      "label": "right",
+      "primal_residual_eV": 1.3729037783583106e-14,
+      "work_eV": 0.0008866280612119234
+    },
+    {
+      "adjoint_residual_eV": 9.517695497545415e-11,
+      "displacement_A": -0.002,
+      "force_component_eV_per_A": -0.4929801434997722,
+      "label": "top",
+      "primal_residual_eV": 1.381018577985185e-14,
+      "work_eV": 0.0009859602869995445
+    },
+    {
+      "adjoint_residual_eV": 1.8025953228157638e-13,
+      "displacement_A": -0.002,
+      "force_component_eV_per_A": 0.4378944677628433,
+      "label": "left",
+      "primal_residual_eV": 1.3576203047985074e-14,
+      "work_eV": -0.0008757889355256866
+    }
+  ],
+  "closed_loop_midpoint_work_eV": -2.1359930086608733e-09,
+  "device": "cpu",
+  "elapsed_seconds": 57.39535298299961,
+  "rotated_adjoint_residual_eV": 9.499807001858708e-11,
+  "rotation_energy_abs_error_eV": 2.9654074751306325e-09,
+  "rotation_force_max_abs_error_eV_per_A": 2.2119345355342546e-08,
+  "rotation_force_relative_error": 3.284813962917934e-08,
+  "system": "water",
+  "translated_adjoint_residual_eV": 9.499824277667833e-11,
+  "translation_energy_abs_error_eV": 0.0,
+  "translation_force_max_abs_error_eV_per_A": 1.7111312367035225e-14,
+  "translation_force_relative_error": 2.242733509405559e-14
+}

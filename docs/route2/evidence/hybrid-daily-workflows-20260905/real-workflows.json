@@ -1,0 +1,304 @@
+{
+  "claim": "experimental workflow verification, not chemical accuracy",
+  "stages": {
+    "sp": {
+      "status": "pass",
+      "energy_eV": -2080.066800104359,
+      "forces_eV_per_A": [
+        [
+          0.18185238259805142,
+          0.24376956537715122,
+          -4.959708108706284e-20
+        ],
+        [
+          -0.3966840707038141,
+          0.11854119999160306,
+          -1.5458857317220052e-18
+        ],
+        [
+          0.21483168810576272,
+          -0.3623107653687539,
+          1.316217128745721e-18
+        ]
+      ],
+      "route2": {
+        "profile_id": "route2-experimental-mace-mdp-polar-separated-ddx-smd-daily-v1",
+        "provider_id": "maple.route2.experimental.mace-mdp-polar-separated-ddx-smd.impl.v1",
+        "scalar_contract_id": "mace-mdp-permanent-plus-mace-polar-induced-ddx-plus-solvent-term-v1",
+        "configuration_sha256": "4b9324118945e5edaf50e04617b71b38e9b6e3ae5ab2439f2f075616be720d3e",
+        "state_sha256": "6eb49b279771a02fb6d360290006be68df88740cb9321125ca776bb586522ccb",
+        "electrostatic_root_sha256": "58454034f03f8dc39244e49d79454d45f992e93a34d1081238ead75acf7c848a",
+        "solvent": "water",
+        "topology_observation_coverage": "partial",
+        "unobservable_topology_components": [
+          "pyscf-smd-libsolvent-internal-surface"
+        ],
+        "energy_components_eV": {
+          "vacuum": -2079.861578204463,
+          "ddx_polarization": -0.2683061884045938,
+          "smd_cds": 0.06308428850859095,
+          "solvation_total": -0.20522189989600287
+        },
+        "scientific_status": "experimental-callable-E; conditional-complete-coordinate-derivative-F-molecular-virial-HVP-H; hybrid-full-solvation-accuracy-and-release-admission-pending",
+        "daily_job_capabilities": [
+          "sp",
+          "opt:first-order",
+          "freq:vibrational-only-experimental",
+          "ts:neb-cineb-experimental",
+          "hessian:direct-experimental-richardson",
+          "virial:direct-nonperiodic-molecular"
+        ],
+        "daily_property_availability": {
+          "energy": "experimental",
+          "forces": "experimental-same-scalar-analytic",
+          "hessian": "experimental-richardson",
+          "molecular_virial": "experimental-nonperiodic",
+          "periodic_stress": false,
+          "strict_variational_functional": false,
+          "molecular_dynamics": false
+        },
+        "warnings": [
+          "experimental daily surface; development MAE and tail gates are not production-admitted",
+          "H/FREQ uses an observed-components-only topology policy for the PySCF SMD-CDS term",
+          "FREQ reports vibrations only, not gas-phase or solution-phase thermochemistry; NEB/CINEB returns a TS candidate, not a certified first-order saddle"
+        ],
+        "force_evaluation_sha256": "eaf525502fb3b6e262b3d649c5771423b5ee03f99ff498227266673e251058ff",
+        "force_derivative_kind": "analytic-block-adjoint-plus-solvent-gradient-v1",
+        "adjoint_residual_eV": 1.494159918192773e-11,
+        "molecular_virial_eV": [
+          [
+            -0.4363431537280828,
+            0.20194178681941694,
+            0.0
+          ],
+          [
+            0.2019395476803558,
+            -0.3405721194466288,
+            0.0
+          ],
+          [
+            -1.74744662088057e-18,
+            1.3247473486941598e-18,
+            0.0
+          ]
+        ],
+        "molecular_virial_origin_A": [
+          0.24333333333333332,
+          0.3133333333333333,
+          0.0
+        ],
+        "molecular_virial_evaluation_sha256": "5054231a7e35c103d0eeb5a0e7472b6b90bc1c17337d9570ced479364f66c5f5"
+      },
+      "elapsed_s": 40.6545624169994
+    },
+    "opt": {
+      "status": "pass",
+      "energy_eV": -2080.071083704999,
+      "forces_eV_per_A": [
+        [
+          0.00015670557385379438,
+          0.00014480101823965107,
+          -1.3367600274918393e-17
+        ],
+        [
+          -0.0001852351959643478,
+          7.270408819719937e-05,
+          6.181433755331033e-18
+        ],
+        [
+          2.8529622110770245e-05,
+          -0.00021750510643658502,
+          7.937431510437243e-18
+        ]
+      ],
+      "max_force_eV_per_A": 0.00021750510643658502,
+      "elapsed_s": 220.89364664000004
+    },
+    "freq": {
+      "status": "failed",
+      "type": "FiniteDifferenceTopologyChangeError",
+      "error": "finite-difference displacement changed the continuum topology observable projection; Hessian fails closed for observed components.",
+      "elapsed_s": 40.385952366999845
+    }
+  },
+  "versions": {
+    "torch": "2.12.0+cu130",
+    "mace-torch": "0.3.16",
+    "pyddx": "0.8.0",
+    "pyscf": "2.13.1",
+    "ase": "3.27.0"
+  },
+  "initial_positions_A": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.97,
+      0.0,
+      0.0
+    ],
+    [
+      -0.24,
+      0.94,
+      0.0
+    ]
+  ],
+  "checkpoint_sha256": {
+    "/home/axie/.cache/mace/MACE-MDP.model": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "/home/axie/.cache/mace/MACEPOLAR1Mmodel": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "solvation_source_sha256": {
+    "maple/solvation/__init__.py": "241c94e263b9c8dd3fa013a77dccaf6d5bd4be7890f994c011d7c952b3618bb6",
+    "maple/solvation/api/__init__.py": "3192b02f64b55709c3600f22e82e4bdb9f36a1c113a9538398c36634565e1c8b",
+    "maple/solvation/api/capabilities.py": "1e555a6e23db033091a0da04cde80ba3900adda8d8c7ca0432cb799cf6ff9809",
+    "maple/solvation/api/profiles.py": "ab989bb6628c2d2c8de131840df54a639a2f12df97a576a8ccd35f8b472b8fa4",
+    "maple/solvation/api/provenance.py": "a2d8b3797112a851bd1c916cedf46c56bc9ebc641b7ffb9a5d5ba16a9a5457f0",
+    "maple/solvation/api/result.py": "e41a04c1054e61f841db64622ade6c0951c7c7c8434f34e6efaec5dc9d51cbda",
+    "maple/solvation/api/scalar_registry.py": "d3de38f0abc7b197420097216c1bd3448ab4cb65bb194a681b574aa8ba46bea6",
+    "maple/solvation/api/state_registry.py": "3398450170c1d94081d1d4569a80371543fc71507cd0979fe418334ad97dbff1",
+    "maple/solvation/api/units.py": "e0035dc40a69fac57e757df272e17757a906cc3a4fde02f0ba82c6c2ef29ab79",
+    "maple/solvation/continuum/__init__.py": "eedc03bc2e1960d488d7b8b64ff45d396ef7cae8312139b954023435867cefe7",
+    "maple/solvation/continuum/base.py": "44e452cc0c718fb6c443206bc5fc7005e778e0472eeb7ea16bedfe6801e145a8",
+    "maple/solvation/continuum/conjugate_fixed_topology_cpcm.py": "72910a2c942edef23b185f66755d9d813351d76da7e5256729d64f751a7a1277",
+    "maple/solvation/continuum/fixed_reciprocal_functional.py": "429072aee16f678aa8d1cd2386969e0a14fd2a7691cab70975d28d2e67d4ab3a",
+    "maple/solvation/continuum/fixed_topology_cpcm.py": "daa4c289db596d68b0758c81e1840ed1dac117da0573885cd3b0cf9431c7bb8d",
+    "maple/solvation/continuum/functional.py": "eec77672f333285d23029c8230a070fb3a71c98421943d482f347fe28cc433e9",
+    "maple/solvation/continuum/harmonic_cds_area.py": "3c440a58bf56a84243d715f74351142f0cda3b3138f919c1f0b01e00fad8cad5",
+    "maple/solvation/continuum/harmonic_coefficients.py": "4d4de964bb7a4aec87a58096d8b298de1c6cefbb8cfd51f45c8f415a827bed01",
+    "maple/solvation/continuum/harmonic_exposure.py": "66f1225f037fd87dd284dbc17f7d9e2acedac298423ffef2d26c9d20494dd83d",
+    "maple/solvation/continuum/harmonic_galerkin.py": "72586dda314e2cd319cf6b2501e084d6c99c761e1fb02dbf2949f625009c5dec",
+    "maple/solvation/continuum/harmonic_gaussian_source.py": "bb967ba33690df127a9a551474fe819e15728299b0556229c864acde13764cc8",
+    "maple/solvation/continuum/harmonic_point_source.py": "68acab10ece2e264ef7b524b4a72d5ddc90d34c0d39f2a09094641dfaebca4e0",
+    "maple/solvation/continuum/harmonic_positive_exposure.py": "43ac51bfe486257332946fad42d46ce149f1b6f4ee14588ac548a3b4fc59b9e2",
+    "maple/solvation/continuum/harmonic_single_layer.py": "327ba90e5625d5addd35f93c38bdd5213e087c74498d7e7624e3a14002a31762",
+    "maple/solvation/continuum/harmonic_torch_functional.py": "12c9439d67e13cfd5bac42caead610128025df8916113f63596af787180bc108",
+    "maple/solvation/continuum/harmonic_torch_primitives.py": "2cfea2a0e75cf0404bdec8c43d2e11fbd93f39bf5906f142dc38574603e9e2fc",
+    "maple/solvation/continuum/harmonic_weighted_galerkin.py": "08464f63e770ad76c08bd13a0ac676fdd378a786d02be80a19abbe5c46c3c716",
+    "maple/solvation/continuum/mace_polar_point_ddx.py": "99aeb4e0ff06e7ff357ca252499ec5d5a3eacfd2f14f3ba41cf97e58f250cc15",
+    "maple/solvation/continuum/pair_frame_ensemble_cpcm.py": "d1888b6ad1d9abf3799829c299495981791dd92f6223acb9acd9cb604745c2fa",
+    "maple/solvation/continuum/pair_frame_geometry.py": "7a31637c07f2df041ff03e6e4ea5719ba8f70729e24237514e4eed659654ebc4",
+    "maple/solvation/continuum/pair_frame_state.py": "878d0310e37460308af7e10bbb7df4112f1324ac66204cefbf3939522532a57d",
+    "maple/solvation/continuum/radial_gto_ddx.py": "c00af50c8b47d938b0c6a11b2036f3b5c991102230ae502fdab94c1b8b5ba337",
+    "maple/solvation/continuum/separated_source_adt_ddx.py": "7dabedce6ae7a436a30602bc397200e152003eac35f80145c426b082e1d3b9e1",
+    "maple/solvation/continuum/separated_source_ddx.py": "6a487c9673590a1119224c3be23dfadb25897d2a78da25c82148d3184b9b2b99",
+    "maple/solvation/continuum/torch_reference_cpcm.py": "4c6ffda0490a794fe02698ea9a1fdc910e23e756ff5f6f0f4339d908314aa9e1",
+    "maple/solvation/coupling/__init__.py": "4e07681dff45185abef8950a84e6d58757a294734e103fdef4cd6125119f39f8",
+    "maple/solvation/coupling/adjoint.py": "7e41961c7b18ea578daab066a9f909313d3160d0e192cccbdbeee01083ca7a91",
+    "maple/solvation/coupling/adt_radial_shape.py": "0241c58276afc0a2d151fbcba1a7f2a5c1869592a6d3ff924ef5780f162801dd",
+    "maple/solvation/coupling/atomic_displacement_lift.py": "54afcc5c093161dcd80a02cff400b3a2d6361da17596a2380a1d1faa90dbfbf0",
+    "maple/solvation/coupling/energy.py": "e1778a31c5d25de23a453eefb300588f7c81c288bd46e471dd2b4fb2f745106f",
+    "maple/solvation/coupling/exact_gto.py": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "maple/solvation/coupling/fixed_point.py": "80f577a4e5bea577a51c1a41fe5c71a15dc056fc7342712e1931ba6a26e777db",
+    "maple/solvation/coupling/gaussian_coulomb_projection.py": "e416c25aacda35c82cb1c4754e5c2884a0f01e7a3db4a026e56edf0e7f4a0f1d",
+    "maple/solvation/coupling/gaussian_multipole_derivatives.py": "d6fafeeb18a903b7be605108dc20329bd31c37e2747f982d369926b888ea33bf",
+    "maple/solvation/coupling/gaussian_quadrupole.py": "dc377258bb229780da44bf88576b99f5e54a5e1e5f2a1536af391c1cff40c61c",
+    "maple/solvation/coupling/linearization.py": "baa48bcaef49963548e727236ff86ca2e69b2b1b41fbf07b84f41bc5e77fa14f",
+    "maple/solvation/coupling/local_jet.py": "560648b0d819e47fcd87051a249514f0240f37d3f33b80b11979d0eb340a6256",
+    "maple/solvation/coupling/metrics.py": "d2a4e90a571cf96921f06cf6512dd61e2d9544aea7d72b97c3179332bd7b9a89",
+    "maple/solvation/coupling/neutral_atom_penetration.py": "ba0618252458ef9e10e97d09b2983abb09bcecf9edf9740db43a8e15910a7d7a",
+    "maple/solvation/coupling/operational_state.py": "2bfafe53acc20819518f95c8000f0c0fd8ae616ed4887b5df791136ebc799f60",
+    "maple/solvation/coupling/operator.py": "89124d72119a01bc5c123580371063f5fcfa5329e8fc18b61d1b998ce9e13f75",
+    "maple/solvation/coupling/point_quadrupole.py": "339133ec1847821fb543d735f4ce79d211013fdd31b2d8b9fa30296980ac0829",
+    "maple/solvation/coupling/radial_embedding.py": "6a85ab7539fae39f6d3bb41465601313b7d71ceeafc130e0ac0e08f2cf2ab376",
+    "maple/solvation/coupling/separated_ledgers.py": "9b0270697e4464e315af23b2ac0898e7d8d155234675902702e8760ecd657f49",
+    "maple/solvation/coupling/separated_operators.py": "0e2b597252c6e0d9ca5836625b39fbceffaece7b4014d77fa9d8b241f2e204ec",
+    "maple/solvation/coupling/separated_state.py": "26a6a20da16207ed62e2dcb7458655234306ee291074357adebcaf3218ade99e",
+    "maple/solvation/coupling/spaces.py": "8fc43db27fcda211e3f815dad6b384d02efdb45500f3eb8cde3f639e3b616ddb",
+    "maple/solvation/coupling/state_equation.py": "a0c54fe9f259a82529aab5e4d934197344e5df5f49db3aa797cef923d0d6bd36",
+    "maple/solvation/coupling/stockholder_partition.py": "1172e64d4e9c3ac5c963d435429adbec97c82143e71cd4789c57bb95c1cd9e75",
+    "maple/solvation/coupling/variational_adapters.py": "44d79a13ceec856ed4c97665d6953eda41b4bdadf1b7b157ffd60fc18d97edc9",
+    "maple/solvation/coupling/variational_state.py": "cd7cf9c4685afcf572e15bcd720eab77df7894406e4f54ebcf834e92f01d6049",
+    "maple/solvation/derivatives/__init__.py": "d3ece609116d95ce938b5f070c866a862c73cec34de63065a5ac542eaff6b8f2",
+    "maple/solvation/derivatives/scalar_finite_difference.py": "e2aff1d897351536bd8bfe8ea0f3fa33f7111fa258badd8339abe70c8b9a3cc7",
+    "maple/solvation/experimental/__init__.py": "9d4240d67f70c68e71559a94a0bdcd63c71ca873c756a44faa6a3d7cb1a0b273",
+    "maple/solvation/experimental/mace_mdp_polar_adt_ddx.py": "be6abda5e8a9e497fb5a1cb633b7fd804df3dd1b86f54d4aba5b461afbab19a5",
+    "maple/solvation/experimental/mace_mdp_polar_ddx.py": "90d60647e3880e37cb84a551d8886dad5291b6f2f777aaa6eed0eeb886507ae0",
+    "maple/solvation/experimental/mace_mdp_polar_harmonic.py": "ac9a2ae6b21b544cc10ed0485ae28b82acd04777e6fd43dee9d2507cbde7cbd1",
+    "maple/solvation/experimental/mace_mdp_polar_pcmsolver.py": "cb79c8f0796b2182fb075884262c7557cb4df67a3ba761741d39848a19754329",
+    "maple/solvation/experimental/mace_mdp_polar_solvated_ddx.py": "df37d8a6428ca80a7536cab969acba54cb3fecc2ba54e1936624d727712f3314",
+    "maple/solvation/experimental/mace_polar_frozen_ddx.py": "53dcb58b521324c99b1c31c68fd4aaa619bd2f839d0cabae8c56867edec4417f",
+    "maple/solvation/harmonic_cds.py": "3c587ea5d7fffa3143e308fe36d8cc30c6e9dfcc7591f93266a7febbf1b7136d",
+    "maple/solvation/models/__init__.py": "777ae14c2e2b8ecb7d1776923520fcb05213484fa9e87f85e0280e55e3bc2d51",
+    "maple/solvation/models/base.py": "6c6a9ce61e6cab6f1d7b67bfe4554e14ae1c18167b94008003436076c6bf9406",
+    "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
+    "maple/solvation/models/equation_adapter.py": "c8e0a54fe55c1477e431c9067c83e0aec6ce210ad4224ad1c11621b2eff3cfd4",
+    "maple/solvation/models/field_energy.py": "a3f415280e25305c0b7ccb2bb8a93dce0c528708df3ace497160fd6fd6f26937",
+    "maple/solvation/models/fixed_box_evaluator.py": "5716123962697656d251b8366ded61f2efab179ae7d732956ee35db55a0bf229",
+    "maple/solvation/models/latent_source_functional.py": "f8862204977f92d5ffc943e0cbe557655409a99c54052d03028d4086b5b5ea0b",
+    "maple/solvation/models/mace_mdp.py": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "maple/solvation/models/mace_mdp_mbis.py": "e518f6fab1c8837ff6fd7103cb912b386a342af278d859a4cddefe0c004b98f1",
+    "maple/solvation/models/mace_mdp_polar_adt.py": "1634ceb4a66ee5e42dc9f0558c0c5719c4c99cdc78ad6adea7f2a1f1f495cd25",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "b990bced91b2a288e03c96b4d82fa58269f65b1ce95e558e4846cf593d895672",
+    "maple/solvation/models/mace_mdp_polar_susceptibility.py": "6f7eda04bc1ce6ec279def7867a5d6dbaa63a07375d7688727a7219005785e6c",
+    "maple/solvation/models/mace_polar.py": "2b4e51f4088cc4fe822ad86ee04626e88af571765cad2e8f805ad8b905445cc5",
+    "maple/solvation/models/mace_polar_feature_vjp.py": "669bf95727616d0a61d8b7f08d3ef48ccf33c8ea2fec59d851048f6aa1c0f2bb",
+    "maple/solvation/models/mace_polar_separated.py": "8cce0f313fbf5b7020d23637e2b13ed9d03b9382c8b7a4e0f5160e3977bb738d",
+    "maple/solvation/models/mace_polar_variational.py": "02d459dbb66c02d3d90d2dd670a6e6e0dda7cdf5c2c23c7ef304306227c695c1",
+    "maple/solvation/models/passive_p13_response.py": "b124f6cb572f42b1b5290854b3c0227f35d127b99dbb670ce4e677c8ddcd7aff",
+    "maple/solvation/models/passive_polarization.py": "2558518e2aa3375a48b2f8719bc23a5fd084f2fd69adc838799ee9839aa23a48",
+    "maple/solvation/models/passive_training.py": "a2d6bcd2294c82940db63cd679b97fa5106b7b809092040a8c8549b365759595",
+    "maple/solvation/models/runtime/__init__.py": "64a17adc6d4e8e229b927a4fb2c257b43bb4cb2b4a07223e7c7976b4978bff61",
+    "maple/solvation/models/runtime/analytic_gaussian_multipole.py": "d892e4986aebd34a3df9b1614e7845903785afa519415e465167dbb9380b70ad",
+    "maple/solvation/models/sparse_passive_factor.py": "026cd313c1f90e977ac17df5deda3120d9cdd64174c5fe197c2ebde42c4131ba",
+    "maple/solvation/models/split_order_passive_scalar.py": "40af5b9a45c0a364ac65b1f329d73fa92509f67a8329143ee9921c2907285d11",
+    "maple/solvation/reference/__init__.py": "5da0ab0f7282622c2eb08b4b0a62ea22159f7085bececa011d59fccca9f560c9",
+    "maple/solvation/reference/atomic_auxiliary_whitening.py": "c16a5ef496a7ac39ec87e527618f6967d61d6d05f885321b35ca018acdd7d86d",
+    "maple/solvation/reference/auxiliary_density.py": "bc6c70a4f90220e7e319a9e0d581827d09cefb8ce430348bb2ae05ad98a544f8",
+    "maple/solvation/reference/auxiliary_density_basis.py": "723c448633b705ce2f0b337de382c66860f577eb7daba5eb17b09c7f66d833e0",
+    "maple/solvation/reference/exterior_probe_partition.py": "e071d7adca7ef46ad7c0d7a8cf69f26d2b03542be81ea0fdccbe9b308eb26528",
+    "maple/solvation/reference/p13_permanent_span.py": "069359bc1543f17b42f99281e01a9cf77acf5dd7d9a27477bdf009fead113419",
+    "maple/solvation/reference/partitioned_local_density.py": "a0143471511327f7501151c3f8925c8e8533b93cdb0fea292b7da2e4776a6210",
+    "maple/solvation/reference/permanent_quadrupole_probes.py": "4b9a7f87a30d59d1bd9e72c43603720145c46c09398e25691bfc1659e71dad80",
+    "maple/solvation/reference/pyscf_pcmsolver.py": "ab203e1fc2345af079150127368040ceaa404878c2c75bb91206031701a9d2ba",
+    "maple/solvation/reference/radial_gto_observable_span.py": "577c0acbdc586a6c616515be2b27d13582e831b1ff8259ddca864f5cec9aaf56",
+    "maple/solvation/reference/replay.py": "97a8989fd2d1ac260868bd1f39f10b4755dcd899c599f509e4793f3825d4bd07",
+    "maple/solvation/reference/sector_balanced_response_modes.py": "dd334e174a845655efcaaf08b04d6b4325ee1b568273f6fedd1c7a099e239428",
+    "maple/solvation/release/__init__.py": "01d6bcc28049365d49de53eaff3ee6d3e0f5230510ca2771ea788159e8525792",
+    "maple/solvation/release/box_convergence.py": "9fa36f9e991a2377840414b99fc76996bfbf16cd059edcf63d6f3a0fc7a281b7",
+    "maple/solvation/release/cartesian_multipole_ddx.py": "54271ab07a123311a51eca9ba73fb4e8c5b6c98d75abc2138b1544d27df14ca9",
+    "maple/solvation/release/cartesian_multipole_mep.py": "84d6a5a49182bfb1e0bfc758e3753c60ced4a05606c2ceff6fbfafefdbbbaf33",
+    "maple/solvation/release/conjugacy.py": "c3e7ec7cb76741969a121b231408643b898fdfd9ce9afac161d316a7ca38569b",
+    "maple/solvation/release/coupled_conjugacy.py": "7a117a7dcac56fb5d18537185660dcaca95ebb7b96a8017a2c2e5ac14d78b8f9",
+    "maple/solvation/release/electrostatic_decomposition.py": "433cf54c271f269745fd16e4e6170140db3340de462b540d3c94a865fe0cfd42",
+    "maple/solvation/release/evidence.py": "fb74dfa4360984362da6b071aa399817e2275909518cd144e8776e982014e435",
+    "maple/solvation/release/ewald_gauge_separated_source.py": "976d5f2a6135ba7d42416b4bf6110336657a7c1acb88356454c6ca1b98910a16",
+    "maple/solvation/release/farfield_source.py": "f38609fcbd9c6a20f2b5d5125f35a0ae36aca1c09b99e7410e1fcbf760c40897",
+    "maple/solvation/release/field_semantics.py": "7f753b3c03f678b71d7dace8f356db5be419111219bdfc18d4ef059355d1682f",
+    "maple/solvation/release/harmonic_surface_mep.py": "216c018dff09e7c3916cd60ed66cba014a0ed3e13e333b3d8f7bccd31cd1c6e4",
+    "maple/solvation/release/mdp_polarizability_dipole_closure.py": "d2a67b1c68b80c7d3fd10e2f8a16be9bb574690db0abbae44e804d8a316b2b12",
+    "maple/solvation/release/pes_panel.py": "5ef2dc0c4d814c1cc4e358c217ea3b79e0a4858d499611fc57f89db6f0368858",
+    "maple/solvation/release/pes_validation.py": "493d4b63d16d122ec72ed26356d2380292976be534b74a2fd1026cce1c36be3e",
+    "maple/solvation/release/qm_boundary_response.py": "b3d13bb7eed793ace7b08c51361dab0abf3c351b8019c5e21bc386944febca19",
+    "maple/solvation/release/radial_embedding.py": "55c27af3df5ddc0f91c2cc44e8f165354c1f038f1f7209f03bbc75574dff51a8",
+    "maple/solvation/release/residual_force.py": "557a1ba75e0edf21672270391007d785bfadf1d18a752e8280f44f6cba3b4385",
+    "maple/solvation/release/root_well_posedness.py": "943cab8cc9f235852cdf257d95619ec8fba6410b7d3a391cd7779e271ac03302",
+    "maple/solvation/release/source_mep.py": "d1f1eedae9a150e1b66a14b0ee2f8fa88ae560a00aa3442a5c45838778126224",
+    "maple/solvation/release/symmetry_panel.py": "344123742e1b6758149885fcea93e18045c6bef7f5c91631213ce1da51f06c74",
+    "maple/solvation/release/uniform_response_manifold.py": "1ed7f802016f9ead8b0f70fe0024e057dca58870f2dce656a02a2a9dd0f03512",
+    "maple/solvation/release/uniform_susceptibility_replacement.py": "7c967ea72e73eca5a6cb5495733cb47aaf1eba7d4f8dfd3b28345cba261133bb",
+    "maple/solvation/release/variational_stability.py": "ed4283e46c195e443aabe33c8f877af537540a36c2436b36fb623eb01a69b186",
+    "maple/solvation/solvent_terms.py": "6a59c08e1f229f4832b9888f0eb4bbbe5ed33eec3c7d3315237e30e62c4e6a29",
+    "maple/solvation/surfaces/__init__.py": "3169105c99a34da026c0bfedf10495620a67f2d82d8e5dd0444895d376c534ec",
+    "maple/solvation/surfaces/base.py": "f49af6fa92cca5e8408bfabc2ec20c1969fd815f3da38422406ee050bf8d18f0",
+    "maple/solvation/surfaces/fixed_topology.py": "31c0dd77b64e93666ff759236ec41b204095bc224ec7bf09f623fcfaf9fc1e2a"
+  },
+  "optimized_positions_A": [
+    [
+      -0.0016192188839949503,
+      -0.002000388745685357,
+      5.264262615399021e-19
+    ],
+    [
+      0.9609918856860908,
+      0.008659946112449475,
+      -1.7711414689843969e-19
+    ],
+    [
+      -0.22937266680209678,
+      0.9333404426332338,
+      -2.4803910685606606e-19
+    ]
+  ]
+}

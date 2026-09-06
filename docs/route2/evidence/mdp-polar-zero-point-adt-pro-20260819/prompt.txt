@@ -1,0 +1,29 @@
+You are reviewing one narrow, zero-training theoretical-chemistry architecture decision for MAPLE Route 2. Please reason from first principles and be adversarial. Do not propose fitting to solvation targets, empirical scaling, or geometry-dependent clipping.
+
+FACTS
+1. MACE-MDP is officially trained and documented only for the total molecular dipole and the fully anisotropic molecular polarizability. It is not an energy/force model. MAPLE can algebraically expose atomwise l<=1 contributions whose sum reproduces the molecular dipole, but these atomwise contributions were not supervised as an electrostatic density and possess a latent partition/gauge.
+2. MACE-POLAR-1-M exposes an atom-centred l<=1 charge-density head M_P(R,u) and accepts an 8-channel native potential feature u (two radial widths, l<=1). Its source basis has one 1.5-A radial block. It is a finite non-self-consistent polarizable update, not a common variational functional.
+3. Two target-independent, molecule-disjoint 60-case SPICE/MBIS source tests used identical ddPCM cavities and no solvation targets. The original MDP latent point q/p gave fixed-source ddPCM energy MAE 8.19 kcal/mol. MACE-POLAR zero-field point q/p gave 1.346 kcal/mol on the first panel and 1.461 kcal/mol on the prospective disjoint panel (q95 3.67, max 4.53). Closing only the molecular dipole with MDP polarizability improved the latter by merely 2.23%. Thus the permanent near-field error is not fixed by molecular-dipole closure.
+4. Current target-free ADT profile uses:
+   - permanent: MDP latent point q/p;
+   - nonuniform response: 1.5-A Gaussian coefficients M_P(u)-M_P(0)-J_P(0) U g;
+   - uniform response: atom-centred ADT dipoles P_ADT[-alpha_MDP g];
+   where g=G u is the 3-vector arithmetic uniform-field chart, U injects a uniform physical field into native feature space, G U=I, alpha_MDP is the supervised molecular tensor, and P_ADT allocates a molecular induced dipole to atoms by a fixed free-atom-density translation construction. All three branches enter one ddPCM solve as a direct sum. This is operational, not Tier V.
+5. The natural v3 candidate replaces only the permanent branch by the MACE-POLAR zero-field point source:
+
+   c_perm(R) = M_P(R,0) represented as point monopoles/dipoles,
+   delta c_nonuniform(R,u) = M_P(R,u)-M_P(R,0)-J_P(R,0) U G u represented by the checkpoint's 1.5-A Gaussian source,
+   p_ADT(R,u) = P_ADT(R)[-alpha_MDP(R) G u] represented as translated-density dipoles.
+
+The MDP model then supplies only alpha_MDP, the property it was trained to predict. The source categories remain separate in the continuum. The external-MEP receiver remains MACE-POLAR's official two-width 8-channel field.
+
+QUESTIONS
+A. Is this decomposition mathematically well-defined and exactly free of uniform-response double counting at linear order? State the necessary identities and signs precisely. If not, give a counterexample.
+B. Is it legitimate for c_perm to be a point q/p source while delta c_nonuniform uses the 1.5-A Gaussian source? Does this create a discontinuity, nonconservative coordinate derivative, or merely define a role-separated operational density? Separate mathematical validity from physical calibration.
+C. Give the exact fixed-geometry JVP/VJP formulas and enumerate every nuclear-coordinate term needed for a conservative derivative of an explicit operational scalar E_vac(R)+G_ddPCM(R,state*(R)). Include the derivatives of M_P(R,0), J_P(R,0), alpha_MDP(R), G/U if geometry dependent, P_ADT(R), cavity/operator, and receiver.
+D. Is there any scientifically defensible reason to retain MDP's unsupervised atomwise latent q/p as the permanent PCM source once the supervised molecular dipole/polarizability remain available and the two disjoint source gates strongly reject its near field?
+E. Specify the smallest target-independent prequalification that should precede a full 505 solvation-energy run: charge/dipole closure, fixed-source MEP/A^{-1} norm, JVP/VJP, uniform-tangent cancellation, local root certificate, rotations, and adversarial chemistry/tail cases. Give quantitative scaling expectations but do not invent accuracy thresholds from solvation targets.
+F. The prospective MACE-POLAR zero-field point source still has 4.53 kcal/mol fixed-source tail errors and l<=1 truncation. Using only the frozen checkpoint outputs and no learned decoder, is there any identified zero-training way to recover continuum-visible l>=2/penetration information? Or should that be treated as an information-identifiability no-go, requiring a separately trained QM-electrostatic scalar/density/MEP head if v3 fails?
+
+Please distinguish theorem, conditional proposition, physical inference, and numerical gate. End exactly with:
+POLAR-ZERO ADT HYBRID DECISION

@@ -1,0 +1,178 @@
+{
+  "artifact": "route2-hybrid-development-tail-component-diagnostic-v1",
+  "atomic_partition_gauge_witness": {
+    "atom_i": 30,
+    "atom_j": 23,
+    "claim": "fixed-cavity target-independent redistribution preserving total charge and molecular dipole exactly",
+    "constraint_residual_q_mu": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "direction_self_energy_ev": -0.0004225721440561164,
+    "linear_energy_change_plus_ev": 0.015032420207997957,
+    "minus_change_kcal_mol": -0.35640059035642185,
+    "minus_direct_replay_ev": -0.958533356182578,
+    "minus_energy_ev": -0.9585333561825617,
+    "plus_change_kcal_mol": 0.3369111000766316,
+    "plus_direct_replay_ev": -0.9284685157666083,
+    "plus_energy_ev": -0.9284685157665657,
+    "raw_component": 3,
+    "step_e_angstrom": 0.01
+  },
+  "checkpoints": {
+    "mdp_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "polar_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "claim_boundary": {
+    "confirmation_opened": false,
+    "development_target_opened": true,
+    "diagnostic_only": true,
+    "fitting_or_calibration_performed": false,
+    "private_attributes_used_for_component_attribution": true,
+    "public_capability_admitted": false
+  },
+  "computed_total_minus_root_ev": 0.0,
+  "continuum_components": {
+    "cross_ev": -0.28389983108298644,
+    "cross_kcal_mol": -6.546885633794341,
+    "induced_only_ev": -0.02912951081937954,
+    "induced_only_kcal_mol": -0.6717424775328845,
+    "permanent_only_ev": -0.9430783638305076,
+    "permanent_only_kcal_mol": -21.747903717136914,
+    "total_ev": -1.2561077057328736,
+    "total_kcal_mol": -28.966531828464138,
+    "zero_ev": 0.0
+  },
+  "device": "cpu",
+  "identity": {
+    "atom_count": 32,
+    "dataset_row_sha256": "63207b5fc2895a76fba217bf3e96b1e25ff23a92628aafc59646ef2c856ce25e",
+    "experimental_delta_g_kcal_mol": -8.9,
+    "formula": "H12C14N4O2",
+    "geometry_sha256": "11e5400f99df90811c44854ee609c040a553c12ac1deb4fa4ff6c43522f901c2",
+    "name": "1,4,5,8-tetraminoanthraquinone",
+    "opaque_record_id": "1297a89e0181a892eef3cb26df4ddb09e3775f9f7eb9baaeeb5201746d4daea7",
+    "selection_index": 199,
+    "solvent": "water"
+  },
+  "model_field": {
+    "induced": {
+      "max_abs": 0.3092780963515225,
+      "norm": 1.1620976516977597,
+      "rms": 0.07263110323110998,
+      "shape": [
+        32,
+        8
+      ]
+    },
+    "linearity_residual": {
+      "max_abs": 1.5509815654013437e-12,
+      "norm": 1.0262219178250209e-11,
+      "rms": 6.41388698640638e-13,
+      "shape": [
+        32,
+        8
+      ]
+    },
+    "permanent": {
+      "max_abs": 1.0947229306891533,
+      "norm": 4.245609228814661,
+      "rms": 0.26535057680091634,
+      "shape": [
+        32,
+        8
+      ]
+    },
+    "total": {
+      "max_abs": 1.4040010270391248,
+      "norm": 5.402721704622568,
+      "rms": 0.33767010653891044,
+      "shape": [
+        32,
+        8
+      ]
+    }
+  },
+  "root": {
+    "cold_iterations": 17,
+    "polarization_energy_kcal_mol": -28.966531828464138,
+    "residual_ev": 1.6321139775566148e-11,
+    "wide_iterations": 17
+  },
+  "source_files": {
+    "maple/solvation/continuum/separated_source_ddx.py": "19bfd54cd53cf37325041ebcb182152ecad1002c0c1b1ad5ebc8c58b9f16b718",
+    "maple/solvation/experimental/mace_mdp_polar_ddx.py": "b8322f1745576b2425cbaea863e182865700f36ac94eb9530ecdb60d43779730",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "f40acb3e815ef3f3c6fe85be71b1906e49e2cc9ef6ac92fe6416a371b4264ac0"
+  },
+  "source_git_head": "a3fadd92ef9d0bd1320e7aa8589b043273b0766d",
+  "source_root": "/home/axie/.local/share/maple/route2/hybrid-smd-development-v3/source",
+  "sources": {
+    "converged_minus_first_induced": {
+      "max_abs": 0.004895589980872583,
+      "norm": 0.021878008527701675,
+      "rms": 0.0019337610235993711,
+      "shape": [
+        32,
+        4
+      ]
+    },
+    "first_induced": {
+      "max_abs": 0.015562562315132894,
+      "norm": 0.08233893895822675,
+      "rms": 0.007277802761633416,
+      "shape": [
+        32,
+        4
+      ]
+    },
+    "induced": {
+      "max_abs": 0.019582674216953616,
+      "norm": 0.10399348681975158,
+      "rms": 0.009191812466185025,
+      "shape": [
+        32,
+        4
+      ]
+    },
+    "induced_total_charge_e": -3.157196726277789e-16,
+    "permanent": {
+      "max_abs": 0.4191948670894916,
+      "norm": 1.0297890865647155,
+      "rms": 0.09102135578772637,
+      "shape": [
+        32,
+        4
+      ]
+    },
+    "permanent_total_charge_e": 2.6020852139652106e-17
+  },
+  "surface_potential": {
+    "induced": {
+      "max_abs": 0.020384423995261785,
+      "norm": 0.7613437676827501,
+      "rms": 0.007018856686931639,
+      "shape": [
+        11766
+      ]
+    },
+    "permanent": {
+      "max_abs": 0.08839595307912469,
+      "norm": 4.3659137973756685,
+      "rms": 0.04024952268873956,
+      "shape": [
+        11766
+      ]
+    },
+    "total": {
+      "max_abs": 0.10878037134297039,
+      "norm": 5.010995344350758,
+      "rms": 0.04619655361194928,
+      "shape": [
+        11766
+      ]
+    }
+  },
+  "wall_seconds": 580.0865935839975
+}

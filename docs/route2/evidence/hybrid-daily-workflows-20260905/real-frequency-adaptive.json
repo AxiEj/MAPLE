@@ -1,0 +1,25 @@
+{
+  "status": "pass",
+  "geometry_source": "real-workflows.json optimized_positions_A",
+  "step_reduction_limit": 6,
+  "claim": "experimental vibrations, not thermochemistry or chemical accuracy",
+  "source_sha256": {
+    "maple/function/calculator/route2/_mace_mdp_polar_hybrid_ddx_calculator.py": "1212f5e611be202426a8136459639ad4935f4764edc4987b574e10a7898411c3",
+    "maple/function/dispatcher/frequency/frequency.py": "3b2a83af1992c3944a229fb827d0f602559aa5ade8393f188f610a0c7a97faf8",
+    "maple/solvation/derivatives/scalar_finite_difference.py": "e2aff1d897351536bd8bfe8ea0f3fa33f7111fa258badd8339abe70c8b9a3cc7"
+  },
+  "hessian_diagnostics": {
+    "evaluation_sha256": "707ba4b9073f585ceb3ff91d0130325f8dfcb72e9804fac5d5b9ff92a6beda46",
+    "coarse_step_angstrom": 0.00025,
+    "fine_step_angstrom": 0.000125,
+    "maximum_error_estimate_eV_per_A2": 1.2267777393049073e-05,
+    "maximum_antisymmetry_eV_per_A2": 2.637573004449223e-08,
+    "topology_step_reductions_used": 3,
+    "topology_guard_status": "partial-experimental",
+    "topology_observation_coverage": "partial",
+    "unobservable_topology_components": [
+      "pyscf-smd-libsolvent-internal-surface"
+    ]
+  },
+  "elapsed_s": 609.6345836659993
+}

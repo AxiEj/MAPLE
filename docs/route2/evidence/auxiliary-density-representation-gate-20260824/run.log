@@ -1,0 +1,327 @@
+tot grids = 91440
+mobley_9055303 constrained_relative=0.19631875
+tot grids = 265896
+mobley_3053621 constrained_relative=0.03720607
+tot grids = 119704
+mobley_1636752 constrained_relative=0.02390541
+tot grids = 179728
+mobley_7015518 constrained_relative=0.03151241
+tot grids = 208336
+mobley_3867265 constrained_relative=0.01798590
+tot grids = 296616
+mobley_6973347 constrained_relative=0.02185002
+tot grids = 132216
+mobley_7532833 constrained_relative=0.01169372
+tot grids = 309480
+mobley_4883284 constrained_relative=0.02529561
+tot grids = 164448
+mobley_2198613 constrained_relative=0.03175446
+tot grids = 208416
+mobley_8578590 constrained_relative=0.01801629
+tot grids = 191896
+mobley_8048190 constrained_relative=0.01426523
+tot grids = 176568
+mobley_3034976 constrained_relative=0.01050119
+{
+  "aggregate": {
+    "maximum_constrained_area_relative_error": 0.19631874998988177,
+    "maximum_constraint_absolute_error": 1.4566126083082054e-11,
+    "mean_constrained_area_relative_error": 0.03669208835457475
+  },
+  "artifact": "route2-auxiliary-density-representation-gate-v1-result",
+  "claim_boundary": {
+    "allowed_decision": "reject or retain this basis for later head training",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false
+  },
+  "gates": {
+    "constraints": true,
+    "maximum": false,
+    "mean": true
+  },
+  "preregistration_file_sha256": "ed779d58583803d974972d36d51c203085ea63ac46a9b65648298938be6aa0e6",
+  "preregistration_sha256": "457ed0ee9d355e4db9ecc5e6301d14b38899bc3d1b46a6fce84413d6413bc588",
+  "record_count": 12,
+  "records": [
+    {
+      "atom_count": 5,
+      "auxiliary_dimension": 147,
+      "chemical_class": "alkane",
+      "compound_id": "mobley_9055303",
+      "constrained": {
+        "correlation": 0.9969757262195107,
+        "maximum_absolute_error_hartree_per_e": 0.0006943590977188663,
+        "weighted_relative_l2": 0.19631874998988177
+      },
+      "constrained_moment_max_absolute_error": 3.552713678800501e-15,
+      "functional_group": null,
+      "metric_condition_number": 39922107.312478125,
+      "metric_rank": 147,
+      "name": "methane",
+      "raw": {
+        "correlation": 0.9969307098677885,
+        "maximum_absolute_error_hartree_per_e": 0.0006173030755010078,
+        "weighted_relative_l2": 0.1671230839329382
+      },
+      "raw_moment_max_absolute_error": 0.0005039183316988272,
+      "wall_seconds": 0.4916214070017304
+    },
+    {
+      "atom_count": 12,
+      "auxiliary_dimension": 558,
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "constrained": {
+        "correlation": 0.9996987222646323,
+        "maximum_absolute_error_hartree_per_e": 0.0005465043231520639,
+        "weighted_relative_l2": 0.0372060707041238
+      },
+      "constrained_moment_max_absolute_error": 1.4566126083082054e-11,
+      "functional_group": null,
+      "metric_condition_number": 717889027.5637083,
+      "metric_rank": 558,
+      "name": "benzene",
+      "raw": {
+        "correlation": 0.999697026730867,
+        "maximum_absolute_error_hartree_per_e": 0.0004704671115822734,
+        "weighted_relative_l2": 0.029672642776797504
+      },
+      "raw_moment_max_absolute_error": 0.002323441616653099,
+      "wall_seconds": 2.9550272320011572
+    },
+    {
+      "atom_count": 6,
+      "auxiliary_dimension": 224,
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "constrained": {
+        "correlation": 0.9998078314756907,
+        "maximum_absolute_error_hartree_per_e": 0.0007257915246099422,
+        "weighted_relative_l2": 0.023905408818559928
+      },
+      "constrained_moment_max_absolute_error": 1.7763568394002505e-14,
+      "functional_group": "primary-alcohol",
+      "metric_condition_number": 85088059.98498486,
+      "metric_rank": 224,
+      "name": "methanol",
+      "raw": {
+        "correlation": 0.9998334689322154,
+        "maximum_absolute_error_hartree_per_e": 0.0006139271141329949,
+        "weighted_relative_l2": 0.020854375137066655
+      },
+      "raw_moment_max_absolute_error": 0.006468406782374814,
+      "wall_seconds": 0.847338565001337
+    },
+    {
+      "atom_count": 9,
+      "auxiliary_dimension": 335,
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "constrained": {
+        "correlation": 0.9995603407907134,
+        "maximum_absolute_error_hartree_per_e": 0.0006495692181860413,
+        "weighted_relative_l2": 0.031512408058349504
+      },
+      "constrained_moment_max_absolute_error": 5.684341886080802e-14,
+      "functional_group": "dialkyl-ether",
+      "metric_condition_number": 130542174.87949769,
+      "metric_rank": 335,
+      "name": "methoxymethane",
+      "raw": {
+        "correlation": 0.9995910389854668,
+        "maximum_absolute_error_hartree_per_e": 0.0006863556876655075,
+        "weighted_relative_l2": 0.03133647717880557
+      },
+      "raw_moment_max_absolute_error": 0.003535587582689459,
+      "wall_seconds": 1.2914468239996495
+    },
+    {
+      "atom_count": 10,
+      "auxiliary_dimension": 410,
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "constrained": {
+        "correlation": 0.9998696798093312,
+        "maximum_absolute_error_hartree_per_e": 0.0006070521290260089,
+        "weighted_relative_l2": 0.017985901917480143
+      },
+      "constrained_moment_max_absolute_error": 1.2789769243681803e-13,
+      "functional_group": "ketone",
+      "metric_condition_number": 199472256.03621328,
+      "metric_rank": 410,
+      "name": "acetone",
+      "raw": {
+        "correlation": 0.9998741490822293,
+        "maximum_absolute_error_hartree_per_e": 0.0006285768673803815,
+        "weighted_relative_l2": 0.017576853531892728
+      },
+      "raw_moment_max_absolute_error": 0.0051066510456756475,
+      "wall_seconds": 1.9483686229996238
+    },
+    {
+      "atom_count": 14,
+      "auxiliary_dimension": 598,
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "constrained": {
+        "correlation": 0.9998416272015674,
+        "maximum_absolute_error_hartree_per_e": 0.0006370704338749533,
+        "weighted_relative_l2": 0.021850018726519312
+      },
+      "constrained_moment_max_absolute_error": 1.9895196601282805e-13,
+      "functional_group": "carboxylic-acid-ester",
+      "metric_condition_number": 278443347.5362143,
+      "metric_rank": 598,
+      "name": "ethyl acetate",
+      "raw": {
+        "correlation": 0.9998417798992407,
+        "maximum_absolute_error_hartree_per_e": 0.0006463360308792687,
+        "weighted_relative_l2": 0.020597464055286153
+      },
+      "raw_moment_max_absolute_error": 0.0032273943084817347,
+      "wall_seconds": 3.4950678730001528
+    },
+    {
+      "atom_count": 6,
+      "auxiliary_dimension": 281,
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "constrained": {
+        "correlation": 0.9999440777339748,
+        "maximum_absolute_error_hartree_per_e": 0.0006576980550647704,
+        "weighted_relative_l2": 0.01169371811959489
+      },
+      "constrained_moment_max_absolute_error": 2.984279490192421e-13,
+      "functional_group": "carbonitrile",
+      "metric_condition_number": 151414175.20289403,
+      "metric_rank": 281,
+      "name": "acetonitrile",
+      "raw": {
+        "correlation": 0.9999441012480585,
+        "maximum_absolute_error_hartree_per_e": 0.0006633845445418451,
+        "weighted_relative_l2": 0.011760928212881811
+      },
+      "raw_moment_max_absolute_error": 0.003202065801268361,
+      "wall_seconds": 0.9641235530016274
+    },
+    {
+      "atom_count": 14,
+      "auxiliary_dimension": 653,
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "constrained": {
+        "correlation": 0.9997558991166876,
+        "maximum_absolute_error_hartree_per_e": 0.000831209466921834,
+        "weighted_relative_l2": 0.02529561477218894
+      },
+      "constrained_moment_max_absolute_error": 1.7337242752546445e-12,
+      "functional_group": "primary-aromatic-amine",
+      "metric_condition_number": 854318519.8451916,
+      "metric_rank": 653,
+      "name": "aniline",
+      "raw": {
+        "correlation": 0.9997565036614533,
+        "maximum_absolute_error_hartree_per_e": 0.0008066824955168528,
+        "weighted_relative_l2": 0.024208829519994538
+      },
+      "raw_moment_max_absolute_error": 0.0014987665225874025,
+      "wall_seconds": 3.782723366999562
+    },
+    {
+      "atom_count": 8,
+      "auxiliary_dimension": 368,
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "constrained": {
+        "correlation": 0.9997144674539521,
+        "maximum_absolute_error_hartree_per_e": 0.0007490817598272415,
+        "weighted_relative_l2": 0.03175446153619832
+      },
+      "constrained_moment_max_absolute_error": 1.7053025658242404e-13,
+      "functional_group": "alkyl-chloride",
+      "metric_condition_number": 504084947.2720681,
+      "metric_rank": 368,
+      "name": "chloroethane",
+      "raw": {
+        "correlation": 0.9997143218818781,
+        "maximum_absolute_error_hartree_per_e": 0.0006611938538041429,
+        "weighted_relative_l2": 0.02669923063955998
+      },
+      "raw_moment_max_absolute_error": 0.003889732167465354,
+      "wall_seconds": 1.374895684999501
+    },
+    {
+      "atom_count": 10,
+      "auxiliary_dimension": 463,
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "constrained": {
+        "correlation": 0.9998705410566389,
+        "maximum_absolute_error_hartree_per_e": 0.0008798458030616629,
+        "weighted_relative_l2": 0.01801629386415983
+      },
+      "constrained_moment_max_absolute_error": 8.526512829121202e-14,
+      "functional_group": "sulfoxide",
+      "metric_condition_number": 648345071.0293975,
+      "metric_rank": 463,
+      "name": "methylsulfinylmethane",
+      "raw": {
+        "correlation": 0.9998724605052725,
+        "maximum_absolute_error_hartree_per_e": 0.0008372972866954598,
+        "weighted_relative_l2": 0.01728125754969355
+      },
+      "raw_moment_max_absolute_error": 0.0016162395347691927,
+      "wall_seconds": 2.2798358729996835
+    },
+    {
+      "atom_count": 9,
+      "auxiliary_dimension": 394,
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "constrained": {
+        "correlation": 0.9999331829900281,
+        "maximum_absolute_error_hartree_per_e": 0.0008544708173765514,
+        "weighted_relative_l2": 0.014265227738341456
+      },
+      "constrained_moment_max_absolute_error": 1.2079226507921703e-13,
+      "functional_group": "primary-carboxylic-acid-amide",
+      "metric_condition_number": 187168866.58969995,
+      "metric_rank": 394,
+      "name": "acetamide",
+      "raw": {
+        "correlation": 0.999930693622933,
+        "maximum_absolute_error_hartree_per_e": 0.0007875959500793783,
+        "weighted_relative_l2": 0.013656881092914316
+      },
+      "raw_moment_max_absolute_error": 0.006043584864045215,
+      "wall_seconds": 1.7394539889992302
+    },
+    {
+      "atom_count": 8,
+      "auxiliary_dimension": 376,
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "constrained": {
+        "correlation": 0.9999537137552205,
+        "maximum_absolute_error_hartree_per_e": 0.0007110644146530731,
+        "weighted_relative_l2": 0.01050118600949918
+      },
+      "constrained_moment_max_absolute_error": 1.4210854715202004e-13,
+      "functional_group": "carboxylic-acid",
+      "metric_condition_number": 181701157.04171667,
+      "metric_rank": 376,
+      "name": "acetic acid",
+      "raw": {
+        "correlation": 0.9999508244749191,
+        "maximum_absolute_error_hartree_per_e": 0.000693191113852798,
+        "weighted_relative_l2": 0.010397715353874806
+      },
+      "raw_moment_max_absolute_error": 0.005901329567137736,
+      "wall_seconds": 1.5284569439991174
+    }
+  ],
+  "result_sha256": "905c7a4bff9545ba0ab9182169e04ebab80c38ede08ed91d541eba53ed39a845",
+  "schema_version": 1,
+  "status": "fail"
+}

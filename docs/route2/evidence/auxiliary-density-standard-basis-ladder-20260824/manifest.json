@@ -1,0 +1,97 @@
+{
+  "artifact": "route2-auxiliary-density-standard-basis-ladder-evidence-v1",
+  "candidate_aggregates": {
+    "autoaux": {
+      "maximum_actual_energy_error_kcal_per_mol": 0.003859893920084964,
+      "maximum_auxiliary_dimension": 1897,
+      "maximum_constraint_absolute_error": 1.9895196601282805e-13,
+      "maximum_energy_error_upper_bound_kcal_per_mol": 0.03694354903541133,
+      "maximum_metric_condition_number": 191080819765.24002,
+      "maximum_reciprocity_relative_defect": 5.204616600142251e-16,
+      "mean_actual_energy_error_kcal_per_mol": 0.002321585772467241,
+      "mean_energy_error_upper_bound_kcal_per_mol": 0.0191403632872947,
+      "total_auxiliary_dimension": 13781
+    },
+    "etb-beta-1p5": {
+      "maximum_actual_energy_error_kcal_per_mol": 0.0030306372840910936,
+      "maximum_auxiliary_dimension": 2730,
+      "maximum_constraint_absolute_error": 1.1084466677857563e-12,
+      "maximum_energy_error_upper_bound_kcal_per_mol": 0.024703968130929253,
+      "maximum_metric_condition_number": 33908383012612.242,
+      "maximum_reciprocity_relative_defect": 3.811846981215974e-16,
+      "mean_actual_energy_error_kcal_per_mol": 0.0012090129359956978,
+      "mean_energy_error_upper_bound_kcal_per_mol": 0.013880398886632764,
+      "total_auxiliary_dimension": 20147
+    },
+    "etb-beta-2p0": {
+      "maximum_actual_energy_error_kcal_per_mol": 0.00917580731171355,
+      "maximum_auxiliary_dimension": 1638,
+      "maximum_constraint_absolute_error": 1.1368683772161603e-13,
+      "maximum_energy_error_upper_bound_kcal_per_mol": 0.05095175718024519,
+      "maximum_metric_condition_number": 65856946995.98133,
+      "maximum_reciprocity_relative_defect": 3.2756569898835063e-16,
+      "mean_actual_energy_error_kcal_per_mol": 0.00611268230357622,
+      "mean_energy_error_upper_bound_kcal_per_mol": 0.032561896166927715,
+      "total_auxiliary_dimension": 12196
+    }
+  },
+  "candidate_gates": {
+    "autoaux": {
+      "all_cases": false,
+      "conditioning": false,
+      "constraints": true,
+      "maximum_bound": true,
+      "mean_bound": true,
+      "reciprocity": true
+    },
+    "etb-beta-1p5": {
+      "all_cases": false,
+      "conditioning": false,
+      "constraints": true,
+      "maximum_bound": true,
+      "mean_bound": true,
+      "reciprocity": true
+    },
+    "etb-beta-2p0": {
+      "all_cases": false,
+      "conditioning": false,
+      "constraints": true,
+      "maximum_bound": true,
+      "mean_bound": true,
+      "reciprocity": true
+    }
+  },
+  "candidate_order": [
+    "etb-beta-2p0",
+    "autoaux",
+    "etb-beta-1p5"
+  ],
+  "claim_boundary": {
+    "allowed_decision": "select the first passing standard basis or reject the ladder",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false
+  },
+  "decision": "fail-close-standard-basis-ladder",
+  "files": {
+    "README.md": {
+      "bytes": 1346,
+      "sha256": "6b2d0d41215bea007478c7511c11e65b835c87307b0446176700c525b1319ed7"
+    },
+    "preregistration.json": {
+      "bytes": 28869,
+      "sha256": "4b8620b3b3d824348c233cbd1bfd7baa3ea5f5dcc6ace02b5327a8e5edb8cd3d"
+    },
+    "result.json": {
+      "bytes": 93720,
+      "sha256": "43dc26e0add4fce049ca09dc8dccde035d5a6e07b6d048244f0ead763bfd1e8b"
+    },
+    "run.log": {
+      "bytes": 96487,
+      "sha256": "33c5e55033b87587229b37eee86a6db754b75c6aa43ddd5ee6a56ca6397588cc"
+    }
+  },
+  "manifest_sha256": "eff1110000c4fe7250be06f9d699b18520d5f2ccec7f51d5d02639f8eff1f1eb",
+  "selected_candidate_id": null,
+  "status": "fail"
+}

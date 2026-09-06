@@ -1,0 +1,341 @@
+{
+  "artifact_kind": "target-free-real-checkpoint-canonical-adt-hybrid-canary",
+  "artifact_sha256": "ee004c30376024df8e516caa2621572fa24e750b8efdc3c18d203ef7b2b76b5a",
+  "capabilities": {
+    "E": false,
+    "F": false,
+    "H": false,
+    "M": false,
+    "V": false
+  },
+  "claim_boundary": "This water canary reads no experimental solvation target. It tests the exact frozen response/root/covariance implementation only. A pass permits freezing the candidate before an independent accuracy panel; it admits no E/F/H/V/M, global root uniqueness, force, or Tier V claim.",
+  "configuration": {
+    "continuum": "shared pyddx ddPCM coefficient state",
+    "continuum_configuration_sha256": "bb89486586ad30d1725b412a0c9d302afce00533bd02f361b651ffca2833fc55",
+    "dielectric": 78.39,
+    "evaluator_configuration_sha256": "456fbcebd1ddba7a879fdb05a539284bba5b5a32293122aed16a5437aa4d68bc",
+    "lmax": 8,
+    "lmax_selection": {
+      "basis": "target-free water convergence against lmax=15 before the canonical-ADT accuracy panel",
+      "energy_tolerance_eV": 0.000434,
+      "field_relative_tolerance": 0.001
+    },
+    "mdp_checkpoint": {
+      "bytes": 51716861,
+      "resolved_path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "role": "mace-mdp-official-checkpoint",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "mdp_device": "cpu",
+    "moved_evaluator_configuration_sha256": "50d591df39c9b222cf737cd64639923fa72180855b2ddd681d44f3af7d64537f",
+    "n_lebedev": 1202,
+    "n_lebedev_selection": "target-free rigid-covariance convergence; no solvation target read",
+    "permanent_source": "MACE-MDP point q/p",
+    "polar_checkpoint": {
+      "bytes": 68133235,
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "role": "mace-polar-1-m-official-checkpoint",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "polar_device": "cuda",
+    "profile_id": "route2-research-mace-mdp-point-polar-residual-adt-ddx-operational-v1",
+    "radial_response": "MACE-POLAR nonuniform residual 1.5-A Gaussian q/p",
+    "response_configuration_sha256": "71f8a32ae967fc47b7b379005984f4957928852dfc9879549d4b8759ea35b785",
+    "uniform_response": "canonical free-atom-density ADT lift of public MACE-MDP molecular alpha"
+  },
+  "decision": {
+    "accuracy_claim_made": false,
+    "accuracy_panel_permitted_next": true,
+    "force_admitted": false,
+    "global_unique_root_certified": false,
+    "target_free_prequalification_passed": true,
+    "tier_v_admitted": false
+  },
+  "exact_command": "tools/route2_release/run_mace_mdp_polar_canonical_adt_ddx_water_canary.py --polar-device cuda --output /tmp/route2-canonical-adt-ddx1202-water-canary-v1-run3.json",
+  "execution": {
+    "git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "git_head_tree": "4d0dbe5405acc456cb6efed0f1f05c54423339a0",
+    "source_files_sha256": {
+      "maple/solvation/continuum/separated_source_adt_ddx.py": "7dabedce6ae7a436a30602bc397200e152003eac35f80145c426b082e1d3b9e1",
+      "maple/solvation/continuum/separated_source_ddx.py": "6a487c9673590a1119224c3be23dfadb25897d2a78da25c82148d3184b9b2b99",
+      "maple/solvation/coupling/atomic_displacement_lift.py": "e61fdf078d0b20bd90e6983b089cad4b37eb9a3fce92e82e07dbdf72efda33b9",
+      "maple/solvation/experimental/mace_mdp_polar_adt_ddx.py": "350271c64e59b1d6bb3305919f16248f6d896e55fd556ce1e47baab22e1ea3eb",
+      "maple/solvation/models/mace_mdp.py": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+      "maple/solvation/models/mace_mdp_polar_adt.py": "ed6ebaf0e7b78172b79c3bdb163900f8e0ec111ef357c9f76168fe41672b95e9",
+      "maple/solvation/models/mace_mdp_polar_hybrid.py": "b990bced91b2a288e03c96b4d82fa58269f65b1ce95e558e4846cf593d895672",
+      "maple/solvation/models/mace_polar_separated.py": "8cce0f313fbf5b7020d23637e2b13ed9d03b9382c8b7a4e0f5160e3977bb738d",
+      "tools/route2_release/run_mace_mdp_polar_canonical_adt_ddx_water_canary.py": "d9b8ff1bc2a54ee7e6fbaafd74053b804633d2ab1794e8e9b1db0c80e4974991"
+    },
+    "working_tree_status": "M GOAL.md\n M maple/solvation/continuum/__init__.py\n M maple/solvation/continuum/separated_source_ddx.py\n M maple/solvation/experimental/__init__.py\n M maple/solvation/experimental/mace_mdp_polar_ddx.py\n M maple/solvation/experimental/mace_mdp_polar_harmonic.py\n M maple/solvation/experimental/mace_mdp_polar_solvated_ddx.py\n M maple/solvation/models/__init__.py\n M maple/solvation/models/mace_mdp.py\n M maple/solvation/models/mace_mdp_polar_hybrid.py\n M maple/solvation/models/mace_polar_separated.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_harmonic.py\n M tests/route2_vnext/test_mace_mdp_polar_hybrid_solvated_ddx.py\n M tests/route2_vnext/test_separated_source_ddx.py\n?? docs/implicit-solvation/benchmarks/route2-neutral-atom-penetration-gaussian-mixture-v1.json\n?? docs/implicit-solvation/benchmarks/route2-neutral-atom-penetration-gaussian-mixture-v1.npz\n?? docs/route2/evidence/HARMONIC_POINT_PERMANENT_PRO_AUDIT_2026-08-17.md\n?? docs/route2/evidence/HYBRID_DDX_MAINLINE_REPLAY_2026-08-17.md\n?? docs/route2/evidence/hybrid-ddx-matched-ledger-pro-20260817/\n?? docs/route2/evidence/hybrid-ddx-nonuniform-work-20260817/\n?? docs/route2/evidence/hybrid-ddx-qm-orbital-solver-pro-20260817/\n?? docs/route2/evidence/hybrid-ddx-qm-penetration-pro-20260817/\n?? docs/route2/evidence/hybrid-ddx-source-ledger-pro-20260817/\n?? docs/route2/evidence/hybrid-mdp-atomic-partition-gauge-20260817/\n?? docs/route2/evidence/hybrid-mdp-source-head-pro-20260817/\n?? docs/route2/evidence/mdp-mbis-pcm-source-gate-20260817/\n?? docs/route2/evidence/mdp-mbis-source-error-decomposition-20260817/\n?? docs/route2/evidence/mdp-mbis-source-head-prototype-20260817/\n?? docs/route2/evidence/mdp-polar-ewald-gauge-l3-tail-20260817/\n?? docs/route2/evidence/mdp-polar-ewald-gauge-tail-20260817/\n?? docs/route2/evidence/mdp-polar-planar-rank-obstruction-20260818/\n?? docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/\n?? docs/route2/evidence/mdp-polar-uniform-susceptibility-covariance-20260818/\n?? docs/route2/evidence/mdp-polar-uniform-susceptibility-nonlinearity-20260818/\n?? docs/route2/evidence/mdp-polar-uniform-susceptibility-pro-20260817/\n?? docs/route2/evidence/mdp-polar-zero-training-source-gate-20260817/\n?? docs/route2/evidence/mdp-polarizability-dipole-closure-tail-20260817/\n?? docs/route2/preregistrations/hybrid-qm-ddpcm-penetration-scientific-design-v1.json\n?? docs/route2/preregistrations/mdp-mbis-pcm-source-physical-gate-v1.json\n?? docs/route2/preregistrations/mdp-mbis-source-error-decomposition-v1.json\n?? docs/route2/preregistrations/mdp-mbis-source-head-prototype-v1.json\n?? docs/route2/preregistrations/mdp-polar-ewald-gauge-l3-tail-v1.json\n?? docs/route2/preregistrations/mdp-polar-ewald-gauge-tail-v1.json\n?? docs/route2/preregistrations/mdp-polar-uniform-response-source-gate-v1.json\n?? docs/route2/preregistrations/mdp-polar-zero-training-source-gate-v1.json\n?? docs/route2/preregistrations/mdp-polarizability-dipole-closure-tail-v1.json\n?? docs/route2/preregistrations/neutral-atom-penetration-asset-v1.json\n?? maple/solvation/continuum/separated_source_adt_ddx.py\n?? maple/solvation/coupling/atomic_displacement_lift.py\n?? maple/solvation/coupling/gaussian_coulomb_projection.py\n?? maple/solvation/coupling/neutral_atom_penetration.py\n?? maple/solvation/experimental/mace_mdp_polar_adt_ddx.py\n?? maple/solvation/models/mace_mdp_mbis.py\n?? maple/solvation/models/mace_mdp_polar_adt.py\n?? maple/solvation/models/mace_mdp_polar_susceptibility.py\n?? maple/solvation/release/cartesian_multipole_ddx.py\n?? maple/solvation/release/cartesian_multipole_mep.py\n?? maple/solvation/release/ewald_gauge_separated_source.py\n?? maple/solvation/release/mdp_polarizability_dipole_closure.py\n?? maple/solvation/release/uniform_response_manifold.py\n?? maple/solvation/release/uniform_susceptibility_replacement.py\n?? psi.1574417.clean\n?? psi.1580499.clean\n?? psi.1621941.clean\n?? psi.1634668.clean\n?? tests/route2_vnext/test_atomic_displacement_lift.py\n?? tests/route2_vnext/test_cartesian_multipole_ddx.py\n?? tests/route2_vnext/test_cartesian_multipole_mep.py\n?? tests/route2_vnext/test_ewald_gauge_separated_source.py\n?? tests/route2_vnext/test_gaussian_coulomb_projection.py\n?? tests/route2_vnext/test_hybrid_harmonic_analytic_audit.py\n?? tests/route2_vnext/test_hybrid_qm_ddpcm_penetration_audit.py\n?? tests/route2_vnext/test_mace_mdp_mbis_source_adapter.py\n?? tests/route2_vnext/test_mace_mdp_polar_adt.py\n?? tests/route2_vnext/test_mace_mdp_polar_adt_ddx.py\n?? tests/route2_vnext/test_mace_mdp_polar_susceptibility.py\n?? tests/route2_vnext/test_mdp_mbis_source_error_decomposition.py\n?? tests/route2_vnext/test_mdp_mbis_source_head_prototype.py\n?? tests/route2_vnext/test_mdp_polar_uniform_response_gate.py\n?? tests/route2_vnext/test_mdp_polarizability_dipole_closure.py\n?? tests/route2_vnext/test_neutral_atom_penetration.py\n?? tests/route2_vnext/test_neutral_atom_penetration_asset.py\n?? tests/route2_vnext/test_separated_source_adt_ddx.py\n?? tests/route2_vnext/test_spice_mbis_source_labels.py\n?? tests/route2_vnext/test_uniform_response_manifold.py\n?? tests/route2_vnext/test_uniform_susceptibility_replacement.py\n?? timer.dat\n?? tools/route2_release/analyze_mdp_mbis_source_error_decomposition.py\n?? tools/route2_release/audit_mdp_mbis_source_runtime.py\n?? tools/route2_release/audit_mdp_polar_planar_rank.py\n?? tools/route2_release/audit_mdp_polar_uniform_susceptibility_covariance.py\n?? tools/route2_release/audit_mdp_polar_uniform_susceptibility_nonlinearity.py\n?? tools/route2_release/audit_mdp_polar_work_dual_tangent.py\n?? tools/route2_release/audit_spice_mbis_source_labels.py\n?? tools/route2_release/generate_neutral_atom_penetration_asset.py\n?? tools/route2_release/run_hybrid_ddx_nonuniform_work_audit.py\n?? tools/route2_release/run_hybrid_qm_ddpcm_penetration_audit.py\n?? tools/route2_release/run_mace_mdp_polar_canonical_adt_ddx_development.py\n?? tools/route2_release/run_mace_mdp_polar_canonical_adt_ddx_water_canary.py\n?? tools/route2_release/run_mdp_mbis_pcm_source_gate.py\n?? tools/route2_release/run_mdp_mbis_source_head_prototype.py\n?? tools/route2_release/run_mdp_polar_ewald_gauge_l3_tail.py\n?? tools/route2_release/run_mdp_polar_ewald_gauge_tail.py\n?? tools/route2_release/run_mdp_polar_uniform_response_gate.py\n?? tools/route2_release/run_mdp_polar_zero_training_source_gate.py\n?? tools/route2_release/run_mdp_polarizability_dipole_closure_tail.py"
+  },
+  "gates": {
+    "exact_cold_replay": true,
+    "finite_field_second_order": true,
+    "five_start_root_residual": true,
+    "five_start_same_energy": true,
+    "jvp_vjp_dot": true,
+    "local_contraction": true,
+    "local_root_nonsingular": true,
+    "local_strong_monotonicity": true,
+    "no_global_uniqueness_overclaim": true,
+    "rigid_energy_covariance": true,
+    "rigid_field_covariance": true,
+    "rigid_source_covariance": true,
+    "target_free_grid_convergence": true,
+    "target_free_lmax_convergence": true,
+    "uniform_response_passive": true
+  },
+  "linearization": {
+    "finite_field_maximum_errors": [
+      2.882661524691854e-07,
+      7.203060910926373e-08,
+      1.8152554313866087e-08
+    ],
+    "finite_field_steps": [
+      0.002,
+      0.001,
+      0.0005
+    ],
+    "jvp_vjp_absolute_defect": 1.384170555951414e-13,
+    "jvp_vjp_dot_left": -0.08647418238956346,
+    "jvp_vjp_dot_right": -0.08647418238970188,
+    "jvp_vjp_relative_defect": 1.6006749271286008e-12
+  },
+  "lmax_convergence": [
+    {
+      "energy_absolute_vs_lmax15_eV": 0.0006797217370576036,
+      "lmax": 4,
+      "maximum_root_iterations": 21,
+      "native_field_relative_vs_lmax15": 0.00159232785978435,
+      "polarization_energy_eV": -0.2801202987944135,
+      "primal_residual_eV": 6.525248966439185e-11
+    },
+    {
+      "energy_absolute_vs_lmax15_eV": 0.00020343081279211583,
+      "lmax": 6,
+      "maximum_root_iterations": 21,
+      "native_field_relative_vs_lmax15": 0.0008036561658583323,
+      "polarization_energy_eV": -0.280596589718679,
+      "primal_residual_eV": 6.529253960689407e-11
+    },
+    {
+      "energy_absolute_vs_lmax15_eV": 0.00013779302039323982,
+      "lmax": 8,
+      "maximum_root_iterations": 21,
+      "native_field_relative_vs_lmax15": 0.0004894961396840603,
+      "polarization_energy_eV": -0.2806622275110779,
+      "primal_residual_eV": 6.536445214052668e-11
+    },
+    {
+      "energy_absolute_vs_lmax15_eV": 5.6649419594656525e-05,
+      "lmax": 10,
+      "maximum_root_iterations": 21,
+      "native_field_relative_vs_lmax15": 0.0001950669906922909,
+      "polarization_energy_eV": -0.28074337111187647,
+      "primal_residual_eV": 6.538495196763032e-11
+    },
+    {
+      "energy_absolute_vs_lmax15_eV": 3.117471229086011e-05,
+      "lmax": 12,
+      "maximum_root_iterations": 21,
+      "native_field_relative_vs_lmax15": 0.00012585966423369756,
+      "polarization_energy_eV": -0.28076884581918027,
+      "primal_residual_eV": 6.532042212033292e-11
+    },
+    {
+      "energy_absolute_vs_lmax15_eV": 0.0,
+      "lmax": 15,
+      "maximum_root_iterations": 21,
+      "native_field_relative_vs_lmax15": 0.0,
+      "polarization_energy_eV": -0.28080002053147113,
+      "primal_residual_eV": 6.531351606656788e-11
+    }
+  ],
+  "local_root_certificate": {
+    "certificate_margin": 1e-08,
+    "claim_boundary": "Single-state spectra certify at most a local implicit branch. Global uniqueness additionally requires an invariant domain and a uniform contraction or strong-monotonicity bound.",
+    "contract_version": "route2-root-well-posedness-v1",
+    "contraction_at_state": true,
+    "dimension": 24,
+    "domain_invariance_certified": false,
+    "domain_uniform_bound_certified": false,
+    "global_unique_root_certified": false,
+    "local_implicit_branch_certified": true,
+    "local_singular_value_floor": 1e-08,
+    "residual_jacobian_condition_number": 1.0691524764502396,
+    "residual_jacobian_sigma_max": 1.0089374073161619,
+    "residual_jacobian_sigma_min": 0.9436796243188795,
+    "strong_monotonicity_at_state": true,
+    "weighted_contraction_norm": 0.0653323931360721,
+    "weighted_strong_monotonicity_margin": 0.9434252936193394
+  },
+  "measurement_sha256": "84d681dcff167869aa3790a635e41673ae393c52aeb9060e90dc1cc2a116fdc7",
+  "passivity": {
+    "claim_boundary": "This certifies only the selected three-dimensional uniform ADT response, not global passivity of every nonlinear field direction.",
+    "molecular_alpha_eigenvalues": [
+      0.0976065948747701,
+      0.09996898666402684,
+      0.10438147909691657
+    ]
+  },
+  "rigid_covariance": {
+    "adt_atomic_dipoles_relative": 4.138107302876893e-06,
+    "claim_boundary": "The finite ddX laboratory quadrature is tested numerically and is not relabelled as a structural SO(3) proof.",
+    "energy_absolute_eV": 2.793845851556398e-06,
+    "fixed_source_grid_convergence": [
+      {
+        "fixed_source_energy_absolute_eV": 9.305071347992522e-05,
+        "fixed_source_field_relative": 0.0002526690160660448,
+        "n_lebedev": 194
+      },
+      {
+        "fixed_source_energy_absolute_eV": 5.3411239027467694e-05,
+        "fixed_source_field_relative": 0.00015079101154083431,
+        "n_lebedev": 302
+      },
+      {
+        "fixed_source_energy_absolute_eV": 1.228608039566259e-05,
+        "fixed_source_field_relative": 9.837063143527903e-05,
+        "n_lebedev": 434
+      },
+      {
+        "fixed_source_energy_absolute_eV": 1.5450892816903927e-05,
+        "fixed_source_field_relative": 8.832963256445957e-05,
+        "n_lebedev": 590
+      },
+      {
+        "fixed_source_energy_absolute_eV": 9.019943600641067e-06,
+        "fixed_source_field_relative": 9.83887153934765e-05,
+        "n_lebedev": 770
+      },
+      {
+        "fixed_source_energy_absolute_eV": 5.9307886670079135e-06,
+        "fixed_source_field_relative": 7.458724201041715e-05,
+        "n_lebedev": 974
+      },
+      {
+        "fixed_source_energy_absolute_eV": 2.7712724006700995e-06,
+        "fixed_source_field_relative": 2.1971731593264956e-05,
+        "n_lebedev": 1202
+      }
+    ],
+    "native_field_relative": 2.201627675723664e-05,
+    "permanent_source_relative": 6.868296467273468e-16,
+    "polarization_energy_absolute_eV": 2.7904642450060635e-06,
+    "radial_residual_source_relative": 2.4775710622524646e-06,
+    "rotation_matrix": [
+      [
+        0.2876324711057978,
+        -0.8929568108010041,
+        0.34625957836523746
+      ],
+      [
+        0.6279682449264893,
+        0.44881311926936884,
+        0.6357850795163755
+      ],
+      [
+        -0.7231344584028041,
+        0.034567586201512956,
+        0.6898417478340115
+      ]
+    ],
+    "translation_angstrom": [
+      0.71,
+      -0.43,
+      0.29
+    ]
+  },
+  "root": {
+    "cold_replay_root_sha256": "bb3619c7463131fffb6dc900157eb2106836fe3d0e3cf77db4f37d383c8bf961",
+    "polarization_energy_eV": -0.2806622275110779,
+    "primal_residual_eV": 6.536445214052668e-11,
+    "root_sha256": "bb3619c7463131fffb6dc900157eb2106836fe3d0e3cf77db4f37d383c8bf961",
+    "starts": [
+      {
+        "iterations": 20,
+        "label": "zero",
+        "polarization_energy_eV": -0.2806622275110779,
+        "record_sha256": "d5a1daf4335233bd9312b0989f0df9b264dd2fa0d25d5b7f09faf06d2071e513",
+        "residual_norm_eV": 6.536445214052668e-11
+      },
+      {
+        "iterations": 18,
+        "label": "permanent",
+        "polarization_energy_eV": -0.2806622275122651,
+        "record_sha256": "ffa4eee9f4b628c11c6f5163493fb48b1d26b366fbc18f72307f60f5e940910e",
+        "residual_norm_eV": 3.627320432325578e-11
+      },
+      {
+        "iterations": 20,
+        "label": "twice-permanent",
+        "polarization_energy_eV": -0.28066222751593795,
+        "record_sha256": "e5f88dfb89e3a50b64f37b0ce7b50ccb02c3fe2885a392521fe53f9f16f5b07e",
+        "residual_norm_eV": 5.89584646584756e-11
+      },
+      {
+        "iterations": 21,
+        "label": "negative-permanent",
+        "polarization_energy_eV": -0.28066222751214,
+        "record_sha256": "384c2f7f9cae96d225d897abf10621b00e0613c88781f01260ead5946b914f31",
+        "residual_norm_eV": 3.8159457017712855e-11
+      },
+      {
+        "iterations": 20,
+        "label": "seeded-transverse",
+        "polarization_energy_eV": -0.280662227513352,
+        "record_sha256": "5a920ffd73c0364029403d66471f1d6b66fa8aa0c6142ac905b45242a85528bc",
+        "residual_norm_eV": 5.915934806784098e-11
+      }
+    ],
+    "total_energy_eV": -2080.1447168965346
+  },
+  "runtime": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "cuda_device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "generated_at_utc": "2026-08-18T13:17:40.010521+00:00",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "mace-torch": "0.3.16",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 1,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_seconds": 484.3478021709998,
+  "schema_version": "route2-mace-mdp-polar-canonical-adt-ddx-water-canary-v1",
+  "status": "pass-target-free-prequalification"
+}

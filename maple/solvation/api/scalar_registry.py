@@ -40,6 +40,9 @@ EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1 = (
 MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID = (
     "route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1"
 )
+MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID = (
+    "route2-mace-mdp-polar-hybrid-harmonic-analytic-force-canary-v1"
+)
 DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1 = (
     "route2-diagnostic-localjet-cpcm-fixedtopology-electrostatic-v1"
 )
@@ -405,7 +408,6 @@ _SCALAR_ENTRIES = (
             "nonpolar_smd_cds",
             "thermal_and_standard_state_terms",
             "complete_solvation_free_energy_claim",
-            "analytic_coordinate_derivative",
             "strict_common_functional_claim",
         ),
         source_representation=(
@@ -423,10 +425,11 @@ _SCALAR_ENTRIES = (
         nonpolar_profile="none",
         state_equation_id=MACE_MDP_POLAR_HYBRID_HARMONIC_STATE_EQUATION_ID,
         derivative_route=(
-            "fourth-order Richardson central derivative of this exact registered "
-            "scalar; every displacement rebuilds the fixed-dimensional smooth "
-            "harmonic assembly and resolves both root starts; excessive stencil "
-            "error fails closed; this is numerical, not an analytic adjoint"
+            "matrix-free implicit adjoint of this exact registered operational "
+            "scalar; continuum/source/receiver coordinate contractions are "
+            "differentiated on the same Torch graph and the true GMRES residual "
+            "fails closed; the prior fourth-order Richardson implementation is "
+            "retained as an independent diagnostic oracle"
         ),
         admitted_capabilities=CapabilityStatus(
             energy=True,
@@ -434,6 +437,7 @@ _SCALAR_ENTRIES = (
         ),
         evidence_artifact_ids=(
             MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID,
+            MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID,
         ),
         enabled=True,
     ),
@@ -789,6 +793,7 @@ __all__ = [
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",
+    "MACE_MDP_POLAR_HYBRID_HARMONIC_ANALYTIC_FORCE_EVIDENCE_ID",
     "MACE_MDP_POLAR_HYBRID_HARMONIC_FORCE_ADMISSION_EVIDENCE_ID",
     "OPERATIONAL_CPCM_ELECTROSTATIC_V1",
     "OPERATIONAL_MACEPOLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_SMOOTH_HARMONIC_GALERKIN_CPCM_V1",

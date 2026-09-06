@@ -1,0 +1,631 @@
+#INFO: **** input file is /tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py ****
+#!/usr/bin/env python3
+"""Generate one fixed-geometry PySCF gas checkpoint for Route-2 references.
+
+This runner is intentionally isolated from MAPLE's runtime dependencies.  It
+creates only a gas-phase RKS checkpoint and an immutable JSON ledger.  The
+checkpoint is later consumed directly by ``route2_qm_surface_mep.py``; no
+separate AO density file is accepted or produced.
+"""
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import platform
+import re
+import subprocess
+import sys
+import time
+
+import numpy as np
+import pyscf
+from pyscf import dft, gto, lib
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+RUNNER_RELATIVE_PATH = (
+    "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py"
+)
+OFFICIAL_NLC_EXAMPLE_URL = (
+    "https://raw.githubusercontent.com/pyscf/pyscf/v2.13.1/"
+    "examples/dft/15-nlc_functionals.py"
+)
+OFFICIAL_NLC_EXAMPLE_SHA256 = (
+    "299f326e8f51a6522b8453146f9d7bf3975e88c0db5c097afe4ac5611e255427"
+)
+_GAFF_ELEMENT_PREFIXES = {
+    "br": "Br",
+    "cl": "Cl",
+    "c": "C",
+    "f": "F",
+    "h": "H",
+    "i": "I",
+    "n": "N",
+    "o": "O",
+    "p": "P",
+    "s": "S",
+}
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mol2", type=Path, required=True)
+    parser.add_argument("--compound-id", required=True)
+    parser.add_argument("--molecule-name", required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--basis", default="def2-tzvpd")
+    parser.add_argument("--grid-level", type=int, default=3)
+    parser.add_argument(
+        "--nlc-grid-profile",
+        choices=("level", "pyscf-official-50x194-sg1"),
+        default="pyscf-official-50x194-sg1",
+    )
+    parser.add_argument("--nlc-grid-level", type=int, default=3)
+    parser.add_argument("--threads", type=int, default=8)
+    parser.add_argument("--max-memory-mb", type=int, default=8000)
+    return parser.parse_args()
+
+
+def _git(*arguments: str) -> str:
+    return subprocess.check_output(
+        ["git", *arguments],
+        cwd=REPO_ROOT,
+        text=True,
+    ).strip()
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _require_clean_source() -> str:
+    status = _git("status", "--porcelain", "--untracked-files=no")
+    if status:
+        raise RuntimeError(
+            "The QM checkpoint runner requires a clean tracked checkout; "
+            f"git reported:\n{status}"
+        )
+    _git("ls-files", "--error-unmatch", RUNNER_RELATIVE_PATH)
+    return _git("rev-parse", "HEAD")
+
+
+def _element_from_gaff_type(atom_type: str) -> str:
+    normalized = atom_type.split(".", 1)[0].lower()
+    for prefix in ("br", "cl"):
+        if normalized.startswith(prefix):
+            return _GAFF_ELEMENT_PREFIXES[prefix]
+    if not normalized:
+        raise ValueError("MOL2 atom type cannot be empty.")
+    try:
+        return _GAFF_ELEMENT_PREFIXES[normalized[0]]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported GAFF atom type: {atom_type}") from exc
+
+
+def _element_from_atom_name(atom_name: str) -> str:
+    match = re.match(r"[A-Za-z]+", atom_name)
+    if match is None:
+        raise ValueError(f"MOL2 atom name has no element prefix: {atom_name}")
+    letters = match.group(0)
+    if len(letters) >= 2 and letters[:2].lower() in {"br", "cl"}:
+        return letters[:2].title()
+    return letters[0].upper()
+
+
+def _mol2_geometry(path: Path) -> tuple[str, list[dict[str, object]]]:
+    lines = path.read_text(encoding="utf-8", errors="strict").splitlines()
+    try:
+        start = lines.index("@<TRIPOS>ATOM") + 1
+        stop = lines.index("@<TRIPOS>BOND")
+    except ValueError as exc:
+        raise ValueError("MOL2 input must contain ATOM and BOND sections.") from exc
+    atoms: list[dict[str, object]] = []
+    geometry: list[str] = []
+    for line in lines[start:stop]:
+        fields = line.split()
+        if not fields:
+            continue
+        if len(fields) < 6:
+            raise ValueError(f"Malformed MOL2 atom row: {line}")
+        symbol_from_name = _element_from_atom_name(fields[1])
+        symbol_from_type = _element_from_gaff_type(fields[5])
+        if symbol_from_name != symbol_from_type:
+            raise ValueError(
+                "MOL2 atom-name/type element mismatch: "
+                f"{fields[1]} versus {fields[5]}."
+            )
+        coordinates = [float(fields[index]) for index in (2, 3, 4)]
+        if not np.all(np.isfinite(coordinates)):
+            raise ValueError("MOL2 coordinates must be finite.")
+        geometry.append(
+            f"{symbol_from_type} "
+            f"{coordinates[0]:.10f} {coordinates[1]:.10f} "
+            f"{coordinates[2]:.10f}"
+        )
+        atoms.append(
+            {
+                "symbol": symbol_from_type,
+                "position_angstrom": coordinates,
+            }
+        )
+    if not atoms:
+        raise ValueError("MOL2 input contains no atoms.")
+    return "\n".join(geometry), atoms
+
+
+def _configure_rks(molecule, arguments: argparse.Namespace):
+    mean_field = dft.RKS(molecule, xc="wb97m-v").density_fit()
+    mean_field.grids.level = arguments.grid_level
+    if arguments.nlc_grid_profile == "pyscf-official-50x194-sg1":
+        symbols = sorted(
+            {molecule.atom_symbol(index) for index in range(molecule.natm)}
+        )
+        mean_field.nlcgrids.atom_grid = {symbol: (50, 194) for symbol in symbols}
+        mean_field.nlcgrids.prune = dft.gen_grid.sg1_prune
+    else:
+        mean_field.nlcgrids.level = arguments.nlc_grid_level
+    mean_field.conv_tol = 1.0e-10
+    mean_field.conv_tol_grad = 1.0e-7
+    mean_field.max_cycle = 100
+    mean_field.max_memory = arguments.max_memory_mb
+    return mean_field
+
+
+def main() -> int:
+    arguments = _parse_args()
+    source_head = _require_clean_source()
+    mol2_path = arguments.mol2.resolve()
+    if not mol2_path.is_file():
+        raise FileNotFoundError(mol2_path)
+    output_dir = arguments.output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=False)
+    if arguments.threads < 1 or arguments.max_memory_mb < 1:
+        raise ValueError("Threads and memory must be positive.")
+    geometry, atoms = _mol2_geometry(mol2_path)
+
+    lib.num_threads(arguments.threads)
+    molecule = gto.M(
+        atom=geometry,
+        basis=arguments.basis,
+        charge=0,
+        spin=0,
+        unit="Angstrom",
+        symmetry=False,
+        verbose=4,
+        max_memory=arguments.max_memory_mb,
+    )
+    checkpoint = output_dir / "gas.chk"
+    result_path = output_dir / "gas.json"
+    cycle_count = 0
+
+    def count_cycle(_environment):
+        nonlocal cycle_count
+        cycle_count += 1
+
+    mean_field = _configure_rks(molecule, arguments)
+    mean_field.callback = count_cycle
+    mean_field.chkfile = str(checkpoint)
+    started = time.perf_counter()
+    energy_hartree = float(mean_field.kernel())
+    elapsed = time.perf_counter() - started
+    if not mean_field.converged:
+        raise RuntimeError("Gas-phase PySCF reference did not converge.")
+
+    direct_density = np.asarray(mean_field.make_rdm1(), dtype=float)
+    checkpoint_density = (
+        np.asarray(mean_field.mo_coeff, dtype=float)
+        * np.asarray(mean_field.mo_occ, dtype=float)[None, :]
+    ) @ np.asarray(mean_field.mo_coeff, dtype=float).T
+    checkpoint_density = 0.5 * (checkpoint_density + checkpoint_density.T)
+    checkpoint_binding_residual = float(
+        np.max(np.abs(direct_density - checkpoint_density))
+    )
+    if checkpoint_binding_residual > 1.0e-10:
+        raise RuntimeError(
+            "The saved checkpoint orbitals do not reconstruct the converged "
+            "closed-shell AO density."
+        )
+
+    record = {
+        "schema_version": 1,
+        "artifact_id": (f"route2-qm-gas-checkpoint-{arguments.compound_id}-v1"),
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "status": "pass",
+        "source": {
+            "git_head": source_head,
+            "runner_path": RUNNER_RELATIVE_PATH,
+            "runner_sha256": _sha256(REPO_ROOT / RUNNER_RELATIVE_PATH),
+            "source_sha256": {
+                RUNNER_RELATIVE_PATH: _sha256(REPO_ROOT / RUNNER_RELATIVE_PATH),
+            },
+            "argv": [sys.executable, *sys.argv],
+            "effective_arguments": {
+                "basis": arguments.basis,
+                "grid_level": arguments.grid_level,
+                "nlc_grid_profile": arguments.nlc_grid_profile,
+                "nlc_grid_level": arguments.nlc_grid_level,
+                "threads": arguments.threads,
+                "max_memory_mb": arguments.max_memory_mb,
+            },
+        },
+        "runtime": {
+            "python": platform.python_version(),
+            "python_executable": {
+                "invoked": sys.executable,
+                "resolved": str(Path(sys.executable).resolve()),
+                "resolved_sha256": _sha256(Path(sys.executable).resolve()),
+            },
+            "pyscf": pyscf.__version__,
+            "numpy": np.__version__,
+            "threads": lib.num_threads(),
+        },
+        "system": {
+            "compound_id": arguments.compound_id,
+            "molecule": arguments.molecule_name,
+            "charge": 0,
+            "multiplicity": 1,
+            "atom_count": molecule.natm,
+            "method": "omegaB97M-V",
+            "basis": arguments.basis,
+            "reference": "RKS",
+            "density_fitting": True,
+            "geometry": atoms,
+        },
+        "numerics": {
+            "semilocal_grid_level": arguments.grid_level,
+            "nonlocal_grid_profile": arguments.nlc_grid_profile,
+            "nonlocal_grid_level": (
+                arguments.nlc_grid_level
+                if arguments.nlc_grid_profile == "level"
+                else None
+            ),
+            "nonlocal_atom_grid": (
+                [50, 194]
+                if arguments.nlc_grid_profile == "pyscf-official-50x194-sg1"
+                else None
+            ),
+            "nonlocal_prune": (
+                "sg1_prune"
+                if arguments.nlc_grid_profile == "pyscf-official-50x194-sg1"
+                else "PySCF level default"
+            ),
+            "scf_energy_tolerance_hartree": 1.0e-10,
+            "scf_gradient_tolerance": 1.0e-7,
+            "maximum_scf_cycles": 100,
+            "maximum_memory_mb": arguments.max_memory_mb,
+        },
+        "input": {
+            "mol2_path": str(mol2_path),
+            "mol2_sha256": _sha256(mol2_path),
+        },
+        "result": {
+            "energy_hartree": energy_hartree,
+            "scf_cycles": cycle_count,
+            "elapsed_seconds": elapsed,
+            "semilocal_grid_point_count": int(mean_field.grids.coords.shape[0]),
+            "nonlocal_grid_point_count": int(mean_field.nlcgrids.coords.shape[0]),
+            "checkpoint": {
+                "path": str(checkpoint),
+                "sha256": _sha256(checkpoint),
+            },
+            "checkpoint_density_binding_residual_inf": (checkpoint_binding_residual),
+        },
+        "official_documentation": {
+            "solvent": "https://pyscf.org/user/solvent.html",
+            "nlc_example": {
+                "url": OFFICIAL_NLC_EXAMPLE_URL,
+                "sha256": OFFICIAL_NLC_EXAMPLE_SHA256,
+            },
+        },
+        "claim_boundary": (
+            "One neutral closed-shell fixed-geometry gas-phase electronic "
+            "reference. It is not a solution free energy, continuum result, "
+            "conformer ensemble, or production MAPLE dependency."
+        ),
+    }
+    with result_path.open("x", encoding="utf-8") as handle:
+        json.dump(record, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write("\n")
+    print(json.dumps(record, indent=2, sort_keys=True, allow_nan=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+#INFO: ******************** input file end ********************
+
+
+System: uname_result(system='Linux', node='LAPTOP-3IEKGRSV', release='6.6.114.1-microsoft-standard-WSL2', version='#1 SMP PREEMPT_DYNAMIC Mon Dec  1 20:46:23 UTC 2025', machine='x86_64')  Threads 8
+Python 3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]
+numpy 2.4.6  scipy 1.17.1  h5py 3.16.0
+Date: Mon Aug 24 05:43:55 2026
+PySCF version 2.13.1
+PySCF path  /home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/pyscf
+
+[CONFIG] conf_file None
+[INPUT] verbose = 4
+[INPUT] num. atoms = 8
+[INPUT] num. electrons = 74
+[INPUT] charge = 0
+[INPUT] spin (= nelec alpha-beta = 2S) = 0
+[INPUT] symmetry False subgroup None
+[INPUT] Mole.unit = Angstrom
+[INPUT] Symbol           X                Y                Z      unit          X                Y                Z       unit  Magmom
+[INPUT]  1 S     -1.912303877100   0.765915731700  -0.545133994100 AA   -3.613730594663   1.447370967409  -1.030153950039 Bohr   0.0
+[INPUT]  2 P     -0.541621338200  -0.834290400900  -0.273053540800 AA   -1.023515992418  -1.576580366055  -0.515996409455 Bohr   0.0
+[INPUT]  3 F     -1.235593972500  -1.619885542800   0.994339043000 AA   -2.334934209188  -3.061140029034   1.879028466232 Bohr   0.0
+[INPUT]  4 S      1.008166524300   0.053590179900   0.924463615800 AA    1.905158618882   0.101270762977   1.746983045987 Bohr   0.0
+[INPUT]  5 P      2.111122311000   0.851927771300  -0.734838987300 AA    3.989442983249   1.609910165668  -1.388644431650 Bohr   0.0
+[INPUT]  6 H     -1.827751091000   1.273820323500   0.707771845500 AA   -3.453948985865   2.407171543320   1.337494946673 Bohr   0.0
+[INPUT]  7 H      2.162928321500   2.203015005700  -0.279128683200 AA    4.087342154700   4.163095009080  -0.527476764758 Bohr   0.0
+[INPUT]  8 H      3.403672788000   0.519534519700  -0.230775877100 AA    6.432009386955   0.981777954490  -0.436103203875 Bohr   0.0
+
+nuclear repulsion = 442.63034967804
+number of shells = 91
+number of NR pGTOs = 370
+number of NR cGTOs = 245
+basis = def2-tzvpd
+ecp = {}
+CPU time:         2.03
+
+
+******** <class 'pyscf.df.df_jk.DFRKS'> ********
+method = DFRKS
+initial guess = minao
+damping factor = 0
+level_shift factor = 0
+DIIS = <class 'pyscf.scf.diis.CDIIS'>
+diis_start_cycle = 1
+diis_space = 8
+diis_damp = 0
+SCF conv_tol = 1e-10
+SCF conv_tol_grad = 1e-07
+SCF max_cycles = 100
+direct_scf = False
+chkfile to save SCF result = /home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/gas/gas.chk
+max_memory 8000 MB (current use 101 MB)
+XC library pyscf.dft.libxc version 7.0.0
+    S. Lehtola, C. Steigemann, M. J.T. Oliveira, and M. A.L. Marques.,  SoftwareX 7, 1–5 (2018)
+XC functionals = wb97m-v
+    N. Mardirossian and M. Head-Gordon.,  J. Chem. Phys. 144, 214110 (2016)
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0xaa3843809a0>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0xaa384380900>
+** Following is NLC and NLC Grids **
+NLC functional = wb97m-v
+radial grids: 
+    Treutler-Ahlrichs [JCP 102, 346 (1995); DOI:10.1063/1.469408] (M4) radial grids
+    
+becke partition: Becke, JCP 88, 2547 (1988); DOI:10.1063/1.454033
+pruning grids: <function nwchem_prune at 0xaa3843809a0>
+grids dens level: 3
+symmetrized grids: False
+atomic radii adjust function: <function treutler_atomic_radii_adjust at 0xaa384380900>
+small_rho_cutoff = 0
+Initial guess from minao.
+tot grids = 119808
+tot grids = 119808
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = def2-tzvp-jkfit
+max_memory = 8000
+Create RSH-DF object <pyscf.df.df.DF object at 0xaa1cad01a10> for omega=0.3
+******** <class 'pyscf.df.df.DF'> ********
+auxbasis = auxmol.basis = def2-tzvp-jkfit
+max_memory = 8000
+init E= -1581.02184560527
+  HOMO = -0.262499063628966  LUMO = -0.0426527561435359
+cycle= 1 E= -1580.69746948147  delta_E= 0.324  |g|= 0.632  |ddm|= 2.27
+  HOMO = -0.350746063380432  LUMO = -0.0149790725422548
+cycle= 2 E= -1580.69723797894  delta_E= 0.000232  |g|= 0.752  |ddm|= 0.861
+  HOMO = -0.342932184588532  LUMO = 0.00939675145410144
+cycle= 3 E= -1580.78677615147  delta_E= -0.0895  |g|= 0.0785  |ddm|=  0.4
+  HOMO = -0.34265604831392  LUMO = 0.013542569190369
+cycle= 4 E= -1580.7880540203  delta_E= -0.00128  |g|= 0.0271  |ddm|= 0.0831
+  HOMO = -0.343280497880269  LUMO = 0.013097554759951
+cycle= 5 E= -1580.78828309547  delta_E= -0.000229  |g|= 0.00883  |ddm|= 0.0354
+  HOMO = -0.343431756715883  LUMO = 0.0134621319416762
+cycle= 6 E= -1580.78832052806  delta_E= -3.74e-05  |g|= 0.00249  |ddm|= 0.0148
+  HOMO = -0.343508510936689  LUMO = 0.0133904167062175
+cycle= 7 E= -1580.78832561335  delta_E= -5.09e-06  |g|= 0.000874  |ddm|= 0.0064
+  HOMO = -0.343547183703811  LUMO = 0.013402112596528
+cycle= 8 E= -1580.78832634315  delta_E= -7.3e-07  |g|= 0.000302  |ddm|= 0.00269
+  HOMO = -0.343541343097718  LUMO = 0.0134108970735885
+cycle= 9 E= -1580.78832642984  delta_E= -8.67e-08  |g|= 0.000114  |ddm|= 0.00098
+  HOMO = -0.343553057845889  LUMO = 0.0134072237533533
+cycle= 10 E= -1580.78832643905  delta_E= -9.22e-09  |g|= 3.52e-05  |ddm|= 0.000297
+  HOMO = -0.343547020987411  LUMO = 0.0134102405193972
+cycle= 11 E= -1580.7883264401  delta_E= -1.04e-09  |g|= 1.38e-05  |ddm|= 9.79e-05
+  HOMO = -0.343549020669741  LUMO = 0.0134093775037582
+cycle= 12 E= -1580.7883264402  delta_E= -9.96e-11  |g|= 5.22e-06  |ddm|= 2.21e-05
+  HOMO = -0.34354879655279  LUMO = 0.0134094969376584
+cycle= 13 E= -1580.78832644022  delta_E= -1.8e-11  |g|= 1.63e-06  |ddm|= 1.2e-05
+  HOMO = -0.3435486597654  LUMO = 0.0134095652445479
+cycle= 14 E= -1580.78832644022  delta_E= -2.27e-13  |g|= 5.99e-07  |ddm|= 2.97e-06
+  HOMO = -0.34354869981452  LUMO = 0.013409530071895
+cycle= 15 E= -1580.78832644022  delta_E= -2.5e-12  |g|= 2.68e-07  |ddm|= 1.18e-06
+  HOMO = -0.343548700086139  LUMO = 0.0134095370651255
+cycle= 16 E= -1580.78832644022  delta_E= -2.27e-13  |g|= 9.42e-08  |ddm|= 4.59e-07
+  HOMO = -0.343548697530332  LUMO = 0.0134095328274875
+Extra cycle  E= -1580.78832644022  delta_E= 1.14e-12  |g|= 7.68e-08  |ddm|= 2.05e-07
+converged SCF energy = -1580.78832644022
+{
+  "artifact_id": "route2-qm-gas-checkpoint-vqm24-gatea-phosphorus-598182-v1",
+  "claim_boundary": "One neutral closed-shell fixed-geometry gas-phase electronic reference. It is not a solution free energy, continuum result, conformer ensemble, or production MAPLE dependency.",
+  "generated_at_utc": "2026-08-23T21:49:08.426866+00:00",
+  "input": {
+    "mol2_path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/geometry.mol2",
+    "mol2_sha256": "6463bfa957ae68c5900abbac0dd00f3154eae8e3eb2b226bc23b6a5f0f0f8c8d"
+  },
+  "numerics": {
+    "maximum_memory_mb": 8000,
+    "maximum_scf_cycles": 100,
+    "nonlocal_atom_grid": null,
+    "nonlocal_grid_level": 3,
+    "nonlocal_grid_profile": "level",
+    "nonlocal_prune": "PySCF level default",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3
+  },
+  "official_documentation": {
+    "nlc_example": {
+      "sha256": "299f326e8f51a6522b8453146f9d7bf3975e88c0db5c097afe4ac5611e255427",
+      "url": "https://raw.githubusercontent.com/pyscf/pyscf/v2.13.1/examples/dft/15-nlc_functionals.py"
+    },
+    "solvent": "https://pyscf.org/user/solvent.html"
+  },
+  "result": {
+    "checkpoint": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/gas/gas.chk",
+      "sha256": "654285bf8ba5a9badf4b565ea01a2e3526e5a6a3bf3ebda835d5bcb54fc8ce27"
+    },
+    "checkpoint_density_binding_residual_inf": 1.734723475976807e-18,
+    "elapsed_seconds": 312.94180899300045,
+    "energy_hartree": -1580.7883264402171,
+    "nonlocal_grid_point_count": 119808,
+    "scf_cycles": 16,
+    "semilocal_grid_point_count": 119808
+  },
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "python_executable": {
+      "invoked": "/home/axie/miniconda3/envs/maple/bin/python",
+      "resolved": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+      "resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+    },
+    "threads": 8
+  },
+  "schema_version": 1,
+  "source": {
+    "argv": [
+      "/home/axie/miniconda3/envs/maple/bin/python",
+      "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+      "--mol2",
+      "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/geometry.mol2",
+      "--compound-id",
+      "vqm24-gatea-phosphorus-598182",
+      "--molecule-name",
+      "Vector-QM24_DFT_all__DFT_all__337595",
+      "--output-dir",
+      "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/gas",
+      "--basis",
+      "def2-tzvpd",
+      "--grid-level",
+      "3",
+      "--nlc-grid-profile",
+      "level",
+      "--nlc-grid-level",
+      "3",
+      "--threads",
+      "8",
+      "--max-memory-mb",
+      "8000"
+    ],
+    "effective_arguments": {
+      "basis": "def2-tzvpd",
+      "grid_level": 3,
+      "max_memory_mb": 8000,
+      "nlc_grid_level": 3,
+      "nlc_grid_profile": "level",
+      "threads": 8
+    },
+    "git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "runner_path": "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+    "runner_sha256": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb",
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb"
+    }
+  },
+  "status": "pass",
+  "system": {
+    "atom_count": 8,
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "compound_id": "vqm24-gatea-phosphorus-598182",
+    "density_fitting": true,
+    "geometry": [
+      {
+        "position_angstrom": [
+          -1.9123038771,
+          0.7659157317,
+          -0.5451339941
+        ],
+        "symbol": "S"
+      },
+      {
+        "position_angstrom": [
+          -0.5416213382,
+          -0.8342904009,
+          -0.2730535408
+        ],
+        "symbol": "P"
+      },
+      {
+        "position_angstrom": [
+          -1.2355939725,
+          -1.6198855428,
+          0.994339043
+        ],
+        "symbol": "F"
+      },
+      {
+        "position_angstrom": [
+          1.0081665243,
+          0.0535901799,
+          0.9244636158
+        ],
+        "symbol": "S"
+      },
+      {
+        "position_angstrom": [
+          2.111122311,
+          0.8519277713,
+          -0.7348389873
+        ],
+        "symbol": "P"
+      },
+      {
+        "position_angstrom": [
+          -1.827751091,
+          1.2738203235,
+          0.7077718455
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          2.1629283215,
+          2.2030150057,
+          -0.2791286832
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          3.403672788,
+          0.5195345197,
+          -0.2307758771
+        ],
+        "symbol": "H"
+      }
+    ],
+    "method": "omegaB97M-V",
+    "molecule": "Vector-QM24_DFT_all__DFT_all__337595",
+    "multiplicity": 1,
+    "reference": "RKS"
+  }
+}

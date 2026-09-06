@@ -1,0 +1,45 @@
+{
+  "artifact": "route2-vqm24-observable-training-fluorine-pilot-result-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "observable_record_runner_validated_on_opened_pilot": true,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T16:25:52.131352+00:00",
+  "gates": {
+    "dipole_large_step_replay": true,
+    "electron_count": true,
+    "electronic_energy_large_step_replay": true,
+    "external_nuclear_coupling_present": true,
+    "mep_large_step_replay": true,
+    "no_curvature_label": true,
+    "total_enthalpy_conjugacy": true
+  },
+  "metrics": {
+    "dipole_large_step_replay_relative": 5.798142352905037e-10,
+    "electronic_energy_large_step_replay_abs_hartree": 5.684341886080801e-13,
+    "enthalpy_slope_vs_zero_source_mep_relative": 1.912931778751673e-07,
+    "maximum_electron_count_error_e": 4.973799150320701e-14,
+    "mep_large_step_replay_relative": 2.0571410557733556e-09,
+    "scf_cycle_range": [
+      7,
+      8
+    ],
+    "wall_seconds": 999.9066460970001
+  },
+  "result_sha256": "34d488d161695c234d4b7f66665cc109a34ea4906ac18e0d70beca5b8b6e5839",
+  "schema_version": 1,
+  "source": {
+    "finite_evidence_path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824",
+    "finite_result_sha256": "a2d4f387e89332bc6457103d2726dc11ee47d07b89e646ac5e1ba875bb8491f5",
+    "runner_path": "tools/route2_release/run_vqm24_observable_training_record.py",
+    "runner_sha256": "89e91658cebf6dfcfcfc4e7d3bea0fd60be2b5cbb7666978f8a094ab9fabec71",
+    "sealer_path": "tools/route2_release/seal_vqm24_observable_training_pilot.py",
+    "sealer_sha256": "e1fbcdf1ad6611deb375d341ce89d80a0f007df519a44a073754c44444faf375"
+  },
+  "status": "pass-observable-record-pilot"
+}

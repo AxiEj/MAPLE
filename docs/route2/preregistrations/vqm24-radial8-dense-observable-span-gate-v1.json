@@ -1,0 +1,93 @@
+{
+  "artifact": "route2-vqm24-radial8-dense-observable-span-gate-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "density_or_partition_coefficient_label_emitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T18:11:00.580184+00:00",
+  "decision": {
+    "all_validation_records_must_pass": true,
+    "coefficients_may_not_be_saved_or_used_as_labels": true,
+    "condition_number_is_reported_not_tuned": true,
+    "failure_closes_radial8_quantitative_source_route": true
+  },
+  "gates": {
+    "maximum_charge_constraint_residual_e": 1e-08,
+    "positive_hessian_extension_minimum_gram_eigenvalue": 1e-08,
+    "response_direction_rank": 4,
+    "response_mep_audit_max_absolute_hartree_per_e_per_source_e": 0.002,
+    "response_mep_audit_relative_maximum": 0.03,
+    "source_response_maximum_symmetric_eigenvalue_hartree_per_e2": 1e-08,
+    "source_response_reciprocity_relative_maximum": 0.03,
+    "source_response_relative_error_maximum": 0.03,
+    "weighted_fit_operator_rank_equals_reduced_dimension": true,
+    "zero_mep_audit_max_absolute_hartree_per_e": 0.005,
+    "zero_mep_audit_relative_maximum": 0.05
+  },
+  "opened_pilots": {
+    "measured_record_id": "fluorine-412002-081c6cc3a31b",
+    "metrics": {
+      "positive_hessian_extension_minimum_gram_eigenvalue": 0.008513287864082095,
+      "response_mep_audit_relative": 0.00555620240297605,
+      "source_response_reciprocity_relative": 0.0027229443288571847,
+      "source_response_relative_error": 0.0021767835031708932,
+      "weighted_fit_operator_condition_number": 28452478.32617721,
+      "zero_mep_audit_relative": 0.014673808668931388
+    },
+    "record_ids": [
+      "base-hcno-460236-0c750047a5e1",
+      "fluorine-412002-081c6cc3a31b"
+    ]
+  },
+  "parent": {
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e"
+  },
+  "preregistration_sha256": "8bf48138a074da33d56c60b0927b8f36da24b2a23fa321a17c758b7caf95cbc4",
+  "schema_version": 1,
+  "source": {
+    "coupling_path": "maple/solvation/coupling/exact_gto.py",
+    "coupling_sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "span_module_path": "maple/solvation/reference/radial_gto_observable_span.py",
+    "span_module_sha256": "577c0acbdc586a6c616515be2b27d13582e831b1ff8259ddca864f5cec9aaf56"
+  },
+  "status": "locked-before-remaining-span-evaluation",
+  "validation_record_ids": [
+    "base-hcno-135247-970f059c1f95",
+    "base-hcno-156765-3c8bc817c95e",
+    "base-hcno-162863-745ab5d78c8b",
+    "base-hcno-208608-7e6419f2ee92",
+    "base-hcno-229457-b412c4e75aed",
+    "base-hcno-399849-fa20b6e144ad",
+    "base-hcno-404508-6cb9b5d441de",
+    "base-hcno-432908-c1096072c51b",
+    "base-hcno-436944-1c3caaef7cd3",
+    "base-hcno-440770-f59ae1366672",
+    "base-hcno-481244-549dfd678c85",
+    "bromine-101221-5abef0a88d16",
+    "bromine-10426-6bb8a046ac22",
+    "bromine-447833-84c7dcaffea3",
+    "bromine-63727-71eb4b0867c9",
+    "chlorine-141648-a14bf52170de",
+    "chlorine-610177-ac8ad6afa4f7",
+    "chlorine-636384-976484d18c73",
+    "chlorine-784-a7040c282ac8",
+    "fluorine-139037-710a4fc89944",
+    "fluorine-278363-5c9234fb4b84",
+    "fluorine-469465-70c76c720826",
+    "phosphorus-351029-1256947e5905",
+    "phosphorus-598182-ea0696054cba",
+    "phosphorus-66144-d15ba6ea626a",
+    "phosphorus-696398-7400c7789c7c",
+    "sulfur-122602-190c2fbc8b99",
+    "sulfur-221028-692cd68117c4",
+    "sulfur-379175-938cde712eac",
+    "sulfur-389495-2e00c04d8f40"
+  ]
+}

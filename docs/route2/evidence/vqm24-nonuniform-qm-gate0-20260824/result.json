@@ -1,0 +1,135 @@
+{
+  "artifact": "route2-vqm24-localized-field-qm-gate0-result-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_training_datum_generated": true,
+    "pcm_or_cavity_used": false
+  },
+  "created_utc": "2026-08-23T21:20:21.719111+00:00",
+  "files": {
+    "gas_checkpoint": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/gas/gas.chk",
+      "sha256": "bc07729474e06bdb667a064b62c5e08b1949e1e98fbc66ecf9e70c1f3f7fc813"
+    },
+    "gas_json": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/gas/gas.json",
+      "sha256": "16326fc465b256f74441d2960f644aa96c2186964c977432609675f337ca186a"
+    },
+    "response_json": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/qm-response/qm-response.json",
+      "sha256": "61fd4e49fcf0c9b9aee5f2bc9924cea3668232d132903acca811a5795c530f1c"
+    },
+    "response_npz": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/qm-response/qm-response.npz",
+      "sha256": "3b914bbff6a575d70602bc6e19a610d8acd1b56f7dd23155ea7adbe13fcffdf8"
+    }
+  },
+  "gas": {
+    "density_binding_residual_inf": 3.469446951953614e-18,
+    "elapsed_seconds": 61.9924844039997,
+    "energy_hartree": -260.7028882944692,
+    "scf_cycles": 16
+  },
+  "gates": {
+    "all_energy_curvatures_negative": true,
+    "all_scf_converged": true,
+    "dipole_step_consistency": true,
+    "electron_count": true,
+    "mep_step_consistency": true
+  },
+  "response": {
+    "dipole_step_relative_difference": 0.0005570226068365585,
+    "energy_diagnostics": [
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.007412381819449366,
+            "central_slope_hartree_per_e": -3.8240318671493396,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.007444441507686861,
+            "central_slope_hartree_per_e": -3.8240318688167463,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.004306526984514712,
+        "mode_index": 0,
+        "slope_step_relative_difference": 4.360336718916607e-10
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.007143322970174875,
+            "central_slope_hartree_per_e": -3.988076260270646,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.00717636794433929,
+            "central_slope_hartree_per_e": -3.9880762603843323,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.004604693407684185,
+        "mode_index": 1,
+        "slope_step_relative_difference": 2.850657465147123e-11
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.006358883789895724,
+            "central_slope_hartree_per_e": -3.8754925041454653,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.006377717909344938,
+            "central_slope_hartree_per_e": -3.875492505528655,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0029531126520375853,
+        "mode_index": 2,
+        "slope_step_relative_difference": 3.569067830510937e-10
+      },
+      {
+        "by_step": [
+          {
+            "central_curvature_hartree_per_e2": -0.009025471728010518,
+            "central_slope_hartree_per_e": -4.331092419723367,
+            "step_e": 0.0003
+          },
+          {
+            "central_curvature_hartree_per_e2": -0.009052996574610006,
+            "central_slope_hartree_per_e": -4.331092420159166,
+            "step_e": 0.001
+          }
+        ],
+        "curvature_step_relative_difference": 0.0030404127928959734,
+        "mode_index": 3,
+        "slope_step_relative_difference": 1.0062102356720575e-10
+      }
+    ],
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "maximum_electron_count_error_e": 4.973799150320701e-14,
+    "maximum_scf_cycles": 8,
+    "mep_step_relative_difference": 0.0005971613974200663,
+    "minimum_scf_cycles": 6,
+    "mode_count": 4,
+    "surface_point_count": 55
+  },
+  "result_sha256": "77bb41a0c66d653153529e0d58a7df144ca97135431524f2c06e6f33f9280556",
+  "schema_version": 1,
+  "source": {
+    "preregistration_file_sha256": "07c3948e06379976aa0f50d72432b9facf2d07a4f6cb922c9e16fe7bf42d4ea1",
+    "preregistration_path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/vqm24-nonuniform-qm-gate0-v1.json",
+    "preregistration_sha256": "d31bc3a48db605cacbaf063f7d753b4aec7efe6f3ec0d761778aee53b9ce6131",
+    "sealer_path": "tools/route2_release/seal_vqm24_nonuniform_qm_gate0.py",
+    "sealer_sha256": "652d7b8ecbc4da2b24cc9853fc079e4d7650acc006116c0f62728730e40c361e"
+  },
+  "status": "pass-numerical-gate0"
+}

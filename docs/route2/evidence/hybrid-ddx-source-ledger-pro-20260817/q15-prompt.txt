@@ -1,0 +1,35 @@
+You are the external mathematical/physical reviewer for a hybrid implicit-solvation route. Give a decisive, fail-closed answer. Do not suggest fitting or rescaling to experimental solvation targets, refitting CDS, changing acceptance thresholds, selecting a model after inspecting target errors, spectral clipping, or an ad hoc residual correction.
+
+Exact hybrid state model
+- Permanent source c_p(R): frozen MACE-MDP atom-centred point monopoles and dipoles. MACE-MDP is a property model, not an energy model.
+- Induced increment Δc(R,u) = M_POLAR(R,u) - M_POLAR(R,0): frozen MACE-POLAR 1.5-A Gaussian monopoles and dipoles, so total charge is unchanged.
+- Continuum state: A_R sigma = B_p,R c_p + B_g,R Δc, using pyddx ddPCM with SMD solvent-dependent Coulomb radii, lmax=15 and nleb=1202.
+- Native field: u = L_R sigma, using the frozen MACE-POLAR 1.5/3.0-A external-MEP receiver.
+- Current total-solvation ledger (before any CDS): Phi0 = G_ddPCM at the self-consistent operational root. Stock SMD-CDS is then added as a separate scalar.
+- The root is operational, not a joint stationary electronic-continuum state. The original MACE-POLAR source has a continuum-active reduced curl defect about 0.208, so it cannot be relabelled as the gradient of its field-conditioned energy.
+
+Target-independent evidence already frozen
+1. A same-cavity four-case QM/PCMSolver fixed-source gate for unchanged MACE-MDP q/p passed 3/4. Mean absolute electrostatic-component error was 0.942 kcal/mol; maximum 1.824. Area-weighted cavity MEP relative error reached 0.595. Thus the source is promising but not quantitatively certified by the preregistered all-case 1 kcal/mol rule.
+2. A single universal moment-preserving Gaussian radial embedding selected only on QM surface-MEP data improved distant MEP strongly, but on the actual intrinsic cavity all four fixed-source PCM energies missed by 1.83-4.89 kcal/mol. Further radial patches are closed.
+3. With MACE-POLAR induced response included, a four-case ddPCM electrostatic diagnostic has MAE 0.869 kcal/mol, but errors include benzene -1.763 and 2-acetoxyethyl acetate +1.325 kcal/mol.
+4. The current 505-development hybrid ddPCM + stock SMD-CDS profile has total MAE 1.696 kcal/mol; water-only 306 MAE is 2.096. A preregistered low-dimensional CDS replacement achieved mixed-505 grouped-OOF MAE 1.455 but water grouped-OOF MAE 1.697, so its conjunctive gate failed and further CDS fitting is closed.
+5. A proposed smooth weighted-shell harmonic continuum was rejected by same-equation tests; the existing ddPCM backend remains the continuum mainline.
+
+Potential alternative energy ledger
+Let E_cond(R,u) be the field-conditioned MACE-POLAR scalar returned by the same checkpoint graph. Its complete external-field semantics have not yet been frozen. A candidate operational ledger is
+
+Phi1Delta(R,sigma) = E_vac(R) + [E_cond(R,L_R sigma) - E_cond(R,0)] + 1/2 sigma^T A_R sigma
+
+with sign/coupling terms to be corrected according to the exact convention. Because the source update is nonintegrable, Phi1Delta would remain an explicitly chosen operational scalar and would require an implicit adjoint; it is not Tier V.
+
+Questions
+1. Starting from a primitive continuum functional and a field-conditioned electronic enthalpy, derive all non-double-counting scalar ledgers that could plausibly correspond to the above operational root. Be explicit about signs, the external-work term, the on-shell 1/2 factor, and which terms are present if E_cond is (a) internal-only, (b) full external enthalpy, or (c) a hybrid graph with an explicit dipole-field work term.
+2. Is Phi0 physically incomplete because it omits solute electronic distortion/polarization cost, or can that cost already be implicitly encoded in the self-consistent continuum polarization energy? State what can and cannot be inferred without a common electronic functional.
+3. Give a finite set of upstream replay and charging-path canaries that can determine the semantics of E_cond without using experimental solvation targets. Include zero-field identity, uniform-field replay, arbitrary native-field AD-vs-FD, dipole/work sign, and a lambda charging identity. Give precise pass/fail equations.
+4. Define a matched QM/PCM decomposition that can decide Phi0 versus a corrected Phi1Delta without using total experimental hydration free energies. It must separately identify vacuum-to-solution electronic distortion cost, continuum stabilization, and their sum on the same geometry/cavity/equation. Explain how to evaluate the vacuum electronic functional on the PCM-relaxed density and how to prevent cavity/equation/standard-state mismatches.
+5. The permanent q/p source is not unique as a near-field density. Prove or refute: after the universal radial repair failed, no target-independent, no-training modification of B_p is identifiable from q/p alone. If any legitimate successor remains, specify the extra independent physical information required (for example higher multipoles, density coefficients, QM surface MEP, or a scalar-first field head) and why it is not an ad hoc patch.
+6. Does the failed 4/4 permanent-source gate logically require closing the entire operational MDP+POLAR route, or only the claim that unchanged MDP q/p is a quantitatively certified standalone PCM source? State the exact additional evidence under which the hybrid can remain a useful operational model.
+7. We need improve the water development MAE by roughly 0.2 kcal/mol without target fitting. Rank the next three target-independent experiments by information gain and scientific legitimacy. Choose exactly one as the immediate next experiment, give its equations, required artifacts, stop criteria, and what each outcome would prove. If the honest answer is that no no-training repair is identifiable, say so and recommend the smallest scalar-first successor rather than inventing a correction.
+8. Ensure the recommendation remains compatible with multiple solvents, analytic conservative forces through A/B/L coordinate VJPs plus a block implicit adjoint, and a separately versioned CDS/nonpolar scalar.
+
+End with the exact marker: HYBRID DDX SOURCE-LEDGER TERMINAL DECISION

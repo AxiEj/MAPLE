@@ -1,0 +1,265 @@
+{
+  "artifact": "route2-neutral-atom-penetration-gaussian-mixture-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "mace_outputs_read": false,
+    "post_training_or_model_fitting_performed": false,
+    "qm_atomic_density_basis_projection_only": true,
+    "solvation_or_pcm_quantities_read": false
+  },
+  "generation_contract": {
+    "atomic_density_validation": {
+      "electron_count_absolute_error_max": 1e-08,
+      "radial_tail_density_max_e_per_bohr3": 1e-20,
+      "scf_convergence_tolerance_hartree": 1e-12,
+      "spherical_probe_maximum_difference_max": 1e-12,
+      "spherical_probe_radius_bohr": 2.0
+    },
+    "basis": "def2-TZVPD",
+    "elements": [
+      {
+        "atomic_number": 1,
+        "neutral_electron_count": 1,
+        "spin_2s": 1,
+        "symbol": "H"
+      },
+      {
+        "atomic_number": 6,
+        "neutral_electron_count": 6,
+        "spin_2s": 2,
+        "symbol": "C"
+      },
+      {
+        "atomic_number": 7,
+        "neutral_electron_count": 7,
+        "spin_2s": 3,
+        "symbol": "N"
+      },
+      {
+        "atomic_number": 8,
+        "neutral_electron_count": 8,
+        "spin_2s": 2,
+        "symbol": "O"
+      },
+      {
+        "atomic_number": 9,
+        "neutral_electron_count": 9,
+        "spin_2s": 1,
+        "symbol": "F"
+      },
+      {
+        "atomic_number": 15,
+        "neutral_electron_count": 15,
+        "spin_2s": 3,
+        "symbol": "P"
+      },
+      {
+        "atomic_number": 16,
+        "neutral_electron_count": 16,
+        "spin_2s": 2,
+        "symbol": "S"
+      },
+      {
+        "atomic_number": 17,
+        "neutral_electron_count": 17,
+        "spin_2s": 1,
+        "symbol": "Cl"
+      },
+      {
+        "atomic_number": 35,
+        "neutral_electron_count": 35,
+        "spin_2s": 1,
+        "symbol": "Br"
+      }
+    ],
+    "existing_elements_reused_bitwise_from_frozen_v1": [
+      1,
+      6,
+      7,
+      8,
+      16,
+      17
+    ],
+    "gaussian_projection": {
+      "audit_isodensity_e_per_bohr3": 0.001,
+      "candidate_exponent_count": 192,
+      "candidate_exponent_max_bohr2": 500000.0,
+      "candidate_exponent_min_bohr2": 5e-05,
+      "component_count_prune_threshold_e": 1e-10,
+      "fit_density_minimum_e_per_bohr3": 1e-12,
+      "kind": "nonnegative-normalized-gaussian-expansion-v1",
+      "normalization_row_weight": 1000000.0,
+      "relative_weight_floor_e_per_bohr3": 1e-10
+    },
+    "method": "PySCF AtomSphAverageRHF",
+    "new_elements_generated": [
+      9,
+      15,
+      35
+    ],
+    "radial_grid": {
+      "coordinate_rule": "r_max * (i / (n - 1))**2",
+      "point_count": 2049,
+      "radius_max_bohr": 30.0
+    }
+  },
+  "manifest_payload_sha256": "b24f253c5bfd2825cef1299bbcf6e227df1b59d692ad5cab64f312fcb18f95d7",
+  "preregistration": {
+    "path": "docs/route2/preregistrations/neutral-atom-penetration-asset-v1.json",
+    "sha256": "b91d3ec6673c6f3fe42423742f57d70da3edefa88a720a7553da112ee2dc0ca0"
+  },
+  "results": [
+    {
+      "atomic_density": null,
+      "gaussian_projection": null,
+      "legacy_v1_bitwise_replay": {
+        "copied_bitwise": true,
+        "source": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz"
+      }
+    },
+    {
+      "atomic_density": null,
+      "gaussian_projection": null,
+      "legacy_v1_bitwise_replay": {
+        "copied_bitwise": true,
+        "source": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz"
+      }
+    },
+    {
+      "atomic_density": null,
+      "gaussian_projection": null,
+      "legacy_v1_bitwise_replay": {
+        "copied_bitwise": true,
+        "source": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz"
+      }
+    },
+    {
+      "atomic_density": null,
+      "gaussian_projection": null,
+      "legacy_v1_bitwise_replay": {
+        "copied_bitwise": true,
+        "source": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz"
+      }
+    },
+    {
+      "atomic_density": {
+        "atomic_number": 9,
+        "density_sha256": "ef9e6b36ce483d5a8bf6b7fd7529cfe54d891c9fcfaf8694859aa809216f1b7f",
+        "electron_count_integral": 8.999999999999988,
+        "electron_count_integral_absolute_error": 1.2434497875801753e-14,
+        "energy_hartree": -99.06345211667788,
+        "minimum_density_e_per_bohr3": 1.8735187262833544e-50,
+        "neutral_electron_count": 9.0,
+        "radial_tail_density_e_per_bohr3": 1.8735187262833544e-50,
+        "scf_converged": true,
+        "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+        "spin_2s": 1,
+        "symbol": "F"
+      },
+      "gaussian_projection": {
+        "absolute_1e-3_isodensity_radius_error_bohr": 0.0006070189663582859,
+        "atomic_number": 9,
+        "component_count": 26,
+        "electron_count": 9.0,
+        "electron_count_absolute_error": 0.0,
+        "fitted_1e-3_isodensity_radius_bohr": 3.105951826457059,
+        "maximum_relative_density_error_at_or_above_1e-3": 0.003114583034516395,
+        "reference_1e-3_isodensity_radius_bohr": 3.1053448074907006,
+        "rms_relative_density_error_at_or_above_1e-3": 0.001487736094121242
+      },
+      "legacy_v1_bitwise_replay": null
+    },
+    {
+      "atomic_density": {
+        "atomic_number": 15,
+        "density_sha256": "58858b0d085ae5c611a0167189d1f076f8ee54a352fa676239eb5209e0656e74",
+        "electron_count_integral": 14.999999999999925,
+        "electron_count_integral_absolute_error": 7.460698725481052e-14,
+        "energy_hartree": -340.3699458127136,
+        "minimum_density_e_per_bohr3": 6.612698973662033e-45,
+        "neutral_electron_count": 15.0,
+        "radial_tail_density_e_per_bohr3": 6.612698973662033e-45,
+        "scf_converged": true,
+        "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+        "spin_2s": 3,
+        "symbol": "P"
+      },
+      "gaussian_projection": {
+        "absolute_1e-3_isodensity_radius_error_bohr": 0.03696224241234791,
+        "atomic_number": 15,
+        "component_count": 22,
+        "electron_count": 15.000000000000002,
+        "electron_count_absolute_error": 1.7763568394002505e-15,
+        "fitted_1e-3_isodensity_radius_bohr": 4.453240663622986,
+        "maximum_relative_density_error_at_or_above_1e-3": 0.05887747977956431,
+        "reference_1e-3_isodensity_radius_bohr": 4.416278421210638,
+        "rms_relative_density_error_at_or_above_1e-3": 0.016105457154934135
+      },
+      "legacy_v1_bitwise_replay": null
+    },
+    {
+      "atomic_density": null,
+      "gaussian_projection": null,
+      "legacy_v1_bitwise_replay": {
+        "copied_bitwise": true,
+        "source": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz"
+      }
+    },
+    {
+      "atomic_density": null,
+      "gaussian_projection": null,
+      "legacy_v1_bitwise_replay": {
+        "copied_bitwise": true,
+        "source": "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz"
+      }
+    },
+    {
+      "atomic_density": {
+        "atomic_number": 35,
+        "density_sha256": "75e582bb1f028072503d4f939a0893adcd59fdc5781fcc47fbb9bebacf7d7d71",
+        "electron_count_integral": 34.99999999999895,
+        "electron_count_integral_absolute_error": 1.0516032489249483e-12,
+        "energy_hartree": -2572.221532652519,
+        "minimum_density_e_per_bohr3": 1.83462048652249e-27,
+        "neutral_electron_count": 35.0,
+        "radial_tail_density_e_per_bohr3": 1.83462048652249e-27,
+        "scf_converged": true,
+        "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+        "spin_2s": 1,
+        "symbol": "Br"
+      },
+      "gaussian_projection": {
+        "absolute_1e-3_isodensity_radius_error_bohr": 0.0011151434436476038,
+        "atomic_number": 35,
+        "component_count": 22,
+        "electron_count": 35.0,
+        "electron_count_absolute_error": 0.0,
+        "fitted_1e-3_isodensity_radius_bohr": 4.202319473454533,
+        "maximum_relative_density_error_at_or_above_1e-3": 0.034012549830602326,
+        "reference_1e-3_isodensity_radius_bohr": 4.201204330010885,
+        "rms_relative_density_error_at_or_above_1e-3": 0.010747581533926206
+      },
+      "legacy_v1_bitwise_replay": null
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "scipy": "1.17.1"
+  },
+  "schema_version": 1,
+  "source_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_rhodrop_atomic_reference_density.py": "ff4d8a79ad69405879a740d6af8cd503eb1d998cf500ed0a06482ea062029b98",
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_promolecular_density.py": "1053273260bc08102123f6f749e357393f20d4aaa06e69df70530a70d382d22e",
+    "docs/implicit-solvation/benchmarks/route2-rhodrop-atomic-reference-gaussian-mixture-v1.npz": "d81363187ce6092b23031f5626e0d794bbad4f44646f1e06e41b1112768fefc6",
+    "tools/route2_release/generate_neutral_atom_penetration_asset.py": "ca95377db0f5891e8de0bb2bcc9ad5749b67ebcc5187ae2700db35246f503375"
+  },
+  "status": "atomic-density-and-analytic-kernel-only-solvation-gate-pending",
+  "table": {
+    "content_sha256": "98103440d7c88228d0c70ac59060be81647b7d858884908df071385ea9ec2d7a",
+    "path": "docs/implicit-solvation/benchmarks/route2-neutral-atom-penetration-gaussian-mixture-v1.npz",
+    "sha256": "0189bed53f03216c50c8f4e9f3cd7d5bbfcb4320b1e5a4672cd063691b6a5c06"
+  }
+}

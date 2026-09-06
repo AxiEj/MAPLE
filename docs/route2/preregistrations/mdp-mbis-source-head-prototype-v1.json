@@ -1,0 +1,59 @@
+{
+  "artifact": "mdp-mbis-source-head-prototype-prereg-v1",
+  "claim_boundary": {
+    "capability_change": false,
+    "confirmation_partition_may_be_opened": false,
+    "experimental_solvation_targets_may_be_read": false,
+    "hybrid_505_records_may_be_read": false,
+    "new_source_identity": true,
+    "pcm_or_solvation_accuracy_may_be_run": false,
+    "spice_qm_atomic_targets_may_be_read": true
+  },
+  "created_utc": "2026-08-17T06:58:00Z",
+  "dataset": {
+    "doi": "10.5281/zenodo.15421048",
+    "eligible_filter": "neutral records; elements exactly within [H,C,N,O,F,P,S,Cl,Br,I]; finite MBIS q/p and SCF dipole",
+    "expected_eligible_configurations": 770,
+    "expected_eligible_molecules": 313,
+    "file_name": "spice_2_dataset_v1.1_ntc_1000.hdf5",
+    "split": "sha256(top-level molecule name) modulo 10: train 0-6, validation 7, test 8-9; conformers never cross splits",
+    "upstream_spice_release_doi": "10.5281/zenodo.10975225"
+  },
+  "decision": {
+    "continue_if": "test MBIS q and p errors improve over unchanged MACE-MDP latent q/p, exact Q/mu closure holds, and no numerical instability appears",
+    "next_gate_if_positive": "larger SPICE training, rotation/coordinate-VJP implementation, exterior/surface MEP and fixed-source ddPCM gates before any 505 run",
+    "stop_if": "no molecule-held-out source-label improvement; this prototype cannot be tuned using PCM or solvation results"
+  },
+  "frozen_backbone": {
+    "checkpoint": "MACE-MDP.model",
+    "checkpoint_profile": "official MACE-MDP DipolePolarizabilityMACE",
+    "features": "two product layers; concatenate 128 scalar and 128 vector channels per layer",
+    "parameters_trainable": false
+  },
+  "head": {
+    "charge": "ridge regression from invariant scalar channels plus element one-hot to MBIS atomic charge",
+    "dipole": "one shared SO(3)-equivariant ridge contraction of vector channels to MBIS atomic dipole",
+    "ridge_grid": [
+      1e-08,
+      1e-06,
+      0.0001,
+      0.01,
+      1.0,
+      100.0
+    ],
+    "selection": "charge and dipole ridge selected separately by molecule-held-out validation RMSE"
+  },
+  "inputs_sha256": {
+    "checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "dataset": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e",
+    "script": "b95f64e392db3e018421c9be510156d69f587181b2c0c19e5cc3f00d7a02e528"
+  },
+  "objective": "Test whether independent QM source supervision can repair the frozen MACE-MDP atomwise partition without any solvation target.",
+  "projection": {
+    "constraints": "exact total charge and exact frozen MACE-MDP molecular dipole",
+    "objective": "sum(dq/sigma_q)^2 + sum(dp/sigma_p)^2",
+    "rank": "local dipole variables make the four-row Schur system full rank for every nonempty geometry",
+    "scales": "training residual RMSE only, floored at 1e-6 in declared units"
+  },
+  "status": "locked-before-first-prototype-fit"
+}

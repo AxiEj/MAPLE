@@ -1,0 +1,23 @@
+{
+  "advisory_only": true,
+  "answer_now_invoked_utc": "2026-08-18T08:23:33.1198985Z",
+  "captured_utc": "2026-08-18T08:28:04.545474Z",
+  "files_sha256": {
+    "q22-answer-now-state.txt": "0fecfc4a31dff9d215cb72df219b651935e6645231bd6d91c9d75784ec6846c5",
+    "q22-answer.md": "a8e86c919cbda93ecbdf0b32b4a115112faa9c602245de150bf0bc16d4f2847d",
+    "q22-complete-uia.tsv": "6ddd13c2da16f6e9ef1b1b5bc32163db4500d6222568838de7efee191621c8be",
+    "q22-prompt.md": "db62b064a3b3d9d461b4582938b51397badc1611ec7b91a054f8c3e4b916b450",
+    "q22-submit-script.ps1": "8575545fc2bfc81aa987724ffc94210f1063f26db2058ae7cef12e0a354c302f",
+    "q22-submit-state.txt": "349193bf4ac24180e612b041f5a87ab14485e41d5d2d0f7c890952bf7d8dcf22",
+    "q22-verified-pro-mode.txt": "1b20cb3bb496e906d2debbfa60f212162394666133e0b3d476b794c223bf228a"
+  },
+  "manifest_sha256": "b9ce7cc5da9d3e388f9520351d41695045ff7eb3f41e080d15b06dbba233a6d6",
+  "model_selection": "Pro, 5 of 5",
+  "question_id": "mdp-polar-planar-rank-canonical-source-lift-q22",
+  "schema_version": "route2-chrome-chatgpt-pro-advisory-v1",
+  "submitted_utc": "2026-08-18T06:47:30.9175676Z",
+  "terminal_verdict": "The original B_P A G lane is mathematically closed. Implement exactly one target-independent canonical ADT source lift using the frozen free-atom Coulomb self-work metric; keep it operational, capability-none, and terminate the zero-training lane if any frozen structural, passivity, root, finite-field, or force gate fails.",
+  "verified_utc": "2026-08-18T06:47:28.6743842Z",
+  "window_hwnd": 131280,
+  "worked_for_at_least": "1h 40m 33s"
+}

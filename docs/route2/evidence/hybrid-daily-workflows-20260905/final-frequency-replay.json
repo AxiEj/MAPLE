@@ -1,0 +1,35 @@
+{
+  "status": "pass",
+  "claim": "Final-source transform/report replay of a stored real guarded Hessian.\n\nThis is not a second checkpoint evaluation or a final-tree end-to-end MLIP run.\n",
+  "frequencies_cm1": [
+    1.1343786215992773e-14,
+    -2.3875675659572654e-13,
+    -8.029465517287646e-07,
+    -1.8513896260400416e-05,
+    -3.720656085571331e-05,
+    -4.607779888556326e-05,
+    1626.365591780353,
+    3798.5872249626423,
+    3866.3889919067287
+  ],
+  "hessian_diagnostics": {
+    "evaluation_sha256": "707ba4b9073f585ceb3ff91d0130325f8dfcb72e9804fac5d5b9ff92a6beda46",
+    "coarse_step_angstrom": 0.00025,
+    "fine_step_angstrom": 0.000125,
+    "maximum_error_estimate_eV_per_A2": 1.2267777393049073e-05,
+    "maximum_antisymmetry_eV_per_A2": 2.637573004449223e-08,
+    "topology_step_reductions_used": 3,
+    "topology_guard_status": "partial-experimental",
+    "topology_observation_coverage": "partial",
+    "unobservable_topology_components": [
+      "pyscf-smd-libsolvent-internal-surface"
+    ]
+  },
+  "input_and_source_sha256": {
+    "maple/function/dispatcher/frequency/frequency.py": "bc31c80cb4bd8eac940d5348a0e2efd1c3b776cef5addec1fdc8fe74218d6f6f",
+    "maple/function/dispatcher/legacy_units.py": "5bcfd8d2de10273030d9044db9658ba8fa61b0220dc57544c471f40fb1aee047",
+    "maple/function/dispatcher/dispatcher.py": "97fdc8ba7c7c1d303b169462b660dc1994ce5e23e522f85a5f8fd4ea320972ef",
+    "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/.omx/evidence/hybrid-workflows-20260905/water-adaptive-hessian-eV-per-A2.npy": "e046364444a6de930096f4cb865c3e8ccba0645fb59b491ffa368a0e8f07f336",
+    "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/.omx/evidence/hybrid-workflows-20260905/replay_final_frequency.py": "ee0f5378b913dd4a84ffa088baa31ff76bbac408e6408a0d891344757af2df2e"
+  }
+}

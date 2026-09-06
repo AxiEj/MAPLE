@@ -1,0 +1,142 @@
+{
+  "aggregate": {
+    "all_records_pass": true,
+    "maximum_dipole_step_relative_difference": 0.00027870660461010155,
+    "maximum_electron_count_error_e": 1.4210854715202004e-13,
+    "maximum_mep_step_relative_difference": 0.0005723545899987653
+  },
+  "artifact": "route2-vqm24-localized-field-qm-gate-a-summary-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_training_data_generated": true,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "rare_element_numerical_protocol_validated": true,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-23T23:58:21.818874+00:00",
+  "protocol": {
+    "electronic_structure": "RKS omegaB97M-V/def2-TZVPD",
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "localized_mode_count_per_record": 4,
+    "nonlocal_grid": "PySCF level 3",
+    "record_count": 5,
+    "semilocal_grid": "PySCF level 3",
+    "strata": [
+      "bromine",
+      "chlorine",
+      "fluorine",
+      "phosphorus",
+      "sulfur"
+    ]
+  },
+  "records": [
+    {
+      "all_gates_pass": true,
+      "dataset_index": 447833,
+      "dipole_step_relative_difference": 0.00013710140029954873,
+      "formula": "CH4BrNOS",
+      "gas_scf_cycles": 17,
+      "maximum_electron_count_error_e": 1.4210854715202004e-13,
+      "mep_step_relative_difference": 0.0001735355931924817,
+      "record_sha256": "84c7dcaffea3d665200f3eadeaf128acfbd72925df1bd26764644aff7b0d8231",
+      "response_scf_cycle_range": [
+        6,
+        9
+      ],
+      "result_file_sha256": "f04b3abeafa25be435be31c08261491df8f63caa1c1a69ba4c10ce495409ea63",
+      "result_path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-bromine-20260824/result.json",
+      "result_sha256": "191092286317ae4d4f999c4e455e6b3b0e8e93c17793ac932761a0baa69abc6c",
+      "status": "pass-numerical-gate-a-record",
+      "stratum": "bromine"
+    },
+    {
+      "all_gates_pass": true,
+      "dataset_index": 636384,
+      "dipole_step_relative_difference": 0.00027692465809069886,
+      "formula": "H2ClNP2S",
+      "gas_scf_cycles": 20,
+      "maximum_electron_count_error_e": 1.4210854715202004e-13,
+      "mep_step_relative_difference": 0.0005723545899987653,
+      "record_sha256": "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0",
+      "response_scf_cycle_range": [
+        8,
+        11
+      ],
+      "result_file_sha256": "d47e1c46b87223b5104d2fa665ff2bc0c832b087798b39dda9dcead25a2f01ec",
+      "result_path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-chlorine-20260824/result.json",
+      "result_sha256": "c70751cf370b16266777b8b7c9d8c07138b6813020f9333ea08cb74b71868c41",
+      "status": "pass-numerical-gate-a-record",
+      "stratum": "chlorine"
+    },
+    {
+      "all_gates_pass": true,
+      "dataset_index": 412002,
+      "dipole_step_relative_difference": 0.00013039523831654418,
+      "formula": "C2H6FNO",
+      "gas_scf_cycles": 17,
+      "maximum_electron_count_error_e": 8.526512829121202e-14,
+      "mep_step_relative_difference": 0.00016285013364582257,
+      "record_sha256": "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6",
+      "response_scf_cycle_range": [
+        6,
+        8
+      ],
+      "result_file_sha256": "a2d4f387e89332bc6457103d2726dc11ee47d07b89e646ac5e1ba875bb8491f5",
+      "result_path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/result.json",
+      "result_sha256": "36253c6b836d915b1b64dc9051986e0b22434f2de8a9fc92eda4e827d5b8ecc6",
+      "status": "pass-numerical-gate-a-record",
+      "stratum": "fluorine"
+    },
+    {
+      "all_gates_pass": true,
+      "dataset_index": 598182,
+      "dipole_step_relative_difference": 0.00027870660461010155,
+      "formula": "H3FP2S2",
+      "gas_scf_cycles": 16,
+      "maximum_electron_count_error_e": 9.947598300641403e-14,
+      "mep_step_relative_difference": 0.00030040435133064957,
+      "record_sha256": "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6",
+      "response_scf_cycle_range": [
+        7,
+        8
+      ],
+      "result_file_sha256": "b8e60638a1098914c6bfc05a533e4eca11823422ca52154d53449cb3b0eefb3f",
+      "result_path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/result.json",
+      "result_sha256": "192000a985d7419f3e97904aa889c19631dad4a04a575a9af66ff5f16c3ee2e0",
+      "status": "pass-numerical-gate-a-record",
+      "stratum": "phosphorus"
+    },
+    {
+      "all_gates_pass": true,
+      "dataset_index": 389495,
+      "dipole_step_relative_difference": 0.00014055031720215848,
+      "formula": "H3FS4",
+      "gas_scf_cycles": 17,
+      "maximum_electron_count_error_e": 8.526512829121202e-14,
+      "mep_step_relative_difference": 0.00017453241722342405,
+      "record_sha256": "2e00c04d8f404aba122f77452f5fc364cd6581bc4ac20c0c99394d25adfeb938",
+      "response_scf_cycle_range": [
+        6,
+        9
+      ],
+      "result_file_sha256": "ec0e50b58db8439de2a186d3c275cb36a103112cf16266246d6b8bd22520bcad",
+      "result_path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-sulfur-20260824/result.json",
+      "result_sha256": "246ec8153b9addf10e52823ffe703965e054d2e5e16913ccf4880f942a433373",
+      "status": "pass-numerical-gate-a-record",
+      "stratum": "sulfur"
+    }
+  ],
+  "result_sha256": "eaebdb76ca0bd9b030175e929772721e531fd0fa066b50506bf61ba997c3bf00",
+  "schema_version": 1,
+  "source": {
+    "aggregator_path": "tools/route2_release/aggregate_vqm24_nonuniform_qm_gate_a.py",
+    "aggregator_sha256": "27fdb827d016c2673d753f3ab228ad95b72acac7ef45f99b4039eb0468b67d41"
+  },
+  "status": "pass-numerical-gate-a"
+}

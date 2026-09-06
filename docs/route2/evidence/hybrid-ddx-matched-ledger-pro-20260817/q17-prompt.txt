@@ -1,0 +1,129 @@
+You are the external mathematical/physical reviewer for a target-independent
+MACE-MDP + MACE-POLAR + ddPCM operational-solvation audit.  This is a new,
+focused continuation after two earlier reviews closed the nonuniform-work
+identifiability question.  Give a decisive, fail-closed answer.  Do not suggest
+fitting or rescaling to experimental hydration targets, changing an acceptance
+threshold after seeing target errors, refitting CDS, spectral clipping, or an
+ad hoc residual correction.
+
+Frozen hybrid state and claims
+
+- Permanent source c_p(R): frozen MACE-MDP point monopoles and dipoles.
+- Induced increment dc_g(R,u) = M_POLAR(R,u)-M_POLAR(R,0): frozen MACE-POLAR
+  1.5-A Gaussian monopoles/dipoles with exact total-charge invariance.
+- Continuum equation: A_R sigma = B_p,R c_p + B_g,R dc_g, using pyddx ddPCM,
+  SMD solvent-dependent Coulomb radii, lmax=15 and nleb=1202.
+- Model-driving field: u=L_R sigma, the checkpoint-native 1.5/3.0-A external-
+  MEP receiver.  L is not B_p^* or B_g^*.
+- The operational root is not a stationary electronic-continuum state.  The
+  original response source has a continuum-active curl defect about 0.208.
+- Exact continuum energy-dual work is
+  <B_p c_p+B_g dc_g,sigma> = 2 G_cont on shell.  Pairing c_p+dc_g with u is
+  invalid and is numerically wrong by about 0.415 eV in the water audit.
+- Direct native-field injection returns E_raw(R,u).  It obeys E_raw(R,0)=E_vac,
+  AD-versus-FD derivatives, and the radial charging identity.  Official
+  uniform-field MACE-POLAR adds a separate +E dot mu term, but no unique
+  nonuniform explicit-work functional is identifiable from the current
+  objects.  Therefore no endpoint source/native-field pairing is admitted.
+- Strict Tier V is closed.  The remaining question concerns two explicitly
+  chosen operational scalars differentiated through the same root by a block
+  implicit adjoint:
+
+    Phi0(R)    = E_vac(R) + G_cont(R,z*(R))
+    Phi_raw(R) = E_vac(R) + [E_raw(R,u*)-E_raw(R,0)]
+                          + G_cont(R,z*(R)).
+
+  Phi_raw is not to be relabelled a common variational functional merely
+  because it is a scalar.
+
+Existing reference evidence and the current ambiguity
+
+1. A frozen four-molecule self-consistent QM/PCMSolver IEFPCM/GEPOL reference
+   provides, on one fixed geometry per molecule,
+
+     D_QM = E_vac^QM[gamma_pcm]-E_vac^QM[gamma_vac]
+     S_QM = E_pcm^QM[gamma_pcm]-E_vac^QM[gamma_pcm]
+     T_QM = D_QM+S_QM.
+
+   In eV the cases are:
+
+   benzene:       D= 0.0298922510, S=-0.1905349513, T=-0.1606427002
+   acetone:       D= 0.1199358621, S=-0.4949717922, T=-0.3750359301
+   acetic acid:   D= 0.1962434925, S=-0.8176228059, T=-0.6213793134
+   diester:       D= 0.1372624564, S=-0.7992091862, T=-0.6619467299
+
+2. The hybrid root uses pyddx ddPCM, not PCMSolver IEFPCM/GEPOL.  Even for the
+   same frozen source, PCMSolver ddPCM/CPCM/IEFPCM and the hybrid cavity/profile
+   differ by chemically material amounts.  Thus direct component comparison
+   to the above four numbers is confounded by equation, cavity, discretization,
+   and source differences.
+
+3. A previous four-case hybrid diagnostic reported about 0.869 kcal/mol MAE,
+   but that comparator was a frozen-gas-density PCMSolver component, not the
+   self-consistent D_QM/S_QM/T_QM decomposition above.  It cannot decide Phi0
+   versus Phi_raw.
+
+4. No experimental hydration target may be read for this decision.  CDS,
+   standard-state terms, conformer averaging, and nonpolar terms are excluded.
+
+Questions
+
+1. Starting from the primitive electronic and continuum definitions, give the
+   exact same-equation, same-cavity, same-geometry QM/ddPCM decomposition needed
+   to assess Phi0 and Phi_raw.  State how gamma_vac and gamma_pcm are obtained,
+   how E_vac^QM[gamma_pcm] is evaluated without reoptimizing it, how the ddPCM
+   polarization scalar is evaluated, and how signs and one-half factors are
+   verified.  Distinguish density relaxation cost, continuum stabilization,
+   and total electrostatic solvation energy.
+
+2. Is a fully self-consistent PySCF+pyddx calculation mathematically necessary,
+   or can an equivalent frozen-density sequence using a common density matrix,
+   nuclear potential, cavity and ddPCM operator produce the same decomposition?
+   Give necessary and sufficient conditions for equivalence.  Identify what is
+   invalid if the QM density is relaxed with IEFPCM/GEPOL but evaluated with
+   ddPCM afterwards.
+
+3. Define a source-to-boundary diagnostic in the continuum-active norm.  For
+   b_ML=B_p c_p+B_g dc_g and a directly projected QM boundary source b_QM,
+   derive the proper metric/A^{-1} norm, the exact fixed-source energy error,
+   and a rigorous bound connecting ||b_ML-b_QM|| to polarization-energy error.
+   State the assumptions on A and how to generalize to a non-Euclidean surface
+   metric or a nonsymmetric ddPCM discretization.
+
+4. The hybrid induced source is evaluated at an operational root driven by u,
+   whereas gamma_pcm is a variational QM solution.  Give a fair comparison
+   protocol that separates:
+     (a) permanent/induced source error,
+     (b) continuum operator/cavity error,
+     (c) electronic distortion-ledger error,
+     (d) root/response error.
+   Specify which quantities must be held fixed at each rung and which cross-
+   comparisons are only exploratory.
+
+5. What, if anything, can E_raw(R,u*)-E_raw(R,0) legitimately be compared with?
+   Is comparison to D_QM meaningful despite the absent nonuniform explicit-work
+   functional?  If not, give the most informative target-independent scalar or
+   charging-curve comparison that remains valid.  Do not restore a forbidden
+   <source,u> term by assumption.
+
+6. Provide a preregistered terminal decision table for Phi0 and Phi_raw.  State
+   which component-level equalities or uncertainty-normalized residuals would
+   justify retaining either ledger as an operational electrostatic model, what
+   would close only its physical interpretation, and what would close the whole
+   unchanged-source hybrid route.  Thresholds must come from numerical and
+   reference uncertainty or a declared scientific error budget, not from the
+   observed four-case errors.
+
+7. Choose exactly one immediate experiment with the highest information gain.
+   Give its minimal molecule panel, required artifacts and content hashes,
+   equations, cold-replay requirements, and stop conditions.  Explain whether
+   the existing cross-equation four-case numbers should be computed first as a
+   diagnostic or skipped to avoid misleading evidence.
+
+8. Ensure the recommendation remains compatible with multiple solvents,
+   analytic A/B/L coordinate VJPs, a block implicit adjoint, and a separately
+   versioned CDS/nonpolar scalar.  Keep strict Tier V separate from operational
+   conservative forces of a declared scalar.
+
+End with the exact marker:
+HYBRID MATCHED QM-DDPCM LEDGER DECISION

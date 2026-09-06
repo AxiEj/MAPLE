@@ -182,6 +182,8 @@ class NEBParams:
     # Convergence on projected forces
     neb_f_max_th: float = 9.5e-3           # max(|Fp|) threshold
     neb_f_rms_th: float = 5e-3             # RMS(Fp) threshold
+    endpoint_f_max_th: float = 1.0e-3       # fixed-endpoint max force threshold
+    endpoint_f_rms_th: float = 5.0e-4       # fixed-endpoint RMS force threshold
     initial_opt: bool = False              # do initial relaxation of endpoints
     refine: Optional[str] = None           # 'cineb' or 'nebts' or None
     # CINEB-specific
@@ -540,6 +542,16 @@ class LBFGSDriver:
 # =============================================================================
 
 class NEB(JobABC):
+    STATIONARY_ENDPOINT_F_MAX_TH = 1.0e-3
+    STATIONARY_ENDPOINT_F_RMS_TH = 5.0e-4
+    _CALCULATOR_PROFILE_ATTRIBUTES = (
+        "model_name",
+        "profile",
+        "route2_smd_profile",
+        "long_range_evaluator_profile",
+        "solvent",
+    )
+
     def __init__(self,
                 output: str,
                 atoms_or_molecules,
@@ -561,14 +573,99 @@ class NEB(JobABC):
         if self.params.n_images < 1:
             raise ValueError("n_images must be >= 1")
 
+        if self.params.refine not in (None, "cineb", "nebts"):
+            raise ValueError("NEB refine must be one of: cineb, nebts, or omitted")
+
+        for name in ("endpoint_f_max_th", "endpoint_f_rms_th"):
+            value = float(getattr(self.params, name))
+            if not math.isfinite(value) or value <= 0.0:
+                raise ValueError(f"{name} must be positive and finite")
+            setattr(self.params, name, value)
+
         self.params.n_images = int(self.params.n_images) + 2  # total images including endpoints
+
+    @staticmethod
+    def _raw_calculator(calculator):
+        """Return the ASE calculator behind the private legacy-unit view."""
+        return getattr(calculator, "raw_calculator", calculator)
+
+    @classmethod
+    def _calculator_signature(cls, calculator, atoms):
+        raw = cls._raw_calculator(calculator)
+        explicit_identity = getattr(raw, "maple_neb_pes_identity", None)
+        if callable(explicit_identity):
+            return type(raw), ("explicit", explicit_identity(atoms))
+
+        profile = tuple(
+            (name, value)
+            for name in cls._CALCULATOR_PROFILE_ATTRIBUTES
+            if hasattr(raw, name)
+            for value in (getattr(raw, name),)
+            if isinstance(value, (str, int, float, bool, type(None)))
+        )
+        return type(raw), profile
+
+    def _validate_input_contract(self) -> None:
+        """Fail before alignment/evaluation when one path is not one E/F PES."""
+        reference_numbers = tuple(
+            int(value) for value in self.input_images[0].get_atomic_numbers()
+        )
+        for index, image in enumerate(self.input_images[1:], start=1):
+            numbers = tuple(int(value) for value in image.get_atomic_numbers())
+            if numbers != reference_numbers:
+                raise ValueError(
+                    "NEB images require identical atomic numbers and atom order; "
+                    f"image {index} does not match the reactant."
+                )
+
+        endpoint_calculators = (
+            getattr(self.input_images[0], "calc", None),
+            getattr(self.input_images[-1], "calc", None),
+        )
+        if any(calculator is None for calculator in endpoint_calculators):
+            raise ValueError(
+                "NEB reactant and product endpoints require calculators before "
+                "path construction."
+            )
+
+        raw = self._raw_calculator(endpoint_calculators[0])
+        validator = getattr(raw, "validate_maple_job", None)
+        if callable(validator):
+            params = {"method": "neb"}
+            if self.params.refine is not None:
+                params["refine"] = self.params.refine
+            validator(jobtype="ts", params=params)
+
+        reference_signature = self._calculator_signature(
+            endpoint_calculators[0], self.input_images[0]
+        )
+        for index, image in enumerate(self.input_images[1:], start=1):
+            calculator = getattr(image, "calc", None)
+            if calculator is None:
+                raise ValueError(
+                    "Every explicitly supplied NEB image requires a calculator; "
+                    f"image {index} has none."
+                )
+            if self._calculator_signature(calculator, image) != reference_signature:
+                raise ValueError(
+                    "NEB images must use the same calculator model/profile; "
+                    f"image {index} differs from the reactant."
+                )
+
+        properties = {
+            str(value).lower()
+            for value in getattr(raw, "implemented_properties", ())
+        }
+        if not {"energy", "forces"}.issubset(properties):
+            raise ValueError("NEB requires a calculator exposing ASE energy and forces.")
 
 
     def optimize_endpoints(self, atoms_R: Atoms, atoms_P: Atoms, 
                         f_max_th=1.0e-3, f_rms_th=5.0e-4, max_iter=200):
         """
         Optimize the reactant and product endpoints before NEB if initial_opt=True.
-        After optimization, write the minimized structures to XYZ files.
+        Write converged endpoints as *_min.xyz, and failures as
+        *_endpoint_unconverged.xyz with an explicit status message.
         """
         def single_point_optimize(atoms: Atoms):
             driver = LBFGSDriver(m=self.params.lbfgs_m, curvature=70.0, maxstep=self.params.step0)
@@ -595,17 +692,31 @@ class NEB(JobABC):
         log_info(["\nInitial endpoint optimization started...\n"], self.output)
         atoms_R = single_point_optimize(atoms_R)
         atoms_P = single_point_optimize(atoms_P)
-        log_info(["Initial endpoint optimization completed.\n"], self.output)
+        endpoint_converged = all(
+            self._endpoint_is_stationary(atoms, f_max_th, f_rms_th)
+            for atoms in (atoms_R, atoms_P)
+        )
+        if endpoint_converged:
+            log_info(["Initial endpoint optimization converged.\n"], self.output)
+        else:
+            log_info([
+                "Initial endpoint optimization did not satisfy the endpoint "
+                "stationarity thresholds.\n"
+            ], self.output)
 
-        # --- write optimized endpoints to XYZ ---
+        # Write status-accurate endpoint artifacts.  A failed attempt must not
+        # leave files whose names falsely claim that a minimum was obtained.
         base, ext = os.path.splitext(self.output)
-        reactant_path = base + "_reactant_min.xyz"
-        product_path  = base + "_product_min.xyz"
-        write_xyz(reactant_path, [atoms_R], energies=[atoms_R.get_potential_energy(force_consistent=True)])
-        write_xyz(product_path,  [atoms_P], energies=[atoms_P.get_potential_energy(force_consistent=True)])
+        del ext
+        suffix = "min" if endpoint_converged else "endpoint_unconverged"
+        reactant_path = f"{base}_reactant_{suffix}.xyz"
+        product_path = f"{base}_product_{suffix}.xyz"
+        write_xyz(reactant_path, [atoms_R], energies=[self._path_energy(atoms_R)])
+        write_xyz(product_path,  [atoms_P], energies=[self._path_energy(atoms_P)])
 
-        log_info([f"Optimized reactant written to: {reactant_path}\n"], self.output)
-        log_info([f"Optimized product written to:  {product_path}\n"], self.output)
+        status = "Optimized" if endpoint_converged else "Unconverged"
+        log_info([f"{status} reactant endpoint written to: {reactant_path}\n"], self.output)
+        log_info([f"{status} product endpoint written to:  {product_path}\n"], self.output)
 
         return atoms_R, atoms_P
 
@@ -616,6 +727,30 @@ class NEB(JobABC):
         for s, (x, y, z) in zip(syms, pos):
             lines.append(f"{s:<2} {x:14.6f} {y:14.6f} {z:14.6f}")
         return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _path_energy(atoms: Atoms) -> float:
+        """Read the scalar consistent with forces when a calculator declares it."""
+        properties = {
+            str(value).lower()
+            for value in getattr(atoms.calc, "implemented_properties", ())
+        }
+        return float(
+            atoms.get_potential_energy(force_consistent="free_energy" in properties)
+        )
+
+    @staticmethod
+    def _endpoint_force_metrics(atoms: Atoms) -> Tuple[float, float]:
+        """Return MAPLE's legacy Cartesian-component max and RMS force."""
+        forces = to_numpy_f64(atoms.get_forces())
+        return float(np.max(np.abs(forces))), float(np.sqrt(np.mean(forces * forces)))
+
+    @classmethod
+    def _endpoint_is_stationary(
+        cls, atoms: Atoms, f_max_th: float, f_rms_th: float
+    ) -> bool:
+        max_force, rms_force_value = cls._endpoint_force_metrics(atoms)
+        return max_force < f_max_th and rms_force_value < f_rms_th
 
     # -------------------------- helpers to map x <-> images -------------------
 
@@ -662,7 +797,7 @@ class NEB(JobABC):
 
 
     def get_energies(self, imgs): 
-        return [float(at.get_potential_energy(force_consistent=True)) for at in imgs]
+        return [self._path_energy(at) for at in imgs]
     
     def _compute_distances(self, images: List[Atoms]) -> List[float]:
         """
@@ -844,7 +979,7 @@ class NEB(JobABC):
         - climbing image index is frozen for the whole CINEB run
         """
         if energies is None:
-            energies = [float(at.get_potential_energy(force_consistent=True)) for at in images]
+            energies = [self._path_energy(at) for at in images]
 
         # reset any previous fixed HEI
         self._cineb_fixed_hei = None
@@ -860,7 +995,7 @@ class NEB(JobABC):
         def eval_grad(x_flat: np.ndarray) -> np.ndarray:
             """Return gradient dE/dx (flattened) for all internal images using CINEB forces."""
             self._unpack_internal(x_flat, images)
-            Es_local = [float(at.get_potential_energy(force_consistent=True)) for at in images]
+            Es_local = [self._path_energy(at) for at in images]
             Fp_list_local, _, _ = self.cineb_forces(images, Es_local, self.params.k_max)
             grads = [(-Fp_list_local[i]).reshape(-1) for i in range(1, len(images) - 1)]
             return np.concatenate(grads) if grads else np.zeros_like(x_flat)
@@ -871,7 +1006,7 @@ class NEB(JobABC):
         iteration = 0
 
         # initial energies / forces for logging & to freeze HEI
-        Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
+        Es = [self._path_energy(at) for at in images]
         Fp_list, maxfp, hei = self.cineb_forces(images, Es, self.params.k_max)
 
         # freeze HEI index for the whole CINEB run
@@ -889,8 +1024,7 @@ class NEB(JobABC):
             f"CI: {self.params.cineb_f_max_th: .6f}/{self.params.cineb_f_rms_th: .6f}\n"
         ], self.output)
 
-        while iteration < self.params.max_iter:
-            # ===== convergence check at current geometry =====
+        def is_converged() -> bool:
             # regular Fp: all internal non-CI images
             inner_idx = list(range(1, len(images) - 1))
             regular_flat = []
@@ -902,11 +1036,10 @@ class NEB(JobABC):
 
             # true forces on CI (no projection)
             F_CI = to_numpy_f64(images[hei].get_forces()).reshape(-1)
+            return driver.ci_should_stop(Fp_all, F_CI)
 
-            if driver.ci_should_stop(Fp_all, F_CI):
-                log_info([f"\nCINEB converged after {iteration} iterations.\n"], self.output)
-                break
-
+        cineb_converged = is_converged()
+        while iteration < self.params.max_iter and not cineb_converged:
             # ===== L-BFGS step using CINEB gradient =====
             p = driver.two_loop(g)
             p = driver.step_limit(p)
@@ -924,7 +1057,7 @@ class NEB(JobABC):
             g = g_new
 
             # ===== recompute energies / forces for next iteration & logging =====
-            Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
+            Es = [self._path_energy(at) for at in images]
             Fp_list, maxfp, _ = self.cineb_forces(images, Es, self.params.k_max)
 
             F_CI_vec = to_numpy_f64(images[hei].get_forces())
@@ -938,6 +1071,10 @@ class NEB(JobABC):
                       f"{maxfp:>11.6f} {rmsfp:>10.6f} {maxF_CI:>10.6f} {rmsF_CI:>10.6f}\n"], self.output)
 
             iteration += 1
+            cineb_converged = is_converged()
+
+        if cineb_converged:
+            log_info([f"\nCINEB converged after {iteration} iterations.\n"], self.output)
         else:
             log_info(["\nCINEB refinement reached maximum iterations.\n"], self.output)
 
@@ -951,15 +1088,22 @@ class NEB(JobABC):
         write_xyz(cineb_mep, images, energies=Es)
         write_xyz(cineb_hei, [images[hei]], energies=[Es[hei]])
 
+        if cineb_converged:
+            status_heading = " CLIMBING IMAGE (TS CANDIDATE; NOT A CERTIFIED SADDLE)\n"
+            geometry_heading = "  CLIMBING IMAGE CANDIDATE (ANGSTROEM)\n"
+        else:
+            status_heading = " UNCONVERGED CLIMBING IMAGE; SADDLE STATUS UNASSESSED\n"
+            geometry_heading = "  UNCONVERGED CLIMBING IMAGE (ANGSTROEM)\n"
+
         log_info([
             "\n---------------------------------------------------------------\n",
-            "               INFORMATION ABOUT SADDLE POINT     \n",
+            status_heading,
             "---------------------------------------------------------------\n",
             f"Climbing image                            ....  {hei}\n",
             f"Energy                                    ....  {Es[hei]: .8f} Eh\n",
             f"Max. abs. force                           ....  {maxF_CI: .4e} Eh/Angstrom\n",
             "\n-----------------------------------------\n",
-            "  SADDLE POINT (ANGSTROEM)\n",
+            geometry_heading,
             "-----------------------------------------\n",
             self.atoms_to_xyz(images[hei])
         ], self.output)
@@ -979,7 +1123,7 @@ class NEB(JobABC):
             prfo = PRFO(output=self.output, atoms=ts_guess)
             ts_opt = prfo.run()
 
-            E_TS = ts_opt.get_potential_energy(force_consistent=True)
+            E_TS = self._path_energy(ts_opt)
             maxF_TS = np.max(np.linalg.norm(ts_opt.get_forces(), axis=1))
             rmsF_TS = np.sqrt(np.mean(np.linalg.norm(ts_opt.get_forces(), axis=1) ** 2))
 
@@ -1165,6 +1309,15 @@ class NEB(JobABC):
     # ------------------------------- main flow --------------------------------
 
     def run(self):
+        # ``NEB`` is also used directly by integrations, outside Dispatcher.
+        # Own the same idempotent ASE-eV -> legacy-Hartree boundary here; when
+        # Dispatcher already installed the views, the context is a no-op.
+        from ...legacy_units import legacy_hartree_job_calculators
+
+        with legacy_hartree_job_calculators(self.input_images):
+            return self._run_legacy()
+
+    def _run_legacy(self):
         # ===================================================================
         # Step 0: Process input images and determine if interpolation needed
         # ===================================================================
@@ -1182,6 +1335,8 @@ class NEB(JobABC):
         # Check input validity
         if n_input < 2:
             raise ValueError(f"Need at least 2 images (reactant + product), got {n_input}")
+
+        self._validate_input_contract()
         
         if n_input > n_required:
             raise ValueError(
@@ -1276,11 +1431,31 @@ class NEB(JobABC):
         # ===================================================================
         # Step 1: Optional endpoint optimization
         # ===================================================================
+        raw_calculator = self._raw_calculator(images[0].calc)
+        require_stationary = (
+            getattr(
+                raw_calculator,
+                "MAPLE_NEB_REQUIRE_STATIONARY_ENDPOINTS",
+                False,
+            )
+            is True
+        )
+        endpoint_f_max_th = self.params.endpoint_f_max_th
+        endpoint_f_rms_th = self.params.endpoint_f_rms_th
+        if require_stationary:
+            # A user may tighten this safety contract, never loosen it.
+            endpoint_f_max_th = min(
+                endpoint_f_max_th, self.STATIONARY_ENDPOINT_F_MAX_TH
+            )
+            endpoint_f_rms_th = min(
+                endpoint_f_rms_th, self.STATIONARY_ENDPOINT_F_RMS_TH
+            )
+
         if self.params.initial_opt:
             self.atoms_R, self.atoms_P = self.optimize_endpoints(
                 images[0], images[-1],
-                f_max_th=self.params.neb_f_max_th,
-                f_rms_th=self.params.neb_f_rms_th,
+                f_max_th=endpoint_f_max_th,
+                f_rms_th=endpoint_f_rms_th,
                 max_iter=self.params.max_iter
             )
             images[0] = self.atoms_R
@@ -1289,16 +1464,10 @@ class NEB(JobABC):
         # ===================================================================
         # Step 2: Endpoint properties and alignment
         # ===================================================================
-        def forces_info(atoms):
-            F = atoms.get_forces()
-            maxF = np.max(np.linalg.norm(F, axis=1))            
-            rmsF = np.sqrt(np.mean(np.linalg.norm(F, axis=1) ** 2))
-            return maxF, rmsF
-
-        E_R = images[0].get_potential_energy(force_consistent=True)
-        E_P = images[-1].get_potential_energy(force_consistent=True)
-        maxF_R, rmsF_R = forces_info(images[0])
-        maxF_P, rmsF_P = forces_info(images[-1])
+        E_R = self._path_energy(images[0])
+        E_P = self._path_energy(images[-1])
+        maxF_R, rmsF_R = self._endpoint_force_metrics(images[0])
+        maxF_P, rmsF_P = self._endpoint_force_metrics(images[-1])
 
         log_info([
             "\nProperties of fixed NEB end points:\n",
@@ -1316,6 +1485,29 @@ class NEB(JobABC):
             self.atoms_to_xyz(images[-1]),
             "\n"
         ], self.output)
+
+        endpoint_stationary = (
+            maxF_R < endpoint_f_max_th
+            and rmsF_R < endpoint_f_rms_th
+            and maxF_P < endpoint_f_max_th
+            and rmsF_P < endpoint_f_rms_th
+        )
+        if require_stationary and not endpoint_stationary:
+            raise ValueError(
+                "This NEB calculator requires stationary endpoints under the same "
+                "PES: reactant max/RMS "
+                f"{maxF_R:.6g}/{rmsF_R:.6g}, product max/RMS "
+                f"{maxF_P:.6g}/{rmsF_P:.6g} Eh/Angstrom; required below "
+                f"{endpoint_f_max_th:.6g}/{endpoint_f_rms_th:.6g}. "
+                "Optimize both endpoints "
+                "with the same calculator or use initial_opt=true."
+            )
+        if not require_stationary and not endpoint_stationary:
+            log_info([
+                "WARNING: Fixed NEB endpoint forces exceed the recommended "
+                "stationarity thresholds; the generic workflow will continue, "
+                "but the resulting path is not endpoint-qualified.\n"
+            ], self.output)
 
         # Alignment
         log_info(["\nPerforming Kabsch alignment of all images...\n"], self.output)
@@ -1444,9 +1636,12 @@ class NEB(JobABC):
             else:
                 log_info([f"   LBFGS {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}\n"], self.output)
         
-        if iteration == 0:
+        neb_converged = driver.should_stop(
+            g, self.params.neb_f_max_th, self.params.neb_f_rms_th
+        )
+        if iteration == 0 and neb_converged:
             log_info(["\nNEB already converged at initial geometry (iteration 0).\n"], self.output)
-        elif iteration == self.params.max_iter:
+        elif not neb_converged:
             log_info(["\nNEB optimization reached maximum iterations.\n"], self.output)
         else:
             log_info([f"\nNEB optimization converged after {iteration} iterations.\n"], self.output)
@@ -1485,15 +1680,24 @@ class NEB(JobABC):
         for i, d in enumerate(distances):
             summary.append(f"        D({i:2d}-{i+1:2d}) = {d:7.4f} Ang.\n")
 
+        if neb_converged:
+            status_heading = (
+                "   HIGHEST ENERGY IMAGE (TS CANDIDATE; NOT A CERTIFIED SADDLE)\n"
+            )
+            geometry_heading = "  HIGHEST ENERGY IMAGE CANDIDATE (ANGSTROEM)\n"
+        else:
+            status_heading = "   UNCONVERGED PATH IMAGE; SADDLE STATUS UNASSESSED\n"
+            geometry_heading = "  UNCONVERGED HIGHEST ENERGY IMAGE (ANGSTROEM)\n"
+
         summary.append(
             "\n---------------------------------------------------------------\n"
-            "           INFORMATION ABOUT HIGHEST ENERGY IMAGE\n"
+            f"{status_heading}"
             "---------------------------------------------------------------\n"
             f"Highest energy image                      ....  {hei}\n"
             f"Energy                                    ....  {Es[hei]: .8f} Eh\n"
             f"Max. abs. force                           ....  {np.max(np.linalg.norm(Fp_list[hei], axis=1)) : .4e} Eh/Angstrom\n"
             "\n-----------------------------------------\n"
-            "  HIGHEST ENERGY IMAGE (ANGSTROEM)\n"
+            f"{geometry_heading}"
             "-----------------------------------------\n"
         )
         summary.append(self.atoms_to_xyz(images[hei]))
@@ -1508,7 +1712,7 @@ class NEB(JobABC):
         
         # 3) Optional: CINEB refinement
         if self.params.refine == 'cineb' or self.params.refine == 'nebts':
-            if iteration == self.params.max_iter:
+            if not neb_converged:
                 log_info([
                     "\nNEB did not converge. Skipping CINEB refinement.\n",
                     "You may try to increase max_iter or check the initial path.\n"

@@ -369,6 +369,7 @@ class MACEPolarOriginalSourceNativeFieldAdapter:
     receiver_space: NativeFieldSpace = MACE_POLAR_NATIVE_RADIAL_FIELD_SPACE
     capabilities = ()
     variational_functional_admitted = False
+    coordinate_derivative_available = True
 
     def __init__(self, base: MACEPolarRadialGTOModelAdapter) -> None:
         if not isinstance(base, MACEPolarRadialGTOModelAdapter):

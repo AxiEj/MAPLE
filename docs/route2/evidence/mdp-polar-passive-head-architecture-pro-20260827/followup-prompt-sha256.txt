@@ -1,0 +1,1 @@
+2ce6f54dc21b67519bcdcd7cddff6c47b51358ab996523513f1f7678d06f89a3  docs/route2/evidence/mdp-polar-passive-head-architecture-pro-20260827/followup-prompt.md

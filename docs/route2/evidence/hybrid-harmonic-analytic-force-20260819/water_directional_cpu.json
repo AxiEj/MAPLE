@@ -1,0 +1,67 @@
+{
+  "adjoint_iterations": 2,
+  "adjoint_residual_eV": 9.49982428703671e-11,
+  "analytic_force_directional_contraction_eV_per_A": 0.14055898345219184,
+  "analytic_forces_eV_per_A": [
+    [
+      -0.49571376586553406,
+      -0.6587795855798021,
+      9.860406680938101e-16
+    ],
+    [
+      0.09683268304243937,
+      0.4406048591537849,
+      -4.822675174973535e-16
+    ],
+    [
+      0.3988810828230947,
+      0.21817472642601718,
+      -5.037731505964564e-16
+    ]
+  ],
+  "central_polarization_energy_eV": -0.36579104618564207,
+  "central_total_energy_eV": -2080.2295876398484,
+  "device": "cpu",
+  "direction": [
+    [
+      0.2694907211744278,
+      -0.4831223603695145,
+      0.4026122121245612
+    ],
+    [
+      0.16621237807422137,
+      0.036739356995305825,
+      -0.3292735525288594
+    ],
+    [
+      -0.43570309924864914,
+      0.4463830033742085,
+      -0.07333865959570181
+    ]
+  ],
+  "elapsed_seconds": 39.661542211999404,
+  "finest_absolute_error_eV_per_A": 9.199135038856499e-06,
+  "finite_differences": [
+    {
+      "directional_derivative_eV_per_A": -0.14070585450554063,
+      "energy_minus_eV": -2080.22945480359,
+      "energy_plus_eV": -2080.2296799329574,
+      "step_angstrom": 0.0008
+    },
+    {
+      "directional_derivative_eV_per_A": -0.1405957607403252,
+      "energy_minus_eV": -2080.2295263334745,
+      "energy_plus_eV": -2080.229638810083,
+      "step_angstrom": 0.0004
+    },
+    {
+      "directional_derivative_eV_per_A": -0.1405681825872307,
+      "energy_minus_eV": -2080.2295582591832,
+      "energy_plus_eV": -2080.2296144864563,
+      "step_angstrom": 0.0002
+    }
+  ],
+  "net_force_norm_eV_per_A": 2.7755575615628914e-17,
+  "primal_residual_eV": 1.4484011930730965e-14,
+  "system": "water"
+}

@@ -1,0 +1,172 @@
+{
+  "artifact": "route2-iodine-role-separated-adt-full-replay-v1",
+  "claim_boundary": {
+    "accuracy_claim": false,
+    "experimental_solvation_target_emitted": false,
+    "experimental_solvation_target_read": false,
+    "experimental_solvation_target_used": false,
+    "force_claim": false,
+    "hessian_claim": false,
+    "proved": "real-checkpoint iodine provider coverage and deterministic role-separated ADT/ddPCM multi-start root replay",
+    "public_admission_claim": false,
+    "variational_claim": false
+  },
+  "configuration": {
+    "cold_replay_count": 2,
+    "continuum_model": "pcm",
+    "eta": 0.1,
+    "lmax": 8,
+    "mdp_device": "cpu",
+    "n_lebedev": 1202,
+    "n_proc": 1,
+    "polar_device": "cpu",
+    "profile_id": "route2-research-mace-mdp-point-polar-residual-role-separated-adt-ddx-operational-v2",
+    "provider_id": "maple.route2.experimental.mace-mdp-polar-role-separated-adt-ddx.impl.v2",
+    "response_configuration_sha256": "eacadbc29534c7193b8d2591ccb167a7667427f9ab028ae88db0919790d4e25a",
+    "response_contract": "mace-mdp-molecular-alpha-mace-polar-role-separated-adt-tangent-v2",
+    "solver_tolerance": 1e-12
+  },
+  "geometry": {
+    "file_sha256": "b82646298cc723b71dc15f928312930ded2197ce82db1afabaa3d9cd747455e4",
+    "formula": "H7C3I1",
+    "payload_sha256": "434f36216c6353292ffc69e28f0fbd33da43d6c42a84baa769125792c2502488",
+    "repo_path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_operator_geometry.json",
+    "solvent": "water",
+    "upstream_geometry_sha256": "21fa6f885e35bdff424db7538fb843888fda8658998a0b382a39a4dc461613a9"
+  },
+  "maximum_cold_replay_energy_difference_ev": 0.0,
+  "maximum_cold_replay_field_difference_ev": 0.0,
+  "payload_sha256": "aa6d21ddde2aaca8e37a42ef3444920e4ee48586915faf0b521ac162d430aee6",
+  "replays": [
+    {
+      "adt_atomic_dipole_sum_eangstrom": [
+        0.058705097304528386,
+        0.019152998051547153,
+        1.0637247401776544e-07
+      ],
+      "adt_atomic_dipoles_sha256": "4c9745e65206dfb3ae0d483ca4798e3eb3ba80dbdf88d66d34695bd7b320b679",
+      "continuum_state_sha256": "615e9460b366209fb563596c998b520a9402cab6cfa62ca7b232a7503272be98",
+      "evaluator_configuration_sha256": "3e3ebb6719f9b3f5b66fdbd44fde10e94ed3fd4cdd27e33d293232cb1bf07c3c",
+      "native_field8_sha256": "a674da74eb1e873ce110ba7a992a4f392ea6a3de7520ee7253c93e5478201eec",
+      "permanent_source4_sha256": "cdcc3ee484f81181dc3637bd9860d1d6c738a80fff9fdbd92d4c0f74898adb91",
+      "polarization_energy_ev": -0.10298980279231838,
+      "primal_residual_ev": 8.525794064549023e-11,
+      "radial_residual_source4_sha256": "ea9c4473d69a3514a3c6bbf163d16e1ef3cf48b2bc24c7aa16230753adbed6ee",
+      "replay_index": 0,
+      "root_sha256": "4148f12c4d0ae04e8765d1db5cc4697ff2f744d76f32ecc6ae40a726f74b3233",
+      "root_starts": [
+        {
+          "iterations": 20,
+          "label": "zero",
+          "polarization_energy_ev": -0.10298980279231838,
+          "residual_norm_ev": 8.525794064549023e-11
+        },
+        {
+          "iterations": 19,
+          "label": "permanent",
+          "polarization_energy_ev": -0.10298980279318538,
+          "residual_norm_ev": 3.274973002143373e-11
+        },
+        {
+          "iterations": 20,
+          "label": "twice-permanent",
+          "polarization_energy_ev": -0.10298980279478286,
+          "residual_norm_ev": 6.687553307751856e-11
+        },
+        {
+          "iterations": 21,
+          "label": "negative-permanent",
+          "polarization_energy_ev": -0.10298980279293163,
+          "residual_norm_ev": 4.816986431528377e-11
+        },
+        {
+          "iterations": 20,
+          "label": "seeded-transverse",
+          "polarization_energy_ev": -0.10298980279365046,
+          "residual_norm_ev": 6.786349348181131e-11
+        }
+      ],
+      "solve_seconds": 117.84539487700386,
+      "total_energy_ev": -11325.355432078522,
+      "total_permanent_charge_e": 0.0,
+      "total_radial_residual_charge_e": 9.80118763926896e-17,
+      "vacuum_energy_ev": -11325.25244227573
+    },
+    {
+      "adt_atomic_dipole_sum_eangstrom": [
+        0.058705097304528386,
+        0.019152998051547153,
+        1.0637247401776544e-07
+      ],
+      "adt_atomic_dipoles_sha256": "4c9745e65206dfb3ae0d483ca4798e3eb3ba80dbdf88d66d34695bd7b320b679",
+      "continuum_state_sha256": "615e9460b366209fb563596c998b520a9402cab6cfa62ca7b232a7503272be98",
+      "evaluator_configuration_sha256": "3e3ebb6719f9b3f5b66fdbd44fde10e94ed3fd4cdd27e33d293232cb1bf07c3c",
+      "native_field8_sha256": "a674da74eb1e873ce110ba7a992a4f392ea6a3de7520ee7253c93e5478201eec",
+      "permanent_source4_sha256": "cdcc3ee484f81181dc3637bd9860d1d6c738a80fff9fdbd92d4c0f74898adb91",
+      "polarization_energy_ev": -0.10298980279231838,
+      "primal_residual_ev": 8.525794064549023e-11,
+      "radial_residual_source4_sha256": "ea9c4473d69a3514a3c6bbf163d16e1ef3cf48b2bc24c7aa16230753adbed6ee",
+      "replay_index": 1,
+      "root_sha256": "4148f12c4d0ae04e8765d1db5cc4697ff2f744d76f32ecc6ae40a726f74b3233",
+      "root_starts": [
+        {
+          "iterations": 20,
+          "label": "zero",
+          "polarization_energy_ev": -0.10298980279231838,
+          "residual_norm_ev": 8.525794064549023e-11
+        },
+        {
+          "iterations": 19,
+          "label": "permanent",
+          "polarization_energy_ev": -0.10298980279318538,
+          "residual_norm_ev": 3.274973002143373e-11
+        },
+        {
+          "iterations": 20,
+          "label": "twice-permanent",
+          "polarization_energy_ev": -0.10298980279478286,
+          "residual_norm_ev": 6.687553307751856e-11
+        },
+        {
+          "iterations": 21,
+          "label": "negative-permanent",
+          "polarization_energy_ev": -0.10298980279293163,
+          "residual_norm_ev": 4.816986431528377e-11
+        },
+        {
+          "iterations": 20,
+          "label": "seeded-transverse",
+          "polarization_energy_ev": -0.10298980279365046,
+          "residual_norm_ev": 6.786349348181131e-11
+        }
+      ],
+      "solve_seconds": 120.94453971499752,
+      "total_energy_ev": -11325.355432078522,
+      "total_permanent_charge_e": 0.0,
+      "total_radial_residual_charge_e": 9.80118763926896e-17,
+      "vacuum_energy_ev": -11325.25244227573
+    }
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "cuda_available": true,
+    "model_load_seconds": 3.4760481439952855,
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "source": {
+    "execution_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "iodine_asset_json_sha256": "52decde58d9e146c8b0913f7e105892cdbce252e792b62f2a44552ee13ff8a70",
+    "iodine_asset_npz_sha256": "c7378d26481a40adf61581eea4f26d59bd493050b43028f4cd7abe7ebde040db",
+    "mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "script_repo_path": "tools/route2_release/run_mace_mdp_polar_role_separated_adt_iodine_canary.py",
+    "script_sha256": "8911021eed73c68c09df3393179c8e99a66aacbbbfd7092dd547669392723aef"
+  },
+  "status": "pass-iodine-provider-and-root-replay"
+}

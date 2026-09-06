@@ -1,0 +1,391 @@
+{
+  "artifact": "route2-auxiliary-density-representation-gate-v1-preregistration",
+  "cases": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_9055303",
+      "files": {
+        "checkpoint": {
+          "bytes": 57120,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_9055303/qm-attempt-001/gas/gas.chk",
+          "sha256": "b72480f97dac39f3c73cfd64b2fead044b31513bed0c5087c38d4b5c05bd555e"
+        },
+        "checkpoint_ledger": {
+          "bytes": 4461,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_9055303/qm-attempt-001/gas/gas.json",
+          "sha256": "70a4d471de62940de999a6e929462b404e4906f645f3524102b9cd1109a89546"
+        },
+        "qm_mep": {
+          "bytes": 3816,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_9055303/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "53e604329af321a0ef97c36793f9d0e7f4c6295cc5d6b27585af879270027ad8"
+        },
+        "surface": {
+          "bytes": 1276,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_9055303/qm-attempt-001/surface.npz",
+          "sha256": "4f35f9ddfa4ebfceb8dc7b421542205cde3c96805b398dfaf1a10ed1541a089b"
+        }
+      },
+      "functional_group": null,
+      "name": "methane"
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "files": {
+        "checkpoint": {
+          "bytes": 627688,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3053621/qm-attempt-001/gas/gas.chk",
+          "sha256": "164d4c0d590128cac2856a7327dcb5f051d67b489f7cf4ba548c5ebfbdf32150"
+        },
+        "checkpoint_ledger": {
+          "bytes": 5389,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3053621/qm-attempt-001/gas/gas.json",
+          "sha256": "8fa66a53e364e2ddbc68f2fe1924b21bbaa1a70b1fc5890355a1eb5664a43dc7"
+        },
+        "qm_mep": {
+          "bytes": 4320,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3053621/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "5da1b8e231803c5b3c008910865745692cd581396ac95efac6b4b378cbe7784e"
+        },
+        "surface": {
+          "bytes": 2116,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3053621/qm-attempt-001/surface.npz",
+          "sha256": "6a66a6c641c4b369ed3da38596f387059d131fd512f8cb29576c2d6c9b54a5c8"
+        }
+      },
+      "functional_group": null,
+      "name": "benzene"
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "files": {
+        "checkpoint": {
+          "bytes": 118792,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_1636752/qm-attempt-001/gas/gas.chk",
+          "sha256": "c639439830ef2ee05df42ef50e5fc1f17a39e0f3bc10518fe4c9146232288d15"
+        },
+        "checkpoint_ledger": {
+          "bytes": 4602,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_1636752/qm-attempt-001/gas/gas.json",
+          "sha256": "7c03f2bc71ded71dd4a6481b76116a68f70bf178ab7e346a8e3f5777f27e4d1d"
+        },
+        "qm_mep": {
+          "bytes": 3936,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_1636752/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "72caaac4937c96ed7a7e553c69a9271a267ca65444e4c478a68964f85853400c"
+        },
+        "surface": {
+          "bytes": 1540,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_1636752/qm-attempt-001/surface.npz",
+          "sha256": "99362993cb8750d2449b2cc8e66829ca0b9bc3cbc41009940fa3e9ea359e2ae9"
+        }
+      },
+      "functional_group": "primary-alcohol",
+      "name": "methanol"
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "files": {
+        "checkpoint": {
+          "bytes": 244368,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7015518/qm-attempt-001/gas/gas.chk",
+          "sha256": "be5b04c5e631910f68511942163bb25e0f415b848a06a43d455dc3461e4d40a2"
+        },
+        "checkpoint_ledger": {
+          "bytes": 4994,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7015518/qm-attempt-001/gas/gas.json",
+          "sha256": "1c59bbe0be2398264fdc73acaab4840e698bc29462721653da9c25371eef291f"
+        },
+        "qm_mep": {
+          "bytes": 4080,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7015518/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "887828ffe24738e5ec311cf261c1b53dd8acc655edd1c8e83bed310e624d719f"
+        },
+        "surface": {
+          "bytes": 1684,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7015518/qm-attempt-001/surface.npz",
+          "sha256": "e27b778c96fa8a5c67562f37332e9153f374b95716b3ca3925a4c5ef4bf885cf"
+        }
+      },
+      "functional_group": "dialkyl-ether",
+      "name": "methoxymethane"
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "files": {
+        "checkpoint": {
+          "bytes": 356000,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3867265/qm-attempt-001/gas/gas.chk",
+          "sha256": "48c1a067306afa44c3730507c5a0f46ee6419b034d02e079bf827aad875639a9"
+        },
+        "checkpoint_ledger": {
+          "bytes": 5130,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3867265/qm-attempt-001/gas/gas.json",
+          "sha256": "1406749c9381324d0a566a0625a3bc558a36f477bcffbfbe2206c351333b1628"
+        },
+        "qm_mep": {
+          "bytes": 4200,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3867265/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "0ce48fb4c867ad41822e2d16ce6603d534a468de262ffe30c23f468dd750ad49"
+        },
+        "surface": {
+          "bytes": 1948,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3867265/qm-attempt-001/surface.npz",
+          "sha256": "ea3f242f933878a97119e0f2a29d58f7250ed89f26959a7aa4973dc7ceb89ecf"
+        }
+      },
+      "functional_group": "ketone",
+      "name": "acetone"
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "files": {
+        "checkpoint": {
+          "bytes": 743232,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_6973347/qm-attempt-001/gas/gas.chk",
+          "sha256": "9a43ee424862c792ef31bba1589767dfb64a9816138369a5c29a88465e74d9b4"
+        },
+        "checkpoint_ledger": {
+          "bytes": 5681,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_6973347/qm-attempt-001/gas/gas.json",
+          "sha256": "2b7cdd14ea08a50b29642dbb41ac562777fa26a85c9a6c96d53ba54b484cae06"
+        },
+        "qm_mep": {
+          "bytes": 4440,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_6973347/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "c914b62e4916543c0ada429946b45bd603112989ef4d75c4016b305e6d8a551c"
+        },
+        "surface": {
+          "bytes": 2284,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_6973347/qm-attempt-001/surface.npz",
+          "sha256": "d37b6a429185431635d40fd435e1cc9658ef41e59c1b6e262a5df7fcd8f03321"
+        }
+      },
+      "functional_group": "carboxylic-acid-ester",
+      "name": "ethyl acetate"
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "files": {
+        "checkpoint": {
+          "bytes": 169296,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7532833/qm-attempt-001/gas/gas.chk",
+          "sha256": "f53b7cd00d4beb0782ef3c52b66194e98a8e90d23b124c8d29fe35033da65d50"
+        },
+        "checkpoint_ledger": {
+          "bytes": 4611,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7532833/qm-attempt-001/gas/gas.json",
+          "sha256": "8487a2abe13807d86df565566f8a7203a99b3d98abc4032eabe556b6a6196f45"
+        },
+        "qm_mep": {
+          "bytes": 3896,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7532833/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "d36e3a6c0bfe50c198b98c5be28a04f046d2f53aecc38ebe0548eb5aebcc0573"
+        },
+        "surface": {
+          "bytes": 1420,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_7532833/qm-attempt-001/surface.npz",
+          "sha256": "9fdd04e87b50acdc9a4dfec01c18abdb3c1e20a07f3337f0134ff80ea1aedbcd"
+        }
+      },
+      "functional_group": "carbonitrile",
+      "name": "acetonitrile"
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "files": {
+        "checkpoint": {
+          "bytes": 850464,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_4883284/qm-attempt-001/gas/gas.chk",
+          "sha256": "0850252367c513b58758e92375a44414d1f38a35a8e9d3e3f32a205d16734f6d"
+        },
+        "checkpoint_ledger": {
+          "bytes": 5653,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_4883284/qm-attempt-001/gas/gas.json",
+          "sha256": "3518e39e55aa7ad8f19e33e9878c1bde5d2aca4c2c1f893a74a04f005a2452d2"
+        },
+        "qm_mep": {
+          "bytes": 4392,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_4883284/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "59dddc6d142ffaed16715e7f9c49ed877287213621f1c38e0ebf39057f795a3c"
+        },
+        "surface": {
+          "bytes": 2140,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_4883284/qm-attempt-001/surface.npz",
+          "sha256": "a27f3e1f133bbd87bc341e8e2ae27bac4808c14101d99613cc4d73e59ca034aa"
+        }
+      },
+      "functional_group": "primary-aromatic-amine",
+      "name": "aniline"
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "files": {
+        "checkpoint": {
+          "bytes": 236360,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_2198613/qm-attempt-001/gas/gas.chk",
+          "sha256": "a35d975bf8255a0ff5f5c54129119dfe3f2884a7c4ef57dddf25f5186e5b5cf9"
+        },
+        "checkpoint_ledger": {
+          "bytes": 4869,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_2198613/qm-attempt-001/gas/gas.json",
+          "sha256": "784c953c4c01b541c0ee07de3a1eaa1d4a36c7b531f9075b80512234bc801977"
+        },
+        "qm_mep": {
+          "bytes": 3984,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_2198613/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "f0be93328bfcdf89882c4a578ef1e07691819cc2b17f4e4ed0d276e4be10a10d"
+        },
+        "surface": {
+          "bytes": 1492,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_2198613/qm-attempt-001/surface.npz",
+          "sha256": "bd8c7ca42e4be9fb436f45ffbb19373928dbe13fbce7e1a1ba0eba94c99c7fc1"
+        }
+      },
+      "functional_group": "alkyl-chloride",
+      "name": "chloroethane"
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "files": {
+        "checkpoint": {
+          "bytes": 388264,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8578590/qm-attempt-001/gas/gas.chk",
+          "sha256": "1d358aebe9ae17c9178ecba04ae52e095254f76ae98b6211fd9f346ad0c3af61"
+        },
+        "checkpoint_ledger": {
+          "bytes": 5149,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8578590/qm-attempt-001/gas/gas.json",
+          "sha256": "f3a070101cd9d1617c5068efcfbc7191e904f8805f83eab8c4a67f138b38e3ab"
+        },
+        "qm_mep": {
+          "bytes": 4080,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8578590/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "99a4cfa4101f50dc230c9b1cd71c641add1f8a06089b47946d4af78e2322c8fe"
+        },
+        "surface": {
+          "bytes": 1588,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8578590/qm-attempt-001/surface.npz",
+          "sha256": "51fed392a9674db3d4c8bbab863453086402c937129c010888048d814656cd24"
+        }
+      },
+      "functional_group": "sulfoxide",
+      "name": "methylsulfinylmethane"
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "files": {
+        "checkpoint": {
+          "bytes": 327976,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8048190/qm-attempt-001/gas/gas.chk",
+          "sha256": "724d1483ca783068157e8428cd3b99acc2e85b3fc27f454fb20ff3f0dde8f3cd"
+        },
+        "checkpoint_ledger": {
+          "bytes": 5004,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8048190/qm-attempt-001/gas/gas.json",
+          "sha256": "07199f90cccd74d13bd28afec8e7447e943182c3639f57fe5a0e29994ecb7944"
+        },
+        "qm_mep": {
+          "bytes": 4096,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8048190/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "acfba7445a47ffa11b2448101a19ca2a720444c807580d0a4a935a3f2863fa08"
+        },
+        "surface": {
+          "bytes": 1732,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_8048190/qm-attempt-001/surface.npz",
+          "sha256": "16ed99f0c238e78ba21eaad82b58d3d383ade8047c485bd11930857c05623736"
+        }
+      },
+      "functional_group": "primary-carboxylic-acid-amide",
+      "name": "acetamide"
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "files": {
+        "checkpoint": {
+          "bytes": 307664,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3034976/qm-attempt-001/gas/gas.chk",
+          "sha256": "f90a442bfe70a95658c4f51b0825758a6dd319750573689de5bcebcb41acc042"
+        },
+        "checkpoint_ledger": {
+          "bytes": 4875,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3034976/qm-attempt-001/gas/gas.json",
+          "sha256": "dc94782c4f9d4cb0374dfa1b98d762ed5719b49f3c8949dc7311beb25ba16753"
+        },
+        "qm_mep": {
+          "bytes": 4056,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3034976/qm-attempt-001/qm-static-mep.npz",
+          "sha256": "4919745b5647c822f8512dd563b58bdd6b4d0dfc03dc5bf631f3b0da946beb72"
+        },
+        "surface": {
+          "bytes": 1708,
+          "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e/records/mobley_3034976/qm-attempt-001/surface.npz",
+          "sha256": "e8d4efda7d0d9d79bbefa2a0a09c8b084309cba50fc6837824cbfdca6055501f"
+        }
+      },
+      "functional_group": "carboxylic-acid",
+      "name": "acetic acid"
+    }
+  ],
+  "claim_boundary": {
+    "allowed_decision": "reject or retain this basis for later head training",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false
+  },
+  "created_utc": "2026-08-23T18:27:25.738778+00:00",
+  "gates": {
+    "every_constraint_max_absolute_error": 1e-08,
+    "maximum_case_area_relative_error_max": 0.1,
+    "mean_area_relative_error_max": 0.05
+  },
+  "method": {
+    "auxiliary_basis": "pyscf.df.make_auxbasis(checkpoint molecule)",
+    "density_projection": "Coulomb metric",
+    "hard_constraints": "exact electron count and electronic first moment",
+    "metric_eigenvalue_relative_cutoff": 1e-12,
+    "moment_grid_level": 4,
+    "orbital_basis": "checkpoint-defined def2-TZVPD",
+    "probe_surface": "frozen geometry-only SMD-radius exterior shell"
+  },
+  "parent_execution": {
+    "bytes": 14671,
+    "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json",
+    "sha256": "e6521c56520cc3794f47a5f1724b8c99290ccd6903bfc28eef734f2d47e839f4"
+  },
+  "preregistration_sha256": "457ed0ee9d355e4db9ecc5e6301d14b38899bc3d1b46a6fce84413d6413bc588",
+  "result_path": "/home/axie/.cache/maple-route2-hybrid-runs/auxiliary-density-representation-gate-20260824/result.json",
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "pyscf_init": {
+      "bytes": 4626,
+      "path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/pyscf/__init__.py",
+      "sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92"
+    },
+    "python": "3.11.14"
+  },
+  "schema_version": 1,
+  "selection_history": {
+    "four_case_make_auxbasis_probe_opened_before_this_lock": true,
+    "no_result_from_this_basis_on_the_twelve_case_panel_opened": true,
+    "these_twelve_qm_mep_values_previously_opened_by_parent": true
+  },
+  "source_files_sha256": {
+    "tools/route2_release/run_auxiliary_density_representation_gate.py": "fd029cf79e4a406e27aafcb39d496ff813de0d57d70fea59fb1b88bfa112c16e"
+  },
+  "source_root": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid",
+  "static_root": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e",
+  "status": "locked-before-first-twelve-case-auxiliary-density-evaluation"
+}

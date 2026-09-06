@@ -45,6 +45,7 @@ from maple.solvation.api.units import HARTREE_TO_EV
 from maple.solvation.coupling.exact_gto import (
     mace_polar_learned_source_embedding_matrix,
 )
+from maple.solvation.coupling.metrics import MACE_POLAR_RADIAL_GTO_PAIRING
 from maple.solvation.coupling.spaces import (
     ATOMIC_L1_SOURCE_SPACE,
     MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
@@ -67,6 +68,7 @@ SEPARATED_SOURCE_DDX_CONTRACT_ID = (
     "maple.route2.continuum.ddx-point-permanent-plus-radial-induced.v2"
 )
 _STATE_CONTRACT = "ddx-separated-source-state-v2"
+_GENERAL_SOLUTION_CONTRACT = "ddx-separated-general-problem-solution-v1"
 
 
 def _sha(payload: object) -> str:
@@ -171,6 +173,113 @@ class SeparatedSourceDDXState:
         object.__setattr__(self, "model_field", model_field)
         object.__setattr__(self, "permanent_energy_gradient", permanent_gradient)
         object.__setattr__(self, "energy_source_gradient", energy_gradient)
+        object.__setattr__(self, "polarization_energy_ev", energy)
+        object.__setattr__(self, "state_sha256", expected)
+
+    @property
+    def energy_dual_work_ev(self) -> float:
+        """Return the full direct-sum source work defined by the scalar gradient.
+
+        This is the type-correct Euler contraction for the quadratic frozen-
+        geometry continuum scalar.  The permanent derivative is already stored
+        as a cotangent in the raw ``[q,y,z,x]`` source order.  The radial branch
+        uses its declared source--field pairing.  This quantity is deliberately
+        distinct from pairing the source with ``model_field``: that field is the
+        external-MEP receiver used to drive the MLIP, not the general-source
+        energy gradient.
+        """
+
+        permanent_work = float(
+            np.vdot(self.permanent_source, self.permanent_energy_gradient)
+        )
+        radial_work = MACE_POLAR_RADIAL_GTO_PAIRING.pair(
+            self.radial_source, self.energy_source_gradient
+        )
+        return permanent_work + radial_work
+
+    @property
+    def half_work_identity_residual_ev(self) -> float:
+        """Return ``energy_dual_work_ev - 2 * polarization_energy_ev``."""
+
+        return self.energy_dual_work_ev - 2.0 * self.polarization_energy_ev
+
+
+@dataclass(frozen=True, slots=True)
+class SeparatedGeneralDDXSolution:
+    """Immutable ddX solution for explicitly assembled ``(psi, phi)`` data.
+
+    This small public boundary lets additional source categories reuse the
+    existing prepared ddX geometry without reaching into its private runtime
+    state.  It exposes only the forward/adjoint vectors required by exact
+    bilinear source contractions; no model-specific source semantics live
+    here.
+    """
+
+    geometry_sha256: str
+    configuration_sha256: str
+    atom_count: int
+    basis_count: int
+    cavity_point_count: int
+    forward_state: np.ndarray
+    adjoint_state: np.ndarray
+    model_field: np.ndarray
+    radial_energy_gradient: np.ndarray
+    polarization_energy_ev: float
+    state_sha256: str = ""
+
+    def __post_init__(self) -> None:
+        for name in ("geometry_sha256", "configuration_sha256"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or len(value) != 64:
+                raise ValueError(f"{name} must be a SHA256 digest.")
+        for name in ("atom_count", "basis_count", "cavity_point_count"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{name} must be a positive integer.")
+        forward = _readonly(
+            self.forward_state,
+            shape=(self.basis_count * self.atom_count,),
+            name="forward_state",
+        )
+        adjoint = _readonly(
+            self.adjoint_state,
+            shape=(self.cavity_point_count,),
+            name="adjoint_state",
+        )
+        model_field = _readonly(
+            self.model_field,
+            shape=(self.atom_count, 8),
+            name="model_field",
+        )
+        radial_gradient = _readonly(
+            self.radial_energy_gradient,
+            shape=(self.atom_count, 8),
+            name="radial_energy_gradient",
+        )
+        energy = float(self.polarization_energy_ev)
+        if not math.isfinite(energy):
+            raise ValueError("polarization_energy_ev must be finite.")
+        expected = _sha(
+            {
+                "contract": _GENERAL_SOLUTION_CONTRACT,
+                "geometry_sha256": self.geometry_sha256,
+                "configuration_sha256": self.configuration_sha256,
+                "atom_count": self.atom_count,
+                "basis_count": self.basis_count,
+                "cavity_point_count": self.cavity_point_count,
+                "forward_state_sha256": _array_sha(forward),
+                "adjoint_state_sha256": _array_sha(adjoint),
+                "model_field_sha256": _array_sha(model_field),
+                "radial_energy_gradient_sha256": _array_sha(radial_gradient),
+                "polarization_energy_ev": energy,
+            }
+        )
+        if self.state_sha256 and self.state_sha256 != expected:
+            raise ValueError("state_sha256 does not match the general ddX solution.")
+        object.__setattr__(self, "forward_state", forward)
+        object.__setattr__(self, "adjoint_state", adjoint)
+        object.__setattr__(self, "model_field", model_field)
+        object.__setattr__(self, "radial_energy_gradient", radial_gradient)
         object.__setattr__(self, "polarization_energy_ev", energy)
         object.__setattr__(self, "state_sha256", expected)
 
@@ -285,6 +394,35 @@ class PreparedSeparatedSourceDDX:
         return self._permanent_source
 
     @property
+    def geometry_sha256(self) -> str:
+        return self._geometry_sha256
+
+    @property
+    def configuration_sha256(self) -> str:
+        current = self._backend.configuration_sha256()
+        if current != self._configuration_sha256:
+            raise RuntimeError("prepared separated ddX configuration drifted.")
+        return current
+
+    @property
+    def atom_count(self) -> int:
+        return int(len(self._permanent_source))
+
+    @property
+    def symbols(self) -> tuple[str, ...]:
+        return self._backend.symbols
+
+    @property
+    def basis_count(self) -> int:
+        return int(self._problem.model.n_basis)
+
+    @property
+    def positions_angstrom(self) -> np.ndarray:
+        result = np.array(self._problem.positions, dtype=float, copy=True)
+        result.setflags(write=False)
+        return result
+
+    @property
     def cavity_point_count(self) -> int:
         return int(self._problem.model.n_cav)
 
@@ -294,9 +432,122 @@ class PreparedSeparatedSourceDDX:
 
         return self._problem.cavity_topology_sha256
 
-    def _radial_problem_data(
+    @property
+    def cavity_points_bohr(self) -> np.ndarray:
+        """Return an immutable copy of the exposed ddX cavity coordinates."""
+
+        result = np.asarray(self._problem.model.cavity, dtype=float).T.copy()
+        if result.shape != (self.cavity_point_count, 3) or not np.all(
+            np.isfinite(result)
+        ):
+            raise RuntimeError("ddX cavity coordinates are invalid.")
+        result.setflags(write=False)
+        return result
+
+    @property
+    def cavity_parent_indices(self) -> np.ndarray:
+        """Return the exact parent sphere of every exposed cavity point."""
+
+        from .radial_gto_ddx import _cavity_parent_indices
+
+        owners = _cavity_parent_indices(
+            self.cavity_points_bohr,
+            self._problem.positions,
+            self._backend.radial_backend.cavity_radii_angstrom,
+        )
+        owners.setflags(write=False)
+        return owners
+
+    def permanent_point_mep(self, permanent_source: object) -> np.ndarray:
+        """Evaluate an alternative raw-l1 point source on this exact cavity."""
+
+        source = ATOMIC_L1_SOURCE_SPACE.validate(
+            permanent_source,
+            atom_count=len(self._permanent_source),
+            name="alternative permanent point source",
+        )
+        result = self._permanent_phi_matrix @ source.reshape(-1)
+        if result.shape != (self.cavity_point_count,) or not np.all(
+            np.isfinite(result)
+        ):
+            raise RuntimeError("Alternative permanent-source MEP is invalid.")
+        return result
+
+    def point_problem_data(self, point_source: object) -> tuple[np.ndarray, np.ndarray]:
+        """Return exact ddX ``(psi, phi)`` for a raw-l1 point source."""
+
+        self.configuration_sha256
+        source = ATOMIC_L1_SOURCE_SPACE.validate(
+            point_source,
+            atom_count=self.atom_count,
+            name="point source problem data",
+        )
+        vector = source.reshape(-1)
+        psi = (self._permanent_psi_matrix @ vector).reshape(
+            self.basis_count, self.atom_count
+        )
+        phi = self._permanent_phi_matrix @ vector
+        return (
+            _readonly(psi, shape=(self.basis_count, self.atom_count), name="point psi"),
+            _readonly(phi, shape=(self.cavity_point_count,), name="point phi"),
+        )
+
+    def point_problem_matrices(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return detached immutable point-source ``(D_psi, D_phi)`` maps."""
+
+        self.configuration_sha256
+        psi = np.frombuffer(
+            np.ascontiguousarray(
+                self._permanent_psi_matrix, dtype=np.float64
+            ).tobytes(),
+            dtype=np.float64,
+        ).reshape(self.basis_count * self.atom_count, self.atom_count * 4)
+        phi = np.frombuffer(
+            np.ascontiguousarray(
+                self._permanent_phi_matrix, dtype=np.float64
+            ).tobytes(),
+            dtype=np.float64,
+        ).reshape(self.cavity_point_count, self.atom_count * 4)
+        return psi, phi
+
+    def bound_permanent_problem_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return the prepared permanent source's immutable problem data."""
+
+        self.configuration_sha256
+        return self._permanent_psi, self._permanent_phi
+
+    def fixed_permanent_source_energy_ev(self, permanent_source: object) -> float:
+        """Return ddX energy for an alternative point source and no radial source.
+
+        The geometry, cavity, operator, basis and point-source matrices are
+        identical to those of this prepared object.  This paired evaluation is
+        intended for source-physics diagnostics and avoids rebuilding a cavity
+        for every candidate source.
+        """
+
+        source = ATOMIC_L1_SOURCE_SPACE.validate(
+            permanent_source,
+            atom_count=len(self._permanent_source),
+            name="alternative permanent point source",
+        )
+        vector = source.reshape(-1)
+        phi = self._permanent_phi_matrix @ vector
+        psi = (self._permanent_psi_matrix @ vector).reshape(
+            int(self._problem.model.n_basis),
+            len(self._permanent_source),
+        )
+        _state, energy, _gradient = self._problem.solve_general(psi, phi)
+        value = float(energy)
+        if not math.isfinite(value):
+            raise RuntimeError("Alternative permanent-source energy is invalid.")
+        return value
+
+    def radial_problem_data(
         self, radial_source: object
     ) -> tuple[np.ndarray, np.ndarray]:
+        """Return exact ddX ``(psi, phi)`` for one radial-GTO source."""
+
+        self.configuration_sha256
         values = MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.validate(
             radial_source,
             atom_count=len(self._permanent_source),
@@ -307,7 +558,169 @@ class PreparedSeparatedSourceDDX:
         psi = (self._problem.psi_matrix @ vector).reshape(
             int(self._problem.model.n_basis), len(self._permanent_source)
         )
+        return (
+            _readonly(
+                psi,
+                shape=(self.basis_count, self.atom_count),
+                name="radial psi",
+            ),
+            _readonly(phi, shape=(self.cavity_point_count,), name="radial phi"),
+        )
+
+    def radial_problem_matrices(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return detached immutable radial-source ``(D_psi, D_phi)`` maps."""
+
+        self.configuration_sha256
+        dimension = self.atom_count * 8
+        psi = np.frombuffer(
+            np.ascontiguousarray(self._problem.psi_matrix, dtype=np.float64).tobytes(),
+            dtype=np.float64,
+        ).reshape(self.basis_count * self.atom_count, dimension)
+        phi = np.frombuffer(
+            np.ascontiguousarray(self._problem.phi_matrix, dtype=np.float64).tobytes(),
+            dtype=np.float64,
+        ).reshape(self.cavity_point_count, dimension)
         return psi, phi
+
+    # Compatibility alias kept private so existing internal code remains
+    # unchanged while new source categories use the public typed boundary.
+    def _radial_problem_data(
+        self, radial_source: object
+    ) -> tuple[np.ndarray, np.ndarray]:
+        return self.radial_problem_data(radial_source)
+
+    def solve_problem_data(
+        self, psi: object, phi: object
+    ) -> SeparatedGeneralDDXSolution:
+        """Solve explicit total problem data and expose exact contractions."""
+
+        self.configuration_sha256
+        psi_values = _readonly(
+            psi,
+            shape=(self.basis_count, self.atom_count),
+            name="general ddX psi",
+        )
+        phi_values = _readonly(
+            phi,
+            shape=(self.cavity_point_count,),
+            name="general ddX phi",
+        )
+        raw_state, energy, radial_gradient = self._problem.solve_general(
+            psi_values, phi_values
+        )
+        return SeparatedGeneralDDXSolution(
+            geometry_sha256=self._geometry_sha256,
+            configuration_sha256=self._configuration_sha256,
+            atom_count=self.atom_count,
+            basis_count=self.basis_count,
+            cavity_point_count=self.cavity_point_count,
+            forward_state=np.asarray(
+                getattr(raw_state, "x", None), dtype=float
+            ).reshape(-1),
+            adjoint_state=np.asarray(
+                getattr(raw_state, "xi", None), dtype=float
+            ).reshape(-1),
+            model_field=self._problem.external_mep_model_field(raw_state),
+            radial_energy_gradient=radial_gradient,
+            polarization_energy_ev=energy,
+        )
+
+    def _validate_general_solution(self, solution: SeparatedGeneralDDXSolution) -> None:
+        self.configuration_sha256
+        if not isinstance(solution, SeparatedGeneralDDXSolution):
+            raise TypeError("solution must be SeparatedGeneralDDXSolution.")
+        if (
+            solution.geometry_sha256 != self._geometry_sha256
+            or solution.configuration_sha256 != self._configuration_sha256
+            or solution.atom_count != self.atom_count
+            or solution.basis_count != self.basis_count
+            or solution.cavity_point_count != self.cavity_point_count
+        ):
+            raise ValueError(
+                "general ddX solution belongs to another prepared problem."
+            )
+
+    def problem_data_energy_gradient(
+        self,
+        solution: SeparatedGeneralDDXSolution,
+        *,
+        psi_matrix: object,
+        phi_matrix: object,
+        source_shape: tuple[int, ...],
+        name: str,
+    ) -> np.ndarray:
+        """Differentiate the stationary scalar with respect to one source branch."""
+
+        self._validate_general_solution(solution)
+        if (
+            not isinstance(source_shape, tuple)
+            or not source_shape
+            or any(isinstance(value, bool) or value < 1 for value in source_shape)
+        ):
+            raise ValueError("source_shape must contain positive dimensions.")
+        source_dimension = int(np.prod(source_shape, dtype=np.int64))
+        psi_values = _readonly(
+            psi_matrix,
+            shape=(self.basis_count * self.atom_count, source_dimension),
+            name=f"{name} psi matrix",
+        )
+        phi_values = _readonly(
+            phi_matrix,
+            shape=(self.cavity_point_count, source_dimension),
+            name=f"{name} phi matrix",
+        )
+        gradient = 0.5 * (
+            psi_values.T @ solution.forward_state
+            - phi_values.T @ solution.adjoint_state
+        )
+        gradient *= self._backend.radial_backend._dielectric_scaling * HARTREE_TO_EV
+        result = gradient.reshape(source_shape)
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError(f"{name} energy gradient is non-finite.")
+        return result
+
+    def problem_data_model_field_jvp(self, psi: object, phi: object) -> np.ndarray:
+        """Map arbitrary source problem data to the native model field."""
+
+        return self.solve_problem_data(psi, phi).model_field
+
+    def problem_data_model_field_vjp(
+        self,
+        field_cotangent: object,
+        *,
+        source_psi_matrix: object,
+        source_shape: tuple[int, ...],
+        name: str,
+    ) -> np.ndarray:
+        """Pull the native model field back to an arbitrary source branch."""
+
+        cotangent = MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE.validate(
+            field_cotangent,
+            atom_count=self.atom_count,
+            name="general model-field cotangent",
+        )
+        cotangent_psi, cotangent_phi = self.radial_problem_data(cotangent)
+        cotangent_solution = self.solve_problem_data(cotangent_psi, cotangent_phi)
+        if (
+            not isinstance(source_shape, tuple)
+            or not source_shape
+            or any(isinstance(value, bool) or value < 1 for value in source_shape)
+        ):
+            raise ValueError("source_shape must contain positive dimensions.")
+        source_dimension = int(np.prod(source_shape, dtype=np.int64))
+        psi_matrix = _readonly(
+            source_psi_matrix,
+            shape=(self.basis_count * self.atom_count, source_dimension),
+            name=f"{name} psi matrix",
+        )
+        result = (
+            self._backend.radial_backend._dielectric_scaling
+            * HARTREE_TO_EV
+            * (psi_matrix.T @ cotangent_solution.forward_state)
+        ).reshape(source_shape)
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError(f"{name} model-field VJP is non-finite.")
+        return result
 
     def _solve_raw(self, radial_source: object):
         values = MACE_POLAR_RADIAL_GTO_SOURCE_SPACE.validate(
@@ -664,6 +1077,7 @@ __all__ = [
     "PreparedSeparatedSourceDDX",
     "SEPARATED_SOURCE_DDX_CONTRACT_ID",
     "SEPARATED_SOURCE_DDX_PROVIDER_ID",
+    "SeparatedGeneralDDXSolution",
     "SeparatedSourceDDXBackend",
     "SeparatedSourceDDXState",
     "embed_atomic_l1_in_first_radial_channel",

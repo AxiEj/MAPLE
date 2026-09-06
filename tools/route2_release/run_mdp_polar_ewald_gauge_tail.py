@@ -1,0 +1,462 @@
+#!/usr/bin/env python3
+"""Opened-tail falsification of a zero-training Ewald gauge separation.
+
+The candidate is fixed before evaluation as
+
+``point(POLAR_zero) + gaussian_1.5A(MDP - POLAR_zero)``.
+
+The seven geometries are the already opened largest errors of a previous
+disjoint source gate.  Results are therefore adversarial falsification only,
+not an independent accuracy estimate.  No experimental solvation target is
+read and no parameter is fitted or selected.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+from pathlib import Path
+import sys
+from typing import Any, Mapping
+
+import numpy as np
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.route2_release import run_mdp_mbis_pcm_source_gate as parent  # noqa: E402
+from tools.route2_release import (  # noqa: E402
+    run_mdp_polar_zero_training_source_gate as prior,
+)
+
+PREREGISTRATION = REPO_ROOT / (
+    "docs/route2/preregistrations/mdp-polar-ewald-gauge-tail-v1.json"
+)
+ARTIFACT_ID = "route2-mdp-polar-ewald-gauge-tail-v1"
+EV_TO_KCAL_MOL = prior.EV_TO_KCAL_MOL
+
+
+def _canonical_sha256(payload: object) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+            allow_nan=False,
+        ).encode()
+    ).hexdigest()
+
+
+def _load_preregistration() -> tuple[Path, dict[str, Any]]:
+    path = PREREGISTRATION.resolve(strict=True)
+    value = json.loads(path.read_text())
+    parent._require(
+        value.get("artifact") == "route2-mdp-polar-ewald-gauge-tail-preregistration-v1",
+        "Wrong Ewald-tail preregistration identity.",
+    )
+    parent._require(value.get("schema_version") == 1, "Schema version changed.")
+    parent._require(
+        value.get("status")
+        == "locked-after-prior-tail-opened-before-ewald-candidate-evaluation",
+        "Ewald-tail candidate was not locked at its declared boundary.",
+    )
+    expected_boundary = {
+        "adversarial_tail_selected_from_previously_opened_errors": True,
+        "capability_admitted": False,
+        "experimental_solvation_targets_read": False,
+        "fitting_or_post_training_performed": False,
+        "hybrid_line_only": True,
+        "mbis_labels_used_for_evaluation_only": True,
+        "pure_mace_polar_in_scope": False,
+        "result_is_independent_accuracy_estimate": False,
+    }
+    parent._require(
+        value.get("claim_boundary") == expected_boundary,
+        "Ewald-tail claim boundary changed.",
+    )
+    return path, value
+
+
+def _validate_inputs(prereg: Mapping[str, Any]) -> None:
+    inputs = prereg.get("inputs")
+    parent._require(isinstance(inputs, dict), "Missing input bindings.")
+    paths = {
+        "spice_dataset_sha256": prior.DATASET,
+        "mace_mdp_checkpoint_sha256": prior.MDP_CHECKPOINT,
+        "mace_polar_checkpoint_sha256": prior.POLAR_CHECKPOINT,
+        "prior_aggregate_file_sha256": REPO_ROOT
+        / "docs/route2/evidence/"
+        / "mdp-polar-uniform-response-source-gate-20260817/aggregate.json",
+        "ewald_implementation_sha256": REPO_ROOT
+        / "maple/solvation/release/ewald_gauge_separated_source.py",
+        "separated_ddx_implementation_sha256": REPO_ROOT
+        / "maple/solvation/continuum/separated_source_ddx.py",
+        "mace_mdp_adapter_sha256": REPO_ROOT / "maple/solvation/models/mace_mdp.py",
+        "mace_polar_adapter_sha256": REPO_ROOT
+        / "maple/solvation/models/mace_polar_separated.py",
+        "runner_sha256": Path(__file__).resolve(),
+    }
+    parent._require(set(inputs) == set(paths), "Input binding schema changed.")
+    for key, path in paths.items():
+        parent._require(
+            parent._sha256_file(path) == inputs.get(key),
+            f"Input hash mismatch: {key}.",
+        )
+
+
+def _selected_records(prereg: Mapping[str, Any]) -> list[dict[str, Any]]:
+    selection = prereg.get("selection")
+    parent._require(isinstance(selection, dict), "Missing selection binding.")
+    records = selection.get("records")
+    parent._require(
+        isinstance(records, list)
+        and len(records) == selection.get("record_count") == 7,
+        "Ewald-tail falsification requires exactly seven records.",
+    )
+    normalized = [dict(record) for record in records]
+    parent._require(
+        _canonical_sha256(normalized) == selection.get("selection_sha256"),
+        "Ewald-tail selection digest changed.",
+    )
+    for record in normalized:
+        source_path = REPO_ROOT / record["prior_record_path"]
+        parent._require(
+            parent._sha256_file(source_path) == record["prior_record_file_sha256"],
+            "Prior record bytes changed.",
+        )
+        prior_record = json.loads(source_path.read_text())
+        parent._require(
+            prior_record["selection_identity"] == record["selection_identity"],
+            "Prior record identity changed.",
+        )
+        parent._require(
+            prior_record["record_sha256"] == record["prior_record_sha256"],
+            "Prior record payload digest changed.",
+        )
+    return normalized
+
+
+def _write_json_exclusive(path: Path, payload: Mapping[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8") as handle:
+        json.dump(payload, handle, sort_keys=True, indent=2, allow_nan=False)
+        handle.write("\n")
+
+
+def _run_one(
+    *,
+    index: int,
+    selected: Mapping[str, Any],
+    mdp: object,
+    polar: object,
+    prereg: Mapping[str, Any],
+    prereg_path: Path,
+    device: str,
+) -> dict[str, object]:
+    from ase import Atoms
+    from ase.data import chemical_symbols
+
+    from maple.function.calculator.extra_correction.implicit.smd_cds import (
+        smd_water_coulomb_radii,
+    )
+    from maple.solvation.continuum import SeparatedSourceDDXBackend
+    from maple.solvation.continuum.separated_source_ddx import (
+        embed_atomic_l1_in_first_radial_channel,
+    )
+    from maple.solvation.release.cartesian_multipole_mep import (
+        cartesian_atomic_multipole_potential,
+    )
+    from maple.solvation.release.ewald_gauge_separated_source import (
+        build_ewald_gauge_separated_permanent_source,
+    )
+
+    identity = selected["selection_identity"]
+    arrays = parent._load_record_arrays(prior.DATASET, identity)
+    positions = arrays["positions_angstrom"]
+    atoms = Atoms(
+        numbers=arrays["numbers"],
+        positions=positions,
+        info={"charge": 0, "multiplicity": 1},
+    )
+    mdp_state = mdp.evaluate(atoms)
+    zero_field = np.zeros(polar.receiver_space.shape(len(atoms)), dtype=np.float64)
+    polar_zero = polar.evaluate_source(atoms, zero_field)
+    candidate = build_ewald_gauge_separated_permanent_source(
+        mdp_source4_raw_l1=mdp_state.source4_raw_l1,
+        polar_zero_source4_raw_l1=polar_zero,
+        charge_tolerance_e=float(prereg["source_rules"]["charge_tolerance_e"]),
+    )
+    closure = candidate.molecular_closure(positions)
+    reference = parent._raw_l1(arrays["charges_e"], arrays["dipoles_eangstrom"])
+    symbols = tuple(chemical_symbols[int(number)] for number in arrays["numbers"])
+    settings = prereg["cavity_and_continuum"]
+    radii = smd_water_coulomb_radii(symbols) * float(settings["radius_scale"])
+    backend = SeparatedSourceDDXBackend(
+        symbols,
+        radii,
+        continuum_model="pcm",
+        dielectric=float(settings["dielectric"]),
+        lmax=int(settings["lmax"]),
+        n_lebedev=int(settings["n_lebedev"]),
+        solver_tolerance=float(settings["solver_tolerance"]),
+        eta=float(settings["eta"]),
+        n_proc=1,
+    )
+    prepared = backend.prepare(atoms, candidate.point_source4_raw_l1)
+    radial_correction = embed_atomic_l1_in_first_radial_channel(
+        candidate.gaussian_correction4_raw_l1
+    )
+    candidate_state = prepared.solve(radial_correction)
+    reference_energy = prepared.fixed_permanent_source_energy_ev(reference)
+    zero_energy = prepared.fixed_permanent_source_energy_ev(polar_zero)
+    candidate_energy = float(candidate_state.polarization_energy_ev)
+    points = prepared.cavity_points_bohr
+    weights = parent._lebedev_area_weights(
+        points_bohr=points,
+        owners=prepared.cavity_parent_indices,
+        positions_angstrom=positions,
+        radii_angstrom=radii,
+    )
+    reference_qpqo = cartesian_atomic_multipole_potential(
+        points_bohr=points,
+        centers_angstrom=positions,
+        charges_e=arrays["charges_e"],
+        dipoles_eangstrom=arrays["dipoles_eangstrom"],
+        quadrupoles_eangstrom2=arrays["quadrupoles_eangstrom2"],
+        octupoles_eangstrom3=arrays["octupoles_eangstrom3"],
+    )
+    zero_mep = prepared.permanent_point_mep(polar_zero)
+    problem = backend.radial_backend.prepare_problem(atoms)
+    radial_vector = radial_correction.reshape(-1)
+    candidate_mep = zero_mep + np.asarray(
+        problem.phi_matrix @ radial_vector,
+        dtype=np.float64,
+    )
+    target_dipole = np.asarray(mdp_state.public_dipole_eangstrom, dtype=float)
+    observed_dipole = np.asarray(
+        closure["far_field_molecular_dipole_eangstrom"], dtype=float
+    )
+    payload: dict[str, object] = {
+        "artifact": f"{ARTIFACT_ID}-record",
+        "index": index,
+        "selection_identity": identity,
+        "preregistration_sha256": parent._sha256_file(prereg_path),
+        "prior_record_sha256": selected["prior_record_sha256"],
+        "runtime": prior._runtime_identity(device),
+        "mdp_state_sha256": mdp_state.state_sha256,
+        "polar_configuration_sha256": polar.configuration_sha256(),
+        "source_closure": {
+            "sigma_angstrom": candidate.sigma_angstrom,
+            "gaussian_correction_total_charge_e": closure[
+                "gaussian_correction_total_charge_e"
+            ],
+            "far_field_total_charge_e": closure["far_field_total_charge_e"],
+            "target_total_charge_e": float(mdp_state.total_charge_e),
+            "far_field_charge_absolute_error_e": abs(
+                float(closure["far_field_total_charge_e"])
+                - float(mdp_state.total_charge_e)
+            ),
+            "far_field_molecular_dipole_eangstrom": observed_dipole.tolist(),
+            "target_molecular_dipole_eangstrom": target_dipole.tolist(),
+            "far_field_dipole_l2_error_eangstrom": float(
+                np.linalg.norm(observed_dipole - target_dipole)
+            ),
+        },
+        "fixed_source_ddpcm": {
+            "reference_mbis_qp_eV": reference_energy,
+            "polar_zero_point_eV": zero_energy,
+            "candidate_ewald_eV": candidate_energy,
+            "polar_zero_absolute_error_kcal_mol": abs(zero_energy - reference_energy)
+            * EV_TO_KCAL_MOL,
+            "candidate_absolute_error_kcal_mol": abs(
+                candidate_energy - reference_energy
+            )
+            * EV_TO_KCAL_MOL,
+        },
+        "qpqo_mep": {
+            "polar_zero": parent._metric_payload(zero_mep, reference_qpqo, weights),
+            "candidate": parent._metric_payload(candidate_mep, reference_qpqo, weights),
+        },
+        "claim_boundary": prereg["claim_boundary"],
+    }
+    payload["record_sha256"] = _canonical_sha256(payload)
+    return payload
+
+
+def run(args: argparse.Namespace) -> None:
+    prereg_path, prereg = _load_preregistration()
+    _validate_inputs(prereg)
+    selected = _selected_records(prereg)
+    import torch
+
+    from maple.solvation.api.profiles import (
+        MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID,
+    )
+    from maple.solvation.models import (
+        MACEPolarOriginalSourceNativeFieldAdapter,
+        build_mace_mdp_moment_adapter,
+        build_official_mace_polar_1_m_radial_gto_adapter,
+    )
+
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
+    mdp = build_mace_mdp_moment_adapter(
+        checkpoint_path=prior.MDP_CHECKPOINT, device="cpu"
+    )
+    radial = build_official_mace_polar_1_m_radial_gto_adapter(
+        checkpoint_path=prior.POLAR_CHECKPOINT,
+        device=args.device,
+        long_range_evaluator_profile=(
+            MACE_POLAR_ANALYTIC_GAUSSIAN_MULTIPOLE_EVALUATOR_ID
+        ),
+    )
+    polar = MACEPolarOriginalSourceNativeFieldAdapter(radial)
+    for index, record in enumerate(selected):
+        payload = _run_one(
+            index=index,
+            selected=record,
+            mdp=mdp,
+            polar=polar,
+            prereg=prereg,
+            prereg_path=prereg_path,
+            device=args.device,
+        )
+        _write_json_exclusive(args.output_dir / f"record-{index:03d}.json", payload)
+
+
+def aggregate(args: argparse.Namespace) -> None:
+    prereg_path, prereg = _load_preregistration()
+    _validate_inputs(prereg)
+    selected = _selected_records(prereg)
+    expected_names = {f"record-{index:03d}.json" for index in range(len(selected))}
+    observed_names = {path.name for path in args.output_dir.glob("record-*.json")}
+    parent._require(observed_names == expected_names, "Record closure failed.")
+    records: list[dict[str, Any]] = []
+    prereg_hash = parent._sha256_file(prereg_path)
+    for index, selection in enumerate(selected):
+        payload = json.loads((args.output_dir / f"record-{index:03d}.json").read_text())
+        digest = payload.pop("record_sha256", None)
+        parent._require(digest == _canonical_sha256(payload), "Record hash failed.")
+        payload["record_sha256"] = digest
+        parent._require(payload.get("index") == index, "Record index failed.")
+        parent._require(
+            payload.get("selection_identity") == selection["selection_identity"],
+            "Record identity failed.",
+        )
+        parent._require(
+            payload.get("preregistration_sha256") == prereg_hash,
+            "Record preregistration failed.",
+        )
+        records.append(payload)
+    parent._require(
+        all(row["runtime"] == records[0]["runtime"] for row in records),
+        "Record runtime identity changed within the tail run.",
+    )
+    zero = np.asarray(
+        [
+            row["fixed_source_ddpcm"]["polar_zero_absolute_error_kcal_mol"]
+            for row in records
+        ],
+        dtype=float,
+    )
+    candidate = np.asarray(
+        [
+            row["fixed_source_ddpcm"]["candidate_absolute_error_kcal_mol"]
+            for row in records
+        ],
+        dtype=float,
+    )
+    zero_mep_error = sum(
+        row["qpqo_mep"]["polar_zero"][
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2"
+        ]
+        for row in records
+    )
+    candidate_mep_error = sum(
+        row["qpqo_mep"]["candidate"][
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2"
+        ]
+        for row in records
+    )
+    reference_norm = sum(
+        row["qpqo_mep"]["candidate"][
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2"
+        ]
+        for row in records
+    )
+    rules = prereg["terminal_falsification_rules"]
+    source_rules = prereg["source_rules"]
+    gates = {
+        "paired_improvement_count": int(np.count_nonzero(candidate < zero))
+        >= int(rules["paired_improvement_count_minimum"]),
+        "mean_relative_reduction": (
+            1.0 - float(np.mean(candidate)) / float(np.mean(zero))
+        )
+        >= float(rules["mean_error_reduction_fraction_minimum"]),
+        "maximum_no_worsening": float(np.max(candidate))
+        <= float(np.max(zero)) + float(rules["maximum_worsening_tolerance_kcal_mol"]),
+        "qpqo_mep_no_worsening": candidate_mep_error
+        <= zero_mep_error * (1.0 + float(rules["mep_relative_worsening_tolerance"])),
+        "far_field_closure": all(
+            row["source_closure"]["far_field_charge_absolute_error_e"]
+            <= float(source_rules["charge_tolerance_e"])
+            and row["source_closure"]["far_field_dipole_l2_error_eangstrom"]
+            <= float(source_rules["dipole_tolerance_eangstrom"])
+            for row in records
+        ),
+    }
+    passed = all(gates.values())
+    payload: dict[str, object] = {
+        "artifact": f"{ARTIFACT_ID}-aggregate",
+        "preregistration_sha256": prereg_hash,
+        "record_count": len(records),
+        "polar_zero": {
+            "mae_kcal_mol": float(np.mean(zero)),
+            "maximum_kcal_mol": float(np.max(zero)),
+            "qpqo_global_relative_mep_rmse": math.sqrt(zero_mep_error / reference_norm),
+        },
+        "candidate": {
+            "mae_kcal_mol": float(np.mean(candidate)),
+            "maximum_kcal_mol": float(np.max(candidate)),
+            "paired_improvement_count": int(np.count_nonzero(candidate < zero)),
+            "mean_error_reduction_fraction": 1.0
+            - float(np.mean(candidate)) / float(np.mean(zero)),
+            "qpqo_global_relative_mep_rmse": math.sqrt(
+                candidate_mep_error / reference_norm
+            ),
+        },
+        "gates": gates,
+        "passed_tail_falsification": passed,
+        "decision": (
+            "candidate-survives-opened-tail-falsification-requires-new-independent-gate"
+            if passed
+            else "candidate-rejected-by-opened-tail-falsification"
+        ),
+        "claim_boundary": prereg["claim_boundary"],
+    }
+    payload["aggregate_sha256"] = _canonical_sha256(payload)
+    _write_json_exclusive(args.output_dir / "aggregate.json", payload)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    run_parser = subparsers.add_parser("run")
+    run_parser.add_argument("--output-dir", type=Path, required=True)
+    run_parser.add_argument("--device", default="cuda")
+    aggregate_parser = subparsers.add_parser("aggregate")
+    aggregate_parser.add_argument("--output-dir", type=Path, required=True)
+    args = parser.parse_args()
+    args.output_dir = args.output_dir.expanduser().resolve()
+    if args.command == "run":
+        run(args)
+    else:
+        aggregate(args)
+
+
+if __name__ == "__main__":
+    main()

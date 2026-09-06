@@ -1,0 +1,147 @@
+{
+  "artifact": "route2-vqm24-gaussian-l2-width-ladder-result-v1",
+  "candidates": [
+    {
+      "max_audit": 0.01087210291024765,
+      "passes": false,
+      "records": [
+        {
+          "audit": 0.0038732234844587815,
+          "charge": 1.0658141036401503e-13,
+          "diff": 0.0021578367229574437,
+          "fit": 0.0017153867615013376,
+          "maxabs": 0.0005127521209793429,
+          "rank": 155,
+          "ratio": 2.2579301481077456,
+          "record_id": "base-hcno-481244-549dfd678c85",
+          "reduced": 155
+        },
+        {
+          "audit": 0.006789392845898103,
+          "charge": 6.092903959142859e-13,
+          "diff": 0.0011581512125272463,
+          "fit": 0.005631241633370857,
+          "maxabs": 0.00036453377635803363,
+          "rank": 103,
+          "ratio": 1.2056653377585536,
+          "record_id": "sulfur-389495-2e00c04d8f40",
+          "reduced": 103
+        },
+        {
+          "audit": 0.01087210291024765,
+          "charge": 1.794120407794253e-13,
+          "diff": 0.006408061412599065,
+          "fit": 0.004464041497648585,
+          "maxabs": 0.0008028530701104739,
+          "rank": 77,
+          "ratio": 2.4354842839105517,
+          "record_id": "bromine-63727-71eb4b0867c9",
+          "reduced": 77
+        }
+      ],
+      "sigma": 1.0
+    },
+    {
+      "max_audit": 0.01758914971451885,
+      "passes": false,
+      "records": [
+        {
+          "audit": 0.006510199002360963,
+          "charge": 7.062794793455396e-12,
+          "diff": 0.0045399099785606006,
+          "fit": 0.0019702890238003624,
+          "maxabs": 0.0008941400606916616,
+          "rank": 155,
+          "ratio": 3.304184778842174,
+          "record_id": "base-hcno-481244-549dfd678c85",
+          "reduced": 155
+        },
+        {
+          "audit": 0.01758914971451885,
+          "charge": 3.481659405224491e-13,
+          "diff": 0.002778785513704255,
+          "fit": 0.014810364200814594,
+          "maxabs": 0.0005895805531175302,
+          "rank": 103,
+          "ratio": 1.1876243876265662,
+          "record_id": "sulfur-389495-2e00c04d8f40",
+          "reduced": 103
+        },
+        {
+          "audit": 0.009965627280496187,
+          "charge": 2.1316282072803006e-14,
+          "diff": 0.00483444758676803,
+          "fit": 0.005131179693728156,
+          "maxabs": 0.0008048069568296208,
+          "rank": 77,
+          "ratio": 1.9421707824181598,
+          "record_id": "bromine-63727-71eb4b0867c9",
+          "reduced": 77
+        }
+      ],
+      "sigma": 1.5
+    },
+    {
+      "max_audit": 0.019318703684599377,
+      "passes": false,
+      "records": [
+        {
+          "audit": 0.006319424505408222,
+          "charge": 2.6147972675971687e-12,
+          "diff": 0.0039212471420659225,
+          "fit": 0.0023981773633422994,
+          "maxabs": 0.000952610351327543,
+          "rank": 155,
+          "ratio": 2.635094719016506,
+          "record_id": "base-hcno-481244-549dfd678c85",
+          "reduced": 155
+        },
+        {
+          "audit": 0.019318703684599377,
+          "charge": 4.716227408607665e-13,
+          "diff": 0.001990966132558194,
+          "fit": 0.017327737552041183,
+          "maxabs": 0.0007438610847365634,
+          "rank": 103,
+          "ratio": 1.114900524467123,
+          "record_id": "sulfur-389495-2e00c04d8f40",
+          "reduced": 103
+        },
+        {
+          "audit": 0.011346540950187525,
+          "charge": 2.886579864025407e-14,
+          "diff": 0.006562028191369652,
+          "fit": 0.0047845127588178726,
+          "maxabs": 0.0011922211155459361,
+          "rank": 77,
+          "ratio": 2.371514409544799,
+          "record_id": "bromine-63727-71eb4b0867c9",
+          "reduced": 77
+        }
+      ],
+      "sigma": 2.0
+    }
+  ],
+  "claim_boundary": {
+    "capability_admitted": false,
+    "coefficient_label_emitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T22:19:57.930025+00:00",
+  "decision": "No candidate passed every frozen pilot gate; close the one-channel fixed-width Gaussian-l2 coefficient-span ladder. No fourth width is allowed.",
+  "result_sha256": "c9839decee168927b7b5cde24d7d712c74a546356e16fdf5e93d81a513c45e44",
+  "schema_version": 1,
+  "selection": null,
+  "source": {
+    "gaussian_l2_sha256": "dc377258bb229780da44bf88576b99f5e54a5e1e5f2a1536af391c1cff40c61c",
+    "preregistration_file_sha256": "17ca9634955d211b7c97f94f2450b497d7fc5cc1f4a45fc2ff4cea38cdf9a55b",
+    "preregistration_path": "docs/route2/preregistrations/vqm24-gaussian-l2-width-ladder-v1.json",
+    "preregistration_sha256": "ad215ffb8c11e1c824f63771878e5ea757d50c01a85414d5d971493f58ddd015",
+    "radial_coupling_sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c"
+  },
+  "status": "fail"
+}

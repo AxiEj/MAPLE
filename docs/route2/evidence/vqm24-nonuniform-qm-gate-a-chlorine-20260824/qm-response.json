@@ -1,0 +1,331 @@
+{
+  "artifact": "route2-vqm24-qm-localized-point-charge-response-level3-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "independent_qm_training_datum_generated": true,
+    "pcm_or_cavity_used": false
+  },
+  "finite_field_protocol": {
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "mode_count": 4,
+    "perturbation": "external scalar potential q/|r-s_k| with zero at infinity; electronic one-body perturbation -q int1e_rinv(s_k)",
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "input": {
+    "checkpoint_sha256": "7d076cdf84af63a79a2b9c0114e535c8cc1a70d3728f88edf0dc76eccbede572",
+    "modes_npz_sha256": "1baf5c9d8c3762603afdad3d6fa6b2cbef12e3f127e3907a7392d6e2a9237ec5",
+    "source_points_bohr_sha256": "ad315a70d09fc4b2494027d650188f47a225bfc5d5173338b6600aea7cbe4d72",
+    "surface_npz_sha256": "7fdd8a8bb66af40ac1cc7d79a6b846fc52aa554cd04fe85a7824bbbdf095d70e",
+    "surface_points_bohr_sha256": "979120482c9a0cc5a535f59b6c0acf25bb91f0102cd31e554d2c001aa524a1a4"
+  },
+  "method": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "PySCF-level-3",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "output": {
+    "npz_sha256": "55cf179f4e7da6a86bd55394e2c70ed33f05504a3d3015d9862a019ebe1b3456",
+    "response_dipole_sha256": "50a013bbf91b4a98499b662beb7c7d58b678fa9294a3b10572e701abf85bcf06",
+    "response_mep_sha256": "ebaed19039fd6148c8e70af60388227a4f461db362bbd1fdb31ee8adbf02e59c"
+  },
+  "perturbation_records": [
+    {
+      "amplitude_e": -0.0003,
+      "density_sha256": "b06ab38b7389a1980c950191daa9b297f8a8d891c7c4b48772493f9d008b48d8",
+      "dipole_e_bohr": [
+        -0.6336632568717253,
+        0.43999659442369143,
+        -0.020449316239152804
+      ],
+      "elapsed_seconds": 171.5883914240003,
+      "electron_count_error_e": 4.263256414560601e-14,
+      "energy_hartree": -1596.991055879715,
+      "mode_index": 0,
+      "scf_cycles": 9,
+      "sign": -1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": 0.0003,
+      "density_sha256": "c64f77a594b8ef687877873bb0477ac041264c9028618a17d0ea33699378bf53",
+      "dipole_e_bohr": [
+        -0.6348612786723481,
+        0.4400924264458377,
+        -0.020642396191122847
+      ],
+      "elapsed_seconds": 173.93662695999956,
+      "electron_count_error_e": 2.842170943040401e-14,
+      "energy_hartree": -1596.9958261885397,
+      "mode_index": 0,
+      "scf_cycles": 9,
+      "sign": 1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": -0.0003,
+      "density_sha256": "374b3a9127bce3385fde75fd7bd7c57d776d366aeeb8f9d70029377a397f051b",
+      "dipole_e_bohr": [
+        -0.6347618394385279,
+        0.4399592177842049,
+        -0.020544514516868007
+      ],
+      "elapsed_seconds": 152.66043958900264,
+      "electron_count_error_e": 2.842170943040401e-14,
+      "energy_hartree": -1596.9909487456077,
+      "mode_index": 1,
+      "scf_cycles": 8,
+      "sign": -1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": 0.0003,
+      "density_sha256": "8e7a61266a3c55a51f32a89b4a3d4a6c088a5048aa8838553871a790d2c74061",
+      "dipole_e_bohr": [
+        -0.633762618680743,
+        0.4401298045509858,
+        -0.020547194910269018
+      ],
+      "elapsed_seconds": 152.7475117489994,
+      "electron_count_error_e": 1.2789769243681803e-13,
+      "energy_hartree": -1596.9959333219047,
+      "mode_index": 1,
+      "scf_cycles": 8,
+      "sign": 1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": -0.0003,
+      "density_sha256": "16c07f23a5194dcfefd04b883b174c9832889800bd364ffb18aaf4b771ad919f",
+      "dipole_e_bohr": [
+        -0.634399720945996,
+        0.4405816159525806,
+        -0.02056269063804328
+      ],
+      "elapsed_seconds": 167.4141903790005,
+      "electron_count_error_e": 4.263256414560601e-14,
+      "energy_hartree": -1596.9906967109875,
+      "mode_index": 2,
+      "scf_cycles": 9,
+      "sign": -1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": 0.0003,
+      "density_sha256": "2f4e251e69074ea309d9290395d8daaec0374b33a17cef60c420dc6532e76286",
+      "dipole_e_bohr": [
+        -0.6341247578017637,
+        0.4395073231122337,
+        -0.020529017604249855
+      ],
+      "elapsed_seconds": 167.14728777399796,
+      "electron_count_error_e": 1.4210854715202004e-13,
+      "energy_hartree": -1596.9961853587465,
+      "mode_index": 2,
+      "scf_cycles": 9,
+      "sign": 1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": -0.0003,
+      "density_sha256": "ba53aea72504e645a27ec03eb78f07cfd24232f48d07121323958709025e89ba",
+      "dipole_e_bohr": [
+        -0.6341710009814201,
+        0.43969727236108214,
+        -0.020884024443322713
+      ],
+      "elapsed_seconds": 169.3505505810026,
+      "electron_count_error_e": 4.263256414560601e-14,
+      "energy_hartree": -1596.990596549202,
+      "mode_index": 3,
+      "scf_cycles": 9,
+      "sign": -1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": 0.0003,
+      "density_sha256": "70834310aa988bd7d77240b152dfa38428ce041a5a683fc7d6aabf2ebad2ee8d",
+      "dipole_e_bohr": [
+        -0.6343534942915086,
+        0.4403917876444188,
+        -0.020207639569792324
+      ],
+      "elapsed_seconds": 167.5511513019992,
+      "electron_count_error_e": 5.684341886080802e-14,
+      "energy_hartree": -1596.9962855199792,
+      "mode_index": 3,
+      "scf_cycles": 9,
+      "sign": 1,
+      "step_e": 0.0003
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "536ba46e96b61d3b4d9724efcb76126871cf0c8b244f221d88b10604b3fdcb3e",
+      "dipole_e_bohr": [
+        -0.6322657129611042,
+        0.43988463481977913,
+        -0.0202243483411485
+      ],
+      "elapsed_seconds": 196.65315176999866,
+      "electron_count_error_e": 9.947598300641403e-14,
+      "energy_hartree": -1596.9854905415032,
+      "mode_index": 0,
+      "scf_cycles": 11,
+      "sign": -1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "dd4adf8852d2a16fb69f740e2990da928cfdcf8661d5eb35c64d49dea2b0cbc9",
+      "dipole_e_bohr": [
+        -0.6362592955319191,
+        0.440204441501278,
+        -0.020867393899660747
+      ],
+      "elapsed_seconds": 199.21819524499733,
+      "electron_count_error_e": 5.684341886080802e-14,
+      "energy_hartree": -1597.0013915709078,
+      "mode_index": 0,
+      "scf_cycles": 11,
+      "sign": 1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "e983104700c541aedd5cda1282d7e01531681950aaeea2133782f710bb72b8aa",
+      "dipole_e_bohr": [
+        -0.6359280682089118,
+        0.4397603359965572,
+        -0.020541614599273395
+      ],
+      "elapsed_seconds": 182.93318667199856,
+      "electron_count_error_e": 5.684341886080802e-14,
+      "energy_hartree": -1596.9851334249265,
+      "mode_index": 1,
+      "scf_cycles": 10,
+      "sign": -1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "1e07f1acc220900a3c0b46e323e3b68b052e0a235a13dc19b50e92ad4f0a736f",
+      "dipole_e_bohr": [
+        -0.6325960591962182,
+        0.44032875908277247,
+        -0.02055011233257764
+      ],
+      "elapsed_seconds": 182.71632894999857,
+      "electron_count_error_e": 2.842170943040401e-14,
+      "energy_hartree": -1597.001748679259,
+      "mode_index": 1,
+      "scf_cycles": 10,
+      "sign": 1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "da13f870e263012f80d922458ff3f5415f72079ead50e1e36022e814d43a0dbe",
+      "dipole_e_bohr": [
+        -0.6347209123629042,
+        0.44183436788945274,
+        -0.020602222696020855
+      ],
+      "elapsed_seconds": 200.53245068400065,
+      "electron_count_error_e": 2.842170943040401e-14,
+      "energy_hartree": -1596.9842933181708,
+      "mode_index": 2,
+      "scf_cycles": 11,
+      "sign": -1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "a932e85f1c2142401fe24f9f86244d60de95d26e8f7d5a5c79df4691f336e54c",
+      "dipole_e_bohr": [
+        -0.6338034814998486,
+        0.43825380683900317,
+        -0.0204894751039566
+      ],
+      "elapsed_seconds": 199.49537357300142,
+      "electron_count_error_e": 1.4210854715202004e-14,
+      "energy_hartree": -1597.0025888107116,
+      "mode_index": 2,
+      "scf_cycles": 11,
+      "sign": 1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": -0.001,
+      "density_sha256": "6ce91f8f09b6530c08c2e2b814156cb06bf3ab60684a3f2ea0b39f13fa2621e0",
+      "dipole_e_bohr": [
+        -0.6339578631273188,
+        0.4388870417086168,
+        -0.021673032763956268
+      ],
+      "elapsed_seconds": 196.9696863019999,
+      "electron_count_error_e": 5.684341886080802e-14,
+      "energy_hartree": -1596.9839594434059,
+      "mode_index": 3,
+      "scf_cycles": 11,
+      "sign": -1,
+      "step_e": 0.001
+    },
+    {
+      "amplitude_e": 0.001,
+      "density_sha256": "ce954bef19dac7c0823eef8e4bddde43a9a44df45424aa2ccf7156e547d88912",
+      "dipole_e_bohr": [
+        -0.634566699622843,
+        0.4412024735575042,
+        -0.01941817560011616
+      ],
+      "elapsed_seconds": 199.39901487099996,
+      "electron_count_error_e": 4.263256414560601e-14,
+      "energy_hartree": -1597.0029226793445,
+      "mode_index": 3,
+      "scf_cycles": 11,
+      "sign": 1,
+      "step_e": 0.001
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "threads": 8,
+    "total_elapsed_seconds": 2880.732251385998
+  },
+  "schema_version": 1,
+  "source": {
+    "runner_path": "tools/route2_release/run_vqm24_localized_qm_response.py",
+    "runner_sha256": "dc6fd9a6c1d55f165a6f298650572cb6a59f461b8aea0ae568c4603aa3cdd87a",
+    "surface_helper_path": "docs/implicit-solvation/benchmarks/route2_qm_surface_mep.py",
+    "surface_helper_sha256": "3e21714d078b72edf691f5a4809485ea321d3c3cf9c9e04a498b678e7f73c276"
+  },
+  "status": "success",
+  "zero_density": {
+    "checkpoint_density_binding_residual_e": 5.684341886080802e-14,
+    "checkpoint_mo_orthonormality_inf": 4.25659507641285e-13,
+    "checkpoint_occupation_sum_e": 72.0,
+    "checkpoint_occupied_orbital_count": 36,
+    "density_sha256": "0679a56ba746d3f87f808afb80418ef92257a77c8eb127548fab24b81a5e76f6",
+    "density_source": "checkpoint:scf/mo_coeff+scf/mo_occ",
+    "electron_count_e": 72.00000000000006
+  }
+}

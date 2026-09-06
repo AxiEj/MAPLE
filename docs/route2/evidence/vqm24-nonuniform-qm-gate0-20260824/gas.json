@@ -1,0 +1,194 @@
+{
+  "artifact_id": "route2-qm-gas-checkpoint-vqm24-gate0-ch6n4-v1",
+  "claim_boundary": "One neutral closed-shell fixed-geometry gas-phase electronic reference. It is not a solution free energy, continuum result, conformer ensemble, or production MAPLE dependency.",
+  "generated_at_utc": "2026-08-23T21:07:03.843917+00:00",
+  "input": {
+    "mol2_path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/geometry.mol2",
+    "mol2_sha256": "67b6f4989dc5ac5940a92ddd71deb2d15ed5a2950526e91f218c3330278dba1b"
+  },
+  "numerics": {
+    "maximum_memory_mb": 8000,
+    "maximum_scf_cycles": 100,
+    "nonlocal_atom_grid": [
+      50,
+      194
+    ],
+    "nonlocal_grid_level": null,
+    "nonlocal_grid_profile": "pyscf-official-50x194-sg1",
+    "nonlocal_prune": "sg1_prune",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3
+  },
+  "official_documentation": {
+    "nlc_example": {
+      "sha256": "299f326e8f51a6522b8453146f9d7bf3975e88c0db5c097afe4ac5611e255427",
+      "url": "https://raw.githubusercontent.com/pyscf/pyscf/v2.13.1/examples/dft/15-nlc_functionals.py"
+    },
+    "solvent": "https://pyscf.org/user/solvent.html"
+  },
+  "result": {
+    "checkpoint": {
+      "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/gas/gas.chk",
+      "sha256": "bc07729474e06bdb667a064b62c5e08b1949e1e98fbc66ecf9e70c1f3f7fc813"
+    },
+    "checkpoint_density_binding_residual_inf": 3.469446951953614e-18,
+    "elapsed_seconds": 61.9924844039997,
+    "energy_hartree": -260.7028882944692,
+    "nonlocal_grid_point_count": 47000,
+    "scf_cycles": 16,
+    "semilocal_grid_point_count": 128576
+  },
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "python_executable": {
+      "invoked": "/home/axie/miniconda3/envs/maple/bin/python",
+      "resolved": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+      "resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+    },
+    "threads": 8
+  },
+  "schema_version": 1,
+  "source": {
+    "argv": [
+      "/home/axie/miniconda3/envs/maple/bin/python",
+      "/tmp/maple-route2-vqm24-qm-gate0-source/docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+      "--mol2",
+      "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/geometry.mol2",
+      "--compound-id",
+      "vqm24-gate0-ch6n4",
+      "--molecule-name",
+      "Vector-QM24_DFT_all__DFT_all__199649",
+      "--output-dir",
+      "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate0-20260824/gas",
+      "--basis",
+      "def2-tzvpd",
+      "--grid-level",
+      "3",
+      "--nlc-grid-profile",
+      "pyscf-official-50x194-sg1",
+      "--threads",
+      "8",
+      "--max-memory-mb",
+      "8000"
+    ],
+    "effective_arguments": {
+      "basis": "def2-tzvpd",
+      "grid_level": 3,
+      "max_memory_mb": 8000,
+      "nlc_grid_level": 3,
+      "nlc_grid_profile": "pyscf-official-50x194-sg1",
+      "threads": 8
+    },
+    "git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+    "runner_path": "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+    "runner_sha256": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb",
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb"
+    }
+  },
+  "status": "pass",
+  "system": {
+    "atom_count": 11,
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "compound_id": "vqm24-gate0-ch6n4",
+    "density_fitting": true,
+    "geometry": [
+      {
+        "position_angstrom": [
+          1.179191997,
+          -0.7594295456,
+          -0.2388489091
+        ],
+        "symbol": "N"
+      },
+      {
+        "position_angstrom": [
+          0.4234014467,
+          0.3700690715,
+          0.0742734428
+        ],
+        "symbol": "C"
+      },
+      {
+        "position_angstrom": [
+          0.9744566314,
+          1.5239067525,
+          0.0960688082
+        ],
+        "symbol": "N"
+      },
+      {
+        "position_angstrom": [
+          -0.9214674676,
+          0.0919447607,
+          0.3273877111
+        ],
+        "symbol": "N"
+      },
+      {
+        "position_angstrom": [
+          -1.5510645774,
+          -1.0292384689,
+          -0.241385696
+        ],
+        "symbol": "N"
+      },
+      {
+        "position_angstrom": [
+          2.1654069682,
+          -0.5156426799,
+          -0.2390106784
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          0.9989035483,
+          -1.5540836116,
+          0.3680924627
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          0.2675701998,
+          2.253261677,
+          0.2223092156
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          -1.5109594493,
+          0.9156951957,
+          0.2688530524
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          -1.4536430242,
+          -1.8199014192,
+          0.3947350573
+        ],
+        "symbol": "H"
+      },
+      {
+        "position_angstrom": [
+          -1.0779688488,
+          -1.2845051967,
+          -1.1104456577
+        ],
+        "symbol": "H"
+      }
+    ],
+    "method": "omegaB97M-V",
+    "molecule": "Vector-QM24_DFT_all__DFT_all__199649",
+    "multiplicity": 1,
+    "reference": "RKS"
+  }
+}

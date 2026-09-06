@@ -1,0 +1,219 @@
+{
+  "artifact": "route2-vqm24-mdp-p13-a3-o2-lbfgs-closure-prereg-v1",
+  "backend_gates": {
+    "energy_work_identity_atol": 1e-11,
+    "energy_work_identity_rtol": 1e-10,
+    "gradcheck_required": true,
+    "gradgradcheck_required": true,
+    "parameter_gradient_atol": 1e-09,
+    "parameter_gradient_rtol": 1e-08,
+    "rotation_and_edge_orientation_tests_required": true,
+    "source_atol": 1e-11,
+    "source_rtol": 1e-10
+  },
+  "claim_boundary": {
+    "development_train_formulas_only": true,
+    "experimental_solvation_target_read": false,
+    "maple_capability_admitted": false,
+    "model_selected_or_admitted": false,
+    "pcm_or_cavity_used": false,
+    "same_A3_architecture_and_objective": true,
+    "validation_or_blind_formula_opened": false
+  },
+  "conditional_A4": {
+    "A4_failure_terminates_branch": true,
+    "O3_reflection_gate_required": true,
+    "PCA_must_be_recomputed_inside_each_future_CV_fold": true,
+    "PCA_same_mixing_for_all_m_components": true,
+    "authorized_only_after_plateau_and_failed_A3_gate": true,
+    "field_dependent_or_post_source_features_forbidden": true,
+    "frozen_weights_must_remain_coordinate_differentiable": true,
+    "maximum_multiplicity_PCA_channels": {
+      "even_scalars_l0": 8,
+      "odd_vectors_l1": 4
+    },
+    "new_latent_couplings_initialize_to_zero": true,
+    "new_message_passing_forbidden": true,
+    "one_A4_run_only": true,
+    "opposite_parity_mixing_forbidden": true,
+    "parameter_cap_precommitted_before_A3_results": true,
+    "precommitted_parameter_cap": 4096,
+    "upstream_provenance_audit_required_before_A4": true
+  },
+  "created_utc": "2026-08-27T07:21:11.431212+00:00",
+  "cross_factor_C": {
+    "authorized": false,
+    "reason": "four input modes identify susceptibility action on rank<=4 only; cross and diagonal factor contributions are confounded"
+  },
+  "future_grouped_train_cv": {
+    "all_modes_and_probe_frames_stay_with_formula": true,
+    "fold_record_sha256s": {
+      "fold-0": [
+        "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6",
+        "0c750047a5e1d79f448d409199141755f6a64b4d35738e7a797311a7ac630eec",
+        "1256947e5905faa4818050cfa469e5d337d08c128377563d6fff979843981661",
+        "190c2fbc8b9986ba63860d36f411d67bfee87f21aeb177776d9bcf2d681b3b18",
+        "5abef0a88d160c5745e94e7ae6e4a61db94c7a3ea74c33d99afb87fadee8bf64",
+        "6cb9b5d441de514008b986d2e160f906a3f90521617217a128b92bc22de87f5e",
+        "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0",
+        "b412c4e75aedda1dac83ce4c498c8fd73797531e056b8213421a65719ee384d9"
+      ],
+      "fold-1": [
+        "1c3caaef7cd3392b67d4b8b8ec1e84a9ae39c6c2213e869b250e8b57583b6d90",
+        "2e00c04d8f404aba122f77452f5fc364cd6581bc4ac20c0c99394d25adfeb938",
+        "5c9234fb4b842cbefccd9df2232bb86ee2b1a1c7eb1fea51fc7b942918b173f7",
+        "6bb8a046ac22e3d3d0c702d3915f28559a6031f13428d385bd032bb65ab978db",
+        "7400c7789c7cddf2a428423122920f006c0f88cbdc25efcf581f9590f82f92a4",
+        "745ab5d78c8bb0911db7dd3925d7d98c6defc19412654ddca9745afd4ff7d79b",
+        "a14bf52170dea71bd865316ce52048bbd65fcf33bd5a789e8fe8baa718348602",
+        "c1096072c51bc6def3e63c2ea20fa18acb0d8a9281714573fe383b6edd09abe4"
+      ],
+      "fold-2": [
+        "3c8bc817c95e2292beb3f7e33a5ca9124b8e0d4a205120c26d07ac3b7e590a44",
+        "692cd68117c45da0ace8ee3c3f701101c093109b560674c637207ee5b3e6112b",
+        "70c76c72082658882dfba613043632d0f47e934267aa33c8edcc3a6786586bb3",
+        "71eb4b0867c97cbabfd963f4990a54696f7448eb669674d2a9065d275539d94f",
+        "7e6419f2ee92ddeb473cf58eb1675ef92b8298c6e3355cc9fa914ca1863abfd5",
+        "a7040c282ac8e9c04889c1df017919eda981ace596b50be46caa82a3abe0a6c3",
+        "d15ba6ea626a099aef06c30eba949ab6c4afab6fdd1381bfa569f1a66034108a",
+        "f59ae1366672f5434cf08f68b4d52bbdbeddb809d8f33e45bb3743c7b509d60c"
+      ],
+      "fold-3": [
+        "549dfd678c854f033529dc0a5ec0bba0e093178bebb6e9570f2a1d510b81bce4",
+        "710a4fc899445ea32e9ee299a28c37717816569e6280081289896763623f250c",
+        "84c7dcaffea3d665200f3eadeaf128acfbd72925df1bd26764644aff7b0d8231",
+        "938cde712eac59de5400446c18c4cd6e995f2fd4f148c74ae7aca57c31cab3ed",
+        "970f059c1f95df68ab562190b88541b48bec61d4c94fd273a3dee16268fd86fd",
+        "ac8ad6afa4f740de2ae08cd09ee5b6710d75b194ad22aed0a9663d11dea92773",
+        "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6",
+        "fa20b6e144ad2e4f0d79bf95de902efb424e8d49809b2756b97f514bc5f24bef"
+      ]
+    },
+    "not_used_to_choose_A3_vs_A4": true,
+    "run_only_after_candidate_search_closes": true,
+    "status": "fold-identities-frozen-but-not-run"
+  },
+  "gates": {
+    "maximum_audit_mep_absolute_hartree_per_e_per_source_e": 0.002,
+    "maximum_audit_mep_relative": 0.2,
+    "maximum_dipole_response_relative": 0.2,
+    "maximum_individual_audit_to_fit_ratio": 2.0,
+    "maximum_induced_charge_residual_e": 1e-12,
+    "maximum_source_point_reciprocity_relative": 1e-10,
+    "maximum_source_point_response_relative": 0.2,
+    "maximum_source_point_symmetric_eigenvalue_hartree_per_e2": 1e-10,
+    "mean_audit_mep_relative_maximum": 0.08,
+    "mean_audit_to_fit_ratio_maximum": 1.5,
+    "mean_dipole_response_relative_maximum": 0.08,
+    "mean_source_point_response_relative_maximum": 0.05
+  },
+  "inputs": {
+    "mdp_feature_manifest_path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-frozen-mdp-features-v1/manifest.json",
+    "mdp_feature_manifest_sha256": "e2bcb6e2ea649ebe7cfdb653d8f72949b9dd8c3becbaeff12fc3f0acb26232a9",
+    "train_record_ids": [
+      "fluorine-412002-081c6cc3a31b",
+      "base-hcno-460236-0c750047a5e1",
+      "phosphorus-351029-1256947e5905",
+      "sulfur-122602-190c2fbc8b99",
+      "base-hcno-436944-1c3caaef7cd3",
+      "sulfur-389495-2e00c04d8f40",
+      "base-hcno-156765-3c8bc817c95e",
+      "base-hcno-481244-549dfd678c85",
+      "bromine-101221-5abef0a88d16",
+      "fluorine-278363-5c9234fb4b84",
+      "sulfur-221028-692cd68117c4",
+      "bromine-10426-6bb8a046ac22",
+      "base-hcno-404508-6cb9b5d441de",
+      "fluorine-469465-70c76c720826",
+      "fluorine-139037-710a4fc89944",
+      "bromine-63727-71eb4b0867c9",
+      "phosphorus-696398-7400c7789c7c",
+      "base-hcno-162863-745ab5d78c8b",
+      "base-hcno-208608-7e6419f2ee92",
+      "bromine-447833-84c7dcaffea3",
+      "sulfur-379175-938cde712eac",
+      "base-hcno-135247-970f059c1f95",
+      "chlorine-636384-976484d18c73",
+      "chlorine-141648-a14bf52170de",
+      "chlorine-784-a7040c282ac8",
+      "chlorine-610177-ac8ad6afa4f7",
+      "base-hcno-229457-b412c4e75aed",
+      "base-hcno-432908-c1096072c51b",
+      "phosphorus-66144-d15ba6ea626a",
+      "phosphorus-598182-ea0696054cba",
+      "base-hcno-440770-f59ae1366672",
+      "base-hcno-399849-fa20b6e144ad"
+    ],
+    "validation_and_blind_data_unopened": true
+  },
+  "observable_parent": {
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e"
+  },
+  "opening_policy": {
+    "blind_opens_only_after_validation_passes": true,
+    "validation_opens_only_after_train_gates_grouped_CV_and_ddPCM_math": true,
+    "validation_or_blind_informed_repair_forbidden": true
+  },
+  "optimizer": {
+    "audit_metrics_used_for_early_stopping": false,
+    "history_size": 100,
+    "learning_rate": 1.0,
+    "line_search_fn": "strong_wolfe",
+    "maximum_accepted_outer_steps": 500,
+    "maximum_evaluations_per_step": 10,
+    "maximum_full_objective_evaluations": 5000,
+    "name": "torch.optim.LBFGS",
+    "same_data_objective": "0.82 response-MEP + 0.18 dipole-response",
+    "same_regularization": "0.5 * 1e-4 * sum(theta^2), exactly equivalent to prior torch.optim.Adam weight_decay=1e-4",
+    "tolerance_change": 1e-14,
+    "tolerance_grad": 1e-12
+  },
+  "parent_pilot": {
+    "a3_checkpoint_path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-mdp-p13-passive-response-pilot-v1/A3/head.pt",
+    "a3_checkpoint_sha256": "d9ee85b5b42aa09121a9516c6d78ead17d813c4ceb335a9469487ebd9ccbab89",
+    "pilot_preregistration_file_sha256": "3a3c2e26c558484651252e1fc29198d18a0c87c1ad125e035e46c502d80b2569",
+    "pilot_preregistration_path": "docs/route2/preregistrations/vqm24-mdp-p13-block-passive-response-pilot-v1.json",
+    "pilot_preregistration_sha256": "7b6a41e39db28cb5a93968cde4152146ae88cc517e78dbc3817ce75a5f9f2c05",
+    "result_path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-mdp-p13-passive-response-pilot-v1/result.json",
+    "result_payload_sha256": "76214d574793b0dffd18820ea28ddef053b274fdcdf4b1514b62b05d87217310",
+    "result_sha256": "5dc6c14598e4e4e1331265985fafce0c80f47a3755381b0e3d4abc29a2cf9bfc"
+  },
+  "plateau": {
+    "block_steps": 50,
+    "consecutive_nonoverlapping_blocks": 3,
+    "hard_cap_without_plateau_is_terminal": true,
+    "maximum_relative_best_objective_improvement_per_block": 0.0025,
+    "select_lowest_total_training_objective_only": true
+  },
+  "preregistration_sha256": "ff6890bdf17daee6091fe27e321bbd226042fe39bbd4e80cc73e4cb06aa2404a",
+  "schema_version": 1,
+  "source": {
+    "analytic_response": {
+      "path": "maple/solvation/models/passive_p13_response.py",
+      "sha256": "b124f6cb572f42b1b5290854b3c0227f35d127b99dbb670ce4e677c8ddcd7aff"
+    },
+    "factor": {
+      "path": "maple/solvation/models/sparse_passive_factor.py",
+      "sha256": "026cd313c1f90e977ac17df5deda3120d9cdd64174c5fe197c2ebde42c4131ba"
+    },
+    "preregistration_builder_path": "tools/route2_release/create_vqm24_mdp_p13_a3_o2_preregistration.py",
+    "preregistration_builder_sha256": "6cf80f9e000679cbb38f8e13d3b78747a51571bda8b28e4276aa5915f88db247",
+    "pro_answer_path": "docs/route2/evidence/mdp-polar-p13-postpilot-pro-20260827/answer.md",
+    "pro_answer_sha256": "77cf0739216bbf59fa250e331aac1b23459068755ac2295913aaa3f6dd427ade",
+    "runner_path": "tools/route2_release/continue_vqm24_mdp_p13_a3_lbfgs.py",
+    "runner_sha256": "bc000458a8f87e8ef5d59b7212c2a1599d8b38063c4720c01b9565c73e4f9312",
+    "tests": [
+      {
+        "path": "tests/route2_vnext/test_passive_p13_response.py",
+        "sha256": "808543b9f6aae6a533ccccc1aac0631280d7e43bff794b3a213585120f6201a7"
+      },
+      {
+        "path": "tests/route2_vnext/test_sparse_passive_factor.py",
+        "sha256": "c4d937deba32ace8b7a02254c8493f11f8dd3e37e55faf18197557ae2713e379"
+      }
+    ]
+  },
+  "status": "locked-before-o2-continuation"
+}

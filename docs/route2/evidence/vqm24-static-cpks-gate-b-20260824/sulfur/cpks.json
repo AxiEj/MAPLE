@@ -1,0 +1,149 @@
+{
+  "artifact": "route2-vqm24-static-cpks-observable-response-level3-v1",
+  "checkpoint_consistency": {
+    "canonical_fock_residual_relative_frobenius": 4.931762714493911e-10,
+    "fock_virtual_occupied_residual_inf_hartree": 4.618195544892591e-09,
+    "orthonormality_residual_inf": 4.980423534578025e-13,
+    "rebuilt_energy_error_hartree": 0.0
+  },
+  "claim_boundary": {
+    "ao_density_response_released_as_training_label": false,
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "pcm_or_cavity_used": false,
+    "q_to_zero_static_response_computed": true,
+    "vqm24_energy_target_used": false
+  },
+  "input": {
+    "checkpoint_sha256": "765e951896d249f7837f2b60bf4b40d00b2da0bc4d202fd28b5a38752eca2547",
+    "modes_npz_sha256": "7a42ed83f63b5c75bd5698834d5aa0d37dd68973908b6075a7847bfb038a6e6c",
+    "source_points_bohr_sha256": "64a0ad4b65985e9f3ef96d5ab6e11bea0bc79d1a26cf35fb9595410f8cf051bc",
+    "surface_npz_sha256": "2f6dfbc99180d68fd600930ef8b2adc693c8f6f10e66785c09bd3b5ece2ba2d6",
+    "surface_points_bohr_sha256": "ea0a70f0296167583b7209822cae8c2c01bcf73fb4cd052479c4527abc1c8d32"
+  },
+  "method": {
+    "auxiliary_function_count": 643,
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "grids": {
+      "nonlocal": {
+        "coordinates_sha256": "ab5879f7bd259363ecec3c0ae2396c98f2a10f769f55c5947fb1f9c9c3b43556",
+        "point_count": 119208,
+        "prune": "pyscf.dft.gen_grid.nwchem_prune",
+        "radii_adjust": "pyscf.dft.radi.treutler_atomic_radii_adjust",
+        "weights_sha256": "e3345e983b23ff8d6532e2f02eef9ee279e40ff2e2be924cef62a46372211948"
+      },
+      "semilocal": {
+        "coordinates_sha256": "ab5879f7bd259363ecec3c0ae2396c98f2a10f769f55c5947fb1f9c9c3b43556",
+        "point_count": 119208,
+        "prune": "pyscf.dft.gen_grid.nwchem_prune",
+        "radii_adjust": "pyscf.dft.radi.treutler_atomic_radii_adjust",
+        "weights_sha256": "e3345e983b23ff8d6532e2f02eef9ee279e40ff2e2be924cef62a46372211948"
+      },
+      "small_rho_cutoff": 0.0
+    },
+    "nonlocal_grid_level": 3,
+    "nonlocal_grid_profile": "PySCF-level-3",
+    "only_dfj": false,
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "resolved_auxiliary_basis": "def2-tzvp-jkfit",
+    "semilocal_grid_level": 3,
+    "spin": 0,
+    "with_nlc_response": true
+  },
+  "output": {
+    "induced_dipole_sha256": "07539573378e74e43d29b328dd25e441b7e9aca22a0920d3c83c3fae48815382",
+    "induced_surface_mep_sha256": "d8f6b34898b3336143b8643487afde0a60783a886555eba262f9c7a9364e589d",
+    "npz_sha256": "fc77b14c052137905c8418ba9517710cc05674616618565e0aec699b27c1d312",
+    "susceptibility_sha256": "ec288cbccecb21e606b55701af52bcf39d480c9453791754d8a4d0b79faee6c2"
+  },
+  "response": {
+    "density_hermiticity_maximum": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "density_response_sha256": "feb29484742a790e718e4354d2fc518faffd2cc45048b5745035b533cdf2f233",
+    "electron_number_derivative_e_per_source_e": [
+      -5.133040540963512e-16,
+      -5.664175813314529e-16,
+      -3.090399359781061e-16,
+      -7.484029697733416e-16
+    ],
+    "energy_curvature_ao_hartree_per_e2": [
+      -0.047170825664342345,
+      -0.04883893298937041,
+      -0.02150756490293393,
+      -0.04695044597899563
+    ],
+    "energy_curvature_vo_hartree_per_e2": [
+      -0.0471708256643423,
+      -0.04883893298937041,
+      -0.021507564902933866,
+      -0.04695044597899562
+    ],
+    "energy_identity_error_hartree_per_e2": [
+      -4.163336342344337e-17,
+      0.0,
+      -6.245004513516506e-17,
+      -6.938893903907228e-18
+    ],
+    "final_residual_relative_frobenius": [
+      1.1492693801570857e-06,
+      1.0051888333883006e-06,
+      1.9358882870214993e-06,
+      4.312863068819442e-06
+    ],
+    "final_residual_relative_infinity": [
+      2.8286919317025674e-06,
+      2.619012462090684e-06,
+      6.980471765062712e-06,
+      1.1162540026866045e-05
+    ],
+    "initial_residual_relative_frobenius": [
+      3.2866620890098546e-06,
+      2.9136348918467233e-06,
+      6.285700425076888e-06,
+      1.2245489247242029e-05
+    ],
+    "mode_count": 4,
+    "refinement_cycle_count": 1,
+    "solve_elapsed_seconds": 2180.357174796998,
+    "susceptibility_reciprocity_relative_frobenius": 5.005912666728064e-08,
+    "susceptibility_symmetric_eigenvalues_hartree_per_e2": [
+      -0.06699056535461823,
+      -0.05491932818363183,
+      -0.0305273208017698,
+      -0.012030555195622464
+    ]
+  },
+  "runtime": {
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "threads": 8,
+    "total_elapsed_seconds": 2201.440234396003
+  },
+  "schema_version": 1,
+  "source": {
+    "runner_path": "tools/route2_release/run_vqm24_static_cpks_response.py",
+    "runner_sha256": "c4ba8cbb4a6b45946ac61e5b553cc5e1be44c0cb86e1b034f05dec4ad0c3128b"
+  },
+  "status": "success",
+  "zero_field": {
+    "energy_hartree": -1694.425498039624,
+    "total_dipole_e_bohr": [
+      -0.6747219059075995,
+      0.23069710302976665,
+      -0.1826938335438163
+    ],
+    "total_source_mep_sha256": "bea7f8b329d1385bad14dc30529580d6aefa19d198883144dfe0b6dfb9532fa1",
+    "total_surface_mep_sha256": "158200577c7c3ab403deac9a0533aaf1df76641b26ec08108e704022d472551b"
+  }
+}

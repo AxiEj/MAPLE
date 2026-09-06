@@ -1,0 +1,126 @@
+{
+  "artifact": "route2-iodine-adt-operator-probe-v2",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "mace_output_read": false,
+    "purpose": "target-free-role-separated-iodine-adt-operator-audit",
+    "running_505_modified": false
+  },
+  "comparisons": {
+    "ecp_vs_x2c": {
+      "atomic_dipole_allocation_maximum_absolute_difference": 0.28567874481696043,
+      "iodine_phi_maximum_absolute_difference": 0.00023356724524908196,
+      "iodine_phi_relative_frobenius_difference": 0.0017472977898467263,
+      "polarization_energy_difference_eV": 0.14297609456543028,
+      "polarization_energy_relative_difference": 0.4586348082159985,
+      "psi_exact_match": true
+    },
+    "nr_vs_x2c": {
+      "atomic_dipole_allocation_maximum_absolute_difference": 1.008369096589979e-05,
+      "iodine_phi_maximum_absolute_difference": 2.0491761101915085e-05,
+      "iodine_phi_relative_frobenius_difference": 0.0002632888027894817,
+      "polarization_energy_difference_eV": 6.964745697335406e-06,
+      "polarization_energy_relative_difference": 2.2341320882204022e-05,
+      "psi_exact_match": true
+    }
+  },
+  "continuum": {
+    "cavity_radii_angstrom": [
+      1.85,
+      1.2,
+      1.2,
+      1.2,
+      1.85,
+      1.2,
+      1.2,
+      1.85,
+      1.2,
+      1.2,
+      2.74
+    ],
+    "cavity_topology_sha256": "a05b7e88d9c985a17e7b81f23f2eacea0cb819464ffe9d98faf00df07021d6c2",
+    "dielectric": 78.355,
+    "eta": 0.1,
+    "lmax": 8,
+    "model": "pcm",
+    "n_lebedev": 1202,
+    "prepared_configuration_sha256": "a84d40cc7d04e223a69293c33e2fec7c33e279aab234c88726bf2e95ed16ed7d",
+    "solvent": "water",
+    "solver_tolerance": 1e-12
+  },
+  "decision": {
+    "neutral_penetration_from_ecp_shape": "forbidden",
+    "operational_shape": "ecp-25-electron-valence-pseudodensity",
+    "reference_shape": "x2c-53-electron-all-electron-density"
+  },
+  "payload_sha256": "ac5f653efe0aad4dc23957d36835ffca2e777f3fd1f31d88cf3a02ce9066ab3f",
+  "per_shape": {
+    "ecp": {
+      "atomic_dipole_weights_sha256": "cbe7a4cc84e9c5f49802c7d41e3d0bcf5de077e245315c8a46e6d2362651a0fd",
+      "iodine_allocated_unit_dipole": [
+        [
+          0.28584717678337546,
+          0.0,
+          0.0
+        ]
+      ],
+      "iodine_atomic_dipole_weight": 0.28584717678337546,
+      "lift_configuration_sha256": "3dc891595cb6cb8bd00d0611d85fbb4c1f849067fe02e4f2c6af1323999207a1",
+      "model_field_l2_norm": 1.3782830912363062,
+      "phi_sha256": "993d250287afeadac12dd88a15f237cc1c1c14e9fd08523d8ebda90b63cd89bc",
+      "polarization_energy_eV": -0.16876669513162715,
+      "psi_sha256": "ffd2548a49fa51747c18287546545508b1b67c45668ff434a1703d7ec772494d",
+      "self_work_hartree_per_ebohr2_sha256": "59a05f00f74860ecdb933a1b0298f13c15f266f31ccdcfe5f8aa9372adee4122"
+    },
+    "nr": {
+      "atomic_dipole_weights_sha256": "e6eb49c0d95a27a8ccd8c339743f4f35e2348fb90b1310d85a54ffa3637a3fd7",
+      "iodine_allocated_unit_dipole": [
+        [
+          0.00017851565738094554,
+          0.0,
+          0.0
+        ]
+      ],
+      "iodine_atomic_dipole_weight": 0.00017851565738094554,
+      "lift_configuration_sha256": "c8220457e09cf5bcb5638d79c13f535eb0b3f9556d686d06ac49000a2952c68a",
+      "model_field_l2_norm": 1.629899683611093,
+      "phi_sha256": "df4682468de02d768791d7fc38fcdc21623fb5fbb887770650b3fac5072aec25",
+      "polarization_energy_eV": -0.3117358249513601,
+      "psi_sha256": "ffd2548a49fa51747c18287546545508b1b67c45668ff434a1703d7ec772494d",
+      "self_work_hartree_per_ebohr2_sha256": "f746bd3dbdc5ceb5d9b95b4f8812eaef255f96e3612bde77a3a4104cf64ac9af"
+    },
+    "x2c": {
+      "atomic_dipole_weights_sha256": "c7fadfe0bca2a25668d279f962664c75017c78b7742d77ad020589366e630a1f",
+      "iodine_allocated_unit_dipole": [
+        [
+          0.00016843196641504575,
+          0.0,
+          0.0
+        ]
+      ],
+      "iodine_atomic_dipole_weight": 0.00016843196641504575,
+      "lift_configuration_sha256": "3fb9583892ce1cc3700dbf5bf127ae9b88cfefba22f93fff0819f1b3466d4da3",
+      "model_field_l2_norm": 1.6299120429048854,
+      "phi_sha256": "bccdec61d524b2bec5b473987fa52062befd319e54ec2935adbb2d1138d88e76",
+      "polarization_energy_eV": -0.31174278969705743,
+      "psi_sha256": "ffd2548a49fa51747c18287546545508b1b67c45668ff434a1703d7ec772494d",
+      "self_work_hartree_per_ebohr2_sha256": "6156d398dce32312ff644d9a7bae2c8a492072092b5597f2f945b1da5d80ab11"
+    }
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "numpy": "2.4.6",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "scipy": "1.17.1"
+  },
+  "schema_version": 2,
+  "source": {
+    "generator_path": "tools/route2_release/generate_iodine_adt_assets.py",
+    "generator_sha256": "860f97897d45b21fcccd7d01713f3af4475190969e975c3296cdeeca9b6ac5a8",
+    "geometry_file_sha256": "b82646298cc723b71dc15f928312930ded2197ce82db1afabaa3d9cd747455e4",
+    "geometry_path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_operator_geometry.json",
+    "geometry_payload_sha256": "434f36216c6353292ffc69e28f0fbd33da43d6c42a84baa769125792c2502488"
+  }
+}

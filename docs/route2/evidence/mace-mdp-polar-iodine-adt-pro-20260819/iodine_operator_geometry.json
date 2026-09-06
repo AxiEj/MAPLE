@@ -1,0 +1,91 @@
+{
+  "artifact": "route2-iodine-adt-operator-geometry-v1",
+  "atomic_numbers": [
+    6,
+    1,
+    1,
+    1,
+    6,
+    1,
+    1,
+    6,
+    1,
+    1,
+    53
+  ],
+  "charge": 0,
+  "claim_boundary": {
+    "experimental_solvation_target_embedded": false,
+    "geometry_only": true,
+    "purpose": "target-free-iodine-adt-operator-comparison"
+  },
+  "coordinates_angstrom": [
+    [
+      3.413285,
+      0.01689,
+      3e-06
+    ],
+    [
+      3.610665,
+      0.627173,
+      0.881861
+    ],
+    [
+      3.610667,
+      0.627178,
+      -0.881852
+    ],
+    [
+      4.121143,
+      -0.810818,
+      0.0
+    ],
+    [
+      1.976355,
+      -0.500389,
+      0.0
+    ],
+    [
+      1.801385,
+      -1.126414,
+      -0.875466
+    ],
+    [
+      1.801384,
+      -1.126419,
+      0.875461
+    ],
+    [
+      0.991473,
+      0.651694,
+      2e-06
+    ],
+    [
+      1.083599,
+      1.272504,
+      -0.886358
+    ],
+    [
+      1.083598,
+      1.2725,
+      0.886366
+    ],
+    [
+      -1.045266,
+      -0.032922,
+      -1e-06
+    ]
+  ],
+  "formula": "H7C3I1",
+  "multiplicity": 1,
+  "payload_sha256": "434f36216c6353292ffc69e28f0fbd33da43d6c42a84baa769125792c2502488",
+  "schema_version": 1,
+  "solvent": "water",
+  "source": {
+    "dataset": "MNSol-v2012-frozen-development-geometry",
+    "development_index_zero_based": 386,
+    "geometry_handle": "test4006",
+    "opaque_record_id": "389a90acf6041b163861c548d944d614357c45d3f10ed1c1fb44f5c43f236cf6",
+    "upstream_geometry_sha256": "21fa6f885e35bdff424db7538fb843888fda8658998a0b382a39a4dc461613a9"
+  }
+}

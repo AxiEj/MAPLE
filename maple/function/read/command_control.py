@@ -88,6 +88,7 @@ class CommandControl:
         "md": {"nve", "nvt", "npt"},
     }
     GLOBAL_PARAMS = {
+        "model",
         "model_options",
         "device",
         "gpuid",
@@ -234,7 +235,10 @@ class CommandControl:
                     raise ValueError(f"Multiple tasks defined: '{task}' and '{key}'.")
 
                 task = key
-                params.update(cls.DEFAULTS.get(key, {}))
+                # Task defaults must not overwrite explicit preceding globals
+                # (notably #device=cuda before #freq).
+                for name, value in cls.DEFAULTS.get(key, {}).items():
+                    params.setdefault(name, value)
                 log_lines.append(f"Task set to '{task}'\n")
 
                 inline_md_keys = set()

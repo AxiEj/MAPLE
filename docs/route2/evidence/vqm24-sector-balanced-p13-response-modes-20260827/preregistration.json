@@ -1,0 +1,100 @@
+{
+  "artifact": "route2-vqm24-sector-balanced-p13-response-mode-prereg-v1",
+  "claim_boundary": {
+    "experimental_solvation_target_read": false,
+    "maple_capability_admitted": false,
+    "model_fit_or_selection_performed": false,
+    "model_prediction_read": false,
+    "pcm_or_cavity_used": false,
+    "qm_response_or_energy_read": false,
+    "target_independent_input_design_only": true,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T08:42:30.446272+00:00",
+  "decision": {
+    "all_32_train_records_must_pass": true,
+    "failed_mode_generation_stops_response_expansion": true,
+    "no_QM_execution_or_training_authorized_by_this_artifact": true,
+    "success_authorizes_only_response_generator_prequalification": true
+  },
+  "gates": {
+    "condition_number_maximum": 10.0,
+    "every_record_rank_equals_12": true,
+    "minimum_greedy_residual_norm": 0.5,
+    "old_four_mode_prefix_preserved": true,
+    "radial_fraction_maximum": 0.6,
+    "radial_fraction_minimum": 0.4
+  },
+  "parent": {
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e"
+  },
+  "preregistration_sha256": "9d592353c6af5392ef8dda2cc3b40c4c0f120a79fe96bbb44c9fafa56d0723bc",
+  "protocol": {
+    "QM_or_model_target_used": false,
+    "candidate_points": "dense-v2 fit partition only",
+    "constant_potential_gauge_projected": true,
+    "frozen_prefix": "existing farthest exterior fit-frame point charges",
+    "frozen_prefix_mode_count": 4,
+    "l2_sigma_angstrom": 1.5,
+    "mode_count": 12,
+    "radial_and_l2_sector_scaling": "separate geometry-only candidate RMS",
+    "relative_rank_tolerance": 1e-11,
+    "selection": "greedy maximum residual row volume with deterministic ties"
+  },
+  "record_ids": [
+    "fluorine-412002-081c6cc3a31b",
+    "base-hcno-460236-0c750047a5e1",
+    "phosphorus-351029-1256947e5905",
+    "sulfur-122602-190c2fbc8b99",
+    "base-hcno-436944-1c3caaef7cd3",
+    "sulfur-389495-2e00c04d8f40",
+    "base-hcno-156765-3c8bc817c95e",
+    "base-hcno-481244-549dfd678c85",
+    "bromine-101221-5abef0a88d16",
+    "fluorine-278363-5c9234fb4b84",
+    "sulfur-221028-692cd68117c4",
+    "bromine-10426-6bb8a046ac22",
+    "base-hcno-404508-6cb9b5d441de",
+    "fluorine-469465-70c76c720826",
+    "fluorine-139037-710a4fc89944",
+    "bromine-63727-71eb4b0867c9",
+    "phosphorus-696398-7400c7789c7c",
+    "base-hcno-162863-745ab5d78c8b",
+    "base-hcno-208608-7e6419f2ee92",
+    "bromine-447833-84c7dcaffea3",
+    "sulfur-379175-938cde712eac",
+    "base-hcno-135247-970f059c1f95",
+    "chlorine-636384-976484d18c73",
+    "chlorine-141648-a14bf52170de",
+    "chlorine-784-a7040c282ac8",
+    "chlorine-610177-ac8ad6afa4f7",
+    "base-hcno-229457-b412c4e75aed",
+    "base-hcno-432908-c1096072c51b",
+    "phosphorus-66144-d15ba6ea626a",
+    "phosphorus-598182-ea0696054cba",
+    "base-hcno-440770-f59ae1366672",
+    "base-hcno-399849-fa20b6e144ad"
+  ],
+  "schema_version": 1,
+  "source": {
+    "builder_path": "tools/route2_release/create_vqm24_sector_balanced_response_mode_preregistration.py",
+    "builder_sha256": "433774cad938b876f8b18608a7f27a99c76957291c153a5deee6353229603ca3",
+    "l2_coupling": {
+      "path": "maple/solvation/coupling/gaussian_quadrupole.py",
+      "sha256": "dc377258bb229780da44bf88576b99f5e54a5e1e5f2a1536af391c1cff40c61c"
+    },
+    "radial_coupling": {
+      "path": "maple/solvation/coupling/exact_gto.py",
+      "sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c"
+    },
+    "runner_path": "tools/route2_release/prepare_vqm24_sector_balanced_response_modes.py",
+    "runner_sha256": "a5715cf6664993bdb322fa7c0bef4eeceb4468ab33475ed9b725319678dfd5e7",
+    "selector": {
+      "path": "maple/solvation/reference/sector_balanced_response_modes.py",
+      "sha256": "dd334e174a845655efcaaf08b04d6b4325ee1b568273f6fedd1c7a099e239428"
+    }
+  },
+  "status": "locked-before-mode-generation"
+}

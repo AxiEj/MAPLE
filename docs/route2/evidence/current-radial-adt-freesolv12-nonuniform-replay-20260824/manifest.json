@@ -1,0 +1,46 @@
+{
+  "artifact": "route2-current-radial-adt-freesolv12-nonuniform-replay-v1",
+  "claim_boundary": {
+    "allowed_use": "current radial/ADT response falsification only",
+    "capability_admitted": false,
+    "current_profile_replay_preregistered": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_or_training_performed": false,
+    "underlying_qm_response_preregistered": true
+  },
+  "created_utc": "2026-08-23T18:18:39.519199+00:00",
+  "decision": "current original response, radial residual, ADT, and residual+ADT all fail the inherited 0.2 MEP gate on 12/12; old residual must not be retained as a direct physical source",
+  "key_result": {
+    "adt": {
+      "dipole_max": 0.561575754529494,
+      "dipole_mean": 0.4672702848977841,
+      "mep_max": 0.652143353741137,
+      "mep_mean": 0.5568608826713934,
+      "mep_pass_count_le_0p2": 0
+    },
+    "original": {
+      "dipole_max": 0.662602286129446,
+      "dipole_mean": 0.550129074331614,
+      "mep_max": 0.7761774432572325,
+      "mep_mean": 0.6694749899548488,
+      "mep_pass_count_le_0p2": 0
+    },
+    "radial_residual": {
+      "dipole_max": 0.9526568241554954,
+      "dipole_mean": 0.9123603077136929,
+      "mep_max": 0.945571325490481,
+      "mep_mean": 0.9162043890276838,
+      "mep_pass_count_le_0p2": 0
+    },
+    "total": {
+      "dipole_max": 0.45388750902169744,
+      "dipole_mean": 0.38004748650514647,
+      "mep_max": 0.5472289165824165,
+      "mep_mean": 0.4645464499424857,
+      "mep_pass_count_le_0p2": 0
+    }
+  },
+  "result_sha256": "a2d4866d62b94c6366170c7a8d5b6e848cb15718ce5852a384c8e3ff39266617",
+  "source_sha256": "4253dc25ec7673dafe72df41404279039ce296ae1459e11a8d3f9eab276ad7f4",
+  "underlying_qm_artifact": "route2-v0-freesolv12-mace-localized-response-v1"
+}

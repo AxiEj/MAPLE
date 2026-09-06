@@ -1,0 +1,253 @@
+{
+  "aggregate_sha256": "5839cb835f1bbad7821e2f69e3417d9efbe402e451e2797c61a05c2460646063",
+  "architecture_decision": {
+    "anchor_decision": "hard-MDP-molecular-dipole-anchor-eligible",
+    "hard_anchor_allowed": true,
+    "hard_anchor_energy_gate": true,
+    "hard_anchor_mep_gate": true,
+    "quadrupole_head_allowed": false,
+    "quadrupole_rmse_reduction_fraction_by_radius_scale": {
+      "1.00": 0.42539842191778077,
+      "1.25": 0.5931027812928328,
+      "1.50": 0.6735689488496526
+    },
+    "representation_decision": "q/p/Q-terminally-insufficient-use-l3-or-density-potential-basis"
+  },
+  "artifact": "route2-mdp-mbis-source-error-decomposition-v1-aggregate",
+  "claim_boundary": {
+    "experimental_solvation_targets_read": false,
+    "fitting_or_calibration_performed": false,
+    "hybrid_integration_admitted": false,
+    "mnsol_freesolv_or_cds_read": false,
+    "public_capability_admitted": false,
+    "source_diagnostic_only": true
+  },
+  "created_utc": "2026-08-17T09:33:37.417627+00:00",
+  "decomposition_preregistration_sha256": "70aab9945717dee5a7a1b3d59f392a919a450f686826daf89a663a4695d91179",
+  "fixed_source_ddpcm_energy": {
+    "learned_v1_mae_vs_oracle_kcal_mol": 2.534252364063515,
+    "learned_v1_mae_vs_reference_kcal_mol": 2.5346503941305563,
+    "oracle_anchor_mae_kcal_mol": 0.022134076950126605,
+    "oracle_anchor_maximum_absolute_error_kcal_mol": 0.13297140955847989,
+    "oracle_anchor_q95_absolute_error_kcal_mol": 0.07641483308182963
+  },
+  "input_sha256": {
+    "checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "dataset": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e",
+    "source_head": "ee476dda6d30191fbaa025aa4e857a7687e797af9d1c9ad75ba5552968282d32"
+  },
+  "mep_summary_by_radius_scale": {
+    "1.00": {
+      "learned_vs_oracle_anchor": {
+        "configuration_median_relative_rmse": 0.249748337505699,
+        "configuration_q95_relative_rmse": 0.44324633326679913,
+        "global_area_weighted_rmse_hartree_per_e": 0.009237398213552989,
+        "global_reference_rms_hartree_per_e": 0.033538932469141906,
+        "global_relative_rmse": 0.27542314359743036
+      },
+      "learned_vs_reference_qp": {
+        "configuration_median_relative_rmse": 0.2511848126236913,
+        "configuration_q95_relative_rmse": 0.4420257248066434,
+        "global_area_weighted_rmse_hartree_per_e": 0.009236938847435172,
+        "global_reference_rms_hartree_per_e": 0.03353029039195347,
+        "global_relative_rmse": 0.27548043096136837
+      },
+      "oracle_anchor_vs_reference_qp": {
+        "configuration_median_relative_rmse": 0.005831738686842862,
+        "configuration_q95_relative_rmse": 0.010420687843920654,
+        "global_area_weighted_rmse_hartree_per_e": 0.00023443855630673593,
+        "global_reference_rms_hartree_per_e": 0.03353029039195347,
+        "global_relative_rmse": 0.006991843898942075
+      },
+      "reference_qp_vs_reference_qpq": {
+        "configuration_median_relative_rmse": 0.12659635887399817,
+        "configuration_q95_relative_rmse": 0.15413125216799198,
+        "global_area_weighted_rmse_hartree_per_e": 0.004162086880371935,
+        "global_reference_rms_hartree_per_e": 0.03284465166662071,
+        "global_relative_rmse": 0.12672038426888757
+      },
+      "reference_qp_vs_reference_qpqo": {
+        "configuration_median_relative_rmse": 0.17686710647945975,
+        "configuration_q95_relative_rmse": 0.20305951405406641,
+        "global_area_weighted_rmse_hartree_per_e": 0.005804611592743844,
+        "global_reference_rms_hartree_per_e": 0.03278882227258609,
+        "global_relative_rmse": 0.17703019475624573
+      },
+      "reference_qpq_vs_reference_qpqo": {
+        "configuration_median_relative_rmse": 0.10331182238556104,
+        "configuration_q95_relative_rmse": 0.12052375257056724,
+        "global_area_weighted_rmse_hartree_per_e": 0.003335338981344957,
+        "global_reference_rms_hartree_per_e": 0.03278882227258609,
+        "global_relative_rmse": 0.10172182927514142
+      }
+    },
+    "1.25": {
+      "learned_vs_oracle_anchor": {
+        "configuration_median_relative_rmse": 0.23944193097666627,
+        "configuration_q95_relative_rmse": 0.457031129189549,
+        "global_area_weighted_rmse_hartree_per_e": 0.006699147021067075,
+        "global_reference_rms_hartree_per_e": 0.025102290687270733,
+        "global_relative_rmse": 0.26687393212541294
+      },
+      "learned_vs_reference_qp": {
+        "configuration_median_relative_rmse": 0.24025424581405397,
+        "configuration_q95_relative_rmse": 0.4570728493583492,
+        "global_area_weighted_rmse_hartree_per_e": 0.006699584476826918,
+        "global_reference_rms_hartree_per_e": 0.025091837752450916,
+        "global_relative_rmse": 0.26700254253686606
+      },
+      "oracle_anchor_vs_reference_qp": {
+        "configuration_median_relative_rmse": 0.006611701332304763,
+        "configuration_q95_relative_rmse": 0.011792512070222366,
+        "global_area_weighted_rmse_hartree_per_e": 0.00019814669056935358,
+        "global_reference_rms_hartree_per_e": 0.025091837752450916,
+        "global_relative_rmse": 0.007896858433575637
+      },
+      "reference_qp_vs_reference_qpq": {
+        "configuration_median_relative_rmse": 0.10748497657262669,
+        "configuration_q95_relative_rmse": 0.13772780862376025,
+        "global_area_weighted_rmse_hartree_per_e": 0.0026444125938678833,
+        "global_reference_rms_hartree_per_e": 0.024571401731820566,
+        "global_relative_rmse": 0.10762156032975946
+      },
+      "reference_qp_vs_reference_qpqo": {
+        "configuration_median_relative_rmse": 0.1312936655609834,
+        "configuration_q95_relative_rmse": 0.1611843483563482,
+        "global_area_weighted_rmse_hartree_per_e": 0.0032683417038733282,
+        "global_reference_rms_hartree_per_e": 0.024536869342901904,
+        "global_relative_rmse": 0.13320125147990014
+      },
+      "reference_qpq_vs_reference_qpqo": {
+        "configuration_median_relative_rmse": 0.055542918129300504,
+        "configuration_q95_relative_rmse": 0.064989385601198,
+        "global_area_weighted_rmse_hartree_per_e": 0.0013298791490907011,
+        "global_reference_rms_hartree_per_e": 0.024536869342901904,
+        "global_relative_rmse": 0.0541992187554853
+      }
+    },
+    "1.50": {
+      "learned_vs_oracle_anchor": {
+        "configuration_median_relative_rmse": 0.23146740400214372,
+        "configuration_q95_relative_rmse": 0.4639700901865284,
+        "global_area_weighted_rmse_hartree_per_e": 0.005036361208033251,
+        "global_reference_rms_hartree_per_e": 0.019350818173547363,
+        "global_relative_rmse": 0.26026606021847565
+      },
+      "learned_vs_reference_qp": {
+        "configuration_median_relative_rmse": 0.23062579213308013,
+        "configuration_q95_relative_rmse": 0.46610577106537787,
+        "global_area_weighted_rmse_hartree_per_e": 0.005037868601765444,
+        "global_reference_rms_hartree_per_e": 0.019339080006502415,
+        "global_relative_rmse": 0.26050197838116146
+      },
+      "oracle_anchor_vs_reference_qp": {
+        "configuration_median_relative_rmse": 0.0075315320554690535,
+        "configuration_q95_relative_rmse": 0.013170420567993118,
+        "global_area_weighted_rmse_hartree_per_e": 0.00016928497530677158,
+        "global_reference_rms_hartree_per_e": 0.019339080006502415,
+        "global_relative_rmse": 0.008753517501859064
+      },
+      "reference_qp_vs_reference_qpq": {
+        "configuration_median_relative_rmse": 0.09436890788417496,
+        "configuration_q95_relative_rmse": 0.12565534313211793,
+        "global_area_weighted_rmse_hartree_per_e": 0.001771564548565544,
+        "global_reference_rms_hartree_per_e": 0.018983899088471885,
+        "global_relative_rmse": 0.09331931971980086
+      },
+      "reference_qp_vs_reference_qpqo": {
+        "configuration_median_relative_rmse": 0.10895559228363517,
+        "configuration_q95_relative_rmse": 0.14300412723341457,
+        "global_area_weighted_rmse_hartree_per_e": 0.0020795509486926534,
+        "global_reference_rms_hartree_per_e": 0.018931400368259386,
+        "global_relative_rmse": 0.1098466520299921
+      },
+      "reference_qpq_vs_reference_qpqo": {
+        "configuration_median_relative_rmse": 0.037449914958476216,
+        "configuration_q95_relative_rmse": 0.04372016251897701,
+        "global_area_weighted_rmse_hartree_per_e": 0.0006788300021024452,
+        "global_reference_rms_hartree_per_e": 0.018931400368259386,
+        "global_relative_rmse": 0.03585735808749678
+      }
+    }
+  },
+  "parent_preregistration_sha256": "e3ed4ee5129c994325449bceafa36abc4f338d32e069c289c26ff14cea31cffb",
+  "projection_metric": {
+    "charge_sigma_e": 0.03034193062756576,
+    "dipole_sigma_eangstrom": 0.006639860605167159
+  },
+  "record_count": 60,
+  "record_sha256": [
+    "62a66bd4612ddd17e597efdbee5952a6bd79e9c5420c6a68b410961e0bf5707e",
+    "be54ba9df81df41f3b0074f3fae7eccefc8a4e8fc599247326b53da6c1c2e072",
+    "d760bd742105005ffe770ddc39dd9267c786a432ad93f7b4f522d202b3aae928",
+    "61af317813b07e9c6d7a459253f72109d3bc5c5bcc9695e6585af6c7ae77d064",
+    "67e0077213494ae1e5c5891993a27f63b7a5f8ce9445ddc7017a0a773c618af0",
+    "56116e0443e0a181b4ea87f32359c59c5d3aa4e1670235c84a87ca7b5d1b2bfd",
+    "1ad64f3b8230da679f1ae7ce795235b5e7787ec092003f61c406332de2f0e314",
+    "763d21ef68ac9ea56b22ca01e927700404704303cc40c3b034df7aad66a0bac3",
+    "44a290c1ed13be62479804a79aa73a45ac05dd0610f3e67eb42f302c85097bd9",
+    "f9efc0b451765848fea8c016dcd9cfc8beae0a4f44137a8a4fa611aeecfd5196",
+    "8e53858bb430222ffb79b84359bd565b4d32e59adce192cb7eccb98e7184c913",
+    "0be82c75b36dc9d47622f290918b6e0cadc8c1d966bde7d55cbba9320381b249",
+    "bcfb76747cf56f6185e88f01ed7b258e89db9c1d645b0d9b7cdfda775131398f",
+    "5d81b9997594d149705cb9afdf7d97ab9f116a03a15625c37c1e9273aaa0aeb8",
+    "f851c5c5173e499958ee51ff5fa449e5ee0d1f2e8e9af803935543ddab6283ac",
+    "30ec849ebb461e3bce3cf7d67d4b0581d0b2469f1ed78374dec89ad01c6443bc",
+    "9f65374348da8924b8fd7f85fa20348571477b021b84df90e4359d18c5e0a8ed",
+    "412f253b7a2aba0d06ed8ccdd2d811c2b04180c9fa0de4a29c7be7c047369673",
+    "303872a0cdf4ee29df1e96b499d0f587f023ac8b1a1ec027077fbc6558cfd128",
+    "aa7b3e0b2fccdf646fb0d3160a331051754e8bd674cfe1c11116ec7ed186d8e6",
+    "c4f1918c6a9ea747831a0ef45588ee23b33fb52ed6caa39453b2e47319d8d829",
+    "6bf82d6136b1b66661b806bc5e6dfb39e39736f6f4dcb7340cc71f1cf1d6397c",
+    "6ce4d9867fd7a7a5392a0185d20f50ba489e27d3456368978a82408aa434370b",
+    "8ff1de1cbbd7c20d599f20c747b0248cbdf067643eff5766085b04181f5412e4",
+    "18be6c9b317c8f6e72e929e3e32cfa184bc133f538d7704937704bbd88c81dc6",
+    "d61085abe968b4f0bc8759b9fb74f3c747423e0a98a4066f39add63e70d287ab",
+    "1947c65ad5ef81cd5ea860a8991ef95642f94b84044b0588a9b872e5af9e1d8a",
+    "f98b0540a89c1a3416fcc8c02d7b0c56c0681e37fcb84b6dc6125d39110b5e0b",
+    "aae7b9d75bcb9f9a259bde5cb002e0581720f42dc0926c2db56afe7265861d2d",
+    "01da9e0698a8942f737563515b11d50c774b5a5dbaf5953edc8cf49c5ce30d95",
+    "d64658edf41909481f1684907bddf7e124b71a33b72f7ff917c39604de57a308",
+    "ead57cab806a99bac684f887c6d3e46f88a39f276ac866dd3b71df4c7309237f",
+    "cd7cb61fc5e56d5b06982d6c76c5f350eb54580bb0a8bc39d019886ef9530772",
+    "084d03a1615e7605d00b45043bbff7019289b6200ad7740896a7b47c634ffb88",
+    "992c8b6016d2d176b6b87f62fcd334024011419ab050967055b5b1f62cc3af32",
+    "9c564d7be0b8a8f480c018eeee696c0da22c7df9ca59a7508106bfa56a474940",
+    "8e2aae122b6abfa43249c7e7e9ec8140c243d26390f8b2f303e25b76506b3e10",
+    "0fd7f26eb90e3c5f108a7ffe3fe6c720f75c9bcd81317072cb5c115427250939",
+    "da6583c41379933c2cc3170a4e4f2b905aa7c06d1f50b99897d24134aefde885",
+    "1cca79508933c5c1650aab0f4a27999648ddb361f4ca747a80bb098c4dc9349f",
+    "093295250ac2a155ee107f94db522c1f013f3543709b4c4061a9ff447f79338d",
+    "d680fd660710dc0050e56dd3c7ae6dadcbcb8214edf5d09a515f7741c7e863a7",
+    "7959c3d8bc514cf279dd07ee7da8cec64c8d345626fda10db167c5892ebfec2f",
+    "f9e895027d3854b241f5962d9c011aa4f70202efcd8c2329713db21e5d17a6f5",
+    "3450cd84136935b92ee37cbd1570c5629c5c96fce613f314c54a1b482b5b4d4b",
+    "59f5f1e796f810e4339dfbc0e32433722b8e2c096b461591cdfa9d38a12a3bfe",
+    "54c5ad23cec1906ac0c3d59529fe096dc4557ffb88aa90c758aed99f0a3d796a",
+    "89c5b8e23301f70aa258d43179af319fec694b9483a044e13b2bce4882e2c1f9",
+    "a1dcb2be3a7562413637c2d7bb44b1e34bf3ad50f6448e170a7e4be35b4cb9cd",
+    "c6a5a1ec12c35afb236d174b41668c2fcf856bf2321809ad19aaeb87528f3ef2",
+    "dcdb5106d8bcb2d73365829f11221f3423975a7b8c838283f0023417ec5e235e",
+    "5de0e3997d9ea80de443a3e3f0513d9d4ef3784c1682d3e2adffa2abe1ec1d3c",
+    "7c23be3241a8aabf97759037aafa1cb3843ac0620c0532cc5feb0c647de0f41b",
+    "7fe02d3c2005e0ded360bf05f6bac97e6fdac3e36d94f05a3154a6b2e5d17c12",
+    "06439906fdce5fde95804a7b300f90df4cada289f9e4d1180124177f9a04a53e",
+    "96090a6e9cc774f820ff9f750f444a5046634f481f1ff6e759e7d87bca0c4694",
+    "dbc6dc0175192296d6af4fec77941828c36472c6a463adc348de39be0c38f84e",
+    "bade879e775be66004cb24ef02cfbf3d060a0b2f6206c9cf4262e65e7680c61f",
+    "79a311bd07826e10851d7a50b80c5674a7f3a5d117bc6d6904462753e550c9a1",
+    "9c4901329080f0c0cc4ae1577e700d10c7cb8c15ff190336ce5287a1c96e9b7c"
+  ],
+  "runtime": {
+    "cuda": "13.0",
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "numpy": "2.4.6",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "torch": "2.12.0+cu130"
+  },
+  "status": "complete-terminal-architecture-decision",
+  "unique_molecule_count": 60
+}

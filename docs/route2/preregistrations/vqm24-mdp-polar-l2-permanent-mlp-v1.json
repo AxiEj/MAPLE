@@ -1,0 +1,74 @@
+{
+  "architecture": {
+    "frozen_polar_l2_carrier_count": 2,
+    "hidden_width": 16,
+    "id": "Q-B-local-invariant-MLP-plus-two-frozen-POLAR-l2",
+    "maximum_parameter_count": 512,
+    "new_message_passing": false
+  },
+  "artifact": "route2-vqm24-mdp-polar-l2-permanent-mlp-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "coefficient_label_used": false,
+    "experimental_solvation_target_read": false,
+    "model_selected_or_admitted": false,
+    "original_polar_source_or_response_used": false,
+    "pcm_or_cavity_used": false,
+    "response_target_used": false,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T02:20:07.995189+00:00",
+  "decision": {
+    "audit_not_gradient": true,
+    "final_allowed_permanent_capacity": true,
+    "fixed_2000_epochs": true,
+    "no_further_capacity_on_failure": true,
+    "validation_and_blind_remain_closed": true
+  },
+  "failed_q_a": {
+    "file_sha256": "840299bb9546c061c2d7ef801099593842928c242a653fb58009e101cf4f795f",
+    "maximum_audit_mep_relative": 0.39177070118231827,
+    "mean_audit_mep_relative": 0.21088555070187603,
+    "path": "docs/route2/evidence/vqm24-mdp-gaussian-l2-permanent-mlp-20260827/result.json",
+    "result_sha256": "6375fed4107fcc8603737f2cf6845b828d3d83de904b3cb02942d1ce0d4a7759"
+  },
+  "parent": {
+    "file_sha256": "29d4aef883f19129e16f9c88edb48a8efdcc300899f888a9cab4bfaafe898304",
+    "path": "docs/route2/preregistrations/vqm24-mdp-gaussian-l2-permanent-mlp-v1.json",
+    "preregistration_sha256": "6abcc21d02311cc242349844f697e01f03136d3c31d9ddda4b66f36c8ab29b78"
+  },
+  "polar_l2_carriers": {
+    "carrier_count": 2,
+    "file_sha256": "06addca6a0053ed88d0ec491d9da7333d3c6e6f43047fec209a6b34b5c35029d",
+    "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-frozen-polar-l2-carriers-v1/manifest.json",
+    "result_sha256": "5999cca1e54cdcfe5338798d29b510b4f4bb9170a9df61d512003ceaac7a598e",
+    "target_used": false
+  },
+  "preregistration_sha256": "e702f7bb0625718af86293f98a82565dc2ed142d900836420e0124ec26c01157",
+  "schema_version": 1,
+  "source": {
+    "q_a_runner_sha256": "e36a61514fc2bc601e6ac4d3b9b5a7a8ef2398d03d06e7ae1253fed6edc8b2de",
+    "runner_path": "tools/route2_release/train_vqm24_mdp_polar_l2_permanent_mlp.py",
+    "runner_sha256": "ed5c07d987cb9b2cce53bd3e7e198bd2b6fd8e93f00f4507d685924b597afe82"
+  },
+  "status": "locked-after-q-a-local-mlp-failure",
+  "training": {
+    "audit_points_used_in_gradient": false,
+    "device": "cuda",
+    "dipole_loss_weight": 0.1,
+    "dtype": "float64",
+    "epochs": 2000,
+    "learning_rate": 0.003,
+    "mep_loss_weight": 0.9,
+    "optimizer": "Adam",
+    "pair_cutoff_angstrom": 5.0,
+    "pair_radial_scales_angstrom": [
+      1.5,
+      3.0
+    ],
+    "records": 32,
+    "seed": 20260827,
+    "validation_or_blind_opened": false,
+    "weight_decay": 0.0001
+  }
+}

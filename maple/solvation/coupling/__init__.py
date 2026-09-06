@@ -15,6 +15,17 @@ from .operator import (
     validate_adjoint_dot_product,
     validate_coupling_adjoint,
 )
+from .point_quadrupole import (
+    TRACELESS_QUADRUPOLE_BASIS,
+    point_traceless_quadrupole_surface_operator,
+    quadrupole_rotation_matrix,
+    traceless_quadrupole_coefficients,
+    traceless_quadrupole_tensors,
+)
+from .gaussian_quadrupole import (
+    gaussian_traceless_quadrupole_potential_torch,
+    gaussian_traceless_quadrupole_surface_operator,
+)
 from .spaces import (
     ATOMIC_L1_FIELD_DUAL_SPACE,
     ATOMIC_L1_SOURCE_SPACE,
@@ -68,10 +79,17 @@ __all__ = [
     "ReducedCoordinateContract",
     "SourceSpace",
     "SOURCE_SPACE_REGISTRY",
+    "TRACELESS_QUADRUPOLE_BASIS",
     "get_field_dual_space",
     "get_coordinate_contract",
     "get_pairing_metric",
     "get_source_space",
+    "gaussian_traceless_quadrupole_potential_torch",
+    "gaussian_traceless_quadrupole_surface_operator",
+    "point_traceless_quadrupole_surface_operator",
+    "quadrupole_rotation_matrix",
+    "traceless_quadrupole_coefficients",
+    "traceless_quadrupole_tensors",
     "validate_adjoint_dot_product",
     "validate_coupling_adjoint",
 ]

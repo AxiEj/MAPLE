@@ -1,0 +1,120 @@
+{
+  "all_electron_audit": {
+    "artifact": "route2-iodine-adt-gaussian-projection-audit-v1",
+    "path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_projection_audit.json",
+    "roles": {
+      "ecp": "uniformly-normalized-algebra-control-only",
+      "nr": "53-electron-nonrelativistic-audit",
+      "x2c": "53-electron-spin-free-x2c-reference-audit"
+    }
+  },
+  "artifact": "route2-adt-radial-shape-iodine-ecp-valence-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "full_neutral_density": false,
+    "mace_outputs_read": false,
+    "neutral_penetration_use_forbidden": true,
+    "role": "adt_translation_shape",
+    "solvation_or_pcm_quantities_used_for_fit": false
+  },
+  "decision_evidence": {
+    "path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/manifest.json",
+    "terminal_marker": "USE ECP-VALENCE ADT WITH ALL-ELECTRON AUDIT",
+    "verified_model": "Pro, 5 of 5"
+  },
+  "element": {
+    "ao_count": 59,
+    "atomic_number": 53,
+    "basis": "def2-TZVPD",
+    "ecp": "def2-TZVPD",
+    "ecp_core_electron_count": 28,
+    "effective_core_charge": 25.0,
+    "effective_electron_count": 25.0,
+    "electronic_structure_method": "PySCF AtomSphAverageRHF",
+    "radial_integral_electrons": 25.000004964859293,
+    "relativistic_hamiltonian": "ECP scalar-relativistic effective core",
+    "representation": "ecp_valence_pseudodensity",
+    "scf_energy_hartree": -296.507489428451,
+    "spin_2s": 1,
+    "symbol": "I"
+  },
+  "gaussian_projection": {
+    "candidate_exponent_count": 192,
+    "candidate_exponent_max_bohr2": 500000.0,
+    "candidate_exponent_min_bohr2": 5e-05,
+    "generator_path": "tools/route2_release/generate_iodine_adt_assets.py",
+    "generator_sha256": "860f97897d45b21fcccd7d01713f3af4475190969e975c3296cdeeca9b6ac5a8",
+    "implementation_path": "docs/implicit-solvation/benchmarks/generate_route2_rhodrop_atomic_reference_density.py",
+    "implementation_sha256": "ff4d8a79ad69405879a740d6af8cd503eb1d998cf500ed0a06482ea062029b98",
+    "metrics": {
+      "absolute_1e-3_isodensity_radius_error_bohr": 0.3810829700178662,
+      "atomic_number": 25,
+      "component_count": 6,
+      "electron_count": 25.000000000000004,
+      "electron_count_absolute_error": 3.552713678800501e-15,
+      "fitted_1e-3_isodensity_radius_bohr": 4.944780152631277,
+      "maximum_relative_density_error_at_or_above_1e-3": 13.900336539959829,
+      "reference_1e-3_isodensity_radius_bohr": 4.563697182613411,
+      "rms_relative_density_error_at_or_above_1e-3": 2.404234099177313
+    },
+    "normalization_electrons": 25,
+    "protocol": "nonnegative-normalized-gaussian-expansion-v1",
+    "runtime_environment": {
+      "numpy": {
+        "linear_algebra": {
+          "available": true,
+          "blas": {
+            "found": true,
+            "name": "scipy-openblas",
+            "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+            "version": "0.3.31.188.0"
+          },
+          "lapack": {
+            "found": true,
+            "name": "scipy-openblas",
+            "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+            "version": "0.3.31.188.0"
+          }
+        },
+        "version": "2.4.6"
+      },
+      "python": {
+        "implementation": "CPython",
+        "version": "3.11.14"
+      },
+      "scipy": {
+        "linear_algebra": {
+          "available": true,
+          "blas": {
+            "found": true,
+            "has ilp64": false,
+            "name": "scipy-openblas",
+            "openblas configuration": "OpenBLAS 0.3.30 DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+            "version": "0.3.30"
+          },
+          "lapack": {
+            "found": true,
+            "has ilp64": false,
+            "name": "scipy-openblas",
+            "openblas configuration": "OpenBLAS 0.3.30 DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+            "version": "0.3.30"
+          }
+        },
+        "version": "1.17.1"
+      }
+    }
+  },
+  "manifest_payload_sha256": "b3442cc16e25b8e10e611c9d07e41584758a9802d31fb3ab279e64e7e00fe732",
+  "schema_version": 1,
+  "source_density": {
+    "path": "docs/route2/evidence/mace-mdp-polar-iodine-adt-pro-20260819/iodine_def2_ecp_atomic_density.json",
+    "sha256": "26bce79272783df2da3c362627b4011e2062e2fd728ee79334bf42d51c3430bf"
+  },
+  "status": "target-free-role-separated-adt-shape-implemented-accuracy-gate-pending",
+  "table": {
+    "content_sha256": "bd4bba766dd4ba5b0460038a4eae1471dc2d3a988738dfb0fcc476690d9e9adc",
+    "path": "docs/implicit-solvation/benchmarks/route2-adt-radial-shape-iodine-ecp-valence-v1.npz",
+    "sha256": "c7378d26481a40adf61581eea4f26d59bd493050b43028f4cd7abe7ebde040db"
+  }
+}

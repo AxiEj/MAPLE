@@ -1,0 +1,561 @@
+{
+  "artifact": "route2-mdp-polar-zero-training-source-gate-v1-record",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "cds_or_standard_state_used": false,
+    "experimental_solvation_targets_read": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "mnsol_or_freesolv_imported": false,
+    "post_training_or_fitting_performed": false,
+    "pure_mace_polar_in_scope": false,
+    "solvation_result_used_to_select_projection_or_kernel": false
+  },
+  "fixed_source_ddpcm_energy": {
+    "mdp_latent_gaussian_absolute_error_kcal_mol": 27.72551166433633,
+    "mdp_latent_gaussian_eV": -0.29298329971687437,
+    "mdp_latent_point_absolute_error_kcal_mol": 6.98804271521453,
+    "mdp_latent_point_eV": -1.1922450649377023,
+    "polar_zero_gaussian_absolute_error_kcal_mol": 26.75308870609947,
+    "polar_zero_gaussian_eV": -0.33515155024497817,
+    "polar_zero_mdp_qmu_gaussian_absolute_error_kcal_mol": 26.728481603601335,
+    "polar_zero_mdp_qmu_gaussian_eV": -0.336218615202796,
+    "polar_zero_mdp_qmu_point_absolute_error_kcal_mol": 2.694485317203115,
+    "polar_zero_mdp_qmu_point_eV": -1.6121192198596208,
+    "polar_zero_point_absolute_error_kcal_mol": 2.4800388135596543,
+    "polar_zero_point_eV": -1.602819939321336,
+    "reference_mbis_qp_eV": -1.4952752776864229
+  },
+  "input_sha256": {
+    "dataset": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e",
+    "mace_mdp_checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+  },
+  "mdp_state_sha256": "86f0ee3a6073c36a870f55e2cbd4b830166b00127d6a17ac1199859279bd258c",
+  "mep_by_radius_scale": {
+    "1.00": {
+      "cavity_point_count": 3787,
+      "cavity_topology_sha256": "9317bfa0f68089e76dda735806a558442c8725d4f49fd0f792e4bd0401defc42",
+      "metrics": {
+        "mdp_latent_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8664015997571575,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 1.0773329748125722,
+            "maximum_absolute_error_hartree_per_e": 0.06524745529749869,
+            "mean_absolute_error_hartree_per_e": 0.018158640294602332,
+            "reference_root_mean_square_hartree_per_e": 0.03022536976599717,
+            "relative_root_mean_square_error": 0.7597530066086386,
+            "root_mean_square_error_hartree_per_e": 0.022963815555574196
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 1.0456766072321622,
+            "maximum_absolute_error_hartree_per_e": 0.06434942697045866,
+            "mean_absolute_error_hartree_per_e": 0.017489411253291752,
+            "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+            "relative_root_mean_square_error": 0.7545205456614769,
+            "root_mean_square_error_hartree_per_e": 0.02262391548885035
+          }
+        },
+        "mdp_latent_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8664015997571575,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.23085103089610726,
+            "maximum_absolute_error_hartree_per_e": 0.03373713354838909,
+            "mean_absolute_error_hartree_per_e": 0.008222964046006477,
+            "reference_root_mean_square_hartree_per_e": 0.03022536976599717,
+            "relative_root_mean_square_error": 0.35169270507185013,
+            "root_mean_square_error_hartree_per_e": 0.010630042054800459
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.2209907559839814,
+            "maximum_absolute_error_hartree_per_e": 0.047144045617963294,
+            "mean_absolute_error_hartree_per_e": 0.00785481224964554,
+            "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+            "relative_root_mean_square_error": 0.34686415944704185,
+            "root_mean_square_error_hartree_per_e": 0.010400545716831697
+          }
+        },
+        "polar_zero_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8664015997571575,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 1.0711571499194557,
+            "maximum_absolute_error_hartree_per_e": 0.061430089004262126,
+            "mean_absolute_error_hartree_per_e": 0.018601771606960586,
+            "reference_root_mean_square_hartree_per_e": 0.03022536976599717,
+            "relative_root_mean_square_error": 0.7575722299283282,
+            "root_mean_square_error_hartree_per_e": 0.02289790077403475
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 1.016800257204727,
+            "maximum_absolute_error_hartree_per_e": 0.061885614632303174,
+            "mean_absolute_error_hartree_per_e": 0.017585155718218056,
+            "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+            "relative_root_mean_square_error": 0.7440295725727797,
+            "root_mean_square_error_hartree_per_e": 0.022309348987090732
+          }
+        },
+        "polar_zero_mdp_qmu_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8664015997571575,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 1.0694780857913944,
+            "maximum_absolute_error_hartree_per_e": 0.06138932448960946,
+            "mean_absolute_error_hartree_per_e": 0.01858164345303467,
+            "reference_root_mean_square_hartree_per_e": 0.03022536976599717,
+            "relative_root_mean_square_error": 0.7569782408837672,
+            "root_mean_square_error_hartree_per_e": 0.02287994723552594
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 1.0151845342691963,
+            "maximum_absolute_error_hartree_per_e": 0.061865236702200094,
+            "mean_absolute_error_hartree_per_e": 0.01756772540217062,
+            "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+            "relative_root_mean_square_error": 0.7434381960576592,
+            "root_mean_square_error_hartree_per_e": 0.022291616862528837
+          }
+        },
+        "polar_zero_mdp_qmu_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8664015997571575,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.2330264466205572,
+            "maximum_absolute_error_hartree_per_e": 0.04101125081542931,
+            "mean_absolute_error_hartree_per_e": 0.008025691286852769,
+            "reference_root_mean_square_hartree_per_e": 0.03022536976599717,
+            "relative_root_mean_square_error": 0.35334590077195843,
+            "root_mean_square_error_hartree_per_e": 0.01068001050613179
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.19691201778874245,
+            "maximum_absolute_error_hartree_per_e": 0.045095212913715516,
+            "mean_absolute_error_hartree_per_e": 0.007682248708914868,
+            "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+            "relative_root_mean_square_error": 0.3274224735586636,
+            "root_mean_square_error_hartree_per_e": 0.009817596636082893
+          }
+        },
+        "polar_zero_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8664015997571575,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.22793249886994815,
+            "maximum_absolute_error_hartree_per_e": 0.03735491842342334,
+            "mean_absolute_error_hartree_per_e": 0.007918648658175499,
+            "reference_root_mean_square_hartree_per_e": 0.03022536976599717,
+            "relative_root_mean_square_error": 0.349462497919866,
+            "root_mean_square_error_hartree_per_e": 0.010562633218976967
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2042.969358487863,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.1906830055004945,
+            "maximum_absolute_error_hartree_per_e": 0.042842653459272836,
+            "mean_absolute_error_hartree_per_e": 0.007586530245618961,
+            "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+            "relative_root_mean_square_error": 0.3222021010985543,
+            "root_mean_square_error_hartree_per_e": 0.009661066418268487
+          }
+        }
+      },
+      "reference_qp_vs_reference_qpqo": {
+        "area_weight_sum_bohr2": 2042.969358487863,
+        "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.8367720081520482,
+        "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.06981416510754343,
+        "maximum_absolute_error_hartree_per_e": 0.019791272244890117,
+        "mean_absolute_error_hartree_per_e": 0.004653001660900425,
+        "reference_root_mean_square_hartree_per_e": 0.029984492296384457,
+        "relative_root_mean_square_error": 0.19495938592259635,
+        "root_mean_square_error_hartree_per_e": 0.005845758205303935
+      }
+    },
+    "1.25": {
+      "cavity_point_count": 2692,
+      "cavity_topology_sha256": "84ebd524fab827d7f7be580a2c73693305b67f92e4fb04eee46bed0014920577",
+      "metrics": {
+        "mdp_latent_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.228663885073127,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.5033448064132561,
+            "maximum_absolute_error_hartree_per_e": 0.04411731400837364,
+            "mean_absolute_error_hartree_per_e": 0.011565156178491947,
+            "reference_root_mean_square_hartree_per_e": 0.02265483993975183,
+            "relative_root_mean_square_error": 0.6400534597333186,
+            "root_mean_square_error_hartree_per_e": 0.014500308683142728
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.46908846198853327,
+            "maximum_absolute_error_hartree_per_e": 0.04380254309935894,
+            "mean_absolute_error_hartree_per_e": 0.010870923101209115,
+            "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+            "relative_root_mean_square_error": 0.6260619255432438,
+            "root_mean_square_error_hartree_per_e": 0.013998188167583013
+          }
+        },
+        "mdp_latent_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.228663885073127,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.10239136267642791,
+            "maximum_absolute_error_hartree_per_e": 0.02033617249316362,
+            "mean_absolute_error_hartree_per_e": 0.005050410758661027,
+            "reference_root_mean_square_hartree_per_e": 0.02265483993975183,
+            "relative_root_mean_square_error": 0.2886789486429418,
+            "root_mean_square_error_hartree_per_e": 0.006539975375481686
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.08415226340516235,
+            "maximum_absolute_error_hartree_per_e": 0.025231522014745683,
+            "mean_absolute_error_hartree_per_e": 0.004452251519806272,
+            "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+            "relative_root_mean_square_error": 0.2651690409734072,
+            "root_mean_square_error_hartree_per_e": 0.005928944055402222
+          }
+        },
+        "polar_zero_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.228663885073127,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.4905692183057112,
+            "maximum_absolute_error_hartree_per_e": 0.03885672732914634,
+            "mean_absolute_error_hartree_per_e": 0.011925326434174204,
+            "reference_root_mean_square_hartree_per_e": 0.02265483993975183,
+            "relative_root_mean_square_error": 0.6318785320861637,
+            "root_mean_square_error_hartree_per_e": 0.01431510700577738
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.4488628785784322,
+            "maximum_absolute_error_hartree_per_e": 0.038679639683897205,
+            "mean_absolute_error_hartree_per_e": 0.01111117025198224,
+            "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+            "relative_root_mean_square_error": 0.6124163296312811,
+            "root_mean_square_error_hartree_per_e": 0.013693084772150189
+          }
+        },
+        "polar_zero_mdp_qmu_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.228663885073127,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.4887233137932432,
+            "maximum_absolute_error_hartree_per_e": 0.038825322986057495,
+            "mean_absolute_error_hartree_per_e": 0.011896077645263105,
+            "reference_root_mean_square_hartree_per_e": 0.02265483993975183,
+            "relative_root_mean_square_error": 0.6306886014154165,
+            "root_mean_square_error_hartree_per_e": 0.0142881493168922
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.44707232264898633,
+            "maximum_absolute_error_hartree_per_e": 0.03865562410147227,
+            "mean_absolute_error_hartree_per_e": 0.011082865070735116,
+            "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+            "relative_root_mean_square_error": 0.611193616075465,
+            "root_mean_square_error_hartree_per_e": 0.013665745983875342
+          }
+        },
+        "polar_zero_mdp_qmu_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.228663885073127,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.09404785430758308,
+            "maximum_absolute_error_hartree_per_e": 0.023879385988014472,
+            "mean_absolute_error_hartree_per_e": 0.0045665327405745824,
+            "reference_root_mean_square_hartree_per_e": 0.02265483993975183,
+            "relative_root_mean_square_error": 0.27666734300397705,
+            "root_mean_square_error_hartree_per_e": 0.006267854372311518
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.07111307947286541,
+            "maximum_absolute_error_hartree_per_e": 0.0231638216098929,
+            "mean_absolute_error_hartree_per_e": 0.004205486258498856,
+            "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+            "relative_root_mean_square_error": 0.2437612453724607,
+            "root_mean_square_error_hartree_per_e": 0.005450284774508919
+          }
+        },
+        "polar_zero_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.228663885073127,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.09365617025976716,
+            "maximum_absolute_error_hartree_per_e": 0.02467902349917268,
+            "mean_absolute_error_hartree_per_e": 0.004523227990442092,
+            "reference_root_mean_square_hartree_per_e": 0.02265483993975183,
+            "relative_root_mean_square_error": 0.27609061932334916,
+            "root_mean_square_error_hartree_per_e": 0.00625478878963743
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2393.928067506345,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.07058498777788863,
+            "maximum_absolute_error_hartree_per_e": 0.021959125488628023,
+            "mean_absolute_error_hartree_per_e": 0.004196199613828963,
+            "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+            "relative_root_mean_square_error": 0.24285446304443045,
+            "root_mean_square_error_hartree_per_e": 0.005430009927665627
+          }
+        }
+      },
+      "reference_qp_vs_reference_qpqo": {
+        "area_weight_sum_bohr2": 2393.928067506345,
+        "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.1967961009699846,
+        "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.025868292360107258,
+        "maximum_absolute_error_hartree_per_e": 0.011549080985638038,
+        "mean_absolute_error_hartree_per_e": 0.0025616959613847844,
+        "reference_root_mean_square_hartree_per_e": 0.02235911113015947,
+        "relative_root_mean_square_error": 0.14701911275581128,
+        "root_mean_square_error_hartree_per_e": 0.0032872166803646304
+      }
+    },
+    "1.50": {
+      "cavity_point_count": 2022,
+      "cavity_topology_sha256": "6a65d4a9755a6557dd2728ec650622c1c3786ec723f114b1d021cf61bb1aaac0",
+      "metrics": {
+        "mdp_latent_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8503522572478472,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.234391602444613,
+            "maximum_absolute_error_hartree_per_e": 0.03362129565263686,
+            "mean_absolute_error_hartree_per_e": 0.007233774953209954,
+            "reference_root_mean_square_hartree_per_e": 0.017402083708870805,
+            "relative_root_mean_square_error": 0.5250148525037456,
+            "root_mean_square_error_hartree_per_e": 0.009136352411670639
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.2103752355404695,
+            "maximum_absolute_error_hartree_per_e": 0.03285372602705751,
+            "mean_absolute_error_hartree_per_e": 0.006700526290400691,
+            "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+            "relative_root_mean_square_error": 0.5025366132925257,
+            "root_mean_square_error_hartree_per_e": 0.008655638831020482
+          }
+        },
+        "mdp_latent_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8503522572478472,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.05485212719125619,
+            "maximum_absolute_error_hartree_per_e": 0.014075111372129152,
+            "mean_absolute_error_hartree_per_e": 0.0033559652349566854,
+            "reference_root_mean_square_hartree_per_e": 0.017402083708870805,
+            "relative_root_mean_square_error": 0.2539787040015076,
+            "root_mean_square_error_hartree_per_e": 0.004419758667304756
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.03997241816046909,
+            "maximum_absolute_error_hartree_per_e": 0.01565561907034991,
+            "mean_absolute_error_hartree_per_e": 0.002822413090334079,
+            "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+            "relative_root_mean_square_error": 0.21905370950434075,
+            "root_mean_square_error_hartree_per_e": 0.003772958514688689
+          }
+        },
+        "polar_zero_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8503522572478472,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.21576931275251549,
+            "maximum_absolute_error_hartree_per_e": 0.02834907506459914,
+            "mean_absolute_error_hartree_per_e": 0.007363157324645238,
+            "reference_root_mean_square_hartree_per_e": 0.017402083708870805,
+            "relative_root_mean_square_error": 0.5037272027978705,
+            "root_mean_square_error_hartree_per_e": 0.008765902949523882
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.18993371920352622,
+            "maximum_absolute_error_hartree_per_e": 0.027581505439019792,
+            "mean_absolute_error_hartree_per_e": 0.006790651090818322,
+            "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+            "relative_root_mean_square_error": 0.4774978684766389,
+            "root_mean_square_error_hartree_per_e": 0.008224374071049157
+          }
+        },
+        "polar_zero_mdp_qmu_gaussian": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8503522572478472,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.2141291138971178,
+            "maximum_absolute_error_hartree_per_e": 0.028313551890828383,
+            "mean_absolute_error_hartree_per_e": 0.00733077464793108,
+            "reference_root_mean_square_hartree_per_e": 0.017402083708870805,
+            "relative_root_mean_square_error": 0.5018089760849291,
+            "root_mean_square_error_hartree_per_e": 0.008732521807692684
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.18835500740440814,
+            "maximum_absolute_error_hartree_per_e": 0.027545982265249035,
+            "mean_absolute_error_hartree_per_e": 0.006758523033230702,
+            "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+            "relative_root_mean_square_error": 0.47550926816113936,
+            "root_mean_square_error_hartree_per_e": 0.008190122624179558
+          }
+        },
+        "polar_zero_mdp_qmu_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8503522572478472,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.04610290422792321,
+            "maximum_absolute_error_hartree_per_e": 0.015760115971680096,
+            "mean_absolute_error_hartree_per_e": 0.002876726815833284,
+            "reference_root_mean_square_hartree_per_e": 0.017402083708870805,
+            "relative_root_mean_square_error": 0.232843815776447,
+            "root_mean_square_error_hartree_per_e": 0.004051967573234623
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.03227781627826702,
+            "maximum_absolute_error_hartree_per_e": 0.013468903312676882,
+            "mean_absolute_error_hartree_per_e": 0.0025941010572362406,
+            "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+            "relative_root_mean_square_error": 0.19684413237622017,
+            "root_mean_square_error_hartree_per_e": 0.0033904230473698065
+          }
+        },
+        "polar_zero_point": {
+          "reference_qp": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8503522572478472,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.04616147660540493,
+            "maximum_absolute_error_hartree_per_e": 0.01579376070244716,
+            "mean_absolute_error_hartree_per_e": 0.002861060586412328,
+            "reference_root_mean_square_hartree_per_e": 0.017402083708870805,
+            "relative_root_mean_square_error": 0.23299167942096338,
+            "root_mean_square_error_hartree_per_e": 0.004054540708753996
+          },
+          "reference_qpqo": {
+            "area_weight_sum_bohr2": 2807.9952064560957,
+            "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+            "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.032255603524440304,
+            "maximum_absolute_error_hartree_per_e": 0.01270395083215451,
+            "mean_absolute_error_hartree_per_e": 0.002599608413469618,
+            "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+            "relative_root_mean_square_error": 0.19677638921281038,
+            "root_mean_square_error_hartree_per_e": 0.003389256246105508
+          }
+        }
+      },
+      "reference_qp_vs_reference_qpqo": {
+        "area_weight_sum_bohr2": 2807.9952064560957,
+        "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 0.8330272302359168,
+        "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.0118610148735638,
+        "maximum_absolute_error_hartree_per_e": 0.007047655656174642,
+        "mean_absolute_error_hartree_per_e": 0.0015648908089113678,
+        "reference_root_mean_square_hartree_per_e": 0.0172238969302363,
+        "relative_root_mean_square_error": 0.11932496791496328,
+        "root_mean_square_error_hartree_per_e": 0.002055240948571081
+      }
+    }
+  },
+  "polar_configuration_sha256": "d7673de2f4d3991015bfc89935584f978bea50d6bf0c405d65b3fe976fbcf543",
+  "preregistration_sha256": "529dcd9145059c0bc97c71d20969355c850d85a1b05666499fb5acfa1fb81abc",
+  "projection": {
+    "constraint_condition_number": 101.85813847523502,
+    "constraint_max_abs_error": 1.1102230246251565e-15,
+    "coulomb_correction_norm": 0.0014530045014480172,
+    "gram_condition_number": 12285665941.058577,
+    "gram_minimum_eigenvalue": 8.552963554465649e-10,
+    "sigma_angstrom": 1.5
+  },
+  "record_sha256": "1c79c52e5942bb7f97766389c1220a421f0ee3f3b8bf92901ba445a571c1a401",
+  "runtime": {
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "mdp_device": "cpu",
+    "numpy": "2.4.6",
+    "polar_device": "cuda",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "torch": "2.12.0+cu130"
+  },
+  "selection_identity": {
+    "atom_count": 55,
+    "atomic_numbers_sha256": "0124870611a94951b6c60294024b77da0c5be682f76f93cfb6f5bd6ed6571354",
+    "configuration": 0,
+    "molecule": "020 THR",
+    "positions_raw_sha256": "fe60996d09c169ca9abd19f6dfcff2792e47c96056ff2ae237b151354b0e38b1"
+  },
+  "selection_index": 8,
+  "source_closure": {
+    "mdp_latent": {
+      "molecular_dipole_eangstrom": [
+        0.24693822494544437,
+        0.7845416456059155,
+        -0.7551992029446524
+      ],
+      "molecular_dipole_l2_error_eangstrom": 4.1910000110727263e-16,
+      "target_molecular_dipole_eangstrom": [
+        0.2469382249454441,
+        0.7845416456059158,
+        -0.7551992029446521
+      ],
+      "target_total_charge_e": -2.688821387764051e-17,
+      "total_charge_absolute_error_e": 0.0,
+      "total_charge_e": -2.688821387764051e-17
+    },
+    "polar_zero": {
+      "molecular_dipole_eangstrom": [
+        0.22488099770629447,
+        0.7779471714778151,
+        -0.7259806065149076
+      ],
+      "molecular_dipole_l2_error_eangstrom": 0.03719858518586365,
+      "target_molecular_dipole_eangstrom": [
+        0.2469382249454441,
+        0.7845416456059158,
+        -0.7551992029446521
+      ],
+      "target_total_charge_e": -2.688821387764051e-17,
+      "total_charge_absolute_error_e": 1.7607443281164592e-16,
+      "total_charge_e": -2.0296264668928643e-16
+    },
+    "polar_zero_mdp_qmu": {
+      "molecular_dipole_eangstrom": [
+        0.24693822494544446,
+        0.7845416456059163,
+        -0.7551992029446517
+      ],
+      "molecular_dipole_l2_error_eangstrom": 7.97218214573518e-16,
+      "target_molecular_dipole_eangstrom": [
+        0.2469382249454441,
+        0.7845416456059158,
+        -0.7551992029446521
+      ],
+      "target_total_charge_e": -2.688821387764051e-17,
+      "total_charge_absolute_error_e": 6.331740687315346e-17,
+      "total_charge_e": -9.020562075079397e-17
+    }
+  }
+}

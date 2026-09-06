@@ -1,0 +1,62 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-hybrid-harmonic-analytic-force-canary-v1",
+  "claim_boundary": "Admits the matrix-free implicit-adjoint implementation as the default force algorithm for the already-admitted experimental harmonic operational scalar. It does not admit chemical accuracy, complete solvation free energy, finite-dielectric solvent transfer, CDS/nonpolar energy, H/V/M, FREQ/TS/IRC/MD, or a strict common functional.",
+  "created_utc": "2026-08-18T19:39:12.623576+00:00",
+  "execution_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+  "execution_tree_clean": false,
+  "implementation_sources_sha256": {
+    "maple/function/calculator/route2/_mace_mdp_polar_hybrid_calculator.py": "2f1658b7b45931699bc413b779c0b54ffa70300472428f8c197297f08ba06a07",
+    "maple/solvation/api/profiles.py": "ab989bb6628c2d2c8de131840df54a639a2f12df97a576a8ccd35f8b472b8fa4",
+    "maple/solvation/api/scalar_registry.py": "d3de38f0abc7b197420097216c1bd3448ab4cb65bb194a681b574aa8ba46bea6",
+    "maple/solvation/continuum/harmonic_point_source.py": "68acab10ece2e264ef7b524b4a72d5ddc90d34c0d39f2a09094641dfaebca4e0",
+    "maple/solvation/continuum/harmonic_torch_functional.py": "12c9439d67e13cfd5bac42caead610128025df8916113f63596af787180bc108",
+    "maple/solvation/continuum/harmonic_torch_primitives.py": "2cfea2a0e75cf0404bdec8c43d2e11fbd93f39bf5906f142dc38574603e9e2fc",
+    "maple/solvation/experimental/mace_mdp_polar_harmonic.py": "ac9a2ae6b21b544cc10ed0485ae28b82acd04777e6fd43dee9d2507cbde7cbd1",
+    "maple/solvation/models/mace_mdp_polar_hybrid.py": "b990bced91b2a288e03c96b4d82fa58269f65b1ce95e558e4846cf593d895672"
+  },
+  "pro_audit": {
+    "answer_capture": "complete Windows UIA accessibility-tree text",
+    "answer_sha256": "bbc46f5dfc674258784160b4e222d7f8b195ed7f8fe4eec934b135e163b77a6b",
+    "mode_proof_sha256": "59a877daaa1ac0edd2b5a8487c840d1e8ea47feb6ddac5b1bd30ed098d402f3e",
+    "prompt_sha256": "1713198fb31f8ae503c2b31ade08a59b13c4ccabfd1b13e2d8067589e9b27e7f",
+    "submit_state_sha256": "a4e2c47cbb4821ed59c46746361061c47ea04237b4573e0487e0ec59b18e59a2",
+    "verdict": "GO, conditionally",
+    "verified_mode": "Pro, 5 of 5"
+  },
+  "raw_files_sha256": {
+    "benzene_component_cpu.json": "c461ebdbcf26565464f94e8fa84f7e16a38095edd94321b4c9a58b1d7d2ba332",
+    "pro_answer_uia.txt": "bbc46f5dfc674258784160b4e222d7f8b195ed7f8fe4eec934b135e163b77a6b",
+    "pro_mode.txt": "59a877daaa1ac0edd2b5a8487c840d1e8ea47feb6ddac5b1bd30ed098d402f3e",
+    "pro_prompt.txt": "1713198fb31f8ae503c2b31ade08a59b13c4ccabfd1b13e2d8067589e9b27e7f",
+    "pro_submit_state.txt": "a4e2c47cbb4821ed59c46746361061c47ea04237b4573e0487e0ec59b18e59a2",
+    "water_directional_cpu.json": "03c39973afee57293e0d13a38ec665b290b91a0ea45e5f86b55e8780c64f9c77",
+    "water_symmetry_loop_cpu.json": "bb414751feb281ac973c239f262066212f58133c295502178e9e631cd18ec4af"
+  },
+  "real_checkpoint_checks": {
+    "benzene": {
+      "adjoint_iterations": 4,
+      "adjoint_residual_eV": 1.926717462489002e-12,
+      "net_force_norm_eV_per_A": 9.020562075079397e-17,
+      "primal_residual_eV": 9.923336846173997e-13,
+      "stored_gpu_richardson_component_abs_error_eV_per_A": 6.035652880265197e-10
+    },
+    "water": {
+      "adjoint_iterations": 2,
+      "adjoint_residual_eV": 9.49982428703671e-11,
+      "finest_raw_central_fd_error_eV_per_A": 9.199135038856499e-06,
+      "net_force_norm_eV_per_A": 2.7755575615628914e-17,
+      "primal_residual_eV": 1.4484011930730965e-14,
+      "richardson_extrapolated_directional_error_eV_per_A": 6.417e-09,
+      "stored_gpu_richardson_all_component_max_abs_error_eV_per_A": 9.5916e-09
+    },
+    "water_symmetry_loop": {
+      "closed_loop_abs_work_eV": 2.1359930086608733e-09,
+      "rotation_energy_abs_error_eV": 2.9654074751306325e-09,
+      "rotation_force_relative_error": 3.284813962917934e-08,
+      "translation_energy_abs_error_eV": 0.0,
+      "translation_force_relative_error": 2.242733509405559e-14
+    }
+  },
+  "retained_oracle": "Fourth-order fully re-solved Richardson force remains callable for independent validation but is not the daily public force path.",
+  "schema_version": "route2-hybrid-harmonic-analytic-force-canary-v1"
+}

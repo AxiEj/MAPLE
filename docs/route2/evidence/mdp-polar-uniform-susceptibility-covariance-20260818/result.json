@@ -1,0 +1,76 @@
+{
+  "artifact": "route2-target-free-mdp-polar-uniform-transform-covariance-v1",
+  "claim_boundary": {
+    "accuracy_or_capability_admitted": false,
+    "experimental_or_mbis_targets_read": false,
+    "fitting_or_post_training_performed": false,
+    "opened_geometry_used_for_structural_diagnostic_only": true,
+    "pure_mace_polar_in_scope": false
+  },
+  "input_sha256": {
+    "dataset": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e",
+    "mace_mdp_adapter": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "mace_mdp_checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_adapter": "7ed58cbfa1c53da0efd410ae62ef5e0e9131613957e06c2648ac614b1778f0c0",
+    "mace_polar_checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "runner": "f68f9720364ae796dca2fc692d51b81c87461a4d94f8c1255f92c2213b9f8174",
+    "selection_preregistration": "5807e62792b48f492200d1f464f3df5a3323fefd947ad09b941c585aadeac859",
+    "susceptibility_implementation": "24eb0a8d01be387baff676f2faed5cb34f56b618b838d167ba8b2318eb95817a"
+  },
+  "metrics": {
+    "coordinate_transform_covariance_relative_error": 8.01341422639654e-10,
+    "corrected_native_field_covariance_relative_error": 1.9463648540629516e-10,
+    "mdp_molecular_alpha_covariance_relative_error": 3.8254240868285937e-16,
+    "original_transform_condition_number": 1.2957146394413046,
+    "polar_uniform_source_jacobian_covariance_relative_error": 9.972431554731386e-09,
+    "polar_zero_source_covariance_relative_error": 9.052800384742848e-09,
+    "transformed_transform_condition_number": 1.2957146397735382
+  },
+  "record_sha256": "0bce9bc3664e7e6dead470a0bf6d3721d0296b98c9aaaf0e3c16ea51b512f739",
+  "runtime": {
+    "cuda_available": true,
+    "cuda_runtime": "13.0",
+    "device": "cuda",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "selection_identity": {
+    "atom_count": 45,
+    "atomic_numbers_sha256": "2c7985b40ca8e84e73ef4837d728730238e316ef0714c4484f8e094eb8b7d33e",
+    "configuration": 0,
+    "molecule": "08P ASN",
+    "positions_raw_sha256": "54ff5b051b2621a5f399524ea21bd2256820adc390456bce6d200a9c71d96b8f"
+  },
+  "selection_index": 1,
+  "state_sha256": {
+    "original": "694349646d82447ebac0a31acaddf2b36caf6331c4ff11605d2fef874932c381",
+    "transformed": "69880083951e3baaf5c807709b963df53a81fb13958d94d849a9b57fa648b4d0"
+  },
+  "transform": {
+    "permutation_sha256": "abb0b59ccd81392fbc11f1b82a320beaa02f9611a01cc699720a7b2f3a539fef",
+    "rotation_matrix": [
+      [
+        0.7827574514030702,
+        -0.5329631786838883,
+        -0.32131141037961275
+      ],
+      [
+        0.4169784248159049,
+        0.8324310865531193,
+        -0.3649485982683587
+      ],
+      [
+        0.4619737714535501,
+        0.15168630889819565,
+        0.8738257825114937
+      ]
+    ],
+    "translation_angstrom": [
+      1.7,
+      -0.6,
+      0.9
+    ]
+  }
+}

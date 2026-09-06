@@ -1,0 +1,67 @@
+{
+  "artifact": "route2-mdp-polarizability-dipole-closure-tail-v1-record",
+  "claim_boundary": {
+    "adversarial_tail_selected_from_previously_opened_errors": true,
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "pure_mace_polar_in_scope": false,
+    "result_is_independent_accuracy_estimate": false
+  },
+  "closure": {
+    "equivalent_field_norm_volt_per_angstrom": 0.0076812858774735595,
+    "equivalent_field_volt_per_angstrom": [
+      -0.006877297479854186,
+      0.003102805801623934,
+      -0.0014413633346505223
+    ],
+    "molecular_polarizability_condition_number": 1.2068639903750622,
+    "residual_eangstrom": 6.403362282114315e-16,
+    "state_sha256": "80a251a2c21e5c72ee5c8053c08251a2df8f770576a01dd514c14f51b1e70fcf",
+    "total_charge_change_e": 0.0
+  },
+  "fixed_source_ddpcm": {
+    "candidate_absolute_error_kcal_mol": 3.3685335636064075,
+    "candidate_point_eV": -1.5546765169583012,
+    "polar_zero_absolute_error_kcal_mol": 3.3160045530047375,
+    "polar_zero_point_eV": -1.5569543904497507,
+    "reference_mbis_qp_eV": -1.7007499575525347
+  },
+  "index": 4,
+  "mdp_state_sha256": "0ab84077d776b8824b2378f5a40d369ac1e42b59b4eb35c6b485051c86146653",
+  "polar_configuration_sha256": "d7673de2f4d3991015bfc89935584f978bea50d6bf0c405d65b3fe976fbcf543",
+  "preregistration_sha256": "1a50b56029216c2b1ed298ce9c759e2289a00b1b054079e02d06ed4bd0c93d96",
+  "prior_record_sha256": "b3e04b6119d08b1f7a74e42b89eafaaa8e40955eeb2487b4b7d694d0a7111820",
+  "qpqo_mep": {
+    "candidate": {
+      "area_weight_sum_bohr2": 2487.3342755493513,
+      "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 2.2480496669365455,
+      "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.14439571257288905,
+      "maximum_absolute_error_hartree_per_e": 0.03356419505372031,
+      "mean_absolute_error_hartree_per_e": 0.005971131282773245,
+      "reference_root_mean_square_hartree_per_e": 0.030063246219645207,
+      "relative_root_mean_square_error": 0.2534394387329169,
+      "root_mean_square_error_hartree_per_e": 0.007619212248396368
+    },
+    "polar_zero": {
+      "area_weight_sum_bohr2": 2487.3342755493513,
+      "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 2.2480496669365455,
+      "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.14473895438767043,
+      "maximum_absolute_error_hartree_per_e": 0.033877918974798596,
+      "mean_absolute_error_hartree_per_e": 0.005982083956522447,
+      "reference_root_mean_square_hartree_per_e": 0.030063246219645207,
+      "relative_root_mean_square_error": 0.2537404842982345,
+      "root_mean_square_error_hartree_per_e": 0.007628262655349842
+    }
+  },
+  "record_sha256": "cd1dc8b4b20431ec4c9fa3ea97fdd0dcb174926f1902f4f2da8ccd6ff4350a7f",
+  "selection_identity": {
+    "atom_count": 67,
+    "atomic_numbers_sha256": "adbbf7f262a61a5a04c767a0faa755071775f609ec9032de07870807de557733",
+    "configuration": 1,
+    "molecule": "08H PHE",
+    "positions_raw_sha256": "725699b5a4c2f3a811bd6f504ac4323bccf3aaad105a39c26f354a733f3c2969"
+  }
+}

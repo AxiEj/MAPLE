@@ -1,0 +1,231 @@
+{
+  "artifact": "route2-auxiliary-density-confirmation-selection-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_output_read": false
+  },
+  "created_utc": "2026-08-23T19:12:50.011487+00:00",
+  "one_shot_contract": {
+    "apply_only_to_first_development_passer": true,
+    "confirmation_failure_closes_entire_frozen_ladder": true,
+    "identical_numerical_and_reaction_metric_gates": true,
+    "later_candidates_forbidden_after_confirmation_failure": true
+  },
+  "records": [
+    {
+      "atom_count": 20,
+      "compound_id": "mobley_1036761",
+      "coverage_role": "saturated-carbocycle-primary-amine",
+      "elements": [
+        "C",
+        "H",
+        "N"
+      ],
+      "geometry_sha256": "f2afb07b54b96de557ce6101a0777253a989ed0cb6286fed8c0ab85761ca14b7",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1036761.mol2",
+      "mol2_sha256": "3f90d393fbea1e1d97f54618184d297d6564541d87e49ae5a7c95dea571acd36",
+      "name": "cyclohexanamine",
+      "ordinal": 1,
+      "smiles": "C1CCC(CC1)N"
+    },
+    {
+      "atom_count": 15,
+      "compound_id": "mobley_1659169",
+      "coverage_role": "saturated-heterocycle-amine-ether",
+      "elements": [
+        "C",
+        "H",
+        "N",
+        "O"
+      ],
+      "geometry_sha256": "e5acf840811c9af73cb417b9e43baf5c2041ea08d4d776be486d2684ac21d841",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1659169.mol2",
+      "mol2_sha256": "330f6aeae59877a387e38423ce97adef118fe849f2434277246d60dc040efc6c",
+      "name": "morpholine",
+      "ordinal": 2,
+      "smiles": "C1COCCN1"
+    },
+    {
+      "atom_count": 12,
+      "compound_id": "mobley_1723043",
+      "coverage_role": "perfluorinated-small-ring",
+      "elements": [
+        "C",
+        "F"
+      ],
+      "geometry_sha256": "618e5ff894edbf3ef48c2b2abd58cc5d54ad57860f2a5fbd3cfeb8c9c4f69de0",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1723043.mol2",
+      "mol2_sha256": "fd50fd2a2841b61130f7d556942f9a4eb3ac4b212435e53809d5d7ff50f79653",
+      "name": "octafluorocyclobutane",
+      "ordinal": 3,
+      "smiles": "C1(C(C(C1(F)F)(F)F)(F)F)(F)F"
+    },
+    {
+      "atom_count": 8,
+      "compound_id": "mobley_1107178",
+      "coverage_role": "iodinated-small-molecule",
+      "elements": [
+        "C",
+        "H",
+        "I"
+      ],
+      "geometry_sha256": "347bd032bbd38dfe98552a12a186c0142f39f8ed20a974ffad937c95733a841f",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1107178.mol2",
+      "mol2_sha256": "4140910b6473e5d2b9bbccae756480da62764c9bf58b516dbd93962e06968b85",
+      "name": "iodoethane",
+      "ordinal": 4,
+      "smiles": "CCI"
+    },
+    {
+      "atom_count": 19,
+      "compound_id": "mobley_1235151",
+      "coverage_role": "aliphatic-nitro",
+      "elements": [
+        "C",
+        "H",
+        "N",
+        "O"
+      ],
+      "geometry_sha256": "b3a2d93582f050389a55126400f0d561627356e1f0ae0729b5f87a4761acebb6",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1235151.mol2",
+      "mol2_sha256": "cc4c80758dba57f1151dea8b5abecfa9dac6f20afd20c1481a3a036cec77e8fa",
+      "name": "1-nitropentane",
+      "ordinal": 5,
+      "smiles": "CCCCC[N+](=O)[O-]"
+    },
+    {
+      "atom_count": 26,
+      "compound_id": "mobley_1323538",
+      "coverage_role": "phosphate-ester",
+      "elements": [
+        "C",
+        "H",
+        "O",
+        "P"
+      ],
+      "geometry_sha256": "f546c7c883f6be239351cf75b5bb31e7db9d3eab5706d130519c7dd74152fa59",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1323538.mol2",
+      "mol2_sha256": "457405f941954aaac38142b6e1f4cee61acf6855102598925acf2089a53e0bc7",
+      "name": "triethylphosphate",
+      "ordinal": 6,
+      "smiles": "CCOP(=O)(OCC)OCC"
+    },
+    {
+      "atom_count": 11,
+      "compound_id": "mobley_1708457",
+      "coverage_role": "sulfone",
+      "elements": [
+        "C",
+        "H",
+        "O",
+        "S"
+      ],
+      "geometry_sha256": "e71596181b8c168a92870232696187c683999a5a0ff8f5263377afdd226f26d2",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1708457.mol2",
+      "mol2_sha256": "5e2f406e8e00c31d4dde626e9609c84645d7823312ec750ced0bfe2ab020cd7b",
+      "name": "methylsulfonylmethane",
+      "ordinal": 7,
+      "smiles": "CS(=O)(=O)C"
+    },
+    {
+      "atom_count": 7,
+      "compound_id": "mobley_1952272",
+      "coverage_role": "small-nitro-symmetry-control",
+      "elements": [
+        "C",
+        "H",
+        "N",
+        "O"
+      ],
+      "geometry_sha256": "b10fcc3934c66acac445c6614c3a6204b69ebf98b77188c13a7d6fd4866db031",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1952272.mol2",
+      "mol2_sha256": "f13afcc9cd5b6327b241c7428e908643dbcb455fa00a6c9e84eac6fc268e40c2",
+      "name": "nitromethane",
+      "ordinal": 8,
+      "smiles": "C[N+](=O)[O-]"
+    },
+    {
+      "atom_count": 7,
+      "compound_id": "mobley_1967551",
+      "coverage_role": "aldehyde",
+      "elements": [
+        "C",
+        "H",
+        "O"
+      ],
+      "geometry_sha256": "8e78a2077512458da431f7912df381f7d4bc6c0dff8630320d5e0fb838eb3c05",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1967551.mol2",
+      "mol2_sha256": "1c36ff7a4cd8785348a4b83e9b5c6a0a71661b705c5fff8c34bcc13c52ad22c4",
+      "name": "acetaldehyde",
+      "ordinal": 9,
+      "smiles": "CC=O"
+    },
+    {
+      "atom_count": 22,
+      "compound_id": "mobley_1244778",
+      "coverage_role": "medium-carbocycle-alcohol",
+      "elements": [
+        "C",
+        "H",
+        "O"
+      ],
+      "geometry_sha256": "0b42b2ee252cf1083866da0550a4f1a282636661272899c16d55538ef91057b4",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1244778.mol2",
+      "mol2_sha256": "ed7adf630c1b824f633b08da5a9b4648f02115ce0e1a56df90a7ff544f3f584f",
+      "name": "cycloheptanol",
+      "ordinal": 10,
+      "smiles": "C1CCCC(CC1)O"
+    },
+    {
+      "atom_count": 17,
+      "compound_id": "mobley_1261349",
+      "coverage_role": "branched-hydrocarbon-control",
+      "elements": [
+        "C",
+        "H"
+      ],
+      "geometry_sha256": "cfbf1824350704941469c53a04c7d016cd6cc00ab9029914ef5be8a8b8460f9f",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1261349.mol2",
+      "mol2_sha256": "926ccb228dd48e14f4edc8951378471b459d2f8c2fa5a89e90f88857b32d1f7a",
+      "name": "neopentane",
+      "ordinal": 11,
+      "smiles": "CC(C)(C)C"
+    },
+    {
+      "atom_count": 3,
+      "compound_id": "mobley_1929982",
+      "coverage_role": "sulfur-hydride-low-signal-control",
+      "elements": [
+        "H",
+        "S"
+      ],
+      "geometry_sha256": "b7c8baab7643bdb682ff45f3768e3a53806c146659ecd9e8d3e1ec5215e0939d",
+      "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_1929982.mol2",
+      "mol2_sha256": "c55db973e0af31412f4c549e26036731f729242ffcc222731c1304f4016cf264",
+      "name": "hydrogen sulfide",
+      "ordinal": 12,
+      "smiles": "S"
+    }
+  ],
+  "schema_version": 1,
+  "selection_policy": {
+    "candidate_basis_or_mep_result_used": false,
+    "coverage": "new rings, nitro, aldehyde, phosphate, sulfone, F/P/S/I, branched and low-signal controls",
+    "development_compound_overlap": false,
+    "exact_smiles_duplicates": false,
+    "experimental_solvation_field_indexed_or_emitted": false,
+    "record_count": 12
+  },
+  "selection_sha256": "57f377f359ed73c2fcfa5050a0baa1a6ba1f47f0448879aac7b92eabe2e78188",
+  "source": {
+    "creator_path": "tools/route2_release/create_auxiliary_density_confirmation_selection.py",
+    "creator_sha256": "0fd46cfdbb93a7b811d7a083e11267715446acb1ebfba4ad5e0228c73394bbfc",
+    "database_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/database.txt",
+    "database_sha256": "2d13f095713bc39b85f85dd7b4e5483fbb12fc694bf253bb1d92a4c4d484f260",
+    "development_panel_path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json",
+    "development_panel_sha256": "21e4e607b5c88d498be117f41c37b54b00d96eb953c78874eb1ea39b7a040f20"
+  },
+  "status": "locked-before-any-standard-basis-ladder-result"
+}

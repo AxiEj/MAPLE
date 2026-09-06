@@ -12,8 +12,10 @@ Each immutable profile binds exactly one registered scalar to that scalar's
 registered state equation and provider identities. A tier can be admitted only
 when both scalar and profile are enabled, the profile tier is declared by the
 scalar, and non-empty evidence artifact IDs are frozen into both registrations.
-The admitted profile and scalar both bind evidence artifact
-`route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1`.
+The admitted profile and scalar both bind the original numerical-force panel
+`route2-mace-mdp-polar-hybrid-harmonic-force-admission-replicated-v1` and the
+analytic implementation canary
+`route2-mace-mdp-polar-hybrid-harmonic-analytic-force-canary-v1`.
 Multiple profiles may share one scalar formula while binding different
 coupling or physical-continuum configuration contracts; evidence from one
 identity cannot admit another.
@@ -49,10 +51,11 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
 - Continuum: a fixed-dimensional smooth harmonic-Galerkin coefficient model;
   its mathematical definition contains no laboratory-fixed surface grid and
   therefore removes the old GEPOL active-point switching mechanism.
-- Force: the fourth-order Richardson numerical gradient of this exact scalar;
-  every stencil point fully rebuilds the harmonic operator and re-solves both
-  root starts. Runtime guards reject excessive local Richardson error, root or
-  charge failure, replay disagreement, or topology drift.
+- Force: the matrix-free implicit-adjoint total derivative of this exact
+  operational scalar. The continuum/source/receiver coordinate contractions
+  are differentiated on the same Torch graph; a true GMRES residual guard,
+  root/charge/replay checks, and fixed coefficient topology fail closed. The
+  fourth-order Richardson path remains an independent diagnostic oracle.
 - Replicated admission: two independent clean executions at candidate head
   `4cf8db40` produced identical measurement SHA-256
   `a28be11068866e035733c79064a7210739b31e17e3fbc979a5adaf22514a1a30`.
@@ -60,12 +63,16 @@ non-ASE compatibility view; no ASE `Calculator.results` stores Hartree values.
   water rotation energy and relative force-covariance errors were
   `2.9654074751306325e-9 eV` and `2.4243672701543782e-8`; the guarded closed-loop
   work was `4.7405289175354166e-8 eV`.
+- Analytic implementation canary: verified Pro math audit plus official
+  checkpoint water/benzene comparisons. Water all-component mismatch against
+  stored GPU Richardson is `9.5916e-9 eV/A`; benzene component mismatch is
+  `6.036e-10 eV/A`; analytic water loop work is `2.136e-9 eV`.
 - Scope: the exact content-addressed checkpoint/adaptor binding, `float64` CUDA,
   experimental conductor-limit electrostatics using SMD-water Coulomb radii,
-  neutral singlets, and numerical force only.
+  and neutral singlets.
 - Not admitted: quantitative solvation accuracy, a complete solvation free
-  energy, named-solvent transfer, nonpolar/CDS, analytic force, Hessian/FREQ,
-  TS/IRC, MD/NVE, or a strict Tier-V common functional.
+  energy, named-solvent transfer, nonpolar/CDS, Hessian/FREQ, TS/IRC, MD/NVE,
+  or a strict Tier-V common functional.
 
 See [HYBRID_HARMONIC_EXPERIMENTAL.md](HYBRID_HARMONIC_EXPERIMENTAL.md) for the
 runtime and claim boundary.

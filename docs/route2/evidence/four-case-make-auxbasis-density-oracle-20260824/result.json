@@ -1,0 +1,94 @@
+{
+  "aggregate": {
+    "maximum_constrained_area_relative_error": 0.026843548937921465,
+    "mean_constrained_area_relative_error": 0.01866693372816389,
+    "mean_raw_area_relative_error": 0.01920120020821677
+  },
+  "artifact": "route2-four-case-make-auxbasis-density-representation-oracle-unbound-v1",
+  "basis": "pyscf.df.make_auxbasis on frozen orbital basis",
+  "claim": "local no-solvation-target no-fit representation probe; not preregistered admission evidence",
+  "metric_eigenvalue_relative_cutoff": 1e-12,
+  "moment_grid_level": 4,
+  "records": [
+    {
+      "atom_count": 12,
+      "case_id": "mobley_3053621",
+      "constrained": {
+        "area_relative_error": 0.026843548937921465,
+        "correlation": 0.9997720830001184,
+        "max_abs_hartree_per_e": 0.000987381183067626
+      },
+      "metric_condition": 717889027.5637083,
+      "metric_rank": 558,
+      "moment_constrained_max_error": 1.4594547792512458e-11,
+      "moment_raw_max_error": 0.0023255912883541896,
+      "naux": 558,
+      "raw": {
+        "area_relative_error": 0.028408487434951085,
+        "correlation": 0.9997719104821294,
+        "max_abs_hartree_per_e": 0.0010641642288478081
+      },
+      "wall_seconds": 2.8774185180664062
+    },
+    {
+      "atom_count": 10,
+      "case_id": "mobley_3867265",
+      "constrained": {
+        "area_relative_error": 0.018066697487392352,
+        "correlation": 0.9998837501412245,
+        "max_abs_hartree_per_e": 0.0016696472165529386
+      },
+      "metric_condition": 199472256.03621328,
+      "metric_rank": 410,
+      "moment_constrained_max_error": 9.947598300641403e-14,
+      "moment_raw_max_error": 0.005106658988259127,
+      "naux": 410,
+      "raw": {
+        "area_relative_error": 0.018113872889695962,
+        "correlation": 0.9998839632678248,
+        "max_abs_hartree_per_e": 0.0016973200356202867
+      },
+      "wall_seconds": 1.6445422172546387
+    },
+    {
+      "atom_count": 8,
+      "case_id": "mobley_3034976",
+      "constrained": {
+        "area_relative_error": 0.01131831642116608,
+        "correlation": 0.9999525098981579,
+        "max_abs_hartree_per_e": 0.0014475957795196948
+      },
+      "metric_condition": 181701157.04171667,
+      "metric_rank": 376,
+      "moment_constrained_max_error": 1.2789769243681803e-13,
+      "moment_raw_max_error": 0.005901144695798166,
+      "naux": 376,
+      "raw": {
+        "area_relative_error": 0.011382008267976184,
+        "correlation": 0.9999529496756566,
+        "max_abs_hartree_per_e": 0.001475053309163421
+      },
+      "wall_seconds": 1.31956148147583
+    },
+    {
+      "atom_count": 20,
+      "case_id": "mobley_352111",
+      "constrained": {
+        "area_relative_error": 0.018439172066175666,
+        "correlation": 0.9998527852025044,
+        "max_abs_hartree_per_e": 0.0013130297331791496
+      },
+      "metric_condition": 386900111.68471056,
+      "metric_rank": 938,
+      "moment_constrained_max_error": 2.8990143619012088e-12,
+      "moment_raw_max_error": 0.0038539545161597744,
+      "naux": 938,
+      "raw": {
+        "area_relative_error": 0.018900432240243847,
+        "correlation": 0.9998529005843766,
+        "max_abs_hartree_per_e": 0.001335642793444336
+      },
+      "wall_seconds": 10.335945844650269
+    }
+  ]
+}

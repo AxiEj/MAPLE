@@ -1,0 +1,19 @@
+{
+  "advisory_only": true,
+  "captured_utc": "2026-08-17T17:36:41.0572449Z",
+  "files_sha256": {
+    "q20-answer.md": "dba212d7c70f993190087d6eea903edaa75ce7a8244008ae3062eb059c27dbbe",
+    "q20-complete-uia.tsv": "6d317a3e33f7252f0d6ad56b3ceb5202b1cfc9c747690bc2fcb9866057e2589b",
+    "q20-prompt.txt": "d703297cecae7930782b249098f3b8ee9282c3d3b99d0c49068b794aa311ebbd",
+    "q20-submit-state.txt": "5146bb3ee33a4dcbf8f4a6b0d9afd5afaaacc8762a5788db84e107272ce2c8ff",
+    "q20-verified-pro-mode.txt": "3b40c363e7fdb26167b214652277ecd384246d49f843c6e7e444e96436e41cbd"
+  },
+  "manifest_sha256": "20cd845b59e654f999aadcf1aa53edc3c12c63633af80f80f2a15532ced8c3c0",
+  "model_selection": "Pro, 5 of 5",
+  "question_id": "mdp-polar-uniform-susceptibility-q20",
+  "schema_version": "route2-chrome-chatgpt-pro-advisory-v1",
+  "submitted_utc": "2026-08-17T17:03:13.6680518Z",
+  "terminal_verdict": "Reject M_POLAR(Tu) as production definition; audit a work-dual, reciprocity-preserving additive tangent correction exactly once.",
+  "window_hwnd": 27003292,
+  "worked_for": "29m 57s"
+}

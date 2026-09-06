@@ -1,0 +1,42 @@
+{
+  "artifact": "route2-hybrid-mdp-atomic-partition-gauge-evidence-v1",
+  "claim_boundary": {
+    "confirmation_partition_opened": false,
+    "development_target_opened_for_case_selection": true,
+    "fitting_or_calibration_performed": false,
+    "gauge_direction_uses_experimental_target": false,
+    "quantitative_source_admitted": false,
+    "single_case_diagnostic_not_population_accuracy": true
+  },
+  "external_sources": {
+    "mace_mdp_preprint": "https://pure.mpg.de/rest/items/item_3703797_1/component/file_3703798/content",
+    "spice2_openff_prototype_record": "https://doi.org/10.5281/zenodo.15476920",
+    "spice2_release": "https://doi.org/10.5281/zenodo.10975225"
+  },
+  "interpretation": "Molecular total charge and dipole do not identify the atomwise MACE-MDP partition seen by a near-field continuum. This witness proves material continuum sensitivity for one target-opened tail case; it is not a population statistic or a universal lower bound.",
+  "measurement": {
+    "constraint_residual_q_mu": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_direct_quadratic_replay_error_ev": 4.2521541843143495e-14,
+    "minus_change_kcal_mol": -0.35640059035642185,
+    "name": "1,4,5,8-tetraminoanthraquinone",
+    "plus_change_kcal_mol": 0.3369111000766316,
+    "selection_index": 199,
+    "step_e_angstrom": 0.01
+  },
+  "source_sha256": {
+    "full505_component_diagnostic": "33e27a35e60ec4f8f692ee9f97caf0c772b8c1c603b1d3423c1eea87d3f039f3",
+    "generator_snapshot": "68962e93e7fb981630ad948ad6232b44ced820caf81626ac32cf26ba63bec5c4",
+    "installed_mace_loss_py": "924f0ee3d0f88c7cea640d663dcb40530ad60e013cda164fe4a0aed0a6385eb1",
+    "installed_mace_models_py": "a1e0958611bb4475b1739e6a9225677617c05d3df2b2724f27ba3c048240f1d7",
+    "mace_mdp_checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_mdp_preprint_pdf": "48dd8df202e1cdc28a709eb6ec0eaeacad5d558cf4ec532d408015b43dc36d02",
+    "mace_polar_checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "spice2_openff_ntc1000_gzip": "75a7259beff0d2f47b490affb782637616eab7c0c1e8b5b9d30aa508a9e28324",
+    "witness": "98e80d7ae5775e6ef8ebb1be20582262d1bba708ded26f7c5387766d21204c3b"
+  }
+}

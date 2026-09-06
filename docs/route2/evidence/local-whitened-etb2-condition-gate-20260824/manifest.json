@@ -1,0 +1,53 @@
+{
+  "aggregate": {
+    "maximum_constraint_absolute_residual": 3.108624468950438e-14,
+    "maximum_constraint_gram_condition_number": 41.93229331437992,
+    "maximum_global_restricted_condition_number": 38525665813.60515
+  },
+  "artifact": "route2-local-whitened-etb2-condition-gate-evidence-v1",
+  "claim_boundary": {
+    "allowed_decision": "close auxiliary route on failure or advance to forward-stability and confirmation gates on pass",
+    "capability_admitted": false,
+    "experimental_solvation_target_read": false,
+    "forward_high_precision_gate_completed": false,
+    "model_output_or_training_read": false
+  },
+  "decision": "fail-close-global-auxiliary-density-coefficient-route",
+  "failed_cases": [
+    {
+      "compound_id": "mobley_3053621",
+      "global_restricted_condition_number": 31812563063.39607,
+      "name": "benzene"
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "global_restricted_condition_number": 38525665813.60515,
+      "name": "aniline"
+    }
+  ],
+  "files": {
+    "README.md": {
+      "bytes": 1316,
+      "sha256": "fc7b81ef1b9cc39a1b9bde3582db71bf00da66c990359bd34a5da2012d18e3b0"
+    },
+    "preregistration.json": {
+      "bytes": 24869,
+      "sha256": "086d03f39f3b181126d583f68b25d9f4f1c710cc70d7834e04d03ee385550970"
+    },
+    "result.json": {
+      "bytes": 14581,
+      "sha256": "92274b05a85c242e6185fb6513fa29f7afd42b7b9f6bec6de172c2d28d6654e5"
+    },
+    "run.log": {
+      "bytes": 15699,
+      "sha256": "f97728dccf0975c7d5a6625948e3c5f383191f3d214bb6506e86b9ca6c17a9a5"
+    }
+  },
+  "gates": {
+    "all_cases": false,
+    "constraint_condition": true,
+    "constraint_residual": true,
+    "global_condition": false
+  },
+  "manifest_sha256": "66088f36821cc95a9596546576dcb094586943f38000b0d687f76dbc0e799b78"
+}

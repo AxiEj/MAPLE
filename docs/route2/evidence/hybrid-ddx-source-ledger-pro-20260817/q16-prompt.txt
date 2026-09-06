@@ -1,0 +1,27 @@
+You are reviewing a hybrid MACE-MDP + MACE-POLAR + ddPCM operational solvation route. This is a focused correction and continuation of a prior question, not a duplicate. Give a decisive, fail-closed mathematical answer. Do not suggest fitting/rescaling to experimental solvation targets, refitting CDS, choosing after target inspection, spectral clipping, or an ad hoc residual correction.
+
+A field-semantics audit has ALREADY been completed and must be treated as fixed evidence:
+- For a uniform external electric field, the official upstream MACE-POLAR branch and MAPLE direct native-eight-channel field injection produce bitwise-identical density/source coefficients and dipole.
+- The upstream energy minus native-raw energy equals the explicit upstream +E·mu work to 6.63e-14 eV.
+- Therefore native direct injection returns E_raw(R,u) that omits the explicit uniform-field work; upstream uniform-field energy includes it with sign +1 under the audited convention.
+- E_raw(R,0)=E_vac(R), and its arbitrary-native-field AD/FD derivative and radial charging identity pass to numerical precision.
+- The original four-channel source remains nonintegrable in the continuum-active quotient (curl defect about 0.208), so it is not the gradient of E_raw.
+
+Separated hybrid state:
+- permanent MACE-MDP point q/p c_p in source space C_p;
+- induced MACE-POLAR Gaussian increment dc_g in source space C_g;
+- ddPCM boundary equation A sigma = B_p c_p + B_g dc_g;
+- model-driving native field u=L sigma in U_8;
+- L is deliberately not assumed equal to either B_p^* or B_g^*;
+- the continuum energy-dual fields B_p^* sigma and B_g^* sigma exist separately, while u is the checkpoint-native receiver field.
+
+Answer only the remaining hard issue:
+1. Does the exact uniform-field identity +E·mu uniquely determine a nonuniform explicit-work functional W(R,u,c_p,dc_g) for arbitrary u=L sigma? Prove the answer. Distinguish (i) a physical real-space density/potential pairing, (ii) native feature-space pairing, and (iii) path integration of a nonintegrable source.
+2. Is any term like <c_p+dc_g,u>, <dc_g,u>, or <c_E,u> mathematically legitimate here without an additional declared DualityMap/primitive density? Explain the dimension/kernel/gauge obstruction and double-counting conditions.
+3. List the complete set of operational scalars that remain well-defined from the currently audited objects alone: Phi0=E_vac+G_cont, Phi_raw=E_vac+[E_raw(u*)-E_raw(0)]+G_cont, and any other genuinely defined scalar. For each, state exactly what physical claim it may and may not make.
+4. If a physically complete electronic+continuum ledger is not identifiable from current objects, specify the MINIMAL extra independent object/data that makes it identifiable: e.g. checkpoint-native real-space external-potential coupling, a content-addressed DualityMap plus primitive density, matched QM density functional evaluations, or a new scalar-first head. Rank these by decisiveness and cost.
+5. Given the frozen source and field-semantics evidence, choose exactly one immediate target-independent experiment. It must not use experimental hydration targets. State equations, artifacts, pass/fail thresholds derivable from numerical/reference uncertainty, and terminal implications for the hybrid operational route.
+6. Decide whether source/ledger non-identifiability closes (a) only a quantitative physical interpretation, (b) all operational conservative PES use, or (c) the entire MDP+POLAR route. Keep strict Tier V separate from a chosen operational scalar differentiated by block implicit adjoint.
+7. Ensure the answer remains compatible with multiple solvents, analytic A/B/L coordinate VJPs, and a separately versioned nonpolar scalar.
+
+End with the exact marker: HYBRID NONUNIFORM WORK IDENTIFIABILITY DECISION

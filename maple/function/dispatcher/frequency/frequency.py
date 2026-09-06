@@ -10,10 +10,13 @@ produces clean, diagnostic-rich outputs.
 from __future__ import annotations
 import numpy as np
 import os
-from dataclasses import dataclass, fields
-from typing import Tuple, Optional, Dict, Tuple as Tup, Literal
+from contextlib import contextmanager
+from dataclasses import dataclass, fields, replace
+from typing import Iterator, Tuple, Optional, Dict, Tuple as Tup, Literal
 from ase import Atoms
+from ase.calculators.calculator import BaseCalculator
 from ..jobABC import JobABC
+from ..legacy_units import LegacyHartreeJobView
 
 from maple.function.timer import timer
 
@@ -44,6 +47,12 @@ HARTREE_TO_KJ_PER_MOL   = 2625.499638
 HARTREE_TO_KCAL_PER_MOL = 627.509474
 KJ_PER_MOL_TO_HARTREE   = 1.0 / HARTREE_TO_KJ_PER_MOL
 KJ_PER_MOL_TO_KCAL      = 0.23900573614  # 1 kJ/mol = 0.23900573614 kcal/mol
+# 2018 CODATA value used by NIST's frozen constants archive:
+# https://physics.nist.gov/cuu/Constants/ArchiveASCII/allascii_2018.txt
+HARTREE_J = 4.3597447222071e-18
+FREQUENCY_CONVERSION_CM1 = np.sqrt(HARTREE_J / (AMU * ANG2_TO_M2)) / (
+    2.0 * np.pi * C * 100.0
+)
 
 class Units:
     """Small helpers for common unit conversions used in reporting."""
@@ -66,6 +75,41 @@ class Units:
 # ======================================================================
 # User parameter surfaces 
 # ======================================================================
+
+_THERMOCHEMISTRY_UNSET = object()
+_LEGACY_HESSIAN_UNIT = "hartree/angstrom^2"
+
+
+@contextmanager
+def _legacy_hessian_unit_view(atoms: Atoms) -> Iterator[None]:
+    """Expose exactly one legacy Hartree/Angstrom² Hessian conversion.
+
+    ASE calculators publicly return eV/Angstrom² and are temporarily wrapped.
+    Non-ASE legacy calculators must explicitly declare their already-Hartree
+    Hessian convention with ``FREQUENCY_HESSIAN_UNITS``.
+    """
+    calculator = getattr(atoms, "calc", None)
+    if calculator is None or isinstance(calculator, LegacyHartreeJobView):
+        yield
+        return
+
+    if isinstance(calculator, BaseCalculator):
+        atoms.calc = LegacyHartreeJobView(calculator)
+        try:
+            yield
+        finally:
+            atoms.calc = calculator
+        return
+
+    declared_units = str(
+        getattr(calculator, "FREQUENCY_HESSIAN_UNITS", "")
+    ).strip().lower()
+    if declared_units != _LEGACY_HESSIAN_UNIT:
+        raise RuntimeError(
+            "non-ASE frequency calculators must declare "
+            "FREQUENCY_HESSIAN_UNITS='hartree/angstrom^2'"
+        )
+    yield
 
 def _lower_keys(d: Dict) -> Dict:
     """Lowercase dict keys defensively; return empty dict on non-dict input."""
@@ -98,6 +142,44 @@ def _update_dataclass_from_dict(dc_obj, d: Dict):
             setattr(dc_obj, fld_names[k_low], v)
     return dc_obj
 
+
+def _resolve_thermochemistry_policy(
+    atoms: Atoms,
+    requested: object,
+    *,
+    explicit: bool,
+) -> Literal["gas", "none"]:
+    """Resolve user intent against a calculator's frequency restriction."""
+    if requested is _THERMOCHEMISTRY_UNSET:
+        thermochemistry = "gas"
+    elif not isinstance(requested, str):
+        raise ValueError('thermochemistry must be one of: "gas", "none"')
+    else:
+        thermochemistry = requested.strip().lower()
+    if thermochemistry not in ("gas", "none"):
+        raise ValueError('thermochemistry must be one of: "gas", "none"')
+
+    calculator_policy = getattr(
+        getattr(atoms, "calc", None),
+        "FREQUENCY_THERMOCHEMISTRY",
+        None,
+    )
+    if calculator_policy is None:
+        return thermochemistry
+
+    calculator_policy = str(calculator_policy).strip().lower()
+    if calculator_policy not in ("gas", "none"):
+        raise ValueError(
+            "calculator FREQUENCY_THERMOCHEMISTRY must be one of: "
+            '"gas", "none"'
+        )
+    if explicit and thermochemistry != calculator_policy:
+        raise ValueError(
+            "calculator restricts frequency thermochemistry to "
+            f"'{calculator_policy}'"
+        )
+    return calculator_policy
+
 @dataclass
 class FrequencyParams:
     """User-facing knobs to steer a frequency job. Keep this sane by default."""
@@ -108,6 +190,7 @@ class FrequencyParams:
     treat_imag_as_real: bool = False
     pressure_kpa: float = 101.325
     device: str = "cpu"
+    thermochemistry: object = _THERMOCHEMISTRY_UNSET
 
 @dataclass
 class PrintParams:
@@ -177,8 +260,11 @@ class FrequencyBase(JobABC):
     It provides a uniform workflow to:
       1) obtain and fix the Cartesian Hessian,
       2) compute vibrational frequencies and modes,
-      3) evaluate RRHO and low-frequency-corrected thermochemistry.
+      3) optionally evaluate RRHO and low-frequency-corrected gas
+         thermochemistry.
     """
+
+    PHYSICAL_VIBRATIONAL_ANALYSIS = False
 
     def __init__(
         self,
@@ -192,6 +278,7 @@ class FrequencyBase(JobABC):
         omega0_cm1: float = 100.0,
         nu_floor_cm1: float = 1.0,
         device: str = "cpu",            
+        thermochemistry: object = _THERMOCHEMISTRY_UNSET,
     ):
         """
         Initialize the frequency analysis job.
@@ -207,6 +294,8 @@ class FrequencyBase(JobABC):
                 2=Grimme (S interpolation), 3=Minenkov/MRRHO (S+U interpolation).
             omega0_cm1: Characteristic frequency (cm⁻¹) for low-frequency treatments.
             nu_floor_cm1: Minimal frequency magnitude (cm⁻¹) to avoid singularities.
+            thermochemistry: ``"gas"`` for the legacy RRHO/GERM-ME report or
+                ``"none"`` for frequencies and normal modes only.
 
         Notes:
             The attributes `alpha` (default 4) and `Bav_amuA2` (optional) may be
@@ -220,6 +309,11 @@ class FrequencyBase(JobABC):
         self.ilowfreq = ilowfreq
         self.omega0_cm1 = omega0_cm1
         self.nu_floor_cm1 = max(float(nu_floor_cm1), 1e-6)
+        self.thermochemistry = _resolve_thermochemistry_policy(
+            atoms,
+            thermochemistry,
+            explicit=thermochemistry is not _THERMOCHEMISTRY_UNSET,
+        )
 
        # ---- Parse device string: support cpu / auto / gpu / gpu0 / gpu1 / cuda:0, etc. ----
         self.device = self._parse_device(device)
@@ -237,14 +331,80 @@ class FrequencyBase(JobABC):
         Steps:
             1) Fetch Hessian and fix shape.
             2) Diagonalize to obtain frequencies and modes.
-            3) Compute thermochemistry.
+            3) Compute thermochemistry when requested.
             4) Write all results to the output file.
             5) If verbosity=10, also write a summary file with XYZ trajectory.
         """
         self.log_info([f"Starting frequency analysis calculation, Number of atoms: {len(self.atoms)}"])
 
         try:
-            hessian = self.get_hessian()
+            if self.thermochemistry == "none":
+                if not self.PHYSICAL_VIBRATIONAL_ANALYSIS:
+                    raise ValueError(
+                        "vibrational-only frequency analysis supports only the "
+                        "mass-weighted method; use method='mw'"
+                    )
+                if self.treat_imag_as_real:
+                    raise ValueError(
+                        "treat_imag_as_real is not allowed when "
+                        "thermochemistry='none'; vibrational-only analysis "
+                        "preserves signed near-zero frequencies"
+                    )
+
+            with _legacy_hessian_unit_view(self.atoms):
+                hessian = self.get_hessian()
+
+            hessian_diagnostics = getattr(
+                getattr(self.atoms, "calc", None), "hessian_diagnostics", None
+            )
+            if isinstance(hessian_diagnostics, dict):
+                self.log_info(["\nHESSIAN DIAGNOSTICS\n", "-" * 60 + "\n"])
+                labels = (
+                    ("evaluation_sha256", "Evaluation SHA256", ""),
+                    ("coarse_step_angstrom", "Coarse step", " Angstrom"),
+                    ("fine_step_angstrom", "Fine step", " Angstrom"),
+                    (
+                        "maximum_error_estimate_eV_per_A2",
+                        "Maximum error estimate",
+                        " eV/Angstrom^2",
+                    ),
+                    (
+                        "maximum_antisymmetry_eV_per_A2",
+                        "Maximum antisymmetry",
+                        " eV/Angstrom^2",
+                    ),
+                    (
+                        "topology_step_reductions_used",
+                        "Topology step reductions used",
+                        "",
+                    ),
+                    ("topology_guard_status", "Topology guard status", ""),
+                    (
+                        "topology_observation_coverage",
+                        "Topology observation coverage",
+                        "",
+                    ),
+                    (
+                        "unobservable_topology_components",
+                        "Unobservable topology components",
+                        "",
+                    ),
+                )
+                for key, label, unit in labels:
+                    if key in hessian_diagnostics:
+                        self.log_info(
+                            [f"{label}: {hessian_diagnostics[key]}{unit}\n"]
+                        )
+                if hessian_diagnostics.get("topology_observation_coverage") == "partial":
+                    self.log_info(
+                        [
+                            "WARNING: Topology observation coverage is partial; "
+                            "listed unobservable topology components were not "
+                            "validated by this Hessian evaluation.\n"
+                        ]
+                    )
+                self.log_info(["\n"])
+
             freqs_cm1, modes_cart = self.compute_frequencies(hessian)
 
             # Handle small imaginary frequencies if requested
@@ -252,7 +412,11 @@ class FrequencyBase(JobABC):
                 tol = float(getattr(self._print, "imag_tol_cm1", 10.0))
                 freqs_cm1 = np.where(freqs_cm1 < -tol, freqs_cm1, np.abs(freqs_cm1))
 
-            thermo = self.compute_thermo(freqs_cm1)
+            thermo = (
+                self.compute_thermo(freqs_cm1)
+                if self.thermochemistry == "gas"
+                else None
+            )
 
             self._write_output(freqs_cm1, modes_cart, thermo)
             self.log_info(["Frequency analysis completed", f"Output file: {self.output}"])
@@ -399,16 +563,17 @@ class FrequencyBase(JobABC):
         
         return D
         
-    def _project_hessian(self, hessian: np.ndarray) -> np.ndarray:
+    def _project_hessian(self, hessian_mw: np.ndarray) -> np.ndarray:
         """
-        Project out translation and rotation components from Hessian.
-        
+        Project rigid motions from a mass-weighted Cartesian Hessian.
+
         Principle:
             H_proj = P^T @ H @ P
             where P = I - Q @ Q^T, Q is orthonormal translation-rotation basis
         
         Args:
-            hessian: Cartesian Hessian (3N, 3N) in Hartree/Angstrom²
+            hessian_mw: Mass-weighted Hessian (3N, 3N) in
+                Hartree/(amu Angstrom²).
         
         Returns:
             Projected Hessian (3N, 3N)
@@ -419,16 +584,29 @@ class FrequencyBase(JobABC):
         # Step 1: Build translation-rotation basis
         D = self._build_translation_rotation_basis(masses, positions)
         
-        # Step 2: Orthonormalize via QR decomposition
-        Q, _ = np.linalg.qr(D)
+        # Step 2: Find the numerical rank of the rigid-motion basis. Linear
+        # molecules have five independent rigid motions, while nonlinear ones
+        # have six. This tolerance follows the standard matrix-rank criterion;
+        # it is not a fitted vibrational-frequency threshold.
+        U, singular_values, _ = np.linalg.svd(D, full_matrices=False)
+        if singular_values.size:
+            rank_tol = (
+                max(D.shape)
+                * np.finfo(singular_values.dtype).eps
+                * singular_values[0]
+            )
+            rank = int(np.sum(singular_values > rank_tol))
+            Q = U[:, :rank]
+        else:
+            Q = np.empty((D.shape[0], 0), dtype=float)
         
         # Step 3: Construct projection operator
         # P = I - Q @ Q^T projects onto the subspace orthogonal to translations/rotations
-        n_dof = len(hessian)
+        n_dof = len(hessian_mw)
         P = np.eye(n_dof) - Q @ Q.T
-        
+
         # Step 4: Project Hessian
-        H_projected = P @ hessian @ P
+        H_projected = P @ hessian_mw @ P
         
         # Step 5: Symmetrize to eliminate floating-point asymmetry
         H_projected = 0.5 * (H_projected + H_projected.T)
@@ -688,7 +866,12 @@ class FrequencyBase(JobABC):
             return len(self.atoms) == 2
 
     # ---------------------- writers ----------------------
-    def _write_output(self, freqs: np.ndarray, modes: np.ndarray, thermo: ThermoResults) -> None:
+    def _write_output(
+        self,
+        freqs: np.ndarray,
+        modes: np.ndarray,
+        thermo: Optional[ThermoResults],
+    ) -> None:
         """
         Write full analysis report in ORCA-style order.
         Order: Header → Frequencies → Thermodynamics → Normal Modes
@@ -699,7 +882,8 @@ class FrequencyBase(JobABC):
         self._write_frequencies(freqs)
         
         # 2. Thermodynamics
-        self._write_thermochemistry(thermo)
+        if thermo is not None:
+            self._write_thermochemistry(thermo)
         
         # 3. Normal modes (with zeros masked)
         self._write_normal_modes(freqs, modes)
@@ -779,7 +963,7 @@ class FrequencyBase(JobABC):
         self.log_info(["-" * 60 + "\n\n"])
         
         # Count frequency types
-        zero_tol = 5.0
+        zero_tol = self._classification_zero_tolerance_cm1()
         n_zero = int(np.sum(np.abs(freqs) < zero_tol))
         n_imag = int(np.sum(freqs < -zero_tol))
         n_real = len(freqs) - n_zero - n_imag
@@ -804,8 +988,12 @@ class FrequencyBase(JobABC):
             
             # Determine display value and tag
             if np.abs(freq_val) < zero_tol:
-                display_val = 0.00
-                tag = ""
+                if self.thermochemistry == "none":
+                    display_val = freq_val
+                    tag = "  ***near-zero numerical/uncertain mode***"
+                else:
+                    display_val = 0.00
+                    tag = ""
             elif freq_val < -zero_tol:
                 display_val = freq_val
                 tag = "  ***imaginary mode***"
@@ -830,7 +1018,7 @@ class FrequencyBase(JobABC):
             return
         
         # Count zero frequencies
-        zero_tol = 5.0
+        zero_tol = self._classification_zero_tolerance_cm1()
         n_zero = int(np.sum(np.abs(freqs) < zero_tol))
         
         # Determine how many non-zero modes to print
@@ -856,11 +1044,13 @@ class FrequencyBase(JobABC):
         n_atoms = len(self.atoms)
         n_coords = 3 * n_atoms
         
-        # Mask zero-frequency modes (ORCA convention: display as zeros)
+        # Preserve raw near-zero vectors for vibrational-only diagnostics. The
+        # legacy gas report keeps its ORCA-style zero-mode masking.
         modes_display = modes.copy()
-        for i in range(n_to_print):
-            if np.abs(freqs[i]) < zero_tol:
-                modes_display[i, :] = 0.0
+        if self.thermochemistry == "gas":
+            for i in range(n_to_print):
+                if np.abs(freqs[i]) < zero_tol:
+                    modes_display[i, :] = 0.0
         
         # Print in blocks of 6 columns (ORCA style)
         block_size = 6
@@ -884,26 +1074,41 @@ class FrequencyBase(JobABC):
             self.log_info(["\n"])
 
     # ---------------------- verbosity=10 summary writer ----------------------
-    def _write_summary(self, freqs: np.ndarray, modes: np.ndarray, thermo: ThermoResults) -> None:
+    @staticmethod
+    def _classification_zero_tolerance_cm1() -> float:
+        """Threshold below which signed modes are numerically uncertain."""
+        return 5.0
+
+    def _write_summary(
+        self,
+        freqs: np.ndarray,
+        modes: np.ndarray,
+        thermo: Optional[ThermoResults],
+    ) -> None:
         """
         Write a concise summary file (*_summary.out) for verbosity=10.
         
         Contents:
-            1. Thermodynamic properties summary (concise)
+            1. Analysis metadata and, when requested, thermodynamic properties
             2. All non-zero vibrational frequencies
             3. Normal modes in XYZ trajectory format
         
-        The first 6 zero frequencies (translations/rotations) are excluded.
+        The legacy gas summary excludes near-zero translation/rotation modes.
+        Vibrational-only summaries retain their signed values and mark them as
+        numerical/uncertain.
         """
         # Determine summary file path
         base, ext = os.path.splitext(self.output)
         summary_path = f"{base}.sum"
         
-        # Filter out zero frequencies (first 6 for nonlinear, 5 for linear)
-        zero_tol = 5.0
-        nonzero_mask = np.abs(freqs) >= zero_tol
-        nonzero_freqs = freqs[nonzero_mask]
-        nonzero_modes = modes[nonzero_mask]
+        zero_tol = self._classification_zero_tolerance_cm1()
+        reliable_mask = np.abs(freqs) >= zero_tol
+        if thermo is None:
+            reported_freqs = freqs
+            reported_modes = modes
+        else:
+            reported_freqs = freqs[reliable_mask]
+            reported_modes = modes[reliable_mask]
         
         # Get atomic information
         symbols = self.atoms.get_chemical_symbols()
@@ -912,45 +1117,62 @@ class FrequencyBase(JobABC):
         T = self.temperature
         
         with open(summary_path, 'w', encoding='utf-8') as f:
-            # ==================== Section 1: Thermodynamic Summary ====================
+            # ==================== Section 1: Analysis Summary ====================
             f.write("=" * 70 + "\n")
-            f.write("THERMODYNAMIC SUMMARY\n")
+            if thermo is None:
+                f.write("VIBRATIONAL ANALYSIS SUMMARY\n")
+            else:
+                f.write("THERMODYNAMIC SUMMARY\n")
             f.write("=" * 70 + "\n\n")
             
-            f.write(f"Temperature:            {T:.2f} K\n")
-            f.write(f"Pressure:               {self.pressure_kpa:.3f} kPa ({self.pressure_kpa / 101.325:.3f} atm)\n")
+            if thermo is not None:
+                f.write(f"Temperature:            {T:.2f} K\n")
+                f.write(f"Pressure:               {self.pressure_kpa:.3f} kPa ({self.pressure_kpa / 101.325:.3f} atm)\n")
             f.write(f"Total Mass:             {np.sum(self.atoms.get_masses()):.4f} amu\n")
             f.write(f"Number of Atoms:        {n_atoms}\n")
-            f.write(f"Number of Vib. Modes:   {len(nonzero_freqs)}\n\n")
+            if thermo is None:
+                f.write(f"Number of Reported Modes: {len(reported_freqs)}\n")
+                f.write(
+                    "Reliable Vibrational Modes "
+                    f"(|nu| >= {zero_tol:.1f} cm^-1): "
+                    f"{int(np.sum(reliable_mask))}\n"
+                )
+                f.write(
+                    "Near-Zero Numerical/Uncertain Modes: "
+                    f"{int(np.sum(~reliable_mask))}\n\n"
+                )
+            else:
+                f.write(f"Number of Vib. Modes:   {len(reported_freqs)}\n\n")
             
-            # Convert units for display
-            zpe_kcal = Units.kj_to_kcal(thermo.zpe_kjmol)
-            h_total_kcal = Units.kj_to_kcal(thermo.h_total_kjmol)
-            g_corr_kcal = Units.kj_to_kcal(thermo.g_correction_kjmol)
-            s_total_calK = thermo.s_total_jmolK / 4.184  # J/mol/K -> cal/mol/K
-            
-            f.write("-" * 40 + "\n")
-            f.write("Key Thermodynamic Values\n")
-            f.write("-" * 40 + "\n")
-            f.write(f"ZPE:                    {thermo.zpe_kjmol:12.4f} kJ/mol  ({zpe_kcal:10.4f} kcal/mol)\n")
-            f.write(f"H_corr (total):         {thermo.h_total_kjmol:12.4f} kJ/mol  ({h_total_kcal:10.4f} kcal/mol)\n")
-            f.write(f"G_corr (total):         {thermo.g_correction_kjmol:12.4f} kJ/mol  ({g_corr_kcal:10.4f} kcal/mol)\n")
-            f.write(f"S_total:                {thermo.s_total_jmolK:12.4f} J/mol/K ({s_total_calK:10.4f} cal/mol/K)\n\n")
-            
-            f.write("-" * 40 + "\n")
-            f.write("Enthalpy Contributions (kJ/mol)\n")
-            f.write("-" * 40 + "\n")
-            f.write(f"  H_trans:              {thermo.h_trans_kjmol:12.4f}\n")
-            f.write(f"  H_rot:                {thermo.h_rot_kjmol:12.4f}\n")
-            f.write(f"  H_vib (thermal):      {thermo.h_vib_thermal_kjmol:12.4f}\n")
-            f.write(f"  ZPE:                  {thermo.zpe_kjmol:12.4f}\n\n")
-            
-            f.write("-" * 40 + "\n")
-            f.write("Entropy Contributions (J/mol/K)\n")
-            f.write("-" * 40 + "\n")
-            f.write(f"  S_trans:              {thermo.s_trans_jmolK:12.4f}\n")
-            f.write(f"  S_rot:                {thermo.s_rot_jmolK:12.4f}\n")
-            f.write(f"  S_vib:                {thermo.s_vib_jmolK:12.4f}\n\n")
+            if thermo is not None:
+                # Convert units for display
+                zpe_kcal = Units.kj_to_kcal(thermo.zpe_kjmol)
+                h_total_kcal = Units.kj_to_kcal(thermo.h_total_kjmol)
+                g_corr_kcal = Units.kj_to_kcal(thermo.g_correction_kjmol)
+                s_total_calK = thermo.s_total_jmolK / 4.184  # J/mol/K -> cal/mol/K
+
+                f.write("-" * 40 + "\n")
+                f.write("Key Thermodynamic Values\n")
+                f.write("-" * 40 + "\n")
+                f.write(f"ZPE:                    {thermo.zpe_kjmol:12.4f} kJ/mol  ({zpe_kcal:10.4f} kcal/mol)\n")
+                f.write(f"H_corr (total):         {thermo.h_total_kjmol:12.4f} kJ/mol  ({h_total_kcal:10.4f} kcal/mol)\n")
+                f.write(f"G_corr (total):         {thermo.g_correction_kjmol:12.4f} kJ/mol  ({g_corr_kcal:10.4f} kcal/mol)\n")
+                f.write(f"S_total:                {thermo.s_total_jmolK:12.4f} J/mol/K ({s_total_calK:10.4f} cal/mol/K)\n\n")
+
+                f.write("-" * 40 + "\n")
+                f.write("Enthalpy Contributions (kJ/mol)\n")
+                f.write("-" * 40 + "\n")
+                f.write(f"  H_trans:              {thermo.h_trans_kjmol:12.4f}\n")
+                f.write(f"  H_rot:                {thermo.h_rot_kjmol:12.4f}\n")
+                f.write(f"  H_vib (thermal):      {thermo.h_vib_thermal_kjmol:12.4f}\n")
+                f.write(f"  ZPE:                  {thermo.zpe_kjmol:12.4f}\n\n")
+
+                f.write("-" * 40 + "\n")
+                f.write("Entropy Contributions (J/mol/K)\n")
+                f.write("-" * 40 + "\n")
+                f.write(f"  S_trans:              {thermo.s_trans_jmolK:12.4f}\n")
+                f.write(f"  S_rot:                {thermo.s_rot_jmolK:12.4f}\n")
+                f.write(f"  S_vib:                {thermo.s_vib_jmolK:12.4f}\n\n")
             
             # ==================== Section 2: All Frequencies ====================
             f.write("=" * 70 + "\n")
@@ -960,8 +1182,13 @@ class FrequencyBase(JobABC):
             f.write(f"{'Mode':>6}  {'Frequency':>12}  {'Type':<15}\n")
             f.write("-" * 40 + "\n")
             
-            for i, freq in enumerate(nonzero_freqs):
-                mode_type = "imaginary" if freq < -zero_tol else "real"
+            for i, freq in enumerate(reported_freqs):
+                if abs(freq) < zero_tol:
+                    mode_type = "near-zero uncertain"
+                elif freq < 0:
+                    mode_type = "imaginary"
+                else:
+                    mode_type = "real"
                 f.write(f"{i+1:>6}  {freq:>12.2f}  {mode_type:<15}\n")
             
             f.write("\n")
@@ -976,13 +1203,16 @@ class FrequencyBase(JobABC):
             # Scale factor for visualization (adjustable)
             disp_scale = 1.0  # Can be adjusted for visualization purposes
             
-            for mode_idx, (freq, mode) in enumerate(zip(nonzero_freqs, nonzero_modes)):
+            for mode_idx, (freq, mode) in enumerate(zip(reported_freqs, reported_modes)):
                 # Reshape mode to (N, 3)
                 mode_3d = mode.reshape(n_atoms, 3)
                 
                 # XYZ frame header
                 f.write(f"{n_atoms}\n")
-                mode_type = "imag" if freq < 0 else "real"
+                if abs(freq) < zero_tol:
+                    mode_type = "near-zero uncertain"
+                else:
+                    mode_type = "imag" if freq < 0 else "real"
                 f.write(f"Mode {mode_idx + 1}: {freq:.2f} cm^-1 ({mode_type})\n")
                 
                 # Write atomic positions with displacement
@@ -1006,6 +1236,8 @@ class FrequencyBase(JobABC):
 # Concrete implementations
 # ======================================================================
 class MWFrequency(FrequencyBase):
+    PHYSICAL_VIBRATIONAL_ANALYSIS = True
+
     def compute_frequencies(self, hessian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Diagonalize mass-weighted Hessian to obtain frequencies and modes (ORCA-compatible).
@@ -1025,40 +1257,30 @@ class MWFrequency(FrequencyBase):
         """
         masses = np.asarray(self.atoms.get_masses())
         
-        # Step 1: Project out translations and rotations
         if self.verbosity >= 2:
             self.log_info(["Projecting out translations and rotations...\n"])
         
-        hessian_proj = self._project_hessian(hessian_matrix)
-        
-        # Step 2: Mass-weighting transformation
+        # Step 1: Mass-weighting transformation
         # H_mw = M^{-1/2} @ H @ M^{-1/2}
         # where M is in amu (consistent with Hessian in Angstrom²)
         inv_sqrt_m = np.repeat(1.0 / np.sqrt(masses), 3)
-        h_mw = hessian_proj * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
+        h_mw = hessian_matrix * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
+
+        # Step 2: Project rigid translations/rotations in the same
+        # mass-weighted coordinate metric.
+        h_mw = self._project_hessian(h_mw)
         
         # Step 3: Diagonalize mass-weighted Hessian
         evals, evecs_mw = self._eigh(h_mw)
         
         # Step 4: Convert eigenvalues to frequencies (cm⁻¹)
-        # CRITICAL: Conversion factor for Ha/Angstrom² + amu units
-        # Formula: ν = sqrt(E_h/(amu·Å²)) / (2πc) × 10^8
-        # 
-        # Derivation:
-        #   sqrt(Hartree / (amu * Angstrom²))
-        #   = sqrt(4.3597e-18 J / (1.6605e-27 kg * 1e-20 m²))
-        #   = sqrt(2.625e29) s⁻¹
-        #   = 5.124e14 s⁻¹
-        #   Divide by 2πc (in cm/s) and multiply by 10^8:
-        #   = 5.124e14 / (2π * 2.998e10) * 1e8
-        #   = 2721.1383 cm⁻¹
-        #
-        # NOTE: This is different from ORCA's 5140.4867 because:
-        #       - ORCA uses Ha/Bohr² (not Angstrom²)
-        #       - ORCA uses electron mass (not amu)
-        conversion = 2721.1383  # Ha/Angstrom² + amu -> cm⁻¹
-        
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        # sqrt(Hartree/(amu Angstrom²)) is angular frequency; divide by
+        # 2*pi and the speed of light in cm/s to obtain cm^-1.
+        freqs_cm1 = (
+            np.sign(evals)
+            * np.sqrt(np.abs(evals))
+            * FREQUENCY_CONVERSION_CM1
+        )
         
         # Step 5: Transform eigenvectors back to Cartesian coordinates
         modes_cart = evecs_mw.T * inv_sqrt_m[None, :]
@@ -1141,8 +1363,11 @@ class NonMWFrequency(FrequencyBase):
 
         # This conversion is only valid for mass-weighted systems
         # Using it here gives incorrect results - use MW method instead!
-        conversion = 2721.1383  # Ha/Angstrom² -> cm⁻¹ (assumes unit mass)
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = (
+            np.sign(evals)
+            * np.sqrt(np.abs(evals))
+            * FREQUENCY_CONVERSION_CM1
+        )
 
         modes_cart = evecs.T
         return freqs_cm1, modes_cart
@@ -1170,8 +1395,11 @@ class BothFrequency(FrequencyBase):
         h_m = hessian * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
         evals, evecs_mw = self._eigh(h_m)
 
-        conversion = 2721.1383  # Ha/Angstrom² + amu -> cm⁻¹
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = (
+            np.sign(evals)
+            * np.sqrt(np.abs(evals))
+            * FREQUENCY_CONVERSION_CM1
+        )
         modes_cart = evecs_mw.T * inv_sqrt_m[None, :]
 
         return freqs_cm1, modes_cart
@@ -1188,8 +1416,11 @@ class BothFrequency(FrequencyBase):
         """
         evals, evecs = self._eigh(hessian)
 
-        conversion = 2721.1383  # Ha/Angstrom² -> cm⁻¹ (assumes unit mass)
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = (
+            np.sign(evals)
+            * np.sqrt(np.abs(evals))
+            * FREQUENCY_CONVERSION_CM1
+        )
         modes_cart = evecs.T
 
         return freqs_cm1, modes_cart
@@ -1235,9 +1466,23 @@ class Frequency:
     def __init__(self, output: str, atoms: Atoms, params: Optional[FrequencyParams] = None, paras: Optional[dict] = None):
         self.output = output
         self.atoms = atoms
-        self.params = params if params is not None else FrequencyParams()
+        thermochemistry_was_explicit = (
+            params is not None
+            and getattr(
+                params, "thermochemistry", _THERMOCHEMISTRY_UNSET
+            ) is not _THERMOCHEMISTRY_UNSET
+        )
+        if isinstance(params, FrequencyParams):
+            self.params = replace(params)
+        elif params is not None:
+            self.params = params
+        else:
+            self.params = FrequencyParams()
         if isinstance(paras, dict):
             user = _select_subdict(paras, ("freq", "frequency", "frequency_analysis"))
+            thermochemistry_was_explicit = thermochemistry_was_explicit or (
+                isinstance(user, dict) and "thermochemistry" in _lower_keys(user)
+            )
             _update_dataclass_from_dict(self.params, user)
 
         # ---- Back-compat: map legacy 'mode' -> 'method' if present ----
@@ -1271,6 +1516,27 @@ class Frequency:
         if str(self.params.method).lower() not in ("mw", "nonmw", "both"):
             raise ValueError('method must be one of: "mw", "nonmw", "both"')
 
+        self.params.thermochemistry = _resolve_thermochemistry_policy(
+            self.atoms,
+            getattr(self.params, "thermochemistry", _THERMOCHEMISTRY_UNSET),
+            explicit=thermochemistry_was_explicit,
+        )
+        if self.params.thermochemistry == "none" and bool(
+            self.params.treat_imag_as_real
+        ):
+            raise ValueError(
+                "treat_imag_as_real is not allowed when thermochemistry='none'; "
+                "vibrational-only analysis preserves signed imaginary frequencies"
+            )
+        if (
+            self.params.thermochemistry == "none"
+            and str(self.params.method).lower() != "mw"
+        ):
+            raise ValueError(
+                "vibrational-only frequency analysis supports only the "
+                "mass-weighted method; use method='mw'"
+            )
+
      
   
 
@@ -1284,7 +1550,8 @@ class Frequency:
                 temperature=self.params.temperature,
                 pressure_kpa=self.params.pressure_kpa,
                 ilowfreq=self.params.ilowfreq,
-                device=self.params.device
+                device=self.params.device,
+                thermochemistry=self.params.thermochemistry,
             )
 
             if method == "both":

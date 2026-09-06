@@ -1,0 +1,177 @@
+{
+  "artifact": "route2-vqm24-static-cpks-gate-b-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "cpks_is_backend_for_same_q_to_zero_qm_target": true,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "comparison_contract": {
+    "checkpoint_canonical_fock_residual_relative_maximum": 1e-05,
+    "checkpoint_rebuilt_energy_abs_hartree_maximum": 1e-05,
+    "curvature_absolute_error_rule": "abs(cpks-large_step) <= max(abs(small_step-large_step), 2*scf_energy_tolerance/large_step^2)",
+    "dipole_symmetric_relative_maximum": 0.00058,
+    "direct_cpks_residual_relative_frobenius_maximum": 1e-05,
+    "direct_cpks_residual_relative_infinity_maximum": 2e-05,
+    "electron_number_derivative_abs_maximum": 1e-10,
+    "energy_identity_abs_hartree_per_e2_maximum": 1e-10,
+    "finite_field_reference_step_e": 0.001,
+    "mep_or_dipole_must_also_lie_within_record_two_step_difference": true,
+    "mep_symmetric_relative_maximum": 0.00058,
+    "passivity_maximum_eigenvalue_hartree_per_e2": 1e-08,
+    "reciprocity_relative_frobenius_maximum": 1e-06,
+    "scf_energy_tolerance_hartree": 1e-10,
+    "smaller_step_e": 0.0003
+  },
+  "created_utc": "2026-08-24T01:06:54.428927+00:00",
+  "pilots_already_opened": {
+    "chlorine": {
+      "observable_large_step_relative": {
+        "curvature": 4.4219691462119704e-05,
+        "dipole": 7.674400836228078e-05,
+        "mep": 0.00012986401384327555
+      },
+      "solve_seconds": 889.653240374002
+    },
+    "gate0": {
+      "observable_large_step_relative": {
+        "curvature": 0.00032313089272037227,
+        "dipole": 0.00012359304464445469,
+        "mep": 0.00013637501758189655
+      },
+      "solve_seconds": 902.4619710059997
+    }
+  },
+  "preregistration_sha256": "f2ad644f84606ed80ae7cfc53b4844be910e93a24ae3c8e70b8a5607cb69c38a",
+  "schema_version": 1,
+  "source": {
+    "runner_path": "tools/route2_release/run_vqm24_static_cpks_response.py",
+    "runner_sha256": "c4ba8cbb4a6b45946ac61e5b553cc5e1be44c0cb86e1b034f05dec4ad0c3128b"
+  },
+  "status": "locked-before-unopened-cpks-validation",
+  "validation_records": [
+    {
+      "finite_evidence_result": {
+        "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-bromine-20260824/result.json",
+        "sha256": "f04b3abeafa25be435be31c08261491df8f63caa1c1a69ba4c10ce495409ea63"
+      },
+      "inputs": {
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/bromine/gas/gas.chk",
+          "sha256": "9e8c09cdbca99ac3bf13d80fb670fa2533dd131b3b78a672f75d2544a016e84a"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/bromine/localized-modes.npz",
+          "sha256": "de41df7941b6e38c1f01c5050f9c4b0a250c98f7074cb8945c41613c814a3db6"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/bromine/surface.npz",
+          "sha256": "a1a70bd474796e4298fe3b1f8c4bc1309004a91bcea38c286ba3514326c86907"
+        }
+      },
+      "level3_preregistration": {
+        "path": "docs/route2/preregistrations/vqm24-nonuniform-qm-record-bromine-level3-v1.json",
+        "preregistration_sha256": "80464e1ae5a02e7e2dc19ee8f686484de53137f2efb67e91b380cb46d8a0347a",
+        "sha256": "8c549fa64b8b421caa5e5c3187149b6f223906b36ea2ddf66df17b7fb78fd94c"
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/bromine/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/bromine/result.npz"
+      },
+      "stratum": "bromine"
+    },
+    {
+      "finite_evidence_result": {
+        "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-fluorine-20260824/result.json",
+        "sha256": "a2d4f387e89332bc6457103d2726dc11ee47d07b89e646ac5e1ba875bb8491f5"
+      },
+      "inputs": {
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/gas/gas.chk",
+          "sha256": "5af555e8d8a6860bc23e60f533c31945a8af6dac832d7eaa69b6cbc113b6b7a3"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/localized-modes.npz",
+          "sha256": "fc2759e9d042fba27cba2dff349e9785cc9d56f0db6f55e40ac4b1b5626deb8e"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/fluorine/surface.npz",
+          "sha256": "6198e5c01527474ff8b03bd85bc3b578df65c347dd7a35a9e235064bb6fd4497"
+        }
+      },
+      "level3_preregistration": {
+        "path": "docs/route2/preregistrations/vqm24-nonuniform-qm-record-fluorine-level3-v1.json",
+        "preregistration_sha256": "fd0bc2bb301155f6e1ef37a1d4aab22488ac1e9586199b424e4e2000d8842a5c",
+        "sha256": "f13721a28cba7b63c0812fc0b07725c077279e95562ba2ca72d1d1bcd431671a"
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/fluorine/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/fluorine/result.npz"
+      },
+      "stratum": "fluorine"
+    },
+    {
+      "finite_evidence_result": {
+        "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-phosphorus-20260824/result.json",
+        "sha256": "b8e60638a1098914c6bfc05a533e4eca11823422ca52154d53449cb3b0eefb3f"
+      },
+      "inputs": {
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/gas/gas.chk",
+          "sha256": "654285bf8ba5a9badf4b565ea01a2e3526e5a6a3bf3ebda835d5bcb54fc8ce27"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/localized-modes.npz",
+          "sha256": "2d4efc3329ccb2aee4ab5c7341fbe3b1b7de31eb852e722ba27cc8fecb2ae65f"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/phosphorus/surface.npz",
+          "sha256": "c74d6be97f8da0cb9babac77ebf21b5d153817310caea22c8fbe7838e71b6a8f"
+        }
+      },
+      "level3_preregistration": {
+        "path": "docs/route2/preregistrations/vqm24-nonuniform-qm-record-phosphorus-level3-v1.json",
+        "preregistration_sha256": "6910a173640c217a8f87b24c4a6faa6e1b54a3b752c4cc6f88401d04af11e4c0",
+        "sha256": "eaaebd1cbc9fe3552ea50081058bb5ae48fb2f71ddc315e9f9626fb0dd06ef87"
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/phosphorus/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/phosphorus/result.npz"
+      },
+      "stratum": "phosphorus"
+    },
+    {
+      "finite_evidence_result": {
+        "path": "docs/route2/evidence/vqm24-nonuniform-qm-gate-a-sulfur-20260824/result.json",
+        "sha256": "ec0e50b58db8439de2a186d3c275cb36a103112cf16266246d6b8bd22520bcad"
+      },
+      "inputs": {
+        "gas_checkpoint": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/sulfur/gas/gas.chk",
+          "sha256": "765e951896d249f7837f2b60bf4b40d00b2da0bc4d202fd28b5a38752eca2547"
+        },
+        "modes": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/sulfur/localized-modes.npz",
+          "sha256": "7a42ed83f63b5c75bd5698834d5aa0d37dd68973908b6075a7847bfb038a6e6c"
+        },
+        "surface": {
+          "path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-nonuniform-qm-gate-a-20260824/sulfur/surface.npz",
+          "sha256": "2f6dfbc99180d68fd600930ef8b2adc693c8f6f10e66785c09bd3b5ece2ba2d6"
+        }
+      },
+      "level3_preregistration": {
+        "path": "docs/route2/preregistrations/vqm24-nonuniform-qm-record-sulfur-level3-v1.json",
+        "preregistration_sha256": "526ec1ae6826b8334b4a6aa09fd4d23b4dfce36569cfec82e13827311813c7b0",
+        "sha256": "bcf0de15c97904602da40857646201684beb14d4537119fde8bf3b8a2daa7f8d"
+      },
+      "outputs": {
+        "json": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/sulfur/result.json",
+        "npz": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-static-cpks-gate-b-20260824/sulfur/result.npz"
+      },
+      "stratum": "sulfur"
+    }
+  ]
+}

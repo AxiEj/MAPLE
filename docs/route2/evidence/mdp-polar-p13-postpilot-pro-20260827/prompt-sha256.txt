@@ -1,0 +1,1 @@
+4cf3e52c0dbe25c155a4ede6f7badeb11bec7ba9d71575758b80699f4e6e1823  docs/route2/evidence/mdp-polar-p13-postpilot-pro-20260827/prompt.md

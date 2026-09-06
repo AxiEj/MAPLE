@@ -1,0 +1,89 @@
+{
+  "artifact": "route2-mace-mdp-polar-zero-adt-coupled-screen-v1-record",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_calibration_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "mbis_source_and_mep_diagnostics_used_for_adversarial_selection": true,
+    "mnsol_or_freesolv_imported": false,
+    "panel_is_independent_source_accuracy_evidence": false,
+    "pure_mace_polar_in_scope": false,
+    "single_water_v3_canary_preceded_this_selection": true,
+    "stage_a_zero_start_screen_can_admit_release": false
+  },
+  "failure_message": "Atomic-number identity changed.",
+  "failure_traceback": "Traceback (most recent call last):\n  File \"/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_mace_mdp_polar_zero_adt_coupled_screen.py\", line 656, in run_records\n    arrays = _load_geometry_arrays(dataset, selected)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_mace_mdp_polar_zero_adt_coupled_screen.py\", line 330, in _load_geometry_arrays\n    _require(\n  File \"/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/tools/route2_release/run_mace_mdp_polar_zero_adt_coupled_screen.py\", line 176, in _require\n    raise ValueError(message)\nValueError: Atomic-number identity changed.\n",
+  "failure_type": "ValueError",
+  "preregistration_artifact_sha256": "04a16859c60b2411f039b8f5dc7fff94667a871a5a155f7d9192347819ba0733",
+  "preregistration_file_sha256": "7b07eb78b3e92f468b4b3713f39d12b20dcabb0806f71e1d9d03e46eaab8d447",
+  "record_sha256": "eaa83b2cfdb1fff38bef0ff199a3310b7d02df95b701147efdfa72780e946310",
+  "runtime_identity": {
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+    "environment": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "CUDA_LAUNCH_BLOCKING": null,
+      "CUDA_VISIBLE_DEVICES": null,
+      "MKL_NUM_THREADS": "14",
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "numpy": {
+      "show_config": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.11.14/lib/python3.11/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.31.188.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.2.4\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-gjolnpt6/bin/python\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  not found:\n  - X86_V4\n  - AVX512_ICL\n  - AVX512_SPR\n\n",
+      "version": "2.4.6"
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "maple": "0.1.4",
+      "numpy": "2.4.6",
+      "pyddx": "0.8.0",
+      "pyscf": "2.13.1",
+      "scipy": "1.17.1",
+      "torch": "2.12.0+cu130"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "selected_mace_polar_device": "cpu",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "13.0",
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "cudnn_version": 92000,
+      "default_dtype": "torch.float32",
+      "deterministic_algorithms_enabled": true,
+      "deterministic_debug_mode": 2,
+      "devices": [
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "threads": 1,
+      "version": "2.12.0+cu130"
+    }
+  },
+  "runtime_identity_sha256": "932d663388a64bfa9fc30536fa48e34b34e65dd8eeb12a944b0102215e1086d3",
+  "schema_version": 1,
+  "screen_index": 2,
+  "selection": {
+    "screen_index": 2,
+    "selection_category": "largest_fixed_source_pcm_error",
+    "selection_identity": {
+      "atom_count": 45,
+      "atomic_numbers_sha256": "9bc3dce79261df409a0ded56f8f06af624f83a2733d442060c22d93a58ad2e40",
+      "configuration": 0,
+      "molecule": "08P THR",
+      "positions_raw_sha256": "4f1eb6456184ab2e5a5bbf8f72a8419be4a760e9be97efdc3e6abde0c1977b61"
+    },
+    "selection_metric": "polar_zero_point_absolute_error_kcal_mol",
+    "selection_metric_value": 4.021566082692505,
+    "selection_rank_before_duplicate_filter": 3,
+    "source_record_index": 6,
+    "source_record_sha256": "0ca12d6ca6afa30b6794534b16cdcfa01a05fe5aa5bb29e50fd8f5d0c33eaa69"
+  },
+  "stage_a_passed": false,
+  "status": "provider-failure"
+}

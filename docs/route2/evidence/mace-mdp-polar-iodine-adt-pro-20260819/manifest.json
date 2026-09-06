@@ -1,0 +1,33 @@
+{
+  "artifact_id": "route2-mace-mdp-polar-iodine-adt-pro-audit-v1",
+  "claim_boundary": "External Pro review plus an independently reproduced target-free operator probe. This does not admit iodine production accuracy, the 505 panel, forces, H/V/M, or modification of the immutable running shards.",
+  "created_utc": "2026-08-18T21:49:23.997362+00:00",
+  "decision": {
+    "forbidden": "do not call a uniformly rescaled ECP pseudo-density a full neutral density; do not use it for neutral penetration",
+    "operational_extension": "25-electron def2-ECP valence pseudo-density with N_eff=25, role=adt_translation_shape",
+    "reference_audit": "53-electron genuine all-electron relativistic spherical density"
+  },
+  "execution_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+  "execution_tree_clean": false,
+  "files_sha256": {
+    "iodine_adt_operator_probe.py": "615172cbd3ec0c218647e8532864014a5777d20af1d2ecead8bb2a7cde6abe5f",
+    "iodine_adt_operator_probe_output.txt": "ea98a63c6956a65af7c527a0e91dce23606b63a4dea7546d7996f66f8660b543",
+    "iodine_atomic_shape_probe.py": "bf3aa5d41a26a5d96995b66c0561bca77492450bc41e9a6f4f6b3833e7a9ddc1",
+    "pro_answer_text.txt": "61503d3f41d0355439acb7debe863c24ebb16da31a750d8846eb82c2c7dff72f",
+    "pro_answer_uia.txt": "c5c0670000553ecc3c2e37ff34d7d6d634fe2eaf2dff3cfc98453b11c5d9e37b",
+    "pro_mode.txt": "5ab51295bb008f43cab383f64a7e724346908e5c6a09eb03ecd3de1abb6062ee",
+    "pro_prompt.txt": "8cfc35be826561d543f3b918856507ad7beeccbf12afedb78fcdd2d60905e793",
+    "pro_submit_state.txt": "c547b6fc6c518c6660619ef7dc6de4a842fe0eeab7938555c57cd8d83b1dfe0e"
+  },
+  "independent_probe": {
+    "allocation_energy_relative_difference": 0.4586348047330564,
+    "interpretation": "per-unit-dipole boundary tangent agrees closely, while all-electron core-dominated kappa nearly removes iodine from minimum-self-work allocation; this supports a role-separated valence-response ADT asset rather than reusing a full neutral penetration density",
+    "iodine_phi_ecp_vs_x2c_relative_frobenius": 0.001747297339398907,
+    "iodine_psi_exact_match": true,
+    "molecular_allocation_energy_ecp_eV": -0.16876669621736365,
+    "molecular_allocation_energy_x2c_eV": -0.3117427896969732
+  },
+  "schema_version": "route2-hybrid-iodine-adt-pro-audit-v1",
+  "terminal_marker": "USE ECP-VALENCE ADT WITH ALL-ELECTRON AUDIT",
+  "verified_model": "Pro, 5 of 5"
+}

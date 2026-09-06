@@ -1,0 +1,21 @@
+{
+  "advisory_only": true,
+  "captured_utc": "2026-08-18T06:03:03.486889Z",
+  "files_sha256": {
+    "q21-answer.md": "b945792f4334f9e7ffdf3c7f49f9763121a20e94397eeb071a82fff0706093d5",
+    "q21-complete-uia.tsv": "3195582ba8a8e90d900f56c254942da3c4f40992724ffe865b189c91fbfc0e91",
+    "q21-prompt.txt": "a5c692adaec63e59c96453ce6e52852db8ac281e4b76e8ae2580655c1181a7d0",
+    "q21-submit-script.ps1": "b283a2c2783617ed0c968614f8d3756f68bdaaa219013458333929f16235d0d3",
+    "q21-submit-state.txt": "d21efeaae7cfac5f30085a4f485ece7be945948b58768b7cc58505cdd3a4a17e",
+    "q21-verified-pro-mode.txt": "fab60287b2966db1fe575620bb973f897cd21cac48b35edfead2dad6e6fadf21"
+  },
+  "manifest_sha256": "13f93ab383827c144144d71ca33d310d46988660426d6e1d66abc834b60da8b5",
+  "model_selection": "Pro, 5 of 5",
+  "question_id": "mdp-polar-operational-arithmetic-tangent-q21",
+  "schema_version": "route2-chrome-chatgpt-pro-advisory-v1",
+  "submitted_utc": "2026-08-18T05:28:29.9957290Z",
+  "terminal_verdict": "Tier V unchanged-response correction is NO-GO; the unique arithmetic-chart additive tangent is authorized only for one target-independent operational finite-field/root/force audit before any frozen accuracy panel.",
+  "verified_utc": "2026-08-18T05:28:27.7046471Z",
+  "window_hwnd": 131280,
+  "worked_for": "21m 7s"
+}

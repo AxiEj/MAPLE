@@ -3,13 +3,14 @@
 This is the fixed-coefficient-topology replacement for the failed GEPOL
 finite-difference force candidate.  The selected scalar is
 
-``E = E_vac^POLAR - 1/2 b(u*)^T A(R)^-1 b(u*)``
+``E = E_vac^POLAR - f_eps/2 b(u*)^T A(R)^-1 b(u*)``
 
 with a point-harmonic permanent MACE-MDP source, a Gaussian-harmonic induced
 MACE-POLAR increment, and the checkpoint-native two-width radial receiver.
-The self-consistent root and the full scalar are rebuilt at every Richardson
-stencil point.  This remains an operational scalar, not a Tier-V common
-variational functional.
+The public force is the matrix-free implicit-adjoint total derivative of this
+same operational scalar.  A full re-solved Richardson stencil remains an
+independent diagnostic oracle.  This is not a Tier-V common variational
+functional.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ import platform
 import sys
 
 import numpy as np
+from scipy.sparse.linalg import LinearOperator, gmres
 
 from maple.function.calculator.extra_correction.implicit.smd_cds import (
     smd_water_coulomb_radii,
@@ -46,6 +48,10 @@ from maple.solvation.continuum.harmonic_point_source import (
 )
 from maple.solvation.continuum.harmonic_torch_functional import (
     SmoothWeightedHarmonicGalerkinFunctionalCandidate,
+)
+from maple.solvation.continuum.harmonic_torch_primitives import (
+    _assemble_point_source,
+    _torch,
 )
 from maple.solvation.coupling.exact_gto import (
     mace_polar_learned_source_embedding_matrix,
@@ -84,6 +90,8 @@ HYBRID_HARMONIC_SCALAR_PROVIDER_ID = (
 )
 NUMERICAL_FORCE_COARSE_STEP_ANGSTROM = 5.0e-4
 NUMERICAL_FORCE_MAX_ERROR_EV_PER_ANGSTROM = 2.0e-4
+ANALYTIC_ADJOINT_TOLERANCE_EV = 1.0e-10
+MAX_ANALYTIC_ADJOINT_ITERATIONS = 200
 ADMITTED_CONTINUUM_SETTINGS = tuple(
     sorted(
         {
@@ -235,6 +243,63 @@ class HybridHarmonicEnergyState:
         return self.vacuum_energy_ev + self.polarization_energy_ev
 
 
+@dataclass(frozen=True, slots=True)
+class HybridHarmonicAnalyticForceEvaluation:
+    """Contraction-only implicit-adjoint derivative of the operational scalar."""
+
+    central_state: HybridHarmonicEnergyState
+    vacuum_forces_ev_per_angstrom: np.ndarray
+    continuum_fixed_source_forces_ev_per_angstrom: np.ndarray
+    permanent_source_forces_ev_per_angstrom: np.ndarray
+    induced_source_forces_ev_per_angstrom: np.ndarray
+    model_field_geometry_forces_ev_per_angstrom: np.ndarray
+    adjoint_field_ev: np.ndarray
+    adjoint_residual_ev: float
+    adjoint_iterations: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.central_state, HybridHarmonicEnergyState):
+            raise TypeError("central_state must be HybridHarmonicEnergyState.")
+        count = self.central_state.total_source4.shape[0]
+        for name in (
+            "vacuum_forces_ev_per_angstrom",
+            "continuum_fixed_source_forces_ev_per_angstrom",
+            "permanent_source_forces_ev_per_angstrom",
+            "induced_source_forces_ev_per_angstrom",
+            "model_field_geometry_forces_ev_per_angstrom",
+        ):
+            value = _readonly(getattr(self, name), shape=(count, 3), name=name)
+            object.__setattr__(self, name, value)
+        adjoint = _readonly(
+            self.adjoint_field_ev,
+            shape=self.central_state.native_field_ev.shape,
+            name="adjoint_field_ev",
+        )
+        residual = float(self.adjoint_residual_ev)
+        if not np.isfinite(residual) or residual < 0.0:
+            raise ValueError("adjoint_residual_ev must be finite and non-negative.")
+        if (
+            type(self.adjoint_iterations) is not int
+            or not 0 <= self.adjoint_iterations <= MAX_ANALYTIC_ADJOINT_ITERATIONS
+        ):
+            raise ValueError("adjoint_iterations is outside the configured bound.")
+        object.__setattr__(self, "adjoint_field_ev", adjoint)
+        object.__setattr__(self, "adjoint_residual_ev", residual)
+
+    @property
+    def total_forces_ev_per_angstrom(self) -> np.ndarray:
+        return sum(
+            (
+                self.vacuum_forces_ev_per_angstrom,
+                self.continuum_fixed_source_forces_ev_per_angstrom,
+                self.permanent_source_forces_ev_per_angstrom,
+                self.induced_source_forces_ev_per_angstrom,
+                self.model_field_geometry_forces_ev_per_angstrom,
+            ),
+            start=np.zeros_like(self.vacuum_forces_ev_per_angstrom),
+        )
+
+
 class MACE_MDPPolarHybridSmoothHarmonicEnergy:
     """One geometry-bound hybrid scalar evaluator."""
 
@@ -248,13 +313,14 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
         "_permanent_rhs",
         "_point_source_implementation_sha256",
         "_receiver_operator",
+        "_screening_factor",
         "_sealed",
         "_surface_operator",
     )
 
     profile_id = PROFILE_ID
-    force_available = False
-    coordinate_derivative_available = False
+    force_available = True
+    coordinate_derivative_available = True
 
     def __init__(
         self,
@@ -295,7 +361,8 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
         point_operator = weighted_basis.T @ point_raw
         embedding = np.kron(np.eye(count), mace_polar_learned_source_embedding_matrix())
         induced_operator = source8 @ embedding
-        receiver = -source8.T
+        screening_factor = continuum.cpcm_screening_factor
+        receiver = -screening_factor * source8.T
         anchor = hybrid.prepare(geometry)
         permanent_rhs = point_operator @ anchor.permanent_source4.reshape(-1)
         configuration = canonical_metadata_sha256(
@@ -321,6 +388,7 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
                 "receiver_operator_sha256": _array_sha256(
                     receiver, name="receiver operator"
                 ),
+                "cpcm_screening_factor": screening_factor,
                 "permanent_rhs_sha256": _array_sha256(
                     permanent_rhs, name="permanent rhs"
                 ),
@@ -336,6 +404,7 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
         object.__setattr__(self, "_surface_operator", surface)
         object.__setattr__(self, "_induced_operator", induced_operator)
         object.__setattr__(self, "_receiver_operator", receiver)
+        object.__setattr__(self, "_screening_factor", screening_factor)
         object.__setattr__(self, "_permanent_rhs", permanent_rhs)
         object.__setattr__(
             self,
@@ -364,6 +433,189 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
         ):
             raise RuntimeError("harmonic point-source implementation drifted.")
         return self._configuration_sha256
+
+    def _joint_torch_graph(
+        self,
+        geometry: object,
+        permanent_source4: object,
+        induced_source4: object,
+        *,
+        coordinate_grad: bool,
+        source_grad: bool,
+    ):
+        """Build the heterogeneous point/Gaussian scalar and receiver graph."""
+
+        count = self._validate_geometry(geometry)
+        permanent = self._hybrid.source_space.validate(
+            permanent_source4,
+            atom_count=count,
+            name="permanent source",
+        )
+        induced = self._hybrid.source_space.validate(
+            induced_source4,
+            atom_count=count,
+            name="induced source",
+        )
+        positions = self._continuum._positions_tensor(
+            geometry,
+            atom_count=count,
+            requires_grad=coordinate_grad,
+        )
+        torch = _torch()
+        permanent_tensor = torch.tensor(
+            permanent,
+            dtype=positions.dtype,
+            device=positions.device,
+            requires_grad=source_grad,
+        )
+        induced_tensor = torch.tensor(
+            induced,
+            dtype=positions.dtype,
+            device=positions.device,
+            requires_grad=source_grad,
+        )
+        weighted_basis, _, _, surface, gaussian_source8 = (
+            self._continuum._assemble_torch(positions)
+        )
+        raw_point = _assemble_point_source(
+            positions,
+            radii=self._continuum.radii_angstrom,
+            lmax=self._continuum.physical_lmax,
+            radial_order=self._continuum.source_radial_quadrature_order,
+        )
+        point_operator = weighted_basis.T @ raw_point
+        embedding = positions.new_tensor(
+            np.kron(
+                np.eye(count),
+                mace_polar_learned_source_embedding_matrix(),
+            )
+        )
+        induced_operator = gaussian_source8 @ embedding
+        rhs = point_operator @ permanent_tensor.reshape(
+            -1
+        ) + induced_operator @ induced_tensor.reshape(-1)
+        sigma = torch.linalg.solve(surface, rhs)
+        screening = self._screening_factor
+        energy = -0.5 * screening * (rhs @ sigma)
+        field = (-screening * gaussian_source8.T @ sigma).reshape(count, 8)
+        return positions, permanent_tensor, induced_tensor, energy, field
+
+    @staticmethod
+    def _validate_joint_graph_replay(
+        state: HybridHarmonicEnergyState,
+        energy: object,
+        field: object,
+    ) -> None:
+        energy_value = float(energy.detach().cpu())
+        field_values = np.asarray(field.detach().cpu(), dtype=float)
+        if not np.isclose(
+            energy_value,
+            state.polarization_energy_ev,
+            rtol=2.0e-11,
+            atol=2.0e-11,
+        ):
+            raise RuntimeError("Torch harmonic scalar did not replay the root energy.")
+        if not np.allclose(
+            field_values,
+            state.native_field_ev,
+            rtol=2.0e-10,
+            atol=2.0e-10,
+        ):
+            raise RuntimeError("Torch harmonic receiver did not replay the root field.")
+
+    def _energy_source_gradients(
+        self,
+        geometry: object,
+        state: HybridHarmonicEnergyState,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        _, permanent, induced, energy, field = self._joint_torch_graph(
+            geometry,
+            self._anchor.permanent_source4,
+            state.induced_source4,
+            coordinate_grad=False,
+            source_grad=True,
+        )
+        self._validate_joint_graph_replay(state, energy, field)
+        permanent_gradient, induced_gradient = _torch().autograd.grad(
+            energy,
+            (permanent, induced),
+            create_graph=False,
+            allow_unused=False,
+        )
+        return (
+            np.asarray(permanent_gradient.detach().cpu(), dtype=float).copy(),
+            np.asarray(induced_gradient.detach().cpu(), dtype=float).copy(),
+        )
+
+    def _field_source_vjp(
+        self,
+        geometry: object,
+        state: HybridHarmonicEnergyState,
+        field_cotangent: object,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        cotangent = self._hybrid.receiver_space.validate(
+            field_cotangent,
+            atom_count=state.total_source4.shape[0],
+            name="harmonic receiver cotangent",
+        )
+        _, permanent, induced, energy, field = self._joint_torch_graph(
+            geometry,
+            self._anchor.permanent_source4,
+            state.induced_source4,
+            coordinate_grad=False,
+            source_grad=True,
+        )
+        self._validate_joint_graph_replay(state, energy, field)
+        cotangent_tensor = field.new_tensor(cotangent)
+        contraction = _torch().sum(field * cotangent_tensor)
+        permanent_gradient, induced_gradient = _torch().autograd.grad(
+            contraction,
+            (permanent, induced),
+            create_graph=False,
+            allow_unused=False,
+        )
+        return (
+            np.asarray(permanent_gradient.detach().cpu(), dtype=float).copy(),
+            np.asarray(induced_gradient.detach().cpu(), dtype=float).copy(),
+        )
+
+    def _coordinate_partials(
+        self,
+        geometry: object,
+        state: HybridHarmonicEnergyState,
+        field_cotangent: object,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        cotangent = self._hybrid.receiver_space.validate(
+            field_cotangent,
+            atom_count=state.total_source4.shape[0],
+            name="harmonic receiver cotangent",
+        )
+        positions, _, _, energy, field = self._joint_torch_graph(
+            geometry,
+            self._anchor.permanent_source4,
+            state.induced_source4,
+            coordinate_grad=True,
+            source_grad=False,
+        )
+        self._validate_joint_graph_replay(state, energy, field)
+        (energy_gradient,) = _torch().autograd.grad(
+            energy,
+            (positions,),
+            retain_graph=True,
+            create_graph=False,
+            allow_unused=False,
+        )
+        field_contraction = _torch().sum(field * field.new_tensor(cotangent))
+        (field_gradient,) = _torch().autograd.grad(
+            field_contraction,
+            (positions,),
+            create_graph=False,
+            allow_unused=False,
+        )
+        return (
+            np.asarray(energy_gradient.detach().cpu(), dtype=float).copy(),
+            np.asarray(field_gradient.detach().cpu(), dtype=float).copy(),
+        )
 
     def _validate_geometry(self, geometry: object) -> int:
         if geometry_sha256(geometry) != self._geometry_sha256:
@@ -395,7 +647,7 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
         sigma = np.linalg.solve(self._surface_operator, rhs)
         target = (self._receiver_operator @ sigma).reshape(count, 8)
         final_residual = float(np.linalg.norm(target - field))
-        energy = -0.5 * float(np.vdot(rhs, sigma))
+        energy = -0.5 * self._screening_factor * float(np.vdot(rhs, sigma))
         if not np.isfinite(energy):
             raise RuntimeError("hybrid harmonic scalar is non-finite.")
         return {
@@ -463,9 +715,126 @@ class MACE_MDPPolarHybridSmoothHarmonicEnergy:
             coefficient_topology_id=self._continuum.topology_sha256(),
         )
 
+    def evaluate_analytic_forces(
+        self,
+        geometry: object,
+        *,
+        central_state: HybridHarmonicEnergyState | None = None,
+    ) -> HybridHarmonicAnalyticForceEvaluation:
+        """Differentiate the operational scalar by an implicit adjoint.
+
+        This is the public derivative route after independent comparison with
+        the admitted Richardson force.  It makes no common-functional claim.
+        """
+
+        if not self._hybrid.coordinate_derivative_available:
+            raise NotImplementedError(
+                "Hybrid response has no complete coordinate derivative."
+            )
+        state = self.solve(geometry) if central_state is None else central_state
+        if not isinstance(state, HybridHarmonicEnergyState):
+            raise TypeError("central_state must be HybridHarmonicEnergyState.")
+        if state.geometry_sha256 != self._geometry_sha256:
+            raise ValueError("central_state belongs to a different geometry.")
+        if state.evaluator_configuration_sha256 != self.configuration_sha256():
+            raise ValueError("central_state belongs to a different evaluator.")
+
+        energy_permanent, energy_induced = self._energy_source_gradients(
+            geometry, state
+        )
+        rhs = self._hybrid.field_vjp(
+            geometry,
+            self._anchor,
+            state.native_field_ev,
+            energy_induced,
+        )
+        dimension = rhs.size
+        iterations = 0
+
+        def transpose_residual_action(flat_values: np.ndarray) -> np.ndarray:
+            field_cotangent = np.asarray(flat_values, dtype=float).reshape(
+                state.native_field_ev.shape
+            )
+            _, induced_cotangent = self._field_source_vjp(
+                geometry, state, field_cotangent
+            )
+            response = self._hybrid.field_vjp(
+                geometry,
+                self._anchor,
+                state.native_field_ev,
+                induced_cotangent,
+            )
+            return (field_cotangent - response).reshape(-1)
+
+        operator = LinearOperator(
+            (dimension, dimension),
+            matvec=transpose_residual_action,
+            dtype=np.float64,
+        )
+        restart = min(50, dimension)
+
+        def count_iteration(_residual: object) -> None:
+            nonlocal iterations
+            iterations += 1
+
+        solution, info = gmres(
+            operator,
+            rhs.reshape(-1),
+            atol=ANALYTIC_ADJOINT_TOLERANCE_EV,
+            rtol=0.0,
+            restart=restart,
+            maxiter=MAX_ANALYTIC_ADJOINT_ITERATIONS,
+            callback=count_iteration,
+            # ``legacy`` makes ``maxiter`` count inner Krylov iterations,
+            # matching the explicit bound stored in the immutable result.
+            callback_type="legacy",
+        )
+        adjoint = np.asarray(solution, dtype=float).reshape(state.native_field_ev.shape)
+        true_residual = float(
+            np.linalg.norm(
+                transpose_residual_action(adjoint.reshape(-1)) - rhs.reshape(-1)
+            )
+        )
+        if info != 0 or true_residual > 10.0 * ANALYTIC_ADJOINT_TOLERANCE_EV:
+            raise RuntimeError(
+                "hybrid harmonic adjoint did not satisfy its true residual: "
+                f"info={info}, residual={true_residual:.6e} eV."
+            )
+
+        implicit_permanent, implicit_induced = self._field_source_vjp(
+            geometry, state, adjoint
+        )
+        permanent_gradient = self._hybrid.permanent_source_position_vjp(
+            geometry,
+            self._anchor,
+            energy_permanent + implicit_permanent,
+        )
+        induced_gradient = self._hybrid.induced_source_position_vjp(
+            geometry,
+            self._anchor,
+            state.native_field_ev,
+            energy_induced + implicit_induced,
+        )
+        continuum_gradient, field_geometry_gradient = self._coordinate_partials(
+            geometry, state, adjoint
+        )
+        return HybridHarmonicAnalyticForceEvaluation(
+            central_state=state,
+            vacuum_forces_ev_per_angstrom=(
+                self._hybrid.vacuum_forces_ev_per_angstrom(geometry)
+            ),
+            continuum_fixed_source_forces_ev_per_angstrom=-continuum_gradient,
+            permanent_source_forces_ev_per_angstrom=-permanent_gradient,
+            induced_source_forces_ev_per_angstrom=-induced_gradient,
+            model_field_geometry_forces_ev_per_angstrom=-field_geometry_gradient,
+            adjoint_field_ev=adjoint,
+            adjoint_residual_ev=true_residual,
+            adjoint_iterations=iterations,
+        )
+
 
 class MACE_MDPPolarHybridSmoothHarmonicPES:
-    """Geometry-resolved smooth scalar with error-estimated numerical forces."""
+    """Geometry-resolved smooth scalar with an implicit-adjoint total force."""
 
     __slots__ = (
         "_atomic_numbers",
@@ -473,6 +842,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         "_configuration_sha256",
         "_continuum_settings",
         "_device",
+        "_dielectric",
         "_dtype",
         "_force_backend",
         "_hybrid",
@@ -482,8 +852,8 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
     provider_id = HYBRID_HARMONIC_SCALAR_PROVIDER_ID
     profile_id = PROFILE_ID
     force_available = True
-    coordinate_derivative_available = False
-    force_derivative_kind = "numerical-scalar-gradient-richardson-v1"
+    coordinate_derivative_available = True
+    force_derivative_kind = "operational-implicit-adjoint-total-derivative-v1"
 
     def __init__(
         self,
@@ -493,6 +863,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         cavity_radii_angstrom: object,
         dtype: object,
         device: object,
+        dielectric: float | None = None,
         transition_width_angstrom2: float = 0.18,
         surface_lmax: int = 1,
         exposure_lmax: int = 2,
@@ -520,6 +891,14 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             or np.any(radii <= 0.0)
         ):
             raise ValueError("cavity_radii_angstrom must be positive with shape (N,).")
+        if dielectric is None:
+            normalized_dielectric = None
+        else:
+            if isinstance(dielectric, bool):
+                raise TypeError("dielectric must be a real scalar or None.")
+            normalized_dielectric = float(dielectric)
+            if not np.isfinite(normalized_dielectric) or normalized_dielectric < 1.0:
+                raise ValueError("dielectric must be finite and at least one.")
         settings = {
             "transition_width_angstrom2": float(transition_width_angstrom2),
             "surface_lmax": int(surface_lmax),
@@ -542,6 +921,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         object.__setattr__(self, "_cavity_radii_angstrom", radii)
         object.__setattr__(self, "_dtype", dtype)
         object.__setattr__(self, "_device", device)
+        object.__setattr__(self, "_dielectric", normalized_dielectric)
         object.__setattr__(self, "_continuum_settings", tuple(sorted(settings.items())))
         object.__setattr__(self, "_force_backend", backend)
         object.__setattr__(
@@ -563,7 +943,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
     def _current_configuration_sha256(self) -> str:
         return canonical_metadata_sha256(
             {
-                "contract": "mace-mdp-polar-hybrid-smooth-harmonic-pes-v1",
+                "contract": "mace-mdp-polar-hybrid-smooth-harmonic-pes-v2",
                 "provider_id": self.provider_id,
                 "profile_id": self.profile_id,
                 "scalar_id": SCALAR_ID,
@@ -573,8 +953,14 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
                 "cavity_radii_angstrom": self._cavity_radii_angstrom.tolist(),
                 "dtype": str(self._dtype),
                 "device": str(self._device),
+                "dielectric": self._dielectric,
                 "continuum_settings": dict(self._continuum_settings),
                 "force_derivative_kind": self.force_derivative_kind,
+                "analytic_adjoint_tolerance_eV": ANALYTIC_ADJOINT_TOLERANCE_EV,
+                "maximum_analytic_adjoint_iterations": (
+                    MAX_ANALYTIC_ADJOINT_ITERATIONS
+                ),
+                "richardson_role": "independent-diagnostic-oracle",
                 "coarse_step_angstrom": self._force_backend.coarse_step_angstrom,
                 "fine_step_angstrom": self._force_backend.fine_step_angstrom,
                 "maximum_error_eV_per_A": self._force_backend.maximum_error_eV_per_A,
@@ -629,6 +1015,11 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             raise RuntimeError(
                 "Harmonic continuum settings differ from the admitted evidence."
             )
+        if self._dielectric is not None:
+            raise RuntimeError(
+                "Finite-dielectric harmonic electrostatics is outside the admitted "
+                "conductor-limit evidence."
+            )
         if (
             self._force_backend.coarse_step_angstrom
             != NUMERICAL_FORCE_COARSE_STEP_ANGSTROM
@@ -657,6 +1048,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             radii_angstrom=tuple(float(value) for value in self._cavity_radii_angstrom),
             dtype=self._dtype,
             device=self._device,
+            dielectric=self._dielectric,
             scalar_id=SCALAR_ID,
             **dict(self._continuum_settings),
         )
@@ -704,6 +1096,29 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         return self._force_backend.evaluate(
             self, geometry, central_sample=self._sample_from_state(state)
         )
+
+    def analytic_force(
+        self,
+        geometry: object,
+        *,
+        central_state: HybridHarmonicEnergyState | None = None,
+    ) -> HybridHarmonicAnalyticForceEvaluation:
+        """Evaluate the public analytic-adjoint force with immutable leaves."""
+
+        evaluator = self._evaluator(geometry)
+        state = evaluator.solve(geometry) if central_state is None else central_state
+        self._validate_central_state(geometry, state)
+        return evaluator.evaluate_analytic_forces(geometry, central_state=state)
+
+    def analytic_force_diagnostic(
+        self,
+        geometry: object,
+        *,
+        central_state: HybridHarmonicEnergyState | None = None,
+    ) -> HybridHarmonicAnalyticForceEvaluation:
+        """Compatibility alias retained for pre-admission validation callers."""
+
+        return self.analytic_force(geometry, central_state=central_state)
 
     def numerical_force_component(
         self,
@@ -776,21 +1191,38 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
         self._validate_admitted_runtime(geometry)
         state = self.solve(geometry)
         force_evaluation = (
-            self.numerical_force(geometry, central_state=state) if need_forces else None
+            self.analytic_force(geometry, central_state=state) if need_forces else None
         )
         force_components = ()
-        force_error = None
         if force_evaluation is not None:
-            force_components = (
+            force_components = tuple(
                 ForceComponent(
-                    "hybrid_smooth_harmonic_scalar_numerical_gradient",
-                    tuple(
-                        tuple(float(value) for value in row)
-                        for row in force_evaluation.forces_eV_per_A
+                    name,
+                    tuple(tuple(float(value) for value in row) for row in values),
+                )
+                for name, values in (
+                    (
+                        "macepolar_zero_field_vacuum_force",
+                        force_evaluation.vacuum_forces_ev_per_angstrom,
                     ),
-                ),
+                    (
+                        "continuum_fixed_source_coordinate_force",
+                        force_evaluation.continuum_fixed_source_forces_ev_per_angstrom,
+                    ),
+                    (
+                        "mdp_permanent_source_coordinate_force",
+                        force_evaluation.permanent_source_forces_ev_per_angstrom,
+                    ),
+                    (
+                        "macepolar_induced_source_coordinate_force",
+                        force_evaluation.induced_source_forces_ev_per_angstrom,
+                    ),
+                    (
+                        "macepolar_native_field_geometry_force",
+                        force_evaluation.model_field_geometry_forces_ev_per_angstrom,
+                    ),
+                )
             )
-            force_error = force_evaluation.maximum_error_estimate_eV_per_A
         return Route2Result(
             atom_count=atom_count(geometry),
             profile_id=self.profile_id,
@@ -806,14 +1238,18 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
             force_components=force_components,
             provenance=self._provenance(),
             primal_residual=state.primal_residual_ev,
-            adjoint_residual=None,
-            force_error_estimate_eV_per_A=force_error,
+            adjoint_residual=(
+                None
+                if force_evaluation is None
+                else force_evaluation.adjoint_residual_ev
+            ),
+            force_error_estimate_eV_per_A=None,
             root_identity="zero-field-and-twice-permanent-field-starts-agree-v1",
             root_sha256=state.root_sha256,
             evidence_artifact_ids=profile.evidence_artifact_ids,
             admitted_domain=(
                 ("accuracy", "not-admitted"),
-                ("capability", "experimental-electrostatic-E-and-numerical-F"),
+                ("capability", "experimental-electrostatic-E-and-analytic-F"),
                 ("charge_spin", "neutral-singlet"),
                 ("component", "electrostatic-polarization-only"),
                 ("continuum", "smooth-fixed-coefficient-harmonic-galerkin"),
@@ -825,7 +1261,7 @@ class MACE_MDPPolarHybridSmoothHarmonicPES:
                 ("solvent", "water-cavity-conductor-limit-electrostatic"),
             ),
             warnings=(
-                "Experimental electrostatic scalar and numerical scalar-gradient "
+                "Experimental electrostatic scalar and implicit-adjoint same-scalar "
                 "force; not a complete solvation free energy or accuracy admission.",
                 "Hessians, frequencies, and molecular dynamics remain unavailable.",
                 "Strict Tier V is not claimed; this is an operational root/ledger.",
@@ -848,6 +1284,7 @@ __all__ = [
     "ADMITTED_HYBRID_CONFIGURATION_SHA256",
     "ADMITTED_HYBRID_PROVENANCE_SHA256",
     "HYBRID_HARMONIC_SCALAR_PROVIDER_ID",
+    "HybridHarmonicAnalyticForceEvaluation",
     "HybridHarmonicEnergyState",
     "MACE_MDPPolarHybridSmoothHarmonicEnergy",
     "MACE_MDPPolarHybridSmoothHarmonicPES",

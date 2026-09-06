@@ -1,0 +1,219 @@
+{
+  "architecture": {
+    "A2": "atom radial-null + two atom vector factor rows + local l2 rows",
+    "A3": "A2 plus symmetric local edge charge/dipole factor row",
+    "backbones_frozen": true,
+    "edge_cutoff": "C2 quintic, 5.0 angstrom",
+    "new_message_passing": false,
+    "parameter_cap": 2500,
+    "permanent_source": "frozen existing MACE-MDP point q/p affine term",
+    "response_scalar": "-1/2 ||C_theta(R) eta_P13||^2",
+    "response_source": "gradient of sole scalar; no independent head",
+    "source_space": "radial8 plus Gaussian-STF-l2 sigma=1.5 angstrom"
+  },
+  "artifact": "route2-vqm24-mdp-p13-block-passive-response-pilot-prereg-v1",
+  "candidate_sequence": [
+    "A2",
+    "A3"
+  ],
+  "claim_boundary": {
+    "development_train_formulas_only": true,
+    "experimental_solvation_target_read": false,
+    "grouped_formula_cv_completed": false,
+    "maple_capability_admitted": false,
+    "model_selected_or_admitted": false,
+    "pcm_or_cavity_used": false,
+    "response_architecture_pilot": true,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T04:00:45.086175+00:00",
+  "decision": {
+    "A2_pass_stops_before_A3": true,
+    "A3_runs_only_if_A2_fails": true,
+    "failure_of_both_candidates_authorizes_only_preregistered_A4": true,
+    "no_MAPLE_capability_or_solvation_accuracy_claim": true,
+    "passing_candidate_only_authorizes_grouped_train_CV": true,
+    "validation_and_blind_remain_unopened": true
+  },
+  "gates": {
+    "maximum_audit_mep_absolute_hartree_per_e_per_source_e": 0.002,
+    "maximum_audit_mep_relative": 0.2,
+    "maximum_dipole_response_relative": 0.2,
+    "maximum_individual_audit_to_fit_ratio": 2.0,
+    "maximum_induced_charge_residual_e": 1e-12,
+    "maximum_source_point_reciprocity_relative": 1e-10,
+    "maximum_source_point_response_relative": 0.2,
+    "maximum_source_point_symmetric_eigenvalue_hartree_per_e2": 1e-10,
+    "mean_audit_mep_relative_maximum": 0.08,
+    "mean_audit_to_fit_ratio_maximum": 1.5,
+    "mean_dipole_response_relative_maximum": 0.08,
+    "mean_source_point_response_relative_maximum": 0.05
+  },
+  "inputs": {
+    "forbidden_targets": [
+      "per-molecule source coefficients",
+      "MACE-MDP atomic partitions",
+      "original MACE-POLAR source or response",
+      "PCM energies or fields",
+      "experimental solvation energies",
+      "VQM24 total energies",
+      "finite-difference energy curvature"
+    ],
+    "mdp_feature_manifest_path": "/home/axie/.cache/maple-route2-hybrid-runs/vqm24-frozen-mdp-features-v1/manifest.json",
+    "mdp_feature_manifest_sha256": "e2bcb6e2ea649ebe7cfdb653d8f72949b9dd8c3becbaeff12fc3f0acb26232a9",
+    "qm_targets": [
+      "nonuniform exterior-MEP linear response",
+      "molecular dipole linear response"
+    ]
+  },
+  "optimizer": {
+    "audit_points_used_in_gradient": false,
+    "epochs": 1500,
+    "gradient_norm_clip": 20.0,
+    "learning_rate": 0.001,
+    "loss_weights": {
+      "dipole_response": 0.18,
+      "response_mep": 0.82
+    },
+    "seed": 20260827,
+    "weight_decay": 0.0001
+  },
+  "parent": {
+    "file_sha256": "8309c46114c9a3e4b42d981d5789d270fadc18eea840e443dc4427ce10efacb8",
+    "path": "docs/route2/preregistrations/vqm24-observable-training-batch-dense-v2.json",
+    "preregistration_sha256": "c57cadcc33028ff86a732e5b81eb82d894b2a9205ec372b0740ff19d4f012e9e"
+  },
+  "preregistration_sha256": "7b6a41e39db28cb5a93968cde4152146ae88cc517e78dbc3817ce75a5f9f2c05",
+  "schema_version": 1,
+  "selection": {
+    "file_sha256": "f3b0b5b9bab07263af68c73bd6cf82714aa14aa07434a069ddb70fff2e093d94",
+    "path": "docs/route2/preregistrations/vqm24-nonuniform-qm-geometry-selection-v1.json",
+    "record_sha256s_by_split": {
+      "blind": [
+        "0b0f0df80b3d3910f07298e40035f071fb14e3edb60815042a470c237cba3d8a",
+        "0fda937213e49d6d6bf9ee81a87b48170fd722022ed10bd2a9338e1c6ff5318a",
+        "2805be1c10c439e61c6b754d4999be7b40accf965f9c86da5c65c772abecd906",
+        "30653fcfe0273b2dc0b579f0d713fefe4ff677be583d1ac70a638b01bee12e03",
+        "6e087d50591484bb712f18748aaa6f7a83f9a6af5b080af5ac78956ddadd72e6",
+        "7a72fb404d5bedada29f0c4fdb361214935a2948064484db0053ce1a0e8f7afb",
+        "809d5321d69deab1bd584d95a30be31525bd4deb28bc9f244d1094eceb897983",
+        "8316a9df116292d21260f66bebc973f00040df4e1deef0b3c1c3986251a1dbab",
+        "9b0afd1ab8550cc1b47ee2192d7cd769e1f4e701d370656d45d71005af2c2054",
+        "9b4810dce39a560806fd15787d4b7dee8f8ff72e02d6579655ece13cec9a46fc",
+        "a45cd87f538e965be1333d378bfc2f593131cf77aa87e226b5cb5c5aecc53876",
+        "d92864ed2aaf59aebbc738e2cb972e104cbbe5ce7ea77bce8bb306ecc965c861",
+        "f04ce8139c56bd0c387d7fc565eaef287ef90cec3752b037915029e989dc31ca",
+        "f29ee1039410a26f381bd14be75c27e81e4decd94f5a295cb5ac0c5f4c59aa39"
+      ],
+      "train": [
+        "081c6cc3a31b32724ed6b2b33ee7a15e5251cbeb28a7c7652bebb9c25bc65fa6",
+        "0c750047a5e1d79f448d409199141755f6a64b4d35738e7a797311a7ac630eec",
+        "1256947e5905faa4818050cfa469e5d337d08c128377563d6fff979843981661",
+        "190c2fbc8b9986ba63860d36f411d67bfee87f21aeb177776d9bcf2d681b3b18",
+        "1c3caaef7cd3392b67d4b8b8ec1e84a9ae39c6c2213e869b250e8b57583b6d90",
+        "2e00c04d8f404aba122f77452f5fc364cd6581bc4ac20c0c99394d25adfeb938",
+        "3c8bc817c95e2292beb3f7e33a5ca9124b8e0d4a205120c26d07ac3b7e590a44",
+        "549dfd678c854f033529dc0a5ec0bba0e093178bebb6e9570f2a1d510b81bce4",
+        "5abef0a88d160c5745e94e7ae6e4a61db94c7a3ea74c33d99afb87fadee8bf64",
+        "5c9234fb4b842cbefccd9df2232bb86ee2b1a1c7eb1fea51fc7b942918b173f7",
+        "692cd68117c45da0ace8ee3c3f701101c093109b560674c637207ee5b3e6112b",
+        "6bb8a046ac22e3d3d0c702d3915f28559a6031f13428d385bd032bb65ab978db",
+        "6cb9b5d441de514008b986d2e160f906a3f90521617217a128b92bc22de87f5e",
+        "70c76c72082658882dfba613043632d0f47e934267aa33c8edcc3a6786586bb3",
+        "710a4fc899445ea32e9ee299a28c37717816569e6280081289896763623f250c",
+        "71eb4b0867c97cbabfd963f4990a54696f7448eb669674d2a9065d275539d94f",
+        "7400c7789c7cddf2a428423122920f006c0f88cbdc25efcf581f9590f82f92a4",
+        "745ab5d78c8bb0911db7dd3925d7d98c6defc19412654ddca9745afd4ff7d79b",
+        "7e6419f2ee92ddeb473cf58eb1675ef92b8298c6e3355cc9fa914ca1863abfd5",
+        "84c7dcaffea3d665200f3eadeaf128acfbd72925df1bd26764644aff7b0d8231",
+        "938cde712eac59de5400446c18c4cd6e995f2fd4f148c74ae7aca57c31cab3ed",
+        "970f059c1f95df68ab562190b88541b48bec61d4c94fd273a3dee16268fd86fd",
+        "976484d18c737f277b08ef6cabd34924078c85ca025c3f840ca79cb4df1e75b0",
+        "a14bf52170dea71bd865316ce52048bbd65fcf33bd5a789e8fe8baa718348602",
+        "a7040c282ac8e9c04889c1df017919eda981ace596b50be46caa82a3abe0a6c3",
+        "ac8ad6afa4f740de2ae08cd09ee5b6710d75b194ad22aed0a9663d11dea92773",
+        "b412c4e75aedda1dac83ce4c498c8fd73797531e056b8213421a65719ee384d9",
+        "c1096072c51bc6def3e63c2ea20fa18acb0d8a9281714573fe383b6edd09abe4",
+        "d15ba6ea626a099aef06c30eba949ab6c4afab6fdd1381bfa569f1a66034108a",
+        "ea0696054cba613a7d33b185e31f99331d3ef01da643ee36ccad12c772df71b6",
+        "f59ae1366672f5434cf08f68b4d52bbdbeddb809d8f33e45bb3743c7b509d60c",
+        "fa20b6e144ad2e4f0d79bf95de902efb424e8d49809b2756b97f514bc5f24bef"
+      ],
+      "validation": [
+        "06bd7c9a8e80bc72cef4bc8ab0b34f62ca4e147bf70511ef58523c7c98393a2c",
+        "315274237bf98508b20d644cc9138a4d5d8121aff6a3289f181ee3e615cc3242",
+        "471787f17eb1ed414d581cd6ac5decee32e62fdc85f8f79895bc967448dae6ac",
+        "47ef992dc3e7263bda6e022e54457829af0c9e0f4b623119addae44b3a8269e1",
+        "4e63db35b1a04926e8cd38b777c002ee6761b244e60392f3279de0123d277397",
+        "51b095998f2f74c63a5c9607ff87dc2130b7fc660278b2043456398faaee2e39",
+        "555b2173943e004248b5754efa9d0487e93a73b0a43d13afbf9f232dc6c9730c",
+        "55c96791460559bf9b66e2a458bed27a0877f99503fec251fca0a9411509aec5",
+        "693b45edbc64b11f5967026ebbea042a9178e78a8deb15a772b457aa1ebf3996",
+        "7bc552acf030320bb0e62cc483807c1409b8388dd801885ee65ae701186fd11c",
+        "89547f124a13f00acfd0777d612630ddb652c95e4547639dbe0e7332f511155f",
+        "a92b40c2332aec490ba16ab56824e154c8e98caeb1ea9e342b264c4105db3039",
+        "af364dbecc46b54a7bcc7853867e59fbea9ecffe86c12c04d39cbcd85c145748",
+        "b58a9dfbcf29268402c08d6248218d95126a861b661f1459e48cdd14a4998be4"
+      ]
+    },
+    "selection_sha256": "fdcfb665b64973155d619d806a25c96af4efe7586ba727cf20cba627745825f1",
+    "validation_and_blind_data_unopened": true
+  },
+  "source": {
+    "factor": {
+      "path": "maple/solvation/models/sparse_passive_factor.py",
+      "sha256": "026cd313c1f90e977ac17df5deda3120d9cdd64174c5fe197c2ebde42c4131ba"
+    },
+    "l2_coupling": {
+      "path": "maple/solvation/coupling/gaussian_quadrupole.py",
+      "sha256": "dc377258bb229780da44bf88576b99f5e54a5e1e5f2a1536af391c1cff40c61c"
+    },
+    "preregistration_builder_path": "tools/route2_release/create_vqm24_mdp_p13_response_preregistration.py",
+    "preregistration_builder_sha256": "c25370ffa11b39301cf8e5f488b43ad1f58b45dae4cad2cab4d18eb8bb3f340c",
+    "radial_coupling": {
+      "path": "maple/solvation/coupling/exact_gto.py",
+      "sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c"
+    },
+    "response": {
+      "path": "maple/solvation/models/passive_p13_response.py",
+      "sha256": "58f996f442f85fedc48e801ca745e585cf120f48adf22a7b61d2a4f05fb9d360"
+    },
+    "training_runner_path": "tools/route2_release/train_vqm24_mdp_p13_passive_response_pilot.py",
+    "training_runner_sha256": "b54b9ddb287705be291eb5e7b0eedbe6f3418d4aa5e60452ea26df7d40b1fd14"
+  },
+  "status": "locked-before-training",
+  "train_record_ids": [
+    "fluorine-412002-081c6cc3a31b",
+    "base-hcno-460236-0c750047a5e1",
+    "phosphorus-351029-1256947e5905",
+    "sulfur-122602-190c2fbc8b99",
+    "base-hcno-436944-1c3caaef7cd3",
+    "sulfur-389495-2e00c04d8f40",
+    "base-hcno-156765-3c8bc817c95e",
+    "base-hcno-481244-549dfd678c85",
+    "bromine-101221-5abef0a88d16",
+    "fluorine-278363-5c9234fb4b84",
+    "sulfur-221028-692cd68117c4",
+    "bromine-10426-6bb8a046ac22",
+    "base-hcno-404508-6cb9b5d441de",
+    "fluorine-469465-70c76c720826",
+    "fluorine-139037-710a4fc89944",
+    "bromine-63727-71eb4b0867c9",
+    "phosphorus-696398-7400c7789c7c",
+    "base-hcno-162863-745ab5d78c8b",
+    "base-hcno-208608-7e6419f2ee92",
+    "bromine-447833-84c7dcaffea3",
+    "sulfur-379175-938cde712eac",
+    "base-hcno-135247-970f059c1f95",
+    "chlorine-636384-976484d18c73",
+    "chlorine-141648-a14bf52170de",
+    "chlorine-784-a7040c282ac8",
+    "chlorine-610177-ac8ad6afa4f7",
+    "base-hcno-229457-b412c4e75aed",
+    "base-hcno-432908-c1096072c51b",
+    "phosphorus-66144-d15ba6ea626a",
+    "phosphorus-598182-ea0696054cba",
+    "base-hcno-440770-f59ae1366672",
+    "base-hcno-399849-fa20b6e144ad"
+  ]
+}

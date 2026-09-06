@@ -1,0 +1,22 @@
+{
+  "answer_chars": 26290,
+  "answer_sha256": "77cf0739216bbf59fa250e331aac1b23459068755ac2295913aaa3f6dd427ade",
+  "artifact": "mdp-polar-p13-postpilot-pro-review-v1",
+  "claim": "external mathematical review plus independently verified local decision; no model or capability admission",
+  "files_sha256": {
+    "README.md": "e59730a7d326d1fc717078aef1d378292cc165c0ee4fbfb4480bad967905cfbd",
+    "answer.md": "77cf0739216bbf59fa250e331aac1b23459068755ac2295913aaa3f6dd427ade",
+    "capture-console.txt": "af0677b680bbf4f85847201f8234c62572d2816bbae6e9378cdd32979f2b0d51",
+    "capture-state.txt": "2f1208b0152f8be1c060f91e3791c6fe2112624f204ae960bbdab58f72fcc26d",
+    "capture.ps1": "b23002596cb1607266f842449ed570b7e3db1a59839c02c8f0c72a1dfc6e4bdd",
+    "local-decision.md": "f82b8d661f5acae965d167e2e19434f9115dbda8476b8abb029b2397587d04f3",
+    "prompt-sha256.txt": "d1e3bcd27c6389f9b7ac8e42e85fa32a75d02a1d3bebf7e57d27664b18ae578c",
+    "prompt.md": "4cf3e52c0dbe25c155a4ede6f7badeb11bec7ba9d71575758b80699f4e6e1823",
+    "submit-console.txt": "c802df2fd6687fa1620e6e5f8bb1b3861db3de56c65a2c7f973e48bc441a9438",
+    "submit-state.txt": "c5e5b52cddd9416e81cacada868e6393f37ec524b1ac179b5951c95e9e171f49",
+    "submit.ps1": "049943933fdb261781f04ee1d9dd2aa86db413136b27224ec506bd046c8b3ef0"
+  },
+  "pro_generation_observed": true,
+  "prompt_exact": true,
+  "verified_model": "Pro, 5 of 5."
+}

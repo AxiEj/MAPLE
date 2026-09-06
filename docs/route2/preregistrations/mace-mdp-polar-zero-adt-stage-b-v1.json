@@ -1,0 +1,350 @@
+{
+  "artifact": "route2-mace-mdp-polar-zero-adt-stage-b-prereg-v1",
+  "claim_boundary": {
+    "accuracy_panel_opened": false,
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_calibration_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "local_root_test_is_projected_diagnostic_not_full_space_proof": true,
+    "mnsol_or_freesolv_imported": false,
+    "pure_mace_polar_in_scope": false,
+    "rigid_test_is_numerical_not_structural_so3_proof": true,
+    "stage_b_can_admit_release": false
+  },
+  "created_utc": "2026-08-19T06:34:15.182075+00:00",
+  "inherited_stage_a_source_files_sha256": {
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "f59a6df04f9448cd6a672274125cc405c8e27d42e2fae79baa06f0739ea44639",
+    "maple/solvation/api/profiles.py": "ab989bb6628c2d2c8de131840df54a639a2f12df97a576a8ccd35f8b472b8fa4",
+    "maple/solvation/continuum/separated_source_adt_ddx.py": "7dabedce6ae7a436a30602bc397200e152003eac35f80145c426b082e1d3b9e1",
+    "maple/solvation/continuum/separated_source_ddx.py": "6a487c9673590a1119224c3be23dfadb25897d2a78da25c82148d3184b9b2b99",
+    "maple/solvation/coupling/adt_radial_shape.py": "0241c58276afc0a2d151fbcba1a7f2a5c1869592a6d3ff924ef5780f162801dd",
+    "maple/solvation/coupling/atomic_displacement_lift.py": "54afcc5c093161dcd80a02cff400b3a2d6361da17596a2380a1d1faa90dbfbf0",
+    "maple/solvation/experimental/mace_mdp_polar_adt_ddx.py": "be6abda5e8a9e497fb5a1cb633b7fd804df3dd1b86f54d4aba5b461afbab19a5",
+    "maple/solvation/models/mace_mdp.py": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "maple/solvation/models/mace_mdp_polar_adt.py": "1634ceb4a66ee5e42dc9f0558c0c5719c4c99cdc78ad6adea7f2a1f1f495cd25",
+    "maple/solvation/models/mace_polar_separated.py": "8cce0f313fbf5b7020d23637e2b13ed9d03b9382c8b7a4e0f5160e3977bb738d",
+    "tools/route2_release/create_mace_mdp_polar_zero_adt_coupled_screen_preregistration.py": "51590dbabf99d8e826c584791c5e75efd51801537eae164fc0cb6a0ec948c65a",
+    "tools/route2_release/run_mace_mdp_polar_zero_adt_coupled_screen.py": "88cb58a82e902b3af9fcaee151c8fa9ba4680a7a425f498ccedbba0552528101"
+  },
+  "inputs_sha256": {
+    "mace_mdp_checkpoint": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "spice_dataset": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e"
+  },
+  "method": {
+    "base_solve_count_per_geometry": 5,
+    "cold_replay_solve_count_per_geometry": 5,
+    "continuum_model": "pcm",
+    "dielectric": 78.39,
+    "eta": 0.1,
+    "finite_field_steps": [
+      0.002,
+      0.001,
+      0.0005
+    ],
+    "full_five_start_replay_required_after_stage_a_pass": true,
+    "lmax": 12,
+    "n_lebedev": 1202,
+    "n_proc": 1,
+    "nonuniform_response": "MACE-POLAR response minus its zero-field uniform tangent; 1.5 A Gaussian",
+    "permanent_source": "MACE-POLAR zero-field point q/p",
+    "profile_id": "route2-research-macepolar-zero-point-mdp-alpha-polar-residual-role-separated-adt-ddx-operational-v3",
+    "projected_local_root_probe_count": 8,
+    "rigid_solve_count_per_geometry": 5,
+    "rotation_matrix": [
+      [
+        -0.664894784009872,
+        0.12761976496184402,
+        0.7359538856392766
+      ],
+      [
+        0.7124449411044197,
+        -0.18759949407880958,
+        0.6761868349177573
+      ],
+      [
+        0.22435938155375984,
+        0.9739197222628044,
+        0.033811869163890604
+      ]
+    ],
+    "solve_stage": "five-start-cold-replay-rigid-finite-field-stage-b",
+    "solver_tolerance": 1e-12,
+    "translation_angstrom": [
+      0.71,
+      -0.43,
+      0.29
+    ],
+    "uniform_response": "canonical ADT lift of public MACE-MDP molecular alpha"
+  },
+  "next_if_stage_b_fails": "Reject the zero-training v3 profile and move to a separately named scalar-first electrostatic head; do not fit a solvation-target residual.",
+  "next_if_stage_b_passes": "Freeze this exact v3 identity for a target-blind 505 energy run; Stage B itself makes no accuracy or release claim.",
+  "preregistration_sha256": "8d5a50490e86e8817f237f6a48baea1f772d97308a82ad06d2b30e83804d7326",
+  "schema_version": 1,
+  "selection": [
+    {
+      "screen_index": 0,
+      "selection_category": "largest_fixed_source_pcm_error",
+      "selection_identity": {
+        "atom_count": 66,
+        "atomic_numbers_sha256": "85aed62708ed018e323a5b8128fd7a0681f5564f901604f8757b9cf46ec09ba0",
+        "configuration": 0,
+        "molecule": "06Z PHE",
+        "positions_raw_sha256": "a8d7631ab540cc8db94f75e7a296a42614a0d7f26e082ec89dc8e83488f827fd"
+      },
+      "selection_metric": "polar_zero_point_absolute_error_kcal_mol",
+      "selection_metric_value": 4.530936108560474,
+      "selection_rank_before_duplicate_filter": 1,
+      "source_record_index": 44,
+      "source_record_sha256": "2646b1d2d4971fd4a87b1b5b403a2ab45223c5005c9b6286c79389920dbd91b8"
+    },
+    {
+      "screen_index": 1,
+      "selection_category": "largest_fixed_source_pcm_error",
+      "selection_identity": {
+        "atom_count": 45,
+        "atomic_numbers_sha256": "2c7985b40ca8e84e73ef4837d728730238e316ef0714c4484f8e094eb8b7d33e",
+        "configuration": 0,
+        "molecule": "08P ASN",
+        "positions_raw_sha256": "54ff5b051b2621a5f399524ea21bd2256820adc390456bce6d200a9c71d96b8f"
+      },
+      "selection_metric": "polar_zero_point_absolute_error_kcal_mol",
+      "selection_metric_value": 4.170153928692179,
+      "selection_rank_before_duplicate_filter": 2,
+      "source_record_index": 42,
+      "source_record_sha256": "e85482a25b0fe949f878c51f1d652b0843b013f3ab1828f0b94df4e86a3fda91"
+    },
+    {
+      "screen_index": 2,
+      "selection_category": "largest_fixed_source_pcm_error",
+      "selection_identity": {
+        "atom_count": 45,
+        "atomic_numbers_sha256": "9bc3dce79261df409a0ded56f8f06af624f83a2733d442060c22d93a58ad2e40",
+        "configuration": 0,
+        "molecule": "08P THR",
+        "positions_raw_sha256": "4f1eb6456184ab2e5a5bbf8f72a8419be4a760e9be97efdc3e6abde0c1977b61"
+      },
+      "selection_metric": "polar_zero_point_absolute_error_kcal_mol",
+      "selection_metric_value": 4.021566082692505,
+      "selection_rank_before_duplicate_filter": 3,
+      "source_record_index": 6,
+      "source_record_sha256": "0ca12d6ca6afa30b6794534b16cdcfa01a05fe5aa5bb29e50fd8f5d0c33eaa69"
+    },
+    {
+      "screen_index": 3,
+      "selection_category": "largest_fixed_source_pcm_error",
+      "selection_identity": {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "fe5a3f3f2afdab28733e83d7ee5f9398ed8564aad43a8756bcb2da66912630b5",
+        "configuration": 0,
+        "molecule": "07C LEU",
+        "positions_raw_sha256": "1bce2ae3fe24dc32962d1a3f699b2267adfdb5dc200ce4a0ccd9d6cf1005d09a"
+      },
+      "selection_metric": "polar_zero_point_absolute_error_kcal_mol",
+      "selection_metric_value": 3.6524209314027574,
+      "selection_rank_before_duplicate_filter": 4,
+      "source_record_index": 23,
+      "source_record_sha256": "8d5933a4c4da1bac320fdec03fe10424976ba61d35c86892d243bc7433eb24f5"
+    },
+    {
+      "screen_index": 4,
+      "selection_category": "largest_surface_mep_relative_rmse",
+      "selection_identity": {
+        "atom_count": 52,
+        "atomic_numbers_sha256": "97c7d4dba2544913dbe208a6fd838ea3fcf6162a046d7b534a96896db9763012",
+        "configuration": 0,
+        "molecule": "020 CYS",
+        "positions_raw_sha256": "5123244ceb3ba3f947a2f0181b4557ac0ddc004b336b9424db7b4aff59ff1848"
+      },
+      "selection_metric": "radius_1.00_reference_qpqo_relative_root_mean_square_error",
+      "selection_metric_value": 0.3508626547990517,
+      "selection_rank_before_duplicate_filter": 1,
+      "source_record_index": 7,
+      "source_record_sha256": "e94ff159709a270d75735c403abca87aab1e81134c335af72bbb149da0ede6df"
+    },
+    {
+      "screen_index": 5,
+      "selection_category": "largest_surface_mep_relative_rmse",
+      "selection_identity": {
+        "atom_count": 44,
+        "atomic_numbers_sha256": "145b9a87b4cd72601b58b0ec7313ea423a3dbff8b1ac3486bfbc266fe1812583",
+        "configuration": 0,
+        "molecule": "040 GLY",
+        "positions_raw_sha256": "4a53c3c4f0e84865369263328fc0f7b496c8d03b0766753917a8de7b35e30067"
+      },
+      "selection_metric": "radius_1.00_reference_qpqo_relative_root_mean_square_error",
+      "selection_metric_value": 0.341930189522951,
+      "selection_rank_before_duplicate_filter": 2,
+      "source_record_index": 37,
+      "source_record_sha256": "1926f652153756bbad8d5d47f66fbd9c3057cd4abb6aec783bb43bab729d45d5"
+    },
+    {
+      "screen_index": 6,
+      "selection_category": "largest_atom_count",
+      "selection_identity": {
+        "atom_count": 71,
+        "atomic_numbers_sha256": "d27cc604cbb38c67d57f7dec9448feb75c5a4844ae366698ef3eb7acc4d0ce0b",
+        "configuration": 0,
+        "molecule": "035 TRP",
+        "positions_raw_sha256": "98993b1c77df78fadd6161d89bcaed4446f2b3ae81d3a5b7d36043e2d75fb112"
+      },
+      "selection_metric": "atom_count",
+      "selection_metric_value": 71.0,
+      "selection_rank_before_duplicate_filter": 1,
+      "source_record_index": 17,
+      "source_record_sha256": "8b2020c43ef63ab59db6e7581d314f832489aa76d572db0d5fcc49f476901721"
+    },
+    {
+      "screen_index": 7,
+      "selection_category": "largest_atom_count",
+      "selection_identity": {
+        "atom_count": 67,
+        "atomic_numbers_sha256": "929fa63af739c50922100bd5bfea965d4735cddce531f095f9d99457b49e61f5",
+        "configuration": 4,
+        "molecule": "08J LEU",
+        "positions_raw_sha256": "1e4e37ede4648d0d7e0c1f2100c2ba54580366bd69892fbe52e22ff839445228"
+      },
+      "selection_metric": "atom_count",
+      "selection_metric_value": 67.0,
+      "selection_rank_before_duplicate_filter": 2,
+      "source_record_index": 3,
+      "source_record_sha256": "c5d635e2c4a1c5c3295d1c61e972f6804df50ac0bd3f0a8692d1af7f2f4c96df"
+    },
+    {
+      "screen_index": 8,
+      "selection_category": "largest_molecular_dipole",
+      "selection_identity": {
+        "atom_count": 47,
+        "atomic_numbers_sha256": "b67a72666bfc5dbee61adfd700697dc2180bd12f5d593a8d0b48414392960af1",
+        "configuration": 2,
+        "molecule": "08D GLY",
+        "positions_raw_sha256": "69c121404ce8035bc53e223b0a1de8a0a8284d0d48818e8d21579f00219220b9"
+      },
+      "selection_metric": "target_molecular_dipole_norm_eangstrom",
+      "selection_metric_value": 2.3483576268001873,
+      "selection_rank_before_duplicate_filter": 2,
+      "source_record_index": 21,
+      "source_record_sha256": "d97889cb36910506040762d881370f389da4277bcae050957e186a04aa816d9b"
+    },
+    {
+      "screen_index": 9,
+      "selection_category": "smallest_molecular_dipole",
+      "selection_identity": {
+        "atom_count": 47,
+        "atomic_numbers_sha256": "2d6d86066841bf073632c40ab234bae1c407849881e15bc5ba6ea29ef97189b4",
+        "configuration": 0,
+        "molecule": "03V VAL",
+        "positions_raw_sha256": "0f476adbb1f569b03acf2619a6a536b2a5ac2d9252da0471dd6569179a3e4734"
+      },
+      "selection_metric": "target_molecular_dipole_norm_eangstrom",
+      "selection_metric_value": 0.40575258603468706,
+      "selection_rank_before_duplicate_filter": 1,
+      "source_record_index": 29,
+      "source_record_sha256": "c613fbdc32888bcdf5c731f36a96ba0c6a16423969595beae59c52d311ce7f21"
+    },
+    {
+      "screen_index": 10,
+      "selection_category": "largest_uniform_response_condition_number",
+      "selection_identity": {
+        "atom_count": 61,
+        "atomic_numbers_sha256": "07c07b4b4ee20d0c401064e9420d2ff418464a83dbbe45cf6c30f0bad0751e6b",
+        "configuration": 5,
+        "molecule": "041 LEU",
+        "positions_raw_sha256": "5bf2c172dc37f358e550bbb7cecfb57f909451404abac0e7552e19814e893101"
+      },
+      "selection_metric": "maximum_jacobian_condition_number",
+      "selection_metric_value": 3.461870300462992,
+      "selection_rank_before_duplicate_filter": 1,
+      "source_record_index": 1,
+      "source_record_sha256": "0a9dfc6ae5158937d4d6ddd1a1d1c9798393bc5cd2e0b2f928c5179566a33e0b"
+    },
+    {
+      "screen_index": 11,
+      "selection_category": "largest_uniform_response_source_shift",
+      "selection_identity": {
+        "atom_count": 58,
+        "atomic_numbers_sha256": "a1c3e6185921d2ef9ec7dae37d1a91a787bb8044c906b2a6867a14073a956feb",
+        "configuration": 0,
+        "molecule": "036 SER",
+        "positions_raw_sha256": "2fbe58f8eefc97b7108530945497e044dc64506d709190e47173419864d61e93"
+      },
+      "selection_metric": "source_l2_shift",
+      "selection_metric_value": 0.015660678044264065,
+      "selection_rank_before_duplicate_filter": 1,
+      "source_record_index": 30,
+      "source_record_sha256": "32fefe606ede6c0a5d19ac5c5ccb98d143a6ab5f067e8e0ddeada19b9feb1f71"
+    }
+  ],
+  "selection_sha256": "ead436f96fb3516f68d00ec4667cb755936a28a9226a9857f64f719c37ca2a29",
+  "source_git_head": "0e64f187748bd3aabab9eb2797a7f7affab47c8b",
+  "source_worktree_dirty_at_lock": true,
+  "stage_a_aggregate": {
+    "aggregate_sha256": "acc704b0706529ff736947852a8dec8e13c377779f6dde88945321df3e4166c6",
+    "file_sha256": "436bfb8d6d12914d212a5d09b65268f5cc69431c5cfc6add66155d601204d205",
+    "path": "/home/axie/.cache/maple-route2-hybrid-runs/polar-zero-adt-coupled-screen-v2-20260819/aggregate.json",
+    "record_files_sha256": {
+      "record-000.json": "545b86a1471ae73cf434f62200e8b27255178b00df6bc64866dc69a6f76edb5e",
+      "record-001.json": "3345df635c7776d6cc6f2400429e119bd37a9d3ef2f7bfa28461e30f62d3c0f8",
+      "record-002.json": "8be24354281aaf4e7443cd6f406f08c2c96d464a844a6031362209dfbb0df6b8",
+      "record-003.json": "d5c5292f9d03c02ca29f07c1f6f6c0b0f7345fb0c91edb318ef04424abb1ca65",
+      "record-004.json": "694e183ef3f07bed1613209905ba84d50ad11321553bc90678aa7a9e87e59958",
+      "record-005.json": "376b78b76bc22998fd17c89824a88efc40806dcce4fd99281e1482f8ec3c58a9",
+      "record-006.json": "adee6e728c3cb245c27c3a4e749bbed3326be1409a998b25f04ca6df304f5b29",
+      "record-007.json": "b76c64da5742c9456656ecdf061abfd3d8ae706b3a675e9ff3eda366a52c96cb",
+      "record-008.json": "93f5eed4d2955a3be6fd4c4253fb40fa2d225d30dd1ad1128a9023e7ca1d00cb",
+      "record-009.json": "bdf0081bab660ebb3eb49dbd74a8539c6b103e69308041d3ae95209fa736b9f6",
+      "record-010.json": "61100f61c7b62fe002d3bd74416edcbccafcbb0da4e40f8e823144638870124a",
+      "record-011.json": "1db44fbc84e5ceeeb9f9741abc19d4c4fc800f81496846f8c7f1d4b07183770c"
+    },
+    "record_sha256s": [
+      "8b233ae5a285e97e985133342f7259b797d742e863ef3c0f08d8988b5700d898",
+      "1dd06dc02f2f280a91c136b7c23a9b5047170422a92bf79a5f7cfa056d5d77ad",
+      "2cd705f2df65987724e1c359b8f4813d3ac596e37e7c90bcbca49569d9287638",
+      "46189090e7714d5d5ae9f9c317cd16c3fc8d5b5b00fcbd52f78b2c9efdd55769",
+      "2c105ea607859832208b45e1683be09ceab7d92b037eaeaf29906640793196d2",
+      "9550d41972873a200ca01584ca147dc1772578ef748c6afd37e8f7cfd707a1ed",
+      "f9fc965c2a3b95fcf2b7a074be1579070f9ad2c3ccc7a7a3473e46b3eb5e4a18",
+      "210e5135ed6c90de207936a4c71f8da4ded06e57d1f13505fbe91b837827c184",
+      "13fdeceda2ef8c5487d64f18b09f8a9f387fc7491b23a5bf367177a40defe75c",
+      "2fbc001929723c8b7bf85afba87215691b22a5a320e1c6605bff556ac409d388",
+      "575409b6258bdc5bfa3a9a5b1a2058c4be5142a6e26da9e4248affd946f20a02",
+      "f50bddd199db9e9df981fa588ecf9f0bd14698570dfb6c871bc30a053a592483"
+    ],
+    "records_path": "/home/axie/.cache/maple-route2-hybrid-runs/polar-zero-adt-coupled-screen-v2-20260819/records",
+    "runtime_identity_sha256": "932d663388a64bfa9fc30536fa48e34b34e65dd8eeb12a944b0102215e1086d3"
+  },
+  "stage_a_preregistration": {
+    "artifact_sha256": "2f0df2622faab57a56a8dcb7923d8c2f1d3ef4669f7b6305990d39f1a88b5797",
+    "file_sha256": "adb9a67131a9dc07bb1f907a6e40dce5f059c9df316a1f674a8c199294e75855",
+    "path": "/home/axie/MAPLE/MAPLE-route2-mdp-polar-hybrid/docs/route2/preregistrations/mace-mdp-polar-zero-adt-coupled-screen-v2.json"
+  },
+  "stage_b_gates": {
+    "exact_cold_replay_required": true,
+    "finite_field_steps": [
+      0.002,
+      0.001,
+      0.0005
+    ],
+    "maximum_finest_finite_field_error": 1e-06,
+    "maximum_five_start_energy_span_eV": 2e-10,
+    "maximum_five_start_field_span_eV": 3e-09,
+    "maximum_five_start_residual_eV": 1e-10,
+    "maximum_jvp_vjp_relative_defect": 1e-08,
+    "maximum_rigid_field_relative_error": 0.001,
+    "maximum_rigid_polarization_energy_error_eV": 0.000434,
+    "maximum_rigid_source_relative_error": 0.001,
+    "maximum_rigid_total_energy_error_eV": 0.000434,
+    "maximum_sampled_state_map_gain": 0.95,
+    "minimum_projected_residual_singular_value": 0.1,
+    "minimum_projected_residual_symmetric_margin": 0.05,
+    "projected_random_probe_count": 5,
+    "projected_root_random_seed": 20260820,
+    "strict_finite_field_error_decrease_required": true
+  },
+  "stage_b_source_files_sha256": {
+    "tools/route2_release/create_mace_mdp_polar_zero_adt_stage_b_preregistration.py": "8d90d7f837dedfc29ffd3c5a7787aeb0ec6f68958527b4b9e964c64f02963867",
+    "tools/route2_release/run_mace_mdp_polar_zero_adt_stage_b.py": "7df721bb85e546f74f5ee09cdedb24b58afea5c77b6e04116fe29ad6922ddcc3"
+  },
+  "status": "locked-after-stage-a-pass-before-any-stage-b-evaluation"
+}

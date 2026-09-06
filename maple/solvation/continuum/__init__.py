@@ -252,6 +252,10 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "separated_source_ddx",
         "PreparedSeparatedSourceDDX",
     ),
+    "SeparatedGeneralDDXSolution": (
+        "separated_source_ddx",
+        "SeparatedGeneralDDXSolution",
+    ),
     "SEPARATED_SOURCE_DDX_CONTRACT_ID": (
         "separated_source_ddx",
         "SEPARATED_SOURCE_DDX_CONTRACT_ID",
@@ -275,6 +279,38 @@ _EXPORTS: dict[str, tuple[str, str]] = {
     "extract_atomic_l1_first_radial_cotangent": (
         "separated_source_ddx",
         "extract_atomic_l1_first_radial_cotangent",
+    ),
+    "CANONICAL_ADT_SEPARATED_DDX_CONTRACT_ID": (
+        "separated_source_adt_ddx",
+        "CANONICAL_ADT_SEPARATED_DDX_CONTRACT_ID",
+    ),
+    "CANONICAL_ADT_SEPARATED_DDX_PROFILE_ID": (
+        "separated_source_adt_ddx",
+        "CANONICAL_ADT_SEPARATED_DDX_PROFILE_ID",
+    ),
+    "CANONICAL_ADT_SEPARATED_DDX_PROVIDER_ID": (
+        "separated_source_adt_ddx",
+        "CANONICAL_ADT_SEPARATED_DDX_PROVIDER_ID",
+    ),
+    "CanonicalADTDDXProblemData": (
+        "separated_source_adt_ddx",
+        "CanonicalADTDDXProblemData",
+    ),
+    "CanonicalADTModelFieldCotangents": (
+        "separated_source_adt_ddx",
+        "CanonicalADTModelFieldCotangents",
+    ),
+    "CanonicalADTSeparatedDDXState": (
+        "separated_source_adt_ddx",
+        "CanonicalADTSeparatedDDXState",
+    ),
+    "PreparedCanonicalADTSeparatedDDX": (
+        "separated_source_adt_ddx",
+        "PreparedCanonicalADTSeparatedDDX",
+    ),
+    "prepare_canonical_adt_separated_ddx": (
+        "separated_source_adt_ddx",
+        "prepare_canonical_adt_separated_ddx",
     ),
 }
 

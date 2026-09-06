@@ -2,7 +2,6 @@ import os
 from typing import Union, List
 
 from ase import Atoms 
-import ase
 import torch
 
 from ..function.read import InputReader
@@ -185,7 +184,7 @@ class engine():
                             charge_options=self.commandcontrol.get('charge', {}))
             self.calulator = setcalculator.set_calculator()
     
-    def _jobtype_dispatcher(self, commandcontrol, jobtype:int, atoms:Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    def _jobtype_dispatcher(self, commandcontrol, jobtype: str, atoms: Union[Atoms, Molecules, List[Atoms]], output: str, extra: dict | None = None) -> None:
         """
             This function dispatches the job type.
 

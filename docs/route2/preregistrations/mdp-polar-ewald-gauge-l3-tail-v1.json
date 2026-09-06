@@ -1,0 +1,175 @@
+{
+  "artifact": "route2-mdp-polar-ewald-gauge-l3-tail-preregistration-v1",
+  "candidate": {
+    "far_field_identity": "point plus Gaussian asymptote equals full MACE-MDP q/p",
+    "formula": "V = V_point[c_POLAR(0)] + V_gaussian_sigma[c_MDP - c_POLAR(0)]",
+    "gaussian_branch": "official MACE-MDP latent q/p minus zero-field MACE-POLAR q/p",
+    "point_branch": "zero-field official MACE-POLAR q/p",
+    "sigma_angstrom": 1.5,
+    "sigma_source": "official MACE-POLAR charge-density width; not selected from this panel",
+    "training_or_fit": "none"
+  },
+  "cavity_and_continuum": {
+    "continuum_model": "pcm",
+    "dielectric": 78.39,
+    "eta": 0.1,
+    "lmax": 8,
+    "n_lebedev": 194,
+    "radii": "MAPLE SMD water Coulomb radii per element",
+    "radius_scale": 1.0,
+    "reference": "SPICE MBIS point q/p through the identical separated-source ddPCM operator",
+    "solver_tolerance": 1e-10
+  },
+  "claim_boundary": {
+    "adversarial_tail_selected_from_previously_opened_errors": true,
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "pure_mace_polar_in_scope": false,
+    "result_is_independent_accuracy_estimate": false
+  },
+  "created_at_utc": "2026-08-17T13:47:36.013938+00:00",
+  "inputs": {
+    "cartesian_l3_ddx_oracle_sha256": "54271ab07a123311a51eca9ba73fb4e8c5b6c98d75abc2138b1544d27df14ca9",
+    "ewald_implementation_sha256": "976d5f2a6135ba7d42416b4bf6110336657a7c1acb88356454c6ca1b98910a16",
+    "mace_mdp_adapter_sha256": "304bb6550904a2ab7504c76f7688cd23014eafecfd77f94b483efb919af9b55c",
+    "mace_mdp_checkpoint_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "mace_polar_adapter_sha256": "7ed58cbfa1c53da0efd410ae62ef5e0e9131613957e06c2648ac614b1778f0c0",
+    "mace_polar_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "prior_aggregate_file_sha256": "d2a278188ae20649b0797cd70da62e7330bc7766fb9c65533dfd43ec0a8746ed",
+    "runner_sha256": "a84e090a7fee371f264e6730efe04d1c98e2e9088f631522f9471c136034201a",
+    "separated_ddx_implementation_sha256": "162d5f3d5c6244f79219872782b3cc76b15f6f9f1ceb69bb62c3528e81688d59",
+    "spice_dataset_sha256": "e0bf365a64bc2e27e539ac5cabe6f7e3aa321a2c2bf9991c447a1d389b05181e"
+  },
+  "reference_oracle": {
+    "basis_change": "target-independent exact potential collocation into pyddx real spherical l<=3",
+    "basis_change_maximum_residual": 5e-13,
+    "continuum": "same pyddx ddPCM cavity, A operator, dielectric, discretization and solve",
+    "no_qpqo_value_used_to_change_candidate": true,
+    "source": "SPICE MBIS raw Cartesian q/p/Q/O, evaluation only"
+  },
+  "schema_version": 1,
+  "scientific_question": "Against the same ddPCM cavity/operator, does the frozen Ewald source improve energy as well as MEP when the reference includes exact SPICE MBIS point multipoles through l=3 rather than the earlier q/p-only source?",
+  "selection": {
+    "opened_qp_only_result_sha256": "e6c4f951d2826ebe7719232812714b877e0761d672f982279571e96ab89673dc",
+    "record_count": 7,
+    "records": [
+      {
+        "prior_record_file_sha256": "f10b8d332bbc601b10f081afe737811d76866f6036996fbeca1ab0642485ea00",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-044.json",
+        "prior_record_sha256": "2646b1d2d4971fd4a87b1b5b403a2ab45223c5005c9b6286c79389920dbd91b8",
+        "prior_uniform_response_absolute_error_kcal_mol": 4.493629958311033,
+        "selection_identity": {
+          "atom_count": 66,
+          "atomic_numbers_sha256": "85aed62708ed018e323a5b8128fd7a0681f5564f901604f8757b9cf46ec09ba0",
+          "configuration": 0,
+          "molecule": "06Z PHE",
+          "positions_raw_sha256": "a8d7631ab540cc8db94f75e7a296a42614a0d7f26e082ec89dc8e83488f827fd"
+        },
+        "tail_rank": 1
+      },
+      {
+        "prior_record_file_sha256": "a87e3089cd35a9901e9f85870f10faafe16a0e9a2a2c6b8514c3629774ecdbac",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-042.json",
+        "prior_record_sha256": "e85482a25b0fe949f878c51f1d652b0843b013f3ab1828f0b94df4e86a3fda91",
+        "prior_uniform_response_absolute_error_kcal_mol": 3.9052340974063,
+        "selection_identity": {
+          "atom_count": 45,
+          "atomic_numbers_sha256": "2c7985b40ca8e84e73ef4837d728730238e316ef0714c4484f8e094eb8b7d33e",
+          "configuration": 0,
+          "molecule": "08P ASN",
+          "positions_raw_sha256": "54ff5b051b2621a5f399524ea21bd2256820adc390456bce6d200a9c71d96b8f"
+        },
+        "tail_rank": 2
+      },
+      {
+        "prior_record_file_sha256": "c4ecbcfa70ebf27ab7b44817d7026edce74df19da76a824468afa7a065ae0ae6",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-006.json",
+        "prior_record_sha256": "0ca12d6ca6afa30b6794534b16cdcfa01a05fe5aa5bb29e50fd8f5d0c33eaa69",
+        "prior_uniform_response_absolute_error_kcal_mol": 3.8809744036822003,
+        "selection_identity": {
+          "atom_count": 45,
+          "atomic_numbers_sha256": "9bc3dce79261df409a0ded56f8f06af624f83a2733d442060c22d93a58ad2e40",
+          "configuration": 0,
+          "molecule": "08P THR",
+          "positions_raw_sha256": "4f1eb6456184ab2e5a5bbf8f72a8419be4a760e9be97efdc3e6abde0c1977b61"
+        },
+        "tail_rank": 3
+      },
+      {
+        "prior_record_file_sha256": "55b44833029119f38b5e214eff997b03b30609e1ce157ff0715f933e875d4ab2",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-023.json",
+        "prior_record_sha256": "8d5933a4c4da1bac320fdec03fe10424976ba61d35c86892d243bc7433eb24f5",
+        "prior_uniform_response_absolute_error_kcal_mol": 3.527620650363582,
+        "selection_identity": {
+          "atom_count": 58,
+          "atomic_numbers_sha256": "fe5a3f3f2afdab28733e83d7ee5f9398ed8564aad43a8756bcb2da66912630b5",
+          "configuration": 0,
+          "molecule": "07C LEU",
+          "positions_raw_sha256": "1bce2ae3fe24dc32962d1a3f699b2267adfdb5dc200ce4a0ccd9d6cf1005d09a"
+        },
+        "tail_rank": 4
+      },
+      {
+        "prior_record_file_sha256": "accaa01b78819cdae700baa7c3cd27ef511a3438f9966fc8ae5ec2bf5e033d07",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-047.json",
+        "prior_record_sha256": "b3e04b6119d08b1f7a74e42b89eafaaa8e40955eeb2487b4b7d694d0a7111820",
+        "prior_uniform_response_absolute_error_kcal_mol": 3.377140145861335,
+        "selection_identity": {
+          "atom_count": 67,
+          "atomic_numbers_sha256": "adbbf7f262a61a5a04c767a0faa755071775f609ec9032de07870807de557733",
+          "configuration": 1,
+          "molecule": "08H PHE",
+          "positions_raw_sha256": "725699b5a4c2f3a811bd6f504ac4323bccf3aaad105a39c26f354a733f3c2969"
+        },
+        "tail_rank": 5
+      },
+      {
+        "prior_record_file_sha256": "2a31cec1a76ba742e179b46550ed03ef4be67bd285ab03573f382351c45efc78",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-018.json",
+        "prior_record_sha256": "9e9f17cee58383385b419cb87876e4181b6b9c3b66b9beb0c111e6b2095ff0aa",
+        "prior_uniform_response_absolute_error_kcal_mol": 3.370683645306127,
+        "selection_identity": {
+          "atom_count": 56,
+          "atomic_numbers_sha256": "82d97f1381ef4bfcea7d3e6d3474be454fe2b437834cf5fa5c445524a4d849ae",
+          "configuration": 0,
+          "molecule": "08D VAL",
+          "positions_raw_sha256": "26aec679b0f6ea70fa64067b40304d617ac90e37213abe0b7427d2edb7a13c2c"
+        },
+        "tail_rank": 6
+      },
+      {
+        "prior_record_file_sha256": "aeb2bcfd9d910028790e29c9104be93db31716486349c39ddd220a33b71647b3",
+        "prior_record_path": "docs/route2/evidence/mdp-polar-uniform-response-source-gate-20260817/records/record-032.json",
+        "prior_record_sha256": "4060d4340de07f62476de1e8aa8d0d383dd2cfaf3132d617f4207b36c292371f",
+        "prior_uniform_response_absolute_error_kcal_mol": 3.0019832552295656,
+        "selection_identity": {
+          "atom_count": 51,
+          "atomic_numbers_sha256": "bb4ad77e9c314617b4440257b650cdcb593d6423d8ba4152e5e746a1d329a2dd",
+          "configuration": 0,
+          "molecule": "08P PHE",
+          "positions_raw_sha256": "04e44ca024c132f0bdf105243c2b1ecf4a81a4414337cc7ea93b24b6c68d2e3c"
+        },
+        "tail_rank": 7
+      }
+    ],
+    "selection_sha256": "c857646a53190b0468700aa29736d403ca906cb172fc6f8d5cd13e9b1fe3fa13",
+    "source": "seven largest polar_uniform_response_point fixed-source ddPCM absolute errors in the already frozen disjoint 60-case gate"
+  },
+  "source_rules": {
+    "charge_tolerance_e": 1e-08,
+    "dipole_tolerance_eangstrom": 1e-08,
+    "no_scale_width_projection_clipping_or_mixing_fit": true,
+    "sigma_angstrom": 1.5
+  },
+  "status": "locked-after-qp-only-tail-opened-before-l3-oracle-evaluation",
+  "terminal_falsification_rules": {
+    "maximum_worsening_tolerance_kcal_mol": 1e-10,
+    "mean_error_reduction_fraction_minimum": 0.1,
+    "mep_relative_worsening_tolerance": 1e-10,
+    "paired_improvement_count_minimum": 5,
+    "terminal_interpretation": "Fail rejects the Ewald source as an l<=3 near-field surrogate. Pass only permits a new molecule-disjoint q/p/Q/O oracle gate; no runtime capability is admitted."
+  }
+}

@@ -1,0 +1,93 @@
+You are the advanced numerical-analysis and electronic-structure reviewer for a
+Route-2 implicit-solvation project.  This is a focused implementation follow-up
+to a completed Pro review whose answer SHA-256 is
+00ea4d42123bb702d043a7ff3a029a9c10288721379e9247798661ceb60779f9.
+
+Do not suggest fitting to solvation targets, changing the ML model, tuning a
+cavity to agreement, using a different electronic functional as if it were the
+same reference, or writing a second continuum solver.  We need one executable,
+target-independent way to decide whether the exact W97M-V/def2-TZVPD + pyddx
+ddPCM small-cavity benzene problem has a stable chemical stationary branch.
+
+## Frozen scientific experiment
+
+The previous review froze radius scales
+
+    1.50, 1.30, 1.20, 1.10, 1.05, 1.025, 1.00
+
+and bases def2-TZVP, def2-TZVPD, followed by two prescribed nested diffuse
+augmentations of def2-TZVPD.  It asked for zero-level-shift Riemannian
+trust-region orbital minimization, multiple starts, five lowest eigenpairs of
+the fully ddPCM-relaxed occupied-virtual Hessian, exterior-density diagnostics,
+and a finite terminal rejection table.
+
+Local evidence already shows:
+
+* the exact-radius gas-density ddPCM energy is +0.0149328239064 Eh and the AO
+  reaction-potential Frobenius norm is 9.941;
+* about 0.547403 electrons (1.30334%) lie outside the exact union of spheres;
+* exact-radius PCM-SCF converges in 3-21G, departs the chemical scale in
+  def2-SVP, and collapses catastrophically in def2-TZVP and def2-TZVPD;
+* the same W97M-V/def2-TZVPD problem converges at radius scale 1.5;
+* the official Psi4/pyddx Fock contribution passes an independent directional
+  finite difference to about 3.6e-11 Eh.
+
+## Newly discovered upstream limitation
+
+Inspection of the installed official Psi4 1.11 source and documentation shows:
+
+1. OpenOrbitalOptimizer is explicitly disabled whenever DDX is active and
+   falls back to the internal SCF iterator.
+2. SOSCF is unavailable for meta-GGA functionals.
+3. Psi4 stability analysis for Kohn-Sham references is not available for
+   W97M-V/VV10; the current code raises that XC stability analysis is not
+   supported, and its Davidson support is much narrower.
+4. Therefore the requested direct minimizer and fully relaxed five-mode
+   stability calculation cannot be obtained by merely turning on an existing
+   Psi4 option.
+
+The Psi4 wavefunction object nevertheless exposes `form_D`, `form_G`,
+`form_F`, `compute_E`, `compute_orbital_gradient`, and the official
+`DdxInterface.get_solvation_contributions(D)`; the SCF loop adds the returned
+ddPCM scalar and pushes the returned potential before forming the Fock matrix.
+
+## Required decision
+
+Select exactly one shortest scientifically defensible execution route.  Decide
+among, or improve on, these possibilities:
+
+A. implement a small custom Riemannian orbital minimizer around the existing
+   Psi4 W97M-V and DdxInterface primitives, without reimplementing DFT or ddPCM;
+B. adapt an upstream second-order optimizer such as PySCF Newton-SCF while
+   retaining exactly the same pyddx discrete scalar and response;
+C. use a precisely defined continuation plus exact idempotent orbital-rotation
+   path and matrix-free finite-difference Hessian audit that can terminally
+   reject the branch without first building a general optimizer;
+D. another existing upstream package or interface, if and only if it preserves
+   the same W97M-V + pyddx ddPCM scalar and can be content-addressed.
+
+For the selected route provide:
+
+1. the exact mathematical objective, orbital parameterization/retraction,
+   gradient, Hessian-vector action or rejection witness, and line-search/trust
+   conditions;
+2. a minimal implementation blueprint tied to the existing Psi4/pyddx calls,
+   including how VV10, DF, nuclear terms, and ddPCM energy/potential are counted
+   exactly once;
+3. how to prove the custom loop evaluates the same scalar and gradient as the
+   official Psi4 SCF path on stable control cells;
+4. how to generate the target-independent starts and radius continuation;
+5. finite convergence, stability, and failure tolerances;
+6. a stop rule that distinguishes "optimizer unavailable" from a scientifically
+   rejected stationary branch;
+7. whether the current evidence already supports any terminal rejection before
+   the full custom optimizer is completed.
+
+Be adversarial about accidentally replacing the requested scalar, omitting
+ddPCM response from the Hessian, or treating SCF iteration failure as proof of
+nonexistence.  Prefer a small reusable adapter over a new electronic-structure
+package, but reject that preference if it is mathematically unsafe.
+
+End the complete response with exactly:
+
+HYBRID QM-DDPCM ORBITAL SOLVER DECISION

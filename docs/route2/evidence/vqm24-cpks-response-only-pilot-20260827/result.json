@@ -1,0 +1,203 @@
+{
+  "aggregate": {
+    "maximum_cpks_residual_relative_frobenius": 4.312863068819442e-06,
+    "maximum_dipole_symmetric_relative": 5.09966743392108e-05,
+    "maximum_mep_symmetric_relative": 6.194549829016144e-05,
+    "pass_count": 4,
+    "record_count": 4
+  },
+  "artifact": "route2-vqm24-cpks-response-only-pilot-result-v1",
+  "claim_boundary": {
+    "energy_curvature_excluded_because_not_a_training_target": true,
+    "existing_opened_gate_b_evidence_reassessed": true,
+    "experimental_solvation_target_read": false,
+    "maple_capability_admitted": false,
+    "model_fit_or_accuracy_measured": false,
+    "new_QM_calculation_run": false,
+    "pcm_or_cavity_used": false,
+    "response_only_generator_coverage_complete": false,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T09:08:29.476311+00:00",
+  "decision": {
+    "cpks_generator_admitted": false,
+    "energy_curvature_target_authorized": false,
+    "full_32_record_coverage_preregistration_authorized": true,
+    "model_training_authorized": false,
+    "new_QM_response_generated": false,
+    "response_only_pilot_passed": true
+  },
+  "records": [
+    {
+      "excluded_diagnostic": {
+        "curvature_absolute": true
+      },
+      "gate_b_record_sha256": "0987016b61a84eade4df68e508d7adc1d12ba56b4f47670b7d876f8c67903ad5",
+      "metrics": {
+        "cpks_total_elapsed_seconds": 2128.2925560809963,
+        "dipole_finite_two_step_symmetric_relative": 0.00013710349443120322,
+        "dipole_mode_symmetric_relative_maximum": 9.201649748073026e-05,
+        "dipole_symmetric_relative": 4.462579184074534e-05,
+        "finite_field_total_elapsed_seconds": 2755.834172793002,
+        "maximum_cpks_residual_relative_frobenius": 2.412539578686923e-06,
+        "maximum_cpks_residual_relative_infinity": 9.987204431198506e-06,
+        "maximum_electron_number_derivative_abs": 1.2355087072968489e-15,
+        "maximum_energy_identity_error_hartree_per_e2": 7.979727989493313e-17,
+        "maximum_passivity_eigenvalue_hartree_per_e2": -0.01242522930908139,
+        "mep_finite_two_step_symmetric_relative": 0.00017353838572227792,
+        "mep_mode_symmetric_relative_maximum": 7.568811751374266e-05,
+        "mep_symmetric_relative": 4.5685157980143636e-05,
+        "reciprocity_relative_frobenius": 3.88984204277515e-08
+      },
+      "required_gates": {
+        "checkpoint_canonical_fock": true,
+        "checkpoint_rebuilt_energy": true,
+        "cpks_residual_frobenius": true,
+        "cpks_residual_infinity": true,
+        "dipole_global_relative": true,
+        "dipole_mode_relative": true,
+        "dipole_within_two_step": true,
+        "electron_number": true,
+        "energy_identity": true,
+        "mep_global_relative": true,
+        "mep_mode_relative": true,
+        "mep_within_two_step": true,
+        "passivity": true,
+        "reciprocity": true
+      },
+      "status": "pass",
+      "stratum": "bromine"
+    },
+    {
+      "excluded_diagnostic": {
+        "curvature_absolute": true
+      },
+      "gate_b_record_sha256": "ed24d00c6e1cc945c002dc538f9c2cc8f2b1d70d6e51ae3e9401a6f3fe47ebe3",
+      "metrics": {
+        "cpks_total_elapsed_seconds": 2042.4902821249998,
+        "dipole_finite_two_step_symmetric_relative": 0.0001303986760207866,
+        "dipole_mode_symmetric_relative_maximum": 3.329375153239686e-05,
+        "dipole_symmetric_relative": 2.4585146694005256e-05,
+        "finite_field_total_elapsed_seconds": 2730.6324257119995,
+        "maximum_cpks_residual_relative_frobenius": 1.1087994059697184e-06,
+        "maximum_cpks_residual_relative_infinity": 5.061841707648177e-06,
+        "maximum_electron_number_derivative_abs": 2.557356450113657e-15,
+        "maximum_energy_identity_error_hartree_per_e2": 1.6653345369377348e-16,
+        "maximum_passivity_eigenvalue_hartree_per_e2": -0.008659955849226422,
+        "mep_finite_two_step_symmetric_relative": 0.00016285464016690748,
+        "mep_mode_symmetric_relative_maximum": 5.1189009304903264e-05,
+        "mep_symmetric_relative": 3.544511342204868e-05,
+        "reciprocity_relative_frobenius": 2.915884215370498e-08
+      },
+      "required_gates": {
+        "checkpoint_canonical_fock": true,
+        "checkpoint_rebuilt_energy": true,
+        "cpks_residual_frobenius": true,
+        "cpks_residual_infinity": true,
+        "dipole_global_relative": true,
+        "dipole_mode_relative": true,
+        "dipole_within_two_step": true,
+        "electron_number": true,
+        "energy_identity": true,
+        "mep_global_relative": true,
+        "mep_mode_relative": true,
+        "mep_within_two_step": true,
+        "passivity": true,
+        "reciprocity": true
+      },
+      "status": "pass",
+      "stratum": "fluorine"
+    },
+    {
+      "excluded_diagnostic": {
+        "curvature_absolute": false
+      },
+      "gate_b_record_sha256": "0cd54928a9db128467f5daa3395d35d16699371d1aa1ef1fb5e7d0636753dd72",
+      "metrics": {
+        "cpks_total_elapsed_seconds": 2145.119254311998,
+        "dipole_finite_two_step_symmetric_relative": 0.000278711832597081,
+        "dipole_mode_symmetric_relative_maximum": 6.194209704548003e-05,
+        "dipole_symmetric_relative": 5.09966743392108e-05,
+        "finite_field_total_elapsed_seconds": 2736.562542661999,
+        "maximum_cpks_residual_relative_frobenius": 2.7490667542627682e-06,
+        "maximum_cpks_residual_relative_infinity": 1.0402299999009573e-05,
+        "maximum_electron_number_derivative_abs": 3.3689079095617e-16,
+        "maximum_energy_identity_error_hartree_per_e2": 7.632783294297951e-17,
+        "maximum_passivity_eigenvalue_hartree_per_e2": -0.012542305769370468,
+        "mep_finite_two_step_symmetric_relative": 0.00030041068590909496,
+        "mep_mode_symmetric_relative_maximum": 8.442671797705294e-05,
+        "mep_symmetric_relative": 6.194549829016144e-05,
+        "reciprocity_relative_frobenius": 6.441061171762763e-08
+      },
+      "required_gates": {
+        "checkpoint_canonical_fock": true,
+        "checkpoint_rebuilt_energy": true,
+        "cpks_residual_frobenius": true,
+        "cpks_residual_infinity": true,
+        "dipole_global_relative": true,
+        "dipole_mode_relative": true,
+        "dipole_within_two_step": true,
+        "electron_number": true,
+        "energy_identity": true,
+        "mep_global_relative": true,
+        "mep_mode_relative": true,
+        "mep_within_two_step": true,
+        "passivity": true,
+        "reciprocity": true
+      },
+      "status": "pass",
+      "stratum": "phosphorus"
+    },
+    {
+      "excluded_diagnostic": {
+        "curvature_absolute": true
+      },
+      "gate_b_record_sha256": "22be20cdead00b16e061be8cebbb5cd98eae93b16e1b93d6fdc8baed83dcba60",
+      "metrics": {
+        "cpks_total_elapsed_seconds": 2201.440234396003,
+        "dipole_finite_two_step_symmetric_relative": 0.00014055132011868638,
+        "dipole_mode_symmetric_relative_maximum": 5.42021234096172e-05,
+        "dipole_symmetric_relative": 3.0187957061158203e-05,
+        "finite_field_total_elapsed_seconds": 1884.473538096001,
+        "maximum_cpks_residual_relative_frobenius": 4.312863068819442e-06,
+        "maximum_cpks_residual_relative_infinity": 1.1162540026866045e-05,
+        "maximum_electron_number_derivative_abs": 7.484029697733416e-16,
+        "maximum_energy_identity_error_hartree_per_e2": 6.245004513516506e-17,
+        "maximum_passivity_eigenvalue_hartree_per_e2": -0.012030555195622464,
+        "mep_finite_two_step_symmetric_relative": 0.00017453361801632002,
+        "mep_mode_symmetric_relative_maximum": 7.045048184913452e-05,
+        "mep_symmetric_relative": 4.451940683543992e-05,
+        "reciprocity_relative_frobenius": 5.005912666728064e-08
+      },
+      "required_gates": {
+        "checkpoint_canonical_fock": true,
+        "checkpoint_rebuilt_energy": true,
+        "cpks_residual_frobenius": true,
+        "cpks_residual_infinity": true,
+        "dipole_global_relative": true,
+        "dipole_mode_relative": true,
+        "dipole_within_two_step": true,
+        "electron_number": true,
+        "energy_identity": true,
+        "mep_global_relative": true,
+        "mep_mode_relative": true,
+        "mep_within_two_step": true,
+        "passivity": true,
+        "reciprocity": true
+      },
+      "status": "pass",
+      "stratum": "sulfur"
+    }
+  ],
+  "result_sha256": "19b710d0d3ddc3c3e21e4b0e0f2d14d9887aa306781d1a29336b62365d2168f3",
+  "schema_version": 1,
+  "source": {
+    "parent_gate_b_file_sha256": "0ffac2be0a3027960ace9b148e7eb6eef41c264da934ff6b4e410bc244a1b674",
+    "parent_gate_b_payload_sha256": "f6651e2957015f6d5bf94249c6c9e509e35e9176a0d610f6e7423e813e7cda01",
+    "protocol_file_sha256": "2a94572613a22923e7b0928df318711e9791182f84131ecf4eb601f633d1db6f",
+    "protocol_sha256": "2228dd56f520351883361068d4d14e1ed7ca428149cab7bfd11d1a6fcf13b4d6",
+    "sealer_path": "tools/route2_release/seal_vqm24_cpks_response_only_pilot.py",
+    "sealer_sha256": "5df3dad260ad0f7cdd32752bcdbd352a414affa0b5bebd5c09f5c621ee43a43e"
+  },
+  "status": "pass-response-only-pilot"
+}

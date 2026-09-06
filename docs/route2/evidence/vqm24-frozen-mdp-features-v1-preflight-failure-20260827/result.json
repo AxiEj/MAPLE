@@ -1,0 +1,8 @@
+{
+  "artifact": "route2-vqm24-frozen-mdp-feature-energy-preflight-failure-v1",
+  "created_utc": "2026-08-27T00:06:59.049207+00:00",
+  "failure": "MACE-MDP DipolePolarizabilityMACE does not implement ASE energy",
+  "records_written": 0,
+  "run_log_sha256": "5ae8c66078731d50f5db69ef99c08be5b07433d6549433b8a1aa3d296b5e0e60",
+  "scientific_disposition": "MDP supplies frozen q/p/alpha descriptors only; no energy is invented"
+}

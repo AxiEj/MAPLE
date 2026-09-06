@@ -1,0 +1,84 @@
+{
+  "artifact": "route2-mdp-polar-ewald-gauge-tail-v1-record",
+  "claim_boundary": {
+    "adversarial_tail_selected_from_previously_opened_errors": true,
+    "capability_admitted": false,
+    "experimental_solvation_targets_read": false,
+    "fitting_or_post_training_performed": false,
+    "hybrid_line_only": true,
+    "mbis_labels_used_for_evaluation_only": true,
+    "pure_mace_polar_in_scope": false,
+    "result_is_independent_accuracy_estimate": false
+  },
+  "fixed_source_ddpcm": {
+    "candidate_absolute_error_kcal_mol": 7.377213683921414,
+    "candidate_ewald_eV": -1.0675444986062324,
+    "polar_zero_absolute_error_kcal_mol": 4.530936108560474,
+    "polar_zero_point_eV": -1.1909707760852846,
+    "reference_mbis_qp_eV": -1.3874507618098408
+  },
+  "index": 0,
+  "mdp_state_sha256": "e0b56d837a1eba420c426e11d06881c6eff7a982fbf5584d95b1c0b286d96f23",
+  "polar_configuration_sha256": "d7673de2f4d3991015bfc89935584f978bea50d6bf0c405d65b3fe976fbcf543",
+  "preregistration_sha256": "156401f6fb636a2bacf28b5e1e00c35d9401e701dc6b647b8ce0d8d12578983c",
+  "prior_record_sha256": "2646b1d2d4971fd4a87b1b5b403a2ab45223c5005c9b6286c79389920dbd91b8",
+  "qpqo_mep": {
+    "candidate": {
+      "area_weight_sum_bohr2": 2412.533718028254,
+      "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.6177700288551733,
+      "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.1549998378197288,
+      "maximum_absolute_error_hartree_per_e": 0.03126746894392446,
+      "mean_absolute_error_hartree_per_e": 0.0061304105312141345,
+      "reference_root_mean_square_hartree_per_e": 0.0258953447201231,
+      "relative_root_mean_square_error": 0.3095331940706406,
+      "root_mean_square_error_hartree_per_e": 0.008015468762780002
+    },
+    "polar_zero": {
+      "area_weight_sum_bohr2": 2412.533718028254,
+      "area_weighted_reference_squared_sum_hartree2_bohr2_per_e2": 1.6177700288551733,
+      "area_weighted_squared_error_sum_hartree2_bohr2_per_e2": 0.13692526563578455,
+      "maximum_absolute_error_hartree_per_e": 0.03216678250425792,
+      "mean_absolute_error_hartree_per_e": 0.005805443542333913,
+      "reference_root_mean_square_hartree_per_e": 0.0258953447201231,
+      "relative_root_mean_square_error": 0.29092658119713416,
+      "root_mean_square_error_hartree_per_e": 0.007533644108346673
+    }
+  },
+  "record_sha256": "7e8e6d81bfdd9c88d71de026e9b22390dccd93629699786e0a952a63eb5605cf",
+  "runtime": {
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "mdp_device": "cpu",
+    "numpy": "2.4.6",
+    "polar_device": "cuda",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "torch": "2.12.0+cu130"
+  },
+  "selection_identity": {
+    "atom_count": 66,
+    "atomic_numbers_sha256": "85aed62708ed018e323a5b8128fd7a0681f5564f901604f8757b9cf46ec09ba0",
+    "configuration": 0,
+    "molecule": "06Z PHE",
+    "positions_raw_sha256": "a8d7631ab540cc8db94f75e7a296a42614a0d7f26e082ec89dc8e83488f827fd"
+  },
+  "source_closure": {
+    "far_field_charge_absolute_error_e": 2.2551405187698492e-17,
+    "far_field_dipole_l2_error_eangstrom": 3.927683650008203e-16,
+    "far_field_molecular_dipole_eangstrom": [
+      0.07045475692613212,
+      0.3000710826319074,
+      0.49353806856194515
+    ],
+    "far_field_total_charge_e": -1.0408340855860843e-17,
+    "gaussian_correction_total_charge_e": -3.8337388819087437e-16,
+    "sigma_angstrom": 1.5,
+    "target_molecular_dipole_eangstrom": [
+      0.07045475692613211,
+      0.3000710826319078,
+      0.4935380685619452
+    ],
+    "target_total_charge_e": -3.2959746043559335e-17
+  }
+}

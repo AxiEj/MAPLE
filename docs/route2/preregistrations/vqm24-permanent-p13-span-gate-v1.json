@@ -1,0 +1,79 @@
+{
+  "artifact": "route2-vqm24-permanent-p13-span-gate-prereg-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "density_or_partition_coefficient_label_emitted": false,
+    "experimental_solvation_target_read": false,
+    "fit_or_training_performed": false,
+    "model_accuracy_measured": false,
+    "pcm_or_cavity_used": false,
+    "vqm24_energy_target_used": false
+  },
+  "created_utc": "2026-08-26T21:09:49.560980+00:00",
+  "decision": {
+    "coefficients_may_not_be_saved_or_used_as_labels": true,
+    "condition_number_is_reported_not_tuned": true,
+    "every_record_must_pass": true,
+    "failure_closes_point_p13_permanent_route": true,
+    "mean_error_cannot_rescue_a_record": true,
+    "next_representation_after_failure": "fixed-width Gaussian l=2, not local energy residual"
+  },
+  "gates": {
+    "audit_max_absolute_hartree_per_e": 0.005,
+    "audit_minus_fit_relative_maximum": 0.02,
+    "audit_relative_mep_error_maximum": 0.05,
+    "audit_to_fit_ratio_maximum": 2.0,
+    "charge_constraint_residual_e_maximum": 1e-08,
+    "weighted_fit_operator_rank_equals_13N_minus_1": true
+  },
+  "parent": {
+    "file_sha256": "36152f69865ae52f41de2b528725b453162b8caf2ec265ac2fd973b6270fe190",
+    "path": "docs/route2/preregistrations/vqm24-permanent-p13-zero-field-mep-v1.json",
+    "preregistration_sha256": "e9788ed3a12fa1862d57d2082717c422bb4a42826d30793c0cc89b8be1cf5d22"
+  },
+  "preregistration_sha256": "1b2d2578e11faa65b8ce4d37a4ed368ffb66264f8d3786adec4ee5a28a4ae30c",
+  "record_ids": [
+    "base-hcno-135247-970f059c1f95",
+    "base-hcno-156765-3c8bc817c95e",
+    "base-hcno-162863-745ab5d78c8b",
+    "base-hcno-208608-7e6419f2ee92",
+    "base-hcno-229457-b412c4e75aed",
+    "base-hcno-399849-fa20b6e144ad",
+    "base-hcno-404508-6cb9b5d441de",
+    "base-hcno-432908-c1096072c51b",
+    "base-hcno-436944-1c3caaef7cd3",
+    "base-hcno-440770-f59ae1366672",
+    "base-hcno-460236-0c750047a5e1",
+    "base-hcno-481244-549dfd678c85",
+    "bromine-101221-5abef0a88d16",
+    "bromine-10426-6bb8a046ac22",
+    "bromine-447833-84c7dcaffea3",
+    "bromine-63727-71eb4b0867c9",
+    "chlorine-141648-a14bf52170de",
+    "chlorine-610177-ac8ad6afa4f7",
+    "chlorine-636384-976484d18c73",
+    "chlorine-784-a7040c282ac8",
+    "fluorine-139037-710a4fc89944",
+    "fluorine-278363-5c9234fb4b84",
+    "fluorine-412002-081c6cc3a31b",
+    "fluorine-469465-70c76c720826",
+    "phosphorus-351029-1256947e5905",
+    "phosphorus-598182-ea0696054cba",
+    "phosphorus-66144-d15ba6ea626a",
+    "phosphorus-696398-7400c7789c7c",
+    "sulfur-122602-190c2fbc8b99",
+    "sulfur-221028-692cd68117c4",
+    "sulfur-379175-938cde712eac",
+    "sulfur-389495-2e00c04d8f40"
+  ],
+  "schema_version": 1,
+  "source": {
+    "quadrupole_coupling_path": "maple/solvation/coupling/point_quadrupole.py",
+    "quadrupole_coupling_sha256": "339133ec1847821fb543d735f4ce79d211013fdd31b2d8b9fa30296980ac0829",
+    "radial_coupling_path": "maple/solvation/coupling/exact_gto.py",
+    "radial_coupling_sha256": "15d83e702a68467dfd00e0a566ea315ec90bbbd2321072013b49a8fd5562fe1c",
+    "span_module_path": "maple/solvation/reference/p13_permanent_span.py",
+    "span_module_sha256": "069359bc1543f17b42f99281e01a9cf77acf5dd7d9a27477bdf009fead113419"
+  },
+  "status": "locked-before-p13-span-evaluation"
+}

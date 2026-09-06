@@ -1,0 +1,44 @@
+{
+  "answer_completed_observed_utc": "2026-08-19T00:10:44.0981292Z",
+  "chrome_window_hwnd": 592022,
+  "files_sha256": {
+    "README.md": "704094c33ba3824d87df7ee7fd998fc0d702603e0fa4241ffe71c45c4b281e67",
+    "answer.md": "c35b571c7de58eec3da47711f2c337b3e776227453313d6e5d4b35801e3a496d",
+    "complete-uia.tsv": "7f015ee7ef88e74911ef2de0cb5ca210b630299b47ea9479d05eaea443fe0b16",
+    "equivariant-nonidentifiability-counterexample.json": "a2c16bb23ab4d544232380bd4725328ed2535bce23dc15de9c3d9a909131c51d",
+    "equivariant-nonidentifiability-counterexample.py": "96aa460d14719e94f201f933b461243975139571442ff99cbd581c68bdf6661f",
+    "local-derivation.md": "57334dfec62b408fb2855357a2dcdcbe9e0f55f7ab8e45358c2cbfd41643306d",
+    "local-sha256.txt": "c7bf86f9c926943a3982a9a58c64b18007759b9018fe575f11b63d9b0c361ba1",
+    "official-contract.md": "6587c8e4838adc1287a78dddf6e9ee2460be092513fdbccbdc5aff980505f008",
+    "poll-7.txt": "4819dd3db853606206675a60ceba7b76ff77733c3526da628c3de0521ad4f3b1",
+    "prompt-sha256.txt": "8a83325f3dd2a7fe1fc90cae5f56b72897a2b9f488bca402ee0467b3860c71f4",
+    "prompt.md": "cea827c55be9104252d7e3b066197d7dd0f90adb18c4359ae42da2177cfe56e3",
+    "submit-console.txt": "b6cba2bc94b2fb93334a4a7edcf198cf29c4f9b4165533e9992a655c57440f95",
+    "submit-script.ps1": "1903efe662db9e8bff9427a6b1ea4f261e1f58d7ffdf2293cd768efda043b207",
+    "submit-state.txt": "17f4cf2c029ca2986a5788ed099f942ba6c52432004cf8df32b0f8c532430063",
+    "verified-pro-mode.txt": "bd7045743be3f1e191fc73c6f051b05c0136c32f7625d55cf2fa2e175be84715"
+  },
+  "independent_verification": {
+    "executable_counterexample_passed": true,
+    "rotation_covariance_max_abs_error": 1.6653345369377348e-16,
+    "stationary_quadratic_energy_difference": -0.002121830138005043,
+    "surface_mep_max_abs_difference": 0.040885985178921114,
+    "theorem": "If an equivariant N maps hidden features into the public-observable kernel but remains visible to the continuum boundary map, D_t=D_0+tN is a non-identifiable infinite decoder family."
+  },
+  "model_verification": {
+    "composer_pill_name": "Pro",
+    "menu_accessible_name": "Pro, 5 of 5.",
+    "pro_thinking_visible_at_submission": true,
+    "prompt_exact_match": true,
+    "stop_control_absent_at_extraction": true
+  },
+  "pro_recommendation": "B: close hidden-feature decoder; finish ADT; if ADT fails use a separately named supervised QM-electrostatic scalar/density/MEP head",
+  "question_id": "mdp-polar-hidden-feature-physical-pcm-source-identifiability-v1",
+  "schema_version": 1,
+  "scientific_decision": {
+    "canonical_adt_remains_final_preregistered_zero_training_source_candidate": true,
+    "fallback_if_adt_fails": "separately named scalar-first/density/cavity-MEP head trained on independent QM electrostatic data; no solvation-target residual fitting",
+    "zero_training_hidden_decoder_admitted": false
+  },
+  "terminal_marker": "HIDDEN FEATURES DO NOT IDENTIFY A PHYSICAL PCM SOURCE"
+}

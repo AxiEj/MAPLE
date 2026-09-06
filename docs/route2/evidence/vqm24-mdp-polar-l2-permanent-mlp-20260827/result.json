@@ -1,0 +1,444 @@
+{
+  "aggregate": {
+    "maximum_audit_mep_relative": 0.328956951193991,
+    "maximum_charge_residual_e": 6.938893903907228e-17,
+    "mean_audit_mep_relative": 0.19368277853578636,
+    "mean_dipole_relative": 0.15516648645874803,
+    "mean_fit_mep_relative": 0.1918952363028426
+  },
+  "architecture": {
+    "backbone_parameters_trainable": false,
+    "frozen_polar_l2_carrier_count": 2,
+    "hidden_width": 16,
+    "name": "Q-B-local-invariant-MLP-plus-two-frozen-POLAR-l2",
+    "new_message_passing": false,
+    "trainable_parameter_count": 398
+  },
+  "artifact": "route2-vqm24-mdp-polar-l2-permanent-local-mlp-v1",
+  "claim_boundary": {
+    "capability_admitted": false,
+    "coefficient_label_used": false,
+    "development_train_formulas_only": true,
+    "experimental_solvation_target_read": false,
+    "model_selected_or_admitted": false,
+    "original_polar_source_or_response_used": false,
+    "pcm_or_cavity_used": false,
+    "response_target_used": false,
+    "validation_or_blind_formula_opened": false
+  },
+  "created_utc": "2026-08-27T03:24:38.801870+00:00",
+  "metrics": [
+    {
+      "audit_mep_relative": 0.12172510001757092,
+      "charge_residual_e": 2.7755575615628914e-17,
+      "dipole_relative": 0.054574659442289494,
+      "fit_mep_relative": 0.12424073702077003,
+      "quadrupole_norm": 1.059534798237485,
+      "record_id": "fluorine-412002-081c6cc3a31b"
+    },
+    {
+      "audit_mep_relative": 0.1662666651503439,
+      "charge_residual_e": 2.7755575615628914e-17,
+      "dipole_relative": 0.026368664481081792,
+      "fit_mep_relative": 0.16718211305118763,
+      "quadrupole_norm": 1.387300480208906,
+      "record_id": "base-hcno-460236-0c750047a5e1"
+    },
+    {
+      "audit_mep_relative": 0.328956951193991,
+      "charge_residual_e": 5.551115123125783e-17,
+      "dipole_relative": 0.25657570048555545,
+      "fit_mep_relative": 0.316127297436091,
+      "quadrupole_norm": 1.2651501764948336,
+      "record_id": "phosphorus-351029-1256947e5905"
+    },
+    {
+      "audit_mep_relative": 0.19517990208443697,
+      "charge_residual_e": 6.245004513516506e-17,
+      "dipole_relative": 0.08300565132826947,
+      "fit_mep_relative": 0.1883244442319589,
+      "quadrupole_norm": 1.019972604142177,
+      "record_id": "sulfur-122602-190c2fbc8b99"
+    },
+    {
+      "audit_mep_relative": 0.11342974998060941,
+      "charge_residual_e": 6.938893903907228e-18,
+      "dipole_relative": 0.1933151606028256,
+      "fit_mep_relative": 0.1149935644967609,
+      "quadrupole_norm": 1.5546490246158575,
+      "record_id": "base-hcno-436944-1c3caaef7cd3"
+    },
+    {
+      "audit_mep_relative": 0.32758783851184375,
+      "charge_residual_e": 1.3877787807814457e-17,
+      "dipole_relative": 0.21858255612206115,
+      "fit_mep_relative": 0.3303714091445986,
+      "quadrupole_norm": 1.0229955198734517,
+      "record_id": "sulfur-389495-2e00c04d8f40"
+    },
+    {
+      "audit_mep_relative": 0.12890836329570865,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.08096072158304199,
+      "fit_mep_relative": 0.12212181789200932,
+      "quadrupole_norm": 1.0934481690702906,
+      "record_id": "base-hcno-156765-3c8bc817c95e"
+    },
+    {
+      "audit_mep_relative": 0.11883434448008279,
+      "charge_residual_e": 4.163336342344337e-17,
+      "dipole_relative": 0.047602204574399336,
+      "fit_mep_relative": 0.1275100537692059,
+      "quadrupole_norm": 1.5460552285718663,
+      "record_id": "base-hcno-481244-549dfd678c85"
+    },
+    {
+      "audit_mep_relative": 0.24242028707801777,
+      "charge_residual_e": 4.163336342344337e-17,
+      "dipole_relative": 0.4876264550588791,
+      "fit_mep_relative": 0.2412801322256946,
+      "quadrupole_norm": 1.220554126013965,
+      "record_id": "bromine-101221-5abef0a88d16"
+    },
+    {
+      "audit_mep_relative": 0.1945700598079884,
+      "charge_residual_e": 2.7755575615628914e-17,
+      "dipole_relative": 0.3054237006165284,
+      "fit_mep_relative": 0.1945215938469832,
+      "quadrupole_norm": 0.8199474243755075,
+      "record_id": "fluorine-278363-5c9234fb4b84"
+    },
+    {
+      "audit_mep_relative": 0.23154223282947192,
+      "charge_residual_e": 1.3877787807814457e-17,
+      "dipole_relative": 0.13772837544354485,
+      "fit_mep_relative": 0.23732387890038736,
+      "quadrupole_norm": 1.4227329149651127,
+      "record_id": "sulfur-221028-692cd68117c4"
+    },
+    {
+      "audit_mep_relative": 0.2145738568034441,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.061150426158737434,
+      "fit_mep_relative": 0.21481056960816258,
+      "quadrupole_norm": 1.145243816400344,
+      "record_id": "bromine-10426-6bb8a046ac22"
+    },
+    {
+      "audit_mep_relative": 0.09189633418962045,
+      "charge_residual_e": 6.938893903907228e-17,
+      "dipole_relative": 0.08679124505437531,
+      "fit_mep_relative": 0.09119798066326636,
+      "quadrupole_norm": 1.3741359571042588,
+      "record_id": "base-hcno-404508-6cb9b5d441de"
+    },
+    {
+      "audit_mep_relative": 0.22197033571293753,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.2862172695751766,
+      "fit_mep_relative": 0.2212651935669213,
+      "quadrupole_norm": 1.0970720956206597,
+      "record_id": "fluorine-469465-70c76c720826"
+    },
+    {
+      "audit_mep_relative": 0.12472965275033543,
+      "charge_residual_e": 1.734723475976807e-17,
+      "dipole_relative": 0.07494451263846573,
+      "fit_mep_relative": 0.1271742543200652,
+      "quadrupole_norm": 0.4441861109404326,
+      "record_id": "fluorine-139037-710a4fc89944"
+    },
+    {
+      "audit_mep_relative": 0.1539683900182306,
+      "charge_residual_e": 2.0816681711721685e-17,
+      "dipole_relative": 0.08292697786316172,
+      "fit_mep_relative": 0.14221721788230518,
+      "quadrupole_norm": 1.1243013700044595,
+      "record_id": "bromine-63727-71eb4b0867c9"
+    },
+    {
+      "audit_mep_relative": 0.28225852492432935,
+      "charge_residual_e": 1.3877787807814457e-17,
+      "dipole_relative": 0.5219181357491394,
+      "fit_mep_relative": 0.27852677326327857,
+      "quadrupole_norm": 1.2117392167715828,
+      "record_id": "phosphorus-696398-7400c7789c7c"
+    },
+    {
+      "audit_mep_relative": 0.10026516524338963,
+      "charge_residual_e": 1.3877787807814457e-17,
+      "dipole_relative": 0.03165764646054371,
+      "fit_mep_relative": 0.09780937895251636,
+      "quadrupole_norm": 1.202577352556885,
+      "record_id": "base-hcno-162863-745ab5d78c8b"
+    },
+    {
+      "audit_mep_relative": 0.239508719552991,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.23659458661866575,
+      "fit_mep_relative": 0.235191563213204,
+      "quadrupole_norm": 1.5696385503023425,
+      "record_id": "base-hcno-208608-7e6419f2ee92"
+    },
+    {
+      "audit_mep_relative": 0.21968394796789584,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.19150202786235615,
+      "fit_mep_relative": 0.21814694063120751,
+      "quadrupole_norm": 1.3117809726559615,
+      "record_id": "bromine-447833-84c7dcaffea3"
+    },
+    {
+      "audit_mep_relative": 0.2333404657208525,
+      "charge_residual_e": 6.938893903907228e-17,
+      "dipole_relative": 0.0723591891634027,
+      "fit_mep_relative": 0.23011147219618203,
+      "quadrupole_norm": 0.9219658036734927,
+      "record_id": "sulfur-379175-938cde712eac"
+    },
+    {
+      "audit_mep_relative": 0.18163330723064156,
+      "charge_residual_e": 5.551115123125783e-17,
+      "dipole_relative": 0.1485325882149922,
+      "fit_mep_relative": 0.18505261013877658,
+      "quadrupole_norm": 0.8011953472840306,
+      "record_id": "base-hcno-135247-970f059c1f95"
+    },
+    {
+      "audit_mep_relative": 0.3015199848657685,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.21516263309459185,
+      "fit_mep_relative": 0.3052654291220442,
+      "quadrupole_norm": 0.9505675279308828,
+      "record_id": "chlorine-636384-976484d18c73"
+    },
+    {
+      "audit_mep_relative": 0.11724254569475097,
+      "charge_residual_e": 1.3877787807814457e-17,
+      "dipole_relative": 0.06532393972881405,
+      "fit_mep_relative": 0.11477939637709457,
+      "quadrupole_norm": 1.015921267564854,
+      "record_id": "chlorine-141648-a14bf52170de"
+    },
+    {
+      "audit_mep_relative": 0.2858621968463852,
+      "charge_residual_e": 4.163336342344337e-17,
+      "dipole_relative": 0.0835241655020491,
+      "fit_mep_relative": 0.2709956416740245,
+      "quadrupole_norm": 1.2220967068133162,
+      "record_id": "chlorine-784-a7040c282ac8"
+    },
+    {
+      "audit_mep_relative": 0.2457134253636482,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.05652418970055484,
+      "fit_mep_relative": 0.24315594953693567,
+      "quadrupole_norm": 0.8640886319184001,
+      "record_id": "chlorine-610177-ac8ad6afa4f7"
+    },
+    {
+      "audit_mep_relative": 0.10975568036111039,
+      "charge_residual_e": 0.0,
+      "dipole_relative": 0.009871321859969686,
+      "fit_mep_relative": 0.109874017960082,
+      "quadrupole_norm": 1.1506470988036754,
+      "record_id": "base-hcno-229457-b412c4e75aed"
+    },
+    {
+      "audit_mep_relative": 0.2338290476443395,
+      "charge_residual_e": 4.163336342344337e-17,
+      "dipole_relative": 0.3703395223511022,
+      "fit_mep_relative": 0.22043584201460054,
+      "quadrupole_norm": 0.9720706197279485,
+      "record_id": "base-hcno-432908-c1096072c51b"
+    },
+    {
+      "audit_mep_relative": 0.13357919524188291,
+      "charge_residual_e": 2.7755575615628914e-17,
+      "dipole_relative": 0.07865511812516317,
+      "fit_mep_relative": 0.1311083814463844,
+      "quadrupole_norm": 0.8179669287374792,
+      "record_id": "phosphorus-66144-d15ba6ea626a"
+    },
+    {
+      "audit_mep_relative": 0.2809875728575651,
+      "charge_residual_e": 2.0816681711721685e-17,
+      "dipole_relative": 0.24405006915215846,
+      "fit_mep_relative": 0.2881289724038687,
+      "quadrupole_norm": 0.6780837049978217,
+      "record_id": "phosphorus-598182-ea0696054cba"
+    },
+    {
+      "audit_mep_relative": 0.08056461377207644,
+      "charge_residual_e": 4.163336342344337e-17,
+      "dipole_relative": 0.09635514377050812,
+      "fit_mep_relative": 0.08202504440011552,
+      "quadrupole_norm": 1.2450988825559695,
+      "record_id": "base-hcno-440770-f59ae1366672"
+    },
+    {
+      "audit_mep_relative": 0.1755444559529033,
+      "charge_residual_e": 5.551115123125783e-17,
+      "dipole_relative": 0.059163008297533286,
+      "fit_mep_relative": 0.16937789030428027,
+      "quadrupole_norm": 1.1427674601282174,
+      "record_id": "base-hcno-399849-fa20b6e144ad"
+    }
+  ],
+  "result_sha256": "f450d9e2eb030a0e865e2617da26095348bda5fd2e63793ca00d0e7121d6ee41",
+  "runtime": {
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "source": {
+    "checkpoint_sha256": "6e9485d6c7eb18144bc0a0e3993a4a75d7bfa13f488015b40af71d47262a4699",
+    "mdp_feature_manifest_sha256": "e2bcb6e2ea649ebe7cfdb653d8f72949b9dd8c3becbaeff12fc3f0acb26232a9",
+    "polar_l2_manifest_sha256": "06addca6a0053ed88d0ec491d9da7333d3c6e6f43047fec209a6b34b5c35029d",
+    "preregistration_file_sha256": "36152f69865ae52f41de2b528725b453162b8caf2ec265ac2fd973b6270fe190",
+    "preregistration_sha256": "e9788ed3a12fa1862d57d2082717c422bb4a42826d30793c0cc89b8be1cf5d22",
+    "qa_runner_sha256": "e36a61514fc2bc601e6ac4d3b9b5a7a8ef2398d03d06e7ae1253fed6edc8b2de",
+    "runner_path": "tools/route2_release/train_vqm24_mdp_polar_l2_permanent_mlp.py",
+    "runner_sha256": "ed5c07d987cb9b2cce53bd3e7e198bd2b6fd8e93f00f4507d685924b597afe82"
+  },
+  "status": "complete-development-pilot",
+  "training": {
+    "audit_points_used_in_gradient": false,
+    "device": "cuda",
+    "dtype": "float64",
+    "epochs": 2000,
+    "history": [
+      {
+        "dipole_loss": 0.1406128441756171,
+        "epoch": 0,
+        "loss": 0.49868503475081727,
+        "mep_loss": 0.5384708337036173
+      },
+      {
+        "dipole_loss": 0.347697038448582,
+        "epoch": 100,
+        "loss": 0.18316240892156468,
+        "mep_loss": 0.16488078341856277
+      },
+      {
+        "dipole_loss": 0.14612445643681427,
+        "epoch": 200,
+        "loss": 0.132517521470288,
+        "mep_loss": 0.13100563980734065
+      },
+      {
+        "dipole_loss": 0.11100733022909938,
+        "epoch": 300,
+        "loss": 0.10568071071011287,
+        "mep_loss": 0.10508886409689214
+      },
+      {
+        "dipole_loss": 0.08694268960586761,
+        "epoch": 400,
+        "loss": 0.08731331334561279,
+        "mep_loss": 0.08735449376114002
+      },
+      {
+        "dipole_loss": 0.06811484243632125,
+        "epoch": 500,
+        "loss": 0.07505235982308404,
+        "mep_loss": 0.07582319508827991
+      },
+      {
+        "dipole_loss": 0.05306100820651649,
+        "epoch": 600,
+        "loss": 0.06554945242764285,
+        "mep_loss": 0.06693705734110132
+      },
+      {
+        "dipole_loss": 0.04679332355859637,
+        "epoch": 700,
+        "loss": 0.058655740531437926,
+        "mep_loss": 0.059973786861753656
+      },
+      {
+        "dipole_loss": 0.03698227041973512,
+        "epoch": 800,
+        "loss": 0.05404251725993728,
+        "mep_loss": 0.05593810024218196
+      },
+      {
+        "dipole_loss": 0.03370120660555398,
+        "epoch": 900,
+        "loss": 0.050783487096476926,
+        "mep_loss": 0.052681518262135026
+      },
+      {
+        "dipole_loss": 0.030890530497116736,
+        "epoch": 1000,
+        "loss": 0.048047437940573125,
+        "mep_loss": 0.04995376098984606
+      },
+      {
+        "dipole_loss": 0.027858929653386377,
+        "epoch": 1100,
+        "loss": 0.046067623202046895,
+        "mep_loss": 0.04809081137412028
+      },
+      {
+        "dipole_loss": 0.025608488534863135,
+        "epoch": 1200,
+        "loss": 0.04447273289470803,
+        "mep_loss": 0.046568760045801905
+      },
+      {
+        "dipole_loss": 0.022317339698326742,
+        "epoch": 1300,
+        "loss": 0.043255400998025134,
+        "mep_loss": 0.045581852253547175
+      },
+      {
+        "dipole_loss": 0.029599560310530734,
+        "epoch": 1400,
+        "loss": 0.04411462382004462,
+        "mep_loss": 0.045727408654435045
+      },
+      {
+        "dipole_loss": 0.020575630530892848,
+        "epoch": 1500,
+        "loss": 0.04089512890167141,
+        "mep_loss": 0.04315285094286902
+      },
+      {
+        "dipole_loss": 0.01936162856440847,
+        "epoch": 1600,
+        "loss": 0.0400260607340533,
+        "mep_loss": 0.04232210875290272
+      },
+      {
+        "dipole_loss": 0.018786127067087256,
+        "epoch": 1700,
+        "loss": 0.03926417290394157,
+        "mep_loss": 0.04153951133025871
+      },
+      {
+        "dipole_loss": 0.026569447216058747,
+        "epoch": 1800,
+        "loss": 0.04191974731351162,
+        "mep_loss": 0.0436253362132286
+      },
+      {
+        "dipole_loss": 0.018784543631828184,
+        "epoch": 1900,
+        "loss": 0.038039500503371355,
+        "mep_loss": 0.04017894015576504
+      },
+      {
+        "dipole_loss": 0.016212214638897497,
+        "epoch": 1999,
+        "loss": 0.03716639948931443,
+        "mep_loss": 0.03949464225047187
+      }
+    ],
+    "learning_rate": 0.003,
+    "seed": 20260827,
+    "weight_decay": 0.0001
+  }
+}

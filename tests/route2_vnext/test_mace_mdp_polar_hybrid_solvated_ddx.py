@@ -43,6 +43,7 @@ def _atoms() -> Atoms:
 
 class _QuadraticHybridDDXPES:
     provider_id = "test.hybrid-ddx-electrostatic-pes.v1"
+    coordinate_derivative_available = True
     _weights = np.asarray([[0.7, 0.9, 1.1], [1.3, 1.5, 1.7]], dtype=float)
 
     def __init__(self) -> None:
@@ -104,6 +105,11 @@ class _QuadraticHybridDDXPES:
         )
 
 
+class _EnergyOnlyQuadraticHybridDDXPES(_QuadraticHybridDDXPES):
+    provider_id = "test.hybrid-ddx-energy-only-pes.v1"
+    coordinate_derivative_available = False
+
+
 class _QuadraticSolventTerm:
     provider_id = "test.quadratic-solvent-term.v1"
 
@@ -160,6 +166,20 @@ def _pes(
             )
         ),
     )
+
+
+def test_hybrid_solvated_derivative_capability_propagates_fail_closed() -> None:
+    atoms = _atoms()
+    pes = MACE_MDPPolarHybridSolvatedDDXPES(
+        electrostatic_pes=_EnergyOnlyQuadraticHybridDDXPES(),
+        solvent_term=_QuadraticSolventTerm(),
+    )
+
+    assert pes.coordinate_derivative_available is False
+    assert pes.force_available is False
+    assert np.isfinite(pes.get_potential_energy(atoms))
+    with pytest.raises(NotImplementedError, match="complete coordinate derivative"):
+        pes.evaluate_forces(atoms)
 
 
 def test_hybrid_solvated_state_closes_the_full_energy_ledger() -> None:

@@ -1,0 +1,55 @@
+You are reviewing a scientific-computing derivation for MAPLE Route 2. I need an adversarial mathematical audit, not implementation cheerleading. The model is deliberately operational/nonvariational: do NOT assume the ML source is the derivative of the ML energy, and do NOT reinterpret the result as a unified variational functional.
+
+We have geometry R, a MACE-MDP permanent source, a MACE-POLAR induced source, and a smooth harmonic-Galerkin continuum. In Euclidean coordinates for the first derivation, define
+
+  m = m(R,u)                         induced 4-channel source
+  b = p(R) + B(R) m(R,u)            continuum RHS
+  A(R) sigma = b                    symmetric positive-definite continuum solve
+  u = L(R) sigma                    native 8-channel MACE-POLAR field
+  r(R,u) = u - L(R) A(R)^(-1)b(R,u) = 0
+
+The registered operational scalar is
+
+  E(R) = E0(R) + G(R,u*(R)),
+  G(R,u) = -(f/2) b(R,u)^T A(R)^(-1)b(R,u)
+         = -(f/2) b^T sigma,
+
+where f is a fixed dielectric screening factor. The root is selected by a deterministic multi-start/replay rule. We want an analytic implicit-adjoint nuclear gradient of this exact scalar, replacing a very expensive Richardson force, without claiming Tier V.
+
+My local candidate derivation is:
+
+  M_u = partial m / partial u
+  J = partial r / partial u = I - L A^(-1) B M_u
+  G_u = -f M_u^T B^T sigma
+  J^T lambda = G_u
+  A^T w = L^T lambda
+
+At fixed u, let b_R denote the full geometry derivative of p(R)+B(R)m(R,u), including the explicit-coordinate derivative of both ML sources and the moving source operators. I obtain
+
+ dE/dR = E0_R
+         - f b_R^T sigma
+         + (f/2) sigma^T A_R sigma
+         + lambda^T L_R sigma
+         + w^T b_R
+         - w^T A_R sigma.
+
+Equivalently, for bilinear coordinate VJPs
+
+  V_A(a,c) = grad_R [a^T A(R)c]
+  V_B(a,m) = grad_R [a^T B(R)m]
+  V_L(q,a) = grad_R [q^T L(R)a],
+
+plus corresponding permanent-source and ML explicit-coordinate VJPs, the gradient should be assembled only through contractions, never full third-order tensors.
+
+Please answer all of the following precisely:
+
+1. Re-derive the gradient from first principles and verify every sign/transposition in the candidate formula. If wrong, give the corrected formula.
+2. Split b_R into permanent-source, induced-source, B-position, and ML explicit-position terms so an implementation cannot double-count geometry dependence.
+3. Give a matrix-free reverse-mode algorithm: forward states/solves, model JVP/VJP calls, continuum transpose solves, and the minimum number of solves.
+4. Generalize correctly to non-Euclidean source/field/surface pairing metrics, stating where metric adjoints replace ordinary transposes. Also state what changes if A is nonsymmetric.
+5. State the exact assumptions needed for this to be the conservative derivative of the registered operational scalar (local C1 root branch, exact root identity, topology/regularity, solve tolerances), and explicitly distinguish this from a common electronic-continuum variational functional.
+6. Identify likely hidden terms in an atom-centred implementation: moving atom centres, harmonic translations, smooth exposure/cavity, radii, origin/barycenter, charge-affine section/projector, field basis transform, and MDP/POLAR coordinate derivatives.
+7. Propose a minimal set of contraction-level finite-difference and dot-product tests that independently validates A/B/L position VJPs, residual partial VJP, ledger partial VJP, adjoint gradient, rigid translation/rotation covariance, and closed-loop work.
+8. Give a short stop/go verdict: is this a mathematically legitimate route to a much faster conservative operational force, even though the original MACE source/energy common-functional claim is false?
+
+Please be especially suspicious of hidden factor-of-two errors in G, the sign inside L, and confusion between partial-R at fixed u and total-R through u*(R).

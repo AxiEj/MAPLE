@@ -1,0 +1,74 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = mace-polar-ef-v2 with options {'model_path': '/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt'}
+Task set to 'sp'
+Global parameter: device = gpu0
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'torch-smooth-pcm', 'profile': 'mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True, 'acknowledge_known_nonpassive': True, 'acknowledge_unvalidated_derivatives': True}
+Parsed configuration:
+----------------------------------------
+Task: sp
+model          : mace-polar-ef-v2(model_path=/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt)
+device         : gpu0
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'torch-smooth-pcm', 'profile': 'mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True, 'acknowledge_known_nonpassive': True, 'acknowledge_unvalidated_derivatives': True}
+
+                             Coordinates                              
+**********************************************************************
+
+Group 1 (MOL2: /home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/jobs/mobley_7532833/geometry.mol2)
+Charge: 0, Multiplicity: 1
+--------------------
+1    C              0.448000             0.284000             0.957000
+2    C             -0.206000             1.471000             1.504000
+3    N             -0.725000             2.414000             1.939000
+4    H             -0.283000            -0.507000             0.762000
+5    H              1.193000            -0.107000             1.656000
+6    H              0.955000             0.518000             0.016000
+
+*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; scientifically_valid=false. ***
+OPT/FREQ/TS use unvalidated derivatives of a diagnostic scalar, not physical predictions.
+
+Charge: 0, Multiplicity: 1
+Energy: -132.7509049163 Hartree
+*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; scientifically_valid=false. ***
+Derivative workflows use this known-nonpassive diagnostic scalar and are not physical predictions.
+Gas-phase MLIP energy: -132.7468687448 Hartree
+Solvation free-energy correction (Delta G_solv, 1M(gas)->1M(solution)): -0.0040361715 Hartree
+Combined E_MLIP(gas)+Delta G_solv: -132.7509049163 Hartree
+ASE free_energy is the combined electronic-plus-solvation value, not a thermochemical Gibbs free energy.
+
+
+
+Program started: 2026-09-05 20:02:58
+
+======================================================================
+                      TIMING SUMMARY
+======================================================================
+Input Reading.......................................   0.105 s  (   0.1 %)
+  Settings Parsing....................................   0.100 s  (  95.9 %)
+  Coordinate Section Parsing..........................   0.003 s  (   3.2 %)
+  Post-Processing Expansion...........................   0.000 s  (   0.0 %)
+MLP Initialization..................................   0.153 s  (   0.1 %)
+Job Dispatching..................................... 136.693 s  (  99.8 %)
+  Single Point Energy Calculation..................... 136.692 s  ( 100.0 %)
+======================================================================
+Total wall time: 136.951 s
+Total CPU time: 136.737 s
+======================================================================
+
+Program ended: 2026-09-05 20:05:15
+TOTAL RUN TIME: 0 days 0 hours 2 minutes 16 seconds 951 msec

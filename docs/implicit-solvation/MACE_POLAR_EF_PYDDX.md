@@ -38,6 +38,86 @@ The same profile accepts water, methanol, ethanol, acetonitrile, DMSO, DMF,
 THF, chloroform, dichloromethane, toluene, and hexane. Replace the task line
 with `#opt(method=lbfgs)`, `#freq`, or `#ts(method=prfo)` for those workflows.
 
+### Task coverage is profile-specific
+
+| Task | Supported diagnostic path | Boundary |
+| --- | --- | --- |
+| SP | `#sp(verbose=1)` for energy and forces | Requires the multi-solvent derivative profile above. |
+| OPT | `#opt(method=lbfgs)` | Other optimizers are not opened by this profile. |
+| FREQ | `#freq` | Central finite differences of analytic forces, not analytic second derivatives. |
+| TS | `#ts(method=prfo)` | Requires a TS guess; NEB, dimer, and other TS methods are not opened. |
+
+This is specifically `method=smd,provider=torch-smooth-pcm`, not general
+support for every implicit-solvent backend. The water-only energy diagnostic
+profile does not open derivative tasks. CUDA device 0 is required by the
+current checkpoint.
+
+All four tasks receive the diagnostic warning during calculator setup,
+including OPT/FREQ/TS outputs that do not use the SP energy printer.
+Successful execution is not convergence or scientific validation: check the
+optimizer's convergence message separately. A short P-RFO run is only a
+workflow smoke test, not evidence of a located transition state. Even a
+completed frequency calculation remains an unvalidated diagnostic, and
+thermochemistry printed by the frequency machinery is not a certified
+solution-phase free energy.
+
+### Local V2 workflow verification (2026-09-05)
+
+Real-checkpoint CLI checks used neutral singlet water in implicit methanol,
+the multi-solvent derivative profile above, and no frozen atoms:
+
+- SP: energy and forces completed.
+- L-BFGS OPT: converged in 6 iterations; a post-warning-patch restart from
+  the optimized structure also converged in 1 iteration.
+- FREQ: completed on the optimized structure, including all 18 displaced
+  force evaluations for its 9-by-9 numerical Hessian; 6 zero modes,
+  3 real vibrational modes, and no imaginary modes were reported.
+- P-RFO TS: completed one accepted step and wrote trajectory/final-iterate
+  files, then reported `Maximum Iterations Reached` as requested by
+  `max_iter=1`. This water smoke input is not a reaction TS guess and the
+  output named `_prfo_ts.xyz` is not a verified transition state.
+
+The first TS attempt hit the harness's 600-second timeout. An identical-input
+retry with a 1500-second limit completed in 677 seconds; no model, numerical
+threshold, or input geometry was changed. These are local execution timings,
+not a performance benchmark. Only methanol was live-tested in this run;
+the 11-solvent coverage is parser/registry coverage, not an all-solvent
+scientific validation.
+
+The five V2 test modules passed 87 tests; the energy-ledger, ddPCM-provider,
+and source-receiver-contract modules passed another 121. Python compilation
+and `git diff --check` passed. No configured lint/type checker was available.
+Local inputs, outputs, test logs, and checksum-bound verification records
+are retained under `.omx/validation/v2-workflows-20260905/` (not distributed
+with the repository). Scientific admission flags remain false.
+
+### Fixed-geometry hydration comparison (2026-09-05)
+
+The frozen V2/SMD/smooth-PCM configuration was also evaluated against
+FreeSolv v0.52 experimental hydration values. Five molecules were selected
+before calculation by smallest atom count from the existing locked
+functional-group-12 panel, breaking ties by compound ID. No fitting,
+geometry optimization, parameter changes, or failed-record replacement was
+performed.
+
+| Molecule | Experiment | V2 estimate | Absolute error |
+| --- | ---: | ---: | ---: |
+| Methane | 2.00 | SCF did not converge | unavailable |
+| Methanol | -5.10 | -12.1572 | 7.0572 |
+| Acetonitrile | -3.88 | -2.5327 | 1.3473 |
+| Chloroethane | -0.63 | target-shell clearance violation | unavailable |
+| Acetic acid | -6.69 | -23.2397 | 16.5497 |
+
+Units are kcal/mol. **Three of five calculations succeeded; two failed.**
+The **successful-subset-only** MAE is **8.3181 kcal/mol** and RMSE is
+**10.4165 kcal/mol**. There is no full-five MAE/RMSE, and these numbers do
+not establish general accuracy, derivative accuracy, or scientific admission.
+The observable is the fixed-conformer SMD estimate (electrostatics plus CDS),
+not an explicitly sampled gas/solution ensemble free energy. The deposited
+GAFF conformers and 1 M gas to 1 M aqueous convention were retained.
+
+See the [archived panel, raw outputs, failures, and provenance](benchmarks/mace-polar-ef-v2-freesolv-small5-20260905/README.md).
+
 ## Connection to `torch-smooth-pcm-v1`
 
 The EF adapter is now connected to the private fixed-dimensional smooth PCM

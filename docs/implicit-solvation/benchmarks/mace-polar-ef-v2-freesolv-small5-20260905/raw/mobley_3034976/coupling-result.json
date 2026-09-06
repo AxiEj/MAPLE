@@ -1,0 +1,71 @@
+{
+  "cds_provider": {
+    "provider": "pyscf-smd-libsolvent-cds",
+    "pyscf_smd_solvent": "water",
+    "pyscf_version": "2.13.1",
+    "solvent": "water",
+    "upstream_entrypoint": "pyscf.solvent.smd.get_cds_legacy"
+  },
+  "components_hartree": {
+    "cds": 0.006078849522547975,
+    "delta_g_solv": -0.03703486786585452,
+    "electrostatic": -0.043113717388402494,
+    "pcm_polarization": -0.08766219082261982,
+    "solute_polarization": 0.04454847343421733,
+    "standard_state": 0.0
+  },
+  "configuration_sha256": "d2a7bf8db73968cfa175bf8ed008896d1acbdf2be6b42beeae02fae66896c349",
+  "continuum_energy_ev": -2.3854097336438125,
+  "coupled_common_scalar_energy_ev": -6234.980312922606,
+  "diagnostic_derivative_evidence": null,
+  "electronic_passivity": {
+    "checkpoint_sha256": "4f820d381d06bbb37b02574c38da7203e5d429407fa2a512231fc08cdbb69b6b",
+    "coordinate_origin": "unweighted-atomic-centroid",
+    "criterion": "ground-state-energy-concavity-in-affine-external-potential",
+    "energy_hessian": [
+      [
+        3.0447175707664087,
+        -0.05041634058366995,
+        0.009206704329134396
+      ],
+      [
+        -0.05041634058366995,
+        3.057752050463325,
+        -0.02837725728110918
+      ],
+      [
+        0.009206704329134396,
+        -0.02837725728110918,
+        3.0485095884689173
+      ]
+    ],
+    "energy_hessian_eigenvalues": [
+      2.997232078762638,
+      3.039961046017357,
+      3.113786084918654
+    ],
+    "energy_hessian_units": "e^2 angstrom^2/eV",
+    "external_drive": "per-atom V_i=g dot (R_i-centroid), grad(V)_i=g",
+    "field_step_ev_per_e_angstrom": 0.001,
+    "known_failure_continuation": true,
+    "maximum_positive_curvature": 3.113786084918654,
+    "passed": false,
+    "passivity_passed": false,
+    "polarizability_definition": "alpha=-d2E/dE2",
+    "policy": "record-known-failure-diagnostic",
+    "positive_curvature_tolerance_rationale": "100x float32 source-difference noise allowance",
+    "spin_multiplicity": 1,
+    "tolerance": 0.01
+  },
+  "gas_energy_ev": -6233.80712890625,
+  "iterations": 32,
+  "known_nonpassive_acknowledged": true,
+  "known_nonpassive_diagnostic": true,
+  "maximum_field_replay_difference": 0.0,
+  "maximum_source_residual": 4.55209103960158e-05,
+  "profile": "mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2",
+  "schema_version": 1,
+  "scientifically_valid": false,
+  "source_field_pairing_ev": -4.770819467287623,
+  "state_archive": "mace-polar-ef-smooth-pcm-state.npz"
+}

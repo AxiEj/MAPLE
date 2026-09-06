@@ -1,0 +1,101 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = mace-polar-ef-v2 with options {'model_path': '/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt'}
+Task set to 'sp'
+Global parameter: device = gpu0
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'torch-smooth-pcm', 'profile': 'mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True, 'acknowledge_known_nonpassive': True, 'acknowledge_unvalidated_derivatives': True}
+Parsed configuration:
+----------------------------------------
+Task: sp
+model          : mace-polar-ef-v2(model_path=/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt)
+device         : gpu0
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'torch-smooth-pcm', 'profile': 'mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True, 'acknowledge_known_nonpassive': True, 'acknowledge_unvalidated_derivatives': True}
+
+                             Coordinates                              
+**********************************************************************
+
+Group 1 (MOL2: /home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/jobs/mobley_2198613/geometry.mol2)
+Charge: 0, Multiplicity: 1
+--------------------
+1    C              0.154000            -0.725000             0.806000
+2    C              1.367000            -0.368000             1.639000
+3    Cl             2.832000            -0.357000             0.634000
+4    H             -0.744000            -0.730000             1.431000
+5    H             -0.000000             0.000000             0.000000
+6    H              0.259000            -1.719000             0.359000
+7    H              1.514000            -1.096000             2.442000
+8    H              1.255000             0.625000             2.083000
+
+*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; scientifically_valid=false. ***
+OPT/FREQ/TS use unvalidated derivatives of a diagnostic scalar, not physical predictions.
+ERROR: ValueError: point source violates the target-shell clearance
+ERROR: Error during calculation: point source violates the target-shell clearance
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/main.py", line 132, in main
+    eng(input_file, output_file)
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/engine.py", line 90, in __call__
+    self._jobtype_dispatcher(
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/engine.py", line 203, in _jobtype_dispatcher
+    dispatcher(commandcontrol, jobtype, atoms, output, extra)
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/dispatcher.py", line 51, in __call__
+    sp.run()
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/sp/sp.py", line 37, in run
+    self._run_single()
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/sp/sp.py", line 42, in _run_single
+    energy, forces = self._evaluate_structure(self.atoms)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/sp/sp.py", line 59, in _evaluate_structure
+    energy = float(atoms.get_potential_energy())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/atoms.py", line 1950, in get_potential_energy
+    energy = self._calc.get_potential_energy(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/abc.py", line 26, in get_potential_energy
+    return self.get_property(name, atoms)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/calculator.py", line 519, in get_property
+    self.calculate(atoms, [name], system_changes)
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/mace/_macepolef_calculator.py", line 284, in calculate
+    self._finalize_results(
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/calculator_base.py", line 360, in _finalize_results
+    solvent_result = self.solvent_correction.evaluate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/correction.py", line 339, in evaluate
+    result = self.provider.evaluate(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_smooth_smd.py", line 318, in evaluate
+    coupled = coupling.evaluate(positions)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py", line 472, in evaluate
+    source, field, _density, _residual, iterations, continuum = self._solve_source(
+                                                                ^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py", line 435, in _solve_source
+    continuum.drive_cartesian(source, warm_start=True),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_smooth_pcm.py", line 74, in drive_cartesian
+    return self.model.drive_cartesian(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/torch_smooth_pcm/functional.py", line 74, in drive_cartesian
+    raw=torch.autograd.grad(self._energy_torch(r,c),c)[0].reshape(-1)
+                            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/torch_smooth_pcm/scalar.py", line 141, in _energy_torch
+    a=self._assemble_torch(positions); c=source.reshape(-1); _,_,X=self._solve_primal(a,c)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/torch_smooth_pcm/scalar.py", line 99, in _assemble_torch
+    raise ValueError("point source violates the target-shell clearance")
+ValueError: point source violates the target-shell clearance

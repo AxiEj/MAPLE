@@ -210,6 +210,20 @@ class ImplicitSolvationCorrection:
         )
         self.supported_properties = set(self.provider.supported_properties)
         self._write_audit_manifest()
+        # Emit before dispatch: OPT/FREQ/TS do not use SP's energy printer.
+        if output is not None and isinstance(
+            self.provider, MACEPolarEFSmoothPCMKnownNonpassiveDiagnostic
+        ):
+            with output_path.open("a", encoding="utf-8") as handle:
+                handle.write(
+                    "\n*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; "
+                    "scientifically_valid=false. ***\n"
+                )
+                if self.provider.derivatives_enabled:
+                    handle.write(
+                        "OPT/FREQ/TS use unvalidated derivatives of a diagnostic "
+                        "scalar, not physical predictions.\n"
+                    )
 
     def _write_audit_manifest(self) -> None:
         provenance = getattr(self.provider, "provenance", None)

@@ -1,0 +1,86 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = mace-polar-ef-v2 with options {'model_path': '/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt'}
+Task set to 'sp'
+Global parameter: device = gpu0
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'torch-smooth-pcm', 'profile': 'mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True, 'acknowledge_known_nonpassive': True, 'acknowledge_unvalidated_derivatives': True}
+Parsed configuration:
+----------------------------------------
+Task: sp
+model          : mace-polar-ef-v2(model_path=/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt)
+device         : gpu0
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'torch-smooth-pcm', 'profile': 'mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True, 'acknowledge_known_nonpassive': True, 'acknowledge_unvalidated_derivatives': True}
+
+                             Coordinates                              
+**********************************************************************
+
+Group 1 (MOL2: /home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/jobs/mobley_9055303/geometry.mol2)
+Charge: 0, Multiplicity: 1
+--------------------
+1    C             -0.000000            -0.000000             0.000000
+2    H              0.554000             0.800000             0.496000
+3    H              0.683000            -0.813000            -0.254000
+4    H             -0.778000            -0.373000             0.669000
+5    H             -0.459000             0.387000            -0.912000
+
+*** WARNING: KNOWN-NONPASSIVE DIAGNOSTIC; scientifically_valid=false. ***
+OPT/FREQ/TS use unvalidated derivatives of a diagnostic scalar, not physical predictions.
+ERROR: RuntimeError: MACE-POLAR-EF/PCM source equation did not converge.
+ERROR: Error during calculation: MACE-POLAR-EF/PCM source equation did not converge.
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/main.py", line 132, in main
+    eng(input_file, output_file)
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/engine.py", line 90, in __call__
+    self._jobtype_dispatcher(
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/engine.py", line 203, in _jobtype_dispatcher
+    dispatcher(commandcontrol, jobtype, atoms, output, extra)
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/dispatcher.py", line 51, in __call__
+    sp.run()
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/sp/sp.py", line 37, in run
+    self._run_single()
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/sp/sp.py", line 42, in _run_single
+    energy, forces = self._evaluate_structure(self.atoms)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/dispatcher/sp/sp.py", line 59, in _evaluate_structure
+    energy = float(atoms.get_potential_energy())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/atoms.py", line 1950, in get_potential_energy
+    energy = self._calc.get_potential_energy(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/abc.py", line 26, in get_potential_energy
+    return self.get_property(name, atoms)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/calculator.py", line 519, in get_property
+    self.calculate(atoms, [name], system_changes)
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/mace/_macepolef_calculator.py", line 284, in calculate
+    self._finalize_results(
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/calculator_base.py", line 360, in _finalize_results
+    solvent_result = self.solvent_correction.evaluate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/correction.py", line 339, in evaluate
+    result = self.provider.evaluate(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_smooth_smd.py", line 318, in evaluate
+    coupled = coupling.evaluate(positions)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py", line 472, in evaluate
+    source, field, _density, _residual, iterations, continuum = self._solve_source(
+                                                                ^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/source-snapshot/maple/function/calculator/extra_correction/implicit/mace_polar_ef_stationary.py", line 463, in _solve_source
+    raise RuntimeError("MACE-POLAR-EF/PCM source equation did not converge.")
+RuntimeError: MACE-POLAR-EF/PCM source equation did not converge.

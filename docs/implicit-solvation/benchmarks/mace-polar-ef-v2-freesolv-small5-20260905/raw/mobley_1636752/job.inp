@@ -1,0 +1,7 @@
+#model=mace-polar-ef-v2(model_path=/home/axie/MAPLE/MAPLE-EF/macepol-ef-v2.pt)
+#sp
+#device=gpu0
+#solv(implicit=water,method=smd,provider=torch-smooth-pcm,profile=mace-polar-ef-v2-smooth-ddpcm-l3-p6-r96-128-128-multisolv-derivatives-known-nonpassive-v2,response=scf,standard_state=1m,experimental=true,acknowledge_known_nonpassive=true,acknowledge_unvalidated_derivatives=true)
+
+0 1
+MOL2 /home/axie/MAPLE/MAPLE-EF/.omx/validation/v2-freesolv-small5-20260905/jobs/mobley_1636752/geometry.mol2

@@ -9,6 +9,9 @@ import pytest
 from ase import Atoms
 from ase.constraints import FixAtoms
 
+from maple.function.calculator.extra_correction.implicit.correction import (
+    ImplicitSolvationCorrection,
+)
 from maple.function.calculator.extra_correction.implicit.mace_polar_ef_specs import (
     MACE_POLAR_EF_V2_CHECKPOINT_SPEC,
     mace_polar_ef_checkpoint_spec,
@@ -89,6 +92,25 @@ def test_multisolvent_derivative_profile_has_explicit_capabilities():
     assert energy_only.diagnostic_derivative_eligible is False
 
 
+@pytest.mark.parametrize("derivatives", (False, True))
+def test_diagnostic_warning_is_written_before_any_task_evaluation(
+    tmp_path, derivatives,
+):
+    output = tmp_path / "job.out"
+    options = _options()
+    if not derivatives:
+        options.update(
+            implicit="water", profile=MACE_POLAR_EF_SMOOTH_PCM_DIAGNOSTIC_PROFILE,
+        )
+        options.pop("acknowledge_unvalidated_derivatives")
+    ImplicitSolvationCorrection(_atoms(), {}, options, output=output)
+
+    text = output.read_text(encoding="utf-8") if output.exists() else ""
+    assert "KNOWN-NONPASSIVE DIAGNOSTIC" in text
+    assert "scientifically_valid=false" in text
+    assert ("unvalidated derivatives" in text) is derivatives
+
+
 @pytest.mark.parametrize(
     "task, expected_task",
     (
@@ -98,11 +120,12 @@ def test_multisolvent_derivative_profile_has_explicit_capabilities():
         ("#ts(method=prfo,max_iter=1)", "ts"),
     ),
 )
-def test_parser_opens_declared_derivative_tasks(task, expected_task):
-    parsed = CommandControl.from_settings(_settings(task))
+@pytest.mark.parametrize("solvent", sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
+def test_parser_opens_declared_derivative_tasks(task, expected_task, solvent):
+    parsed = CommandControl.from_settings(_settings(task, solvent=solvent))
 
     assert parsed.task == expected_task
-    assert parsed.params["solv"] == _options()
+    assert parsed.params["solv"] == _options(solvent)
 
 
 def test_parser_rejects_missing_derivative_acknowledgement():

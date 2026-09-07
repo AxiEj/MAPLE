@@ -49,7 +49,8 @@ class MACEPolCalculator(CalcABC):
     The traced model accepts flat tensor inputs and returns:
         (total_energy, node_energy, density_coefficients)
 
-    Supports total_charge and total_spin via atoms.info['charge'] and atoms.info['mult'].
+    Supports total_charge and total_spin via atoms.info['charge'] and atoms.info['mult'];
+    the traced interface takes the spin multiplicity directly (singlet -> 1).
     """
 
     implemented_properties = ['energy', 'forces', 'free_energy', 'hessian', 'charges']
@@ -128,12 +129,21 @@ class MACEPolCalculator(CalcABC):
         ptr = torch.tensor([0, N], dtype=torch.int64, device=device)
         cell = torch.zeros(3, 3, dtype=dtype, device=device)
 
-        # Charge and spin from atoms.info (default: 0, singlet)
+        # Charge and spin from atoms.info (default: 0, singlet).
+        # PolarMACE's Fukui equilibration derives the unpaired-electron count
+        # itself -- `Q +/- (total_spin - 1)` in mace/modules/extensions.py -- so
+        # `total_spin` is the spin multiplicity, not `mult - 1`. Upstream MACE
+        # defaults it to 1.0 everywhere (LAMMPS/MLIAP wrapper, torch-sim padding),
+        # and passing 0 for a singlet makes the model equilibrate to one negative
+        # unpaired electron instead of a closed shell.
         charge = float(atoms.info.get('charge', 0))
         mult = _integer_info(atoms, 'mult', 1)
-        spin = float(mult - 1)
+        if mult < 1:
+            raise ValueError(
+                f"MACE-POLAR requires atoms.info['mult'] >= 1 (spin multiplicity); got {mult}."
+            )
         total_charge = torch.tensor([charge], dtype=dtype, device=device)
-        total_spin = torch.tensor([spin], dtype=dtype, device=device)
+        total_spin = torch.tensor([float(mult)], dtype=dtype, device=device)
 
         # No external field for pure MLIP
         external_field = torch.zeros(N, 3, dtype=dtype, device=device)

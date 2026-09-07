@@ -155,8 +155,10 @@ class FooCalculator(CalcABC):
   than truncating them.
 - Set `SUPPORTS_CHARGE_MULT = True` if the backend honors them; otherwise
   `SetCalculator` warns the user that the values will be ignored.
-- MACE-POLAR rejects non-integer `mult` before converting multiplicity to the
-  model's unpaired-electron `spin = mult - 1` input.
+- MACE-POLAR rejects non-integer and sub-1 `mult`, then passes the multiplicity
+  through unchanged as the model's `total_spin` input (`spin = mult`). PolarMACE
+  subtracts the 1 itself when it equilibrates charge and spin, so a singlet must
+  arrive as 1; sending 0 asks the model for one negative unpaired electron.
 - UMA `omol` charged/open-shell inputs are passed through to FAIR-Chem and
   emit a warning until MAPLE has accepted golden numerical tolerances for
   those states.
@@ -205,13 +207,20 @@ backend that switches tasks for periodic input.
 | AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`spin = mult − 1`) | analytic + numerical | yes | no | no |
+| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`spin = mult`) | analytic + numerical | yes | no | no |
 | UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
 
-`spin` semantics differ on purpose: MACE-POLAR's traced interface takes the
-number of unpaired electrons (`mult − 1`), UMA's FAIR-Chem path takes the
-spin multiplicity (`mult`). Confirm against the specific checkpoint before
-trusting open-shell results — neither encoding is verified here.
+Both charge/spin backends take the spin multiplicity (`mult`): UMA's FAIR-Chem
+path always did, and MACE-POLAR's traced interface does too. The MACE-POLAR
+wrapper used to send `mult − 1`, which was wrong for every run, not just
+open-shell ones — PolarMACE's Fukui equilibration builds its spin-resolved
+normalisation from `total_charge ± (total_spin − 1)`
+(`mace/modules/extensions.py`), and upstream MACE defaults `total_spin` to 1.0
+rather than 0.0 (the LAMMPS/MLIAP wrapper's buffer, torch-sim's PolarMACE
+fallback and its explicit `total_spin=0` warning, the padding-graph filler).
+A closed-shell system sent as 0 was therefore equilibrated as `S = −1`.
+Absolute open-shell energetics are still unvalidated here; confirm against the
+specific checkpoint before trusting them.
 
 Observed on a local uma-s-1p1 checkpoint: direct FAIR-Chem and the MAPLE UMA
 wrapper agree for H₂O `q=0/+1/-1` and `mult=3`, so charge/spin reaches

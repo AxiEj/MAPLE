@@ -5,7 +5,11 @@ from pathlib import Path
 import numpy as np
 
 from ..calculator_base import CalcABC, EV2HARTREE, register_calculator
-from ..electronic_state import attach_calculator_identity, solvation_identity_settings
+from ..electronic_state import (
+    attach_calculator_identity,
+    solvation_identity_settings,
+    validate_electronic_state,
+)
 
 
 _FENNOL_MODEL_FILES = {
@@ -84,11 +88,8 @@ class FeNNolCalculator(CalcABC):
         return getattr(self.runtime, "energy_unit", self.MODEL_ENERGY_UNIT)
 
     @staticmethod
-    def _validate_multiplicity(atoms) -> None:
-        mult = getattr(atoms, "info", {}).get("mult", None)
-        if mult is None:
-            return
-        if int(float(mult)) != 1:
+    def validate_electronic_state_request(charge, multiplicity, settings) -> None:
+        if multiplicity != 1:
             raise ValueError(
                 "FeNNol accepts total charge but this MAPLE runtime has no spin/multiplicity "
                 "input; use mult=1."
@@ -100,7 +101,6 @@ class FeNNolCalculator(CalcABC):
             atoms = super().calculate(atoms, properties)
         else:
             atoms = super().calculate(atoms, properties, system_changes)
-        self._validate_multiplicity(atoms)
         total_charge = self._total_charge_from_atoms(atoms)
 
         needs_forces = "forces" in properties
@@ -118,7 +118,6 @@ class FeNNolCalculator(CalcABC):
         self._finalize_results(atoms, energy=energy, forces=forces, hessian=hessian, unit=self._runtime_unit())
 
     def _analytic_hessian(self, atoms) -> np.ndarray:
-        self._validate_multiplicity(atoms)
         hessian = np.asarray(
             self.runtime.hessian(atoms, self._total_charge_from_atoms(atoms)),
             dtype=float,
@@ -129,7 +128,7 @@ class FeNNolCalculator(CalcABC):
         if getattr(self, "solvent_correction", None) is not None:
             return super().get_hvp(atoms, n)
         self._reject_unsupported_pbc(atoms)
-        self._validate_multiplicity(atoms)
+        validate_electronic_state(atoms, self)
 
         if hasattr(n, "detach"):
             vector = n.detach().cpu().numpy()

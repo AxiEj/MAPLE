@@ -1,8 +1,8 @@
 """
 Velocity Verlet integrator for molecular dynamics.
 
-The Velocity Verlet algorithm is a symplectic integrator that preserves
-phase space volume, making it ideal for Hamiltonian dynamics.
+Velocity Verlet is a time-reversible, second-order symplectic method for
+Hamiltonian dynamics. It does not conserve the exact finite-step energy.
 
 Algorithm:
     1. v(t+dt/2) = v(t) + F(t)/m * dt/2     [half-step velocity]
@@ -11,7 +11,7 @@ Algorithm:
     4. v(t+dt) = v(t+dt/2) + F(t+dt)/m * dt/2  [final velocity]
 
 Advantages:
-    - Symplectic (preserves energy in NVE)
+    - Symplectic
     - Time-reversible
     - Second-order accurate
 """

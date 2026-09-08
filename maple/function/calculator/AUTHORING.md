@@ -111,7 +111,10 @@ energy settings. External calculators used for a reaction path or MD checkpoint
 must provide `get_pes_identity()` or `maple_pes_identity` containing `backend`,
 `model_fingerprint` (`algorithm`, `digest`, `source`), and `relevant_settings`.
 A class name or Python object ID is not a model fingerprint. Mutable energy
-settings must be reflected in the returned identity.
+settings must be reflected in the returned identity and invalidate result caches.
+ANI's `d4` property and AIMNet2's Coulomb setter perform both operations.
+UMA returns predictor and resolved provenance from a single loading operation;
+its compatibility artifacts are immutable and content-addressed.
 
 `electronic_state_identity(atoms)` adds the authoritative integer `charge` and
 positive `mult`. Ordinary path methods require identical electronic/PES identity,
@@ -166,8 +169,13 @@ run with `load_state`, but cannot prove an exact continuation.
 - `atoms.info['charge']` and `atoms.info['mult']` carry the values. Backends
   that require integer charge/spin inputs must reject non-integer values rather
   than truncating them.
-- Set `SUPPORTS_CHARGE_MULT = True` if the backend honors them; otherwise
-  `SetCalculator` warns the user that the values will be ignored.
+- Set `SUPPORTS_CHARGE_MULT = True` if the backend represents requested states.
+  Unsupported non-default charge/multiplicity is rejected by the factory, direct
+  calculator entry points, and model-bound thermochemistry; it is never ignored.
+- Partial or task-dependent support uses `validate_electronic_state_request(q, mult, settings)`.
+  The factory supplies model options; an instance can supply its current context
+  through `electronic_state_settings()`. FeNNol accepts charged singlets only;
+  UMA accepts non-default electronic states only for `omol`.
 - MACE-POLAR rejects non-integer `mult` and passes it as `total_spin` unchanged.
 - `CalcABC` invalidates cached results when `charge` or `mult` changes, including
   metadata-only updates at fixed geometry. Non-`CalcABC` backends must preserve

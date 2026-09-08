@@ -17,8 +17,14 @@ from typing import Any, Dict, Literal, Tuple
 import numpy as np
 from ase import Atoms
 
+from maple.function.calculator.electronic_state import validate_electronic_state
 from maple.function.timer import timer
 from maple.function.utility.active_dof import active_dof_mask
+from maple.function.utility.rigid_body import (
+    is_linear_geometry,
+    mass_weighted_rigid_basis,
+    rotational_dof,
+)
 
 from ..jobABC import JobABC
 
@@ -425,58 +431,6 @@ class FrequencyBase(JobABC):
      
         raise NotImplementedError("Subclasses must implement compute_frequencies().")
 
-    def _build_translation_rotation_basis(
-        self,
-        masses: np.ndarray,
-        positions: np.ndarray,
-        *,
-        include_rotations: bool = True,
-    ) -> np.ndarray:
-        """
-        Construct mass-weighted translation and rotation candidates.
-        
-        Args:
-            masses: Atomic masses (N,)
-            positions: Atomic positions (N, 3) in Angstrom
-        
-        Returns:
-            D: Mass-weighted rigid-motion candidates (3N, 3 or 6).
-        """
-        n_atoms = len(masses)
-        n_vectors = 6 if include_rotations else 3
-        D = np.zeros((3 * n_atoms, n_vectors))
-        
-        # Center of mass
-        total_mass = np.sum(masses)
-        com = np.sum(positions * masses[:, None], axis=0) / total_mass
-        
-        # Translation modes (columns 0-2)
-        for i in range(n_atoms):
-            sqrt_m = np.sqrt(masses[i])
-            D[3*i:3*i+3, 0] = [sqrt_m, 0, 0]      # x-translation
-            D[3*i:3*i+3, 1] = [0, sqrt_m, 0]      # y-translation
-            D[3*i:3*i+3, 2] = [0, 0, sqrt_m]      # z-translation
-        
-        if not include_rotations:
-            return D
-
-        # Rotation modes (columns 3-5)
-        # δr = ω × r, where r is position relative to COM
-        for i in range(n_atoms):
-            r = positions[i] - com
-            sqrt_m = np.sqrt(masses[i])
-            
-            # Rotation around x-axis: δr = (0, r_z, -r_y)
-            D[3*i:3*i+3, 3] = sqrt_m * np.array([0, r[2], -r[1]])
-            
-            # Rotation around y-axis: δr = (-r_z, 0, r_x)
-            D[3*i:3*i+3, 4] = sqrt_m * np.array([-r[2], 0, r[0]])
-            
-            # Rotation around z-axis: δr = (r_y, -r_x, 0)
-            D[3*i:3*i+3, 5] = sqrt_m * np.array([r[1], -r[0], 0])
-        
-        return D
-        
     def _project_hessian(self, hessian: np.ndarray) -> np.ndarray:
         """
         Project rigid translations and rotations from a mass-weighted Hessian.
@@ -501,14 +455,7 @@ class FrequencyBase(JobABC):
         return H_projected
 
     def _rigid_basis(self) -> np.ndarray:
-        D = self._build_translation_rotation_basis(
-            self.atoms.get_masses(),
-            self.atoms.get_positions(),
-            include_rotations=not np.any(self.atoms.get_pbc()),
-        )
-        U, singular_values, _ = np.linalg.svd(D, full_matrices=False)
-        tolerance = max(D.shape) * np.finfo(D.dtype).eps * singular_values[0]
-        return U[:, singular_values > tolerance]
+        return mass_weighted_rigid_basis(self.atoms)
 
     @staticmethod
     def _sort_modes(
@@ -589,6 +536,8 @@ class FrequencyBase(JobABC):
         Compute gas-phase thermochemical properties.
         Only real vibrational modes are used (skip zeros and imaginary).
         """
+        if self.atoms.calc is not None:
+            validate_electronic_state(self.atoms, self.atoms.calc)
         T = self.temperature
         multiplicity = self.atoms.info.get("mult", 1)
         if (
@@ -646,9 +595,7 @@ class FrequencyBase(JobABC):
         h_vib_thermal_kjmol = u_vib_total_J * 1e-3
         h_trans_kjmol = 2.5 * R_GAS * T * 1e-3
         
-        is_monatomic = len(self.atoms) == 1
-        is_linear = self._is_linear_molecule()
-        rot_dof = 0 if is_monatomic else (2 if is_linear else 3)
+        rot_dof = rotational_dof(self.atoms)
         h_rot_kjmol = (rot_dof / 2) * R_GAS * T * 1e-3
         
         # Entropies
@@ -792,12 +739,12 @@ class FrequencyBase(JobABC):
         q_trans = ((2 * np.pi * m_tot * K_B * T) / (H**2)) ** 1.5 * (K_B * T / P)
         s_trans = R_GAS * (np.log(q_trans) + 2.5)
 
-        if len(self.atoms) == 1:
+        rot_dof = rotational_dof(self.atoms)
+        if rot_dof == 0:
             return s_trans, 0.0
 
         # Rotation (linear vs nonlinear).
-        is_linear = self._is_linear_molecule()
-        if is_linear:
+        if rot_dof == 2:
             I = np.max(I_SI)
             q_rot = (8 * np.pi**2 * I * K_B * T) / (sigma * H**2)
             s_rot = R_GAS * (np.log(q_rot) + 1)
@@ -819,22 +766,8 @@ class FrequencyBase(JobABC):
         m_tot = np.sum(self.atoms.get_masses()) * AMU
         return I_SI, m_tot
 
-    def _is_linear_molecule(self, tol: float = 1e-2) -> bool:
-        """
-        Heuristic linearity check from principal moments.
-
-        Args:
-            tol: Threshold ratio I_min / I_max below which the molecule is treated as linear.
-
-        Returns:
-            bool: True if linear, False otherwise.
-        """
-        try:
-            I = self.atoms.get_moments_of_inertia(vectors=False)
-            I = np.sort(np.asarray(I))
-            return I[0] / max(I[-1], 1e-12) < tol
-        except Exception:
-            return len(self.atoms) == 2
+    def _is_linear_molecule(self) -> bool:
+        return is_linear_geometry(self.atoms)
 
     # ---------------------- writers ----------------------
     def _write_output(

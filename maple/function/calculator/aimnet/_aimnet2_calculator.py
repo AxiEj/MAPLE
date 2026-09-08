@@ -211,6 +211,7 @@ class AIMNet2Calculator(CalcABC):
         identity = getattr(self, 'maple_pes_identity', None)
         if identity is not None:
             identity['relevant_settings']['coulomb'] = self._coulomb_settings
+        self.reset()
 
     def calculate(self, atoms=None, properties=['energy'], system_changes=all_changes):
         properties = self._normalize_properties(properties)

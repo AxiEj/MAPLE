@@ -11,11 +11,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 
 RST_HEADER_V1 = "MAPLE_RST_V1"
 RST_HEADER_V2 = "MAPLE_RST_V2"
@@ -76,8 +77,7 @@ def _state_contract(atoms, pes_identity, dynamics_parameters) -> dict[str, Any]:
     }
 
 
-def write_rst(
-    path,
+def _serialize_rst(
     atoms,
     velocities,
     step,
@@ -89,8 +89,7 @@ def write_rst(
     pes_identity=None,
     dynamics_parameters=None,
 ):
-    """Write an RST v2 checkpoint containing exact geometry and state contracts."""
-    path = Path(path)
+    """Serialize and validate an exact RST v2 checkpoint."""
     velocities = np.asarray(velocities, dtype=np.float64)
     expected_shape = (len(atoms), 3)
     if velocities.shape != expected_shape:
@@ -125,7 +124,54 @@ def write_rst(
         values = " ".join(f"{value:.17g}" for value in np.concatenate((pos, vel)))
         lines.append(f"{symbol} {values}\n")
     lines.append("END_RST\n")
-    path.write_text("".join(lines))
+    return "".join(lines).encode("utf-8")
+
+
+def _write_temp_bytes(path: Path, data: bytes) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    with os.fdopen(fd, "wb") as handle:
+        handle.write(data)
+        handle.flush()
+        os.fsync(handle.fileno())
+    return Path(name)
+
+
+def _atomic_write_bytes(path: Path, data: bytes) -> None:
+    temporary = _write_temp_bytes(path, data)
+    try:
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def write_rst(
+    path,
+    atoms,
+    velocities,
+    step,
+    timestep,
+    ensemble,
+    energy,
+    rng_state=None,
+    velocity_representation=None,
+    pes_identity=None,
+    dynamics_parameters=None,
+):
+    """Atomically write a validated RST v2 checkpoint."""
+    data = _serialize_rst(
+        atoms=atoms,
+        velocities=velocities,
+        step=step,
+        timestep=timestep,
+        ensemble=ensemble,
+        energy=energy,
+        rng_state=rng_state,
+        velocity_representation=velocity_representation,
+        pes_identity=pes_identity,
+        dynamics_parameters=dynamics_parameters,
+    )
+    _atomic_write_bytes(Path(path), data)
 
 
 def _parse_json_field(header: dict[str, str], key: str, path: Path) -> Any:
@@ -135,10 +181,9 @@ def _parse_json_field(header: dict[str, str], key: str, path: Path) -> Any:
         raise ValueError(f"Invalid or missing {key} in {path}") from exc
 
 
-def read_rst(path):
-    """Read an RST v1 or v2 checkpoint and validate its stored contract."""
-    path = Path(path)
-    lines = path.read_text().splitlines()
+def _parse_rst_text(text: str, path: Path) -> dict:
+    """Parse and validate checkpoint text captured from one immutable snapshot."""
+    lines = text.splitlines()
     if not lines or lines[0].strip() not in {RST_HEADER_V1, RST_HEADER_V2}:
         raise ValueError(f"Not a valid MAPLE RST file: {path}")
     version = 2 if lines[0].strip() == RST_HEADER_V2 else 1
@@ -264,6 +309,22 @@ def read_rst(path):
     }
 
 
+def read_rst_bytes(data: bytes, path: str | Path = "<memory>") -> dict:
+    """Parse an RST checkpoint from an already captured byte string."""
+    path = Path(path)
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"RST checkpoint is not valid UTF-8: {path}") from exc
+    return _parse_rst_text(text, path)
+
+
+def read_rst(path) -> dict:
+    """Read one immutable RST byte snapshot and validate it."""
+    path = Path(path)
+    return read_rst_bytes(path.read_bytes(), path)
+
+
 def rotate_rst_checkpoint(
     rst_path,
     rst_prev_path,
@@ -281,12 +342,7 @@ def rotate_rst_checkpoint(
     """Rotate the current runtime checkpoint and write a new RST v2 file."""
     rst_path = Path(rst_path)
     rst_prev_path = Path(rst_prev_path)
-    if rst_path.exists() and rst_path.stat().st_size > 0:
-        if rst_prev_path.exists():
-            rst_prev_path.unlink()
-        rst_path.replace(rst_prev_path)
-    write_rst(
-        rst_path,
+    data = _serialize_rst(
         atoms=atoms,
         velocities=velocities,
         step=step,
@@ -298,3 +354,47 @@ def rotate_rst_checkpoint(
         pes_identity=pes_identity,
         dynamics_parameters=dynamics_parameters,
     )
+    new_checkpoint = _write_temp_bytes(rst_path, data)
+    previous_checkpoint = None
+    try:
+        if rst_path.exists() and rst_path.stat().st_size > 0:
+            previous_checkpoint = _write_temp_bytes(
+                rst_prev_path, rst_path.read_bytes()
+            )
+            os.replace(previous_checkpoint, rst_prev_path)
+            previous_checkpoint = None
+        os.replace(new_checkpoint, rst_path)
+        new_checkpoint = None
+    finally:
+        if new_checkpoint is not None:
+            new_checkpoint.unlink(missing_ok=True)
+        if previous_checkpoint is not None:
+            previous_checkpoint.unlink(missing_ok=True)
+
+
+def promote_rst_checkpoint(
+    source, rst_path, rst_prev_path, *, source_bytes: bytes | None = None
+) -> None:
+    """Promote captured, validated bytes to the canonical checkpoint path."""
+    source = Path(source)
+    rst_path = Path(rst_path)
+    rst_prev_path = Path(rst_prev_path)
+    data = source.read_bytes() if source_bytes is None else source_bytes
+    if (source.resolve() == rst_path.resolve() and rst_path.exists()
+            and rst_path.read_bytes() == data):
+        return
+
+    promoted = _write_temp_bytes(rst_path, data)
+    previous = None
+    try:
+        if rst_path.exists():
+            previous = _write_temp_bytes(rst_prev_path, rst_path.read_bytes())
+            os.replace(previous, rst_prev_path)
+            previous = None
+        os.replace(promoted, rst_path)
+        promoted = None
+    finally:
+        if promoted is not None:
+            promoted.unlink(missing_ok=True)
+        if previous is not None:
+            previous.unlink(missing_ok=True)

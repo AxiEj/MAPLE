@@ -10,14 +10,14 @@ This module provides essential calculations for MD:
 """
 
 import warnings
+from typing import Optional, Tuple, TypedDict
 
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
-from typing import Optional, Tuple, TypedDict
 
 from ...utility.active_dof import active_atom_mask
-
+from ...utility.rigid_body import is_linear_geometry
 
 # ========== Physical Constants and Unit Conversions ==========
 
@@ -133,35 +133,9 @@ def enforce_active_velocities(
     out[~active_atom_mask(atoms)] = 0.0
     return out
 
-def is_linear_molecule(atoms: Atoms, tol: float = 1e-8) -> bool:
-    """Return True if a non-periodic system is effectively linear."""
-    if any(atoms.pbc):
-        return False
-
-    n_atoms = len(atoms)
-    if n_atoms <= 1:
-        return False
-    if n_atoms == 2:
-        return True
-
-    positions = atoms.get_positions()
-    masses = atoms.get_masses()
-    total_mass = np.sum(masses)
-    if total_mass <= 0:
-        return False
-
-    com = np.sum(masses[:, np.newaxis] * positions, axis=0) / total_mass
-    centered = positions - com
-    if np.linalg.matrix_rank(centered, tol=tol) <= 1:
-        return True
-
-    centered_bohr = centered * ANGSTROM_TO_BOHR
-    masses_au = masses * AMU_TO_AU
-    inertia = np.zeros((3, 3))
-    for mi, ri in zip(masses_au, centered_bohr):
-        inertia += mi * (np.dot(ri, ri) * np.eye(3) - np.outer(ri, ri))
-    eigvals = np.sort(np.linalg.eigvalsh(inertia))
-    return bool(eigvals[0] < tol * max(eigvals[-1], 1.0))
+def is_linear_molecule(atoms: Atoms) -> bool:
+    """Return whether the mass-weighted rigid space has two rotations."""
+    return is_linear_geometry(atoms)
 
 
 def get_initialization_dof_policy(

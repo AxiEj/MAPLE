@@ -34,6 +34,7 @@ from ..utils import (
     HA_PER_ANG_TO_AU,
 )
 from ..logger import MDLogger
+from ..state import validate_prepared_restart
 
 
 @dataclass
@@ -205,17 +206,6 @@ class NVE(JobABC):
             paras, aliases, self.params.remove_angular
         )
         self.params.remove_rotation = False
-        self._dof_policy = get_persistent_motion_dof_policy(
-            atoms,
-            remove_com=self.params.remove_com,
-            remove_angular=self.params.remove_angular,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        for warning in self._dof_policy["warnings"]:
-            self.log_info([f"\n*** WARNING: {warning}\n"])
-
-        # Initialize components
         self.logger = MDLogger(
             output_path=output,
             log_every=self.params.log_every,
@@ -224,114 +214,119 @@ class NVE(JobABC):
             verbose=self.params.verbose,
             debug=self.params.debug,
         )
-        self.logger.dynamics_parameters = {
+
+    def _build_actual_state(self, atoms: Atoms):
+        """Build geometry-dependent policy without changing live job state."""
+        dof_policy = get_persistent_motion_dof_policy(
+            atoms,
+            remove_com=self.params.remove_com,
+            remove_angular=self.params.remove_angular,
+            remove_com_every=self.params.remove_com_every,
+            remove_angular_every=self.params.remove_angular_every,
+        )
+        dynamics_parameters = {
             "ensemble": "nve",
             "timestep": float(self.params.timestep),
             "remove_com_every": int(self.params.remove_com_every),
             "remove_angular_every": int(self.params.remove_angular_every),
             "motion_subspace": {
-                "com_excluded": bool(self._dof_policy["linear_active"]),
-                "angular_excluded": bool(self._dof_policy["angular_active"]),
+                "com_excluded": bool(dof_policy["linear_active"]),
+                "angular_excluded": bool(dof_policy["angular_active"]),
             },
         }
+        return dof_policy, dynamics_parameters
+
+    def _install_actual_state(self, atoms: Atoms, configuration) -> None:
+        self.atoms = atoms
+        self._dof_policy, self.logger.dynamics_parameters = configuration
+        self._runtime_n_dof = get_n_dof_from_policy(self._dof_policy)
 
     def run(self):
-        """
-        Execute NVE simulation.
-        """
+        """Execute NVE simulation."""
         with timer("MD Simulation (NVE)"):
-            # Log parameters
-            self._log_parameters()
-
-            if self.params.load_state:
-                if self.params.init_velocities and self.params.debug:
-                    self.log_info([
-                        "\nload_state=True: ignoring init_velocities and using coordinates/velocities from RST.\n"
-                    ])
-                result = self.logger.restart_simulation(
-                    ensemble='nve',
+            prepared = None
+            if self.params.restart or self.params.load_state:
+                prepared = self.logger.prepare_restart_candidate(
+                    self.atoms,
+                    rst_file=self.params.rst_file or None,
+                    load_state=self.params.load_state,
+                )
+                configuration = self._build_actual_state(prepared.atoms)
+                completed = validate_prepared_restart(
+                    prepared,
+                    ensemble="nve",
                     timestep=self.params.timestep,
                     n_steps=self.params.steps,
-                    temperature=self.params.temperature,
-                    atoms=self.atoms,
-                    rst_file=self.params.rst_file if self.params.rst_file else None,
-                    load_state=True,
-                    dof_policy=self._dof_policy,
+                    dynamics_parameters=configuration[1],
                 )
-                self.atoms, velocities, step_offset = result
-                velocities = enforce_active_velocities(self.atoms, velocities)
-                velocities = self._restore_standard_velocities(velocities)
-                remaining = self.params.steps
-            elif self.params.restart:
-                if self.params.init_velocities and self.params.debug:
-                    self.log_info([
-                        "\nrestart=True: ignoring init_velocities and using coordinates/velocities from RST.\n"
-                    ])
-                result = self.logger.restart_simulation(
-                    ensemble='nve',
-                    timestep=self.params.timestep,
-                    n_steps=self.params.steps,
-                    temperature=self.params.temperature,
-                    atoms=self.atoms,
-                    rst_file=self.params.rst_file if self.params.rst_file else None,
-                    load_state=False,
-                    dof_policy=self._dof_policy,
+                velocities = enforce_active_velocities(
+                    prepared.atoms, prepared.velocities
                 )
-                if result is None:   # already completed
+                if (prepared.load_state
+                        and prepared.checkpoint["velocity_representation"]
+                        == VELOCITY_REPR_LFMIDDLE_CARRIED):
+                    forces = prepared.atoms.get_forces() * HA_PER_ANG_TO_AU
+                    velocities = lfmiddle_carried_to_standard(
+                        prepared.atoms,
+                        velocities,
+                        forces,
+                        prepared.checkpoint["timestep"] * FS_TO_AU,
+                    )
+                velocities = enforce_active_velocities(prepared.atoms, velocities)
+                prepared = prepared.with_velocities(velocities, "standard")
+                if not completed:
+                    prepared.atoms.get_forces()
+                self._install_actual_state(prepared.atoms, configuration)
+                accepted = self.logger.consume_prepared_restart(
+                    prepared, completed=completed, dof_policy=self._dof_policy
+                )
+                if not accepted:
+                    self.atoms.arrays["velocities"] = velocities
                     return
-                self.atoms, velocities, step_offset = result
-                velocities = enforce_active_velocities(self.atoms, velocities)
-                velocities = self._restore_standard_velocities(velocities)
-                remaining = self.params.steps - step_offset
+                step_offset = prepared.step_offset
+                remaining = (
+                    self.params.steps if prepared.load_state
+                    else self.params.steps - step_offset
+                )
             else:
-                # ── Velocity initialisation ───────────────────────────────
-                if 'velocities' in self.atoms.arrays and self.params.init_velocities:
-                    # Velocities were embedded in the input file (7-column XYZ) and
-                    # parsed by InputReader into atoms.arrays['velocities'].
-                    # Honour them instead of discarding with a fresh MB draw —
-                    # this allows "run NVT, save inp with velocities, run NVE" without
-                    # any extra flags.
+                self._install_actual_state(
+                    self.atoms, self._build_actual_state(self.atoms)
+                )
+                if "velocities" in self.atoms.arrays and self.params.init_velocities:
                     velocities = enforce_active_velocities(
-                        self.atoms, self.atoms.arrays['velocities']
+                        self.atoms, self.atoms.arrays["velocities"]
                     )
-                    t_check = calculate_temperature(
-                        self.atoms, velocities,
-                        n_dof=get_n_dof_from_policy(self._dof_policy),
-                        dof_policy=self._dof_policy,
-                    )
-                    self.log_info([
-                        f"\nVelocities loaded from input file "
-                        f"(T = {t_check:.2f} K); skipping random initialisation.\n"
-                    ])
                 elif self.params.init_velocities:
                     velocities = self._initialize_velocities()
                 else:
-                    if 'velocities' not in self.atoms.arrays:
+                    if "velocities" not in self.atoms.arrays:
                         raise ValueError(
-                            "init_velocities=False, "
-                            "but no velocities found in atoms.arrays"
+                            "init_velocities=False, but no velocities found in atoms.arrays"
                         )
                     velocities = enforce_active_velocities(
-                        self.atoms, self.atoms.arrays['velocities']
+                        self.atoms, self.atoms.arrays["velocities"]
                     )
                 step_offset = 0
-                remaining   = self.params.steps
-                source = "input_xyz" if 'velocities' in self.atoms.arrays and not self.params.init_velocities else ("input_xyz" if 'velocities' in self.atoms.arrays and self.params.init_velocities else "init_velocities")
+                remaining = self.params.steps
+                source = "input_xyz" if "velocities" in self.atoms.arrays else "init_velocities"
                 self.logger.log_debug_initial_state(
-                    self.atoms, velocities, mode=source,
-                    effective_step=step_offset, dof_policy=self._dof_policy,
+                    self.atoms,
+                    velocities,
+                    mode=source,
+                    effective_step=step_offset,
+                    dof_policy=self._dof_policy,
                 )
 
-            # Run simulation
-            final_velocities = self._run_simulation(velocities,
-                                                    step_offset=step_offset,
-                                                    n_steps=remaining)
-
-            # Store final velocities
-            self.atoms.arrays['velocities'] = final_velocities
+            self._log_parameters()
+            final_velocities = self._run_simulation(
+                velocities, step_offset=step_offset, n_steps=remaining
+            )
+            self.atoms.arrays["velocities"] = final_velocities
 
     def _log_parameters(self):
         """Log NVE parameters to output."""
+        for warning in self._dof_policy["warnings"]:
+            self.log_info([f"\n*** WARNING: {warning}\n"])
         anchored = self._dof_policy["anchored"]
         init_com = (
             "ignored (FixAtoms anchors system)" if anchored
@@ -442,19 +437,6 @@ class NVE(JobABC):
             )
             self.log_info([nvt_warn])
             print(nvt_warn, end='', flush=True)
-
-    def _restore_standard_velocities(self, velocities: np.ndarray) -> np.ndarray:
-        # NVT (LF-Middle Langevin) writes carried velocities to .rst. Standard
-        # Velocity Verlet expects v_standard = v_carried + 0.5 * F * dt / m at
-        # the saved position; without this half-kick the NVE microcanonical
-        # surface is offset by O(dt²) and ⟨T⟩ drifts low.
-        if self.logger.resumed_velocity_representation != VELOCITY_REPR_LFMIDDLE_CARRIED:
-            return velocities
-        forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU
-        source_dt_au = (self.logger.resumed_timestep * FS_TO_AU
-                        if self.logger.resumed_timestep is not None
-                        else self.params.timestep * FS_TO_AU)
-        return lfmiddle_carried_to_standard(self.atoms, velocities, forces, source_dt_au)
 
     def _initialize_velocities(self) -> np.ndarray:
         """

@@ -554,7 +554,7 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
-        for key in ("randomize", "write_shell", "experimental"):
+        for key in ("randomize", "write_shell"):
             if key in solv_params and not isinstance(solv_params[key], bool):
                 msg = f"Solvation {key} must be 'true' or 'false'."
                 cls._log_error(output_path, msg)
@@ -564,94 +564,18 @@ class CommandControl:
         explicit = solv_params.get("explicit")
         implicit = solv_params.get("implicit")
 
-        if method is not None:
-            method = str(method).lower()
-            solv_params["method"] = method
-            if method != "gbsa":
-                msg = "Implicit solvation method must be 'gbsa'."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-
         if explicit is not None and implicit is not None:
-            msg = "Use either explicit=<solvent> or implicit=<solvent>, not both."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
+            raise ValueError("Use either explicit=<solvent> or implicit=<solvent>, not both.")
 
-        if implicit is not None:
-            if method != "gbsa":
-                msg = "Implicit solvation requires method=gbsa."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if str(implicit).lower() in {"", "none"}:
-                msg = "Implicit solvation requires a real solvent name, not 'none'."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if solv_params.get("experimental") is not True:
-                msg = (
-                    "Implicit GB-polar/QEq solvation is experimental and "
-                    "energy-only; add experimental=true in #solv(...) to "
-                    "request it explicitly."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if task != "sp":
-                msg = (
-                    "Implicit GB-polar/QEq solvation is currently energy-only "
-                    "and may be used only with task 'sp'."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if params.get("verbose", 0) >= 1:
-                msg = (
-                    "Implicit GB-polar/QEq solvation is energy-only and supports "
-                    "only #sp(verbose=0); verbose=1 requests gradients/forces."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if "pbc" in params:
-                msg = "Implicit GB-polar/QEq solvation is non-periodic; remove #pbc."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
+        if implicit is not None or method is not None:
+            from ..calculator.calculator_base import validate_implicit_solvent_choice
 
-            explicit_only = {
-                "radius",
-                "padding",
-                "shape",
-                "box_size",
-                "density",
-                "density_scale",
-                "number",
-                "clash_method",
-                "tolerance",
-                "vdw_scale",
-                "vdw_fallback_radius",
-                "seed",
-                "randomize",
-                "write_shell",
-                "shell_cutoff",
-                "solvent_pdb",
-                "clash_cutoff",
-                "write_cell",
-            }
-            conflicts = sorted(key for key in explicit_only if key in solv_params)
-            if conflicts:
-                msg = (
-                    "Explicit-solvent options cannot be combined with implicit "
-                    f"GB-polar solvation: {', '.join(conflicts)}."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            return
-
-        if method is not None:
-            msg = "method=gbsa requires implicit=<solvent>; omit method for explicit solvent."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
+            method = str(method or "gbsa").lower()
+            validate_implicit_solvent_choice(method, implicit)
+            raise ValueError(f"Unsupported implicit solvation method: '{method}'.")
 
         if "experimental" in solv_params:
-            msg = "experimental=true is only valid with method=gbsa, implicit=<solvent>."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
+            raise ValueError("experimental is not an explicit-solvent option; GBSA is disabled.")
 
         if explicit is None:
             if solv_params:

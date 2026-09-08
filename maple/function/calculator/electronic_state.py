@@ -52,16 +52,23 @@ def attach_calculator_identity(
     calculator,
     *,
     backend: str,
-    checkpoint_path: str | Path,
+    checkpoint_path: str | Path | None = None,
+    model_fingerprint: dict[str, str] | None = None,
     relevant_settings: dict[str, Any] | None = None,
 ) -> None:
     """Attach the immutable identity of weights loaded by a calculator."""
+    if (checkpoint_path is None) == (model_fingerprint is None):
+        raise ValueError("Provide exactly one checkpoint path or loaded fingerprint.")
+    fingerprint = (
+        checkpoint_fingerprint(checkpoint_path)
+        if checkpoint_path is not None else _json_value(model_fingerprint)
+    )
     setattr(
         calculator,
         _CALCULATOR_IDENTITY_ATTRIBUTE,
         {
             "backend": str(backend).strip().lower(),
-            "model_fingerprint": checkpoint_fingerprint(checkpoint_path),
+            "model_fingerprint": fingerprint,
             "relevant_settings": _json_value(relevant_settings or {}),
         },
     )
@@ -100,6 +107,8 @@ def _calculator_identity(calculator) -> dict[str, Any]:
 
 def _integer_state(atoms, key: str, default: int) -> int:
     value = atoms.info.get(key, default)
+    if isinstance(value, (bool, np.bool_)):
+        raise TypeError(f"atoms.info['{key}'] must be an integer, not a boolean.")
     try:
         numeric = float(value)
     except (TypeError, ValueError) as exc:
@@ -109,9 +118,8 @@ def _integer_state(atoms, key: str, default: int) -> int:
     return int(numeric)
 
 
-def electronic_state_identity(atoms) -> dict[str, Any]:
-    """Return the canonical, JSON-compatible electronic/PES identity."""
-    calculator_identity = _calculator_identity(getattr(atoms, "calc", None))
+def requested_electronic_state(atoms) -> tuple[int, int]:
+    """Resolve the explicit state without guessing from partial atomic charges."""
     multiplicity = _integer_state(atoms, "mult", 1)
     if multiplicity < 1:
         raise ValueError("atoms.info['mult'] must be at least 1.")
@@ -127,9 +135,37 @@ def electronic_state_identity(atoms) -> dict[str, Any]:
                 "Nonzero initial charges make the electronic state ambiguous; "
                 "set atoms.info['charge'] explicitly for path or restart use."
             )
+    charge = _integer_state(atoms, "charge", 0) if charge_value is not None else 0
+    return charge, multiplicity
+
+
+def validate_electronic_state(atoms, backend, *, model_options=None) -> tuple[int, int]:
+    """Reject a requested state that the energy backend cannot represent."""
+    charge, multiplicity = requested_electronic_state(atoms)
+    if (charge != 0 or multiplicity != 1) and not getattr(backend, "SUPPORTS_CHARGE_MULT", False):
+        name = backend.__name__ if isinstance(backend, type) else type(backend).__name__
+        raise ValueError(
+            f"{name} does not support the requested electronic state "
+            f"(charge={charge}, mult={multiplicity}); charge/multiplicity cannot be ignored."
+        )
+    settings = model_options or {}
+    settings_provider = getattr(backend, "electronic_state_settings", None)
+    if not isinstance(backend, type) and callable(settings_provider):
+        settings = settings_provider()
+    validator = getattr(backend, "validate_electronic_state_request", None)
+    if callable(validator):
+        validator(charge, multiplicity, settings)
+    return charge, multiplicity
+
+
+def electronic_state_identity(atoms) -> dict[str, Any]:
+    """Return the canonical, JSON-compatible electronic/PES identity."""
+    calculator = getattr(atoms, "calc", None)
+    calculator_identity = _calculator_identity(calculator)
+    charge, multiplicity = validate_electronic_state(atoms, calculator)
     return {
         "schema_version": IDENTITY_SCHEMA_VERSION,
-        "charge": _integer_state(atoms, "charge", 0) if charge_value is not None else 0,
+        "charge": charge,
         "multiplicity": multiplicity,
         "backend": calculator_identity["backend"],
         "model_fingerprint": calculator_identity["model_fingerprint"],

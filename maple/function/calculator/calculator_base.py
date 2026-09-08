@@ -6,6 +6,8 @@ import numpy as np
 
 import ase.calculators.calculator
 
+from .electronic_state import validate_electronic_state
+
 if TYPE_CHECKING:
     import torch
 
@@ -318,6 +320,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
         system_changes=ase.calculators.calculator.all_changes,
     ):
         target_atoms = atoms if atoms is not None else getattr(self, 'atoms', None)
+        validate_electronic_state(target_atoms, self)
         self._reject_unsupported_pbc(target_atoms)
         properties = reject_implicit_solvent_derivatives(self, properties)
         super().calculate(atoms, properties, system_changes)
@@ -363,6 +366,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
 
     def get_hessian(self, atoms, delta: float = 0.002):
         """Dispatch on self.hessian. Subclasses may override for backend autograd."""
+        validate_electronic_state(atoms, self)
         self._reject_unsupported_pbc(atoms)
         mode = getattr(self, 'hessian', self.SUPPORTED_HESSIAN_MODES[0])
         if mode == 'analytic':

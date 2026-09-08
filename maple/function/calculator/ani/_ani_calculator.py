@@ -11,7 +11,11 @@ from ..calculator_base import (
     parse_bool_option,
     register_calculator,
 )
-from ..electronic_state import attach_calculator_identity, solvation_identity_settings
+from ..electronic_state import (
+    attach_calculator_identity,
+    solvation_identity_settings,
+    validate_electronic_state,
+)
 
 
 @register_calculator
@@ -82,6 +86,17 @@ class ANICalculator(CalcABC):
         )
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
+
+    @property
+    def d4(self) -> bool:
+        return self._d4
+
+    @d4.setter
+    def d4(self, value) -> None:
+        enabled = parse_bool_option(value, name='d4')
+        if getattr(self, '_d4', None) != enabled:
+            self.reset()
+        self._d4 = enabled
 
     def get_pes_identity(self) -> dict:
         identity = self.maple_pes_identity
@@ -172,6 +187,7 @@ class ANICalculator(CalcABC):
 
         Returns (Hn, forces, energy) as torch tensors, consumed by Dimer-mode TS.
         """
+        validate_electronic_state(atoms, self)
         if getattr(self, 'solvent_correction', None) is not None:
             raise NotImplementedError(
                 'ANI HVP with implicit solvent is not supported; solvent HVP would be omitted.'

@@ -359,14 +359,14 @@ class FrequencyBase(JobABC):
 
     def _build_translation_rotation_basis(self, masses: np.ndarray, positions: np.ndarray) -> np.ndarray:
         """
-        Construct orthogonal basis for translations and rotations (mass-weighted).
+        Construct mass-weighted translation and rotation candidates.
         
         Args:
             masses: Atomic masses (N,)
             positions: Atomic positions (N, 3) in Angstrom
         
         Returns:
-            D: Translation + rotation basis vectors (3N, 6) in mass-weighted space
+            D: Translation and rotation candidates (3N, 6) in mass-weighted space
         """
         n_atoms = len(masses)
         D = np.zeros((3 * n_atoms, 6))
@@ -401,14 +401,14 @@ class FrequencyBase(JobABC):
         
     def _project_hessian(self, hessian: np.ndarray) -> np.ndarray:
         """
-        Project out translation and rotation components from Hessian.
+        Project rigid translations and rotations from a mass-weighted Hessian.
         
         Principle:
             H_proj = P^T @ H @ P
             where P = I - Q @ Q^T, Q is orthonormal translation-rotation basis
         
         Args:
-            hessian: Cartesian Hessian (3N, 3N) in Hartree/Angstrom²
+            hessian: Mass-weighted Hessian (3N, 3N) in Hartree/(Angstrom² amu)
         
         Returns:
             Projected Hessian (3N, 3N)
@@ -416,21 +416,17 @@ class FrequencyBase(JobABC):
         masses = self.atoms.get_masses()
         positions = self.atoms.get_positions()
         
-        # Step 1: Build translation-rotation basis
         D = self._build_translation_rotation_basis(masses, positions)
-        
-        # Step 2: Orthonormalize via QR decomposition
-        Q, _ = np.linalg.qr(D)
-        
-        # Step 3: Construct projection operator
-        # P = I - Q @ Q^T projects onto the subspace orthogonal to translations/rotations
+
+        # The SVD roundoff criterion preserves five rigid motions for a linear
+        # molecule and three for a single atom instead of completing them to six.
+        U, singular_values, _ = np.linalg.svd(D, full_matrices=False)
+        tolerance = max(D.shape) * np.finfo(D.dtype).eps * singular_values[0]
+        Q = U[:, singular_values > tolerance]
+
         n_dof = len(hessian)
         P = np.eye(n_dof) - Q @ Q.T
-        
-        # Step 4: Project Hessian
         H_projected = P @ hessian @ P
-        
-        # Step 5: Symmetrize to eliminate floating-point asymmetry
         H_projected = 0.5 * (H_projected + H_projected.T)
         
         return H_projected
@@ -1025,45 +1021,25 @@ class MWFrequency(FrequencyBase):
         """
         masses = np.asarray(self.atoms.get_masses())
         
-        # Step 1: Project out translations and rotations
         if self.verbosity >= 2:
             self.log_info(["Projecting out translations and rotations...\n"])
-        
-        hessian_proj = self._project_hessian(hessian_matrix)
-        
-        # Step 2: Mass-weighting transformation
-        # H_mw = M^{-1/2} @ H @ M^{-1/2}
-        # where M is in amu (consistent with Hessian in Angstrom²)
+
         inv_sqrt_m = np.repeat(1.0 / np.sqrt(masses), 3)
-        h_mw = hessian_proj * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
+        h_mw = hessian_matrix * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
+        h_mw = self._project_hessian(h_mw)
         
-        # Step 3: Diagonalize mass-weighted Hessian
+        # Diagonalize the projected mass-weighted Hessian.
         evals, evecs_mw = self._eigh(h_mw)
         
-        # Step 4: Convert eigenvalues to frequencies (cm⁻¹)
-        # CRITICAL: Conversion factor for Ha/Angstrom² + amu units
-        # Formula: ν = sqrt(E_h/(amu·Å²)) / (2πc) × 10^8
-        # 
-        # Derivation:
-        #   sqrt(Hartree / (amu * Angstrom²))
-        #   = sqrt(4.3597e-18 J / (1.6605e-27 kg * 1e-20 m²))
-        #   = sqrt(2.625e29) s⁻¹
-        #   = 5.124e14 s⁻¹
-        #   Divide by 2πc (in cm/s) and multiply by 10^8:
-        #   = 5.124e14 / (2π * 2.998e10) * 1e8
-        #   = 2721.1383 cm⁻¹
-        #
-        # NOTE: This is different from ORCA's 5140.4867 because:
-        #       - ORCA uses Ha/Bohr² (not Angstrom²)
-        #       - ORCA uses electron mass (not amu)
+        # sqrt(E_h / (amu Angstrom²)) / (2 pi c_cm/s)
         conversion = 2721.1383  # Ha/Angstrom² + amu -> cm⁻¹
         
         freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
         
-        # Step 5: Transform eigenvectors back to Cartesian coordinates
+        # Transform eigenvectors back to Cartesian coordinates.
         modes_cart = evecs_mw.T * inv_sqrt_m[None, :]
         
-        # Step 6: Apply mass-weighted normalization (ORCA convention: Q^T M Q = 1)
+        # Apply mass-weighted normalization (ORCA convention: Q^T M Q = 1).
         M_diag = np.repeat(masses, 3)
         
         for i in range(len(modes_cart)):
@@ -1071,7 +1047,7 @@ class MWFrequency(FrequencyBase):
             if norm_mw > 1e-10:
                 modes_cart[i] /= norm_mw
         
-        # Step 7: Sort modes in ORCA order
+        # Sort modes in ORCA order.
         zero_tol = 5.0
         
         zero_mask = np.abs(freqs_cm1) < zero_tol
@@ -1168,6 +1144,7 @@ class BothFrequency(FrequencyBase):
         masses = np.asarray(self.atoms.get_masses())
         inv_sqrt_m = np.repeat(1.0 / np.sqrt(masses), 3)
         h_m = hessian * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
+        h_m = self._project_hessian(h_m)
         evals, evecs_mw = self._eigh(h_m)
 
         conversion = 2721.1383  # Ha/Angstrom² + amu -> cm⁻¹

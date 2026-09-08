@@ -281,6 +281,17 @@ class CalcABC(ase.calculators.calculator.Calculator):
     def __init__(self):
         super().__init__()
 
+    def check_state(self, atoms, tol=1e-15):
+        """Include electronic inputs, which ASE's geometry cache does not track."""
+        changes = super().check_state(atoms, tol=tol)
+        if self.atoms is not None:
+            for key, default in (('charge', 0), ('mult', 1)):
+                if not ase.calculators.calculator.equal(
+                    self.atoms.info.get(key, default), atoms.info.get(key, default)
+                ):
+                    changes.append(key)
+        return changes
+
     def _reject_unsupported_pbc(self, atoms) -> None:
         if not self.SUPPORTS_PBC:
             reject_periodic_atoms(atoms, type(self).__name__)

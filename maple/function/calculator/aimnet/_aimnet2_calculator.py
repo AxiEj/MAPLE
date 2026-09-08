@@ -46,6 +46,23 @@ def nblist_dense_padded(coord: torch.Tensor, cutoff: float) -> torch.Tensor:
             nbmat[i, :min(nb_i.numel(), M)] = nb_i[:min(nb_i.numel(), M)]
     return nbmat
 
+
+def nblist_all_pairs_padded(coord: torch.Tensor) -> torch.Tensor:
+    """Build a sentinel-padded directed graph containing every non-self pair."""
+    device = coord.device
+    n_atoms = coord.shape[0]
+    width = max(n_atoms - 1, 1)
+    nbmat = torch.full(
+        (n_atoms + 1, width), n_atoms, dtype=torch.int32, device=device
+    )
+    if n_atoms > 1:
+        atom_indices = torch.arange(n_atoms, dtype=torch.int32, device=device)
+        candidates = atom_indices.expand(n_atoms, n_atoms)
+        non_self = ~torch.eye(n_atoms, dtype=torch.bool, device=device)
+        nbmat[:n_atoms] = candidates[non_self].reshape(n_atoms, n_atoms - 1)
+    return nbmat
+
+
 # --------------------------------------------
 # Pad helpers
 # --------------------------------------------
@@ -148,12 +165,31 @@ class AIMNet2Calculator(CalcABC):
 
         def _iter_lrcoulomb_mods(model):
             for name, mod in model.named_modules():
-                if name == 'lrcoulomb':
+                if name.rsplit('.', 1)[-1] == 'lrcoulomb':
                     yield mod
 
-        for mod in _iter_lrcoulomb_mods(self.model):
+        modules = list(_iter_lrcoulomb_mods(self.model))
+        if not modules:
+            raise RuntimeError(
+                "AIMNet2 checkpoint has no 'lrcoulomb' module; "
+                f"cannot select coulomb_method={method!r}."
+            )
+
+        required_attributes = ('method',)
+        if method == 'dsf':
+            required_attributes += ('dsf_rc', 'dsf_alpha')
+        for mod in modules:
+            missing = [name for name in required_attributes if not hasattr(mod, name)]
+            if missing:
+                raise RuntimeError(
+                    "AIMNet2 lrcoulomb module cannot apply "
+                    f"coulomb_method={method!r}; missing attributes: {missing}."
+                )
+
+        for mod in modules:
             mod.method = method
-            if method == 'dsf' and hasattr(mod, 'dsf_alpha'):
+            if method == 'dsf':
+                mod.dsf_rc = cutoff
                 mod.dsf_alpha = dsf_alpha
 
         self.cutoff_lr = float('inf') if method == 'simple' else float(cutoff)
@@ -215,8 +251,11 @@ class AIMNet2Calculator(CalcABC):
             'nbmat': nbmat,
         }
 
-        lr_cutoff = self.cutoff_lr if np.isfinite(self.cutoff_lr) else self.cutoff
-        data['nbmat_lr'] = nblist_dense_padded(coord, lr_cutoff)
+        lr_cutoff = self.cutoff_lr
+        if self._coulomb_method == 'simple':
+            data['nbmat_lr'] = nblist_all_pairs_padded(coord)
+        else:
+            data['nbmat_lr'] = nblist_dense_padded(coord, lr_cutoff)
         data['cutoff_lr'] = torch.tensor(lr_cutoff, device=self.device)
         return data
 

@@ -274,6 +274,16 @@ def calculate_kinetic_energy(atoms: Atoms, velocities: np.ndarray) -> float:
     return kinetic
 
 
+def compute_configurational_pressure(atoms: Atoms) -> float:
+    """Return the hydrostatic configurational pressure in bar.
+
+    The calculator stress follows ASE's tensile-positive convention, so the
+    configurational pressure is the negative mean normal stress.
+    """
+    stress = atoms.get_stress(voigt=True)
+    return -float(np.mean(stress[:3])) * EV_PER_ANG3_TO_BAR
+
+
 def compute_instantaneous_pressure(
     atoms: Atoms,
     velocities: np.ndarray,
@@ -325,13 +335,10 @@ def compute_instantaneous_pressure(
     # KE in eV: 0.5 * m[amu] * v²[Å²/fs²] * (amu·Å²/fs² → eV)
     ke_ev = 0.5 * np.sum(masses_amu[:, np.newaxis] * v_ang_per_fs**2) * AMU_ANG2_PER_FS2_TO_EV
 
-    # Virial contribution from stress tensor (eV)
-    virial_ev = 0.0
+    configurational_pressure = 0.0
     new_stress_warned = stress_warned
     try:
-        stress = atoms.get_stress(voigt=True)   # eV/Å³, Voigt: xx,yy,zz,yz,xz,xy
-        # Hydrostatic virial: W = -V * (σ_xx + σ_yy + σ_zz)
-        virial_ev = -volume * (stress[0] + stress[1] + stress[2])
+        configurational_pressure = compute_configurational_pressure(atoms)
     except (PropertyNotImplementedError, RuntimeError):
         # Calculator does not support stress; fall back to ideal-gas pressure (virial = 0).
         # Warn once per barostat instance so the user is aware.
@@ -344,9 +351,8 @@ def compute_instantaneous_pressure(
             )
             new_stress_warned = True
 
-    # P = (2*KE + W) / (3*V)  in eV/Å³, then convert to bar
-    pressure_ev_ang3 = (2.0 * ke_ev + virial_ev) / (3.0 * volume)
-    return pressure_ev_ang3 * EV_PER_ANG3_TO_BAR, new_stress_warned
+    kinetic_pressure = 2.0 * ke_ev / (3.0 * volume) * EV_PER_ANG3_TO_BAR
+    return kinetic_pressure + configurational_pressure, new_stress_warned
 
 
 def initialize_velocities(

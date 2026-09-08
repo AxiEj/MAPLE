@@ -5,9 +5,9 @@ Supports two combinations:
     thermostat: 'langevin' | 'v-rescale'  (default: v-rescale)
     barostat:   'berendsen' | 'c-rescale' (default: c-rescale)
 
-Recommended combination for production MLP runs:
+Default combination for MLP runs:
     thermostat=v-rescale + barostat=c-rescale
-    → both produce the correct NPT ensemble.
+    → intended for NPT sampling; validate ensemble statistics for the setup.
 
 Berendsen variants are suitable for rapid pre-equilibration but suppress
 pressure/temperature fluctuations and do not generate correct ensemble averages.
@@ -74,9 +74,9 @@ class NPTParams:
     Thermostat default: v-rescale (Bussi et al. 2007 JCP 126, 014101)
       — correct canonical ensemble; less perturbative than Langevin.
     Barostat default: c-rescale (Bernetti & Bussi 2020 JCP 153, 114107)
-      — correct isothermal-isobaric ensemble; analogue of v-rescale for pressure.
+      — stochastic volume rescaling for NPT sampling.
 
-    Recommended production combination: thermostat=v-rescale + barostat=c-rescale.
+    Default combination: thermostat=v-rescale + barostat=c-rescale.
     Berendsen variants are suitable for rapid pre-equilibration only.
     """
     # ------------------------------------------------------------------
@@ -108,8 +108,8 @@ class NPTParams:
 
     # ------------------------------------------------------------------
     # Barostat: c-rescale (default for NPT)
-    # C-rescale is the correct NPT barostat (Bernetti & Bussi 2020).
-    # Unlike Berendsen, it produces the full Gibbs (N,P,T) distribution.
+    # C-rescale implements stochastic volume rescaling (Bernetti & Bussi 2020).
+    # Validate ensemble statistics for the chosen model and simulation setup.
     # ------------------------------------------------------------------
     barostat:        str   = 'c-rescale'  # [Bernetti & Bussi 2020 JCP 153, 114107]
 
@@ -284,6 +284,7 @@ class NPT(JobABC):
                 timestep=self.params.timestep,
                 compressibility=self.params.compressibility,
                 rng=self._rng,
+                n_dof=self._runtime_n_dof,
             )
 
         self.logger = MDLogger(

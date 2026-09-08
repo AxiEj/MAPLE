@@ -155,8 +155,10 @@ class FooCalculator(CalcABC):
   than truncating them.
 - Set `SUPPORTS_CHARGE_MULT = True` if the backend honors them; otherwise
   `SetCalculator` warns the user that the values will be ignored.
-- MACE-POLAR rejects non-integer `mult` before converting multiplicity to the
-  model's unpaired-electron `spin = mult - 1` input.
+- MACE-POLAR rejects non-integer `mult` and passes it as `total_spin` unchanged.
+- `CalcABC` invalidates cached results when `charge` or `mult` changes, including
+  metadata-only updates at fixed geometry. Non-`CalcABC` backends must preserve
+  the same contract; FAIR-Chem already tracks `Atoms.info` for UMA.
 - UMA `omol` charged/open-shell inputs are passed through to FAIR-Chem and
   emit a warning until MAPLE has accepted golden numerical tolerances for
   those states.
@@ -205,13 +207,13 @@ backend that switches tasks for periodic input.
 | AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`spin = mult − 1`) | analytic + numerical | yes | no | no |
+| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`total_spin = mult`) | analytic + numerical | yes | no | no |
 | UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
 
-`spin` semantics differ on purpose: MACE-POLAR's traced interface takes the
-number of unpaired electrons (`mult − 1`), UMA's FAIR-Chem path takes the
-spin multiplicity (`mult`). Confirm against the specific checkpoint before
-trusting open-shell results — neither encoding is verified here.
+MACE-POLAR takes multiplicity directly (`total_spin = mult`, singlet = 1):
+its Fukui equilibration subtracts one internally. This is also true of the
+shipped S/M/L TorchScript models. UMA's FAIR-Chem input is likewise `spin = mult`.
+Input-contract verification does not establish charged/open-shell accuracy.
 
 Observed on a local uma-s-1p1 checkpoint: direct FAIR-Chem and the MAPLE UMA
 wrapper agree for H₂O `q=0/+1/-1` and `mult=3`, so charge/spin reaches

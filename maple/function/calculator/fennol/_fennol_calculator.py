@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from ..calculator_base import CalcABC, EV2HARTREE, register_calculator
+from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 
 
 _FENNOL_MODEL_FILES = {
@@ -68,6 +69,15 @@ class FeNNolCalculator(CalcABC):
         self.model_path = str(model_path)
         self.runtime = self._load_runtime(self.model_path, use_float64=use_float64)
         self.hessian = "analytic"
+        attach_calculator_identity(
+            self,
+            backend=str(model).lower(),
+            checkpoint_path=self.model_path,
+            relevant_settings={
+                "use_float64": bool(use_float64),
+                **solvation_identity_settings(implicit, solvent),
+            },
+        )
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
     def _runtime_unit(self) -> str:

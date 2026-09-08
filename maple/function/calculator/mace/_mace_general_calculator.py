@@ -8,6 +8,7 @@ import torch
 from ase.calculators.calculator import all_changes
 
 from ..calculator_base import CalcABC, hessian_via_double_autograd, register_calculator
+from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 from ._common import model_float_dtype, one_hot_node_attrs, radius_graph_no_pbc
 
 
@@ -101,6 +102,13 @@ class MACEModelCalculator(CalcABC):
         self.r_max = float(self.model.r_max)
         self.atomic_numbers = [int(z) for z in self.model.atomic_numbers]
         self.hessian = 'analytic'
+
+        attach_calculator_identity(
+            self,
+            backend=str(model).lower(),
+            checkpoint_path=model_path,
+            relevant_settings=solvation_identity_settings(implicit, solvent),
+        )
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 

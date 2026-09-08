@@ -48,12 +48,13 @@ from ..utils import (
     compute_instantaneous_pressure,
     describe_dof_policy,
     get_atoms_velocity_representation,
-    get_initialization_dof_policy,
     get_n_dof_from_policy,
+    get_persistent_motion_dof_policy,
     get_runtime_dof_policy,
     initialize_velocities,
     HA_PER_ANG_TO_AU,
     lfmiddle_carried_to_standard,
+    normalize_remove_angular_alias,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
@@ -207,7 +208,12 @@ class NPT(JobABC):
             )
 
         self.atoms = atoms
-        self.params = self._init_params(NPTParams, paras, ("md", "MD", "npt", "NPT"))
+        aliases = ("md", "MD", "npt", "NPT")
+        self.params = self._init_params(NPTParams, paras, aliases)
+        self.params.remove_angular = normalize_remove_angular_alias(
+            paras, aliases, self.params.remove_angular
+        )
+        self.params.remove_rotation = False
 
         if self.params.thermostat not in self._THERMOSTAT_CHOICES:
             raise ValueError(
@@ -237,17 +243,31 @@ class NPT(JobABC):
                      if self.params.random_seed is not None
                      else np.random.default_rng())
 
-        runtime_policy = get_runtime_dof_policy(
-            atoms,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        for warning in runtime_policy["warnings"]:
+        if self.params.thermostat == "v-rescale":
+            dof_policy = get_persistent_motion_dof_policy(
+                atoms,
+                remove_com=self.params.remove_com,
+                remove_angular=False,
+                remove_com_every=self.params.remove_com_every,
+                remove_angular_every=self.params.remove_angular_every,
+            )
+        else:
+            dof_policy = get_runtime_dof_policy(
+                atoms,
+                remove_com_every=self.params.remove_com_every,
+                remove_angular_every=self.params.remove_angular_every,
+            )
+        if dof_policy["anchored"]:
+            raise NotImplementedError(
+                "NPT cell rescaling with FixAtoms is not supported"
+            )
+        for warning in dof_policy["warnings"]:
             self.log_info([f"\n*** WARNING: {warning}\n"])
         if self.params.remove_angular:
             self.log_info(["\n*** WARNING: remove_angular is ignored for NPT/PBC systems; only initialization COM removal remains active.\n"])
-        self._runtime_n_dof = get_n_dof_from_policy(runtime_policy)
-        self._runtime_dof_description = describe_dof_policy(runtime_policy)
+        self._runtime_n_dof = get_n_dof_from_policy(dof_policy)
+        self._dof_policy = dof_policy
+        self._runtime_dof_description = describe_dof_policy(dof_policy)
 
         if self.params.thermostat == 'langevin':
             self.thermostat = LangevinThermostat(
@@ -265,6 +285,7 @@ class NPT(JobABC):
                 timestep=self.params.timestep,
                 rng=self._rng,
                 n_dof=self._runtime_n_dof,
+                dof_policy=self._dof_policy,
             )
 
         if self.params.barostat == 'berendsen':
@@ -295,6 +316,26 @@ class NPT(JobABC):
             verbose=self.params.verbose,
             debug=self.params.debug,
         )
+        self.logger.dynamics_parameters = {
+            "ensemble": "npt",
+            "timestep": float(self.params.timestep),
+            "temperature": float(self.params.temperature),
+            "thermostat": str(self.params.thermostat),
+            "barostat": str(self.params.barostat),
+            "pressure": float(self.params.pressure),
+            "tau_p": float(self.params.tau_p),
+            "compressibility": float(self.params.compressibility),
+            "remove_com_every": int(self.params.remove_com_every),
+            "remove_angular_every": int(self.params.remove_angular_every),
+            "motion_subspace": {
+                "com_excluded": bool(self._dof_policy["linear_active"]),
+                "angular_excluded": bool(self._dof_policy["angular_active"]),
+            },
+        }
+        if self.params.thermostat == "langevin":
+            self.logger.dynamics_parameters["friction"] = float(self.params.friction)
+        else:
+            self.logger.dynamics_parameters["tau_t"] = float(self.params.tau_t)
 
     def _prepare_langevin_velocities(
         self,
@@ -345,6 +386,7 @@ class NPT(JobABC):
                     pressure=self.params.pressure,
                     rst_file=self.params.rst_file if self.params.rst_file else None,
                     load_state=True,
+                    dof_policy=self._dof_policy,
                 )
                 self.atoms, velocities, step_offset = result
                 velocity_representation = self.logger.resumed_velocity_representation
@@ -369,6 +411,7 @@ class NPT(JobABC):
                     pressure=self.params.pressure,
                     rst_file=self.params.rst_file if self.params.rst_file else None,
                     load_state=False,
+                    dof_policy=self._dof_policy,
                 )
                 if result is None:   # already completed
                     return
@@ -383,7 +426,10 @@ class NPT(JobABC):
                 if 'velocities' in self.atoms.arrays and self.params.init_velocities:
                     velocities = self.atoms.arrays['velocities']
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
-                    t_check = calculate_temperature(self.atoms, velocities)
+                    t_check = calculate_temperature(
+                        self.atoms, velocities, n_dof=self._runtime_n_dof,
+                        dof_policy=self._dof_policy,
+                    )
                     self.log_info([
                         f"\nVelocities loaded from input file "
                         f"(T = {t_check:.2f} K); skipping random initialisation.\n"
@@ -409,6 +455,7 @@ class NPT(JobABC):
                     mode=source,
                     effective_step=step_offset,
                     velocity_representation=velocity_representation,
+                    dof_policy=self._dof_policy,
                 )
 
             final_velocities, final_representation = self._run_simulation(
@@ -475,6 +522,7 @@ class NPT(JobABC):
             self.atoms,
             velocities,
             n_dof=self._runtime_n_dof,
+            dof_policy=self._dof_policy,
         )
         self.log_info([f"Initial temperature: {actual_temp:.2f} K\n"])
         return velocities
@@ -569,10 +617,11 @@ class NPT(JobABC):
 
             # Barostat: rescale cell after the thermostat/integrator cycle.
             self.barostat.apply(v)
+            abs_step = step_offset + step
             v, _projection = apply_runtime_motion_projection(
                 self.atoms,
                 v,
-                step=step,
+                step=abs_step,
                 remove_com_every=self.params.remove_com_every,
                 remove_angular_every=self.params.remove_angular_every,
             )
@@ -584,9 +633,11 @@ class NPT(JobABC):
                 class_name=type(self.barostat).__name__,
             )
 
-            abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep
-            temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
+            temperature      = calculate_temperature(
+                self.atoms, v, n_dof=self._runtime_n_dof,
+                dof_policy=self._dof_policy,
+            )
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
             potential_energy = self.atoms.get_potential_energy()  # Ha
             volume           = self.atoms.get_volume()
@@ -605,6 +656,7 @@ class NPT(JobABC):
                     self.atoms,
                     v_sync,
                     n_dof=self._runtime_n_dof,
+                    dof_policy=self._dof_policy,
                 )
                 kinetic_energy_sync = calculate_kinetic_energy(self.atoms, v_sync)
                 total_energy_sync = kinetic_energy_sync + potential_energy

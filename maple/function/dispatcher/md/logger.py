@@ -8,11 +8,17 @@ Handles:
     - Final summary statistics
 """
 
+import json
 import time as _time
 import numpy as np
 from pathlib import Path
 from typing import Optional, TextIO, Any
 from ase import Atoms
+
+from ...calculator.electronic_state import (
+    canonical_identity_json,
+    electronic_state_identity,
+)
 
 from .utils import (
     VELOCITY_REPR_STANDARD,
@@ -20,7 +26,7 @@ from .utils import (
     set_atoms_velocity_representation,
     write_xyz_frame,
 )
-from .rst_io import read_rst, rotate_rst_checkpoint
+from .rst_io import constraint_identity, read_rst, rotate_rst_checkpoint
 from .dcd_writer import DCDWriter
 
 
@@ -164,24 +170,54 @@ class MDLogger:
         self.resumed_velocity_representation: str = VELOCITY_REPR_STANDARD
         self.resumed_timestep: Optional[float] = None
         self.velocity_representation: str = VELOCITY_REPR_STANDARD
+        self.dynamics_parameters: Optional[dict] = None
+        self._run_pes_identity: str | None = None
         # Fresh-start backup should not archive checkpoint files that are being
         # used as explicit rst_file inputs for the current run.
         self._protected_restart_inputs: set[Path] = set()
+
+    def _validate_run_pes(self, atoms: Atoms) -> dict:
+        """Bind before starting; reject a changed Hamiltonian during this run."""
+        identity = electronic_state_identity(atoms)
+        canonical = canonical_identity_json(identity)
+        if self._run_pes_identity is None:
+            self._run_pes_identity = canonical
+        elif canonical != self._run_pes_identity:
+            raise RuntimeError("PES identity changed during the MD run.")
+        return identity
+
+    def _checkpoint_metadata(self, atoms: Atoms) -> tuple[dict, dict]:
+        if self.dynamics_parameters is None:
+            raise RuntimeError(
+                "Exact MD checkpoints require the ensemble dynamics parameters."
+            )
+        return self._validate_run_pes(atoms), self.dynamics_parameters
 
     def log_debug_initial_state(self, atoms: Atoms, velocities: np.ndarray,
                                 mode: str, effective_step: int,
                                 source: Optional[str] = None,
                                 rst_step: Optional[int] = None,
-                                velocity_representation: Optional[str] = None):
+                                velocity_representation: Optional[str] = None,
+                                dof_policy=None):
         if not self.debug:
             return
 
-        from .utils import calculate_kinetic_energy, calculate_temperature
+        from .utils import (
+            calculate_kinetic_energy,
+            calculate_temperature,
+            get_n_dof_from_policy,
+        )
 
         forces = atoms.get_forces()
         kinetic_energy = calculate_kinetic_energy(atoms, velocities)
         potential_energy = atoms.get_potential_energy()
-        temperature_inst = calculate_temperature(atoms, velocities)
+        n_dof = get_n_dof_from_policy(dof_policy) if dof_policy is not None else None
+        temperature_inst = calculate_temperature(
+            atoms,
+            velocities,
+            n_dof=n_dof,
+            dof_policy=dof_policy,
+        )
         atom0_pos = atoms.get_positions()[0]
         atom0_vel = velocities[0]
         atom0_force = forces[0]
@@ -234,6 +270,7 @@ class MDLogger:
             write_conserved_energy: Append conserved-energy columns for
                 ensembles/thermostats that define one explicitly.
         """
+        self._checkpoint_metadata(atoms)
         self._ensemble    = ensemble.lower()
         self.velocity_representation = normalize_velocity_representation(velocity_representation)
         set_atoms_velocity_representation(atoms, self.velocity_representation)
@@ -568,6 +605,7 @@ class MDLogger:
 
         # Write restart checkpoint at rst_every frequency
         if rst_every and step % rst_every == 0:
+            pes_identity, dynamics_parameters = self._checkpoint_metadata(atoms)
             rotate_rst_checkpoint(
                 rst_path=self.rst_path,
                 rst_prev_path=self.rst_prev_path,
@@ -579,6 +617,8 @@ class MDLogger:
                 energy=total_energy_hartree,
                 rng_state=rng_state,
                 velocity_representation=velocity_representation,
+                pes_identity=pes_identity,
+                dynamics_parameters=dynamics_parameters,
             )
 
     def restart_simulation(
@@ -591,13 +631,11 @@ class MDLogger:
         pressure: float = None,
         rst_file: str = None,
         load_state: bool = False,
+        dof_policy=None,
     ):
         """
         Restore state from a .rst checkpoint file, validate against input atoms,
         open output files, and return (atoms, velocities, step_offset).
-
-        Restore state from a .rst checkpoint file, validate against input atoms,
-        and return ``(atoms, velocities, step_offset)``.
 
         Input selection modes:
 
@@ -620,11 +658,10 @@ class MDLogger:
         Returns None if a restart checkpoint already completed the requested run.
         Raises RuntimeError on hard failures (mismatch, missing files, etc.).
         """
-        from ase.cell import Cell
-
         # ------------------------------------------------------------------
         # Determine checkpoint source
         # ------------------------------------------------------------------
+        self._validate_run_pes(atoms)
         has_explicit_rst = rst_file is not None
 
         if has_explicit_rst:
@@ -672,7 +709,77 @@ class MDLogger:
                     f"Element mismatch between rst and input at position {idx}"
                 )
 
+        if state["velocity_representation"] not in {
+            "standard",
+            "lfmiddle_carried",
+        }:
+            raise RuntimeError(
+                "Unsupported velocity representation in restart checkpoint."
+            )
+        saved_pbc = state["pbc"] if state["pbc"] is not None else [False, False, False]
+        if not np.array_equal(np.asarray(saved_pbc), np.asarray(atoms.pbc)):
+            raise RuntimeError("PBC mismatch between RST and input.")
+
+        carried_load = load_state and state["velocity_representation"] == "lfmiddle_carried"
+        if not load_state or carried_load:
+            if state["version"] < 2:
+                if not load_state:
+                    raise RuntimeError(
+                        "MAPLE_RST_V1 cannot prove an exact continuation because it lacks "
+                        "the full cell and state identity. Use load_state=yes to start a "
+                        "new run from this legacy checkpoint."
+                    )
+                raise RuntimeError(
+                    "Legacy LF-Middle carried velocities cannot be rebound safely "
+                    "because MAPLE_RST_V1 has no PES identity."
+                )
+            current_pes_identity = electronic_state_identity(atoms)
+            if canonical_identity_json(state["pes_identity"]) != canonical_identity_json(
+                current_pes_identity
+            ):
+                message = (
+                    "LF-Middle carried velocities cannot be loaded onto a different PES."
+                    if carried_load
+                    else "Electronic state or PES identity mismatch between RST and input."
+                )
+                raise RuntimeError(message)
+            if not np.array_equal(state["masses"], atoms.get_masses()):
+                message = (
+                    "LF-Middle carried velocities require identical atomic masses."
+                    if carried_load
+                    else "Atomic-mass mismatch between RST and input."
+                )
+                raise RuntimeError(message)
+            saved_constraints = json.dumps(
+                state["constraints"], sort_keys=True, separators=(",", ":")
+            )
+            current_constraints = json.dumps(
+                constraint_identity(atoms), sort_keys=True, separators=(",", ":")
+            )
+            if saved_constraints != current_constraints:
+                message = (
+                    "LF-Middle carried velocities require identical constraints."
+                    if carried_load
+                    else "Constraint mismatch between RST and input."
+                )
+                raise RuntimeError(message)
+
         if not load_state:
+            if self.dynamics_parameters is None:
+                raise RuntimeError(
+                    "Exact restart requires current ensemble dynamics parameters."
+                )
+
+            saved_dynamics = json.dumps(
+                state["dynamics_parameters"], sort_keys=True, separators=(",", ":")
+            )
+            current_dynamics = json.dumps(
+                self.dynamics_parameters, sort_keys=True, separators=(",", ":")
+            )
+            if saved_dynamics != current_dynamics:
+                raise RuntimeError(
+                    "Dynamics-parameter mismatch between RST and input."
+                )
             if state["ensemble"] != ensemble:
                 raise RuntimeError(
                     f"Ensemble mismatch: rst has '{state['ensemble']}', "
@@ -683,6 +790,10 @@ class MDLogger:
                     f"Timestep mismatch: rst has {state['timestep']}, "
                     f"input specifies {timestep}"
                 )
+            if ensemble in {"nvt", "npt"} and state["rng_state"] is None:
+                raise RuntimeError(
+                    f"Exact {ensemble.upper()} restart requires the saved RNG state."
+                )
             if state["step"] >= n_steps:
                 self.log_main([
                     f"\nRestart checkpoint {used_path.name} already completed the "
@@ -691,11 +802,12 @@ class MDLogger:
                 # Even though the run is complete, export final.xyz from
                 # the checkpoint so the user always has the last-frame file.
                 if not self.final_path.exists():
-                    atoms.set_positions(state["positions"])
+                    atoms.set_positions(state["positions"], apply_constraint=False)
                     if state["cell"] is not None:
-                        atoms.set_cell(Cell.fromcellpar(state["cell"]))
-                    if state["pbc"] is not None:
-                        atoms.set_pbc(state["pbc"])
+                        atoms.set_cell(state["cell"], apply_constraint=False)
+                    else:
+                        atoms.set_cell(np.zeros((3, 3)), apply_constraint=False)
+                    atoms.set_pbc(state["pbc"])
                     with open(self.final_path, 'w') as f:
                         write_xyz_frame(
                             f,
@@ -715,11 +827,16 @@ class MDLogger:
             self._protected_restart_inputs = {self.rst_path, self.rst_prev_path}
 
         if load_state:
-            if self.debug:
-                self.log_main([
-                    f"\nLoading state from explicit checkpoint: {used_path.name} "
-                    f"(start new run from step 0)\n",
-                ])
+            warning = (
+                f"\nWARNING: Loading coordinates and velocities from {used_path.name} "
+                "as a new run (step 0); PES and dynamics identity are not continued.\n"
+            )
+            if state["version"] < 2:
+                warning += (
+                    "WARNING: Legacy MAPLE_RST_V1 stores only cell lengths/angles; "
+                    "a rotated periodic cell cannot be reconstructed exactly.\n"
+                )
+            self.log_main([warning])
             step_offset = 0
         else:
             if has_explicit_rst and self.debug:
@@ -730,11 +847,17 @@ class MDLogger:
             step_offset = state["step"]
 
         # Restore atoms state
-        atoms.set_positions(state["positions"])
+        atoms.set_positions(state["positions"], apply_constraint=False)
         if state["cell"] is not None:
-            atoms.set_cell(Cell.fromcellpar(state["cell"]))
-        if state["pbc"] is not None:
-            atoms.set_pbc(state["pbc"])
+            if state["version"] == 2:
+                atoms.set_cell(state["cell"], apply_constraint=False)
+            else:
+                from ase.cell import Cell
+
+                atoms.set_cell(Cell.fromcellpar(state["cell"]), apply_constraint=False)
+        else:
+            atoms.set_cell(np.zeros((3, 3)), apply_constraint=False)
+        atoms.set_pbc(state["pbc"] if state["pbc"] is not None else False)
 
         # Store RNG state for ensemble drivers (NVT/NPT) to restore
         self.resumed_rng_state = state.get("rng_state")
@@ -753,6 +876,7 @@ class MDLogger:
             rst_step=state["step"],
             effective_step=step_offset,
             velocity_representation=self.velocity_representation,
+            dof_policy=dof_policy,
         )
 
         # ------------------------------------------------------------------
@@ -787,7 +911,7 @@ class MDLogger:
 
     def end_simulation(self, atoms: Atoms = None, final_velocities: np.ndarray = None,
                        rng_state: str = None,
-                       velocity_representation: Optional[str] = None):
+                       velocity_representation: str | None = None):
         """
         Finalize simulation, compute publication-quality conservation metrics,
         write summary file, and write final restart checkpoint.
@@ -807,6 +931,8 @@ class MDLogger:
         velocity_representation : str, optional
             Label describing the semantics of ``final_velocities``.
         """
+        if atoms is not None:
+            self._validate_run_pes(atoms)
         velocity_representation = normalize_velocity_representation(
             velocity_representation or self.velocity_representation
         )
@@ -1049,6 +1175,7 @@ class MDLogger:
 
             # Write RST checkpoint (complete state for restart)
             # For NVT/NPT, include RNG state for deterministic continuation
+            pes_identity, dynamics_parameters = self._checkpoint_metadata(atoms)
             rotate_rst_checkpoint(
                 rst_path=self.rst_path,
                 rst_prev_path=self.rst_prev_path,
@@ -1060,6 +1187,8 @@ class MDLogger:
                 energy=final_energy,
                 rng_state=rng_state,
                 velocity_representation=velocity_representation,
+                pes_identity=pes_identity,
+                dynamics_parameters=dynamics_parameters,
             )
             final_written = True
 

@@ -11,10 +11,12 @@ from ..calculator_base import (
     parse_bool_option,
     register_calculator,
 )
+from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 
 
 @register_calculator
 class ANICalculator(CalcABC):
+    maple_pes_identity: dict
     implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
 
     MODEL_NAMES = ('ani2x', 'ani1x', 'ani1ccx', 'ani1xnr')
@@ -69,7 +71,22 @@ class ANICalculator(CalcABC):
         self.d4 = d4
         self.hessian: str = 'analytic'
 
+        attach_calculator_identity(
+            self,
+            backend=str(model).lower(),
+            checkpoint_path=model_path,
+            relevant_settings={
+                'd4': bool(d4),
+                **solvation_identity_settings(implicit, solvent),
+            },
+        )
+
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
+
+    def get_pes_identity(self) -> dict:
+        identity = self.maple_pes_identity
+        settings = {**identity['relevant_settings'], 'd4': bool(self.d4)}
+        return {**identity, 'relevant_settings': settings}
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=ase.calculators.calculator.all_changes):

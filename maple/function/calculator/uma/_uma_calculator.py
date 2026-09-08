@@ -5,7 +5,7 @@ import os
 import warnings
 from functools import partial
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import torch
@@ -15,7 +15,11 @@ from ase.calculators.calculator import all_changes
 try:
     from fairchem.core import pretrained_mlip
     from fairchem.core._config import CACHE_DIR
-    from fairchem.core.calculate.ase_calculator import AtomicData, FAIRChemCalculator, UMATask
+    from fairchem.core.calculate.ase_calculator import (
+        AtomicData,
+        FAIRChemCalculator,
+        UMATask,
+    )
     from fairchem.core.units.mlip_unit import load_predict_unit
     from huggingface_hub import hf_hub_download
     from omegaconf import OmegaConf
@@ -26,10 +30,10 @@ from ..calculator_base import (
     EV2HARTREE,
     init_implicit_solvent,
     numerical_hessian_from_atoms,
-    reject_implicit_solvent_derivatives,
     register_calculator,
+    reject_implicit_solvent_derivatives,
 )
-
+from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
 UMA_MODELS_MAP = {
@@ -51,6 +55,21 @@ SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 # default regardless.
 UMA_INFERENCE_SETTINGS = "default"
 UMA_CPU_INFERENCE_SETTINGS = "default"
+
+
+def _omega_mapping(value, name: str) -> dict[str, Any]:
+    plain = OmegaConf.to_container(value, resolve=True)
+    if not isinstance(plain, dict):
+        raise TypeError(f"UMA {name} must be a mapping.")
+    return {str(key): item for key, item in plain.items()}
+
+
+def _reference_values(value) -> dict[str, Any]:
+    mapping = _omega_mapping(value, "form-element reference data")
+    refs = mapping.get("refs")
+    if not isinstance(refs, dict):
+        raise TypeError("UMA form-element reference data must contain a 'refs' mapping.")
+    return {str(key): item for key, item in refs.items()}
 
 
 @register_calculator
@@ -262,6 +281,73 @@ class UMACalculator(FAIRChemCalculator):
         self._auto_task = task is None
         self.hessian = "numerical"
 
+        identity_checkpoint = None
+        reference_energies: dict[str, object | None] = {
+            "atom_refs": None,
+            "form_elem_refs": None,
+        }
+        if checkpoint_path and os.path.isfile(checkpoint_path):
+            identity_checkpoint = checkpoint_path
+        elif os.path.isfile(checkpoint):
+            identity_checkpoint = checkpoint
+        elif checkpoint in pretrained_mlip.available_models:
+            identity_checkpoint = pretrained_mlip.pretrained_checkpoint_path_from_name(checkpoint)
+            model_artifacts = pretrained_mlip._MODEL_CKPTS.checkpoints[checkpoint]
+            reference_energies["atom_refs"] = _omega_mapping(
+                pretrained_mlip.get_reference_energies(checkpoint, "atom_refs"),
+                "atomic reference data",
+            )
+            if model_artifacts.form_elem_refs is not None:
+                reference_energies["form_elem_refs"] = _reference_values(
+                    pretrained_mlip.get_reference_energies(checkpoint, "form_elem_refs")
+                )
+        elif checkpoint in UMA_FALLBACK_HF_MODELS:
+            identity_checkpoint = hf_hub_download(
+                repo_id="facebook/UMA",
+                subfolder="checkpoints",
+                filename=f"{checkpoint}.pt",
+                cache_dir=CACHE_DIR,
+            )
+            reference_energies["atom_refs"] = _omega_mapping(
+                OmegaConf.load(
+                    hf_hub_download(
+                        repo_id="facebook/UMA",
+                        subfolder="references",
+                        filename="iso_atom_elem_refs.yaml",
+                        cache_dir=CACHE_DIR,
+                    )
+                ),
+                "atomic reference data",
+            )
+            reference_energies["form_elem_refs"] = _reference_values(
+                OmegaConf.load(
+                    hf_hub_download(
+                        repo_id="facebook/UMA",
+                        subfolder="references",
+                        filename="form_elem_refs.yaml",
+                        cache_dir=CACHE_DIR,
+                    )
+                )
+            )
+        if identity_checkpoint is not None:
+            effective_inference = (
+                UMA_CPU_INFERENCE_SETTINGS
+                if device == "cpu"
+                else (inference_settings or UMA_INFERENCE_SETTINGS)
+            )
+            attach_calculator_identity(
+                self,
+                backend=f"uma:{checkpoint}",
+                checkpoint_path=identity_checkpoint,
+                relevant_settings={
+                    "task": task or "omol",
+                    "inference": effective_inference,
+                    "overrides": overrides or {},
+                    "reference_energies": reference_energies,
+                    **solvation_identity_settings(implicit, solvent),
+                },
+            )
+
         # Shared helper sets self.solvent_correction (and self.chargecalc when
         # applicable); identical contract to CalcABC.implicit_solv_init.
         init_implicit_solvent(self, implicit, solvent, self.device)
@@ -283,6 +369,9 @@ class UMACalculator(FAIRChemCalculator):
 
         self._task = UMATask(task)
         self._task_name = task
+        identity = getattr(self, "maple_pes_identity", None)
+        if identity is not None:
+            identity["relevant_settings"]["task"] = task
         self.implemented_properties = [
             task_obj.property for task_obj in self.predictor.dataset_to_tasks[self.task_name]
         ]

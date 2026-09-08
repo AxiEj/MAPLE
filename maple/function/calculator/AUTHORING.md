@@ -104,20 +104,33 @@ class FooCalculator(CalcABC):
   inside its analytic method); the numerical path inherits Hartree via
   `numerical_hessian_from_atoms`, which calls back into `calculate()`.
 
+## PES identity for paths and restart
+
+Shipped calculators record the loaded checkpoint content hash and effective
+energy settings. External calculators used for a reaction path or MD checkpoint
+must provide `get_pes_identity()` or `maple_pes_identity` containing `backend`,
+`model_fingerprint` (`algorithm`, `digest`, `source`), and `relevant_settings`.
+A class name or Python object ID is not a model fingerprint. Mutable energy
+settings must be reflected in the returned identity.
+
+`electronic_state_identity(atoms)` adds the authoritative integer `charge` and
+positive `mult`. Ordinary path methods require identical electronic/PES identity,
+atom order, PBC and cell before evaluating images. RST V2 additionally binds
+masses, constraints and dynamics parameters. Legacy RST V1 can initialize a new
+run with `load_state`, but cannot prove an exact continuation.
+
 ## Implicit solvent
 
-- `_finalize_results` is the only place that adds the GBSA correction.
-  **Custom calculators do not call `implicit_solv_energy_and_force()`
-  directly** for the `calculate()` flow. If a backend needs special
-  handling, override `_finalize_results` rather than duplicating the
-  solvent path.
-- Solvent setup happens via `init_implicit_solvent(calc, implicit,
-  solvent, device)`. `CalcABC.__init__` does not call this for you in the
-  current release; subclasses still invoke `self.implicit_solv_init(...)`
-  inside their own `__init__`.
-- `None`, `none`, `null`, `false`, `0`, and empty strings normalize to
-  `none`. `implicit='gbsa'` requires a real solvent name such as
-  `solvent='water'`; MAPLE fails early instead of looking for `None.dat`.
+- The built-in `implicit='gbsa'` path is disabled, including direct `GBSA`
+  construction. Its old implementation misread source parameter types and units;
+  an experimental opt-in must not bypass this scientific failure.
+- The retained tables expose their source fields (surface tension, descreening,
+  Born scaling/offset, energy shift), not fabricated atomic radii. A new solvation
+  model requires an explicit Hamiltonian/parameter contract and validation.
+- Gas-phase `implicit='none'` is unchanged. `None`, `none`, `null`, `false`, `0`,
+  and empty strings still normalize to `none`.
+- QEq uses the Open Babel-derived Gaussian-radius convention. It is a GTO/fixed-
+  hardness approximation, not the original STO/hydrogen-self-consistent QEq.
 
 ## Hessian
 
@@ -203,12 +216,12 @@ backend that switches tasks for periodic input.
 
 | Backend (names) | PBC | charge/mult | Hessian | Implicit solvent | D4 | HVP (Dimer) |
 |---|---|---|---|---|---|---|
-| ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | yes | yes | yes; no implicit solvent |
-| AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
-| MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`total_spin = mult`) | analytic + numerical | yes | no | no |
-| UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
+| ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | disabled | yes | yes; no implicit solvent |
+| AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | disabled | no | no |
+| MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | disabled | no | no |
+| MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | disabled | no | no |
+| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`total_spin = mult`) | analytic + numerical | disabled | no | no |
+| UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | disabled | no | no |
 
 MACE-POLAR takes multiplicity directly (`total_spin = mult`, singlet = 1):
 its Fukui equilibration subtracts one internally. This is also true of the

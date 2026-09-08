@@ -32,13 +32,15 @@ from ..utils import (
     calculate_temperature,
     calculate_kinetic_energy,
     describe_dof_policy,
+    enforce_active_velocities,
     get_atoms_velocity_representation,
-    get_initialization_dof_policy,
     get_n_dof_from_policy,
+    get_persistent_motion_dof_policy,
     get_runtime_dof_policy,
     initialize_velocities,
     HA_PER_ANG_TO_AU,
     lfmiddle_carried_to_standard,
+    normalize_remove_angular_alias,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
@@ -221,7 +223,12 @@ class NVT(JobABC):
             raise ValueError("Atoms object must have a calculator attached")
 
         self.atoms = atoms
-        self.params = self._init_params(NVTParams, paras, ("md", "MD", "nvt", "NVT"))
+        aliases = ("md", "MD", "nvt", "NVT")
+        self.params = self._init_params(NVTParams, paras, aliases)
+        self.params.remove_angular = normalize_remove_angular_alias(
+            paras, aliases, self.params.remove_angular
+        )
+        self.params.remove_rotation = False
 
         if self.params.thermostat not in self._THERMOSTAT_CHOICES:
             raise ValueError(
@@ -246,13 +253,25 @@ class NVT(JobABC):
                      if self.params.random_seed is not None
                      else np.random.default_rng())
 
-        runtime_policy = get_runtime_dof_policy(
-            atoms,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        self._runtime_n_dof = get_n_dof_from_policy(runtime_policy)
-        self._runtime_dof_description = describe_dof_policy(runtime_policy)
+        if self.params.thermostat == "v-rescale":
+            dof_policy = get_persistent_motion_dof_policy(
+                atoms,
+                remove_com=self.params.remove_com,
+                remove_angular=self.params.remove_angular,
+                remove_com_every=self.params.remove_com_every,
+                remove_angular_every=self.params.remove_angular_every,
+            )
+        else:
+            dof_policy = get_runtime_dof_policy(
+                atoms,
+                remove_com_every=self.params.remove_com_every,
+                remove_angular_every=self.params.remove_angular_every,
+            )
+        for warning in dof_policy["warnings"]:
+            self.log_info([f"\n*** WARNING: {warning}\n"])
+        self._runtime_n_dof = get_n_dof_from_policy(dof_policy)
+        self._dof_policy = dof_policy
+        self._runtime_dof_description = describe_dof_policy(dof_policy)
 
         if self.params.thermostat == 'langevin':
             self.thermostat = LangevinThermostat(
@@ -270,6 +289,7 @@ class NVT(JobABC):
                 timestep=self.params.timestep,
                 rng=self._rng,
                 n_dof=self._runtime_n_dof,
+                dof_policy=self._dof_policy,
             )
 
         self.logger = MDLogger(
@@ -280,6 +300,22 @@ class NVT(JobABC):
             verbose=self.params.verbose,
             debug=self.params.debug,
         )
+        self.logger.dynamics_parameters = {
+            "ensemble": "nvt",
+            "timestep": float(self.params.timestep),
+            "temperature": float(self.params.temperature),
+            "thermostat": str(self.params.thermostat),
+            "remove_com_every": int(self.params.remove_com_every),
+            "remove_angular_every": int(self.params.remove_angular_every),
+            "motion_subspace": {
+                "com_excluded": bool(self._dof_policy["linear_active"]),
+                "angular_excluded": bool(self._dof_policy["angular_active"]),
+            },
+        }
+        if self.params.thermostat == "langevin":
+            self.logger.dynamics_parameters["friction"] = float(self.params.friction)
+        else:
+            self.logger.dynamics_parameters["tau_t"] = float(self.params.tau_t)
 
     def _prepare_langevin_velocities(
         self,
@@ -329,8 +365,10 @@ class NVT(JobABC):
                     atoms=self.atoms,
                     rst_file=self.params.rst_file if self.params.rst_file else None,
                     load_state=True,
+                    dof_policy=self._dof_policy,
                 )
                 self.atoms, velocities, step_offset = result
+                velocities = enforce_active_velocities(self.atoms, velocities)
                 velocity_representation = self.logger.resumed_velocity_representation
                 resumed_timestep_au = (
                     self.logger.resumed_timestep * FS_TO_AU
@@ -352,10 +390,12 @@ class NVT(JobABC):
                     atoms=self.atoms,
                     rst_file=self.params.rst_file if self.params.rst_file else None,
                     load_state=False,
+                    dof_policy=self._dof_policy,
                 )
                 if result is None:   # already completed
                     return
                 self.atoms, velocities, step_offset = result
+                velocities = enforce_active_velocities(self.atoms, velocities)
                 velocity_representation = self.logger.resumed_velocity_representation
                 resumed_timestep_au = None
                 # Restore RNG state for deterministic continuation
@@ -364,9 +404,14 @@ class NVT(JobABC):
                 remaining = self.params.steps - step_offset
             else:
                 if 'velocities' in self.atoms.arrays and self.params.init_velocities:
-                    velocities = self.atoms.arrays['velocities']
+                    velocities = enforce_active_velocities(
+                        self.atoms, self.atoms.arrays['velocities']
+                    )
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
-                    t_check = calculate_temperature(self.atoms, velocities)
+                    t_check = calculate_temperature(
+                        self.atoms, velocities, n_dof=self._runtime_n_dof,
+                        dof_policy=self._dof_policy,
+                    )
                     self.log_info([
                         f"\nVelocities loaded from input file "
                         f"(T = {t_check:.2f} K); skipping random initialisation.\n"
@@ -380,7 +425,9 @@ class NVT(JobABC):
                             "init_velocities=False, "
                             "but no velocities found in atoms.arrays"
                         )
-                    velocities = self.atoms.arrays['velocities']
+                    velocities = enforce_active_velocities(
+                        self.atoms, self.atoms.arrays['velocities']
+                    )
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
                 resumed_timestep_au = None
                 step_offset = 0
@@ -392,6 +439,7 @@ class NVT(JobABC):
                     mode=source,
                     effective_step=step_offset,
                     velocity_representation=velocity_representation,
+                    dof_policy=self._dof_policy,
                 )
 
             final_velocities, final_representation = self._run_simulation(
@@ -406,6 +454,23 @@ class NVT(JobABC):
 
     def _log_parameters(self):
         """Log NVT parameters to output."""
+        anchored = self._dof_policy["anchored"]
+        init_com = (
+            "ignored (FixAtoms anchors system)" if anchored
+            else f"{self.params.remove_com} (initialization-only)"
+        )
+        init_angular = (
+            "ignored (FixAtoms anchors system)" if anchored
+            else f"{self.params.remove_angular} (initialization-only; includes COM+rotation)"
+        )
+        runtime_com = (
+            "ignored (FixAtoms anchors system)" if anchored
+            else f"{self.params.remove_com_every} (runtime-only)"
+        )
+        runtime_angular = (
+            "ignored (FixAtoms anchors system)" if anchored
+            else f"{self.params.remove_angular_every} (runtime-only; includes COM+rotation)"
+        )
         lines = [
             "\n" + "=" * 80 + "\n",
             f"{'NVT MD PARAMETERS':^80}\n",
@@ -428,10 +493,10 @@ class NVT(JobABC):
             f"Restart mode:       {self.params.restart}\n",
             f"Load-state mode:    {self.params.load_state}\n",
             f"RST every:          {self.params.rst_every} steps\n",
-            f"Remove COM:         {self.params.remove_com} (initialization-only)\n",
-            f"Remove angular:     {self.params.remove_angular} (initialization-only; includes COM+rotation)\n",
-            f"Remove COM every:   {self.params.remove_com_every} (runtime-only)\n",
-            f"Remove angular ev.: {self.params.remove_angular_every} (runtime-only; includes COM+rotation)\n",
+            f"Remove COM:         {init_com}\n",
+            f"Remove angular:     {init_angular}\n",
+            f"Remove COM every:   {runtime_com}\n",
+            f"Remove angular ev.: {runtime_angular}\n",
         ]
         if self.params.random_seed is not None:
             lines.append(f"Random seed:        {self.params.random_seed}\n")
@@ -454,6 +519,7 @@ class NVT(JobABC):
             self.atoms,
             velocities,
             n_dof=self._runtime_n_dof,
+            dof_policy=self._dof_policy,
         )
         self.log_info([f"Initial temperature: {actual_temp:.2f} K\n"])
         return velocities
@@ -564,19 +630,22 @@ class NVT(JobABC):
                 v = self.thermostat.apply(v)
                 v, forces = integrator.lfmiddle_post_thermostat(v)
 
+            abs_step = step_offset + step
             v, _projection, delta_w_proj = _apply_projection_with_work(
                 self.atoms,
                 v,
-                step=step,
+                step=abs_step,
                 remove_com_every=self.params.remove_com_every,
                 remove_angular_every=self.params.remove_angular_every,
             )
             if is_vrescale:
                 w_bath += delta_w_proj
 
-            abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep
-            temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
+            temperature      = calculate_temperature(
+                self.atoms, v, n_dof=self._runtime_n_dof,
+                dof_policy=self._dof_policy,
+            )
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
             potential_energy = self.atoms.get_potential_energy()  # Ha
 
@@ -594,6 +663,7 @@ class NVT(JobABC):
                     self.atoms,
                     v_sync,
                     n_dof=self._runtime_n_dof,
+                    dof_policy=self._dof_policy,
                 )
                 kinetic_energy_sync = calculate_kinetic_energy(self.atoms, v_sync)
                 total_energy_sync = kinetic_energy_sync + potential_energy

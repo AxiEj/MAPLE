@@ -90,11 +90,9 @@ def validate_implicit_solvent_choice(implicit, solvent):
     """Normalize and validate implicit-solvent selector pair."""
     implicit_norm = normalize_none_option(implicit)
     solvent_norm = normalize_none_option(solvent)
-    if implicit_norm == 'gbsa' and solvent_norm == 'none':
-        raise ValueError(
-            "implicit='gbsa' requires an explicit solvent name such as solvent='water'; "
-            "use implicit='none' to disable implicit solvent."
-        )
+    if implicit_norm == 'gbsa':
+        from .extra_correction.solvent.gbsa.gbsa import GBSA_UNAVAILABLE
+        raise NotImplementedError(GBSA_UNAVAILABLE)
     return implicit_norm, solvent_norm
 
 

@@ -8,6 +8,7 @@ import torch
 from ase.calculators.calculator import all_changes
 
 from ..calculator_base import CalcABC, register_calculator
+from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 
 
 def _aimnet_atomic_charges(model_output, n_atoms: int) -> np.ndarray:
@@ -142,6 +143,16 @@ class AIMNet2Calculator(CalcABC):
 
         self._set_lrcoulomb_method(coulomb_method)
 
+        attach_calculator_identity(
+            self,
+            backend=self.model_name,
+            checkpoint_path=model_path,
+            relevant_settings={
+                'coulomb': self._coulomb_settings,
+                **solvation_identity_settings(implicit, solvent),
+            },
+        )
+
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
     def _set_lrcoulomb_method(self, method: str, cutoff: float = 15.0, dsf_alpha: float = 0.2):
@@ -194,6 +205,12 @@ class AIMNet2Calculator(CalcABC):
 
         self.cutoff_lr = float('inf') if method == 'simple' else float(cutoff)
         self._coulomb_method = method
+        self._coulomb_settings: dict[str, object] = {'method': method}
+        if method == 'dsf':
+            self._coulomb_settings.update(cutoff=float(cutoff), alpha=float(dsf_alpha))
+        identity = getattr(self, 'maple_pes_identity', None)
+        if identity is not None:
+            identity['relevant_settings']['coulomb'] = self._coulomb_settings
 
     def calculate(self, atoms=None, properties=['energy'], system_changes=all_changes):
         properties = self._normalize_properties(properties)

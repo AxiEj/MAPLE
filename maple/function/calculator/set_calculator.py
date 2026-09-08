@@ -19,6 +19,7 @@ from .calculator_base import (
     normalize_none_option,
     validate_implicit_solvent_choice,
 )
+from .electronic_state import attach_calculator_identity
 
 
 HF_REPO_ID = 'Wayne7815/MAPLE_models'
@@ -513,6 +514,21 @@ class SetCalculator:
         )
 
         self._apply_hessian_mode(calculator)
+        if (
+            name in _BUILTIN_NAME_TO_MODULE
+            and resolved_model_path is not None
+            and not hasattr(calculator, 'maple_pes_identity')
+        ):
+            identity_options = {
+                key: value for key, value in options.items()
+                if key not in {'module', 'model_path', 'checkpoint_path', 'hessian'}
+            }
+            attach_calculator_identity(
+                calculator,
+                backend=name,
+                checkpoint_path=resolved_model_path,
+                relevant_settings=identity_options,
+            )
         return calculator
 
     def _apply_hessian_mode(self, calculator) -> None:

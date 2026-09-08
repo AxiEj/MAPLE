@@ -28,6 +28,7 @@ from .neb import (
 from .logger import log_info
 from ...jobABC import JobABC
 from maple.function.utility import Molecules
+from maple.function.calculator.electronic_state import validate_path_contract
 
 
 # =============================================================================
@@ -1085,6 +1086,7 @@ class AutoNEB(JobABC):
 
     def run(self):
         """Main entry point for AutoNEB optimization."""
+        validate_path_contract(self.input_images, method="AutoNEB")
         log_info([
             "\n" + "=" * 70 + "\n",
             "Starting AutoNEB Optimization\n",

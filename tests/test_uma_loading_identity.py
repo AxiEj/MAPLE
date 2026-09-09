@@ -233,6 +233,60 @@ def test_compat_paths_separate_same_name_different_sources(tmp_path, monkeypatch
     assert uma_module.torch.load(path_b, weights_only=False).model_config["marker"] == "B"
 
 
+def test_same_source_has_same_compat_fingerprint_across_fresh_caches(
+    tmp_path, monkeypatch
+):
+    source = tmp_path / "source.pt"
+    _checkpoint(source, "same")
+
+    paths = []
+    digests = []
+    for cache_name in ("cache-a", "cache-b"):
+        monkeypatch.setattr(uma_module, "CACHE_DIR", str(tmp_path / cache_name))
+        path = Path(
+            uma_module.UMACalculator._prepare_compat_checkpoint("same", str(source))
+        )
+        paths.append(path)
+        digests.append(hashlib.sha256(path.read_bytes()).hexdigest())
+
+    assert paths[0].name == paths[1].name
+    assert digests[0] == digests[1]
+    assert uma_module.torch.load(paths[0], weights_only=False).model_config == (
+        uma_module.torch.load(paths[1], weights_only=False).model_config
+    )
+
+
+def test_legacy_v1_cache_does_not_change_current_compat_identity(tmp_path, monkeypatch):
+    source = tmp_path / "source.pt"
+    _checkpoint(source, "same")
+    source_digest = hashlib.sha256(source.read_bytes()).hexdigest()
+
+    populated_cache = tmp_path / "populated-cache"
+    legacy_dir = populated_cache / "maple_compat"
+    legacy_dir.mkdir(parents=True)
+    legacy_path = legacy_dir / f"same-v1-{source_digest}.pt"
+    uma_module.torch.save(
+        SimpleNamespace(model_config={"marker": "same"}), legacy_path
+    )
+    legacy_bytes = legacy_path.read_bytes()
+
+    paths = []
+    digests = []
+    for cache in (populated_cache, tmp_path / "fresh-cache"):
+        monkeypatch.setattr(uma_module, "CACHE_DIR", str(cache))
+        path = Path(
+            uma_module.UMACalculator._prepare_compat_checkpoint("same", str(source))
+        )
+        paths.append(path)
+        digests.append(hashlib.sha256(path.read_bytes()).hexdigest())
+
+    assert all(path != legacy_path for path in paths)
+    assert all(f"-{uma_module.UMA_COMPAT_SCHEMA}-" in path.name for path in paths)
+    assert paths[0].name == paths[1].name
+    assert digests[0] == digests[1]
+    assert legacy_path.read_bytes() == legacy_bytes
+
+
 def test_concurrent_compat_publication_has_one_immutable_target(tmp_path, monkeypatch):
     source = tmp_path / "source.pt"
     _checkpoint(source, "same")
@@ -242,12 +296,12 @@ def test_concurrent_compat_publication_has_one_immutable_target(tmp_path, monkey
     count_lock = threading.Lock()
     writers_ready = threading.Barrier(2)
 
-    def slow_save(value, path):
+    def slow_save(value, file_object):
         nonlocal save_count
         with count_lock:
             save_count += 1
         writers_ready.wait()
-        original_save(value, path)
+        original_save(value, file_object)
 
     monkeypatch.setattr(uma_module.torch, "save", slow_save)
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -271,10 +325,9 @@ def test_failed_compat_write_leaves_no_partial_archive(tmp_path, monkeypatch):
     cache = tmp_path / "cache"
     monkeypatch.setattr(uma_module, "CACHE_DIR", str(cache))
 
-    def partial_then_fail(value, path):
+    def partial_then_fail(value, file_object):
         del value
-        with open(path, "wb") as handle:
-            handle.write(b"partial")
+        file_object.write(b"partial")
         raise RuntimeError("injected write failure")
 
     monkeypatch.setattr(uma_module.torch, "save", partial_then_fail)

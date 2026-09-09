@@ -29,15 +29,72 @@ def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
                     sqrt_mass * np.cross(axis, position)
                 )
 
-    left_vectors, singular_values, _ = np.linalg.svd(candidates, full_matrices=False)
-    if not singular_values.size:
+    if not candidates.size:
         return np.empty((3 * n_atoms, 0))
+
+    # Translation and rotation are orthogonal when rotations are constructed
+    # about the centre of mass.  Factor them separately so the returned basis
+    # retains that physical partition; callers can then remove rotation while
+    # preserving an existing centre-of-mass velocity without forming the
+    # ill-conditioned inertia-tensor Gram matrix.
+    translation_scale = np.sqrt(np.sum(masses))
+    translation_vectors = candidates[:, :3] / translation_scale
+    if not include_rotations:
+        return translation_vectors
+
+    rotation_candidates = candidates[:, 3:]
+    rotation_candidates -= translation_vectors @ (
+        translation_vectors.T @ rotation_candidates
+    )
+    rotation_vectors, singular_values, _ = np.linalg.svd(
+        rotation_candidates, full_matrices=False
+    )
+    if not singular_values.size:
+        return translation_vectors
+    largest_scale = max(translation_scale, singular_values[0])
     tolerance = (
         max(candidates.shape)
         * np.finfo(candidates.dtype).eps
-        * singular_values[0]
+        * largest_scale
     )
-    return left_vectors[:, singular_values > tolerance]
+    rotations = rotation_vectors[:, singular_values > tolerance]
+    return np.column_stack((translation_vectors, rotations))
+
+
+def project_rigid_body_velocities(
+    atoms: Atoms,
+    velocities: np.ndarray,
+    *,
+    remove_translation: bool,
+    remove_rotation: bool,
+) -> np.ndarray:
+    """Project velocities in the mass metric onto the requested internal space."""
+    values = np.asarray(velocities, dtype=float)
+    if values.shape != (len(atoms), 3):
+        raise ValueError(
+            f"Expected velocities with shape {(len(atoms), 3)}, got {values.shape}"
+        )
+    if not remove_translation and not remove_rotation:
+        return values.copy()
+
+    masses = np.asarray(atoms.get_masses(), dtype=float)
+    if np.any(masses <= 0.0):
+        raise ValueError("Rigid-body velocity projection requires positive masses")
+
+    basis = mass_weighted_rigid_basis(atoms)
+    n_translation = min(3, basis.shape[1])
+    selected: list[np.ndarray] = []
+    if remove_translation:
+        selected.append(basis[:, :n_translation])
+    if remove_rotation and not np.any(atoms.get_pbc()):
+        selected.append(basis[:, n_translation:])
+    if not selected:
+        return values.copy()
+
+    projector_basis = np.column_stack(selected)
+    weighted = (np.sqrt(masses)[:, np.newaxis] * values).reshape(-1)
+    weighted -= projector_basis @ (projector_basis.T @ weighted)
+    return weighted.reshape((-1, 3)) / np.sqrt(masses)[:, np.newaxis]
 
 
 def rotational_dof(atoms: Atoms) -> int:

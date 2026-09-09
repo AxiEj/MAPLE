@@ -26,25 +26,32 @@ References:
     Bernetti & Bussi, J. Chem. Phys. 153, 114107 (2020).
 """
 
-import numpy as np
 from dataclasses import dataclass
-from typing import Optional
+from typing import NamedTuple, Optional
+
+import numpy as np
 from ase import Atoms
 
-from ...jobABC import JobABC
 from maple.function.timer import timer
 
-from ..integrator.velocity_verlet import VelocityVerlet
-from ..thermostat.langevin import LangevinThermostat
-from ..thermostat.vrescale import VRescaleThermostat
+from ...jobABC import JobABC
 from ..barostat.berendsen import BerendsenBarostat
 from ..barostat.crescale import CRescaleBarostat
+from ..integrator.velocity_verlet import VelocityVerlet
+from ..logger import MDLogger
+from ..rst_io import get_rng_state_hex, restore_rng_from_hex
+from ..state import validate_prepared_restart
+from ..thermostat.langevin import LangevinThermostat
+from ..thermostat.vrescale import VRescaleThermostat
 from ..utils import (
+    FS_TO_AU,
+    HA_PER_ANG_TO_AU,
     VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
+    DofPolicy,
     apply_runtime_motion_projection,
-    calculate_temperature,
     calculate_kinetic_energy,
+    calculate_temperature,
     compute_instantaneous_pressure,
     describe_dof_policy,
     enforce_active_velocities,
@@ -53,16 +60,20 @@ from ..utils import (
     get_persistent_motion_dof_policy,
     get_runtime_dof_policy,
     initialize_velocities,
-    HA_PER_ANG_TO_AU,
     lfmiddle_carried_to_standard,
+    motion_subspace_identity,
     normalize_remove_angular_alias,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
-    FS_TO_AU,
 )
-from ..rst_io import get_rng_state_hex, restore_rng_from_hex
-from ..logger import MDLogger
-from ..state import validate_prepared_restart
+
+
+class _NPTConfiguration(NamedTuple):
+    dof_policy: DofPolicy
+    n_dof: int
+    thermostat: LangevinThermostat | VRescaleThermostat
+    barostat: BerendsenBarostat | CRescaleBarostat
+    dynamics_parameters: dict
 
 
 @dataclass
@@ -245,8 +256,8 @@ class NPT(JobABC):
             debug=self.params.debug,
         )
 
-    def _build_actual_state(self, atoms: Atoms):
-        """Build geometry-dependent NPT components without installing them."""
+    def _build_actual_state(self, atoms: Atoms) -> _NPTConfiguration:
+        """Build candidate-state NPT components without installing them."""
         if not any(atoms.pbc):
             raise ValueError(
                 "NPT ensemble requires a periodic cell (atoms.pbc must be True)."
@@ -316,18 +327,15 @@ class NPT(JobABC):
             "compressibility": float(self.params.compressibility),
             "remove_com_every": int(self.params.remove_com_every),
             "remove_angular_every": int(self.params.remove_angular_every),
-            "motion_subspace": {
-                "com_excluded": bool(dof_policy["linear_active"]),
-                "angular_excluded": bool(dof_policy["angular_active"]),
-            },
+            "motion_subspace": motion_subspace_identity(dof_policy),
         }
         if self.params.thermostat == "langevin":
             dynamics_parameters["friction"] = float(self.params.friction)
         else:
             dynamics_parameters["tau_t"] = float(self.params.tau_t)
-        return dof_policy, n_dof, thermostat, barostat, dynamics_parameters
+        return _NPTConfiguration(dof_policy, n_dof, thermostat, barostat, dynamics_parameters)
 
-    def _install_actual_state(self, atoms: Atoms, configuration) -> None:
+    def _install_actual_state(self, atoms: Atoms, configuration: _NPTConfiguration) -> None:
         self.atoms = atoms
         (
             self._dof_policy,
@@ -343,7 +351,6 @@ class NPT(JobABC):
         velocities: np.ndarray,
         representation: str,
         forces: np.ndarray,
-        source_timestep_au: Optional[float] = None,
     ) -> tuple[np.ndarray, str]:
         """Return LF-Middle carried velocities for the Langevin path."""
         if representation == VELOCITY_REPR_LFMIDDLE_CARRIED:
@@ -371,7 +378,7 @@ class NPT(JobABC):
                     ensemble="npt",
                     timestep=self.params.timestep,
                     n_steps=self.params.steps,
-                    dynamics_parameters=configuration[4],
+                    dynamics_parameters=configuration.dynamics_parameters,
                 )
                 velocities = prepared.velocities.copy()
                 representation = prepared.checkpoint["velocity_representation"]
@@ -389,7 +396,7 @@ class NPT(JobABC):
                             prepared.atoms,
                             velocities,
                             forces,
-                            configuration[2].timestep,
+                            configuration.thermostat.timestep,
                         )
                         representation = VELOCITY_REPR_LFMIDDLE_CARRIED
                 velocities = enforce_active_velocities(prepared.atoms, velocities)
@@ -537,7 +544,6 @@ class NPT(JobABC):
                 velocities,
                 velocity_representation,
                 force_for_conversion,
-                source_timestep_au=conversion_timestep_au,
             )
         elif velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED:
             velocities = lfmiddle_carried_to_standard(
@@ -583,7 +589,7 @@ class NPT(JobABC):
         pressure_stress_warned = False
 
         for step in range(1, n_steps + 1):
-            if is_langevin:
+            if isinstance(self.thermostat, LangevinThermostat):
                 # LFMiddle sequence with carried velocities, then barostat.
                 v = integrator.lfmiddle_full_kick(v, forces)
                 integrator.half_step_r(v)

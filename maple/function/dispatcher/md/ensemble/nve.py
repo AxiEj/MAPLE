@@ -9,32 +9,40 @@ Constant:
 Uses Velocity Verlet integrator for symplectic time evolution.
 """
 
-import numpy as np
 from dataclasses import dataclass
-from typing import Optional
+from typing import NamedTuple, Optional
+
+import numpy as np
 from ase import Atoms
 
-from ...jobABC import JobABC
 from maple.function.timer import timer
 
+from ...jobABC import JobABC
 from ..integrator.velocity_verlet import VelocityVerlet
+from ..logger import MDLogger
+from ..state import validate_prepared_restart
 from ..utils import (
+    FS_TO_AU,
+    HA_PER_ANG_TO_AU,
     VELOCITY_REPR_LFMIDDLE_CARRIED,
+    DofPolicy,
     apply_runtime_motion_projection,
-    calculate_temperature,
     calculate_kinetic_energy,
+    calculate_temperature,
     describe_dof_policy,
     enforce_active_velocities,
     get_n_dof_from_policy,
     get_persistent_motion_dof_policy,
     initialize_velocities,
     lfmiddle_carried_to_standard,
+    motion_subspace_identity,
     normalize_remove_angular_alias,
-    FS_TO_AU,
-    HA_PER_ANG_TO_AU,
 )
-from ..logger import MDLogger
-from ..state import validate_prepared_restart
+
+
+class _NVEConfiguration(NamedTuple):
+    dof_policy: DofPolicy
+    dynamics_parameters: dict
 
 
 @dataclass
@@ -215,8 +223,8 @@ class NVE(JobABC):
             debug=self.params.debug,
         )
 
-    def _build_actual_state(self, atoms: Atoms):
-        """Build geometry-dependent policy without changing live job state."""
+    def _build_actual_state(self, atoms: Atoms) -> _NVEConfiguration:
+        """Build candidate-state policy without changing live job state."""
         dof_policy = get_persistent_motion_dof_policy(
             atoms,
             remove_com=self.params.remove_com,
@@ -229,14 +237,11 @@ class NVE(JobABC):
             "timestep": float(self.params.timestep),
             "remove_com_every": int(self.params.remove_com_every),
             "remove_angular_every": int(self.params.remove_angular_every),
-            "motion_subspace": {
-                "com_excluded": bool(dof_policy["linear_active"]),
-                "angular_excluded": bool(dof_policy["angular_active"]),
-            },
+            "motion_subspace": motion_subspace_identity(dof_policy),
         }
-        return dof_policy, dynamics_parameters
+        return _NVEConfiguration(dof_policy, dynamics_parameters)
 
-    def _install_actual_state(self, atoms: Atoms, configuration) -> None:
+    def _install_actual_state(self, atoms: Atoms, configuration: _NVEConfiguration) -> None:
         self.atoms = atoms
         self._dof_policy, self.logger.dynamics_parameters = configuration
         self._runtime_n_dof = get_n_dof_from_policy(self._dof_policy)
@@ -257,7 +262,7 @@ class NVE(JobABC):
                     ensemble="nve",
                     timestep=self.params.timestep,
                     n_steps=self.params.steps,
-                    dynamics_parameters=configuration[1],
+                    dynamics_parameters=configuration.dynamics_parameters,
                 )
                 velocities = enforce_active_velocities(
                     prepared.atoms, prepared.velocities

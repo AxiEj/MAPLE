@@ -380,19 +380,24 @@ def promote_rst_checkpoint(
     rst_path = Path(rst_path)
     rst_prev_path = Path(rst_prev_path)
     data = source.read_bytes() if source_bytes is None else source_bytes
-    if (source.resolve() == rst_path.resolve() and rst_path.exists()
-            and rst_path.read_bytes() == data):
+    if (
+        source.resolve() == rst_path.resolve()
+        and rst_path.exists()
+        and rst_path.read_bytes() == data
+    ):
         return
 
     promoted = _write_temp_bytes(rst_path, data)
     previous = None
     try:
-        if rst_path.exists():
+        source_is_previous = source.resolve() == rst_prev_path.resolve()
+        if rst_path.exists() and not source_is_previous:
             previous = _write_temp_bytes(rst_prev_path, rst_path.read_bytes())
-            os.replace(previous, rst_prev_path)
-            previous = None
         os.replace(promoted, rst_path)
         promoted = None
+        if previous is not None:
+            os.replace(previous, rst_prev_path)
+            previous = None
     finally:
         if promoted is not None:
             promoted.unlink(missing_ok=True)

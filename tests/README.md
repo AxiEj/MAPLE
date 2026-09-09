@@ -38,6 +38,10 @@ Other runtime versions must pass the same weight-identity and numerical assertio
 The ANI test uses real ANI and D4 evaluations to prove that changing the D4
 setting invalidates a previously cached energy.
 
+UMA compatibility artifacts use deterministic schema v2 identities; strict
+restart identities recorded from the path-dependent v1 archive cannot be
+silently migrated to v2.
+
 Only point the MACE native-model variable at a trusted local file because the
 upstream loader must deserialize its Python model object.
 
@@ -53,3 +57,26 @@ validation of a particular material, calculator stress, or production NPT
 setup.
 
 Generated output, logs, and model files do not belong in `tests/` or commits.
+
+## MD dimension and restart contract
+
+MD uses a **fixed regular-stratum, flexible-Cartesian** dimension, not the
+instantaneous normal-mode count: without anchors, removing COM and rotation
+leaves `3N-6` for three or more free atoms and `3N-5` for a diatomic system.
+A collinear polyatomic starting geometry is a singular configuration, not a
+constraint that prevents bending. At that exact point the SVD velocity
+projector has only two nonzero rotation directions; no third vector is
+invented. The fixed thermodynamic dimension does not jump when the molecule
+bends. Stationary-geometry frequency/thermochemistry still uses the actual
+rigid rank (including linear molecules).
+
+The checkpoint records this strategy and the effective dimension used by
+thermostats and temperature reporting. Strict restart checks the complete
+contract. Older checkpoints missing it are not accepted as exact continuations;
+`load_state=yes` explicitly starts a new run under the current policy.
+The regression suite includes linear-start bending with zero total linear
+and angular momentum, and compares continuous and split NVT trajectories.
+
+The general isolated-system subtraction of six motion DOFs is also described
+in the [GROMACS reference manual](https://manual.gromacs.org/documentation/2026.0/reference-manual/algorithms/molecular-dynamics.html#kinetic-energy-and-temperature).
+The singular-point and diatomic distinctions above are MAPLE's explicit policy.

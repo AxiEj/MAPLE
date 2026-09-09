@@ -17,7 +17,10 @@ from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
 from ...utility.active_dof import active_atom_mask
-from ...utility.rigid_body import is_linear_geometry
+from ...utility.rigid_body import (
+    is_linear_geometry,
+    project_rigid_body_velocities,
+)
 
 # ========== Physical Constants and Unit Conversions ==========
 
@@ -138,6 +141,16 @@ def is_linear_molecule(atoms: Atoms) -> bool:
     return is_linear_geometry(atoms)
 
 
+def _md_rotational_dimension(atoms: Atoms) -> int:
+    """Generic rotational dimension of an unconstrained Cartesian system.
+
+    Three or more free atoms can bend even when the starting geometry is
+    collinear. MD uses the regular shape-space dimension throughout the run,
+    not the instantaneous rank used for a stationary-geometry normal analysis.
+    """
+    return 3 if len(atoms) >= 3 else 2 if len(atoms) == 2 else 0
+
+
 def get_initialization_dof_policy(
     atoms: Atoms,
     remove_com: bool = True,
@@ -168,7 +181,7 @@ def get_initialization_dof_policy(
     linear_active = bool((remove_com or angular_active) and not anchored)
     rotational_removed = 0
     if angular_active:
-        rotational_removed = 2 if is_linear_molecule(atoms) else 3
+        rotational_removed = _md_rotational_dimension(atoms)
 
     return {
         "atoms": atoms,
@@ -212,7 +225,7 @@ def get_runtime_dof_policy(
     linear_active = bool(angular_active or linear_requested)
     rotational_removed = 0
     if angular_active:
-        rotational_removed = 2 if is_linear_molecule(atoms) else 3
+        rotational_removed = _md_rotational_dimension(atoms)
 
     return {
         "atoms": atoms,
@@ -247,9 +260,7 @@ def get_persistent_motion_dof_policy(
         initial["linear_active"] or runtime["linear_active"] or angular_active
     )
     runtime["rotational_dof_removed"] = (
-        2 if angular_active and is_linear_molecule(atoms)
-        else 3 if angular_active
-        else 0
+        _md_rotational_dimension(atoms) if angular_active else 0
     )
     runtime["warnings"] = list(dict.fromkeys(initial["warnings"] + runtime["warnings"]))
     return runtime
@@ -269,6 +280,18 @@ def get_n_dof_from_policy(policy: DofPolicy, n_atoms: int | None = None) -> int:
     return n_dof
 
 
+def motion_subspace_identity(policy: DofPolicy) -> dict:
+    """Persist the effective fixed dimension and its coordinate-independent rule."""
+    return {
+        "strategy": "flexible-cartesian-v1",
+        "com_excluded": bool(policy["linear_active"]),
+        "angular_excluded": bool(policy["angular_active"]),
+        "translational_dof_removed": 3 if policy["linear_active"] else 0,
+        "rotational_dof_removed": int(policy["rotational_dof_removed"]),
+        "n_dof": get_n_dof_from_policy(policy),
+    }
+
+
 def describe_dof_policy(policy: DofPolicy) -> str:
     """Return a short human-readable DOF description for logs/summaries."""
     if policy.get("anchored", False):
@@ -280,7 +303,7 @@ def describe_dof_policy(policy: DofPolicy) -> str:
 
     rotational = int(policy.get("rotational_dof_removed", 0))
     if policy.get("angular_active", False):
-        return f"isolated: 3N - 3 - {rotational} (COM/angular excluded)"
+        return f"isolated: 3N - 3 - {rotational} (COM/angular excluded; fixed flexible-Cartesian DOF)"
     if policy.get("linear_active", False):
         return "isolated: 3N - 3 (COM excluded)"
     return "isolated: 3N"
@@ -538,53 +561,13 @@ def initialize_velocities(
         velocities[i] *= sigma
     velocities[~active] = 0.0
 
-    # Remove center of mass motion, then rescale to restore target temperature.
-    # COM removal reduces the number of active DOF by 3, which lowers the
-    # instantaneous kinetic energy below the target; rescaling corrects this.
-    # Ref: Allen & Tildesley, Computer Simulation of Liquids, 2nd ed. (2017), §3.2
-    if remove_com:
-        total_momentum = np.sum(masses[:, np.newaxis] * velocities, axis=0)
-        total_mass = np.sum(masses)
-        velocities -= total_momentum / total_mass
-
-    # Remove overall rigid-body rotation (non-PBC only).
-    #
-    # Method (Shirts 2013, §2):
-    #   1. Compute angular momentum L = Σ r_i × (m_i v_i)  in the COM frame.
-    #   2. Compute the inertia tensor I = Σ m_i (|r_i|² E − r_i ⊗ r_i).
-    #   3. Solve ω = I⁻¹ L  for the rigid-body angular velocity.
-    #   4. Subtract the rigid-rotation contribution: v_i -= ω × r_i.
-    #
-    # This is a linear projection onto the subspace orthogonal to the three
-    # infinitesimal rotation generators; internal DOF are exactly preserved.
-    if remove_rotation and not any(atoms.pbc):
-        positions_au = atoms.get_positions() * ANGSTROM_TO_BOHR  # Å → Bohr
-
-        # Step 1 — COM frame positions
-        total_mass = np.sum(masses)
-        com = np.sum(masses[:, np.newaxis] * positions_au, axis=0) / total_mass
-        r = positions_au - com  # (N, 3)
-
-        # Step 2 — Angular momentum
-        L = np.sum(
-            masses[:, np.newaxis] * np.cross(r, velocities),
-            axis=0
-        )  # (3,)
-
-        # Step 3 — Inertia tensor
-        I = np.zeros((3, 3))
-        for mi, ri in zip(masses, r):
-            I += mi * (np.dot(ri, ri) * np.eye(3) - np.outer(ri, ri))
-
-        # Step 4 — Solve for ω; use pseudoinverse to handle near-singular I
-        # (e.g. linear molecules where one principal moment is ~0)
-        try:
-            omega = np.linalg.solve(I, L)
-        except np.linalg.LinAlgError:
-            omega = np.linalg.lstsq(I, L, rcond=None)[0]
-
-        # Step 5 — Subtract rigid rotation from each atom
-        velocities -= np.cross(omega, r)  # v_i -= ω × r_i
+    if remove_com or (remove_rotation and not any(atoms.pbc)):
+        velocities = project_rigid_body_velocities(
+            atoms,
+            velocities,
+            remove_translation=bool(remove_com),
+            remove_rotation=bool(remove_rotation),
+        )
 
     # Rescale to exact target temperature using the runtime DOF policy.
     # Initialization projection (`remove_com` / `remove_angular`) and runtime
@@ -719,24 +702,12 @@ def remove_rigid_body_rotation(atoms: Atoms, velocities: np.ndarray) -> np.ndarr
     """Project out rigid-body rotation in the center-of-mass frame."""
     if any(atoms.pbc) or len(atoms) <= 1:
         return velocities.copy()
-
-    masses = atoms.get_masses() * AMU_TO_AU
-    positions_au = atoms.get_positions() * ANGSTROM_TO_BOHR
-    total_mass = np.sum(masses)
-    com = np.sum(masses[:, np.newaxis] * positions_au, axis=0) / total_mass
-    r = positions_au - com
-
-    L = np.sum(masses[:, np.newaxis] * np.cross(r, velocities), axis=0)
-    I = np.zeros((3, 3))
-    for mi, ri in zip(masses, r):
-        I += mi * (np.dot(ri, ri) * np.eye(3) - np.outer(ri, ri))
-
-    try:
-        omega = np.linalg.solve(I, L)
-    except np.linalg.LinAlgError:
-        omega = np.linalg.lstsq(I, L, rcond=None)[0]
-
-    return velocities - np.cross(omega, r)
+    return project_rigid_body_velocities(
+        atoms,
+        velocities,
+        remove_translation=False,
+        remove_rotation=True,
+    )
 
 
 def apply_runtime_motion_projection(

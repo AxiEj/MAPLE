@@ -63,7 +63,7 @@ SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 # default regardless.
 UMA_INFERENCE_SETTINGS = "default"
 UMA_CPU_INFERENCE_SETTINGS = "default"
-UMA_COMPAT_SCHEMA = "v1"
+UMA_COMPAT_SCHEMA = "v2"
 
 
 def _omega_mapping(value, name: str) -> dict[Any, Any]:
@@ -334,7 +334,11 @@ class UMACalculator(FAIRChemCalculator):
             os.close(descriptor)
             temp_path = Path(temp_name)
             try:
-                torch.save(raw_checkpoint, temp_path)
+                # Passing a file object keeps the temporary pathname out of
+                # PyTorch's ZIP archive metadata, so equivalent compatibility
+                # artifacts have a stable content fingerprint across caches.
+                with temp_path.open("wb") as temp_file:
+                    torch.save(raw_checkpoint, temp_file)
                 try:
                     os.link(temp_path, compat_path)
                 except FileExistsError:

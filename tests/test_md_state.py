@@ -137,7 +137,7 @@ def test_load_state_configures_from_candidate_geometry(tmp_path, ensemble):
     else:
         dynamics = NVE(str(tmp_path / "loaded.out"), water(), params)
     dynamics.run()
-    assert dynamics._runtime_n_dof == 4
+    assert dynamics._runtime_n_dof == 3
 
 
 def test_failed_restart_does_not_mutate_live_atoms_or_create_segment(tmp_path):

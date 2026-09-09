@@ -22,10 +22,3 @@ maple = "maple.main:main"
 
 [tool.setuptools.packages.find]
 include = ["maple*"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-markers = [
-    "backend: optional comparison with a native backend using local model assets",
-    "slow: reproducible long-running statistical validation",
-]

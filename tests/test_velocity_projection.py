@@ -10,15 +10,21 @@ from maple.function.dispatcher.md.utils import (
     initialize_velocities,
     remove_rigid_body_rotation,
 )
-from maple.function.utility.rigid_body import mass_weighted_rigid_basis
+from maple.function.utility.rigid_body import (
+    mass_weighted_rigid_basis,
+    project_rigid_body_velocities,
+)
 
 
-def _near_linear_triatomic(offset: float) -> Atoms:
+def _near_linear_triatomic(offset: float, *, rotated: bool = False) -> Atoms:
     atoms = Atoms(
         "HOH",
         positions=[[-1.0, 0.0, 0.0], [0.0, offset, 0.0], [1.0, 0.0, 0.0]],
         masses=[1.0, 16.0, 1.0],
     )
+    if rotated:
+        rotation = np.array([[1, -2, 2], [2, 2, 1], [-2, 1, 2]], dtype=float) / 3
+        atoms.positions[:] = atoms.positions @ rotation.T
     return atoms
 
 
@@ -33,8 +39,9 @@ def _weak_rotation_velocity(atoms: Atoms) -> np.ndarray:
 
 
 @pytest.mark.parametrize("offset", [1e-6, 1e-8, 1e-9])
-def test_near_linear_rigid_velocity_is_removed(offset: float) -> None:
-    atoms = _near_linear_triatomic(offset)
+@pytest.mark.parametrize("rotated", [False, True])
+def test_near_linear_rigid_velocity_is_removed(offset: float, rotated: bool) -> None:
+    atoms = _near_linear_triatomic(offset, rotated=rotated)
     assert mass_weighted_rigid_basis(atoms).shape[1] == 6
     velocity = _weak_rotation_velocity(atoms)
 
@@ -45,8 +52,9 @@ def test_near_linear_rigid_velocity_is_removed(offset: float) -> None:
     assert residual / initial < 1e-24
 
 
-def test_rotation_projection_is_idempotent_and_preserves_com() -> None:
-    atoms = _near_linear_triatomic(1e-9)
+@pytest.mark.parametrize("rotated", [False, True])
+def test_rotation_projection_is_idempotent_and_preserves_com(rotated: bool) -> None:
+    atoms = _near_linear_triatomic(1e-9, rotated=rotated)
     rng = np.random.default_rng(17)
     velocity = rng.normal(size=(len(atoms), 3))
     masses = atoms.get_masses()
@@ -61,8 +69,9 @@ def test_rotation_projection_is_idempotent_and_preserves_com() -> None:
     )
 
 
-def test_initialization_and_runtime_use_same_rigid_subspace() -> None:
-    atoms = _near_linear_triatomic(1e-9)
+@pytest.mark.parametrize("rotated", [False, True])
+def test_initialization_and_runtime_use_same_rigid_subspace(rotated: bool) -> None:
+    atoms = _near_linear_triatomic(1e-9, rotated=rotated)
     basis = mass_weighted_rigid_basis(atoms)
 
     initialized = initialize_velocities(
@@ -103,3 +112,50 @@ def test_periodic_and_fixed_atom_runtime_semantics_are_preserved() -> None:
     assert action == "none"
     np.testing.assert_array_equal(frozen[0], 0.0)
     np.testing.assert_array_equal(frozen[1:], velocity[1:])
+
+
+@pytest.mark.parametrize("offset", [0.0, 1e-6, 1e-8, 1e-9])
+def test_retained_rigid_basis_is_jointly_orthonormal(offset: float) -> None:
+    atoms = _near_linear_triatomic(offset, rotated=True)
+    basis = mass_weighted_rigid_basis(atoms)
+    rank = 5 if offset == 0.0 else 6
+    assert basis.shape == (9, rank)
+    np.testing.assert_allclose(basis.T @ basis, np.eye(rank), atol=2e-14, rtol=0)
+    projector = np.eye(9) - basis @ basis.T
+    np.testing.assert_allclose(projector @ projector, projector, atol=2e-14, rtol=0)
+    # The first three columns must still span translation, not just any 3D space.
+    translations = np.tile(np.eye(3), (3, 1)) * np.repeat(np.sqrt(atoms.get_masses()), 3)[:, None]
+    translations /= np.sqrt(atoms.get_masses().sum())
+    np.testing.assert_allclose(
+        basis[:, :3] @ basis[:, :3].T, translations @ translations.T,
+        atol=2e-14, rtol=0,
+    )
+
+
+def test_joint_basis_under_seeded_rigid_transforms_and_permutations() -> None:
+    rng = np.random.default_rng(83)
+    for offset in (0.0, 1e-6, 1e-8, 1e-9):
+        for _ in range(30):
+            rotation, _ = np.linalg.qr(rng.normal(size=(3, 3)))
+            rotation[:, 0] *= np.linalg.det(rotation)
+            atoms = _near_linear_triatomic(offset)
+            atoms.positions[:] = atoms.positions @ rotation.T + rng.uniform(-2, 2, 3)
+            atoms = atoms[rng.permutation(len(atoms))]
+            basis = mass_weighted_rigid_basis(atoms)
+            rank = 5 if offset == 0.0 else 6
+            assert basis.shape[1] == rank
+            np.testing.assert_allclose(basis.T @ basis, np.eye(rank), atol=2e-14, rtol=0)
+            velocities = rng.normal(size=(len(atoms), 3))
+            once = project_rigid_body_velocities(
+                atoms, velocities, remove_translation=True, remove_rotation=True,
+            )
+            twice = project_rigid_body_velocities(
+                atoms, once, remove_translation=True, remove_rotation=True,
+            )
+            np.testing.assert_allclose(once, twice, atol=2e-14, rtol=0)
+            rotation_only = remove_rigid_body_rotation(atoms, velocities)
+            np.testing.assert_allclose(
+                np.average(rotation_only, axis=0, weights=atoms.get_masses()),
+                np.average(velocities, axis=0, weights=atoms.get_masses()),
+                atol=2e-14, rtol=0,
+            )

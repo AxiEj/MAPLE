@@ -58,7 +58,9 @@ def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
         * largest_scale
     )
     rotations = rotation_vectors[:, singular_values > tolerance]
-    return np.column_stack((translation_vectors, rotations))
+    combined = np.column_stack((translation_vectors, rotations))
+    # SVD has selected the rank; QR jointly orthogonalizes only retained directions.
+    return np.linalg.qr(combined, mode="reduced")[0]
 
 
 def project_rigid_body_velocities(

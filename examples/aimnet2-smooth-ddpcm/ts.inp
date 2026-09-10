@@ -1,0 +1,10 @@
+#model=aimnet2(model_path=/absolute/path/to/aimnet2.pt,hessian=numerical)
+#device=cpu
+#solv(method=smd,provider=aimnet2-smooth-ddpcm,profile=route2-profile-candidate-aimnet2-frozen-charge-multisolvent-smoothpartitionharmonic-ddpcm-pyscf-smdcds-v1,implicit=water,experimental=true)
+#ts(prfo,max_iter=24,trust_radius=0.02,trust_max=0.02,recalc=6)
+
+0 1
+N 0 0 0
+H 1.02 0 0
+H -0.51 0.883345911860 0
+H -0.51 -0.883345911860 0

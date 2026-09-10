@@ -1,7 +1,7 @@
 import os
 import re
 from pathlib import Path
-from typing import Any, List, Union
+from typing import List, Union
 
 from ase import Atoms
 import numpy as np
@@ -18,6 +18,10 @@ from .header.header import print_banner
 from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
+from maple.function.aimnet2_experimental import (
+    is_aimnet2_experimental_request,
+    validate_aimnet2_experimental_atoms,
+)
 from maple.function.route2_smd_profiles import route2_smd_profile_spec
 
 class InputReader():
@@ -239,6 +243,7 @@ class InputReader():
             atoms_or_list = self.element_and_coordinates(molecules)
 
         implicit_options = self.command_control.params.get("solv", {})
+        aimnet2_experimental = is_aimnet2_experimental_request(implicit_options)
         if isinstance(implicit_options, dict) and implicit_options.get("implicit") is not None:
             implicit_method = str(implicit_options.get("method", "")).lower()
             targets = (
@@ -252,26 +257,29 @@ class InputReader():
                         "Route 2 SMD currently accepts exactly one molecule."
                     )
                 atoms = targets[0]
-                if "profile" not in implicit_options:
+                if aimnet2_experimental:
+                    validate_aimnet2_experimental_atoms(atoms)
+                elif "profile" not in implicit_options:
                     raise ValueError(
                         "Route 2 SMD requires an explicit versioned profile."
                     )
-                profile = route2_smd_profile_spec(implicit_options["profile"])
-                if profile.uses_gaff2_carbonyl_oxygen and "mol2" not in atoms.info:
-                    raise ValueError(
-                        f"Route 2 profile={profile.name} requires a MOL2 coordinate "
-                        "source with explicit GAFF/GAFF2 atom types."
-                    )
-                if "charge" not in atoms.info or "mult" not in atoms.info:
-                    raise ValueError(
-                        "Route 2 SMD requires an explicit '0 1' charge/multiplicity "
-                        "line before the coordinate source."
-                    )
-                if atoms.info["charge"] != 0 or atoms.info["mult"] != 1:
-                    raise ValueError(
-                        "The first Route-2 SMD domain is neutral closed-shell "
-                        "molecules with charge/multiplicity '0 1'."
-                    )
+                else:
+                    profile = route2_smd_profile_spec(implicit_options["profile"])
+                    if profile.uses_gaff2_carbonyl_oxygen and "mol2" not in atoms.info:
+                        raise ValueError(
+                            f"Route 2 profile={profile.name} requires a MOL2 coordinate "
+                            "source with explicit GAFF/GAFF2 atom types."
+                        )
+                    if "charge" not in atoms.info or "mult" not in atoms.info:
+                        raise ValueError(
+                            "Route 2 SMD requires an explicit '0 1' charge/multiplicity "
+                            "line before the coordinate source."
+                        )
+                    if atoms.info["charge"] != 0 or atoms.info["mult"] != 1:
+                        raise ValueError(
+                            "The first Route-2 SMD domain is neutral closed-shell "
+                            "molecules with charge/multiplicity '0 1'."
+                        )
             for atoms in targets:
                 atoms.info["_maple_charge_options"] = dict(
                     self.command_control.params.get("charge", {})
@@ -292,6 +300,14 @@ class InputReader():
                     atoms_or_list = processed_list
                 else:
                     atoms_or_list = self.post_processing_command(expanded_post_processing, atoms_or_list)
+
+        if aimnet2_experimental:
+            experimental_atoms = (
+                atoms_or_list[0]
+                if isinstance(atoms_or_list, list)
+                else atoms_or_list
+            )
+            validate_aimnet2_experimental_atoms(experimental_atoms)
 
         # Return Atoms if single structure, Molecules if multiple
         if isinstance(atoms_or_list, list):

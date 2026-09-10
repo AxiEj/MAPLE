@@ -10,6 +10,16 @@ class Dispatcher():
     def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> object:
         from .legacy_units import legacy_hartree_job_calculators
 
+        if getattr(getattr(atoms, "calc", None), "experimental_workflow_id", None) in {
+            "aimnet2-smooth-ddpcm-experimental-workflows-v1",
+            "aimnet2-smooth-ddpcm-experimental-workflows-v2",
+        }:
+            from .aimnet2_experimental import run_experimental_workflow
+
+            return run_experimental_workflow(
+                self, commandcontrol, jobtype, atoms, output, extra
+            )
+
         # FREQ consumes the public ASE Hessian boundary (eV/Angstrom**2).
         # Remaining legacy jobs still receive the private Hartree view.
         if jobtype == "freq":

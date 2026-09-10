@@ -3,6 +3,10 @@ import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
+from ..aimnet2_experimental import (
+    is_aimnet2_experimental_request,
+    validate_aimnet2_experimental_settings,
+)
 from ..route2_smd_profiles import (
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
@@ -875,6 +879,25 @@ class CommandControl:
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+
+            if is_aimnet2_experimental_request(solv_params):
+                try:
+                    validate_aimnet2_experimental_settings(
+                        model=params.get("model"),
+                        model_options=params.get("model_options"),
+                        solvation_options=solv_params,
+                        task=task,
+                        task_params=params,
+                        device=params.get("device"),
+                        d4=params.get("d4", False),
+                        charge_options=params.get("charge"),
+                        pbc=params.get("pbc"),
+                    )
+                except (TypeError, ValueError) as exc:
+                    msg = str(exc)
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg) from exc
+                return
 
             if method == "gbsa":
                 provider = solv_params.get("provider")

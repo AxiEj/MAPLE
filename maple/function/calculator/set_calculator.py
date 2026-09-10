@@ -6,11 +6,16 @@ import shutil
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Optional
+from typing import Any, Mapping, Optional, cast
 
 import ase
 from ase import Atoms
 
+from ..aimnet2_experimental import (
+    is_aimnet2_experimental_request,
+    validate_aimnet2_experimental_atoms,
+    validate_aimnet2_experimental_settings,
+)
 from ..route2_smd_profiles import (
     route2_smd_profile_spec,
     route2_smd_profiles_for_provider,
@@ -92,7 +97,9 @@ def _model_download_url(filename: str) -> str:
     return f'https://huggingface.co/{HF_REPO_ID}/resolve/{revision}/{filename}'
 
 
-def _normalize_model_options(model_options: Optional[dict]) -> dict:
+def _normalize_model_options(
+    model_options: Optional[Mapping[str, Any]],
+) -> dict[str, Any]:
     """Normalize option keys and enum-like values without touching path values."""
     options = {}
     for raw_key, raw_value in (model_options or {}).items():
@@ -121,9 +128,9 @@ class SetCalculator:
         d4: bool = False,
         implicit: str = 'None',
         solvent: str = 'None',
-        model_options: Optional[dict] = None,
-        solvation_options: Optional[dict] = None,
-        charge_options: Optional[dict] = None,
+        model_options: Optional[Mapping[str, Any]] = None,
+        solvation_options: Optional[Mapping[str, Any]] = None,
+        charge_options: Optional[Mapping[str, Any]] = None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -132,14 +139,20 @@ class SetCalculator:
         self.atoms = atoms
         self.implicit = normalize_none_option(implicit)
         self.solvent = normalize_none_option(solvent)
-        self.model_options = _normalize_model_options(model_options)
+        self.model_options: dict[str, Any] = _normalize_model_options(model_options)
         atom_info = getattr(atoms, 'info', {}) if atoms is not None else {}
         if solvation_options is None:
-            solvation_options = atom_info.get('_maple_solvation_options', {})
+            solvation_options = cast(
+                Mapping[str, Any],
+                atom_info.get('_maple_solvation_options', {}),
+            )
         if charge_options is None:
-            charge_options = atom_info.get('_maple_charge_options', {})
-        self.solvation_options = dict(solvation_options)
-        self.charge_options = dict(charge_options)
+            charge_options = cast(
+                Mapping[str, Any],
+                atom_info.get('_maple_charge_options', {}),
+            )
+        self.solvation_options: dict[str, Any] = dict(solvation_options)
+        self.charge_options: dict[str, Any] = dict(charge_options)
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -182,6 +195,29 @@ class SetCalculator:
                 "Implicit solvation is non-periodic only; "
                 "remove #pbc or use a periodic solvent backend."
             )
+
+        if is_aimnet2_experimental_request(self.solvation_options):
+            self.solvent = normalize_route2_solvent_name(self.solvent)
+            configured_solvent = normalize_route2_solvent_name(
+                self.solvation_options.get('implicit', self.solvent)
+            )
+            if configured_solvent != self.solvent:
+                raise ValueError(
+                    "Implicit-solvent selector mismatch: "
+                    f"solvent={self.solvent!r}, "
+                    f"solv.implicit={configured_solvent!r}."
+                )
+            self.solvation_options['implicit'] = configured_solvent
+            validate_aimnet2_experimental_settings(
+                model=self.model,
+                model_options=self.model_options,
+                solvation_options=self.solvation_options,
+                device=self.device,
+                d4=self.d4,
+                charge_options=self.charge_options,
+            )
+            validate_aimnet2_experimental_atoms(self.atoms)
+            return
 
         if self.implicit == 'gbsa':
             configured_solvent = normalize_none_option(
@@ -595,6 +631,42 @@ class SetCalculator:
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         requested_name = self.model
         self._validate_solvent_config()
+
+        if is_aimnet2_experimental_request(self.solvation_options):
+            checkpoint = Path(
+                str(self.model_options['model_path'])
+            ).expanduser()
+            try:
+                checkpoint = checkpoint.resolve(strict=True)
+            except FileNotFoundError as exc:
+                raise FileNotFoundError(
+                    "Explicit model_path for the AIMNet2 smooth-ddPCM experimental "
+                    f"workflow does not exist: {checkpoint}"
+                ) from exc
+            if not checkpoint.is_file():
+                raise FileNotFoundError(
+                    "Explicit model_path for the AIMNet2 smooth-ddPCM experimental "
+                    f"workflow is not a file: {checkpoint}"
+                )
+
+            from .extra_correction.implicit.aimnet2_frozen_smd import (
+                build_aimnet2_frozen_charge_smooth_partition_smd_ase_calculator,
+            )
+            from maple.solvation.coupling.aimnet2_experimental_ase_v2 import (
+                AIMNet2ExperimentalCalculatorV2,
+            )
+
+            base = build_aimnet2_frozen_charge_smooth_partition_smd_ase_calculator(
+                self.atoms,
+                checkpoint,
+                solvent=self.solvent,
+                device='cpu',
+            )
+            return AIMNet2ExperimentalCalculatorV2(
+                base.scalar,
+                checkpoint_path=checkpoint,
+                output=self.output,
+            )
 
         cls = self._discover_calculator_class(requested_name)
         name = self.model

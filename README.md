@@ -273,6 +273,14 @@ for usage guidance.
 https://github.com/ClickFF/MAPLE
 ```
 
+## Experimental AIMNet2 implicit-solvent workflows
+
+This branch adds an explicitly opted-in, hash-bound AIMNet2 + smooth-ddPCM +
+SMD-CDS molecular workflow. See the [workflow guide](docs/route2/AIMNET2_EXPERIMENTAL_WORKFLOWS.md)
+for exact inputs, numerical-Hessian costs, task-specific evidence and failure
+boundaries. Experimental task support does not open formal E/F/H/V/M or
+chemical-accuracy certification.
+
 ## Contributing
 
 1. Fork the repository.

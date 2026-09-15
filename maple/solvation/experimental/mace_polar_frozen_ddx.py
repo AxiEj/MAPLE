@@ -34,6 +34,8 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
 from maple.solvation.api.units import HARTREE_TO_EV
 from maple.solvation.api.scalar_registry import (
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2,
 )
 from maple.solvation.coupling.operator import (
     canonical_metadata_sha256,
@@ -66,6 +68,15 @@ PURE_FROZEN_DDX_PROVIDER_ID = (
 )
 PURE_FROZEN_DDX_SCALAR_CONTRACT_ID = (
     "mace-polar-zero-field-frozen-source-ddx-plus-differentiable-cds-v1"
+)
+_REGISTERED_POINT_SCALAR_DEVICES = {
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1: "cpu",
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2: "cpu",
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2: "cuda",
+}
+_SUPPORTED_PURE_SCALAR_CONTRACTS = (
+    PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
+    *_REGISTERED_POINT_SCALAR_DEVICES,
 )
 SMOOTH_SMD_WATER_CDS_PROVIDER_ID = (
     "maple.route2.experimental.smd-water-fibonacci-swig-inspired-cds.impl.v1"
@@ -183,8 +194,12 @@ def _registered_point_profile_bindings_match(
         return False
 
 
-def _registered_point_model_bindings_match(model: object) -> bool:
-    """Return whether ``model`` is the exact evidenced official CPU adapter."""
+def _registered_point_model_bindings_match(
+    model: object,
+    *,
+    expected_device: str = "cpu",
+) -> bool:
+    """Return whether ``model`` is the exact official adapter on its device."""
 
     from maple.solvation.models.mace_polar import (
         MACEPolarRadialGTOModelAdapter,
@@ -206,7 +221,11 @@ def _registered_point_model_bindings_match(model: object) -> bool:
             and model.model_profile_id
             == OFFICIAL_MACE_POLAR_1_M_CONTRACT.model_profile_id
             and model.dtype == "float64"
-            and model.device == "cpu"
+            and (
+                model.device == "cpu"
+                if expected_device == "cpu"
+                else str(model.device).startswith("cuda:")
+            )
             and provenance.provider_id == model.provider_id
             and provenance.model_profile_id == model.model_profile_id
             and provenance.model_family == "MACE-POLAR-1-radial-GTO-response"
@@ -342,10 +361,7 @@ class MACEPolarFrozenDDXEnergyState:
             self.scalar_contract_id,
             name="scalar_contract_id",
         )
-        if scalar_contract not in (
-            PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
-            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
-        ):
+        if scalar_contract not in _SUPPORTED_PURE_SCALAR_CONTRACTS:
             raise ValueError("pure frozen-source scalar contract is invalid.")
         for name in (
             "configuration_sha256",
@@ -668,21 +684,23 @@ class MACEPolarFrozenSourceDDXPES:
         if not isinstance(hessian, RichardsonScalarHessian):
             raise TypeError("hessian_backend must be RichardsonScalarHessian.")
         scalar_contract = _text(scalar_contract_id, name="scalar_contract_id")
-        if scalar_contract not in (
-            PURE_FROZEN_DDX_SCALAR_CONTRACT_ID,
-            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
-        ):
+        if scalar_contract not in _SUPPORTED_PURE_SCALAR_CONTRACTS:
             raise ValueError("scalar_contract_id is not supported by this PES.")
-        if (
-            scalar_contract == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
-            and not _registered_point_model_bindings_match(model)
-        ):
+        expected_device = _REGISTERED_POINT_SCALAR_DEVICES.get(scalar_contract)
+        model_binding_matches = True
+        if expected_device == "cpu":
+            model_binding_matches = _registered_point_model_bindings_match(model)
+        elif expected_device is not None:
+            model_binding_matches = _registered_point_model_bindings_match(
+                model, expected_device=expected_device
+            )
+        if expected_device is not None and not model_binding_matches:
             raise ValueError(
                 "the registered point-l1 scalar requires the exact official "
-                "MACE-POLAR-1-M radial-GTO CPU/float64 model binding."
+                f"MACE-POLAR-1-M radial-GTO {expected_device}/float64 model binding."
             )
         if (
-            scalar_contract == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+            expected_device is not None
             and not _registered_point_profile_bindings_match(
                 continuum,
                 solvent_term,
@@ -726,8 +744,14 @@ class MACEPolarFrozenSourceDDXPES:
         return self._scalar_contract_id
 
     def _current_configuration_sha256(self) -> str:
+        runtime = {}
+        if self.scalar_contract_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2:
+            from .cuda_execution import execution_policy_metadata
+
+            runtime["cuda_execution"] = execution_policy_metadata()
         return canonical_metadata_sha256(
             {
+                **runtime,
                 "contract": self.scalar_contract_id,
                 "provider_id": self.provider_id,
                 "model_provider_id": getattr(self._model, "provider_id", None),
@@ -828,6 +852,14 @@ class MACEPolarFrozenSourceDDXPES:
             raise RuntimeError("pure frozen-source route requires eight radial fields.")
         return np.zeros((count, components), dtype=float)
 
+    def _model_call(self, method: str, *args, **kwargs):
+        if self.scalar_contract_id == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2:
+            from .cuda_execution import cuda_model_execution
+
+            with cuda_model_execution():
+                return getattr(self._model, method)(*args, **kwargs)
+        return getattr(self._model, method)(*args, **kwargs)
+
     def _source_charge(self, source: np.ndarray, count: int) -> float:
         total_charge = getattr(self._model.source_space, "total_charge", None)
         if not callable(total_charge):
@@ -838,8 +870,8 @@ class MACEPolarFrozenSourceDDXPES:
         self.configuration_sha256()
         count = self._validate_geometry(geometry)
         zero = self._zero_field(count)
-        vacuum = self._model.evaluate_vacuum(geometry, need_forces=False)
-        source_state = self._model.evaluate_source(
+        vacuum = self._model_call("evaluate_vacuum", geometry, need_forces=False)
+        source_state = self._model_call("evaluate_source",
             geometry, zero, need_fixed_field_forces=False
         )
         source = np.asarray(getattr(source_state, "source", None), dtype=float)
@@ -924,7 +956,7 @@ class MACEPolarFrozenSourceDDXPES:
             else self._validated_energy_state(geometry, central_state)
         )
         zero = self._zero_field(count)
-        vacuum = self._model.evaluate_vacuum(geometry, need_forces=True)
+        vacuum = self._model_call("evaluate_vacuum", geometry, need_forces=True)
         vacuum_forces = np.asarray(
             getattr(vacuum, "forces_eV_per_A", None), dtype=float
         )
@@ -945,7 +977,7 @@ class MACEPolarFrozenSourceDDXPES:
             getattr(continuum_state, "reaction_field", None), dtype=float
         )
         source_gradient = np.asarray(
-            self._model.source_position_vjp(geometry, zero, reaction_field),
+            self._model_call("source_position_vjp", geometry, zero, reaction_field),
             dtype=float,
         )
         solvent_state = self._solvent_term.evaluate(geometry, need_gradient=True)
@@ -1140,6 +1172,7 @@ def build_smd_mace_polar_frozen_point_ddx_pes(
     n_proc: int = 1,
     numerical_force_backend: RichardsonScalarForce | None = None,
     hessian_backend: RichardsonScalarHessian | None = None,
+    scalar_contract_id: str | None = None,
 ) -> MACEPolarFrozenSourceDDXPES:
     """Build the no-fit point-multipole SourceEmbedding ddPCM/SMD PES.
 
@@ -1176,22 +1209,33 @@ def build_smd_mace_polar_frozen_point_ddx_pes(
     adaptive_hessian = hessian_backend or RichardsonScalarHessian(
         maximum_topology_step_reductions=6,
     )
-    scalar_contract_id = (
-        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
-        if (
-            lmax == 15
-            and n_lebedev == 1202
-            and solver_tolerance == 1.0e-12
-            and eta == 0.1
-            and n_proc == 1
-        )
-        else PURE_FROZEN_DDX_SCALAR_CONTRACT_ID
+    exact_registered_settings = (
+        lmax == 15
+        and n_lebedev == 1202
+        and solver_tolerance == 1.0e-12
+        and eta == 0.1
+        and n_proc == 1
     )
+    selected_scalar = scalar_contract_id
+    if selected_scalar is None:
+        selected_scalar = (
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
+            if exact_registered_settings
+            else PURE_FROZEN_DDX_SCALAR_CONTRACT_ID
+        )
+    if (
+        selected_scalar in _REGISTERED_POINT_SCALAR_DEVICES
+        and not exact_registered_settings
+    ):
+        raise ValueError(
+            "A registered point-l1 scalar requires exact l15/n1202/tol1e-12/"
+            "eta0.1/nproc1 settings."
+        )
     return MACEPolarFrozenSourceDDXPES(
         model=model,
         continuum=continuum,
         solvent_term=PySCFSMDCDSTerm(normalized, specification.name),
-        scalar_contract_id=scalar_contract_id,
+        scalar_contract_id=selected_scalar,
         numerical_force_backend=numerical_force_backend,
         hessian_backend=adaptive_hessian,
     )

@@ -1,5 +1,12 @@
 # Route 2 conservative-vNext user guide
 
+## Pure frozen-source CPU/CUDA non-MD extension
+
+The versioned v2 interface and its per-method validation status are documented
+in [Pure MACE-POLAR CPU/CUDA non-MD workflows](PURE_MACE_POLAR_NONMD_V2.md).
+It preserves the CPU-v1 identity below rather than assigning its historical
+accuracy evidence to a different device. MD remains excluded.
+
 ## Pure frozen-source experimental task interface
 
 The exact pure point-l1 ddPCM/SMD scalar now has a separate, explicitly

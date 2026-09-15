@@ -9,14 +9,14 @@ from maple.function.calculator.extra_correction.implicit.route2_domain import (
     validate_route2_domain,
 )
 from maple.function.route2_smd_profiles import (
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE,
     Route2SMDProfileSpec,
+    pure_macepolar_expected_device,
     route2_smd_profile_spec,
 )
 from maple.function.route2_solvents import normalize_route2_solvent_name
-from maple.solvation.api.scalar_registry import (
-    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
-)
 from maple.solvation.derivatives.scalar_finite_difference import (
     BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1,
     RichardsonScalarHessian,
@@ -30,6 +30,45 @@ from maple.solvation.models.mace_polar import (
 )
 
 _TEST_PES_FACTORY_TOKEN = object()
+_PURE_PROFILE_NAMES = frozenset(
+    {
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE,
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
+    }
+)
+_PURE_NONMD_PROFILE_NAMES = frozenset(
+    {
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
+    }
+)
+
+
+def _normalize_pure_device(device: object) -> str:
+    text = str(device).strip().lower()
+    if text == "cpu":
+        return text
+    if text == "cuda":
+        return "cuda:0"
+    if text.startswith("cuda:") and text[5:].isdigit():
+        return f"cuda:{int(text[5:])}"
+    raise ValueError("Pure MACE-POLAR device must be cpu, cuda, or cuda:N.")
+
+
+def _validate_cuda_device(device: str) -> None:
+    if not device.startswith("cuda:"):
+        return
+    import torch
+
+    if not torch.cuda.is_available():
+        raise ValueError(f"Requested {device}, but CUDA is not available.")
+    index = int(device.split(":", 1)[1])
+    count = int(torch.cuda.device_count())
+    if index >= count:
+        raise ValueError(
+            f"Requested {device}, but only {count} CUDA device(s) are available."
+        )
 
 
 class PureMACEPolarDDXCalculator(Calculator):
@@ -61,9 +100,7 @@ class PureMACEPolarDDXCalculator(Calculator):
         _testing_token: object | None = None,
     ) -> None:
         super().__init__()
-        normalized_device = getattr(device, "type", device)
-        if str(normalized_device).strip().lower() != "cpu":
-            raise ValueError("The pure frozen MACE-POLAR workflow requires device=cpu.")
+        normalized_device = _normalize_pure_device(device)
         if str(model).strip().lower() != "macepolm":
             raise ValueError(
                 "The pure frozen MACE-POLAR workflow requires model=macepolm."
@@ -73,13 +110,26 @@ class PureMACEPolarDDXCalculator(Calculator):
         )
         if (
             not isinstance(spec, Route2SMDProfileSpec)
-            or spec.name != PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE
+            or spec.name not in _PURE_PROFILE_NAMES
+            or spec is not route2_smd_profile_spec(spec.name)
             or spec.execution_route != self.workflow_kind
-            or spec.scalar_contract_id
-            != EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
             or spec.allowed_response_modes != ("frozen",)
         ):
             raise ValueError("profile_spec is not the registered pure frozen workflow.")
+        expected_device = pure_macepolar_expected_device(spec)
+        if (
+            expected_device == "cpu" and normalized_device != "cpu"
+        ) or (
+            expected_device == "cuda" and not normalized_device.startswith("cuda:")
+        ):
+            raise ValueError(
+                f"Route 2 profile={spec.name} requires device={expected_device}."
+            )
+        _validate_cuda_device(normalized_device)
+        if expected_device == "cuda":
+            from maple.solvation.experimental.cuda_execution import prepare_cuda_execution
+
+            prepare_cuda_execution()
         normalized_solvent = normalize_route2_solvent_name(solvent)
         if not spec.supports_solvent(normalized_solvent):
             raise ValueError(
@@ -91,7 +141,7 @@ class PureMACEPolarDDXCalculator(Calculator):
             raise ValueError("test PES injection is not a public construction path.")
         if _testing_pes is None:
             model_adapter = build_official_mace_polar_1_m_radial_gto_adapter(
-                device="cpu"
+                device=normalized_device
             )
             hessian_backend = RichardsonScalarHessian(
                 coarse_step_angstrom=self.practical_hessian_step_angstrom,
@@ -111,6 +161,7 @@ class PureMACEPolarDDXCalculator(Calculator):
                 eta=0.1,
                 n_proc=1,
                 hessian_backend=hessian_backend,
+                scalar_contract_id=spec.scalar_contract_id,
             )
         else:
             pes = _testing_pes
@@ -119,7 +170,7 @@ class PureMACEPolarDDXCalculator(Calculator):
                 "total PES does not implement the profile scalar contract."
             )
 
-        self._device = "cpu"
+        self._device = normalized_device
         self._model_name = "macepolm"
         self._solvent = normalized_solvent
         self._profile_spec = spec
@@ -127,10 +178,10 @@ class PureMACEPolarDDXCalculator(Calculator):
         self.solvent_correction = None
         self.chargecalc = None
         self._configured_symbols = tuple(atoms.get_chemical_symbols())
-        self._force_cache_key: tuple[str, str] | None = None
+        self._force_cache_key: tuple[str, str, str, str, str] | None = None
         self._force_evaluation: object | None = None
         self._last_energy_state: object | None = None
-        self._hessian_cache_key: tuple[str, str] | None = None
+        self._hessian_cache_key: tuple[str, str, str, str, str] | None = None
         self._hessian_evaluation: object | None = None
 
     @classmethod
@@ -184,13 +235,17 @@ class PureMACEPolarDDXCalculator(Calculator):
     def last_energy_state(self) -> object | None:
         return self._last_energy_state
 
-    def _validate_atoms(self, atoms) -> tuple[str, str]:
+    def _validate_atoms(self, atoms) -> tuple[str, str, str, str, str]:
+        expected_device = pure_macepolar_expected_device(self._profile_spec)
         if (
-            self._device != "cpu"
+            (
+                expected_device == "cpu" and self._device != "cpu"
+            )
+            or (
+                expected_device == "cuda" and not self._device.startswith("cuda:")
+            )
             or self._model_name != "macepolm"
             or self._profile_spec.execution_route != self.workflow_kind
-            or self._profile_spec.scalar_contract_id
-            != EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
             or self._profile_spec.allowed_response_modes != ("frozen",)
             or not self._profile_spec.supports_solvent(self._solvent)
             or getattr(self._pes, "scalar_contract_id", None)
@@ -201,6 +256,19 @@ class PureMACEPolarDDXCalculator(Calculator):
         if tuple(atoms.get_chemical_symbols()) != self._configured_symbols:
             raise ValueError("atoms differ from the calculator's configured symbols.")
         model = getattr(self._pes, "model", None)
+        model_device = getattr(model, "device", None)
+        if (
+            model_device is not None
+            and _normalize_pure_device(model_device) != self._device
+        ):
+            raise RuntimeError("pure frozen workflow model device drifted.")
+        provenance = getattr(model, "provenance", None)
+        provenance_device = getattr(provenance, "device", None)
+        if (
+            provenance_device is not None
+            and _normalize_pure_device(provenance_device) != self._device
+        ):
+            raise RuntimeError("pure frozen workflow provenance device drifted.")
         domain = getattr(model, "domain", None)
         validate_atoms = getattr(domain, "validate_atoms", None)
         if callable(validate_atoms):
@@ -216,7 +284,13 @@ class PureMACEPolarDDXCalculator(Calculator):
                 getattr(self._pes, "provider_id", type(self._pes).__name__)
             )
         # model_input_sha256 includes geometry plus charge/multiplicity aliases.
-        return model_input_sha256(atoms), configuration_sha256
+        return (
+            model_input_sha256(atoms),
+            configuration_sha256,
+            self._profile_spec.name,
+            str(self._profile_spec.scalar_contract_id),
+            self._device,
+        )
 
     @staticmethod
     def _reject_hessian_constraints(atoms) -> None:
@@ -344,16 +418,21 @@ def is_pure_mace_polar_workflow_calculator(calculator: object) -> bool:
         candidate = candidate.raw_calculator
     if type(candidate) is not PureMACEPolarDDXCalculator:
         return False
-    canonical = route2_smd_profile_spec(
-        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE
-    )
+    if not isinstance(candidate.profile_spec, Route2SMDProfileSpec):
+        return False
+    if candidate.profile_spec.name not in _PURE_PROFILE_NAMES:
+        return False
+    canonical = route2_smd_profile_spec(candidate.profile_spec.name)
+    expected_device = pure_macepolar_expected_device(canonical)
     return bool(
         candidate.profile_spec is canonical
         and candidate.workflow_kind == canonical.execution_route
         and canonical.execution_route == "pure-frozen-total-pes"
-        and canonical.scalar_contract_id
-        == EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1
-        and candidate.device == "cpu"
+        and (
+            candidate.device == "cpu"
+            if expected_device == "cpu"
+            else candidate.device.startswith("cuda:")
+        )
         and candidate.model == "macepolm"
         and canonical.supports_solvent(candidate.solvent)
         and getattr(candidate.pes, "scalar_contract_id", None)
@@ -361,7 +440,23 @@ def is_pure_mace_polar_workflow_calculator(calculator: object) -> bool:
     )
 
 
+def is_pure_mace_polar_nonmd_calculator(calculator: object) -> bool:
+    """Return whether a calculator has an exact canonical v2 non-MD identity."""
+
+    from maple.function.dispatcher.legacy_units import LegacyHartreeJobView
+
+    candidate = calculator
+    if type(candidate) is LegacyHartreeJobView:
+        candidate = candidate.raw_calculator
+    return bool(
+        type(candidate) is PureMACEPolarDDXCalculator
+        and is_pure_mace_polar_workflow_calculator(calculator)
+        and candidate.profile_spec.name in _PURE_NONMD_PROFILE_NAMES
+    )
+
+
 __all__ = [
     "PureMACEPolarDDXCalculator",
+    "is_pure_mace_polar_nonmd_calculator",
     "is_pure_mace_polar_workflow_calculator",
 ]

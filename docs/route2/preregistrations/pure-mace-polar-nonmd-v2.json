@@ -1,0 +1,687 @@
+{
+  "schema": "maple-pure-mace-polar-nonmd-canary-v2",
+  "purpose": "Prospective source-bound bounded execution and CPU/CUDA parity evidence; not geometry, frequency, barrier, endpoint, accuracy, production, or release admission.",
+  "base_commit": "d72d68c8ff3d189bedadc173098d3dbcef62ec14",
+  "seed": 20260910,
+  "model": "macepolm",
+  "solvent": "water",
+  "dtype": "float64",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "identities": {
+    "cpu": {
+      "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2"
+    },
+    "cuda": {
+      "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2"
+    }
+  },
+  "parity_tolerances": {
+    "energy_eV": 1e-07,
+    "forces_eV_per_A": 1e-06,
+    "hessian_eV_per_A2": 0.0001
+  },
+  "cpu_prechange_reference": {
+    "source_artifact_note": "Embedded from /tmp prechange capture; the runner has no /tmp dependency.",
+    "capture_sha256": "87f5ec19afe823c3736a0c32a8eb7e5ec9e9ee73782177be8aeaaac49a7a5602",
+    "head": "d72d68c8ff3d189bedadc173098d3dbcef62ec14",
+    "positions": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.239,
+        0.9266,
+        0.0
+      ]
+    ],
+    "energy_eV": -2080.189658306336,
+    "forces_eV_per_A": [
+      [
+        -0.19960362423381195,
+        -0.27653979048121063,
+        0.0003644271581329499
+      ],
+      [
+        0.3654025090391035,
+        -0.0739895780123511,
+        -0.00018188295703057107
+      ],
+      [
+        -0.16579888480528243,
+        0.35052936849356825,
+        -0.0001825442011023798
+      ]
+    ],
+    "hessian_eV_per_A2": [
+      [
+        59.20235845856663,
+        -10.886615393955683,
+        -0.00018966891564383407,
+        -52.50652254400951,
+        -3.2547514819909003,
+        0.0002104418324845329,
+        -6.6961938383289645,
+        14.14123098176564,
+        -2.092708249730194e-05
+      ],
+      [
+        -10.886615393955683,
+        53.69780058516989,
+        -0.0002477847736257807,
+        2.3012908502063443,
+        -3.8922148450620337,
+        3.415740299184609e-05,
+        8.584784819803263,
+        -49.80562048284344,
+        0.00021390806997477469
+      ],
+      [
+        -0.00018966891564383407,
+        -0.0002477847736257807,
+        -0.6026664119106973,
+        -0.00014829388272911644,
+        0.00031242950669870494,
+        0.2979016707692369,
+        0.00033796079838605133,
+        -6.464199182511316e-05,
+        0.3047648343844399
+      ],
+      [
+        -52.50652254400951,
+        2.3012908502063443,
+        -0.00014829388272911644,
+        53.90224700950936,
+        -1.5857645941435765,
+        -1.9050455867917863e-05,
+        -1.3957550133403593,
+        -0.7155300823791719,
+        0.00016737291409999006
+      ],
+      [
+        -3.2547514819909003,
+        -3.8922148450620337,
+        0.00031242950669870494,
+        -1.5857645941435765,
+        4.247550600784901,
+        -0.0001578822075378435,
+        4.840941849767779,
+        -0.3553417926905024,
+        -0.00015475344136365866
+      ],
+      [
+        0.0002104418324845329,
+        3.415740299184609e-05,
+        0.2979016707692369,
+        -1.9050455867917863e-05,
+        -0.0001578822075378435,
+        -0.37589048626893873,
+        -0.0001913901641801488,
+        0.00012372459539236884,
+        0.07798883878589218
+      ],
+      [
+        -6.6961938383289645,
+        8.584784819803263,
+        0.00033796079838605133,
+        -1.3957550133403593,
+        4.840941849767779,
+        -0.0001913901641801488,
+        8.092337323282619,
+        -13.425586949074418,
+        -0.0001464450457044901
+      ],
+      [
+        14.14123098176564,
+        -49.80562048284344,
+        -6.464199182511316e-05,
+        -0.7155300823791719,
+        -0.3553417926905024,
+        0.00012372459539236884,
+        -13.425586949074418,
+        50.16100305523023,
+        -5.915715757928723e-05
+      ],
+      [
+        -2.092708249730194e-05,
+        0.00021390806997477469,
+        0.3047648343844399,
+        0.00016737291409999006,
+        -0.00015475344136365866,
+        0.07798883878589218,
+        -0.0001464450457044901,
+        -5.915715757928723e-05,
+        -0.3827537896995015
+      ]
+    ]
+  },
+  "fixture_sources": {
+    "water_v1": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflows-water-v1.json",
+      "sha256": "3e247268baa5f94096e9e60c3a4dc2846a62564823e46a5844fad679feccd2bf",
+      "json_pointer": "/tasks/opt/final_positions_angstrom"
+    },
+    "ammonia_v1": {
+      "path": "docs/route2/evidence/pure-mace-polar-workflows-ammonia-ts-v1.json",
+      "sha256": "647dd038a84f114ff3f91ad9e5f864b420c46518b02a8c52b4651671c5f6c13b",
+      "json_pointers": [
+        "/tasks/ts/final_positions_angstrom",
+        "/tasks/ts/endpoints/0/final_positions_angstrom",
+        "/tasks/ts/endpoints/1/final_positions_angstrom"
+      ]
+    }
+  },
+  "fixtures": {
+    "water_minimum": {
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ],
+      "charge": 0,
+      "multiplicity": 1,
+      "positions_angstrom": [
+        [
+          0.011963371298626886,
+          0.008832711279002571,
+          0.00018166543633387272
+        ],
+        [
+          0.9756600663661784,
+          0.026977990601462627,
+          1.8593858270099957e-06
+        ],
+        [
+          -0.25762343766480006,
+          0.9341892981195333,
+          0.009816475177839134
+        ]
+      ],
+      "provenance": "water_v1:/tasks/opt/final_positions_angstrom"
+    },
+    "ammonia_ts": {
+      "symbols": [
+        "N",
+        "H",
+        "H",
+        "H"
+      ],
+      "charge": 0,
+      "multiplicity": 1,
+      "positions_angstrom": [
+        [
+          -0.004884468116629614,
+          0.00013964732411039468,
+          0.0005246323366745779
+        ],
+        [
+          0.9946430904593387,
+          -3.6991377753834884e-06,
+          0.0006514009644656419
+        ],
+        [
+          -0.504544715870726,
+          0.8658190762703251,
+          0.0006487789503111262
+        ],
+        [
+          -0.5047658251551677,
+          -0.8654134004278012,
+          0.0006388557476812386
+        ]
+      ],
+      "provenance": "ammonia_v1:/tasks/ts/final_positions_angstrom"
+    },
+    "ammonia_path": {
+      "images": [
+        {
+          "symbols": [
+            "N",
+            "H",
+            "H",
+            "H"
+          ],
+          "charge": 0,
+          "multiplicity": 1,
+          "positions_angstrom": [
+            [
+              -0.004853508016747483,
+              0.00012932472093864689,
+              -0.2228435728552286
+            ],
+            [
+              0.9350604106829621,
+              -1.808188064917499e-05,
+              0.1549022372913208
+            ],
+            [
+              -0.4747634982568073,
+              0.8142448817142511,
+              0.1548722018807457
+            ],
+            [
+              -0.4749964683252302,
+              -0.8138158862680218,
+              0.15479216223699113
+            ]
+          ]
+        },
+        {
+          "symbols": [
+            "N",
+            "H",
+            "H",
+            "H"
+          ],
+          "charge": 0,
+          "multiplicity": 1,
+          "positions_angstrom": [
+            [
+              -0.0048578583735529755,
+              0.00012872848542372318,
+              0.22409780445860764
+            ],
+            [
+              0.9350579060530597,
+              -1.5935387052751194e-05,
+              -0.1536658275275377
+            ],
+            [
+              -0.4747584225652041,
+              0.8142408989111785,
+              -0.15364182480218547
+            ],
+            [
+              -0.47499239856489095,
+              -0.813810682238433,
+              -0.153585844684443
+            ]
+          ]
+        }
+      ],
+      "provenance": "ammonia_v1 endpoint final positions"
+    },
+    "ammonia_path_three": {
+      "images": [
+        {
+          "symbols": [
+            "N",
+            "H",
+            "H",
+            "H"
+          ],
+          "charge": 0,
+          "multiplicity": 1,
+          "positions_angstrom": [
+            [
+              -0.004853508016747483,
+              0.00012932472093864689,
+              -0.2228435728552286
+            ],
+            [
+              0.9350604106829621,
+              -1.808188064917499e-05,
+              0.1549022372913208
+            ],
+            [
+              -0.4747634982568073,
+              0.8142448817142511,
+              0.1548722018807457
+            ],
+            [
+              -0.4749964683252302,
+              -0.8138158862680218,
+              0.15479216223699113
+            ]
+          ]
+        },
+        {
+          "symbols": [
+            "N",
+            "H",
+            "H",
+            "H"
+          ],
+          "charge": 0,
+          "multiplicity": 1,
+          "positions_angstrom": [
+            [
+              -0.004884468116629614,
+              0.00013964732411039468,
+              0.0005246323366745779
+            ],
+            [
+              0.9946430904593387,
+              -3.6991377753834884e-06,
+              0.0006514009644656419
+            ],
+            [
+              -0.504544715870726,
+              0.8658190762703251,
+              0.0006487789503111262
+            ],
+            [
+              -0.5047658251551677,
+              -0.8654134004278012,
+              0.0006388557476812386
+            ]
+          ]
+        },
+        {
+          "symbols": [
+            "N",
+            "H",
+            "H",
+            "H"
+          ],
+          "charge": 0,
+          "multiplicity": 1,
+          "positions_angstrom": [
+            [
+              -0.0048578583735529755,
+              0.00012872848542372318,
+              0.22409780445860764
+            ],
+            [
+              0.9350579060530597,
+              -1.5935387052751194e-05,
+              -0.1536658275275377
+            ],
+            [
+              -0.4747584225652041,
+              0.8142408989111785,
+              -0.15364182480218547
+            ],
+            [
+              -0.47499239856489095,
+              -0.813810682238433,
+              -0.153585844684443
+            ]
+          ]
+        }
+      ],
+      "provenance": "ammonia_v1 endpoint/TS/endpoint final positions"
+    },
+    "water_sp_baseline": {
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ],
+      "charge": 0,
+      "multiplicity": 1,
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          -0.239,
+          0.9266,
+          0.0
+        ]
+      ],
+      "provenance": "embedded cpu_prechange_reference positions"
+    }
+  },
+  "case_order": [
+    "sp",
+    "opt.lbfgs",
+    "opt.rfo",
+    "opt.sd",
+    "opt.cg",
+    "opt.sdcg",
+    "scan.rigid",
+    "scan.relaxed-lbfgs",
+    "scan.relaxed-sd",
+    "scan.relaxed-cg",
+    "scan.relaxed-sdcg",
+    "freq.mw",
+    "ts.prfo",
+    "ts.neb",
+    "ts.cineb",
+    "ts.nebts",
+    "ts.string",
+    "ts.cistring",
+    "ts.stringts",
+    "ts.dimer",
+    "ts.autoneb",
+    "irc.gs",
+    "irc.gs-complete",
+    "irc.hpc",
+    "irc.eulerpc",
+    "irc.lqa"
+  ],
+  "cases": {
+    "sp": {
+      "fixture": "water_sp_baseline",
+      "task_line": "#sp(verbose=1)",
+      "timeout_seconds": 300
+    },
+    "opt.lbfgs": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=lbfgs,max_iter=64,max_step=0.1)",
+      "timeout_seconds": 900,
+      "representative": true
+    },
+    "opt.rfo": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=rfo,max_iter=12)",
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "opt.sd": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=sd,max_iter=12,max_step=0.1)",
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "opt.cg": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=cg,max_iter=12,max_step=0.1)",
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "opt.sdcg": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=sdcg,max_iter=12,max_step=0.1)",
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "scan.rigid": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=rigid)",
+      "post_lines": [
+        "S 1 2 0.01 3"
+      ],
+      "timeout_seconds": 900,
+      "representative": true
+    },
+    "scan.relaxed-lbfgs": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=lbfgs,max_iter=8)",
+      "post_lines": [
+        "S 1 2 0.01 3"
+      ],
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "scan.relaxed-sd": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=sd,max_iter=8)",
+      "post_lines": [
+        "S 1 2 0.01 3"
+      ],
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "scan.relaxed-cg": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=cg,max_iter=8)",
+      "post_lines": [
+        "S 1 2 0.01 3"
+      ],
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "scan.relaxed-sdcg": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=sdcg,max_iter=8)",
+      "post_lines": [
+        "S 1 2 0.01 3"
+      ],
+      "timeout_seconds": 900,
+      "representative": false
+    },
+    "freq.mw": {
+      "fixture": "water_sp_baseline",
+      "task_line": "#freq(method=mw,treat_imag_as_real=false)",
+      "timeout_seconds": 1200,
+      "representative": true
+    },
+    "ts.prfo": {
+      "fixture": "ammonia_ts",
+      "task_line": "#ts(method=prfo,max_iter=20,recalc=8,hessian_update=bofill,trust_radius=0.1)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "ts.neb": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=neb,max_iter=10,n_images=5)",
+      "timeout_seconds": 1800,
+      "representative": true
+    },
+    "ts.cineb": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=neb,refine=cineb,max_iter=10,n_images=5)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "ts.nebts": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=neb,refine=nebts,max_iter=10,n_images=5)",
+      "timeout_seconds": 1800,
+      "representative": true
+    },
+    "ts.string": {
+      "fixture": "ammonia_path",
+      "task_line": "#ts(method=string,max_iter_grow=6,max_iter_relax=8,grow_relax_iters=3,n_images=5)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "ts.cistring": {
+      "fixture": "ammonia_path",
+      "task_line": "#ts(method=string,refine=cistring,max_iter_grow=6,max_iter_relax=8,grow_relax_iters=3,n_images=5)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "ts.stringts": {
+      "fixture": "ammonia_path",
+      "task_line": "#ts(method=string,refine=stringts,max_iter_grow=6,max_iter_relax=8,grow_relax_iters=3,n_images=5)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "ts.dimer": {
+      "fixture": "ammonia_ts",
+      "task_line": "#ts(method=dimer,max_iter=12,rot_max_iter=3,use_hvp=true)",
+      "timeout_seconds": 1800,
+      "representative": true
+    },
+    "ts.autoneb": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=autoneb,max_iter=6,n_images=3,max_depth=1,max_paths=2,do_final_refine=false)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "irc.gs": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=gs,max_points=6,max_micro_cycles=5,step_length_bohr=0.05)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "irc.gs-complete": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=gs,max_points=40,max_micro_cycles=20,step_length_bohr=0.1)",
+      "timeout_seconds": 3600,
+      "representative": true,
+      "prospective_note": "Longer unchanged-threshold GS representative; completion is not assumed before execution."
+    },
+    "irc.hpc": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=hpc,max_points=6,euler_n=32,mbs_max_k=5,mbs_points=8,step_length_bohr=0.05)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "irc.eulerpc": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=eulerpc,max_points=6,max_pred_steps=32,mbs_max_k=5,mbs_points=8,step_length_bohr=0.05)",
+      "timeout_seconds": 1800,
+      "representative": false
+    },
+    "irc.lqa": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=lqa,max_points=6,euler_n=32,step_length_bohr=0.05)",
+      "timeout_seconds": 1800,
+      "representative": false
+    }
+  },
+  "status_contract": {
+    "schema": "maple-pure-nonmd-status-v2",
+    "path_rule": "OUTPUT_STEM_status.json",
+    "required_fields": [
+      "workflow",
+      "method",
+      "executed",
+      "converged",
+      "termination_reason",
+      "iterations",
+      "final_metrics",
+      "geometry",
+      "trace",
+      "actual_device",
+      "profile",
+      "scalar_contract_id",
+      "termination_class"
+    ],
+    "accepted_legacy_wire_aliases": {
+      "scalar": "scalar_contract_id"
+    },
+    "termination_classes": [
+      "converged",
+      "bounded_nonconvergence",
+      "validation_failure",
+      "execution_failure"
+    ]
+  },
+  "policy": {
+    "output_directory_must_be_new": true,
+    "source_must_remain_unchanged": true,
+    "no_threshold_increase_after_failure": true,
+    "no_automatic_model_fixture_or_device_substitution": true,
+    "caps_are_not_convergence": true,
+    "bounded_nonconvergence_is_execution_not_numerical_success": true,
+    "confirmation_partition_opened": false,
+    "scientific_release_admitted": false
+  },
+  "cuda_execution_policy": {
+    "id": "deterministic-no-jit-optimization-cublas4096-v1",
+    "deterministic_algorithms": true,
+    "jit_executor_optimization": false,
+    "cublas_workspace": ":4096:8",
+    "scope": "serial CUDA model calls; caller Torch flags restored; no replay tolerance relaxation"
+  }
+}

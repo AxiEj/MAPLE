@@ -452,6 +452,7 @@ class SDCG(JobABC):
         iteration = 0
 
         while iteration < self.params.max_iter:
+            self.last_iterations = iteration + 1
             forces = atoms.get_forces()
 
             # Check SD -> CG phase transition
@@ -538,6 +539,8 @@ class SDCG(JobABC):
             )
 
             if converged:
+                self.last_iterations = iteration
+                self.last_converged = True
                 self._finalize_run(
                     energy,
                     f"SDCG converged at iteration {iteration} "
@@ -546,6 +549,8 @@ class SDCG(JobABC):
                 )
                 return atoms
 
+        self.last_iterations = self.params.max_iter
+        self.last_converged = False
         self._finalize_run(
             energy,
             f"SDCG did NOT converge after {self.params.max_iter} iterations "

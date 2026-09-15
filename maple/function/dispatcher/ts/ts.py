@@ -30,7 +30,9 @@ class TransitionState(JobABC):
                     output=self.output,
                     paras=self.params,
                 )
-                prfo.run()
+                result = prfo.run()
+                from ..pure_nonmd_status import is_pure_nonmd_v2
+                return result if is_pure_nonmd_v2(self.atoms) else None
                 
             elif self.method == 'neb':
                 # NEB now accepts Molecules object
@@ -41,7 +43,7 @@ class TransitionState(JobABC):
                         atoms_or_molecules=self.atoms,
                         paras=self.params
                     )
-                    neb.run()
+                    return neb.run()
                 elif isinstance(self.atoms, list):
                     # Legacy support for list input
                     if len(self.atoms) < 2:
@@ -54,7 +56,7 @@ class TransitionState(JobABC):
                         atoms_or_molecules=molecules,
                         paras=self.params
                     )
-                    neb.run()
+                    return neb.run()
                 else:
                     raise ValueError('For NEB method, you should provide a Molecules object or a list of at least two structures.')
                     
@@ -71,7 +73,7 @@ class TransitionState(JobABC):
                     atoms_P=self.atoms[1],
                     paras=self.params
                 )
-                string.run()
+                return string.run()
                 
             elif self.method == 'dimer':
                 from .algorithm import Dimer
@@ -85,7 +87,9 @@ class TransitionState(JobABC):
                     atoms_init=atoms_input,
                     paras=self.params
                 )
-                dimer.run()
+                result = dimer.run()
+                from ..pure_nonmd_status import is_pure_nonmd_v2
+                return result if is_pure_nonmd_v2(atoms_input) else None
                 
             elif self.method == 'autoneb':
                 # AutoNEB: automated multi-step reaction pathway exploration
@@ -96,7 +100,7 @@ class TransitionState(JobABC):
                         atoms_or_molecules=self.atoms,
                         paras=self.params
                     )
-                    autoneb.run()
+                    return autoneb.run()
                 elif isinstance(self.atoms, list):
                     if len(self.atoms) < 2:
                         raise ValueError('For AutoNEB method, you should provide at least two structures.')
@@ -106,7 +110,7 @@ class TransitionState(JobABC):
                         atoms_or_molecules=self.atoms,
                         paras=self.params
                     )
-                    autoneb.run()
+                    return autoneb.run()
                 else:
                     raise ValueError('For AutoNEB method, you should provide a Molecules object or a list of structures.')
 

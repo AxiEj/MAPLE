@@ -1,0 +1,11 @@
+#model=macepolm
+#device=cuda:0
+#level=tight
+#solv(method=smd,provider=pyddx,profile=pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2,implicit=water,response=frozen,experimental=true)
+#irc(method=gs,step_length_bohr=0.1,max_steps=50)
+
+0 1
+N -0.004884468116630 0.000139647324110 0.000524632336675
+H 0.994643090459339 -0.000003699137775 0.000651400964466
+H -0.504544715870726 0.865819076270325 0.000648778950311
+H -0.504765825155168 -0.865413400427801 0.000638855747681

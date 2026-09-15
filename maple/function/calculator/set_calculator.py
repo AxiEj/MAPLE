@@ -616,7 +616,9 @@ class SetCalculator:
                         f" [INFO] profile={profile_spec.name}\n",
                         f" [INFO] execution_route={profile_spec.execution_route}\n",
                         f" [INFO] scalar_contract_id={profile_spec.scalar_contract_id}\n",
-                        " [INFO] model=macepolm device=cpu dtype=float64 response=frozen\n",
+                        f" [INFO] model=macepolm device="
+                        f"{getattr(calculator, 'device', self.device)} "
+                        "dtype=float64 response=frozen\n",
                         " [INFO] ddPCM=l15/n1202/tol1e-12/eta0.1/nproc1; CDS=PySCF-SMD\n",
                         " [INFO] Hessian policy: Richardson h=0.004 A, "
                         "component/antisymmetry=0.05 eV/A^2, work=0.003 eV/A.\n",

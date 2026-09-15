@@ -3,6 +3,8 @@ from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
 from ..route2_smd_profiles import (
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE,
+    pure_macepolar_expected_device,
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
     validate_route2_smd_response_mode,
@@ -235,7 +237,8 @@ class CommandControl:
                     raise ValueError(f"Multiple tasks defined: '{task}' and '{key}'.")
 
                 task = key
-                params.update(cls.DEFAULTS.get(key, {}))
+                for default_key, default_value in cls.DEFAULTS.get(key, {}).items():
+                    params.setdefault(default_key, default_value)
                 log_lines.append(f"Task set to '{task}'\n")
 
                 inline_md_keys = set()
@@ -780,15 +783,14 @@ class CommandControl:
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 if profile_spec.execution_route == "pure-frozen-total-pes":
-                    device = str(params.get("device") or "cpu").strip().lower()
-                    if device != "cpu" or params.get("gpuid") is not None:
-                        msg = (
-                            f"Route 2 profile={profile_spec.name} requires "
-                            "#device=cpu and does not accept gpuid."
-                        )
-                        cls._log_error(output_path, msg)
-                        raise ValueError(msg)
-                    if task == "opt":
+                    cls._validate_pure_device(
+                        params, profile_spec, output_path=output_path
+                    )
+                    is_v1 = (
+                        profile_spec.name
+                        == PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE
+                    )
+                    if task == "opt" and is_v1:
                         method_name = str(params.get("method") or "lbfgs").lower()
                         if method_name not in {"lbfgs", "rfo"}:
                             msg = (
@@ -812,10 +814,25 @@ class CommandControl:
                             )
                             cls._log_error(output_path, msg)
                             raise ValueError(msg)
-                    elif task == "ts" and str(params.get("method") or "").lower() != "prfo":
+                    elif (
+                        task == "ts"
+                        and is_v1
+                        and str(params.get("method") or "").lower() != "prfo"
+                    ):
                         msg = (
                             f"Route 2 profile={profile_spec.name} supports TS only "
                             "with method=prfo."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    elif (
+                        task == "scan"
+                        and str(params.get("method") or "lbfgs").lower() == "rfo"
+                        and str(params.get("mode") or "relaxed").lower() != "rigid"
+                    ):
+                        msg = (
+                            f"Route 2 profile={profile_spec.name} does not support "
+                            "relaxed RFO SCAN because constrained full Hessians are closed."
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
@@ -1117,6 +1134,67 @@ class CommandControl:
                 msg = "Explicit solvent shell_cutoff must be > 0."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+
+    @classmethod
+    def _validate_pure_device(
+        cls,
+        params: Dict[str, Any],
+        profile_spec,
+        *,
+        output_path: Optional[str],
+    ) -> None:
+        """Resolve one pure profile to its exact fail-closed runtime device."""
+
+        expected = pure_macepolar_expected_device(profile_spec)
+        requested = str(params.get("device") or expected).strip().lower()
+        gpuid = params.get("gpuid")
+        if expected == "cpu":
+            if requested != "cpu" or gpuid is not None:
+                msg = (
+                    f"Route 2 profile={profile_spec.name} requires #device=cpu "
+                    "and does not accept gpuid."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            params["device"] = "cpu"
+            return
+
+        if requested == "cuda":
+            index = 0 if gpuid is None else gpuid
+        elif requested.startswith("cuda:") and requested[5:].isdigit():
+            index = int(requested[5:])
+            if gpuid is not None and gpuid != index:
+                msg = (
+                    f"Conflicting CUDA index: device={requested} but gpuid={gpuid}."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        else:
+            msg = (
+                f"Route 2 profile={profile_spec.name} requires #device=cuda or cuda:N."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if type(index) is not int or index < 0:
+            msg = "CUDA gpuid/index must be a non-negative integer."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        import torch
+
+        if not torch.cuda.is_available():
+            msg = f"Requested cuda:{index}, but CUDA is not available."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        count = int(torch.cuda.device_count())
+        if index >= count:
+            msg = (
+                f"Requested cuda:{index}, but only {count} CUDA device(s) are available."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        params["device"] = f"cuda:{index}"
+
 
     @classmethod
     def _validate(cls, params: Dict[str, Any], task: str, output_path: Optional[str]) -> None:

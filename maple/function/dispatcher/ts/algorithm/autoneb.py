@@ -30,6 +30,12 @@ from ...jobABC import JobABC
 from maple.function.utility import Molecules
 
 
+def _capped_path_status() -> str:
+    """Exhausting a bounded path budget is failure, never convergence."""
+
+    return "failed"
+
+
 # =============================================================================
 # AutoNEB Parameters
 # =============================================================================
@@ -1169,7 +1175,7 @@ class AutoNEB(JobABC):
             # Check if path reached max iterations
             if node.iteration >= p.max_iter:
                 log_info([f"\n[Path {path_id}] Reached max iterations ({p.max_iter}).\n"], self.output)
-                node.status = 'converged'  # Mark as done even if not fully converged
+                node.status = _capped_path_status()
                 self._print_path_summary(path_id)
 
         # Final output before refinement
@@ -1208,3 +1214,31 @@ class AutoNEB(JobABC):
             f"  Energy range: {min(global_energies):.6f} to {max(global_energies):.6f} Eh\n",
             f"  Overall barrier: {(max(global_energies) - global_energies[0]) * kcal:.2f} kcal/mol\n",
         ], self.output)
+
+        from ...pure_nonmd_status import is_pure_nonmd_v2, make_status
+        if not is_pure_nonmd_v2(global_images):
+            return None
+        leaf_nodes = [
+            node for node in self.path_tree.values() if not node.children
+        ]
+        converged = bool(leaf_nodes) and all(
+            node.status == "converged" for node in leaf_nodes
+        )
+        return make_status(
+            workflow="ts", method="autoneb", converged=converged,
+            termination_reason=(
+                "all_leaf_paths_converged" if converged
+                else "one_or_more_paths_reached_cap"
+            ),
+            iterations=self.global_iteration,
+            final_metrics={
+                "path_count": len(self.path_tree),
+                "leaf_statuses": {
+                    str(node.path_id): node.status for node in leaf_nodes
+                },
+                "image_count": len(global_images),
+                "energy_min_hartree": float(min(global_energies)),
+                "energy_max_hartree": float(max(global_energies)),
+            },
+            atoms=global_images,
+        )

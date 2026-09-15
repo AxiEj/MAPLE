@@ -1,3 +1,4 @@
+from ._nonmd import (IRCIterationLimit, finish_direction, is_nonmd, remember_initial, run_directions)
 # -*- coding: utf-8 -*-
 """
 Intrinsic Reaction Coordinate (IRC) integrator using Euler-based Predictor-Corrector(EulerPC):
@@ -316,46 +317,49 @@ class EulerPC:
         self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
         self._step_len_umw = float(self.p.step_length_bohr * BOHR_TO_ANG)
 
-        # Diagonalize mass-weighted Hessian at TS to get negative mode
-        H_cart_ts = self._get_hessian_cart()
-        H_mw_ts = (self._D[:, None] * H_cart_ts) * self._D[None, :]
-        w, V = np.linalg.eigh(H_mw_ts)
-
-        neg_idx = np.where(w < 0.0)[0]
-        if len(neg_idx) == 0:
-            log_error(
-                ["[ERROR] EulerPC-IRC: No negative eigenvalues found — "
-                 "starting geometry is not a saddle point.\n"],
+        # Pure non-MD v2 supplies one uncertainty-resolved internal mode.
+        preselected = getattr(self, "preselected_mode_mw", None)
+        if preselected is not None:
+            v_neg_mw = np.asarray(preselected, dtype=np.float64).copy()
+            diagnostic = getattr(self, "preselected_mode_diagnostic", {})
+            log_info(
+                ["\n[INFO] EulerPC-IRC: Using dispatcher-preselected "
+                 "uncertainty-resolved internal negative mode.\n"],
                 self.output,
             )
-            raise RuntimeError("EulerPC-IRC: no negative eigenvalues at TS.")
-
-        if len(neg_idx) < self.p.target_mode:
-            log_error(
-                [f"[ERROR] EulerPC-IRC: Requested mode {self.p.target_mode}, "
-                 f"but only {len(neg_idx)} negative modes found.\n"],
+        else:
+            # Legacy behavior: select from the raw mass-weighted Hessian.
+            H_cart_ts = self._get_hessian_cart()
+            H_mw_ts = (self._D[:, None] * H_cart_ts) * self._D[None, :]
+            w, V = np.linalg.eigh(H_mw_ts)
+            neg_idx = np.where(w < 0.0)[0]
+            if len(neg_idx) == 0:
+                log_error(
+                    ["[ERROR] EulerPC-IRC: No negative eigenvalues found — "
+                     "starting geometry is not a saddle point.\n"],
+                    self.output,
+                )
+                raise RuntimeError("EulerPC-IRC: no negative eigenvalues at TS.")
+            if len(neg_idx) < self.p.target_mode:
+                raise RuntimeError("EulerPC-IRC: requested negative mode does not exist.")
+            sorted_neg = neg_idx[np.argsort(w[neg_idx])]
+            idx = sorted_neg[self.p.target_mode - 1]
+            eigval = w[idx]
+            v_neg_mw = V[:, idx]
+            log_info(
+                ["\n[INFO] EulerPC-IRC: Selected negative eigenmode "
+                 f"#{self.p.target_mode} with λ = {eigval:.6e} (MW basis)\n"],
                 self.output,
             )
-            raise RuntimeError("EulerPC-IRC: requested negative mode does not exist.")
-
-        sorted_neg = neg_idx[np.argsort(w[neg_idx])]  # most negative first
-        idx = sorted_neg[self.p.target_mode - 1]
-        eigval = w[idx]
-        v_neg_mw = V[:, idx]
-
-        log_info(
-            [
-                "\n[INFO] EulerPC-IRC: Selected negative eigenmode "
-                f"#{self.p.target_mode} with λ = {eigval:.6e} (MW basis)\n"
-            ],
-            self.output,
-        )
 
         # Reference TS energy
         E_ts = float(self.atoms.get_potential_energy(force_consistent=True))
 
         # Store original TS Cartesian positions, reused for both directions
         R_ts_cart = self.atoms.get_positions().copy().reshape(-1)
+
+        if preselected is not None:
+            return run_directions(self, R_ts_cart, v_neg_mw, E_ts)
 
         # Forward and backward EulerPC-IRC
         forward_log = self._one_side(
@@ -594,6 +598,16 @@ class EulerPC:
 
         pred_mw = euler_mw
 
+        if not pred_converged and is_nonmd(self):
+            # Do not accept a predicted/loose-cycle force as a measured endpoint.
+            _, actual_forces = self._energy_forces_from_mw(pred_mw)
+            if (np.max(np.abs(actual_forces)) <= self.p.f_max_th
+                    and np.sqrt(np.mean(actual_forces ** 2)) <= self.p.f_rms_th):
+                self._early_converged = True
+                self.mw_coords = pred_mw
+                return self.mw_coords - init_mw, euler_grad
+            raise IRCIterationLimit("predictor_step_limit_reached")
+
         if not pred_converged:
             # If predictor misses target length, keep going: either early-converge
             # (small Cartesian gradient) or continue with corrector.
@@ -740,6 +754,7 @@ class EulerPC:
 
         maxF0 = float(np.max(np.abs(F0_cart)))
         rmsF0 = float(np.sqrt(np.mean(F0_cart ** 2)))
+        remember_initial(self, E0, maxF0, rmsF0)
 
         # Hessian update using TS -> displaced point
         if str(self.p.hessian_update).lower() == "bofill":
@@ -761,6 +776,8 @@ class EulerPC:
             self._print_iter_line(0, E0, (E0 - E_ts) * KCAL_PER_EH, maxF0, rmsF0)
 
         records: List[Dict[str, any]] = []
+        if is_nonmd(self):
+            self._active_direction_log["records"] = records
         records.append(
             {
                 "E": E0,
@@ -770,12 +787,16 @@ class EulerPC:
             }
         )
 
+        termination_reason = "maximum_steps_reached"
+        converged = False
+
         # Macro steps
         for it in range(1, p.max_steps + 1):
             self.cur_cycle = it - 1
             self._early_converged = False
             dx, _ = self._micro_step()
             if _norm(dx) <= 1e-12:
+                termination_reason = "step_too_small"
                 log_info(
                     [f"[INFO] {title}: step too small at step {it}, stopping.\n"],
                     self.output,
@@ -796,6 +817,8 @@ class EulerPC:
                         "x": self.atoms.get_positions().copy(),
                     }
                 )
+                converged = (maxF <= p.f_max_th and rmsF <= p.f_rms_th)
+                termination_reason = "endpoint_force_criteria_satisfied" if converged else "predictor_stopped_before_force_convergence"
                 self._print_hurray()
                 break
 
@@ -818,10 +841,14 @@ class EulerPC:
 
             # Convergence in terms of Cartesian forces
             if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
+                converged = True
+                termination_reason = "endpoint_force_criteria_satisfied"
                 self._print_hurray()
                 break
 
-        return {"title": title, "records": records, "E_ts": E_ts}
+        return finish_direction(
+            self, title, records, E_ts, termination_reason, converged
+        )
 
     # --------------------------- Merge & summary ----------------------------
     def _merge_and_mark_ts(self, f: Dict, b: Dict) -> Dict:

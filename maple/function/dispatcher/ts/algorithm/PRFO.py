@@ -359,6 +359,18 @@ def _is_pure_frozen_total_pes(atoms: Atoms) -> bool:
     return is_pure_mace_polar_workflow_calculator(getattr(atoms, "calc", None))
 
 
+def _raise_nonmd_failure(atoms, reason, classification, iterations, metrics):
+    from ...pure_nonmd_status import (
+        NonMDWorkflowFailure, is_pure_nonmd_v2, make_status,
+    )
+    if is_pure_nonmd_v2(atoms):
+        raise NonMDWorkflowFailure(make_status(
+            workflow="ts", method="prfo", converged=False,
+            termination_reason=reason, termination_class=classification,
+            iterations=iterations, final_metrics=metrics, atoms=atoms,
+        ))
+
+
 def _pure_frozen_ts_postcondition(atoms: Atoms) -> tuple[dict, object]:
     """Evaluate the exact final Hessian index without relabelling weak modes."""
 
@@ -925,6 +937,10 @@ class PRFO(JobABC):
                                     ],
                                     self.output,
                                 )
+                                _raise_nonmd_failure(
+                                    atoms, "index_one_validation_failed", "validation_failure",
+                                    iteration + 1, raw_calc.last_ts_validation,
+                                )
                                 raise RuntimeError(
                                     "PRFO optimizer converged, but the pure frozen "
                                     "TS Hessian postcondition could not be evaluated."
@@ -971,6 +987,10 @@ class PRFO(JobABC):
                                     ],
                                     self.output,
                                 )
+                                _raise_nonmd_failure(
+                                    atoms, "index_one_validation_failed", "validation_failure",
+                                    iteration + 1, diagnostic,
+                                )
                                 raise RuntimeError(
                                     "PRFO optimizer converged, but the final pure "
                                     "frozen Hessian is not a resolved index-one saddle."
@@ -991,6 +1011,21 @@ class PRFO(JobABC):
                                 atoms,
                                 energy=E_new,
                                 iteration=iteration + 1,
+                            )
+                        from ...pure_nonmd_status import (
+                            is_pure_nonmd_v2, make_status,
+                            optimization_metrics,
+                        )
+                        if is_pure_nonmd_v2(atoms):
+                            atoms._maple_nonmd_status = make_status(
+                                workflow="ts", method="prfo", converged=True,
+                                termination_reason="resolved_index_one_saddle",
+                                iterations=iteration + 1,
+                                final_metrics=dict(
+                                    optimization_metrics(atoms),
+                                    **(diagnostic if _is_pure_frozen_total_pes(atoms) else {}),
+                                ),
+                                atoms=atoms,
                             )
                         return atoms
             
@@ -1018,6 +1053,17 @@ class PRFO(JobABC):
         ], self.output)
 
         if _is_pure_frozen_total_pes(atoms):
+            final_forces = np.asarray(atoms.get_forces(), dtype=float)
+            _raise_nonmd_failure(
+                atoms, "maximum_iterations_reached", "bounded_nonconvergence", iteration,
+                {
+                    "energy_hartree": float(E_final),
+                    "max_force_hartree_per_angstrom": float(np.max(np.abs(final_forces))),
+                    "rms_force_hartree_per_angstrom": float(np.sqrt(np.mean(final_forces ** 2))),
+                    "optimizer_converged": False,
+                    "index_one_resolved": False,
+                },
+            )
             raise RuntimeError(
                 "Pure frozen PRFO reached the maximum iteration limit; "
                 "optimizer convergence and the index-one TS postcondition "

@@ -1,4 +1,5 @@
 from typing import List, Union
+import numpy as np
 
 from ase import Atoms
 from ..utility import Molecules
@@ -9,9 +10,133 @@ class Dispatcher():
 
     def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
         from .legacy_units import legacy_hartree_job_calculators
+        from .pure_nonmd_status import (
+            REQUIRED_STATUS_FIELDS, NonMDWorkflowFailure, calculator_provenance,
+            is_pure_nonmd_v2, make_status, write_status,
+        )
 
-        with legacy_hartree_job_calculators(atoms):
-            return self._dispatch_legacy(commandcontrol, jobtype, atoms, output, extra)
+        images = atoms.multiatoms if isinstance(atoms, Molecules) else (
+            atoms if isinstance(atoms, list) else [atoms]
+        )
+        v2_flags = [is_pure_nonmd_v2(image) for image in images]
+        pure_v2 = bool(v2_flags) and all(v2_flags)
+        if any(v2_flags) and not pure_v2:
+            raise ValueError(
+                "pure non-MD v2 jobs require every image to use a canonical "
+                "pure non-MD calculator."
+            )
+        if pure_v2:
+            params = commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol
+            configurations = set()
+            for image in images:
+                calculator = getattr(image.calc, "raw_calculator", image.calc)
+                # Validate every image before the first algorithm/energy call.
+                # Element order, electronic metadata and periodicity are part
+                # of the calculator's existing domain contract.
+                configurations.add(calculator._validate_atoms(image)[1])
+            if len(configurations) != 1:
+                raise ValueError("pure non-MD images must share one PES configuration.")
+            identities = {
+                tuple(calculator_provenance(image).values()) for image in images
+            }
+            if len(identities) != 1:
+                raise ValueError(
+                    "pure non-MD v2 images must share profile, scalar, and device."
+                )
+            if jobtype == "md":
+                raise ValueError("MD is not supported by pure non-MD v2 profiles.")
+            if jobtype not in {"sp", "opt", "scan", "freq", "ts", "irc"}:
+                raise ValueError(f"Unsupported pure non-MD v2 task: {jobtype}")
+            if (jobtype == "scan"
+                    and str(params.get("mode", "relaxed")).lower() == "relaxed"
+                    and str(params.get("method", "lbfgs")).lower() == "rfo"):
+                raise ValueError(
+                    "relaxed RFO scan is unsupported because a constrained "
+                    "Hessian projection is not implemented."
+                )
+            if (jobtype == "freq"
+                    and str(params.get("method", "mw")).lower() != "mw"):
+                raise ValueError(
+                    "pure non-MD v2 frequency supports only mass-weighted method=mw."
+                )
+
+        try:
+            with legacy_hartree_job_calculators(atoms):
+                result = self._dispatch_legacy(
+                    commandcontrol, jobtype, atoms, output, extra
+                )
+        except Exception as exc:
+            if pure_v2:
+                params = commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol
+                status = dict(exc.status) if isinstance(exc, NonMDWorkflowFailure) else make_status(
+                    workflow=str(jobtype), method=str(params.get("method") or jobtype),
+                    converged=False, termination_reason="exception", iterations=0,
+                    final_metrics={"error_type": type(exc).__name__, "error": str(exc)},
+                    atoms=atoms, executed=False,
+                    termination_class="execution_failure",
+                    **calculator_provenance(images[0]),
+                )
+                status.update(calculator_provenance(images[0]))
+                try:
+                    write_status(output, status)
+                except Exception:
+                    # Never replace the actual workflow exception with a
+                    # secondary serialization/filesystem failure.
+                    pass
+            raise
+
+        if pure_v2:
+            params = commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol
+            attached_status = getattr(result, "_maple_nonmd_status", None)
+            if attached_status is not None:
+                result = attached_status
+            if not (isinstance(result, dict) and all(
+                    field in result for field in REQUIRED_STATUS_FIELDS)):
+                final_metrics = {}
+                raw_calc = getattr(images[0], "calc", None)
+                raw_calc = getattr(raw_calc, "raw_calculator", raw_calc)
+                if jobtype == "sp":
+                    raw_results = getattr(raw_calc, "results", {}) or {}
+                    if "energy" in raw_results:
+                        final_metrics["energy_eV"] = float(raw_results["energy"])
+                    if "forces" in raw_results:
+                        forces = np.asarray(raw_results["forces"], dtype=np.float64)
+                        final_metrics["forces_eV_per_A"] = forces.tolist()
+                        final_metrics["max_abs_force_eV_per_A"] = float(np.max(np.abs(forces)))
+                elif jobtype == "freq":
+                    analysis = getattr(raw_calc, "last_frequency_mode_analysis", None)
+                    if analysis is not None:
+                        final_metrics.update({
+                            "rigid_rank": int(analysis.rigid_rank),
+                            "internal_mode_count": int(analysis.internal_dimension),
+                            "resolved_negative_count": int(analysis.resolved_negative_count),
+                            "resolved_positive_count": int(analysis.resolved_positive_count),
+                            "uncertain_count": int(analysis.uncertain_count),
+                            "eigenvalues_eV_per_A2_amu": [
+                                float(value) for value in analysis.eigenvalues_eV_per_A2_amu
+                            ],
+                        })
+                    evaluation = getattr(raw_calc, "last_hessian_evaluation", None)
+                    if evaluation is not None:
+                        final_metrics["hessian_eV_per_A2"] = (
+                            np.asarray(
+                                evaluation.hessian_eV_per_A2,
+                                dtype=np.float64,
+                            ).tolist()
+                        )
+                result = make_status(
+                    workflow=str(jobtype), method=str(params.get("method") or jobtype),
+                    converged=True, termination_reason="calculation_completed",
+                    iterations=0, final_metrics=final_metrics, atoms=atoms,
+                )
+            result.update(calculator_provenance(images[0]))
+            write_status(output, result)
+            if not result["converged"]:
+                raise RuntimeError(
+                    f"Pure non-MD {jobtype} did not succeed: "
+                    f"{result['termination_reason']}; diagnostics retained in status sidecar."
+                )
+        return result
 
     def _dispatch_legacy(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
 
@@ -34,7 +159,7 @@ class Dispatcher():
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For optimization job, only one Atoms object is allowed.')
             opt = Optimization(output=output, atoms=atoms, params=commandcontrol.params)
-            opt.run()
+            return opt.run()
             
         elif jobtype == 'sp':
             from .sp import SinglePoint
@@ -45,14 +170,14 @@ class Dispatcher():
             if isinstance(atoms, Molecules):
                 atoms_input = atoms.multiatoms
                 sp = SinglePoint(output=output, atoms=atoms_input, paras=sp_params)
-                sp.run()
+                return sp.run()
             elif isinstance(atoms, list):
                 sp = SinglePoint(output=output, atoms=atoms, paras=sp_params)
-                sp.run()
+                return sp.run()
             else:
                 # Single structure (backward compatibility)
                 sp = SinglePoint(output=output, atoms=atoms, paras=sp_params)
-                sp.run()
+                return sp.run()
 
         elif jobtype == 'scan':
             from .scan import Scan
@@ -67,14 +192,14 @@ class Dispatcher():
                 raise NotImplementedError('For scan job, only one Atoms object is allowed.')
 
             scan = Scan(output=output, atoms=atoms, method=commandcontrol.params.get('method'), constraints=extra['scan'], params=commandcontrol.params)
-            scan.run()
+            return scan.run()
             
         elif jobtype == 'freq':
             from .frequency import Frequency
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For frequency job, only one Atoms object is allowed.')
             freq = Frequency(output=output, atoms=atoms, paras=commandcontrol.params)
-            freq.run()
+            return freq.run()
             
         elif jobtype == 'ts':
             from .ts import TransitionState
@@ -86,8 +211,7 @@ class Dispatcher():
                     # Convert Molecules to its internal list if needed
                     atoms_input = atoms.multiatoms if isinstance(atoms, Molecules) else atoms
                     ts = TransitionState(output=output, atoms=atoms_input, method=method, params=commandcontrol.params)
-                    ts.run()
-                    return
+                    return ts.run()
                 elif method == 'prfo':
                     raise NotImplementedError('For transition state search job with PRFO method, only one Atoms object is allowed.')
                 else:
@@ -95,7 +219,7 @@ class Dispatcher():
 
             # Single Atoms object
             ts = TransitionState(output=output, atoms=atoms, method=commandcontrol.params.get('method'), params=commandcontrol.params)
-            ts.run()
+            return ts.run()
         
         elif jobtype == 'irc':
             from .irc import IRC
@@ -103,7 +227,7 @@ class Dispatcher():
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For IRC job, only one Atoms object is allowed.')
             irc = IRC(output=output, atoms=atoms, method=commandcontrol.params.get('method'), params=commandcontrol.params)
-            irc.run()
+            return irc.run()
 
         elif jobtype == 'md':
             from .md.ensemble.nve import NVE

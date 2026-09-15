@@ -19,6 +19,12 @@ from .state_registry import (
 EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1 = (
     "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-v1"
 )
+EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2 = (
+    "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2"
+)
+EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2 = (
+    "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2"
+)
 PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID = (
     "route2-pure-macepolar-point-l1-mnsol505-development-evidence-v1"
 )
@@ -234,6 +240,53 @@ _COMMON = dict(
     enabled=False,
 )
 
+
+def _pure_nonmd_scalar(scalar_id: str) -> ScalarDefinition:
+    """Return a device-specific v2 identity without claiming new evidence."""
+
+    return ScalarDefinition(
+        scalar_id=scalar_id,
+        exact_formula=(
+            "E(R)=E_vac^MACE-POLAR(R)+G_ddPCM[R,c0(R)]+G_SMD-CDS(R); "
+            "c0(R)=M_MACE-POLAR(R,u=0)"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.experimental:build_smd_mace_polar_frozen_point_ddx_pes"
+        ),
+        included_components=(
+            "macepolar_zero_field_vacuum_energy",
+            "ddx_ddpcm_point_l1_half_coupling_electrostatic",
+            "pyscf_smd_cds",
+        ),
+        excluded_components=(
+            "mace_mdp_permanent_source",
+            "field_conditioned_macepolar_energy_difference",
+            "mutual_ml_continuum_fixed_point",
+            "periodic_stress",
+            "common_variational_functional",
+        ),
+        source_representation=(
+            "unmodified zero-field MACE-POLAR l<=1 learned block mapped without "
+            "fitting to ddX point multipoles; the unused second radial block is zero"
+        ),
+        field_convention=(
+            "ddX point-multipole energy cotangent embedded back into the registered "
+            "MACE-POLAR radial-GTO field-dual space under its Q pairing"
+        ),
+        continuum_profile="ddx-ddpcm-macepolar-point-l1-embedding-v1",
+        cavity_profile="ddx-union-of-spheres-exposed-lebedev-v0p8p0",
+        nonpolar_profile="pyscf-2.13.1-smd-cds-legacy-v1",
+        state_equation_id=PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID,
+        derivative_route=(
+            "analytic complete chain-rule force of the declared scalar; molecular "
+            "virial from that force; Richardson HVP/H from the same force with "
+            "explicit partial-topology policy for PySCF SMD-CDS"
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    )
+
 _SCALAR_ENTRIES = (
     ScalarDefinition(
         scalar_id=EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
@@ -296,6 +349,12 @@ _SCALAR_ENTRIES = (
         admitted_capabilities=CapabilityStatus(),
         evidence_artifact_ids=(),
         enabled=False,
+    ),
+    _pure_nonmd_scalar(
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2
+    ),
+    _pure_nonmd_scalar(
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2
     ),
     ScalarDefinition(
         scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
@@ -908,6 +967,8 @@ __all__ = [
     "DIAGNOSTIC_DDX_DDPCM_RADIAL_GTO_ELECTROSTATIC_V1",
     "DIAGNOSTIC_LOCAL_JET_CPCM_ELECTROSTATIC_V1",
     "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1",
+    "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2",
+    "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2",
     "PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",

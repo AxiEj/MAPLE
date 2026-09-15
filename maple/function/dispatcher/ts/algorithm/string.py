@@ -17,7 +17,6 @@ Units:
 
 from __future__ import annotations
 import os
-import copy
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
@@ -521,12 +520,32 @@ class GSM(JobABC):
         from .PRFO import PRFO
 
         # Prepare TS guess from HEI
-        ts_guess = copy.deepcopy(images[hei_idx])
+        ts_guess = self._copy_with_inherit(images[hei_idx])
         inherit_attrs(images[0], ts_guess)
 
         # Run PRFO to refine TS
         prfo = PRFO(output=self.output, atoms=ts_guess)
-        ts_opt = prfo.run()
+        try:
+            ts_opt = prfo.run()
+        except RuntimeError as exc:
+            from ...pure_nonmd_status import NonMDWorkflowFailure, make_status
+            if isinstance(exc, NonMDWorkflowFailure):
+                return dict(exc.status)
+            raw_calc = getattr(ts_guess.calc, "raw_calculator", ts_guess.calc)
+            diagnostic = getattr(raw_calc, "last_ts_validation", {}) or {}
+            reason = diagnostic.get("reason", "index_one_validation_failed")
+            bounded = reason == "maximum_iterations_reached"
+            return make_status(
+                workflow="ts", method="prfo", converged=False,
+                termination_reason=reason,
+                termination_class=(
+                    "bounded_nonconvergence" if bounded
+                    else "validation_failure"
+                ),
+                iterations=0,
+                final_metrics=dict(diagnostic, error=str(exc)),
+                atoms=ts_guess,
+            )
         E_TS   = float(ts_opt.get_potential_energy(force_consistent=True))
 
         # Create a path with TS inserted after the original CI (HEI)
@@ -622,6 +641,142 @@ class GSM(JobABC):
             f"\nWrote STRING-TS MEP to: {stringts_mep}\n",
             f"Wrote TS structure to:  {stringts_ts}\n"
         ], self.output)
+
+        return ts_opt
+
+    def _run_cistring(self, images: List[Atoms], hei_idx: int, base_prefix: str):
+        """Run an E/F-only climbing-image refinement at the current HEI."""
+
+        image = images[hei_idx]
+        left = images[max(0, hei_idx - 1)].get_positions().reshape(-1)
+        right = images[min(len(images) - 1, hei_idx + 1)].get_positions().reshape(-1)
+        tangent = right - left
+        tangent /= max(float(np.linalg.norm(tangent)), 1.0e-16)
+        converged = False
+        max_force = rms_force_value = float("inf")
+        iteration = 0
+        for iteration in range(self.params.max_iter_relax + 1):
+            force = to_numpy_f64(image.get_forces()).reshape(-1)
+            ci_force = force - 2.0 * float(np.dot(force, tangent)) * tangent
+            max_force = float(np.max(np.abs(ci_force)))
+            rms_force_value = float(np.sqrt(np.mean(ci_force * ci_force)))
+            if (max_force <= self.params.cistring_f_max_th and
+                    rms_force_value <= self.params.cistring_f_rms_th):
+                converged = True
+                break
+            if iteration == self.params.max_iter_relax:
+                break
+            step = self.params.lbfgs_max_step * ci_force
+            step_norm = float(np.max(np.abs(step)))
+            if step_norm > self.params.lbfgs_max_step:
+                step *= self.params.lbfgs_max_step / step_norm
+            image.set_positions(image.get_positions() + step.reshape(-1, 3))
+        write_xyz(base_prefix + "_cistring.xyz", images, energies=get_energies(images))
+        return {
+            "converged": converged,
+            "termination_reason": (
+                "force_criteria_satisfied" if converged
+                else "maximum_iterations_reached"
+            ),
+            "iterations": iteration,
+            "final_metrics": {
+                "max_ci_force_hartree_per_angstrom": max_force,
+                "rms_ci_force_hartree_per_angstrom": rms_force_value,
+                "highest_energy_image": hei_idx,
+            },
+        }
+
+    def _dispatch_refinement(self, images: List[Atoms], hei_idx: int, base_prefix: str):
+        """Honor none/cistring/stringts without silently entering PRFO."""
+
+        refine = self.params.refine
+        if refine is None or str(refine).lower() in {"", "none"}:
+            return None
+        refine = str(refine).lower()
+        if refine == "cistring":
+            return self._run_cistring(images, hei_idx, base_prefix)
+        if refine == "stringts":
+            return self.restart_run(images, hei_idx, base_prefix)
+        raise ValueError("STRING refine must be one of: none, cistring, stringts")
+
+    def _relax_string_path(self, images: List[Atoms]) -> dict:
+        """Relax the merged path using E/F projected perpendicular gradients."""
+
+        driver = LBFGSDriver(
+            m=self.params.lbfgs_memory,
+            curvature=self.params.lbfgs_curvature,
+            maxstep=self.params.lbfgs_max_step,
+        )
+
+        def pack():
+            return np.concatenate([
+                image.get_positions().reshape(-1)
+                for image in images[1:-1]
+            ])
+
+        def unpack(vector):
+            offset = 0
+            for image in images[1:-1]:
+                size = 3 * len(image)
+                image.set_positions(vector[offset:offset + size].reshape(-1, 3))
+                offset += size
+
+        def gradient():
+            pieces = []
+            for index in range(1, len(images) - 1):
+                image = images[index]
+                tangent = (
+                    images[index + 1].get_positions()
+                    - images[index - 1].get_positions()
+                ).reshape(-1)
+                tangent /= max(float(np.linalg.norm(tangent)), 1.0e-16)
+                force = project_out_rigidbody_forces(
+                    to_numpy_f64(image.get_forces()),
+                    to_numpy_f64(image.get_positions()),
+                    to_numpy_f64(image.get_masses()),
+                ).reshape(-1)
+                force_perp = force - float(np.dot(force, tangent)) * tangent
+                pieces.append(-force_perp)
+            return np.concatenate(pieces)
+
+        x = pack()
+        g = gradient()
+        iteration = 0
+        while (iteration < self.params.max_iter_relax
+               and not driver.should_stop(
+                   g, self.params.string_f_max_th,
+                   self.params.string_f_rms_th,
+               )):
+            step = driver.step_limit(driver.two_loop(g))
+            x_new = x + step
+            unpack(x_new)
+            if self.params.reparam_every > 0 and (iteration + 1) % self.params.reparam_every == 0:
+                linear_reparam(images)
+                x_new = pack()
+                driver = LBFGSDriver(
+                    m=self.params.lbfgs_memory,
+                    curvature=self.params.lbfgs_curvature,
+                    maxstep=self.params.lbfgs_max_step,
+                )
+            g_new = gradient()
+            driver.update(x_new - x, g_new - g)
+            x, g = x_new, g_new
+            iteration += 1
+        converged = driver.should_stop(
+            g, self.params.string_f_max_th, self.params.string_f_rms_th
+        )
+        return {
+            "converged": converged,
+            "termination_reason": (
+                "path_force_criteria_satisfied" if converged
+                else "maximum_iterations_reached"
+            ),
+            "iterations": iteration,
+            "final_metrics": {
+                "max_projected_force_hartree_per_angstrom": float(np.max(np.abs(g))),
+                "rms_projected_force_hartree_per_angstrom": float(np.sqrt(np.mean(g * g))),
+            },
+        }
 
 
 
@@ -925,6 +1080,7 @@ class GSM(JobABC):
                 img.calc = self.atoms_R.calc
         align_path_inplace(images, mode="chain")
         linear_reparam(images)
+        path_status = self._relax_string_path(images)
 
         # Dump growth-final equal-arc path & HEI
         grow_final = base + "_gsm_grow_final.xyz"
@@ -942,6 +1098,43 @@ class GSM(JobABC):
             f"Wrote HEI to:                 {hei_path}\n"
         ], self.output)
 
-        # --- Direct TS refinement via PRFO/RFO on HEI (no CI-STRING / no full relax)
-        self.restart_run(images, hei, base)
-
+        refinement = self._dispatch_refinement(images, hei, base)
+        from ...pure_nonmd_status import is_pure_nonmd_v2, make_status
+        if not is_pure_nonmd_v2(images):
+            return None
+        growth_converged = (
+            self._min_image_distance(L[-1], R_[-1])
+            <= self.params.merge_threshold
+        )
+        refinement_status = getattr(refinement, "_maple_nonmd_status", refinement)
+        converged = growth_converged and bool(path_status["converged"])
+        reason = (
+            path_status["termination_reason"] if growth_converged
+            else "growth_iteration_cap_reached"
+        )
+        termination_class = "converged" if converged else "bounded_nonconvergence"
+        if refinement_status is not None:
+            converged = converged and bool(refinement_status["converged"])
+            reason = refinement_status["termination_reason"]
+            termination_class = refinement_status.get(
+                "termination_class",
+                "converged" if converged else "bounded_nonconvergence",
+            )
+        return make_status(
+            workflow="ts", method=str(self.params.refine or "string"),
+            converged=converged, termination_reason=reason,
+            termination_class=termination_class,
+            iterations=it + (
+                int(refinement_status["iterations"])
+                if isinstance(refinement_status, dict) else 0
+            ),
+            final_metrics={
+                "growth_iterations": it,
+                "growth_converged": growth_converged,
+                "highest_energy_image": hei,
+                "image_count": len(images),
+                "merge_distance_angstrom": self._min_image_distance(L[-1], R_[-1]),
+                "path": path_status["final_metrics"],
+            },
+            atoms=images, path=path_status, refinement=refinement_status,
+        )

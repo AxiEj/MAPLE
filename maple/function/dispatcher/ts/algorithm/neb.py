@@ -873,6 +873,7 @@ class NEB(JobABC):
         # initial energies / forces for logging & to freeze HEI
         Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
         Fp_list, maxfp, hei = self.cineb_forces(images, Es, self.params.k_max)
+        rmsfp = rms_force(Fp_list)
 
         # freeze HEI index for the whole CINEB run
         self._cineb_fixed_hei = hei
@@ -889,6 +890,7 @@ class NEB(JobABC):
             f"CI: {self.params.cineb_f_max_th: .6f}/{self.params.cineb_f_rms_th: .6f}\n"
         ], self.output)
 
+        cineb_converged = False
         while iteration < self.params.max_iter:
             # ===== convergence check at current geometry =====
             # regular Fp: all internal non-CI images
@@ -905,6 +907,7 @@ class NEB(JobABC):
 
             if driver.ci_should_stop(Fp_all, F_CI):
                 log_info([f"\nCINEB converged after {iteration} iterations.\n"], self.output)
+                cineb_converged = True
                 break
 
             # ===== L-BFGS step using CINEB gradient =====
@@ -965,7 +968,8 @@ class NEB(JobABC):
         ], self.output)
 
         # --- Stage 2: Optional PRFO refinement ---
-        if self.params.refine == 'nebts':
+        refinement_status = None
+        if self.params.refine == 'nebts' and cineb_converged:
             from .PRFO import PRFO
 
             # Use CI geometry as TS guess
@@ -977,7 +981,41 @@ class NEB(JobABC):
             ts_guess.dp_rms_th = images[0].dp_rms_th
 
             prfo = PRFO(output=self.output, atoms=ts_guess)
-            ts_opt = prfo.run()
+            try:
+                ts_opt = prfo.run()
+            except RuntimeError as exc:
+                from ...pure_nonmd_status import NonMDWorkflowFailure, make_status
+                raw_calc = getattr(ts_guess.calc, "raw_calculator", ts_guess.calc)
+                diagnostic = getattr(raw_calc, "last_ts_validation", {}) or {}
+                reason = diagnostic.get("reason", "index_one_validation_failed")
+                bounded = reason == "maximum_iterations_reached"
+                refinement_status = make_status(
+                    workflow="ts", method="prfo", converged=False,
+                    termination_reason=reason,
+                    termination_class=(
+                        "bounded_nonconvergence" if bounded
+                        else "validation_failure"
+                    ),
+                    iterations=0,
+                    final_metrics=dict(diagnostic, error=str(exc)),
+                    atoms=ts_guess,
+                )
+                if isinstance(exc, NonMDWorkflowFailure):
+                    refinement_status = dict(exc.status)
+                return {
+                    "converged": cineb_converged,
+                    "termination_reason": "climbing_image_force_criteria_satisfied",
+                    "iterations": iteration,
+                    "final_metrics": {
+                        "highest_energy_image": hei,
+                        "max_projected_force_hartree_per_angstrom": float(maxfp),
+                        "rms_projected_force_hartree_per_angstrom": float(rmsfp),
+                        "max_climbing_force_hartree_per_angstrom": float(maxF_CI),
+                        "rms_climbing_force_hartree_per_angstrom": float(rmsF_CI),
+                    },
+                    "refinement": refinement_status,
+                }
+            refinement_status = getattr(ts_opt, "_maple_nonmd_status", None)
 
             E_TS = ts_opt.get_potential_energy(force_consistent=True)
             maxF_TS = np.max(np.linalg.norm(ts_opt.get_forces(), axis=1))
@@ -1022,6 +1060,23 @@ class NEB(JobABC):
                 f"\nWrote NEB-TS MEP to: {nebts_mep}\n",
                 f"Wrote TS structure to: {nebts_ts}\n"
             ], self.output)
+
+        return {
+            "converged": cineb_converged,
+            "termination_reason": (
+                "climbing_image_force_criteria_satisfied" if cineb_converged
+                else "maximum_iterations_reached"
+            ),
+            "iterations": iteration,
+            "final_metrics": {
+                "highest_energy_image": hei,
+                "max_projected_force_hartree_per_angstrom": float(maxfp),
+                "rms_projected_force_hartree_per_angstrom": float(rmsfp),
+                "max_climbing_force_hartree_per_angstrom": float(maxF_CI),
+                "rms_climbing_force_hartree_per_angstrom": float(rmsF_CI),
+            },
+            "refinement": refinement_status,
+        }
 
 
 
@@ -1444,9 +1499,12 @@ class NEB(JobABC):
             else:
                 log_info([f"   LBFGS {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}\n"], self.output)
         
-        if iteration == 0:
+        neb_converged = driver.should_stop(
+            g, self.params.neb_f_max_th, self.params.neb_f_rms_th
+        )
+        if iteration == 0 and neb_converged:
             log_info(["\nNEB already converged at initial geometry (iteration 0).\n"], self.output)
-        elif iteration == self.params.max_iter:
+        elif not neb_converged:
             log_info(["\nNEB optimization reached maximum iterations.\n"], self.output)
         else:
             log_info([f"\nNEB optimization converged after {iteration} iterations.\n"], self.output)
@@ -1507,11 +1565,48 @@ class NEB(JobABC):
         
         
         # 3) Optional: CINEB refinement
+        refinement_status = None
         if self.params.refine == 'cineb' or self.params.refine == 'nebts':
-            if iteration == self.params.max_iter:
+            if not neb_converged:
                 log_info([
                     "\nNEB did not converge. Skipping CINEB refinement.\n",
                     "You may try to increase max_iter or check the initial path.\n"
                 ], self.output)
             else:
-                self.restart_run(images, energies=Es)
+                refinement_status = self.restart_run(images, energies=Es)
+
+        from ...pure_nonmd_status import is_pure_nonmd_v2, make_status
+        if not is_pure_nonmd_v2(images):
+            return None
+        converged = neb_converged
+        reason = "path_force_criteria_satisfied" if converged else "maximum_iterations_reached"
+        if refinement_status is not None:
+            converged = converged and bool(refinement_status["converged"])
+            reason = refinement_status["termination_reason"]
+            if self.params.refine == "nebts" and refinement_status.get("refinement"):
+                ts_status = refinement_status["refinement"]
+                converged = converged and bool(ts_status["converged"])
+                reason = ts_status["termination_reason"]
+        return make_status(
+            workflow="ts", method=str(self.params.refine or "neb"),
+            converged=converged, termination_reason=reason,
+            termination_class=(
+                "converged" if converged else (
+                    "validation_failure"
+                    if (self.params.refine == "nebts" and neb_converged
+                        and refinement_status is not None
+                        and refinement_status.get("refinement") is not None
+                        and refinement_status["refinement"].get("termination_class") == "validation_failure")
+                    else "bounded_nonconvergence"
+                )
+            ),
+            iterations=iteration + (
+                int(refinement_status["iterations"]) if refinement_status else 0
+            ),
+            final_metrics={
+                "highest_energy_image": hei,
+                "max_projected_force_hartree_per_angstrom": float(maxfp),
+                "rms_projected_force_hartree_per_angstrom": float(rmsfp),
+            },
+            atoms=images, refinement=refinement_status,
+        )

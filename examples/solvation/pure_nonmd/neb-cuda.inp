@@ -1,0 +1,9 @@
+#model=macepolm
+#device=cuda:0
+#level=tight
+#solv(method=smd,provider=pyddx,profile=pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2,implicit=water,response=frozen,experimental=true)
+#ts(method=neb,refine=cineb,n_images=5,max_iter=128)
+
+XYZ 0 1 ammonia-minus.xyz
+
+XYZ 0 1 ammonia-plus.xyz

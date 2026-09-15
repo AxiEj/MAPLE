@@ -18,7 +18,11 @@ from .header.header import print_banner
 from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
-from maple.function.route2_smd_profiles import route2_smd_profile_spec
+from maple.function.route2_smd_profiles import (
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
+    route2_smd_profile_spec,
+)
 
 class InputReader():
     def __init__(self):
@@ -247,31 +251,53 @@ class InputReader():
                 else [atoms_or_list]
             )
             if implicit_method == "smd":
-                if len(targets) != 1:
-                    raise ValueError(
-                        "Route 2 SMD currently accepts exactly one molecule."
-                    )
-                atoms = targets[0]
                 if "profile" not in implicit_options:
                     raise ValueError(
                         "Route 2 SMD requires an explicit versioned profile."
                     )
                 profile = route2_smd_profile_spec(implicit_options["profile"])
-                if profile.uses_gaff2_carbonyl_oxygen and "mol2" not in atoms.info:
+                pure_v2 = profile.name in {
+                    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
+                    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
+                }
+                path_task = (
+                    self.command_control.task == "ts"
+                    and str(self.command_control.params.get("method") or "").lower()
+                    in {"neb", "string", "autoneb"}
+                )
+                if len(targets) != 1 and not (pure_v2 and path_task):
                     raise ValueError(
-                        f"Route 2 profile={profile.name} requires a MOL2 coordinate "
-                        "source with explicit GAFF/GAFF2 atom types."
+                        "Route 2 SMD accepts multiple structures only for a pure "
+                        "non-MD v2 NEB, String, or AutoNEB path task."
                     )
-                if "charge" not in atoms.info or "mult" not in atoms.info:
-                    raise ValueError(
-                        "Route 2 SMD requires an explicit '0 1' charge/multiplicity "
-                        "line before the coordinate source."
-                    )
-                if atoms.info["charge"] != 0 or atoms.info["mult"] != 1:
-                    raise ValueError(
-                        "The first Route-2 SMD domain is neutral closed-shell "
-                        "molecules with charge/multiplicity '0 1'."
-                    )
+                expected_symbols = tuple(targets[0].get_chemical_symbols())
+                from maple.function.calculator.extra_correction.implicit.route2_domain import (
+                    validate_route2_domain,
+                )
+
+                for image_index, atoms in enumerate(targets):
+                    if profile.uses_gaff2_carbonyl_oxygen and "mol2" not in atoms.info:
+                        raise ValueError(
+                            f"Route 2 profile={profile.name} requires a MOL2 coordinate "
+                            "source with explicit GAFF/GAFF2 atom types."
+                        )
+                    if "charge" not in atoms.info or "mult" not in atoms.info:
+                        raise ValueError(
+                            "Every Route 2 SMD image requires an explicit '0 1' "
+                            "charge/multiplicity line before its coordinate source."
+                        )
+                    if atoms.info["charge"] != 0 or atoms.info["mult"] != 1:
+                        raise ValueError(
+                            "Every Route-2 SMD image must be neutral closed-shell "
+                            "with charge/multiplicity '0 1'."
+                        )
+                    symbols = tuple(atoms.get_chemical_symbols())
+                    if symbols != expected_symbols:
+                        raise ValueError(
+                            "Route 2 path images must have identical atom count and "
+                            f"ordered symbols; image {image_index + 1} differs."
+                        )
+                    validate_route2_domain(atoms)
             for atoms in targets:
                 atoms.info["_maple_charge_options"] = dict(
                     self.command_control.params.get("charge", {})

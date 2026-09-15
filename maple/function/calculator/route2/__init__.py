@@ -2,10 +2,12 @@
 
 from ._mace_polar_frozen_ddx_calculator import (
     PureMACEPolarDDXCalculator,
+    is_pure_mace_polar_nonmd_calculator,
     is_pure_mace_polar_workflow_calculator,
 )
 
 __all__ = [
     "PureMACEPolarDDXCalculator",
+    "is_pure_mace_polar_nonmd_calculator",
     "is_pure_mace_polar_workflow_calculator",
 ]

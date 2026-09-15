@@ -214,6 +214,25 @@ class Scan(JobABC):
         # Store lightweight data
         coords_list.append(coord[:])
         energies.append(e)
+        self._last_atoms = atoms
+        point_status = getattr(atoms, "_maple_nonmd_status", None)
+        if point_status is None:
+            point_status = {
+                "converged": True,
+                "termination_reason": "energy_evaluated",
+                "termination_class": "converged",
+                "iterations": 0,
+                "final_metrics": {"energy_hartree": e},
+            }
+        self.point_statuses.append({
+            "point_index": self._current_index,
+            "coordinates": coord[:],
+            "converged": bool(point_status["converged"]),
+            "termination_reason": point_status["termination_reason"],
+            "termination_class": point_status["termination_class"],
+            "iterations": int(point_status["iterations"]),
+            "final_metrics": dict(point_status["final_metrics"], energy_hartree=e),
+        })
 
         # For rigid scan, log coordinates to output
         if self.mode == "rigid":
@@ -362,6 +381,8 @@ class Scan(JobABC):
             total *= len(values)
         self._total_combinations = total
         self._current_index = 0
+        self.point_statuses = []
+        self._last_atoms = self.atoms
 
         # Open output XYZ file for streaming
         base, _ = os.path.splitext(self.output)
@@ -384,6 +405,7 @@ class Scan(JobABC):
             self.log_info([f"\nScan completed! Total points: {len(energies)}"])
             self.log_info([f"Results saved to: {xyz_filename}\n"])
             self.log_info([f"Energy range: {min(energies):.6f} to {max(energies):.6f} Hartree\n"])
+            return coords_list, energies
             
         finally:
             if self.xyz_file is not None:
@@ -392,8 +414,47 @@ class Scan(JobABC):
     def run(self):
         """JobABC interface."""
         with timer("Scan"):
-            self.run_scan()
+            from ..pure_nonmd_status import is_pure_nonmd_v2, make_status
+            self.point_statuses = []
+            self._last_atoms = self.atoms
+            try:
+                result = self.run_scan()
+            except Exception as exc:
+                if not is_pure_nonmd_v2(self._last_atoms):
+                    raise
+                return make_status(
+                    workflow="scan", method=f"{self.mode}-{self.method}",
+                    converged=False, termination_class="execution_failure",
+                    termination_reason="scan_point_execution_failed",
+                    iterations=sum(p["iterations"] for p in self.point_statuses),
+                    final_metrics={"completed_point_count": len(self.point_statuses)},
+                    atoms=self._last_atoms, points=self.point_statuses,
+                    error_type=type(exc).__name__, error=str(exc),
+                )
             self._cleanup_opt_files(self.output)  # cleanup opt temp files
+            if not is_pure_nonmd_v2(self._last_atoms):
+                return None
+            failed = [p["point_index"] for p in self.point_statuses if not p["converged"]]
+            classes = {p["termination_class"] for p in self.point_statuses}
+            classification = next((value for value in (
+                "execution_failure", "validation_failure", "bounded_nonconvergence"
+            ) if value in classes), "converged")
+            return make_status(
+                workflow="scan", method=f"{self.mode}-{self.method}",
+                converged=not failed,
+                termination_class=classification,
+                termination_reason=(
+                    "all_points_completed" if not failed
+                    else "scan_point_nonconvergence"
+                ),
+                iterations=sum(p["iterations"] for p in self.point_statuses),
+                final_metrics={
+                    "point_count": len(self.point_statuses),
+                    "failed_point_indices": failed,
+                },
+                atoms=self._last_atoms,
+                points=self.point_statuses,
+            )
 
   
     @staticmethod

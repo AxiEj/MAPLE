@@ -81,6 +81,7 @@ class RFO(JobABC):
 
         # main loop
         while iteration < self.params.max_iter:
+            self.last_iterations = iteration + 1
             X = atoms.get_positions().reshape(-1, 3)
             E_old = float(E)
             F_cart = to_numpy_f64(F)
@@ -153,6 +154,8 @@ class RFO(JobABC):
 
                 # convergence check
                 if converged:
+                    self.last_iterations = iteration + 1
+                    self.last_converged = True
                     self._finalize_run(
                         float(E_new),
                         f"RFO optimization converged at iteration {iteration + 1}.",
@@ -178,6 +181,8 @@ class RFO(JobABC):
 
         # max iterations reached
         e_final = float(to_numpy_f64(atoms.get_potential_energy(force_consistent=True)))
+        self.last_iterations = self.params.max_iter
+        self.last_converged = False
         self._finalize_run(
             e_final,
             f"RFO optimization reached max iterations ({self.params.max_iter}).",

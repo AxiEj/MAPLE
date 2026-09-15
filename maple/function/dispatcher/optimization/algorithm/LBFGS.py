@@ -166,6 +166,7 @@ class LBFGS(JobABC):
         f = atoms.get_forces()
 
         while iteration < self.params.max_iter:
+            self.last_iterations = iteration + 1
             grad = (-f).reshape(-1)
             step_flat = self._two_loop(grad)
             step = self._clip_step(step_flat.reshape(f.shape))
@@ -202,6 +203,8 @@ class LBFGS(JobABC):
             )
 
             if converged:
+                self.last_iterations = iteration
+                self.last_converged = True
                 self._finalize_run(
                     e,
                     f"LBFGS converged at iteration {iteration}.",
@@ -209,6 +212,8 @@ class LBFGS(JobABC):
                 )
                 return atoms
 
+        self.last_iterations = self.params.max_iter
+        self.last_converged = False
         self._finalize_run(
             e,
             f"LBFGS did NOT converge after {self.params.max_iter} iterations.",

@@ -115,6 +115,7 @@ class DimerParams:
     # Initialization of n
     n_init: str = "random"              # "random" | "force" | "given"
     n_given: Optional[np.ndarray] = None
+    random_seed: Optional[int] = None
 
     # Outputs
     save_traj: bool = True
@@ -238,7 +239,10 @@ class Dimer(JobABC):
             F = -vec1d(self.atoms.get_forces(), D)  # gradient = -F; here use force itself
             n = F
         else:  # random
-            rng = np.random.default_rng()
+            seed = p.random_seed
+            if seed is None:
+                seed = os.environ.get("MAPLE_NONMD_SEED")
+            rng = np.random.default_rng(None if seed is None else int(seed))
             n = rng.normal(size=D)
 
         if p.remove_rigid:
@@ -350,9 +354,24 @@ class Dimer(JobABC):
         n = self.n.copy()        # initial dimer orientation (assumed normalized & rigid-body removed if requested)
         alpha = float(self.alpha)
 
+        def evaluate_hn_force_energy(n_vec: np.ndarray):
+            if p.use_hvp:
+                if self.hvp_fn is not None:
+                    hn = self.hvp_fn(self.atoms, n_vec)
+                    force = self.atoms.get_forces().reshape(-1)
+                    energy = self.atoms.get_potential_energy(force_consistent=True)
+                    return (torch.as_tensor(hn), torch.as_tensor(force),
+                            torch.as_tensor(energy))
+                return self.atoms.calc.get_hvp(self.atoms, n_vec)
+            x_flat = self.atoms.get_positions().reshape(-1)
+            hn, force, _ = self._finite_diff_Hn_and_F(x_flat, n_vec)
+            energy = self.atoms.get_potential_energy(force_consistent=True)
+            return (torch.as_tensor(hn), torch.as_tensor(force),
+                    torch.as_tensor(energy))
+
         # ------------------ initial eval via autograd HVP ------------------
         # get forces & energy once (Hn unused for initial report)
-        _, forces_t, energy_t = self.atoms.calc.get_hvp(self.atoms, n)
+        _, forces_t, energy_t = evaluate_hn_force_energy(n)
         forces_np = forces_t.detach().cpu().numpy()
         E0 = float(energy_t.detach().cpu().item())
         maxF0 = float(np.max(np.linalg.norm(forces_np.reshape(-1, 3), axis=1)))
@@ -393,7 +412,7 @@ class Dimer(JobABC):
 
             for _ in range(p.rot_max_iter):
                 # Hn from autograd; discard forces/energy here
-                Hn_t, _, _ = self.atoms.calc.get_hvp(self.atoms, n_curr)
+                Hn_t, _, _ = evaluate_hn_force_energy(n_curr)
                 dev, dty = Hn_t.device, Hn_t.dtype
                 n_th = torch.tensor(n_curr, device=dev, dtype=dty)
 
@@ -419,13 +438,14 @@ class Dimer(JobABC):
             return n_curr, max_frot, rms_frot
 
         # ======================= main iteration loop =======================
+        converged = False
         for it in range(1, p.max_iter + 1):
 
             # (1) rotation step using autograd HVP
             n, max_frot, rms_frot = rotate_minimize_kappa(n)
 
             # (2) translation-side evaluation in one pass
-            Hn_t, forces_t, energy_t = self.atoms.calc.get_hvp(self.atoms, n)
+            Hn_t, forces_t, energy_t = evaluate_hn_force_energy(n)
             forces_np = forces_t.detach().cpu().numpy()
             E = float(energy_t.detach().cpu().item())
 
@@ -497,10 +517,11 @@ class Dimer(JobABC):
                 max_dp <= self.atoms.dp_max_th and
                 rms_dp <= self.atoms.dp_rms_th):
                 log_info([f"\nDimer optimization converged at iteration {it}.\n"], self.output)
+                converged = True
                 break
 
         # ------------------ final write & brief summary ------------------
-        _, _, E_final_t = self.atoms.calc.get_hvp(self.atoms, n)
+        _, _, E_final_t = evaluate_hn_force_energy(n)
         E_final = float(E_final_t.detach().cpu().item())
         write_xyz(ts_file, [self.atoms], energies=[E_final])
 
@@ -517,4 +538,38 @@ class Dimer(JobABC):
             f"Wrote TS guess to:         {ts_file}\n"
         ], self.output)
 
-
+        from ...pure_nonmd_status import (
+            is_pure_nonmd_v2, make_status, optimization_metrics,
+        )
+        if not is_pure_nonmd_v2(self.atoms):
+            return self.atoms
+        final_metrics = optimization_metrics(self.atoms)
+        if not converged:
+            return make_status(
+                workflow="ts", method="dimer", converged=False,
+                termination_reason="maximum_iterations_reached",
+                iterations=p.max_iter, final_metrics=final_metrics,
+                atoms=self.atoms,
+            )
+        try:
+            from .PRFO import _pure_frozen_ts_postcondition
+            diagnostic, _ = _pure_frozen_ts_postcondition(self.atoms)
+            final_metrics.update(diagnostic)
+        except Exception as exc:
+            final_metrics["postcondition_error"] = str(exc)
+            return make_status(
+                workflow="ts", method="dimer", converged=False,
+                termination_reason="index_one_validation_failed",
+                termination_class="validation_failure",
+                iterations=it, final_metrics=final_metrics, atoms=self.atoms,
+            )
+        success = bool(diagnostic["workflow_success"])
+        return make_status(
+            workflow="ts", method="dimer", converged=success,
+            termination_reason=(
+                "resolved_index_one_saddle" if success
+                else "index_one_validation_failed"
+            ),
+            termination_class="converged" if success else "validation_failure",
+            iterations=it, final_metrics=final_metrics, atoms=self.atoms,
+        )

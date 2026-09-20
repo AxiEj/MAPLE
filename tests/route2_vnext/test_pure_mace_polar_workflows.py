@@ -457,7 +457,7 @@ def test_pure_calculator_invalidates_total_state_when_geometry_changes() -> None
 
     assert second != first
     assert pes.solve_calls == 2
-    assert pes.force_calls == 2
+    assert pes.force_calls == 0
 
 
 @pytest.mark.parametrize(

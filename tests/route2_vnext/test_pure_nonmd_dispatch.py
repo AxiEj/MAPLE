@@ -134,8 +134,11 @@ def _pure_test_atoms(configuration):
     from maple.function.route2_smd_profiles import route2_smd_profile_spec
     profile = route2_smd_profile_spec('pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2')
     atoms = Atoms('OHH', positions=[[0, 0, 0], [0.96, 0, 0], [-0.24, 0.93, 0]], info={'charge': 0, 'mult': 1})
-    pes = SimpleNamespace(scalar_contract_id=profile.scalar_contract_id,
-                          configuration_sha256=lambda: configuration)
+    pes = SimpleNamespace(
+        scalar_contract_id=profile.scalar_contract_id,
+        configuration_sha256=lambda: configuration,
+        solve=lambda _atoms: SimpleNamespace(total_energy_eV=0.0),
+    )
     atoms.calc = PureMACEPolarDDXCalculator._from_test_pes(
         atoms=atoms, solvent='water', pes=pes, profile_spec=profile)
     return atoms

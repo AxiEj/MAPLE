@@ -178,6 +178,7 @@ class PureMACEPolarDDXCalculator(Calculator):
         self.solvent_correction = None
         self.chargecalc = None
         self._configured_symbols = tuple(atoms.get_chemical_symbols())
+        self._energy_cache_key: tuple[str, str, str, str, str] | None = None
         self._force_cache_key: tuple[str, str, str, str, str] | None = None
         self._force_evaluation: object | None = None
         self._last_energy_state: object | None = None
@@ -310,10 +311,40 @@ class PureMACEPolarDDXCalculator(Calculator):
         if target is None:
             raise ValueError("PureMACEPolarDDXCalculator requires atoms.")
         cache_key = self._validate_atoms(target)
+        requested = frozenset(properties or self.implemented_properties)
+        requires_forces = "forces" in requested
         super().calculate(target, properties, system_changes)
-        if cache_key != self._force_cache_key or self._force_evaluation is None:
+
+        if cache_key != self._energy_cache_key:
+            self._energy_cache_key = None
             self._last_energy_state = None
-            evaluation = self._pes.evaluate_forces(target)
+        if cache_key != self._force_cache_key:
+            self._force_cache_key = None
+            self._force_evaluation = None
+        if cache_key != self._hessian_cache_key:
+            self._hessian_cache_key = None
+            self._hessian_evaluation = None
+
+        if not requires_forces:
+            if cache_key != self._energy_cache_key or self._last_energy_state is None:
+                self._last_energy_state = self._pes.solve(target)
+                self._energy_cache_key = cache_key
+            state = self._last_energy_state
+            energy = float(getattr(state, "total_energy_eV"))
+            if not np.isfinite(energy):
+                raise RuntimeError("pure frozen total-PES energy is invalid.")
+            self.results = {"energy": energy, "free_energy": energy}
+            return
+
+        if cache_key != self._force_cache_key or self._force_evaluation is None:
+            central_state = (
+                self._last_energy_state if cache_key == self._energy_cache_key else None
+            )
+            evaluation = (
+                self._pes.evaluate_forces(target)
+                if central_state is None
+                else self._pes.evaluate_forces(target, central_state=central_state)
+            )
             self._force_cache_key = cache_key
             self._force_evaluation = evaluation
             self._hessian_cache_key = None
@@ -322,8 +353,12 @@ class PureMACEPolarDDXCalculator(Calculator):
         state = getattr(evaluation, "central_state", None)
         if state is None:
             # A fake/test PES may expose force and energy evaluations separately.
-            state = self._pes.solve(target)
+            if cache_key == self._energy_cache_key:
+                state = self._last_energy_state
+            else:
+                state = self._pes.solve(target)
         self._last_energy_state = state
+        self._energy_cache_key = cache_key
         energy = float(getattr(state, "total_energy_eV"))
         forces = np.asarray(getattr(evaluation, "total_forces_eV_per_A"), dtype=float)
         if forces.shape != (len(target), 3) or not np.all(np.isfinite(forces)):

@@ -37,6 +37,7 @@ class _PolynomialScalar:
         self.observation_metadata_switch = observation_metadata_switch
         self.scale = float(scale)
         self.sample_count = 0
+        self.last_sample_positions: np.ndarray | None = None
 
     def configuration_sha256(self) -> str:
         return hashlib.sha256(
@@ -57,6 +58,7 @@ class _PolynomialScalar:
     def sample(self, geometry: object) -> ScalarEnergySample:
         self.sample_count += 1
         positions = np.asarray(geometry.positions, dtype=float)
+        self.last_sample_positions = np.array(positions, copy=True)
         state = hashlib.sha256(positions.tobytes()).hexdigest()
         topology = (
             "positive-x"
@@ -310,7 +312,8 @@ def test_topology_observation_metadata_drift_is_not_an_adaptive_retry():
     adaptive = RichardsonScalarHessian(maximum_topology_step_reductions=3)
     with pytest.raises(RuntimeError, match="observation metadata drifted"):
         adaptive.evaluate_hvp(provider, atoms, np.ones((2, 3)))
-    assert provider.sample_count == 2
+    assert provider.sample_count == 3
+    np.testing.assert_array_equal(provider.last_sample_positions, atoms.positions)
 
 
 def test_derivative_policy_hash_binds_requested_step_thresholds_and_retry_history():

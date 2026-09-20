@@ -36,6 +36,31 @@ CM_TO_M = 1e-2                     # cm⁻¹ -> m⁻¹ conversion factor
 R_GAS = K_B * NA                   # Ideal gas constant (J/mol/K)
 AMU = 1.66053906660e-27            # Atomic mass unit (kg)
 ANG2_TO_M2 = 1e-20                 # Å² -> m² conversion factor
+ELECTRON_VOLT_J = 1.602176634e-19  # Electron volt (J), exact
+HARTREE_TO_EV = 27.211386245988
+HARTREE_J = HARTREE_TO_EV * ELECTRON_VOLT_J
+
+# For a mass-weighted Hessian eigenvalue lambda in energy/(Å² amu),
+# wavenumber = sqrt(|lambda|) * sqrt(energy_J / (AMU * ANG2_TO_M2))
+#              / (2*pi*c), with c converted from m/s to cm/s.
+_ANGULAR_FREQUENCY_TO_WAVENUMBER = 1.0 / (2.0 * np.pi * C * 100.0)
+HARTREE_PER_ANGSTROM2_AMU_TO_CM1 = (
+    np.sqrt(HARTREE_J / (AMU * ANG2_TO_M2))
+    * _ANGULAR_FREQUENCY_TO_WAVENUMBER
+)
+EV_PER_ANGSTROM2_AMU_TO_CM1 = (
+    np.sqrt(ELECTRON_VOLT_J / (AMU * ANG2_TO_M2))
+    * _ANGULAR_FREQUENCY_TO_WAVENUMBER
+)
+
+
+def _eigenvalues_to_wavenumbers(
+    eigenvalues: np.ndarray,
+    conversion_cm1: float,
+) -> np.ndarray:
+    """Convert signed mass-weighted curvatures to signed wavenumbers."""
+    values = np.asarray(eigenvalues)
+    return np.sign(values) * np.sqrt(np.abs(values)) * conversion_cm1
 
 # ======================================================================
 # Unit conversions (kJ <-> kcal / Hartree)
@@ -760,7 +785,7 @@ class FrequencyBase(JobABC):
         self.log_info(["GIBBS FREE ENERGY\n"])
         self.log_info(["-" * 60 + "\n\n"])
         self.log_info([f"Total enthalpy correction        ...   {h_total_kcal:10.2f} kcal/mol\n"])
-        self.log_info([f"Total entropy correction         ...   {-T * s_total_kcalK * 1e-3:10.2f} kcal/mol\n"])
+        self.log_info([f"Total entropy correction         ...   {-T * s_total_kcalK:10.2f} kcal/mol\n"])
         self.log_info(["-" * 60 + "\n"])
         self.log_info([f"Final Gibbs free energy corr.    ...   {g_corr_kcal:10.2f} kcal/mol\n\n"])
 
@@ -1041,24 +1066,10 @@ class MWFrequency(FrequencyBase):
         evals, evecs_mw = self._eigh(h_mw)
         
         # Step 4: Convert eigenvalues to frequencies (cm⁻¹)
-        # CRITICAL: Conversion factor for Ha/Angstrom² + amu units
-        # Formula: ν = sqrt(E_h/(amu·Å²)) / (2πc) × 10^8
-        # 
-        # Derivation:
-        #   sqrt(Hartree / (amu * Angstrom²))
-        #   = sqrt(4.3597e-18 J / (1.6605e-27 kg * 1e-20 m²))
-        #   = sqrt(2.625e29) s⁻¹
-        #   = 5.124e14 s⁻¹
-        #   Divide by 2πc (in cm/s) and multiply by 10^8:
-        #   = 5.124e14 / (2π * 2.998e10) * 1e8
-        #   = 2721.1383 cm⁻¹
-        #
-        # NOTE: This is different from ORCA's 5140.4867 because:
-        #       - ORCA uses Ha/Bohr² (not Angstrom²)
-        #       - ORCA uses electron mass (not amu)
-        conversion = 2721.1383  # Ha/Angstrom² + amu -> cm⁻¹
-        
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = _eigenvalues_to_wavenumbers(
+            evals,
+            HARTREE_PER_ANGSTROM2_AMU_TO_CM1,
+        )
         
         # Step 5: Transform eigenvectors back to Cartesian coordinates
         modes_cart = evecs_mw.T * inv_sqrt_m[None, :]
@@ -1124,8 +1135,6 @@ class PureFrozenMWFrequency(FrequencyBase):
     conversion at the legacy dispatcher boundary.
     """
 
-    _EV_PER_HARTREE = 27.211386245988
-
     def get_hessian(self) -> np.ndarray:
         calc = self.atoms.calc
         from maple.function.calculator.route2 import (
@@ -1152,11 +1161,11 @@ class PureFrozenMWFrequency(FrequencyBase):
         analysis = getattr(self, "mode_analysis", None)
         if analysis is None:
             raise RuntimeError("pure frozen Hessian evaluation was not analyzed.")
-        # Existing MWFrequency uses 2721.1383 for Ha/A^2/amu.  These
-        # eigenvalues are eV/A^2/amu from the raw immutable evaluation.
-        conversion = 2721.1383 / np.sqrt(self._EV_PER_HARTREE)
         eigenvalues = analysis.eigenvalues_eV_per_A2_amu
-        frequencies = np.sign(eigenvalues) * np.sqrt(np.abs(eigenvalues)) * conversion
+        frequencies = _eigenvalues_to_wavenumbers(
+            eigenvalues,
+            EV_PER_ANGSTROM2_AMU_TO_CM1,
+        )
         return frequencies, analysis.modes_cartesian
 
     def _write_output(self, freqs, modes, thermo) -> None:
@@ -1216,8 +1225,10 @@ class NonMWFrequency(FrequencyBase):
 
         # This conversion is only valid for mass-weighted systems
         # Using it here gives incorrect results - use MW method instead!
-        conversion = 2721.1383  # Ha/Angstrom² -> cm⁻¹ (assumes unit mass)
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = _eigenvalues_to_wavenumbers(
+            evals,
+            HARTREE_PER_ANGSTROM2_AMU_TO_CM1,
+        )
 
         modes_cart = evecs.T
         return freqs_cm1, modes_cart
@@ -1245,8 +1256,10 @@ class BothFrequency(FrequencyBase):
         h_m = hessian * inv_sqrt_m[None, :] * inv_sqrt_m[:, None]
         evals, evecs_mw = self._eigh(h_m)
 
-        conversion = 2721.1383  # Ha/Angstrom² + amu -> cm⁻¹
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = _eigenvalues_to_wavenumbers(
+            evals,
+            HARTREE_PER_ANGSTROM2_AMU_TO_CM1,
+        )
         modes_cart = evecs_mw.T * inv_sqrt_m[None, :]
 
         return freqs_cm1, modes_cart
@@ -1263,8 +1276,10 @@ class BothFrequency(FrequencyBase):
         """
         evals, evecs = self._eigh(hessian)
 
-        conversion = 2721.1383  # Ha/Angstrom² -> cm⁻¹ (assumes unit mass)
-        freqs_cm1 = np.sign(evals) * np.sqrt(np.abs(evals)) * conversion
+        freqs_cm1 = _eigenvalues_to_wavenumbers(
+            evals,
+            HARTREE_PER_ANGSTROM2_AMU_TO_CM1,
+        )
         modes_cart = evecs.T
 
         return freqs_cm1, modes_cart

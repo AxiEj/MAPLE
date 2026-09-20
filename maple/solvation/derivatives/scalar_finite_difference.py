@@ -321,6 +321,75 @@ class ScalarForceSampler(ScalarEnergySampler, Protocol):
     def force_sample(self, geometry: object) -> ScalarForceSample: ...
 
 
+def _recover_force_provider_after_failure(
+    provider: ScalarForceSampler,
+    geometry: object,
+    failure: BaseException,
+) -> bool:
+    """Leave provider state safe without replacing the triggering failure.
+
+    Ordinary stencil failures replay the central geometry because force providers
+    may cache their most recent evaluation.  Process-control exceptions must not
+    start an expensive model evaluation; providers with mutable caches can expose
+    a cheap ``invalidate_cached_state()`` hook instead.  Recovery is best-effort:
+    an ordinary recovery failure is attached to, but never replaces, the
+    original exception.  Process-control exceptions raised by recovery itself
+    propagate immediately, with ``failure`` retained as their context.
+
+    Returns ``True`` only when the requested recovery action completed.  This
+    lets adaptive callers distinguish a restored center from an unsafe cache
+    state before retrying a smaller stencil.
+    """
+
+    def record_recovery_failure(message: str) -> None:
+        add_note = getattr(failure, "add_note", None)
+        if callable(add_note):
+            try:
+                add_note(message)
+                return
+            except Exception:
+                # A non-standard exception may expose a broken add_note method.
+                # Fall back to the Python 3.10-compatible representation below.
+                pass
+        # BaseException.add_note was introduced in Python 3.11.  Keep the same
+        # observable note contract on Python 3.10 and on exception classes that
+        # deliberately shadow add_note, without allowing note bookkeeping to
+        # replace the scientifically relevant original failure.
+        try:
+            notes = list(getattr(failure, "__notes__", ()))
+            notes.append(message)
+            setattr(failure, "__notes__", notes)
+        except Exception:
+            pass
+
+    if isinstance(failure, (KeyboardInterrupt, SystemExit, GeneratorExit)):
+        invalidate = getattr(provider, "invalidate_cached_state", None)
+        if not callable(invalidate):
+            return False
+        try:
+            invalidate()
+        except (KeyboardInterrupt, SystemExit, GeneratorExit):
+            raise
+        except Exception as recovery_error:
+            record_recovery_failure(
+                "force-provider cache invalidation also failed: "
+                f"{type(recovery_error).__name__}: {recovery_error}"
+            )
+            return False
+        return True
+    try:
+        provider.force_sample(geometry)
+    except (KeyboardInterrupt, SystemExit, GeneratorExit):
+        raise
+    except Exception as recovery_error:
+        record_recovery_failure(
+            "central force-provider recovery also failed: "
+            f"{type(recovery_error).__name__}: {recovery_error}"
+        )
+        return False
+    return True
+
+
 @dataclass(frozen=True, slots=True)
 class RichardsonScalarForceComponentEvaluation:
     """One Cartesian Richardson derivative used by focused admission probes."""
@@ -1173,7 +1242,7 @@ class RichardsonScalarHessian:
             for reduction in range(self.maximum_topology_step_reductions + 1)
         )
 
-    def _evaluate_hvp_at_step(
+    def _evaluate_hvp_at_step_unrecovered(
         self,
         provider: ScalarForceSampler,
         geometry: object,
@@ -1198,24 +1267,17 @@ class RichardsonScalarHessian:
             fine_step_angstrom,
             -fine_step_angstrom,
         )
-        try:
-            for delta in deltas:
-                sample = provider.force_sample(
-                    _directionally_displaced(geometry, stencil_direction, delta)
-                )
-                _validate_topology_stencil_sample(
-                    center.energy_sample,
-                    sample.energy_sample,
-                    derivative_name="Hessian",
-                    reject_topology_change=not bounded_noise,
-                )
-                samples.append(sample)
-        except BaseException:
-            # Providers commonly cache their most recent geometry.  A rejected
-            # stencil must not leave that cache silently pointing at a displacement.
-            if bounded_noise:
-                provider.force_sample(geometry)
-            raise
+        for delta in deltas:
+            sample = provider.force_sample(
+                _directionally_displaced(geometry, stencil_direction, delta)
+            )
+            _validate_topology_stencil_sample(
+                center.energy_sample,
+                sample.energy_sample,
+                derivative_name="Hessian",
+                reject_topology_change=not bounded_noise,
+            )
+            samples.append(sample)
         plus_coarse, minus_coarse, plus_fine, minus_fine = samples
         discrepancies: tuple[float, ...] = ()
         topology_ids: tuple[str, ...] = ()
@@ -1242,7 +1304,6 @@ class RichardsonScalarHessian:
             maximum_discrepancy = max(discrepancies)
             assert self.maximum_energy_force_discrepancy_eV_per_A is not None
             if maximum_discrepancy > self.maximum_energy_force_discrepancy_eV_per_A:
-                provider.force_sample(geometry)
                 raise RuntimeError(
                     "Hessian stencil energy-force discrepancy exceeds the admitted "
                     f"bound: {maximum_discrepancy:.6e} > "
@@ -1265,15 +1326,11 @@ class RichardsonScalarHessian:
         errors = np.abs(hvp - hvp_fine)
         maximum_error = float(np.max(errors))
         if maximum_error > self.maximum_error_eV_per_A2:
-            if bounded_noise:
-                provider.force_sample(geometry)
             raise RuntimeError(
                 "Richardson HVP error estimate exceeds the admitted bound: "
                 f"{maximum_error:.6e} > {self.maximum_error_eV_per_A2:.6e} eV/A^2."
             )
         if provider.configuration_sha256() != configuration:
-            if bounded_noise:
-                provider.force_sample(geometry)
             raise RuntimeError(
                 "scalar provider configuration drifted during HVP evaluation."
             )
@@ -1302,6 +1359,37 @@ class RichardsonScalarHessian:
             displaced_topology_changed=topology_changed,
             energy_force_discrepancies_eV_per_A=discrepancies,
         )
+
+    def _evaluate_hvp_at_step(
+        self,
+        provider: ScalarForceSampler,
+        geometry: object,
+        vector: np.ndarray,
+        *,
+        center: ScalarForceSample,
+        configuration: str,
+        coarse_step_angstrom: float,
+        topology_guard_status: str,
+        topology_step_reductions_used: int,
+    ) -> RichardsonScalarHVPEvaluation:
+        try:
+            return self._evaluate_hvp_at_step_unrecovered(
+                provider,
+                geometry,
+                vector,
+                center=center,
+                configuration=configuration,
+                coarse_step_angstrom=coarse_step_angstrom,
+                topology_guard_status=topology_guard_status,
+                topology_step_reductions_used=topology_step_reductions_used,
+            )
+        except FiniteDifferenceTopologyChangeError:
+            # Adaptive callers must know whether the central cache was restored
+            # before they are allowed to retry at a smaller displacement.
+            raise
+        except BaseException as failure:
+            _recover_force_provider_after_failure(provider, geometry, failure)
+            raise
 
     def evaluate_hvp(
         self,
@@ -1343,6 +1431,8 @@ class RichardsonScalarHessian:
                     topology_step_reductions_used=reduction,
                 )
             except FiniteDifferenceTopologyChangeError as exc:
+                if not _recover_force_provider_after_failure(provider, geometry, exc):
+                    raise
                 last_topology_error = exc
         if self.maximum_topology_step_reductions == 0:
             assert last_topology_error is not None
@@ -1400,24 +1490,31 @@ class RichardsonScalarHessian:
                     topology_changed.extend(evaluated.displaced_topology_changed)
                     discrepancies.extend(evaluated.energy_force_discrepancies_eV_per_A)
             except FiniteDifferenceTopologyChangeError as exc:
+                if not _recover_force_provider_after_failure(provider, geometry, exc):
+                    raise
                 last_topology_error = exc
                 continue
             antisymmetry = float(np.max(np.abs(raw - raw.T)))
             if antisymmetry > self.maximum_antisymmetry_eV_per_A2:
-                if self.topology_guard_policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
-                    provider.force_sample(geometry)
-                raise RuntimeError(
+                failure = RuntimeError(
                     "Numerical scalar Hessian antisymmetry exceeds the admitted bound: "
                     f"{antisymmetry:.6e} > "
                     f"{self.maximum_antisymmetry_eV_per_A2:.6e} eV/A^2."
                 )
+                _recover_force_provider_after_failure(provider, geometry, failure)
+                raise failure
             symmetric = 0.5 * (raw + raw.T)
-            if provider.configuration_sha256() != configuration:
-                if self.topology_guard_policy == BOUNDED_TOPOLOGY_NOISE_EXPERIMENTAL_V1:
-                    provider.force_sample(geometry)
-                raise RuntimeError(
+            try:
+                final_configuration = provider.configuration_sha256()
+            except BaseException as failure:
+                _recover_force_provider_after_failure(provider, geometry, failure)
+                raise
+            if final_configuration != configuration:
+                failure = RuntimeError(
                     "scalar provider configuration drifted during Hessian evaluation."
                 )
+                _recover_force_provider_after_failure(provider, geometry, failure)
+                raise failure
             return RichardsonScalarHessianEvaluation(
                 contract_id=RICHARDSON_HESSIAN_CONTRACT,
                 provider_configuration_sha256=configuration,

@@ -164,9 +164,16 @@ def _pure_workflow_calculator(atoms):
         def configuration_sha256(self):
             return "d" * 64
 
-        def evaluate_forces(self, geometry):
+        def solve(self, geometry):
+            return SimpleNamespace(total_energy_eV=0.0)
+
+        def evaluate_forces(self, geometry, *, central_state=None):
             return SimpleNamespace(
-                central_state=SimpleNamespace(total_energy_eV=0.0),
+                central_state=(
+                    central_state
+                    if central_state is not None
+                    else SimpleNamespace(total_energy_eV=0.0)
+                ),
                 total_forces_eV_per_A=np.zeros((len(geometry), 3)),
             )
 

@@ -84,6 +84,80 @@ class _NoisyQuadratic:
         return ScalarForceSample(energy_sample, forces, evaluation)
 
 
+class _StencilFailure(RuntimeError):
+    pass
+
+
+class _RestoreFailure(RuntimeError):
+    pass
+
+
+class _Python310StyleStencilFailure(RuntimeError):
+    # Simulate Python 3.10, where BaseException.add_note is unavailable.
+    add_note = None
+
+
+class _FailingNoisyQuadratic(_NoisyQuadratic):
+    def __init__(
+        self,
+        *,
+        fail_at_displaced_call: int,
+        failure_type: type[BaseException] = _StencilFailure,
+        fail_center_recovery: bool = False,
+    ) -> None:
+        super().__init__()
+        self.fail_at_displaced_call = fail_at_displaced_call
+        self.failure_type = failure_type
+        self.fail_center_recovery = fail_center_recovery
+        self.displaced_call_count = 0
+        self.failure: BaseException | None = None
+        self.failed = False
+        self.cache_valid = False
+        self.invalidation_count = 0
+        self.center_call_count = 0
+
+    def force_sample(self, geometry: object) -> ScalarForceSample:
+        x = float(np.asarray(geometry.positions)[0, 0])
+        self.last_force_sample_x = x
+        self.cache_valid = True
+        if x != 0.0:
+            self.displaced_call_count += 1
+            if self.displaced_call_count == self.fail_at_displaced_call:
+                self.failed = True
+                self.failure = self.failure_type(
+                    f"stencil failure {self.fail_at_displaced_call}"
+                )
+                raise self.failure
+        else:
+            self.center_call_count += 1
+            if self.failed and self.fail_center_recovery:
+                raise _RestoreFailure("central recovery failed")
+        return super().force_sample(geometry)
+
+    def invalidate_cached_state(self) -> None:
+        self.invalidation_count += 1
+        self.cache_valid = False
+        self.last_force_sample_x = None
+
+
+class _TopologyRecoveryQuadratic(_NoisyQuadratic):
+    def __init__(self, recovery_failure_type: type[BaseException]) -> None:
+        super().__init__()
+        self.recovery_failure_type = recovery_failure_type
+        self.displaced_call_count = 0
+        self.center_call_count = 0
+
+    def force_sample(self, geometry: object) -> ScalarForceSample:
+        x = float(np.asarray(geometry.positions)[0, 0])
+        if x == 0.0:
+            self.center_call_count += 1
+            if self.displaced_call_count:
+                raise self.recovery_failure_type("central recovery failed")
+        else:
+            self.displaced_call_count += 1
+        return super().force_sample(geometry)
+
+
 def _atoms() -> Atoms:
     return Atoms("He", positions=np.zeros((1, 3), dtype=float))
 
@@ -150,11 +224,117 @@ def test_bounded_policy_accepts_and_hashes_small_changing_topology_noise():
     assert len(full.energy_force_discrepancies_eV_per_A) == 12
 
 
-def test_strict_policy_still_rejects_the_same_topology_changes():
+def test_strict_policy_still_rejects_the_same_topology_changes() -> None:
+    provider = _NoisyQuadratic()
     with pytest.raises(FiniteDifferenceTopologyChangeError):
         RichardsonScalarHessian().evaluate_hvp(
-            _NoisyQuadratic(), _atoms(), np.asarray([[1.0, 0.0, 0.0]])
+            provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]])
         )
+    assert provider.last_force_sample_x == 0.0
+
+
+@pytest.mark.parametrize("fail_at_displaced_call", [1, 2, 3, 4])
+def test_stencil_failure_restores_center_without_replacing_original_traceback(
+    fail_at_displaced_call: int,
+) -> None:
+    provider = _FailingNoisyQuadratic(fail_at_displaced_call=fail_at_displaced_call)
+    with pytest.raises(_StencilFailure) as caught:
+        _bounded().evaluate_hvp(provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]]))
+
+    assert caught.value is provider.failure
+    assert str(caught.value) == f"stencil failure {fail_at_displaced_call}"
+    traceback_names = []
+    traceback = caught.value.__traceback__
+    while traceback is not None:
+        traceback_names.append(traceback.tb_frame.f_code.co_name)
+        traceback = traceback.tb_next
+    assert "force_sample" in traceback_names
+    assert provider.last_force_sample_x == 0.0
+    assert provider.center_call_count == 2
+    assert provider.cache_valid is True
+
+
+def test_center_recovery_failure_is_only_noted_on_original_stencil_failure() -> None:
+    provider = _FailingNoisyQuadratic(
+        fail_at_displaced_call=2,
+        fail_center_recovery=True,
+    )
+    with pytest.raises(_StencilFailure) as caught:
+        _bounded().evaluate_hvp(provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]]))
+
+    assert caught.value is provider.failure
+    assert caught.value.__notes__ == [
+        "central force-provider recovery also failed: "
+        "_RestoreFailure: central recovery failed"
+    ]
+
+
+def test_recovery_note_supports_python310_style_exceptions() -> None:
+    provider = _FailingNoisyQuadratic(
+        fail_at_displaced_call=1,
+        failure_type=_Python310StyleStencilFailure,
+        fail_center_recovery=True,
+    )
+    with pytest.raises(_Python310StyleStencilFailure) as caught:
+        _bounded().evaluate_hvp(provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]]))
+
+    assert caught.value is provider.failure
+    assert caught.value.__notes__ == [
+        "central force-provider recovery also failed: "
+        "_RestoreFailure: central recovery failed"
+    ]
+
+
+@pytest.mark.parametrize("evaluation", ["hvp", "hessian"])
+def test_adaptive_topology_does_not_retry_after_center_recovery_failure(
+    evaluation: str,
+) -> None:
+    provider = _TopologyRecoveryQuadratic(_RestoreFailure)
+    backend = RichardsonScalarHessian(maximum_topology_step_reductions=3)
+    with pytest.raises(FiniteDifferenceTopologyChangeError) as caught:
+        if evaluation == "hvp":
+            backend.evaluate_hvp(provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]]))
+        else:
+            backend.evaluate(provider, _atoms())
+
+    assert provider.displaced_call_count == 1
+    assert provider.center_call_count == 2
+    assert caught.value.__notes__ == [
+        "central force-provider recovery also failed: "
+        "_RestoreFailure: central recovery failed"
+    ]
+
+
+@pytest.mark.parametrize("failure_type", [KeyboardInterrupt, SystemExit, GeneratorExit])
+def test_process_control_failure_during_recovery_propagates_immediately(
+    failure_type: type[BaseException],
+) -> None:
+    provider = _TopologyRecoveryQuadratic(failure_type)
+    backend = RichardsonScalarHessian(maximum_topology_step_reductions=3)
+    with pytest.raises(failure_type) as caught:
+        backend.evaluate_hvp(provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]]))
+
+    assert isinstance(caught.value.__context__, FiniteDifferenceTopologyChangeError)
+    assert provider.displaced_call_count == 1
+    assert provider.center_call_count == 2
+
+
+@pytest.mark.parametrize("failure_type", [KeyboardInterrupt, SystemExit, GeneratorExit])
+def test_process_control_failure_invalidates_without_expensive_center_replay(
+    failure_type: type[BaseException],
+) -> None:
+    provider = _FailingNoisyQuadratic(
+        fail_at_displaced_call=3,
+        failure_type=failure_type,
+    )
+    with pytest.raises(failure_type) as caught:
+        _bounded().evaluate_hvp(provider, _atoms(), np.asarray([[1.0, 0.0, 0.0]]))
+
+    assert caught.value is provider.failure
+    assert provider.center_call_count == 1
+    assert provider.invalidation_count == 1
+    assert provider.cache_valid is False
+    assert provider.last_force_sample_x is None
 
 
 @pytest.mark.parametrize(
@@ -177,10 +357,10 @@ def test_bounded_policy_rejects_metadata_configuration_and_nonfinite_drift():
         _bounded().evaluate_hvp(
             _NoisyQuadratic(metadata_drift=True), _atoms(), direction
         )
+    configuration_drift = _NoisyQuadratic(configuration_drift=True)
     with pytest.raises(RuntimeError, match="configuration drifted"):
-        _bounded().evaluate_hvp(
-            _NoisyQuadratic(configuration_drift=True), _atoms(), direction
-        )
+        _bounded().evaluate_hvp(configuration_drift, _atoms(), direction)
+    assert configuration_drift.last_force_sample_x == 0.0
     with pytest.raises(ValueError, match="forces_eV_per_A must be finite"):
         _bounded().evaluate_hvp(
             _NoisyQuadratic(nonfinite_force=True), _atoms(), direction

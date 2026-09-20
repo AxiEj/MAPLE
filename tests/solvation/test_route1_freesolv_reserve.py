@@ -13,11 +13,21 @@ if str(BENCHMARK_DIR) not in sys.path:
 
 import benchmark_core as core
 import run_route1_freesolv_reserve as reserve
+from source_compatibility import validate_frozen_source
 
 PROTOCOL_PATH = BENCHMARK_DIR / "route1_freesolv_reserve_protocol.json"
 MANIFEST_PATH = BENCHMARK_DIR / "route1_freesolv_reserve_source_manifest.json"
 ENERGY_PATH = BENCHMARK_DIR / "route1-freesolv-reserve-energy-2026-07-25.json"
 SCORE_PATH = BENCHMARK_DIR / "route1-freesolv-reserve-score-2026-07-25.json"
+SEALED_V1_ENERGY_PATH = (
+    BENCHMARK_DIR / "route1-freesolv-reserve-energy-sealed-v1-2026-07-25.json"
+)
+SEALED_V1_SCORE_PATH = (
+    BENCHMARK_DIR / "route1-freesolv-reserve-score-sealed-v1-2026-07-25.json"
+)
+SUPERSESSION_PATH = (
+    BENCHMARK_DIR / "route1-freesolv-reserve-artifact-supersession-2026-09-20.json"
+)
 
 
 def test_protocol_preserves_route1_and_pre_registers_no_tuning_rule():
@@ -63,7 +73,7 @@ def test_frozen_source_manifest_is_label_free_and_complete():
 def test_sealed_energy_artifact_is_complete_and_label_free():
     protocol, fingerprint = reserve.load_protocol(PROTOCOL_PATH)
     artifact = reserve.load_energy_artifact(
-        ENERGY_PATH,
+        SEALED_V1_ENERGY_PATH,
         protocol_path=PROTOCOL_PATH,
         protocol=protocol,
         fingerprint=fingerprint,
@@ -73,11 +83,16 @@ def test_sealed_energy_artifact_is_complete_and_label_free():
     assert artifact["case_count"] == 116
     assert len(artifact["records"]) == 116
     assert "experimental" not in json.dumps(artifact).lower()
-    assert core.sha256_file(ENERGY_PATH) == (
+    assert core.sha256_file(SEALED_V1_ENERGY_PATH) == (
         "5439b65f047d0aafa14282dfa47df8f0a05d5d965cce9cc3a52caf5b5eec3c09"
     )
-    assert artifact["command_provenance"]["script_sha256"] == core.sha256_file(
-        BENCHMARK_DIR / "run_route1_freesolv_reserve.py"
+    script_validation = validate_frozen_source(
+        REPOSITORY_ROOT,
+        "docs/implicit-solvation/benchmarks/run_route1_freesolv_reserve.py",
+        artifact["command_provenance"]["script_sha256"],
+    )
+    assert script_validation["mode"] == (
+        "documented-postexecution-production-safety-change"
     )
     for record in artifact["records"]:
         components = record["components_kcal_mol"]
@@ -94,15 +109,17 @@ def test_sealed_energy_artifact_is_complete_and_label_free():
 
 def test_score_artifact_reconciles_pre_registered_gates():
     protocol, fingerprint = reserve.load_protocol(PROTOCOL_PATH)
-    score = core.load_json(SCORE_PATH)
+    score = core.load_json(SEALED_V1_SCORE_PATH)
 
     assert core.artifact_content_sha256(score) == score["content_sha256"]
-    assert core.sha256_file(SCORE_PATH) == (
+    assert core.sha256_file(SEALED_V1_SCORE_PATH) == (
         "2503405c47bd87a237e65c686950907783e2d3848f30a9cab60bdf0ae31ebfef"
     )
     assert score["protocol_fingerprint"] == fingerprint
     assert score["case_count"] == 116
-    assert score["sealed_energy_artifact_sha256"] == core.sha256_file(ENERGY_PATH)
+    assert score["sealed_energy_artifact_sha256"] == core.sha256_file(
+        SEALED_V1_ENERGY_PATH
+    )
     assert score["evaluation_design"]["independent_blind_confirmation"] is False
     for endpoint in reserve.ENDPOINTS:
         assert score["methods"][endpoint]["n"] == 116
@@ -114,9 +131,55 @@ def test_score_artifact_reconciles_pre_registered_gates():
     assert score["decision"]["production_default_changed"] is False
     assert score["decision"]["runtime_force_capability_established"] is False
     assert score["decision"]["post_score_tuning_allowed"] is False
-    assert score["command_provenance"]["script_sha256"] == core.sha256_file(
-        BENCHMARK_DIR / "run_route1_freesolv_reserve.py"
+    script_validation = validate_frozen_source(
+        REPOSITORY_ROOT,
+        "docs/implicit-solvation/benchmarks/run_route1_freesolv_reserve.py",
+        score["command_provenance"]["script_sha256"],
     )
+    assert script_validation["mode"] == (
+        "documented-postexecution-production-safety-change"
+    )
+
+
+def _without_derived_metadata(value):
+    if isinstance(value, dict):
+        return {
+            key: _without_derived_metadata(item)
+            for key, item in value.items()
+            if key
+            not in {
+                "content_sha256",
+                "structure_group_sha256",
+                "sealed_energy_artifact_sha256",
+                "sealed_energy_content_sha256",
+            }
+        }
+    if isinstance(value, list):
+        return [_without_derived_metadata(item) for item in value]
+    return value
+
+
+def test_reserve_v1_and_metadata_v2_have_explicit_lineage_and_same_science():
+    ledger = core.load_json(SUPERSESSION_PATH)
+    assert core.artifact_content_sha256(ledger) == ledger["content_sha256"]
+    assert ledger["scientific_values_changed"] is False
+    assert ledger["historical_claim_promoted"] is False
+
+    for version in ledger["versions"].values():
+        path = BENCHMARK_DIR / version["path"]
+        artifact = core.load_json(path)
+        assert core.sha256_file(path) == version["file_sha256"]
+        assert artifact["content_sha256"] == version["content_sha256"]
+        assert artifact["case_count"] == version["case_count"] == 116
+
+    energy_v1 = core.load_json(SEALED_V1_ENERGY_PATH)
+    energy_v2 = core.load_json(ENERGY_PATH)
+    score_v1 = core.load_json(SEALED_V1_SCORE_PATH)
+    score_v2 = core.load_json(SCORE_PATH)
+    for artifact in (energy_v1, energy_v2, score_v1, score_v2):
+        artifact["command_provenance"].pop("script_sha256")
+    assert _without_derived_metadata(energy_v1) == _without_derived_metadata(energy_v2)
+    assert _without_derived_metadata(score_v1) == _without_derived_metadata(score_v2)
 
 
 def test_frozen_reserve_metrics_and_paired_interval():

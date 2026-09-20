@@ -559,6 +559,55 @@ def test_direct_api_rejects_unknown_charge_mode(tmp_path, water_mol2):
         )
 
 
+@pytest.mark.parametrize(
+    ("charge_options", "solvation_options"),
+    [
+        (
+            {"source": "maple", "method": "am1bcc", "mode": "fixed"},
+            {
+                "method": "gb",
+                "provider": "ambertools",
+                "model": "chagb",
+                "profile": "chagb-bondi-pbsa-inp2",
+                "nonpolar": "cavity-dispersion",
+                "experimental": True,
+            },
+        ),
+        (
+            {"source": "mol2", "mode": "fixed"},
+            {
+                "method": "pb",
+                "provider": "apbs",
+                "model": "lpb",
+                "profile": "generic-mbondi2",
+                "nonpolar": "apbs",
+                "experimental": True,
+            },
+        ),
+    ],
+)
+def test_direct_api_keeps_scalar_numerical_forces_internal(
+    charge_options, solvation_options, tmp_path, water_mol2
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    solvation_options.update(
+        mode="numerical",
+        force_step_angstrom=0.003,
+        force_check_step_angstrom=0.001,
+        max_scalar_evaluations=100,
+        max_raw_records=110,
+        max_audit_bytes=100_000,
+    )
+
+    with pytest.raises(ValueError, match="internal diagnostic|not a runtime mode"):
+        ImplicitSolvationCorrection(
+            atoms,
+            charge_options,
+            solvation_options,
+            output=tmp_path / "maple.out",
+        )
+
+
 def test_direct_api_rejects_unvalidated_chagb_charge_profile(tmp_path, water_mol2):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
 

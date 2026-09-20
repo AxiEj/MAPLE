@@ -72,9 +72,10 @@
         "ddd30f3c4af004fc7477036c60604bca5c8a6d7ef7f0967e7b17f0502142e7ee",
         "e2a3d6046cccd7030a499b0392cbcd93ddffecd1b4b66e9e1969f96b2bad426a",
         "aa2dbf9942b64afcf04930f6c051dfd4ac959cc962c07a9d2d13017c495bf2da",
-        "0e0f5483905f6390c133454a426e38f5ee4aec23bbacb2d13845abd3c57aa83e"
+        "0e0f5483905f6390c133454a426e38f5ee4aec23bbacb2d13845abd3c57aa83e",
+        "5ed4e828c3e926b66bcb1dd8477f247644039f7d5c71d5f04cf3c6efa19a9dc2"
       ],
-      "current_sha256": "5ed4e828c3e926b66bcb1dd8477f247644039f7d5c71d5f04cf3c6efa19a9dc2",
+      "current_sha256": "c226a04b2bbe58ad7bca00f940744f174de7faea84d0bc7969418083d477a97a",
       "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
@@ -93,9 +94,10 @@
         "151573f30a0c65f4dd67487d68deded2e7474262e3e4e77ab84c15ba40aca715",
         "e02ad1e74fbbf7d3969681da34fd04d1f4f4879729a878bf354f69b36264484c",
         "7874d57cb58e4e0e9c01d26a883e5c48da2543ef8c20f837eeaef5f4f6162b0a",
-        "d874aec3e661ad9786545ac0c5daa976c3c5f9a67081cc60c25c1f044161d6e0"
+        "d874aec3e661ad9786545ac0c5daa976c3c5f9a67081cc60c25c1f044161d6e0",
+        "b9fa7b55cc4a94d441152f71dcd8a52bb837ac1dfc103612306d116cd76285aa"
       ],
-      "current_sha256": "b9fa7b55cc4a94d441152f71dcd8a52bb837ac1dfc103612306d116cd76285aa",
+      "current_sha256": "f3ee38245c58830cf1de9c63afe04543ddb81b3353700c1d594975322698f310",
       "change_class": "prepared-topology-coordinate-only-runtime-optimization-with-live-component-parity",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
@@ -110,9 +112,10 @@
     {
       "path": "maple/function/calculator/extra_correction/implicit/apbs_pb.py",
       "historical_sha256": [
-        "e33eb3c6358024b9d0af0ca0e6e101480647102d9f77c4b4dd3a25c1ba78872e"
+        "e33eb3c6358024b9d0af0ca0e6e101480647102d9f77c4b4dd3a25c1ba78872e",
+        "414d426be24319550bbdacc3447a9ed961614d686e3f757888a800bdf6f21d3d"
       ],
-      "current_sha256": "414d426be24319550bbdacc3447a9ed961614d686e3f757888a800bdf6f21d3d",
+      "current_sha256": "889c70a657f36ab1ed07f03356ec887b3fcf39a9eeadd13fc012713ba86d7b2f",
       "change_class": "named-output-parser-and-finite-input-fail-closed",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false
@@ -145,13 +148,15 @@
         "cb3dbb158de92e960c9fa008f82015c1734f3bc51351ac89d3108e8dee03eec0",
         "9d058de4bbf3b076b02ea680d5cf695a540223ef5ddb5568bc3a8d85e91d0c50",
         "623486fe105f64bd5daf3dbdea3d844b96609235006b11ee2ac489f91b8b81f0",
-        "98e418682c08ed1b2b5c28ba9c1f285e220164ef23c296d4f9b0484429e52987"
+        "98e418682c08ed1b2b5c28ba9c1f285e220164ef23c296d4f9b0484429e52987",
+        "590c72716280ee18ccb2ecf07b58be6b26f6739999c063672ab298cdf15bf2e7",
+        "97dec03aaf1cfc7ca0d7f46b79f607ff12694955dec90308d81fffed861c907d"
       ],
-      "current_sha256": "590c72716280ee18ccb2ecf07b58be6b26f6739999c063672ab298cdf15bf2e7",
-      "change_class": "explicit-numerical-reference-provider-and-quantity-label",
+      "current_sha256": "95a2f8d13fb4bd99df3ab20dc385908934c4a68b982b9967e5a5e778db19624d",
+      "change_class": "close-unqualified-numerical-force-runtime",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-09 explicit finite-kappa ddX/ddLPB polar-only reference was added at user request without changing the fixed-charge GB/CHA/APBS defaults or restoring CQEq. Shared result/output labels now distinguish reference corrections from prebuilt clusters and hydration free energy. This source-evolution ledger is archival only; historical numerical artifacts are not recomputed, resealed or admitted for reuse.",
+      "reason": "2026-09-20 closes user-facing finite-difference forces for scalar AmberTools CHA-GB and APBS after the real APBS step-consistency canary failed and no qualifying Amber matrix existed. The standalone NumericalForceProvider remains an internal diagnostic harness; native OpenMM/ddLPB and scalar endpoint energies are unchanged. This ledger update records source evolution only and does not recompute, reseal, or authorize reuse of historical numerical claims.",
       "qeq_cqeq_runtime_enabled": false,
       "current_behavior_tests": [
         "tests/solvation/test_qeq_shutdown.py",
@@ -161,7 +166,10 @@
         "tests/solvation/test_implicit_ts.py",
         "tests/solvation/test_ddlpb_reference_tasks.py",
         "tests/solvation/test_calculator_composition.py",
-        "tests/solvation/test_prebuilt_inner_outer.py"
+        "tests/solvation/test_prebuilt_inner_outer.py",
+        "tests/solvation/test_numerical_force_command_contract.py",
+        "tests/solvation/test_numerical_solvent_forces.py",
+        "tests/solvation/test_provider_failure_gates.py"
       ]
     },
     {
@@ -186,9 +194,10 @@
       "path": "maple/function/calculator/extra_correction/implicit/openmm_gb.py",
       "historical_sha256": [
         "28111a3e038b15c614988fd5a40b19fd3f3ab564f277b7996f3e5c1a0176d4d6",
-        "1820f49fc685cce5265d4e79c430b347744492607fd891268a1637428e91938a"
+        "1820f49fc685cce5265d4e79c430b347744492607fd891268a1637428e91938a",
+        "07b33a2359f651d0d78b7b906f0cd77105507f74f08e06c8f6d62c46417faea4"
       ],
-      "current_sha256": "07b33a2359f651d0d78b7b906f0cd77105507f74f08e06c8f6d62c46417faea4",
+      "current_sha256": "a0a15aab7c9a96aa7993d4c169c200f9f1644b159d8cb08ff0fafad41196835b",
       "change_class": "retired-polarizable-route-code-removal",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
@@ -245,9 +254,10 @@
     {
       "path": "maple/function/calculator/uma/_uma_calculator.py",
       "historical_sha256": [
-        "9a25400479df28eb6e6a5ac7db6778fd60dd8221b794e73039653f366d667666"
+        "9a25400479df28eb6e6a5ac7db6778fd60dd8221b794e73039653f366d667666",
+        "ccd1345dad1f1a51651c898b016c15ccb902641d65a834e2fe4112a0a13ba817"
       ],
-      "current_sha256": "ccd1345dad1f1a51651c898b016c15ccb902641d65a834e2fe4112a0a13ba817",
+      "current_sha256": "db16ceda235459912780aa85f46d3848dc92ba9ef39e3a54b1d17a8988bbd092",
       "change_class": "removed-legacy-unstructured-implicit-solvent-fallback",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false
@@ -300,14 +310,16 @@
         "e8ac3a18c87f90c87daa761a54b36c17fcf30237526dfdc3b5bd712ddb033db0",
         "ef056173f09d8de270c9456319895fb0d5b916c0dfb19642d915f099a83aa71f",
         "77575afa4a50b35ff86a06a209c01c20b277b3de73e19fbfc160051cb20823a5",
-        "9befd644425ad85b42b8a123b47baa29c8a8ac15d08d5cc43a1d67893284dafd"
+        "9befd644425ad85b42b8a123b47baa29c8a8ac15d08d5cc43a1d67893284dafd",
+        "560eb2f81c9ff7bfdeaa9387450bdcc482e5d363ed9cad64d99d69d48aa36c9c",
+        "27b9417d8b203da532ac40c21d6422c9246b1c7b12eb750d903a5083405a99a5"
       ],
-      "current_sha256": "560eb2f81c9ff7bfdeaa9387450bdcc482e5d363ed9cad64d99d69d48aa36c9c",
-      "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
+      "current_sha256": "01533ec1c77a7b85889d51189129c051f75f337c1480429b5246c85133c42159",
+      "change_class": "close-unqualified-numerical-force-runtime",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
       "baseline_commit": "8e5e3a342c578d9a10eda3893bebf6bfe9596907",
-      "reason": "2026-09-10 ddLPB OPT/FREQ/PRFO/dimer opening reuses complete-force task validation. Component isolation identified ANI precision/coarse-stencil issues; same-checkpoint in-memory float64 plus a qualified 0.0005-A backend recommendation prepares numerical curvature before E/F/H, without changing checkpoint values or solvent parameters. Ordinary ANI SP/OPT and other backend defaults remain unchanged. Raw diagnostics and effective precision are exposed. This ledger describes source evolution only and never authorizes old numerical evidence reuse.",
+      "reason": "2026-09-20 closes user-facing finite-difference forces for scalar AmberTools CHA-GB and APBS after the real APBS step-consistency canary failed and no qualifying Amber matrix existed. The standalone NumericalForceProvider remains an internal diagnostic harness; native OpenMM/ddLPB and scalar endpoint energies are unchanged. This ledger update records source evolution only and does not recompute, reseal, or authorize reuse of historical numerical claims.",
       "current_behavior_tests": [
         "tests/solvation/test_qeq_shutdown.py",
         "tests/solvation/test_qeq_gto.py",
@@ -318,7 +330,10 @@
         "tests/solvation/test_calculator_composition.py",
         "tests/solvation/test_prebuilt_inner_outer.py",
         "tests/solvation/test_ddlpb_workflows.py",
-        "tests/solvation/test_ani_numerical_precision.py"
+        "tests/solvation/test_ani_numerical_precision.py",
+        "tests/solvation/test_numerical_force_command_contract.py",
+        "tests/solvation/test_numerical_solvent_forces.py",
+        "tests/solvation/test_provider_failure_gates.py"
       ],
       "legacy_provider_energy_force_parameters_changed": false,
       "qeq_cqeq_runtime_enabled": false
@@ -397,9 +412,10 @@
     {
       "path": "maple/function/dispatcher/frequency/frequency.py",
       "historical_sha256": [
-        "03bcb2109d642d7c77fdc610131f6d3958320951ed71b242eafcc1c19298333b"
+        "03bcb2109d642d7c77fdc610131f6d3958320951ed71b242eafcc1c19298333b",
+        "9794f0a3742058376ca1eb2b7e9e13ae6e72505f43ec679961a4c99598441b2c"
       ],
-      "current_sha256": "9794f0a3742058376ca1eb2b7e9e13ae6e72505f43ec679961a4c99598441b2c",
+      "current_sha256": "c78a884274282b3e206c033576d804f11c0abab2c94916984b48cd8ae0e82501",
       "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
@@ -431,9 +447,10 @@
     {
       "path": "maple/function/dispatcher/ts/algorithm/dimer.py",
       "historical_sha256": [
-        "987dcf33fa196b25bf0bd1aad18e055000d48b6dcb3b493ffabfe3ec34e8fcbb"
+        "987dcf33fa196b25bf0bd1aad18e055000d48b6dcb3b493ffabfe3ec34e8fcbb",
+        "e25323ee7c900c5019d4d8964fd8819a5c37c6334ebe588ced5ee177eb7c6ba8"
       ],
-      "current_sha256": "e25323ee7c900c5019d4d8964fd8819a5c37c6334ebe588ced5ee177eb7c6ba8",
+      "current_sha256": "8a178e735823322167eb02077890502be0261f13ed5a1228e3a54ee98ed64798",
       "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
@@ -443,8 +460,39 @@
         "tests/solvation/test_ani_numerical_precision.py",
         "tests/solvation/test_ddlpb_reference_tasks.py"
       ]
+    },
+    {
+      "path": "maple/function/calculator/set_calculator.py",
+      "historical_sha256": [
+        "acd4f9f0a17b3bedcd47287770c5db50846b6d9447bcb5a5f7c94dbe2efb24c5"
+      ],
+      "current_sha256": "dddbf87890ed33a26cdb3868006d915d574ab3f921cecaca1aae0b0b1ccd8366",
+      "change_class": "explicit-task-context-and-device-routing-source-evolution",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false,
+      "reason": "The 2026-09 Route 1 WIP checkpoint extends calculator construction with explicit task context and device-routing provenance. This ledger entry permits historical audits to fail closed as documented source evolution; it does not recompute, reseal, or authorize reuse of historical numerical claims.",
+      "current_behavior_tests": [
+        "tests/solvation/test_calculator_composition.py",
+        "tests/solvation/test_command_contract.py",
+        "tests/solvation/test_device_selection.py"
+      ]
+    },
+    {
+      "path": "docs/implicit-solvation/benchmarks/run_route1_freesolv_reserve.py",
+      "historical_sha256": [
+        "e1d027a819b30fc732eb7dd98b75f9776c223a821be0def62907c6499c5bfa1a"
+      ],
+      "current_sha256": "f6416d7d4097c06d3881da45c7d61c78eb1db3c5f4aa41b9830be6ef07b4f815",
+      "change_class": "postexecution-structure-group-derivation-support",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false,
+      "reason": "Post-execution source evolution supports separately versioned structure-group and ranking diagnostics. The original sealed-v1 reserve energy and score bytes are preserved at explicit sealed-v1 paths; the metadata-enriched v2 artifacts remain at the paths frozen into downstream 2026-07-29 consumers, with their relationship recorded in the supersession ledger. This compatibility record does not recompute, reseal, or authorize reuse of their numerical claims.",
+      "current_behavior_tests": [
+        "tests/solvation/test_route1_freesolv_reserve.py",
+        "tests/solvation/test_route1_ranking_contract.py"
+      ]
     }
   ],
-  "content_sha256": "a31ed099a366c6893dcf2de5b0833469a0f72be9175ba5c859379d0cde66dcde",
-  "last_updated_date": "2026-09-13"
+  "content_sha256": "c6950915afe75ed872f8531192613d39d9366bde03090d81ed6a4920a1f54928",
+  "last_updated_date": "2026-09-20"
 }

@@ -763,17 +763,15 @@ class CommandControl:
         )
 
     @classmethod
-    def _validate_numerical_force_options(
+    def _validate_force_mode(
         cls,
         options: dict,
         *,
         method: str,
         provider: str,
-        params: dict,
-        task: str,
         output_path,
     ) -> str | None:
-        """Validate the explicit testing-only scalar-to-force contract."""
+        """Keep native runtime forces separate from internal FD diagnostics."""
         numerical_keys = {
             "force_step_angstrom",
             "force_check_step_angstrom",
@@ -813,88 +811,18 @@ class CommandControl:
                 raise ValueError(msg)
             return mode
         if mode == "native":
-            msg = f"provider={provider} has no admitted native force; use mode=numerical."
+            msg = f"provider={provider} has no admitted native force."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
-        if mode is None:
-            if supplied_numerical:
-                msg = "Numerical-force steps and budgets require explicit mode=numerical."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            return None
-
-        required = (
-            "force_step_angstrom",
-            "force_check_step_angstrom",
-            "max_scalar_evaluations",
-            "max_raw_records",
-            "max_audit_bytes",
-        )
-        for key in required:
-            if key not in options:
-                msg = f"mode=numerical requires explicit {key}."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        for key in ("force_step_angstrom", "force_check_step_angstrom"):
-            value = options[key]
-            if (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not math.isfinite(value)
-                or value <= 0.0
-            ):
-                msg = f"{key} must be finite and positive in mode=numerical."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            options[key] = float(value)
-        if options["force_check_step_angstrom"] >= options["force_step_angstrom"]:
-            msg = "force_check_step_angstrom must be smaller than force_step_angstrom."
+        if mode == "numerical" or supplied_numerical:
+            msg = (
+                f"provider={provider} numerical forces are an internal diagnostic, "
+                "not a runtime mode; use an admitted native-force provider for "
+                "derivative workflows."
+            )
             cls._log_error(output_path, msg)
             raise ValueError(msg)
-        for key in ("max_scalar_evaluations", "max_raw_records", "max_audit_bytes"):
-            value = options[key]
-            if type(value) is not int or value <= 0:
-                msg = f"{key} must be a positive integer in mode=numerical."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        if "curvature_step_angstrom" in options:
-            value = options["curvature_step_angstrom"]
-            if (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not math.isfinite(value)
-                or value <= 0.0
-            ):
-                msg = "curvature_step_angstrom must be finite and positive."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            options["curvature_step_angstrom"] = float(value)
-
-        task_method = str(params.get("method", "")).lower()
-        if task == "md":
-            msg = "numerical solvent forces are testing-only; MD remains closed."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        if task not in {"sp", "opt", "scan", "freq", "ts"}:
-            msg = "Numerical solvent forces support SP, OPT, SCAN, FREQ, PRFO, and dimer only."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        if task in {"sp", "opt", "scan"} and "curvature_step_angstrom" in options:
-            msg = "curvature_step_angstrom is valid only for FREQ, PRFO, or dimer."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        if task == "freq" or (task == "ts" and task_method == "prfo"):
-            if "curvature_step_angstrom" not in options:
-                msg = "Numerical-solvent FREQ/PRFO requires explicit curvature_step_angstrom."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        if task == "ts" and task_method == "dimer":
-            task_delta = params.get("delta")
-            if task_delta is None and "curvature_step_angstrom" not in options:
-                msg = "Numerical-solvent dimer requires task delta or curvature_step_angstrom."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        return mode
+        return None
 
     @classmethod
     def _validate_solvation(
@@ -1092,12 +1020,10 @@ class CommandControl:
                     "provider", "openmm" if method == "gb" else "apbs"
                 )
             ).lower()
-            force_mode = cls._validate_numerical_force_options(
+            cls._validate_force_mode(
                 solv_params,
                 method=method,
                 provider=provider_for_force_mode,
-                params=params,
-                task=task,
                 output_path=output_path,
             )
             if method == "gb":
@@ -1167,19 +1093,13 @@ class CommandControl:
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
-                    if force_mode != "numerical" and (
-                        task != "sp" or params.get("verbose", 0) >= 1
-                    ):
+                    if task != "sp" or params.get("verbose", 0) >= 1:
                         msg = (
                             "AmberTools CHA-GB/cavity-dispersion is "
                             "single-point energy-only."
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
-                    if force_mode == "numerical" and task in {"freq", "ts"}:
-                        cls._validate_implicit_curvature_task(
-                            params, task, output_path
-                        )
                 elif provider == "openmm":
                     pb_only = {
                         "executable",
@@ -1374,19 +1294,13 @@ class CommandControl:
                         msg = "profile=abcg2-pbsa-2023 requires #charge(source=maple,method=abcg2)."
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
-                    if force_mode != "numerical" and (
-                        task != "sp" or params.get("verbose", 0) >= 1
-                    ):
+                    if task != "sp" or params.get("verbose", 0) >= 1:
                         msg = "PB is single-point energy-only until force/grid convergence is certified."
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
                     solv_params.update(
                         model=model, provider=provider, profile=profile, nonpolar=nonpolar
                     )
-                    if force_mode == "numerical" and task in {"freq", "ts"}:
-                        cls._validate_implicit_curvature_task(
-                            params, task, output_path
-                        )
             for key in (
                 "grid_spacing",
                 "probe_radius",

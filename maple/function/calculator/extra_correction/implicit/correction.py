@@ -97,73 +97,18 @@ def _validate_direct_contract(
         raise ValueError(f"provider={provider} supports only native forces")
     if numerical_provider and force_mode == "native":
         raise ValueError(
-            f"provider={provider} has no admitted native force; use mode=numerical"
+            f"provider={provider} has no admitted native force"
         )
-    if numerical_provider and force_mode is None and supplied:
+    if numerical_provider and (force_mode == "numerical" or supplied):
         raise ValueError(
-            "Numerical-force steps and budgets require explicit mode=numerical"
+            f"provider={provider} numerical forces are an internal diagnostic, "
+            "not a runtime mode; use an admitted native-force provider for "
+            "derivative workflows"
         )
     if not native_provider and not numerical_provider and (force_mode is not None or supplied):
         raise ValueError(f"provider={provider} does not support numerical-force options")
 
     task, task_method, task_delta = _task_contract(task_context)
-    if force_mode == "numerical":
-        required = (
-            "force_step_angstrom",
-            "force_check_step_angstrom",
-            "max_scalar_evaluations",
-            "max_raw_records",
-            "max_audit_bytes",
-        )
-        for key in required:
-            if key not in solvation_options:
-                raise ValueError(f"mode=numerical requires explicit {key}")
-        primary = _positive_finite(
-            solvation_options["force_step_angstrom"], name="force_step_angstrom"
-        )
-        check = _positive_finite(
-            solvation_options["force_check_step_angstrom"],
-            name="force_check_step_angstrom",
-        )
-        if check >= primary:
-            raise ValueError(
-                "force_check_step_angstrom must be smaller than force_step_angstrom"
-            )
-        for key in (
-            "max_scalar_evaluations",
-            "max_raw_records",
-            "max_audit_bytes",
-        ):
-            value = solvation_options[key]
-            if type(value) is not int or value <= 0:
-                raise ValueError(f"{key} must be a positive integer")
-        if "curvature_step_angstrom" in solvation_options:
-            _positive_finite(
-                solvation_options["curvature_step_angstrom"],
-                name="curvature_step_angstrom",
-            )
-        if task == "md":
-            raise ValueError("numerical solvent forces do not support MD")
-        if task not in {"sp", "opt", "scan", "freq", "ts"}:
-            raise ValueError(
-                "numerical solvent forces support SP, OPT, SCAN, FREQ, PRFO, and dimer only"
-            )
-        if task in {"sp", "opt", "scan"} and "curvature_step_angstrom" in solvation_options:
-            raise ValueError(
-                "curvature_step_angstrom is valid only for FREQ, PRFO, or dimer"
-            )
-        if task == "freq" or (task == "ts" and task_method == "prfo"):
-            if "curvature_step_angstrom" not in solvation_options:
-                raise ValueError(
-                    "numerical-solvent FREQ/PRFO requires curvature_step_angstrom"
-                )
-        if task == "ts" and task_method == "dimer":
-            if task_delta is None and "curvature_step_angstrom" not in solvation_options:
-                raise ValueError(
-                    "numerical-solvent dimer requires task delta or curvature_step_angstrom"
-                )
-            if task_delta is not None:
-                _positive_finite(task_delta, name="dimer task delta")
     return method, provider, force_mode, task, task_method, task_delta
 
 
@@ -445,22 +390,6 @@ class ImplicitSolvationCorrection:
             raise ValueError(f"Unsupported implicit-solvation method: {method!r}.")
 
         self.underlying_provider = self.provider
-        if self.force_mode == "numerical":
-            from .numerical_force import NumericalForceProvider
-
-            self.provider = NumericalForceProvider(
-                self.underlying_provider,
-                force_step_angstrom=self.solvation_options["force_step_angstrom"],
-                force_check_step_angstrom=self.solvation_options[
-                    "force_check_step_angstrom"
-                ],
-                max_scalar_evaluations=self.solvation_options[
-                    "max_scalar_evaluations"
-                ],
-                max_raw_records=self.solvation_options["max_raw_records"],
-                max_audit_bytes=self.solvation_options["max_audit_bytes"],
-                audit_dir=self.audit_dir / "numerical-force",
-            )
         self.supported_properties = set(self.provider.supported_properties)
         self._write_audit_manifest()
 
@@ -530,9 +459,9 @@ class ImplicitSolvationCorrection:
             "capabilities": {
                 "wrapper_supported_properties": sorted(self.supported_properties),
                 "underlying_supported_properties": underlying_supported,
-                "testing_only": self.force_mode == "numerical",
+                "testing_only": False,
                 "native_force": "forces" in underlying_supported,
-                "numerical_force": self.force_mode == "numerical",
+                "numerical_force": False,
                 "production_admitted": False,
                 "accuracy_certified": False,
             },
@@ -547,11 +476,6 @@ class ImplicitSolvationCorrection:
             encoding="utf-8",
         )
 
-    @property
-    def curvature_step_angstrom(self) -> float | None:
-        value = self.solvation_options.get("curvature_step_angstrom")
-        return None if value is None else float(value)
-
     def resolve_outer_curvature_step(
         self,
         *,
@@ -564,13 +488,6 @@ class ImplicitSolvationCorrection:
         if task_delta is not None:
             step = _positive_finite(task_delta, name="task-local delta")
             source = "task-local-delta"
-        elif self.force_mode == "numerical":
-            if self.curvature_step_angstrom is None:
-                raise ValueError(
-                    f"numerical-solvent {selected_task or 'curvature'} requires explicit curvature_step_angstrom"
-                )
-            step = self.curvature_step_angstrom
-            source = "solvation-curvature-step"
         elif backend_hint is not None:
             step = _positive_finite(backend_hint, name="backend numerical derivative step")
             source = "backend-recommendation"
@@ -582,7 +499,6 @@ class ImplicitSolvationCorrection:
             "selected_step_angstrom": step,
             "selected_source": source,
             "task_delta_angstrom": task_delta,
-            "solvation_curvature_step_angstrom": self.curvature_step_angstrom,
             "backend_hint_angstrom": backend_hint,
         }
         return step
@@ -676,39 +592,6 @@ class ImplicitSolvationCorrection:
         result = self.provider.evaluate(
             atoms, need_forces=need_forces, calculator=calculator
         )
-        if self.force_mode == "numerical":
-            result = SolvationResult(
-                energy_hartree=result.energy_hartree,
-                forces_hartree_per_angstrom=result.forces_hartree_per_angstrom,
-                components_hartree=dict(result.components_hartree),
-                provenance={
-                    **result.provenance,
-                    "testing_only": True,
-                    "native_force": False,
-                    "numerical_force": result.provenance.get(
-                        "numerical_force", True
-                    ),
-                    "derivative_source": (
-                        "centered-finite-difference-of-selected-provider-total"
-                    ),
-                    "production_admitted": False,
-                    "accuracy_certified": False,
-                    "force_step_angstrom": self.solvation_options[
-                        "force_step_angstrom"
-                    ],
-                    "force_check_step_angstrom": self.solvation_options[
-                        "force_check_step_angstrom"
-                    ],
-                    "curvature_step_angstrom": self.curvature_step_angstrom,
-                    "budget": self.provider.budget_snapshot,
-                    "underlying_supported_properties": sorted(
-                        self.underlying_provider.supported_properties
-                    ),
-                    "wrapper_supported_properties": sorted(
-                        self.provider.supported_properties
-                    ),
-                },
-            )
         if self.inner_mode == "prebuilt":
             return SolvationResult(
                 energy_hartree=result.energy_hartree,

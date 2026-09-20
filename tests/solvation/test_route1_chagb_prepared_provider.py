@@ -10,6 +10,9 @@ if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
 from benchmark_core import sha256_file  # pyright: ignore[reportMissingImports]
+from source_compatibility import (  # pyright: ignore[reportMissingImports]
+    validate_frozen_source,
+)
 from run_route1_chagb_prepared_provider import (  # pyright: ignore[reportMissingImports]
     load_protocol,
     validate_artifact,
@@ -51,8 +54,13 @@ def test_prepared_provider_artifact_locks_live_component_parity_and_cache_scope(
         "observed_cache_hits": [False, True, True, True],
         "topology_preparation_count": 1,
     }
-    assert artifact["implementation"]["prepared_provider_sha256"] == sha256_file(
-        PROVIDER_PATH
+    provider_validation = validate_frozen_source(
+        REPOSITORY_ROOT,
+        PROVIDER_PATH.relative_to(REPOSITORY_ROOT).as_posix(),
+        artifact["implementation"]["prepared_provider_sha256"],
+    )
+    assert provider_validation["mode"] == (
+        "documented-postexecution-production-safety-change"
     )
     assert artifact["command"]["script_sha256"] == sha256_file(RUNNER_PATH)
     assert artifact["protocol"]["sha256"] == sha256_file(PROTOCOL_PATH)

@@ -24,6 +24,7 @@ if str(BENCHMARK_DIR) not in sys.path:
 
 import benchmark_core as core
 import run_multi_mlip_discrete_conformers as runner
+from source_compatibility import validate_frozen_source
 
 
 def _load(path: Path) -> dict:
@@ -154,7 +155,16 @@ def test_energy_artifact_locks_three_real_model_runs_and_failed_repeat_gate():
             source_path = REPOSITORY_ROOT / environment[path_key]
             assert source_path.is_file()
             assert len(environment[hash_key]) == 64
-            if path_key in {"set_calculator_source", "discrete_core_source"}:
+            if path_key == "set_calculator_source":
+                validation = validate_frozen_source(
+                    REPOSITORY_ROOT,
+                    environment[path_key],
+                    environment[hash_key],
+                )
+                assert validation["mode"] == (
+                    "documented-postexecution-production-safety-change"
+                )
+            elif path_key == "discrete_core_source":
                 assert core.sha256_file(source_path) == environment[hash_key]
     # Calculator/base sources intentionally evolved after this historical
     # serial artifact to add the batch API. Their current hashes are locked by

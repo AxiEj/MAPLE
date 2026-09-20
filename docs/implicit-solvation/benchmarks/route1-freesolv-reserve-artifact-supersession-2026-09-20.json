@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "artifact_type": "route1-freesolv-reserve-artifact-supersession-ledger",
+  "recorded_date": "2026-09-20",
+  "reason": "Preserve the original 2026-07-25 byte seals as explicit sealed-v1 files while retaining the metadata-enriched v2 paths already frozen into 2026-07-29 ranking and charge-continuity evidence. V2 adds structure-group metadata and current runner provenance; it does not change endpoint predictions, labels, components, case membership, or decision values.",
+  "scientific_values_changed": false,
+  "historical_claim_promoted": false,
+  "versions": {
+    "energy_v1": {
+      "path": "route1-freesolv-reserve-energy-sealed-v1-2026-07-25.json",
+      "file_sha256": "5439b65f047d0aafa14282dfa47df8f0a05d5d965cce9cc3a52caf5b5eec3c09",
+      "content_sha256": "6b65e6dd35d61d39b3e6b0a35edce04e7519583a2bdef94457df910f3ab8c57d",
+      "case_count": 116
+    },
+    "score_v1": {
+      "path": "route1-freesolv-reserve-score-sealed-v1-2026-07-25.json",
+      "file_sha256": "2503405c47bd87a237e65c686950907783e2d3848f30a9cab60bdf0ae31ebfef",
+      "content_sha256": "0ba9023c7484606e952691cad042c6e9187038a4a59ff2c2b847dde673ea7227",
+      "case_count": 116
+    },
+    "energy_v2": {
+      "path": "route1-freesolv-reserve-energy-2026-07-25.json",
+      "file_sha256": "dbfaac870c0d3c93d46891ad5d1554c6c5a80fa6e5967ba9afe8b9cc80956787",
+      "content_sha256": "edca6a2be686059041f9a12f7a76371da01d81679377a1711e47f6e23d0c702d",
+      "case_count": 116
+    },
+    "score_v2": {
+      "path": "route1-freesolv-reserve-score-2026-07-25.json",
+      "file_sha256": "1902a97d77b576c9ab464e2dd9459552e8643392e46c7b4d6056b02e70b764b2",
+      "content_sha256": "073ae9eab5158c82f250ef9db92e8d83ca191a1bd7b30666ed95009690cd5f66",
+      "case_count": 116
+    }
+  },
+  "relationships": {
+    "energy_v2_derived_from": "energy_v1",
+    "score_v2_derived_from": "score_v1",
+    "v2_consumers": [
+      "route1_charge_continuity_protocol_v1.json",
+      "route1_charge_continuity_diagnostic_protocol_v1.json",
+      "route1_rank_protocol_v1.json"
+    ]
+  },
+  "content_sha256": "314b67a7d566f0f8d2598c3e987be0a5266ec3e5853edf8d1bc3b3f6afe39aff"
+}

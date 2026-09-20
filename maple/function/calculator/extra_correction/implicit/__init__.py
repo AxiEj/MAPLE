@@ -1,7 +1,7 @@
 """Evidence-gated implicit-solvation providers."""
 
 from .amber_chagb import AmberToolsChaGB
-from .charges import ChargeResult, QEqGTO, prepare_charges
+from .charges import ChargeResult, prepare_charges
 from .correction import ImplicitSolvationCorrection
 from .nonpolar import APBSSASANonpolarProvider, OpenMMNonpolarProvider
 from .radii import (
@@ -19,7 +19,6 @@ __all__ = [
     "OpenMMAmberGBRadiusProvider",
     "OpenMMMbondi2RadiusProvider",
     "OpenMMNonpolarProvider",
-    "QEqGTO",
     "RadiusResult",
     "SolvationResult",
     "prepare_charges",

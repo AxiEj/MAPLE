@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ase import Atoms
+
 from maple.function.read.input_reader import InputReader
 
 
@@ -21,6 +23,7 @@ def test_input_reader_accepts_charge_mult_then_mol2(water_mol2, tmp_path):
         )
     )
     atoms = InputReader()(str(inp), str(out))
+    assert isinstance(atoms, Atoms)
     assert atoms.info["charge"] == 0
     assert atoms.info["mult"] == 1
     assert atoms.info["_maple_charge_options"]["source"] == "mol2"
@@ -35,7 +38,7 @@ def test_implicit_input_rejects_xyz_even_when_charge_method_can_use_geometry(tmp
         "\n".join(
             [
                 "#model=ani2x",
-                "#charge(source=maple,method=qeq-gto)",
+                "#charge(source=maple)",
                 "#solv(implicit=water,method=gb,experimental=true)",
                 "",
                 "0 1",
@@ -57,7 +60,7 @@ def test_implicit_mol2_requires_explicit_neutral_closed_shell_line(water_mol2, t
         "\n".join(
             [
                 "#model=ani2x",
-                "#charge(source=maple,method=qeq-gto)",
+                "#charge(source=maple)",
                 "#solv(implicit=water,method=gb,experimental=true)",
                 "",
                 f"MOL2 {water_mol2}",

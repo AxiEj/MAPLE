@@ -32,6 +32,29 @@ class DummyCorrection:
         )
 
 
+def test_reference_metadata_is_neither_cluster_nor_hydration_free_energy():
+    class ReferenceCorrection(DummyCorrection):
+        def evaluate(self, atoms, need_forces=False, calculator=None):
+            result = super().evaluate(atoms, need_forces, calculator)
+            result.provenance.update(
+                reference_only=True, absolute_solvation_free_energy_claim=False
+            )
+            return result
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    calculator = CalcABC()
+    calculator.solvent_correction = ReferenceCorrection()
+    atoms.calc = calculator
+    calculator._finalize_results(atoms, energy=1.0, unit="hartree")
+    structured = calculator.results["solvation"]
+    assert structured["reference_correction_hartree"] == pytest.approx(0.25)
+    assert "cluster_continuum_correction_hartree" not in structured
+    assert "delta_g_solv_hartree" not in structured
+    output = "".join(SinglePoint._solvation_lines(atoms))
+    assert "Numerical reference correction" in output
+    assert "prebuilt cluster" not in output
+
+
 class EnergyOnlyCorrection:
     supported_properties = {"energy"}
 
@@ -176,6 +199,31 @@ def test_shared_finalizer_adds_correction_energy_and_force_exactly_once():
     assert solvation["delta_g_solv_hartree"] == 0.25
     assert solvation["combined_energy_hartree"] == 1.25
     assert solvation["ase_free_energy_is_thermochemical_gibbs"] is False
+
+
+def test_numerical_hessian_prepares_backend_and_honors_explicit_step():
+    class PreparedQuadratic(QuadraticGasCalculator):
+        def prepare_numerical_derivatives(self):
+            self.prepared = True
+            return 0.0005
+
+    calc = PreparedQuadratic(0.7)
+    atoms = Atoms("H", positions=[[0.1, 0.2, 0.3]])
+    actual = calc.get_hessian(atoms)
+    assert calc.prepared is True
+    np.testing.assert_allclose(actual, np.eye(3) * 0.7, atol=1e-10)
+    assert calc.last_numerical_hessian_diagnostics is not None
+    assert calc.last_numerical_hessian_diagnostics["cartesian_displacement_angstrom"] == 0.0005
+    calc.get_hessian(atoms, delta=0.001)
+    assert calc.last_numerical_hessian_diagnostics is not None
+    assert calc.last_numerical_hessian_diagnostics["cartesian_displacement_angstrom"] == 0.001
+
+
+def test_ordinary_backend_keeps_original_numerical_hessian_step():
+    calc = QuadraticGasCalculator(0.7)
+    calc.get_hessian(Atoms("H", positions=[[0.1, 0.2, 0.3]]))
+    assert calc.last_numerical_hessian_diagnostics is not None
+    assert calc.last_numerical_hessian_diagnostics["cartesian_displacement_angstrom"] == 0.002
 
 
 def test_single_point_output_labels_gas_solvation_and_combined_energies():

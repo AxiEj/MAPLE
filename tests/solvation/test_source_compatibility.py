@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
-
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
@@ -15,6 +14,7 @@ from benchmark_core import sha256_file
 from source_compatibility import (
     load_source_compatibility,
     require_exact_frozen_sources,
+    validate_frozen_source,
 )
 
 
@@ -59,3 +59,27 @@ def test_documented_source_drift_never_authorizes_execution_or_sealing():
                 }
             ],
         )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "maple/function/read/command_control.py",
+        "maple/function/calculator/extra_correction/implicit/charges.py",
+    ],
+)
+def test_runtime_selection_changes_are_archival_only_not_old_evidence_reuse(path):
+    record = next(
+        record
+        for record in load_source_compatibility()["source_changes"]
+        if record["path"] == path
+    )
+    assert record["qeq_cqeq_runtime_enabled"] is False
+    assert record["scientific_claim_reuse_authorized"] is False
+    for historical in record["historical_sha256"]:
+        status = validate_frozen_source(REPOSITORY_ROOT, record["path"], historical)
+        assert status["mode"] == "documented-postexecution-production-safety-change"
+        with pytest.raises(ValueError, match="historical-audit-only"):
+            require_exact_frozen_sources(
+                REPOSITORY_ROOT, [{"path": record["path"], "sha256": historical}]
+            )

@@ -23,10 +23,12 @@ def test_all_five_amber_gb_models_return_finite_energy_and_force(water_mol2, mod
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     provider = OpenMMGB(atoms, atoms.get_initial_charges(), model=model, nonpolar="ace")
     result = provider.evaluate(atoms, need_forces=True)
+    forces = result.forces_hartree_per_angstrom
 
     assert np.isfinite(result.energy_hartree)
-    assert result.forces_hartree_per_angstrom.shape == (3, 3)
-    assert np.isfinite(result.forces_hartree_per_angstrom).all()
+    assert forces is not None
+    assert forces.shape == (3, 3)
+    assert np.isfinite(forces).all()
     assert np.isclose(
         result.components_hartree["polar"] + result.components_hartree["nonpolar"],
         result.energy_hartree,
@@ -144,7 +146,9 @@ def test_openmm_gb_force_matches_finite_difference(water_mol2):
     fd_force = -(
         provider.evaluate(plus).energy_hartree - provider.evaluate(minus).energy_hartree
     ) / (2 * h)
-    assert np.isclose(result.forces_hartree_per_angstrom[1, 0], fd_force, atol=2e-6)
+    forces = result.forces_hartree_per_angstrom
+    assert forces is not None
+    assert np.isclose(forces[1, 0], fd_force, atol=2e-6)
 
 
 def test_ace_component_uses_one_total_context_evaluation(water_mol2, monkeypatch):
@@ -160,9 +164,11 @@ def test_ace_component_uses_one_total_context_evaluation(water_mol2, monkeypatch
 
     monkeypatch.setattr(provider._polar, "evaluate", reject_duplicate_polar_evaluation)
     result = provider.evaluate(atoms, need_forces=True)
+    forces = result.forces_hartree_per_angstrom
 
     assert np.isfinite(result.energy_hartree)
-    assert np.isfinite(result.forces_hartree_per_angstrom).all()
+    assert forces is not None
+    assert np.isfinite(forces).all()
     assert result.components_hartree["nonpolar"] > 0.0
     assert np.isclose(
         result.components_hartree["polar"] + result.components_hartree["nonpolar"],
@@ -428,8 +434,10 @@ def test_lcpo_has_an_explicit_openmm_version_boundary(methanol_mol2):
         result = OpenMMGB(atoms, atoms.get_initial_charges(), nonpolar="lcpo").evaluate(
             atoms, need_forces=True
         )
+        forces = result.forces_hartree_per_angstrom
         assert np.isfinite(result.energy_hartree)
-        assert np.isfinite(result.forces_hartree_per_angstrom).all()
+        assert forces is not None
+        assert np.isfinite(forces).all()
         assert result.components_hartree["nonpolar"] > 0.0
 
 
@@ -454,7 +462,9 @@ def test_lcpo_complete_force_matches_finite_difference(methanol_mol2):
     fd_force = -(
         provider.evaluate(plus).energy_hartree - provider.evaluate(minus).energy_hartree
     ) / (2 * h)
-    assert np.isclose(result.forces_hartree_per_angstrom[1, 0], fd_force, atol=2e-6)
+    forces = result.forces_hartree_per_angstrom
+    assert forces is not None
+    assert np.isclose(forces[1, 0], fd_force, atol=2e-6)
 
 
 def test_lcpo_uses_gaff_nitro_oxygen_types_for_amber_energy_and_force():
@@ -482,11 +492,13 @@ def test_lcpo_uses_gaff_nitro_oxygen_types_for_amber_energy_and_force():
     assert installation["adjusted_atom_indices"] == [8, 9]
 
     result = provider.evaluate(atoms, need_forces=True)
+    forces = result.forces_hartree_per_angstrom
     reference = case["models"]["obc2"]
     kcal_per_hartree = KJ_PER_MOL_PER_HARTREE / 4.184
     nonpolar_kcal_mol = result.components_hartree["nonpolar"] * kcal_per_hartree
     total_kcal_mol = result.energy_hartree * kcal_per_hartree
-    force_kcal_mol_angstrom = result.forces_hartree_per_angstrom * kcal_per_hartree
+    assert forces is not None
+    force_kcal_mol_angstrom = forces * kcal_per_hartree
 
     assert nonpolar_kcal_mol == pytest.approx(reference["nonpolar_lcpo"], abs=1.0e-12)
     assert total_kcal_mol == pytest.approx(reference["total_lcpo"], abs=1.0e-3)
@@ -499,16 +511,6 @@ def test_lcpo_uses_gaff_nitro_oxygen_types_for_amber_energy_and_force():
         )
         < 1.0e-3
     )
-
-
-def test_openmm_gb_rejects_invalid_dynamic_charge_array(water_mol2):
-    from maple.function.calculator.extra_correction.implicit.openmm_gb import OpenMMGB
-
-    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
-    provider = OpenMMGB(atoms, atoms.get_initial_charges())
-
-    with pytest.raises(ValueError, match="one finite partial charge per atom"):
-        provider.evaluate(atoms, charges=np.array([0.0, 0.0]))
 
 
 def test_gbn2_phosphorus_fails_closed_instead_of_using_openmm_default_parameters():
@@ -558,10 +560,12 @@ def test_gbn2_generic_mol_ester_uses_amber_mbondi3_radius_and_force():
     ] == [6]
 
     result = provider.evaluate(atoms, need_forces=True)
+    forces = result.forces_hartree_per_angstrom
     reference = case["models"]["gbn2"]
     kcal_per_hartree = KJ_PER_MOL_PER_HARTREE / 4.184
     energy_kcal_mol = result.energy_hartree * kcal_per_hartree
-    force_kcal_mol_angstrom = result.forces_hartree_per_angstrom * kcal_per_hartree
+    assert forces is not None
+    force_kcal_mol_angstrom = forces * kcal_per_hartree
 
     assert energy_kcal_mol == pytest.approx(reference["polar"], abs=1.0e-3)
     assert (

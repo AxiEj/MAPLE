@@ -25,6 +25,8 @@ from .sphere_union_volume import (
 )
 
 _TWO_PI = 2.0 * math.pi
+# Bound temporary site-by-node arrays without adding a numerical model option.
+_AZIMUTH_BATCH_ARCS = 32
 
 
 @dataclass(frozen=True)
@@ -231,6 +233,9 @@ def dispersion_energy_and_gradient(
     nodes, weights = np.polynomial.legendre.leggauss(azimuth_order)
     raw_b = 4.0 * epsilons * sigmas**6
     raw_a = raw_b * sigmas**6
+    inside_coefficient = solvent_density * (
+        -raw_b / (3.0 * sigmas**3) + raw_a / (9.0 * sigmas**9)
+    )
     evaluations = 0
     azimuth_evaluations = 0
 
@@ -254,6 +259,7 @@ def dispersion_energy_and_gradient(
                 active,
                 geometry_tolerance,
             )
+            segments: list[tuple[float, float]] = []
             for start, stop in arcs:
                 splits = [start, stop]
                 for site in range(count):
@@ -270,77 +276,77 @@ def dispersion_energy_and_gradient(
                         )
                     )
                 splits = sorted(set(splits))
-                for arc_start, arc_stop in itertools.pairwise(splits):
-                    half_width = 0.5 * (arc_stop - arc_start)
-                    middle = 0.5 * (arc_stop + arc_start)
-                    angles = middle + half_width * nodes
-                    arc_weights = half_width * weights
-                    azimuth_evaluations += azimuth_order
+                segments.extend(itertools.pairwise(splits))
 
-                    cosines = np.cos(angles)
-                    sines = np.sin(angles)
-                    xyz = np.column_stack(
-                        (
-                            centered[source, 0] + circle_radius * cosines,
-                            centered[source, 1] + circle_radius * sines,
-                            np.full(azimuth_order, z),
-                        )
-                    )
-                    normal = np.column_stack(
-                        (
-                            circle_radius * cosines / radii[source],
-                            circle_radius * sines / radii[source],
-                            np.full(azimuth_order, dz[source] / radii[source]),
-                        )
-                    )
-                    surface_weights = radii[source] * arc_weights
-                    displacement = xyz[:, None, :] - centered[None, :, :]
-                    distances = np.linalg.norm(displacement, axis=2)
-                    if np.any(distances <= geometry_tolerance):
-                        raise RuntimeError(
-                            "an integration node coincides with a dispersion site."
-                        )
+            # Keep every original subarc's nodes and weights; only batch their
+            # evaluation to avoid allocating small arrays for each subarc.
+            for first in range(0, len(segments), _AZIMUTH_BATCH_ARCS):
+                bounds = np.asarray(segments[first : first + _AZIMUTH_BATCH_ARCS])
+                half_width = 0.5 * (bounds[:, 1] - bounds[:, 0])
+                middle = 0.5 * (bounds[:, 1] + bounds[:, 0])
+                angles = (middle[:, None] + half_width[:, None] * nodes).ravel()
+                arc_weights = (half_width[:, None] * weights).ravel()
+                azimuth_evaluations += len(angles)
 
-                    outside = distances >= sigmas[None, :]
-                    inverse_six = np.zeros_like(distances)
-                    inverse_six[outside] = distances[outside] ** -6
-                    potentials = (
-                        raw_a[None, :] * inverse_six**2 - raw_b[None, :] * inverse_six
+                cosines = np.cos(angles)
+                sines = np.sin(angles)
+                xyz = np.column_stack(
+                    (
+                        centered[source, 0] + circle_radius * cosines,
+                        centered[source, 1] + circle_radius * sines,
+                        np.full(len(angles), z),
+                    )
+                )
+                normal = np.column_stack(
+                    (
+                        circle_radius * cosines / radii[source],
+                        circle_radius * sines / radii[source],
+                        np.full(len(angles), dz[source] / radii[source]),
+                    )
+                )
+                surface_weights = radii[source] * arc_weights
+                displacement = xyz[:, None, :] - centered[None, :, :]
+                distances = np.linalg.norm(displacement, axis=2)
+                if np.any(distances <= geometry_tolerance):
+                    raise RuntimeError(
+                        "an integration node coincides with a dispersion site."
                     )
 
-                    radial = np.empty_like(distances)
-                    radial[outside] = (
-                        solvent_density
-                        * (
-                            -raw_b[None, :] * inverse_six / 3.0
-                            + raw_a[None, :] * inverse_six**2 / 9.0
-                        )[outside]
-                    )
-                    inside = ~outside
-                    inside_coefficient = solvent_density * (
-                        -raw_b / (3.0 * sigmas**3) + raw_a / (9.0 * sigmas**9)
-                    )
-                    radial[inside] = (inside_coefficient[None, :] / distances**3)[
-                        inside
-                    ]
+                outside = distances >= sigmas[None, :]
+                inverse_six = np.zeros_like(distances)
+                inverse_six[outside] = distances[outside] ** -6
+                potentials = (
+                    raw_a[None, :] * inverse_six**2 - raw_b[None, :] * inverse_six
+                )
 
-                    normal_dot = np.einsum("qik,qk->qi", displacement, normal)
-                    values[0] += float(
-                        np.sum(surface_weights[:, None] * radial * normal_dot)
+                radial = np.empty_like(distances)
+                radial[outside] = (
+                    solvent_density
+                    * (
+                        -raw_b[None, :] * inverse_six / 3.0
+                        + raw_a[None, :] * inverse_six**2 / 9.0
+                    )[outside]
+                )
+                inside = ~outside
+                radial[inside] = (inside_coefficient[None, :] / distances**3)[inside]
+
+                normal_dot = np.einsum("qik,qk->qi", displacement, normal)
+                values[0] += float(
+                    np.sum(surface_weights[:, None] * radial * normal_dot)
+                )
+                weighted_normals = surface_weights[:, None] * normal
+                values[1:] += (
+                    solvent_density
+                    * np.einsum("qi,qk->ik", potentials, weighted_normals)
+                ).reshape(-1)
+                values[1 + 3 * source : 1 + 3 * (source + 1)] -= (
+                    solvent_density
+                    * np.einsum(
+                        "q,qk->k",
+                        np.sum(potentials, axis=1),
+                        weighted_normals,
                     )
-                    weighted_normals = surface_weights[:, None] * normal
-                    values[1:] += (
-                        solvent_density
-                        * np.einsum("qi,qk->ik", potentials, weighted_normals)
-                    ).reshape(-1)
-                    values[1 + 3 * source : 1 + 3 * (source + 1)] -= (
-                        solvent_density
-                        * np.einsum(
-                            "q,qk->k",
-                            np.sum(potentials, axis=1),
-                            weighted_normals,
-                        )
-                    )
+                )
         return values
 
     integral, error, info = quad_vec(

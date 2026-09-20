@@ -182,7 +182,12 @@ class engine():
                             d4=self.d4, implicit=implicit_method, solvent=solvent,
                             model_options=self.model_options,
                             solvation_options=self.commandcontrol.get('solv', {}),
-                            charge_options=self.commandcontrol.get('charge', {}))
+                            charge_options=self.commandcontrol.get('charge', {}),
+                            task_context={
+                                "task": self.jobtype,
+                                "method": self.commandcontrol.get("method"),
+                                "delta": self.commandcontrol.get("delta"),
+                            })
             self.calulator = setcalculator.set_calculator()
     
     def _jobtype_dispatcher(self, commandcontrol, jobtype:int, atoms:Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:

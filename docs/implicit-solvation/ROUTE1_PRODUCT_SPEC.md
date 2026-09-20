@@ -1,5 +1,15 @@
 # Route 1 product specification
 
+> **Four endpoints / three roles:** FAST OBC-II/ACE, ACCURACY CHA-GB/ALPB plus
+> PBSA cavity/dispersion, REFERENCE ddX/ddLPB, and independent APBS cross-check.
+> The new finite-kappa reference is polar-only and experimental, not a change
+> of product default or restoration of retired ddPCM/CQEq experiments.
+> See [the reference contract](NUMERICAL_REFERENCE.md).
+
+> **E/F code removed from this branch (2026-09-09):** ddX/ddPCM reference
+> runners and polarizable CQEq-GTO/GB are deleted. Their historical audit
+> sections below are not current capabilities or scheduled development.
+
 **Route name:** Additive fixed-charge PB/GB implicit solvation
 
 **Product role:** Baseline/Product Route
@@ -99,9 +109,12 @@ one composition boundary.
 ## Defaults and applicability
 
 - `#charge(source=maple)` means fixed AM1-BCC with `geometry=keep`.
-- ABCG2 and fixed QEq-GTO charge diagnostics require explicit selection and are
-  never automatic fallbacks. Polarizable CQEq-GTO/GB is labeled a separate
-  research control and is not a Route 1 fixed-charge product profile.
+- ABCG2 requires explicit selection and is never an automatic fallback.
+- QEq-GTO and CQEq-GTO/GB runtime selections are disabled at user request
+  (2026-09-08). The ordinary fixed-QEq legacy implementation is retained;
+  CQEq-GTO/GB code was removed on 2026-09-09, leaving only historical evidence
+  and equations;
+  neither fixed nor polarizable QEq is an active charge option.
 - OBC-II/ACE remains the forward development default. A literature candidate
   does not replace it without the frozen benchmark and confirmation process.
 - The product OpenMM platform default is single-thread CPU with deterministic
@@ -131,7 +144,6 @@ one composition boundary.
 | APBS LPB + APOLAR | energy only | no | no | no | no | fail closed on forces |
 | APBS SPL4 LPB force probe | rejected benchmark | no | no | no | no | molecular surface aborts; SPL4 polar and APOLAR force gates fail |
 | AmberTools GENIUSES/MLSES PB surface probe | rejected benchmark | no | no | no | no | no atom-resolved MLSES force; no local small-molecule speedup; no runtime provider |
-| external ddX/ddPCM audit | benchmark only | no | no | no | no | polar derivative passes, but accuracy and performance gates fail; no dependency/provider added |
 | CHARMM GBMV2/SA source audit | unavailable locally | no | no | no | no | scientifically promising physical candidate; registered CHARMM runtime and deployable provider path not available for parity/force validation |
 | SLIC/CDC source audit | unavailable locally | no | no | no | no | promising AM1-BCC-compatible physical energy model; complete 2022 upstream and atom-resolved polar-plus-nonpolar force are unavailable |
 | AmberTools CHA-GB + PBSA cavity/dispersion | energy only | no | no | no | no | explicit AM1-BCC SP provider; preserves input GAFF/GAFF2 types and fails closed on forces |
@@ -1245,8 +1257,9 @@ throughput claims, but they rule out a fast-product promotion here.
 
 The conclusion is deliberately fail-closed: ddX proves that a real
 force-consistent external PCM path exists, but this tested pairing provides
-neither a material accuracy gain nor product-appropriate speed. It remains an
-external reference candidate. OBC-II/ACE remains the force-capable product
+neither a material accuracy gain nor product-appropriate speed. Its reference
+runners were subsequently removed from this branch on 2026-09-09; only the
+historical evidence remains. OBC-II/ACE remains the force-capable product
 baseline, and CHA-GB/cavity-dispersion remains the explicit higher-accuracy
 SP-only profile. No remaining maintained analytical candidate evaluated in
 this round passes all derivative, material-accuracy, applicability,
@@ -1582,13 +1595,12 @@ a separate OpenMM force.
   is materially worse than both frozen comparators, and the released 2008
   Fortran program does not expose the first-derivative interface advertised by
   the project website.
-- ddX/pyddx remains an external reference candidate, not a MAPLE dependency.
+- ddX/pyddx is a retired reference, with its runners removed from this branch.
   Its complete polar derivative and zero-salt ddPCM numerical convergence
   pass, but the frozen mbondi2/ACE pairing gives `1.782/2.881 kcal/mol`
   MAE/RMSE and is roughly `360x` slower than the current local OBC-II/ACE
-  correction. A revisit requires a materially different, independently
-  justified charge/radius/nonpolar profile or performance regime; the failed
-  pairing must not be relabeled as a product improvement.
+  correction. No further development is scheduled for this removed branch;
+  historical findings are retained without relabeling the failed pairing.
 - GBMV2/SA is retained as the highest-priority physical provider watch item.
   Historical GAFF/AM1-BCC trajectory/BAR studies report about
   `1.14-1.24 kcal/mol` AUE and the analytical model exposes first derivatives.

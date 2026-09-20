@@ -84,7 +84,7 @@ recommended but not required (UMA proves duck-typing works).
 - The capability class attributes from §1.
 
 **Optional**
-- `get_hessian(self, atoms, delta=0.002)` — `CalcABC` provides a default that
+- `get_hessian(self, atoms, delta=None)` — `CalcABC` provides a default that
   dispatches on `self.hessian` (`'analytic'` → `_analytic_hessian`, `'numerical'`
   → shared finite-difference helper).
 - `_analytic_hessian(self, atoms)` — return `(3N, 3N)` ndarray in Hartree/Å². Use
@@ -123,3 +123,25 @@ TorchScript loader and a `torch.load` + custom-class loader).
   the ASE protocol + analytic-vs-numerical Hessian tolerance (the manual smoke in
   §2 should become CI).
 - Revisit the UMA exception once stress-unit validation lands.
+
+### Numerical-curvature precision protocol (2026-09-10)
+
+`CalcABC.prepare_numerical_derivatives()` may prepare consistent E/F/H inference
+precision and return a recommended force-difference step, or `None` to retain
+legacy defaults. The default implementation returns `None`. `get_hessian`
+uses `0.002 A` when neither caller nor backend supplies a step; explicit
+`delta=` wins. Its raw pre-symmetrization diagnostics are retained in
+`last_numerical_hessian_diagnostics`. Do not use the symmetry imposed on the
+returned Hessian as evidence of raw derivative accuracy.
+
+Numerical P-RFO prepares before its first energy/force, and finite-difference
+dimer prepares before initial-direction forces; dimer uses a backend step
+only when no explicit delta was supplied. Gas autograd-HVP dimer is unchanged.
+ANI's hook selects in-memory float64 and a `0.0005 A` recommendation without
+changing checkpoint tensor values; ordinary default SP/OPT stay native.
+Explicit ANI float32 numerical curvature is rejected. Optional backend
+`inference_precision_provenance` is copied into calculator results (and the
+structured solvent result) and logged for curvature tasks. Record requested
+and effective dtype and checkpoint identity; invalidate stale calculator
+caches when changing inference precision. Never change dtype halfway through
+E/F/H evaluations or silently demote within a workflow.

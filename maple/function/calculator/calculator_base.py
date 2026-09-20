@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from contextlib import nullcontext
 from typing import Any, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
 
 import numpy as np
 
@@ -333,6 +335,62 @@ def _property_list(properties):
     return ['energy'] if properties is None else properties
 
 
+def calculator_execution(calculator) -> dict[str, Any]:
+    """Report component placement without equating MLIP GPU with solver GPU.
+
+    Parameter metadata is inspected without transfers or inference. Keeping
+    this live (rather than caching it at construction) reflects a backend's
+    numerical-derivative precision preparation. Unknown metadata stays unknown.
+    """
+    model = getattr(calculator, 'model', None)
+    parameter = None
+    parameters = getattr(model, 'parameters', None)
+    if callable(parameters):
+        candidates = parameters()
+        if isinstance(candidates, Iterable):
+            parameter = next(iter(candidates), None)
+    correction = getattr(calculator, 'solvent_correction', None)
+    provider = getattr(correction, 'provider', None)
+    provenance = getattr(provider, 'provenance', {}) or {}
+    if callable(provenance):
+        provenance = provenance()
+    if not isinstance(provenance, Mapping):
+        raise TypeError('Provider execution provenance must be a mapping.')
+    wrapper_provenance = provenance
+    underlying_provenance = provenance.get('underlying_provider')
+    if isinstance(underlying_provenance, Mapping):
+        provenance = underlying_provenance
+    device = getattr(calculator, 'device', None)
+    dtype = getattr(parameter, 'dtype', getattr(calculator, 'dtype', None))
+    parameter_device = getattr(parameter, 'device', None)
+    result: dict[str, Any] = {
+        'model': {
+            'backend': type(calculator).__name__,
+            'requested_device': getattr(calculator, 'requested_device', None),
+            'reported_device': str(device) if device is not None else None,
+            'first_parameter_device': str(parameter_device) if parameter_device is not None else None,
+            'effective_dtype': str(dtype) if dtype is not None else None,
+            'hessian_mode': getattr(calculator, 'hessian', None),
+        },
+        'solvent': None,
+    }
+    if provider is not None:
+        result['solvent'] = {
+            'provider': provenance.get('provider', type(provider).__name__),
+            'platform': provenance.get('platform', 'CPU'),
+            'platform_properties': provenance.get('platform_properties', {}),
+            'selection': {
+                **(provenance.get('execution') or {}),
+                'testing_only': wrapper_provenance.get('testing_only', False),
+                'native_force': wrapper_provenance.get(
+                    'native_force', 'forces' in getattr(provider, 'supported_properties', ())
+                ),
+                'numerical_force': wrapper_provenance.get('numerical_force', False),
+            },
+        }
+    return result
+
+
 class CalcABC(ase.calculators.calculator.Calculator):
     # Protocol attributes — each subclass overrides what's relevant.
     MODEL_NAMES: tuple = ()
@@ -355,6 +413,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
     device: Any
     output: Any
     solvent_correction: Any
+    execution_provenance: dict[str, Any]
 
     def __init__(self):
         super().__init__()
@@ -459,10 +518,16 @@ class CalcABC(ase.calculators.calculator.Calculator):
         self.results = {}
         self.results['energy'] = float(energy_ha)
         self.results['free_energy'] = float(energy_ha)
+        self.execution_provenance = calculator_execution(self)
         if forces_ha is not None:
             self.results['forces'] = forces_ha
         if hessian is not None:
             self.results['hessian'] = hessian
+        precision = getattr(self, 'inference_precision_provenance', None)
+        if precision is not None:
+            if not isinstance(precision, dict):
+                raise TypeError('Inference precision provenance must be a dictionary.')
+            self.results['inference_precision'] = dict(precision)
         if structured_solvation_result is not None:
             result = structured_solvation_result
             provenance = dict(result.provenance)
@@ -474,7 +539,11 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 'provenance': provenance,
                 'ase_free_energy_is_thermochemical_gibbs': False,
             }
-            if provenance.get('absolute_solvation_free_energy_claim') is False:
+            if precision is not None:
+                structured['gas_inference_precision'] = dict(precision)
+            if provenance.get('reference_only') is True:
+                structured['reference_correction_hartree'] = float(result.energy_hartree)
+            elif provenance.get('absolute_solvation_free_energy_claim') is False:
                 structured['cluster_continuum_correction_hartree'] = float(
                     result.energy_hartree
                 )
@@ -484,7 +553,11 @@ class CalcABC(ase.calculators.calculator.Calculator):
         elif hasattr(self, 'solvation_result'):
             del self.solvation_result
 
-    def get_hessian(self, atoms, delta: float = 0.002):
+    def prepare_numerical_derivatives(self) -> float | None:
+        """Prepare backend precision before finite differences, with an optional step hint."""
+        return None
+
+    def get_hessian(self, atoms, delta: float | None = None):
         """Return the gas or complete composed-potential Hessian.
 
         Analytic backend Hessians contain only the gas MLIP contribution and
@@ -492,6 +565,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
         The numerical path differentiates the calculator's reported forces, so
         it includes any attached energy-consistent solvent force exactly once.
         """
+        self.last_numerical_hessian_diagnostics = None
         self._reject_unsupported_pbc(atoms)
         mode = getattr(self, 'hessian', self.SUPPORTED_HESSIAN_MODES[0])
         if mode == 'analytic':
@@ -504,7 +578,58 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 getattr(correction, "supported_properties", {"energy"})
             ):
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            return numerical_hessian_from_atoms(self, atoms, delta)
+            recommended_step = self.prepare_numerical_derivatives()
+            resolve_outer_step = getattr(
+                correction, "resolve_outer_curvature_step", None
+            )
+            if correction is not None and callable(resolve_outer_step):
+                numerical_solvent = (
+                    getattr(correction, "force_mode", None) == "numerical"
+                )
+                delta = resolve_outer_step(
+                    task_delta=None if numerical_solvent else delta,
+                    backend_hint=recommended_step,
+                    task=getattr(correction, "task", "freq"),
+                )
+                preflight = getattr(
+                    correction, "preflight_cartesian_outer_displacements", None
+                )
+                if callable(preflight):
+                    preflight(atoms, delta)
+            elif delta is None:
+                delta = 0.002 if recommended_step is None else recommended_step
+            reserve_operation = getattr(
+                getattr(correction, "provider", None),
+                "reserve_force_operation",
+                None,
+            )
+            operation_context = (
+                reserve_operation(
+                    atom_count=len(atoms),
+                    force_call_count=2 * 3 * len(atoms),
+                    operation=(
+                        "frequency"
+                        if getattr(correction, "task", "freq") == "freq"
+                        else "prfo-hessian"
+                    ),
+                )
+                if callable(reserve_operation)
+                else nullcontext()
+            )
+            with operation_context:
+                hessian, diagnostics = numerical_hessian_from_atoms(
+                    self, atoms, delta, return_diagnostics=True
+                )
+            if not np.isfinite(hessian).all():
+                raise ValueError('Numerical Hessian contains non-finite values.')
+            self.last_numerical_hessian_diagnostics = dict(diagnostics)
+            if correction is not None and hasattr(
+                correction, "last_outer_curvature_resolution"
+            ):
+                self.last_numerical_hessian_diagnostics["outer_step_resolution"] = dict(
+                    correction.last_outer_curvature_resolution
+                )
+            return hessian
         raise ValueError(f"Unknown hessian mode: {mode!r}")
 
     def _analytic_hessian(self, atoms):

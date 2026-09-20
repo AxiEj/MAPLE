@@ -6,8 +6,9 @@ from collections import Counter
 
 import numpy as np
 
-from .common import EV_PER_HARTREE, KJ_PER_MOL_PER_HARTREE, build_openmm_topology
+from .common import KJ_PER_MOL_PER_HARTREE, build_openmm_topology
 from .nonpolar import OpenMMNonpolarProvider
+from .openmm_execution import CPU_PROPERTIES, resolve_openmm_platform
 from .openmm_compat import (
     customgbforces_module,
     openmm_version,
@@ -20,10 +21,7 @@ from .result import SolvationResult
 FORCE_KJMOL_NM_PER_HARTREE_ANGSTROM = KJ_PER_MOL_PER_HARTREE * 10.0
 NONPOLAR_SCALE_PARAMETER = "maple_nonpolar_scale"
 DEFAULT_OPENMM_PLATFORM = "CPU"
-DEFAULT_CPU_PLATFORM_PROPERTIES = {
-    "Threads": "1",
-    "DeterministicForces": "true",
-}
+DEFAULT_CPU_PLATFORM_PROPERTIES = CPU_PROPERTIES
 
 
 def _tag_unique_added_energy_term(force, baseline_force, parameter_name):
@@ -80,8 +78,13 @@ class _ContextBundle:
         provider_parameters,
         nonpolar_provider,
         platform_name,
+        *,
+        model_device=None,
+        precision=None,
+        device_index=None,
+        opencl_platform_index=None,
     ):
-        from openmm import Context, Platform, System, VerletIntegrator, unit
+        from openmm import Context, System, VerletIntegrator, unit
 
         customgbforces = customgbforces_module()
         force_cls = getattr(customgbforces, force_class)
@@ -133,23 +136,9 @@ class _ContextBundle:
         integrator = VerletIntegrator(
             0.001 * unit.picoseconds  # pyright: ignore[reportAttributeAccessIssue]
         )
-        available = [
-            Platform.getPlatform(index).getName()
-            for index in range(Platform.getNumPlatforms())
-        ]
-        match = next(
-            (name for name in available if name.lower() == str(platform_name).lower()),
-            None,
-        )
-        if match is None:
-            raise ValueError(
-                f"Unknown OpenMM platform {platform_name!r}; available: {', '.join(available)}."
-            )
-        platform = Platform.getPlatformByName(match)
-        platform_properties = (
-            dict(DEFAULT_CPU_PLATFORM_PROPERTIES)
-            if platform.getName().lower() == "cpu"
-            else {}
+        platform, platform_properties, self.execution = resolve_openmm_platform(
+            platform_name, model_device=model_device, precision=precision,
+            device_index=device_index, opencl_platform_index=opencl_platform_index,
         )
         context = Context(system, integrator, platform, platform_properties)
         self.force = force
@@ -158,15 +147,9 @@ class _ContextBundle:
         self.platform_name = platform.getName()
         self.platform_properties = {
             name: platform.getPropertyValue(context, name)
-            for name in sorted(platform_properties)
+            for name in sorted(platform.getPropertyNames())
         }
-
-    def set_charges(self, charges):
-        for index, charge in enumerate(charges):
-            params = list(self.force.getParticleParameters(index))
-            params[0] = float(charge)
-            self.force.setParticleParameters(index, params)
-        self.force.updateParametersInContext(self.context)
+        self.execution["effective_properties"] = dict(self.platform_properties)
 
     def evaluate(self, positions_angstrom, need_forces):
         from openmm import unit
@@ -212,6 +195,10 @@ class OpenMMGB:
         model: str = "obc2",
         nonpolar: str = "ace",
         platform: str = DEFAULT_OPENMM_PLATFORM,
+        model_device=None,
+        precision: str | None = None,
+        device_index=None,
+        opencl_platform_index=None,
     ):
         require_verified_openmm()
         model = str(model).lower()
@@ -253,11 +240,13 @@ class OpenMMGB:
             info["class"],
             self.radius_result.provider_parameters,
         )
-        self._polar = _ContextBundle(*context_args, None, platform)
+        execution_options = dict(model_device=model_device, precision=precision,
+                                 device_index=device_index, opencl_platform_index=opencl_platform_index)
+        self._polar = _ContextBundle(*context_args, None, platform, **execution_options)
         self._total = (
             self._polar
             if not self.nonpolar_provider.enabled
-            else _ContextBundle(*context_args, self.nonpolar_provider, platform)
+            else _ContextBundle(*context_args, self.nonpolar_provider, platform, **execution_options)
         )
         self.platform = self._total.platform_name
         self._provenance = {
@@ -267,6 +256,7 @@ class OpenMMGB:
             "method": "gb",
             "platform": self._total.platform_name,
             "platform_properties": self._total.platform_properties,
+            "execution": self._total.execution,
             "model": model,
             "amber_igb": info["igb"],
             "radii": info["radii"],
@@ -293,26 +283,12 @@ class OpenMMGB:
     def provenance(self):
         return dict(self._provenance)
 
-    def _set_charges(self, charges):
-        charges = np.asarray(charges, dtype=np.float64)
-        if charges.shape != self.charges.shape or not np.isfinite(charges).all():
-            raise ValueError("OpenMM GB requires one finite partial charge per atom.")
-        self._polar.set_charges(charges)
-        if self._total is not self._polar:
-            self._total.set_charges(charges)
-        self.charges = charges.copy()
-
     def evaluate(
         self,
         atoms,
         need_forces: bool = False,
-        charges=None,
         calculator=None,
     ) -> SolvationResult:
-        if charges is not None and not np.array_equal(
-            np.asarray(charges), self.charges
-        ):
-            self._set_charges(charges)
         positions = np.asarray(atoms.get_positions(), dtype=np.float64)
         total_kj, total_force, nonpolar_kj = self._total.evaluate(
             positions,
@@ -338,36 +314,3 @@ class OpenMMGB:
             },
             provenance=self.provenance,
         )
-
-    def polar_charge_hessian_ev(self, atoms) -> np.ndarray:
-        """Return K where G_GB,polar(q)=0.5*q.T@K@q, in eV/e^2."""
-        n = len(atoms)
-        original_charges = self.charges.copy()
-        zero = np.zeros(n, dtype=np.float64)
-        try:
-            self._set_charges(zero)
-            baseline = self._polar.evaluate(atoms.get_positions(), False)[0]
-            if abs(baseline) > 1.0e-9:
-                raise ValueError("OpenMM polar GB energy is not zero at zero charge.")
-            diagonal_energies = np.zeros(n, dtype=np.float64)
-            matrix = np.zeros((n, n), dtype=np.float64)
-            for i in range(n):
-                q = np.zeros(n)
-                q[i] = 1.0
-                self._set_charges(q)
-                diagonal_energies[i] = self._polar.evaluate(
-                    atoms.get_positions(), False
-                )[0]
-                matrix[i, i] = 2.0 * diagonal_energies[i]
-            for i in range(n):
-                for j in range(i + 1, n):
-                    q = np.zeros(n)
-                    q[i] = q[j] = 1.0
-                    self._set_charges(q)
-                    pair_energy = self._polar.evaluate(atoms.get_positions(), False)[0]
-                    matrix[i, j] = matrix[j, i] = (
-                        pair_energy - diagonal_energies[i] - diagonal_energies[j]
-                    )
-        finally:
-            self._set_charges(original_charges)
-        return matrix * (EV_PER_HARTREE / KJ_PER_MOL_PER_HARTREE)

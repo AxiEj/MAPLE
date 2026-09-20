@@ -60,6 +60,41 @@ class JobABC(ABC):
     # Logging utilities
     # ==============================================
 
+    def log_inference_precision(self, calculator) -> None:
+        """Expose backend-selected numerical precision without inventing defaults."""
+        precision = getattr(calculator, "inference_precision_provenance", None)
+        if not isinstance(precision, dict):
+            return
+        lines = [
+            (
+                f"Inference precision: requested={precision.get('requested_dtype', '<not reported>')}, "
+                f"effective={precision.get('effective_dtype', '<not reported>')}\n"
+            ),
+        ]
+        checkpoint_sha = precision.get("original_checkpoint_sha256")
+        if checkpoint_sha is not None:
+            lines.append(f"Original checkpoint SHA256: {checkpoint_sha}\n")
+        self.log_info(lines)
+
+    def log_numerical_hessian_diagnostics(self, calculator) -> None:
+        """Report raw finite-difference quality, not symmetry imposed afterward."""
+        diagnostics = getattr(calculator, "last_numerical_hessian_diagnostics", None)
+        if not isinstance(diagnostics, dict):
+            return
+        self.log_info([
+            "\nNumerical Hessian diagnostics (before symmetrization):\n",
+            f"  Force-FD step: {diagnostics['cartesian_displacement_angstrom']:.8g} Angstrom\n",
+            (
+                "  Maximum raw antisymmetry: "
+                f"{diagnostics['maximum_raw_asymmetry_hartree_per_angstrom2']:.8e} Hartree/Angstrom^2\n"
+            ),
+            (
+                "  Relative raw antisymmetry (Frobenius): "
+                f"{diagnostics['relative_raw_asymmetry_frobenius']:.8e}\n"
+            ),
+        ])
+        self.log_inference_precision(calculator)
+
     def log_error(self, error_message: str) -> None:
         """
         Logs error messages to the output file.

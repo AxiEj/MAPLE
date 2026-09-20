@@ -1,3 +1,4 @@
+import math
 import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
@@ -35,6 +36,7 @@ class CommandControl:
             "verbosity": 1,
             "treat_imag_as_real": False,
             "device": "cpu",
+            "diagonalization_device": None,
         },
         "md": {
             "ensemble": "nve",
@@ -157,7 +159,18 @@ class CommandControl:
         "model",
         "nonpolar",
         "platform",
+        "precision",
+        "device_index",
+        "opencl_platform_index",
         "executable",
+        "solvent_kappa_inverse_angstrom",
+        "mode",
+        "force_step_angstrom",
+        "force_check_step_angstrom",
+        "curvature_step_angstrom",
+        "max_scalar_evaluations",
+        "max_raw_records",
+        "max_audit_bytes",
         "grid_spacing",
         "grid_points",
         "probe_radius",
@@ -211,6 +224,7 @@ class CommandControl:
     ) -> "CommandControl":
         params: Dict[str, Any] = {}
         task: Optional[str] = None
+        explicit_task_params: Dict[str, Any] = {}
         seen_keys = set()
         log_lines = ["Parsing # commands...\n"]
 
@@ -238,12 +252,14 @@ class CommandControl:
                     raise ValueError(f"Multiple tasks defined: '{task}' and '{key}'.")
 
                 task = key
-                params.update(cls.DEFAULTS.get(key, {}))
+                for default_key, default_value in cls.DEFAULTS.get(key, {}).items():
+                    params.setdefault(default_key, default_value)
                 log_lines.append(f"Task set to '{task}'\n")
 
                 inline_md_keys = set()
                 if paren_val:
-                    cls._parse_nested(params, paren_val)
+                    cls._parse_nested(explicit_task_params, paren_val)
+                    params.update(explicit_task_params)
                     if task == "md":
                         inline_md_keys = {
                             kv.split("=", 1)[0].strip().lower()
@@ -294,8 +310,14 @@ class CommandControl:
 
         if not task:
             task = "sp"
-            params.update(cls.DEFAULTS.get("sp", {}))
+            for default_key, default_value in cls.DEFAULTS.get("sp", {}).items():
+                params.setdefault(default_key, default_value)
             log_lines.append("No task specified. Defaulting to 'sp'.\n")
+
+        # Precedence is independent of header order: task defaults are weakest,
+        # explicit global settings override defaults, and explicit task-local
+        # settings override both (for example #freq(device=cpu)).
+        params.update(explicit_task_params)
 
         cls._normalize_params(params)
         cls._normalize_method_flags(params, task, output_path)
@@ -310,7 +332,41 @@ class CommandControl:
 
     @staticmethod
     def _parse_nested(target: Dict[str, Any], inner: str) -> None:
-        for kv in inner.split(","):
+        fields = []
+        current = []
+        quote = None
+        for character in inner:
+            if quote is not None:
+                if character == quote:
+                    quote = None
+                else:
+                    current.append(character)
+            elif character in {'"', "'"}:
+                quote = character
+            elif character == ",":
+                fields.append("".join(current))
+                current = []
+            else:
+                current.append(character)
+        if quote is not None:
+            raise ValueError("Unterminated quoted value in nested parameters.")
+        fields.append("".join(current))
+
+        # OpenMM accepts a comma-separated device-index property. In MAPLE's
+        # comma-delimited nested syntax, coalesce its following numeric fields;
+        # quoted values remain supported too.
+        coalesced_fields = []
+        for field in fields:
+            if (
+                coalesced_fields
+                and coalesced_fields[-1].strip().lower().startswith("device_index=")
+                and re.fullmatch(r"\s*\d+\s*", field)
+            ):
+                coalesced_fields[-1] += "," + field
+            else:
+                coalesced_fields.append(field)
+
+        for kv in coalesced_fields:
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
@@ -559,7 +615,20 @@ class CommandControl:
         mode = str(charge.get("mode", "fixed")).lower()
         geometry = str(charge.get("geometry", "keep")).lower()
         if mode not in {"fixed", "polarizable"}:
-            msg = "#charge mode must be 'fixed' or 'polarizable'."
+            msg = "#charge supports mode=fixed only."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        normalized_method = "" if method is None else str(method).lower()
+        if mode == "polarizable" or normalized_method in {
+            "qeq",
+            "qeq-gto",
+            "cqeq",
+            "cqeq-gto",
+        }:
+            msg = (
+                "QEq/CQEq charge models are disabled; use fixed MOL2 charges or "
+                "MAPLE AM1-BCC/ABCG2."
+            )
             cls._log_error(output_path, msg)
             raise ValueError(msg)
         if geometry not in {"keep", "provider"}:
@@ -592,29 +661,11 @@ class CommandControl:
             if method is None:
                 method = "am1bcc"
             method = str(method).lower()
-            if method not in {"am1bcc", "abcg2", "qeq-gto"}:
-                msg = "MAPLE charge method must be am1bcc, abcg2, or qeq-gto."
+            if method not in {"am1bcc", "abcg2"}:
+                msg = "MAPLE charge method must be am1bcc or abcg2."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             charge["method"] = method
-            if mode == "polarizable" and method != "qeq-gto":
-                msg = "mode=polarizable is available only for method=qeq-gto."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if method == "qeq-gto" and geometry != "keep":
-                msg = "QEq-GTO does not optimize geometry; use geometry=keep."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if method == "qeq-gto":
-                ignored = sorted(
-                    key for key in ("executable", "timeout") if key in charge
-                )
-                if ignored:
-                    msg = (
-                        "QEq-GTO is native and does not use " + ", ".join(ignored) + "."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
             if "label" in charge:
                 msg = "#charge label is only valid for source=mol2 fixed-charge provenance."
                 cls._log_error(output_path, msg)
@@ -637,6 +688,213 @@ class CommandControl:
         charge["source"] = source
         charge["mode"] = mode
         charge["geometry"] = geometry
+
+    @classmethod
+    def _validate_implicit_curvature_task(
+        cls, params: dict, task: str, output_path
+    ) -> None:
+        """One complete-force FREQ/TS contract for force-capable providers."""
+        task_method = str(params.get("method", "mw" if task == "freq" else "")).lower()
+        model_options = params.get("model_options")
+        hessian_mode = model_options.get("hessian") if isinstance(model_options, dict) else None
+        charge = params.get("charge", {})
+        message = None
+        if task == "freq" and task_method != "mw":
+            message = (
+                "Implicit-solvent frequency analysis supports only method=mw; "
+                "non-mass-weighted analysis is not a physical thermochemistry path."
+            )
+        elif task == "ts" and task_method not in {"prfo", "dimer"}:
+            message = "The experimental implicit-solvent TS path supports method=prfo or dimer."
+        elif (task == "freq" or task_method == "prfo") and hessian_mode != "numerical":
+            message = (
+                "Implicit-solvent FREQ/PRFO requires explicit #model=...(hessian=numerical) "
+                "so the Hessian differentiates the complete composed force."
+            )
+        elif task == "ts" and task_method == "dimer" and params.get("use_hvp") is True:
+            message = (
+                "Implicit-solvent dimer uses finite differences of the complete composed "
+                "forces; autograd HVP would omit the solvent. Use use_hvp=false or omit it."
+            )
+        elif charge.get("mode", "fixed") != "fixed":
+            message = "Implicit-solvent FREQ/TS requires fixed charges."
+        elif task == "ts" and params.get("solv", {}).get("inner") is not None:
+            message = (
+                "The experimental single-geometry implicit-solvent TS path supports "
+                "one solute geometry without inner=prebuilt."
+            )
+        if message is not None:
+            cls._log_error(output_path, message)
+            raise ValueError(message)
+
+    @classmethod
+    def _validate_ddlpb_reference(cls, options: dict, task: str, output_path) -> None:
+        """Normalize the locked, polar-only reference workflow profile."""
+        kappa_key = "solvent_kappa_inverse_angstrom"
+        kappa = options.get(kappa_key)
+        conflicts = sorted(
+            {"platform", "executable", "timeout", "grid_spacing", "grid_points",
+             "probe_radius", "surface_tension", "pressure"}.intersection(options)
+        )
+        message = None
+        if task not in {"sp", "opt", "scan", "freq", "ts"}:
+            message = "The ddLPB reference supports SP, OPT, SCAN, numerical FREQ and single-geometry TS only."
+        elif conflicts:
+            message = "ddX reference does not use APBS/OpenMM controls: " + ", ".join(conflicts)
+        elif str(options.get("model", "lpb")).lower() != "lpb":
+            message = "ddX reference requires model=lpb."
+        elif str(options.get("profile", "ddlpb-union-mbondi2-v1")).lower() != "ddlpb-union-mbondi2-v1":
+            message = "ddX reference requires profile=ddlpb-union-mbondi2-v1."
+        elif str(options.get("nonpolar", "none")).lower() != "none":
+            message = "ddX reference is polar-only and requires nonpolar=none."
+        elif (
+            isinstance(kappa, bool)
+            or not isinstance(kappa, (int, float))
+            or not math.isfinite(kappa)
+            or kappa <= 0.0
+        ):
+            message = f"ddX reference requires explicit finite positive {kappa_key}."
+        if message is not None:
+            cls._log_error(output_path, message)
+            raise ValueError(message)
+        options.update(
+            provider="ddx", model="lpb", profile="ddlpb-union-mbondi2-v1",
+            nonpolar="none",
+        )
+
+    @classmethod
+    def _validate_numerical_force_options(
+        cls,
+        options: dict,
+        *,
+        method: str,
+        provider: str,
+        params: dict,
+        task: str,
+        output_path,
+    ) -> str | None:
+        """Validate the explicit testing-only scalar-to-force contract."""
+        numerical_keys = {
+            "force_step_angstrom",
+            "force_check_step_angstrom",
+            "curvature_step_angstrom",
+            "max_scalar_evaluations",
+            "max_raw_records",
+            "max_audit_bytes",
+        }
+        mode_value = options.get("mode")
+        mode = None if mode_value is None else str(mode_value).lower()
+        if mode not in {None, "native", "numerical"}:
+            msg = "Solvation mode must be native or numerical."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if mode is not None:
+            options["mode"] = mode
+
+        native_provider = (method, provider) in {("gb", "openmm"), ("pb", "ddx")}
+        numerical_provider = (method, provider) in {
+            ("gb", "ambertools"),
+            ("pb", "apbs"),
+        }
+        supplied_numerical = sorted(numerical_keys.intersection(options))
+        if native_provider:
+            if mode == "numerical" or supplied_numerical:
+                msg = (
+                    f"provider={provider} supplies native forces and rejects the numerical "
+                    "wrapper and finite-difference solvation options."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            return mode
+        if not numerical_provider:
+            if mode is not None or supplied_numerical:
+                msg = f"provider={provider} does not support numerical-force options."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            return mode
+        if mode == "native":
+            msg = f"provider={provider} has no admitted native force; use mode=numerical."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if mode is None:
+            if supplied_numerical:
+                msg = "Numerical-force steps and budgets require explicit mode=numerical."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            return None
+
+        required = (
+            "force_step_angstrom",
+            "force_check_step_angstrom",
+            "max_scalar_evaluations",
+            "max_raw_records",
+            "max_audit_bytes",
+        )
+        for key in required:
+            if key not in options:
+                msg = f"mode=numerical requires explicit {key}."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        for key in ("force_step_angstrom", "force_check_step_angstrom"):
+            value = options[key]
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0.0
+            ):
+                msg = f"{key} must be finite and positive in mode=numerical."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            options[key] = float(value)
+        if options["force_check_step_angstrom"] >= options["force_step_angstrom"]:
+            msg = "force_check_step_angstrom must be smaller than force_step_angstrom."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        for key in ("max_scalar_evaluations", "max_raw_records", "max_audit_bytes"):
+            value = options[key]
+            if type(value) is not int or value <= 0:
+                msg = f"{key} must be a positive integer in mode=numerical."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        if "curvature_step_angstrom" in options:
+            value = options["curvature_step_angstrom"]
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0.0
+            ):
+                msg = "curvature_step_angstrom must be finite and positive."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            options["curvature_step_angstrom"] = float(value)
+
+        task_method = str(params.get("method", "")).lower()
+        if task == "md":
+            msg = "numerical solvent forces are testing-only; MD remains closed."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if task not in {"sp", "opt", "scan", "freq", "ts"}:
+            msg = "Numerical solvent forces support SP, OPT, SCAN, FREQ, PRFO, and dimer only."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if task in {"sp", "opt", "scan"} and "curvature_step_angstrom" in options:
+            msg = "curvature_step_angstrom is valid only for FREQ, PRFO, or dimer."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if task == "freq" or (task == "ts" and task_method == "prfo"):
+            if "curvature_step_angstrom" not in options:
+                msg = "Numerical-solvent FREQ/PRFO requires explicit curvature_step_angstrom."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        if task == "ts" and task_method == "dimer":
+            task_delta = params.get("delta")
+            if task_delta is None and "curvature_step_angstrom" not in options:
+                msg = "Numerical-solvent dimer requires task delta or curvature_step_angstrom."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        return mode
 
     @classmethod
     def _validate_solvation(
@@ -674,6 +932,34 @@ class CommandControl:
         explicit = solv_params.get("explicit")
         implicit = solv_params.get("implicit")
         inner = solv_params.get("inner")
+
+        openmm_execution_keys = {
+            "platform",
+            "precision",
+            "device_index",
+            "opencl_platform_index",
+        }
+        openmm_execution_options = sorted(openmm_execution_keys.intersection(solv_params))
+        resolved_provider = str(
+            solv_params.get("provider", "openmm" if method == "gb" else "")
+        ).lower()
+        if openmm_execution_options and not (
+            implicit is not None and method == "gb" and resolved_provider == "openmm"
+        ):
+            msg = (
+                "OpenMM execution options are valid only for implicit GB with "
+                "provider=openmm: " + ", ".join(openmm_execution_options) + "."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "solvent_kappa_inverse_angstrom" in solv_params and (
+            implicit is None or method != "pb"
+            or str(solv_params.get("provider", "")).lower() != "ddx"
+        ):
+            msg = "solvent_kappa_inverse_angstrom is only valid with implicit PB provider=ddx."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
 
         if inner is not None:
             if not isinstance(inner, str) or not inner.strip():
@@ -801,12 +1087,28 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
+            provider_for_force_mode = str(
+                solv_params.get(
+                    "provider", "openmm" if method == "gb" else "apbs"
+                )
+            ).lower()
+            force_mode = cls._validate_numerical_force_options(
+                solv_params,
+                method=method,
+                provider=provider_for_force_mode,
+                params=params,
+                task=task,
+                output_path=output_path,
+            )
             if method == "gb":
                 provider = str(solv_params.get("provider", "openmm")).lower()
                 if provider == "ambertools":
                     conflicts = sorted(
                         {
                             "platform",
+                            "precision",
+                            "device_index",
+                            "opencl_platform_index",
                             "grid_spacing",
                             "grid_points",
                             "probe_radius",
@@ -865,13 +1167,19 @@ class CommandControl:
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
-                    if task != "sp" or params.get("verbose", 0) >= 1:
+                    if force_mode != "numerical" and (
+                        task != "sp" or params.get("verbose", 0) >= 1
+                    ):
                         msg = (
                             "AmberTools CHA-GB/cavity-dispersion is "
                             "single-point energy-only."
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
+                    if force_mode == "numerical" and task in {"freq", "ts"}:
+                        cls._validate_implicit_curvature_task(
+                            params, task, output_path
+                        )
                 elif provider == "openmm":
                     pb_only = {
                         "executable",
@@ -889,6 +1197,58 @@ class CommandControl:
                             + ", ".join(conflicts)
                             + "."
                         )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    platform = str(solv_params.get("platform", "auto")).lower()
+                    if platform not in {
+                        "auto",
+                        "cpu",
+                        "reference",
+                        "cuda",
+                        "hip",
+                        "opencl",
+                    }:
+                        msg = (
+                            "GB/OpenMM platform must be auto, CPU, Reference, "
+                            "CUDA, HIP, or OpenCL."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if "platform" in solv_params:
+                        solv_params["platform"] = platform
+                    if "precision" in solv_params:
+                        precision = str(solv_params["precision"]).lower()
+                        if precision not in {"single", "mixed", "double"}:
+                            msg = "GB/OpenMM precision must be single, mixed, or double."
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        solv_params["precision"] = precision
+                    if "device_index" in solv_params:
+                        device_index = solv_params["device_index"]
+                        if isinstance(device_index, str):
+                            valid_device_index = bool(
+                                re.fullmatch(r"\d+(?:\s*,\s*\d+)*", device_index)
+                            )
+                            if valid_device_index:
+                                solv_params["device_index"] = ",".join(
+                                    part.strip() for part in device_index.split(",")
+                                )
+                        else:
+                            valid_device_index = (
+                                type(device_index) is int and device_index >= 0
+                            )
+                        if not valid_device_index:
+                            msg = (
+                                "GB/OpenMM device_index must be a non-negative integer "
+                                "or a comma-separated list such as 0,1."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                    if "opencl_platform_index" in solv_params and (
+                        type(solv_params["opencl_platform_index"]) is not int
+                        or solv_params["opencl_platform_index"] < 0
+                    ):
+                        msg = "GB/OpenMM opencl_platform_index must be a non-negative integer."
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
                     model = str(solv_params.get("model", "obc2")).lower()
@@ -955,40 +1315,14 @@ class CommandControl:
                             )
                             cls._log_error(output_path, msg)
                             raise ValueError(msg)
-                    elif task == "freq":
-                        if str(params.get("method", "mw")).lower() != "mw":
-                            msg = (
-                                "Route 1 implicit-GB frequency analysis supports "
-                                "only method=mw; non-mass-weighted analysis is "
-                                "not a physical thermochemistry path."
-                            )
-                            cls._log_error(output_path, msg)
-                            raise ValueError(msg)
-                        hessian_mode = (
-                            params.get("model_options", {}).get("hessian")
-                            if isinstance(params.get("model_options"), dict)
-                            else None
-                        )
-                        if hessian_mode != "numerical":
-                            msg = (
-                                "Implicit GB frequency analysis requires explicit "
-                                "#model=...(hessian=numerical) so the Hessian "
-                                "differentiates the complete MLIP+GB force."
-                            )
-                            cls._log_error(output_path, msg)
-                            raise ValueError(msg)
-                        if charge.get("mode", "fixed") != "fixed":
-                            msg = (
-                                "Route 1 implicit-GB frequency analysis currently "
-                                "requires fixed charges."
-                            )
-                            cls._log_error(output_path, msg)
-                            raise ValueError(msg)
+                    elif task in {"freq", "ts"}:
+                        cls._validate_implicit_curvature_task(params, task, output_path)
                     elif task not in {"sp", "opt", "scan"}:
                         msg = (
                             "GB currently supports SP, OPT, SCAN/PES, explicit "
-                            "numerical FREQ, and fixed-charge non-periodic "
-                            "NVE/NVT MD tasks only."
+                            "numerical FREQ, experimental fixed-charge numerical-"
+                            "Hessian PRFO, force-difference dimer, and non-periodic NVE/NVT "
+                            "MD tasks only."
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
@@ -1000,52 +1334,59 @@ class CommandControl:
                     model=model, provider=provider, profile=profile, nonpolar=nonpolar
                 )
             elif method == "pb":
-                if "platform" in solv_params:
-                    msg = "PB/APBS does not use the OpenMM platform option."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                model = str(solv_params.get("model", "lpb")).lower()
-                provider = str(solv_params.get("provider", "apbs")).lower()
-                if model != "lpb":
-                    msg = "PB model must be lpb in the first release."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if provider not in {"apbs", "amber-pbsa"}:
-                    msg = "PB provider must be apbs or amber-pbsa."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                expected_profile = (
-                    "generic-mbondi2" if provider == "apbs" else "abcg2-pbsa-2023"
-                )
-                profile = str(solv_params.get("profile", expected_profile)).lower()
-                if profile != expected_profile:
-                    msg = f"provider={provider} requires profile={expected_profile}."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                nonpolar = str(
-                    solv_params.get(
-                        "nonpolar", "apbs" if provider == "apbs" else "amber-pbsa"
+                if str(solv_params.get("provider", "apbs")).lower() == "ddx":
+                    cls._validate_ddlpb_reference(solv_params, task, output_path)
+                    if task in {"freq", "ts"}:
+                        cls._validate_implicit_curvature_task(params, task, output_path)
+                else:
+                    if "platform" in solv_params:
+                        msg = "PB/APBS does not use the OpenMM platform option."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    model = str(solv_params.get("model", "lpb")).lower()
+                    provider = str(solv_params.get("provider", "apbs")).lower()
+                    if model != "lpb":
+                        msg = "PB model must be lpb in the first release."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if provider not in {"apbs", "amber-pbsa"}:
+                        msg = "PB provider must be apbs or amber-pbsa."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    expected_profile = (
+                        "generic-mbondi2" if provider == "apbs" else "abcg2-pbsa-2023"
                     )
-                ).lower()
-                if nonpolar != provider:
-                    msg = "PB polar and nonpolar terms must come from the same locked provider profile."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if provider == "amber-pbsa" and charge.get("method") != "abcg2":
-                    msg = "profile=abcg2-pbsa-2023 requires #charge(source=maple,method=abcg2)."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if charge.get("mode") == "polarizable":
-                    msg = "Polarizable QEq-PB is deferred; use mode=fixed for PB."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if task != "sp" or params.get("verbose", 0) >= 1:
-                    msg = "PB is single-point energy-only until force/grid convergence is certified."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                solv_params.update(
-                    model=model, provider=provider, profile=profile, nonpolar=nonpolar
-                )
+                    profile = str(solv_params.get("profile", expected_profile)).lower()
+                    if profile != expected_profile:
+                        msg = f"provider={provider} requires profile={expected_profile}."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    nonpolar = str(
+                        solv_params.get(
+                            "nonpolar", "apbs" if provider == "apbs" else "amber-pbsa"
+                        )
+                    ).lower()
+                    if nonpolar != provider:
+                        msg = "PB polar and nonpolar terms must come from the same locked provider profile."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if provider == "amber-pbsa" and charge.get("method") != "abcg2":
+                        msg = "profile=abcg2-pbsa-2023 requires #charge(source=maple,method=abcg2)."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if force_mode != "numerical" and (
+                        task != "sp" or params.get("verbose", 0) >= 1
+                    ):
+                        msg = "PB is single-point energy-only until force/grid convergence is certified."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    solv_params.update(
+                        model=model, provider=provider, profile=profile, nonpolar=nonpolar
+                    )
+                    if force_mode == "numerical" and task in {"freq", "ts"}:
+                        cls._validate_implicit_curvature_task(
+                            params, task, output_path
+                        )
             for key in (
                 "grid_spacing",
                 "probe_radius",

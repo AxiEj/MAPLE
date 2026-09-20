@@ -18,6 +18,7 @@ from .header.header import print_banner
 from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
+from maple.function.device import resolve_torch_device
 
 class InputReader():
     def __init__(self):
@@ -360,6 +361,11 @@ class InputReader():
             for info in info_message:
                 file.write(f"{info}")
 
+    @staticmethod
+    def _resolve_device(device_name: Any) -> torch.device:
+        """Compatibility wrapper for the shared MAPLE device resolver."""
+        return resolve_torch_device(device_name)
+
     def settings_command(self, settings: list):
         """
         Parse all # commands using CommandControl and store them in self.
@@ -380,29 +386,7 @@ class InputReader():
             self.model_options = model_options
             self.model_params = model_options
 
-            dev_str: str = params.get("device", "cpu").lower()
-
-            # Automatically handle device selection with availability checks
-            if dev_str.startswith("gpu") or dev_str.startswith("cuda"):
-                idx = ''.join([c for c in dev_str if c.isdigit()])
-                cuda_idx = idx if idx != '' else '0'
-                if torch.cuda.is_available():
-                    self.device = torch.device(f'cuda:{cuda_idx}')
-                else:
-                    self.log_info(["\nWARNING: CUDA is not available. Falling back to CPU.\n"])
-                    self.device = torch.device('cpu')
-            elif dev_str == "mps":
-                if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                    self.device = torch.device('mps')
-                else:
-                    self.log_info(["\nWARNING: MPS is not available. Falling back to CPU.\n"])
-                    self.device = torch.device('cpu')
-            else:
-                try:
-                    self.device = torch.device(dev_str)
-                except:
-                    self.log_info(["\nWARNING: Unrecognized device. Falling back to CPU.\n"])
-                    self.device = torch.device('cpu')
+            self.device = self._resolve_device(params.get("device"))
 
 
             self.d4 = params.get("d4", False)

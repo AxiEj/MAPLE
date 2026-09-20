@@ -1,5 +1,16 @@
 # Route 1: additive fixed-charge PB/GB implicit solvation
 
+> **Current architecture (2026-09-09):** FAST OBC-II/ACE; ACCURACY CHA-GB/ALPB
+> plus PBSA cavity/dispersion; REFERENCE ddX/ddLPB, with APBS as an independent
+> grid cross-check. See [numerical reference input and boundaries](NUMERICAL_REFERENCE.md).
+> This newly requested finite-kappa reference selectively supersedes the earlier
+> ddX retirement below; old ddPCM runners and CQEq/GB stay deleted.
+
+> **E/F code removed from this branch (2026-09-09):** the ddX/ddPCM reference
+> runners and polarizable CQEq-GTO/GB implementation have been deleted at user
+> request. Historical results below are archival only, not available tasks or
+> planned development lines. Other Git branches/worktrees are unchanged.
+
 This is MAPLE's baseline/product implicit-solvation route. It composes any
 registered gas-phase molecular MLIP that passes the Route 1 composition
 capability gate with an additive, auditable fixed-charge solvent correction:
@@ -27,6 +38,10 @@ FREQ, MD, MBAR/TI, conformer-aware evaluation, and prebuilt
 explicit-inner/implicit-outer composition are optional extensions over the
 same additive potential; they do not redefine Route 1 or replace its core
 FreeSolv, provider-parity, and complete-potential force checks.
+
+Fixed-charge OpenMM GB also supports experimental single-geometry P-RFO and
+force-only dimer TS searches. See [task inputs and limitations](EXPERIMENTAL_TASKS.md);
+workflow availability does not imply transition-state convergence or accuracy.
 
 The default validation domain is one neutral, closed-shell, connected organic
 molecule in water, supplied as a Tripos MOL2 file with explicit bonds and
@@ -62,8 +77,6 @@ MAPLE-orchestrated charge generation:
 #charge(source=maple)
 #charge(source=maple,method=am1bcc,geometry=keep)
 #charge(source=maple,method=abcg2,geometry=keep)
-#charge(source=maple,method=qeq-gto,mode=fixed)
-#charge(source=maple,method=qeq-gto,mode=polarizable)
 ```
 
 `#charge(source=maple)` defaults to AM1-BCC with fixed charges and
@@ -71,19 +84,17 @@ MAPLE-orchestrated charge generation:
 chosen as an automatic fallback. Omitting the entire `#charge(...)` directive
 still fails closed for implicit solvation.
 
-Fixed QEq-GTO and polarizable CQEq-GTO/GB are frozen experimental research
-controls. They require explicit `method=qeq-gto` selection, are never selected
-as defaults or provider fallbacks, and are not accuracy-certified.
-Polarizable CQEq-GTO/GB is not a Route 1 fixed-charge product profile. Current
-Route 1 certification work is limited to MOL2 fixed charges, AM1-BCC, and
-explicitly selected ABCG2.
+**QEq/CQEq runtime selection is disabled at user request (2026-09-08).**
+Neither `mode=fixed` nor `mode=polarizable` QEq can be enabled with
+`experimental=true`. Supported runtime charge sources are fixed MOL2 charges,
+AM1-BCC, and explicitly selected ABCG2. No fallback silently replaces QEq.
 
-`qeq-gto` performs the full published hydrogen SCF update for both the
-idempotential and screening exponent in fixed mode.  `mode=polarizable` does
-not reuse that nonvariational fixed-point equation: it switches to the
-consistent-QEq (CQEq) derivative, solves the nonlinear charge-constrained
-minimum of CQEq plus the GB polar energy, and applies the envelope theorem only
-after KKT and projected-Hessian minimum gates pass.
+The ordinary fixed-QEq solver and earlier results remain as historical research
+material, not an active Route 1 charge option. The earlier fixed-mode solver
+used the original hydrogen SCF update; the polarizable control used a distinct
+consistent-QEq variational energy. Their historical equations are retained
+below, but are not instructions for enabling those runtime paths. The CQEq
+variational solver and its GB coupling have been removed from this branch.
 
 AmberTools is an optional executable provider.  It can be kept outside the
 main MAPLE environment to avoid dependency conflicts:
@@ -267,8 +278,8 @@ explicit correctness/parity control. OpenMM returns both correction energy and
 conservative correction force, so fixed-charge GB is available to SP, OPT,
 SCAN/PES, explicit numerical FREQ, and non-periodic NVE/NVT MD. NPT remains
 rejected because this implicit-solvent release is non-periodic.
-Polarizable-QEq MD and `inner=prebuilt` MD remain fail-closed pending separate
-conservative sampling and fixed-shell occupancy contracts.
+Polarizable-QEq code has been removed. `inner=prebuilt` MD remains unsupported
+pending a separate conservative sampling and fixed-shell occupancy contract.
 
 A minimal admitted canonical sampling input is:
 
@@ -369,9 +380,9 @@ passes. The product decision is nevertheless negative: the full
 AM1-BCC/ddPCM/mbondi2/ACE development endpoint gives MAE/RMSE
 `1.782/2.881 kcal/mol`, versus `1.760/2.537` for OBC-II/ACE, and its local
 polar force call is roughly `360x` slower than the current OpenMM correction.
-The expanded-radius cavity is much worse (`5.829/6.706 kcal/mol`). ddX remains
-an external reference audit; `pyddx` is not a MAPLE dependency or runtime
-provider.
+The expanded-radius cavity is much worse (`5.829/6.706 kcal/mol`). This is
+historical audit evidence only: ddX reference code has been removed, and
+`pyddx` is not a MAPLE dependency or runtime provider.
 
 ## PB methods
 
@@ -446,7 +457,6 @@ invent or approximate them under the certified profile name.
 | APBS LPB + APOLAR | yes | no | no | PB energy-only provider |
 | APBS molecular-surface LPB + OpenMM ACE | benchmark only | no | no | rejected: coarse grid unstable; converged fine grid still misses material-gain gate |
 | APBS SPL4 LPB force / APBS APOLAR force | benchmark only | no | no | rejected: complete derivative and grid gates fail |
-| external ddX/ddPCM + OpenMM ACE audit | benchmark only | benchmark-validated polar derivative | no | rejected: no accuracy gain and local correction is roughly 360x slower |
 | AmberTools CHA-GB + cavity/dispersion | yes | no | no | explicit AM1-BCC SP-only accuracy provider; not runtime default |
 
 OPT and relaxed SCAN always request the derivative of the same combined
@@ -597,12 +607,16 @@ For fixed charges:
 E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)
 ```
 
-For `qeq-gto,mode=fixed`, QEq is evaluated once at the submitted reference
+### Historical QEq/CQEq lifecycle (runtime disabled)
+
+The following describes the retired research path, not current task support.
+
+For `qeq-gto,mode=fixed`, QEq was evaluated once at the submitted reference
 geometry and those charges remain fixed during SP, OPT, SCAN/PES, and admitted
 NVE/NVT MD, matching the lifecycle used for AM1-BCC, ABCG2, and MOL2-provided
 charges.
 
-For `qeq-gto,mode=polarizable`, MAPLE uses the literature-defined consistent
+For `qeq-gto,mode=polarizable`, the historical control used the literature-defined consistent
 QEq derivative at every geometry:
 
 ```text
@@ -612,5 +626,5 @@ DeltaE = E_CQEq(R,q_solv) - E_CQEq(R,q_vac)
        + G_GB,polar(R,q_solv) + G_nonpolar(R)
 ```
 
-The polarizable profile remains experimental: the mathematics and forces are
+The polarizable profile is now runtime-disabled. Historically its mathematics and forces were
 consistent, but the QEq and Amber GB parameters were not jointly fit.

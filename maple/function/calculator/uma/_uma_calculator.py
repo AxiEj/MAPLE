@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib
 import os
+import threading
 import warnings
+from contextlib import nullcontext
 from functools import partial
 from pathlib import Path
 from typing import Any, Literal
@@ -15,24 +17,31 @@ from ase.calculators.calculator import all_changes
 try:
     from fairchem.core import pretrained_mlip
     from fairchem.core._config import CACHE_DIR
-    from fairchem.core.calculate.ase_calculator import AtomicData, FAIRChemCalculator, UMATask
+    from fairchem.core.calculate.ase_calculator import (
+        AtomicData,
+        FAIRChemCalculator,
+        UMATask,
+    )
+    from fairchem.core.common.distutils import CURRENT_DEVICE_TYPE_STR
     from fairchem.core.units.mlip_unit import load_predict_unit
     from huggingface_hub import hf_hub_download
     from omegaconf import OmegaConf
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
+from maple.function.device import resolve_torch_device
+
 from .._batch_types import BatchResult
 from .._batch_utils import default_calculate_many
 from ..calculator_base import (
     EV2HARTREE,
     IMPLICIT_SOLVENT_FORCE_ERROR,
+    calculator_execution,
     init_implicit_solvent,
     numerical_hessian_from_atoms,
-    reject_implicit_solvent_derivatives,
     register_calculator,
+    reject_implicit_solvent_derivatives,
 )
-
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
 UMA_MODELS_MAP = {
@@ -54,6 +63,8 @@ SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 # default regardless.
 UMA_INFERENCE_SETTINGS = "default"
 UMA_CPU_INFERENCE_SETTINGS = "default"
+
+_FAIRCHEM_DEVICE_BINDING_LOCK = threading.RLock()
 
 
 @register_calculator
@@ -99,14 +110,21 @@ class UMACalculator(FAIRChemCalculator):
         }
 
     @staticmethod
-    def _normalize_device(device):
-        # FAIR Chemistry's MLIP unit accepts only "cpu" or "cuda".
-        # Keep UMA's historical behavior: CUDA-like requests use the CUDA
-        # backend token, while other strings fall back to CPU.
+    def _normalize_device(device) -> Any:
+        # Preserve an explicit CUDA ordinal so multi-GPU callers reach the
+        # selected device. UMA's FAIR-Chem backend currently supports CPU and
+        # CUDA only, so explicit unsupported devices fail rather than silently
+        # changing the requested execution path.
         device_name = str(device).lower()
-        if device_name.startswith("cuda") and torch.cuda.is_available():
-            return "cuda"
-        return "cpu"
+        if device_name != "cpu" and not device_name.startswith("cuda"):
+            raise ValueError(
+                f"Unsupported UMA device {device!r}; expected cpu or an available cuda[:N]."
+            )
+        try:
+            resolved = resolve_torch_device(device_name)
+        except ValueError as exc:
+            raise ValueError(f"UMA device error: {exc}") from exc
+        return str(resolved)
 
     @staticmethod
     def _build_predictor(
@@ -130,30 +148,65 @@ class UMACalculator(FAIRChemCalculator):
         elif inference_settings is None:
             inference_settings = UMA_INFERENCE_SETTINGS
 
+        def construct(factory):
+            requested_device = torch.device(device)
+            backend_device = requested_device.type
+
+            with _FAIRCHEM_DEVICE_BINDING_LOCK:
+                had_previous_device_type = CURRENT_DEVICE_TYPE_STR in os.environ
+                previous_device_type = os.environ.get(CURRENT_DEVICE_TYPE_STR)
+                try:
+                    os.environ[CURRENT_DEVICE_TYPE_STR] = backend_device
+                    if requested_device.type == "cuda":
+                        context = torch.cuda.device(requested_device.index)
+                    else:
+                        context = nullcontext()
+                    with context:
+                        predictor = factory(backend_device)
+                        actual_device = torch.device(str(predictor.device))
+                finally:
+                    if had_previous_device_type and previous_device_type is not None:
+                        os.environ[CURRENT_DEVICE_TYPE_STR] = previous_device_type
+                    else:
+                        os.environ.pop(CURRENT_DEVICE_TYPE_STR, None)
+
+            if actual_device != requested_device:
+                raise RuntimeError(
+                    "FAIR-Chem did not honor the requested UMA device: "
+                    f"requested {requested_device}, constructed {actual_device}."
+                )
+            return predictor
+
         if checkpoint_path and os.path.isfile(checkpoint_path):
             compat_path = UMACalculator._prepare_compat_checkpoint(checkpoint, checkpoint_path)
-            return load_predict_unit(
-                compat_path,
-                inference_settings=inference_settings,
-                overrides=overrides,
-                device=device,
+            return construct(
+                lambda backend_device: load_predict_unit(
+                    compat_path,
+                    inference_settings=inference_settings,
+                    overrides=overrides,
+                    device=backend_device,
+                )
             )
 
         if checkpoint in pretrained_mlip.available_models:
-            return pretrained_mlip.get_predict_unit(
-                checkpoint,
-                inference_settings=inference_settings,
-                overrides=overrides,
-                device=device,
+            return construct(
+                lambda backend_device: pretrained_mlip.get_predict_unit(
+                    checkpoint,
+                    inference_settings=inference_settings,
+                    overrides=overrides,
+                    device=backend_device,
+                )
             )
 
         if os.path.isfile(checkpoint):
             compat_path = UMACalculator._prepare_compat_checkpoint(Path(checkpoint).stem, checkpoint)
-            return load_predict_unit(
-                compat_path,
-                inference_settings=inference_settings,
-                overrides=overrides,
-                device=device,
+            return construct(
+                lambda backend_device: load_predict_unit(
+                    compat_path,
+                    inference_settings=inference_settings,
+                    overrides=overrides,
+                    device=backend_device,
+                )
             )
 
         if checkpoint in UMA_FALLBACK_HF_MODELS:
@@ -180,13 +233,15 @@ class UMACalculator(FAIRChemCalculator):
                     cache_dir=CACHE_DIR,
                 )
             )["refs"]
-            return load_predict_unit(
-                compat_path,
-                inference_settings=inference_settings,
-                overrides=overrides,
-                device=device,
-                atom_refs=atom_refs,
-                form_elem_refs=form_elem_refs,
+            return construct(
+                lambda backend_device: load_predict_unit(
+                    compat_path,
+                    inference_settings=inference_settings,
+                    overrides=overrides,
+                    device=backend_device,
+                    atom_refs=atom_refs,
+                    form_elem_refs=form_elem_refs,
+                )
             )
 
         raise ValueError(
@@ -365,9 +420,67 @@ class UMACalculator(FAIRChemCalculator):
             raise ValueError(f"UMA requires integer atoms.info['{key}']; got {value!r}.")
         return int(numeric_value)
 
-    def get_hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
-        """Numerical-only Hessian via shared finite-difference helper."""
-        return numerical_hessian_from_atoms(self, atoms, delta)
+    def get_hessian(self, atoms: Atoms, delta: float | None = None) -> np.ndarray:
+        """Numerical Hessian of the complete gas-plus-solvent force."""
+        self.last_numerical_hessian_diagnostics = None
+        correction = getattr(self, "solvent_correction", None)
+        if correction is not None and "forces" not in set(
+            getattr(correction, "supported_properties", {"energy"})
+        ):
+            raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
+
+        prepare = getattr(self, "prepare_numerical_derivatives", None)
+        backend_hint = prepare() if callable(prepare) else None
+        resolve_outer_step = getattr(
+            correction, "resolve_outer_curvature_step", None
+        )
+        if callable(resolve_outer_step):
+            numerical_solvent = getattr(correction, "force_mode", None) == "numerical"
+            delta = resolve_outer_step(
+                task_delta=None if numerical_solvent else delta,
+                backend_hint=backend_hint,
+                task=getattr(correction, "task", "freq"),
+            )
+            preflight = getattr(
+                correction, "preflight_cartesian_outer_displacements", None
+            )
+            if callable(preflight):
+                preflight(atoms, delta)
+        elif delta is None:
+            delta = 0.002 if backend_hint is None else backend_hint
+
+        reserve_operation = getattr(
+            getattr(correction, "provider", None),
+            "reserve_force_operation",
+            None,
+        )
+        operation_context = (
+            reserve_operation(
+                atom_count=len(atoms),
+                force_call_count=6 * len(atoms),
+                operation=(
+                    "frequency"
+                    if getattr(correction, "task", "freq") == "freq"
+                    else "prfo-hessian"
+                ),
+            )
+            if callable(reserve_operation)
+            else nullcontext()
+        )
+        with operation_context:
+            hessian, diagnostics = numerical_hessian_from_atoms(
+                self, atoms, delta, return_diagnostics=True
+            )
+        if not np.isfinite(hessian).all():
+            raise ValueError("Numerical Hessian contains non-finite values.")
+        self.last_numerical_hessian_diagnostics = dict(diagnostics)
+        if correction is not None and hasattr(
+            correction, "last_outer_curvature_resolution"
+        ):
+            self.last_numerical_hessian_diagnostics["outer_step_resolution"] = dict(
+                correction.last_outer_curvature_resolution
+            )
+        return hessian
 
     def calculate(self, atoms, properties=None, system_changes=None):
         properties = reject_implicit_solvent_derivatives(self, properties)
@@ -394,6 +507,7 @@ class UMACalculator(FAIRChemCalculator):
         calc_atoms.info["charge"] = charge
 
         super().calculate(calc_atoms, properties, system_changes)
+        self.execution_provenance = calculator_execution(self)
 
         # eV → Hartree: UMA's MODEL_ENERGY_UNIT is 'eV'; equivalent to the
         # _finalize_results unit step but inlined because UMA does not inherit

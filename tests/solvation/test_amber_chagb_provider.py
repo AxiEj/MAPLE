@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -153,6 +154,59 @@ def test_provider_composes_only_egb_cavity_dispersion_and_audits(
     assert (audit / "amber-chagb.commands.json").is_file()
     recorded = json.loads((audit / "amber-chagb.result.json").read_text())
     assert recorded["energy_hartree"] == pytest.approx(result.energy_hartree)
+
+
+def test_provider_audit_context_isolates_scalars_without_mutating_fallback(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    executable = _fake_ambertools_bundle(tmp_path / "amber-bin-isolated")
+
+    def fake_run(command, **kwargs):
+        cwd = Path(kwargs["cwd"])
+        label = Path(command[0]).name
+        if label == "parmchk2":
+            (cwd / "molecule.frcmod").write_text(
+                "MASS\n\nBOND\n\nNONBON\n\n", encoding="utf-8"
+            )
+        elif label == "tleap":
+            (cwd / "molecule.prmtop").write_text("topology", encoding="utf-8")
+            (cwd / "molecule.inpcrd").write_text("coordinates", encoding="utf-8")
+            (cwd / "leap.log").write_text("ok", encoding="utf-8")
+        elif label == "gbnsr6":
+            (cwd / "gbnsr6.out").write_text(
+                "EGB = -6.0 ESURF = 1.0\n", encoding="utf-8"
+            )
+        elif label == "pbsa":
+            (cwd / "pbsa.out").write_text(
+                "ECAVITY = 2.0 EDISPER = -1.0\n", encoding="utf-8"
+            )
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(amber_chagb.subprocess, "run", fake_run)
+    fallback = tmp_path / "amber-fallback"
+    provider = AmberToolsChaGB(
+        atoms,
+        atoms.get_initial_charges(),
+        executable=str(executable),
+        audit_dir=fallback,
+    )
+    first = tmp_path / "amber-scalar-1"
+    second = tmp_path / "amber-scalar-2"
+    first.mkdir()
+    second.mkdir()
+
+    provider.evaluate_coordinates(
+        atoms.positions, audit_context=SimpleNamespace(path=first)
+    )
+    provider.evaluate_coordinates(
+        atoms.positions + 0.001, audit_context=SimpleNamespace(path=second)
+    )
+
+    assert (first / "amber-chagb.result.json").is_file()
+    assert (second / "amber-chagb.result.json").is_file()
+    assert not fallback.exists()
+    assert provider.audit_dir == fallback
 
 
 def test_provider_prepares_topology_once_and_reuses_it_for_coordinates(

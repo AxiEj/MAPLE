@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from collections.abc import Iterable
 import inspect
 import shutil
 import urllib.error
@@ -13,6 +14,7 @@ from ase import Atoms
 
 from .calculator_base import (
     atoms_has_pbc,
+    calculator_execution,
     get_registered_calculator,
     import_calculator_plugin,
     load_calculator_plugins_from_env,
@@ -111,6 +113,7 @@ class SetCalculator:
         model_options: Optional[dict] = None,
         solvation_options: Optional[dict] = None,
         charge_options: Optional[dict] = None,
+        task_context: Optional[dict] = None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -127,6 +130,7 @@ class SetCalculator:
             charge_options = atom_info.get('_maple_charge_options', {})
         self.solvation_options = dict(solvation_options)
         self.charge_options = dict(charge_options)
+        self.task_context = dict(task_context or {})
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -554,6 +558,8 @@ class SetCalculator:
             solvent=self.solvent,
             **kwargs,
         )
+        calculator.requested_device = str(self.device)
+        self._validate_execution_placement(calculator)
         self._validate_calculator_element_domain(calculator)
 
         if self.implicit in {'gb', 'pb'}:
@@ -564,11 +570,54 @@ class SetCalculator:
                 self.charge_options,
                 self.solvation_options,
                 output=self.output,
+                model_device=self.device,
+                task_context=self.task_context,
             )
             calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)
+        execution = calculator_execution(calculator)
+        calculator.execution_provenance = execution
+        model_device = execution['model']['reported_device']
+        solvent_execution = execution['solvent']
+        parameter_device = execution['model']['first_parameter_device']
+        placement = f"MLIP requested={self.device}, reported={model_device}, first_parameter={parameter_device}"
+        if solvent_execution is not None:
+            placement += f"; solvent={solvent_execution['provider']}/{solvent_execution['platform']}"
+        self.log_info([f" [EXECUTION] {placement}\n"])
+        if solvent_execution and solvent_execution.get('selection', {}).get('gpu_requested_but_unavailable'):
+            self.log_info([
+                " [WARNING] The MLIP accelerator is not available to OpenMM in this environment; "
+                "platform=auto selected CPU for the solvent. This is a heterogeneous job, not all-GPU. "
+                "Use an explicit solvent platform to require that backend.\n"
+            ])
         return calculator
+
+    def _validate_execution_placement(self, calculator) -> None:
+        """Reject a known device substitution, without requiring Torch plugins.
+
+        Unknown native/offloaded metadata is not fabricated. Multiple parameter
+        devices are allowed when the requested device is among them. The full
+        parameter scan happens only at construction, not on every force call.
+        """
+        def canonical(device):
+            value = str(device).lower()
+            return value + ':0' if value in {'cuda', 'xpu'} else value
+
+        requested = canonical(self.device)
+        reported = getattr(calculator, 'device', None)
+        if reported is not None and canonical(reported) != requested:
+            raise ValueError(f"MLIP device mismatch: requested {self.device}, backend reports {reported}; CPU/device substitution is not allowed.")
+        model = getattr(calculator, 'model', None)
+        parameters = getattr(model, 'parameters', None)
+        if callable(parameters):
+            candidates = parameters()
+            if not isinstance(candidates, Iterable):
+                return
+            observed = {canonical(getattr(parameter, 'device')) for parameter in candidates
+                        if getattr(parameter, 'device', None) is not None}
+            if observed and requested not in observed:
+                raise ValueError(f"MLIP device mismatch: requested {self.device}, parameter devices are {sorted(observed)}.")
 
     def _apply_hessian_mode(self, calculator) -> None:
         mode = self.model_options.get('hessian')

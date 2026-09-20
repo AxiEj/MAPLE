@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from pathlib import Path
 from typing import Any
@@ -15,17 +16,155 @@ from maple.function.read.filereader.mol2_reader import (
     mol2_identity_sha256,
 )
 
-from .charges import (
-    QEQ_EXPERIMENTAL_PROVENANCE,
-    ChargeResult,
-    QEqGTO,
-    prepare_charges,
-)
-from .common import EV_PER_HARTREE
+from .charges import ChargeResult, prepare_charges
 from .openmm_gb import DEFAULT_OPENMM_PLATFORM, OpenMMGB
 from .result import SolvationResult
 
 _ATOM_IDENTITY_ARRAY = "_maple_implicit_atom_identity"
+
+_NUMERICAL_FORCE_KEYS = {
+    "force_step_angstrom",
+    "force_check_step_angstrom",
+    "curvature_step_angstrom",
+    "max_scalar_evaluations",
+    "max_raw_records",
+    "max_audit_bytes",
+}
+
+
+def _positive_finite(value: Any, *, name: str) -> float:
+    if (
+        isinstance(value, (bool, np.bool_))
+        or not isinstance(value, (int, float, np.integer, np.floating))
+        or not math.isfinite(float(value))
+        or float(value) <= 0.0
+    ):
+        raise ValueError(f"{name} must be finite and positive")
+    return float(value)
+
+
+def _task_contract(task_context: Any) -> tuple[str, str, Any]:
+    if task_context is None:
+        return "sp", "", None
+    if isinstance(task_context, str):
+        value = task_context.lower()
+        if value in {"prfo", "dimer"}:
+            return "ts", value, None
+        return value, "", None
+    if not isinstance(task_context, dict):
+        raise TypeError("task_context must be a task name or mapping")
+    task = str(task_context.get("task", "sp")).lower()
+    method = str(task_context.get("method", "")).lower()
+    if task in {"prfo", "dimer"}:
+        task, method = "ts", task
+    return task, method, task_context.get("delta")
+
+
+def _validate_direct_contract(
+    charge_options: dict[str, Any],
+    solvation_options: dict[str, Any],
+    task_context: Any,
+) -> tuple[str, str, str | None, str, str, Any]:
+    """Pure compatibility validation run before charge/tool/audit side effects."""
+    if str(charge_options.get("mode", "fixed")).lower() != "fixed":
+        raise ValueError("Charge mode must be 'fixed'.")
+    if solvation_options.get("experimental") is not True:
+        raise ValueError(
+            "Implicit-solvation providers have not passed MAPLE's public scientific benchmark gate; "
+            "set experimental=true explicitly."
+        )
+    method = str(solvation_options.get("method", "")).lower()
+    if method not in {"gb", "pb"}:
+        raise ValueError(f"Unsupported implicit-solvation method: {method!r}.")
+    provider = str(
+        solvation_options.get("provider", "openmm" if method == "gb" else "apbs")
+    ).lower()
+    mode_value = solvation_options.get("mode")
+    force_mode = None if mode_value is None else str(mode_value).lower()
+    if force_mode not in {None, "native", "numerical"}:
+        raise ValueError("Solvation mode must be native or numerical.")
+    supplied = _NUMERICAL_FORCE_KEYS.intersection(solvation_options)
+    native_provider = (method, provider) in {("gb", "openmm"), ("pb", "ddx")}
+    numerical_provider = (method, provider) in {
+        ("gb", "ambertools"),
+        ("pb", "apbs"),
+    }
+    if native_provider and (force_mode == "numerical" or supplied):
+        raise ValueError(
+            f"provider={provider} supplies native forces and rejects numerical-force options"
+        )
+    if native_provider and force_mode not in {None, "native"}:
+        raise ValueError(f"provider={provider} supports only native forces")
+    if numerical_provider and force_mode == "native":
+        raise ValueError(
+            f"provider={provider} has no admitted native force; use mode=numerical"
+        )
+    if numerical_provider and force_mode is None and supplied:
+        raise ValueError(
+            "Numerical-force steps and budgets require explicit mode=numerical"
+        )
+    if not native_provider and not numerical_provider and (force_mode is not None or supplied):
+        raise ValueError(f"provider={provider} does not support numerical-force options")
+
+    task, task_method, task_delta = _task_contract(task_context)
+    if force_mode == "numerical":
+        required = (
+            "force_step_angstrom",
+            "force_check_step_angstrom",
+            "max_scalar_evaluations",
+            "max_raw_records",
+            "max_audit_bytes",
+        )
+        for key in required:
+            if key not in solvation_options:
+                raise ValueError(f"mode=numerical requires explicit {key}")
+        primary = _positive_finite(
+            solvation_options["force_step_angstrom"], name="force_step_angstrom"
+        )
+        check = _positive_finite(
+            solvation_options["force_check_step_angstrom"],
+            name="force_check_step_angstrom",
+        )
+        if check >= primary:
+            raise ValueError(
+                "force_check_step_angstrom must be smaller than force_step_angstrom"
+            )
+        for key in (
+            "max_scalar_evaluations",
+            "max_raw_records",
+            "max_audit_bytes",
+        ):
+            value = solvation_options[key]
+            if type(value) is not int or value <= 0:
+                raise ValueError(f"{key} must be a positive integer")
+        if "curvature_step_angstrom" in solvation_options:
+            _positive_finite(
+                solvation_options["curvature_step_angstrom"],
+                name="curvature_step_angstrom",
+            )
+        if task == "md":
+            raise ValueError("numerical solvent forces do not support MD")
+        if task not in {"sp", "opt", "scan", "freq", "ts"}:
+            raise ValueError(
+                "numerical solvent forces support SP, OPT, SCAN, FREQ, PRFO, and dimer only"
+            )
+        if task in {"sp", "opt", "scan"} and "curvature_step_angstrom" in solvation_options:
+            raise ValueError(
+                "curvature_step_angstrom is valid only for FREQ, PRFO, or dimer"
+            )
+        if task == "freq" or (task == "ts" and task_method == "prfo"):
+            if "curvature_step_angstrom" not in solvation_options:
+                raise ValueError(
+                    "numerical-solvent FREQ/PRFO requires curvature_step_angstrom"
+                )
+        if task == "ts" and task_method == "dimer":
+            if task_delta is None and "curvature_step_angstrom" not in solvation_options:
+                raise ValueError(
+                    "numerical-solvent dimer requires task delta or curvature_step_angstrom"
+                )
+            if task_delta is not None:
+                _positive_finite(task_delta, name="dimer task delta")
+    return method, provider, force_mode, task, task_method, task_delta
 
 
 def _mol2_topology_signature(atoms) -> str | None:
@@ -63,7 +202,21 @@ class ImplicitSolvationCorrection:
         solvation_options: dict[str, Any],
         *,
         output: str | os.PathLike[str] | None = None,
+        model_device=None,
+        task_context: Any = None,
     ):
+        charge_options = dict(charge_options)
+        solvation_options = dict(solvation_options)
+        (
+            method,
+            provider_name,
+            force_mode,
+            self.task,
+            self.task_method,
+            self.task_delta,
+        ) = _validate_direct_contract(
+            charge_options, solvation_options, task_context
+        )
         self.atoms = atoms
         mol2_metadata = atoms.info.get("mol2")
         mol2_atom_identity = atoms.arrays.get(MOL2_ATOM_ID_ARRAY)
@@ -114,8 +267,12 @@ class ImplicitSolvationCorrection:
             int(number) for number in atoms.get_atomic_numbers()
         )
         self._frozen_mol2_topology_signature = _mol2_topology_signature(atoms)
-        self.charge_options = dict(charge_options)
-        self.solvation_options = dict(solvation_options)
+        self.charge_options = charge_options
+        self.solvation_options = solvation_options
+        if force_mode is not None:
+            self.solvation_options["mode"] = force_mode
+        self.force_mode = force_mode
+        self.model_device = str(model_device) if model_device is not None else None
         self.provider: Any
         inner = self.solvation_options.get("inner")
         self.inner_mode = None if inner is None else str(inner).lower()
@@ -140,22 +297,13 @@ class ImplicitSolvationCorrection:
                     "inner=prebuilt requires a MOL2 cluster with at least two "
                     "connected components."
                 )
-        if self.solvation_options.get("experimental") is not True:
-            raise ValueError(
-                "Implicit-solvation providers have not passed MAPLE's public scientific benchmark gate; "
-                "set experimental=true explicitly."
-            )
-        method = str(self.solvation_options["method"]).lower()
-        provider_name = str(
-            self.solvation_options.get(
-                "provider",
-                "openmm" if method == "gb" else "apbs",
-            )
-        ).lower()
+        execution_keys = {"platform", "precision", "device_index", "opencl_platform_index"}
+        if (method, provider_name) != ("gb", "openmm") and execution_keys.intersection(self.solvation_options):
+            raise ValueError("OpenMM execution options require method=gb, provider=openmm; CPU native/external solvers do not use them.")
         nonpolar_name = str(
             self.solvation_options.get(
                 "nonpolar",
-                "ace" if method == "gb" else provider_name,
+                "ace" if method == "gb" else ("none" if provider_name == "ddx" else provider_name),
             )
         ).lower()
         if self.inner_mode == "prebuilt" and (
@@ -166,6 +314,33 @@ class ImplicitSolvationCorrection:
             raise ValueError(
                 "inner=prebuilt is validated only with OpenMM GB and "
                 "nonpolar=ACE or LCPO."
+            )
+        kappa_key = "solvent_kappa_inverse_angstrom"
+        if kappa_key in self.solvation_options and (method, provider_name) != ("pb", "ddx"):
+            raise ValueError(f"{kappa_key} is only valid with implicit PB provider=ddx.")
+        if method == "pb" and provider_name not in {"apbs", "amber-pbsa", "ddx"}:
+            raise ValueError(f"Unsupported implicit-PB provider: {provider_name!r}.")
+        if method == "pb" and provider_name == "ddx":
+            allowed = {"method", "implicit", "provider", "model", "profile",
+                       "nonpolar", "experimental", "mode", kappa_key}
+            conflicts = sorted(set(self.solvation_options) - allowed)
+            if conflicts:
+                raise ValueError("ddX reference does not support options: " + ", ".join(conflicts))
+            if kappa_key not in self.solvation_options:
+                raise ValueError(f"ddX reference requires explicit {kappa_key}.")
+            if (
+                str(self.solvation_options.get("implicit", "water")).lower() != "water"
+                or str(self.solvation_options.get("model", "lpb")).lower() != "lpb"
+                or str(self.solvation_options.get("profile", "ddlpb-union-mbondi2-v1")).lower()
+                != "ddlpb-union-mbondi2-v1"
+                or nonpolar_name != "none"
+            ):
+                raise ValueError(
+                    "ddX reference requires model=lpb, profile=ddlpb-union-mbondi2-v1, "
+                    "and nonpolar=none."
+                )
+            self.solvation_options.update(
+                provider="ddx", model="lpb", profile="ddlpb-union-mbondi2-v1", nonpolar="none"
             )
         if method == "pb" and provider_name == "amber-pbsa":
             raise NotImplementedError(
@@ -213,8 +388,6 @@ class ImplicitSolvationCorrection:
 
         self.method = method
         self.mode = str(self.charge_options.get("mode", "fixed")).lower()
-        if self.mode not in {"fixed", "polarizable"}:
-            raise ValueError("Charge mode must be 'fixed' or 'polarizable'.")
         if method == "gb":
             provider = gb_provider
             if provider == "openmm":
@@ -226,6 +399,10 @@ class ImplicitSolvationCorrection:
                     platform=self.solvation_options.get(
                         "platform", DEFAULT_OPENMM_PLATFORM
                     ),
+                    model_device=model_device,
+                    precision=self.solvation_options.get("precision"),
+                    device_index=self.solvation_options.get("device_index"),
+                    opencl_platform_index=self.solvation_options.get("opencl_platform_index"),
                 )
             elif provider == "ambertools":
                 from .amber_chagb import AmberToolsChaGB
@@ -240,60 +417,79 @@ class ImplicitSolvationCorrection:
             else:
                 raise ValueError(f"Unsupported implicit-GB provider: {provider!r}.")
         elif method == "pb":
-            from .apbs_pb import APBSLPB
+            if provider_name == "ddx":
+                from .ddx_lpb import DDXLPB
 
-            self.provider = APBSLPB(
-                atoms,
-                self.charge_result.charges,
-                executable=self.solvation_options.get("executable", "apbs"),
-                grid_spacing=self.solvation_options.get("grid_spacing", 0.33),
-                grid_points=self.solvation_options.get("grid_points", 97),
-                probe_radius=self.solvation_options.get("probe_radius", 1.4),
-                surface_tension=self.solvation_options.get("surface_tension", 0.105),
-                pressure=self.solvation_options.get("pressure", 0.0),
-                timeout=self.solvation_options.get("timeout", 3600.0),
-                audit_dir=self.audit_dir,
-            )
+                self.provider = DDXLPB(
+                    atoms,
+                    self.charge_result.charges,
+                    solvent_kappa_inverse_angstrom=self.solvation_options[kappa_key],
+                    audit_dir=self.audit_dir,
+                )
+            else:  # APBS only: unknown names and Amber's gated profile were rejected above.
+                from .apbs_pb import APBSLPB
+
+                self.provider = APBSLPB(
+                    atoms,
+                    self.charge_result.charges,
+                    executable=self.solvation_options.get("executable", "apbs"),
+                    grid_spacing=self.solvation_options.get("grid_spacing", 0.33),
+                    grid_points=self.solvation_options.get("grid_points", 97),
+                    probe_radius=self.solvation_options.get("probe_radius", 1.4),
+                    surface_tension=self.solvation_options.get("surface_tension", 0.105),
+                    pressure=self.solvation_options.get("pressure", 0.0),
+                    timeout=self.solvation_options.get("timeout", 3600.0),
+                    audit_dir=self.audit_dir,
+                )
         else:
             raise ValueError(f"Unsupported implicit-solvation method: {method!r}.")
 
-        if self.mode == "polarizable" and method != "gb":
-            raise ValueError(
-                "QEq-GTO polarizable mode is currently supported only with GB."
-            )
-        if self.mode == "polarizable" and self.charge_result.method != "qeq-gto":
-            raise ValueError(
-                "mode=polarizable requires #charge(source=maple,method=qeq-gto)."
+        self.underlying_provider = self.provider
+        if self.force_mode == "numerical":
+            from .numerical_force import NumericalForceProvider
+
+            self.provider = NumericalForceProvider(
+                self.underlying_provider,
+                force_step_angstrom=self.solvation_options["force_step_angstrom"],
+                force_check_step_angstrom=self.solvation_options[
+                    "force_check_step_angstrom"
+                ],
+                max_scalar_evaluations=self.solvation_options[
+                    "max_scalar_evaluations"
+                ],
+                max_raw_records=self.solvation_options["max_raw_records"],
+                max_audit_bytes=self.solvation_options["max_audit_bytes"],
+                audit_dir=self.audit_dir / "numerical-force",
             )
         self.supported_properties = set(self.provider.supported_properties)
         self._write_audit_manifest()
 
     def _write_audit_manifest(self) -> None:
-        fixed_charge = self.mode == "fixed"
-        if fixed_charge:
-            route_name = "Additive fixed-charge PB/GB implicit solvation"
-            route_role = "Baseline/Product Route"
-            route_formula = (
-                "E_solution(R) = E_MLIP,gas(R) + " "G_polar(R,q_fixed) + G_nonpolar(R)"
-            )
-        else:
-            route_name = "Variational CQEq-GTO/GB research profile"
-            route_role = "Research control"
-            route_formula = (
-                "E_solution(R) = E_MLIP,gas(R) + " "DeltaG_variational_CQEq-GB(R)"
-            )
+        route_formula = (
+            "E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)"
+        )
         route = {
-            "name": route_name,
-            "role": route_role,
+            "name": "Additive fixed-charge PB/GB implicit solvation",
+            "role": "Baseline/Product Route",
             "formula": route_formula,
-            "fixed_charge": fixed_charge,
-            "product_contract": fixed_charge,
+            "fixed_charge": True,
+            "product_contract": True,
             "prohibited_terms": {
                 "gas_phase_mm_energy": False,
                 "retraining": False,
                 "hydration_label_residual": False,
             },
         }
+        if self.method == "pb" and self.solvation_options.get("provider") == "ddx":
+            route.update(
+                name="Fixed-charge numerical LPB reference",
+                role="Reference",
+                formula="E_solution(R) = E_MLIP,gas(R) + G_ddLPB,polar(R,q_fixed)",
+                product_contract=False,
+                nonpolar="none",
+                absolute_solvation_free_energy_claim=False,
+                independent_crosscheck_complete=False,
+            )
         if self.inner_mode == "prebuilt":
             route.update(
                 {
@@ -315,6 +511,9 @@ class ImplicitSolvationCorrection:
                 }
             )
         provider_provenance = getattr(self.provider, "provenance", None)
+        underlying_supported = sorted(
+            set(getattr(self.underlying_provider, "supported_properties", ()))
+        )
         manifest = {
             "schema_version": 1,
             "route": route,
@@ -327,15 +526,118 @@ class ImplicitSolvationCorrection:
             "charge_options": self.charge_options,
             "solvation_options": self.solvation_options,
             "energy_composition": route["formula"],
-            "fixed_charge_lifecycle": (
-                "reference-geometry-once"
-                if self.mode == "fixed"
-                else "variational-cqeq-gto-gb-each-geometry"
-            ),
+            "fixed_charge_lifecycle": "reference-geometry-once",
+            "capabilities": {
+                "wrapper_supported_properties": sorted(self.supported_properties),
+                "underlying_supported_properties": underlying_supported,
+                "testing_only": self.force_mode == "numerical",
+                "native_force": "forces" in underlying_supported,
+                "numerical_force": self.force_mode == "numerical",
+                "production_admitted": False,
+                "accuracy_certified": False,
+            },
+            "execution": {
+                "model_device": self.model_device,
+                "solvent_platform": getattr(self.underlying_provider, "platform", "CPU"),
+                "solver_scope": "OpenMM platform" if isinstance(self.underlying_provider, OpenMMGB) else "CPU native/external solver",
+            },
         }
         (self.audit_dir / "manifest.json").write_text(
             json.dumps(manifest, indent=2, sort_keys=True, default=str),
             encoding="utf-8",
+        )
+
+    @property
+    def curvature_step_angstrom(self) -> float | None:
+        value = self.solvation_options.get("curvature_step_angstrom")
+        return None if value is None else float(value)
+
+    def resolve_outer_curvature_step(
+        self,
+        *,
+        task_delta: float | None = None,
+        backend_hint: float | None = None,
+        task: str | None = None,
+    ) -> float:
+        """Resolve and record the authoritative complete-force displacement."""
+        selected_task = str(task or self.task or "").lower()
+        if task_delta is not None:
+            step = _positive_finite(task_delta, name="task-local delta")
+            source = "task-local-delta"
+        elif self.force_mode == "numerical":
+            if self.curvature_step_angstrom is None:
+                raise ValueError(
+                    f"numerical-solvent {selected_task or 'curvature'} requires explicit curvature_step_angstrom"
+                )
+            step = self.curvature_step_angstrom
+            source = "solvation-curvature-step"
+        elif backend_hint is not None:
+            step = _positive_finite(backend_hint, name="backend numerical derivative step")
+            source = "backend-recommendation"
+        else:
+            step = 0.002
+            source = "maple-default"
+        self.last_outer_curvature_resolution = {
+            "task": selected_task,
+            "selected_step_angstrom": step,
+            "selected_source": source,
+            "task_delta_angstrom": task_delta,
+            "solvation_curvature_step_angstrom": self.curvature_step_angstrom,
+            "backend_hint_angstrom": backend_hint,
+        }
+        return step
+
+    @staticmethod
+    def _detached_at_positions(atoms, positions: np.ndarray):
+        detached = atoms.copy()
+        detached.calc = None
+        detached.set_constraint()
+        detached.set_positions(np.asarray(positions, dtype=np.float64))
+        return detached
+
+    def validate_outer_displacements(self, atoms, displaced_pairs) -> list[dict[str, Any]]:
+        """Run provider-aware outer-center preflight without scalar launches."""
+        validate = getattr(self.underlying_provider, "validate_outer_displacements", None)
+        if not callable(validate):
+            return []
+        center = self._detached_at_positions(atoms, atoms.get_positions())
+        pairs = [
+            (
+                self._detached_at_positions(atoms, minus),
+                self._detached_at_positions(atoms, plus),
+            )
+            for minus, plus in displaced_pairs
+        ]
+        records = validate(center, pairs)
+        self.last_outer_displacement_preflight = records
+        return records
+
+    def preflight_cartesian_outer_displacements(
+        self, atoms, step_angstrom: float
+    ) -> list[dict[str, Any]]:
+        step = _positive_finite(step_angstrom, name="outer curvature step")
+        positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        flat = positions.reshape(-1)
+        pairs = []
+        for coordinate in range(flat.size):
+            minus = flat.copy()
+            plus = flat.copy()
+            minus[coordinate] -= step
+            plus[coordinate] += step
+            pairs.append((minus.reshape(positions.shape), plus.reshape(positions.shape)))
+        return self.validate_outer_displacements(atoms, pairs)
+
+    def preflight_directional_outer_displacements(
+        self, atoms, direction: np.ndarray, step_angstrom: float
+    ) -> list[dict[str, Any]]:
+        step = _positive_finite(step_angstrom, name="outer curvature step")
+        positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        vector = np.asarray(direction, dtype=np.float64).reshape(positions.shape)
+        if not np.isfinite(vector).all():
+            raise ValueError("outer displacement direction must be finite")
+        return self.validate_outer_displacements(
+            atoms,
+            [(positions - step * vector, positions + step * vector)],
         )
 
     def evaluate(
@@ -371,84 +673,54 @@ class ImplicitSolvationCorrection:
                 "Implicit solvation is bound to the frozen MOL2 topology used "
                 "to prepare charges, radii, and connectivity."
             )
-        if self.mode != "polarizable":
-            result = self.provider.evaluate(
-                atoms, need_forces=need_forces, calculator=calculator
+        result = self.provider.evaluate(
+            atoms, need_forces=need_forces, calculator=calculator
+        )
+        if self.force_mode == "numerical":
+            result = SolvationResult(
+                energy_hartree=result.energy_hartree,
+                forces_hartree_per_angstrom=result.forces_hartree_per_angstrom,
+                components_hartree=dict(result.components_hartree),
+                provenance={
+                    **result.provenance,
+                    "testing_only": True,
+                    "native_force": False,
+                    "numerical_force": result.provenance.get(
+                        "numerical_force", True
+                    ),
+                    "derivative_source": (
+                        "centered-finite-difference-of-selected-provider-total"
+                    ),
+                    "production_admitted": False,
+                    "accuracy_certified": False,
+                    "force_step_angstrom": self.solvation_options[
+                        "force_step_angstrom"
+                    ],
+                    "force_check_step_angstrom": self.solvation_options[
+                        "force_check_step_angstrom"
+                    ],
+                    "curvature_step_angstrom": self.curvature_step_angstrom,
+                    "budget": self.provider.budget_snapshot,
+                    "underlying_supported_properties": sorted(
+                        self.underlying_provider.supported_properties
+                    ),
+                    "wrapper_supported_properties": sorted(
+                        self.provider.supported_properties
+                    ),
+                },
             )
-            if self.inner_mode == "prebuilt":
-                return SolvationResult(
-                    energy_hartree=result.energy_hartree,
-                    forces_hartree_per_angstrom=(result.forces_hartree_per_angstrom),
-                    components_hartree=dict(result.components_hartree),
-                    provenance={
-                        **result.provenance,
-                        "composition_mode": ("prebuilt-explicit-inner/implicit-outer"),
-                        "thermodynamic_quantity": (
-                            "fixed-shell cluster-continuum configurational potential"
-                        ),
-                        "absolute_solvation_free_energy_claim": False,
-                    },
-                )
-            return result
-        return self._evaluate_polarizable_cqeq_gb(atoms, need_forces=need_forces)
-
-    def _evaluate_polarizable_cqeq_gb(
-        self, atoms, *, need_forces: bool
-    ) -> SolvationResult:
-        qeq = QEqGTO()
-        total_charge = float(atoms.info.get("charge", 0.0))
-        q_vac = qeq.solve_variational(atoms, total_charge=total_charge)
-        vacuum_diagnostics = {
-            "iterations": qeq.last_variational_iterations,
-            "kkt_residual_ev": qeq.last_variational_kkt_residual,
-            "min_projected_hessian_eigenvalue_ev": qeq.last_variational_min_eigenvalue,
-        }
-        gb_hessian = self.provider.polar_charge_hessian_ev(atoms)
-        q_solv = qeq.solve_variational(
-            atoms,
-            total_charge=total_charge,
-            extra_hessian=gb_hessian,
-            initial_charges=q_vac,
-        )
-        solvent_diagnostics = {
-            "iterations": qeq.last_variational_iterations,
-            "kkt_residual_ev": qeq.last_variational_kkt_residual,
-            "min_projected_hessian_eigenvalue_ev": qeq.last_variational_min_eigenvalue,
-        }
-        gb_result = self.provider.evaluate(
-            atoms, need_forces=need_forces, charges=q_solv
-        )
-        qeq_vac_ev = qeq.energy_ev(atoms, q_vac)
-        qeq_solv_ev = qeq.energy_ev(atoms, q_solv)
-        polarization_cost_ha = (qeq_solv_ev - qeq_vac_ev) / EV_PER_HARTREE
-        forces = gb_result.forces_hartree_per_angstrom
-        if need_forces:
-            _, qeq_vac_force = qeq.energy_and_forces_ev_angstrom(atoms, q_vac)
-            _, qeq_solv_force = qeq.energy_and_forces_ev_angstrom(atoms, q_solv)
-            forces = (
-                np.asarray(forces) + (qeq_solv_force - qeq_vac_force) / EV_PER_HARTREE
+        if self.inner_mode == "prebuilt":
+            return SolvationResult(
+                energy_hartree=result.energy_hartree,
+                forces_hartree_per_angstrom=result.forces_hartree_per_angstrom,
+                components_hartree=dict(result.components_hartree),
+                provenance={
+                    **result.provenance,
+                    "composition_mode": "prebuilt-explicit-inner/implicit-outer",
+                    "thermodynamic_quantity": (
+                        "fixed-shell cluster-continuum configurational potential"
+                    ),
+                    "absolute_solvation_free_energy_claim": False,
+                },
             )
-        components = dict(gb_result.components_hartree)
-        components["qeq_polarization"] = polarization_cost_ha
-        components["polar"] = components.get("polar", 0.0) + polarization_cost_ha
-        return SolvationResult(
-            energy_hartree=gb_result.energy_hartree + polarization_cost_ha,
-            forces_hartree_per_angstrom=forces,
-            components_hartree=components,
-            provenance={
-                **gb_result.provenance,
-                "charge_mode": "polarizable",
-                "charge_method": "cqeq-gto",
-                **QEQ_EXPERIMENTAL_PROVENANCE,
-                "variational_model": "consistent-qeq-gto-plus-gb",
-                "variational_force": "envelope-theorem",
-                "citation": (
-                    "Ogawa et al., Consistent Charge Equilibration Method Combined "
-                    "with Universal Force Field, DOI:10.1273/cbij.3.78"
-                ),
-                "q_vac": q_vac.tolist(),
-                "q_solv": q_solv.tolist(),
-                "vacuum_solver": vacuum_diagnostics,
-                "solvent_solver": solvent_diagnostics,
-            },
-        )
+        return result

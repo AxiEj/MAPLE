@@ -1,11 +1,14 @@
+"""Immutable ddX evidence only: no solver, runner imports or execution claims.
+
+Script digests below pin the removed historical sources, not current files.
+"""
+
 from __future__ import annotations
 
-import hashlib
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
-import numpy as np
 import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -14,8 +17,6 @@ if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
 import benchmark_core as core
-import run_ddx_pcm_force_probe as force_probe
-import run_ddx_pcm_screen as screen
 
 PROTOCOL_PATH = BENCHMARK_DIR / "ddx_pcm_protocol.json"
 ENERGY_PATH = BENCHMARK_DIR / "route1-ddx-ddpcm-energy-screen-2026-07-25.json"
@@ -25,8 +26,13 @@ FORCE_PATH = (
 SUMMARY_PATH = BENCHMARK_DIR / "route1-ddx-ddpcm-development-summary-2026-07-25.json"
 
 
+def test_ddx_reference_runners_are_removed_from_this_checkout():
+    for name in ("run_ddx_pcm_screen.py", "run_ddx_pcm_force_probe.py"):
+        assert not (BENCHMARK_DIR / name).exists()
+
+
 def test_ddx_protocol_preserves_route1_and_label_boundaries():
-    protocol = screen.load_protocol(PROTOCOL_PATH)
+    protocol = core.load_json(PROTOCOL_PATH)
 
     assert protocol["route1_boundary"] == {
         "name": "Additive fixed-charge PB/GB implicit solvation",
@@ -52,77 +58,16 @@ def test_ddx_protocol_preserves_route1_and_label_boundaries():
     )
 
 
-def test_ddx_protocol_fails_closed_if_a_residual_is_enabled(tmp_path: Path):
-    protocol = core.load_json(PROTOCOL_PATH)
-    protocol["route1_boundary"]["hydration_label_residual"] = True
-    path = tmp_path / "invalid-ddx-protocol.json"
-    core.write_json_atomic(path, protocol)
-
-    with pytest.raises(ValueError, match="Route 1 boundary"):
-        screen.load_protocol(path)
-
-
-def test_ddx_force_conversion_uses_both_native_terms_and_negates_gradient(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    class FakeModel:
-        def __init__(self, _kind, centers, _radii, **_kwargs):
-            self.atom_count = centers.shape[1]
-
-        def multipole_electrostatics(self, _multipoles):
-            return {"phi": np.zeros(self.atom_count)}
-
-        def multipole_psi(self, _multipoles):
-            return np.zeros(self.atom_count)
-
-    class FakeState:
-        def __init__(self, model, _psi, _phi):
-            self.atom_count = model.atom_count
-
-        def ddrun(self, _electrostatics, tol):
-            assert tol == pytest.approx(1.0e-10)
-            return 2.0, np.ones((3, self.atom_count))
-
-        def multipole_force_terms(self, _multipoles):
-            return np.full((3, self.atom_count), 2.0)
-
-    class FakePyddx:
-        Model = FakeModel
-        State = FakeState
-
-    monkeypatch.setattr(
-        force_probe.screen,
-        "_require_pyddx",
-        lambda _version: FakePyddx,
-    )
-    energy, force = force_probe.ddpcm_energy_force_hartree_per_angstrom(
-        np.zeros((2, 3)),
-        np.asarray([0.2, -0.2]),
-        np.asarray([1.5, 1.5]),
-        lmax=3,
-        n_lebedev=50,
-        solvent_epsilon=78.5,
-        solver_tolerance=1.0e-10,
-        expected_version="0.8.0",
-    )
-
-    assert energy == pytest.approx(2.0)
-    assert force == pytest.approx(np.full((2, 3), -3.0 * screen.BOHR_PER_ANGSTROM))
-
-
-def test_pyddx_remains_outside_maple_runtime_dependencies_and_providers():
+def test_new_ddlpb_reference_is_opt_in_and_not_a_base_dependency():
     pyproject = (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    runtime_dir = (
-        REPOSITORY_ROOT / "maple/function/calculator/extra_correction/implicit"
-    )
-
-    assert "pyddx" not in pyproject.lower()
-    for path in runtime_dir.glob("*.py"):
-        assert "pyddx" not in path.read_text(encoding="utf-8").lower()
+    base, extras = pyproject.split("[project.optional-dependencies]", maxsplit=1)
+    assert "pyddx" not in base.lower()
+    assert 'implicit-ddlpb = ["openmm==8.5.2", "pyddx==0.8.0"]' in extras
+    assert 'implicit = ["openmm==8.5.2"]' in extras
 
 
 def test_frozen_ddx_energy_artifact_is_complete_and_label_free():
-    protocol = screen.load_protocol(PROTOCOL_PATH)
+    protocol = core.load_json(PROTOCOL_PATH)
     artifact = core.load_json(ENERGY_PATH)
 
     assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
@@ -130,8 +75,8 @@ def test_frozen_ddx_energy_artifact_is_complete_and_label_free():
     assert artifact["command_provenance"]["script"] == (
         "docs/implicit-solvation/benchmarks/run_ddx_pcm_screen.py"
     )
-    assert artifact["command_provenance"]["script_sha256"] == core.sha256_file(
-        BENCHMARK_DIR / "run_ddx_pcm_screen.py"
+    assert artifact["command_provenance"]["script_sha256"] == (
+        "96610d78aa2e96af0d492a0315211dbea5b9393bfc43805cc69d30308c12ffb9"
     )
     assert artifact["route1_contract"] == protocol["route1_boundary"]
     assert artifact["case_count"] == 526
@@ -142,7 +87,7 @@ def test_frozen_ddx_energy_artifact_is_complete_and_label_free():
     assert "experimental" not in json.dumps(artifact["records"], sort_keys=True).lower()
     for record in artifact["records"]:
         assert record["status"] == "success"
-        assert set(record["predictions"]) == set(screen.CANDIDATE_METHODS)
+        assert set(record["predictions"]) == set(protocol["profiles"])
         for prediction in record["predictions"].values():
             assert prediction["total_kcal_mol"] == pytest.approx(
                 prediction["polar_kcal_mol"]
@@ -155,8 +100,8 @@ def test_frozen_ddx_force_artifact_covers_all_components_and_passes_derivative_g
 
     assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
     assert artifact["protocol_sha256"] == core.sha256_file(PROTOCOL_PATH)
-    assert artifact["command_provenance"]["script_sha256"] == core.sha256_file(
-        BENCHMARK_DIR / "run_ddx_pcm_force_probe.py"
+    assert artifact["command_provenance"]["script_sha256"] == (
+        "40ce6990f49db6af6473377e80ae5edb3eb829c21ab3385b918b705236eb768b"
     )
     assert artifact["experimental_labels_read"] is False
     assert artifact["molecule"]["atom_count"] == 23
@@ -211,8 +156,8 @@ def test_frozen_ddx_development_summary_rejects_promotion_without_a_residual():
     assert summary["protocol_sha256"] == core.sha256_file(PROTOCOL_PATH)
     assert summary["energy_artifact_sha256"] == core.sha256_file(ENERGY_PATH)
     assert summary["force_artifact_sha256"] == core.sha256_file(FORCE_PATH)
-    assert summary["command_provenance"]["script_sha256"] == core.sha256_file(
-        BENCHMARK_DIR / "run_ddx_pcm_screen.py"
+    assert summary["command_provenance"]["script_sha256"] == (
+        "96610d78aa2e96af0d492a0315211dbea5b9393bfc43805cc69d30308c12ffb9"
     )
     assert summary["case_count"] == 526
     assert summary["label_use_boundary"]["experimental_fit_or_residual"] is False
@@ -247,7 +192,7 @@ def test_frozen_ddx_development_summary_rejects_promotion_without_a_residual():
     assert summary["decision"]["production_default_changed"] is False
 
 
-def test_route1_docs_keep_ddx_as_a_rejected_external_reference_candidate():
+def test_route1_docs_preserve_ddx_history_and_mark_code_removed():
     paths = (
         REPOSITORY_ROOT / "docs/implicit-solvation/ROUTE1_PRODUCT_SPEC.md",
         REPOSITORY_ROOT / "docs/implicit-solvation/README.md",
@@ -259,6 +204,7 @@ def test_route1_docs_keep_ddx_as_a_rejected_external_reference_candidate():
         " ".join(path.read_text(encoding="utf-8").split()) for path in paths
     )
 
+    assert "E/F code removed from this branch" in normalized
     assert "ddX/ddPCM conservative-provider audit" in normalized
     assert "route1-ddx-ddpcm-energy-screen-2026-07-25.json" in normalized
     assert "route1-ddx-ddpcm-force-probe-methyl-hexanoate-2026-07-25.json" in normalized
@@ -266,8 +212,3 @@ def test_route1_docs_keep_ddx_as_a_rejected_external_reference_candidate():
     assert "1.782/2.881" in normalized
     assert "roughly `360x` slower" in normalized
     assert "no `pyddx` dependency or MAPLE provider is introduced" in normalized
-
-
-@pytest.mark.parametrize("path", [ENERGY_PATH, FORCE_PATH, SUMMARY_PATH])
-def test_ddx_artifact_files_have_stable_sha256_shape(path: Path):
-    assert len(hashlib.sha256(path.read_bytes()).hexdigest()) == 64

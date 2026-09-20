@@ -18,7 +18,7 @@ have to inherit `CalcABC`. UMA, for example, extends third-party
   Native overrides must preserve order, Hartree/Hartree-per-angstrom units,
   PBC policy, and solvent semantics; batched Hessian assembly is not part of
   this method.
-- `get_hessian(self, atoms, delta=0.002)` — returns a `(3N, 3N) np.ndarray`
+- `get_hessian(self, atoms, delta=None)` — returns a `(3N, 3N) np.ndarray`
   in Hartree / Å². `CalcABC` provides a default that dispatches on
   `self.hessian`.
 - `get_hvp(self, atoms, n)` — optional; required only for the HVP-enabled
@@ -344,3 +344,25 @@ UMA does not inherit `CalcABC` because it already extends
 and registers via `@register_calculator`. Do not write
 `isinstance(calc, CalcABC)` anywhere in the dispatcher — the calculator
 surface is duck-typed by design.
+
+### Numerical-curvature precision protocol (2026-09-10)
+
+`CalcABC.prepare_numerical_derivatives()` may prepare consistent E/F/H inference
+precision and return a recommended force-difference step, or `None` to retain
+legacy defaults. The default implementation returns `None`. `get_hessian`
+uses `0.002 A` when neither caller nor backend supplies a step; explicit
+`delta=` wins. Its raw pre-symmetrization diagnostics are retained in
+`last_numerical_hessian_diagnostics`. Do not use the symmetry imposed on the
+returned Hessian as evidence of raw derivative accuracy.
+
+Numerical P-RFO prepares before its first energy/force, and finite-difference
+dimer prepares before initial-direction forces; dimer uses a backend step
+only when no explicit delta was supplied. Gas autograd-HVP dimer is unchanged.
+ANI's hook selects in-memory float64 and a `0.0005 A` recommendation without
+changing checkpoint tensor values; ordinary default SP/OPT stay native.
+Explicit ANI float32 numerical curvature is rejected. Optional backend
+`inference_precision_provenance` is copied into calculator results (and the
+structured solvent result) and logged for curvature tasks. Record requested
+and effective dtype and checkpoint identity; invalidate stale calculator
+caches when changing inference precision. Never change dtype halfway through
+E/F/H evaluations or silently demote within a workflow.

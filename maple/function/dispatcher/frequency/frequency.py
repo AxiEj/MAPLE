@@ -19,6 +19,7 @@ from ase import Atoms
 from ..jobABC import JobABC
 
 from maple.function.timer import timer
+from maple.function.device import resolve_torch_device
 
 # ------------------ optional torch (GPU) ------------------
 try:
@@ -172,6 +173,7 @@ class FrequencyParams:
     treat_imag_as_real: bool = False
     pressure_kpa: float = 101.325
     device: str = "cpu"
+    diagonalization_device: Optional[str] = None
 
 @dataclass
 class PrintParams:
@@ -289,7 +291,7 @@ class FrequencyBase(JobABC):
         self.omega0_cm1 = omega0_cm1
         self.nu_floor_cm1 = max(float(nu_floor_cm1), 1e-6)
 
-       # ---- Parse device string: support cpu / auto / gpu / gpu0 / gpu1 / cuda:0, etc. ----
+       # ---- Resolve the independently selectable eigensolver device. ----
         self.device = self._parse_device(device)
 
         # User/print-surface injection points (set by FrequencyDriver)
@@ -309,7 +311,12 @@ class FrequencyBase(JobABC):
             4) Write all results to the output file.
             5) If verbosity=10, also write a summary file with XYZ trajectory.
         """
-        self.log_info([f"Starting frequency analysis calculation, Number of atoms: {len(self.atoms)}"])
+        self.log_info(
+            [
+                f"Starting frequency analysis calculation, Number of atoms: {len(self.atoms)}\n",
+                f"Eigensolver device: {self.device}\n",
+            ]
+        )
 
         try:
             _validate_frequency_boundary(
@@ -355,27 +362,22 @@ class FrequencyBase(JobABC):
 
     # ---------------------- helpers ----------------------
     def _parse_device(self, s: str) -> str:
-        """
-        - 'cpu' → Use CPU
-        - 'auto' / 'gpu' → Use cuda:0 if CUDA is available, otherwise use CPU
-        - 'gpu0' / 'gpu1' ... → Map to cuda:<index>
-        - 'cuda:0' / 'cuda:1' ... → Direct pass-through
-    """
-        s = (s or "cpu").strip().lower()
-        if s in ("cpu",):
-            return "cpu"
-        if s in ("gpu", "cuda", "auto"):
-            if _TORCH_OK and torch.cuda.is_available():
-                return "cuda:0"
-            return "cpu"
-        if s.startswith("gpu") and s[3:].isdigit():
-            idx = s[3:]
-            if _TORCH_OK and torch.cuda.is_available():
-                return f"cuda:{idx}"
-            return "cpu"
-        if s.startswith("cuda:"):
-            return s if (_TORCH_OK and torch.cuda.is_available()) else "cpu"
-        return "cpu"
+        """Resolve an eigensolver device without silent explicit fallback."""
+        requested = str(s or "cpu").strip().lower()
+        if not _TORCH_OK:
+            if requested in {"cpu", "auto"}:
+                return "cpu"
+            raise ValueError(
+                f"Frequency accelerator device '{s}' was explicitly requested, "
+                "but PyTorch is not installed."
+            )
+        resolved = resolve_torch_device(s)
+        if resolved.type == "mps":
+            raise ValueError(
+                "MPS frequency diagonalization is unavailable because MAPLE "
+                "requires float64 torch.linalg.eigh, which MPS does not support."
+            )
+        return str(resolved)
 
     def _eigh(self, mat: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -383,7 +385,7 @@ class FrequencyBase(JobABC):
         Uses torch.linalg.eigh when running on GPU, and numpy.linalg.eigh on CPU.
         All outputs are returned as NumPy arrays.      
         """
-        if self.device.startswith("cuda") and _TORCH_OK and torch.cuda.is_available():
+        if self.device.startswith(("cuda", "xpu")) and _TORCH_OK:
             t = torch.tensor(mat, dtype=torch.float64, device=self.device)
             evals, evecs = torch.linalg.eigh(t)
             return evals.detach().cpu().numpy(), evecs.detach().cpu().numpy()
@@ -427,6 +429,7 @@ class FrequencyBase(JobABC):
         if hessian.shape != expected_shape:
             raise ValueError(f"Hessian shape{hessian.shape}does not match expected{expected_shape}")
 
+        self.log_numerical_hessian_diagnostics(calc)
         return hessian
 
     def compute_frequencies(self, hessian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -1435,7 +1438,11 @@ class Frequency:
                 temperature=self.params.temperature,
                 pressure_kpa=self.params.pressure_kpa,
                 ilowfreq=self.params.ilowfreq,
-                device=self.params.device
+                device=(
+                    self.params.diagonalization_device
+                    if self.params.diagonalization_device is not None
+                    else self.params.device
+                ),
             )
 
             if method == "nonmw":

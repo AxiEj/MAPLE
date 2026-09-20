@@ -1,21 +1,16 @@
-"""Fixed charge providers used by implicit solvation.
-
-QEq-GTO is shared with MAPLE's legacy charge boundary and retains both
-charge-dependent hydrogen corrections from Rappe--Goddard QEq.  Its first
-implicit-solvation domain is H, C, N, O, F, P, S, Cl, Br, and I.
-"""
+"""Fixed charge providers used by implicit solvation."""
 
 from __future__ import annotations
 
-from collections import Counter
-from dataclasses import dataclass, field
-from decimal import Decimal, InvalidOperation
 import hashlib
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
+from collections import Counter
+from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -27,9 +22,7 @@ from maple.function.read.filereader.mol2_reader import (
     mol2_identity_sha256,
 )
 
-from ..charge.qeq import QEqGTO
 from .amber_chagb import render_typed_mol2
-
 
 MOL2_CHARGE_TOL = 1.0e-4
 # AmberTools SQM serializes the Mulliken precharges consumed by the AM1-BCC
@@ -42,14 +35,6 @@ ANTECHAMBER_PRECHARGE_RESOLUTION_E = 1.0e-3
 # claiming a coarser precision.
 MAX_ANTECHAMBER_COORDINATE_HALF_WIDTH_ANGSTROM = 5.0e-5
 MAX_ANTECHAMBER_CHARGE_HALF_WIDTH_E = 5.0e-5
-QEQ_EXPERIMENTAL_PROVENANCE = {
-    "scientific_status": "experimental",
-    "accuracy_certified": False,
-    "default_eligible": False,
-    "selection_policy": "explicit-only-no-fallback",
-}
-
-
 def _sha256_file(path: str | os.PathLike[str]) -> str:
     digest = hashlib.sha256()
     with Path(path).open("rb") as handle:
@@ -637,8 +622,23 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
     )
 
 
-def prepare_charges(atoms, options: dict[str, Any], audit_dir: str | os.PathLike[str]) -> ChargeResult:
+def prepare_charges(
+    atoms, options: dict[str, Any], audit_dir: str | os.PathLike[str]
+) -> ChargeResult:
     """Prepare a charge record once at the reference geometry."""
+    method = str(options.get("method", "")).lower()
+    mode = str(options.get("mode", "fixed")).lower()
+    if mode == "polarizable" or method in {
+        "qeq",
+        "qeq-gto",
+        "cqeq",
+        "cqeq-gto",
+    }:
+        raise ValueError(
+            "QEq/CQEq charge models are disabled; use fixed MOL2 charges or "
+            "MAPLE AM1-BCC/ABCG2."
+        )
+
     source = str(options.get("source", "")).lower()
     audit_path = Path(audit_dir)
     if source == "mol2":
@@ -646,44 +646,6 @@ def prepare_charges(atoms, options: dict[str, Any], audit_dir: str | os.PathLike
     if source != "maple":
         raise ValueError("#charge source must be 'mol2' or 'maple'.")
 
-    method = str(options.get("method", "")).lower()
     if method in {"am1bcc", "abcg2"}:
         return _ambertools_charges(atoms, options, audit_path)
-    if method == "qeq-gto":
-        total_charge, _ = _molecular_charge_and_mult(atoms)
-        solver = QEqGTO()
-        charges = solver.solve(atoms, total_charge=total_charge)
-        return ChargeResult(
-            charges=charges,
-            method=method,
-            mode=str(options.get("mode", "fixed")),
-            reference_positions=np.asarray(atoms.get_positions()).copy(),
-            provenance={
-                "source": "maple",
-                "method": "qeq-gto",
-                "mode": str(options.get("mode", "fixed")),
-                **QEQ_EXPERIMENTAL_PROVENANCE,
-                "parameter_file": str(solver.data_file),
-                "profile": "rappe-goddard-gto-full-h-scf",
-                "lambda_scale": solver.lambda_scale,
-                "damping": solver.damping,
-                "tolerance_e": solver.tolerance,
-                "hydrogen_idempotential_update": True,
-                "hydrogen_screening_exponent_update": True,
-                "iterations": solver.last_iterations,
-                "max_delta_e": solver.last_max_delta,
-                "kkt_residual_ev": solver.last_kkt_residual,
-                "sum_e": float(charges.sum()),
-                "citations": [
-                    "Rappe and Goddard, Charge equilibration for molecular dynamics "
-                    "simulations, J. Phys. Chem. 1991, DOI:10.1021/j100161a070",
-                    "Chen and Martinez, Charge conservation in electronegativity "
-                    "equalization, J. Chem. Phys. 2009, DOI:10.1063/1.3183167",
-                ],
-                "validation_scope": (
-                    "fixed mode uses original-QEq SCF; polarizable mode switches to the "
-                    "consistent-QEq nonlinear solver in the correction layer"
-                ),
-            },
-        )
     raise ValueError(f"Unsupported MAPLE charge method: {method!r}.")

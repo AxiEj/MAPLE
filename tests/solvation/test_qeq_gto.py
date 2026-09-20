@@ -4,8 +4,7 @@ import numpy as np
 import pytest
 from ase import Atoms
 
-from maple.function.calculator.extra_correction.charge.qeq import QEqTorch
-from maple.function.calculator.extra_correction.implicit.charges import QEqGTO
+from maple.function.calculator.extra_correction.charge.qeq import QEqGTO, QEqTorch
 
 
 def test_qeq_gto_conserves_declared_charge():
@@ -87,28 +86,6 @@ def test_qeq_gto_fixed_charge_force_matches_coordinate_finite_difference():
         solver.energy_ev(plus, charges) - solver.energy_ev(minus, charges)
     ) / (2.0 * h)
     assert np.isclose(forces[1, 0], finite_difference, atol=1.0e-8)
-
-
-def test_cqeq_variational_gradient_and_charge_constraint_are_consistent():
-    atoms = Atoms("OH2", positions=[[0, 0, 0], [0.9572, 0, 0], [-0.239987, 0.927297, 0]])
-    solver = QEqGTO(tolerance=1.0e-10)
-    extra_hessian = np.diag([-0.2, -0.1, -0.1])
-    charges = solver.solve_variational(atoms, extra_hessian=extra_hessian)
-    gradient = solver.charge_gradient_ev(atoms, charges, extra_hessian)
-    direction = np.array([1.0, -0.5, -0.5])
-    h = 1.0e-6
-
-    def total_energy(q):
-        return solver.energy_ev(atoms, q) + 0.5 * q @ extra_hessian @ q
-
-    finite_difference = (
-        total_energy(charges + h * direction)
-        - total_energy(charges - h * direction)
-    ) / (2.0 * h)
-    assert abs(float(charges.sum())) < 1.0e-10
-    assert abs(float(gradient @ direction)) < 2.0e-6
-    assert abs(finite_difference) < 2.0e-6
-    assert solver.last_variational_min_eigenvalue > 0.0
 
 
 def test_qeq_fixed_provider_freezes_reference_charges():

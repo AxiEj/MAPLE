@@ -218,8 +218,9 @@ def _resolve_bundle(executable: str) -> dict[str, Path]:
             "AmberTools CHA-GB requires gbnsr6, pbsa, parmchk2, and tleap from "
             f"one installation; {executable!r} was not found."
         )
-    gbnsr6 = Path(os.path.abspath(resolved))
-    directory = gbnsr6.parent
+    resolved_path = Path(os.path.abspath(resolved))
+    gbnsr6 = resolved_path.resolve()
+    directory = resolved_path.parent
     bundle = {"gbnsr6": gbnsr6}
     for name in ("pbsa", "parmchk2", "tleap"):
         candidate = directory / name
@@ -228,7 +229,7 @@ def _resolve_bundle(executable: str) -> dict[str, Path]:
                 "AmberTools CHA-GB requires gbnsr6, pbsa, parmchk2, and tleap "
                 f"from one installation; missing {candidate}."
             )
-        bundle[name] = candidate.absolute()
+        bundle[name] = candidate.resolve()
     return bundle
 
 
@@ -373,6 +374,7 @@ class AmberToolsChaGB:
         self.timeout = float(timeout)
         if self.timeout <= 0:
             raise ValueError("AmberTools CHA-GB timeout must be positive.")
+        self._executable_request = executable
         self.executables = _resolve_bundle(executable)
         self.audit_dir = Path(audit_dir).resolve() if audit_dir is not None else None
         self.gbnsr6_lock_path = (
@@ -471,6 +473,50 @@ class AmberToolsChaGB:
     def provenance(self) -> dict[str, object]:
         return dict(self._provenance)
 
+    def _verify_executable_bundle_identity(self) -> dict[str, dict[str, str]]:
+        resolved = shutil.which(self._executable_request)
+        if resolved is None:
+            raise RuntimeError(
+                "AmberTools executable bundle drifted after provider construction: "
+                f"{self._executable_request!r} is no longer resolvable."
+            )
+        resolved_path = Path(os.path.abspath(resolved))
+        current_gbnsr6 = resolved_path.resolve()
+        expected_gbnsr6 = self.executables["gbnsr6"]
+        if current_gbnsr6 != expected_gbnsr6:
+            raise RuntimeError(
+                "AmberTools gbnsr6 path drifted after provider construction: "
+                f"expected {expected_gbnsr6}, resolved {current_gbnsr6}."
+            )
+
+        verified: dict[str, dict[str, str]] = {}
+        directory = resolved_path.parent
+        recorded = self._provenance["executables"]
+        for name in ("gbnsr6", "pbsa", "parmchk2", "tleap"):
+            candidate = (
+                current_gbnsr6
+                if name == "gbnsr6"
+                else (directory / name).resolve()
+            )
+            expected_path = self.executables[name]
+            if not candidate.is_file() or candidate != expected_path:
+                raise RuntimeError(
+                    "AmberTools executable path drifted after provider construction: "
+                    f"{name} expected {expected_path}, resolved {candidate}."
+                )
+            observed_sha256 = _sha256_file(candidate)
+            expected_sha256 = recorded[name]["sha256"]
+            if observed_sha256 != expected_sha256:
+                raise RuntimeError(
+                    "AmberTools executable content drifted after provider construction: "
+                    f"{name} expected SHA256 {expected_sha256}, got {observed_sha256}."
+                )
+            verified[name] = {
+                "path": str(candidate),
+                "sha256": observed_sha256,
+            }
+        return verified
+
     @staticmethod
     def _gbnsr6_input() -> str:
         polar = _POLAR_PARAMETERS
@@ -535,13 +581,33 @@ class AmberToolsChaGB:
             "initial_inpcrd_sha256": _sha256_file(prepared.initial_inpcrd),
         }
 
-    def _prepare_topology(self) -> tuple[_PreparedTopology, bool]:
+    @staticmethod
+    def _audit_path(audit_context, fallback: Path | None) -> Path | None:
+        if audit_context is None:
+            return fallback
+        try:
+            path = Path(audit_context.path)
+        except (AttributeError, TypeError) as exc:
+            raise TypeError("audit_context must expose a filesystem path.") from exc
+        if not path.is_dir():
+            raise ValueError("audit_context.path must be a pre-created directory.")
+        return path.resolve()
+
+    def _prepare_topology(
+        self, *, audit_dir: Path | None = None
+    ) -> tuple[_PreparedTopology, bool]:
         with self._preparation_lock:
+            identity_before = self._verify_executable_bundle_identity()
             if self._prepared_topology is not None:
                 return self._prepared_topology, True
             temporary = tempfile.TemporaryDirectory(prefix="maple-chagb-prepared-")
             work = Path(temporary.name)
-            commands: list[dict[str, object]] = []
+            commands: list[dict[str, object]] = [
+                {
+                    "label": "executable-identity-before-topology-preparation",
+                    "executables": identity_before,
+                }
+            ]
             try:
                 mol2 = work / "molecule.mol2"
                 mol2.write_text(
@@ -569,7 +635,7 @@ class AmberToolsChaGB:
                     cwd=work,
                     timeout=self.timeout,
                     label="parmchk2",
-                    audit_dir=self.audit_dir,
+                    audit_dir=audit_dir,
                 )
                 commands.append(
                     {
@@ -580,6 +646,12 @@ class AmberToolsChaGB:
                 )
                 require_no_frcmod_nonbonded_overrides(
                     frcmod.read_text(encoding="utf-8")
+                )
+                commands.append(
+                    {
+                        "label": "executable-identity-after-parmchk2",
+                        "executables": self._verify_executable_bundle_identity(),
+                    }
                 )
 
                 leap_input = work / "tleap.in"
@@ -603,13 +675,19 @@ class AmberToolsChaGB:
                     cwd=work,
                     timeout=self.timeout,
                     label="tleap",
-                    audit_dir=self.audit_dir,
+                    audit_dir=audit_dir,
                 )
                 commands.append(
                     {
                         "label": "tleap",
                         "command": command,
                         "returncode": completed.returncode,
+                    }
+                )
+                commands.append(
+                    {
+                        "label": "executable-identity-after-tleap",
+                        "executables": self._verify_executable_bundle_identity(),
                     }
                 )
                 prmtop = work / "molecule.prmtop"
@@ -637,7 +715,7 @@ class AmberToolsChaGB:
 
     def prepare_topology(self) -> dict[str, object]:
         """Prepare one immutable GAFF2/Bondi topology for coordinate-only calls."""
-        prepared, cache_hit = self._prepare_topology()
+        prepared, cache_hit = self._prepare_topology(audit_dir=self.audit_dir)
         return self._prepared_topology_provenance(prepared, cache_hit=cache_hit)
 
     def close(self) -> None:
@@ -657,10 +735,11 @@ class AmberToolsChaGB:
         work: Path,
         commands: list[dict[str, object]],
         result: SolvationResult,
+        audit_dir: Path | None,
     ) -> None:
-        if self.audit_dir is None:
+        if audit_dir is None:
             return
-        self.audit_dir.mkdir(parents=True, exist_ok=True)
+        audit_dir.mkdir(parents=True, exist_ok=True)
         for directory, names in (
             (
                 prepared.directory,
@@ -693,8 +772,8 @@ class AmberToolsChaGB:
             for name in names:
                 source = directory / name
                 if source.is_file():
-                    shutil.copy2(source, self.audit_dir / name)
-        (self.audit_dir / "amber-chagb.commands.json").write_text(
+                    shutil.copy2(source, audit_dir / name)
+        (audit_dir / "amber-chagb.commands.json").write_text(
             json.dumps(
                 self._preparation_commands + commands,
                 indent=2,
@@ -702,7 +781,7 @@ class AmberToolsChaGB:
             ),
             encoding="utf-8",
         )
-        (self.audit_dir / "amber-chagb.result.json").write_text(
+        (audit_dir / "amber-chagb.result.json").write_text(
             json.dumps(
                 {
                     "energy_hartree": result.energy_hartree,
@@ -730,7 +809,9 @@ class AmberToolsChaGB:
                 finally:
                     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
-    def evaluate_coordinates(self, positions_angstrom) -> SolvationResult:
+    def evaluate_coordinates(
+        self, positions_angstrom, *, audit_context=None
+    ) -> SolvationResult:
         """Evaluate fixed topology/charges at one finite coordinate array."""
         positions = np.asarray(positions_angstrom, dtype=np.float64)
         if (
@@ -741,7 +822,8 @@ class AmberToolsChaGB:
                 "CHA-GB coordinate-only evaluation requires a finite (N, 3) "
                 "coordinate array matching the prepared molecule."
             )
-        prepared, cache_hit = self._prepare_topology()
+        audit_dir = self._audit_path(audit_context, self.audit_dir)
+        prepared, cache_hit = self._prepare_topology(audit_dir=audit_dir)
         commands: list[dict[str, object]] = []
         with tempfile.TemporaryDirectory(prefix="maple-chagb-coordinate-") as temporary:
             work = Path(temporary)
@@ -763,13 +845,14 @@ class AmberToolsChaGB:
                 "-c",
                 coordinate_path.name,
             ]
+            identity_before_gbnsr6 = self._verify_executable_bundle_identity()
             with self._serialized_gbnsr6():
                 completed = _run(
                     command,
                     cwd=work,
                     timeout=self.timeout,
                     label="gbnsr6",
-                    audit_dir=self.audit_dir,
+                    audit_dir=audit_dir,
                 )
             commands.append(
                 {
@@ -778,6 +861,7 @@ class AmberToolsChaGB:
                     "returncode": completed.returncode,
                 }
             )
+            identity_after_gbnsr6 = self._verify_executable_bundle_identity()
             polar = parse_gbnsr6_components(gb_output.read_text(encoding="utf-8"))["polar"]
 
             pb_input = work / "pbsa.in"
@@ -795,12 +879,13 @@ class AmberToolsChaGB:
                 "-c",
                 coordinate_path.name,
             ]
+            identity_before_pbsa = self._verify_executable_bundle_identity()
             completed = _run(
                 command,
                 cwd=work,
                 timeout=self.timeout,
                 label="pbsa",
-                audit_dir=self.audit_dir,
+                audit_dir=audit_dir,
             )
             commands.append(
                 {
@@ -809,6 +894,7 @@ class AmberToolsChaGB:
                     "returncode": completed.returncode,
                 }
             )
+            identity_after_pbsa = self._verify_executable_bundle_identity()
             nonpolar = parse_pbsa_components(pb_output.read_text(encoding="utf-8"))
             cavity = nonpolar["cavity"]
             dispersion = nonpolar["dispersion"]
@@ -823,6 +909,12 @@ class AmberToolsChaGB:
                 "coordinate_input": {
                     "format": "amber-inpcrd",
                     "sha256": _sha256_file(coordinate_path),
+                },
+                "executable_identity_checks": {
+                    "before_gbnsr6": identity_before_gbnsr6,
+                    "after_gbnsr6": identity_after_gbnsr6,
+                    "before_pbsa": identity_before_pbsa,
+                    "after_pbsa": identity_after_pbsa,
                 },
                 "reported_formula": "EGB + ECAVITY + EDISPER",
             }
@@ -841,10 +933,13 @@ class AmberToolsChaGB:
                 work=work,
                 commands=commands,
                 result=result,
+                audit_dir=audit_dir,
             )
             return result
 
-    def evaluate_coordinate_batch(self, positions_angstrom) -> list[SolvationResult]:
+    def evaluate_coordinate_batch(
+        self, positions_angstrom, *, audit_contexts=None
+    ) -> list[SolvationResult]:
         """Serially score conformers/poses while reusing one prepared topology."""
         positions = np.asarray(positions_angstrom, dtype=np.float64)
         if (
@@ -857,13 +952,25 @@ class AmberToolsChaGB:
                 "CHA-GB coordinate batches require a non-empty finite "
                 "(B, N, 3) array matching the prepared molecule."
             )
-        return [self.evaluate_coordinates(item) for item in positions]
+        if audit_contexts is None:
+            audit_contexts = [None] * len(positions)
+        else:
+            audit_contexts = list(audit_contexts)
+            if len(audit_contexts) != len(positions):
+                raise ValueError(
+                    "CHA-GB coordinate batch requires one audit context per geometry."
+                )
+        return [
+            self.evaluate_coordinates(item, audit_context=context)
+            for item, context in zip(positions, audit_contexts)
+        ]
 
     def evaluate(
         self,
         atoms,
         need_forces: bool = False,
         calculator=None,
+        audit_context=None,
     ) -> SolvationResult:
         if need_forces:
             raise NotImplementedError(
@@ -872,4 +979,6 @@ class AmberToolsChaGB:
             )
         if list(atoms.get_chemical_symbols()) != self.symbols:
             raise ValueError("CHA-GB atom count/order changed after provider setup.")
-        return self.evaluate_coordinates(atoms.get_positions())
+        return self.evaluate_coordinates(
+            atoms.get_positions(), audit_context=audit_context
+        )

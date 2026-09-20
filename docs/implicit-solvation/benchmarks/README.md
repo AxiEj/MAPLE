@@ -1157,24 +1157,12 @@ has worse RMSE and outliers. Its local `~0.53 s` polar-force call is roughly
 confirmation, and therefore product admission fail. No provider/default is
 changed.
 
-Reproduction from the repository root:
-
-```bash
-DDX_AUDIT=$(mktemp -d)
-python -m venv --system-site-packages "$DDX_AUDIT/venv"
-"$DDX_AUDIT/venv/bin/python" -m pip install pybind11==3.0.1
-# Download pyddx-0.8.0.tar.gz from the protocol-pinned PyPI release and verify:
-echo "31a1ddfe72105a0a6843ef2bcda76763cb99bab56d85d844c08e078156201f08  pyddx-0.8.0.tar.gz" \
-  | sha256sum -c -
-"$DDX_AUDIT/venv/bin/python" -m pip install --no-build-isolation \
-  ./pyddx-0.8.0.tar.gz
-
-"$DDX_AUDIT/venv/bin/python" \
-  docs/implicit-solvation/benchmarks/run_ddx_pcm_force_probe.py --workers 6
-"$DDX_AUDIT/venv/bin/python" \
-  docs/implicit-solvation/benchmarks/run_ddx_pcm_screen.py energy --workers 6
-python docs/implicit-solvation/benchmarks/run_ddx_pcm_screen.py score
-```
+The ddX/ddPCM runners were deleted from this branch at user request on
+2026-09-09. These JSON files are immutable historical evidence; their recorded
+commands and source hashes describe the former execution, not runnable commands
+in the current checkout. No `pyddx` installation is required for archived
+evidence checks. The ordinary GB, CHA-GB/ALPB and APBS implementations are
+unchanged by this retirement.
 
 ### MLSES PB surface feasibility boundary (2026-07-26)
 
@@ -2535,6 +2523,9 @@ MAE `0.680`, RMSE `0.826`, and maximum absolute error `1.856 kcal/mol`.
 
 ## Corrected QEq-GTO diagnostic
 
+> Historical evidence only: QEq/CQEq runtime entries were closed at user
+> request on 2026-09-08. The following results are not a current usage option.
+
 The QEq rows use the same ten MOL2 geometries and the same OpenMM/ACE protocol,
 but generate fixed charges internally with the repaired full hydrogen SCF.  At
 each iteration MAPLE updates both the hydrogen idempotential and the hydrogen
@@ -2567,6 +2558,10 @@ models are frozen in
 [`freesolv10-qeq-gto-full-h-2026-07-22.json`](freesolv10-qeq-gto-full-h-2026-07-22.json).
 
 ## Polarizable CQEq-GTO diagnostic
+
+Historical evidence only. The F variational CQEq/GB implementation was removed
+from this branch on 2026-09-09. This section does not describe an available
+runtime option or a continuing development line.
 
 The polarizable run does not reuse the non-variational original-QEq fixed
 point.  It minimizes the consistent-QEq (CQEq) energy in vacuum and minimizes
@@ -2997,3 +2992,51 @@ See [the publication checkpoint](../PROGRESS_2026-09-06.md) for the continuous
 nonpolar prototype, output-only precision patches, validation boundaries and
 local-only evidence exclusions. This checkpoint does not enable full CHA
 forces or OPT/FREQ/TS.
+
+### Experimental task availability and bounded numerical cleanup (2026-09-08)
+
+Fixed-charge OpenMM GB now exposes P-RFO experimentally with the complete
+composed numerical Hessian, and dimer with finite differences of the complete
+composed forces (no full Hessian or gas-only HVP). See
+[usage and interpretation](../EXPERIMENTAL_TASKS.md). The new engine smoke uses
+ANI2x plus OBC-II/ACE and one iteration; it demonstrates actual task execution,
+not a converged chemical transition state. CHA polar derivatives remain separate.
+
+The continuous nonpolar prototype's dispersion loop now hoists constant radial
+coefficients and batches at most 32 azimuth subarcs. It uses the same original
+quadrature nodes/weights, physical parameters and tolerances, without a new
+public switch or cross-molecule cache. In three interleaved same-process,
+single-thread-policy methanol comparisons, median dispersion time changed from
+11.1201 to 5.9438 seconds (1.87x). The maximum energy difference was zero and
+maximum gradient difference was 2.78e-17 kcal/mol/A. These are local dispersion
+measurements, not whole-MAPLE throughput or chemical-accuracy claims. The raw
+comparison, input/source hashes and pre-change kernels are local under
+`.omx/benchmarks/route1-continuum-efficiency-20260908/`.
+
+The two pre-existing reserve digest failures were traced to metadata-only
+resealing/enrichment; their underlying energies and statistics were unchanged.
+They require a separate lineage/versioning repair, not replacement expected
+hashes. This iteration leaves those numerical artifacts untouched. The existing
+postexecution compatibility ledger records only the command gate's source
+change; old-source execution/sealing remains refused and no historical scientific
+claim is recertified. New TS behavior is tested independently.
+
+### New finite-kappa ddLPB numerical reference (2026-09-09)
+
+The new `run_ddlpb_reference_validation.py` validates the explicit ddLPB
+reference role, not the retired ddPCM accuracy screen. It retains sphere
+checks, complete two-step molecular FD vectors, numerical refinement and
+optional matched-cavity APBS outputs. Old JSON evidence is unchanged.
+See [usage, physical assumptions and pending solver-agreement criteria](../NUMERICAL_REFERENCE.md).
+OBC-II/ACE and CHA-GB/ALPB plus PBSA cavity/dispersion remain unchanged endpoints.
+
+### ddLPB OPT/FREQ/TS numerical workflow repair (2026-09-10)
+
+The new workflows reuse the complete composed scalar. Raw gas/solvent Hessian
+controls identified ANI float32 noise and coarse force-difference truncation,
+not a ddLPB force failure. Same-checkpoint float64 plus the ANI-specific
+`0.0005 A` numerical-curvature recommendation qualified on initial and held-out
+OPT-final water geometries. Original failures and all raw component matrices
+remain local under `.omx/verification/ddlpb-workflows-20260909/`; no historical
+benchmark data or physical parameters were changed. See [workflow inputs and
+claim boundaries](../NUMERICAL_REFERENCE.md).

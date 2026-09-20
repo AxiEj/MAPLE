@@ -28,18 +28,17 @@ def test_documentation_declares_am1bcc_development_default_without_certification
     assert "not a scientific certification" in validation
 
 
-def test_qeq_documentation_freezes_it_as_explicit_experimental_only():
+def test_qeq_documentation_marks_runtime_disabled_and_preserves_history():
     overview = (REPOSITORY_ROOT / "docs/implicit-solvation/README.md").read_text(
         encoding="utf-8"
     )
     normalized = " ".join(overview.split())
 
-    assert (
-        "Fixed QEq-GTO and polarizable CQEq-GTO/GB are frozen experimental "
-        "research controls"
-    ) in normalized
-    assert "never selected as defaults or provider fallbacks" in normalized
-    assert "not a Route 1 fixed-charge product profile" in normalized
+    assert "QEq/CQEq runtime selection is disabled at user request" in normalized
+    assert "No fallback silently replaces QEq" in normalized
+    assert "historical research material" in normalized
+    assert "#charge(source=maple,method=qeq-gto,mode=fixed)" not in overview
+    assert "#charge(source=maple,method=qeq-gto,mode=polarizable)" not in overview
 
 
 def test_route1_product_spec_separates_provider_accuracy_and_speed_claims():

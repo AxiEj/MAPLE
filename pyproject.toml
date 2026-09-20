@@ -20,6 +20,8 @@ dependencies = [
 # APBS and AmberTools remain external executables.
 implicit-gb = ["openmm==8.5.2"]
 implicit = ["openmm==8.5.2"]
+# Explicit numerical LPB reference only; does not alter the GB/product extra.
+implicit-ddlpb = ["openmm==8.5.2", "pyddx==0.8.0"]
 # PyMBAR is optional because most MAPLE tasks do not perform multistate
 # free-energy analysis.  Route 1 delegates MBAR and time-series decorrelation to
 # this maintained upstream implementation instead of shipping a local estimator.

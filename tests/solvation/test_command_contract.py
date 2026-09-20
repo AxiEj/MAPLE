@@ -189,32 +189,43 @@ def test_implicit_pb_remains_energy_only_for_md():
         )
 
 
-def test_implicit_gb_md_rejects_polarizable_research_charge_mode():
-    with pytest.raises(ValueError, match="fixed charges"):
+@pytest.mark.parametrize(
+    "charge_line",
+    [
+        "#charge(source=maple,method=qeq-gto,mode=fixed)",
+        "#charge(source=maple,method=qeq-gto,mode=polarizable)",
+        "#charge(source=maple,method=qeq,mode=fixed)",
+        "#charge(source=maple,method=cqeq-gto,mode=polarizable)",
+        "#charge(source=maple,method=cqeq,mode=polarizable)",
+    ],
+)
+def test_qeq_and_cqeq_charge_selections_are_disabled(charge_line):
+    with pytest.raises(ValueError, match="QEq/CQEq charge models are disabled"):
         parse(
             "#model=ani2x",
-            "#md(ensemble=nvt,steps=2)",
-            "#charge(source=maple,method=qeq-gto,mode=polarizable)",
+            "#sp",
+            charge_line,
             "#solv(implicit=water,method=gb,experimental=true)",
         )
 
 
-def test_explicit_qeq_still_requires_experimental_solvation_acknowledgement():
-    with pytest.raises(ValueError, match="public benchmark gate"):
-        parse(
-            "#model=ani2x",
-            "#charge(source=maple,method=qeq-gto,mode=fixed)",
-            "#solv(implicit=water,method=gb,model=hct,nonpolar=ace)",
-        )
-
-
-def test_polarizable_qeq_cannot_switch_to_pb():
-    with pytest.raises(ValueError, match="Polarizable QEq-PB is deferred"):
+def test_qeq_charge_selection_is_disabled_without_solvation():
+    with pytest.raises(ValueError, match="QEq/CQEq charge models are disabled"):
         parse(
             "#model=ani2x",
             "#sp",
-            "#charge(source=maple,method=qeq-gto,mode=polarizable)",
-            "#solv(implicit=water,method=pb,experimental=true)",
+            "#charge(source=maple,method=qeq-gto)",
+        )
+
+
+@pytest.mark.parametrize("source", ["maple", "mol2"])
+def test_polarizable_charge_mode_is_disabled_for_every_source(source):
+    with pytest.raises(ValueError, match="QEq/CQEq charge models are disabled"):
+        parse(
+            "#model=ani2x",
+            "#sp",
+            f"#charge(source={source},mode=polarizable)",
+            "#solv(implicit=water,method=gb,experimental=true)",
         )
 
 
@@ -231,7 +242,7 @@ def test_legacy_gbsa_syntax_fails_with_migration_message():
     with pytest.raises(ValueError, match=r"method=gb.*model=obc2"):
         parse(
             "#model=ani2x",
-            "#charge(source=maple,method=qeq-gto)",
+            "#charge(source=maple)",
             "#solv(implicit=water,method=gbsa,experimental=true)",
         )
 

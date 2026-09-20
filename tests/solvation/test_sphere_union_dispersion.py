@@ -56,6 +56,61 @@ def _asymmetric_case():
     )
 
 
+def _sigma_crossing_case():
+    # The central sphere has two exposed arcs, cut by multiple sigma spheres.
+    return (
+        np.array([[0.0, 0.0, 0.0], [1.1, 0.0, 0.3], [-1.1, 0.0, -0.2]]),
+        np.array([1.2, 1.0, 0.95]),
+        np.array([1.7, 1.8, 1.4]),
+        np.array([0.2, 0.1, 0.25]),
+        0.03,
+    )
+
+
+def test_multiple_exposed_arcs_preserve_preoptimization_result():
+    # Frozen from the scalar-per-subarc implementation at the same settings;
+    # this locks numerical behavior, not experimental solvation accuracy.
+    result = dispersion_energy_and_gradient(
+        *_sigma_crossing_case(), phi_order=32, rtol=2e-8, atol=2e-10
+    )
+    assert result.energy == pytest.approx(-0.7212480369524394, abs=1e-11)
+    assert result.gradient == pytest.approx(
+        np.array(
+            [
+                [-0.00138749240656028, 0.0, -0.003195313757358955],
+                [0.020339324388736275, 0.0, 0.006094094930211589],
+                [-0.018951831982175982, 0.0, -0.002898781172852637],
+            ]
+        ),
+        abs=1e-9,
+    )
+
+
+def test_azimuth_batching_preserves_result_and_bounds_working_arrays(monkeypatch):
+    original_norm = np.linalg.norm
+    node_counts = []
+
+    def record_norm(values, *args, **kwargs):
+        if np.ndim(values) == 3 and kwargs.get("axis") == 2:
+            node_counts.append(len(values))
+        return original_norm(values, *args, **kwargs)
+
+    monkeypatch.setattr(np.linalg, "norm", record_norm)
+    monkeypatch.setattr(sphere_union_dispersion, "_AZIMUTH_BATCH_ARCS", 1)
+    reference = dispersion_energy_and_gradient(
+        *_sigma_crossing_case(), phi_order=32, rtol=2e-8, atol=2e-10
+    )
+    for batch_size in (2, 32):
+        node_counts.clear()
+        monkeypatch.setattr(sphere_union_dispersion, "_AZIMUTH_BATCH_ARCS", batch_size)
+        result = dispersion_energy_and_gradient(
+            *_sigma_crossing_case(), phi_order=32, rtol=2e-8, atol=2e-10
+        )
+        assert result.energy == pytest.approx(reference.energy, abs=1e-12)
+        assert result.gradient == pytest.approx(reference.gradient, abs=2e-10)
+        assert node_counts and 32 < max(node_counts) <= batch_size * 32
+
+
 @pytest.mark.parametrize(
     ("positions", "radii", "sigma", "epsilon", "density"),
     [
@@ -67,6 +122,7 @@ def _asymmetric_case():
             0.028,
         ),
         _asymmetric_case(),
+        _sigma_crossing_case(),
     ],
 )
 def test_all_coordinate_gradients_match_energy_finite_difference(

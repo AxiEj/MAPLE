@@ -1,5 +1,10 @@
 # Formula and reference ledger
 
+The new finite-kappa ddX/ddLPB reference uses the [explicit reference contract](NUMERICAL_REFERENCE.md):
+fixed point charges, fixed union-mbondi2 spheres, polar-only energy and complete
+coordinate force. Historical ddPCM/CQEq sections below remain archival; no old
+energy or force result is relabelled as evidence for the new provider.
+
 This file is the human-review ledger for MAPLE's Route 1 fixed-charge PB/GB
 implementation. Equations implemented directly in MAPLE are listed explicitly;
 upstream continuum and charge-generation algorithms are called through their
@@ -779,11 +784,15 @@ References:
 
 ## QEq-GTO
 
-This section documents an explicit research control. Fixed QEq-GTO may be used
-as a nondefault fixed-charge diagnostic; polarizable CQEq-GTO/GB is outside the
-Route 1 fixed-charge product contract.
+The F polarizable CQEq-GTO/GB implementation was removed from this branch on
+2026-09-09. The equations below document historical results, not available code.
+Ordinary fixed-QEq legacy mathematics is retained separately, runtime-disabled.
 
-MAPLE's `qeq-gto` profile uses the original QEq atomic parameters and
+This section preserves historical QEq/CQEq mathematics. Runtime selection of
+both fixed QEq-GTO and polarizable CQEq-GTO/GB was disabled at user request
+on 2026-09-08. These equations and old results are not current usage options.
+
+The historical `qeq-gto` profile used the original QEq atomic parameters and
 hydrogen self-consistency, with a specified single-Gaussian approximation to
 the original Slater charge densities.  For each atom,
 
@@ -806,8 +815,8 @@ J_{ij}^{\mathrm{GTO}}(r)=E_h
 \]
 
 The fitting coefficients are (c_1=0.270917), (c_2=0.098800),
-(c_3=0.055600), (c_4=0.039100), and (c_5=0.029600).  The runtime
-domain is H, C, N, O, F, P, S, Cl, Br, and I.
+(c_3=0.055600), (c_4=0.039100), and (c_5=0.029600).  The historical parameter
+domain was H, C, N, O, F, P, S, Cl, Br, and I.
 
 Hydrogen is not frozen at its neutral-atom parameters.  Following equations
 20--21 of Rappé and Goddard,
@@ -844,9 +853,9 @@ charges as the original paper's STO charge benchmarks.
 
 The original QEq SCF neglects the full charge derivative of the
 charge-dependent hydrogen exponent.  It is therefore not a strict stationary
-point of the displayed QEq energy and is used only for `mode=fixed`.
+point of the displayed QEq energy and was used only for `mode=fixed` in the retired runtime path.
 
-For `mode=polarizable`, MAPLE implements the consistent-QEq derivative from
+For the retired `mode=polarizable` path, MAPLE implemented the consistent-QEq derivative from
 Ogawa et al.  For a hydrogen (i), this adds the derivative of the cubic
 one-center term and every hydrogen-dependent pair integral:
 
@@ -856,11 +865,11 @@ one-center term and every hydrogen-dependent pair integral:
 +\sum_{j\ne i}\left(J_{ij}+q_i\frac{\partial J_{ij}}{\partial q_i}\right)q_j.
 \]
 
-The GB polar contribution adds (K_{GB}q).  MAPLE solves the resulting
-nonlinear constrained minimum with an analytic charge gradient, then requires
+The GB polar contribution adds (K_{GB}q).  The historical control solved the resulting
+nonlinear constrained minimum with an analytic charge gradient, then required
 charge conservation, a KKT residual below `2e-6 eV`, and a nonnegative
-projected charge-Hessian eigenvalue.  Only this CQEq path uses the envelope
-theorem for polarizable forces.  This is a mathematically consistent but still
+projected charge-Hessian eigenvalue.  Only this CQEq path used the envelope
+theorem for polarizable forces.  This was a mathematically consistent but still
 experimental continuum coupling; its parameters were not jointly trained with
 the Amber GB radii or nonpolar term.
 
@@ -2669,6 +2678,9 @@ Route 1 product.
   DOI `10.1073/pnas.0600118103`.
 
 ## External ddPCM/ddLPB audit
+
+Historical equations and evidence only. The E ddX/ddPCM reference runners
+were removed from this branch on 2026-09-09; this is not a runnable provider.
 
 ddX supplies domain-decomposition implementations of ddCOSMO, ddPCM, and
 ddLPB for point multipoles inside a cavity defined by overlapping atom-centered

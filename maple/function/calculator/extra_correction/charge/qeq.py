@@ -17,7 +17,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-
 BOHR_TO_ANGSTROM = 0.529177210903
 HARTREE_TO_EV = 27.211386245988
 COULOMB_EV_ANGSTROM = HARTREE_TO_EV * BOHR_TO_ANGSTROM
@@ -26,7 +25,7 @@ HYDROGEN_CHARGE_MIN = -1.0
 HYDROGEN_CHARGE_MAX = 1.0
 SUPPORTED_ELEMENTS = frozenset({"H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"})
 
-_GTO_FIT_COEFFICIENT = {
+_GTO_FIT_COEFFICIENT: dict[int, float] = {
     1: 0.270917,
     2: 0.098800,
     3: 0.055600,
@@ -86,9 +85,6 @@ class QEqGTO:
         self.last_iterations: int | None = None
         self.last_max_delta: float | None = None
         self.last_kkt_residual: float | None = None
-        self.last_variational_iterations: int | None = None
-        self.last_variational_kkt_residual: float | None = None
-        self.last_variational_min_eigenvalue: float | None = None
 
     @staticmethod
     def _load_params(path: Path) -> dict[str, tuple[float, float, float, int]]:
@@ -118,9 +114,10 @@ class QEqGTO:
     def _fit_coefficient(principal_n: int) -> float:
         if principal_n < 1:
             raise ValueError("QEq principal quantum number must be positive.")
-        return _GTO_FIT_COEFFICIENT.get(
-            principal_n, 0.27 * float(principal_n) ** -1.35
-        )
+        coefficient = _GTO_FIT_COEFFICIENT.get(principal_n)
+        if coefficient is not None:
+            return coefficient
+        return 0.27 * float(principal_n) ** -1.35
 
     @classmethod
     def gaussian_exponent(cls, slater_exponent: float, principal_n: int) -> float:
@@ -347,17 +344,9 @@ class QEqGTO:
         self,
         atoms,
         total_charge: float = 0.0,
-        extra_hessian: np.ndarray | None = None,
     ) -> np.ndarray:
         if len(atoms) == 0:
             raise ValueError("QEq-GTO requires at least one atom.")
-        if extra_hessian is not None:
-            return self.solve_variational(
-                atoms,
-                total_charge=total_charge,
-                extra_hessian=extra_hessian,
-            )
-
         target = float(total_charge)
         symbols = atoms.get_chemical_symbols()
         charges = np.full(len(atoms), target / len(atoms), dtype=np.float64)
@@ -423,179 +412,6 @@ class QEqGTO:
                     slater_exponent_j=float(zeta[j]),
                 )
         return float(energy)
-
-    def charge_gradient_ev(
-        self,
-        atoms,
-        charges: np.ndarray,
-        extra_hessian: np.ndarray | None = None,
-    ) -> np.ndarray:
-        """Differentiate the published QEq-GTO energy with respect to charges.
-
-        This is the consistent-QEq derivative: it includes the charge
-        derivative of every hydrogen-dependent pair integral rather than using
-        the cheaper original QEq fixed-point approximation.
-        """
-        q = self._validate_charges(atoms, charges)
-        symbols = atoms.get_chemical_symbols()
-        chi, idempotential, radii, principal_n = self._arrays(symbols)
-        zeta = self._slater_exponents(symbols, radii, principal_n, q)
-        radii_bohr = radii / BOHR_TO_ANGSTROM
-        zeta_zero = self.lambda_scale * (2.0 * principal_n + 1.0) / (
-            2.0 * radii_bohr
-        )
-        gradient = chi + idempotential * q
-        if self.hydrogen_scf:
-            for index, symbol in enumerate(symbols):
-                if symbol == "H":
-                    gradient[index] += (
-                        1.5 * idempotential[index] * q[index] ** 2 / zeta_zero[index]
-                    )
-
-        positions = np.asarray(atoms.get_positions(), dtype=np.float64)
-        for i in range(len(atoms)):
-            for j in range(i + 1, len(atoms)):
-                distance = float(np.linalg.norm(positions[i] - positions[j]))
-                if distance < 1.0e-10:
-                    raise ValueError("QEq-GTO cannot evaluate coincident atoms.")
-                kernel, d_kernel_i, d_kernel_j = self._pair_kernel_and_zeta_derivatives(
-                    distance,
-                    float(zeta[i]),
-                    int(principal_n[i]),
-                    float(zeta[j]),
-                    int(principal_n[j]),
-                )
-                kernel *= self.coulomb_scale
-                d_kernel_i *= self.coulomb_scale
-                d_kernel_j *= self.coulomb_scale
-                gradient[i] += q[j] * kernel
-                gradient[j] += q[i] * kernel
-                if self.hydrogen_scf and symbols[i] == "H":
-                    gradient[i] += q[i] * q[j] * d_kernel_i
-                if self.hydrogen_scf and symbols[j] == "H":
-                    gradient[j] += q[i] * q[j] * d_kernel_j
-
-        if extra_hessian is not None:
-            extra = np.asarray(extra_hessian, dtype=np.float64)
-            if extra.shape != (len(atoms), len(atoms)) or not np.isfinite(extra).all():
-                raise ValueError("QEq extra Hessian has the wrong shape or contains non-finite values.")
-            if not np.allclose(extra, extra.T, atol=1.0e-10):
-                raise ValueError("QEq extra Hessian must be symmetric.")
-            gradient = gradient + extra @ q
-        return np.asarray(gradient, dtype=np.float64)
-
-    def solve_variational(
-        self,
-        atoms,
-        total_charge: float = 0.0,
-        extra_hessian: np.ndarray | None = None,
-        initial_charges: np.ndarray | None = None,
-    ) -> np.ndarray:
-        """Minimize the consistent QEq energy under the charge constraint.
-
-        This nonlinear path is used for polarizable continuum coupling.  It is
-        distinct from the original QEq fixed-point SCF used to generate fixed
-        charges, because it retains every charge derivative required by the
-        published CQEq energy.
-        """
-        from scipy.linalg import null_space
-        from scipy.optimize import minimize
-
-        if len(atoms) == 0:
-            raise ValueError("QEq-GTO requires at least one atom.")
-        target = float(total_charge)
-        extra = None
-        if extra_hessian is not None:
-            extra = np.asarray(extra_hessian, dtype=np.float64)
-            if extra.shape != (len(atoms), len(atoms)) or not np.isfinite(extra).all():
-                raise ValueError("QEq extra Hessian has the wrong shape or contains non-finite values.")
-            if not np.allclose(extra, extra.T, atol=1.0e-10):
-                raise ValueError("QEq extra Hessian must be symmetric.")
-        if initial_charges is None:
-            initial = self.solve(atoms, total_charge=target)
-        else:
-            initial = self._validate_charges(atoms, initial_charges).copy()
-            if abs(float(initial.sum()) - target) > QEQ_CHARGE_TOL:
-                raise ValueError("Initial QEq charges do not satisfy the total-charge constraint.")
-
-        def objective(q: np.ndarray) -> float:
-            value = self.energy_ev(atoms, q)
-            if extra is not None:
-                value += 0.5 * float(q @ extra @ q)
-            return value
-
-        def jacobian(q: np.ndarray) -> np.ndarray:
-            return self.charge_gradient_ev(atoms, q, extra)
-
-        bounds = [
-            (HYDROGEN_CHARGE_MIN + 1.0e-8, HYDROGEN_CHARGE_MAX - 1.0e-8)
-            if symbol == "H"
-            else (None, None)
-            for symbol in atoms.get_chemical_symbols()
-        ]
-        result = minimize(
-            objective,
-            initial,
-            jac=jacobian,
-            method="SLSQP",
-            bounds=bounds,
-            constraints={
-                "type": "eq",
-                "fun": lambda q: float(np.sum(q) - target),
-                "jac": lambda q: np.ones_like(q),
-            },
-            options={"ftol": 1.0e-12, "maxiter": self.max_iterations},
-        )
-        if not result.success:
-            raise ValueError(f"Variational QEq-GTO solve failed: {result.message}")
-        charges = self._validate_solution_domain_only(atoms, result.x, target)
-        gradient = jacobian(charges)
-        self.last_variational_iterations = int(result.nit)
-        self.last_variational_kkt_residual = float(
-            np.max(np.abs(gradient - gradient.mean()))
-        )
-        if self.last_variational_kkt_residual > 2.0e-6:
-            raise ValueError(
-                "Variational QEq-GTO failed its KKT residual: "
-                f"{self.last_variational_kkt_residual:.3e} eV."
-            )
-
-        tangent = null_space(np.ones((1, len(atoms)), dtype=np.float64))
-        if tangent.size:
-            step = 1.0e-5
-            hessian = np.column_stack(
-                [
-                    (
-                        jacobian(charges + step * tangent[:, column])
-                        - jacobian(charges - step * tangent[:, column])
-                    )
-                    / (2.0 * step)
-                    for column in range(tangent.shape[1])
-                ]
-            )
-            projected = tangent.T @ hessian
-            projected = 0.5 * (projected + projected.T)
-            self.last_variational_min_eigenvalue = float(
-                np.min(np.linalg.eigvalsh(projected))
-            )
-            if self.last_variational_min_eigenvalue < -1.0e-5:
-                raise ValueError(
-                    "Variational QEq-GTO stationary point is not a local minimum; "
-                    f"projected Hessian eigenvalue={self.last_variational_min_eigenvalue:.3e} eV."
-                )
-        else:
-            self.last_variational_min_eigenvalue = math.inf
-        return charges
-
-    def _validate_solution_domain_only(
-        self, atoms, charges: np.ndarray, total_charge: float
-    ) -> np.ndarray:
-        q = self._validate_charges(atoms, charges)
-        if abs(float(q.sum()) - total_charge) > QEQ_CHARGE_TOL:
-            raise ValueError("QEq-GTO failed its total-charge constraint.")
-        if self.hydrogen_scf:
-            self._validate_hydrogen_domain(atoms, q)
-        return q
 
     def energy_and_forces_ev_angstrom(
         self, atoms, charges: np.ndarray

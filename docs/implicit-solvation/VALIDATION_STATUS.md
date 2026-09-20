@@ -1,5 +1,28 @@
 # Route 1 implicit-solvation validation status
 
+> **New reference role (2026-09-09):** explicit finite-kappa ddX/ddLPB polar-only
+> SP/OPT/numerical FREQ/P-RFO/dimer workflows (expanded 2026-09-10) are separate
+> from FAST OBC-II/ACE and ACCURACY CHA-GB/ALPB. APBS remains
+> the independent grid comparator; solver agreement is not assumed.
+> [Reference usage and verification boundary](NUMERICAL_REFERENCE.md).
+> The old ddPCM experiment and CQEq code remain retired as recorded below.
+
+> **E/F code removed from this branch (2026-09-09, user request):** ddX/ddPCM
+> reference runners and polarizable CQEq-GTO/GB implementation are removed.
+> Numerical artifacts and historical findings below remain audit-only, not
+> active development lines. Other branches/worktrees are outside this change.
+
+> **QEq/CQEq closed (2026-09-08, user request):** both fixed and polarizable
+> runtime selections are disabled, including explicit experimental selection.
+> Historical results are retained, not current task options; the later
+> implementation removal is recorded above.
+
+> **2026-09-08:** Fixed-charge OpenMM GB now admits experimental single-geometry
+> P-RFO TS with the composed numerical Hessian and dimer TS with directional
+> finite differences of the complete composed forces. See
+> [experimental task usage](EXPERIMENTAL_TASKS.md). This does not enable CHA
+> forces or certify a converged saddle.
+
 > Latest publication checkpoint: [2026-09-06 progress](PROGRESS_2026-09-06.md).
 > Continuous nonpolar numerical work remains an isolated prototype; full CHA
 > forces and OPT/FREQ/TS are not enabled.
@@ -16,13 +39,31 @@
 > [`EXPLORATORY_STATUS_2026-09-05.md`](EXPLORATORY_STATUS_2026-09-05.md).
 
 The Route 1 product surface in this branch is the fixed-charge PB/GB route.
-Explicit QEq/CQEq research controls coexist for diagnostic comparison but are
-not Route 1 product profiles. All providers still require `experimental=true`
+Historical QEq/CQEq results are retained; the polarizable CQEq/GB implementation
+is removed and fixed-QEq runtime selection stays disabled. All providers still require `experimental=true`
 until the scientific gates below are closed.
 AM1-BCC/OBC-II/ACE is the forward development default; ABCG2 remains an
 explicit alternative and is never selected automatically. This user-selected
 development policy is not a scientific certification, and the historical
 ABCG2 benchmark artifacts below remain immutable evidence.
+
+## Current implementation progress (2026-09-10)
+
+| Workstream | Delivered | Remaining work / actual reason |
+|---|---|---|
+| Fixed-charge OpenMM GB | SP, OPT, SCAN, numerical FREQ, NVE/NVT MD; experimental single-geometry P-RFO and force-only dimer TS | Other implicit TS workflows need multi-structure calculator/identity/charge-lifecycle integration and task regressions. Their gas algorithms already exist. This is engineering work not yet completed, not evidence of theoretical impossibility. |
+| CHA-GB/PBSA | Energy-only SP; precision-output builds; independent continuous nonpolar energy/gradient prototype | A usable CHA polar derivative is still missing/unstable. The continuous nonpolar prototype has not been integrated into a complete derivative-capable runtime provider. |
+| ddX/ddLPB reference | Explicit positive-kappa, polar-only SP/OPT/numerical FREQ/P-RFO/dimer | Matched APBS grid/domain convergence and broader coverage remain separately reportable; not a product-default or hydration-accuracy claim. |
+| APBS PB | Energy-only SP | Existing polar/nonpolar forces did not reproduce the derivative of the reported energy on the checked probes. The derivative implementation/numerics need repair, not just a task-keyword switch. |
+| Non-water / multi-solvent | 15-solvent source panel, 222 selected pairs; water/methanol/ethanol numerical research pilots | No completed multi-molecule non-water energy/scoring run. Physical parameter assets are incomplete; topology/charge preparation and batch scoring are also unfinished. Missing whole-panel coverage must not be confused with an inability to test an available subset. |
+| Analytic Hessian / HVP | Numerical composed Hessian and force-difference directional curvature are usable on the force-capable path | Analytic implicit second-derivative/HVP integration is not implemented; this is not a prerequisite for using numerical FREQ/P-RFO or force-only dimer. |
+| Automatic inner-shell / full solvation free energy | Fixed-shell cluster potential and sampling/estimator research pieces | Automatic selection, ensemble/reference/standard-state composition and complete free-energy workflow remain unfinished; ordinary fixed-charge tasks do not wait for them. |
+| QEq / CQEq | Ordinary fixed-QEq legacy solver and historical evidence retained | Polarizable CQEq/GB code removed; QEq runtime selection stays closed. Neither is an active development line. |
+
+Not every unfinished item is an external scientific blocker. Prior work produced
+many diagnostics and isolated numerical prototypes, while several runtime and
+batch-workflow connections remained undone. Available experimental task paths
+should proceed independently rather than wait for all of these extensions.
 
 ## Passing engineering gates
 
@@ -32,8 +73,10 @@ ABCG2 benchmark artifacts below remain immutable evidence.
   same-element reorderings after charges, radii, and topology have been frozen.
 - MOL2 fixed charges, AmberTools AM1-BCC, and AmberTools ABCG2 are implemented
   with topology, mapping, command, output, and charge-residual audits.
-- QEq-GTO and variational CQEq-GTO/GB pass their numerical and force-consistency
-  tests, but remain explicit-only experimental controls and are never defaults or fallbacks.
+- Earlier QEq-GTO and variational CQEq-GTO/GB numerical/force checks remain
+  historical evidence. Their runtime entry points are now disabled by user
+  request. Only ordinary fixed-QEq low-level mathematics is retained, not an
+  active provider option; the CQEq/GB implementation has been removed.
 - OpenMM HCT, OBC-I, OBC-II, GBn, and GBn2 execute with finite energies and
   forces. ACE, LCPO, and diagnostic polar-only paths are separated.
 - Radius assignment and nonpolar construction are first-class, audited provider
@@ -930,10 +973,9 @@ ABCG2 benchmark artifacts below remain immutable evidence.
    a maintained generic parameter provider and pass the same derivative,
    applicability, and independent-accuracy gates. GBr6 has already failed the
    accuracy gate and must not be revisited without a materially different,
-   independently justified implementation. The tested ddX/ddPCM pairing has
-   valid polar derivatives but fails accuracy and performance admission; a
-   revisit must change the independently justified physical pairing or
-   performance regime, not relabel the failed endpoint. dSASA supplies a
+   independently justified implementation. The tested ddX/ddPCM pairing is
+   historical only: its reference runners have been removed at user request,
+   and no further development is scheduled for that line. dSASA supplies a
    differentiable SASA term but not the coupled cavity/dispersion endpoint or
    the missing CHA-GB polar derivative. AmberTorchPB currently exposes a
    preassembled PB linear-system solver rather than a licensed molecular

@@ -7,6 +7,7 @@ import subprocess
 import numpy as np
 import pytest
 
+from maple.function.calculator.extra_correction.charge.qeq import QEqGTO
 from maple.function.calculator.extra_correction.implicit import charges
 from maple.function.calculator.extra_correction.implicit.charges import prepare_charges
 from maple.function.calculator.extra_correction.implicit.correction import (
@@ -45,7 +46,7 @@ def test_ambertools_failure_never_falls_back_to_qeq(water_mol2, tmp_path, monkey
             command, 2, stdout="", stderr="provider failed"
         )
 
-    monkeypatch.setattr(charges.QEqGTO, "solve", unexpected_qeq)
+    monkeypatch.setattr(QEqGTO, "solve", unexpected_qeq)
     monkeypatch.setattr(charges.subprocess, "run", failed_run)
 
     with pytest.raises(

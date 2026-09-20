@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import shutil
 import subprocess
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -13,6 +14,32 @@ from maple.function.calculator.extra_correction.implicit.apbs_pb import (
     parse_apbs_print_energy,
 )
 from maple.function.read.filereader.mol2_reader import MOL2Reader
+
+
+def _install_fake_apbs(monkeypatch, tmp_path, calls):
+    executable = tmp_path / "apbs"
+    executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    executable.chmod(0o755)
+    monkeypatch.setattr(apbs_pb.shutil, "which", lambda _name: str(executable))
+
+    def fake_run(command, **kwargs):
+        calls.append((list(command), kwargs))
+        if "--version" in command:
+            return subprocess.CompletedProcess(
+                command, 0, stdout="APBS 3.4.1\n", stderr=""
+            )
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=(
+                "Global net ELEC energy = -2.000000000000E+02 kJ/mol\n"
+                "Global net APOL energy = 1.000000000000E+01 kJ/mol\n"
+            ),
+            stderr="",
+        )
+
+    monkeypatch.setattr(apbs_pb.subprocess, "run", fake_run)
+    return executable
 
 
 def test_apbs_input_contains_solvated_minus_reference_and_apolar(water_mol2):
@@ -123,26 +150,9 @@ def test_apbs_adapter_composes_polar_nonpolar_and_writes_audit(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     audit = tmp_path / "audit"
+    calls = []
+    _install_fake_apbs(monkeypatch, tmp_path, calls)
     provider = APBSLPB(atoms, atoms.get_initial_charges(), audit_dir=audit)
-    monkeypatch.setattr(apbs_pb.shutil, "which", lambda _name: "/opt/apbs/bin/apbs")
-
-    def fake_run(command, **_kwargs):
-        if "--version" in command:
-            assert _kwargs.get("cwd") is not None
-            return subprocess.CompletedProcess(
-                command, 0, stdout="APBS 3.4.1\n", stderr=""
-            )
-        return subprocess.CompletedProcess(
-            command,
-            0,
-            stdout=(
-                "Global net ELEC energy = -2.000000000000E+02 kJ/mol\n"
-                "Global net APOL energy = 1.000000000000E+01 kJ/mol\n"
-            ),
-            stderr="",
-        )
-
-    monkeypatch.setattr(apbs_pb.subprocess, "run", fake_run)
     result = provider.evaluate(atoms)
     assert np.isclose(
         result.energy_hartree,
@@ -152,6 +162,138 @@ def test_apbs_adapter_composes_polar_nonpolar_and_writes_audit(
     assert (audit / "molecule.pqr").is_file()
     assert (audit / "apbs.result.json").is_file()
     assert result.provenance["provider_version"] == "3.4.1"
+
+
+def test_apbs_uses_one_version_probe_per_instance_and_one_solve_per_scalar(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    calls = []
+    _install_fake_apbs(monkeypatch, tmp_path, calls)
+    provider = APBSLPB(atoms, atoms.get_initial_charges())
+
+    provider.evaluate(atoms)
+    provider.evaluate(atoms)
+
+    assert sum("--version" in command for command, _ in calls) == 1
+    assert sum("--version" not in command for command, _ in calls) == 2
+
+
+def test_apbs_path_drift_fails_before_another_solve(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    calls = []
+    first = _install_fake_apbs(monkeypatch, tmp_path, calls)
+    provider = APBSLPB(atoms, atoms.get_initial_charges())
+    second = tmp_path / "apbs-replacement"
+    second.write_bytes(first.read_bytes())
+    second.chmod(0o755)
+    monkeypatch.setattr(apbs_pb.shutil, "which", lambda _name: str(second))
+
+    with pytest.raises(RuntimeError, match="path drifted"):
+        provider.evaluate(atoms)
+
+    assert sum("--version" not in command for command, _ in calls) == 0
+
+
+def test_apbs_hash_drift_fails_before_another_solve(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    calls = []
+    executable = _install_fake_apbs(monkeypatch, tmp_path, calls)
+    provider = APBSLPB(atoms, atoms.get_initial_charges())
+    executable.write_text("#!/bin/sh\nexit 7\n", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="content drifted"):
+        provider.evaluate(atoms)
+
+    assert sum("--version" not in command for command, _ in calls) == 0
+
+
+def test_apbs_audit_context_isolates_each_scalar_without_mutating_fallback(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    calls = []
+    _install_fake_apbs(monkeypatch, tmp_path, calls)
+    fallback = tmp_path / "fallback"
+    provider = APBSLPB(
+        atoms, atoms.get_initial_charges(), audit_dir=fallback
+    )
+    first = tmp_path / "scalar-1"
+    second = tmp_path / "scalar-2"
+    first.mkdir()
+    second.mkdir()
+
+    provider.evaluate(atoms, audit_context=SimpleNamespace(path=first))
+    provider.evaluate(atoms, audit_context=SimpleNamespace(path=second))
+
+    assert (first / "apbs.result.json").is_file()
+    assert (second / "apbs.result.json").is_file()
+    assert not fallback.exists()
+    assert provider.audit_dir == fallback
+
+
+def test_apbs_serialized_pair_rejects_collapsed_subquantum_displacements():
+    provider = object.__new__(APBSLPB)
+    center = np.zeros((1, 3))
+    with pytest.raises(ValueError, match="collapses"):
+        provider.validate_serialized_pair(center, center - 0.0004, center + 0.0004)
+
+
+def test_apbs_serialized_pair_rejects_asymmetric_three_decimal_rounding():
+    provider = object.__new__(APBSLPB)
+    center = np.asarray([[0.0004, 0.0, 0.0]])
+    minus = center.copy()
+    plus = center.copy()
+    minus[0, 0] -= 0.0006
+    plus[0, 0] += 0.0006
+    with pytest.raises(ValueError, match="symmetrically"):
+        provider.validate_serialized_pair(center, minus, plus)
+
+
+def test_apbs_serialized_pair_reports_effective_symmetric_step():
+    provider = object.__new__(APBSLPB)
+    center = np.zeros((1, 3))
+    minus = center.copy()
+    plus = center.copy()
+    minus[0, 0] = -0.0011
+    plus[0, 0] = 0.0011
+
+    metadata = provider.validate_serialized_pair(
+        center, minus, plus, requested_step_angstrom=0.0011
+    )
+
+    assert metadata["requested_step_angstrom"] == pytest.approx(0.0011)
+    assert metadata["actual_symmetric_step_angstrom"] == pytest.approx(0.001)
+    denominator = np.asarray(metadata["serialized_denominator_angstrom"])
+    assert denominator[0, 0] == pytest.approx(0.002)
+
+
+def test_apbs_revalidates_moving_grid_and_audits_displaced_serialized_center(
+    water_mol2, tmp_path, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    calls = []
+    _install_fake_apbs(monkeypatch, tmp_path, calls)
+    audit = tmp_path / "moved-audit"
+    provider = APBSLPB(atoms, atoms.get_initial_charges())
+    moved = atoms.copy()
+    moved.positions[:, 0] += 0.125
+
+    audit.mkdir()
+    result = provider.evaluate(moved, audit_context=SimpleNamespace(path=audit))
+
+    bounds = result.provenance["grid_containment"]["grid_center"][
+        "serialized_coordinate_bounds_angstrom"
+    ]
+    assert np.asarray(bounds["minimum"])[0] == pytest.approx(
+        np.min(APBSLPB.serialized_coordinates(moved), axis=0)[0]
+    )
+    assert result.provenance["grid_containment"]["validated"] is True
+    assert (audit / "apbs.command.json").is_file()
 
 
 @pytest.mark.skipif(

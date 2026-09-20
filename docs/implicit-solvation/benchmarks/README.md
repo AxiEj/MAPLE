@@ -1338,6 +1338,43 @@ structure fingerprint for every geometry.  Tests intentionally validate those
 immutable blobs rather than equating a historical result with the current
 working-tree implementation.
 
+## Reconstructed-density rho-DROP plus exact-GTO FreeSolv-12 diagnostic
+
+[`route2-rhodrop-exactgto-freesolv12-total-v1.json`](route2-rhodrop-exactgto-freesolv12-total-v1.json)
+records the pre-registered total-energy test that combines the official
+MACE-POLAR point-\(l\le1\) source, a reconstructed-density MOIST rho-DROP
+C-PCM cavity at \(\rho_{iso}=10^{-3}\;e/a_0^3\), the checkpoint-native
+exact-GTO receiver, the legacy field-energy-plus-PCM ledger, and the unchanged
+native water SMD-CDS term. All twelve historical FreeSolv development records
+completed, and every accelerated root passed an independent cold MOIST replay;
+the largest replay residual was `1.86e-13`.
+
+The accuracy result is negative:
+
+| Method | MAE | RMSE | Max error | `<1.0` | `<1.5` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Historical intrinsic-cavity IEFPCM exact GTO | 0.790 | 1.126 | 3.247 | 10/12 | 11/12 |
+| Reconstructed rho-DROP C-PCM exact GTO | **3.678** | 4.073 | 6.629 | 1/12 | 2/12 |
+
+All twelve new signed errors are positive, with a `+3.678 kcal/mol` mean
+signed error. The CDS values are byte-for-byte numerically unchanged at the
+reported precision. Instead, the mean electrostatic contribution moves from
+`-7.367` to `-3.576 kcal/mol`, a `+3.791 kcal/mol` loss of stabilization.
+Acetic acid moves through the target from the historical `-3.247` signed
+error to `+3.357 kcal/mol`; its absolute error therefore becomes slightly
+worse rather than curing the outlier. The frozen decision rule rejects both
+accuracy retention and meaningful improvement, and prohibits retuning this
+known panel.
+
+This comparison does **not** isolate rho-DROP alone: the historical arm uses
+an intrinsic SMD cavity with IEFPCM, whereas the candidate uses the declared
+rho-DROP cavity with C-PCM. It nevertheless answers the method-level question:
+this parameter-free rho-DROP/C-PCM replacement cannot accompany the existing
+exact-GTO total profile as an accuracy improvement. It remains an energy-only,
+nonvariational development diagnostic, not a force, PES, blind-generalization,
+or production-admission result. Artifact SHA256:
+`c9ce5e329d63d3f1f2c8e82115106cfe1e61396de2b088ce4084942d1f340477`.
+
 ## Same-basis GTO/PCM energy-norm acetone canary
 
 [`route2-gto-pcm-energy-projection-acetone-v1.json`](route2-gto-pcm-energy-projection-acetone-v1.json)

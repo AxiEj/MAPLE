@@ -1,0 +1,117 @@
+{
+  "artifact_id": "route2-rhodrop-exactgto-freesolv12-total-prereg-v1",
+  "status": "frozen-before-execution",
+  "created_utc": "2026-09-20T03:44:14Z",
+  "question": "What total aqueous solvation-energy accuracy does the fixed reconstructed-density rho-DROP/CPCM cavity obtain when coupled to the official MACE-POLAR point-l<=1 source, checkpoint-native Exact-GTO receiver, legacy field-energy-plus-PCM ledger, and stock native water SMD-CDS on the historical FreeSolv-12 panel?",
+  "claim_boundary": {
+    "can_establish": [
+      "execution completeness and numerical convergence for the declared energy-only method",
+      "MAE, RMSE, mean signed error, maximum absolute error, and threshold counts on the known historical FreeSolv-12 development panel",
+      "a method-level comparison with the frozen historical intrinsic-SMD-cavity IEFPCM Exact-GTO diagnostic"
+    ],
+    "cannot_establish": [
+      "blind generalization or production admission",
+      "an isolated causal benefit from rho-DROP because the historical comparator also differs in cavity and continuum equation",
+      "variationality, analytic forces, optimization, frequency, Hessian, or molecular-dynamics validity",
+      "accuracy for ions, nonwater solvents, or chemistry outside the twelve frozen neutral molecules"
+    ]
+  },
+  "no_target_policy": {
+    "panel_status": "known-historical-development-panel",
+    "experimental_labels_used_to_fit_or_select_parameters": false,
+    "experimental_solvation_fit": false,
+    "isodensity_value_selected_from_results": false,
+    "cavity_or_source_parameter_fit": false,
+    "response_scaling": false,
+    "post_hoc_shift": false,
+    "radius_adjustment": false,
+    "mace_checkpoint_changed": false,
+    "method_changes_after_first_successful_record": "prohibited"
+  },
+  "panel": {
+    "manifest": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-functional-groups-v1.json",
+    "manifest_sha256": "ff8f7fa425020968de65026c84fa863d64b25b8b4729d25be1b4f83cffd5306f",
+    "record_count": 12,
+    "selection": "all locked_records in frozen ordinal order",
+    "solvent": "water",
+    "charge": 0,
+    "spin_multiplicity": 1,
+    "geometry": "frozen FreeSolv MOL2 coordinates"
+  },
+  "scientific_identity": {
+    "profile_id": "route2-research-macepolar-point-l1-rhodrop-cpcm-exactgto-smdcds-v1",
+    "solute_source": "official MACE-POLAR-1-M atom-centered point multipoles l<=1",
+    "cavity_density": "frozen atomic Gaussian reference density minus official MACE-POLAR residual l<=1 density at each SCF iterate",
+    "cavity": "MOIST rho-DROP reconstructed-density isosurface",
+    "n_iso_e_per_bohr3": 0.001,
+    "continuum": "MOIST C-PCM",
+    "dielectric": 80.0,
+    "nleb": 194,
+    "receiver": "checkpoint-native Exact-GTO reaction-field features",
+    "receiver_sigmas_angstrom": [1.5, 3.0],
+    "response": "MACE-POLAR self-consistent fixed point",
+    "electrostatic_energy_ledger": "legacy-mace-field-energy-plus-pcm-v1",
+    "cds": "stock native water SMD-CDS",
+    "standard_state_kcal_mol": 0.0,
+    "capability": "research-energy-only-nonvariational-diagnostic"
+  },
+  "numerical_protocol": {
+    "device": "cuda",
+    "processes": 1,
+    "record_execution": "sequential",
+    "scf_solver": "safeguarded-anderson",
+    "scf_max_iterations": 80,
+    "scf_monopole_tolerance_e": 2e-12,
+    "scf_dipole_component_tolerance_e_angstrom": 2e-12,
+    "scf_molecular_dipole_tolerance_e_angstrom": 2e-12,
+    "scf_energy_tolerance_ev": 2e-12,
+    "accelerated_surface_updates": true,
+    "required_final_validation": "independent exact cold MOIST replay at the converged root followed by a fresh MACE-POLAR response and the same fixed-point gates",
+    "blas_openmp_threads": 1
+  },
+  "frozen_inputs": {
+    "mace_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "reference_density_table_sha256": "d81363187ce6092b23031f5626e0d794bbad4f44646f1e06e41b1112768fefc6",
+    "reference_density_manifest_sha256": "bc85c8375fee448ceb78f7394a23a459e9c17ea6e70f672f3e3937072112736f",
+    "moist_upstream_commit": "6e94f4a5841f5d2e1987e1ca496c7b9baad75e59",
+    "moist_import_patch_sha256": "96608ddc4135efd35324e593fdef343f7481a73564bd88d34d2aac7688ba9190",
+    "moist_python_extension_sha256": "d1c7b059f5854aa38c07c32fcd47afda9cfe6e152d99897021c2afe140a80c4f",
+    "moist_shared_library_sha256": "1b49b4df463647be51c836da9d385774bb666d39685638e9e49c2145790f2b79",
+    "historical_comparator_sha256": "4169192b286bbc8767da122c9c85de7ae9fa22aad20cb728d998dea43ffe8088"
+  },
+  "runtime": {
+    "python": "3.11.14",
+    "numpy": "2.4.6",
+    "torch": "2.12.0+cu130",
+    "moist": "0.6.0",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU"
+  },
+  "reported_metrics": [
+    "success and failure counts",
+    "MAE, RMSE, mean signed error, maximum absolute error",
+    "counts strictly below 1.0 and 1.5 kcal/mol",
+    "per-molecule prediction, signed error, absolute error, energy components, iterations, cold-replay residuals, and wall time",
+    "delta MAE and per-molecule error changes relative to the frozen historical Exact-GTO diagnostic"
+  ],
+  "decision_rule": {
+    "numerical_completion": "All 12 records must finish and pass the exact cold-replay fixed-point gate; otherwise retain and report every failure without an accuracy-pass claim.",
+    "accuracy_retention": "Full-panel MAE must remain below 1.0 kcal/mol.",
+    "meaningful_accuracy_improvement": "Relative to the historical Exact-GTO MAE of 0.7895271292049749 kcal/mol, MAE must decrease by at least 0.1 kcal/mol, the maximum absolute error must not increase, and the count below 1.0 kcal/mol must not decrease.",
+    "negative_or_null_result": "If the improvement rule fails, preserve the result and do not retune n_iso, dielectric, source, receiver, ledger, CDS, or cavity parameters on this panel."
+  },
+  "source_sha256": {
+    "tools/route2_release/run_rhodrop_exactgto_freesolv12.py": "dda13e80601a9fc29b1edad60e47a74bdbc77056ee64ecc55e8b8c5e987a9c59",
+    "maple/function/calculator/extra_correction/implicit/route2_rhodrop_cpcm.py": "59fe62d7c5ce79a007c7bf5b369f66aa96e0f978dfd3131e96a2793cd8df76a3",
+    "maple/function/calculator/extra_correction/implicit/route2_rhodrop_profile.py": "83246350098196be329a3c4a6c1b4ba3141af5e9300ca09d4754830831f300e6",
+    "maple/function/calculator/extra_correction/implicit/route2_density_levelset.py": "58714be571cda39e97f15905d6fc2644ba7f1595b6f0b5906a74808cea803d14",
+    "maple/function/calculator/extra_correction/implicit/route2_moist_drop.py": "60a2c83e418ce025cfa46e0d98e2bcaa488f8262c4177ca2d4ec9500d559949d",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "39fee033d83d3a6a3309b49383d8a1ec00d78d9efedd3471ed6b4f4225094329",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1"
+  },
+  "workspace": {
+    "git_head": "a53318176ac19e91c2c43ae48fd6865768741e31",
+    "git_diff_sha256_before_execution": "98928fbc52467e01774e7f1920aab224bf60b678957780453030095830c7ccdf",
+    "note": "The source tree contains intentional uncommitted rho-DROP/Exact-GTO research changes; scientific identity is therefore bound by per-file hashes rather than a clean-tree claim."
+  }
+}

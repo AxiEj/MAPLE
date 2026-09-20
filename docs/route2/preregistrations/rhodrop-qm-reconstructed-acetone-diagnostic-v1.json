@@ -1,0 +1,97 @@
+{
+  "artifact_id": "route2-rhodrop-qm-reconstructed-acetone-diagnostic-prereg-v1",
+  "status": "frozen-before-execution",
+  "created_utc": "2026-09-20T03:22:29Z",
+  "question": "How different are the rho-DROP cavity and same-CPCM electrostatic component obtained from a frozen QM AO density versus MAPLE's reconstructed MACE-POLAR density on one fixed acetone geometry?",
+  "claim_boundary": {
+    "can_establish": [
+      "a fixed-geometry cavity-shape discrepancy between the two declared density identities",
+      "a two-by-two source/cavity decomposition under one MOIST C-PCM equation",
+      "whether the existing reconstructed-density cavity merits a broader QM-isosurface diagnostic"
+    ],
+    "cannot_establish": [
+      "experimental solvation-free-energy accuracy",
+      "an Exact-GTO response improvement",
+      "a CDS or standard-state term",
+      "transfer across molecules or chemical classes",
+      "a public energy, force, Hessian, optimization, frequency, or MD capability"
+    ]
+  },
+  "no_target_policy": {
+    "experimental_solvation_labels_read": false,
+    "experimental_solvation_fit": false,
+    "isodensity_value_selected_from_results": false,
+    "cavity_or_source_parameter_fit": false,
+    "mace_checkpoint_changed": false,
+    "qm_checkpoint_changed": false
+  },
+  "system": {
+    "compound_id": "mobley_3867265",
+    "name": "acetone",
+    "charge": 0,
+    "spin_multiplicity": 1,
+    "geometry": "frozen geometry embedded in the gas-phase QM checkpoint"
+  },
+  "scientific_identity": {
+    "n_iso_e_per_bohr3": 0.001,
+    "rho_drop_reference": "From Density to Boundary and Back: A Fully Differentiable, Self-Consistent Isodensity Cavity, ChemRxiv v1, 2026-08-06",
+    "qm_density": "frozen omegaB97M-V/def2-TZVPD restricted AO density",
+    "reconstructed_density": "frozen atomic Gaussian reference minus official MACE-POLAR-1-M gas residual l<=1 density",
+    "electrostatic_sources": [
+      "QM nuclei-minus-AO-density total MEP",
+      "official MACE-POLAR-1-M gas point-l<=1 MEP"
+    ],
+    "continuum": "MOIST rho-DROP C-PCM",
+    "dielectric": 80.0,
+    "nleb": 194,
+    "cds": "none",
+    "standard_state": "none"
+  },
+  "frozen_inputs": {
+    "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+    "mace_exact_gto_state_archive_sha256": "56aa5bd0a7cbbac08da9ae2522567031994f77a2152058cbbe42e7bebb0c276e",
+    "mace_state_array": "gas_density_coefficients",
+    "reference_density_table_sha256": "d81363187ce6092b23031f5626e0d794bbad4f44646f1e06e41b1112768fefc6",
+    "reference_density_manifest_sha256": "bc85c8375fee448ceb78f7394a23a459e9c17ea6e70f672f3e3937072112736f",
+    "literature_pdf_sha256": "f2293556d744c728f8cc9a114b96598bf82042771d88a27d4fe55aa4a2ca1388"
+  },
+  "moist_runtime": {
+    "upstream_commit": "6e94f4a5841f5d2e1987e1ca496c7b9baad75e59",
+    "source_version": "0.6.0-alpha.1",
+    "python_c_api_version": "0.6.0",
+    "import_patch_sha256": "96608ddc4135efd35324e593fdef343f7481a73564bd88d34d2aac7688ba9190",
+    "python_extension_sha256": "d1c7b059f5854aa38c07c32fcd47afda9cfe6e152d99897021c2afe140a80c4f",
+    "shared_library_sha256": "1b49b4df463647be51c836da9d385774bb666d39685638e9e49c2145790f2b79",
+    "compiled_drop_tolerance": 1e-10,
+    "literature_drop_tolerance": 1e-12,
+    "tolerance_parity": false
+  },
+  "reported_metrics": [
+    "surface point counts and owner counts",
+    "surface area and volume relative differences",
+    "bidirectional nearest-surface distance mean, RMS, and maximum",
+    "nearest-normal absolute-dot statistics",
+    "cross-level-set residuals",
+    "QM-source and MACE-source C-PCM energies on both cavities",
+    "source error on each cavity",
+    "cavity shift for each source",
+    "source-cavity interaction"
+  ],
+  "numerical_gates": {
+    "both_drop_surfaces_converged": true,
+    "both_surface_level_set_residuals_at_most": 1e-9,
+    "both_cpcm_matrices_positive_definite": true,
+    "both_cpcm_condition_numbers_at_most": 1000000000000.0,
+    "both_linear_residuals_follow_profile_tolerance": true,
+    "two_by_two_decomposition_identity_residual_kcal_mol_at_most": 1e-10
+  },
+  "decision_rule": "This first execution is diagnostic, not candidate selection. If a numerical gate fails, stop and retain the failure. If it passes, report every frozen metric without changing n_iso, source, density, continuum, or discretization. A broader molecule panel and any go/no-go threshold require a new preregistration written after, not during, interpretation of this result.",
+  "source_sha256": {
+    "maple/solvation/reference/pyscf_density_levelset.py": "516cc50ce713a4d3a71288c25ae8727b97f6a49dba31aa253f92c09631e63f5c",
+    "tools/route2_release/run_rhodrop_qm_reconstructed_acetone.py": "a690eff83adc42b83d0374a7acc4193c51d383f78e3d40e31d4d386cc4d7fabf",
+    "maple/function/calculator/extra_correction/implicit/route2_density_levelset.py": "58714be571cda39e97f15905d6fc2644ba7f1595b6f0b5906a74808cea803d14",
+    "maple/function/calculator/extra_correction/implicit/route2_moist_drop.py": "60a2c83e418ce025cfa46e0d98e2bcaa488f8262c4177ca2d4ec9500d559949d",
+    "maple/function/calculator/extra_correction/implicit/route2_rhodrop_cpcm.py": "701b937efc97be9a56a5a37616dac6b691a37eed63d8a3f16f4978f3f47fdc13",
+    "maple/solvation/reference/pyscf_pcmsolver.py": "ab203e1fc2345af079150127368040ceaa404878c2c75bb91206031701a9d2ba"
+  }
+}

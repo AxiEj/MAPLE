@@ -38,6 +38,7 @@ from .gto_density import (
     point_multipole_potential,
     point_multipole_potential_surface_position_vjp,
 )
+from .gto_field_projection import ExactGTOFieldProjector
 from .route2_atomic_reference_density import AtomicReferenceDensityAsset
 from .route2_density_levelset import ReconstructedMacePolarDensityLevelSet
 from .route2_field_state import ReactionFieldDrive
@@ -54,9 +55,11 @@ from .route2_moist_drop import (
 
 RHODROP_CPCM_FORWARD_CONTRACT_VERSION = 2
 RHODROP_CPCM_MODEL_DRIVE = "conventional-electrostatic-reaction-field"
+RHODROP_CPCM_EXACT_GTO_MODEL_DRIVE = "checkpoint-native-exact-gto-reaction-field"
 RHODROP_CPCM_FORCE_STATUS = "blocked-pending-complete-drop-coordinate-vjp"
 RHODROP_CPCM_JVP_IMPLEMENTATION = "analytic-vjp-transpose-probe-reference-v1"
 RHODROP_CPCM_OPERATIONAL_PROFILE_KIND = "route2-rhodrop-cpcm-operational-v1"
+RHODROP_CPCM_EXACT_GTO_PROFILE_KIND = "route2-rhodrop-cpcm-exact-gto-operational-v1"
 
 
 def _sha256_json(payload: object) -> str:
@@ -512,6 +515,7 @@ class RhoDropCPCMReactionField:
         sigma_angstrom: float = 1.5,
         minimum_density_e_per_bohr3: float = 0.0,
         electron_count_tolerance: float = 5.0e-12,
+        model_field_projector: ExactGTOFieldProjector | None = None,
         moist_module: ModuleType | Any | None = None,
         _allow_synthetic_runtime: bool = False,
     ) -> None:
@@ -562,6 +566,12 @@ class RhoDropCPCMReactionField:
             raise ValueError("rho-DROP electron-count tolerance must be positive.")
         if not isinstance(_allow_synthetic_runtime, bool):
             raise TypeError("_allow_synthetic_runtime must be bool.")
+        if model_field_projector is not None and not isinstance(
+            model_field_projector, ExactGTOFieldProjector
+        ):
+            raise TypeError(
+                "rho-DROP exact-GTO drive requires ExactGTOFieldProjector."
+            )
 
         self.asset = asset
         self.atomic_numbers = np.array(numbers, dtype=np.int64, copy=True)
@@ -577,6 +587,17 @@ class RhoDropCPCMReactionField:
         self.sigma_angstrom = sigma
         self.minimum_density_e_per_bohr3 = minimum_density
         self.electron_count_tolerance = electron_tolerance
+        self.model_field_projector = model_field_projector
+        self.model_drive = (
+            RHODROP_CPCM_MODEL_DRIVE
+            if model_field_projector is None
+            else RHODROP_CPCM_EXACT_GTO_MODEL_DRIVE
+        )
+        self.profile_kind = (
+            RHODROP_CPCM_OPERATIONAL_PROFILE_KIND
+            if model_field_projector is None
+            else RHODROP_CPCM_EXACT_GTO_PROFILE_KIND
+        )
         self._moist_module = moist_module
         self._allow_synthetic_runtime = bool(_allow_synthetic_runtime)
         self._scf_snapshot: RhoDropCPCMForwardState | None = None
@@ -620,6 +641,11 @@ class RhoDropCPCMReactionField:
                 "cpcm_settings_sha256": self.cpcm_settings.identity_sha256,
                 "drop_settings_sha256": self.drop_settings.identity_sha256,
                 "runtime_sha256": self.runtime.identity_sha256,
+                "model_field_projection": (
+                    None
+                    if self.model_field_projector is None
+                    else self.model_field_projector.spec.provenance
+                ),
                 "allow_synthetic_runtime": self._allow_synthetic_runtime,
             }
             return _hash_arrays(payload, (numbers, positions))
@@ -714,9 +740,32 @@ class RhoDropCPCMReactionField:
         )
 
     def apply_scf_drive(self, density_coefficients: object) -> ReactionFieldDrive:
-        """Keep the energy-dual and model-driving fields explicitly identical."""
+        """Return the density-dual field and the selected model drive."""
 
-        return ReactionFieldDrive.local_jet(self.apply_scf(density_coefficients))
+        state = self.scf_snapshot(density_coefficients)
+        field = np.array(state.reaction_field_ev, copy=True)
+        projector = self.model_field_projector
+        if projector is None:
+            return ReactionFieldDrive.local_jet(field)
+        features, gauge_reference_ev = projector.project_asc_with_gauge(
+            self.atom_positions_angstrom,
+            state.surface_snapshot.surface_points_bohr,
+            state.surface_charge_e,
+        )
+        expected_reference_ev = float(np.mean(field[:, 0]))
+        if abs(gauge_reference_ev - expected_reference_ev) > 1.0e-12:
+            raise RuntimeError(
+                "rho-DROP exact-GTO and density-dual fields disagree on the "
+                "atomic-center mean gauge."
+            )
+        return ReactionFieldDrive(
+            density_dual_field_ev=field,
+            model_local_field_ev=None,
+            model_field_features=features,
+            projector="exact-gto-v1",
+            model_field_gauge="atomic-center-mean-zero-v1",
+            model_field_gauge_reference_ev=gauge_reference_ev,
+        )
 
     def scf_polarization_energy_hartree(
         self,
@@ -789,6 +838,11 @@ class RhoDropCPCMReactionField:
             "linear_residual_absolute": state.linear_residual_absolute,
             "linear_residual_relative": state.linear_residual_relative,
             "condition_number_2": state.condition_number_2,
+            "model_field_projection": (
+                None
+                if self.model_field_projector is None
+                else self.model_field_projector.spec.provenance
+            ),
             "cold_replay_required": (self.cpcm_settings.require_exact_cold_replay),
         }
 
@@ -995,6 +1049,8 @@ class RhoDropCPCMReactionField:
 
 
 __all__ = [
+    "RHODROP_CPCM_EXACT_GTO_MODEL_DRIVE",
+    "RHODROP_CPCM_EXACT_GTO_PROFILE_KIND",
     "RHODROP_CPCM_FORCE_STATUS",
     "RHODROP_CPCM_FORWARD_CONTRACT_VERSION",
     "RHODROP_CPCM_JVP_IMPLEMENTATION",

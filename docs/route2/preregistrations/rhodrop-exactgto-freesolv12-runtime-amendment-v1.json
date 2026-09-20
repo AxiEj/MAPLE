@@ -1,0 +1,37 @@
+{
+  "artifact_id": "route2-rhodrop-exactgto-freesolv12-runtime-amendment-v1",
+  "status": "frozen-before-amended-records",
+  "created_utc": "2026-09-20T04:09:10Z",
+  "parent_preregistration": "docs/route2/preregistrations/rhodrop-exactgto-freesolv12-total-v1.json",
+  "parent_preregistration_sha256": "63c08e757562e4f9494937d851e80ae98ccde6bbd0043362fd6d7aa597cfe0e8",
+  "reason": "The first successful methane record required 367.9 seconds and the already-running benzene record exceeded 17 minutes. Complete-panel wall time under sequential scheduling was therefore impractical for the interactive run.",
+  "completed_before_amendment": [
+    {
+      "record_index": 0,
+      "compound_id": "mobley_9055303",
+      "status": "success",
+      "result_sha256": "014e593d9e4374ed0c87d23fe2d59f94229e4bbd3972bd0ba87ba3e386afcf0a"
+    }
+  ],
+  "running_before_amendment": [
+    {
+      "record_index": 1,
+      "compound_id": "mobley_3053621",
+      "status": "allowed-to-finish-unchanged"
+    }
+  ],
+  "amendment": {
+    "scope": "runtime scheduling only",
+    "records": "indices 2 through 11",
+    "maximum_concurrent_record_processes": 3,
+    "per_process_blas_openmp_threads": 1,
+    "shared_device": "cuda:0",
+    "scientific_method_changed": false,
+    "source_files_changed": false,
+    "input_assets_changed": false,
+    "numerical_tolerances_changed": false,
+    "record_order_or_panel_membership_changed": false
+  },
+  "additional_gate": "Every record must retain its own independent model load, MOIST state, work directory, exact cold replay, source hashes, and zero exit status. CUDA OOM, process interference, missing output, or a failed replay gate is a recorded failure and may not be hidden by a parameter change.",
+  "claim_boundary": "This amendment does not make the panel blind and does not alter the method-level comparison. It only reduces wall time by scheduling independent molecules concurrently."
+}

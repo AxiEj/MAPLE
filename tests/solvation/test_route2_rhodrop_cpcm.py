@@ -13,6 +13,10 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
 )
+from maple.function.calculator.extra_correction.implicit.gto_field_projection import (
+    ExactGTOFieldProjector,
+    MACEPolarGTOFieldProjectionSpec,
+)
 from maple.function.calculator.extra_correction.implicit.route2_atomic_reference_density import (
     AtomicReferenceDensityAsset,
     GaussianMixtureAtom,
@@ -162,6 +166,8 @@ def _synthetic_runtime() -> MoistRuntimeProvenance:
 def _provider_with_cached_state(
     state,
     positions_angstrom: np.ndarray,
+    *,
+    model_field_projector: ExactGTOFieldProjector | None = None,
 ) -> RhoDropCPCMReactionField:
     provider = RhoDropCPCMReactionField(
         _asset(),
@@ -169,10 +175,33 @@ def _provider_with_cached_state(
         positions_angstrom,
         expected_total_charge_e=0.23,
         runtime=_synthetic_runtime(),
+        model_field_projector=model_field_projector,
         _allow_synthetic_runtime=True,
     )
     provider._scf_snapshot = state
     return provider
+
+
+def _exact_gto_projector() -> ExactGTOFieldProjector:
+    return ExactGTOFieldProjector(
+        MACEPolarGTOFieldProjectionSpec(
+            receiver_sigmas_angstrom=(1.5, 3.0),
+            receiver_max_l=1,
+            receiver_normalization="receiver",
+            upstream_matrix=np.asarray(
+                [
+                    [3.544907701811032, 0.0, 0.0, 0.0],
+                    [3.544907701811032, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 5.771474235728387],
+                    [0.0, 5.771474235728387, 0.0, 0.0],
+                    [0.0, 0.0, 5.771474235728387, 0.0],
+                    [0.0, 0.0, 0.0, 11.542948471456774],
+                    [0.0, 11.542948471456774, 0.0, 0.0],
+                    [0.0, 0.0, 11.542948471456774, 0.0],
+                ]
+            ),
+        )
+    )
 
 
 def test_frozen_source_cpcm_matches_the_stationary_moist_equation_and_pairing() -> None:
@@ -256,6 +285,42 @@ def test_frozen_state_is_immutable_and_content_addressed() -> None:
     assert not first.surface_charge_e.flags.writeable
     with pytest.raises(ValueError):
         first.surface_charge_e[0] = 1.0
+
+
+def test_exact_gto_drive_uses_same_rhodrop_forward_state_and_checkpoint_features() -> None:
+    surface = _surface_state()
+    positions = surface.snapshot.atom_positions_bohr * Bohr
+    source = _source()
+    state = solve_frozen_source_rhodrop_cpcm(surface, positions, source)
+    projector = _exact_gto_projector()
+    provider = _provider_with_cached_state(
+        state,
+        positions,
+        model_field_projector=projector,
+    )
+
+    drive = provider.apply_scf_drive(source)
+    expected_features, expected_gauge = projector.project_asc_with_gauge(
+        positions,
+        surface.snapshot.surface_points_bohr,
+        state.surface_charge_e,
+    )
+    np.testing.assert_array_equal(drive.density_dual_field_ev, state.reaction_field_ev)
+    np.testing.assert_allclose(
+        drive.model_field_features,
+        expected_features,
+        rtol=0.0,
+        atol=1.0e-15,
+    )
+    assert drive.projector == "exact-gto-v1"
+    assert drive.model_field_gauge == "atomic-center-mean-zero-v1"
+    assert drive.model_field_gauge_reference_ev == pytest.approx(
+        expected_gauge,
+        abs=1.0e-15,
+    )
+    assert provider.audit_snapshot()["model_field_projection"] == (
+        projector.spec.provenance
+    )
 
 
 def test_source_dependent_energy_lookup_never_silently_rebuilds_a_stale_state() -> None:

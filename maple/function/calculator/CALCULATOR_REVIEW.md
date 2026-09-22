@@ -92,6 +92,14 @@ recommended but not required (UMA proves duck-typing works).
   re-implemented.
 - `get_hvp(self, atoms, n)` — only for the HVP-enabled Dimer path.
 
+Implicit analytic derivatives are not inferred from those gas capabilities.
+`CalcABC.get_hessian` composes an attached solvent Hessian only when the
+correction explicitly supplies `get_hessian`. The admitted Route 1 cell is
+ANI2x float64 plus the source-pinned Torch OBC-II/ACE-or-none derivative
+backend on OpenMM Reference. Dimer similarly requires one typed solvent
+directional result containing energy, force, and HVP from the same scalar
+graph. Other cells retain the complete-force numerical path.
+
 **Unit rule (do not violate)**
 - Declare `MODEL_ENERGY_UNIT` honestly. `_finalize_results` is the **only** place
   that converts the `calculate()` flow to Hartree. **Never multiply by

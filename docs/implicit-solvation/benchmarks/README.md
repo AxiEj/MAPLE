@@ -2815,6 +2815,33 @@ python "$RUNNER" \
   --output docs/implicit-solvation/benchmarks/route1-performance-methyl-hexanoate-ani2x-cpu-2026-07-24.json
 ```
 
+### Torch OBC-II/ACE analytic derivative backend (2026-09-22)
+
+[`route1-torch-obc2-analytic-derivatives-2026-09-22.json`](route1-torch-obc2-analytic-derivatives-2026-09-22.json)
+freezes the label-free identity and derivative gates for the source-pinned
+Torch rewrite. The 12-molecule, two-geometry, ACE/polar-only corpus gives
+maximum Torch-versus-OpenMM-Reference energy and force differences of
+`1.44e-15 Ha` and `4.17e-17 Ha/A`. Solvent Hessians and the composed ANI2x
+Reference cell pass their predeclared multi-step force-difference gates. The
+production OpenMM CPU complete-force derivative diagnostic is not uniform
+across water and methanol, so analytic FREQ/P-RFO/Dimer requires explicit
+`platform=Reference`; CPU and the complete-force numerical Hessian remain the
+ordinary default and fallback.
+
+The separately reproducible timing artifact
+[`route1-torch-obc2-derivative-performance-2026-09-22.json`](route1-torch-obc2-derivative-performance-2026-09-22.json)
+records about `2.08x` full-Hessian speedup and `32.0x` direct-HVP speedup on
+the 23-atom representative. The former misses the frozen `3x` recommendation
+gate, so no default changed. Reproduce the label-free timing with:
+
+```bash
+PYTHONPATH="$PWD" python \
+  docs/implicit-solvation/benchmarks/run_route1_torch_obc2_derivative_performance.py \
+  --output docs/implicit-solvation/benchmarks/route1-torch-obc2-derivative-performance-2026-09-22.json \
+  --work-dir /tmp/route1-torch-obc2-performance \
+  --samples 3
+```
+
 ### Formal fair 3x3 CPU SP matrix (2026-07-26)
 
 The frozen

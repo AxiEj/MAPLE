@@ -130,13 +130,33 @@ def test_frequency_verbosity_parameter_reaches_the_dispatcher_contract():
     "model_line",
     [
         "#model=ani2x",
-        "#model=ani2x(hessian=analytic)",
     ],
 )
 def test_implicit_gb_frequency_requires_explicit_numerical_hessian(model_line):
     with pytest.raises(ValueError, match="hessian=numerical"):
         parse(
             model_line,
+            "#freq(method=mw)",
+            "#charge(source=maple)",
+            "#solv(implicit=water,method=gb,experimental=true)",
+        )
+
+
+def test_implicit_gb_frequency_accepts_admitted_analytic_obc2_hessian():
+    params = parse(
+        "#model=ani2x(hessian=analytic)",
+        "#freq(method=mw)",
+        "#charge(source=maple)",
+        "#solv(implicit=water,method=gb,platform=Reference,experimental=true)",
+    )
+
+    assert params["model_options"]["hessian"] == "analytic"
+
+
+def test_implicit_gb_analytic_frequency_requires_explicit_reference_platform():
+    with pytest.raises(ValueError, match="Reference platform"):
+        parse(
+            "#model=ani2x(hessian=analytic)",
             "#freq(method=mw)",
             "#charge(source=maple)",
             "#solv(implicit=water,method=gb,experimental=true)",

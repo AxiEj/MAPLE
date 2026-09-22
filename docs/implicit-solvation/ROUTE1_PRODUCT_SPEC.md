@@ -138,7 +138,7 @@ one composition boundary.
 
 | provider composition | SP | OPT | SCAN/PES | FREQ | MD | policy |
 |---|---:|---:|---:|---:|---:|---|
-| fixed-charge OpenMM GB + ACE/LCPO | energy + gradient | yes | yes | explicit numerical complete-force Hessian | non-periodic NVE/NVT | combined conservative potential |
+| fixed-charge OpenMM GB + ACE/LCPO | energy + gradient | yes | yes | explicit numerical complete-force Hessian; experimental analytic ANI2x/OBC-II/ACE or none on Reference | non-periodic NVE/NVT | combined conservative potential; OpenMM CPU remains the ordinary runtime default |
 | prebuilt cluster + OpenMM GB + ACE/LCPO | energy + gradient | yes | yes | numerical fixed-shell curvature only | no | whole-cluster fixed-shell potential; occupancy-constrained MD not yet defined; no absolute `DeltaG_solv` claim |
 | automatic QCG/FEBISS explicit-inner cycle | unavailable | no | no | no | no | source-audited research path only; no arbitrary-MLIP QCG backend, complete neutral FreeSolv validation, or end-to-end speed evidence |
 | APBS LPB + APOLAR | energy only | no | no | no | no | fail closed on forces |
@@ -154,12 +154,16 @@ OPT and relaxed SCAN must differentiate the same combined potential reported as
 the energy. MAPLE must never return gas-only MLIP forces beside a solvent-added
 energy.
 
-Implicit-solvent FREQ follows the same rule at second-derivative order. It is
-accepted only with explicit `hessian=numerical`, which central-differences the
-complete combined force, and only with the mass-weighted `method=mw` frequency
-path and `ilowfreq` in `0..3`. Non-mass-weighted and unimplemented dual-mode
-requests fail during input validation. A gas-backend analytic Hessian is
-rejected because it omits the solvent curvature. The resulting local Hessian
+Implicit-solvent FREQ follows the same rule at second-derivative order. The
+general path uses explicit `hessian=numerical`, which central-differences the
+complete combined force. A separate experimental profile admits
+`ANI2x(hessian=analytic)` with float64 plus an exact, source-pinned Torch
+transcription of OpenMM 8.5.2 OBC-II/ACE (or polar-only) and explicit
+`platform=Reference`. Both paths require the mass-weighted `method=mw`
+frequency path and `ilowfreq` in `0..3`. Non-mass-weighted and unimplemented dual-mode
+requests fail during input validation. A gas-backend analytic Hessian without
+an admitted solvent Hessian is rejected because it omits the solvent
+curvature. The resulting local Hessian
 does not itself supply gas/solution conformer populations, standard-state
 conversion, or an absolute solvation free energy; the existing RRHO
 translational/rotational terms remain ideal-gas quantities and are labeled

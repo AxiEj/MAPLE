@@ -51,11 +51,26 @@ H_{ij}^{\mathrm{FD}}(R)=
 MAPLE symmetrizes the finite-difference matrix and keeps the fixed charges and
 provider parameters unchanged at every displacement. The calculation requires
 two complete force calls for each movable Cartesian coordinate. It is
-therefore available only for force-capable OpenMM GB compositions and only
-after explicit `hessian=numerical` selection. Using an analytic gas-MLIP
-Hessian would omit
+therefore available for force-capable OpenMM GB compositions after explicit
+`hessian=numerical` selection. Using an analytic gas-MLIP Hessian alone would omit
 \(\partial^2(G_{\mathrm{polar}}+G_{\mathrm{nonpolar}})/\partial R^2\)
 and is rejected.
+
+For the separately qualified ANI2x/OBC-II profile, MAPLE evaluates the same
+OBC-II/ACE scalar with a source-pinned float64 Torch transcription and forms
+
+\[
+H_{\mathrm{solution}}^{\mathrm{analytic}}
+=H_{\mathrm{ANI2x}}^{\mathrm{analytic}}
++H_{\mathrm{OBC-II/ACE}}^{\mathrm{autograd}}.
+\]
+
+The transcription preserves OpenMM's piecewise `step`, `max`, and `abs`
+semantics; it is not a smoothed model. Second derivatives fail closed within
+the frozen `1e-8 nm` effective switching/collision margin. The admitted task
+cell uses explicit OpenMM `platform=Reference`, while OpenMM CPU remains the
+ordinary energy/force runtime and the complete-force numerical Hessian remains
+the general fallback.
 
 This Hessian supplies local vibrational curvature of the Route 1 potential. It
 does not supply a gas/solution partition-function difference, conformer

@@ -59,13 +59,14 @@ def _implicit_prfo_lines(
     charge: str = "#charge(source=mol2,label=fixed-ts-smoke)",
     method: str = "prfo",
 ) -> list[str]:
+    platform = ",platform=Reference" if hessian == "analytic" else ""
     return [
         f"#model={model}(hessian={hessian})",
         f"#ts(method={method},max_iter=1)",
         charge,
         (
             "#solv(implicit=water,method=gb,provider=openmm,model=obc2,"
-            "profile=obc2-mbondi2,nonpolar=ace,experimental=true)"
+            f"profile=obc2-mbondi2,nonpolar=ace{platform},experimental=true)"
         ),
     ]
 
@@ -107,6 +108,12 @@ def test_parser_rejects_gas_only_hvp_for_implicit_dimer():
         _parse(*_implicit_dimer_lines(use_hvp=True))
 
 
+def test_parser_accepts_analytic_obc2_prfo():
+    params = _parse(*_implicit_prfo_lines(hessian="analytic"))
+
+    assert params["model_options"]["hessian"] == "analytic"
+
+
 @pytest.mark.parametrize(
     "lines, message",
     [
@@ -122,7 +129,6 @@ def test_parser_rejects_gas_only_hvp_for_implicit_dimer():
             ],
             "single-point energy-only",
         ),
-        (_implicit_prfo_lines(hessian="analytic"), "hessian=numerical"),
         (
             _implicit_prfo_lines(charge="#charge(source=maple,mode=polarizable)"),
             "QEq/CQEq charge models are disabled",
@@ -132,7 +138,6 @@ def test_parser_rejects_gas_only_hvp_for_implicit_dimer():
     ],
     ids=[
         "energy-only-cha-gb",
-        "analytic-hessian",
         "polarizable-charges",
         "other-ts-method",
         "periodic-cell",
@@ -179,7 +184,7 @@ def _direct_implicit_atoms(
     [
         (_direct_implicit_atoms(mode="polarizable"), "mode=fixed"),
         (_direct_implicit_atoms(supported_properties={"energy"}), "force support"),
-        (_direct_implicit_atoms(hessian="analytic"), "hessian=numerical"),
+        (_direct_implicit_atoms(hessian="analytic"), "analytic solvent Hessian"),
         (_direct_implicit_atoms(inner_mode="prebuilt"), "without inner=prebuilt"),
         (
             _direct_implicit_atoms(supports_composition=False),
@@ -190,7 +195,7 @@ def _direct_implicit_atoms(
     ids=[
         "polarizable-charges",
         "energy-only-correction",
-        "analytic-hessian",
+        "analytic-hessian-without-solvent-derivative",
         "prebuilt-inner-shell",
         "calculator-without-composition-capability",
         "periodic-cell",

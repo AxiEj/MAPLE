@@ -505,7 +505,7 @@ def test_direct_api_rejects_periodic_implicit_frequency(tmp_path):
                 "SUPPORTS_IMPLICIT_SOLVATION": True,
                 "hessian": "analytic",
             },
-            "hessian=numerical",
+            "analytic solvent Hessian",
         ),
     ],
     ids=[

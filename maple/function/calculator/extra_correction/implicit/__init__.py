@@ -4,12 +4,13 @@ from .amber_chagb import AmberToolsChaGB
 from .charges import ChargeResult, prepare_charges
 from .correction import ImplicitSolvationCorrection
 from .nonpolar import APBSSASANonpolarProvider, OpenMMNonpolarProvider
+from .obc2_parameters import OBC2Parameters, build_obc2_parameters
 from .radii import (
     OpenMMAmberGBRadiusProvider,
     OpenMMMbondi2RadiusProvider,
     RadiusResult,
 )
-from .result import SolvationResult
+from .result import SolvationDirectionalResult, SolvationResult
 
 __all__ = [
     "APBSSASANonpolarProvider",
@@ -19,7 +20,10 @@ __all__ = [
     "OpenMMAmberGBRadiusProvider",
     "OpenMMMbondi2RadiusProvider",
     "OpenMMNonpolarProvider",
+    "OBC2Parameters",
     "RadiusResult",
     "SolvationResult",
+    "SolvationDirectionalResult",
+    "build_obc2_parameters",
     "prepare_charges",
 ]

@@ -18,7 +18,7 @@ from maple.function.read.filereader.mol2_reader import (
 
 from .charges import ChargeResult, prepare_charges
 from .openmm_gb import DEFAULT_OPENMM_PLATFORM, OpenMMGB
-from .result import SolvationResult
+from .result import SolvationDirectionalResult, SolvationResult
 
 _ATOM_IDENTITY_ARRAY = "_maple_implicit_atom_identity"
 
@@ -391,6 +391,13 @@ class ImplicitSolvationCorrection:
 
         self.underlying_provider = self.provider
         self.supported_properties = set(self.provider.supported_properties)
+        self.last_derivative_provenance: dict[str, Any] | None = None
+        self.analytic_task_derivatives_admitted = bool(
+            isinstance(self.underlying_provider, OpenMMGB)
+            and self.underlying_provider.obc2_parameters is not None
+            and self.underlying_provider.platform == "Reference"
+            and self.inner_mode is None
+        )
         self._write_audit_manifest()
 
     def _write_audit_manifest(self) -> None:
@@ -462,6 +469,14 @@ class ImplicitSolvationCorrection:
                 "testing_only": False,
                 "native_force": "forces" in underlying_supported,
                 "numerical_force": False,
+                "analytic_solvent_hessian_available": bool(
+                    isinstance(self.underlying_provider, OpenMMGB)
+                    and self.underlying_provider.obc2_parameters is not None
+                    and self.inner_mode is None
+                ),
+                "analytic_task_derivatives_admitted": (
+                    self.analytic_task_derivatives_admitted
+                ),
                 "production_admitted": False,
                 "accuracy_certified": False,
             },
@@ -556,13 +571,8 @@ class ImplicitSolvationCorrection:
             [(positions - step * vector, positions + step * vector)],
         )
 
-    def evaluate(
-        self,
-        atoms,
-        *,
-        need_forces: bool = False,
-        calculator=None,
-    ) -> SolvationResult:
+    def _validate_bound_atoms(self, atoms) -> None:
+        """Enforce the one frozen charge/radius/topology lifecycle."""
         current_atom_identity = atoms.arrays.get(_ATOM_IDENTITY_ARRAY)
         if (
             current_atom_identity is None
@@ -583,12 +593,112 @@ class ImplicitSolvationCorrection:
             )
         if (
             self._frozen_mol2_topology_signature is not None
-            and _mol2_topology_signature(atoms) != self._frozen_mol2_topology_signature
+            and _mol2_topology_signature(atoms)
+            != self._frozen_mol2_topology_signature
         ):
             raise ValueError(
                 "Implicit solvation is bound to the frozen MOL2 topology used "
                 "to prepare charges, radii, and connectivity."
             )
+
+    def _analytic_derivative_backend(self):
+        if self.inner_mode is not None:
+            raise NotImplementedError(
+                "Analytic OBC-II derivatives are admitted only for one solute; "
+                "use the complete-force numerical Hessian for inner=prebuilt."
+            )
+        if not isinstance(self.underlying_provider, OpenMMGB):
+            raise NotImplementedError(
+                "The selected solvent provider has no admitted analytic derivative backend."
+            )
+        return self.underlying_provider.derivative_backend()
+
+    def _record_derivative_use(
+        self,
+        *,
+        derivative: str,
+        status: str,
+        provenance: dict[str, Any] | None = None,
+        error: BaseException | None = None,
+    ) -> None:
+        record = {
+            "schema_version": 1,
+            "derivative": derivative,
+            "status": status,
+            "runtime_provider": "openmm",
+            "runtime_platform": getattr(
+                self.underlying_provider, "platform", "CPU"
+            ),
+            "derivative_provider": "torch-obc2",
+            "model_device": self.model_device,
+            "provenance": dict(provenance or {}),
+            "error": None
+            if error is None
+            else {"type": type(error).__name__, "message": str(error)},
+        }
+        destination = self.audit_dir / "derivative-use.json"
+        temporary = destination.with_name(
+            f".{destination.name}.{os.getpid()}.tmp"
+        )
+        temporary.write_text(
+            json.dumps(record, indent=2, sort_keys=True, default=str),
+            encoding="utf-8",
+        )
+        os.replace(temporary, destination)
+
+    def get_hessian(self, atoms) -> np.ndarray:
+        """Return the admitted Torch OBC-II/ACE Cartesian Hessian."""
+        self._validate_bound_atoms(atoms)
+        try:
+            backend = self._analytic_derivative_backend()
+            hessian = np.asarray(backend.hessian(atoms), dtype=np.float64)
+            provenance = dict(backend.last_derivative_provenance or {})
+            self.last_derivative_provenance = provenance
+            self._record_derivative_use(
+                derivative="hessian", status="success", provenance=provenance
+            )
+            return hessian
+        except Exception as exc:
+            self._record_derivative_use(
+                derivative="hessian", status="rejected", error=exc
+            )
+            raise
+
+    def get_directional_derivatives(
+        self, atoms, direction: np.ndarray
+    ) -> SolvationDirectionalResult:
+        """Return solvent E/F/HVP from one admitted Torch scalar graph."""
+        self._validate_bound_atoms(atoms)
+        try:
+            backend = self._analytic_derivative_backend()
+            result = backend.directional_derivatives(atoms, direction)
+            provenance = dict(result.provenance)
+            self.last_derivative_provenance = provenance
+            self._record_derivative_use(
+                derivative="directional-hvp",
+                status="success",
+                provenance=provenance,
+            )
+            return result
+        except Exception as exc:
+            self._record_derivative_use(
+                derivative="directional-hvp", status="rejected", error=exc
+            )
+            raise
+
+    def get_hvp(self, atoms, direction: np.ndarray) -> np.ndarray:
+        return self.get_directional_derivatives(
+            atoms, direction
+        ).hvp_hartree_per_angstrom2
+
+    def evaluate(
+        self,
+        atoms,
+        *,
+        need_forces: bool = False,
+        calculator=None,
+    ) -> SolvationResult:
+        self._validate_bound_atoms(atoms)
         result = self.provider.evaluate(
             atoms, need_forces=need_forces, calculator=calculator
         )

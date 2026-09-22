@@ -30,6 +30,7 @@ class ANICalculator(CalcABC):
     # ANI's TorchScript checkpoints already return Hartree; no eV→Ha conversion.
     MODEL_ENERGY_UNIT = "hartree"
     SUPPORTED_HESSIAN_MODES = ("analytic", "numerical")
+    ANALYTIC_IMPLICIT_HESSIAN_MODELS = ("ani2x",)
     SUPPORTS_CHARGE_MULT = False
     SUPPORTS_PBC = False
     SUPPORTS_IMPLICIT_SOLVATION = True
@@ -196,6 +197,23 @@ class ANICalculator(CalcABC):
         if self._requested_dtype == "auto":
             self._precision_cast_reason = "numerical_curvature_requires_float64"
         return self._recommended_numerical_step
+
+    def prepare_analytic_derivatives(self) -> None:
+        """Promote only an explicitly requested implicit analytic workflow."""
+        if self._requested_dtype == "float32":
+            raise ValueError(
+                "ANI float32 cannot be used for analytic implicit curvature; "
+                "use dtype='auto' or dtype='float64'."
+            )
+        self._record_checkpoint_sha256()
+        self._promote_to_float64(
+            reason="analytic_implicit_curvature_requires_float64"
+        )
+        if self._requested_dtype == "auto":
+            self._precision_cast_reason = (
+                "analytic_implicit_curvature_requires_float64"
+            )
+        self.analytic_implicit_derivatives_admitted = True
 
     @property
     def inference_precision_provenance(self) -> dict:
@@ -397,11 +415,6 @@ class ANICalculator(CalcABC):
 
         Returns (Hn, forces, energy) as torch tensors, consumed by Dimer-mode TS.
         """
-        if getattr(self, "solvent_correction", None) is not None:
-            raise NotImplementedError(
-                "ANI HVP with implicit solvent is not supported; solvent HVP would be omitted."
-            )
-
         import torch
 
         coords = torch.tensor(
@@ -431,4 +444,40 @@ class ANICalculator(CalcABC):
         )
 
         forces = -grad_vec
+        correction = getattr(self, "solvent_correction", None)
+        if correction is not None:
+            if self.analytic_implicit_derivatives_admitted is not True:
+                raise NotImplementedError(
+                    "ANI analytic implicit-solvent derivatives were not prepared."
+                )
+            directional_fn = getattr(
+                correction, "get_directional_derivatives", None
+            )
+            if not callable(directional_fn):
+                raise NotImplementedError(
+                    "The attached solvent correction has no admitted directional "
+                    "derivative backend; use Dimer use_hvp=false."
+                )
+            solvent = directional_fn(atoms, np.asarray(n, dtype=np.float64))
+            hvp = hvp + torch.as_tensor(
+                solvent.hvp_hartree_per_angstrom2,
+                dtype=self.dtype,
+                device=self.device,
+            )
+            forces = forces + torch.as_tensor(
+                solvent.forces_hartree_per_angstrom.reshape(-1),
+                dtype=self.dtype,
+                device=self.device,
+            )
+            energy = energy + torch.as_tensor(
+                solvent.energy_hartree,
+                dtype=self.dtype,
+                device=self.device,
+            )
+            self.last_hvp_provenance = {
+                "composition": "ani-gas-analytic+torch-obc2-directional",
+                "solvent": dict(solvent.provenance),
+            }
+        else:
+            self.last_hvp_provenance = {"composition": "ani-gas-analytic"}
         return hvp, forces, energy

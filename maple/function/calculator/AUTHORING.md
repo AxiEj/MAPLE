@@ -32,6 +32,9 @@ have to inherit `CalcABC`. UMA, for example, extends third-party
   because the forward shape differs per backend. `ANICalculator` implements it
   for ANI's `self.model(species, coords)` shape; other backends must override
   it before they can use the HVP-enabled Dimer path.
+- `prepare_analytic_derivatives(self)` — required for an admitted analytic
+  implicit-solvent composition. It prepares the gas backend precision and sets
+  `analytic_implicit_derivatives_admitted=True`; the `CalcABC` default raises.
 
 **Class attributes** (read by `SetCalculator` before the class is
 instantiated):
@@ -44,6 +47,7 @@ instantiated):
 | `SUPPORTS_CHARGE_MULT` | `bool` | True if the backend honors `atoms.info['charge']` / `atoms.info['mult']`. |
 | `SUPPORTS_PBC` | `bool` | True only when the backend constructs a validated periodic graph / neighbor list. `SetCalculator` and `CalcABC.calculate()` reject periodic atoms for false values. |
 | `SUPPORTS_IMPLICIT_SOLVATION` | `bool` | Declares that the backend implements MAPLE's additive Route 1 composition contract. The `CalcABC` default is fail-closed `False`; every reviewed backend must opt in explicitly after using the shared result finalizer. |
+| `ANALYTIC_IMPLICIT_HESSIAN_MODELS` | `tuple[str, ...]` | Models that passed the separate gas-plus-solvent analytic derivative workflow gate. Empty by default; gas analytic support alone is insufficient. |
 | `supports_batch_energy_forces` | `bool` | True only for a model-native `calculate_many` energy/force path that has passed serial parity. False still satisfies the API through the `CalcABC` sequential fallback. |
 | `CHECKPOINT_FILENAME` | `dict[str, str] \| None` | Per-name filename for HuggingFace auto-download. `None` if no auto-download. |
 | `REQUIRES_LOCAL_MODEL_FILE` | `bool` | Fallback when `CHECKPOINT_FILENAME` does not cover the requested name. |
@@ -77,6 +81,7 @@ class FooCalculator(CalcABC):
     SUPPORTS_CHARGE_MULT = False
     SUPPORTS_PBC = False               # fail fast on periodic atoms unless validated
     SUPPORTS_IMPLICIT_SOLVATION = False  # opt in only after Route 1 review
+    ANALYTIC_IMPLICIT_HESSIAN_MODELS = ()  # separate composed-derivative gate
     CHECKPOINT_FILENAME = {'foo2x': 'foo2x.pt', 'foo1ccx': 'foo1ccx.pt'}
     REQUIRES_LOCAL_MODEL_FILE = False
     OPTION_KEYS = ('foo_mode',)
@@ -165,9 +170,12 @@ class FooCalculator(CalcABC):
   `evaluate(atoms, need_forces=False, calculator=None)`. Runtime `TypeError`
   exceptions propagate; `_finalize_results` does not retry a second signature
   and cannot hide an internal provider bug as a compatibility fallback.
-- Analytic implicit-solvent Hessians, implicit-solvent HVP, stress, PBC, and
-  unsupported task/domain combinations fail closed. An explicit numerical
-  Hessian is available only for a force-capable solvent composition.
+- Analytic implicit-solvent Hessians and HVP are capability-gated rather than
+  inferred from a gas backend. The admitted derivative profile is currently
+  ANI2x float64 plus the exact Torch transcription of OpenMM 8.5.2 OBC-II with
+  ACE or no nonpolar term, using explicit OpenMM `platform=Reference`. Other
+  profiles fail closed. An explicit numerical Hessian remains available for
+  every force-capable solvent composition.
 
 ## Hessian
 
@@ -185,10 +193,13 @@ class FooCalculator(CalcABC):
   `atoms`, and `solvation_result` before returning, so standalone
   `calc.get_hessian(atoms)` does not leave public calculator state pointing at
   the final displaced geometry.
-- Analytic Hessian with implicit solvent is unsupported and raises
-  `NotImplementedError` from `CalcABC.get_hessian`. Document the
-  limitation in any backend-specific notes.
-- The MAPLE FREQ task requires explicit `#model=...(hessian=numerical)` and
+- Analytic Hessian composition requires both `_analytic_hessian(atoms)` from
+  the gas backend and `correction.get_hessian(atoms)` from the solvent. MAPLE
+  returns their sum and records the provider actually executed; neither term
+  may be omitted or counted twice. The OBC-II derivative backend remains lazy,
+  so ordinary OpenMM SP/OPT/MD does not import or construct it.
+- The MAPLE FREQ task requires explicit `#model=...(hessian=numerical)` or the
+  admitted ANI2x/OBC-II `hessian=analytic` profile and
   `#freq(method=mw,ilowfreq=0..3)` for implicit GB. Non-mass-weighted and
   unimplemented dual-mode analysis fail during input validation. The existing
   translational/rotational RRHO treatment remains ideal-gas thermochemistry; a
@@ -197,8 +208,8 @@ class FooCalculator(CalcABC):
   fails closed until an active-coordinate Hessian, mass matrix, and rigid-body
   projection are implemented for ASE constraints. The runtime FREQ boundary
   also rechecks `mode=fixed`, correction force support,
-  `SUPPORTS_IMPLICIT_SOLVATION=True`, `hessian=numerical`, and non-periodic
-  atoms so direct Python calls cannot bypass the command contract.
+  `SUPPORTS_IMPLICIT_SOLVATION=True`, the selected Hessian capability, and
+  non-periodic atoms so direct Python calls cannot bypass the command contract.
 
 ## Periodic boundary conditions and stress
 

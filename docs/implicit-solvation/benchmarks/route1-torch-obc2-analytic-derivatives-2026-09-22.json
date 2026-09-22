@@ -1,0 +1,202 @@
+{
+  "analytic_workflow_reference_cells": {
+    "cases": {
+      "methanol": {
+        "atom_count": 6,
+        "passed": true,
+        "records": [
+          {
+            "max_hartree_per_angstrom2": 9.563275948920591e-09,
+            "rms_hartree_per_angstrom2": 1.3440278680026783e-09,
+            "step_angstrom": 1e-06
+          },
+          {
+            "max_hartree_per_angstrom2": 9.636134112867012e-09,
+            "rms_hartree_per_angstrom2": 1.372531573976891e-09,
+            "step_angstrom": 2e-06
+          },
+          {
+            "max_hartree_per_angstrom2": 1.1292447865685062e-08,
+            "rms_hartree_per_angstrom2": 1.6599644042829806e-09,
+            "step_angstrom": 5e-06
+          }
+        ]
+      },
+      "water": {
+        "atom_count": 3,
+        "passed": true,
+        "records": [
+          {
+            "max_hartree_per_angstrom2": 7.88113618810371e-09,
+            "rms_hartree_per_angstrom2": 2.2816403541149387e-09,
+            "step_angstrom": 1e-06
+          },
+          {
+            "max_hartree_per_angstrom2": 8.522984096259734e-09,
+            "rms_hartree_per_angstrom2": 2.454154111897149e-09,
+            "step_angstrom": 2e-06
+          },
+          {
+            "max_hartree_per_angstrom2": 1.3997077275007541e-08,
+            "rms_hartree_per_angstrom2": 3.96593017625878e-09,
+            "step_angstrom": 5e-06
+          }
+        ]
+      }
+    },
+    "gas_backend": "ani2x",
+    "gas_dtype": "float64",
+    "openmm_platform": "Reference",
+    "passed": true
+  },
+  "artifact_type": "route1-torch-obc2-analytic-derivative-validation",
+  "base_commit": "16ecc56fa3a13ff61a2e67143051f67a1b3457bf",
+  "commands": [
+    "PYTHONPATH=\"$PWD\" pytest -q tests/solvation/test_torch_obc2_parity.py tests/solvation/test_torch_obc2_derivatives.py tests/solvation/test_implicit_analytic_derivatives.py",
+    "PYTHONPATH=\"$PWD\" python docs/implicit-solvation/benchmarks/run_route1_torch_obc2_derivative_performance.py --output docs/implicit-solvation/benchmarks/route1-torch-obc2-derivative-performance-2026-09-22.json --work-dir /tmp/route1-torch-obc2-performance-final --samples 3"
+  ],
+  "content_sha256": "122d22ef13082f1c9cf4dcda1590dbc50dc3719db60a7642f15b7aff6c6c2b26",
+  "gate_a_reference_parity": {
+    "case_count": 12,
+    "comparison_count": 48,
+    "geometries_per_case": 2,
+    "maxima": {
+      "cpu_energy_abs_hartree": 1.6531123477048215e-08,
+      "cpu_force_max_hartree_per_angstrom": 1.756730915597471e-08,
+      "reference_energy_abs_hartree": 1.4363510381087963e-15,
+      "reference_force_max_hartree_per_angstrom": 4.163336342344337e-17,
+      "reference_force_rms_hartree_per_angstrom": 5.848118150168199e-18,
+      "reference_nonpolar_abs_hartree": 3.469446951953614e-18,
+      "reference_polar_abs_hartree": 1.4363510381087963e-15
+    },
+    "nonpolar_profiles": [
+      "ace",
+      "none"
+    ],
+    "passed": true
+  },
+  "gate_a_solvent_hessian_reference_force_fd": {
+    "case": "methanol",
+    "passed": true,
+    "records": [
+      {
+        "max_hartree_per_angstrom2": 9.553032212505919e-09,
+        "rms_hartree_per_angstrom2": 9.59517699045521e-10,
+        "step_angstrom": 0.001
+      },
+      {
+        "max_hartree_per_angstrom2": 3.821212548466013e-08,
+        "rms_hartree_per_angstrom2": 3.838068723342038e-09,
+        "step_angstrom": 0.002
+      },
+      {
+        "max_hartree_per_angstrom2": 2.3882596140306633e-07,
+        "rms_hartree_per_angstrom2": 2.3987869599475942e-08,
+        "step_angstrom": 0.005
+      }
+    ]
+  },
+  "implementation_source_sha256": {
+    "maple/function/calculator/ani/_ani_calculator.py": "0676d467cfe8bf74f7a8d27984b10dc0541fed3bcb692e90d684ed998ced0036",
+    "maple/function/calculator/calculator_base.py": "287a0eaac0c1f28170fd8edb211f06650f9a4d9b9ffbeed828829ef89726d0ae",
+    "maple/function/calculator/extra_correction/implicit/correction.py": "b02dc580567298cee6770db3e37b9ca5248ef3c2cfa401d2c141dbd08599e5d5",
+    "maple/function/calculator/extra_correction/implicit/obc2_parameters.py": "a2336e869e3578256e7cdfce93b4c482ca666a23951179bb53ae50cdcfe680f6",
+    "maple/function/calculator/extra_correction/implicit/openmm_compat.py": "b76d6d2a514fd59c6f41624e2cba86ad832b207a26e87399c3b87979c3da5d10",
+    "maple/function/calculator/extra_correction/implicit/openmm_gb.py": "9170c01e48aba289356cf046468e6c2ea73ce827246ffe5f6b70c57e1c142094",
+    "maple/function/calculator/extra_correction/implicit/result.py": "bf1578435750d13e2bd8e76130b5a461a109c51e4129deb349070ed226895775",
+    "maple/function/calculator/extra_correction/implicit/torch_obc2.py": "1abb002d64030ee5b55fa8ce6813019c46f7807c50a7e657688f6bc972b68e5d",
+    "maple/function/calculator/set_calculator.py": "f433b1868fc7e857dae92fcc107d133fa2bf8802da57f9590436e86a8ed37a31",
+    "maple/function/dispatcher/frequency/frequency.py": "9b8e6716e5753ae9635a4fb1ea3b2990728428e756d544a5e35b3a0cf51e6997",
+    "maple/function/dispatcher/ts/algorithm/dimer.py": "c6493533beb007143b4f311aae31f324a78b1e619cff5f59e6178bf806df0ac4",
+    "maple/function/dispatcher/ts/ts.py": "0ef6c62911d89c2782ca9de9fcd5e908bb27e1197f571e06ac3373c7b1d339c0",
+    "maple/function/read/command_control.py": "275332abc16d3de192f64fd231d31a220b0fc4d0343398d3069975cb141fd803"
+  },
+  "performance_artifact": {
+    "content_sha256": "6baa3ab4804f7fd4bc6962f5ff6fceb941c670b26aacc574541090e07c7d7c27",
+    "file_sha256": "49f009bfe8921a9609b6487e363ac61a77dcc03854a19c4c02beeeb07ae36e6f",
+    "path": "docs/implicit-solvation/benchmarks/route1-torch-obc2-derivative-performance-2026-09-22.json",
+    "records": {
+      "methanol": {
+        "analytic_over_numerical_speedup": 1.0350256864495646,
+        "direct_hvp_speedup": 9.224980188541817
+      },
+      "methyl-hexanoate": {
+        "analytic_over_numerical_speedup": 2.082029122228708,
+        "direct_hvp_speedup": 32.00167861488899
+      }
+    }
+  },
+  "performance_decision": {
+    "analytic_frequency_recommended_default": false,
+    "direct_hvp_recommended_for_experimental_ts": true,
+    "reason": "23-atom full-Hessian speedup is 2.08x, below the predeclared 3x recommendation gate"
+  },
+  "production_cpu_gate_c_diagnostic": {
+    "cases": {
+      "methanol": {
+        "atom_count": 6,
+        "passed": true,
+        "records": [
+          {
+            "max_hartree_per_angstrom2": 0.00017031613022622238,
+            "rms_hartree_per_angstrom2": 2.0124294431589392e-05,
+            "step_angstrom": 2e-05
+          },
+          {
+            "max_hartree_per_angstrom2": 2.037186004977265e-05,
+            "rms_hartree_per_angstrom2": 4.791168990270968e-06,
+            "step_angstrom": 7e-05
+          },
+          {
+            "max_hartree_per_angstrom2": 1.6235989176882626e-05,
+            "rms_hartree_per_angstrom2": 3.0837455829083884e-06,
+            "step_angstrom": 0.0001
+          }
+        ]
+      },
+      "water": {
+        "atom_count": 3,
+        "passed": false,
+        "records": [
+          {
+            "max_hartree_per_angstrom2": 0.00014085204975566867,
+            "rms_hartree_per_angstrom2": 2.7247974696222698e-05,
+            "step_angstrom": 2e-05
+          },
+          {
+            "max_hartree_per_angstrom2": 9.824285075232808e-05,
+            "rms_hartree_per_angstrom2": 1.9924910631446962e-05,
+            "step_angstrom": 7e-05
+          },
+          {
+            "max_hartree_per_angstrom2": 7.995754759937412e-05,
+            "rms_hartree_per_angstrom2": 1.9114115506823372e-05,
+            "step_angstrom": 0.0001
+          }
+        ]
+      }
+    },
+    "decision": "not-admitted because the water cell fails; analytic task workflows require explicit Reference platform",
+    "frozen_target": {
+      "max_hartree_per_angstrom2": 2e-05,
+      "rms_hartree_per_angstrom2": 5e-06
+    },
+    "gas_backend": "ani2x",
+    "gas_dtype": "float64",
+    "openmm_platform": "CPU",
+    "passed": false,
+    "properties": {
+      "DeterministicForces": "true",
+      "Threads": "1"
+    }
+  },
+  "recorded_date": "2026-09-22",
+  "schema_version": 1,
+  "scientific_identity": {
+    "hydration_accuracy_changed": false,
+    "model": "OpenMM 8.5.2 OBC-II/mbondi2 plus ACE or none",
+    "new_physics": false,
+    "parameters_changed": false,
+    "upstream_customgbforces_sha256": "f96a49a9e9ef0528e937481b1c1331b43ad03e6ec3018b478c642b301f07391a"
+  }
+}

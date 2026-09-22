@@ -101,7 +101,9 @@ def write_all_images_xyz(
 @dataclass
 class DimerParams:
     # Rotation / curvature estimation
-    use_hvp: bool | None = None          # None: gas HVP, implicit FD; False: FD; True: HVP
+    # None preserves the conservative default (gas HVP, implicit FD).  True
+    # requires a separately admitted composed gas+solvent HVP provider.
+    use_hvp: bool | None = None
     delta: float = 0.005                 # Angstrom; used only if not use_hvp
     rot_max_iter: int = 5               # rotation inner iterations per outer step
     rot_alpha: float = 0.5              # rotation step factor on F_rot (unitless); small ~ (0.1~1)
@@ -240,10 +242,27 @@ class Dimer(JobABC):
 
         implicit = getattr(self.calculator, "solvent_correction", None) is not None
         if self.params.use_hvp is True and implicit:
-            raise ValueError(
-                "Dimer implicit-solvent curvature must use complete-force "
-                "finite-difference derivatives; implicit-solvent HVP is unavailable."
-            )
+            correction = self.calculator.solvent_correction
+            if not (
+                getattr(
+                    self.calculator,
+                    "analytic_implicit_derivatives_admitted",
+                    False,
+                )
+                is True
+                and getattr(
+                    correction, "analytic_task_derivatives_admitted", False
+                )
+                is True
+                and callable(
+                    getattr(correction, "get_directional_derivatives", None)
+                )
+            ):
+                raise ValueError(
+                    "Dimer implicit-solvent HVP requires an admitted solvent "
+                    "directional-derivative backend; use use_hvp=false for the "
+                    "complete-force finite-difference fallback."
+                )
         self.derivative_mode = (
             "finite_difference"
             if self.params.use_hvp is False or (self.params.use_hvp is None and implicit)

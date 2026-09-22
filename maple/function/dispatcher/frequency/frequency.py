@@ -156,11 +156,29 @@ def _validate_frequency_boundary(atoms: Atoms, method: str) -> None:
             "The calculator must declare SUPPORTS_IMPLICIT_SOLVATION=True before "
             "it can enter the Route 1 frequency composition path."
         )
-    if str(getattr(calculator, "hessian", "")).lower() != "numerical":
-        raise ValueError(
-            "Implicit-solvent frequency analysis requires hessian=numerical so "
-            "the Hessian differentiates the complete composed force."
+    hessian_mode = str(getattr(calculator, "hessian", "")).lower()
+    if hessian_mode == "numerical":
+        return
+    if (
+        hessian_mode == "analytic"
+        and getattr(calculator, "analytic_implicit_derivatives_admitted", False)
+        is True
+        and getattr(
+            solvent_correction, "analytic_task_derivatives_admitted", False
         )
+        is True
+        and callable(getattr(solvent_correction, "get_hessian", None))
+    ):
+        return
+    if hessian_mode == "analytic":
+        raise ValueError(
+            "Implicit-solvent analytic frequency analysis requires an admitted "
+            "analytic solvent Hessian."
+        )
+    raise ValueError(
+        "Implicit-solvent frequency analysis requires hessian=numerical or "
+        "an admitted hessian=analytic solvent derivative backend."
+    )
 
 
 @dataclass
@@ -323,16 +341,15 @@ class FrequencyBase(JobABC):
                 self.atoms,
                 self.analysis_method,
             )
-            if getattr(
+            implicit_correction = getattr(
                 getattr(self.atoms, "calc", None),
                 "solvent_correction",
                 None,
-            ) is not None:
+            )
+            if implicit_correction is not None:
                 self.log_info(
                     [
                         "\nIMPLICIT-SOLVENT FREQUENCY BOUNDARY\n",
-                        "The numerical Hessian differentiates the complete "
-                        "MLIP+implicit-solvent force.\n",
                         "The reported translational/rotational RRHO terms retain "
                         "the ideal-gas pressure treatment; they are not a "
                         "solution-standard-state Gibbs energy. This task is not "
@@ -340,6 +357,25 @@ class FrequencyBase(JobABC):
                     ]
                 )
             hessian = self.get_hessian()
+            if implicit_correction is not None:
+                calculator = self.atoms.calc
+                mode = str(getattr(calculator, "hessian", "")).lower()
+                if mode == "analytic":
+                    provenance = dict(
+                        getattr(calculator, "last_analytic_hessian_provenance", {})
+                        or {}
+                    )
+                    description = provenance.get(
+                        "composition", "gas-analytic+solvent-analytic"
+                    )
+                else:
+                    description = "complete-force-central-difference"
+                self.log_info(
+                    [
+                        "Implicit-solvent Hessian derivative provider: ",
+                        f"{description}.\n",
+                    ]
+                )
             freqs_cm1, modes_cart = self.compute_frequencies(hessian)
 
             # Handle small imaginary frequencies if requested

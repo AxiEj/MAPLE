@@ -141,7 +141,7 @@ NVE/NVT MD.
 MOL2 charges are never silently normalized.  Their sum must match the declared
 molecular charge within `1e-4 e`.
 
-## Complete-potential numerical frequency
+## Complete-potential frequency derivatives
 
 Force-capable OpenMM GB compositions admit an explicit numerical FREQ task:
 
@@ -155,12 +155,28 @@ Force-capable OpenMM GB compositions admit an explicit numerical FREQ task:
 MOL2 molecule.mol2
 ```
 
-The opt-in `hessian=numerical` is mandatory because MAPLE central-differences
-the **complete reported MLIP-plus-GB force**. It takes two force evaluations
-per movable Cartesian degree of freedom. A backend analytic Hessian contains
-only the gas MLIP term and therefore remains fail-closed with implicit
-solvation. Energy-only APBS PB and AmberTools CHA-GB providers cannot enter
-this path. The admitted implicit-solvent frequency method is mass-weighted
+The general opt-in `hessian=numerical` path central-differences the **complete
+reported MLIP-plus-GB force**. It takes two force evaluations per movable
+Cartesian degree of freedom. A gas-only analytic Hessian remains fail-closed.
+One separately qualified experimental profile supplies both terms analytically:
+
+```text
+#model=ani2x(hessian=analytic,dtype=float64)
+#freq(method=mw,ilowfreq=2)
+#charge(source=mol2,label=am1bcc-frozen)
+#solv(implicit=water,method=gb,provider=openmm,model=obc2,profile=obc2-mbondi2,nonpolar=ace,platform=Reference,experimental=true)
+
+0 1
+MOL2 molecule.mol2
+```
+
+This profile adds the ANI2x gas analytic Hessian to a source-pinned Torch
+automatic-differentiation Hessian of the unchanged OpenMM 8.5.2 OBC-II/ACE
+expression. It requires float64 and explicit `platform=Reference`; it does not
+alter OpenMM CPU as the ordinary SP/OPT/SCAN/MD default. The numerical path
+remains the explicit fallback for all other gas backends, platforms, GB models,
+and LCPO. Energy-only APBS PB and AmberTools CHA-GB providers cannot enter
+either derivative path. The admitted implicit-solvent frequency method is mass-weighted
 `method=mw`, with `ilowfreq` restricted to `0`, `1`, `2`, or `3`;
 non-mass-weighted and unimplemented dual-mode requests fail during parsing.
 The low-frequency choices are explicit physical approximations: `0` is

@@ -53,17 +53,22 @@
       "path": "maple/function/calculator/ani/_ani_calculator.py",
       "historical_sha256": [
         "b784bfd28fb901627e4ff2c44fd7be90075315cf9ba908c0b9d89d5515ec5b07",
-        "70bdae8d07cb4f59424d58d665874e5b93b86e9b14d8f653f03b381778a0799b"
+        "70bdae8d07cb4f59424d58d665874e5b93b86e9b14d8f653f03b381778a0799b",
+        "53ba4d088984133811887ab5e912a5480586e036d002a31c63898417e7e3a225"
       ],
-      "current_sha256": "53ba4d088984133811887ab5e912a5480586e036d002a31c63898417e7e3a225",
-      "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
+      "current_sha256": "0676d467cfe8bf74f7a8d27984b10dc0541fed3bcb692e90d684ed998ced0036",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-10 ddLPB OPT/FREQ/PRFO/dimer opening reuses complete-force task validation. Component isolation identified ANI precision/coarse-stencil issues; same-checkpoint in-memory float64 plus a qualified 0.0005-A backend recommendation prepares numerical curvature before E/F/H, without changing checkpoint values or solvent parameters. Ordinary ANI SP/OPT and other backend defaults remain unchanged. Raw diagnostics and effective precision are exposed. This ledger describes source evolution only and never authorizes old numerical evidence reuse.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_ddlpb_workflows.py",
         "tests/solvation/test_ani_numerical_precision.py",
-        "tests/solvation/test_ddlpb_reference_tasks.py"
+        "tests/solvation/test_ddlpb_reference_tasks.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -73,19 +78,24 @@
         "e2a3d6046cccd7030a499b0392cbcd93ddffecd1b4b66e9e1969f96b2bad426a",
         "aa2dbf9942b64afcf04930f6c051dfd4ac959cc962c07a9d2d13017c495bf2da",
         "0e0f5483905f6390c133454a426e38f5ee4aec23bbacb2d13845abd3c57aa83e",
-        "5ed4e828c3e926b66bcb1dd8477f247644039f7d5c71d5f04cf3c6efa19a9dc2"
+        "5ed4e828c3e926b66bcb1dd8477f247644039f7d5c71d5f04cf3c6efa19a9dc2",
+        "c226a04b2bbe58ad7bca00f940744f174de7faea84d0bc7969418083d477a97a"
       ],
-      "current_sha256": "c226a04b2bbe58ad7bca00f940744f174de7faea84d0bc7969418083d477a97a",
-      "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
+      "current_sha256": "287a0eaac0c1f28170fd8edb211f06650f9a4d9b9ffbeed828829ef89726d0ae",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-10 ddLPB OPT/FREQ/PRFO/dimer opening reuses complete-force task validation. Component isolation identified ANI precision/coarse-stencil issues; same-checkpoint in-memory float64 plus a qualified 0.0005-A backend recommendation prepares numerical curvature before E/F/H, without changing checkpoint values or solvent parameters. Ordinary ANI SP/OPT and other backend defaults remain unchanged. Raw diagnostics and effective precision are exposed. This ledger describes source evolution only and never authorizes old numerical evidence reuse.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_ddlpb_reference_tasks.py",
         "tests/solvation/test_calculator_composition.py",
         "tests/solvation/test_prebuilt_inner_outer.py",
         "tests/solvation/test_ddlpb_workflows.py",
-        "tests/solvation/test_ani_numerical_precision.py"
+        "tests/solvation/test_ani_numerical_precision.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -150,13 +160,14 @@
         "623486fe105f64bd5daf3dbdea3d844b96609235006b11ee2ac489f91b8b81f0",
         "98e418682c08ed1b2b5c28ba9c1f285e220164ef23c296d4f9b0484429e52987",
         "590c72716280ee18ccb2ecf07b58be6b26f6739999c063672ab298cdf15bf2e7",
-        "97dec03aaf1cfc7ca0d7f46b79f607ff12694955dec90308d81fffed861c907d"
+        "97dec03aaf1cfc7ca0d7f46b79f607ff12694955dec90308d81fffed861c907d",
+        "95a2f8d13fb4bd99df3ab20dc385908934c4a68b982b9967e5a5e778db19624d"
       ],
-      "current_sha256": "95a2f8d13fb4bd99df3ab20dc385908934c4a68b982b9967e5a5e778db19624d",
-      "change_class": "close-unqualified-numerical-force-runtime",
+      "current_sha256": "b02dc580567298cee6770db3e37b9ca5248ef3c2cfa401d2c141dbd08599e5d5",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-20 closes user-facing finite-difference forces for scalar AmberTools CHA-GB and APBS after the real APBS step-consistency canary failed and no qualifying Amber matrix existed. The standalone NumericalForceProvider remains an internal diagnostic harness; native OpenMM/ddLPB and scalar endpoint energies are unchanged. This ledger update records source evolution only and does not recompute, reseal, or authorize reuse of historical numerical claims.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "qeq_cqeq_runtime_enabled": false,
       "current_behavior_tests": [
         "tests/solvation/test_qeq_shutdown.py",
@@ -169,7 +180,11 @@
         "tests/solvation/test_prebuilt_inner_outer.py",
         "tests/solvation/test_numerical_force_command_contract.py",
         "tests/solvation/test_numerical_solvent_forces.py",
-        "tests/solvation/test_provider_failure_gates.py"
+        "tests/solvation/test_provider_failure_gates.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -184,31 +199,45 @@
     },
     {
       "path": "maple/function/calculator/extra_correction/implicit/openmm_compat.py",
-      "historical_sha256": [],
-      "current_sha256": "0141df608e71ba7dcce91b2da10d4723968295abf5b262b8c5afae2a0c5a4132",
-      "change_class": "private-openmm-api-version-gate-and-provenance",
+      "historical_sha256": [
+        "0141df608e71ba7dcce91b2da10d4723968295abf5b262b8c5afae2a0c5a4132"
+      ],
+      "current_sha256": "b76d6d2a514fd59c6f41624e2cba86ad832b207a26e87399c3b87979c3da5d10",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
-      "scientific_claim_reuse_authorized": false
+      "scientific_claim_reuse_authorized": false,
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
+      "current_behavior_tests": [
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
+      ]
     },
     {
       "path": "maple/function/calculator/extra_correction/implicit/openmm_gb.py",
       "historical_sha256": [
         "28111a3e038b15c614988fd5a40b19fd3f3ab564f277b7996f3e5c1a0176d4d6",
         "1820f49fc685cce5265d4e79c430b347744492607fd891268a1637428e91938a",
-        "07b33a2359f651d0d78b7b906f0cd77105507f74f08e06c8f6d62c46417faea4"
+        "07b33a2359f651d0d78b7b906f0cd77105507f74f08e06c8f6d62c46417faea4",
+        "a0a15aab7c9a96aa7993d4c169c200f9f1644b159d8cb08ff0fafad41196835b"
       ],
-      "current_sha256": "a0a15aab7c9a96aa7993d4c169c200f9f1644b159d8cb08ff0fafad41196835b",
-      "change_class": "retired-polarizable-route-code-removal",
+      "current_sha256": "9170c01e48aba289356cf046468e6c2ea73ce827246ffe5f6b70c57e1c142094",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
       "qeq_cqeq_runtime_enabled": false,
-      "reason": "2026-09-09 user-requested removal of the polarizable CQEq-GTO/GB code, exclusive charge-response APIs and dead parser branch from this checkout. Ordinary fixed-QEq legacy mathematics remains runtime-disabled; fixed-charge provider parameters and current TS support are preserved. Source evolution is historical-audit-only: no frozen numerical artifact is modified, recomputed, resealed or admitted for reuse.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_qeq_shutdown.py",
         "tests/solvation/test_qeq_gto.py",
         "tests/solvation/test_openmm_gb.py",
         "tests/solvation/test_command_contract.py",
-        "tests/solvation/test_implicit_ts.py"
+        "tests/solvation/test_implicit_ts.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -312,14 +341,15 @@
         "77575afa4a50b35ff86a06a209c01c20b277b3de73e19fbfc160051cb20823a5",
         "9befd644425ad85b42b8a123b47baa29c8a8ac15d08d5cc43a1d67893284dafd",
         "560eb2f81c9ff7bfdeaa9387450bdcc482e5d363ed9cad64d99d69d48aa36c9c",
-        "27b9417d8b203da532ac40c21d6422c9246b1c7b12eb750d903a5083405a99a5"
+        "27b9417d8b203da532ac40c21d6422c9246b1c7b12eb750d903a5083405a99a5",
+        "01533ec1c77a7b85889d51189129c051f75f337c1480429b5246c85133c42159"
       ],
-      "current_sha256": "01533ec1c77a7b85889d51189129c051f75f337c1480429b5246c85133c42159",
-      "change_class": "close-unqualified-numerical-force-runtime",
+      "current_sha256": "275332abc16d3de192f64fd231d31a220b0fc4d0343398d3069975cb141fd803",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
       "baseline_commit": "8e5e3a342c578d9a10eda3893bebf6bfe9596907",
-      "reason": "2026-09-20 closes user-facing finite-difference forces for scalar AmberTools CHA-GB and APBS after the real APBS step-consistency canary failed and no qualifying Amber matrix existed. The standalone NumericalForceProvider remains an internal diagnostic harness; native OpenMM/ddLPB and scalar endpoint energies are unchanged. This ledger update records source evolution only and does not recompute, reseal, or authorize reuse of historical numerical claims.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_qeq_shutdown.py",
         "tests/solvation/test_qeq_gto.py",
@@ -333,7 +363,11 @@
         "tests/solvation/test_ani_numerical_precision.py",
         "tests/solvation/test_numerical_force_command_contract.py",
         "tests/solvation/test_numerical_solvent_forces.py",
-        "tests/solvation/test_provider_failure_gates.py"
+        "tests/solvation/test_provider_failure_gates.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ],
       "legacy_provider_energy_force_parameters_changed": false,
       "qeq_cqeq_runtime_enabled": false
@@ -342,20 +376,25 @@
       "path": "maple/function/calculator/extra_correction/implicit/__init__.py",
       "historical_sha256": [
         "9ff504183f6935628afa01ee04c6a56e88e1b23a2d56b320b31502dfaa7cda13",
-        "6c0e3048bff11a6401d5f9845f6e342e404d373aea750e29631eef1cd10b403c"
+        "6c0e3048bff11a6401d5f9845f6e342e404d373aea750e29631eef1cd10b403c",
+        "6959c091f496a2e623f4f79bf0b28c63ee356b3a88af06ca6f6f5d308c5f33bd"
       ],
-      "current_sha256": "6959c091f496a2e623f4f79bf0b28c63ee356b3a88af06ca6f6f5d308c5f33bd",
-      "change_class": "retired-polarizable-route-code-removal",
+      "current_sha256": "d0f613126a323f521e8acb144f0f53d3ff41bc0e59e58a8e232f1a6fc9ef85ee",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-09 user-requested removal of the polarizable CQEq-GTO/GB code, exclusive charge-response APIs and dead parser branch from this checkout. Ordinary fixed-QEq legacy mathematics remains runtime-disabled; fixed-charge provider parameters and current TS support are preserved. Source evolution is historical-audit-only: no frozen numerical artifact is modified, recomputed, resealed or admitted for reuse.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "qeq_cqeq_runtime_enabled": false,
       "current_behavior_tests": [
         "tests/solvation/test_qeq_shutdown.py",
         "tests/solvation/test_qeq_gto.py",
         "tests/solvation/test_openmm_gb.py",
         "tests/solvation/test_command_contract.py",
-        "tests/solvation/test_implicit_ts.py"
+        "tests/solvation/test_implicit_ts.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -413,17 +452,22 @@
       "path": "maple/function/dispatcher/frequency/frequency.py",
       "historical_sha256": [
         "03bcb2109d642d7c77fdc610131f6d3958320951ed71b242eafcc1c19298333b",
-        "9794f0a3742058376ca1eb2b7e9e13ae6e72505f43ec679961a4c99598441b2c"
+        "9794f0a3742058376ca1eb2b7e9e13ae6e72505f43ec679961a4c99598441b2c",
+        "c78a884274282b3e206c033576d804f11c0abab2c94916984b48cd8ae0e82501"
       ],
-      "current_sha256": "c78a884274282b3e206c033576d804f11c0abab2c94916984b48cd8ae0e82501",
-      "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
+      "current_sha256": "9b8e6716e5753ae9635a4fb1ea3b2990728428e756d544a5e35b3a0cf51e6997",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-10 ddLPB OPT/FREQ/PRFO/dimer opening reuses complete-force task validation. Component isolation identified ANI precision/coarse-stencil issues; same-checkpoint in-memory float64 plus a qualified 0.0005-A backend recommendation prepares numerical curvature before E/F/H, without changing checkpoint values or solvent parameters. Ordinary ANI SP/OPT and other backend defaults remain unchanged. Raw diagnostics and effective precision are exposed. This ledger describes source evolution only and never authorizes old numerical evidence reuse.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_ddlpb_workflows.py",
         "tests/solvation/test_ani_numerical_precision.py",
-        "tests/solvation/test_ddlpb_reference_tasks.py"
+        "tests/solvation/test_ddlpb_reference_tasks.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -448,33 +492,43 @@
       "path": "maple/function/dispatcher/ts/algorithm/dimer.py",
       "historical_sha256": [
         "987dcf33fa196b25bf0bd1aad18e055000d48b6dcb3b493ffabfe3ec34e8fcbb",
-        "e25323ee7c900c5019d4d8964fd8819a5c37c6334ebe588ced5ee177eb7c6ba8"
+        "e25323ee7c900c5019d4d8964fd8819a5c37c6334ebe588ced5ee177eb7c6ba8",
+        "8a178e735823322167eb02077890502be0261f13ed5a1228e3a54ee98ed64798"
       ],
-      "current_sha256": "8a178e735823322167eb02077890502be0261f13ed5a1228e3a54ee98ed64798",
-      "change_class": "backend-owned-numerical-curvature-precision-and-workflows",
+      "current_sha256": "c6493533beb007143b4f311aae31f324a78b1e619cff5f59e6178bf806df0ac4",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "2026-09-10 ddLPB OPT/FREQ/PRFO/dimer opening reuses complete-force task validation. Component isolation identified ANI precision/coarse-stencil issues; same-checkpoint in-memory float64 plus a qualified 0.0005-A backend recommendation prepares numerical curvature before E/F/H, without changing checkpoint values or solvent parameters. Ordinary ANI SP/OPT and other backend defaults remain unchanged. Raw diagnostics and effective precision are exposed. This ledger describes source evolution only and never authorizes old numerical evidence reuse.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_ddlpb_workflows.py",
         "tests/solvation/test_ani_numerical_precision.py",
-        "tests/solvation/test_ddlpb_reference_tasks.py"
+        "tests/solvation/test_ddlpb_reference_tasks.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
       "path": "maple/function/calculator/set_calculator.py",
       "historical_sha256": [
-        "acd4f9f0a17b3bedcd47287770c5db50846b6d9447bcb5a5f7c94dbe2efb24c5"
+        "acd4f9f0a17b3bedcd47287770c5db50846b6d9447bcb5a5f7c94dbe2efb24c5",
+        "dddbf87890ed33a26cdb3868006d915d574ab3f921cecaca1aae0b0b1ccd8366"
       ],
-      "current_sha256": "dddbf87890ed33a26cdb3868006d915d574ab3f921cecaca1aae0b0b1ccd8366",
-      "change_class": "explicit-task-context-and-device-routing-source-evolution",
+      "current_sha256": "f433b1868fc7e857dae92fcc107d133fa2bf8802da57f9590436e86a8ed37a31",
+      "change_class": "opt-in-source-pinned-torch-obc2-analytic-derivatives",
       "historical_numerical_results_recomputed": false,
       "scientific_claim_reuse_authorized": false,
-      "reason": "The 2026-09 Route 1 WIP checkpoint extends calculator construction with explicit task context and device-routing provenance. This ledger entry permits historical audits to fail closed as documented source evolution; it does not recompute, reseal, or authorize reuse of historical numerical claims.",
+      "reason": "2026-09-22 adds an opt-in, source-pinned Torch transcription of the unchanged OpenMM OBC-II/ACE scalar for analytic solvent Hessians and HVPs in the qualified ANI2x/Reference task cell. OpenMM CPU remains the ordinary SP/OPT/SCAN/MD default, the complete-force numerical derivative path remains available, and no charge, radius, solvent parameter, hydration prediction, or historical result is recomputed. This ledger records source evolution only and does not authorize resealing or scientific reuse of old evidence.",
       "current_behavior_tests": [
         "tests/solvation/test_calculator_composition.py",
         "tests/solvation/test_command_contract.py",
-        "tests/solvation/test_device_selection.py"
+        "tests/solvation/test_device_selection.py",
+        "tests/solvation/test_torch_obc2_parity.py",
+        "tests/solvation/test_torch_obc2_derivatives.py",
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_artifacts.py"
       ]
     },
     {
@@ -491,8 +545,23 @@
         "tests/solvation/test_route1_freesolv_reserve.py",
         "tests/solvation/test_route1_ranking_contract.py"
       ]
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/result.py",
+      "historical_sha256": [
+        "2cdb27b3e29b7035ed8816d08b0d6d4d6452f01f6b5ff275cb4ea572a259da0c"
+      ],
+      "current_sha256": "bf1578435750d13e2bd8e76130b5a461a109c51e4129deb349070ed226895775",
+      "change_class": "add-typed-solvent-directional-derivative-result",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false,
+      "reason": "2026-09-22 adds a separate typed energy/force/HVP result without changing the existing SolvationResult fields or historical scalar records. This source-evolution entry is archival only and does not recompute, reseal, execute, or authorize scientific reuse of historical evidence.",
+      "current_behavior_tests": [
+        "tests/solvation/test_implicit_analytic_derivatives.py",
+        "tests/solvation/test_torch_obc2_derivatives.py"
+      ]
     }
   ],
-  "content_sha256": "c6950915afe75ed872f8531192613d39d9366bde03090d81ed6a4920a1f54928",
-  "last_updated_date": "2026-09-20"
+  "content_sha256": "f9957e93eb908fd6c3382b57bb63905aa0c6714c2651978dddd2301523d3a721",
+  "last_updated_date": "2026-09-22"
 }

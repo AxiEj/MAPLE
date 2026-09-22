@@ -51,12 +51,12 @@ ABCG2 benchmark artifacts below remain immutable evidence.
 
 | Workstream | Delivered | Remaining work / actual reason |
 |---|---|---|
-| Fixed-charge OpenMM GB | SP, OPT, SCAN, numerical FREQ, NVE/NVT MD; experimental single-geometry P-RFO and force-only dimer TS | Other implicit TS workflows need multi-structure calculator/identity/charge-lifecycle integration and task regressions. Their gas algorithms already exist. This is engineering work not yet completed, not evidence of theoretical impossibility. |
+| Fixed-charge OpenMM GB | SP, OPT, SCAN, numerical FREQ, NVE/NVT MD; experimental single-geometry P-RFO and force-only dimer TS; source-pinned Torch analytic Hessian/HVP for the qualified ANI2x/OBC-II/ACE-or-none Reference cell | Other gas backend/device/profile cells retain the numerical fallback until independently qualified. Other implicit TS workflows need multi-structure calculator/identity/charge-lifecycle integration and task regressions. |
 | CHA-GB/PBSA | Energy-only SP; precision-output builds; independent continuous nonpolar energy/gradient prototype | A usable CHA polar derivative is still missing/unstable. The continuous nonpolar prototype has not been integrated into a complete derivative-capable runtime provider. |
 | ddX/ddLPB reference | Explicit positive-kappa, polar-only SP/OPT/numerical FREQ/P-RFO/dimer | Matched APBS grid/domain convergence and broader coverage remain separately reportable; not a product-default or hydration-accuracy claim. |
 | APBS PB | Energy-only SP | Existing polar/nonpolar forces did not reproduce the derivative of the reported energy on the checked probes. The derivative implementation/numerics need repair, not just a task-keyword switch. |
 | Non-water / multi-solvent | 15-solvent source panel, 222 selected pairs; water/methanol/ethanol numerical research pilots | No completed multi-molecule non-water energy/scoring run. Physical parameter assets are incomplete; topology/charge preparation and batch scoring are also unfinished. Missing whole-panel coverage must not be confused with an inability to test an available subset. |
-| Analytic Hessian / HVP | Numerical composed Hessian and force-difference directional curvature are usable on the force-capable path | Analytic implicit second-derivative/HVP integration is not implemented; this is not a prerequisite for using numerical FREQ/P-RFO or force-only dimer. |
+| Analytic Hessian / HVP | Numerical composed Hessian and force-difference directional curvature remain usable; the qualified ANI2x/OBC-II/ACE-or-none Reference cell now composes gas and Torch-solvent analytic Hessians/HVPs | MACE, AIMNet2, UMA, production OpenMM CPU analytic-task cells, other GB models and LCPO remain unqualified and fail closed or use the numerical path. |
 | Automatic inner-shell / full solvation free energy | Fixed-shell cluster potential and sampling/estimator research pieces | Automatic selection, ensemble/reference/standard-state composition and complete free-energy workflow remain unfinished; ordinary fixed-charge tasks do not wait for them. |
 | QEq / CQEq | Ordinary fixed-QEq legacy solver and historical evidence retained | Polarizable CQEq/GB code removed; QEq runtime selection stays closed. Neither is an active development line. |
 
@@ -114,10 +114,28 @@ should proceed independently rather than wait for all of these extensions.
   same geometry. This proves across three independently registered adapters
   that the common numerical path differentiates the complete reported
   MLIP-plus-GB force rather than returning a gas Hessian beside a solvent-added
-  energy. Analytic implicit Hessians, implicit HVP, and energy-only-provider
-  FREQ remain fail-closed. The output warns that the existing
+  energy. Unqualified analytic implicit Hessians/HVP and every energy-only
+  provider FREQ remain fail-closed; the separately admitted analytic cell is
+  recorded below. The output warns that the existing
   translational/rotational RRHO terms use ideal-gas pressure and are neither a
   solution-standard-state Gibbs energy nor an absolute solvation free energy.
+- A source-pinned Torch rewrite now supplies piecewise-analytic OBC-II/ACE
+  Hessians and direct HVPs without changing charges, radii, constants, or the
+  OpenMM production energy/force backend. Across 12 molecules, two geometries,
+  and ACE/polar-only profiles, Torch float64 versus OpenMM Reference has maximum
+  energy/force differences of `1.44e-15 Ha` and `4.17e-17 Ha/A`. Solvent-only
+  Hessians pass three-step Reference-force finite differences. Real ANI2x
+  FREQ, one-iteration P-RFO, and Dimer HVP execute with gas plus solvent
+  derivatives from the same composed potential. The production OpenMM CPU
+  complete-force derivative gate is not uniformly satisfied, so analytic
+  tasks require explicit `platform=Reference`; CPU remains the ordinary
+  SP/OPT/SCAN/MD default and the numerical complete-force fallback is
+  unchanged. On the local 23-atom timing representative, direct HVP is about
+  `32x` faster than explicit-Hessian-then-multiply, while the full analytic
+  Hessian speedup is about `2.08x`, below the frozen `3x` recommendation gate.
+  The analytic path therefore remains experimental rather than a new default.
+  Evidence is frozen in
+  `route1-torch-obc2-analytic-derivatives-2026-09-22.json`.
   Independent formula regressions additionally lock the Grimme finite-inertia
   entropy interpolation and the Otlyotov--Minenkov complete vibrational
   internal-energy interpolation, including damped ZPE rather than an

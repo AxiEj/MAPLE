@@ -57,18 +57,58 @@ def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> b
             "The calculator must declare SUPPORTS_IMPLICIT_SOLVATION=True before "
             "it can enter the Route 1 TS composition path."
         )
-    if method == "prfo" and str(getattr(calculator, "hessian", "")).lower() != "numerical":
-        raise ValueError(
-            "Implicit-solvent PRFO requires hessian=numerical so the Hessian "
-            "differentiates the complete composed force."
-        )
+    hessian_mode = str(getattr(calculator, "hessian", "")).lower()
+    if method == "prfo":
+        if hessian_mode == "numerical":
+            pass
+        elif (
+            hessian_mode == "analytic"
+            and getattr(
+                calculator, "analytic_implicit_derivatives_admitted", False
+            )
+            is True
+            and getattr(
+                solvent_correction, "analytic_task_derivatives_admitted", False
+            )
+            is True
+            and callable(getattr(solvent_correction, "get_hessian", None))
+        ):
+            pass
+        elif hessian_mode == "analytic":
+            raise ValueError(
+                "Implicit-solvent analytic PRFO requires an admitted analytic "
+                "solvent Hessian."
+            )
+        else:
+            raise ValueError(
+                "Implicit-solvent PRFO requires hessian=numerical or an admitted "
+                "hessian=analytic solvent derivative backend."
+            )
     if method == "dimer":
         dimer_params = JobABC._select_subdict(params, ("dimer", "ts"))
         if dimer_params.get("use_hvp") is True:
-            raise ValueError(
-                "Implicit-solvent dimer requires composed-force finite differences; "
-                "gas-only autograd HVP is not supported."
-            )
+            if not (
+                hessian_mode == "analytic"
+                and getattr(
+                    calculator, "analytic_implicit_derivatives_admitted", False
+                )
+                is True
+                and getattr(
+                    solvent_correction,
+                    "analytic_task_derivatives_admitted",
+                    False,
+                )
+                is True
+                and callable(
+                    getattr(
+                        solvent_correction, "get_directional_derivatives", None
+                    )
+                )
+            ):
+                raise ValueError(
+                    "Implicit-solvent Dimer use_hvp=true requires analytic gas and "
+                    "solvent directional derivatives from the same composed potential."
+                )
     return True
 
 

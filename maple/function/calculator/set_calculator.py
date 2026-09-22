@@ -176,11 +176,35 @@ class SetCalculator:
                 f"implicit={self.implicit!r}, solv.method={configured_method!r}."
             )
         hessian_mode = self.model_options.get('hessian')
-        if hessian_mode not in {None, 'numerical'} and self.implicit in {'gb', 'pb'}:
+        if hessian_mode == 'analytic':
+            method = str(self.solvation_options.get('method', '')).lower()
+            provider = str(
+                self.solvation_options.get(
+                    'provider', 'openmm' if method == 'gb' else 'apbs'
+                )
+            ).lower()
+            model = str(self.solvation_options.get('model', 'obc2')).lower()
+            nonpolar = str(self.solvation_options.get('nonpolar', 'ace')).lower()
+            platform = str(self.solvation_options.get('platform', 'auto')).lower()
+            inner = self.solvation_options.get('inner')
+            if not (
+                method == 'gb'
+                and provider == 'openmm'
+                and model == 'obc2'
+                and nonpolar in {'ace', 'none'}
+                and platform == 'reference'
+                and inner is None
+            ):
+                raise ValueError(
+                    "Implicit-solvent analytic derivatives support only the "
+                    "single-solute OpenMM OBC-II profile with nonpolar=ace or "
+                    "nonpolar=none and explicit platform=Reference. Use "
+                    "hessian='numerical' for other force-capable profiles."
+                )
+        elif hessian_mode not in {None, 'numerical'}:
             raise ValueError(
-                "Implicit PB/GB supports only hessian='numerical', which "
-                "differentiates the complete composed force. Analytic Hessians "
-                "and HVP workflows remain unavailable."
+                "Implicit PB/GB Hessian mode must be 'numerical' or an admitted "
+                "'analytic' OBC-II derivative profile."
             )
 
         if self.atoms is not None and atoms_has_pbc(self.atoms):
@@ -264,6 +288,17 @@ class SetCalculator:
                     f"Model '{self.model}' does not support hessian='{mode}'. "
                     f'Supported modes: {supported_text}'
                 )
+            if mode == 'analytic' and self.implicit in {'gb', 'pb'}:
+                admitted_models = tuple(
+                    getattr(cls, 'ANALYTIC_IMPLICIT_HESSIAN_MODELS', ())
+                )
+                if self.model not in admitted_models:
+                    raise ValueError(
+                        f"Model '{self.model}' has not passed the analytic "
+                        "implicit-solvent Hessian/HVP workflow gate. Use "
+                        "hessian='numerical' until that backend/device/dtype "
+                        "cell is independently qualified."
+                    )
 
         coulomb_method = self.model_options.get('coulomb_method')
         supported_coulomb = getattr(cls, 'SUPPORTED_COULOMB_METHODS', None)
@@ -563,6 +598,16 @@ class SetCalculator:
         self._validate_calculator_element_domain(calculator)
 
         if self.implicit in {'gb', 'pb'}:
+            if self.model_options.get('hessian') == 'analytic':
+                prepare_analytic = getattr(
+                    calculator, 'prepare_analytic_derivatives', None
+                )
+                if not callable(prepare_analytic):
+                    raise NotImplementedError(
+                        f"Model '{self.model}' does not expose analytic derivative "
+                        "precision preparation for implicit-solvent composition."
+                    )
+                prepare_analytic()
             from .extra_correction.implicit import ImplicitSolvationCorrection
 
             calculator.solvent_correction = ImplicitSolvationCorrection(

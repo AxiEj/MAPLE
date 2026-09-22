@@ -698,27 +698,69 @@ class CommandControl:
         model_options = params.get("model_options")
         hessian_mode = model_options.get("hessian") if isinstance(model_options, dict) else None
         charge = params.get("charge", {})
+        solvation = params.get("solv", {})
+        solvent_method = str(solvation.get("method", "")).lower()
+        provider = str(
+            solvation.get(
+                "provider", "openmm" if solvent_method == "gb" else "apbs"
+            )
+        ).lower()
+        solvent_model = str(
+            solvation.get("model", "obc2" if solvent_method == "gb" else "lpb")
+        ).lower()
+        nonpolar = str(
+            solvation.get("nonpolar", "ace" if solvent_method == "gb" else provider)
+        ).lower()
+        platform = str(solvation.get("platform", "auto")).lower()
+        gas_model = str(params.get("model", "")).lower()
+        analytic_solvent = (
+            solvent_method == "gb"
+            and provider == "openmm"
+            and solvent_model == "obc2"
+            and nonpolar in {"ace", "none"}
+            and platform == "reference"
+            and gas_model == "ani2x"
+        )
         message = None
         if task == "freq" and task_method != "mw":
             message = (
                 "Implicit-solvent frequency analysis supports only method=mw; "
                 "non-mass-weighted analysis is not a physical thermochemistry path."
             )
-        elif task == "ts" and task_method not in {"prfo", "dimer"}:
+        if message is None and task == "ts" and task_method not in {"prfo", "dimer"}:
             message = "The experimental implicit-solvent TS path supports method=prfo or dimer."
-        elif (task == "freq" or task_method == "prfo") and hessian_mode != "numerical":
-            message = (
-                "Implicit-solvent FREQ/PRFO requires explicit #model=...(hessian=numerical) "
-                "so the Hessian differentiates the complete composed force."
-            )
-        elif task == "ts" and task_method == "dimer" and params.get("use_hvp") is True:
-            message = (
-                "Implicit-solvent dimer uses finite differences of the complete composed "
-                "forces; autograd HVP would omit the solvent. Use use_hvp=false or omit it."
-            )
-        elif charge.get("mode", "fixed") != "fixed":
+        if message is None and (task == "freq" or task_method == "prfo"):
+            if hessian_mode not in {"numerical", "analytic"}:
+                message = (
+                    "Implicit-solvent FREQ/PRFO requires explicit hessian=numerical "
+                    "or an admitted hessian=analytic OBC-II derivative backend."
+                )
+            elif hessian_mode == "analytic" and not analytic_solvent:
+                message = (
+                    "Implicit-solvent analytic derivatives support only OpenMM OBC-II "
+                    "with nonpolar=ace or nonpolar=none on the explicitly selected "
+                    "Reference platform and the qualified ANI2x gas backend; use "
+                    "hessian=numerical for this "
+                    "force-capable provider."
+                )
+        if message is None and (
+            task == "ts"
+            and task_method == "dimer"
+            and params.get("use_hvp") is True
+        ):
+            if hessian_mode != "analytic" or not analytic_solvent:
+                message = (
+                    "Implicit-solvent Dimer HVP use_hvp=true requires hessian=analytic "
+                    "with OpenMM OBC-II, nonpolar=ace or nonpolar=none, and "
+                    "platform=Reference on the qualified ANI2x gas backend."
+                )
+        if message is None and charge.get("mode", "fixed") != "fixed":
             message = "Implicit-solvent FREQ/TS requires fixed charges."
-        elif task == "ts" and params.get("solv", {}).get("inner") is not None:
+        if (
+            message is None
+            and task == "ts"
+            and params.get("solv", {}).get("inner") is not None
+        ):
             message = (
                 "The experimental single-geometry implicit-solvent TS path supports "
                 "one solute geometry without inner=prebuilt."

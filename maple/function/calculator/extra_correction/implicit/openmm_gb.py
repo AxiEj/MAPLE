@@ -8,6 +8,7 @@ import numpy as np
 
 from .common import KJ_PER_MOL_PER_HARTREE, build_openmm_topology
 from .nonpolar import OpenMMNonpolarProvider
+from .obc2_parameters import build_obc2_parameters
 from .openmm_execution import CPU_PROPERTIES, resolve_openmm_platform
 from .openmm_compat import (
     customgbforces_module,
@@ -233,12 +234,30 @@ class OpenMMGB:
         if self.charges.shape != (len(atoms),) or not np.isfinite(self.charges).all():
             raise ValueError("OpenMM GB requires one finite partial charge per atom.")
         info = GB_MODELS[model]
+        self.obc2_parameters = (
+            build_obc2_parameters(
+                self.charges,
+                self.radius_result,
+                nonpolar=nonpolar,
+            )
+            if model == "obc2" and nonpolar in {"ace", "none"}
+            else None
+        )
+        self._derivative_device = (
+            "cpu" if model_device is None else str(model_device)
+        )
+        self._derivative_backend = None
+        shared_provider_parameters = (
+            self.obc2_parameters.provider_parameters
+            if self.obc2_parameters is not None
+            else self.radius_result.provider_parameters
+        )
         context_args = (
             atoms,
             self.topology,
             self.charges,
             info["class"],
-            self.radius_result.provider_parameters,
+            shared_provider_parameters,
         )
         execution_options = dict(model_device=model_device, precision=precision,
                                  device_index=device_index, opencl_platform_index=opencl_platform_index)
@@ -277,11 +296,32 @@ class OpenMMGB:
             "solvent": "water",
             "solvent_dielectric": 78.5,
             "solute_dielectric": 1.0,
+            "analytic_derivative_profile": (
+                "torch-obc2-v1"
+                if self.obc2_parameters is not None
+                else None
+            ),
         }
 
     @property
     def provenance(self):
         return dict(self._provenance)
+
+    def derivative_backend(self):
+        """Lazily construct the parity-gated Torch OBC-II derivative kernel."""
+        if self.obc2_parameters is None:
+            raise NotImplementedError(
+                "Analytic solvent derivatives are available only for OBC-II "
+                "with nonpolar=ace or nonpolar=none."
+            )
+        if self._derivative_backend is None:
+            from .torch_obc2 import TorchOBC2
+
+            self._derivative_backend = TorchOBC2(
+                self.obc2_parameters,
+                device=self._derivative_device,
+            )
+        return self._derivative_backend
 
     def evaluate(
         self,

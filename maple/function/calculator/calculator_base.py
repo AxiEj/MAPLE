@@ -399,6 +399,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
     SUPPORTS_CHARGE_MULT: bool = False
     SUPPORTS_PBC: bool = False
     SUPPORTS_IMPLICIT_SOLVATION: bool = False
+    ANALYTIC_IMPLICIT_HESSIAN_MODELS: tuple = ()
     CHECKPOINT_FILENAME: dict | None = None
     REQUIRES_LOCAL_MODEL_FILE: bool = False
     # None keeps legacy/plugins permissive. Shipped backends set an explicit
@@ -417,6 +418,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
 
     def __init__(self):
         super().__init__()
+        self.analytic_implicit_derivatives_admitted = False
 
     def _reject_unsupported_pbc(self, atoms) -> None:
         if not self.SUPPORTS_PBC:
@@ -557,21 +559,74 @@ class CalcABC(ase.calculators.calculator.Calculator):
         """Prepare backend precision before finite differences, with an optional step hint."""
         return None
 
+    def prepare_analytic_derivatives(self) -> None:
+        """Prepare backend precision for an admitted analytic composition."""
+        raise NotImplementedError(
+            f"{type(self).__name__} has no admitted analytic implicit-solvent "
+            "derivative preparation."
+        )
+
     def get_hessian(self, atoms, delta: float | None = None):
         """Return the gas or complete composed-potential Hessian.
 
-        Analytic backend Hessians contain only the gas MLIP contribution and
-        therefore remain unavailable when a solvent correction is attached.
-        The numerical path differentiates the calculator's reported forces, so
-        it includes any attached energy-consistent solvent force exactly once.
+        Analytic composition is admitted only when both the gas backend and the
+        attached solvent correction expose analytic Hessians.  The numerical
+        path differentiates the calculator's reported forces, so it includes
+        any attached energy-consistent solvent force exactly once.
         """
         self.last_numerical_hessian_diagnostics = None
+        self.last_analytic_hessian_provenance = None
         self._reject_unsupported_pbc(atoms)
         mode = getattr(self, 'hessian', self.SUPPORTED_HESSIAN_MODES[0])
         if mode == 'analytic':
-            if getattr(self, 'solvent_correction', None) is not None:
-                raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            return np.asarray(self._analytic_hessian(atoms))
+            gas_hessian = np.asarray(self._analytic_hessian(atoms), dtype=np.float64)
+            expected_shape = (3 * len(atoms),) * 2
+            if gas_hessian.shape != expected_shape or not np.isfinite(gas_hessian).all():
+                raise ValueError(
+                    "The analytic gas Hessian must be a finite (3N, 3N) array."
+                )
+            correction = getattr(self, 'solvent_correction', None)
+            if correction is None:
+                self.last_analytic_hessian_provenance = {
+                    "composition": "gas-analytic",
+                    "gas_backend": type(self).__name__,
+                }
+                return gas_hessian
+            if self.analytic_implicit_derivatives_admitted is not True:
+                raise NotImplementedError(
+                    IMPLICIT_SOLVENT_FORCE_ERROR
+                    + " The gas backend has not passed analytic implicit-solvent "
+                    "derivative preparation."
+                )
+            solvent_hessian_fn = getattr(correction, "get_hessian", None)
+            if not callable(solvent_hessian_fn):
+                raise NotImplementedError(
+                    IMPLICIT_SOLVENT_FORCE_ERROR
+                    + " The attached correction has no admitted analytic solvent Hessian; "
+                    "use hessian=numerical for the complete composed-force fallback."
+                )
+            solvent_hessian = np.asarray(
+                solvent_hessian_fn(atoms), dtype=np.float64
+            )
+            if (
+                solvent_hessian.shape != expected_shape
+                or not np.isfinite(solvent_hessian).all()
+            ):
+                raise ValueError(
+                    "The analytic solvent Hessian must be a finite (3N, 3N) array."
+                )
+            solvent_provenance = dict(
+                getattr(correction, "last_derivative_provenance", {}) or {}
+            )
+            solvent_provider = str(
+                solvent_provenance.get("provider", "solvent")
+            )
+            self.last_analytic_hessian_provenance = {
+                "composition": f"gas-analytic+{solvent_provider}-analytic",
+                "gas_backend": type(self).__name__,
+                "solvent": solvent_provenance,
+            }
+            return gas_hessian + solvent_hessian
         if mode == 'numerical':
             correction = getattr(self, 'solvent_correction', None)
             if correction is not None and "forces" not in set(

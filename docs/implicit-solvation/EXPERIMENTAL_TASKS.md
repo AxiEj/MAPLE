@@ -17,7 +17,7 @@ explicit positive-kappa path, not restoration of those old runners. See
 
 | Implicit-solvent provider | SP | OPT | FREQ | TS |
 |---|---|---|---|---|
-| OpenMM GB, fixed charges | Yes | Yes | Numerical composed Hessian | Experimental P-RFO / dimer, one solute geometry |
+| OpenMM GB, fixed charges | Yes | Yes | Numerical composed Hessian; analytic ANI2x/OBC-II/ACE or none on Reference | Experimental P-RFO / dimer, one solute geometry; analytic profile is separately gated |
 | AmberTools CHA-GB/PBSA | Energy only | Not implemented | Not implemented | Not implemented |
 | ddX/ddLPB reference | Polar energy + analytic force | Experimental | Numerical composed Hessian | Experimental P-RFO / dimer, one solute geometry |
 | APBS PB | Energy only | Not implemented | Not implemented | Not implemented |
@@ -26,6 +26,15 @@ Existing supported nonperiodic OpenMM GB SCAN/MD paths are unchanged. This
 implicit TS entry does not add NEB/string/AutoNEB, multicomponent
 `inner=prebuilt`, polarizable charge response, periodic boundaries or analytic
 implicit Hessians. Gas-phase TS paths are unchanged.
+
+The analytic profile is an execution-backend rewrite, not a new solvent
+model. It shares the existing fixed charges and mbondi2 parameters, reproduces
+the pinned OpenMM OBC-II/ACE energy and force, and obtains the solvent Hessian
+or HVP by Torch automatic differentiation. OpenMM CPU remains the ordinary
+SP/OPT/SCAN/MD default. Analytic FREQ/P-RFO/Dimer currently requires ANI2x,
+float64 (automatic promotion is allowed), `model=obc2`, `nonpolar=ace|none`,
+and explicit `platform=Reference`; other backend/device/profile cells retain
+the complete-force numerical fallback.
 
 ## P-RFO input
 

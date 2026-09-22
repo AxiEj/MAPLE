@@ -1,0 +1,137 @@
+{
+  "analytic_runtime_oracle": "openmm-reference",
+  "analytic_solvent_backend": "torch-obc2-float64-cpu",
+  "artifact_type": "route1-torch-obc2-derivative-performance",
+  "command_provenance": {
+    "script": "docs/implicit-solvation/benchmarks/run_route1_torch_obc2_derivative_performance.py",
+    "script_sha256": "3313cacf4afc63e117eb7a08cb5d0ae89dd7fdf708ac13f4642a91afe58d9d83"
+  },
+  "content_sha256": "6baa3ab4804f7fd4bc6962f5ff6fceb941c670b26aacc574541090e07c7d7c27",
+  "gas_backend": "ani2x-float64-cpu",
+  "interpretation": {
+    "hydration_accuracy_claim": false,
+    "openmm_runtime_default_changed": false,
+    "universal_performance_claim": false
+  },
+  "label_reads": false,
+  "numerical_runtime_provider": "openmm-cpu",
+  "recorded_date": "2026-09-22",
+  "records": {
+    "methanol": {
+      "analytic_hessian": {
+        "mean_seconds": 0.49755428900243714,
+        "median_seconds": 0.5630743320070906,
+        "result_shape": [
+          18,
+          18
+        ],
+        "samples_seconds": [
+          0.5648066970024956,
+          0.5630743320070906,
+          0.36478183799772523
+        ]
+      },
+      "analytic_over_numerical_speedup": 1.0350256864495646,
+      "atom_count": 6,
+      "complete_force_numerical_hessian": {
+        "mean_seconds": 0.5841062630012553,
+        "median_seconds": 0.582796397007769,
+        "result_shape": [
+          18,
+          18
+        ],
+        "samples_seconds": [
+          0.582796397007769,
+          0.5882936470006825,
+          0.5812287449953146
+        ]
+      },
+      "direct_hvp": {
+        "mean_seconds": 0.03954678200049481,
+        "median_seconds": 0.03799590100243222,
+        "result_shape": [
+          18
+        ],
+        "samples_seconds": [
+          0.04508679099672008,
+          0.03799590100243222,
+          0.03555765400233213
+        ]
+      },
+      "direct_hvp_speedup": 9.224980188541817,
+      "explicit_hessian_then_multiply": {
+        "mean_seconds": 0.35278990199246135,
+        "median_seconds": 0.35051143399323337,
+        "result_shape": [
+          18
+        ],
+        "samples_seconds": [
+          0.3351941789878765,
+          0.35051143399323337,
+          0.3726640929962741
+        ]
+      },
+      "mol2": "tests/solvation/data/amber_gb_reference/audit/methanol/normalized.mol2",
+      "mol2_sha256": "184e1f418e625b11eff55c6dd9eaafcf01d8efd1738fed3c01fcc90964a4c852"
+    },
+    "methyl-hexanoate": {
+      "analytic_hessian": {
+        "mean_seconds": 2.0849677699976987,
+        "median_seconds": 2.1425476859876653,
+        "result_shape": [
+          69,
+          69
+        ],
+        "samples_seconds": [
+          1.8863589679967845,
+          2.225996656008647,
+          2.1425476859876653
+        ]
+      },
+      "analytic_over_numerical_speedup": 2.082029122228708,
+      "atom_count": 23,
+      "complete_force_numerical_hessian": {
+        "mean_seconds": 4.611131455332118,
+        "median_seconds": 4.460846677990048,
+        "result_shape": [
+          69,
+          69
+        ],
+        "samples_seconds": [
+          4.15688486500585,
+          5.215662823000457,
+          4.460846677990048
+        ]
+      },
+      "direct_hvp": {
+        "mean_seconds": 0.08533460333516511,
+        "median_seconds": 0.08183722199464682,
+        "result_shape": [
+          69
+        ],
+        "samples_seconds": [
+          0.0689182040077867,
+          0.08183722199464682,
+          0.1052483840030618
+        ]
+      },
+      "direct_hvp_speedup": 32.00167861488899,
+      "explicit_hessian_then_multiply": {
+        "mean_seconds": 2.9650735303390925,
+        "median_seconds": 2.618928477008012,
+        "result_shape": [
+          69
+        ],
+        "samples_seconds": [
+          2.618928477008012,
+          2.370670739997877,
+          3.905621374011389
+        ]
+      },
+      "mol2": "tests/solvation/data/amber_gb_reference/audit/methyl-hexanoate/normalized.mol2",
+      "mol2_sha256": "00eac0b7f4526635b896a1ec2d336051a0ae3e17f2e5a140b9c3d9d4d51dd58b"
+    }
+  },
+  "samples_after_warmup": 3,
+  "schema_version": 1
+}

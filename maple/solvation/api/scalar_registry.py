@@ -25,6 +25,15 @@ EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2 = (
 EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2 = (
     "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2"
 )
+EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3 = (
+    "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3"
+)
+EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3 = (
+    "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v3"
+)
+PURE_MACEPOLAR_TORCH_ANALYTIC_V3_CONTRACT_EVIDENCE_ID = (
+    "route2-pure-macepolar-torch-analytic-v3-contract-tests"
+)
 PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID = (
     "route2-pure-macepolar-point-l1-mnsol505-development-evidence-v1"
 )
@@ -287,6 +296,76 @@ def _pure_nonmd_scalar(scalar_id: str) -> ScalarDefinition:
         enabled=False,
     )
 
+
+def _pure_torch_analytic_scalar(scalar_id: str) -> ScalarDefinition:
+    """Return one device-specific v3 callable identity without admission."""
+
+    return ScalarDefinition(
+        scalar_id=scalar_id,
+        exact_formula=(
+            "E(R)=E_vac^MACE-POLAR(R)+G_ddPCM[R,c0(R)]+G_SMD-CDS^legacy(R); "
+            "c0(R)=M_MACE-POLAR(R,u=0)"
+        ),
+        implementation_entry_point=(
+            "maple.solvation.experimental.mace_polar_torch:"
+            "build_smd_mace_polar_torch_pes"
+        ),
+        included_components=(
+            "macepolar_zero_field_vacuum_energy_torch",
+            "ddpcm_point_l1_half_coupling_electrostatic_torch",
+            "legacy_smd_cds_torch",
+        ),
+        excluded_components=(
+            "mace_mdp_permanent_source",
+            "field_conditioned_macepolar_energy_difference",
+            "mutual_ml_continuum_fixed_point",
+            "periodic_stress",
+            "coordinate_finite_difference",
+            "pyddx_live_evaluation",
+            "pyscf_live_cds_evaluation",
+            "common_variational_functional",
+        ),
+        source_representation=(
+            "coordinate-connected zero-field MACE-POLAR l<=1 learned block in "
+            "[q,y,z,x] order with the unused second radial block fixed to zero"
+        ),
+        field_convention=(
+            "ddPCM point-multipole energy cotangent embedded in the registered "
+            "MACE-POLAR radial-GTO field-dual space under its Q pairing"
+        ),
+        continuum_profile="torch-dense-ddpcm-l15-n1202-eta0p1-tol1e-12-v3",
+        cavity_profile="torch-ddpcm-union-of-spheres-exposed-lebedev-v3",
+        nonpolar_profile="torch-legacy-smd-cds",
+        state_equation_id=PURE_MACEPOLAR_FROZEN_SOURCE_STATE_EQUATION_ID,
+        derivative_route=(
+            "torch.float64 autograd of the single connected total-energy graph; "
+            "analytic force, HVP, and Cartesian Hessian; no coordinate finite "
+            "difference or legacy-kernel fallback"
+        ),
+        experimental_execution=ExecutionStatus(
+            energy=True,
+            force=True,
+            hessian_vector_product=True,
+            hessian=True,
+        ),
+        experimental_operation_policies=(
+            (
+                ExecutionCapability.HESSIAN_VECTOR_PRODUCT,
+                "torch-autograd-certified-topology-v3",
+            ),
+            (
+                ExecutionCapability.HESSIAN,
+                "torch-autograd-certified-topology-v3",
+            ),
+        ),
+        experimental_evidence_artifact_ids=(
+            PURE_MACEPOLAR_TORCH_ANALYTIC_V3_CONTRACT_EVIDENCE_ID,
+        ),
+        admitted_capabilities=CapabilityStatus(),
+        evidence_artifact_ids=(),
+        enabled=False,
+    )
+
 _SCALAR_ENTRIES = (
     ScalarDefinition(
         scalar_id=EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
@@ -355,6 +434,12 @@ _SCALAR_ENTRIES = (
     ),
     _pure_nonmd_scalar(
         EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2
+    ),
+    _pure_torch_analytic_scalar(
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3
+    ),
+    _pure_torch_analytic_scalar(
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3
     ),
     ScalarDefinition(
         scalar_id=OPERATIONAL_CPCM_ELECTROSTATIC_V1,
@@ -969,6 +1054,9 @@ __all__ = [
     "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1",
     "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2",
     "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2",
+    "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3",
+    "EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3",
+    "PURE_MACEPOLAR_TORCH_ANALYTIC_V3_CONTRACT_EVIDENCE_ID",
     "PURE_MACEPOLAR_POINT_L1_MNSOL505_DEVELOPMENT_EVIDENCE_ID",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_PCMSOLVER_ELECTROSTATIC_V1",
     "EXPERIMENTAL_MACE_MDP_POLAR_HYBRID_SMOOTH_HARMONIC_GALERKIN_ELECTROSTATIC_V1",

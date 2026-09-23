@@ -517,6 +517,15 @@ class PRFO(JobABC):
                  output: str,
                  atoms: Atoms,
                  paras: Optional[dict] = None):
+        from maple.function.calculator.route2 import (
+            is_pure_mace_polar_torch_calculator,
+        )
+
+        if is_pure_mace_polar_torch_calculator(getattr(atoms, "calc", None)):
+            raise ValueError(
+                "Torch v3 P-RFO remains closed: analytic mode uncertainty is "
+                "unavailable, so a resolved index-one saddle is not certified."
+            )
         super().__init__(output)
         self.atoms = atoms
 

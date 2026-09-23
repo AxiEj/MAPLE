@@ -1178,8 +1178,9 @@ def build_official_mace_polar_1_m_adapter(
     device: str = "cpu",
     checkpoint_path: str | Path | None = None,
     long_range_evaluator_profile: str = (MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID),
+    torch_graph: bool = False,
 ) -> MACEPolarLocalFieldModelAdapter:
-    """Load the exact official checkpoint in float64 without a solvent sidecar."""
+    """Load the exact checkpoint in float64; opt into the isolated v3 graph boundary."""
 
     from maple.function.calculator.calculator_base import (
         _IMPLICIT_SOLVENT_FACTORY_TOKEN,
@@ -1201,6 +1202,14 @@ def build_official_mace_polar_1_m_adapter(
         _VNextModelOnlyMACEPolCalculator = _ModelOnlyCalculator
 
     normalized_evaluator_profile = str(long_range_evaluator_profile).strip().lower()
+    if type(torch_graph) is not bool:
+        raise TypeError("torch_graph must be a bool.")
+    if torch_graph and normalized_evaluator_profile != (
+        MACE_POLAR_MOLECULAR_REALSPACE_EVALUATOR_ID
+    ):
+        raise ValueError(
+            "The Torch graph boundary requires the unchanged molecular evaluator."
+        )
     try:
         release_contract = _RELEASE_CONTRACT_BY_EVALUATOR[normalized_evaluator_profile]
     except KeyError as exc:
@@ -1242,6 +1251,10 @@ def build_official_mace_polar_1_m_adapter(
             MACE_POLAR_1_M_FIXED_BOX40_CONTRACT.long_range_evaluator_profile
         )
     calculator_type = _VNextModelOnlyMACEPolCalculator
+    if torch_graph:
+        from .mace_polar_torch import _TorchModelOnlyMACEPolCalculator
+
+        calculator_type = _TorchModelOnlyMACEPolCalculator
     if calculator_type is None:  # pragma: no cover - guarded above
         raise RuntimeError("Unable to construct the vNext MACE-POLAR calculator type.")
     calculator = calculator_type(

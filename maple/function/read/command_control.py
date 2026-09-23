@@ -687,10 +687,10 @@ class CommandControl:
                 provider = str(
                     solv_params.get("provider", "pcmsolver")
                 ).lower()
-                if provider not in {"pcmsolver", "pyddx", "fc-aswig"}:
+                if provider not in {"pcmsolver", "pyddx", "fc-aswig", "torch"}:
                     msg = (
                     "Route 2 provider must be provider=pcmsolver "
-                    "or provider=pyddx or provider=fc-aswig."
+                    "or provider=pyddx or provider=fc-aswig or provider=torch."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -782,7 +782,10 @@ class CommandControl:
                         )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if profile_spec.execution_route == "pure-frozen-total-pes":
+                if profile_spec.execution_route in {
+                    "pure-frozen-total-pes",
+                    "pure-torch-analytic-total-pes",
+                }:
                     cls._validate_pure_device(
                         params, profile_spec, output_path=output_path
                     )
@@ -869,7 +872,7 @@ class CommandControl:
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
                 cavity_policy = None
-                if provider in {"pyddx", "fc-aswig"} and "cavity_policy" in solv_params:
+                if provider in {"pyddx", "fc-aswig", "torch"} and "cavity_policy" in solv_params:
                     msg = (
                         "Route 2 cavity_policy is specific to the "
                         "PCMSolver/GePol provider and is not valid for "

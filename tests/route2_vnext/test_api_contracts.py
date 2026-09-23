@@ -28,6 +28,8 @@ from maple.solvation.api import (
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
     ExecutionCapability,
     ExecutionStatus,
     ForceComponent,
@@ -66,6 +68,8 @@ INITIAL_SCALAR_IDS = {
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
     "route2-operational-macepolar-analytic-gaussian-multipole-"
     "smoothharmonicgalerkin-cpcm-v1",
     OPERATIONAL_MACEPOLAR_SEPARATED_PHI0_SMOOTH_HARMONIC_GALERKIN_CPCM_V1,
@@ -519,6 +523,22 @@ def test_scalar_registry_has_unique_complete_state_bound_entries():
                     "observed-components-only-experimental-v1"
                 ),
             }
+        elif scalar_id in {
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
+        }:
+            assert entry.enabled is False
+            assert entry.admitted_capabilities.enabled_tiers == ()
+            assert entry.evidence_artifact_ids == ()
+            assert entry.experimental_evidence_artifact_ids == (
+                "route2-pure-macepolar-torch-analytic-v3-contract-tests",
+            )
+            assert entry.experimental_execution.energy is True
+            assert entry.experimental_execution.force is True
+            assert entry.experimental_execution.hessian is True
+            assert entry.experimental_execution.hessian_vector_product is True
+            assert entry.experimental_execution.periodic_stress is False
+            assert "torch" in entry.implementation_entry_point
         else:
             assert entry.enabled is False
             assert entry.admitted_capabilities.enabled_tiers == ()

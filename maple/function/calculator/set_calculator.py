@@ -247,9 +247,9 @@ class SetCalculator:
             provider = str(
                 self.solvation_options.get('provider', 'pcmsolver')
             ).lower()
-            if provider not in {'pcmsolver', 'pyddx', 'fc-aswig'}:
+            if provider not in {'pcmsolver', 'pyddx', 'fc-aswig', 'torch'}:
                 raise ValueError(
-                    "Route 2 provider must be pcmsolver, pyddx, or fc-aswig."
+                    "Route 2 provider must be pcmsolver, pyddx, fc-aswig, or torch."
                 )
             if 'profile' not in self.solvation_options:
                 raise ValueError(
@@ -293,7 +293,7 @@ class SetCalculator:
             ).lower()
             validate_route2_smd_response_mode(profile_spec, response)
             if (
-                provider in {'pyddx', 'fc-aswig'}
+                provider in {'pyddx', 'fc-aswig', 'torch'}
                 and 'cavity_policy' in self.solvation_options
             ):
                 raise ValueError(
@@ -600,6 +600,34 @@ class SetCalculator:
             profile_spec = route2_smd_profile_spec(
                 self.solvation_options['profile']
             )
+            if profile_spec.execution_route == 'pure-torch-analytic-total-pes':
+                from .route2 import PureMACEPolarTorchCalculator
+
+                calculator = PureMACEPolarTorchCalculator(
+                    atoms=self.atoms,
+                    solvent=self.solvent,
+                    device=self.device,
+                    model=requested_name,
+                    profile_spec=profile_spec,
+                )
+                self.log_info(
+                    [
+                        " [EXPERIMENTAL] Route 2 pure Torch analytic total-PES workflow.\n",
+                        " [INFO] provider=torch\n",
+                        f" [INFO] profile={profile_spec.name}\n",
+                        f" [INFO] execution_route={profile_spec.execution_route}\n",
+                        f" [INFO] scalar_contract_id={profile_spec.scalar_contract_id}\n",
+                        f" [INFO] model=macepolm device={calculator.device} "
+                        "dtype=float64 response=frozen\n",
+                        " [INFO] ddPCM=torch-dense-l15/n1202/tol1e-12/eta0.1; "
+                        "CDS=torch-legacy-smd-cds\n",
+                        " [INFO] Hessian policy: analytic torch.float64 autograd only; "
+                        "no coordinate finite differences or legacy fallback.\n",
+                        " [WARNING] Experimental execution is not physical or release "
+                        "certification.\n",
+                    ]
+                )
+                return calculator
             if profile_spec.execution_route == 'pure-frozen-total-pes':
                 from .route2 import PureMACEPolarDDXCalculator
 

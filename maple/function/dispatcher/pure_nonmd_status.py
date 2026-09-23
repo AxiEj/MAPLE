@@ -45,6 +45,23 @@ def is_pure_nonmd_v2(atoms: Any) -> bool:
     )
 
 
+def is_pure_torch_v3(atoms: Any) -> bool:
+    """Return whether all images use the canonical analytic Torch v3 facade."""
+
+    from maple.function.calculator.route2 import (
+        is_pure_mace_polar_torch_calculator,
+    )
+
+    if hasattr(atoms, "multiatoms"):
+        images = list(atoms.multiatoms)
+    else:
+        images = list(atoms) if isinstance(atoms, (list, tuple)) else [atoms]
+    return bool(images) and all(
+        is_pure_mace_polar_torch_calculator(getattr(image, "calc", None))
+        for image in images
+    )
+
+
 def geometry_record(atoms: Any) -> dict[str, Any]:
     return {
         "symbols": list(atoms.get_chemical_symbols()),
@@ -186,6 +203,7 @@ __all__ = [
     "geometries_record",
     "geometry_record",
     "is_pure_nonmd_v2",
+    "is_pure_torch_v3",
     "make_status",
     "optimization_converged",
     "optimization_metrics",

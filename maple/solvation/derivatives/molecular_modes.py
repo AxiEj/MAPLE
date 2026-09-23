@@ -1,4 +1,4 @@
-"""Internal molecular modes with explicit Richardson uncertainty intervals.
+"""Internal molecular modes with honest derivative uncertainty semantics.
 
 This module is intentionally independent of the legacy frequency projection.
 It mass-weights the Cartesian Hessian before removing rigid motion, as required
@@ -33,13 +33,13 @@ class MolecularModeAnalysis:
     rigid_rank: int
     internal_dimension: int
     mass_weighted_hessian_eV_per_A2_amu: np.ndarray
-    richardson_error_eV_per_A2: np.ndarray
-    symmetric_error_envelope_eV_per_A2: np.ndarray
+    richardson_error_eV_per_A2: np.ndarray | None
+    symmetric_error_envelope_eV_per_A2: np.ndarray | None
     rigid_basis_mass_weighted: np.ndarray
     internal_basis_mass_weighted: np.ndarray
     eigenvalues_eV_per_A2_amu: np.ndarray
     modes_cartesian: np.ndarray
-    uncertainty_eV_per_A2_amu: float
+    uncertainty_eV_per_A2_amu: float | None
     uncertainty_label: str
     statuses: tuple[str, ...]
 
@@ -58,8 +58,10 @@ class MolecularModeAnalysis:
     @property
     def eigenvalue_intervals_eV_per_A2_amu(
         self,
-    ) -> tuple[tuple[float, float], ...]:
+    ) -> tuple[tuple[float, float], ...] | None:
         epsilon = self.uncertainty_eV_per_A2_amu
+        if epsilon is None:
+            return None
         return tuple(
             (float(value - epsilon), float(value + epsilon))
             for value in self.eigenvalues_eV_per_A2_amu
@@ -112,6 +114,23 @@ def analyze_molecular_modes(
     the componentwise Richardson envelope and understate admissible error.
     """
 
+    return _analyze_molecular_modes(
+        positions_angstrom=positions_angstrom,
+        masses_amu=masses_amu,
+        hessian_eV_per_A2=hessian_eV_per_A2,
+        richardson_error_eV_per_A2=richardson_error_eV_per_A2,
+        analytic_without_numerical_uncertainty=False,
+    )
+
+
+def _analyze_molecular_modes(
+    *,
+    positions_angstrom: object,
+    masses_amu: object,
+    hessian_eV_per_A2: object,
+    richardson_error_eV_per_A2: object | None,
+    analytic_without_numerical_uncertainty: bool,
+) -> MolecularModeAnalysis:
     positions = _immutable_array(positions_angstrom)
     masses = _immutable_array(masses_amu)
     if positions.ndim != 2 or positions.shape[1] != 3:
@@ -120,9 +139,20 @@ def analyze_molecular_modes(
         raise ValueError("masses_amu must be positive with shape (N,).")
     dimension = positions.size
     hessian = _immutable_array(hessian_eV_per_A2, shape=(dimension, dimension))
-    errors = _immutable_array(richardson_error_eV_per_A2, shape=(dimension, dimension))
-    if np.any(errors < 0.0):
-        raise ValueError("Richardson component error estimates must be non-negative.")
+    if analytic_without_numerical_uncertainty:
+        if richardson_error_eV_per_A2 is not None:
+            raise ValueError("analytic mode analysis cannot accept Richardson errors.")
+        errors = None
+    else:
+        if richardson_error_eV_per_A2 is None:
+            raise ValueError("Richardson mode analysis requires component errors.")
+        errors = _immutable_array(
+            richardson_error_eV_per_A2, shape=(dimension, dimension)
+        )
+        if np.any(errors < 0.0):
+            raise ValueError(
+                "Richardson component error estimates must be non-negative."
+            )
 
     inv_root_mass = np.repeat(1.0 / np.sqrt(masses), 3)
     symmetric_hessian = 0.5 * (hessian + hessian.T)
@@ -144,58 +174,111 @@ def analyze_molecular_modes(
     modes_mass_weighted = internal_basis @ eigenvectors_internal
     modes_cartesian = (inv_root_mass[:, None] * modes_mass_weighted).T
 
-    envelope = 0.5 * (errors + errors.T)
-    mass_weighted_envelope = inv_root_mass[:, None] * envelope * inv_root_mass[None, :]
-    uncertainty = float(np.linalg.norm(mass_weighted_envelope, ord=2))
-    statuses = tuple(
-        (
-            "negative"
-            if eigenvalue + uncertainty < 0.0
-            else "positive" if eigenvalue - uncertainty > 0.0 else "uncertain"
+    if errors is None:
+        envelope = None
+        uncertainty = None
+        statuses = ("uncertain",) * len(eigenvalues)
+        uncertainty_label = "Numerical uncertainty unavailable"
+    else:
+        envelope = 0.5 * (errors + errors.T)
+        mass_weighted_envelope = (
+            inv_root_mass[:, None] * envelope * inv_root_mass[None, :]
         )
-        for eigenvalue in eigenvalues
-    )
+        uncertainty = float(np.linalg.norm(mass_weighted_envelope, ord=2))
+        statuses = tuple(
+            (
+                "negative"
+                if eigenvalue + uncertainty < 0.0
+                else "positive" if eigenvalue - uncertainty > 0.0 else "uncertain"
+            )
+            for eigenvalue in eigenvalues
+        )
+        uncertainty_label = "Richardson-derived numerical uncertainty estimate"
 
     return MolecularModeAnalysis(
         rigid_rank=rigid_rank,
         internal_dimension=dimension - rigid_rank,
         mass_weighted_hessian_eV_per_A2_amu=_immutable_array(mass_weighted_hessian),
         richardson_error_eV_per_A2=errors,
-        symmetric_error_envelope_eV_per_A2=_immutable_array(envelope),
+        symmetric_error_envelope_eV_per_A2=(
+            None if envelope is None else _immutable_array(envelope)
+        ),
         rigid_basis_mass_weighted=_immutable_array(rigid_basis),
         internal_basis_mass_weighted=_immutable_array(internal_basis),
         eigenvalues_eV_per_A2_amu=_immutable_array(eigenvalues),
         modes_cartesian=_immutable_array(modes_cartesian),
         uncertainty_eV_per_A2_amu=uncertainty,
-        uncertainty_label="Richardson-derived numerical uncertainty estimate",
+        uncertainty_label=uncertainty_label,
         statuses=statuses,
     )
 
 
 def analyze_hessian_evaluation(atoms, evaluation) -> MolecularModeAnalysis:
-    """Analyze one concrete immutable Richardson Hessian evaluation."""
+    """Analyze an immutable Richardson or analytic Hessian evaluation."""
 
+    from .analytic import AnalyticHessianEvaluation
     from .scalar_finite_difference import RichardsonScalarHessianEvaluation
 
-    if not isinstance(evaluation, RichardsonScalarHessianEvaluation):
-        raise TypeError("evaluation must be RichardsonScalarHessianEvaluation.")
-    return analyze_molecular_modes(
-        positions_angstrom=atoms.get_positions(),
-        masses_amu=atoms.get_masses(),
-        hessian_eV_per_A2=evaluation.hessian_eV_per_A2,
-        richardson_error_eV_per_A2=evaluation.error_estimates_eV_per_A2,
+    if isinstance(evaluation, RichardsonScalarHessianEvaluation):
+        return analyze_molecular_modes(
+            positions_angstrom=atoms.get_positions(),
+            masses_amu=atoms.get_masses(),
+            hessian_eV_per_A2=evaluation.hessian_eV_per_A2,
+            richardson_error_eV_per_A2=evaluation.error_estimates_eV_per_A2,
+        )
+    if isinstance(evaluation, AnalyticHessianEvaluation):
+        return _analyze_molecular_modes(
+            positions_angstrom=atoms.get_positions(),
+            masses_amu=atoms.get_masses(),
+            hessian_eV_per_A2=evaluation.hessian_eV_per_A2,
+            richardson_error_eV_per_A2=None,
+            analytic_without_numerical_uncertainty=True,
+        )
+    raise TypeError(
+        "evaluation must be RichardsonScalarHessianEvaluation or "
+        "AnalyticHessianEvaluation."
     )
 
 
 def hessian_numerical_diagnostics(evaluation) -> dict[str, object]:
-    """Serialize ordered stencil evidence without discarding accepted events."""
+    """Serialize derivative evidence without inventing unavailable numerics."""
+    from .analytic import AnalyticHessianEvaluation
     from .scalar_finite_difference import RichardsonScalarHessianEvaluation
 
+    if isinstance(evaluation, AnalyticHessianEvaluation):
+        return {
+            "evaluation_sha256": evaluation.evaluation_sha256,
+            "derivative_policy_sha256": evaluation.derivative_policy_sha256,
+            "derivative_method": evaluation.derivative_method,
+            "derivative_device": evaluation.device,
+            "model_device": evaluation.device,
+            "solvent_device": evaluation.device,
+            "eigensolver_device": "cpu",
+            "eigensolver_library": "numpy.linalg.eigh",
+            "numerical_uncertainty": None,
+            "maximum_raw_antisymmetry_eV_per_A2": (
+                evaluation.maximum_antisymmetry_eV_per_A2
+            ),
+            "scalar_contract_id": evaluation.scalar_contract_id,
+            "provider_id": evaluation.provider_id,
+            "profile_id": evaluation.profile_id,
+            "dtype": evaluation.dtype,
+            "verification_evidence_id": evaluation.verification_evidence_id,
+            "configuration_sha256": evaluation.configuration_sha256,
+            "geometry_sha256": evaluation.geometry_sha256,
+        }
     if not isinstance(evaluation, RichardsonScalarHessianEvaluation):
-        raise TypeError("evaluation must be RichardsonScalarHessianEvaluation.")
+        raise TypeError(
+            "evaluation must be RichardsonScalarHessianEvaluation or "
+            "AnalyticHessianEvaluation."
+        )
     return {
         "evaluation_sha256": evaluation.evaluation_sha256,
         "derivative_policy_sha256": evaluation.derivative_policy_sha256,
+        "derivative_method": "four-point-central-richardson",
+        "derivative_device": "provider-defined",
+        "eigensolver_device": "cpu",
+        "eigensolver_library": "numpy.linalg.eigh",
         "coarse_step_angstrom": evaluation.coarse_step_angstrom,
         "fine_step_angstrom": evaluation.fine_step_angstrom,
         "maximum_richardson_error_eV_per_A2": evaluation.maximum_error_estimate_eV_per_A2,
@@ -219,6 +302,21 @@ def hessian_numerical_diagnostics(evaluation) -> dict[str, object]:
 def hessian_numerical_summary(evaluation) -> str:
     """Compact log projection; complete ordered diagnostics remain available."""
     record = hessian_numerical_diagnostics(evaluation)
+    if record["derivative_method"] == "torch-autograd":
+        return (
+            f"Hessian evaluation SHA256: {record['evaluation_sha256']}\n"
+            f"Identity: provider={record['provider_id'] or 'unavailable'}; "
+            f"profile={record['profile_id'] or 'unavailable'}; "
+            f"scalar={record['scalar_contract_id']}; dtype={record['dtype']}; "
+            "verification evidence="
+            f"{record['verification_evidence_id'] or 'unavailable'}\n"
+            f"Derivative method: {record['derivative_method']}; "
+            f"model/solvent/derivative device: {record['derivative_device']}; eigensolver: "
+            f"{record['eigensolver_device']} ({record['eigensolver_library']})\n"
+            "Numerical uncertainty: unavailable (no finite-difference error "
+            "estimate); raw antisymmetry: "
+            f"{record['maximum_raw_antisymmetry_eV_per_A2']:.8e} eV/A^2"
+        )
     return (
         f"Hessian evaluation SHA256: {record['evaluation_sha256']}\n"
         f"Stencil h/h2: {record['coarse_step_angstrom']:.6g}/"

@@ -1,0 +1,261 @@
+{
+  "artifact_id": "route2-pure-macepolar-torch-analytic-v3-contract-tests",
+  "audit_steps_angstrom": [
+    2e-05,
+    1e-05,
+    5e-06
+  ],
+  "cases": [
+    {
+      "case": "water-water",
+      "case_elapsed_seconds": 45.501434455999515,
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "configuration_sha256": "c5661f31f0ae9fc2ee99aef657d4a6988cbc9393f27517df38a43f706fe2519a",
+      "device": "cpu",
+      "energy_error_eV": 6.485151970991865e-09,
+      "failure": null,
+      "force_error_eV_per_A": 8.264931183887825e-09,
+      "gpu_peak_allocated_bytes": null,
+      "hessian_seconds": 17.3931138199996,
+      "hvp_error_eV_per_A2": 3.921130087292113e-10,
+      "independent_fd_audit_pass": true,
+      "maximum_independent_hvp_error_eV_per_A2": 9.328783610840219e-05,
+      "pass": true,
+      "process_peak_rss_kib": 2619376,
+      "raw_hessian_antisymmetry_eV_per_A2": 4.4144599087303504e-10,
+      "result_path_private": ".omx/research/pure-torch-analytic-20260922/final-formatted-v3-water-water-cpu/result.json",
+      "result_sha256": "b9d15b2c6104f36752103f075ff0ba8b522c1c9f45df232602765cbe21d85bcc",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+      "source_unchanged": true,
+      "topology_sha256": {
+        "cds": "3bb19ff95a251e9909fb5b1c151431c6f68808b82f54bf4ebadfbe7510265715",
+        "ddpcm": "9e2e93befdf15fa2f7bd67235556dc95fa0265c87d54c4e8e26b6a2a27253487",
+        "model": "d41a5bca9674af4d00e0a6dea402aa5156b60bbb1d1caeb7652581841290cd99"
+      }
+    },
+    {
+      "case": "water-water",
+      "case_elapsed_seconds": 47.29119397500017,
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "configuration_sha256": "28ce9c5ce67c73cadab4d4742aecddca67b2d8344c1ef059990e5c86c9a8ee64",
+      "device": "cuda:0",
+      "energy_error_eV": 6.485151970991865e-09,
+      "failure": null,
+      "force_error_eV_per_A": 8.264944784119876e-09,
+      "gpu_peak_allocated_bytes": 1091166208,
+      "hessian_seconds": 14.509001702000205,
+      "hvp_error_eV_per_A2": 3.920597180240293e-10,
+      "independent_fd_audit_pass": true,
+      "maximum_independent_hvp_error_eV_per_A2": 9.323063144606181e-05,
+      "pass": true,
+      "process_peak_rss_kib": 2149116,
+      "raw_hessian_antisymmetry_eV_per_A2": 4.417373133946967e-10,
+      "result_path_private": ".omx/research/pure-torch-analytic-20260922/final-formatted-v3-water-water-cuda/result.json",
+      "result_sha256": "12d9ebd52da7cae34cd0ab8e982baae9b36fc00f813868dca8ec7fb280394730",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v3",
+      "source_unchanged": true,
+      "topology_sha256": {
+        "cds": "3bb19ff95a251e9909fb5b1c151431c6f68808b82f54bf4ebadfbe7510265715",
+        "ddpcm": "9e2e93befdf15fa2f7bd67235556dc95fa0265c87d54c4e8e26b6a2a27253487",
+        "model": "d41a5bca9674af4d00e0a6dea402aa5156b60bbb1d1caeb7652581841290cd99"
+      }
+    },
+    {
+      "case": "methane-water",
+      "case_elapsed_seconds": 131.10857648,
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "configuration_sha256": "201ee50eb60bda3a55800d4fc11fff278b05f9201d9606fa7e545538191607d1",
+      "device": "cpu",
+      "energy_error_eV": 4.097955752513371e-09,
+      "failure": null,
+      "force_error_eV_per_A": 1.7058880384668296e-09,
+      "gpu_peak_allocated_bytes": null,
+      "hessian_seconds": 68.77157953500046,
+      "hvp_error_eV_per_A2": 1.58804525085543e-10,
+      "independent_fd_audit_pass": true,
+      "maximum_independent_hvp_error_eV_per_A2": 1.4593836128007354e-05,
+      "pass": true,
+      "process_peak_rss_kib": 4471588,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.681659256291823e-10,
+      "result_path_private": ".omx/research/pure-torch-analytic-20260922/final-formatted-v3-methane-water-cpu/result.json",
+      "result_sha256": "0ce8a34792ae582fef5daf2da407898ad2027986115e86e12aff7ff99103449f",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+      "source_unchanged": true,
+      "topology_sha256": {
+        "cds": "5bb4a167ef4d86e14a4c570cdb026aa9e6f4f9672ee4644fc81f302eae6bc095",
+        "ddpcm": "3f01ab498db2f5967fdc1e21ae0b43da8c8dbd3673f1ce6589dab14b1850b142",
+        "model": "772a20ffeffb4af56b64c453077c19774db7bcd5de3ed7cae7862ab41bad75d5"
+      }
+    },
+    {
+      "case": "methane-water",
+      "case_elapsed_seconds": 175.70832295200034,
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "configuration_sha256": "e8975a4a725f12c8ac7b8aedc50ca26169e5c5b42672814adb4ddd3a2b9c2eb6",
+      "device": "cuda:0",
+      "energy_error_eV": 4.097955752513371e-09,
+      "failure": null,
+      "force_error_eV_per_A": 1.7058880592835113e-09,
+      "gpu_peak_allocated_bytes": 2284710912,
+      "hessian_seconds": 73.24700956400011,
+      "hvp_error_eV_per_A2": 1.5852208434807835e-10,
+      "independent_fd_audit_pass": true,
+      "maximum_independent_hvp_error_eV_per_A2": 1.4607638884278629e-05,
+      "pass": true,
+      "process_peak_rss_kib": 2216016,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.680291461525485e-10,
+      "result_path_private": ".omx/research/pure-torch-analytic-20260922/final-formatted-v3-methane-water-cuda/result.json",
+      "result_sha256": "a5849282bd556ae86285d477f083d49be38c7b700573c3bfb0b5966cbc986f22",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v3",
+      "source_unchanged": true,
+      "topology_sha256": {
+        "cds": "5bb4a167ef4d86e14a4c570cdb026aa9e6f4f9672ee4644fc81f302eae6bc095",
+        "ddpcm": "3f01ab498db2f5967fdc1e21ae0b43da8c8dbd3673f1ce6589dab14b1850b142",
+        "model": "772a20ffeffb4af56b64c453077c19774db7bcd5de3ed7cae7862ab41bad75d5"
+      }
+    },
+    {
+      "case": "methane-hexane",
+      "case_elapsed_seconds": 146.7248615009994,
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "configuration_sha256": "50a9ea8af1400a6d2427d9dfeac4a6e9af0c56d536eb69cb33fdb312811c6d55",
+      "device": "cpu",
+      "energy_error_eV": 1.3512817531591281e-09,
+      "failure": null,
+      "force_error_eV_per_A": 6.439096061905403e-10,
+      "gpu_peak_allocated_bytes": null,
+      "hessian_seconds": 92.6050611769997,
+      "hvp_error_eV_per_A2": 8.614242652527082e-11,
+      "independent_fd_audit_pass": true,
+      "maximum_independent_hvp_error_eV_per_A2": 1.1863508628806585e-05,
+      "pass": true,
+      "process_peak_rss_kib": 4487120,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.7631767896294885e-10,
+      "result_path_private": ".omx/research/pure-torch-analytic-20260922/final-formatted-v3-methane-hexane-cpu/result.json",
+      "result_sha256": "52b654ce622c2d33d6e6c24f4e34abdd7c1c0bdb1a24e9c511aeca3672d90713",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+      "source_unchanged": true,
+      "topology_sha256": {
+        "cds": "5bb4a167ef4d86e14a4c570cdb026aa9e6f4f9672ee4644fc81f302eae6bc095",
+        "ddpcm": "3f01ab498db2f5967fdc1e21ae0b43da8c8dbd3673f1ce6589dab14b1850b142",
+        "model": "772a20ffeffb4af56b64c453077c19774db7bcd5de3ed7cae7862ab41bad75d5"
+      }
+    },
+    {
+      "case": "methane-hexane",
+      "case_elapsed_seconds": 151.8112286530004,
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "configuration_sha256": "086cec697f9437cb5915e23abce45cbfcc5d6676cacced29e4a64319578fbb4b",
+      "device": "cuda:0",
+      "energy_error_eV": 1.3512817531591281e-09,
+      "failure": null,
+      "force_error_eV_per_A": 6.439097241517366e-10,
+      "gpu_peak_allocated_bytes": 2284710912,
+      "hessian_seconds": 61.420632739999746,
+      "hvp_error_eV_per_A2": 8.618772362467553e-11,
+      "independent_fd_audit_pass": true,
+      "maximum_independent_hvp_error_eV_per_A2": 1.187719068340698e-05,
+      "pass": true,
+      "process_peak_rss_kib": 2211876,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.762484689443733e-10,
+      "result_path_private": ".omx/research/pure-torch-analytic-20260922/final-formatted-v3-methane-hexane-cuda/result.json",
+      "result_sha256": "0b8280c13cebdea311323555b671f9c834c400a5464393112d3970edfce54775",
+      "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v3",
+      "source_unchanged": true,
+      "topology_sha256": {
+        "cds": "5bb4a167ef4d86e14a4c570cdb026aa9e6f4f9672ee4644fc81f302eae6bc095",
+        "ddpcm": "3f01ab498db2f5967fdc1e21ae0b43da8c8dbd3673f1ce6589dab14b1850b142",
+        "model": "772a20ffeffb4af56b64c453077c19774db7bcd5de3ed7cae7862ab41bad75d5"
+      }
+    }
+  ],
+  "claim_boundary": "Exact-profile implementation parity on one water and one methane geometry; not experimental solvation or physical Hessian accuracy. Dense v3 rejects six or more atoms; analytic H is local to regular topology.",
+  "confirmation_partition_opened": false,
+  "cross_device_parity": [
+    {
+      "both_case_passed": true,
+      "case": "water-water",
+      "energy_difference_eV": 0.0,
+      "force_difference_eV_per_A": 3.993425598883271e-13,
+      "hessian_difference_eV_per_A2": 8.171241461241152e-13
+    },
+    {
+      "both_case_passed": true,
+      "case": "methane-water",
+      "energy_difference_eV": 0.0,
+      "force_difference_eV_per_A": 1.2587796609101268e-13,
+      "hessian_difference_eV_per_A2": 5.770890221853259e-13
+    },
+    {
+      "both_case_passed": true,
+      "case": "methane-hexane",
+      "energy_difference_eV": 0.0,
+      "force_difference_eV_per_A": 1.2670965080126273e-13,
+      "hessian_difference_eV_per_A2": 5.910446557091248e-13
+    }
+  ],
+  "dataset_labels_used": false,
+  "experimental_solvation_accuracy_admitted": false,
+  "fit_performed": false,
+  "git_head": "91feb86f8eed633c9d2a4788b26db4f2693a32d5",
+  "limits": {
+    "energy_eV": 1e-07,
+    "force_eV_per_A": 1e-06,
+    "hessian_eV_per_A2": 0.0001
+  },
+  "method": {
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "continuum": "Torch ddPCM lmax15/Lebedev1202/eta0.1; ddX 0.8.0 equations",
+    "frequency_eigensolver": "NumPy CPU outside the differentiable scalar graph",
+    "frozen_zero_field_source": true,
+    "hessian": "torch autograd of the same total energy; no coordinate FD in production",
+    "hessian_numerical_uncertainty": "unavailable",
+    "maximum_dense_atoms_at_registered_settings": 5,
+    "nonpolar": "Torch PySCF 2.13.1 get_cds_legacy DAREAL with stock parameters",
+    "solute_model": "official-unmodified MACE-POLAR-1-M"
+  },
+  "negative_evidence": {
+    "old_v2_water_hessian": "An earlier source-bound v2 water run failed the 0.05 eV/A^2 antisymmetry gate at 0.07815358; it is not a passing H reference.",
+    "opt_cpu_topology_negative": "First LBFGS trial reaches a genuine f_i=1 transition inside the 1e-8 topology margin; no convergence claim is made."
+  },
+  "passed_case_count": 6,
+  "physical_force_accuracy_admitted": false,
+  "profiles": [
+    "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+    "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v3"
+  ],
+  "requested_case_count": 6,
+  "schema_version": 1,
+  "scientific_release_admitted": false,
+  "source_file_count": 352,
+  "source_manifest_sha256": "527b7aebf3623c6cc0e7ada61fa1aca508d29b2c772c2dd908f3fdffadfa6d99",
+  "source_manifests_identical_across_cases": true,
+  "status": "bounded-implementation-parity-pass",
+  "verification_source": "tools/route2_release/run_pure_mace_polar_torch_canary.py",
+  "workflow_smokes": {
+    "freq_cuda": {
+      "exit_code": 0,
+      "output_path_private": ".omx/research/pure-torch-analytic-20260922/cli-freq-cuda-post-format.out",
+      "output_sha256": "cce63351e702439639bdd5da631a1ceb507576ab5a5a8ad5c5b4a1fd874e3de4",
+      "status": "completed"
+    },
+    "opt_cpu_near_stationary": {
+      "exit_code": 0,
+      "output_path_private": ".omx/research/pure-torch-analytic-20260922/cli-opt-cpu-v1-endpoint-post-format.out",
+      "output_sha256": "123522b7d540801809e21ecbec916bb08d1a73e18c8e70468a7c51bc34ef6ba4",
+      "status": "completed"
+    },
+    "opt_cpu_topology_negative": {
+      "exit_code": 1,
+      "output_path_private": ".omx/research/pure-torch-analytic-20260922/cli-opt-cpu-topology-boundary-post-format.out",
+      "output_sha256": "198e490eee7f196d824fbeab34e08804958db195bd3318ebff2972f1593c8182",
+      "status": "expected-fail-closed"
+    },
+    "sp_cpu": {
+      "exit_code": 0,
+      "output_path_private": ".omx/research/pure-torch-analytic-20260922/cli-sp-cpu-post-format.out",
+      "output_sha256": "bfce36dd3321ace9ff0202ff72a9f72d61302a09872f92b0ba922844cd014d5c",
+      "status": "completed"
+    }
+  }
+}

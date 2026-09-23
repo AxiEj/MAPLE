@@ -21,6 +21,8 @@ from maple.solvation.api.scalar_registry import (
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_V1,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CPU_V2,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
 )
 
 from .route2_energy_ledger import (
@@ -73,11 +75,19 @@ PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE = (
 PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE = (
     "pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cuda-v2"
 )
+PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE = (
+    "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3"
+)
+PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE = (
+    "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v3"
+)
 
 _PURE_MACEPOLAR_EXPECTED_DEVICE = {
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE: "cpu",
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE: "cpu",
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE: "cuda",
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE: "cpu",
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE: "cuda",
 }
 DDCOSMO_MULTISOLVENT_SMD_PROFILE = (
     "smd-ddcosmo-l15-n1202-multisolv-v1"
@@ -119,7 +129,7 @@ class Route2SMDProfileSpec:
     """One frozen audited combination, not an open run-time plug-in schema."""
 
     name: str
-    provider: Literal["pcmsolver", "pyddx", "fc-aswig"]
+    provider: Literal["pcmsolver", "pyddx", "fc-aswig", "torch"]
     cavity: Literal[
         "canonical-smd",
         "gaff2-carbonyl-o",
@@ -140,6 +150,7 @@ class Route2SMDProfileSpec:
         "native-water-smd-cds",
         "pyscf-smd-cds",
         "fixed-topology-aqueous-smd-cds",
+        "torch-legacy-smd-cds",
     ]
     dielectric_policy: Literal[
         "pcmsolver-water-keyword",
@@ -172,6 +183,7 @@ class Route2SMDProfileSpec:
     execution_route: Literal[
         "legacy-additive-correction",
         "pure-frozen-total-pes",
+        "pure-torch-analytic-total-pes",
     ] = "legacy-additive-correction"
     scalar_contract_id: str | None = None
     allowed_response_modes: tuple[Literal["frozen", "scf"], ...] = (
@@ -211,6 +223,7 @@ class Route2SMDProfileSpec:
         if self.execution_route not in {
             "legacy-additive-correction",
             "pure-frozen-total-pes",
+            "pure-torch-analytic-total-pes",
         }:
             raise ValueError("Unsupported Route-2 execution route.")
         if not self.allowed_response_modes or any(
@@ -242,6 +255,26 @@ class Route2SMDProfileSpec:
                 raise ValueError(
                     "The pure frozen total-PES route requires a registered "
                     "device-specific point-l1 ddPCM/PySCF-SMD scalar and "
+                    "response=frozen."
+                )
+        if self.execution_route == "pure-torch-analytic-total-pes":
+            expected_scalar = {
+                PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE:
+                    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
+                PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE:
+                    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
+            }.get(self.name)
+            if (
+                self.provider != "torch"
+                or self.electrostatics_model != "ddpcm"
+                or self.nonpolar_model != "torch-legacy-smd-cds"
+                or expected_scalar is None
+                or self.scalar_contract_id != expected_scalar
+                or self.allowed_response_modes != ("frozen",)
+            ):
+                raise ValueError(
+                    "The pure Torch analytic route requires its registered "
+                    "device-specific point-l1 ddPCM/legacy-SMD scalar and "
                     "response=frozen."
                 )
         if self.mace_geometry_frame_policy not in {
@@ -278,6 +311,7 @@ class Route2SMDProfileSpec:
 
 
 _WATER_ONLY = frozenset({"water"})
+_TORCH_V3_SOLVENTS = frozenset({"water", "hexane"})
 
 
 _PROFILE_SPECS = {
@@ -550,6 +584,62 @@ _PROFILE_SPECS = {
             "pyscf-smd-cds-v1"
         ),
     ),
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE: Route2SMDProfileSpec(
+        name=PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE,
+        provider="torch",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="torch-legacy-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=_TORCH_V3_SOLVENTS,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+        execution_route="pure-torch-analytic-total-pes",
+        scalar_contract_id=(
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3
+        ),
+        allowed_response_modes=("frozen",),
+        experimental_task_allowlist=("sp", "opt", "freq"),
+        electronic_profile_binding=(
+            "official-mace-polar-1-m/float64/cpu/zero-field-radial-gto-source/v1"
+        ),
+        electronic_energy_semantics=(
+            "single-graph-torch-float64-zero-field-vacuum-plus-frozen-source-"
+            "ddpcm-plus-legacy-smd-cds-v3"
+        ),
+    ),
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE: Route2SMDProfileSpec(
+        name=PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE,
+        provider="torch",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="torch-legacy-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=_TORCH_V3_SOLVENTS,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+        execution_route="pure-torch-analytic-total-pes",
+        scalar_contract_id=(
+            EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3
+        ),
+        allowed_response_modes=("frozen",),
+        experimental_task_allowlist=("sp", "opt", "freq"),
+        electronic_profile_binding=(
+            "official-mace-polar-1-m/float64/cuda/zero-field-radial-gto-source/v1"
+        ),
+        electronic_energy_semantics=(
+            "single-graph-torch-float64-zero-field-vacuum-plus-frozen-source-"
+            "ddpcm-plus-legacy-smd-cds-v3"
+        ),
+    ),
     DDCOSMO_MULTISOLVENT_SMD_PROFILE: Route2SMDProfileSpec(
         name=DDCOSMO_MULTISOLVENT_SMD_PROFILE,
         provider="pyddx",
@@ -715,6 +805,11 @@ SUPPORTED_FC_ASWIG_SMD_PROFILES = frozenset(
     for name, spec in _PROFILE_SPECS.items()
     if spec.provider == "fc-aswig"
 )
+SUPPORTED_TORCH_SMD_PROFILES = frozenset(
+    name
+    for name, spec in _PROFILE_SPECS.items()
+    if spec.provider == "torch"
+)
 SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
     name
     for name, spec in _PROFILE_SPECS.items()
@@ -733,6 +828,8 @@ def route2_smd_profiles_for_provider(provider: str) -> frozenset[str]:
         return SUPPORTED_PYDDX_SMD_PROFILES
     if normalized == "fc-aswig":
         return SUPPORTED_FC_ASWIG_SMD_PROFILES
+    if normalized == "torch":
+        return SUPPORTED_TORCH_SMD_PROFILES
     raise ValueError(f"Unsupported Route 2 SMD provider: {provider}.")
 
 
@@ -854,11 +951,14 @@ __all__ = [
     "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE",
     "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE",
     "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE",
+    "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE",
+    "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE",
     "SUPPORTED_DDPCM_SMD_PROFILES",
     "SUPPORTED_FC_ASWIG_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",
     "SUPPORTED_PYDDX_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_PROFILES",
+    "SUPPORTED_TORCH_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_RESPONSE_MODES",
     "Route2SMDProfileSpec",
     "Route2SMDResponseMode",

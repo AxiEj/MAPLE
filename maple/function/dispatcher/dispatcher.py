@@ -12,7 +12,7 @@ class Dispatcher():
         from .legacy_units import legacy_hartree_job_calculators
         from .pure_nonmd_status import (
             REQUIRED_STATUS_FIELDS, NonMDWorkflowFailure, calculator_provenance,
-            is_pure_nonmd_v2, make_status, write_status,
+            is_pure_nonmd_v2, is_pure_torch_v3, make_status, write_status,
         )
 
         images = atoms.multiatoms if isinstance(atoms, Molecules) else (
@@ -20,11 +20,36 @@ class Dispatcher():
         )
         v2_flags = [is_pure_nonmd_v2(image) for image in images]
         pure_v2 = bool(v2_flags) and all(v2_flags)
+        torch_v3_flags = [is_pure_torch_v3(image) for image in images]
+        pure_torch_v3 = bool(torch_v3_flags) and all(torch_v3_flags)
         if any(v2_flags) and not pure_v2:
             raise ValueError(
                 "pure non-MD v2 jobs require every image to use a canonical "
                 "pure non-MD calculator."
             )
+        if any(torch_v3_flags) and not pure_torch_v3:
+            raise ValueError(
+                "pure Torch v3 jobs require every image to use the canonical "
+                "analytic Torch calculator."
+            )
+        if pure_torch_v3:
+            if len(images) != 1:
+                raise ValueError("pure Torch v3 does not support path or multi-image jobs.")
+            if jobtype not in {"sp", "opt", "freq"}:
+                raise ValueError(
+                    "pure Torch v3 supports only SP, OPT, and FREQ; "
+                    "TS, IRC, MD, and path workflows remain closed."
+                )
+            if (
+                jobtype == "freq"
+                and str(
+                    (commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol).get(
+                        "method", "mw"
+                    )
+                ).lower()
+                != "mw"
+            ):
+                raise ValueError("pure Torch v3 frequency supports only method=mw.")
         if pure_v2:
             params = commandcontrol.params if hasattr(commandcontrol, "params") else commandcontrol
             configurations = set()

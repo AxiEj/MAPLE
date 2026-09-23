@@ -1,0 +1,10 @@
+#model=macepolm
+#device=cpu
+#level=tight
+#solv(method=smd,provider=torch,profile=pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3,implicit=water,response=frozen,experimental=true)
+#opt(method=lbfgs,max_iter=128,max_step=0.1)
+
+0 1
+O 0.011963371298627 0.008832711279003 0.000181665436334
+H 0.995660066366178 0.026977990601463 0.000001859385827
+H -0.257623437664800 0.934189298119533 0.009816475177839

@@ -447,6 +447,12 @@ def is_pure_mace_polar_workflow_calculator(calculator: object) -> bool:
     """
 
     from maple.function.dispatcher.legacy_units import LegacyHartreeJobView
+    from ._mace_polar_torch_calculator import (
+        is_pure_mace_polar_torch_calculator,
+    )
+
+    if is_pure_mace_polar_torch_calculator(calculator):
+        return True
 
     candidate = calculator
     if type(candidate) is LegacyHartreeJobView:

@@ -1184,10 +1184,16 @@ class PureFrozenMWFrequency(FrequencyBase):
                 f"Rigid rank: {analysis.rigid_rank}; internal modes: "
                 f"{analysis.internal_dimension}\n"
             )
-            stream.write(
-                f"{analysis.uncertainty_label}: "
-                f"{analysis.uncertainty_eV_per_A2_amu:.8e} eV/A^2/amu\n"
-            )
+            if analysis.uncertainty_eV_per_A2_amu is None:
+                stream.write(
+                    "Numerical uncertainty unavailable; modes are not certified "
+                    "as positive or negative.\n"
+                )
+            else:
+                stream.write(
+                    f"{analysis.uncertainty_label}: "
+                    f"{analysis.uncertainty_eV_per_A2_amu:.8e} eV/A^2/amu\n"
+                )
             stream.write(
                 "Mode statuses: " + ", ".join(analysis.statuses) + "\n"
             )

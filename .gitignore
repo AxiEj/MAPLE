@@ -182,6 +182,9 @@ examples/md/**/*.xyz
 /docs/*
 !/docs/route2/
 !/docs/route2/**
+!/docs/third-party/
+!/docs/third-party/PYSCF-APACHE-2.0.txt
+!/docs/third-party/TORCH_SOLVATION_NOTICES.md
 !/docs/implicit-solvation/
 !/docs/implicit-solvation/*.md
 !/docs/implicit-solvation/benchmarks/

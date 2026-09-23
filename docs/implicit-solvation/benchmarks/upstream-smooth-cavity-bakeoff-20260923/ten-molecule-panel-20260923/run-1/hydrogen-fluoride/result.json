@@ -1,0 +1,237 @@
+{
+  "audit_direction": [
+    [
+      -0.5091516640367955,
+      0.6620005286251369,
+      0.4141476098914982
+    ],
+    [
+      0.050608778014970685,
+      -0.0015491277030099688,
+      0.35838246625770054
+    ]
+  ],
+  "audit_steps_angstrom": [
+    2e-05,
+    1e-05,
+    5e-06
+  ],
+  "case": "hydrogen-fluoride",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "claim_boundary": "Exact-scalar implementation parity on small synthetic fixtures; not new experimental accuracy, global C2, broad domain or large-system efficiency.",
+  "configuration_sha256": "f0a788326b1e5fae42edbe64eb0ec9151360b6fc3d651826f75e55a48e916109",
+  "device": "cpu",
+  "elapsed_seconds": 16.228310350001266,
+  "fd_finest_step_agreement_eV_per_A2": 1.5076578874229085e-05,
+  "git_head": "91feb86f8eed633c9d2a4788b26db4f2693a32d5",
+  "independent_legacy_gradient_fd_audit": [
+    {
+      "hvp_eV_per_A2": [
+        -0.2053795695269449,
+        0.24344942925301663,
+        2.9893896667576576,
+        0.20537956952875078,
+        -0.24344942925269553,
+        -2.989389666717412
+      ],
+      "maximum_error_eV_per_A2": 1.553098132367481e-05,
+      "same_topology": true,
+      "step_angstrom": 2e-05
+    },
+    {
+      "hvp_eV_per_A2": [
+        -0.20537961565949817,
+        0.243449312308141,
+        2.989391601113111,
+        0.20537961566001572,
+        -0.24344931230316164,
+        -2.989391601376789
+      ],
+      "maximum_error_eV_per_A2": 1.7465600455235375e-05,
+      "same_topology": true,
+      "step_angstrom": 1e-05
+    },
+    {
+      "hvp_eV_per_A2": [
+        -0.20537930642178426,
+        0.24344921654448817,
+        2.9894066776281476,
+        0.20537930642043647,
+        -0.24344921654109902,
+        -2.9894066779556634
+      ],
+      "maximum_error_eV_per_A2": 3.254217932946446e-05,
+      "same_topology": true,
+      "step_angstrom": 5e-06
+    }
+  ],
+  "legacy": {
+    "energy_eV": -2733.832691228418,
+    "energy_force_seconds": 1.5975650019972818,
+    "forces_eV_per_A": [
+      [
+        1.984524739863005e-06,
+        1.984524739868812e-06,
+        -0.3323144718678023
+      ],
+      [
+        -1.984524739863005e-06,
+        -1.9845247398722985e-06,
+        0.33231447186780194
+      ]
+    ],
+    "hessian_policy": {
+      "contract": "scalar-richardson-hessian-derivative-policy-v1",
+      "maximum_antisymmetry_eV_per_A2": 0.05,
+      "maximum_energy_force_discrepancy_eV_per_A": 0.003,
+      "maximum_error_eV_per_A2": 0.05,
+      "maximum_topology_step_reductions": 0,
+      "requested_coarse_step_angstrom": 0.004,
+      "topology_guard_policy": "bounded-topology-noise-experimental-v1"
+    },
+    "profile_id": "pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2"
+  },
+  "limits": {
+    "energy_eV": 1e-07,
+    "force_eV_per_A": 1e-06,
+    "hessian_eV_per_A2": 0.0001
+  },
+  "load_seconds": 3.337833759997011,
+  "model_metadata": {
+    "base_configuration_sha256": "cbf8c3ad1338b1c4d87f03fe7b108cb5edae2a9a8ab3a11b2ed3dfd45db3c627",
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "device": "cpu",
+    "dtype": "float64",
+    "field_state": "frozen-zero-external-field",
+    "long_range_evaluator_profile": "graph-longrange-molecular-realspace-v1",
+    "model_profile_id": "mace-polar-route2-source-field-contract-v1",
+    "neighbor_cutoff_angstrom": 6.0,
+    "neighbor_cutoff_guard_angstrom": 1e-08,
+    "neighbor_topology_policy": "all-nonself-pairs-fixed-mask-conservative-guard-v1",
+    "provenance_sha256": "b2666433276f55d154c1c363163b20ba4bb279a646eb2c4e52f76d2999d97dd2",
+    "provider_id": "maple.route2.model.mace-polar-1-m-local-field.impl.v1",
+    "schema": "route2-mace-polar-zero-field-torch-graph-v1",
+    "source_basis": "raw-mace-polar-density-coefficients-[q,y,z,x]",
+    "source_units": "checkpoint-native-physical-multipoles"
+  },
+  "numerical_pass": true,
+  "parity_errors": {
+    "energy_eV": 3.6716301110573113e-09,
+    "force_eV_per_A": 3.071665144460667e-10,
+    "hvp_vs_dense_eV_per_A2": 8.68765615003042e-11
+  },
+  "pass": true,
+  "positions_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.093389
+    ],
+    [
+      0.0,
+      0.0,
+      -0.840502
+    ]
+  ],
+  "process_peak_rss_kib": 2168120,
+  "requested_device": "cpu",
+  "resource_estimate": {
+    "atom_count": 2,
+    "basis_dimension": 512,
+    "bytes_per_matrix": 2097152,
+    "conservative_peak_bytes": 159100928,
+    "derivative_order": 1,
+    "first_order_peak_bytes": 159100928,
+    "forward_peak_bytes": 79550464,
+    "limit_bytes": 1000000000,
+    "second_order_peak_bytes": 636403712
+  },
+  "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+  "schema": "maple-pure-torch-analytic-canary-v3",
+  "scientific_release_admitted": false,
+  "solvent": "water",
+  "source_unchanged": true,
+  "symbols": [
+    "F",
+    "H"
+  ],
+  "topology": {
+    "cds": "008fa8484c0a4dc389a0d2add03c9e363e487edb30f807b8ff8db16bfcf984fa",
+    "ddpcm": "106719175dcf3069a1b53cff495450169fb31351b3e23db95485c79ad0aae248",
+    "model": "2242d2cfb9c2c2280048182b386976ddff0ad492c2f0667972a30a2aec059478"
+  },
+  "torch": {
+    "component_energies_eV": {
+      "cds": 0.08844452638658507,
+      "ddpcm": -0.211167385147063,
+      "vacuum": -2733.709968373329
+    },
+    "energy_eV": -2733.8326912320895,
+    "evaluation_sha256": "9689ccba9641ce3fa564c29a8ed0e262808ad46dba8d1b63fd5403ffd3434284",
+    "forces_eV_per_A": [
+      [
+        1.984524088000619e-06,
+        1.9845240879999207e-06,
+        -0.33231447156063576
+      ],
+      [
+        -1.9845240879858164e-06,
+        -1.98452408800115e-06,
+        0.33231447156063576
+      ]
+    ],
+    "hessian_eV_per_A2": [
+      [
+        0.36689950446424935,
+        2.3714564109981836e-06,
+        -9.940258530115925e-05,
+        -0.36689950446425074,
+        -2.3714564109868126e-06,
+        9.94025853011597e-05
+      ],
+      [
+        2.3714563503614107e-06,
+        0.3668995044642295,
+        -9.940258539774209e-05,
+        -2.3714563503720647e-06,
+        -0.3668995044642315,
+        9.94025853977442e-05
+      ],
+      [
+        -9.940258643602966e-05,
+        -9.940258643601445e-05,
+        53.60668435328657,
+        9.940258643604811e-05,
+        9.940258643602356e-05,
+        -53.60668435328657
+      ],
+      [
+        -0.36689950446424935,
+        -2.3714564109981836e-06,
+        9.940258530115925e-05,
+        0.36689950446425074,
+        2.3714564109868126e-06,
+        -9.94025853011597e-05
+      ],
+      [
+        -2.3714563503614107e-06,
+        -0.3668995044642295,
+        9.940258539774209e-05,
+        2.3714563503720647e-06,
+        0.3668995044642315,
+        -9.94025853977442e-05
+      ],
+      [
+        9.940258643602966e-05,
+        9.940258643601445e-05,
+        -53.60668435328657,
+        -9.940258643604811e-05,
+        -9.940258643602356e-05,
+        53.60668435328657
+      ]
+    ],
+    "hessian_seconds": 3.4527053070014517,
+    "raw_antisymmetry_eV_per_A2": 1.1348888679946906e-12,
+    "uncertainty": null
+  }
+}

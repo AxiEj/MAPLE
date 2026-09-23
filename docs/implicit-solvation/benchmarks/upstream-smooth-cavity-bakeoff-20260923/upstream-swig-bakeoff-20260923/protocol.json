@@ -1,0 +1,63 @@
+{
+  "audit_cases": [
+    "water",
+    "hydrogen-cyanide"
+  ],
+  "audit_steps_angstrom": [
+    0.001,
+    0.0001
+  ],
+  "case_names": [
+    "water",
+    "methane",
+    "ammonia",
+    "carbon-monoxide",
+    "carbon-dioxide",
+    "hydrogen-cyanide",
+    "formaldehyde",
+    "hydrogen-peroxide",
+    "acetylene",
+    "hydrogen-fluoride"
+  ],
+  "case_protocol_sha256": "9456f0031613f3cb9cac833d041b2bddf63f029861f5d79cc328c38640143063",
+  "cavity_radii": "unchanged SMD Coulomb radii by atom",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "electrostatic_equation": "C-PCM; v3 reference is ddPCM",
+  "experimental_accuracy_tested": false,
+  "fit_performed": false,
+  "force_cases": [
+    "water",
+    "methane",
+    "hydrogen-cyanide"
+  ],
+  "force_method": "SWIG only, existing analytic PySCF adapter",
+  "force_orders": [
+    17,
+    29
+  ],
+  "lebedev_order_to_points": {
+    "17": 110,
+    "23": 194,
+    "29": 302
+  },
+  "methods": [
+    "SWIG",
+    "ISWIG"
+  ],
+  "metrics": "candidate polar and total solvation energies; v3 polar difference; 110/194/302 grid stability; rigid-rotation energy spread; SWIG analytic force difference and directional FD audit",
+  "nonpolar": "unchanged Torch legacy SMD-CDS",
+  "purpose": "upstream C-PCM numerical/model-change comparison, not physical accuracy",
+  "pyscf_version": "2.13.1",
+  "rotation_cases": [
+    "water",
+    "methane",
+    "hydrogen-cyanide"
+  ],
+  "rotation_count": 4,
+  "rotation_seed": 20260923,
+  "script_sha256": "47b3f54ca99b820a8b58ea486308ff3d77745d26082644dc9d449d783f8ceda1",
+  "selection_rule": "all ten cases retained including failures and absent v3 HCN reference",
+  "solvent": "water",
+  "source_manifest_sha256": "527b7aebf3623c6cc0e7ada61fa1aca508d29b2c772c2dd908f3fdffadfa6d99",
+  "status": "frozen-before-batch"
+}

@@ -1,0 +1,39 @@
+{
+  "case_names": [
+    "water",
+    "methane",
+    "ammonia",
+    "carbon-monoxide",
+    "carbon-dioxide",
+    "hydrogen-cyanide",
+    "formaldehyde",
+    "hydrogen-peroxide",
+    "acetylene",
+    "hydrogen-fluoride"
+  ],
+  "case_protocol_sha256": "9456f0031613f3cb9cac833d041b2bddf63f029861f5d79cc328c38640143063",
+  "correction": "pass positions (natoms,3), then read back native sphxyz",
+  "experimental_accuracy_tested": false,
+  "fit_performed": false,
+  "invalid_v1_protocol_sha256": "578992c737750a6b147aff953e395881f72458902a526dbb5f55fbc8aa15c26d",
+  "invalid_v1_result_sha256": "d0fe6c3a9ae7f56e4eab376470e70614004c1603729310f26615cc088ad50d6f",
+  "metrics": "per-atom and total area vs DAREAL; unfit CDS energy change; four rigid-rotation area and CDS-energy deviations",
+  "moist_build": "isolated Meson Python extension, debug, no project install",
+  "moist_cavity": "SvdW-DROP C API custom per-atom radii, default blend_k=2.0",
+  "moist_commit": "a0116e8ee369c546d48558e5e389e6f20bdff2e9",
+  "moist_source_version_file": "0.6.0-alpha.1",
+  "nleb": [
+    110,
+    302,
+    590
+  ],
+  "purpose": "MOIST SvdW-DROP atom-area/legacy-SMD-CDS substitution diagnostic",
+  "radii": "SMD legacy CDS Bondi/Mantina plus 0.4 Angstrom",
+  "rotation_count": 4,
+  "rotation_nleb": 302,
+  "rotation_seed": 20260923,
+  "script_sha256": "b336c2774d661241c7816ca84644327a3ad803ad91bf3e9c5ed52073113d4f07",
+  "selection_rule": "all ten preregistered neutral geometries and all failures retained",
+  "status": "frozen-before-batch",
+  "tensions": "unchanged legacy SMD atom tensions and solvent constant"
+}

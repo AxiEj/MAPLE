@@ -1,0 +1,182 @@
+{
+  "case_count": 10,
+  "elapsed_seconds": 430.53589674400064,
+  "fit_performed": false,
+  "passed_count": 6,
+  "physical_accuracy_tested": false,
+  "protocol_sha256": "9456f0031613f3cb9cac833d041b2bddf63f029861f5d79cc328c38640143063",
+  "rows": [
+    {
+      "energy_error_eV": 6.485151970991865e-09,
+      "error": null,
+      "exit_code": 0,
+      "force_error_eV_per_A": 8.264931183887825e-09,
+      "hvp_vs_dense_error_eV_per_A2": 3.921130087292113e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        1.1368761086316681e-05,
+        2.5566672398724677e-05,
+        9.328783610840219e-05
+      ],
+      "name": "water",
+      "pass": true,
+      "raw_hessian_antisymmetry_eV_per_A2": 4.4144599087303504e-10,
+      "result_sha256": "6507e3d3dc56cf83a589b4ffd45367d17acb77b7a5ac2827a9b252dadb855060",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 4.097955752513371e-09,
+      "error": null,
+      "exit_code": 0,
+      "force_error_eV_per_A": 1.7058880384668296e-09,
+      "hvp_vs_dense_error_eV_per_A2": 1.58804525085543e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        2.623310528804268e-06,
+        2.0357384380442767e-06,
+        1.4593836128007354e-05
+      ],
+      "name": "methane",
+      "pass": true,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.681659256291823e-10,
+      "result_sha256": "99b9c427e4a118e9d6707d3472723f92378113009d79c855d9e49c37599261a9",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 1.1653810361167416e-08,
+      "error": null,
+      "exit_code": 0,
+      "force_error_eV_per_A": 2.6861963736690697e-08,
+      "hvp_vs_dense_error_eV_per_A2": 1.9133139517180098e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        1.3560557203362578e-05,
+        1.560941926381787e-05,
+        2.7547083064405342e-05
+      ],
+      "name": "ammonia",
+      "pass": true,
+      "raw_hessian_antisymmetry_eV_per_A2": 3.452225172395629e-10,
+      "result_sha256": "c1a80b7b86247dfd9a3207aede7f3ae8786cd44bbfd8c6dee2a1ca9445c4a3bd",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 2.6991529011866078e-08,
+      "error": null,
+      "exit_code": 1,
+      "force_error_eV_per_A": 1.1037433189642343e-09,
+      "hvp_vs_dense_error_eV_per_A2": 2.0481571993968828e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        3.5770981734906115e-05,
+        4.6928343430785446e-05,
+        0.00021930805393655106
+      ],
+      "name": "carbon-monoxide",
+      "pass": false,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.2456142942183362e-11,
+      "result_sha256": "ccd5bf6292a040898f7af3ad8f217d2d8e602cf2fcbab4df0ecbebf486722356",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 2.4032487999647856e-08,
+      "error": null,
+      "exit_code": 1,
+      "force_error_eV_per_A": 1.5090460857628257e-09,
+      "hvp_vs_dense_error_eV_per_A2": 1.310183961322764e-09,
+      "independent_hvp_errors_eV_per_A2": [
+        5.044641095253155e-05,
+        0.0002548016421428656,
+        0.00010753877976554804
+      ],
+      "name": "carbon-dioxide",
+      "pass": false,
+      "raw_hessian_antisymmetry_eV_per_A2": 3.95999677493819e-09,
+      "result_sha256": "148f8204ae4509dcb46ff53dd56c91e93020c7909f5dc4ce7fe3f14f7293434b",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": null,
+      "error": {
+        "message": "ddPCM topology is within the certified branch-change margin.",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/tools/route2_release/run_pure_mace_polar_torch_canary.py\", line 290, in main\n    _run_case(args, result)\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/tools/route2_release/run_pure_mace_polar_torch_canary.py\", line 174, in _run_case\n    evaluated = pes.evaluate_hessian(atoms)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/experimental/mace_polar_torch.py\", line 457, in evaluate_hessian\n    total, terms, source = self._energy_components(atoms, positions)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/experimental/mace_polar_torch.py\", line 357, in _energy_components\n    \"ddpcm\": self.continuum.energy_torch(positions, source),\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/functional.py\", line 236, in energy_torch\n    energy = self._energy_torch(positions, source)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/torch_ddpcm.py\", line 798, in _energy_torch\n    return self._state_torch(positions, source).energy\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/torch_ddpcm.py\", line 745, in _state_torch\n    topology = self._certify_topology(ratios, chi, fi, ui)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/torch_ddpcm.py\", line 536, in _certify_topology\n    raise RuntimeError(\nRuntimeError: ddPCM topology is within the certified branch-change margin.\n",
+        "type": "RuntimeError"
+      },
+      "exit_code": 1,
+      "force_error_eV_per_A": null,
+      "hvp_vs_dense_error_eV_per_A2": null,
+      "independent_hvp_errors_eV_per_A2": [],
+      "name": "hydrogen-cyanide",
+      "pass": false,
+      "raw_hessian_antisymmetry_eV_per_A2": null,
+      "result_sha256": "ae00f9f096760666bbc386c7857daec7b0677e63cf499888fc571a34e8c16fbb",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 1.3971202861284837e-08,
+      "error": null,
+      "exit_code": 0,
+      "force_error_eV_per_A": 3.292240147168002e-09,
+      "hvp_vs_dense_error_eV_per_A2": 2.895115258638725e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        2.803630032910398e-05,
+        9.42188514352349e-05,
+        7.639333814757343e-05
+      ],
+      "name": "formaldehyde",
+      "pass": true,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.7697381338166451e-09,
+      "result_sha256": "d68ec01ca97c5780a55ff71167fa2d3d4331e8925f466dc1b83a71dced988b88",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 6.401933205779642e-09,
+      "error": null,
+      "exit_code": 1,
+      "force_error_eV_per_A": 2.199890936083193e-09,
+      "hvp_vs_dense_error_eV_per_A2": 8.829736941606825e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        4.058761855496584e-05,
+        4.309990494633098e-05,
+        0.00010473616215733728
+      ],
+      "name": "hydrogen-peroxide",
+      "pass": false,
+      "raw_hessian_antisymmetry_eV_per_A2": 7.73772379503157e-10,
+      "result_sha256": "8edd014237fd30ee4bd48f53e9fb076e99a266f147ae8384ae7a8da4b43fe213",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 2.3735083232168108e-08,
+      "error": null,
+      "exit_code": 0,
+      "force_error_eV_per_A": 8.651749983101809e-09,
+      "hvp_vs_dense_error_eV_per_A2": 1.7254908613040243e-10,
+      "independent_hvp_errors_eV_per_A2": [
+        9.593551887121521e-06,
+        1.2137820370128338e-05,
+        3.668277085822069e-05
+      ],
+      "name": "acetylene",
+      "pass": true,
+      "raw_hessian_antisymmetry_eV_per_A2": 7.49295736568456e-10,
+      "result_sha256": "c535e261983e38724e2e22e3479578e3a682c559119c15c60d59bbe9fca92501",
+      "source_unchanged": true
+    },
+    {
+      "energy_error_eV": 3.6716301110573113e-09,
+      "error": null,
+      "exit_code": 0,
+      "force_error_eV_per_A": 3.071665144460667e-10,
+      "hvp_vs_dense_error_eV_per_A2": 8.68765615003042e-11,
+      "independent_hvp_errors_eV_per_A2": [
+        1.553098132367481e-05,
+        1.7465600455235375e-05,
+        3.254217932946446e-05
+      ],
+      "name": "hydrogen-fluoride",
+      "pass": true,
+      "raw_hessian_antisymmetry_eV_per_A2": 1.1348888679946906e-12,
+      "result_sha256": "6e794b998a3b7cd3fdb83274be6bf2433165fc88915ecb21a2d55fa677f1f0c4",
+      "source_unchanged": true
+    }
+  ],
+  "source_manifest_unchanged": true,
+  "wrapper_sha256_unchanged": true
+}

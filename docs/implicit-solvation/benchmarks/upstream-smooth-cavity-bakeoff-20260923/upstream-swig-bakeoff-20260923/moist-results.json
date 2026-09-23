@@ -1,0 +1,407 @@
+{
+  "experimental_accuracy_tested": false,
+  "fit_performed": false,
+  "protocol_sha256": "578992c737750a6b147aff953e395881f72458902a526dbb5f55fbc8aa15c26d",
+  "rows": [
+    {
+      "dareal_atom_area_A2": [
+        26.043406211174894,
+        14.911963810766574,
+        14.911963810766574
+      ],
+      "dareal_cds_eV": 0.06297018995828577,
+      "effective_tensions_cal_mol_A2": [
+        0.0,
+        48.69,
+        48.69
+      ],
+      "grid": {
+        "110": {
+          "atom_area_A2": [
+            27.852395601397046,
+            15.77207006325742,
+            10.6201702328133
+          ],
+          "cds_energy_eV": 0.05572452913904669,
+          "delta_cds_eV": -0.007245660819239073,
+          "max_atom_area_delta_A2": 4.291793577953275,
+          "surface_points": 255,
+          "total_area_A2": 54.24463589746777,
+          "total_area_delta_A2": -1.622697935240275
+        },
+        "302": {
+          "atom_area_A2": [
+            28.032517055250644,
+            15.940910261714922,
+            10.714488694313395
+          ],
+          "cds_energy_eV": 0.056280161864821134,
+          "delta_cds_eV": -0.0066900280934646325,
+          "max_atom_area_delta_A2": 4.1974751164531785,
+          "surface_points": 617,
+          "total_area_A2": 54.687916011278965,
+          "total_area_delta_A2": -1.1794178214290767
+        },
+        "590": {
+          "atom_area_A2": [
+            28.11651652162188,
+            15.940995988639703,
+            10.74420597028088
+          ],
+          "cds_energy_eV": 0.056343087872028956,
+          "delta_cds_eV": -0.00662710208625681,
+          "max_atom_area_delta_A2": 4.167757840485693,
+          "surface_points": 1107,
+          "total_area_A2": 54.80171848054246,
+          "total_area_delta_A2": -1.0656153521655796
+        }
+      },
+      "name": "water",
+      "radii_A": [
+        1.92,
+        1.6,
+        1.6
+      ],
+      "rotation": [
+        {
+          "cds_energy_delta_eV": -0.010483850254554394,
+          "max_atom_area_delta_A2": 3.2770185988116545,
+          "total_area_delta_A2": -1.6883404526000731
+        },
+        {
+          "cds_energy_delta_eV": 0.001370857838964061,
+          "max_atom_area_delta_A2": 3.9967018604872493,
+          "total_area_delta_A2": 4.645967274779288
+        },
+        {
+          "cds_energy_delta_eV": -0.005861469888056338,
+          "max_atom_area_delta_A2": 9.059407425419046,
+          "total_area_delta_A2": 1.7756137083798933
+        },
+        {
+          "cds_energy_delta_eV": -0.01777557930156811,
+          "max_atom_area_delta_A2": 12.081578005550714,
+          "total_area_delta_A2": -2.859468238624139
+        }
+      ]
+    },
+    {
+      "dareal_atom_area_A2": [
+        18.140977574912988,
+        13.028280316508859,
+        13.028280316508859,
+        13.028280316508859,
+        13.028280316508859
+      ],
+      "dareal_cds_eV": 0.11953653724935906,
+      "effective_tensions_cal_mol_A2": [
+        129.74,
+        7.732554019483764,
+        7.732554019483764,
+        7.732554019483764,
+        7.732554019483764
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (5, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (5, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (5, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "methane",
+      "radii_A": [
+        2.1,
+        1.6,
+        1.6,
+        1.6,
+        1.6
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        17.532655472012323,
+        14.94313256821715,
+        14.943132209560412,
+        14.943132209560416
+      ],
+      "dareal_cds_eV": 0.09465271240699717,
+      "effective_tensions_cal_mol_A2": [
+        0.0,
+        48.69,
+        48.69,
+        48.69
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "ammonia",
+      "radii_A": [
+        1.9500000000000002,
+        1.6,
+        1.6,
+        1.6
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        26.306794386862464,
+        39.447973812858955
+      ],
+      "dareal_cds_eV": 0.2767388369878641,
+      "effective_tensions_cal_mol_A2": [
+        48.03963809913939,
+        129.74
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (2, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (2, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (2, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "carbon-monoxide",
+      "radii_A": [
+        1.92,
+        2.1
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        23.65249077023332,
+        26.568763262152096,
+        26.568763262152096
+      ],
+      "dareal_cds_eV": 0.2393951966712155,
+      "effective_tensions_cal_mol_A2": [
+        129.74,
+        46.14272122108669,
+        46.14272122108669
+      ],
+      "grid": {
+        "110": {
+          "error": "Too close interatomic distances found",
+          "error_type": "RuntimeError"
+        },
+        "302": {
+          "error": "Too close interatomic distances found",
+          "error_type": "RuntimeError"
+        },
+        "590": {
+          "error": "Too close interatomic distances found",
+          "error_type": "RuntimeError"
+        }
+      },
+      "name": "carbon-dioxide",
+      "radii_A": [
+        2.1,
+        1.92,
+        1.92
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        29.637173406844855,
+        27.93331334565815,
+        12.759431526039904
+      ],
+      "dareal_cds_eV": 0.21396633644190405,
+      "effective_tensions_cal_mol_A2": [
+        129.74,
+        35.65189172766858,
+        7.302711998624652
+      ],
+      "grid": {
+        "110": {
+          "error": "Too close interatomic distances found",
+          "error_type": "RuntimeError"
+        },
+        "302": {
+          "error": "Too close interatomic distances found",
+          "error_type": "RuntimeError"
+        },
+        "590": {
+          "error": "Too close interatomic distances found",
+          "error_type": "RuntimeError"
+        }
+      },
+      "name": "hydrogen-cyanide",
+      "radii_A": [
+        2.1,
+        1.9500000000000002,
+        1.6
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        26.94464869119454,
+        20.932486747812032,
+        13.208193673226816,
+        13.208193673226816
+      ],
+      "dareal_cds_eV": 0.17681353236341268,
+      "effective_tensions_cal_mol_A2": [
+        42.655321502601865,
+        129.74,
+        8.03680372238918,
+        8.03680372238918
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "formaldehyde",
+      "radii_A": [
+        1.92,
+        2.1,
+        1.6,
+        1.6
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        22.453120754636334,
+        22.45312075463634,
+        13.822578843865285,
+        13.822578843865285
+      ],
+      "dareal_cds_eV": 0.05836993883281388,
+      "effective_tensions_cal_mol_A2": [
+        0.0,
+        0.0,
+        48.69,
+        48.69
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "hydrogen-peroxide",
+      "radii_A": [
+        1.92,
+        1.92,
+        1.6,
+        1.6
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        26.50599450462498,
+        26.50599450462498,
+        12.718695168714001,
+        12.718695168714001
+      ],
+      "dareal_cds_eV": 0.18503539114609135,
+      "effective_tensions_cal_mol_A2": [
+        77.01747999910995,
+        77.01747999910995,
+        7.240033672130117,
+        7.240033672130117
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (4, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "acetylene",
+      "radii_A": [
+        2.1,
+        2.1,
+        1.6,
+        1.6
+      ],
+      "rotation": []
+    },
+    {
+      "dareal_atom_area_A2": [
+        33.351780035149176,
+        15.736459457838727
+      ],
+      "dareal_cds_eV": 0.08844452638658507,
+      "effective_tensions_cal_mol_A2": [
+        38.18,
+        48.69
+      ],
+      "grid": {
+        "110": {
+          "error": "positions must have shape (2, 3)",
+          "error_type": "ValueError"
+        },
+        "302": {
+          "error": "positions must have shape (2, 3)",
+          "error_type": "ValueError"
+        },
+        "590": {
+          "error": "positions must have shape (2, 3)",
+          "error_type": "ValueError"
+        }
+      },
+      "name": "hydrogen-fluoride",
+      "radii_A": [
+        1.87,
+        1.6
+      ],
+      "rotation": []
+    }
+  ]
+}

@@ -1,0 +1,352 @@
+{
+  "ase_version": "3.27.0",
+  "audit_steps_angstrom": [
+    2e-05,
+    1e-05,
+    5e-06
+  ],
+  "case_count": 10,
+  "cases": [
+    {
+      "ase_key": "H2O",
+      "category": "bent oxide",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "water",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.119262
+        ],
+        [
+          0.0,
+          0.763239,
+          -0.477047
+        ],
+        [
+          0.0,
+          -0.763239,
+          -0.477047
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "CH4",
+      "category": "saturated hydrocarbon",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "methane",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.629118,
+          0.629118,
+          0.629118
+        ],
+        [
+          -0.629118,
+          -0.629118,
+          0.629118
+        ],
+        [
+          0.629118,
+          -0.629118,
+          -0.629118
+        ],
+        [
+          -0.629118,
+          0.629118,
+          -0.629118
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "H",
+        "H",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "NH3",
+      "category": "pyramidal nitrogen hydride",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "ammonia",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.116489
+        ],
+        [
+          0.0,
+          0.939731,
+          -0.271808
+        ],
+        [
+          0.813831,
+          -0.469865,
+          -0.271808
+        ],
+        [
+          -0.813831,
+          -0.469865,
+          -0.271808
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "N",
+        "H",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "CO",
+      "category": "heteronuclear diatomic",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "carbon-monoxide",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.493003
+        ],
+        [
+          0.0,
+          0.0,
+          -0.657337
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "O",
+        "C"
+      ]
+    },
+    {
+      "ase_key": "CO2",
+      "category": "linear oxide",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "carbon-dioxide",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.178658
+        ],
+        [
+          0.0,
+          0.0,
+          -1.178658
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "O",
+        "O"
+      ]
+    },
+    {
+      "ase_key": "HCN",
+      "category": "nitrile",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "hydrogen-cyanide",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          -0.511747
+        ],
+        [
+          0.0,
+          0.0,
+          0.664461
+        ],
+        [
+          0.0,
+          0.0,
+          -1.580746
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "N",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "H2CO",
+      "category": "carbonyl",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "formaldehyde",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.683501
+        ],
+        [
+          0.0,
+          0.0,
+          -0.536614
+        ],
+        [
+          0.0,
+          0.93439,
+          -1.124164
+        ],
+        [
+          0.0,
+          -0.93439,
+          -1.124164
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "O",
+        "C",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "H2O2",
+      "category": "peroxide",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "hydrogen-peroxide",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.734058,
+          -0.05275
+        ],
+        [
+          0.0,
+          -0.734058,
+          -0.05275
+        ],
+        [
+          0.839547,
+          0.880752,
+          0.422001
+        ],
+        [
+          -0.839547,
+          -0.880752,
+          0.422001
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "O",
+        "O",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "C2H2",
+      "category": "alkyne",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "acetylene",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.60808
+        ],
+        [
+          0.0,
+          0.0,
+          -0.60808
+        ],
+        [
+          0.0,
+          0.0,
+          -1.67399
+        ],
+        [
+          0.0,
+          0.0,
+          1.67399
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "C",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "ase_key": "HF",
+      "category": "hydrogen halide",
+      "charge": 0,
+      "multiplicity": 1,
+      "name": "hydrogen-fluoride",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.093389
+        ],
+        [
+          0.0,
+          0.0,
+          -0.840502
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "F",
+        "H"
+      ]
+    }
+  ],
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "device": "cpu",
+  "fit_performed": false,
+  "geometry_source": "ASE 3.27.0 ase.build.molecule G2/extra database; exact coordinates frozen above",
+  "limits": {
+    "energy_eV": 1e-07,
+    "force_eV_per_A": 1e-06,
+    "hessian_eV_per_A2": 0.0001
+  },
+  "physical_accuracy_tested": false,
+  "purpose": "implementation parity and local derivative consistency, not experimental accuracy",
+  "runner_sha256": "597a6a262377a56f937e65c79fb711ae6480b3e525b4e3cf3e940c6b60dfa968",
+  "selection_rule": "fixed list; no replacement after seeing failures",
+  "solvent": "water",
+  "source_manifest_sha256": "527b7aebf3623c6cc0e7ada61fa1aca508d29b2c772c2dd908f3fdffadfa6d99",
+  "status": "preregistered-before-ten-runs",
+  "wrapper_sha256": "d1ac3b8c69aea1ddba86454d3d91844b3e5e9c816c0b5d48db85c05c7cecf9b7"
+}

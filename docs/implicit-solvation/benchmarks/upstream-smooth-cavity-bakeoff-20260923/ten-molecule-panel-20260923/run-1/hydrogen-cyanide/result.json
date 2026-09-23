@@ -1,0 +1,115 @@
+{
+  "audit_steps_angstrom": [
+    2e-05,
+    1e-05,
+    5e-06
+  ],
+  "case": "hydrogen-cyanide",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "claim_boundary": "Exact-scalar implementation parity on small synthetic fixtures; not new experimental accuracy, global C2, broad domain or large-system efficiency.",
+  "configuration_sha256": "cfd56dc07f21baf59ffdb398c7ee0cbcf0e44144b58175a73900b02cccf7c44b",
+  "device": "cpu",
+  "elapsed_seconds": 7.1994963190009,
+  "error": {
+    "message": "ddPCM topology is within the certified branch-change margin.",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/tools/route2_release/run_pure_mace_polar_torch_canary.py\", line 290, in main\n    _run_case(args, result)\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/tools/route2_release/run_pure_mace_polar_torch_canary.py\", line 174, in _run_case\n    evaluated = pes.evaluate_hessian(atoms)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/experimental/mace_polar_torch.py\", line 457, in evaluate_hessian\n    total, terms, source = self._energy_components(atoms, positions)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/experimental/mace_polar_torch.py\", line 357, in _energy_components\n    \"ddpcm\": self.continuum.energy_torch(positions, source),\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/functional.py\", line 236, in energy_torch\n    energy = self._energy_torch(positions, source)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/torch_ddpcm.py\", line 798, in _energy_torch\n    return self._state_torch(positions, source).energy\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/torch_ddpcm.py\", line 745, in _state_torch\n    topology = self._certify_topology(ratios, chi, fi, ui)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/maple/solvation/continuum/torch_ddpcm.py\", line 536, in _certify_topology\n    raise RuntimeError(\nRuntimeError: ddPCM topology is within the certified branch-change margin.\n",
+    "type": "RuntimeError"
+  },
+  "git_head": "91feb86f8eed633c9d2a4788b26db4f2693a32d5",
+  "legacy": {
+    "energy_eV": -2542.379239206154,
+    "energy_force_seconds": 2.1864907819981454,
+    "forces_eV_per_A": [
+      [
+        -9.627802338273699e-05,
+        -9.627802338272474e-05,
+        3.608920344205446
+      ],
+      [
+        -3.182696729337381e-05,
+        -3.1826967293375555e-05,
+        -3.5686057324343623
+      ],
+      [
+        0.00012810499067611144,
+        0.0001281049906761021,
+        -0.04031461177108258
+      ]
+    ],
+    "hessian_policy": {
+      "contract": "scalar-richardson-hessian-derivative-policy-v1",
+      "maximum_antisymmetry_eV_per_A2": 0.05,
+      "maximum_energy_force_discrepancy_eV_per_A": 0.003,
+      "maximum_error_eV_per_A2": 0.05,
+      "maximum_topology_step_reductions": 0,
+      "requested_coarse_step_angstrom": 0.004,
+      "topology_guard_policy": "bounded-topology-noise-experimental-v1"
+    },
+    "profile_id": "pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2"
+  },
+  "limits": {
+    "energy_eV": 1e-07,
+    "force_eV_per_A": 1e-06,
+    "hessian_eV_per_A2": 0.0001
+  },
+  "load_seconds": 3.5461370199991507,
+  "model_metadata": {
+    "base_configuration_sha256": "cbf8c3ad1338b1c4d87f03fe7b108cb5edae2a9a8ab3a11b2ed3dfd45db3c627",
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "device": "cpu",
+    "dtype": "float64",
+    "field_state": "frozen-zero-external-field",
+    "long_range_evaluator_profile": "graph-longrange-molecular-realspace-v1",
+    "model_profile_id": "mace-polar-route2-source-field-contract-v1",
+    "neighbor_cutoff_angstrom": 6.0,
+    "neighbor_cutoff_guard_angstrom": 1e-08,
+    "neighbor_topology_policy": "all-nonself-pairs-fixed-mask-conservative-guard-v1",
+    "provenance_sha256": "b2666433276f55d154c1c363163b20ba4bb279a646eb2c4e52f76d2999d97dd2",
+    "provider_id": "maple.route2.model.mace-polar-1-m-local-field.impl.v1",
+    "schema": "route2-mace-polar-zero-field-torch-graph-v1",
+    "source_basis": "raw-mace-polar-density-coefficients-[q,y,z,x]",
+    "source_units": "checkpoint-native-physical-multipoles"
+  },
+  "numerical_pass": false,
+  "pass": false,
+  "positions_angstrom": [
+    [
+      0.0,
+      0.0,
+      -0.511747
+    ],
+    [
+      0.0,
+      0.0,
+      0.664461
+    ],
+    [
+      0.0,
+      0.0,
+      -1.580746
+    ]
+  ],
+  "process_peak_rss_kib": 1838692,
+  "requested_device": "cpu",
+  "resource_estimate": {
+    "atom_count": 3,
+    "basis_dimension": 768,
+    "bytes_per_matrix": 4718592,
+    "conservative_peak_bytes": 352438272,
+    "derivative_order": 1,
+    "first_order_peak_bytes": 352438272,
+    "forward_peak_bytes": 176219136,
+    "limit_bytes": 1000000000,
+    "second_order_peak_bytes": 1409753088
+  },
+  "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+  "schema": "maple-pure-torch-analytic-canary-v3",
+  "scientific_release_admitted": false,
+  "solvent": "water",
+  "source_unchanged": true,
+  "symbols": [
+    "C",
+    "N",
+    "H"
+  ]
+}

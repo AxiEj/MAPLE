@@ -1,0 +1,317 @@
+{
+  "audit_direction": [
+    [
+      -0.3660800012338645,
+      0.47597832130112655,
+      0.29777209473899513
+    ],
+    [
+      0.03638770689910961,
+      -0.00111382268091403,
+      0.2576769614177929
+    ],
+    [
+      -0.42119179641698656,
+      -0.4543795762397016,
+      -0.31492189350716865
+    ]
+  ],
+  "audit_steps_angstrom": [
+    2e-05,
+    1e-05,
+    5e-06
+  ],
+  "case": "carbon-dioxide",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "claim_boundary": "Exact-scalar implementation parity on small synthetic fixtures; not new experimental accuracy, global C2, broad domain or large-system efficiency.",
+  "configuration_sha256": "562cac0524a24cbdf191d108c2d313844e62621568e62cda90bb43e31aa23830",
+  "device": "cpu",
+  "elapsed_seconds": 30.494741528000304,
+  "git_head": "91feb86f8eed633c9d2a4788b26db4f2693a32d5",
+  "independent_legacy_gradient_fd_audit": [
+    {
+      "hvp_eV_per_A2": [
+        -2.6133555972585585,
+        10.58220348528381,
+        49.91919262562176,
+        1.707412410409117,
+        -4.894057339962124,
+        2.8790646181442443,
+        0.9059431868509279,
+        -5.688146145323028,
+        -52.79825724330278
+      ],
+      "maximum_error_eV_per_A2": 5.044641095253155e-05,
+      "same_topology": true,
+      "step_angstrom": 2e-05
+    },
+    {
+      "hvp_eV_per_A2": [
+        -2.613357583277747,
+        10.582201688136065,
+        49.91898827039057,
+        1.7074135834610626,
+        -4.8940564715840065,
+        2.879125264532156,
+        0.9059439998185356,
+        -5.688145216550409,
+        -52.798113534824324
+      ],
+      "maximum_error_eV_per_A2": 0.0002548016421428656,
+      "same_topology": true,
+      "step_angstrom": 1e-05
+    },
+    {
+      "hvp_eV_per_A2": [
+        -2.613355978687843,
+        10.58220214028492,
+        49.91935061081248,
+        1.707412671427753,
+        -4.89405688704382,
+        2.879021797541625,
+        0.9059433072599329,
+        -5.688145253227233,
+        -52.79837240554918
+      ],
+      "maximum_error_eV_per_A2": 0.00010753877976554804,
+      "same_topology": true,
+      "step_angstrom": 5e-06
+    }
+  ],
+  "legacy": {
+    "energy_eV": -5132.694068095312,
+    "energy_force_seconds": 2.108573539000645,
+    "forces_eV_per_A": [
+      [
+        0.000600887244112343,
+        0.0006008872441123744,
+        -9.553273610227449e-05
+      ],
+      [
+        -0.0003000131681094363,
+        -0.00030001316810945194,
+        -2.0506706873419667
+      ],
+      [
+        -0.000300874076002908,
+        -0.0003008740760029208,
+        2.0507662200780703
+      ]
+    ],
+    "hessian_policy": {
+      "contract": "scalar-richardson-hessian-derivative-policy-v1",
+      "maximum_antisymmetry_eV_per_A2": 0.05,
+      "maximum_energy_force_discrepancy_eV_per_A": 0.003,
+      "maximum_error_eV_per_A2": 0.05,
+      "maximum_topology_step_reductions": 0,
+      "requested_coarse_step_angstrom": 0.004,
+      "topology_guard_policy": "bounded-topology-noise-experimental-v1"
+    },
+    "profile_id": "pure-macepolar-frozen-point-l1-ddpcm-smd-nonmd-cpu-v2"
+  },
+  "limits": {
+    "energy_eV": 1e-07,
+    "force_eV_per_A": 1e-06,
+    "hessian_eV_per_A2": 0.0001
+  },
+  "load_seconds": 3.4553253570011293,
+  "model_metadata": {
+    "base_configuration_sha256": "cbf8c3ad1338b1c4d87f03fe7b108cb5edae2a9a8ab3a11b2ed3dfd45db3c627",
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "device": "cpu",
+    "dtype": "float64",
+    "field_state": "frozen-zero-external-field",
+    "long_range_evaluator_profile": "graph-longrange-molecular-realspace-v1",
+    "model_profile_id": "mace-polar-route2-source-field-contract-v1",
+    "neighbor_cutoff_angstrom": 6.0,
+    "neighbor_cutoff_guard_angstrom": 1e-08,
+    "neighbor_topology_policy": "all-nonself-pairs-fixed-mask-conservative-guard-v1",
+    "provenance_sha256": "b2666433276f55d154c1c363163b20ba4bb279a646eb2c4e52f76d2999d97dd2",
+    "provider_id": "maple.route2.model.mace-polar-1-m-local-field.impl.v1",
+    "schema": "route2-mace-polar-zero-field-torch-graph-v1",
+    "source_basis": "raw-mace-polar-density-coefficients-[q,y,z,x]",
+    "source_units": "checkpoint-native-physical-multipoles"
+  },
+  "numerical_pass": false,
+  "parity_errors": {
+    "energy_eV": 2.4032487999647856e-08,
+    "force_eV_per_A": 1.5090460857628257e-09,
+    "hvp_vs_dense_eV_per_A2": 1.310183961322764e-09
+  },
+  "pass": false,
+  "positions_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.178658
+    ],
+    [
+      0.0,
+      0.0,
+      -1.178658
+    ]
+  ],
+  "process_peak_rss_kib": 2763392,
+  "requested_device": "cpu",
+  "resource_estimate": {
+    "atom_count": 3,
+    "basis_dimension": 768,
+    "bytes_per_matrix": 4718592,
+    "conservative_peak_bytes": 352438272,
+    "derivative_order": 1,
+    "first_order_peak_bytes": 352438272,
+    "forward_peak_bytes": 176219136,
+    "limit_bytes": 1000000000,
+    "second_order_peak_bytes": 1409753088
+  },
+  "scalar_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+  "schema": "maple-pure-torch-analytic-canary-v3",
+  "scientific_release_admitted": false,
+  "solvent": "water",
+  "source_unchanged": true,
+  "symbols": [
+    "C",
+    "O",
+    "O"
+  ],
+  "topology": {
+    "cds": "8cb7a0b7b06f0012a79399424dbbc4ac8628792483fd72ff0c9693e5306de6a4",
+    "ddpcm": "8739cff9cf60babadca54b35dbb8390147f81286861a6bc11e2b1ffe1cfa4cac",
+    "model": "d41a5bca9674af4d00e0a6dea402aa5156b60bbb1d1caeb7652581841290cd99"
+  },
+  "torch": {
+    "component_energies_eV": {
+      "cds": 0.2393951966712155,
+      "ddpcm": -0.2442069930872155,
+      "vacuum": -5132.6892563229285
+    },
+    "energy_eV": -5132.694068119345,
+    "evaluation_sha256": "c5b16242eb85f8e710cca7423d2538f9a0c65b4c07edc1992ae09f7c99944eba",
+    "forces_eV_per_A": [
+      [
+        0.0006008872414547104,
+        0.0006008872414547266,
+        -9.553424514836025e-05
+      ],
+      [
+        -0.0003000131677223746,
+        -0.000300013167722371,
+        -2.0506706871511873
+      ],
+      [
+        -0.00030087407373234685,
+        -0.0003008740737323373,
+        2.0507662213963376
+      ]
+    ],
+    "hessian_eV_per_A2": [
+      [
+        15.039347221601625,
+        9.724682179058338e-06,
+        6.5577346906304764e-06,
+        -7.519573649282073,
+        -4.856735591946588e-06,
+        -0.002462502367180334,
+        -7.5197735723195525,
+        -4.867946587118964e-06,
+        0.002455944632491446
+      ],
+      [
+        9.724682298293262e-06,
+        15.039347221601608,
+        6.557734264762309e-06,
+        -4.856735651451147e-06,
+        -7.519573649282025,
+        -0.0024625023670027503,
+        -4.867946646840373e-06,
+        -7.519773572319583,
+        0.0024559446327290756
+      ],
+      [
+        6.5577272499424054e-06,
+        6.557727249916711e-06,
+        152.93512022474061,
+        6.957928380668649e-05,
+        6.957928380673566e-05,
+        -76.46409898166841,
+        -7.613701105666756e-05,
+        -7.613701105666903e-05,
+        -76.4710212430722
+      ],
+      [
+        -7.519573650165554,
+        -4.856735563516232e-06,
+        6.957928062012941e-05,
+        4.6354937357883905,
+        2.411476033641756e-06,
+        0.0011944737846153108,
+        2.884079914377165,
+        2.4452595298761147e-06,
+        -0.001264053065235496
+      ],
+      [
+        -4.856735590400806e-06,
+        -7.519573650165609,
+        6.957928072375799e-05,
+        2.4114760519171886e-06,
+        4.635493735788399,
+        0.0011944737845043674,
+        2.4452595384735788e-06,
+        2.884079914377211,
+        -0.001264053065223702
+      ],
+      [
+        -0.0024625023698119654,
+        -0.0024625023698119615,
+        -76.46409898562841,
+        0.0011944737859352328,
+        0.0011944737859351973,
+        86.84874778037451,
+        0.0012680285838767493,
+        0.001268028583876723,
+        -10.38464879474611
+      ],
+      [
+        -7.519773572449698,
+        -4.867946713508755e-06,
+        -7.613701826516574e-05,
+        2.88407991408165,
+        2.4452596757809767e-06,
+        0.0012680285830322738,
+        4.635693658368044,
+        2.422687037725813e-06,
+        -0.001191891564748462
+      ],
+      [
+        -4.867946576932793e-06,
+        -7.519773572449651,
+        -7.613701826655493e-05,
+        2.4452595482055964e-06,
+        2.884079914081604,
+        0.0012680285830312225,
+        2.4226870287271452e-06,
+        4.6356936583680435,
+        -0.001191891564759314
+      ],
+      [
+        0.002455944636029922,
+        0.0024559446360299473,
+        -76.47102124171624,
+        -0.0012640530660890867,
+        -0.0012640530660890524,
+        -10.384648796363932,
+        -0.0011918915699408602,
+        -0.0011918915699408719,
+        86.85567003808018
+      ]
+    ],
+    "hessian_seconds": 11.050803332000214,
+    "raw_antisymmetry_eV_per_A2": 3.95999677493819e-09,
+    "uncertainty": null
+  }
+}

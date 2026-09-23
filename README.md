@@ -6,6 +6,25 @@ MAPLE is a machine-learning-potential-native computational chemistry toolkit for
 geometry optimization, transition-state search, reaction-path analysis, molecular
 dynamics, and related post-processing workflows.
 
+> [!CAUTION]
+> **Experimental Torch CHA/PBSA rewrite — licensing and scientific review pending.**
+> This branch contains unregistered, formula-based Torch research modules for
+> fixed-charge inputs, PBSA solvent-accessible **volume**, and a separate
+> dispersion integral. They do **not** implement the complete multiatom R6
+> solvent-excluded surface, provide a CHA force/OPT provider, or establish a new
+> hydration-accuracy result. No upstream Fortran is vendored in these modules,
+> but AmberTools source was consulted during research. The audited GBNSR6
+> source carries GPL-2.0-or-later terms and the PBSA tree has an LGPL-3.0
+> notice; whether this Torch implementation contains source-derived expression
+> or inherits those terms still requires rights-holder review. MAPLE's own
+> [`LICENSE`](LICENSE) also combines BSD-3-Clause
+> wording with academic-only/noncommercial language that needs clarification.
+> **Publishing this work-in-progress does not resolve these questions or
+> certify redistribution rights.** See
+> [`TORCH_CHA_REWRITE.md`](docs/implicit-solvation/TORCH_CHA_REWRITE.md) for the
+> component provenance and capability boundaries; seek rights-holder
+> clarification before relying on an assumed AmberTools-compatible license.
+
 ## Core Capabilities
 
 | Category | Methods |

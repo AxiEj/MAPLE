@@ -1,0 +1,350 @@
+{
+  "execution_git_head": "c08ede0c7fb520c1dd088a5c3cc4e6f4ba6ae490",
+  "experiment_start_date": "2026-09-23",
+  "freesolv": {
+    "attempted_records": 642,
+    "bootstrap_policy": "descriptive-paired-record-10000-draws-seed-20260923",
+    "dataset_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "dataset_version": "0.52",
+    "energy_only_recovery_control_count": 20,
+    "initial_torch_dareal_guard_count": 1,
+    "maximum_control_prediction_difference_kcal_mol": 0.0,
+    "method_metrics": {
+      "ISWIG+DAREAL": {
+        "count": 642,
+        "improved_count": 477,
+        "mae_kcal_mol": 1.4921195790575408,
+        "maximum_absolute_error_kcal_mol": 8.733478823290458,
+        "mean_signed_error_kcal_mol": 0.7539091898901201,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.013087061307088003,
+          -0.008206930324196103
+        ],
+        "paired_mae_change_kcal_mol": -0.010664925112713797,
+        "rmse_kcal_mol": 1.9490468879529237,
+        "worsened_count": 165
+      },
+      "ISWIG+MOIST": {
+        "count": 642,
+        "improved_count": 403,
+        "mae_kcal_mol": 1.4820723028661626,
+        "maximum_absolute_error_kcal_mol": 9.56615470070913,
+        "mean_signed_error_kcal_mol": 0.6430974841139848,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.036031284337243355,
+          -0.00529399633002668
+        ],
+        "paired_mae_change_kcal_mol": -0.020712201304091873,
+        "rmse_kcal_mol": 1.9331721309031853,
+        "worsened_count": 239
+      },
+      "SWIG+DAREAL": {
+        "count": 642,
+        "improved_count": 429,
+        "mae_kcal_mol": 1.494999739759863,
+        "maximum_absolute_error_kcal_mol": 8.729304024365998,
+        "mean_signed_error_kcal_mol": 0.7501701801020041,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.010359486769383808,
+          -0.005244795390494241
+        ],
+        "paired_mae_change_kcal_mol": -0.0077847644103916595,
+        "rmse_kcal_mol": 1.9521928188852264,
+        "worsened_count": 213
+      },
+      "SWIG+MOIST": {
+        "count": 642,
+        "improved_count": 406,
+        "mae_kcal_mol": 1.485163279907098,
+        "maximum_absolute_error_kcal_mol": 9.561979901784667,
+        "mean_signed_error_kcal_mol": 0.6393584743258688,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.033137211632627554,
+          -0.002053632354010653
+        ],
+        "paired_mae_change_kcal_mol": -0.017621224263156494,
+        "rmse_kcal_mol": 1.9366055436535652,
+        "worsened_count": 236
+      },
+      "ddpcm+DAREAL": {
+        "count": 642,
+        "improved_count": 0,
+        "mae_kcal_mol": 1.5027845041702543,
+        "maximum_absolute_error_kcal_mol": 8.63836829077243,
+        "mean_signed_error_kcal_mol": 0.7773267750925167,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          0.0,
+          0.0
+        ],
+        "paired_mae_change_kcal_mol": 0.0,
+        "rmse_kcal_mol": 1.9614134423927796,
+        "worsened_count": 0
+      },
+      "ddpcm+MOIST": {
+        "count": 642,
+        "improved_count": 395,
+        "mae_kcal_mol": 1.4909081232723012,
+        "maximum_absolute_error_kcal_mol": 9.4710441681911,
+        "mean_signed_error_kcal_mol": 0.6665150693163813,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.02557782945187691,
+          0.001694531112410171
+        ],
+        "paired_mae_change_kcal_mol": -0.01187638089795339,
+        "rmse_kcal_mol": 1.9436050192866636,
+        "worsened_count": 247
+      }
+    },
+    "paired_complete_records": 642,
+    "source_database_sha256": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a",
+    "source_mol2_archive_sha256": "15ece6114442a8eb5e720c0ad25bb48e4a6a35392da36f72b80a6f2f415fd133",
+    "total_records": 642
+  },
+  "method_identity": {
+    "baseline": "frozen MACE-POLAR point-l1 ddPCM l15/n1202/eta0.1 + legacy SMD-CDS",
+    "candidate_cds": "MOIST-a0116e8 SvdW-DROP per-atom areas, SMD SASA radii, unchanged tensions",
+    "candidate_points_per_atom": 302,
+    "candidate_polar": "PySCF-2.13.1 C-PCM SWIG and ISWIG, SMD Coulomb radii",
+    "fit_performed": false,
+    "fixed_geometry": true,
+    "production_analytic_hessian_qualified": false
+  },
+  "mnsol": {
+    "attempted_records": 653,
+    "bootstrap_policy": "paired solute-geometry cluster resample",
+    "dataset_version": "2012",
+    "eligible_by_solvent": {
+      "acetonitrile": 7,
+      "chloroform": 109,
+      "dichloromethane": 11,
+      "dimethylformamide": 7,
+      "dimethylsulfoxide": 7,
+      "ethanol": 8,
+      "hexane": 59,
+      "tetrahydrofuran": 7,
+      "toluene": 51,
+      "water": 387
+    },
+    "eligible_partition_counts": {
+      "confirmation": 148,
+      "development": 505
+    },
+    "eligible_records": 653,
+    "method_metrics": {
+      "ISWIG+DAREAL": {
+        "count": 653,
+        "improved_count": 430,
+        "mae_kcal_mol": 1.2757631126296902,
+        "maximum_absolute_error_kcal_mol": 7.185001410189196,
+        "mean_signed_error_kcal_mol": 0.566742827656835,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.023488628900461193,
+          0.025525208811232505
+        ],
+        "paired_mae_change_kcal_mol": 0.001295428010671855,
+        "rmse_kcal_mol": 1.757264330950319,
+        "worsened_count": 223
+      },
+      "ISWIG+MOIST": {
+        "count": 653,
+        "improved_count": 387,
+        "mae_kcal_mol": 1.245162470090011,
+        "maximum_absolute_error_kcal_mol": 7.7957962995932935,
+        "mean_signed_error_kcal_mol": 0.5475758059586951,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.05222142905867886,
+          -0.0071184484306644905
+        ],
+        "paired_mae_change_kcal_mol": -0.029305214529007195,
+        "rmse_kcal_mol": 1.7254290762897693,
+        "worsened_count": 266
+      },
+      "SWIG+DAREAL": {
+        "count": 653,
+        "improved_count": 412,
+        "mae_kcal_mol": 1.2778124240543367,
+        "maximum_absolute_error_kcal_mol": 7.192718330526329,
+        "mean_signed_error_kcal_mol": 0.5659161411974581,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.021594506814032854,
+          0.027796057147709316
+        ],
+        "paired_mae_change_kcal_mol": 0.00334473943531875,
+        "rmse_kcal_mol": 1.7592179755922397,
+        "worsened_count": 241
+      },
+      "SWIG+MOIST": {
+        "count": 653,
+        "improved_count": 389,
+        "mae_kcal_mol": 1.2471810536067027,
+        "maximum_absolute_error_kcal_mol": 7.783414269920787,
+        "mean_signed_error_kcal_mol": 0.5467491194993183,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.05019457317647012,
+          -0.005181505810186862
+        ],
+        "paired_mae_change_kcal_mol": -0.027286631012315536,
+        "rmse_kcal_mol": 1.7272562784274328,
+        "worsened_count": 264
+      },
+      "ddpcm+DAREAL": {
+        "count": 653,
+        "improved_count": 0,
+        "mae_kcal_mol": 1.2744676846190182,
+        "maximum_absolute_error_kcal_mol": 7.243453757863914,
+        "mean_signed_error_kcal_mol": 0.7411140510160816,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          0.0,
+          0.0
+        ],
+        "paired_mae_change_kcal_mol": 0.0,
+        "rmse_kcal_mol": 1.7812510326334559,
+        "worsened_count": 0
+      },
+      "ddpcm+MOIST": {
+        "count": 653,
+        "improved_count": 359,
+        "mae_kcal_mol": 1.260056838730447,
+        "maximum_absolute_error_kcal_mol": 7.692872336989533,
+        "mean_signed_error_kcal_mol": 0.7219470293179417,
+        "paired_bootstrap_95pct_ci_kcal_mol": [
+          -0.027895066915265738,
+          -0.0009666869979627546
+        ],
+        "paired_mae_change_kcal_mol": -0.0144108458885711,
+        "rmse_kcal_mol": 1.7580354025372271,
+        "worsened_count": 294
+      }
+    },
+    "normalized_bundle_sha256": "6465a65a024cd06872cb9812381184ed6e9b1a528adfe12be9d5d43b4aec75d8",
+    "original_records": 3037,
+    "paired_complete_records": 653,
+    "partition_aggregates": {
+      "confirmation": {
+        "n": 148,
+        "old_mae_kcal_mol": 1.2384037528755398,
+        "swig_moist_mae_kcal_mol": 1.1897344242599026
+      },
+      "development": {
+        "n": 505,
+        "old_mae_kcal_mol": 1.285036916100275,
+        "swig_moist_mae_kcal_mol": 1.2640168974548736
+      }
+    },
+    "priority_ordered_audit_reason_counts": {
+      "disconnected_geometry": 1,
+      "eligible": 653,
+      "nonneutral": 363,
+      "outside_mass_domain": 1,
+      "solvent_outside_frozen_panel": 1874,
+      "transfer_not_absolute": 144,
+      "unsupported_element": 1
+    },
+    "solvent_aggregates": {
+      "acetonitrile": {
+        "iswig_moist_mae_kcal_mol": 0.8254925267562588,
+        "n": 7,
+        "old_mae_kcal_mol": 0.8438357239941612,
+        "swig_moist_mae_kcal_mol": 0.8169260944774208
+      },
+      "chloroform": {
+        "iswig_moist_mae_kcal_mol": 0.9531340453612016,
+        "n": 109,
+        "old_mae_kcal_mol": 1.0276237364416143,
+        "swig_moist_mae_kcal_mol": 0.953081426072251
+      },
+      "dichloromethane": {
+        "iswig_moist_mae_kcal_mol": 0.7657963288097882,
+        "n": 11,
+        "old_mae_kcal_mol": 0.736297542044251,
+        "swig_moist_mae_kcal_mol": 0.7786307901540592
+      },
+      "dimethylformamide": {
+        "iswig_moist_mae_kcal_mol": 1.0131869387040269,
+        "n": 7,
+        "old_mae_kcal_mol": 1.0277772826173062,
+        "swig_moist_mae_kcal_mol": 1.013378377621325
+      },
+      "dimethylsulfoxide": {
+        "iswig_moist_mae_kcal_mol": 1.2796314500881834,
+        "n": 7,
+        "old_mae_kcal_mol": 1.2663142028908108,
+        "swig_moist_mae_kcal_mol": 1.2802663675983244
+      },
+      "ethanol": {
+        "iswig_moist_mae_kcal_mol": 1.041212665692017,
+        "n": 8,
+        "old_mae_kcal_mol": 0.989857614584311,
+        "swig_moist_mae_kcal_mol": 1.0425596695057378
+      },
+      "hexane": {
+        "iswig_moist_mae_kcal_mol": 0.6271840593262412,
+        "n": 59,
+        "old_mae_kcal_mol": 0.5330097236788386,
+        "swig_moist_mae_kcal_mol": 0.6297898554047403
+      },
+      "tetrahydrofuran": {
+        "iswig_moist_mae_kcal_mol": 0.5902765431978325,
+        "n": 7,
+        "old_mae_kcal_mol": 0.649381376502345,
+        "swig_moist_mae_kcal_mol": 0.5899850226907493
+      },
+      "toluene": {
+        "iswig_moist_mae_kcal_mol": 0.5016859493202763,
+        "n": 51,
+        "old_mae_kcal_mol": 0.5168229578754474,
+        "swig_moist_mae_kcal_mol": 0.5056484622502941
+      },
+      "water": {
+        "iswig_moist_mae_kcal_mol": 1.5604549507885166,
+        "n": 387,
+        "old_mae_kcal_mol": 1.6017611686154778,
+        "swig_moist_mae_kcal_mol": 1.562708972700779
+      }
+    },
+    "source_table_sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156"
+  },
+  "private_evidence_commitments": {
+    "evidence_manifest_sha256": "89ec387079b066fd754d24e83914392fb099fd841ae4cf1be158f19930684a61",
+    "freesolv_original_rows": {
+      "count": 642,
+      "sorted_name_and_sha256_digest": "a74ae0ea257c98aa59262999b3aa8e4d192685f084e46ec12b49e32a587c0f22"
+    },
+    "freesolv_recovered_guard_rows": {
+      "count": 1,
+      "sorted_name_and_sha256_digest": "b914f94677a6422b34d8c15e5a48efd7fd70b9b48525ec42b88570ca8893e3af"
+    },
+    "freesolv_recovery_controls": {
+      "count": 20,
+      "sorted_name_and_sha256_digest": "f600096ab16b7495741b241a70e957f416dcd6ae939d17237b7781100eb66279"
+    },
+    "mnsol_v2_rows": {
+      "count": 653,
+      "sorted_name_and_sha256_digest": "17f94c0e4948b439110e211c2a6492e58bfe02c68518c857dd083e1c6410bb41"
+    }
+  },
+  "publication_date": "2026-09-24",
+  "schema": "maple-smooth-cavity-full-freesolv642-mnsol653-aggregate-v1",
+  "scientific_boundaries": [
+    "MNSol 3037-row audit is not 3037 modeled predictions; only the 653 frozen-profile-eligible neutral absolute rows were scored.",
+    "Fixed-conformer or fixed-gas-geometry polar+CDS energies are diagnostic proxies for experimental free energies.",
+    "Pooled MAE improvement does not guarantee per-record or per-solvent nondegradation; both maximum absolute errors worsen.",
+    "Both FreeSolv and eligible MNSol labels were viewed; neither remains an untouched sealed test dataset.",
+    "Global smooth total-PES analytic Hessian, five-dataset 3-fit/2-sealed-test admission, and final Astra max approval are absent.",
+    "No raw MNSol or row-level experimental data are included in this aggregate artifact."
+  ],
+  "source_identity": {
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "moist_source_commit": "a0116e8ee369c546d48558e5e389e6f20bdff2e9",
+    "pyddx_version": "0.8.0",
+    "pyscf_version": "2.13.1",
+    "reviewed_v3_source_manifest_sha256": "527b7aebf3623c6cc0e7ada61fa1aca508d29b2c772c2dd908f3fdffadfa6d99"
+  },
+  "status": "complete-energy-diagnostic-not-scientifically-admitted",
+  "verification": {
+    "independent_raw_row_reconstruction": true,
+    "original_full_runs_and_energy_only_recovery_exit_zero": true,
+    "private_runner_static_checks": "Black, Pyflakes, Python bytecode compilation passed",
+    "targeted_tests": "61 passed (fresh publication check)"
+  }
+}

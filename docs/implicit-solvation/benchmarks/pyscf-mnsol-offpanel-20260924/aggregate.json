@@ -1,0 +1,244 @@
+{
+  "combined_descriptor_matched_descriptive": {
+    "bootstrap_policy": "10000 geometry-cluster resamples, seed 20260924, row-weighted statistic",
+    "candidate_paired_mae_bootstrap_95pct_ci_kcal_mol": [
+      -0.048937692401739896,
+      0.010328574203975559
+    ],
+    "count": 2496,
+    "methods": {
+      "ISWIG+MOIST": {
+        "count": 2496,
+        "mae_kcal_mol": 0.9377246990225481
+      },
+      "ddpcm+DAREAL": {
+        "count": 2496,
+        "mae_kcal_mol": 0.9559259346750221
+      }
+    },
+    "not_independent_sealed_confirmation": true,
+    "unique_geometries": 432
+  },
+  "dataset": {
+    "audited_original_records": 3037,
+    "descriptor_matched_records": 2496,
+    "descriptor_matched_solvents": 90,
+    "name": "MNSol",
+    "neutral_absolute_geometry_eligible": 2523,
+    "neutral_absolute_solvents": 91,
+    "new_matched_records": 1843,
+    "new_pyscf_mixture_mismatch_records": 27,
+    "offpanel_alias_candidate_solvents": 43,
+    "offpanel_direct_name_matched_solvents": 37,
+    "prior_registered_matched_records": 653,
+    "pyscf_mixture_mismatch_solvents": [
+      "decalin"
+    ],
+    "remaining_excluded": {
+      "disconnected_geometry": 1,
+      "nonneutral": 363,
+      "outside_mass_domain": 3,
+      "transfer_not_absolute": 144,
+      "unsupported_element": 3
+    },
+    "version": "v2012"
+  },
+  "decalin_pyscf_mixture_mismatch": {
+    "count": 27,
+    "methods": {
+      "ISWIG+DAREAL": {
+        "completed_rows": 27,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.5200090636428357,
+        "max_abs_error_kcal_mol": 2.821053574115256,
+        "paired_mae_change_kcal_mol": -0.19704717190534993,
+        "rmse_kcal_mol": 0.7588746999505782,
+        "worsened_count": 7
+      },
+      "ISWIG+MOIST": {
+        "completed_rows": 27,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.5299546982378733,
+        "max_abs_error_kcal_mol": 2.8338551329577264,
+        "paired_mae_change_kcal_mol": -0.18710153731031237,
+        "rmse_kcal_mol": 0.7840508142911651,
+        "worsened_count": 5
+      },
+      "ddpcm+DAREAL": {
+        "completed_rows": 27,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.7170562355481856,
+        "max_abs_error_kcal_mol": 3.0888926038431572,
+        "paired_mae_change_kcal_mol": 0.0,
+        "rmse_kcal_mol": 0.9611672230675639,
+        "worsened_count": 0
+      },
+      "ddpcm+MOIST": {
+        "completed_rows": 27,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.7925229294388636,
+        "max_abs_error_kcal_mol": 3.1016941626856274,
+        "paired_mae_change_kcal_mol": 0.075466693890678,
+        "rmse_kcal_mol": 1.024536247790249,
+        "worsened_count": 23
+      }
+    },
+    "pooled_with_descriptor_matched": false,
+    "pyscf_mixture_refractive_index": 1.4753
+  },
+  "evidence_sha256": {
+    "complete_summary": "4bdcd5b6dd5450195edf3c132e2834f365fffb6d99194f8d1bb8ab2789f18496",
+    "descriptor_audit": "22104846b871123f94b1d324561eab15d4aef500976cec3d419b38648739d486",
+    "frozen_protocol": "75ac82a612a80366fdddbc1bfabea1198c771df1f95e5764cea2c0ac267a04b5",
+    "mace_checkpoint": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "mnsol_source_archive": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+    "pyscf_libsolvent": "6b5ac2a3e60e71c71f905c9506ddac773ae3ffa2582d0ee7c6915520d2f53bdf",
+    "pyscf_smd_source": "287d43f251a16c50791f35fcf43eba12b92bd2b5aa0b3c739a8e3eb465c0ccfc",
+    "registered_parity": "9c94ec6d1b674cf2531e30eb182dcc2bf7c8ee8e3363aa4ad0464b6daeb1c5e7",
+    "research_runner": "3e7409148facb9709db304c07bdb60a22af6748ff8d09471ca11930c973c927d",
+    "stock_cds_parity": "06c1069697f141d617c6560c975195908b617e064583e33b1f9379a8e8537ab1"
+  },
+  "execution_git_head": "a39b0b3ff99ae013a0cadd17cc946a2e6cef1686",
+  "method_identity": {
+    "astra_max_final_review_passed": false,
+    "baseline": "pyddx 0.8 ddPCM lmax15/nleb1202/eta0.1 + PySCF 2.13.1 legacy SMD-CDS",
+    "candidate": "PySCF 2.13.1 ISWIG Gaussian C-PCM n302 + MOIST SvdW-DROP n302 with unchanged SMD tensions",
+    "candidate_is_same_scalar_as_baseline": false,
+    "fit_performed": false,
+    "five_dataset_3_fit_2_sealed_test_qualified": false,
+    "fixed_geometry": true,
+    "production_solvent_registry_modified": false,
+    "source": "official MACE-POLAR-1-M zero-field frozen point-l<=1",
+    "whole_total_pes_analytic_hessian_qualified": false
+  },
+  "new_matched_offpanel": {
+    "bootstrap_policy": "10000 geometry-cluster resamples, seed 20260924, row-weighted statistic",
+    "candidate_paired_mae_bootstrap_95pct_ci_kcal_mol": [
+      -0.04872821961254759,
+      0.018803454519316747
+    ],
+    "candidate_solvent_macro_mae_change_kcal_mol": -0.006612648134668197,
+    "candidate_worsened_solvent_count": 31,
+    "count": 1843,
+    "failures": 0,
+    "methods": {
+      "ISWIG+DAREAL": {
+        "completed_rows": 1843,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.869927402605315,
+        "max_abs_error_kcal_mol": 8.179814721714692,
+        "paired_mae_change_kcal_mol": 0.026865148187172744,
+        "rmse_kcal_mol": 1.2090101887883957,
+        "worsened_count": 987
+      },
+      "ISWIG+MOIST": {
+        "completed_rows": 1843,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.8287953097078149,
+        "max_abs_error_kcal_mol": 8.091811644190484,
+        "paired_mae_change_kcal_mol": -0.01426694471032745,
+        "rmse_kcal_mol": 1.1827143650642604,
+        "worsened_count": 922
+      },
+      "ddpcm+DAREAL": {
+        "completed_rows": 1843,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.8430622544181424,
+        "max_abs_error_kcal_mol": 8.749776552979455,
+        "paired_mae_change_kcal_mol": 0.0,
+        "rmse_kcal_mol": 1.2592087687528948,
+        "worsened_count": 0
+      },
+      "ddpcm+MOIST": {
+        "completed_rows": 1843,
+        "full_stratum_metric": true,
+        "mae_kcal_mol": 0.8474601423522812,
+        "max_abs_error_kcal_mol": 8.661773475455247,
+        "paired_mae_change_kcal_mol": 0.004397887934138852,
+        "rmse_kcal_mol": 1.2663758953408442,
+        "worsened_count": 1019
+      }
+    },
+    "profile_tiers": {
+      "exact-normalized-name-and-descriptor": {
+        "count": 657,
+        "iswig_moist_mae_kcal_mol": 0.768780976684423,
+        "old_mae_kcal_mol": 0.7852063879576547
+      },
+      "unique-descriptor-alias-candidate": {
+        "count": 1186,
+        "iswig_moist_mae_kcal_mol": 0.86204102370138,
+        "old_mae_kcal_mol": 0.8751122580138762
+      }
+    },
+    "representative_solvent_aggregates": {
+      "benzene": {
+        "count": 75,
+        "iswig_moist_mae_kcal_mol": 0.738283965445798,
+        "old_mae_kcal_mol": 0.8591700956866584
+      },
+      "bromobenzene": {
+        "count": 27,
+        "iswig_moist_mae_kcal_mol": 0.8110066417945182,
+        "old_mae_kcal_mol": 0.6410080754016776
+      },
+      "chlorobenzene": {
+        "count": 38,
+        "iswig_moist_mae_kcal_mol": 0.8809156506813608,
+        "old_mae_kcal_mol": 0.7174691978296663
+      },
+      "cyclohexane": {
+        "count": 92,
+        "iswig_moist_mae_kcal_mol": 0.559629244630271,
+        "old_mae_kcal_mol": 0.6368154142667811
+      },
+      "dodecane": {
+        "count": 8,
+        "iswig_moist_mae_kcal_mol": 0.5623500219749892,
+        "old_mae_kcal_mol": 0.2892086583139075
+      },
+      "hexadecane": {
+        "count": 196,
+        "iswig_moist_mae_kcal_mol": 0.6440031486513476,
+        "old_mae_kcal_mol": 0.6491850554204193
+      },
+      "isooctane": {
+        "count": 32,
+        "iswig_moist_mae_kcal_mol": 0.7625952203412817,
+        "old_mae_kcal_mol": 0.5102200591849251
+      },
+      "octanol": {
+        "count": 245,
+        "iswig_moist_mae_kcal_mol": 1.5396202283875344,
+        "old_mae_kcal_mol": 1.6491797389139795
+      }
+    },
+    "solvents": 80,
+    "unique_geometries": 317
+  },
+  "prior_registered_panel": {
+    "count": 653,
+    "iswig_moist_mae_kcal_mol": 1.245162470090011,
+    "iswig_moist_max_abs_error_kcal_mol": 7.7957962995932935,
+    "iswig_moist_worsened_record_count": 266,
+    "old_mae_kcal_mol": 1.2744676846190182,
+    "old_max_abs_error_kcal_mol": 7.243453757863914
+  },
+  "restricted_data_policy": "No MNSol record labels, geometries, source-table rows, or raw archive are distributed.",
+  "schema": "maple-pyscf-smd-mnsol-offpanel-aggregate-v1",
+  "status": "complete-energy-only-research-diagnostic-not-model-admission",
+  "verification": {
+    "full_batch_exit_code": 0,
+    "independent_descriptor_match_solvents": 80,
+    "independent_descriptor_out_of_tolerance": 0,
+    "new_attempted": 1870,
+    "new_calculation_failures": 0,
+    "new_expected": 1870,
+    "offpanel_max_abs_stock_cds_difference_kcal_mol": 2.9403627976876123e-07,
+    "offpanel_stock_cds_parity_controls": 10,
+    "registered_energy_parity_controls": 10,
+    "registered_max_abs_cds_difference_eV": 0.0,
+    "registered_max_abs_ddpcm_difference_eV": 5.73585762220219e-10,
+    "registered_source_hashes_all_match": true
+  }
+}

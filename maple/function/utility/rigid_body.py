@@ -1,13 +1,41 @@
 """Mass-weighted rigid-body geometry classification."""
 
+from dataclasses import dataclass
+
 import numpy as np
 from ase import Atoms
 
 
-def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
-    """Return an orthonormal rigid-motion basis for the system geometry."""
+@dataclass(frozen=True)
+class RigidBodyGeometry:
+    """A single mass-metric decomposition for projection and molecular rotation.
+
+    Principal moments are sorted in ascending order, in amu Angstrom squared.
+    Numerically absent rotation axes have exactly zero moment. Under PBC only
+    translations are retained, so molecular rotational moments are all zero.
+    """
+
+    basis: np.ndarray
+    principal_moments: np.ndarray
+
+    @property
+    def rotational_dof(self) -> int:
+        return int(np.count_nonzero(self.principal_moments))
+
+
+def analyze_rigid_geometry(atoms: Atoms) -> RigidBodyGeometry:
+    """Factor the COM-centered rotational-displacement operator, not its Gram.
+
+    For this operator G, G.T @ G is the inertia tensor. Its squared singular
+    values therefore give the principal moments without squaring the condition
+    number before diagonalization. The same retained axes define the basis.
+    """
     masses = np.asarray(atoms.get_masses(), dtype=float)
     positions = np.asarray(atoms.get_positions(), dtype=float)
+    if not np.all(np.isfinite(masses)) or np.any(masses <= 0.0):
+        raise ValueError("Rigid-body analysis requires finite, positive masses")
+    if not np.all(np.isfinite(positions)):
+        raise ValueError("Rigid-body analysis requires finite positions")
     n_atoms = len(atoms)
     include_rotations = not np.any(atoms.get_pbc())
     candidates = np.zeros((3 * n_atoms, 6 if include_rotations else 3))
@@ -30,7 +58,7 @@ def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
                 )
 
     if not candidates.size:
-        return np.empty((3 * n_atoms, 0))
+        return RigidBodyGeometry(np.empty((3 * n_atoms, 0)), np.zeros(3))
 
     # Translation and rotation are orthogonal when rotations are constructed
     # about the centre of mass.  Factor them separately so the returned basis
@@ -40,7 +68,7 @@ def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
     translation_scale = np.sqrt(np.sum(masses))
     translation_vectors = candidates[:, :3] / translation_scale
     if not include_rotations:
-        return translation_vectors
+        return RigidBodyGeometry(translation_vectors, np.zeros(3))
 
     rotation_candidates = candidates[:, 3:]
     rotation_candidates -= translation_vectors @ (
@@ -49,18 +77,25 @@ def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
     rotation_vectors, singular_values, _ = np.linalg.svd(
         rotation_candidates, full_matrices=False
     )
-    if not singular_values.size:
-        return translation_vectors
-    largest_scale = max(translation_scale, singular_values[0])
+    # Rank tolerance has the same units as G (sqrt(amu) Angstrom); translation
+    # norms have different units and must not determine rotational rank.
     tolerance = (
-        max(candidates.shape)
+        max(rotation_candidates.shape)
         * np.finfo(candidates.dtype).eps
-        * largest_scale
+        * singular_values[0]
     )
-    rotations = rotation_vectors[:, singular_values > tolerance]
+    retained = singular_values > tolerance
+    rotations = rotation_vectors[:, retained]
+    principal_moments = np.sort(np.where(retained, singular_values**2, 0.0))
     combined = np.column_stack((translation_vectors, rotations))
     # SVD has selected the rank; QR jointly orthogonalizes only retained directions.
-    return np.linalg.qr(combined, mode="reduced")[0]
+    basis = np.linalg.qr(combined, mode="reduced")[0]
+    return RigidBodyGeometry(basis, principal_moments)
+
+
+def mass_weighted_rigid_basis(atoms: Atoms) -> np.ndarray:
+    """Return an orthonormal rigid-motion basis for the system geometry."""
+    return analyze_rigid_geometry(atoms).basis
 
 
 def project_rigid_body_velocities(
@@ -103,7 +138,7 @@ def rotational_dof(atoms: Atoms) -> int:
     """Return the rigid rotational dimension: 0, 2, or 3."""
     if np.any(atoms.get_pbc()):
         return 0
-    return max(mass_weighted_rigid_basis(atoms).shape[1] - 3, 0)
+    return analyze_rigid_geometry(atoms).rotational_dof
 
 
 def is_linear_geometry(atoms: Atoms) -> bool:

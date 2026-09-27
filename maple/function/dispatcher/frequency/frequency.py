@@ -21,6 +21,7 @@ from maple.function.calculator.electronic_state import validate_electronic_state
 from maple.function.timer import timer
 from maple.function.utility.active_dof import active_dof_mask
 from maple.function.utility.rigid_body import (
+    analyze_rigid_geometry,
     is_linear_geometry,
     mass_weighted_rigid_basis,
     rotational_dof,
@@ -332,6 +333,8 @@ class FrequencyBase(JobABC):
             reason = "periodic frequencies do not define ideal-gas molecular thermochemistry"
         elif self.atoms.constraints:
             reason = "partial-Hessian frequencies do not define whole-molecule gas thermochemistry"
+        else:
+            reason = self._rotational_applicability_error()
 
         if reason is None:
             return True
@@ -536,6 +539,11 @@ class FrequencyBase(JobABC):
         Compute gas-phase thermochemical properties.
         Only real vibrational modes are used (skip zeros and imaginary).
         """
+        reason = self._rotational_applicability_error()
+        if reason is not None:
+            raise ValueError(f"gas-phase thermochemistry is unavailable: {reason}")
+        if not np.all(np.isfinite(frequencies_cm1)):
+            raise ValueError("Thermochemistry requires finite vibrational frequencies")
         if self.atoms.calc is not None:
             validate_electronic_state(self.atoms, self.atoms.calc)
         T = self.temperature
@@ -615,6 +623,8 @@ class FrequencyBase(JobABC):
         )
         
         thermo.g_correction_kjmol = thermo.h_total_kjmol - T * thermo.s_total_jmolK * 1e-3
+        if not all(np.isfinite(getattr(thermo, field.name)) for field in fields(thermo)):
+            raise ValueError("Thermochemistry produced a non-finite result")
         
         return thermo
 
@@ -739,18 +749,25 @@ class FrequencyBase(JobABC):
         q_trans = ((2 * np.pi * m_tot * K_B * T) / (H**2)) ** 1.5 * (K_B * T / P)
         s_trans = R_GAS * (np.log(q_trans) + 2.5)
 
-        rot_dof = rotational_dof(self.atoms)
+        rot_dof = int(np.count_nonzero(I_SI))
         if rot_dof == 0:
             return s_trans, 0.0
 
         # Rotation (linear vs nonlinear).
         if rot_dof == 2:
-            I = np.max(I_SI)
+            active_moments = I_SI[I_SI > 0.0]
+            if not np.isclose(active_moments[0], active_moments[1], rtol=1e-12, atol=0.0):
+                raise ValueError("Linear-rotor principal moments must be degenerate")
+            I = float(np.mean(active_moments))
             q_rot = (8 * np.pi**2 * I * K_B * T) / (sigma * H**2)
             s_rot = R_GAS * (np.log(q_rot) + 1)
         else:
-            q_rot = (np.sqrt(np.pi) / sigma) * ((8 * np.pi**2 * K_B * T) / (H**2)) ** 1.5 * np.sqrt(np.prod(I_SI))
-            s_rot = R_GAS * (np.log(q_rot) + 1.5)
+            log_q_rot = (
+                0.5 * np.log(np.pi) - np.log(sigma)
+                + 1.5 * np.log(8 * np.pi**2 * K_B * T / H**2)
+                + 0.5 * np.sum(np.log(I_SI))
+            )
+            s_rot = R_GAS * (log_q_rot + 1.5)
 
         return s_trans, s_rot
 
@@ -761,10 +778,39 @@ class FrequencyBase(JobABC):
         Returns:
             Tuple[np.ndarray, float]: (I_x,I_y,I_z) in kg·m² and total mass (kg).
         """
-        I_amuA2 = np.asarray(self.atoms.get_moments_of_inertia(vectors=False))
+        I_amuA2 = analyze_rigid_geometry(self.atoms).principal_moments
         I_SI = I_amuA2 * AMU * ANG2_TO_M2
         m_tot = np.sum(self.atoms.get_masses()) * AMU
         return I_SI, m_tot
+
+    def _rotational_applicability_error(self) -> str | None:
+        """Reject an explicitly violated necessary classical-rotor condition.
+
+        RRHO requires T >> theta_i, not merely T > theta_i. This minimal gate
+        rejects T <= theta_i; passing it does not certify RRHO accuracy.
+        See https://cccbdb.nist.gov/thermox.asp (rotational partition function).
+        """
+        if np.any(self.atoms.pbc) or self.atoms.constraints:
+            return "gas thermochemistry requires an unconstrained isolated molecule"
+        moments, mass = self._principal_moments()
+        if not np.isfinite(mass) or mass <= 0.0:
+            return "molecular mass must be finite and positive"
+        if not np.all(np.isfinite(moments)) or np.any(moments < 0.0):
+            return "rotational moments must be finite and nonnegative"
+        active = moments[moments > 0.0]
+        if len(self.atoms) > 1 and len(active) not in (2, 3):
+            return "degenerate geometry has no molecular rotational partition function"
+        if not len(active):
+            return None
+        theta = H**2 / (8.0 * np.pi**2 * active * K_B)
+        if np.any(theta >= self.temperature):
+            return (
+                "classical RRHO rotational temperature condition is not satisfied: "
+                f"theta_max={float(np.max(theta)):.6g} K >= T={self.temperature:.6g} K; "
+                f"active inertias={active.tolist()} kg m^2. "
+                "Quantum/rovibrational treatment is required, not a linearity threshold."
+            )
+        return None
 
     def _is_linear_molecule(self) -> bool:
         return is_linear_geometry(self.atoms)

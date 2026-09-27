@@ -12,6 +12,7 @@ from ase import Atoms
 from ase.cell import Cell
 
 from ...calculator.electronic_state import (
+    IDENTITY_SCHEMA_VERSION,
     canonical_identity_json,
     electronic_state_identity,
 )
@@ -39,6 +40,47 @@ class PreparedMDState:
     ) -> PreparedMDState:
         checkpoint = {**self.checkpoint, "velocity_representation": representation}
         return replace(self, velocities=velocities, checkpoint=checkpoint)
+
+
+def _validate_early_pes_identity(state: dict, atoms: Atoms, *, load_state: bool) -> None:
+    """Fail before ensemble construction when continuation semantics bind the PES."""
+    carried_load = load_state and state["velocity_representation"] == "lfmiddle_carried"
+    if load_state and not carried_load:
+        return
+    if state["version"] < 2:
+        if carried_load:
+            raise RuntimeError(
+                "Legacy LF-Middle carried velocities cannot be rebound safely because "
+                "MAPLE_RST_V1 has no PES identity."
+            )
+        raise RuntimeError(
+            "MAPLE_RST_V1 cannot prove an exact continuation because it lacks the full "
+            "cell and state identity. Use load_state=yes to start a new run."
+        )
+    saved_identity = state.get("pes_identity")
+    if not isinstance(saved_identity, dict):
+        raise TypeError("RST PES identity is missing or malformed.")
+    if saved_identity.get("schema_version") != IDENTITY_SCHEMA_VERSION:
+        raise RuntimeError(
+            "RST PES identity schema is incompatible with the current implementation "
+            f"(expected {IDENTITY_SCHEMA_VERSION}); exact continuation is not allowed."
+        )
+    if not saved_identity.get("implementation_version"):
+        raise RuntimeError(
+            "RST PES identity is missing implementation_version; exact continuation "
+            "cannot upgrade an older identity in memory."
+        )
+    if canonical_identity_json(saved_identity) != canonical_identity_json(
+        electronic_state_identity(atoms)
+    ):
+        message = (
+            "LF-Middle carried velocities cannot be loaded onto a different PES "
+            "implementation."
+            if carried_load
+            else "Electronic state or PES implementation identity mismatch between RST "
+            "and input."
+        )
+        raise RuntimeError(message)
 
 
 def prepare_restart_candidate(
@@ -75,6 +117,7 @@ def prepare_restart_candidate(
     representation = state["velocity_representation"]
     if representation not in {"standard", "lfmiddle_carried"}:
         raise RuntimeError("Unsupported velocity representation in restart checkpoint.")
+    _validate_early_pes_identity(state, atoms, load_state=load_state)
     saved_pbc = state["pbc"] if state["pbc"] is not None else [False, False, False]
     if not np.array_equal(np.asarray(saved_pbc), np.asarray(atoms.pbc)):
         raise RuntimeError("PBC mismatch between RST and input.")

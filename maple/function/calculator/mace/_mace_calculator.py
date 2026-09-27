@@ -15,6 +15,8 @@ from ._common import (
     radius_graph_no_pbc,
 )
 
+IMPLEMENTATION_VERSION = "maple-mace-adapter-v1"
+
 
 # ------------------------ Data builder ------------------------
 
@@ -154,6 +156,7 @@ class MACECalculator(CalcABC):
         attach_calculator_identity(
             self,
             backend=str(model).lower(),
+            implementation_version=IMPLEMENTATION_VERSION,
             checkpoint_path=model_path,
             relevant_settings=solvation_identity_settings(implicit, solvent),
         )

@@ -44,6 +44,7 @@ from ..electronic_state import (
 )
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
+IMPLEMENTATION_VERSION = "maple-uma-adapter-v1"
 UMA_MODELS_MAP = {
     "uma": UMA_DEFAULT_SIZE,
     "uma-s-1p1": "uma-s-1p1",
@@ -399,6 +400,7 @@ class UMACalculator(FAIRChemCalculator):
         attach_calculator_identity(
             self,
             backend=f"uma:{checkpoint}",
+            implementation_version=IMPLEMENTATION_VERSION,
             model_fingerprint=loaded.model_fingerprint,
             relevant_settings={
                 "task": task or "omol",

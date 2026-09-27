@@ -16,6 +16,7 @@ _FENNOL_MODEL_FILES = {
     "fennix-bio1s": "fennix-bio1S-finetuneIons.fnx",
     "fennix-bio1m": "fennix-bio1M-finetuneIons.fnx",
 }
+IMPLEMENTATION_VERSION = "maple-fennol-adapter-v1"
 
 @register_calculator
 class FeNNolCalculator(CalcABC):
@@ -76,6 +77,7 @@ class FeNNolCalculator(CalcABC):
         attach_calculator_identity(
             self,
             backend=str(model).lower(),
+            implementation_version=IMPLEMENTATION_VERSION,
             checkpoint_path=self.model_path,
             relevant_settings={
                 "use_float64": bool(use_float64),

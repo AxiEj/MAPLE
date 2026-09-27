@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-IDENTITY_SCHEMA_VERSION = 1
+IDENTITY_SCHEMA_VERSION = 2
 _CALCULATOR_IDENTITY_ATTRIBUTE = "maple_pes_identity"
 
 
@@ -52,22 +52,27 @@ def attach_calculator_identity(
     calculator,
     *,
     backend: str,
+    implementation_version: str,
     checkpoint_path: str | Path | None = None,
     model_fingerprint: dict[str, str] | None = None,
     relevant_settings: dict[str, Any] | None = None,
 ) -> None:
-    """Attach the immutable identity of weights loaded by a calculator."""
+    """Attach the immutable identity of weights and scientific adapter code."""
     if (checkpoint_path is None) == (model_fingerprint is None):
         raise ValueError("Provide exactly one checkpoint path or loaded fingerprint.")
     fingerprint = (
         checkpoint_fingerprint(checkpoint_path)
         if checkpoint_path is not None else _json_value(model_fingerprint)
     )
+    if not isinstance(implementation_version, str) or not implementation_version.strip():
+        raise ValueError("implementation_version must be a non-empty stable identifier.")
+    version = implementation_version.strip()
     setattr(
         calculator,
         _CALCULATOR_IDENTITY_ATTRIBUTE,
         {
             "backend": str(backend).strip().lower(),
+            "implementation_version": version,
             "model_fingerprint": fingerprint,
             "relevant_settings": _json_value(relevant_settings or {}),
         },
@@ -89,11 +94,22 @@ def _calculator_identity(calculator) -> dict[str, Any]:
             "External calculators must provide get_pes_identity() or maple_pes_identity."
         )
 
-    required = {"backend", "model_fingerprint", "relevant_settings"}
+    required = {
+        "backend",
+        "implementation_version",
+        "model_fingerprint",
+        "relevant_settings",
+    }
     missing = sorted(required - identity.keys())
     if missing:
         raise ValueError(f"Calculator PES identity is missing: {', '.join(missing)}")
     normalized = _json_value(identity)
+    if not isinstance(normalized["implementation_version"], str) or not normalized[
+        "implementation_version"
+    ].strip():
+        raise ValueError(
+            "Calculator PES identity requires a non-empty implementation_version."
+        )
     fingerprint = normalized["model_fingerprint"]
     if (
         not isinstance(fingerprint, dict)
@@ -142,6 +158,34 @@ def requested_electronic_state(atoms) -> tuple[int, int]:
 def validate_electronic_state(atoms, backend, *, model_options=None) -> tuple[int, int]:
     """Reject a requested state that the energy backend cannot represent."""
     charge, multiplicity = requested_electronic_state(atoms)
+    periodic = bool(np.any(np.asarray(atoms.get_pbc(), dtype=bool)))
+    if periodic:
+        if (charge != 0 or multiplicity != 1) and not getattr(
+            backend, "SUPPORTS_PERIODIC_CHARGE_MULT", False
+        ):
+            name = backend.__name__ if isinstance(backend, type) else type(backend).__name__
+            raise ValueError(
+                f"{name} does not declare a periodic/fractional-occupation electronic-state "
+                f"model for charge={charge}, mult={multiplicity}."
+            )
+    else:
+        electron_count = int(np.asarray(atoms.get_atomic_numbers(), dtype=int).sum()) - charge
+        spin_excess = multiplicity - 1
+        if electron_count < 0:
+            raise ValueError(
+                f"Requested molecular charge={charge} gives a negative electron count "
+                f"({electron_count})."
+            )
+        if spin_excess > electron_count:
+            raise ValueError(
+                f"Requested multiplicity={multiplicity} exceeds the maximum allowed by "
+                f"the molecular electron count ({electron_count})."
+            )
+        if (electron_count - spin_excess) % 2:
+            raise ValueError(
+                f"Requested multiplicity={multiplicity} has inconsistent electron/spin "
+                f"parity for {electron_count} molecular electrons."
+            )
     if (charge != 0 or multiplicity != 1) and not getattr(backend, "SUPPORTS_CHARGE_MULT", False):
         name = backend.__name__ if isinstance(backend, type) else type(backend).__name__
         raise ValueError(
@@ -168,6 +212,7 @@ def electronic_state_identity(atoms) -> dict[str, Any]:
         "charge": charge,
         "multiplicity": multiplicity,
         "backend": calculator_identity["backend"],
+        "implementation_version": calculator_identity["implementation_version"],
         "model_fingerprint": calculator_identity["model_fingerprint"],
         "relevant_settings": calculator_identity["relevant_settings"],
     }
@@ -178,12 +223,22 @@ def canonical_identity_json(identity: dict[str, Any]) -> str:
 
 
 def validate_path_contract(images: Iterable, *, method: str = "reaction path") -> dict[str, Any]:
-    """Require one atom ordering, cell convention and content-addressed PES."""
+    """Require a non-periodic path with one ordering and content-addressed PES."""
     path = list(images)
     if len(path) < 2:
         raise ValueError(f"{method} requires at least two structures.")
 
     reference = path[0]
+    periodic_images = [
+        index
+        for index, image in enumerate(path)
+        if np.any(np.asarray(image.get_pbc(), dtype=bool))
+    ]
+    if periodic_images:
+        raise ValueError(
+            f"{method} uses a Cartesian non-periodic path implementation and does not "
+            f"support PBC (periodic image indices: {periodic_images})."
+        )
     if reference.calc is None:
         raise ValueError(f"{method} requires a calculator on the first structure.")
     reference_numbers = np.asarray(reference.get_atomic_numbers(), dtype=int)

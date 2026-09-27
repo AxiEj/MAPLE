@@ -17,6 +17,8 @@ from ..electronic_state import (
     validate_electronic_state,
 )
 
+IMPLEMENTATION_VERSION = "maple-ani-adapter-v1"
+
 
 @register_calculator
 class ANICalculator(CalcABC):
@@ -78,6 +80,7 @@ class ANICalculator(CalcABC):
         attach_calculator_identity(
             self,
             backend=str(model).lower(),
+            implementation_version=IMPLEMENTATION_VERSION,
             checkpoint_path=model_path,
             relevant_settings={
                 'd4': bool(d4),

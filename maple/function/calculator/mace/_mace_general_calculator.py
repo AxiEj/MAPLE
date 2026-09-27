@@ -11,6 +11,8 @@ from ..calculator_base import CalcABC, hessian_via_double_autograd, register_cal
 from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 from ._common import model_float_dtype, one_hot_node_attrs, radius_graph_no_pbc
 
+IMPLEMENTATION_VERSION = "maple-mace-general-adapter-v1"
+
 
 # ------------------------ Input builder ------------------------
 
@@ -106,6 +108,7 @@ class MACEModelCalculator(CalcABC):
         attach_calculator_identity(
             self,
             backend=str(model).lower(),
+            implementation_version=IMPLEMENTATION_VERSION,
             checkpoint_path=model_path,
             relevant_settings=solvation_identity_settings(implicit, solvent),
         )

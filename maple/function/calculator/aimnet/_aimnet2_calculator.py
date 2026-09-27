@@ -10,6 +10,8 @@ from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC, register_calculator
 from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 
+IMPLEMENTATION_VERSION = "maple-aimnet2-adapter-v1"
+
 
 def _aimnet_atomic_charges(model_output, n_atoms: int) -> np.ndarray:
     charges = model_output["charges"].detach().cpu().numpy()
@@ -146,6 +148,7 @@ class AIMNet2Calculator(CalcABC):
         attach_calculator_identity(
             self,
             backend=self.model_name,
+            implementation_version=IMPLEMENTATION_VERSION,
             checkpoint_path=model_path,
             relevant_settings={
                 'coulomb': self._coulomb_settings,

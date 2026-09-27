@@ -7,16 +7,29 @@ geometry optimization, transition-state search, reaction-path analysis, molecula
 dynamics, and related post-processing workflows.
 
 > [!CAUTION]
-> **Experimental Torch CHA/PBSA rewrite — licensing and scientific review pending.**
+> **Experimental Torch CHA/PBSA rewrite — no public exact-SP provider or release approval.**
+> The active target is now **Amber-numerics-faithful single-point energy only**;
+> OBC-II remains the force-capable route for OPT. The earlier continuous-SES
+> force research is archived locally and is not part of this exact-SP target.
+> A private, ignored source-derived full chain passed a frozen 30-case
+> energy-parity panel and scoped independent review, but is **not included in
+> this branch's public package**, qualified for arbitrary geometries, or
+> approved for experimental accuracy. A separate, unregistered Torch PBSA
+> cavity counting kernel has bounded component parity; it is not a complete
+> public CHA/PBSA provider.
 > This branch contains unregistered, formula-based Torch research modules for
 > fixed-charge inputs, PBSA solvent-accessible **volume**, and a separate
-> dispersion integral. They do **not** implement the complete multiatom R6
+> dispersion integral. Those continuous prototypes are **not** exact PBSA
+> replacements and do **not** implement the complete multiatom R6
 > solvent-excluded surface, provide a CHA force/OPT provider, or establish a new
 > hydration-accuracy result. No upstream Fortran is vendored in these modules,
 > but AmberTools source was consulted during research. The audited GBNSR6
 > source carries GPL-2.0-or-later terms and the PBSA tree has an LGPL-3.0
-> notice; whether this Torch implementation contains source-derived expression
-> or inherits those terms still requires rights-holder review. MAPLE's own
+> notice. A separate written exception is **not required for private work
+> permitted by those licenses**; however, any source-derived port must keep
+> the applicable upstream terms and cannot simply be distributed under
+> MAPLE's current notice. Whether any Torch module is source-derived and what
+> combined distribution is permitted require file-level review. MAPLE's own
 > [`LICENSE`](LICENSE) also combines BSD-3-Clause
 > wording with academic-only/noncommercial language that needs clarification.
 > **Publishing this work-in-progress does not resolve these questions or

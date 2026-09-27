@@ -247,3 +247,70 @@ def test_replaced_topology_and_mutated_parameter_tensor_fail_closed():
         fixed.charges_e[0] += 0.01
     with pytest.raises(ValueError, match="parameter.*hash|tensor.*hash"):
         fixed.assert_current()
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid"),
+    [
+        ("atom_ids", (2, 1)),
+        ("atom_names", ("C1", "")),
+        ("elements", ("O", "C")),
+        ("atomic_numbers", (8, 6)),
+        ("gaff2_types", ("c3", "")),
+        ("bonds", ((0, 1, "1"), (0, 1, "ar"))),
+        ("declared_charge_e", True),
+        ("source_charges_e", (0.5, -0.5)),
+        ("serialization_profile", "unknown-profile"),
+        ("bondi_radii_angstrom", (0.0, 1.5)),
+    ],
+)
+def test_resealed_direct_constructor_cannot_bypass_semantic_validation(field, invalid):
+    topology = _load(_artifact())
+    values = {
+        name: getattr(topology, name)
+        for name in topology.__dataclass_fields__
+        if name != "content_sha256"
+    }
+    values[field] = invalid
+    payload = {
+        "schema_version": 1,
+        "profile": "chagb-r6-pbsa-continuum-v1",
+        **values,
+    }
+    values["content_sha256"] = _hash(payload)
+
+    with pytest.raises((TypeError, ValueError)):
+        ContinuumChaTopology(**values)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "atom_names",
+        "elements",
+        "gaff2_types",
+        "source_charges_e",
+        "effective_charges_e",
+        "bondi_radii_angstrom",
+        "cha_radii_angstrom",
+        "lj_rmin_angstrom",
+        "lj_epsilon_kcal_mol",
+    ],
+)
+def test_direct_constructor_rejects_mutable_vector_fields(field):
+    topology = _load(_artifact())
+    values = {
+        name: getattr(topology, name)
+        for name in topology.__dataclass_fields__
+        if name != "content_sha256"
+    }
+    values[field] = list(values[field])
+    payload = {
+        "schema_version": 1,
+        "profile": "chagb-r6-pbsa-continuum-v1",
+        **values,
+    }
+    values["content_sha256"] = _hash(payload)
+
+    with pytest.raises(ValueError, match="immutable|tuple"):
+        ContinuumChaTopology(**values)

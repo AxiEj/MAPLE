@@ -12,10 +12,16 @@ from typing import Any
 
 from benchmark_core import artifact_content_sha256, load_json, sha256_file
 
-
 COMPATIBILITY_ARTIFACT = (
     Path(__file__).resolve().parent
+    / "route1-production-safety-source-compatibility-2026-09-27.json"
+)
+PREVIOUS_COMPATIBILITY_ARTIFACT = (
+    Path(__file__).resolve().parent
     / "route1-production-safety-source-compatibility-2026-07-27.json"
+)
+PREVIOUS_COMPATIBILITY_SHA256 = (
+    "834334ec44d83d48cf4947e3df6e6650970bd99e9b9d8c4ed7d70a3a005027a8"
 )
 
 
@@ -31,6 +37,15 @@ def load_source_compatibility() -> dict[str, Any]:
         or artifact.get("scientific_claim_promoted") is not False
     ):
         raise ValueError("Invalid Route 1 production-safety compatibility artifact.")
+    if (
+        artifact.get("supersedes")
+        != {
+            "file": PREVIOUS_COMPATIBILITY_ARTIFACT.name,
+            "file_sha256": PREVIOUS_COMPATIBILITY_SHA256,
+        }
+        or sha256_file(PREVIOUS_COMPATIBILITY_ARTIFACT) != PREVIOUS_COMPATIBILITY_SHA256
+    ):
+        raise ValueError("Historical source-compatibility evidence changed.")
     return artifact
 
 

@@ -19,6 +19,7 @@ from .calculator_base import (
     import_calculator_plugin,
     load_calculator_plugins_from_env,
     normalize_none_option,
+    parse_bool_option,
 )
 
 
@@ -298,6 +299,16 @@ class SetCalculator:
                         "implicit-solvent Hessian/HVP workflow gate. Use "
                         "hessian='numerical' until that backend/device/dtype "
                         "cell is independently qualified."
+                    )
+                # Match the option precedence and parser used to build ANI.
+                effective_d4 = parse_bool_option(
+                    self.model_options.get('d4', self.d4), name='d4'
+                )
+                if str(self.device).split(':', 1)[0].lower() != 'cpu' or effective_d4:
+                    raise ValueError(
+                        "The qualified analytic implicit-solvent cell requires "
+                        "CPU and D4 disabled. Other device/D4 combinations "
+                        "need independent Hessian/HVP workflow qualification."
                     )
 
         coulomb_method = self.model_options.get('coulomb_method')

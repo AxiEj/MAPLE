@@ -14,17 +14,23 @@ TWO_PI = 2.0 * math.pi
 
 
 @lru_cache(maxsize=16)
-def legendre_rule(order: int, device: str):
-    """Float64 Gauss-Legendre nodes/weights from a Torch Jacobi eigensolve."""
+def _cached_legendre_rule(order: int, device: str):
+    """Private Float64 Gauss-Legendre tensors; callers must not receive these."""
     import torch
 
-    if isinstance(order, bool) or not isinstance(order, int) or order < 2:
-        raise ValueError("Legendre order must be an integer >=2.")
     indices = torch.arange(1, order, dtype=torch.float64, device=device)
     off_diagonal = indices / torch.sqrt(4.0 * indices.square() - 1.0)
     jacobi = torch.diag(off_diagonal, 1) + torch.diag(off_diagonal, -1)
     nodes, eigenvectors = torch.linalg.eigh(jacobi)
     return nodes, 2.0 * eigenvectors[0].square()
+
+
+def legendre_rule(order: int, device: str):
+    """Return caller-owned Float64 Gauss-Legendre nodes and weights."""
+    if isinstance(order, bool) or not isinstance(order, int) or order < 2:
+        raise ValueError("Legendre order must be an integer >=2.")
+    nodes, weights = _cached_legendre_rule(order, device)
+    return nodes.clone(), weights.clone()
 
 
 def pair_xy_geometry(positions):

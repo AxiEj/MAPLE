@@ -13,6 +13,8 @@ from maple.function.calculator.extra_correction.implicit.sphere_union_volume imp
     volume_and_gradient,
 )
 from maple.function.calculator.extra_correction.implicit.torch_continuum_sav import (
+    _admit_sav_geometry_work,
+    _strict_midpoint,
     cavity_from_rmin,
     sphere_union_volume,
 )
@@ -198,3 +200,94 @@ def test_sav_two_site_hvp_graph_is_finite_without_capability_claim():
     gradient = torch.autograd.grad(energy, positions, create_graph=True)[0]
     hvp = torch.autograd.grad((gradient * direction).sum(), positions)[0]
     assert torch.isfinite(hvp).all()
+
+
+@pytest.mark.parametrize("name", ["atol", "rtol"])
+@pytest.mark.parametrize("value", [True, False, torch.finfo(torch.float64).eps / 2])
+def test_sav_rejects_boolean_or_unattainable_tolerances(name, value):
+    kwargs = {name: value}
+    with pytest.raises(ValueError, match="tolerances"):
+        sphere_union_volume(
+            torch.zeros((1, 3), dtype=torch.float64),
+            torch.ones(1, dtype=torch.float64),
+            **kwargs,
+        )
+
+
+def test_sav_rejects_unbounded_max_depth():
+    with pytest.raises(ValueError, match="max_depth"):
+        sphere_union_volume(
+            torch.zeros((1, 3), dtype=torch.float64),
+            torch.ones(1, dtype=torch.float64),
+            max_depth=10_000,
+        )
+
+
+def test_sav_stops_when_float64_midpoint_cannot_split_interval():
+    first = torch.tensor(1.0, dtype=torch.float64)
+    last = torch.nextafter(first, torch.tensor(2.0, dtype=torch.float64))
+    with pytest.raises(RuntimeError, match="midpoint"):
+        _strict_midpoint(first, last)
+
+
+def test_sav_enforces_interval_work_budget(monkeypatch):
+    import maple.function.calculator.extra_correction.implicit.torch_continuum_sav as sav
+
+    monkeypatch.setattr(sav, "_MAX_INTERVAL_ATTEMPTS", 1)
+
+    def incompatible_rules(_positions, _radii, z, _xy_distance, _angle):
+        return torch.zeros_like(z) if len(z) == 16 else torch.ones_like(z)
+
+    monkeypatch.setattr(sav, "_section_area", incompatible_rules)
+    with pytest.raises(RuntimeError, match="work budget"):
+        sphere_union_volume(
+            torch.zeros((1, 3), dtype=torch.float64),
+            torch.ones(1, dtype=torch.float64),
+        )
+
+
+def test_sav_default_geometry_budget_admits_thirty_sites():
+    _admit_sav_geometry_work(30)
+
+
+@pytest.mark.parametrize(
+    "budget_name,budget_value,site_count",
+    [
+        ("_MAX_DENSE_PAIR_ENTRIES", 3, 2),
+        ("_MAX_BREAKPOINT_CONTAINMENT_CHECKS", 5, 3),
+    ],
+)
+def test_sav_geometry_budget_fails_before_dense_events_or_breakpoints(
+    monkeypatch, budget_name, budget_value, site_count
+):
+    import maple.function.calculator.extra_correction.implicit.torch_continuum_sav as sav
+
+    monkeypatch.setattr(sav, budget_name, budget_value)
+
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("dense geometry work ran before SAV admission")
+
+    monkeypatch.setattr(sav, "validate_sphere_events", forbidden)
+    monkeypatch.setattr(sav, "pair_xy_geometry", forbidden)
+    monkeypatch.setattr(sav, "sphere_z_breakpoints", forbidden)
+    with pytest.raises(RuntimeError, match="geometry work budget"):
+        sphere_union_volume(
+            torch.arange(site_count, dtype=torch.float64)[:, None].expand(-1, 3),
+            torch.ones(site_count, dtype=torch.float64),
+        )
+
+
+@pytest.mark.parametrize("site_count,expected_checks", [(3, 6), (4, 24)])
+def test_sav_containment_charge_matches_two_extrema_threshold(
+    monkeypatch, site_count, expected_checks
+):
+    import maple.function.calculator.extra_correction.implicit.torch_continuum_sav as sav
+
+    monkeypatch.setattr(
+        sav, "_MAX_BREAKPOINT_CONTAINMENT_CHECKS", expected_checks - 1
+    )
+    with pytest.raises(RuntimeError, match=rf"{expected_checks} breakpoint"):
+        _admit_sav_geometry_work(site_count)
+
+    monkeypatch.setattr(sav, "_MAX_BREAKPOINT_CONTAINMENT_CHECKS", expected_checks)
+    _admit_sav_geometry_work(site_count)

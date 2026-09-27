@@ -35,6 +35,7 @@ from .common import KJ_PER_MOL_PER_HARTREE
 from .obc2_parameters import OBC_OFFSET_NM, OBC2Parameters
 from .openmm_compat import require_verified_obc2_expression_source
 from .result import SolvationDirectionalResult, SolvationResult
+from .torch_dense_budget import DEFAULT_DENSE_TORCH_BUDGET, DenseTorchBudget
 
 KINK_MARGIN_NM = 1.0e-8
 COULOMB_KJ_MOL_NM_E2 = 138.935485
@@ -57,7 +58,14 @@ class TorchOBC2:
 
     supported_properties = frozenset({"energy", "forces", "hessian", "hvp"})
 
-    def __init__(self, parameters: OBC2Parameters, *, device="cpu", dtype=None):
+    def __init__(
+        self,
+        parameters: OBC2Parameters,
+        *,
+        device="cpu",
+        dtype=None,
+        resource_budget: DenseTorchBudget = DEFAULT_DENSE_TORCH_BUDGET,
+    ):
         torch = _torch()
         if dtype is None:
             dtype = torch.float64
@@ -69,6 +77,9 @@ class TorchOBC2:
         self.source_compatibility = require_verified_obc2_expression_source()
         self.device = torch.device(device)
         self.dtype = dtype
+        if not isinstance(resource_budget, DenseTorchBudget):
+            raise TypeError("resource_budget must be a DenseTorchBudget.")
+        self.resource_budget = resource_budget
         self._charges = torch.as_tensor(
             np.array(parameters.charges, copy=True), dtype=dtype, device=self.device
         )
@@ -118,8 +129,13 @@ class TorchOBC2:
             requires_grad=requires_grad,
         )
 
-    def _geometry(self, positions_angstrom, *, second_derivatives: bool):
+    def _geometry(self, positions_angstrom, *, derivative_order: int):
         torch = _torch()
+        self.resource_budget.admit_pair_graph(
+            int(positions_angstrom.shape[0]),
+            derivative_order=derivative_order,
+            label="OBC-II",
+        )
         positions_nm = positions_angstrom * 0.1
         displacement = positions_nm[:, None, :] - positions_nm[None, :, :]
         squared = torch.sum(displacement * displacement, dim=-1)
@@ -163,7 +179,7 @@ class TorchOBC2:
             "minimum_max_switch_margin_nm": float(max_switch_margin.detach().cpu()),
             "rejection_margin_nm": KINK_MARGIN_NM,
         }
-        if second_derivatives:
+        if derivative_order == 2:
             if bool((step_margin <= KINK_MARGIN_NM).item()) or bool(
                 (max_switch_margin <= KINK_MARGIN_NM).item()
             ):
@@ -172,10 +188,10 @@ class TorchOBC2:
                 )
         return distance, off_diagonal, lower, upper, active, diagnostics
 
-    def _components_kj(self, positions_angstrom, *, second_derivatives=False):
+    def _components_kj(self, positions_angstrom, *, derivative_order=0):
         torch = _torch()
         distance, off_diagonal, lower, upper, active, diagnostics = self._geometry(
-            positions_angstrom, second_derivatives=second_derivatives
+            positions_angstrom, derivative_order=derivative_order
         )
         sr = self._sr[None, :]
         integral_expression = 0.5 * (
@@ -255,21 +271,23 @@ class TorchOBC2:
             raise ValueError("Torch OBC-II produced a non-finite energy.")
         return polar, nonpolar, diagnostics
 
-    def _energy_hartree(self, positions_angstrom, *, second_derivatives=False):
+    def _energy_hartree(self, positions_angstrom, *, derivative_order=0):
         polar, nonpolar, _diagnostics = self._components_kj(
-            positions_angstrom, second_derivatives=second_derivatives
+            positions_angstrom, derivative_order=derivative_order
         )
         return (polar + nonpolar) / KJ_PER_MOL_PER_HARTREE
 
     def branch_diagnostics(self, atoms) -> dict[str, float]:
         positions = self._positions(atoms, requires_grad=False)
-        *_geometry, diagnostics = self._geometry(positions, second_derivatives=False)
+        *_geometry, diagnostics = self._geometry(positions, derivative_order=0)
         return diagnostics
 
     def evaluate(self, atoms, need_forces: bool = False, calculator=None):
         torch = _torch()
         positions = self._positions(atoms, requires_grad=need_forces)
-        polar, nonpolar, diagnostics = self._components_kj(positions)
+        polar, nonpolar, diagnostics = self._components_kj(
+            positions, derivative_order=1 if need_forces else 0
+        )
         total = polar + nonpolar
         forces = None
         if need_forces:
@@ -291,7 +309,8 @@ class TorchOBC2:
         """Return the row-wise analytic Cartesian Hessian in Hartree/A^2."""
         torch = _torch()
         positions = self._positions(atoms, requires_grad=True)
-        energy = self._energy_hartree(positions, second_derivatives=True)
+        self.resource_budget.admit_dense_hessian(len(atoms), label="OBC-II")
+        energy = self._energy_hartree(positions, derivative_order=2)
         gradient = torch.autograd.grad(energy, positions, create_graph=True)[0].reshape(
             -1
         )
@@ -323,7 +342,7 @@ class TorchOBC2:
         if not np.isfinite(values).all():
             raise ValueError("Torch OBC-II HVP direction must be finite.")
         positions = self._positions(atoms, requires_grad=True)
-        energy = self._energy_hartree(positions, second_derivatives=True)
+        energy = self._energy_hartree(positions, derivative_order=2)
         gradient = torch.autograd.grad(energy, positions, create_graph=True)[0]
         vector = torch.as_tensor(
             values.reshape(positions.shape), dtype=self.dtype, device=self.device

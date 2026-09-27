@@ -194,59 +194,110 @@ class ContinuumChaTopology:
 
     def assert_current(self, expected_content_sha256: str) -> None:
         """Recheck internal values against the caller's external content pin."""
-        if (
-            self.content_sha256
-            != _digest("expected_content_sha256", expected_content_sha256)
-            or _sha(self._payload()) != self.content_sha256
-        ):
+        expected = _digest("expected_content_sha256", expected_content_sha256)
+        self._validate_semantics()
+        if self.content_sha256 != expected or _sha(self._payload()) != expected:
             raise ValueError("CHA topology hash differs from its external identity.")
+
+    def _validate_semantics(self) -> None:
+        """Validate every topology invariant for all construction paths."""
+        for name in (
+            "content_sha256",
+            "source_mol2_sha256",
+            "prepared_prmtop_sha256",
+            "parameter_source_sha256",
+            "source_charges_sha256",
+            "effective_charges_sha256",
+        ):
+            _digest(name, getattr(self, name))
+
+        count = len(self.atom_ids)
         if (
-            _sha(list(self.source_charges_e), newline=True)
-            != self.source_charges_sha256
-            or _sha(list(self.effective_charges_e), newline=True)
-            != self.effective_charges_sha256
+            not isinstance(self.atom_ids, tuple)
+            or count == 0
+            or any(type(atom_id) is not int for atom_id in self.atom_ids)
+            or self.atom_ids != tuple(range(1, count + 1))
+        ):
+            raise ValueError("atom_ids must preserve contiguous source atom order.")
+        vector_fields = (
+            "atom_names",
+            "elements",
+            "atomic_numbers",
+            "gaff2_types",
+            "source_charges_e",
+            "effective_charges_e",
+            "bondi_radii_angstrom",
+            "cha_radii_angstrom",
+            "lj_rmin_angstrom",
+            "lj_epsilon_kcal_mol",
+        )
+        if any(not isinstance(getattr(self, name), tuple) for name in vector_fields):
+            raise ValueError("CHA topology vector fields must be immutable tuples.")
+        _strings("atom_names", self.atom_names, count)
+        _strings("elements", self.elements, count)
+        _strings("gaff2_types", self.gaff2_types, count)
+        if (
+            not isinstance(self.atomic_numbers, tuple)
+            or len(self.atomic_numbers) != count
+            or any(type(number) is not int for number in self.atomic_numbers)
+        ):
+            raise ValueError("atomic_numbers must contain one integer per atom.")
+        from ase.data import chemical_symbols
+
+        if any(
+            not (1 <= number < len(chemical_symbols))
+            or chemical_symbols[number] != symbol
+            for number, symbol in zip(self.atomic_numbers, self.elements)
+        ):
+            raise ValueError("Atomic numbers and element symbols disagree.")
+
+        if not isinstance(self.bonds, tuple):
+            raise ValueError("bonds must be an immutable sequence of typed bonds.")
+        for bond in self.bonds:
+            if (
+                not isinstance(bond, tuple)
+                or len(bond) != 3
+                or any(type(index) is not int for index in bond[:2])
+                or not (0 <= bond[0] < bond[1] < count)
+                or not isinstance(bond[2], str)
+                or not bond[2].strip()
+            ):
+                raise ValueError("Invalid or reordered bond in CHA topology.")
+        if len({bond[:2] for bond in self.bonds}) != len(self.bonds):
+            raise ValueError("Duplicate bond in CHA topology.")
+
+        if type(self.declared_charge_e) is not int:
+            raise TypeError("declared_charge_e must be an integer.")
+        source = _numbers("source_charges_e", self.source_charges_e, count)
+        effective = _numbers("effective_charges_e", self.effective_charges_e, count)
+        if (
+            _sha(list(source), newline=True) != self.source_charges_sha256
+            or _sha(list(effective), newline=True) != self.effective_charges_sha256
         ):
             raise ValueError("CHA topology charge-vector hash mismatch.")
-        count = len(self.atom_ids)
-        if count == 0 or any(
-            not isinstance(getattr(self, name), tuple)
-            or len(getattr(self, name)) != count
-            for name in (
-                "atom_names",
-                "elements",
-                "atomic_numbers",
-                "gaff2_types",
-                "source_charges_e",
-                "effective_charges_e",
-                "bondi_radii_angstrom",
-                "cha_radii_angstrom",
-                "lj_rmin_angstrom",
-                "lj_epsilon_kcal_mol",
-            )
-        ):
-            raise ValueError("CHA topology array shape or immutable type changed.")
         for name in (
             "bondi_radii_angstrom",
             "cha_radii_angstrom",
             "lj_rmin_angstrom",
             "lj_epsilon_kcal_mol",
         ):
-            if any(
-                not math.isfinite(value) or value <= 0.0
-                for value in getattr(self, name)
-            ):
-                raise ValueError("CHA topology fixed parameter became invalid.")
-        if (
-            abs(sum(self.source_charges_e) - self.declared_charge_e)
-            > CHARGE_SUM_TOLERANCE_E
-            or abs(sum(self.effective_charges_e) - self.declared_charge_e)
-            > CHARGE_SUM_TOLERANCE_E
-            or max(
-                abs(before - after)
-                for before, after in zip(
-                    self.source_charges_e, self.effective_charges_e
-                )
+            _numbers(name, getattr(self, name), count, strictly_positive=True)
+
+        if self.serialization_profile not in {
+            "ambertools26-prmtop-charge-5e16.8-v1",
+            "direct-fixed-charge-v1",
+        }:
+            raise ValueError("Unknown fixed-charge serialization profile.")
+        if self.serialization_profile == "direct-fixed-charge-v1" and (
+            source != effective
+        ):
+            raise ValueError(
+                "Direct fixed-charge inputs must not change their charge vector."
             )
+        if (
+            abs(sum(source) - self.declared_charge_e) > CHARGE_SUM_TOLERANCE_E
+            or abs(sum(effective) - self.declared_charge_e) > CHARGE_SUM_TOLERANCE_E
+            or max(abs(before - after) for before, after in zip(source, effective))
             > MAX_SERIALIZATION_DRIFT_E
         ):
             raise ValueError("CHA topology fixed charge identity changed.")
@@ -289,164 +340,51 @@ class ContinuumChaTopology:
         ):
             raise ValueError("CHA topology artifact content hash mismatch.")
 
-        raw_ids = artifact["atom_ids"]
-        if (
-            not isinstance(raw_ids, (list, tuple))
-            or not raw_ids
-            or any(
-                isinstance(item, bool) or not isinstance(item, int) for item in raw_ids
-            )
-        ):
-            raise ValueError("atom_ids must contain positive integer MOL2 IDs.")
-        atom_ids = tuple(raw_ids)
-        if atom_ids != tuple(range(1, len(atom_ids) + 1)):
-            raise ValueError("atom_ids must preserve contiguous source atom order.")
-        count = len(atom_ids)
-        names = _strings("atom_names", artifact["atom_names"], count)
-        elements = _strings("elements", artifact["elements"], count)
-        types = _strings("gaff2_types", artifact["gaff2_types"], count)
-        raw_numbers = artifact["atomic_numbers"]
-        if (
-            not isinstance(raw_numbers, (list, tuple))
-            or len(raw_numbers) != count
-            or any(type(number) is not int for number in raw_numbers)
-        ):
-            raise ValueError("atomic_numbers must contain one integer per atom.")
-        from ase.data import chemical_symbols
-
-        if any(
-            not (1 <= number < len(chemical_symbols))
-            or chemical_symbols[number] != symbol
-            for number, symbol in zip(raw_numbers, elements)
-        ):
-            raise ValueError("Atomic numbers and element symbols disagree.")
-
-        raw_bonds = artifact["bonds"]
-        if not isinstance(raw_bonds, (list, tuple)):
-            raise ValueError("bonds must be a list of indexed, typed bonds.")
-        bonds = []
-        for bond in raw_bonds:
-            if (
-                not isinstance(bond, (list, tuple))
-                or len(bond) != 3
-                or any(
-                    isinstance(index, bool) or not isinstance(index, int)
-                    for index in bond[:2]
-                )
-                or not (0 <= bond[0] < bond[1] < count)
-                or not isinstance(bond[2], str)
-                or not bond[2].strip()
-            ):
-                raise ValueError("Invalid or reordered bond in CHA topology.")
-            bonds.append((bond[0], bond[1], bond[2]))
-        if len({bond[:2] for bond in bonds}) != len(bonds):
-            raise ValueError("Duplicate bond in CHA topology.")
-
-        net_charge = artifact["declared_charge_e"]
-        if isinstance(net_charge, bool) or not isinstance(net_charge, int):
-            raise TypeError("declared_charge_e must be an integer.")
-        source = _numbers("source_charges_e", artifact["source_charges_e"], count)
-        effective = _numbers(
-            "effective_charges_e", artifact["effective_charges_e"], count
+        topology = cls(
+            content_sha256=content_sha256,
+            source_mol2_sha256=artifact["source_mol2_sha256"],
+            prepared_prmtop_sha256=artifact["prepared_prmtop_sha256"],
+            parameter_source_sha256=artifact["parameter_source_sha256"],
+            serialization_profile=artifact["serialization_profile"],
+            atom_ids=tuple(artifact["atom_ids"]),
+            atom_names=tuple(artifact["atom_names"]),
+            elements=tuple(artifact["elements"]),
+            atomic_numbers=tuple(artifact["atomic_numbers"]),
+            gaff2_types=tuple(artifact["gaff2_types"]),
+            bonds=tuple(tuple(bond) for bond in artifact["bonds"]),
+            declared_charge_e=artifact["declared_charge_e"],
+            source_charges_e=tuple(
+                float(value) for value in artifact["source_charges_e"]
+            ),
+            effective_charges_e=tuple(
+                float(value) for value in artifact["effective_charges_e"]
+            ),
+            source_charges_sha256=artifact["source_charges_sha256"],
+            effective_charges_sha256=artifact["effective_charges_sha256"],
+            bondi_radii_angstrom=tuple(
+                float(value) for value in artifact["bondi_radii_angstrom"]
+            ),
+            cha_radii_angstrom=tuple(
+                float(value) for value in artifact["cha_radii_angstrom"]
+            ),
+            lj_rmin_angstrom=tuple(
+                float(value) for value in artifact["lj_rmin_angstrom"]
+            ),
+            lj_epsilon_kcal_mol=tuple(
+                float(value) for value in artifact["lj_epsilon_kcal_mol"]
+            ),
         )
-        source_hash = _digest(
-            "source_charges_sha256", artifact["source_charges_sha256"]
-        )
-        effective_hash = _digest(
-            "effective_charges_sha256", artifact["effective_charges_sha256"]
-        )
-        if (
-            _sha(list(source), newline=True) != source_hash
-            or _sha(list(effective), newline=True) != effective_hash
-        ):
-            raise ValueError("Source or effective charge-vector hash mismatch.")
-        if expected_source_charge_sha256 is not None and source_hash != _digest(
-            "expected_source_charge_sha256", expected_source_charge_sha256
+        if expected_source_charge_sha256 is not None and (
+            topology.source_charges_sha256
+            != _digest("expected_source_charge_sha256", expected_source_charge_sha256)
         ):
             raise ValueError("Fixed source charge identity differs from caller state.")
-        if (
-            abs(sum(source) - net_charge) > CHARGE_SUM_TOLERANCE_E
-            or abs(sum(effective) - net_charge) > CHARGE_SUM_TOLERANCE_E
-        ):
-            raise ValueError("Fixed charge vector does not close to declared total.")
-        if (
-            max(abs(before - after) for before, after in zip(source, effective))
-            > MAX_SERIALIZATION_DRIFT_E
-        ):
-            raise ValueError(
-                "Effective charge vector differs beyond serialization budget."
-            )
-
-        source_mol2_sha256 = _digest(
-            "source_mol2_sha256", artifact["source_mol2_sha256"]
-        )
-        if expected_source_mol2_sha256 is not None and source_mol2_sha256 != _digest(
-            "expected_source_mol2_sha256", expected_source_mol2_sha256
+        if expected_source_mol2_sha256 is not None and (
+            topology.source_mol2_sha256
+            != _digest("expected_source_mol2_sha256", expected_source_mol2_sha256)
         ):
             raise ValueError("Source MOL2 identity differs from caller state.")
-        prmtop_sha = _digest(
-            "prepared_prmtop_sha256", artifact["prepared_prmtop_sha256"]
-        )
-        parameter_sha = _digest(
-            "parameter_source_sha256", artifact["parameter_source_sha256"]
-        )
-        serialization_profile = artifact["serialization_profile"]
-        if serialization_profile not in {
-            "ambertools26-prmtop-charge-5e16.8-v1",
-            "direct-fixed-charge-v1",
-        }:
-            raise ValueError("Unknown fixed-charge serialization profile.")
-        if serialization_profile == "direct-fixed-charge-v1" and source != effective:
-            raise ValueError(
-                "Direct fixed-charge inputs must not change their charge vector."
-            )
-        bondi = _numbers(
-            "bondi_radii_angstrom",
-            artifact["bondi_radii_angstrom"],
-            count,
-            strictly_positive=True,
-        )
-        cha = _numbers(
-            "cha_radii_angstrom",
-            artifact["cha_radii_angstrom"],
-            count,
-            strictly_positive=True,
-        )
-        rmin = _numbers(
-            "lj_rmin_angstrom",
-            artifact["lj_rmin_angstrom"],
-            count,
-            strictly_positive=True,
-        )
-        epsilon = _numbers(
-            "lj_epsilon_kcal_mol",
-            artifact["lj_epsilon_kcal_mol"],
-            count,
-            strictly_positive=True,
-        )
-
-        return cls(
-            content_sha256=content_sha256,
-            source_mol2_sha256=source_mol2_sha256,
-            prepared_prmtop_sha256=prmtop_sha,
-            parameter_source_sha256=parameter_sha,
-            serialization_profile=serialization_profile,
-            atom_ids=atom_ids,
-            atom_names=names,
-            elements=elements,
-            atomic_numbers=tuple(raw_numbers),
-            gaff2_types=types,
-            bonds=tuple(bonds),
-            declared_charge_e=net_charge,
-            source_charges_e=source,
-            effective_charges_e=effective,
-            source_charges_sha256=source_hash,
-            effective_charges_sha256=effective_hash,
-            bondi_radii_angstrom=bondi,
-            cha_radii_angstrom=cha,
-            lj_rmin_angstrom=rmin,
-            lj_epsilon_kcal_mol=epsilon,
-        )
+        return topology
 
     def tensors(
         self, *, expected_content_sha256: str, device: str = "cpu"

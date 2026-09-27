@@ -30,6 +30,16 @@ CAVITY_PROBE_ANGSTROM = 1.3
 CAVITY_COEFFICIENT_KCAL_MOL_ANGSTROM3 = 0.0378
 CAVITY_OFFSET_KCAL_MOL = -0.5692
 
+# This archived reference implementation deliberately has a finite work
+# envelope. Every attempted interval evaluates 16 + 32 section nodes.
+_MAX_ADAPTIVE_DEPTH = 20
+_MAX_INTERVAL_ATTEMPTS = 100_000
+_MAX_AREA_EVALUATIONS = 48 * _MAX_INTERVAL_ATTEMPTS
+# Preflight the dense NxN geometry and both extrema's worst-case third-site
+# containment scans in ``sphere_z_breakpoints`` before materializing work.
+_MAX_DENSE_PAIR_ENTRIES = 250_000
+_MAX_BREAKPOINT_CONTAINMENT_CHECKS = 2_000_000
+
 
 @dataclass(frozen=True)
 class SavVolumeResult:
@@ -100,14 +110,54 @@ def _validate(positions, radii, atol, rtol, max_depth):
         raise ValueError("SAV geometry must be finite.")
     if not bool((radii > 0.0).all()):
         raise ValueError("SAV radii must be positive.")
-    if not all(
-        isinstance(value, (float, int)) and math.isfinite(value) and value > 0.0
+    minimum_tolerance = torch.finfo(torch.float64).eps
+    if any(
+        isinstance(value, bool)
+        or not isinstance(value, (float, int))
+        or not math.isfinite(value)
+        or value < minimum_tolerance
         for value in (atol, rtol)
     ):
-        raise ValueError("SAV tolerances must be finite and positive.")
-    if isinstance(max_depth, bool) or not isinstance(max_depth, int) or max_depth < 1:
-        raise ValueError("SAV max_depth must be a positive integer.")
-    validate_sphere_events(positions, radii, label="SAV")
+        raise ValueError(
+            "SAV tolerances must be finite real numbers no smaller than float64 epsilon."
+        )
+    if (
+        isinstance(max_depth, bool)
+        or not isinstance(max_depth, int)
+        or not 1 <= max_depth <= _MAX_ADAPTIVE_DEPTH
+    ):
+        raise ValueError(
+            f"SAV max_depth must be an integer in [1, {_MAX_ADAPTIVE_DEPTH}]."
+        )
+
+
+def _admit_sav_geometry_work(site_count: int) -> None:
+    """Bound pair storage and worst-case cubic breakpoint traversal."""
+    dense_pair_entries = site_count * site_count
+    distinct_pairs = site_count * (site_count - 1) // 2
+    containment_checks = 2 * distinct_pairs * max(0, site_count - 2)
+    if (
+        dense_pair_entries > _MAX_DENSE_PAIR_ENTRIES
+        or containment_checks > _MAX_BREAKPOINT_CONTAINMENT_CHECKS
+    ):
+        raise RuntimeError(
+            "SAV geometry work budget exceeded: projected "
+            f"{dense_pair_entries} dense pair entries and "
+            f"{containment_checks} breakpoint containment checks; limits are "
+            f"{_MAX_DENSE_PAIR_ENTRIES} and "
+            f"{_MAX_BREAKPOINT_CONTAINMENT_CHECKS}, respectively."
+        )
+
+
+def _strict_midpoint(first, last):
+    """Bisect an interval or fail when Float64 has no interior midpoint."""
+    middle = 0.5 * (first + last)
+    if bool((middle == first) | (middle == last)):
+        raise RuntimeError(
+            "SAV quadrature cannot refine an interval because its float64 midpoint "
+            "collapsed to an endpoint; the requested precision is unattainable."
+        )
+    return middle
 
 
 def sphere_union_volume(
@@ -127,6 +177,8 @@ def sphere_union_volume(
     import torch
 
     _validate(positions_angstrom, radii_angstrom, atol, rtol, max_depth)
+    _admit_sav_geometry_work(len(positions_angstrom))
+    validate_sphere_events(positions_angstrom, radii_angstrom, label="SAV")
     centered = positions_angstrom - positions_angstrom.mean(dim=0)
     xy_distance, angle = pair_xy_geometry(centered)
     lower = torch.min(centered[:, 2] - radii_angstrom)
@@ -135,8 +187,12 @@ def sphere_union_volume(
     accepted = []
     points = sphere_z_breakpoints(centered, radii_angstrom, lower, upper)
     stack = [(points[index], points[index + 1], 0) for index in range(len(points) - 1)]
+    if len(stack) > _MAX_INTERVAL_ATTEMPTS:
+        raise RuntimeError("SAV quadrature exceeded its interval work budget.")
     estimated_error = 0.0
     evaluations = 0
+    attempted_intervals = 0
+    rejected_intervals = 0
 
     def integrate(first, last, order):
         nonlocal evaluations
@@ -148,7 +204,17 @@ def sphere_union_volume(
         return half * torch.dot(weights, area)
 
     while stack:
+        if (
+            attempted_intervals >= _MAX_INTERVAL_ATTEMPTS
+            or evaluations > _MAX_AREA_EVALUATIONS - 48
+        ):
+            raise RuntimeError(
+                "SAV quadrature exceeded its work budget "
+                f"({len(accepted)} accepted, {rejected_intervals} rejected, "
+                f"{evaluations} area evaluations)."
+            )
         first, last, depth = stack.pop()
+        attempted_intervals += 1
         coarse = integrate(first, last, 16)
         fine = integrate(first, last, 32)
         error = float((fine - coarse).detach().abs())
@@ -157,18 +223,25 @@ def sphere_union_volume(
         if error <= local_budget:
             accepted.append(fine)
             estimated_error += error
-        elif depth >= max_depth:
-            raise RuntimeError(
-                f"SAV quadrature did not converge at depth {depth}: "
-                f"estimated {error} > budget {local_budget}."
-            )
         else:
-            middle = 0.5 * (first + last)
+            rejected_intervals += 1
+            if depth >= max_depth:
+                raise RuntimeError(
+                    f"SAV quadrature did not converge at depth {depth}: "
+                    f"estimated {error} > budget {local_budget}."
+                )
+            middle = _strict_midpoint(first, last)
             stack.append((middle, last, depth + 1))
             stack.append((first, middle, depth + 1))
     volume = torch.stack(accepted).sum()
     if not bool(torch.isfinite(volume)) or not bool(volume > 0.0):
         raise RuntimeError("SAV quadrature produced a nonfinite or nonpositive volume.")
+    global_budget = atol + rtol * abs(float(volume.detach()))
+    if estimated_error > global_budget:
+        raise RuntimeError(
+            "SAV summed quadrature error exceeds its global tolerance: "
+            f"estimated {estimated_error} > budget {global_budget}."
+        )
     return SavVolumeResult(volume, estimated_error, len(accepted), evaluations)
 
 

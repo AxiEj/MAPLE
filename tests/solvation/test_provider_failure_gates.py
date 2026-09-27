@@ -550,7 +550,7 @@ def test_amber_pbsa_profile_stops_at_evidence_gate_before_charge_provider(
 def test_direct_api_rejects_unknown_charge_mode(tmp_path, water_mol2):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
 
-    with pytest.raises(ValueError, match="Charge mode"):
+    with pytest.raises(ValueError, match="mode=fixed"):
         ImplicitSolvationCorrection(
             atoms,
             {"source": "mol2", "mode": "responsive"},

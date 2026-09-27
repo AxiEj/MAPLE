@@ -17,6 +17,12 @@ VALIDATION_PATH = (
 PERFORMANCE_PATH = (
     BENCHMARK_DIR / "route1-torch-obc2-derivative-performance-2026-09-22.json"
 )
+REVALIDATION_PATH = (
+    BENCHMARK_DIR / "route1-torch-post-audit-revalidation-2026-09-27.json"
+)
+HISTORICAL_VALIDATION_SHA256 = (
+    "961ba66a97a7b9a0c6d80640409bfb1218de496d42757c06e8dfd2e1e81947f5"
+)
 
 
 def _load(path: Path) -> dict:
@@ -26,6 +32,9 @@ def _load(path: Path) -> dict:
 def test_validation_artifact_is_self_hashed_source_bound_and_label_free():
     artifact = _load(VALIDATION_PATH)
 
+    # The old observation is immutable history, not a certificate for revised
+    # source. A fresh independently executed artifact below binds current code.
+    assert core.sha256_file(VALIDATION_PATH) == HISTORICAL_VALIDATION_SHA256
     assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
     assert artifact["scientific_identity"]["new_physics"] is False
     assert artifact["scientific_identity"]["parameters_changed"] is False
@@ -39,8 +48,51 @@ def test_validation_artifact_is_self_hashed_source_bound_and_label_free():
     )
     assert "experimental" in json.dumps(artifact["performance_decision"]).lower()
 
-    for relative, expected in artifact["implementation_source_sha256"].items():
-        assert core.sha256_file(REPOSITORY_ROOT / relative) == expected
+    revalidation = _load(REVALIDATION_PATH)
+    assert revalidation["supersedes_current_source_binding_of"] == {
+        "file": VALIDATION_PATH.name,
+        "file_sha256": HISTORICAL_VALIDATION_SHA256,
+        "content_sha256": artifact["content_sha256"],
+    }
+    assert set(artifact["implementation_source_sha256"]) <= set(
+        revalidation["implementation_and_test_sha256"]
+    )
+
+
+def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
+    artifact = _load(REVALIDATION_PATH)
+    assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
+    assert artifact["passed"] is artifact["source_unchanged"] is True
+    assert artifact["historical_evidence_bytes_unchanged"] is True
+    assert artifact["label_reads"] is artifact["new_qm"] is False
+    assert (
+        artifact["experimental_accuracy_claim"]
+        is artifact["full_torch_cha_complete"]
+        is False
+    )
+    for path, expected in artifact["implementation_and_test_sha256"].items():
+        assert core.sha256_file(REPOSITORY_ROOT / path) == expected
+        assert artifact["source_sha256_after"][path] == expected
+    assert artifact["qualified_workflow_cell"] == {
+        "gas": "ani2x",
+        "device": "cpu",
+        "dtype": "float64",
+        "d4": False,
+        "solvent": "obc2",
+        "openmm_platform": "Reference",
+    }
+    records = artifact["corpus"]["records"]
+    assert artifact["corpus"]["comparison_count"] == len(records) == 48
+    assert len({r["case"] for r in records}) == len(artifact["corpus"]["cases"]) == 12
+    assert all(r["passed"] for r in records)
+    assert all(r["force_max_delta_hartree_per_angstrom"] <= 2e-7 for r in records)
+    assert artifact["regression"]["exit_code"] == 0
+    cells = artifact["regression"]["cases"]
+    assert cells and all(cell["status"] == "passed" for cell in cells)
+    assert any("test_actual_engine_analytic_frequency" in c["name"] for c in cells)
+    assert any(
+        "test_actual_engine_analytic_ts_derivative_paths" in c["name"] for c in cells
+    )
 
 
 def test_performance_artifact_is_self_hashed_and_linked_from_validation():

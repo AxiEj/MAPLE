@@ -1,0 +1,317 @@
+{
+  "artifact_type": "pbsa-discrete-cavity-numeric-oracle-v1",
+  "cases": [
+    {
+      "case_id": "mobley_9055303",
+      "lj_rmin_angstrom": [
+        1.9069000000076504,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027
+      ],
+      "native_cavity_kcal_mol": 6.220625,
+      "native_coordinate_input_sha256": "d2d3be83b14e426568c175dec0a5e46d8c5397ff8fea35f0c57b11d225bbee2a",
+      "native_pbsa_binary_sha256": "6b35846e397288bcf8ce8aa93a5c7721d58804cda1612fe2caaf40e8ca6d0363",
+      "native_pbsa_input_sha256": "96734d04606f6bfe00fd1017d37b7ccc71d3b5f5441d5f494a66dc632f5c341c",
+      "native_pbsa_output_sha256": "75bc483afae33ed232cd1dec97b7aa3615c9c26e0c936059473af91cfe691efe",
+      "native_prmtop_sha256": "6d9340eab082913b0ea1add78541225e2038693174525f892f0983406cd8cc18",
+      "positions_angstrom": [
+        [
+          -0.0,
+          -0.0,
+          0.0
+        ],
+        [
+          0.554,
+          0.8,
+          0.496
+        ],
+        [
+          0.683,
+          -0.813,
+          -0.254
+        ],
+        [
+          -0.778,
+          -0.373,
+          0.669
+        ],
+        [
+          -0.459,
+          0.387,
+          -0.912
+        ]
+      ]
+    },
+    {
+      "case_id": "mobley_3053621",
+      "lj_rmin_angstrom": [
+        1.8606000000472946,
+        1.8606000000472946,
+        1.8606000000472946,
+        1.8606000000472946,
+        1.8606000000472946,
+        1.8606000000472946,
+        1.4734999998201521,
+        1.4734999998201521,
+        1.4734999998201521,
+        1.4734999998201521,
+        1.4734999998201521,
+        1.4734999998201521
+      ],
+      "native_cavity_kcal_mol": 13.166375,
+      "native_coordinate_input_sha256": "3f5233071bc6517e6ea3c75cea9c418d32099c6203fc93019eed85824ef67fb3",
+      "native_pbsa_binary_sha256": "6b35846e397288bcf8ce8aa93a5c7721d58804cda1612fe2caaf40e8ca6d0363",
+      "native_pbsa_input_sha256": "96734d04606f6bfe00fd1017d37b7ccc71d3b5f5441d5f494a66dc632f5c341c",
+      "native_pbsa_output_sha256": "902f4f7c5cd166ef4479ac85465ee58061e7988682c4883f0d30ab2fe9400a6d",
+      "native_prmtop_sha256": "ee54732f3437a46023c9948336d3c2d2fce70bc23a8fc41b7993e672db34d919",
+      "positions_angstrom": [
+        [
+          1.885,
+          -1.036,
+          -0.112
+        ],
+        [
+          2.921,
+          -1.631,
+          0.608
+        ],
+        [
+          2.878,
+          -1.652,
+          2.002
+        ],
+        [
+          1.8,
+          -1.079,
+          2.676
+        ],
+        [
+          0.764,
+          -0.484,
+          1.955
+        ],
+        [
+          0.807,
+          -0.463,
+          0.561
+        ],
+        [
+          1.917,
+          -1.02,
+          -1.198
+        ],
+        [
+          3.761,
+          -2.077,
+          0.084
+        ],
+        [
+          3.685,
+          -2.115,
+          2.563
+        ],
+        [
+          1.766,
+          -1.095,
+          3.761
+        ],
+        [
+          -0.076,
+          -0.038,
+          2.479
+        ],
+        [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      ]
+    },
+    {
+      "case_id": "mobley_1636752",
+      "lj_rmin_angstrom": [
+        1.9069000000076504,
+        1.819999999703896,
+        1.3593000000370454,
+        1.3593000000370454,
+        1.3593000000370454,
+        0.30190000004057294
+      ],
+      "native_cavity_kcal_mol": 6.882124999999999,
+      "native_coordinate_input_sha256": "dd0bf4e523c7e2393191424cf7213743495295c4c0ff5e2ce876df41d75db414",
+      "native_pbsa_binary_sha256": "6b35846e397288bcf8ce8aa93a5c7721d58804cda1612fe2caaf40e8ca6d0363",
+      "native_pbsa_input_sha256": "96734d04606f6bfe00fd1017d37b7ccc71d3b5f5441d5f494a66dc632f5c341c",
+      "native_pbsa_output_sha256": "d26d8ef044b981b56572a048966c0ee7c2a9d42ee5428839c36fd3f5cc63a4b2",
+      "native_prmtop_sha256": "d1b8e8ee1d76241fdcfae048f5ebf8de29848a84e9b008f34d4145a84534b40a",
+      "positions_angstrom": [
+        [
+          0.283,
+          0.768,
+          0.724
+        ],
+        [
+          -0.311,
+          2.001,
+          0.362
+        ],
+        [
+          -0.065,
+          0.472,
+          1.716
+        ],
+        [
+          1.371,
+          0.874,
+          0.724
+        ],
+        [
+          -0.007,
+          0.007,
+          -0.004
+        ],
+        [
+          0.022,
+          2.23,
+          -0.522
+        ]
+      ]
+    },
+    {
+      "case_id": "methane-translation-1",
+      "lj_rmin_angstrom": [
+        1.9069000000076504,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027
+      ],
+      "native_cavity_kcal_mol": 6.2158999999999995,
+      "native_pbsa_binary_sha256": "6b35846e397288bcf8ce8aa93a5c7721d58804cda1612fe2caaf40e8ca6d0363",
+      "native_prmtop_sha256": "6d9340eab082913b0ea1add78541225e2038693174525f892f0983406cd8cc18",
+      "native_translation_artifact_sha256": "cb5901517b92929c3e969a774bbea2e501f0a4e42299406595dfefee0d4fef81",
+      "positions_angstrom": [
+        [
+          0.1939331,
+          0.1414582,
+          -0.3713558
+        ],
+        [
+          0.7479331,
+          0.9414582,
+          0.1246442
+        ],
+        [
+          0.8769331,
+          -0.6715418,
+          -0.6253558
+        ],
+        [
+          -0.5840669,
+          -0.2315418,
+          0.2976442
+        ],
+        [
+          -0.2650669,
+          0.5284582,
+          -1.2833558
+        ]
+      ]
+    },
+    {
+      "case_id": "methane-translation-2",
+      "lj_rmin_angstrom": [
+        1.9069000000076504,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027
+      ],
+      "native_cavity_kcal_mol": 6.258425,
+      "native_pbsa_binary_sha256": "6b35846e397288bcf8ce8aa93a5c7721d58804cda1612fe2caaf40e8ca6d0363",
+      "native_prmtop_sha256": "6d9340eab082913b0ea1add78541225e2038693174525f892f0983406cd8cc18",
+      "native_translation_artifact_sha256": "cb5901517b92929c3e969a774bbea2e501f0a4e42299406595dfefee0d4fef81",
+      "positions_angstrom": [
+        [
+          -0.3862919,
+          0.1533455,
+          0.3534571
+        ],
+        [
+          0.1677081,
+          0.9533455,
+          0.8494571
+        ],
+        [
+          0.2967081,
+          -0.6596545,
+          0.0994571
+        ],
+        [
+          -1.1642919,
+          -0.2196545,
+          1.0224571
+        ],
+        [
+          -0.8452919,
+          0.5403455,
+          -0.5585429
+        ]
+      ]
+    },
+    {
+      "case_id": "methane-translation-3",
+      "lj_rmin_angstrom": [
+        1.9069000000076504,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027,
+        1.4592999996178027
+      ],
+      "native_cavity_kcal_mol": 6.197,
+      "native_pbsa_binary_sha256": "6b35846e397288bcf8ce8aa93a5c7721d58804cda1612fe2caaf40e8ca6d0363",
+      "native_prmtop_sha256": "6d9340eab082913b0ea1add78541225e2038693174525f892f0983406cd8cc18",
+      "native_translation_artifact_sha256": "cb5901517b92929c3e969a774bbea2e501f0a4e42299406595dfefee0d4fef81",
+      "positions_angstrom": [
+        [
+          -0.2982209,
+          -0.2819814,
+          0.2165846
+        ],
+        [
+          0.2557791,
+          0.5180186,
+          0.7125846
+        ],
+        [
+          0.3847791,
+          -1.0949814,
+          -0.0374154
+        ],
+        [
+          -1.0762209,
+          -0.6549814,
+          0.8855846
+        ],
+        [
+          -0.7572209,
+          0.1050186,
+          -0.6954154
+        ]
+      ]
+    }
+  ],
+  "content_sha256": "83bd0d3241b59fef9e77f697d167e77bc0e52f04ac7cf69a600fddf025b06f05",
+  "generator_sha256": "5e14fdf7f0a5c3999814bb1be8a62528cdcadd26c5fbbf338c1214159130b569",
+  "label_reads": false,
+  "new_qm": false,
+  "schema_version": 1,
+  "scope": "cavity scalar only; not full CHA, forces, or hydration accuracy",
+  "source_file_sha256": {
+    "input_manifest": "344711992c25d89f8413306208ce0a1dcaf9910f02042aa98200364361a9ae9b",
+    "native_manifest": "71c1b483ba3c171b037df83caab469cfd72f7d58031d46c7249ff021b885bf47",
+    "translations": "cb5901517b92929c3e969a774bbea2e501f0a4e42299406595dfefee0d4fef81"
+  },
+  "upstream_source_included": false
+}

@@ -17,6 +17,8 @@ from dataclasses import dataclass
 import struct
 from typing import TYPE_CHECKING, ClassVar
 
+from .torch_dense_budget import DEFAULT_DENSE_TORCH_BUDGET, DenseTorchBudget
+
 if TYPE_CHECKING:
     from torch import Tensor
 
@@ -155,6 +157,8 @@ def cha_polar_from_inverse_born(
     charges_e: Tensor,
     effective_cha_radii_angstrom: Tensor,
     unshifted_inverse_born_per_angstrom: Tensor,
+    *,
+    resource_budget: DenseTorchBudget = DEFAULT_DENSE_TORCH_BUDGET,
 ) -> ChaPolarAlgebraResult:
     """Evaluate fixed-profile CHA polar algebra in kcal/mol without detaching inputs.
 
@@ -169,8 +173,27 @@ def cha_polar_from_inverse_born(
     """
     import torch
 
-    size = cha_electrostatic_size(positions_angstrom, effective_cha_radii_angstrom)
+    if not isinstance(resource_budget, DenseTorchBudget):
+        raise TypeError("resource_budget must be a DenseTorchBudget.")
     count = len(positions_angstrom)
+    derivative_order = (
+        2
+        if any(
+            isinstance(value, torch.Tensor) and value.requires_grad
+            for value in (
+                positions_angstrom,
+                charges_e,
+                effective_cha_radii_angstrom,
+                unshifted_inverse_born_per_angstrom,
+            )
+        )
+        else 0
+    )
+    resource_budget.admit_pair_graph(
+        count, derivative_order=derivative_order, label="CHA"
+    )
+
+    size = cha_electrostatic_size(positions_angstrom, effective_cha_radii_angstrom)
     _require_tensor(
         "charges_e", charges_e, shape=(count,), device=positions_angstrom.device
     )

@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 
+from maple.function.read.charge_options import normalize_charge_options
 from maple.function.read.filereader.mol2_reader import (
     MOL2_ATOM_ID_ARRAY,
     MOL2_IDENTITY_SHA256_KEY,
@@ -18,6 +19,7 @@ from maple.function.read.filereader.mol2_reader import (
 
 from .charges import ChargeResult, prepare_charges
 from .openmm_gb import DEFAULT_OPENMM_PLATFORM, OpenMMGB
+from .radii import GB_MODELS
 from .result import SolvationDirectionalResult, SolvationResult
 
 _ATOM_IDENTITY_ARRAY = "_maple_implicit_atom_identity"
@@ -30,6 +32,100 @@ _NUMERICAL_FORCE_KEYS = {
     "max_raw_records",
     "max_audit_bytes",
 }
+
+_COMMON_SOLVENT_KEYS = frozenset(
+    {
+        "method",
+        "implicit",
+        "provider",
+        "model",
+        "profile",
+        "nonpolar",
+        "experimental",
+        "mode",
+        "inner",
+    }
+)
+_OPENMM_EXECUTION_KEYS = frozenset(
+    {
+        "platform",
+        "precision",
+        "device_index",
+        "opencl_platform_index",
+    }
+)
+_PB_EXECUTION_KEYS = frozenset(
+    {
+        "executable",
+        "timeout",
+        "grid_spacing",
+        "grid_points",
+        "probe_radius",
+        "surface_tension",
+        "pressure",
+    }
+)
+
+
+def _validate_provider_identity(
+    options: dict[str, Any], method: str, provider: str
+) -> None:
+    """Reject misleading labels/ignored options at the exported API boundary."""
+    if str(options.get("implicit", "water")).lower() != "water":
+        raise ValueError("Implicit-solvation providers support implicit=water only.")
+    family = (method, provider)
+    if family != ("gb", "openmm") and _OPENMM_EXECUTION_KEYS.intersection(options):
+        raise ValueError("OpenMM execution options require method=gb, provider=openmm.")
+    if family == ("gb", "openmm"):
+        extra = _OPENMM_EXECUTION_KEYS
+        model = str(options.get("model", "obc2")).lower()
+        if model not in GB_MODELS:
+            raise ValueError(f"Unsupported OpenMM GB model: {model!r}.")
+        profile = GB_MODELS[model]["profile"]
+        default_nonpolar, allowed_nonpolar = "ace", {"ace", "lcpo", "none"}
+    else:
+        profiles = {
+            ("gb", "ambertools"): (
+                "chagb",
+                "chagb-bondi-pbsa-inp2",
+                "cavity-dispersion",
+                {"executable", "timeout"},
+            ),
+            ("pb", "apbs"): ("lpb", "generic-mbondi2", "apbs", _PB_EXECUTION_KEYS),
+            ("pb", "ddx"): (
+                "lpb",
+                "ddlpb-union-mbondi2-v1",
+                "none",
+                {"solvent_kappa_inverse_angstrom"},
+            ),
+            ("pb", "amber-pbsa"): (
+                "lpb",
+                "abcg2-pbsa-2023",
+                "amber-pbsa",
+                {"executable", "timeout"},
+            ),
+        }
+        if family not in profiles:
+            raise ValueError(
+                f"Unsupported implicit-{method.upper()} provider: {provider!r}."
+            )
+        model, profile, default_nonpolar, extra = profiles[family]
+        if str(options.get("model", model)).lower() != model:
+            raise ValueError(f"provider={provider} requires model={model}.")
+        allowed_nonpolar = {default_nonpolar}
+    conflicts = sorted(set(options) - (_COMMON_SOLVENT_KEYS | extra))
+    if conflicts:
+        raise ValueError(
+            f"provider={provider} does not support options: {', '.join(conflicts)}."
+        )
+    if str(options.get("profile", profile)).lower() != profile:
+        raise ValueError(
+            f"provider={provider}, model={model} requires profile={profile}."
+        )
+    if str(options.get("nonpolar", default_nonpolar)).lower() not in allowed_nonpolar:
+        raise ValueError(
+            f"provider={provider}, model={model} requires nonpolar in {sorted(allowed_nonpolar)}."
+        )
 
 
 def _positive_finite(value: Any, *, name: str) -> float:
@@ -61,13 +157,13 @@ def _task_contract(task_context: Any) -> tuple[str, str, Any]:
 
 
 def _validate_direct_contract(
-    charge_options: dict[str, Any],
     solvation_options: dict[str, Any],
     task_context: Any,
 ) -> tuple[str, str, str | None, str, str, Any]:
     """Pure compatibility validation run before charge/tool/audit side effects."""
-    if str(charge_options.get("mode", "fixed")).lower() != "fixed":
-        raise ValueError("Charge mode must be 'fixed'.")
+    for key in ("method", "provider", "model", "profile", "implicit", "nonpolar"):
+        if key in solvation_options and not isinstance(solvation_options[key], str):
+            raise ValueError(f"Solvation {key} must be an explicit string selector.")
     if solvation_options.get("experimental") is not True:
         raise ValueError(
             "Implicit-solvation providers have not passed MAPLE's public scientific benchmark gate; "
@@ -107,6 +203,8 @@ def _validate_direct_contract(
         )
     if not native_provider and not numerical_provider and (force_mode is not None or supplied):
         raise ValueError(f"provider={provider} does not support numerical-force options")
+
+    _validate_provider_identity(solvation_options, method, provider)
 
     task, task_method, task_delta = _task_contract(task_context)
     return method, provider, force_mode, task, task_method, task_delta
@@ -150,7 +248,7 @@ class ImplicitSolvationCorrection:
         model_device=None,
         task_context: Any = None,
     ):
-        charge_options = dict(charge_options)
+        charge_options = normalize_charge_options(charge_options)
         solvation_options = dict(solvation_options)
         (
             method,
@@ -160,7 +258,7 @@ class ImplicitSolvationCorrection:
             self.task_method,
             self.task_delta,
         ) = _validate_direct_contract(
-            charge_options, solvation_options, task_context
+            solvation_options, task_context
         )
         self.atoms = atoms
         mol2_metadata = atoms.info.get("mol2")
@@ -189,13 +287,13 @@ class ImplicitSolvationCorrection:
                     "solvation."
                 )
         atom_identity = atoms.arrays.get(_ATOM_IDENTITY_ARRAY)
+        install_atom_identity = atom_identity is None
         if atom_identity is None:
             atom_identity = (
                 np.asarray(mol2_atom_identity, dtype=np.int64)
                 if mol2_atom_identity is not None
                 else np.arange(len(atoms), dtype=np.int64)
             )
-            atoms.new_array(_ATOM_IDENTITY_ARRAY, atom_identity)
         else:
             atom_identity = np.asarray(atom_identity)
             if (
@@ -242,9 +340,6 @@ class ImplicitSolvationCorrection:
                     "inner=prebuilt requires a MOL2 cluster with at least two "
                     "connected components."
                 )
-        execution_keys = {"platform", "precision", "device_index", "opencl_platform_index"}
-        if (method, provider_name) != ("gb", "openmm") and execution_keys.intersection(self.solvation_options):
-            raise ValueError("OpenMM execution options require method=gb, provider=openmm; CPU native/external solvers do not use them.")
         nonpolar_name = str(
             self.solvation_options.get(
                 "nonpolar",
@@ -266,24 +361,8 @@ class ImplicitSolvationCorrection:
         if method == "pb" and provider_name not in {"apbs", "amber-pbsa", "ddx"}:
             raise ValueError(f"Unsupported implicit-PB provider: {provider_name!r}.")
         if method == "pb" and provider_name == "ddx":
-            allowed = {"method", "implicit", "provider", "model", "profile",
-                       "nonpolar", "experimental", "mode", kappa_key}
-            conflicts = sorted(set(self.solvation_options) - allowed)
-            if conflicts:
-                raise ValueError("ddX reference does not support options: " + ", ".join(conflicts))
             if kappa_key not in self.solvation_options:
                 raise ValueError(f"ddX reference requires explicit {kappa_key}.")
-            if (
-                str(self.solvation_options.get("implicit", "water")).lower() != "water"
-                or str(self.solvation_options.get("model", "lpb")).lower() != "lpb"
-                or str(self.solvation_options.get("profile", "ddlpb-union-mbondi2-v1")).lower()
-                != "ddlpb-union-mbondi2-v1"
-                or nonpolar_name != "none"
-            ):
-                raise ValueError(
-                    "ddX reference requires model=lpb, profile=ddlpb-union-mbondi2-v1, "
-                    "and nonpolar=none."
-                )
             self.solvation_options.update(
                 provider="ddx", model="lpb", profile="ddlpb-union-mbondi2-v1", nonpolar="none"
             )
@@ -302,15 +381,6 @@ class ImplicitSolvationCorrection:
                 or str(self.charge_options.get("method", "")).lower() != "am1bcc"
                 or str(self.charge_options.get("mode", "fixed")).lower() != "fixed"
                 or str(self.charge_options.get("geometry", "keep")).lower() != "keep"
-                or str(self.solvation_options.get("model", "chagb")).lower() != "chagb"
-                or str(
-                    self.solvation_options.get("profile", "chagb-bondi-pbsa-inp2")
-                ).lower()
-                != "chagb-bondi-pbsa-inp2"
-                or str(
-                    self.solvation_options.get("nonpolar", "cavity-dispersion")
-                ).lower()
-                != "cavity-dispersion"
             ):
                 raise ValueError(
                     "The validated AmberTools CHA-GB profile requires fixed "
@@ -319,6 +389,10 @@ class ImplicitSolvationCorrection:
                     "nonpolar=cavity-dispersion, and no inner=prebuilt."
                 )
         output_path = Path(output).resolve() if output else Path.cwd() / "maple.out"
+        # Configuration rejection must not mutate the caller's Atoms. Install
+        # the reserved identity only after all provider/charge/inner gates pass.
+        if install_atom_identity:
+            atoms.new_array(_ATOM_IDENTITY_ARRAY, atom_identity)
         self.audit_dir = output_path.with_suffix(output_path.suffix + ".implicit")
         self.audit_dir.mkdir(parents=True, exist_ok=True)
         self.charge_result: ChargeResult = prepare_charges(
@@ -396,6 +470,7 @@ class ImplicitSolvationCorrection:
             isinstance(self.underlying_provider, OpenMMGB)
             and self.underlying_provider.obc2_parameters is not None
             and self.underlying_provider.platform == "Reference"
+            and str(self.underlying_provider._derivative_device).split(":", 1)[0].lower() == "cpu"
             and self.inner_mode is None
         )
         self._write_audit_manifest()

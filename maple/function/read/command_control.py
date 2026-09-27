@@ -3,6 +3,8 @@ import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
+from .charge_options import CHARGE_OPTION_KEYS, normalize_charge_options
+
 
 class CommandControl:
     """
@@ -184,15 +186,7 @@ class CommandControl:
         "clash_cutoff",
         "write_cell",
     }
-    CHARGE_PARAMS = {
-        "source",
-        "method",
-        "mode",
-        "label",
-        "geometry",
-        "executable",
-        "timeout",
-    }
+    CHARGE_PARAMS = CHARGE_OPTION_KEYS
     SOLV_REMOVED_PARAMS = {
         "fix_dis": (
             "Explicit solvent 'fix_dis' has been removed: clusters are now "
@@ -606,88 +600,11 @@ class CommandControl:
             return
         if not isinstance(charge, dict):
             return
-        source = str(charge.get("source", "")).lower()
-        if source not in {"mol2", "maple"}:
-            msg = "#charge source must be 'mol2' or 'maple'."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        method = charge.get("method")
-        mode = str(charge.get("mode", "fixed")).lower()
-        geometry = str(charge.get("geometry", "keep")).lower()
-        if mode not in {"fixed", "polarizable"}:
-            msg = "#charge supports mode=fixed only."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        normalized_method = "" if method is None else str(method).lower()
-        if mode == "polarizable" or normalized_method in {
-            "qeq",
-            "qeq-gto",
-            "cqeq",
-            "cqeq-gto",
-        }:
-            msg = (
-                "QEq/CQEq charge models are disabled; use fixed MOL2 charges or "
-                "MAPLE AM1-BCC/ABCG2."
-            )
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        if geometry not in {"keep", "provider"}:
-            msg = "#charge geometry must be 'keep' or 'provider'."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        if source == "mol2":
-            if method is not None:
-                msg = "#charge(source=mol2) reads fixed charges and does not accept method=."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if mode != "fixed":
-                msg = "#charge(source=mol2) supports mode=fixed only."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if geometry != "keep":
-                msg = "#charge(source=mol2) does not run a geometry provider; use geometry=keep."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            ignored = sorted(key for key in ("executable", "timeout") if key in charge)
-            if ignored:
-                msg = (
-                    "#charge(source=mol2) does not run a charge executable; remove "
-                    + ", ".join(ignored)
-                    + "."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        else:
-            if method is None:
-                method = "am1bcc"
-            method = str(method).lower()
-            if method not in {"am1bcc", "abcg2"}:
-                msg = "MAPLE charge method must be am1bcc or abcg2."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            charge["method"] = method
-            if "label" in charge:
-                msg = "#charge label is only valid for source=mol2 fixed-charge provenance."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        if "timeout" in charge and (
-            isinstance(charge["timeout"], bool)
-            or not isinstance(charge["timeout"], (int, float))
-            or charge["timeout"] <= 0
-        ):
-            msg = "#charge timeout must be a positive number of seconds."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-        for key in ("label", "executable"):
-            if key in charge and (
-                not isinstance(charge[key], str) or not charge[key].strip()
-            ):
-                msg = f"#charge {key} must be a non-empty string."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-        charge["source"] = source
-        charge["mode"] = mode
-        charge["geometry"] = geometry
+        try:
+            params["charge"] = normalize_charge_options(charge)
+        except ValueError as exc:
+            cls._log_error(output_path, str(exc))
+            raise
 
     @classmethod
     def _validate_implicit_curvature_task(

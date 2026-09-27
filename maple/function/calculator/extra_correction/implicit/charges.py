@@ -15,6 +15,7 @@ from typing import Any
 
 import numpy as np
 
+from maple.function.read.charge_options import normalize_charge_options
 from maple.function.read.filereader.mol2_reader import (
     MOL2_ATOM_ID_ARRAY,
     MOL2_IDENTITY_SHA256_KEY,
@@ -626,26 +627,7 @@ def prepare_charges(
     atoms, options: dict[str, Any], audit_dir: str | os.PathLike[str]
 ) -> ChargeResult:
     """Prepare a charge record once at the reference geometry."""
-    method = str(options.get("method", "")).lower()
-    mode = str(options.get("mode", "fixed")).lower()
-    if mode == "polarizable" or method in {
-        "qeq",
-        "qeq-gto",
-        "cqeq",
-        "cqeq-gto",
-    }:
-        raise ValueError(
-            "QEq/CQEq charge models are disabled; use fixed MOL2 charges or "
-            "MAPLE AM1-BCC/ABCG2."
-        )
-
-    source = str(options.get("source", "")).lower()
-    audit_path = Path(audit_dir)
-    if source == "mol2":
+    options = normalize_charge_options(options)
+    if options["source"] == "mol2":
         return _mol2_charges(atoms, options.get("label"))
-    if source != "maple":
-        raise ValueError("#charge source must be 'mol2' or 'maple'.")
-
-    if method in {"am1bcc", "abcg2"}:
-        return _ambertools_charges(atoms, options, audit_path)
-    raise ValueError(f"Unsupported MAPLE charge method: {method!r}.")
+    return _ambertools_charges(atoms, options, Path(audit_dir))

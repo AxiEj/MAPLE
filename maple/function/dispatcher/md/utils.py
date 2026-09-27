@@ -10,12 +10,18 @@ This module provides essential calculations for MD:
 """
 
 import warnings
+from dataclasses import fields
+from math import isfinite
 from typing import Optional, Tuple, TypedDict
 
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
+from ...parameter_ownership import (
+    GLOBAL_PARAMETER_KEYS,
+    MD_FRONTEND_PROVENANCE_KEYS,
+)
 from ...utility.active_dof import active_atom_mask
 from ...utility.rigid_body import (
     is_linear_geometry,
@@ -91,38 +97,261 @@ class DofPolicy(TypedDict):
     warnings: list[str]
 
 
-def normalize_remove_angular_alias(
-    paras: dict | None,
-    aliases: tuple[str, ...],
-    default: bool,
-) -> bool:
-    """Resolve the legacy ``remove_rotation`` name at the input boundary."""
-    source = paras if isinstance(paras, dict) else {}
-    lowered = {
-        (key.lower() if isinstance(key, str) else key): value
-        for key, value in source.items()
-    }
-    for alias in aliases:
-        nested = lowered.get(alias.lower())
-        if isinstance(nested, dict):
-            lowered = {
-                (key.lower() if isinstance(key, str) else key): value
-                for key, value in nested.items()
-            }
-            break
+_MD_BOOLEAN_KEYS = {
+    "debug", "init_velocities", "load_state", "remove_angular",
+    "remove_com", "remove_rotation", "restart",
+}
+_MD_INTEGER_KEYS = {
+    "log_every", "random_seed", "remove_angular_every", "remove_com_every",
+    "rst_every", "steps", "traj_every", "verbose",
+}
+_MD_FLOAT_KEYS = {
+    "compressibility", "friction", "pressure", "tau_p", "tau_t",
+    "temperature", "timestep",
+}
+_MD_STRING_KEYS = {"barostat", "rst_file", "thermostat", "traj_format"}
 
-    has_legacy = "remove_rotation" in lowered
-    has_canonical = "remove_angular" in lowered
-    if (has_legacy and has_canonical
-            and bool(lowered["remove_rotation"]) != bool(lowered["remove_angular"])):
+
+def _normalize_md_mapping_keys(values: dict, *, source: str) -> dict:
+    """Return a shallow normalized-key copy after lossless key validation."""
+    if not isinstance(values, dict):
+        raise TypeError("MD parameters must be a dictionary")
+
+    normalized_values = {}
+    for key, value in values.items():
+        if not isinstance(key, str):
+            raise TypeError(f"{source} keys must be strings.")
+        normalized = key.strip().lower()
+        if normalized in normalized_values:
+            raise ValueError(f"duplicate {source} key '{normalized}'.")
+        normalized_values[normalized] = value
+    return normalized_values
+
+
+def reject_md_duplicate_keys(values: dict, *, source: str) -> None:
+    """Reject malformed or duplicate keys before a mapping is rebuilt."""
+    _normalize_md_mapping_keys(values, source=source)
+
+
+def _validate_md_ensemble_declaration(
+    values: dict, *, expected_ensemble: str
+) -> None:
+    """Require an explicit ensemble declaration to agree with its constructor."""
+    if "ensemble" not in values:
+        return
+    declared = values["ensemble"]
+    if not isinstance(declared, str):
+        raise TypeError("MD ensemble must be a string.")
+    declared_normalized = declared.strip().lower()
+    if declared_normalized != expected_ensemble:
         raise ValueError(
-            "Conflicting MD settings: remove_rotation and remove_angular"
+            f"MD ensemble '{declared_normalized}' is incompatible with "
+            f"the {expected_ensemble.upper()} constructor."
         )
-    if has_canonical:
-        return bool(lowered["remove_angular"])
-    if has_legacy:
-        return bool(lowered["remove_rotation"])
-    return default
+
+
+def _reject_unknown_md_keys(values: dict, allowed: set[str]) -> None:
+    unknown = sorted(key for key in values if key not in allowed)
+    if unknown:
+        raise ValueError(f"Unknown MD parameter: '{unknown[0]}'.")
+
+
+def select_md_parameter_scope(
+    values: dict | None,
+    params_type: type,
+    *,
+    expected_ensemble: str,
+) -> dict:
+    """Validate a framework/API envelope and select one strict MD source.
+
+    Global framework objects and ``mdp`` provenance are accepted only in the
+    outer envelope and remain opaque. Nested ``md`` and selected-ensemble
+    sections are strictly MD-only. Source precedence remains ``md``, then the
+    selected ensemble section, then the flat envelope; sources are never
+    merged here.
+    """
+    if values is None:
+        return {}
+    expected = expected_ensemble.strip().lower()
+    outer = _normalize_md_mapping_keys(values, source="MD API")
+    md_keys = {field.name for field in fields(params_type)} | {"ensemble"}
+    section_names = ("md", expected)
+
+    sections = {}
+    for section_name in section_names:
+        if section_name not in outer:
+            continue
+        section_value = outer[section_name]
+        if not isinstance(section_value, dict):
+            raise TypeError(f"MD section '{section_name}' must be a dictionary.")
+        section = _normalize_md_mapping_keys(
+            section_value, source=f"MD API section '{section_name}'"
+        )
+        _reject_unknown_md_keys(section, md_keys)
+        _validate_md_ensemble_declaration(
+            section, expected_ensemble=expected
+        )
+        sections[section_name] = section
+
+    allowed_outer = (
+        md_keys
+        | set(GLOBAL_PARAMETER_KEYS)
+        | set(MD_FRONTEND_PROVENANCE_KEYS)
+        | set(section_names)
+    )
+    _reject_unknown_md_keys(outer, allowed_outer)
+    _validate_md_ensemble_declaration(outer, expected_ensemble=expected)
+
+    if "md" in sections:
+        return dict(sections["md"])
+    if expected in sections:
+        return dict(sections[expected])
+    return {key: value for key, value in outer.items() if key in md_keys}
+
+
+def _coerce_md_bool(value: object, key: str) -> bool:
+    from ...calculator.calculator_base import parse_bool_option
+
+    if not isinstance(value, bool) and (
+        not isinstance(value, str)
+        or value.strip().lower() not in {"yes", "no", "true", "false"}
+    ):
+        raise ValueError(f"MD {key} must be a boolean (true/false or yes/no).")
+    return parse_bool_option(value, name=f"md.{key}")
+
+
+def _coerce_md_int(value: object, key: str) -> int | None:
+    if key == "random_seed" and (value is None or value == ""):
+        return None
+    if isinstance(value, bool):
+        raise TypeError(f"MD {key} must be an integer, not a boolean.")
+    if isinstance(value, (int, np.integer)):
+        return int(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        try:
+            return int(stripped)
+        except ValueError as exc:
+            raise ValueError(f"MD {key} must be an integer.") from exc
+    raise ValueError(f"MD {key} must be an integer.")
+
+
+def _coerce_md_float(value: object, key: str) -> float:
+    if isinstance(value, bool):
+        raise TypeError(f"MD {key} must be numeric, not a boolean.")
+    if not isinstance(value, (str, int, float, np.integer, np.floating)):
+        raise TypeError(f"MD {key} must be numeric.")
+    try:
+        result = float(str(value))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"MD {key} must be numeric.") from exc
+    if not isfinite(result):
+        raise ValueError(f"MD {key} must be finite.")
+    return result
+
+
+def normalize_md_parameters(
+    values: dict | None,
+    params_type: type,
+    *,
+    complete: bool = True,
+    expected_ensemble: str | None = None,
+) -> dict:
+    """Strictly normalize one MD configuration using its ensemble dataclass.
+
+    This is the sole coercion/validation boundary shared by CLI, MDP, and API
+    construction.  The dataclass instance is the authority for defaults.
+    """
+    if values is not None:
+        reject_md_duplicate_keys(values, source="MD parameter")
+    source = {} if values is None else {
+        (key.strip().lower() if isinstance(key, str) else key): value
+        for key, value in values.items()
+    }
+    defaults_obj = params_type()
+    defaults = {field.name: getattr(defaults_obj, field.name) for field in fields(defaults_obj)}
+    allowed = set(defaults) | {"ensemble"}
+    unknown = sorted(str(key) for key in source if key not in allowed)
+    if unknown:
+        raise ValueError(f"Unknown MD parameter: '{unknown[0]}'.")
+
+    result = dict(defaults) if complete else {}
+    result.update(source)
+
+    for key in _MD_BOOLEAN_KEYS & result.keys():
+        result[key] = _coerce_md_bool(result[key], key)
+    for key in _MD_INTEGER_KEYS & result.keys():
+        result[key] = _coerce_md_int(result[key], key)
+    for key in _MD_FLOAT_KEYS & result.keys():
+        result[key] = _coerce_md_float(result[key], key)
+    for key in _MD_STRING_KEYS & result.keys():
+        if not isinstance(result[key], str):
+            raise TypeError(f"MD {key} must be a string.")
+        result[key] = result[key].strip().lower() if key != "rst_file" else result[key].strip()
+    if "ensemble" in result:
+        if not isinstance(result["ensemble"], str):
+            raise ValueError("MD ensemble must be a string.")
+        result["ensemble"] = result["ensemble"].strip().lower()
+        if expected_ensemble is not None and result["ensemble"] != expected_ensemble:
+            raise ValueError(
+                f"MD ensemble '{result['ensemble']}' is incompatible with "
+                f"the {expected_ensemble.upper()} constructor."
+            )
+
+    legacy_present = "remove_rotation" in source
+    canonical_present = "remove_angular" in source
+    if legacy_present and canonical_present and result["remove_rotation"] != result["remove_angular"]:
+        raise ValueError("Conflicting MD settings: remove_rotation and remove_angular")
+    if legacy_present and not canonical_present:
+        result["remove_angular"] = result["remove_rotation"]
+    result.pop("remove_rotation", None)
+    if result.get("remove_angular"):
+        result["remove_com"] = True
+
+    for key in ("steps", "traj_every", "log_every"):
+        if key in result and result[key] <= 0:
+            raise ValueError(f"MD {key} must be a positive integer.")
+    for key in ("rst_every", "remove_com_every", "remove_angular_every", "verbose"):
+        if key in result and result[key] < 0:
+            raise ValueError(f"MD {key} must be a non-negative integer.")
+    if result.get("random_seed") is not None and result["random_seed"] < 0:
+        raise ValueError("MD random_seed must be a non-negative integer.")
+    for key in ("timestep", "tau_t", "tau_p"):
+        if key in result and result[key] <= 0.0:
+            raise ValueError(f"MD {key} must be positive.")
+    for key in ("temperature", "friction", "compressibility"):
+        if key in result and result[key] < 0.0:
+            raise ValueError(f"MD {key} must be non-negative.")
+    if result.get("restart") and result.get("load_state"):
+        raise ValueError("MD restart and load_state are mutually exclusive.")
+    if "traj_format" in result and result["traj_format"] not in {"xyz", "dcd"}:
+        raise ValueError("MD traj_format must be 'xyz' or 'dcd'.")
+    if "thermostat" in result and result["thermostat"] not in {"langevin", "v-rescale"}:
+        raise ValueError("MD thermostat must be 'langevin' or 'v-rescale'.")
+    if "barostat" in result and result["barostat"] not in {"berendsen", "c-rescale"}:
+        raise ValueError("MD barostat must be 'berendsen' or 'c-rescale'.")
+    return result
+
+
+def preflight_vrescale_velocities(
+    atoms: Atoms,
+    thermostat,
+    velocities: np.ndarray,
+    representation: str,
+    *,
+    source_timestep_au: float | None = None,
+) -> None:
+    """Validate the standard-velocity thermal state before MD output or RNG use."""
+    standard = velocities
+    if representation == VELOCITY_REPR_LFMIDDLE_CARRIED:
+        forces = atoms.get_forces() * HA_PER_ANG_TO_AU
+        standard = lfmiddle_carried_to_standard(
+            atoms,
+            velocities,
+            forces,
+            source_timestep_au if source_timestep_au is not None else thermostat.timestep,
+        )
+    thermostat.validate_velocities(standard)
 
 
 def enforce_active_velocities(
@@ -604,6 +833,7 @@ def write_xyz_frame(
     include_velocities: bool = False,
     rng_state: Optional[str] = None,
     velocity_representation: Optional[str] = None,
+    energy_basis: str | None = None,
 ):
     """
     Write a single frame to XYZ file.
@@ -634,6 +864,8 @@ def write_xyz_frame(
     velocity_representation : str, optional
         Reserved for API compatibility. Velocity representation metadata is
         stored only in RST checkpoints, never in XYZ comment lines.
+    energy_basis : str, optional
+        Label for the human-readable Energy value; RST energy remains separate.
     """
     positions = atoms.get_positions()
     symbols = atoms.get_chemical_symbols()
@@ -649,9 +881,10 @@ def write_xyz_frame(
                     f"  PBC = {' '.join(pbc_tokens)}")
     # frame_number stores the MD step number (not sequential frame index) so that
     # resume_simulation() can recover the exact step offset without knowing traj_every.
+    energy_basis_str = f"  Energy_basis={energy_basis}" if energy_basis is not None else ""
     file_handle.write(
         f"Frame {frame_number}  Energy = {energy:.10f} Hartree"
-        f"{cell_str}\n"
+        f"{energy_basis_str}{cell_str}\n"
     )
     # NOTE: frame_number is the MD *step* number (passed as `step` from the ensemble loop).
     # The regex _TRAJ_COMMENT_RE parses this as frame_num; resume_simulation uses it

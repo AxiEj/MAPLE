@@ -36,7 +36,8 @@ from ..utils import (
     initialize_velocities,
     lfmiddle_carried_to_standard,
     motion_subspace_identity,
-    normalize_remove_angular_alias,
+    normalize_md_parameters,
+    select_md_parameter_scope,
 )
 
 
@@ -208,12 +209,12 @@ class NVE(JobABC):
         self.atoms = atoms
 
         # Initialize params from dict
-        aliases = ("md", "MD", "nve", "NVE")
-        self.params = self._init_params(NVEParams, paras, aliases)
-        self.params.remove_angular = normalize_remove_angular_alias(
-            paras, aliases, self.params.remove_angular
+        source = select_md_parameter_scope(
+            paras, NVEParams, expected_ensemble="nve"
         )
-        self.params.remove_rotation = False
+        normalized = normalize_md_parameters(source, NVEParams, expected_ensemble="nve")
+        normalized.pop("ensemble", None)
+        self.params = NVEParams(**normalized)
         self.logger = MDLogger(
             output_path=output,
             log_every=self.params.log_every,

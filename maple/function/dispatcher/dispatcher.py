@@ -23,7 +23,8 @@ class Dispatcher():
 
         self.output = output
         self.commandcontrol = commandcontrol
-        self.set_throshould(atoms)
+        if jobtype != 'md':
+            self.set_throshould(atoms)
         if jobtype == 'opt':
             from .optimization import Optimization
 

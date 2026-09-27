@@ -47,7 +47,9 @@ from ..utils import (
     initialize_velocities,
     lfmiddle_carried_to_standard,
     motion_subspace_identity,
-    normalize_remove_angular_alias,
+    normalize_md_parameters,
+    preflight_vrescale_velocities,
+    select_md_parameter_scope,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
 )
@@ -234,12 +236,12 @@ class NVT(JobABC):
             raise ValueError("Atoms object must have a calculator attached")
 
         self.atoms = atoms
-        aliases = ("md", "MD", "nvt", "NVT")
-        self.params = self._init_params(NVTParams, paras, aliases)
-        self.params.remove_angular = normalize_remove_angular_alias(
-            paras, aliases, self.params.remove_angular
+        source = select_md_parameter_scope(
+            paras, NVTParams, expected_ensemble="nvt"
         )
-        self.params.remove_rotation = False
+        normalized = normalize_md_parameters(source, NVTParams, expected_ensemble="nvt")
+        normalized.pop("ensemble", None)
+        self.params = NVTParams(**normalized)
 
         if self.params.thermostat not in self._THERMOSTAT_CHOICES:
             raise ValueError(
@@ -388,6 +390,14 @@ class NVT(JobABC):
                         representation = VELOCITY_REPR_LFMIDDLE_CARRIED
                 velocities = enforce_active_velocities(prepared.atoms, velocities)
                 prepared = prepared.with_velocities(velocities, representation)
+                if isinstance(configuration.thermostat, VRescaleThermostat) and not completed:
+                    preflight_vrescale_velocities(
+                        prepared.atoms,
+                        configuration.thermostat,
+                        velocities,
+                        representation,
+                        source_timestep_au=prepared.checkpoint["timestep"] * FS_TO_AU,
+                    )
                 if not completed:
                     prepared.atoms.get_forces()
                 if not prepared.load_state and prepared.checkpoint["rng_state"] is not None:
@@ -429,6 +439,10 @@ class NVT(JobABC):
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
                 step_offset = 0
                 remaining = self.params.steps
+                if isinstance(self.thermostat, VRescaleThermostat):
+                    preflight_vrescale_velocities(
+                        self.atoms, self.thermostat, velocities, velocity_representation
+                    )
                 source = "input_xyz" if "velocities" in self.atoms.arrays else "init_velocities"
                 self.logger.log_debug_initial_state(
                     self.atoms,
@@ -565,6 +579,9 @@ class NVT(JobABC):
             velocity_representation = VELOCITY_REPR_STANDARD
         else:
             velocity_representation = VELOCITY_REPR_STANDARD
+
+        if isinstance(self.thermostat, VRescaleThermostat):
+            self.thermostat.validate_velocities(velocities)
 
         write_sync_thermo = bool(
             is_langevin and velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED

@@ -74,11 +74,31 @@ class VRescaleThermostat:
         rng : np.random.Generator, optional
             Random number generator for reproducibility
         """
+        for name, value in (
+            ("temperature", temperature),
+            ("tau_t", tau_t),
+            ("timestep", timestep),
+        ):
+            if isinstance(value, (bool, np.bool_)) or not isinstance(
+                value, (int, float, np.integer, np.floating)
+            ):
+                raise TypeError(f"V-rescale {name} must be numeric and not a boolean")
+            if not np.isfinite(value):
+                raise ValueError(f"V-rescale {name} must be finite")
+        if temperature <= 0.0:
+            raise ValueError("V-rescale temperature must be positive")
+        if tau_t <= 0.0:
+            raise ValueError("V-rescale tau_t must be positive")
+        if timestep <= 0.0:
+            raise ValueError("V-rescale timestep must be positive")
+
         self.atoms = atoms
         self.temperature = temperature
         self.tau_t = tau_t * FS_TO_AU       # fs → a.u.
         self.timestep = timestep * FS_TO_AU # fs → a.u.
         self.masses = atoms.get_masses() * AMU_TO_AU
+        if not np.all(np.isfinite(self.masses)) or np.any(self.masses <= 0.0):
+            raise ValueError("V-rescale requires finite, positive atomic masses")
         self.active_atoms = active_atom_mask(atoms)
         if not np.any(self.active_atoms):
             raise ValueError("V-rescale dynamics requires at least one active atom")
@@ -89,11 +109,19 @@ class VRescaleThermostat:
         # Runtime N_dof should be provided by the central DOF policy; fall back to
         # the legacy rule only for not-yet-migrated callers.
         if n_dof is not None:
+            if (
+                isinstance(n_dof, (bool, np.bool_))
+                or not isinstance(n_dof, (int, np.integer))
+                or n_dof <= 0
+            ):
+                raise ValueError("V-rescale n_dof must be a positive integer")
             self._n_dof = n_dof
         elif not np.all(self.active_atoms):
             self._n_dof = 3 * int(np.count_nonzero(self.active_atoms))
         else:
             self._n_dof = 3 * n_atoms if any(atoms.pbc) else 3 * n_atoms - 3
+        if self._n_dof <= 0:
+            raise ValueError("V-rescale requires a positive thermal degree-of-freedom count")
         self._kT_target = temperature * KELVIN_TO_HARTREE
         self._ke_target = 0.5 * self._n_dof * self._kT_target
 
@@ -104,6 +132,55 @@ class VRescaleThermostat:
         # should project out the COM velocity before applying the thermostat so
         # that the input kinetic energy lives in the intended 3N-3 subspace.
         self._is_periodic = any(atoms.pbc)
+
+    def _thermal_components(
+        self, velocities: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+        """Return sanitized, thermal, nonthermal velocities and thermal KE."""
+        values = np.asarray(velocities, dtype=float)
+        expected_shape = (len(self.atoms), 3)
+        if values.shape != expected_shape:
+            raise ValueError(
+                f"V-rescale velocities must have shape {expected_shape}, got {values.shape}"
+            )
+        if not np.all(np.isfinite(values)):
+            raise ValueError("V-rescale velocities must be finite")
+
+        sanitized = values.copy()
+        sanitized[~self.active_atoms] = 0.0
+        thermal = sanitized
+        if self.dof_policy is not None and not self.dof_policy.get("anchored", False):
+            if self.dof_policy.get("angular_active", False):
+                thermal = remove_center_of_mass_motion(self.atoms, thermal)
+                thermal = remove_rigid_body_rotation(self.atoms, thermal)
+            elif self.dof_policy.get("linear_active", False):
+                thermal = remove_center_of_mass_motion(self.atoms, thermal)
+        nonthermal = sanitized - thermal
+        ke = float(
+            0.5
+            * np.sum(
+                self.masses[self.active_atoms, np.newaxis]
+                * thermal[self.active_atoms] ** 2
+            )
+        )
+        if not np.isfinite(ke):
+            raise ValueError("V-rescale thermal kinetic energy must be finite")
+        if ke < 1.0e-30:
+            raise ValueError(
+                "V-rescale requires nonzero thermal kinetic energy in the active "
+                "thermostatted subspace; velocities are not redrawn automatically"
+            )
+        return sanitized, thermal, nonthermal, ke
+
+    def validate_velocities(self, velocities: np.ndarray) -> None:
+        """Fail closed before MD setup if no scalable thermal velocity exists.
+
+        Validation uses exactly the same active-atom and excluded-motion
+        projection as :meth:`apply`. It neither mutates the input nor consumes
+        random numbers. Callers must initialize velocities explicitly rather
+        than relying on the thermostat to redraw an invalid state.
+        """
+        self._thermal_components(velocities)
 
     def _sample_chi2(self, n: int) -> float:
         """
@@ -148,24 +225,7 @@ class VRescaleThermostat:
             (rescaled_velocities, delta_w) where delta_w = (α² − 1)·K
             is the energy injected by the thermostat this step (Hartree).
         """
-        velocities = velocities.copy()
-        velocities[~self.active_atoms] = 0.0
-        thermal = velocities
-        if self.dof_policy is not None and not self.dof_policy.get("anchored", False):
-            if self.dof_policy.get("angular_active", False):
-                thermal = remove_center_of_mass_motion(self.atoms, thermal)
-                thermal = remove_rigid_body_rotation(self.atoms, thermal)
-            elif self.dof_policy.get("linear_active", False):
-                thermal = remove_center_of_mass_motion(self.atoms, thermal)
-        nonthermal = velocities - thermal
-
-        ke = 0.5 * np.sum(
-            self.masses[self.active_atoms, np.newaxis]
-            * thermal[self.active_atoms] ** 2
-        )
-
-        if ke < 1e-30:
-            return velocities, 0.0
+        velocities, thermal, nonthermal, ke = self._thermal_components(velocities)
 
         f = self._decay                     # e^{-Δt/τ}
         ke_ref = self._ke_target            # K̄ = N_f/2 · kT

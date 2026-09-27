@@ -4,6 +4,8 @@ from difflib import get_close_matches
 from math import isfinite
 from typing import Dict, Any, List, Optional
 
+from ..parameter_ownership import GLOBAL_PARAMETER_KEYS
+
 
 class CommandControl:
     """
@@ -64,35 +66,8 @@ class CommandControl:
             "treat_imag_as_real": False,
             "device": "cpu",
         },
-        "md": {
-            "ensemble": "nve",
-            "timestep": 0.25,
-            "steps": 400000,
-            "temperature": 300.0,
-            "traj_every": 100,
-            "log_every": 100,
-            "init_velocities": True,
-            "restart": False,
-            "load_state": False,
-            "rst_file": "",
-            "rst_every": 1000,
-            "remove_com": True,
-            "remove_com_every": 100,
-            "remove_rotation": False,
-            "remove_angular": False,
-            "remove_angular_every": 0,
-            "random_seed": None,
-            "thermostat": "langevin",
-            "friction": 0.001,
-            "tau_t": 100.0,
-            "barostat": "c-rescale",
-            "pressure": 1.0,
-            "tau_p": 2000.0,
-            "compressibility": 4.5e-5,
-            "mdp": None,
-            "traj_format": "xyz",
-            "debug": False,
-        },
+        # Ensemble parameter defaults live only in NVEParams/NVTParams/NPTParams.
+        "md": {},
     }
 
     IMPLEMENTATION_MAP = {
@@ -105,16 +80,7 @@ class CommandControl:
         "md": {"nve", "nvt", "npt"},
         "parmfit": {"abinitio", "correction"},
     }
-    GLOBAL_PARAMS = {
-        "model",
-        "model_options",
-        "device",
-        "gpuid",
-        "d4",
-        "pbc",
-        "solv",
-        "level",
-    }
+    GLOBAL_PARAMS = GLOBAL_PARAMETER_KEYS
     LBFGS_PARAMS = {
         "memory",
         "curvature",
@@ -217,7 +183,6 @@ class CommandControl:
         params: Dict[str, Any] = {}
         task: Optional[str] = None
         seen_keys = set()
-        explicit_md_keys: set[str] = set()
         log_lines = ["Parsing # commands...\n"]
 
         for raw in settings_lines:
@@ -242,22 +207,12 @@ class CommandControl:
                     raise ValueError(f"Multiple tasks defined: '{task}' and '{key}'.")
 
                 task = key
-                params.update(cls.DEFAULTS.get(key, {}))
+                if key != "md":
+                    params.update(cls.DEFAULTS.get(key, {}))
                 log_lines.append(f"Task set to '{task}'\n")
 
-                inline_md_keys = set()
                 if paren_val:
-                    cls._parse_nested(params, paren_val)
-                    if task == "md":
-                        inline_md_keys = {
-                            kv.split("=", 1)[0].strip().lower()
-                            for kv in paren_val.split(",")
-                            if "=" in kv
-                        }
-                        explicit_md_keys.update(inline_md_keys)
-
-                if task == "md" and params.get("mdp"):
-                    cls._load_mdp(params, inline_md_keys, output_path)
+                    cls._parse_nested(params, paren_val, reject_duplicates=key == "md")
 
                 continue
 
@@ -265,8 +220,6 @@ class CommandControl:
                 cls._log_error(output_path, f"Duplicate parameter: '{key}'.")
                 raise ValueError(f"Duplicate parameter: '{key}'.")
             seen_keys.add(key)
-            if task == "md" and key in cls.DEFAULTS["md"]:
-                explicit_md_keys.add(key)
 
             if paren_val is not None and assign_val is not None:
                 sub = {}
@@ -302,7 +255,9 @@ class CommandControl:
             params.update(cls.DEFAULTS.get("sp", {}))
             log_lines.append("No task specified. Defaulting to 'sp'.\n")
 
-        cls._normalize_params(params, explicit_md_keys if task == "md" else None)
+        if task == "md":
+            cls._normalize_md_configuration(params, output_path)
+        cls._normalize_params(params)
         cls._normalize_method_flags(params, task, output_path)
         cls._validate(params, task, output_path)
         cls._log_info(output_path, log_lines)
@@ -314,14 +269,23 @@ class CommandControl:
         return key.strip().replace("\ufeff", "").lower()
 
     @staticmethod
-    def _parse_nested(target: Dict[str, Any], inner: str) -> None:
+    def _parse_nested(
+        target: Dict[str, Any], inner: str, *, reject_duplicates: bool = False
+    ) -> None:
+        seen: set[str] = set()
         for kv in inner.split(","):
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(v.strip())
+                normalized = CommandControl._normalize_key(k)
+                value = CommandControl._auto_cast(v.strip())
             else:
-                target[CommandControl._normalize_key(kv)] = True
+                normalized = CommandControl._normalize_key(kv)
+                value = True
+            if reject_duplicates and normalized in seen:
+                raise ValueError(f"duplicate MD inline key '{normalized}'.")
+            seen.add(normalized)
+            target[normalized] = value
 
     @classmethod
     def _parse_pbc(cls, inner: str, output_path: Optional[str]) -> List[float]:
@@ -362,15 +326,9 @@ class CommandControl:
         return value
 
     @classmethod
-    def _load_mdp(
-        cls,
-        params: Dict[str, Any],
-        inline_keys: set[str],
-        output_path: Optional[str] = None,
-    ) -> None:
+    def _load_mdp(cls, mdp_path: str, output_path: str | None = None) -> dict:
         from ..dispatcher.md.mdp_reader import parse_mdp
 
-        mdp_path = params["mdp"]
         try:
             mdp_params = parse_mdp(mdp_path)
         except FileNotFoundError:
@@ -379,42 +337,57 @@ class CommandControl:
         except ValueError as exc:
             cls._log_error(output_path, str(exc))
             raise
+        return mdp_params
 
-        defaults = cls.DEFAULTS.get("md", {})
-        for key, mdp_val in mdp_params.items():
-            if key in defaults and key not in inline_keys:
-                params[key] = mdp_val
+    @classmethod
+    def _normalize_md_configuration(
+        cls, params: Dict[str, Any], output_path: str | None
+    ) -> None:
+        from dataclasses import fields
 
-        if ("remove_rotation" in mdp_params and "remove_angular" in mdp_params
-                and bool(mdp_params["remove_rotation"]) != bool(mdp_params["remove_angular"])):
-            raise ValueError(
-                "Conflicting MDP settings: remove_rotation and remove_angular"
-            )
-        if ("remove_rotation" in mdp_params
-                and "remove_angular" not in mdp_params
-                and "remove_angular" not in inline_keys):
-            params["remove_angular"] = params["remove_rotation"]
+        from ..dispatcher.md.ensemble.npt import NPTParams
+        from ..dispatcher.md.ensemble.nve import NVEParams
+        from ..dispatcher.md.ensemble.nvt import NVTParams
+        from ..dispatcher.md.utils import normalize_md_parameters
+
+        param_types = {"nve": NVEParams, "nvt": NVTParams, "npt": NPTParams}
+        field_names = {
+            field.name for param_type in param_types.values() for field in fields(param_type)
+        }
+        mdp_path = params.get("mdp")
+        if mdp_path is not None and not isinstance(mdp_path, str):
+            raise TypeError("MD mdp must be a path string")
+        if mdp_path is not None and not mdp_path.strip():
+            raise ValueError("MD mdp path must not be empty")
+        mdp_values = cls._load_mdp(mdp_path, output_path) if mdp_path else {}
+        inline_values = {
+            key: params.pop(key)
+            for key in list(params)
+            if key in field_names or key in {"ensemble", "integrator"}
+        }
+        for source in (mdp_values, inline_values):
+            if "integrator" in source:
+                integrator = source.pop("integrator")
+                if not isinstance(integrator, str) or integrator.strip().lower() != "md":
+                    raise ValueError("MD integrator must be 'md' (the supported alias).")
+        selected = inline_values.get("ensemble", mdp_values.get("ensemble", "nve"))
+        if not isinstance(selected, str) or selected.strip().lower() not in param_types:
+            raise ValueError("MD ensemble must be one of: nve, nvt, npt.")
+        param_type = param_types[selected.strip().lower()]
+        # Normalize each explicit source before merging so aliases obey source
+        # precedence as well as ordinary keys: CLI > MDP > ensemble defaults.
+        mdp_values = normalize_md_parameters(mdp_values, param_type, complete=False)
+        inline_values = normalize_md_parameters(inline_values, param_type, complete=False)
+        merged = {**mdp_values, **inline_values, "ensemble": selected}
+        params.update(normalize_md_parameters(
+            merged, param_type, expected_ensemble=selected.strip().lower()
+        ))
 
     @classmethod
     def _normalize_params(
         cls,
         params: Dict[str, Any],
-        explicit_md_keys: set[str] | None = None,
     ) -> None:
-        explicit_md_keys = explicit_md_keys or set()
-        legacy_explicit = "remove_rotation" in explicit_md_keys
-        canonical_explicit = "remove_angular" in explicit_md_keys
-        if (legacy_explicit and canonical_explicit
-                and bool(params["remove_rotation"]) != bool(params["remove_angular"])):
-            raise ValueError(
-                "Conflicting MD settings: remove_rotation and remove_angular"
-            )
-        if legacy_explicit and not canonical_explicit:
-            params["remove_angular"] = params["remove_rotation"]
-        params.pop("remove_rotation", None)
-        if params.get("remove_angular"):
-            params["remove_com"] = True
-
         if "model" in params and params["model"] is not None:
             params["model"] = str(params["model"]).strip().lower()
 
@@ -483,7 +456,15 @@ class CommandControl:
 
         allowed = set(cls.GLOBAL_PARAMS)
         if task == "md":
-            allowed.update(cls.DEFAULTS["md"])
+            from dataclasses import fields
+
+            from ..dispatcher.md.ensemble.npt import NPTParams
+            from ..dispatcher.md.ensemble.nve import NVEParams
+            from ..dispatcher.md.ensemble.nvt import NVTParams
+
+            allowed.update({"ensemble", "mdp"})
+            for param_type in (NVEParams, NVTParams, NPTParams):
+                allowed.update(field.name for field in fields(param_type))
             return allowed
         if task == "freq":
             allowed.update(cls.DEFAULTS["freq"])

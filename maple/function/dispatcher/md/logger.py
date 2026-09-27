@@ -399,6 +399,7 @@ class MDLogger:
         self._dof_description = dof_description
         self._write_sync_thermo = bool(write_sync_thermo)
         self._write_conserved_energy = bool(write_conserved_energy)
+        self.analysis_label = "sync-corrected" if self._write_sync_thermo else "raw"
         # Total steps across the full run (for progress %)
         self._n_steps     = n_steps + step_offset
 
@@ -450,6 +451,10 @@ class MDLogger:
             f"Simulation time: {total_steps_display * timestep:.2f} fs\n",
             f"Velocity repr:   {self.velocity_representation}\n",
         ])
+        if self._ensemble == 'npt' and self._write_sync_thermo:
+            self.log_main([
+                f"T/KE/TE basis:  {self.analysis_label}; pressure: raw-carried\n"
+            ])
 
         if step_offset > 0:
             self.log_main([
@@ -484,6 +489,21 @@ class MDLogger:
                 raise RuntimeError("Thermodynamic output was not opened")
             thermo_file.write(f"# MD Simulation - {ensemble.upper()} Ensemble\n")
             thermo_file.write(f"# Timestep: {timestep} fs\n")
+            if self._ensemble == 'npt' and self._write_sync_thermo:
+                thermo_file.write(
+                    f"# Summary/progress T/KE/TE basis: {self.analysis_label}; "
+                    "pressure basis: raw-carried; "
+                    f"checkpoint velocity representation: {self.velocity_representation}\n"
+                )
+            if (
+                self._ensemble == 'npt'
+                and self.dynamics_parameters is not None
+                and self.dynamics_parameters.get("compressibility") == 0.0
+            ):
+                thermo_file.write(
+                    "# Zero compressibility disables volume moves; "
+                    "this is not NPT volume sampling.\n"
+                )
             if is_segment:
                 if self._segment_source is None or self._segment_parent_snapshot is None:
                     raise RuntimeError("Restart segment provenance was not prepared")
@@ -496,11 +516,22 @@ class MDLogger:
                     "# Conserved-energy and bath-work diagnostics are segment-local.\n"
                 )
             if self._ensemble == 'npt':
-                thermo_file.write(
-                    f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
-                    f"{'KE(Ha)':>15} {'PE(Ha)':>15} {'TE(Ha)':>15} "
-                    f"{'Press(bar)':>12} {'Vol(A^3)':>12}\n"
+                raw_names = (
+                    ("Temp_raw(K)", "KE_raw(Ha)", "TE_raw(Ha)")
+                    if self._write_sync_thermo
+                    else ("Temp(K)", "KE(Ha)", "TE(Ha)")
                 )
+                header = (
+                    f"# {'Step':>8} {'Time(fs)':>12} {raw_names[0]:>12} "
+                    f"{raw_names[1]:>15} {'PE(Ha)':>15} {raw_names[2]:>15} "
+                    f"{('Press_raw(bar)' if self._write_sync_thermo else 'Press(bar)'):>12} "
+                    f"{'Vol(A^3)':>12}"
+                )
+                if self._write_sync_thermo:
+                    header += (
+                        f" {'Temp_sync(K)':>15} {'KE_sync(Ha)':>15} {'TE_sync(Ha)':>15}"
+                    )
+                thermo_file.write(header + "\n")
             elif self._ensemble == 'nvt':
                 header = (
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
@@ -527,19 +558,23 @@ class MDLogger:
         # ------------------------------------------------------------------
         if self.verbose >= 1:
             is_npt = self._ensemble == 'npt'
+            labelled_sync = is_npt and self._write_sync_thermo
+            temperature_label = 'T_sync(K)' if labelled_sync else 'T(K)'
+            energy_label = 'E_sync(Ha)' if labelled_sync else 'E_total(Ha)'
+            temperature_width = 9 if labelled_sync else 8
             total_ps = self._n_steps * self._timestep / 1000.0
             _time_col_w = max(len(f"0.000/{total_ps:.3f}"), len("Time(ps)")) + 1
             hdr = (
                 f"\n"
                 f"  {'Step':>9}  {'Time(ps)':>{_time_col_w}}  {'Progress':>8}  "
-                f"{'T(K)':>8}  {'E_total(Ha)':>15}"
+                f"{temperature_label:>{temperature_width}}  {energy_label:>15}"
                 + (f"  {'H_cons_ext(Ha)':>15}" if self._write_conserved_energy else "")
                 + f"  {'Speed(ns/day)':>13}  {'ETA':>10}"
-                + (f"  {'P(bar)':>10}" if is_npt else "")
+                + (f"  {('P_raw(bar)' if labelled_sync else 'P(bar)'):>10}" if is_npt else "")
             )
             sep = (
                 f"  {'-'*9}  {'-'*_time_col_w}  {'-'*8}  "
-                f"{'-'*8}  {'-'*15}"
+                f"{'-'*temperature_width}  {'-'*15}"
                 + (f"  {'-'*15}" if self._write_conserved_energy else "")
                 + f"  {'-'*13}  {'-'*10}"
                 + (f"  {'-'*10}" if is_npt else "")
@@ -599,13 +634,20 @@ class MDLogger:
         potential_energy_hartree = potential_energy
         kinetic_energy_hartree = kinetic_energy
         total_energy_hartree = kinetic_energy_hartree + potential_energy_hartree
+        if self._ensemble == 'npt' and (pressure is None or volume is None):
+            raise ValueError("NPT thermodynamic output requires pressure and volume")
+        if self._write_sync_thermo and any(
+            value is None for value in (temperature_sync, kinetic_energy_sync, total_energy_sync)
+        ):
+            raise ValueError("Synchronized thermodynamic output requires all three sync observables")
 
         # Store raw values and analysis values separately.
-        analysis_temperature = temperature_sync if temperature_sync is not None else temperature
-        analysis_kinetic_energy = kinetic_energy_sync if kinetic_energy_sync is not None else kinetic_energy_hartree
-        analysis_total_energy = total_energy_sync if total_energy_sync is not None else total_energy_hartree
-        if temperature_sync is not None and kinetic_energy_sync is not None and total_energy_sync is not None:
+        analysis_temperature = temperature_sync if self._write_sync_thermo else temperature
+        analysis_kinetic_energy = kinetic_energy_sync if self._write_sync_thermo else kinetic_energy_hartree
+        analysis_total_energy = total_energy_sync if self._write_sync_thermo else total_energy_hartree
+        if self._write_sync_thermo:
             self.analysis_label = "sync-corrected"
+        npt_sync = self._ensemble == 'npt' and self._write_sync_thermo
 
         self.energies.append(total_energy_hartree)
         self.temperatures.append(temperature)
@@ -623,11 +665,17 @@ class MDLogger:
         # Write thermodynamic data every step
         # H_cons column is included only for NVT with V-rescale (Bussi 2007 Eq. 15)
         if self._ensemble == 'npt' and pressure is not None and volume is not None:
-            self.thermo_file.write(
+            line = (
                 f"{step:>10} {time:>12.3f} {temperature:>12.2f} "
                 f"{kinetic_energy_hartree:>15.8f} {potential_energy_hartree:>15.8f} "
-                f"{total_energy_hartree:>15.8f} {pressure:>12.3f} {volume:>12.4f}\n"
+                f"{total_energy_hartree:>15.8f} {pressure:>12.3f} {volume:>12.4f}"
             )
+            if self._write_sync_thermo:
+                line += (
+                    f" {temperature_sync:>15.2f} {kinetic_energy_sync:>15.8f}"
+                    f" {total_energy_sync:>15.8f}"
+                )
+            self.thermo_file.write(line + "\n")
         elif conserved_energy is not None:
             self.thermo_file.write(
                 f"{step:>10} {time:>12.3f} {temperature:>12.2f} "
@@ -705,11 +753,18 @@ class MDLogger:
 
         # Also write to .dat file at log_every frequency (unchanged)
         if step % self.log_every == 0:
-            line = (
-                f"  Step {step:>8}  {time:>10.2f} fs  "
-                f"T {temperature:>7.2f} K  "
-                f"E {total_energy_hartree:>14.6f} Ha"
-            )
+            if npt_sync:
+                line = (
+                    f"  Step {step:>8}  {time:>10.2f} fs  "
+                    f"T_sync {analysis_temperature:>7.2f} K  "
+                    f"E_sync {analysis_total_energy:>14.6f} Ha"
+                )
+            else:
+                line = (
+                    f"  Step {step:>8}  {time:>10.2f} fs  "
+                    f"T {temperature:>7.2f} K  "
+                    f"E {total_energy_hartree:>14.6f} Ha"
+                )
             if self._write_conserved_energy and conserved_energy is not None:
                 line += f"  H_cons {conserved_energy:>14.6f} Ha"
             self.log_main([line + "\n"])
@@ -730,6 +785,7 @@ class MDLogger:
                     include_velocities=self.debug,
                     rng_state=rng_state,
                     velocity_representation=velocity_representation,
+                    energy_basis="raw_carried" if npt_sync else None,
                 )
                 self.traj_file.flush()
 
@@ -779,6 +835,7 @@ class MDLogger:
             velocity_representation or self.velocity_representation
         )
         self.velocity_representation = velocity_representation
+        npt_sync = self._ensemble == 'npt' and self._write_sync_thermo
         if atoms is not None:
             set_atoms_velocity_representation(atoms, velocity_representation)
 
@@ -950,7 +1007,19 @@ class MDLogger:
             f.write(f"Number of atoms:            {self._n_atoms}\n")
             f.write(f"N_dof:                      {n_dof}  "
                     f"{dof_description}\n")
-            f.write(f"Energy reporting basis:     {energy_label}\n\n")
+            f.write(f"Energy reporting basis:     {energy_label}\n")
+            if npt_sync:
+                f.write(f"T/KE/TE columns basis:      {self.analysis_label}\n")
+                f.write("Pressure basis:             raw-carried\n")
+                f.write(f"Checkpoint velocity repr:   {self.velocity_representation}\n")
+            if (
+                self._ensemble == 'npt'
+                and self.dynamics_parameters is not None
+                and self.dynamics_parameters.get("compressibility") == 0.0
+            ):
+                f.write("Volume sampling:            disabled by zero compressibility; "
+                        "not NPT volume sampling\n")
+            f.write("\n")
             if self._segment_parent_step is not None:
                 f.write("Diagnostic scope:           current output segment\n\n")
 
@@ -983,8 +1052,9 @@ class MDLogger:
             if self.pressures:
                 pressures_arr = np.array(self.pressures)
                 f.write(f"\nPressure Statistics:\n")
-                f.write(f"  Mean pressure:            {np.mean(pressures_arr):.3f} bar\n")
-                f.write(f"  Std deviation:            {np.std(pressures_arr):.3f} bar\n")
+                pressure_name = "raw pressure" if npt_sync else "pressure"
+                f.write(f"  Mean {pressure_name}:            {np.mean(pressures_arr):.3f} bar\n")
+                f.write(f"  Std {pressure_name}:             {np.std(pressures_arr):.3f} bar\n")
 
             f.write(f"\nPerformance:\n")
             f.write(f"  Wall time:                {_fmt_duration(total_wall)}\n")
@@ -994,10 +1064,11 @@ class MDLogger:
 
         if self.pressures:
             pressures_log = np.array(self.pressures)
+            pressure_name = "raw pressure" if npt_sync else "pressure"
             self.log_main([
                 f"\n{'── Pressure Statistics ──':^80}\n",
-                f"  Mean pressure:              {np.mean(pressures_log):>18.3f}  bar\n",
-                f"  Std deviation:              {np.std(pressures_log):>18.3f}  bar\n",
+                f"  Mean {pressure_name}:              {np.mean(pressures_log):>18.3f}  bar\n",
+                f"  Std {pressure_name}:               {np.std(pressures_log):>18.3f}  bar\n",
             ], echo=True)
 
         # ------------------------------------------------------------------
@@ -1029,6 +1100,7 @@ class MDLogger:
                     velocity=final_velocities if self.debug else None,
                     include_velocities=self.debug,
                     velocity_representation=velocity_representation,
+                    energy_basis="raw_carried" if npt_sync else None,
                 )
             final_xyz_written = True
 

@@ -88,6 +88,16 @@ PBC boundary:
 - ANI, AIMNet2, MACE-OFF, MACE-O-MOL, and MACE-Polar are molecular no-PBC wrappers in MAPLE and fail fast when periodic atoms are supplied.
 - AIMNet2 `coulomb_method=ewald` is disabled until validated cell/PBC/MIC inputs and reference tests exist; use `simple` or `dsf`.
 - UMA stress/virial requests are rejected until MAPLE validates stress-unit conversion.
+- Molecular charge and multiplicity must describe a nonnegative electron count with compatible spin and parity. A periodic non-neutral or non-singlet request needs an explicit backend electronic-state capability; the neutral-singlet periodic UMA task contract remains available.
+- Cartesian NEB, String, AutoNEB, and DMF reject PBC endpoints before path alignment or evaluation.
+
+Scientific output boundaries:
+
+- Gas-phase RRHO thermochemistry uses principal moments from the same mass-weighted rigid-body SVD as vibrational projection. The classical rotational formula requires temperature much greater than each rotational temperature; `auto` omits thermochemistry when any rotational temperature reaches the requested temperature, while `gas` raises. Passing this necessary check does not certify quantitative accuracy.
+- V-rescale requires nonzero thermal kinetic energy after excluded-motion projection. Provide valid initial velocities; the thermostat does not redraw a zero thermal state.
+- NPT Langevin `thermo.dat` retains carried-velocity raw columns and appends labelled synchronized columns. Main step status, progress, and T/KE/TE summaries use the synchronized basis; pressure is labelled raw. XYZ trajectory/final `Energy` remains raw with `Energy_basis=raw_carried`, and restart checkpoints retain their carried-velocity representation.
+- NPT accepts a finite signed target pressure. Zero compressibility disables volume moves and does not establish NPT volume sampling.
+- Exact MD restarts bind the PES identity schema and explicit backend `implementation_version`. A standard-velocity `load_state` starts a new run and does not claim exact continuation.
 
 ## Quick Start
 
@@ -126,7 +136,8 @@ H    0.802   0.842   1.742
 
 XYZ 0 1 /path/to/molecule.xyz
 ```
-TIPS:  Charge and spin multiplicity are supported only in the **OMOL task** mode of the **UMA** model and in the **AIMNet2 / AIMNet2-NSE** models.
+TIPS: Integer charge and spin multiplicity are supported by **UMA OMOL**, **AIMNet2 / AIMNet2-NSE**, and **MACE-POLAR**, subject to each model's state domain.
+
 ## Input Overview
 
 ### Header Keywords
@@ -185,7 +196,7 @@ XYZ 0 1 /path/to/molecule.xyz
 ```
 
 Multi-structure jobs such as NEB accept multiple `XYZ` records.<br>
-TIPS:  Charge and spin multiplicity are supported only in the **OMOL task** mode of the **UMA** model
+TIPS: Integer charge and spin multiplicity are supported by **UMA OMOL**, **AIMNet2 / AIMNet2-NSE**, and **MACE-POLAR**, subject to each model's state domain.
 
 MAPLE supports custom explicit-solvent PDB templates; see the
 [solvent documentation](https://www.maplechem.org/functions/solvent.html)

@@ -109,7 +109,11 @@ class FooCalculator(CalcABC):
 Shipped calculators record the loaded checkpoint content hash and effective
 energy settings. External calculators used for a reaction path or MD checkpoint
 must provide `get_pes_identity()` or `maple_pes_identity` containing `backend`,
-`model_fingerprint` (`algorithm`, `digest`, `source`), and `relevant_settings`.
+`implementation_version`, `model_fingerprint` (`algorithm`, `digest`, `source`),
+and `relevant_settings`. `implementation_version` is a stable, backend-owned
+identifier for the scientific adapter contract; bump it whenever code changes
+can change energies, forces, or electronic-state semantics. Do not derive it
+from an installed package version, timestamp, or Python object identity.
 A class name or Python object ID is not a model fingerprint. Mutable energy
 settings must be reflected in the returned identity and invalidate result caches.
 ANI's `d4` property and AIMNet2's Coulomb setter perform both operations.
@@ -117,8 +121,12 @@ UMA returns predictor and resolved provenance from a single loading operation;
 its compatibility artifacts are immutable and content-addressed.
 
 `electronic_state_identity(atoms)` adds the authoritative integer `charge` and
-positive `mult`. Ordinary path methods require identical electronic/PES identity,
-atom order, PBC and cell before evaluating images. RST V2 additionally binds
+positive `mult`, and molecular states must satisfy electron-count, spin-limit,
+and parity constraints. A non-default periodic state additionally requires an
+explicit `SUPPORTS_PERIODIC_CHARGE_MULT` capability; it is never inferred from
+molecular charge support. Current Cartesian path methods reject every PBC input
+before alignment or evaluation and require identical electronic/PES identity
+and atom order otherwise. RST V2 additionally binds
 masses, constraints and dynamics parameters. Legacy RST V1 can initialize a new
 run with `load_state`, but cannot prove an exact continuation.
 

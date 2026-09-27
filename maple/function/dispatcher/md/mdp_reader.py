@@ -6,8 +6,7 @@ Format:
     key = value   # optional comment
 
 Keys are case-insensitive and stripped of whitespace.
-Values are coerced to int, float, or bool as appropriate;
-otherwise left as str.
+Values remain strings for the shared ensemble parameter normalizer.
 """
 
 import os
@@ -20,12 +19,12 @@ def parse_mdp(path: str) -> dict:
     Handles:
     - Comments introduced by ';' or '#'
     - key = value pairs (case-insensitive keys, lowercased in output)
-    - Type coercion: int, float, bool ('yes'/'no'/'true'/'false'), str
+    - Value coercion and validation occur at the shared MD boundary
     - Blank lines and comment-only lines ignored
     - Auto-append .mdp suffix if file not found without it
 
     Returns:
-        dict mapping lowercase key to coerced value
+        dict mapping lowercase key to its raw string value
 
     Raises:
         FileNotFoundError: if path does not exist (with or without .mdp suffix)
@@ -62,22 +61,7 @@ def parse_mdp(path: str) -> dict:
                 raise ValueError(f"{path}:{lineno}: empty key in MDP entry")
             if not val:
                 raise ValueError(f"{path}:{lineno}: empty value for key '{key}'")
-            result[key] = _coerce(val)
+            if key in result:
+                raise ValueError(f"{path}:{lineno}: duplicate MDP key '{key}'")
+            result[key] = val
     return result
-
-
-def _coerce(val: str):
-    """Coerce a string value to int, float, bool, or leave as str."""
-    if val.lower() in ('yes', 'true'):
-        return True
-    if val.lower() in ('no', 'false'):
-        return False
-    try:
-        return int(val)
-    except ValueError:
-        pass
-    try:
-        return float(val)
-    except ValueError:
-        pass
-    return val

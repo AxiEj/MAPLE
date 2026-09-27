@@ -4,7 +4,8 @@ MDP template generator for MAPLE MD ensembles.
 Provides MDP template files for NVE, NVT, and NPT ensembles.
 """
 
-import os
+import re
+from dataclasses import fields
 from pathlib import Path
 
 
@@ -19,7 +20,7 @@ integrator  = md          ; Velocity Verlet
 ensemble    = nve
 
 timestep    = 0.1        ; fs
-steps       = 400000     ; steps (= 40 ps)
+steps       = 100000     ; steps (= 10 ps)
 
 temperature = 300.0      ; K (used only if init_velocities = yes)
 
@@ -28,14 +29,14 @@ log_every   = 100        ; log energy every N steps
 traj_format = xyz        ; xyz (text) or dcd (binary)
 
 remove_com = yes         ; initialization-only: remove COM
-remove_angular = no      ; initialization-only: remove COM + rigid-body rotation (parallel to remove_com, not a switch)
-remove_com_every = 100   ; runtime-only: remove COM every N steps
+remove_angular = yes     ; initialization-only: remove COM + rigid-body rotation (parallel to remove_com, not a switch)
+remove_com_every = 0     ; runtime-only: remove COM every N steps (0 disables strict NVE projection)
 remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every N steps (parallel to remove_com_every, not a switch)
 
-init_velocities = no
+init_velocities = yes
 restart     = no
-load_state  = yes        ; read rst and start from step 0
-rst_file    = nvt_md.rst
+load_state  = no         ; read rst and start from step 0 when explicitly enabled
+; rst_file  = nvt_md.rst ; set explicitly for restart/load_state
 rst_every   = 1000       ; checkpoint frequency
 ; random_seed = 12345    ; uncomment for reproducibility
 """,
@@ -80,11 +81,11 @@ integrator  = md
 ensemble    = npt
 
 timestep    = 0.1        ; fs
-steps       = 20000      ; steps (= 2 ps)
+steps       = 100000     ; steps (= 10 ps)
 
 temperature = 300.0      ; K
 thermostat  = v-rescale  ; langevin or v-rescale
-; tau_t     = 100.0      ; fs (V-rescale only)
+; tau_t     = 200.0      ; fs (V-rescale only)
 
 pressure    = 1.0        ; bar
 barostat    = c-rescale  ; berendsen or c-rescale
@@ -107,6 +108,33 @@ load_state  = no         ; read rst and start from step 0
 rst_every   = 1000
 """,
 }
+
+
+def _render_template(ensemble: str) -> str:
+    """Render active MDP entries from the selected ensemble dataclass."""
+    from .ensemble.npt import NPTParams
+    from .ensemble.nve import NVEParams
+    from .ensemble.nvt import NVTParams
+
+    params_type = {"nve": NVEParams, "nvt": NVTParams, "npt": NPTParams}[ensemble]
+    defaults = params_type()
+    values = {field.name: getattr(defaults, field.name) for field in fields(defaults)}
+    rendered = []
+    for line in _MDP_TEMPLATES[ensemble].splitlines(keepends=True):
+        match = re.match(r"^(\s*)([a-z_]+)(\s*=\s*)([^;#\n]*)(.*)$", line)
+        if match is None or match.group(2) not in values:
+            rendered.append(line)
+            continue
+        value = values[match.group(2)]
+        if value is None or value == "":
+            rendered.append("; " + line)
+            continue
+        value_text = ("yes" if value else "no") if isinstance(value, bool) else str(value)
+        rendered.append(
+            f"{match.group(1)}{match.group(2)}{match.group(3)}{value_text}"
+            f"{match.group(5)}" + ("\n" if line.endswith("\n") else "")
+        )
+    return "".join(rendered)
 
 
 def generate_mdp_template(ensemble: str, output: str = None, force: bool = False) -> None:
@@ -155,7 +183,7 @@ def generate_mdp_template(ensemble: str, output: str = None, force: bool = False
         )
 
     # Write template
-    output_path.write_text(_MDP_TEMPLATES[ensemble])
+    output_path.write_text(_render_template(ensemble))
 
     print(f"Generated: {output}")
     print(f"  Ensemble: {ensemble.upper()}")

@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from maple.solvation.api.scalar_registry import (
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
@@ -14,6 +16,9 @@ from tools.route2_release.run_pure_mace_polar_torch_canary import _source_manife
 ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE_ID = "route2-pure-macepolar-torch-analytic-v3-contract-tests"
 EVIDENCE = ROOT / "docs/route2/evidence" / f"{EVIDENCE_ID}.json"
+SOURCE_SNAPSHOT = (
+    ROOT / "docs/route2/evidence/route2-pure-macepolar-torch-v3-source-manifest.json"
+)
 EXPECTED_CASES = {
     (case, device)
     for case in ("water-water", "methane-water", "methane-hexane")
@@ -27,12 +32,22 @@ def _digest(value):
     ).hexdigest()
 
 
+def _verify_original_sources(record, snapshot, current):
+    """Keep every reviewed byte live-guarded while allowing additive modules."""
+    assert _digest(snapshot) == record["source_manifest_sha256"]
+    assert len(snapshot) == record["source_file_count"]
+    for path, expected in snapshot.items():
+        assert path in current, f"Reviewed source missing: {path}"
+        assert current[path] == expected, f"Reviewed source changed: {path}"
+
+
 def test_evidence_is_frozen_to_the_current_implementation_and_has_no_admission():
     record = json.loads(EVIDENCE.read_text())
     assert record["schema_version"] == 1
     assert record["artifact_id"] == EVIDENCE_ID
-    assert record["source_manifest_sha256"] == _digest(_source_manifest())
-    assert record["source_file_count"] == len(_source_manifest())
+    _verify_original_sources(
+        record, json.loads(SOURCE_SNAPSHOT.read_text()), _source_manifest()
+    )
     assert record["scientific_release_admitted"] is False
     assert record["physical_force_accuracy_admitted"] is False
     assert record["experimental_solvation_accuracy_admitted"] is False
@@ -51,6 +66,26 @@ def test_evidence_is_frozen_to_the_current_implementation_and_has_no_admission()
             EVIDENCE_ID,
         )
         assert SCALAR_REGISTRY[scalar].admitted_capabilities.enabled_tiers == ()
+
+
+def test_original_source_guard_rejects_mutation_and_deletion_but_allows_additions():
+    record = json.loads(EVIDENCE.read_text())
+    snapshot = json.loads(SOURCE_SNAPSHOT.read_text())
+    path = "maple/solvation/continuum/torch_ddpcm.py"
+    mutated = dict(snapshot)
+    mutated[path] = "0" * 64
+    with pytest.raises(AssertionError, match="Reviewed source changed"):
+        _verify_original_sources(record, snapshot, mutated)
+    missing = dict(snapshot)
+    del missing[path]
+    with pytest.raises(AssertionError, match="Reviewed source missing"):
+        _verify_original_sources(record, snapshot, missing)
+    added = dict(snapshot)
+    added["maple/solvation/continuum/additive_future_module.py"] = "1" * 64
+    _verify_original_sources(record, snapshot, added)
+    # The inventory itself cannot drop a reviewed path to excuse its deletion.
+    with pytest.raises(AssertionError):
+        _verify_original_sources(record, missing, missing)
 
 
 def test_all_six_cases_and_failures_are_accounted_for_without_selection():

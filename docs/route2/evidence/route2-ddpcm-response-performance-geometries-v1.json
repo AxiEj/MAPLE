@@ -1,0 +1,487 @@
+{
+  "baseline_git_head": "a0966d620c50e3d7d2cb4565972091907cef9aac",
+  "cases": [
+    {
+      "charge": 0,
+      "execution": "real-total-E-F-HVP-H",
+      "geometry_sha256": "8123ad30efaef9e9a0a26ecfdfe7a746ff8dbf8409e101babe8cfde699e784ea",
+      "geometry_source": {
+        "ase_version": "3.27.0",
+        "name": "H2O",
+        "provider": "ase.build.molecule"
+      },
+      "multiplicity": 1,
+      "name": "water",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.119262
+        ],
+        [
+          0.0,
+          0.763239,
+          -0.477047
+        ],
+        [
+          0.0,
+          -0.763239,
+          -0.477047
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "charge": 0,
+      "execution": "real-total-E-F-HVP-H",
+      "geometry_sha256": "7a94bc1b3540dd283c1bf7941d7627b6147be4f8e8f61d50a2191173ad8d07e1",
+      "geometry_source": {
+        "ase_version": "3.27.0",
+        "name": "CH4",
+        "provider": "ase.build.molecule"
+      },
+      "multiplicity": 1,
+      "name": "methane",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.629118,
+          0.629118,
+          0.629118
+        ],
+        [
+          -0.629118,
+          -0.629118,
+          0.629118
+        ],
+        [
+          0.629118,
+          -0.629118,
+          -0.629118
+        ],
+        [
+          -0.629118,
+          0.629118,
+          -0.629118
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "H",
+        "H",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "charge": 0,
+      "execution": "real-total-E-F-HVP-H",
+      "geometry_sha256": "d5f33d507454fdd7b6f72d9ce0c2c07514cd01ce3a236efaade6e6d40cd87614",
+      "geometry_source": {
+        "ase_version": "3.27.0",
+        "fixed_shift_A": "arange(3N).reshape(N,3)*0.0017; existing CDS regular fixture policy",
+        "name": "CH3COCH3",
+        "provider": "ase.build.molecule"
+      },
+      "multiplicity": 1,
+      "name": "acetone-10",
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0017,
+          1.408991
+        ],
+        [
+          0.0050999999999999995,
+          0.0068,
+          0.18756
+        ],
+        [
+          0.010199999999999999,
+          1.29739,
+          -0.602742
+        ],
+        [
+          0.0153,
+          -1.2684900000000001,
+          -0.5976419999999999
+        ],
+        [
+          0.020399999999999998,
+          2.157017,
+          0.090335
+        ],
+        [
+          0.0255,
+          -2.107717,
+          0.09543499999999999
+        ],
+        [
+          -0.8504860000000001,
+          1.363848,
+          -1.230013
+        ],
+        [
+          0.916786,
+          1.368948,
+          -1.2249130000000001
+        ],
+        [
+          0.921886,
+          -1.289048,
+          -1.219813
+        ],
+        [
+          -0.835186,
+          -1.2839479999999999,
+          -1.2147130000000002
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "O",
+        "C",
+        "C",
+        "C",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "charge": 0,
+      "execution": "real-total-E-F-HVP-H-attempt",
+      "geometry_sha256": "2faef75d419e1804f201bfa9c507057c9e3059e1260897ec310e4549506844ea",
+      "geometry_source": {
+        "provider": "RDKit ETKDGv3 + UFF fixed pre-performance fixture",
+        "rdkit_version": "2024.09.2",
+        "seed": 20260926,
+        "smiles": "CCCCCC",
+        "uff_max_iterations": 2000,
+        "uff_status": 0
+      },
+      "multiplicity": 1,
+      "name": "hexane-20",
+      "positions_angstrom": [
+        [
+          2.57677487951097,
+          0.7504838599246049,
+          0.7186242491897499
+        ],
+        [
+          2.0564722450087993,
+          -0.49416042094665247,
+          7.385425238085177e-05
+        ],
+        [
+          0.6435763453342693,
+          -0.8944773561041421,
+          0.4519036378193978
+        ],
+        [
+          -0.4324990678702799,
+          0.08633584736523917,
+          -0.036902002970878645
+        ],
+        [
+          -1.8354215494974444,
+          -0.41274789280541985,
+          0.3281703454232108
+        ],
+        [
+          -2.908902514102195,
+          0.5624274636740897,
+          -0.14651814046427103
+        ],
+        [
+          3.638437732645177,
+          0.9195710633249927,
+          0.44069385267672967
+        ],
+        [
+          1.9958816637033387,
+          1.6479928531536665,
+          0.4217508656493222
+        ],
+        [
+          2.5172258945707577,
+          0.6175476653186536,
+          1.8197769175423704
+        ],
+        [
+          2.7470196313331443,
+          -1.336886726999227,
+          0.2206924151930671
+        ],
+        [
+          2.0738919797700177,
+          -0.32504442231978853,
+          -1.0985602568284896
+        ],
+        [
+          0.4248631943881946,
+          -1.9032370214012209,
+          0.03777248482425369
+        ],
+        [
+          0.6107303483457112,
+          -0.9713577906466324,
+          1.5610168353109923
+        ],
+        [
+          -0.35852909091597773,
+          0.1967651453045282,
+          -1.1412659357842527
+        ],
+        [
+          -0.27204585481746524,
+          1.0810014492930602,
+          0.4313491512257866
+        ],
+        [
+          -2.01644557848121,
+          -1.403057478019523,
+          -0.14390504007174315
+        ],
+        [
+          -1.9168047840674332,
+          -0.5282378655842244,
+          1.431100063883399
+        ],
+        [
+          -2.8647629675541433,
+          0.6774303579166452,
+          -1.2505595858729963
+        ],
+        [
+          -2.767557093070069,
+          1.554992275334163,
+          0.331939563951898
+        ],
+        [
+          -3.9119054142341896,
+          0.1746589942170925,
+          0.13022975915592708
+        ]
+      ],
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "charge": 0,
+      "execution": "preallocation-resource-screen-only",
+      "geometry_source": {
+        "provider": "composition-only resource screen",
+        "smiles": "CCCCCCCCCCCCCCCC"
+      },
+      "multiplicity": 1,
+      "name": "hexadecane-50",
+      "positions_angstrom": null,
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H"
+      ]
+    },
+    {
+      "charge": 0,
+      "execution": "preallocation-resource-screen-only",
+      "geometry_source": {
+        "provider": "composition-only resource screen",
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCN"
+      },
+      "multiplicity": 1,
+      "name": "alkylamine-100",
+      "positions_angstrom": null,
+      "solvent": "water",
+      "symbols": [
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "C",
+        "N",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H"
+      ]
+    }
+  ],
+  "experimental_labels_used": false,
+  "frozen_before_candidate_implementation": true,
+  "schema": "exact-response-fixed-performance-geometries-v1",
+  "selection": "specified prospective fixtures; retain all failures, no post-result geometry changes"
+}

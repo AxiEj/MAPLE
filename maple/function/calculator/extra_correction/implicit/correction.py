@@ -10,6 +10,11 @@ from typing import Any
 
 import numpy as np
 
+from maple.function.calculator.analytic_protocol import (
+    AnalyticDerivativeAdmission,
+    AnalyticIdentityError,
+    ScalarPointIdentity,
+)
 from maple.function.read.charge_options import normalize_charge_options
 from maple.function.read.filereader.mol2_reader import (
     MOL2_ATOM_ID_ARRAY,
@@ -18,11 +23,18 @@ from maple.function.read.filereader.mol2_reader import (
 )
 
 from .charges import ChargeResult, prepare_charges
-from .openmm_gb import DEFAULT_OPENMM_PLATFORM, OpenMMGB
 from .radii import GB_MODELS
 from .result import SolvationDirectionalResult, SolvationResult
 
 _ATOM_IDENTITY_ARRAY = "_maple_implicit_atom_identity"
+DEFAULT_OPENMM_PLATFORM = "CPU"
+
+
+def OpenMMGB(*args, **kwargs):
+    """Construct the legacy provider without importing its module eagerly."""
+    from .openmm_gb import OpenMMGB as provider_class
+
+    return provider_class(*args, **kwargs)
 
 _NUMERICAL_FORCE_KEYS = {
     "force_step_angstrom",
@@ -83,6 +95,13 @@ def _validate_provider_identity(
             raise ValueError(f"Unsupported OpenMM GB model: {model!r}.")
         profile = GB_MODELS[model]["profile"]
         default_nonpolar, allowed_nonpolar = "ace", {"ace", "lcpo", "none"}
+    elif family == ("gb", "torch"):
+        extra = frozenset()
+        model = "obc2"
+        profile = "obc2-mbondi2"
+        default_nonpolar, allowed_nonpolar = "ace", {"ace", "none"}
+        if str(options.get("model", model)).lower() != model:
+            raise ValueError("provider=torch requires model=obc2.")
     else:
         profiles = {
             ("gb", "ambertools"): (
@@ -180,7 +199,11 @@ def _validate_direct_contract(
     if force_mode not in {None, "native", "numerical"}:
         raise ValueError("Solvation mode must be native or numerical.")
     supplied = _NUMERICAL_FORCE_KEYS.intersection(solvation_options)
-    native_provider = (method, provider) in {("gb", "openmm"), ("pb", "ddx")}
+    native_provider = (method, provider) in {
+        ("gb", "openmm"),
+        ("gb", "torch"),
+        ("pb", "ddx"),
+    }
     numerical_provider = (method, provider) in {
         ("gb", "ambertools"),
         ("pb", "apbs"),
@@ -423,6 +446,15 @@ class ImplicitSolvationCorrection:
                     device_index=self.solvation_options.get("device_index"),
                     opencl_platform_index=self.solvation_options.get("opencl_platform_index"),
                 )
+            elif provider == "torch":
+                from .independent_obc2 import IndependentOBC2
+
+                self.provider = IndependentOBC2(
+                    atoms,
+                    self.charge_result.charges,
+                    nonpolar=self.solvation_options.get("nonpolar", "ace"),
+                    device="cpu" if model_device is None else model_device,
+                )
             elif provider == "ambertools":
                 from .amber_chagb import AmberToolsChaGB
 
@@ -465,14 +497,24 @@ class ImplicitSolvationCorrection:
 
         self.underlying_provider = self.provider
         self.supported_properties = set(self.provider.supported_properties)
-        self.last_derivative_provenance: dict[str, Any] | None = None
-        self.analytic_task_derivatives_admitted = bool(
-            isinstance(self.underlying_provider, OpenMMGB)
-            and self.underlying_provider.obc2_parameters is not None
-            and self.underlying_provider.platform == "Reference"
-            and str(self.underlying_provider._derivative_device).split(":", 1)[0].lower() == "cpu"
+        derivative_factory = getattr(self.underlying_provider, "derivative_backend", None)
+        derivative_profile_available = bool(
+            callable(derivative_factory)
+            and (
+                getattr(self.underlying_provider, "obc2_parameters", None) is not None
+                or {"hessian", "hvp"}.issubset(self.supported_properties)
+            )
             and self.inner_mode is None
         )
+        if derivative_profile_available:
+            self.supported_properties.update({"hessian", "hvp"})
+        self.last_derivative_provenance: dict[str, Any] | None = None
+        self.solvent_analytic_derivative_capable = derivative_profile_available
+        self.analytic_derivative_admission: AnalyticDerivativeAdmission | None = None
+        # Capability is not qualification. SetCalculator binds an installed exact
+        # gas+solvent cell only after the live checkpoint/device/dtype identities
+        # match the allowlist.
+        self.analytic_task_derivatives_admitted = False
         self._write_audit_manifest()
 
     def _write_audit_manifest(self) -> None:
@@ -544,10 +586,8 @@ class ImplicitSolvationCorrection:
                 "testing_only": False,
                 "native_force": "forces" in underlying_supported,
                 "numerical_force": False,
-                "analytic_solvent_hessian_available": bool(
-                    isinstance(self.underlying_provider, OpenMMGB)
-                    and self.underlying_provider.obc2_parameters is not None
-                    and self.inner_mode is None
+                "analytic_solvent_hessian_available": (
+                    self.solvent_analytic_derivative_capable
                 ),
                 "analytic_task_derivatives_admitted": (
                     self.analytic_task_derivatives_admitted
@@ -558,7 +598,12 @@ class ImplicitSolvationCorrection:
             "execution": {
                 "model_device": self.model_device,
                 "solvent_platform": getattr(self.underlying_provider, "platform", "CPU"),
-                "solver_scope": "OpenMM platform" if isinstance(self.underlying_provider, OpenMMGB) else "CPU native/external solver",
+                "solver_scope": (
+                    "OpenMM platform"
+                    if isinstance(provider_provenance, dict)
+                    and provider_provenance.get("provider") == "openmm"
+                    else "native/external solver"
+                ),
             },
         }
         (self.audit_dir / "manifest.json").write_text(
@@ -676,17 +721,60 @@ class ImplicitSolvationCorrection:
                 "to prepare charges, radii, and connectivity."
             )
 
+    def bind_analytic_derivative_admission(
+        self, admission: AnalyticDerivativeAdmission
+    ) -> None:
+        """Bind an installed exact solvent-cell qualification.
+
+        Runtime capability or a matching hash never creates admission. The
+        caller must select this immutable record from the installed allowlist.
+        """
+        if not isinstance(admission, AnalyticDerivativeAdmission):
+            raise TypeError("admission must be an AnalyticDerivativeAdmission.")
+        if admission.cell.component != "solvent":
+            raise AnalyticIdentityError("Solvent admission must identify a solvent cell.")
+        point = self.analytic_scalar_identity(self.atoms)
+        if point.cell != admission.cell:
+            raise AnalyticIdentityError(
+                "Live independent OBC-II scalar does not match the admitted cell."
+            )
+        if not {"energy_forces", "hessian", "hvp"}.issubset(admission.operations):
+            raise ValueError("Independent OBC-II admission must include E/F/H/HVP.")
+        self.analytic_derivative_admission = admission
+
+    def analytic_scalar_identity(self, atoms) -> ScalarPointIdentity:
+        """Return the strict independent solvent scalar identity at ``atoms``."""
+        self._validate_bound_atoms(atoms)
+        identity = getattr(self.underlying_provider, "analytic_scalar_identity", None)
+        if not callable(identity):
+            raise NotImplementedError(
+                "The legacy split-runtime solvent provider has no strict "
+                "same-implementation scalar identity."
+            )
+        point = identity(atoms)
+        if not isinstance(point, ScalarPointIdentity):
+            raise TypeError("Provider analytic_scalar_identity returned the wrong type.")
+        return point
+
     def _analytic_derivative_backend(self):
         if self.inner_mode is not None:
             raise NotImplementedError(
                 "Analytic OBC-II derivatives are admitted only for one solute; "
                 "use the complete-force numerical Hessian for inner=prebuilt."
             )
-        if not isinstance(self.underlying_provider, OpenMMGB):
+        if not self.solvent_analytic_derivative_capable:
             raise NotImplementedError(
                 "The selected solvent provider has no admitted analytic derivative backend."
             )
-        return self.underlying_provider.derivative_backend()
+        factory = getattr(self.underlying_provider, "derivative_backend", None)
+        if not callable(factory):
+            raise NotImplementedError(
+                "The selected solvent provider has no analytic derivative backend."
+            )
+        backend = factory()
+        if not all(callable(getattr(backend, name, None)) for name in ("hessian", "directional_derivatives")):
+            raise TypeError("Analytic solvent backend does not implement H and direct HVP.")
+        return backend
 
     def _record_derivative_use(
         self,
@@ -696,11 +784,18 @@ class ImplicitSolvationCorrection:
         provenance: dict[str, Any] | None = None,
         error: BaseException | None = None,
     ) -> None:
+        provider_provenance = getattr(self.underlying_provider, "provenance", {})
+        if callable(provider_provenance):
+            provider_provenance = provider_provenance()
+        if not isinstance(provider_provenance, dict):
+            provider_provenance = {}
         record = {
             "schema_version": 1,
             "derivative": derivative,
             "status": status,
-            "runtime_provider": "openmm",
+            "runtime_provider": provider_provenance.get(
+                "runtime_provider", provider_provenance.get("provider", "unknown")
+            ),
             "runtime_platform": getattr(
                 self.underlying_provider, "platform", "CPU"
             ),

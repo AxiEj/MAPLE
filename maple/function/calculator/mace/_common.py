@@ -10,9 +10,25 @@ positional tensors).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+import math
 from typing import Sequence, Union
 
 import torch
+
+from ..analytic_protocol import (
+    NEIGHBOR_CUTOFF_GUARD_MARGIN_ANGSTROM,
+    NEIGHBOR_CUTOFF_GUARD_POLICY,
+)
+
+
+@dataclass(frozen=True)
+class GuardedRadiusGraph:
+    """One fixed no-PBC edge set for a single analytic derivative operation."""
+
+    edge_index: torch.Tensor
+    shifts: torch.Tensor
+    minimum_cutoff_gap_angstrom: float | None
 
 
 # Element-symbol → atomic-number map. Superset of what the individual MACE
@@ -70,6 +86,69 @@ def radius_graph_no_pbc(positions: torch.Tensor, r_max: float):
     edge_index = torch.stack([src, dst], dim=0).to(torch.long)
     shifts = torch.zeros((edge_index.size(1), 3), dtype=positions.dtype, device=positions.device)
     return edge_index, shifts
+
+
+def guarded_radius_graph_no_pbc(
+    positions: torch.Tensor,
+    r_max: float,
+    *,
+    margin_angstrom: float = NEIGHBOR_CUTOFF_GUARD_MARGIN_ANGSTROM,
+) -> GuardedRadiusGraph:
+    """Build one fixed graph and reject a second-AD cutoff discontinuity.
+
+    The ordinary :func:`radius_graph_no_pbc` path intentionally remains
+    unchanged.  This guard is used only by new analytic Hessian/HVP operations.
+    Pair distances are inspected without attaching the discrete graph decision
+    to autograd, then the exact legacy graph builder supplies the edge tensors.
+    """
+
+    if positions.ndim != 2 or positions.shape[1] != 3:
+        raise ValueError("Analytic MACE positions must have shape (N, 3).")
+    if not torch.isfinite(positions).all():
+        raise ValueError("Analytic MACE coordinates must be finite.")
+    cutoff = float(r_max)
+    margin = float(margin_angstrom)
+    if not (cutoff > 0.0 and math.isfinite(cutoff)):
+        raise ValueError("Analytic MACE radius-graph cutoff must be finite and positive.")
+    if margin < 0.0 or not math.isfinite(margin):
+        raise ValueError(
+            "Analytic MACE cutoff-guard margin must be finite and non-negative."
+        )
+
+    atom_count = int(positions.shape[0])
+    minimum_gap = float('inf')
+    if atom_count > 1:
+        pair_indices = torch.triu_indices(
+            atom_count,
+            atom_count,
+            offset=1,
+            device=positions.device,
+        )
+        pair_vectors = (
+            positions[pair_indices[0]] - positions[pair_indices[1]]
+        ).detach()
+        distances = torch.linalg.vector_norm(pair_vectors, dim=1)
+        if not torch.isfinite(distances).all():
+            raise ValueError("Analytic MACE pair distances must be finite.")
+        if torch.any(distances == 0):
+            raise ValueError(
+                f"{NEIGHBOR_CUTOFF_GUARD_POLICY} rejects coincident atom pairs."
+            )
+        gaps = torch.abs(distances - cutoff)
+        minimum_gap = float(torch.min(gaps).detach().cpu())
+        if minimum_gap <= margin + 1.0e-12:
+            raise ValueError(
+                f"{NEIGHBOR_CUTOFF_GUARD_POLICY} rejects a geometry with "
+                f"minimum |r_ij-r_cut|={minimum_gap:.17g} Angstrom at or below "
+                f"the frozen {margin:.17g} Angstrom margin."
+            )
+
+    edge_index, shifts = radius_graph_no_pbc(positions, cutoff)
+    return GuardedRadiusGraph(
+        edge_index=edge_index,
+        shifts=shifts,
+        minimum_cutoff_gap_angstrom=minimum_gap,
+    )
 
 
 def model_float_dtype(model, default=torch.float64) -> torch.dtype:

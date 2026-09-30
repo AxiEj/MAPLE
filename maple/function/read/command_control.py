@@ -629,15 +629,21 @@ class CommandControl:
             solvation.get("nonpolar", "ace" if solvent_method == "gb" else provider)
         ).lower()
         platform = str(solvation.get("platform", "auto")).lower()
-        gas_model = str(params.get("model", "")).lower()
-        analytic_solvent = (
+        legacy_analytic_solvent = (
             solvent_method == "gb"
             and provider == "openmm"
             and solvent_model == "obc2"
             and nonpolar in {"ace", "none"}
             and platform == "reference"
-            and gas_model == "ani2x"
         )
+        independent_analytic_solvent = (
+            solvent_method == "gb"
+            and provider == "torch"
+            and solvent_model == "obc2"
+            and nonpolar in {"ace", "none"}
+            and "platform" not in solvation
+        )
+        analytic_solvent = legacy_analytic_solvent or independent_analytic_solvent
         message = None
         if task == "freq" and task_method != "mw":
             message = (
@@ -654,12 +660,25 @@ class CommandControl:
                 )
             elif hessian_mode == "analytic" and not analytic_solvent:
                 message = (
-                    "Implicit-solvent analytic derivatives support only OpenMM OBC-II "
-                    "with nonpolar=ace or nonpolar=none on the explicitly selected "
-                    "Reference platform and the qualified ANI2x gas backend; use "
-                    "hessian=numerical for this "
-                    "force-capable provider."
+                    "Implicit-solvent analytic derivatives require OBC-II with "
+                    "nonpolar=ace or nonpolar=none and either provider=torch "
+                    "without OpenMM execution controls or the legacy provider=openmm "
+                    "compatibility profile on the explicit Reference platform. Exact gas "
+                    "checkpoint/device/dtype admission is enforced by the calculator factory. "
+                    "Other providers require hessian=numerical."
                 )
+        if (
+            message is None
+            and hessian_mode == "analytic"
+            and legacy_analytic_solvent
+            and params.get("model") != "ani2x"
+        ):
+            # Preserve the old split-runtime admission; the independent Torch
+            # provider uses the model-neutral exact-cell factory resolver.
+            message = (
+                "The legacy OpenMM/Torch analytic path requires the qualified ANI2x "
+                "profile. Other MLIPs require an independently qualified provider=torch cell."
+            )
         if message is None and (
             task == "ts"
             and task_method == "dimer"
@@ -668,8 +687,8 @@ class CommandControl:
             if hessian_mode != "analytic" or not analytic_solvent:
                 message = (
                     "Implicit-solvent Dimer HVP use_hvp=true requires hessian=analytic "
-                    "with OpenMM OBC-II, nonpolar=ace or nonpolar=none, and "
-                    "platform=Reference on the qualified ANI2x gas backend."
+                    "with an eligible OBC-II ace|none solvent profile and an exact "
+                    "gas+solvent cell admitted by the calculator factory."
                 )
         if message is None and charge.get("mode", "fixed") != "fixed":
             message = "Implicit-solvent FREQ/TS requires fixed charges."
@@ -748,7 +767,11 @@ class CommandControl:
         if mode is not None:
             options["mode"] = mode
 
-        native_provider = (method, provider) in {("gb", "openmm"), ("pb", "ddx")}
+        native_provider = (method, provider) in {
+            ("gb", "openmm"),
+            ("gb", "torch"),
+            ("pb", "ddx"),
+        }
         numerical_provider = (method, provider) in {
             ("gb", "ambertools"),
             ("pb", "apbs"),
@@ -1059,6 +1082,64 @@ class CommandControl:
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
+                elif provider == "torch":
+                    conflicts = sorted(
+                        {
+                            "executable",
+                            "grid_spacing",
+                            "grid_points",
+                            "probe_radius",
+                            "surface_tension",
+                            "pressure",
+                            "timeout",
+                        }.intersection(solv_params)
+                    )
+                    if conflicts:
+                        msg = (
+                            "GB/Torch OBC-II does not use PB provider options: "
+                            + ", ".join(conflicts)
+                            + "."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    model = str(solv_params.get("model", "obc2")).lower()
+                    profile = str(
+                        solv_params.get("profile", "obc2-mbondi2")
+                    ).lower()
+                    nonpolar = str(solv_params.get("nonpolar", "ace")).lower()
+                    if model != "obc2":
+                        msg = "provider=torch requires model=obc2."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if profile != "obc2-mbondi2":
+                        msg = (
+                            "provider=torch,model=obc2 requires "
+                            "profile=obc2-mbondi2."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if nonpolar not in {"ace", "none"}:
+                        msg = (
+                            "provider=torch,model=obc2 requires nonpolar=ace or none."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if inner is not None:
+                        msg = (
+                            "provider=torch OBC-II supports one solute and does not "
+                            "admit inner=prebuilt."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task in {"freq", "ts"}:
+                        cls._validate_implicit_curvature_task(params, task, output_path)
+                    elif task not in {"sp", "opt", "scan"}:
+                        msg = (
+                            "GB/Torch OBC-II currently supports SP, OPT, SCAN/PES, "
+                            "analytic FREQ, P-RFO, and direct-HVP Dimer tasks only."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
                 elif provider == "openmm":
                     pb_only = {
                         "executable",
@@ -1206,7 +1287,7 @@ class CommandControl:
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
                 else:
-                    msg = "GB provider must be openmm or ambertools."
+                    msg = "GB provider must be openmm, torch, or ambertools."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 solv_params.update(

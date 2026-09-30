@@ -10,6 +10,20 @@ import ase.calculators.calculator
 
 from ._batch_types import BatchResult
 from ._batch_utils import default_calculate_many
+from .analytic_protocol import (
+    AnalyticCapabilityError,
+    AnalyticCompositionAdmission,
+    AnalyticDerivativeAdmission,
+    AnalyticIdentityError,
+    AnalyticOperationResult,
+    ScalarPointIdentity,
+    identity_record,
+)
+from .solvent_composition import (
+    compose_analytic_hessian,
+    compose_direct_hvp,
+    finalize_energy_forces,
+)
 
 if TYPE_CHECKING:
     import torch
@@ -80,6 +94,8 @@ def reject_implicit_solvent_derivatives(calculator, properties):
     unsupported = requested.intersection(IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES)
     if "forces" in supported:
         unsupported.difference_update({"forces", "force"})
+    if "hessian" in supported:
+        unsupported.discard("hessian")
     if unsupported:
         raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
     return normalized
@@ -418,6 +434,8 @@ class CalcABC(ase.calculators.calculator.Calculator):
 
     def __init__(self):
         super().__init__()
+        self.analytic_derivative_admission: AnalyticDerivativeAdmission | None = None
+        self.analytic_composition_admission: AnalyticCompositionAdmission | None = None
         self.analytic_implicit_derivatives_admitted = False
 
     def _reject_unsupported_pbc(self, atoms) -> None:
@@ -476,84 +494,151 @@ class CalcABC(ase.calculators.calculator.Calculator):
         """Translate input-header options into ctor kwargs. Backends override."""
         return {}
 
-    def _finalize_results(self, atoms, *, energy, forces=None, hessian=None, unit=None):
+    def admit_analytic_composition(
+        self,
+        admission: AnalyticCompositionAdmission,
+    ) -> None:
+        """Bind an installed, exact gas+solvent qualification to this calculator.
+
+        Runtime graph inspection can verify a cell but cannot create scientific
+        qualification.  Callers therefore supply an admission selected from an
+        installed allowlist; this method only validates and binds it.
+        """
+        if not isinstance(admission, AnalyticCompositionAdmission):
+            raise TypeError("admission must be an AnalyticCompositionAdmission.")
+        gas_admission = getattr(self, "analytic_derivative_admission", None)
+        correction = getattr(self, "solvent_correction", None)
+        solvent_admission = getattr(
+            correction, "analytic_derivative_admission", None
+        )
+        if gas_admission != admission.gas_admission:
+            raise AnalyticIdentityError(
+                "The calculator's gas admission does not match the composition profile."
+            )
+        if solvent_admission != admission.solvent_admission:
+            raise AnalyticIdentityError(
+                "The correction's solvent admission does not match the composition profile."
+            )
+
+        # Mutate admission flags only after every immutable component check passes.
+        self.analytic_composition_admission = admission
+        self.analytic_implicit_derivatives_admitted = True
+        if correction is not None:
+            correction.analytic_task_derivatives_admitted = True
+
+    @staticmethod
+    def _require_component_operation(
+        operation: AnalyticOperationResult,
+        *,
+        expected: str,
+    ) -> ScalarPointIdentity:
+        if not isinstance(operation, AnalyticOperationResult):
+            raise TypeError(f"{expected} must be an AnalyticOperationResult.")
+        if operation.operation != expected:
+            raise ValueError(
+                f"Expected analytic operation {expected!r}, got {operation.operation!r}."
+            )
+        if not isinstance(operation.identity, ScalarPointIdentity):
+            raise AnalyticIdentityError(
+                "An already composed analytic result cannot be reused as a gas component."
+            )
+        if operation.identity.cell.component != "gas":
+            raise AnalyticIdentityError("Analytic gas operation has a non-gas identity.")
+        return operation.identity
+
+    def _finalize_results(
+        self,
+        atoms,
+        *,
+        energy=None,
+        forces=None,
+        hessian=None,
+        unit=None,
+        gas_energy_forces: AnalyticOperationResult | None = None,
+        gas_hessian: AnalyticOperationResult | None = None,
+    ):
         """Single entry: unit conversion + implicit-solvent + write self.results.
 
         Backends pass the pure model outputs (in the unit declared by
         MODEL_ENERGY_UNIT). This method converts to Hartree, then optionally
-        adds the implicit-solvent correction, then writes self.results.
+        adds the implicit-solvent correction, then writes self.results. Strict
+        analytic adapters instead pass operation-stamped Hartree values through
+        ``gas_energy_forces`` and, only when requested, ``gas_hessian``.
         """
-        source_unit = unit if unit is not None else self.MODEL_ENERGY_UNIT
-        energy_ha, forces_ha = _convert_energy_force_units(
-            energy, forces, source_unit=source_unit
-        )
-        gas_energy_ha = float(energy_ha)
-        structured_solvation_result = None
-
-        if getattr(self, 'solvent_correction', None) is not None:
-            if hessian is not None:
-                raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            if hasattr(self.solvent_correction, "evaluate"):
-                solvent_result = self.solvent_correction.evaluate(
-                    atoms,
-                    need_forces=forces_ha is not None,
-                    calculator=self,
+        gas_point = None
+        if gas_energy_forces is not None:
+            gas_point = self._require_component_operation(
+                gas_energy_forces,
+                expected="energy_forces",
+            )
+        gas_hessian_point = None
+        if gas_hessian is not None:
+            if hessian is not None or gas_energy_forces is None:
+                raise ValueError(
+                    "Typed gas Hessians require typed gas energy/forces and cannot "
+                    "be mixed with a raw Hessian."
                 )
-                energy_ha = energy_ha + float(solvent_result.energy_hartree)
-                if forces_ha is not None:
-                    if solvent_result.forces_hartree_per_angstrom is None:
-                        raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-                    forces_ha = np.asarray(forces_ha) + np.asarray(
-                        solvent_result.forces_hartree_per_angstrom
-                    )
-                self.solvation_result = solvent_result
-                structured_solvation_result = solvent_result
-            else:
-                raise RuntimeError(
-                    "Unstructured legacy implicit-solvent corrections are no "
-                    "longer supported; attach an ImplicitSolvationCorrection."
+            gas_hessian_point = self._require_component_operation(
+                gas_hessian,
+                expected="hessian",
+            )
+            if gas_hessian_point != gas_point:
+                raise AnalyticIdentityError(
+                    "Gas energy/force and Hessian operations do not share one scalar point."
                 )
-
-        # Sole results-writing chokepoint for every CalcABC backend: clear first
-        # so an energy-only call cannot inherit stale forces/hessian from a
-        # previous forces/hessian call on the same calculator instance.
-        self.results = {}
-        self.results['energy'] = float(energy_ha)
-        self.results['free_energy'] = float(energy_ha)
-        self.execution_provenance = calculator_execution(self)
-        if forces_ha is not None:
-            self.results['forces'] = forces_ha
-        if hessian is not None:
-            self.results['hessian'] = hessian
         precision = getattr(self, 'inference_precision_provenance', None)
         if precision is not None:
             if not isinstance(precision, dict):
                 raise TypeError('Inference precision provenance must be a dictionary.')
-            self.results['inference_precision'] = dict(precision)
-        if structured_solvation_result is not None:
-            result = structured_solvation_result
-            provenance = dict(result.provenance)
-            structured = {
-                'energy_hartree': float(result.energy_hartree),
-                'gas_energy_hartree': gas_energy_ha,
-                'combined_energy_hartree': float(energy_ha),
-                'components_hartree': dict(result.components_hartree),
-                'provenance': provenance,
-                'ase_free_energy_is_thermochemical_gibbs': False,
-            }
-            if precision is not None:
-                structured['gas_inference_precision'] = dict(precision)
-            if provenance.get('reference_only') is True:
-                structured['reference_correction_hartree'] = float(result.energy_hartree)
-            elif provenance.get('absolute_solvation_free_energy_claim') is False:
-                structured['cluster_continuum_correction_hartree'] = float(
-                    result.energy_hartree
-                )
-            else:
-                structured['delta_g_solv_hartree'] = float(result.energy_hartree)
-            self.results['solvation'] = structured
-        elif hasattr(self, 'solvation_result'):
-            del self.solvation_result
+        execution_provenance = calculator_execution(self)
+        gas_admission = (
+            getattr(self, "analytic_derivative_admission", None)
+            if gas_energy_forces is not None
+            else None
+        )
+        result_payload, structured_solvation_result = finalize_energy_forces(
+            atoms,
+            correction=getattr(self, "solvent_correction", None),
+            energy=energy,
+            forces=forces,
+            source_unit=(
+                None
+                if gas_energy_forces is not None
+                else unit if unit is not None else self.MODEL_ENERGY_UNIT
+            ),
+            gas_operation=gas_energy_forces,
+            raw_hessian=hessian,
+            composition_admission=getattr(
+                self, "analytic_composition_admission", None
+            ),
+            gas_admission=gas_admission,
+            execution_provenance=execution_provenance,
+            precision_provenance=precision,
+        )
+        hessian_provenance = None
+        if gas_hessian is not None:
+            hessian_ha, hessian_provenance = compose_analytic_hessian(
+                atoms,
+                gas_operation=gas_hessian,
+                correction=getattr(self, "solvent_correction", None),
+                composition_admission=getattr(
+                    self, "analytic_composition_admission", None
+                ),
+                gas_admission=gas_admission,
+            )
+            result_payload["hessian"] = hessian_ha
+
+        # Commit only after conversion, all provider calls, and composition
+        # have succeeded, so a failed request cannot expose a partial state.
+        self.results = result_payload
+        self.execution_provenance = execution_provenance
+        if structured_solvation_result is None:
+            if hasattr(self, "solvation_result"):
+                del self.solvation_result
+        else:
+            self.solvation_result = structured_solvation_result
+        if hessian_provenance is not None:
+            self.last_analytic_hessian_provenance = hessian_provenance
 
     def prepare_numerical_derivatives(self) -> float | None:
         """Prepare backend precision before finite differences, with an optional step hint."""
@@ -574,23 +659,37 @@ class CalcABC(ase.calculators.calculator.Calculator):
         path differentiates the calculator's reported forces, so it includes
         any attached energy-consistent solvent force exactly once.
         """
-        self.last_numerical_hessian_diagnostics = None
-        self.last_analytic_hessian_provenance = None
         self._reject_unsupported_pbc(atoms)
         mode = getattr(self, 'hessian', self.SUPPORTED_HESSIAN_MODES[0])
         if mode == 'analytic':
+            correction = getattr(self, 'solvent_correction', None)
+            if correction is not None and self.analytic_composition_admission is not None:
+                gas_operation = self._analytic_hessian_operation(atoms)
+                composed_hessian, provenance = compose_analytic_hessian(
+                    atoms,
+                    gas_operation=gas_operation,
+                    correction=correction,
+                    composition_admission=self.analytic_composition_admission,
+                    gas_admission=getattr(
+                        self, "analytic_derivative_admission", None
+                    ),
+                )
+                self.last_analytic_hessian_provenance = provenance
+                self.last_numerical_hessian_diagnostics = None
+                return composed_hessian
+
             gas_hessian = np.asarray(self._analytic_hessian(atoms), dtype=np.float64)
             expected_shape = (3 * len(atoms),) * 2
             if gas_hessian.shape != expected_shape or not np.isfinite(gas_hessian).all():
                 raise ValueError(
                     "The analytic gas Hessian must be a finite (3N, 3N) array."
                 )
-            correction = getattr(self, 'solvent_correction', None)
             if correction is None:
                 self.last_analytic_hessian_provenance = {
                     "composition": "gas-analytic",
                     "gas_backend": type(self).__name__,
                 }
+                self.last_numerical_hessian_diagnostics = None
                 return gas_hessian
             if self.analytic_implicit_derivatives_admitted is not True:
                 raise NotImplementedError(
@@ -626,6 +725,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 "gas_backend": type(self).__name__,
                 "solvent": solvent_provenance,
             }
+            self.last_numerical_hessian_diagnostics = None
             return gas_hessian + solvent_hessian
         if mode == 'numerical':
             correction = getattr(self, 'solvent_correction', None)
@@ -677,13 +777,15 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 )
             if not np.isfinite(hessian).all():
                 raise ValueError('Numerical Hessian contains non-finite values.')
-            self.last_numerical_hessian_diagnostics = dict(diagnostics)
+            committed_diagnostics = dict(diagnostics)
             if correction is not None and hasattr(
                 correction, "last_outer_curvature_resolution"
             ):
-                self.last_numerical_hessian_diagnostics["outer_step_resolution"] = dict(
+                committed_diagnostics["outer_step_resolution"] = dict(
                     correction.last_outer_curvature_resolution
                 )
+            self.last_numerical_hessian_diagnostics = committed_diagnostics
+            self.last_analytic_hessian_provenance = None
             return hessian
         raise ValueError(f"Unknown hessian mode: {mode!r}")
 
@@ -692,6 +794,26 @@ class CalcABC(ase.calculators.calculator.Calculator):
         raise NotImplementedError(
             f"{type(self).__name__} does not implement analytic Hessian; "
             "set hessian='numerical' or override _analytic_hessian."
+        )
+
+    def _analytic_energy_forces_operation(
+        self,
+        atoms,
+        *,
+        need_forces: bool,
+    ) -> AnalyticOperationResult:
+        raise NotImplementedError(
+            f"{type(self).__name__} does not expose a typed analytic E/F operation."
+        )
+
+    def _analytic_hessian_operation(self, atoms) -> AnalyticOperationResult:
+        raise NotImplementedError(
+            f"{type(self).__name__} does not expose a typed analytic Hessian operation."
+        )
+
+    def _analytic_hvp_operation(self, atoms, n: np.ndarray) -> AnalyticOperationResult:
+        raise NotImplementedError(
+            f"{type(self).__name__} does not expose a typed direct-HVP operation."
         )
 
 
@@ -717,19 +839,76 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 file.write(f"{info}")
 
     def get_hvp(self, atoms, n: np.ndarray):
-        """Hessian-vector product Hn. Override in backends that support Dimer-mode TS.
+        """Return direct ``(Hn, forces, energy)`` at one immutable center.
 
-        There is deliberately no shared default: the autograd forward shape
-        differs per backend, so a single implementation would silently misread
-        non-matching models. Backends that can autodiff their forward override
-        this; everyone else fails loudly here instead of returning garbage.
+        Backends implement only ``_analytic_hvp_operation`` for their actual
+        scalar graph.  This method performs composition and never materializes
+        a dense Hessian or catches an AD failure to invoke finite differences.
         """
-        if getattr(self, 'solvent_correction', None) is not None:
+        self._reject_unsupported_pbc(atoms)
+        gas = self._analytic_hvp_operation(atoms, n)
+        gas_point = self._require_component_operation(gas, expected="hvp")
+        correction = getattr(self, "solvent_correction", None)
+        if correction is None:
+            result, provenance = compose_direct_hvp(
+                atoms,
+                n,
+                gas_operation=gas,
+                gas_admission=getattr(self, "analytic_derivative_admission", None),
+            )
+            self.last_hvp_provenance = provenance
+            return result
+
+        directional_fn = getattr(correction, "get_directional_derivatives", None)
+        if not callable(directional_fn):
+            raise AnalyticCapabilityError(
+                "The attached solvent correction has no direct-HVP entry point."
+            )
+
+        if self.analytic_composition_admission is not None:
+            result, provenance = compose_direct_hvp(
+                atoms,
+                n,
+                gas_operation=gas,
+                correction=correction,
+                composition_admission=self.analytic_composition_admission,
+                gas_admission=getattr(self, "analytic_derivative_admission", None),
+            )
+            self.last_hvp_provenance = provenance
+            return result
+
+        # Preserve the previously admitted OpenMM-Reference/Torch-derivative
+        # compatibility route without presenting it as strict same-runtime
+        # composition.  New independent providers never enter this branch.
+        if (
+            self.analytic_implicit_derivatives_admitted is not True
+            or getattr(correction, "analytic_task_derivatives_admitted", False)
+            is not True
+        ):
             raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-        raise NotImplementedError(
-            f"{type(self).__name__} does not implement get_hvp; Dimer-mode TS "
-            "requires a backend-specific Hessian-vector product."
+        solvent = directional_fn(atoms, np.asarray(n, dtype=np.float64))
+        hvp = np.asarray(gas.hvp_hartree_per_angstrom2) + np.asarray(
+            solvent.hvp_hartree_per_angstrom2
         )
+        forces = np.asarray(gas.forces_hartree_per_angstrom) + np.asarray(
+            solvent.forces_hartree_per_angstrom
+        )
+        energy = float(gas.energy_hartree) + float(solvent.energy_hartree)
+        if (
+            hvp.shape != (3 * len(atoms),)
+            or forces.shape != (len(atoms), 3)
+            or not np.isfinite(hvp).all()
+            or not np.isfinite(forces).all()
+            or not np.isfinite(energy)
+        ):
+            raise ValueError("Legacy split-runtime HVP returned invalid values.")
+        self.last_hvp_provenance = {
+            "composition": "legacy-split-runtime-compatibility",
+            "gas": identity_record(gas_point),
+            "solvent": dict(getattr(solvent, "provenance", {}) or {}),
+            "strict_same_runtime_scalar": False,
+        }
+        return hvp, forces.reshape(-1), energy
 
     def implicit_solv_init(self, implicit: str, solvent: str):
         init_implicit_solvent(self, implicit, solvent, self.device)

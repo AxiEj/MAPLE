@@ -7,7 +7,12 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from .openmm_compat import customgbforces_module, openmm_version
+from .obc2_profile import (
+    OBC2_FORMULA_MANIFEST_ID,
+    obc2_profile_payload,
+    verify_obc2_profile_manifest,
+)
+from .obc2_topology import OBC2Topology
 
 GB_MODELS: dict[str, dict[str, Any]] = {
     "hct": {
@@ -62,6 +67,8 @@ class RadiusProvider(Protocol):
 
 
 def _standard_parameters(topology, force_class: str) -> np.ndarray:
+    from .openmm_compat import customgbforces_module
+
     customgbforces = customgbforces_module()
     force_cls = getattr(customgbforces, force_class)
     parameters = np.asarray(force_cls.getStandardParameters(topology), dtype=np.float64)
@@ -121,6 +128,8 @@ class OpenMMAmberGBRadiusProvider:
         self.model_info = dict(GB_MODELS[model])
 
     def assign(self, topology) -> RadiusResult:
+        from .openmm_compat import openmm_version
+
         parameters = _standard_parameters(topology, self.model_info["class"])
         adjusted_atom_indices: list[int] = []
         if self.model == "gbn2":
@@ -163,6 +172,8 @@ class OpenMMMbondi2RadiusProvider:
     name = "openmm-mbondi2-radii"
 
     def assign(self, topology) -> RadiusResult:
+        from .openmm_compat import openmm_version
+
         force_class = "GBSAOBC1Force"
         parameters = _standard_parameters(topology, force_class)
         return RadiusResult(
@@ -180,5 +191,81 @@ class OpenMMMbondi2RadiusProvider:
                     "openmm.app.internal.customgbforces."
                     f"{force_class}.getStandardParameters"
                 ),
+            },
+        )
+
+
+class IndependentMbondi2RadiusProvider:
+    """Narrow local mbondi2 radii and normal OBC screen assignment."""
+
+    name = "maple-independent-mbondi2"
+
+    def __init__(self) -> None:
+        self.source_compatibility = verify_obc2_profile_manifest()
+        payload = obc2_profile_payload()
+        self._hydrogen = dict(payload["hydrogen_radii_angstrom"])
+        self._radii = {
+            int(number): float(value)
+            for number, value in payload["radii_angstrom_by_atomic_number"].items()
+        }
+        self._screens = {
+            int(number): float(value)
+            for number, value in payload["screen_factors_by_atomic_number"].items()
+        }
+        self._default_radius = float(payload["default_radius_angstrom"])
+        self._default_screen = float(payload["default_screen_factor"])
+
+    def assign(self, topology: OBC2Topology) -> RadiusResult:
+        if not isinstance(topology, OBC2Topology):
+            raise TypeError("Independent mbondi2 assignment requires OBC2Topology.")
+        radii_angstrom: list[float] = []
+        screen_factors: list[float] = []
+        hydrogen_on_nitrogen: list[int] = []
+        for atom in topology.atoms:
+            number = atom.atomic_number
+            if number == 1:
+                # OBC2Topology has already enforced exactly one neighbor.
+                neighbor = topology.atoms[atom.bonded_indices[0]]
+                if neighbor.atomic_number == 7:
+                    radius = float(self._hydrogen["bonded_to_nitrogen"])
+                    hydrogen_on_nitrogen.append(atom.index)
+                else:
+                    radius = float(self._hydrogen["otherwise"])
+            else:
+                radius = self._radii.get(number, self._default_radius)
+            radii_angstrom.append(radius)
+            screen_factors.append(self._screens.get(number, self._default_screen))
+
+        radius_nm = np.asarray(radii_angstrom, dtype=np.float64) / 10.0
+        parameters = np.column_stack(
+            (radius_nm, np.asarray(screen_factors, dtype=np.float64))
+        )
+        # Mirror OpenMM's observable RadiusResult exactly: its Angstrom values
+        # are obtained by converting the stored nanometer column back by 10.
+        observable_radii = parameters[:, 0].copy() * 10.0
+        parameters.setflags(write=False)
+        observable_radii.setflags(write=False)
+        return RadiusResult(
+            profile="obc2-mbondi2",
+            radii_angstrom=observable_radii,
+            provider_parameters=parameters,
+            provenance={
+                "category": "radius",
+                "name": self.name,
+                "provider": self.name,
+                "preparation_provider": self.name,
+                "model": "obc2",
+                "profile": "obc2-mbondi2",
+                "radii": "mbondi2",
+                "implementation": "maple-independent-mbondi2-v1",
+                "formula_manifest_id": OBC2_FORMULA_MANIFEST_ID,
+                "formula_source_sha256": self.source_compatibility["source_sha256"],
+                "canonical_payload_sha256": self.source_compatibility[
+                    "canonical_payload_sha256"
+                ],
+                "topology_sha256": topology.identity_sha256,
+                "hydrogen_on_nitrogen_atom_indices": hydrogen_on_nitrogen,
+                "portable_domain": "each atomic-number-1 atom has exactly one bonded neighbor",
+                "runtime_openmm_required": False,
             },
         )

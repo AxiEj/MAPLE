@@ -10,6 +10,8 @@ if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
 import benchmark_core as core
+from source_compatibility import validate_frozen_source
+import validate_independent_obc2 as current_validation
 
 VALIDATION_PATH = (
     BENCHMARK_DIR / "route1-torch-obc2-analytic-derivatives-2026-09-22.json"
@@ -20,6 +22,7 @@ PERFORMANCE_PATH = (
 REVALIDATION_PATH = (
     BENCHMARK_DIR / "route1-torch-post-audit-revalidation-2026-09-27.json"
 )
+CURRENT_VALIDATION_PATH = REPOSITORY_ROOT / current_validation.OUTPUT_REL
 HISTORICAL_VALIDATION_SHA256 = (
     "961ba66a97a7b9a0c6d80640409bfb1218de496d42757c06e8dfd2e1e81947f5"
 )
@@ -59,7 +62,7 @@ def test_validation_artifact_is_self_hashed_source_bound_and_label_free():
     )
 
 
-def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
+def test_post_audit_revalidation_is_immutable_archival_evidence_only():
     artifact = _load(REVALIDATION_PATH)
     assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
     assert artifact["passed"] is artifact["source_unchanged"] is True
@@ -71,8 +74,13 @@ def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
         is False
     )
     for path, expected in artifact["implementation_and_test_sha256"].items():
-        assert core.sha256_file(REPOSITORY_ROOT / path) == expected
         assert artifact["source_sha256_after"][path] == expected
+        audit = validate_frozen_source(REPOSITORY_ROOT, path, expected)
+        assert audit["historical_sha256"] == expected
+        assert audit["mode"] in {
+            "exact-historical-freeze",
+            "documented-postexecution-production-safety-change",
+        }
     assert artifact["qualified_workflow_cell"] == {
         "gas": "ani2x",
         "device": "cpu",
@@ -93,6 +101,23 @@ def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
     assert any(
         "test_actual_engine_analytic_ts_derivative_paths" in c["name"] for c in cells
     )
+
+
+def test_current_obc2_claim_requires_fresh_september_30_validation():
+    assert CURRENT_VALIDATION_PATH.is_file(), (
+        "Current OBC-II source requires the fresh 2026-09-30 validation artifact; "
+        "the immutable 2026-09-27 revalidation is archival evidence only."
+    )
+    artifact = _load(CURRENT_VALIDATION_PATH)
+    current_validation.validate_artifact(artifact)
+    assert artifact["passed"] is True
+    assert artifact["supersession"]["historical_artifact"] == (
+        REVALIDATION_PATH.relative_to(REPOSITORY_ROOT).as_posix()
+    )
+    snapshot = artifact["source_snapshot"]
+    assert snapshot["git_head"] == current_validation._git("rev-parse", "HEAD")
+    for path, expected in snapshot["files_sha256"].items():
+        assert core.sha256_file(REPOSITORY_ROOT / path) == expected
 
 
 def test_performance_artifact_is_self_hashed_and_linked_from_validation():

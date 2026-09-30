@@ -358,7 +358,7 @@ def test_parameter_builder_rejects_unsupported_nonpolar_profile(water_mol2):
         )
 
 
-def test_torch_derivative_backend_rejects_unverified_openmm_source(
+def test_legacy_openmm_derivatives_reject_unverified_source_without_coupling_torch(
     water_mol2, monkeypatch
 ):
     from maple.function.calculator.extra_correction.implicit import openmm_compat
@@ -384,5 +384,10 @@ def test_torch_derivative_backend_rejects_unverified_openmm_source(
     monkeypatch.setattr(openmm_compat, "VERIFIED_CUSTOMGBFORCES_SHA256", "0" * 64)
     assert np.isfinite(reference.evaluate(atoms).energy_hartree)
 
+    # The independent kernel verifies its packaged equation profile, not a
+    # live optional dependency. The split OpenMM/Torch route must still prove
+    # that its OpenMM energy/force implementation matches those derivatives.
+    independent = TorchOBC2(parameters, device="cpu", dtype=torch.float64)
+    assert independent.provenance["runtime_openmm_required"] is False
     with pytest.raises(ImportError, match="customgbforces.py SHA256"):
-        TorchOBC2(parameters, device="cpu", dtype=torch.float64)
+        reference.derivative_backend()

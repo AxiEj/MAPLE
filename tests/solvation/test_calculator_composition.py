@@ -63,16 +63,7 @@ class InternallyBrokenCorrection:
     supported_properties = {"energy", "forces"}
 
     def evaluate(self, atoms, need_forces=False, calculator=None):
-        if calculator is not None:
-            raise TypeError("primary contract bug")
-        return SolvationResult(
-            energy_hartree=0.25,
-            forces_hartree_per_angstrom=(
-                np.full((len(atoms), 3), 0.5) if need_forces else None
-            ),
-            components_hartree={"polar": 0.2, "nonpolar": 0.05},
-            provenance={"provider": "invalid-fallback"},
-        )
+        raise TypeError("primary contract bug")
 
 
 class QuadraticCorrection:

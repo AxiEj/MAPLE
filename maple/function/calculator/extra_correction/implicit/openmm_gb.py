@@ -314,6 +314,12 @@ class OpenMMGB:
                 "Analytic solvent derivatives are available only for OBC-II "
                 "with nonpolar=ace or nonpolar=none."
             )
+        # This split-runtime route compares a live OpenMM scalar with the
+        # independent Torch equations. The optional-dependency source gate
+        # belongs here, not in the model-agnostic Torch kernel.
+        from .openmm_compat import require_verified_obc2_expression_source
+
+        require_verified_obc2_expression_source()
         if self._derivative_backend is None:
             from .torch_obc2 import TorchOBC2
 

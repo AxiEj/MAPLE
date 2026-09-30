@@ -1,5 +1,12 @@
 # Route 1: additive fixed-charge PB/GB implicit solvation
 
+
+## Shared analytic composition
+
+See [the shared composition contract](SHARED_ANALYTIC_COMPOSITION.md) for the
+model-independent solvent boundary, lazy UMA integration, and the distinction
+between capability, exact-cell qualification, and public activation.
+
 > **Current architecture (2026-09-09):** FAST OBC-II/ACE; ACCURACY CHA-GB/ALPB
 > plus PBSA cavity/dispersion; REFERENCE ddX/ddLPB, with APBS as an independent
 > grid cross-check. See [numerical reference input and boundaries](NUMERICAL_REFERENCE.md).

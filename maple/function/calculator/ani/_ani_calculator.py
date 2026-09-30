@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import os
 
 import ase
@@ -20,6 +19,30 @@ from ..calculator_base import (
     parse_bool_option,
     register_calculator,
 )
+from ..analytic_protocol import (
+    AnalyticCapabilityError,
+    AnalyticIdentityError,
+    AnalyticOperationResult,
+    CheckpointFileIdentity,
+    NEIGHBOR_CUTOFF_GUARD_MARGIN_ANGSTROM,
+    NEIGHBOR_CUTOFF_GUARD_POLICY,
+    ScalarCellIdentity,
+    ScalarPointIdentity,
+    file_stat_identity,
+    freeze_identity_options,
+    geometry_sha256,
+    named_array_sha256,
+    require_derivative_cutoff_guard,
+    require_no_amp_tf32,
+    torch_model_runtime_identity,
+    torch_response_settings,
+)
+
+
+_ANI2X_CHECKPOINT_SHA256 = (
+    "c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa"
+)
+_ANI2X_ANALYTIC_PROFILE_ID = "route1-ani2x-cpu-f64-d4off-v1"
 
 
 @register_calculator
@@ -94,9 +117,11 @@ class ANICalculator(CalcABC):
             model_dir = os.path.dirname(model_dir)
             model_path = os.path.join(model_dir, "model", f"{model}.pt")
 
+        self.model_name = str(model).lower()
         self._original_checkpoint_path = os.path.realpath(model_path)
         checkpoint_stat = os.stat(self._original_checkpoint_path)
-        self._loaded_checkpoint_identity = self._stat_identity(checkpoint_stat)
+        self._loaded_checkpoint_identity = file_stat_identity(checkpoint_stat)
+        self._checkpoint_file_identity: CheckpointFileIdentity | None = None
         self._original_checkpoint_sha256 = None
         self._requested_dtype = dtype
         self._numerical_curvature_prepared = False
@@ -105,6 +130,10 @@ class ANICalculator(CalcABC):
 
         self.model = torch.jit.load(model_path, map_location=device)
         self.model.eval()
+        if file_stat_identity(os.stat(self._original_checkpoint_path)) != (
+            self._loaded_checkpoint_identity
+        ):
+            raise RuntimeError("ANI checkpoint file changed while the model was loaded.")
 
         for p in self.model.parameters():
             p.requires_grad_(False)
@@ -132,6 +161,15 @@ class ANICalculator(CalcABC):
         self.overwrite = overwrite
         self.d4 = d4
         self.hessian = hessian
+        try:
+            aev = self.model.model.aev_computer
+            self._radial_cutoff_angstrom = float(aev.Rcr)
+            self._angular_cutoff_angstrom = float(aev.Rca)
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise RuntimeError(
+                f"ANI checkpoint '{model}' does not expose its AEV cutoffs."
+            ) from exc
+        self._analytic_model_runtime_identity = None
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
@@ -143,32 +181,21 @@ class ANICalculator(CalcABC):
 
     @staticmethod
     def _stat_identity(stat_result) -> tuple[int, int, int, int]:
-        return (
-            stat_result.st_dev,
-            stat_result.st_ino,
-            stat_result.st_size,
-            stat_result.st_mtime_ns,
-        )
+        return file_stat_identity(stat_result)
 
     def _record_checkpoint_sha256(self) -> None:
         if self._original_checkpoint_sha256 is not None:
+            self._checkpoint_file_identity.require_unchanged()
             return
-        digest = hashlib.sha256()
-        with open(self._original_checkpoint_path, "rb") as handle:
-            identity_before = self._stat_identity(os.fstat(handle.fileno()))
-            if identity_before != self._loaded_checkpoint_identity:
-                raise RuntimeError(
-                    "ANI checkpoint file identity changed after the model was loaded; "
-                    "refusing to report a SHA for different bytes."
-                )
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-                digest.update(chunk)
-            identity_after = self._stat_identity(os.fstat(handle.fileno()))
-        if identity_after != self._loaded_checkpoint_identity:
-            raise RuntimeError(
-                "ANI checkpoint file changed while its SHA256 was being computed."
+        try:
+            identity = CheckpointFileIdentity.bind(
+                self._original_checkpoint_path,
+                expected_stat_identity=self._loaded_checkpoint_identity,
             )
-        self._original_checkpoint_sha256 = digest.hexdigest()
+        except AnalyticIdentityError as exc:
+            raise RuntimeError(str(exc)) from exc
+        self._checkpoint_file_identity = identity
+        self._original_checkpoint_sha256 = identity.sha256
 
     def _promote_to_float64(self, *, reason: str) -> None:
         import torch
@@ -182,6 +209,140 @@ class ANICalculator(CalcABC):
         # atoms/results whenever it changes so no float32 result can survive
         # into the promoted execution mode.
         self.reset()
+
+    def _analytic_cell_identity(self) -> ScalarCellIdentity:
+        self._record_checkpoint_sha256()
+        return ScalarCellIdentity(
+            component="gas",
+            implementation="maple-ani-torchscript-v1",
+            model=self.model_name,
+            checkpoint_path=self._original_checkpoint_path,
+            checkpoint_sha256=self._original_checkpoint_sha256,
+            device=str(self.device),
+            effective_dtype=str(self.dtype),
+            d4=bool(self.d4),
+            source_energy_unit="hartree",
+            cutoff_guard_policy=NEIGHBOR_CUTOFF_GUARD_POLICY,
+            cutoff_guard_margin_angstrom=(
+                NEIGHBOR_CUTOFF_GUARD_MARGIN_ANGSTROM
+            ),
+            options=freeze_identity_options(
+                {
+                    "angular_cutoff_angstrom": self._angular_cutoff_angstrom,
+                    "charge_semantics": "unsupported-by-ani-wrapper",
+                    "checkpoint_format": "torchscript",
+                    "ensemble": "checkpoint-defined",
+                    "multiplicity_semantics": "unsupported-by-ani-wrapper",
+                    "neighbor_semantics": "torchani-compute-aev-v1",
+                    "radial_cutoff_angstrom": self._radial_cutoff_angstrom,
+                }
+            ),
+        )
+
+    @staticmethod
+    def _charge_and_multiplicity(atoms) -> tuple[float, int]:
+        charge = float(atoms.info.get("charge", 0.0))
+        raw_multiplicity = atoms.info.get("mult", 1)
+        multiplicity = int(raw_multiplicity)
+        if float(raw_multiplicity) != float(multiplicity):
+            raise ValueError("ANI scalar identity requires an integer multiplicity.")
+        return charge, multiplicity
+
+    def _analytic_point_identity(
+        self,
+        atoms,
+        cell: ScalarCellIdentity,
+        *,
+        derivative: bool,
+    ) -> ScalarPointIdentity:
+        positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        count = len(atoms)
+        if count > 1:
+            first, second = np.triu_indices(count, k=1)
+            distances = np.linalg.norm(positions[first] - positions[second], axis=1)
+        else:
+            first = second = np.empty(0, dtype=np.int64)
+            distances = np.empty(0, dtype=np.float64)
+        if derivative and np.any(distances == 0.0):
+            raise AnalyticCapabilityError(
+                "ANI analytic H/HVP refuses coincident atom pairs."
+            )
+
+        graph_arrays = {}
+        cutoffs = {
+            "angular": self._angular_cutoff_angstrom,
+            "radial": self._radial_cutoff_angstrom,
+        }
+        for name, cutoff in cutoffs.items():
+            selected = distances <= cutoff
+            graph_arrays[f"{name}_pairs"] = np.vstack(
+                (first[selected], second[selected])
+            ).astype(np.int64, copy=False)
+        minimum_gap = (
+            min(
+                float(np.min(np.abs(distances - cutoff)))
+                for cutoff in cutoffs.values()
+            )
+            if distances.size
+            else float("inf")
+        )
+        charge, multiplicity = self._charge_and_multiplicity(atoms)
+        if charge != 0.0 or multiplicity != 1:
+            raise AnalyticIdentityError(
+                "The measured ANI2x analytic domain is neutral singlet only."
+            )
+        return ScalarPointIdentity(
+            cell=cell,
+            geometry_sha256=geometry_sha256(atoms),
+            atomic_numbers=tuple(
+                int(value) for value in atoms.get_atomic_numbers()
+            ),
+            charge=charge,
+            multiplicity=multiplicity,
+            atom_topology_sha256=None,
+            neighbor_graph_sha256=named_array_sha256(graph_arrays),
+            active_cutoffs_angstrom=tuple(sorted(cutoffs.items())),
+            minimum_cutoff_gap_angstrom=minimum_gap,
+            response_settings=torch_response_settings(self.device),
+        )
+
+    def analytic_scalar_identity(self, atoms) -> ScalarPointIdentity:
+        """Return the current ANI scalar identity without evaluating derivatives."""
+        cell, _runtime = self._begin_analytic_operation()
+        return self._analytic_point_identity(
+            atoms,
+            cell,
+            derivative=False,
+        )
+
+    def _begin_analytic_operation(self):
+        require_no_amp_tf32(self.device)
+        cell = self._analytic_cell_identity()
+        self._checkpoint_file_identity.require_unchanged()
+        runtime = torch_model_runtime_identity(self.model)
+        admission = getattr(self, "analytic_derivative_admission", None)
+        if admission is not None:
+            if cell != admission.cell:
+                raise AnalyticIdentityError(
+                    "ANI runtime cell drifted after analytic admission."
+                )
+            if runtime != self._analytic_model_runtime_identity:
+                raise AnalyticIdentityError(
+                    "ANI model parameters or buffers drifted after analytic admission."
+                )
+        prepared = getattr(self, "_prepared_analytic_cell", None)
+        if prepared is not None and (
+            cell != prepared or runtime != self._analytic_model_runtime_identity
+        ):
+            raise AnalyticIdentityError("ANI runtime drifted after derivative preparation.")
+        return cell, runtime
+
+    def _finish_analytic_operation(self, runtime_identity) -> None:
+        self._checkpoint_file_identity.require_unchanged()
+        if torch_model_runtime_identity(self.model) != runtime_identity:
+            raise AnalyticIdentityError(
+                "ANI model parameters or buffers changed during an analytic operation."
+            )
 
     def prepare_numerical_derivatives(self) -> float:
         """Select the validated ANI precision and displacement for curvature."""
@@ -199,21 +360,48 @@ class ANICalculator(CalcABC):
         return self._recommended_numerical_step
 
     def prepare_analytic_derivatives(self) -> None:
-        """Promote only an explicitly requested implicit analytic workflow."""
+        """Prepare the fixed gas precision without granting scientific admission."""
         if self._requested_dtype == "float32":
             raise ValueError(
                 "ANI float32 cannot be used for analytic implicit curvature; "
                 "use dtype='auto' or dtype='float64'."
             )
         self._record_checkpoint_sha256()
+        device_type = getattr(self.device, "type", str(self.device).split(":", 1)[0])
+        failures = []
+        if self.model_name != "ani2x":
+            failures.append("model must be ani2x")
+        if self._original_checkpoint_sha256 != _ANI2X_CHECKPOINT_SHA256:
+            failures.append("checkpoint SHA256 is not the installed ANI2x profile")
+        if str(device_type).lower() != "cpu":
+            failures.append("device must be CPU")
+        if self.d4:
+            failures.append("D4 must be disabled")
+        if self.hessian != "analytic":
+            failures.append("hessian mode must be analytic")
+        if (
+            self._radial_cutoff_angstrom != 5.1
+            or self._angular_cutoff_angstrom != 3.5
+        ):
+            failures.append("ANI2x AEV cutoff identity drifted")
+        if failures:
+            raise AnalyticCapabilityError(
+                "ANI analytic implicit profile is not qualified: " + "; ".join(failures)
+            )
         self._promote_to_float64(
             reason="analytic_implicit_curvature_requires_float64"
         )
+        require_no_amp_tf32(self.device)
         if self._requested_dtype == "auto":
             self._precision_cast_reason = (
                 "analytic_implicit_curvature_requires_float64"
             )
-        self.analytic_implicit_derivatives_admitted = True
+        self._prepared_analytic_cell = self._analytic_cell_identity()
+        self._analytic_model_runtime_identity = torch_model_runtime_identity(self.model)
+        # This names a preflighted legacy capability, not a derivative admission.
+        # The factory separately binds either that legacy route or a measured
+        # exact independent-composition receipt.
+        self.legacy_analytic_compatibility_profile = _ANI2X_ANALYTIC_PROFILE_ID
 
     @property
     def inference_precision_provenance(self) -> dict:
@@ -232,6 +420,35 @@ class ANICalculator(CalcABC):
             "reason": self._precision_cast_reason,
         }
 
+    def _analytic_energy_forces_operation(
+        self,
+        atoms,
+        *,
+        need_forces: bool,
+    ) -> AnalyticOperationResult:
+        import torch
+
+        cell, runtime = self._begin_analytic_operation()
+        point = self._analytic_point_identity(atoms, cell, derivative=False)
+        coordinates = torch.tensor(
+            atoms.get_positions(),
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=need_forces,
+        ).unsqueeze(0)
+        energy = self._forward_energy(atoms, coordinates)
+        forces = None
+        if need_forces:
+            forces = -torch.autograd.grad(energy, coordinates)[0].squeeze(0)
+        self._finish_analytic_operation(runtime)
+        return AnalyticOperationResult.energy_forces(
+            identity=point,
+            energy_hartree=float(energy.detach().cpu()),
+            forces_hartree_per_angstrom=(
+                None if forces is None else forces.detach().cpu().numpy()
+            ),
+        )
+
     def calculate(
         self,
         atoms=None,
@@ -242,6 +459,23 @@ class ANICalculator(CalcABC):
 
         properties = self._normalize_properties(properties)
         atoms = super().calculate(atoms, properties, system_changes)
+
+        if self.analytic_composition_admission is not None:
+            gas_energy_forces = self._analytic_energy_forces_operation(
+                atoms,
+                need_forces="forces" in properties,
+            )
+            gas_hessian = (
+                self._analytic_hessian_operation(atoms)
+                if "hessian" in properties
+                else None
+            )
+            self._finalize_results(
+                atoms,
+                gas_energy_forces=gas_energy_forces,
+                gas_hessian=gas_hessian,
+            )
+            return
 
         needs_forces = "forces" in properties
         coordinates = torch.tensor(
@@ -395,6 +629,16 @@ class ANICalculator(CalcABC):
             lambda: self._forward_energy(atoms, coordinates), coordinates
         )
 
+    def _analytic_hessian_operation(self, atoms) -> AnalyticOperationResult:
+        cell, runtime = self._begin_analytic_operation()
+        point = self._analytic_point_identity(atoms, cell, derivative=True)
+        require_derivative_cutoff_guard(point, "hessian")
+        hessian = self._analytic_hessian(atoms)
+        self._finish_analytic_operation(runtime)
+        return AnalyticOperationResult.hessian(
+            identity=point, hessian_hartree_per_angstrom2=hessian
+        )
+
     def dftd4(self, species, coordinates):
         import tad_dftd4 as d4
         import torch
@@ -410,28 +654,20 @@ class ANICalculator(CalcABC):
         bohr_coords = coordinates[0] * 1.8897261245864
         return torch.sum(d4.dftd4(species[0], bohr_coords, charge, param))
 
-    def get_hvp(self, atoms, n: np.ndarray):
-        """Hessian-vector product Hn via autograd for ANI's (species, coords) forward.
-
-        Returns (Hn, forces, energy) as torch tensors, consumed by Dimer-mode TS.
-        """
+    def _gas_hvp_tensors(self, atoms, n: np.ndarray):
+        """Existing ANI direct autograd operation, with no solvent arithmetic."""
         import torch
 
+        n = np.asarray(n, dtype=np.float64).reshape(-1)
+        if n.shape != (3 * len(atoms),) or not np.isfinite(n).all():
+            raise ValueError("ANI HVP direction must be a finite 3N vector.")
         coords = torch.tensor(
             atoms.get_positions(),
             dtype=self.dtype,
             device=self.device,
             requires_grad=True,
         ).unsqueeze(0)
-        species = torch.tensor(
-            atoms.get_atomic_numbers(),
-            dtype=torch.long,
-            device=self.device,
-        ).unsqueeze(0)
-
-        energy = self.model(species, coords)[0]
-        if self.d4:
-            energy = energy + self.dftd4(species, coords)
+        energy = self._forward_energy(atoms, coords)
 
         grad = torch.autograd.grad(energy, coords, create_graph=True)[0].squeeze(0)
         grad_vec = grad.view(-1)
@@ -443,7 +679,33 @@ class ANICalculator(CalcABC):
             .view(-1)
         )
 
-        forces = -grad_vec
+        return hvp, -grad_vec, energy
+
+    def _analytic_hvp_operation(self, atoms, n) -> AnalyticOperationResult:
+        cell, runtime = self._begin_analytic_operation()
+        point = self._analytic_point_identity(atoms, cell, derivative=True)
+        require_derivative_cutoff_guard(point, "hvp")
+        hvp, forces, energy = self._gas_hvp_tensors(atoms, n)
+        self._finish_analytic_operation(runtime)
+        return AnalyticOperationResult.hvp(
+            identity=point,
+            direction=np.asarray(n, dtype=np.float64).reshape(-1),
+            hvp_hartree_per_angstrom2=hvp.detach().cpu().numpy(),
+            forces_hartree_per_angstrom=forces.detach().cpu().numpy().reshape(-1, 3),
+            energy_hartree=float(energy.detach().cpu().item()),
+        )
+
+    def get_hvp(self, atoms, n: np.ndarray):
+        """Preserve ANI's tensor tuple while sharing independent composition."""
+        import torch
+
+        if self.analytic_composition_admission is not None:
+            return tuple(
+                torch.tensor(value, dtype=self.dtype, device=self.device)
+                for value in super().get_hvp(atoms, n)
+            )
+        # Retain the previously qualified legacy split-runtime behavior.
+        hvp, forces, energy = self._gas_hvp_tensors(atoms, n)
         correction = getattr(self, "solvent_correction", None)
         if correction is not None:
             if self.analytic_implicit_derivatives_admitted is not True:

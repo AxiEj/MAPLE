@@ -171,9 +171,9 @@ def test_qualified_cpu_no_d4_analytic_cell_remains_accepted():
     SetCalculator._validate_against_class(settings, backend)
 
 
-@pytest.mark.parametrize("device,admitted", [("cpu", True), ("cuda:0", False)])
-def test_reference_openmm_does_not_imply_qualified_torch_device(
-    water_mol2, tmp_path, device, admitted
+@pytest.mark.parametrize("device", ["cpu", "cuda:0"])
+def test_direct_reference_openmm_capability_does_not_create_cell_admission(
+    water_mol2, tmp_path, device
 ):
     pytest.importorskip("openmm")
     from maple.function.read.filereader.mol2_reader import MOL2Reader
@@ -194,7 +194,9 @@ def test_reference_openmm_does_not_imply_qualified_torch_device(
     )
     assert correction.provider.platform == "Reference"
     assert correction.provider._derivative_backend is None
-    assert correction.analytic_task_derivatives_admitted is admitted
+    assert correction.solvent_analytic_derivative_capable is True
+    assert correction.analytic_task_derivatives_admitted is False
+    assert correction.analytic_derivative_admission is None
     assert "forces" in correction.supported_properties
 
 

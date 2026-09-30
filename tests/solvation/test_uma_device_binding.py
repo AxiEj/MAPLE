@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from types import SimpleNamespace
 
 import pytest
+from fairchem.core.units.mlip_unit import InferenceSettings
 
 from maple.function.calculator.uma import _uma_calculator as uma_module
 from maple.function.calculator.uma._uma_calculator import UMACalculator
@@ -168,3 +169,31 @@ def test_cpu_path_keeps_literal_device_and_does_not_enter_cuda_context(
 
     assert predictor.device == "cpu"
     assert uma_module.os.environ[FAIRCHEM_DEVICE_ENV] == "cuda"
+
+
+def test_cpu_path_preserves_explicit_derivative_inference_settings(
+    monkeypatch, tmp_path
+):
+    checkpoint = _select_local_checkpoint(monkeypatch, tmp_path)
+    settings = InferenceSettings(predict_untrained_hessian={"omol"})
+    captured = {}
+
+    def fake_load(_path, **kwargs):
+        captured["settings"] = kwargs["inference_settings"]
+        return SimpleNamespace(device="cpu")
+
+    monkeypatch.setattr(uma_module, "load_predict_unit", fake_load)
+    monkeypatch.setattr(
+        UMACalculator, "_normalize_device", staticmethod(lambda _device: "cpu")
+    )
+
+    UMACalculator._build_predictor(
+        "local",
+        None,
+        "cpu",
+        checkpoint_path=str(checkpoint),
+        inference_settings=settings,
+    )
+
+    assert captured["settings"] is settings
+    assert captured["settings"].predict_untrained_hessian == {"omol"}

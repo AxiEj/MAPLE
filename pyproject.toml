@@ -26,13 +26,21 @@ implicit-ddlpb = ["openmm==8.5.2", "pyddx==0.8.0"]
 # free-energy analysis.  Route 1 delegates MBAR and time-series decorrelation to
 # this maintained upstream implementation instead of shipping a local estimator.
 implicit-free-energy = ["openmm==8.5.2", "pymbar==4.0.3"]
-# PyTorch/CUDA and fairchem-core are intentionally not declared here because
-# users must install versions that match their CUDA/CPU runtime before using
-# MAPLE's torch-backed and UMA/PBC-backed models. fairchem-core supplies its
-# own UMA runtime companions such as huggingface-hub and omegaconf.
+# Independent OBC-II runtime. Users who require a particular CPU/CUDA build
+# should install that Torch build first; qualification records the actual
+# version/device/dtype cell rather than claiming universal Torch compatibility.
+implicit-obc2-torch = ["torch"]
+# Apart from the explicit independent-OBC extra above, backend-specific
+# PyTorch/CUDA and fairchem-core stacks remain user-managed so they can match
+# the selected runtime. fairchem-core supplies its own UMA companions such as
+# huggingface-hub and omegaconf.
 
 [project.scripts]
 maple = "maple.main:main"
 
 [tool.setuptools.packages.find]
 include = ["maple*"]
+
+[tool.setuptools.package-data]
+"maple.function.calculator.extra_correction.implicit.data" = ["*.json", "*.txt"]
+"maple.function.calculator" = ["data/*.json"]

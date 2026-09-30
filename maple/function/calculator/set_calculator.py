@@ -115,6 +115,8 @@ class SetCalculator:
         solvation_options: Optional[dict] = None,
         charge_options: Optional[dict] = None,
         task_context: Optional[dict] = None,
+        *,
+        _analytic_admission_resolver=None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -132,6 +134,13 @@ class SetCalculator:
         self.solvation_options = dict(solvation_options)
         self.charge_options = dict(charge_options)
         self.task_context = dict(task_context or {})
+        # Private qualification-harness seam: never populated from input headers,
+        # model options, plugin discovery, or environment variables.
+        if _analytic_admission_resolver is not None and not callable(
+            _analytic_admission_resolver
+        ):
+            raise TypeError("The private analytic admission resolver must be callable.")
+        self._analytic_admission_resolver = _analytic_admission_resolver
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -188,19 +197,28 @@ class SetCalculator:
             nonpolar = str(self.solvation_options.get('nonpolar', 'ace')).lower()
             platform = str(self.solvation_options.get('platform', 'auto')).lower()
             inner = self.solvation_options.get('inner')
-            if not (
+            legacy_profile = (
                 method == 'gb'
                 and provider == 'openmm'
                 and model == 'obc2'
                 and nonpolar in {'ace', 'none'}
                 and platform == 'reference'
                 and inner is None
-            ):
+            )
+            independent_profile = (
+                method == 'gb'
+                and provider == 'torch'
+                and model == 'obc2'
+                and nonpolar in {'ace', 'none'}
+                and 'platform' not in self.solvation_options
+                and inner is None
+            )
+            if not (legacy_profile or independent_profile):
                 raise ValueError(
-                    "Implicit-solvent analytic derivatives support only the "
-                    "single-solute OpenMM OBC-II profile with nonpolar=ace or "
-                    "nonpolar=none and explicit platform=Reference. Use "
-                    "hessian='numerical' for other force-capable profiles."
+                    "Implicit-solvent analytic derivatives require the single-solute "
+                    "OBC-II ace|none profile with provider=torch, or the legacy "
+                    "provider=openmm compatibility profile on explicit "
+                    "platform=Reference. Exact gas cells are checked separately."
                 )
         elif hessian_mode not in {None, 'numerical'}:
             raise ValueError(
@@ -289,7 +307,12 @@ class SetCalculator:
                     f"Model '{self.model}' does not support hessian='{mode}'. "
                     f'Supported modes: {supported_text}'
                 )
-            if mode == 'analytic' and self.implicit in {'gb', 'pb'}:
+            if (
+                mode == 'analytic'
+                and self.implicit in {'gb', 'pb'}
+                and str(getattr(self, 'solvation_options', {}).get('provider', 'openmm'))
+                .lower() != 'torch'
+            ):
                 admitted_models = tuple(
                     getattr(cls, 'ANALYTIC_IMPLICIT_HESSIAN_MODELS', ())
                 )
@@ -629,6 +652,8 @@ class SetCalculator:
                 model_device=self.device,
                 task_context=self.task_context,
             )
+            if self.model_options.get('hessian') == 'analytic':
+                self._bind_analytic_implicit_profile(calculator)
             calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)
@@ -648,6 +673,78 @@ class SetCalculator:
                 "Use an explicit solvent platform to require that backend.\n"
             ])
         return calculator
+
+    def _bind_analytic_implicit_profile(self, calculator) -> None:
+        """Bind strict independent composition or the labeled legacy gate."""
+        correction = calculator.solvent_correction
+        provider = str(self.solvation_options.get('provider', 'openmm')).lower()
+        if provider == 'openmm':
+            underlying = correction.underlying_provider
+            legacy_exact = (
+                getattr(underlying, 'model', None) == 'obc2'
+                and getattr(underlying, 'nonpolar', None) in {'ace', 'none'}
+                and getattr(underlying, 'platform', None) == 'Reference'
+                and str(getattr(underlying, '_derivative_device', '')).split(':', 1)[0].lower()
+                == 'cpu'
+                and getattr(underlying, 'obc2_parameters', None) is not None
+                and self.model == 'ani2x'
+                and getattr(calculator, 'legacy_analytic_compatibility_profile', None)
+                == 'route1-ani2x-cpu-f64-d4off-v1'
+            )
+            if not legacy_exact:
+                raise ValueError(
+                    "Legacy split-runtime analytic compatibility requires exact "
+                    "ANI2x CPU D4-off plus OpenMM Reference OBC-II ace|none."
+                )
+            calculator.analytic_implicit_derivatives_admitted = True
+            correction.analytic_task_derivatives_admitted = True
+            correction._write_audit_manifest()
+            return
+        if provider != 'torch':
+            raise ValueError(
+                f"Provider {provider!r} has no analytic implicit-solvent admission."
+            )
+
+        from .analytic_admission import (
+            ANALYTIC_OPERATIONS,
+            resolve_installed_composition,
+        )
+        from .analytic_protocol import AnalyticCompositionAdmission, AnalyticIdentityError
+
+        identity = getattr(calculator, '_analytic_cell_identity', None)
+        if not callable(identity):
+            raise NotImplementedError("The gas backend exposes no analytic scalar identity.")
+        gas_cell = identity()
+        solvent_cell = correction.analytic_scalar_identity(self.atoms).cell
+        resolver = self._analytic_admission_resolver or resolve_installed_composition
+        composition = resolver(gas_cell, solvent_cell)
+        if (
+            not isinstance(composition, AnalyticCompositionAdmission)
+            or composition.gas_admission.cell != gas_cell
+            or composition.solvent_admission.cell != solvent_cell
+            or composition.operations != ANALYTIC_OPERATIONS
+        ):
+            raise AnalyticIdentityError("Resolved admission does not bind the live component cells.")
+        if self._analytic_admission_resolver is not None and not all(
+            label.startswith('CANDIDATE:')
+            for label in (
+                composition.profile_id,
+                composition.evidence_id,
+                composition.gas_admission.evidence_id,
+                composition.solvent_admission.evidence_id,
+            )
+        ):
+            raise AnalyticIdentityError(
+                "Injected qualification results must be explicitly labeled CANDIDATE."
+            )
+        # A single model-neutral binding path, after all identity checks. No
+        # model name or live capability can manufacture an installed receipt.
+        correction.bind_analytic_derivative_admission(composition.solvent_admission)
+        calculator.analytic_derivative_admission = composition.gas_admission
+        calculator.analytic_composition_admission = composition
+        calculator.analytic_implicit_derivatives_admitted = True
+        correction.analytic_task_derivatives_admitted = True
+        correction._write_audit_manifest()
 
     def _validate_execution_placement(self, calculator) -> None:
         """Reject a known device substitution, without requiring Torch plugins.

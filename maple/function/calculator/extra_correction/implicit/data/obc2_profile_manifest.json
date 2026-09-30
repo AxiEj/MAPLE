@@ -1,0 +1,93 @@
+{
+  "canonical_payload": {
+    "ace_kj_mol_nm2": 28.3919551,
+    "coulomb_kj_mol_nm_e2": 138.935485,
+    "default_radius_angstrom": 1.5,
+    "default_screen_factor": 0.8,
+    "formula_source_profile": "openmm-8.5.2-obc2-mbondi2-v1",
+    "hydrogen_radii_angstrom": {
+      "bonded_to_nitrogen": 1.3,
+      "otherwise": 1.2
+    },
+    "obc2_coefficients": {
+      "alpha": 1.0,
+      "beta": 0.8,
+      "gamma": 4.85
+    },
+    "offset_nm": 0.009,
+    "radii_angstrom_by_atomic_number": {
+      "14": 2.1,
+      "15": 1.85,
+      "16": 1.8,
+      "17": 1.7,
+      "6": 1.7,
+      "7": 1.55,
+      "8": 1.5,
+      "9": 1.5
+    },
+    "radius_profile": "obc2-mbondi2",
+    "salt_kappa_inverse_nm": 0.0,
+    "schema_version": 1,
+    "screen_factors_by_atomic_number": {
+      "1": 0.85,
+      "15": 0.86,
+      "16": 0.96,
+      "6": 0.72,
+      "7": 0.79,
+      "8": 0.85,
+      "9": 0.88
+    },
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5
+  },
+  "canonical_payload_sha256": "6387f1a16e10569d91ea8dc03a90c56035cf4a52888df54c18a1bd5a4bf8c30f",
+  "license": {
+    "resource": "OPENMM_CUSTOMGBFORCES_LICENSE.txt",
+    "sha256": "fd9a41c274520658277e570f2347afaf95868bc93299d8e9d453d6671387b33d"
+  },
+  "manifest_id": "openmm-8.5.2-obc2-mbondi2-v1",
+  "runtime_dependency_on_openmm": false,
+  "schema_version": 1,
+  "supported_scalar_nonpolar_selectors": [
+    "ace",
+    "none"
+  ],
+  "upstream": {
+    "project": "OpenMM",
+    "source_file": "wrappers/python/openmm/app/internal/customgbforces.py",
+    "source_ranges": {
+      "common_energy_terms": {
+        "end_line": 392,
+        "sha256": "644e0684b57beb60c04ccf8d721583f47051da87e2114c3f528e33e80ba0ccff",
+        "start_line": 352
+      },
+      "mbondi2_radii": {
+        "end_line": 334,
+        "sha256": "8c15144e5e117a259b00820709fc25221ab40e4fedaa8c924a387fd3b0295f0b",
+        "start_line": 301
+      },
+      "obc2_expression": {
+        "end_line": 690,
+        "sha256": "9670d35a7c427a9bfe64a07cf5997aaf96fe482afa95cb5a794ff3da530375d9",
+        "start_line": 651
+      },
+      "obc_standard_parameters": {
+        "end_line": 648,
+        "sha256": "864277bab0ac4505e4389bb97846bf7dd8db0cb8d0185c591f0a8b33959b1285",
+        "start_line": 624
+      },
+      "particle_finalization": {
+        "end_line": 450,
+        "sha256": "edd6fbe40486608bad10f8727fa8201616f2302f9185e8191d5e49d8b143b6bb",
+        "start_line": 428
+      },
+      "screen_parameters": {
+        "end_line": 410,
+        "sha256": "b75c4c8832b342757f92d5b09e57c0b28a5c2f8f3985dff80acda47986fdf80c",
+        "start_line": 395
+      }
+    },
+    "source_sha256": "f96a49a9e9ef0528e937481b1c1331b43ad03e6ec3018b478c642b301f07391a",
+    "version": "8.5.2"
+  }
+}

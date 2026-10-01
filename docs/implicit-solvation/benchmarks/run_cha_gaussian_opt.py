@@ -871,6 +871,29 @@ def _runtime_record() -> dict[str, Any]:
     }
 
 
+def _safe_runtime_record() -> dict[str, Any]:
+    try:
+        return _runtime_record()
+    except Exception as exc:
+        return {"error": type(exc).__name__, "message": str(exc)}
+
+
+def _load_optimizer_implementation() -> tuple[Callable[..., Any], dict[str, Any]]:
+    from maple.function.dispatcher.optimization.optimization import Optimization
+    from maple.function.dispatcher.optimization.algorithm.LBFGS import LBFGS
+
+    method_source_name = inspect.getsourcefile(LBFGS)
+    if method_source_name is None:
+        raise RuntimeError("LBFGS implementation has no filesystem source")
+    method_source = Path(method_source_name).resolve()
+    return Optimization, {
+        "class": LBFGS.__qualname__,
+        "module": LBFGS.__module__,
+        "source": str(method_source),
+        "source_sha256": sha256_file(method_source),
+    }
+
+
 def execute_opt_row(
     row: dict[str, Any],
     topology: dict[str, Any],
@@ -882,18 +905,6 @@ def execute_opt_row(
 ) -> dict[str, Any]:
     """Execute one real row transaction and always attempt one fresh final."""
     method_implementation: dict[str, Any] | None = None
-    if optimization_factory is None:
-        from maple.function.dispatcher.optimization.optimization import Optimization
-        from maple.function.dispatcher.optimization.algorithm.LBFGS import LBFGS
-
-        optimization_factory = Optimization
-        method_source = Path(inspect.getsourcefile(LBFGS) or "").resolve()
-        method_implementation = {
-            "class": LBFGS.__qualname__,
-            "module": LBFGS.__module__,
-            "source": str(method_source),
-            "source_sha256": sha256_file(method_source),
-        }
     atoms = Atoms(
         numbers=topology["atomic_numbers"],
         positions=np.asarray(row["positions_angstrom"], dtype=np.float64),
@@ -902,6 +913,7 @@ def execute_opt_row(
     _set_thresholds(atoms, thresholds)
     original = atoms.get_positions().copy()
     rejected = None
+    classification_error = None
     failure: Exception | None = None
     observer = None
     parameters = {
@@ -913,6 +925,10 @@ def execute_opt_row(
         "verbose": 1,
     }
     try:
+        if optimization_factory is None:
+            optimization_factory, method_implementation = (
+                _load_optimizer_implementation()
+            )
         composed = calculator_factory(
             atoms, topology, row["sigma_e"], row_dir / "calculator.log"
         )
@@ -927,6 +943,8 @@ def execute_opt_row(
             ),
         )
         atoms.calc = observer
+        if optimization_factory is None:
+            raise RuntimeError("optimizer implementation did not load")
         optimized = optimization_factory(
             parameters, str(row_dir / "optimization.out"), atoms
         ).run()
@@ -951,9 +969,15 @@ def execute_opt_row(
         atoms.set_positions(original if restored is None else restored)
         atoms.calc = None
         retained_metrics = None
-        provisional_status = (
-            "DOMAIN_REJECTED" if _is_domain_exception(exc) else "RUNTIME_ERROR"
-        )
+        try:
+            domain_rejected = _is_domain_exception(exc)
+        except Exception as classifier_exc:
+            classification_error = {
+                "type": type(classifier_exc).__name__,
+                "message": str(classifier_exc),
+            }
+            domain_rejected = False
+        provisional_status = "DOMAIN_REJECTED" if domain_rejected else "RUNTIME_ERROR"
     # Never reuse the optimization calculator/history for terminal proof.
     atoms.calc = None
     try:
@@ -1029,6 +1053,7 @@ def execute_opt_row(
         ),
         "successful_force_frames": [] if observer is None else observer.frames,
         "rejected_evaluation": rejected,
+        "classification_error": classification_error,
         "fresh_final": fresh,
         "fresh_final_pass": fresh_pass,
         "fresh_replay": replay,
@@ -1047,7 +1072,7 @@ def execute_opt_row(
             "thresholds": dict(thresholds),
             "method_implementation": method_implementation,
         },
-        "runtime": _runtime_record(),
+        "runtime": _safe_runtime_record(),
         "gas_model_metadata": (
             None
             if observer is None
@@ -1213,6 +1238,7 @@ def _combined_fd_row(
     log: Path,
 ) -> dict[str, Any]:
     steps = protocol["combined_fd_validation"]["fd_steps_angstrom"]
+    log.parent.mkdir(parents=True, exist_ok=True)
     atoms = Atoms(
         numbers=topology["atomic_numbers"], positions=row["positions_angstrom"]
     )
@@ -1331,6 +1357,101 @@ def run_combined_fd(
     return summary
 
 
+def _reference_geometry_metadata(geometry: Any) -> dict[str, Any]:
+    metadata = {
+        "r6_levels": [
+            {
+                "azimuth_order": int(level.azimuth_order),
+                "inverse_cube_quad_error_estimate_per_angstrom3": float(
+                    level.inverse_cube_quad_error_estimate_per_angstrom3
+                ),
+                "meridian_evaluations": int(level.meridian_evaluations),
+                "inverse_cube_per_angstrom3": json_safe(
+                    level.inverse_cube_per_angstrom3
+                ),
+                "inverse_born_per_angstrom": json_safe(level.inverse_born_per_angstrom),
+                "gauss_closure_vector_angstrom2": json_safe(
+                    level.gauss_closure_vector_angstrom2
+                ),
+            }
+            for level in geometry.r6_levels
+        ],
+        "r6_diagnostics": json_safe(geometry.r6_diagnostics),
+        "nonpolar_diagnostics": json_safe(geometry.diagnostics),
+        "epsabs": float(geometry.diagnostics["epsabs"]),
+        "epsrel": float(geometry.diagnostics["epsrel"]),
+        "cavity_volume_angstrom3": float(geometry.cavity_volume_angstrom3),
+        "cavity_kcal_mol": float(geometry.cavity_kcal_mol),
+        "dispersion_kcal_mol": float(geometry.dispersion_kcal_mol),
+        "coordinates_sha256": geometry.coordinates_sha256,
+        "parameters_sha256": geometry.parameters_sha256,
+        "identity_sha256": geometry.identity_sha256,
+        "payload_sha256": geometry.payload_sha256,
+    }
+    return seal(metadata)
+
+
+def _validate_reference_geometry_metadata(
+    metadata: dict[str, Any],
+    expected_orders: tuple[int, ...],
+    expected_epsabs: float,
+    expected_epsrel: float,
+) -> bool:
+    try:
+        verify_seal(metadata, "reference geometry metadata")
+        levels = metadata["r6_levels"]
+        diagnostics = metadata["nonpolar_diagnostics"]
+        valid = bool(
+            [int(level["azimuth_order"]) for level in levels] == list(expected_orders)
+            and float(metadata["epsabs"]) == float(expected_epsabs)
+            and float(metadata["epsrel"]) == float(expected_epsrel)
+            and isinstance(metadata["r6_diagnostics"], dict)
+            and bool(metadata["r6_diagnostics"])
+            and isinstance(diagnostics, dict)
+            and diagnostics["azimuth_orders"] == list(expected_orders)
+            and float(diagnostics["epsabs"]) == float(expected_epsabs)
+            and float(diagnostics["epsrel"]) == float(expected_epsrel)
+            and diagnostics["error_estimates_are_rigorous_bounds"] is False
+            and diagnostics["mixed_vector_quad_errors_are_scalar_uncertainties"]
+            is False
+            and "cavity_mixed_vector_quad_error" in diagnostics
+            and "dispersion_mixed_vector_quad_error" in diagnostics
+            and np.isfinite(
+                np.asarray(
+                    diagnostics["cavity_mixed_vector_quad_error"], dtype=np.float64
+                )
+            ).all()
+            and np.isfinite(
+                np.asarray(
+                    diagnostics["dispersion_mixed_vector_quad_error"],
+                    dtype=np.float64,
+                )
+            ).all()
+        )
+        for level in levels:
+            valid = bool(
+                valid
+                and int(level["meridian_evaluations"]) > 0
+                and math.isfinite(
+                    float(level["inverse_cube_quad_error_estimate_per_angstrom3"])
+                )
+                and float(level["inverse_cube_quad_error_estimate_per_angstrom3"])
+                >= 0.0
+                and all(
+                    np.asarray(level[key], dtype=np.float64).shape == (3,)
+                    and np.isfinite(level[key]).all()
+                    for key in (
+                        "inverse_cube_per_angstrom3",
+                        "inverse_born_per_angstrom",
+                        "gauss_closure_vector_angstrom2",
+                    )
+                )
+            )
+        return valid
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
 def run_crossing_reference(
     output: Path, expected_preregistration_sha256: str
 ) -> dict[str, Any]:
@@ -1423,11 +1544,15 @@ def run_crossing_reference(
                     order=64,
                 )
                 production = correction.evaluate(atoms, need_forces=True)
-                reference_by_order = {
-                    str(order): oracle.gaussian_cha_from_reference_geometry(
-                        geometry_for(center, order), sigma_e=sigma_e
-                    )
+                geometry_by_order = {
+                    str(order): geometry_for(center, order)
                     for order in protocol["scalar"]["reference_quadrature_orders"]
+                }
+                reference_by_order = {
+                    order: oracle.gaussian_cha_from_reference_geometry(
+                        geometry, sigma_e=sigma_e
+                    )
+                    for order, geometry in geometry_by_order.items()
                 }
                 stencils = []
                 estimates = []
@@ -1482,6 +1607,10 @@ def run_crossing_reference(
                     "status": "COMPLETED",
                     "production_components_kcal_mol": production_components,
                     "reference_components_kcal_mol_by_order": reference_components,
+                    "reference_geometry_metadata_by_order": {
+                        order: _reference_geometry_metadata(geometry)
+                        for order, geometry in geometry_by_order.items()
+                    },
                     "energy_errors_kcal_mol_by_order": energy_errors,
                     "production_force_kcal_mol_per_angstrom": prod_force,
                     "reference_fd_force_kcal_mol_per_angstrom": estimates,
@@ -1554,13 +1683,28 @@ def _rederive_crossing_record(
         axis = int(identity["axis"])
         production = record["production_components_kcal_mol"]
         reference = record["reference_components_kcal_mol_by_order"]
+        reference_metadata = record["reference_geometry_metadata_by_order"]
         component_keys = {"polar", "cavity", "dispersion", "total"}
         orders = [
             str(value) for value in protocol["scalar"]["reference_quadrature_orders"]
         ]
-        if set(production) != component_keys or set(reference) != set(orders):
+        if (
+            set(production) != component_keys
+            or set(reference) != set(orders)
+            or set(reference_metadata) != set(orders)
+        ):
             return None
         if any(set(reference[order]) != component_keys for order in orders):
+            return None
+        if any(
+            not _validate_reference_geometry_metadata(
+                reference_metadata[order],
+                (int(order),),
+                protocol["scalar"]["reference_epsabs"],
+                protocol["scalar"]["reference_epsrel"],
+            )
+            for order in orders
+        ):
             return None
         energy_errors = {
             order: {
@@ -1937,6 +2081,8 @@ def run(
     output: Path, expected_preregistration_sha256: str, phase: str = "all"
 ) -> dict[str, Any]:
     assert_runtime_origins()
+    if phase not in {"crossing", "combined-fd", "opt", "all"}:
+        raise ValueError(f"unknown run phase: {phase!r}")
     results = {}
     if phase in ("crossing", "all"):
         results["crossing"] = run_crossing_reference(
@@ -1950,6 +2096,23 @@ def run(
         results["optimization"] = run_opt_matrix(
             output, expected_preregistration_sha256
         )
+    phase_passed = bool(
+        results
+        and all(
+            (
+                payload.get("passed") is True
+                if name == "crossing"
+                else (
+                    payload.get("all_passed") is True
+                    if name == "combined_fd"
+                    else payload.get("status") == "VALIDATED"
+                )
+            )
+            for name, payload in results.items()
+        )
+    )
+    results["phase"] = phase
+    results["status"] = "PHASE_PASSED" if phase_passed else "GAUSSIAN_OPT_INCOMPLETE"
     return results
 
 
@@ -2094,7 +2257,13 @@ def main(argv: list[str] | None = None) -> int:
     else:
         result = validate(args.output, args.expected_preregistration_sha256)
     print(json.dumps(json_safe(result), sort_keys=True))
-    return 0 if result.get("status", "VALIDATED") == "VALIDATED" else 1
+    if args.command == "preregister":
+        succeeded = result.get("phase") == "PREREGISTERED"
+    elif args.command == "run":
+        succeeded = result.get("status") == "PHASE_PASSED"
+    else:
+        succeeded = result.get("status") == "VALIDATED"
+    return 0 if succeeded else 1
 
 
 if __name__ == "__main__":

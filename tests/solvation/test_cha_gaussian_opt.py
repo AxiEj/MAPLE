@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -348,6 +349,101 @@ def test_nonfinite_rejected_coordinates_are_json_safe_and_restore_last_frame(tmp
     module.canonical_bytes(receipt)
 
 
+def test_classifier_failure_never_masks_original_row_failure_and_fresh_final(
+    tmp_path, monkeypatch
+):
+    module = _module()
+    built = 0
+
+    def factory(atoms, topology, sigma, log):
+        nonlocal built
+        built += 1
+        if built == 1:
+            raise RuntimeError("original model construction failure")
+        return HarmonicComposed()
+
+    def broken_classifier(exc):
+        raise OSError("classifier import failure")
+
+    monkeypatch.setattr(module, "_is_domain_exception", broken_classifier)
+    receipt = module.execute_opt_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path,
+        calculator_factory=factory,
+        optimization_factory=lambda *args: None,
+    )
+    assert receipt["status"] == "RUNTIME_ERROR"
+    assert receipt["rejected_evaluation"]["type"] == "RuntimeError"
+    assert (
+        receipt["rejected_evaluation"]["message"]
+        == "original model construction failure"
+    )
+    assert receipt["classification_error"] == {
+        "type": "OSError",
+        "message": "classifier import failure",
+    }
+    assert receipt["fresh_final"]["tag"] == "FRESH_FINAL_UNCACHED"
+
+
+def test_optimizer_import_failure_is_retained_before_factory_and_fresh_final_runs(
+    tmp_path, monkeypatch
+):
+    module = _module()
+    factory_calls = 0
+
+    def factory(atoms, topology, sigma, log):
+        nonlocal factory_calls
+        factory_calls += 1
+        return HarmonicComposed()
+
+    def broken_loader():
+        raise ImportError("optimizer import blocked")
+
+    monkeypatch.setattr(
+        module, "_load_optimizer_implementation", broken_loader, raising=False
+    )
+    receipt = module.execute_opt_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path,
+        calculator_factory=factory,
+    )
+    assert receipt["status"] == "RUNTIME_ERROR"
+    assert receipt["rejected_evaluation"]["type"] == "ImportError"
+    assert receipt["rejected_evaluation"]["message"] == "optimizer import blocked"
+    assert factory_calls == 1  # fresh-final only; optimization factory was never built
+    assert receipt["fresh_final"]["tag"] == "FRESH_FINAL_UNCACHED"
+
+
+def test_runtime_reporting_failure_is_retained_not_raised(tmp_path, monkeypatch):
+    module = _module()
+
+    def factory(atoms, topology, sigma, log):
+        raise RuntimeError("model unavailable")
+
+    monkeypatch.setattr(
+        module,
+        "_runtime_record",
+        lambda: (_ for _ in ()).throw(RuntimeError("torch runtime probe failed")),
+    )
+    receipt = module.execute_opt_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path,
+        calculator_factory=factory,
+        optimization_factory=lambda *args: None,
+    )
+    assert receipt["status"] == "RUNTIME_ERROR"
+    assert receipt["runtime"] == {
+        "error": "RuntimeError",
+        "message": "torch runtime probe failed",
+    }
+
+
 def test_five_point_units_and_matrix_completeness_are_fail_closed():
     module = _module()
     h = 1e-4
@@ -504,6 +600,129 @@ def test_protocol_freezes_exact_matrix_optimizer_reference_and_prohibitions():
         "post_hoc_width_selection",
     ):
         assert protocol["execution"][key] is False
+
+
+def test_run_reports_phase_passed_or_incomplete_and_rejects_unknown_phase(monkeypatch):
+    module = _module()
+    monkeypatch.setattr(module, "assert_runtime_origins", lambda: {})
+    monkeypatch.setattr(
+        module,
+        "run_crossing_reference",
+        lambda output, pin: {"passed": True},
+    )
+    passed = module.run(Path("unused"), "a" * 64, "crossing")
+    assert passed["status"] == "PHASE_PASSED"
+
+    monkeypatch.setattr(
+        module,
+        "run_crossing_reference",
+        lambda output, pin: {"passed": False},
+    )
+    failed = module.run(Path("unused"), "a" * 64, "crossing")
+    assert failed["status"] == "GAUSSIAN_OPT_INCOMPLETE"
+    with pytest.raises(ValueError, match="unknown run phase"):
+        module.run(Path("unused"), "a" * 64, "not-a-phase")
+
+
+def test_main_returns_nonzero_when_selected_phase_fails(monkeypatch):
+    module = _module()
+    monkeypatch.setattr(module, "_output_allowed", lambda output: True)
+    monkeypatch.setattr(
+        module,
+        "run",
+        lambda output, pin, phase: {"status": "GAUSSIAN_OPT_INCOMPLETE"},
+    )
+    assert (
+        module.main(
+            [
+                "run",
+                "--output",
+                "/tmp/fake-campaign",
+                "--expected-preregistration-sha256",
+                "a" * 64,
+                "--phase",
+                "combined-fd",
+            ]
+        )
+        == 1
+    )
+    monkeypatch.setattr(module, "run", lambda output, pin, phase: {})
+    assert (
+        module.main(
+            [
+                "run",
+                "--output",
+                "/tmp/fake-campaign",
+                "--expected-preregistration-sha256",
+                "a" * 64,
+            ]
+        )
+        == 1
+    )
+
+
+def test_combined_fd_creates_log_parent_before_calculator_factory(
+    tmp_path, monkeypatch
+):
+    module = _module()
+
+    def factory(atoms, topology, sigma, log):
+        assert log.parent.is_dir()
+        return HarmonicComposed()
+
+    monkeypatch.setattr(module, "build_composed_calculator", factory)
+    record = module._combined_fd_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path / "new" / "nested" / "calculator.log",
+    )
+    assert record["row_id"] == _row()["row_id"]
+
+
+def test_reference_geometry_metadata_retains_and_revalidates_every_order():
+    module = _module()
+    levels = tuple(
+        SimpleNamespace(
+            azimuth_order=order,
+            inverse_cube_quad_error_estimate_per_angstrom3=order * 1e-12,
+            meridian_evaluations=order * 2,
+            inverse_cube_per_angstrom3=np.full(3, order, dtype=np.float64),
+            inverse_born_per_angstrom=np.full(3, order + 1, dtype=np.float64),
+            gauss_closure_vector_angstrom2=np.full(3, order + 2, dtype=np.float64),
+        )
+        for order in (64, 96, 128)
+    )
+    geometry = SimpleNamespace(
+        r6_levels=levels,
+        r6_diagnostics={"independent": True},
+        diagnostics={
+            "azimuth_orders": (64, 96, 128),
+            "epsabs": 1e-12,
+            "epsrel": 1e-12,
+            "cavity_mixed_vector_quad_error": [1e-14, 1e-14, 1e-14],
+            "dispersion_mixed_vector_quad_error": [1e-14, 1e-14, 1e-14],
+            "mixed_vector_quad_errors_are_scalar_uncertainties": False,
+            "error_estimates_are_rigorous_bounds": False,
+        },
+        cavity_volume_angstrom3=1.25,
+        cavity_kcal_mol=0.5,
+        dispersion_kcal_mol=-0.1,
+        coordinates_sha256="1" * 64,
+        parameters_sha256="2" * 64,
+        identity_sha256="3" * 64,
+        payload_sha256="4" * 64,
+    )
+    metadata = module._reference_geometry_metadata(geometry)
+    assert [level["azimuth_order"] for level in metadata["r6_levels"]] == [64, 96, 128]
+    assert metadata["epsabs"] == metadata["epsrel"] == 1e-12
+    assert module._validate_reference_geometry_metadata(
+        metadata, (64, 96, 128), 1e-12, 1e-12
+    )
+    metadata["r6_levels"][1]["meridian_evaluations"] += 1
+    assert not module._validate_reference_geometry_metadata(
+        metadata, (64, 96, 128), 1e-12, 1e-12
+    )
 
 
 def _synthetic_center_source():

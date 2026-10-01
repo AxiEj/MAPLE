@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "protocol_id": "route1-cha-gaussian-opt-v1-20261001",
+  "model_identity": "chagb-r6-pbsa-gaussian-sign-v1",
+  "claim_boundary": {
+    "scope": "three-site water-only experimental programmatic optimization",
+    "public_inp_admitted": false,
+    "arbitrary_molecules_admitted": false,
+    "global_smoothness_claim": false,
+    "physical_accuracy_claim": false,
+    "freq_ts_md_admitted": false,
+    "deployment_or_publication": false
+  },
+  "inputs": {
+    "center_source": ".omx/benchmarks/route1-cha-analytic-v1-20260930/full-branch-study-v4/result.json",
+    "center_source_sha256": "c9d028b91a571baf2bbf4b43eb0c8380f17af6ff157852b1ed73cb9f54f6fec7",
+    "topology": ".omx/benchmarks/route1-cha-analytic-v1-20260930/water-preparation-v1/topology.json",
+    "topology_file_sha256": "c34fa61751acc1e241ddd811074e53441593b36153511d5b0e3cd5792dd45bff",
+    "topology_content_sha256": "2d2659680d850157bf41574257bdae7d593ad166b56eea69dce28c62e54c9391",
+    "protected_manifest": ".omx/benchmarks/route1-cha-segment-safety-v1-20261001/FINAL_SOURCE_MANIFEST.json",
+    "protected_manifest_sha256": "f9b392aa193e6af275f386eb58582db645b3c349e2d2fd94b1f571262ee76f4d",
+    "protected_file_count": 24,
+    "gas_preflight": ".omx/benchmarks/route1-cha-gaussian-opt-v1-20261001/gas-preflight-v3.json",
+    "checkpoint": "maple/function/calculator/model/maceoff23m.pt",
+    "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee",
+    "mace_calculator_sha256": "3423624cd58ba41abf567efe38a38386e9d4b062b2b3e8973f60aa15c534b73e",
+    "center_scales": [
+      0.96,
+      0.98,
+      1.0,
+      1.02,
+      1.04
+    ],
+    "event_center_scale": 1.0,
+    "event_annotation": "SIGN_EVENT",
+    "sigma_e": [
+      0.001,
+      0.003,
+      0.01
+    ],
+    "row_order": "center-major-width-minor",
+    "row_count": 15,
+    "preparation_record": ".omx/benchmarks/route1-cha-analytic-v1-20260930/water-preparation-v1/preparation-record.json",
+    "preparation_record_sha256": "f67873e15ccdcfe958ff284b4c84a07f1109595c624f2771f63ab0d5f3354361",
+    "gas_preflight_sha256": "e481723d298418fe33a85c9f36d52f579cbdb9a1ca09b0ff879b6d65df0827ed"
+  },
+  "precision": {
+    "device": "cpu",
+    "runtime_dtype": "float64",
+    "ambient_default_dtype_expected": "torch.float32",
+    "parameter_count": 29,
+    "float64_parameter_count": 29,
+    "float64_buffer_count": 48,
+    "int64_buffer_count": 2,
+    "r_max_angstrom": 5.0
+  },
+  "scalar": {
+    "gaussian_sign": "erf(S_e/(sqrt(2)*sigma_e))",
+    "sigma_positive": true,
+    "production_quadrature_order": 64,
+    "reference_quadrature_orders": [
+      64,
+      96,
+      128
+    ],
+    "reference_epsabs": 1e-12,
+    "reference_epsrel": 1e-12,
+    "effective_probe_expression": "float64(1.4-0.52)",
+    "electrostatic_size_strict_upper_angstrom": 9.5,
+    "born_and_nonpolar_live_at_every_coordinate": true
+  },
+  "crossing_validation": {
+    "o_atom_index": 0,
+    "axis": 0,
+    "offsets_angstrom": {
+      "start": -0.002,
+      "stop": 0.002,
+      "count": 41
+    },
+    "fd_steps_angstrom": [
+      2e-05,
+      1e-05,
+      5e-06
+    ],
+    "event_cartesian_coordinate_count": 9,
+    "scan_coordinate": "O-x",
+    "energy_max_abs_kcal_mol": 1e-06,
+    "force_max_abs_kcal_mol_per_angstrom": 2e-05,
+    "force_rms_kcal_mol_per_angstrom": 5e-06,
+    "finest_step_disagreement_max_kcal_mol_per_angstrom": 1e-05
+  },
+  "combined_fd_validation": {
+    "starting_cell_count": 15,
+    "cartesian_coordinate_count": 9,
+    "fd_steps_angstrom": [
+      2e-05,
+      1e-05,
+      5e-06
+    ],
+    "force_max_abs_hartree_per_angstrom": 3.187202875281032e-08,
+    "force_rms_hartree_per_angstrom": 7.96800718820258e-09,
+    "finest_step_disagreement_max_hartree_per_angstrom": 1.593601437640516e-08
+  },
+  "optimizer": {
+    "engine": "maple.function.dispatcher.optimization.Optimization",
+    "method": "lbfgs",
+    "memory": 5,
+    "curvature": 70.0,
+    "max_step_angstrom": 0.01,
+    "max_iterations": 256,
+    "thresholds": {
+      "f_max_hartree_per_angstrom": 0.0003,
+      "f_rms_hartree_per_angstrom": 0.0002,
+      "dp_max_angstrom": 0.0003,
+      "dp_rms_angstrom": 0.0002
+    },
+    "per_row_caps": {
+      "observer_calculator_calls": 512,
+      "unique_successful_force_coordinate_hashes": 258
+    },
+    "fresh_final_outside_caps": true,
+    "accepted_status": "CONVERGED",
+    "failure_statuses": [
+      "MAX_ITER",
+      "DOMAIN_REJECTED",
+      "RUNTIME_ERROR"
+    ],
+    "fresh_replay": {
+      "energy_max_abs_hartree": 1e-10,
+      "force_max_abs_hartree_per_angstrom": 1e-08,
+      "coordinate_hash_exact": true,
+      "energy_fields": [
+        "combined",
+        "gas",
+        "solvent",
+        "polar",
+        "cavity",
+        "dispersion"
+      ]
+    }
+  },
+  "execution": {
+    "gas_factory": "SetCalculator(...).set_calculator()",
+    "composition": "attach GaussianChaCorrection to pinned gas calculator",
+    "optimizer_unchanged": true,
+    "post_composition_observer": true,
+    "failed_calculator_reuse": false,
+    "rollback": "restore last successful composed-force-bearing frame then terminate",
+    "fresh_final": "new calculator and correction, uncached, exactly once per row",
+    "atomic_new_outputs": true,
+    "resume_unit": "one sealed row receipt",
+    "network": false,
+    "subprocess": false,
+    "model_download": false,
+    "qm_or_recharge": false,
+    "experimental_labels": false,
+    "post_hoc_width_selection": false,
+    "run_validate_require_external_preregistration_sha256": true,
+    "campaign_output": "frozen root or versioned descendant only",
+    "thread_environment": {
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "record_torch_num_threads": true,
+      "mutate_global_default_dtype": false
+    }
+  },
+  "success_rule": {
+    "required_rows": 15,
+    "required_converged": 15,
+    "required_fresh_finals": 15,
+    "success_status": "VALIDATED",
+    "otherwise_status": "GAUSSIAN_OPT_INCOMPLETE"
+  },
+  "citation": {
+    "doi": "10.1063/1.3511297",
+    "use": "PCM Gaussian/switching inspiration only; not source of this CHA functional"
+  }
+}

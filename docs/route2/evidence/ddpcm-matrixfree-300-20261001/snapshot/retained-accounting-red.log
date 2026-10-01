@@ -1,0 +1,76 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+___ test_retained_resource_bound_includes_every_bound_tensor[resolution0-2] ____
+
+n = 2, resolution = (2, 50)
+
+    @pytest.mark.parametrize("n", [2, 3])
+    @pytest.mark.parametrize("resolution", [(2, 50), (15, 1202)])
+    def test_retained_resource_bound_includes_every_bound_tensor(n, resolution):
+        from streamed_ddpcm import known_resource_estimate
+    
+        lmax, n_lebedev = resolution
+        _, op, _, _ = fixture(n, lmax=lmax, n_lebedev=n_lebedev)
+        estimated = known_resource_estimate(n, lmax, n_lebedev, op.tile)
+        actual = sum(t.numel() * t.element_size() for _, t in op.retained_tensors())
+>       assert estimated["retained_upper_bytes"] >= actual
+E       assert 10384 >= 10400
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:423: AssertionError
+___ test_retained_resource_bound_includes_every_bound_tensor[resolution0-3] ____
+
+n = 3, resolution = (2, 50)
+
+    @pytest.mark.parametrize("n", [2, 3])
+    @pytest.mark.parametrize("resolution", [(2, 50), (15, 1202)])
+    def test_retained_resource_bound_includes_every_bound_tensor(n, resolution):
+        from streamed_ddpcm import known_resource_estimate
+    
+        lmax, n_lebedev = resolution
+        _, op, _, _ = fixture(n, lmax=lmax, n_lebedev=n_lebedev)
+        estimated = known_resource_estimate(n, lmax, n_lebedev, op.tile)
+        actual = sum(t.numel() * t.element_size() for _, t in op.retained_tensors())
+>       assert estimated["retained_upper_bytes"] >= actual
+E       assert 12832 >= 12856
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:423: AssertionError
+___ test_retained_resource_bound_includes_every_bound_tensor[resolution1-2] ____
+
+n = 2, resolution = (15, 1202)
+
+    @pytest.mark.parametrize("n", [2, 3])
+    @pytest.mark.parametrize("resolution", [(2, 50), (15, 1202)])
+    def test_retained_resource_bound_includes_every_bound_tensor(n, resolution):
+        from streamed_ddpcm import known_resource_estimate
+    
+        lmax, n_lebedev = resolution
+        _, op, _, _ = fixture(n, lmax=lmax, n_lebedev=n_lebedev)
+        estimated = known_resource_estimate(n, lmax, n_lebedev, op.tile)
+        actual = sum(t.numel() * t.element_size() for _, t in op.retained_tensors())
+>       assert estimated["retained_upper_bytes"] >= actual
+E       assert 2621864 >= 2621880
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:423: AssertionError
+___ test_retained_resource_bound_includes_every_bound_tensor[resolution1-3] ____
+
+n = 3, resolution = (15, 1202)
+
+    @pytest.mark.parametrize("n", [2, 3])
+    @pytest.mark.parametrize("resolution", [(2, 50), (15, 1202)])
+    def test_retained_resource_bound_includes_every_bound_tensor(n, resolution):
+        from streamed_ddpcm import known_resource_estimate
+    
+        lmax, n_lebedev = resolution
+        _, op, _, _ = fixture(n, lmax=lmax, n_lebedev=n_lebedev)
+        estimated = known_resource_estimate(n, lmax, n_lebedev, op.tile)
+        actual = sum(t.numel() * t.element_size() for _, t in op.retained_tensors())
+>       assert estimated["retained_upper_bytes"] >= actual
+E       assert 2679608 >= 2679632
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:423: AssertionError
+=========================== short test summary info ============================
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_retained_resource_bound_includes_every_bound_tensor[resolution0-2]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_retained_resource_bound_includes_every_bound_tensor[resolution0-3]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_retained_resource_bound_includes_every_bound_tensor[resolution1-2]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_retained_resource_bound_includes_every_bound_tensor[resolution1-3]
+4 failed, 69 deselected in 2.41s

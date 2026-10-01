@@ -1,0 +1,69 @@
+{
+  "cgroup_membership": "/user.slice/user-1000.slice/user@1000.service/maple-mf-cap-a6dd0310af92fd8eb70c.scope",
+  "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/maple-mf-cap-a6dd0310af92fd8eb70c.scope",
+  "completed": true,
+  "gate_complete": false,
+  "hard_limits": {
+    "memory_current_before_bytes": 19324928,
+    "memory_events_before": {
+      "high": 0,
+      "low": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_group_kill": 0,
+      "oom_kill": 0
+    },
+    "memory_max_bytes": 8589934592,
+    "memory_swap_max_bytes": 0
+  },
+  "kernel_critical_event_deltas": {
+    "max": 0,
+    "oom": 0,
+    "oom_group_kill": 0,
+    "oom_kill": 0
+  },
+  "kernel_memory_current_after_bytes": 591683584,
+  "kernel_memory_events_after": {
+    "high": 0,
+    "low": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_group_kill": 0,
+    "oom_kill": 0
+  },
+  "kernel_memory_events_clean": true,
+  "kernel_memory_peak_bytes": 651780096,
+  "kernel_memory_peak_within_limit": true,
+  "sampled_supervisor": {
+    "command": [
+      "/home/axie/miniconda3/envs/maple/bin/python",
+      "/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/.omx/research/ddpcm-matrixfree-300-20261001T062415Z/probe_streamed.py",
+      "--atoms",
+      "300",
+      "--tile",
+      "8",
+      "--kernel",
+      "fused-eager",
+      "--mode",
+      "actions",
+      "--output",
+      ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/accounting-final-300-result.json"
+    ],
+    "exit_status": 0,
+    "is_hard_rss_enforcement": false,
+    "maximum_process_tree_rss_bytes": 986636288,
+    "maximum_process_tree_uss_bytes": 646868992,
+    "memory_limit_bytes": 9223372036854775807,
+    "memory_monitor_kind": "sampled-process-tree-not-an-OS-memory-cap",
+    "role": "sampled process-tree telemetry and wall supervisor",
+    "stderr_path": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/accounting-final-300-cgroup.json.child.stderr",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_path": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/accounting-final-300-cgroup.json.child.stdout",
+    "stdout_sha256": "a56915f4f53d69c64c74a1b1a0ee17c107f943151a7b5e79dabd68f3a65fd09b",
+    "termination_reason": null,
+    "wall_limit_seconds": 1198.0,
+    "wall_seconds": 426.18161387400323
+  },
+  "schema": "matrixfree-owned-cgroup-worker-v1",
+  "scientific_admitted": false
+}

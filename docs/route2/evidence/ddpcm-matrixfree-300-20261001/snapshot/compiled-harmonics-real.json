@@ -1,0 +1,26 @@
+{
+  "scope": "CPU harmonic values only; no derivative/PES qualification",
+  "scientific_admitted": false,
+  "complete": true,
+  "dtype": "torch.float64",
+  "lmax": 15,
+  "point_count": 9616,
+  "script_sha256": "4e09853c0e8e2c90307bd23c0546e2943fcc829d289a166263db76a00c040a42",
+  "eager_candidate_max_error": 5.766220834146907e-15,
+  "closed_kernel_sha256": "e987f9c97d1ddab44ed97a68eec0c71299cfd7d94697cb84eafa6d59cf6cd366",
+  "compilation_and_first_seconds": 203.77818560200103,
+  "max_absolute_basis_error": 5.766220834146907e-15,
+  "seconds": {
+    "eager": [
+      0.17049434300133726,
+      0.15332495500115328,
+      0.15212752899969928
+    ],
+    "compiled": [
+      0.03254664800260798,
+      0.03638074899936328,
+      0.04033108700241428
+    ]
+  },
+  "process_peak_rss_bytes": 1331806208
+}

@@ -1,0 +1,53 @@
+{
+  "cgroup_membership": "/user.slice/user-1000.slice/user@1000.service/maple-mf-cap-61c575f0bec0da68747d.scope",
+  "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/maple-mf-cap-61c575f0bec0da68747d.scope",
+  "completed": true,
+  "gate_complete": false,
+  "hard_limits": {
+    "memory_current_before_bytes": 18866176,
+    "memory_events_before": {
+      "high": 0,
+      "low": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_group_kill": 0,
+      "oom_kill": 0
+    },
+    "memory_max_bytes": 8589934592,
+    "memory_swap_max_bytes": 0
+  },
+  "kernel_memory_current_after_bytes": 25600000,
+  "kernel_memory_events_after": {
+    "high": 0,
+    "low": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_group_kill": 0,
+    "oom_kill": 0
+  },
+  "kernel_memory_peak_bytes": 1391153152,
+  "sampled_supervisor": {
+    "command": [
+      "/home/axie/miniconda3/envs/maple/bin/python",
+      "/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/.omx/research/ddpcm-matrixfree-300-20261001T062415Z/research_identity.py",
+      "--output",
+      ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/identity-complete-water-v2.json"
+    ],
+    "exit_status": 0,
+    "is_hard_rss_enforcement": false,
+    "maximum_process_tree_rss_bytes": 1861984256,
+    "maximum_process_tree_uss_bytes": 1405059072,
+    "memory_limit_bytes": 9223372036854775807,
+    "memory_monitor_kind": "sampled-process-tree-not-an-OS-memory-cap",
+    "role": "sampled process-tree telemetry and wall supervisor",
+    "stderr_path": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/identity-complete-cgroup-receipt.json.child.stderr",
+    "stderr_sha256": "0cd2c2405691a3ecf52b5ef087eb8cdf568dbc08edd9b0f9c35239a3991cce5b",
+    "stdout_path": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/identity-complete-cgroup-receipt.json.child.stdout",
+    "stdout_sha256": "30da94d1c4fd52d7249be3a48a1bf3079e5991319e7d0e4ac319dc35d8a31619",
+    "termination_reason": null,
+    "wall_limit_seconds": 298.0,
+    "wall_seconds": 11.025481934000709
+  },
+  "schema": "matrixfree-owned-cgroup-worker-v1",
+  "scientific_admitted": false
+}

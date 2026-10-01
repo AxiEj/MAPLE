@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+_ ERROR collecting .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py _
+ImportError while importing test module '/home/axie/MAPLE/MAPLE-pure-mace-polar-v1/.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../miniconda3/envs/maple/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:10: in <module>
+    from streamed_ddpcm import StreamedDDPCM, solve_diagnostic
+E   ModuleNotFoundError: No module named 'streamed_ddpcm'
+=========================== short test summary info ============================
+ERROR .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 1.42s

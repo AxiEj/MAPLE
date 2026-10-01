@@ -1,0 +1,13 @@
+{
+  "scope": "actual maple.main input rejection audit",
+  "passed": true,
+  "exit_status": 1,
+  "expected_error": "Route 2 provider=torch profile must be one of:",
+  "initial_observer_note": "The first keyword observer checked unknown/unsupported but omitted the must-be-one-of rejection wording; retained unchanged.",
+  "files_sha256": {
+    "public-matrixfree-negative.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "public-matrixfree-negative.stderr": "f970d72fa3644034de31b52ec4bc6f5a7dc5ed4fa1acf17eb9d4a3dea157ba51",
+    "public-matrixfree-negative.out": "19dfab10ce76b3d544f7538feca5920937e022312ad877af463db442880ed3fe"
+  },
+  "scientific_admitted": false
+}

@@ -1,0 +1,11 @@
+{
+  "stopped": [
+    {
+      "pid": 817140,
+      "children": [],
+      "reason": "process-tree watchdog required for compiler child processes"
+    }
+  ],
+  "scientific_admitted": false,
+  "complete": false
+}

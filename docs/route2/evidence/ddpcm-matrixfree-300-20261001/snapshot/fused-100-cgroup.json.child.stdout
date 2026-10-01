@@ -1,0 +1,3 @@
+{"operator": "L", "forward_seconds": 4.511622105001152, "transpose_seconds": 4.829164386999764, "transpose_pair_relative_error": 3.127550068651995e-15, "forward_norm": 217.74721321956216}
+{"operator": "D", "forward_seconds": 18.575693684000726, "transpose_seconds": 18.21813661199849, "transpose_pair_relative_error": 2.139846676948249e-15, "forward_norm": 209.84772916527456}
+{"complete": true, "elapsed_seconds": 47.04009625400067, "peak_rss_GiB": 0.8868980407714844, "output": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/fused-100-result.json"}

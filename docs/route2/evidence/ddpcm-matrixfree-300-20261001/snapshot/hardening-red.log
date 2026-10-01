@@ -1,0 +1,88 @@
+............................FFFFFFF.....                                 [100%]
+=================================== FAILURES ===================================
+____________ test_geometry_tensor_mutation_fails_closed[positions] _____________
+
+name = 'positions'
+
+    @pytest.mark.parametrize("name", ["positions", "nodes", "fi", "ui", "gi"])
+    def test_geometry_tensor_mutation_fails_closed(name):
+        _, op, _, _ = fixture()
+        getattr(op, name).add_(.001)
+>       with pytest.raises(RuntimeError, match="mutated"):
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:127: Failed
+______________ test_geometry_tensor_mutation_fails_closed[nodes] _______________
+
+name = 'nodes'
+
+    @pytest.mark.parametrize("name", ["positions", "nodes", "fi", "ui", "gi"])
+    def test_geometry_tensor_mutation_fails_closed(name):
+        _, op, _, _ = fixture()
+        getattr(op, name).add_(.001)
+>       with pytest.raises(RuntimeError, match="mutated"):
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:127: Failed
+________________ test_geometry_tensor_mutation_fails_closed[fi] ________________
+
+name = 'fi'
+
+    @pytest.mark.parametrize("name", ["positions", "nodes", "fi", "ui", "gi"])
+    def test_geometry_tensor_mutation_fails_closed(name):
+        _, op, _, _ = fixture()
+        getattr(op, name).add_(.001)
+>       with pytest.raises(RuntimeError, match="mutated"):
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:127: Failed
+________________ test_geometry_tensor_mutation_fails_closed[ui] ________________
+
+name = 'ui'
+
+    @pytest.mark.parametrize("name", ["positions", "nodes", "fi", "ui", "gi"])
+    def test_geometry_tensor_mutation_fails_closed(name):
+        _, op, _, _ = fixture()
+        getattr(op, name).add_(.001)
+>       with pytest.raises(RuntimeError, match="mutated"):
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:127: Failed
+________________ test_geometry_tensor_mutation_fails_closed[gi] ________________
+
+name = 'gi'
+
+    @pytest.mark.parametrize("name", ["positions", "nodes", "fi", "ui", "gi"])
+    def test_geometry_tensor_mutation_fails_closed(name):
+        _, op, _, _ = fixture()
+        getattr(op, name).add_(.001)
+>       with pytest.raises(RuntimeError, match="mutated"):
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:127: Failed
+_________ test_constant_mutation_and_control_reassignment_fail_closed __________
+
+    def test_constant_mutation_and_control_reassignment_fail_closed():
+        _, op, _, _ = fixture()
+        op.parameters._weights.mul_(.99)
+>       with pytest.raises(RuntimeError, match="mutated"):
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:134: Failed
+_____________________ test_rhs_width_has_an_explicit_bound _____________________
+
+    def test_rhs_width_has_an_explicit_bound():
+        _, op, _, _ = fixture()
+>       with pytest.raises(MemoryError, match="RHS"):
+E       Failed: DID NOT RAISE <class 'MemoryError'>
+
+.omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py:144: Failed
+=========================== short test summary info ============================
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_geometry_tensor_mutation_fails_closed[positions]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_geometry_tensor_mutation_fails_closed[nodes]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_geometry_tensor_mutation_fails_closed[fi]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_geometry_tensor_mutation_fails_closed[ui]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_geometry_tensor_mutation_fails_closed[gi]
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_constant_mutation_and_control_reassignment_fail_closed
+FAILED .omx/research/ddpcm-matrixfree-300-20261001T062415Z/test_streamed_ddpcm.py::test_rhs_width_has_an_explicit_bound
+7 failed, 33 passed in 13.31s

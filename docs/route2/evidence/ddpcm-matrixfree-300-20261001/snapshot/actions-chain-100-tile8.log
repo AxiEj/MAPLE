@@ -1,0 +1,3 @@
+{"operator": "L", "forward_seconds": 4.734729877000063, "transpose_seconds": 5.70729558200037, "transpose_pair_relative_error": 3.127550068651995e-15, "forward_norm": 217.74721321956216}
+{"operator": "D", "forward_seconds": 105.91717545199936, "transpose_seconds": 156.89625755000088, "transpose_pair_relative_error": 7.27547870162405e-15, "forward_norm": 209.84772916527456}
+{"complete": true, "elapsed_seconds": 274.0871034519987, "peak_rss_GiB": 1.019500732421875, "output": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/actions-chain-100-tile8.json"}

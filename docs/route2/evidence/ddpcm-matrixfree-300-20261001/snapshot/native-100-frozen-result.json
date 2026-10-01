@@ -1,0 +1,52 @@
+{
+  "adjoint_iterations": 22,
+  "analytic_fixed_source_force_max_abs_eV_A": 0.004380912101587255,
+  "atom_count": 100,
+  "capability_flags": {
+    "cds": false,
+    "hessian": false,
+    "hvp": false,
+    "mace": false,
+    "public_input_path": false,
+    "scientifically_admitted": false,
+    "torch_support": false
+  },
+  "energy_eV": -0.2145977579815229,
+  "fixed_source_position_gradient_max_abs_eV_A": 0.004380912101587255,
+  "force_sign_contract": "force=-fixed_source_position_gradient",
+  "forward_iterations": 23,
+  "input_sha256": "126bcff4be33c73d316fa122f888ae7948a001896e17e2788c17aeee467d9442",
+  "maximum_rss_kib": 248840,
+  "n_basis": 256,
+  "n_cavity": 66416,
+  "runtime": {
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python"
+  },
+  "seed": 61001,
+  "settings": {
+    "backend": "pyddx-0.8.0-native",
+    "dtype": "float64",
+    "enable_fmm": false,
+    "eta": 0.1,
+    "incore": false,
+    "lmax": 15,
+    "model": "pcm",
+    "n_lebedev": 1202,
+    "original_residual_measured_independently": false,
+    "requested_tolerance": 1e-12,
+    "residual_evidence_boundary": "native solver completion and requested tolerance only",
+    "tolerance": 1e-12
+  },
+  "source_gradient_max_abs_eV": 0.7716217419868358,
+  "source_snapshot_sha256": {
+    "native_source_adjoint.py": "28b502e9ef13e0bea440bf28780605f7c096923ecccc36ca51a56ac907f05af9",
+    "probe_native.py": "491262ea20b45595d8458d4951812587a3b252ab4e76219ff1544b3a96b752a0"
+  },
+  "source_tile": 16,
+  "status": "research-reference-only-not-admitted",
+  "wall_seconds": 190.32565565800178
+}

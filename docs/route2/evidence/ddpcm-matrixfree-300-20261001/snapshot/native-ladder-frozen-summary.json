@@ -1,0 +1,45 @@
+{
+  "rows": [
+    {
+      "adjoint_iterations": 21,
+      "atom_count": 10,
+      "complete": true,
+      "energy_eV": -0.010769693096563495,
+      "forward_iterations": 22,
+      "input_sha256": "d7181213bf5ce0c6f771326bd3937668d8557f2a5f27a452f7ef4927fa622d3f",
+      "kernel_cgroup_peak_bytes": 63836160,
+      "peak_rss_bytes": 68108288,
+      "wall_seconds": 2.310961639999732
+    },
+    {
+      "adjoint_iterations": 21,
+      "atom_count": 50,
+      "complete": true,
+      "energy_eV": -0.12336661696711194,
+      "forward_iterations": 22,
+      "input_sha256": "26fe293b8095ad95ff9f15d340d7985aedfc183412fda7716761ed772bd5f7c8",
+      "kernel_cgroup_peak_bytes": 146317312,
+      "peak_rss_bytes": 150278144,
+      "wall_seconds": 46.65254714200273
+    },
+    {
+      "adjoint_iterations": 22,
+      "atom_count": 100,
+      "complete": true,
+      "energy_eV": -0.2145977579815229,
+      "forward_iterations": 23,
+      "input_sha256": "126bcff4be33c73d316fa122f888ae7948a001896e17e2788c17aeee467d9442",
+      "kernel_cgroup_peak_bytes": 251543552,
+      "peak_rss_bytes": 254812160,
+      "wall_seconds": 190.32565565800178
+    },
+    {
+      "atom_count": 300,
+      "not_executed": true,
+      "projected_seconds": 3455.861801844032,
+      "reason": "conservative time projection exceeds1200s"
+    }
+  ],
+  "scientific_admitted": false,
+  "scope": "native fixed-source continuum baseline only; not Torch/MACE/CDS/H/HVP"
+}

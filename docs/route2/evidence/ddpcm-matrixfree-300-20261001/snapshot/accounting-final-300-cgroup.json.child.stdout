@@ -1,0 +1,3 @@
+{"operator": "L", "forward_seconds": 16.751482023999415, "transpose_seconds": 18.102702275999036, "transpose_pair_relative_error": 4.494329198096738e-15, "forward_norm": 380.7958148669125}
+{"operator": "D", "forward_seconds": 192.4157759769987, "transpose_seconds": 190.05408715299927, "transpose_pair_relative_error": 2.811486159126778e-15, "forward_norm": 358.48096912755807}
+{"complete": true, "elapsed_seconds": 424.2576868529977, "peak_rss_GiB": 0.9181976318359375, "output": ".omx/research/ddpcm-matrixfree-300-20261001T062415Z/accounting-final-300-result.json"}

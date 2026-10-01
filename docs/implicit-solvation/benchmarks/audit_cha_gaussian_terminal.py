@@ -22,7 +22,6 @@ import numpy as np
 from ase import Atoms
 
 ROOT = Path("/home/axie/MAPLE/MAPLE-implicitsolv-route1")
-EXPECTED_WORKTREE = ROOT / ".omx/worktrees/cha-analytic-v1-20260930"
 OUTPUT_ROOT = ROOT / ".omx/benchmarks/route1-cha-gaussian-opt-v1-20261001"
 SPEC = OUTPUT_ROOT / "terminal-independent-spec-v1.json"
 SPEC_SHA256 = "f5e75130ef3259ad269826558538b7016cce79a08f721e8f2cfb042fa0a8cf02"
@@ -206,11 +205,11 @@ def _load_spec() -> dict[str, Any]:
     return spec
 
 
-def _source_snapshot(runner: Any) -> dict[str, str]:
-    snapshot = dict(runner._source_snapshot())
-    if not SCRIPT.is_relative_to(EXPECTED_WORKTREE):
+def _source_snapshot(runner: Any, context: Any) -> dict[str, str]:
+    snapshot = dict(runner._source_snapshot(context=context))
+    if not SCRIPT.is_relative_to(context.worktree):
         raise ValueError("terminal audit script resolved outside expected worktree")
-    snapshot[str(SCRIPT.relative_to(EXPECTED_WORKTREE))] = sha256_bytes(
+    snapshot[str(SCRIPT.relative_to(context.worktree))] = sha256_bytes(
         SCRIPT.read_bytes()
     )
     return dict(sorted(snapshot.items()))
@@ -378,16 +377,30 @@ def _validate_roster(rows: list[dict[str, Any]], spec: dict[str, Any]) -> None:
         raise ValueError("campaign row roster differs from terminal audit spec")
 
 
-def preregister(campaign: Path, output: Path, campaign_prereg_sha256: str):
+def _validate_campaign_protocol_identity(
+    campaign_prereg: dict[str, Any], spec: dict[str, Any], context: Any
+) -> None:
+    observed = campaign_prereg.get("protocol_template_sha256")
+    if context.numerical_profile_id == "gaussian-cha-r6-v1":
+        expected = spec.get("protocol_template_sha256")
+    else:
+        expected = context.protocol_template_sha256
+    if observed != expected:
+        raise ValueError("campaign protocol identity differs from terminal audit spec")
+
+
+def preregister(
+    campaign: Path,
+    output: Path,
+    campaign_prereg_sha256: str,
+    context: Any,
+):
     spec = _load_spec()
     runner = _runner()
     _protocol, campaign_prereg, evidence = runner.load_preregistration(
-        campaign, campaign_prereg_sha256
+        campaign, campaign_prereg_sha256, context
     )
-    if campaign_prereg.get("protocol_template_sha256") != spec.get(
-        "protocol_template_sha256"
-    ):
-        raise ValueError("campaign protocol identity differs from terminal audit spec")
+    _validate_campaign_protocol_identity(campaign_prereg, spec, context)
     rows = campaign_prereg["rows"]
     _validate_roster(rows, spec)
     inventory = []
@@ -406,7 +419,7 @@ def preregister(campaign: Path, output: Path, campaign_prereg_sha256: str):
         campaign / "validation.json", "campaign validation"
     )
     runner.verify_seal(campaign_validation, "campaign validation")
-    source = _source_snapshot(runner)
+    source = _source_snapshot(runner, context)
     record = runner.seal(
         {
             "schema_version": 1,
@@ -421,6 +434,8 @@ def preregister(campaign: Path, output: Path, campaign_prereg_sha256: str):
             "campaign_protocol_template_sha256": campaign_prereg[
                 "protocol_template_sha256"
             ],
+            "numerical_profile_id": context.numerical_profile_id,
+            "context_id": context.context_id,
             "topology_content_sha256": evidence["topology"]["content_sha256"],
             "source_before": source,
             "source_identity_sha256": _source_identity(source),
@@ -437,6 +452,7 @@ def _load_bound_context(
     output: Path,
     campaign_prereg_sha256: str,
     audit_prereg_sha256: str,
+    context: Any,
 ):
     spec = _load_spec()
     runner = _runner()
@@ -454,13 +470,14 @@ def _load_bound_context(
         raise ValueError("terminal audit spec pin differs")
     if audit_prereg.get("campaign_preregistration_sha256") != campaign_prereg_sha256:
         raise ValueError("terminal audit campaign preregistration pin differs")
+    if audit_prereg.get("numerical_profile_id") != context.numerical_profile_id:
+        raise ValueError("terminal audit numerical profile differs")
+    if audit_prereg.get("context_id") != context.context_id:
+        raise ValueError("terminal audit execution context differs")
     protocol, campaign_prereg, evidence = runner.load_preregistration(
-        campaign, campaign_prereg_sha256
+        campaign, campaign_prereg_sha256, context
     )
-    if campaign_prereg.get("protocol_template_sha256") != spec.get(
-        "protocol_template_sha256"
-    ):
-        raise ValueError("campaign protocol identity differs from terminal audit spec")
+    _validate_campaign_protocol_identity(campaign_prereg, spec, context)
     if evidence["source_identity_sha256"] != audit_prereg.get(
         "campaign_source_identity_sha256"
     ):
@@ -477,7 +494,7 @@ def _load_bound_context(
         "campaign_validation_content_sha256"
     ):
         raise ValueError("campaign validation changed after audit preregistration")
-    current_source = _source_snapshot(runner)
+    current_source = _source_snapshot(runner, context)
     if current_source != audit_prereg.get("source_before"):
         raise ValueError("terminal audit helper/runtime source changed")
     expected_by_id = {row["row_id"]: row for row in campaign_prereg["rows"]}
@@ -509,7 +526,11 @@ def _reference_record(runner: Any, result: Any, geometry: Any) -> dict[str, Any]
 
 
 def _solvent_audit(
-    entry: dict[str, Any], topology: dict[str, Any], spec: dict[str, Any], runner: Any
+    entry: dict[str, Any],
+    topology: dict[str, Any],
+    spec: dict[str, Any],
+    runner: Any,
+    context: Any,
 ) -> dict[str, Any]:
     oracle = _oracle()
     correction_module = importlib.import_module(
@@ -523,8 +544,16 @@ def _solvent_audit(
         expected_topology_sha256=topology["content_sha256"],
         sigma_e=entry["sigma_e"],
         order=64,
+        numerical_profile_id=context.numerical_profile_id,
     )
     production = correction.evaluate(atoms, need_forces=True)
+    runner._validate_solvation_profile(
+        {"provenance": production.provenance},
+        context.numerical_profile_id,
+        topology["content_sha256"],
+        float(entry["sigma_e"]),
+        64,
+    )
     production_components = {
         key: float(value) * KCAL_PER_HARTREE
         for key, value in production.components_hartree.items()
@@ -585,15 +614,28 @@ def _combined_audit(
     spec: dict[str, Any],
     runner: Any,
     log: Path,
+    context: Any | None = None,
 ) -> dict[str, Any]:
     log.parent.mkdir(parents=True, exist_ok=True)
     positions = np.asarray(entry["terminal_positions_angstrom"], dtype=np.float64)
     atoms = Atoms(numbers=topology["atomic_numbers"], positions=positions)
-    atoms.calc = runner.build_composed_calculator(
-        atoms, topology, entry["sigma_e"], log
+    atoms.calc = (
+        runner.build_composed_calculator(atoms, topology, entry["sigma_e"], log)
+        if context is None
+        else context.calculator_factory(atoms, topology, entry["sigma_e"], log)
     )
     base_energy, analytic = runner._evaluate_total(atoms)
     base_solvation = runner.json_safe(atoms.calc.results.get("solvation"))
+    profile_id = (
+        runner.V1_PROFILE_ID if context is None else context.numerical_profile_id
+    )
+    runner._validate_solvation_profile(
+        base_solvation,
+        profile_id,
+        topology["content_sha256"],
+        float(entry["sigma_e"]),
+        64,
+    )
     comparisons = []
     for flat in range(positions.size):
         atom, axis = divmod(flat, 3)
@@ -818,6 +860,7 @@ def _row_receipt(
     campaign_prereg_sha256: str,
     payload: dict[str, Any],
     runner: Any,
+    context: Any,
 ) -> dict[str, Any]:
     return runner.seal(
         {
@@ -826,6 +869,8 @@ def _row_receipt(
             "audit_preregistration_sha256": audit_prereg_sha256,
             "campaign_preregistration_sha256": campaign_prereg_sha256,
             "case_identity": entry,
+            "numerical_profile_id": context.numerical_profile_id,
+            "context_id": context.context_id,
             **payload,
         }
     )
@@ -837,6 +882,7 @@ def verify_audit_record_binding(
     audit_prereg_sha256: str,
     campaign_prereg_sha256: str,
     runner: Any,
+    context: Any | None = None,
 ) -> None:
     runner.verify_seal(record, "terminal audit row")
     if record.get("case_identity") != entry:
@@ -845,6 +891,11 @@ def verify_audit_record_binding(
         raise ValueError("terminal row audit preregistration binding differs")
     if record.get("campaign_preregistration_sha256") != campaign_prereg_sha256:
         raise ValueError("terminal row campaign preregistration binding differs")
+    if context is not None:
+        if record.get("numerical_profile_id") != context.numerical_profile_id:
+            raise ValueError("terminal row numerical profile binding differs")
+        if record.get("context_id") != context.context_id:
+            raise ValueError("terminal row execution context binding differs")
 
 
 def derive_terminal_records(
@@ -870,8 +921,7 @@ def derive_terminal_records(
                     "opt_status": entry.get("opt_status"),
                     "solvent_passed": False,
                     "combined_passed": False,
-                    "error": type(exc).__name__,
-                    "message": str(exc),
+                    **runner.serialize_exception(exc),
                 }
             )
     return derived
@@ -882,9 +932,10 @@ def run(
     output: Path,
     campaign_prereg_sha256: str,
     audit_prereg_sha256: str,
+    context: Any,
 ):
     spec, runner, _, _, evidence, audit_prereg = _load_bound_context(
-        campaign, output, campaign_prereg_sha256, audit_prereg_sha256
+        campaign, output, campaign_prereg_sha256, audit_prereg_sha256, context
     )
     topology = evidence["topology"]
     records = []
@@ -898,6 +949,7 @@ def run(
                 audit_prereg_sha256,
                 campaign_prereg_sha256,
                 runner,
+                context,
             )
             records.append(record)
             continue
@@ -905,20 +957,22 @@ def run(
             payload = {
                 "status": "COMPLETED",
                 "runtime": runner._runtime_record(),
-                "solvent_independent": _solvent_audit(entry, topology, spec, runner),
+                "solvent_independent": _solvent_audit(
+                    entry, topology, spec, runner, context
+                ),
                 "combined_total_fd": _combined_audit(
                     entry,
                     topology,
                     spec,
                     runner,
                     output / "logs" / f"{entry['row_id']}.log",
+                    context,
                 ),
             }
         except Exception as exc:
             payload = {
                 "status": "FAILED",
-                "error": type(exc).__name__,
-                "message": str(exc),
+                **runner.serialize_exception(exc),
             }
         record = _row_receipt(
             entry,
@@ -926,14 +980,15 @@ def run(
             campaign_prereg_sha256,
             payload,
             runner,
+            context,
         )
         write_json_new_atomic(path, record)
         records.append(record)
     _, _, _, _, post_evidence, _ = _load_bound_context(
-        campaign, output, campaign_prereg_sha256, audit_prereg_sha256
+        campaign, output, campaign_prereg_sha256, audit_prereg_sha256, context
     )
     assert_post_phase_snapshot_stable(
-        audit_prereg, _source_snapshot(runner), post_evidence["input_sha256"]
+        audit_prereg, _source_snapshot(runner, context), post_evidence["input_sha256"]
     )
     derived = derive_terminal_records(records, audit_prereg["rows"], spec, runner)
     summary = summarize_terminal_audit(
@@ -955,6 +1010,8 @@ def run(
             **summary,
             "audit_preregistration_sha256": audit_prereg_sha256,
             "campaign_preregistration_sha256": campaign_prereg_sha256,
+            "numerical_profile_id": context.numerical_profile_id,
+            "context_id": context.context_id,
             "rows": derived,
         }
     )
@@ -962,17 +1019,14 @@ def run(
     return sealed
 
 
-def _campaign_recomputed(runner: Any, campaign: Path, campaign_sha: str) -> bool:
+def _campaign_recomputed(
+    runner: Any, campaign: Path, campaign_sha: str, context: Any
+) -> bool:
     existing, _ = runner.read_hashed_json(
         campaign / "validation.json", "campaign validation"
     )
     runner.verify_seal(existing, "campaign validation")
-    original_writer = runner.write_json_new_atomic
-    runner.write_json_new_atomic = lambda path, value: None
-    try:
-        recomputed = runner.validate(campaign, campaign_sha)
-    finally:
-        runner.write_json_new_atomic = original_writer
+    recomputed = runner.validate(campaign, campaign_sha, context, write_output=False)
     return bool(
         recomputed.get("status") == "VALIDATED"
         and runner.canonical_bytes(recomputed) == runner.canonical_bytes(existing)
@@ -984,9 +1038,10 @@ def validate(
     output: Path,
     campaign_prereg_sha256: str,
     audit_prereg_sha256: str,
+    context: Any,
 ):
     spec, runner, _, _, _, audit_prereg = _load_bound_context(
-        campaign, output, campaign_prereg_sha256, audit_prereg_sha256
+        campaign, output, campaign_prereg_sha256, audit_prereg_sha256, context
     )
     records: list[dict[str, Any] | None] = []
     for entry in audit_prereg["rows"]:
@@ -1005,15 +1060,18 @@ def validate(
             audit_prereg_sha256,
             campaign_prereg_sha256,
             runner,
+            context,
         )
         records.append(record)
     derived = derive_terminal_records(records, audit_prereg["rows"], spec, runner)
-    campaign_validated = _campaign_recomputed(runner, campaign, campaign_prereg_sha256)
+    campaign_validated = _campaign_recomputed(
+        runner, campaign, campaign_prereg_sha256, context
+    )
     _, _, _, _, post_evidence, _ = _load_bound_context(
-        campaign, output, campaign_prereg_sha256, audit_prereg_sha256
+        campaign, output, campaign_prereg_sha256, audit_prereg_sha256, context
     )
     assert_post_phase_snapshot_stable(
-        audit_prereg, _source_snapshot(runner), post_evidence["input_sha256"]
+        audit_prereg, _source_snapshot(runner, context), post_evidence["input_sha256"]
     )
     summary = summarize_terminal_audit(
         derived,
@@ -1025,6 +1083,8 @@ def validate(
             **summary,
             "audit_preregistration_sha256": audit_prereg_sha256,
             "campaign_preregistration_sha256": campaign_prereg_sha256,
+            "numerical_profile_id": context.numerical_profile_id,
+            "context_id": context.context_id,
             "rows": derived,
             "claim_boundary": spec["claims"],
             "width_selection_performed": False,
@@ -1049,6 +1109,7 @@ def main(argv: list[str] | None = None) -> int:
         command = sub.add_parser(name)
         command.add_argument("--campaign", type=Path, required=True)
         command.add_argument("--output", type=Path, required=True)
+        command.add_argument("--profile", default="gaussian-cha-r6-v1")
         command.add_argument(
             "--expected-campaign-preregistration-sha256", required=True
         )
@@ -1057,8 +1118,13 @@ def main(argv: list[str] | None = None) -> int:
                 "--expected-audit-preregistration-sha256", required=True
             )
     args = parser.parse_args(argv)
-    if not _inside(args.campaign, OUTPUT_ROOT):
-        parser.error("--campaign must be a descendant of the frozen evidence root")
+    runner = _runner()
+    try:
+        context = runner._context_for_profile(args.profile)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if not runner._output_allowed(args.campaign, context):
+        parser.error("--campaign differs from the selected profile campaign boundary")
     if not _inside(args.output, args.campaign):
         parser.error("--output must be a descendant of --campaign")
     if args.output.resolve() == args.campaign.resolve():
@@ -1068,6 +1134,7 @@ def main(argv: list[str] | None = None) -> int:
             args.campaign,
             args.output,
             args.expected_campaign_preregistration_sha256,
+            context,
         )
     elif args.command == "run":
         result = run(
@@ -1075,6 +1142,7 @@ def main(argv: list[str] | None = None) -> int:
             args.output,
             args.expected_campaign_preregistration_sha256,
             args.expected_audit_preregistration_sha256,
+            context,
         )
     else:
         result = validate(
@@ -1082,6 +1150,7 @@ def main(argv: list[str] | None = None) -> int:
             args.output,
             args.expected_campaign_preregistration_sha256,
             args.expected_audit_preregistration_sha256,
+            context,
         )
     print(json.dumps(json_safe(result), sort_keys=True))
     if args.command == "preregister":

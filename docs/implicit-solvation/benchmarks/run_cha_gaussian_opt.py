@@ -18,29 +18,23 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
 from types import MappingProxyType
-from typing import Any, Callable, Iterable, cast
+from typing import Any, Callable, Iterable, NamedTuple, cast
 
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
-EXPECTED_WORKTREE = Path(
-    "/home/axie/MAPLE/MAPLE-implicitsolv-route1/.omx/worktrees/"
-    "cha-analytic-v1-20260930"
-)
 ROOT = Path("/home/axie/MAPLE/MAPLE-implicitsolv-route1")
-OUTPUT_ROOT = ROOT / ".omx/benchmarks/route1-cha-gaussian-opt-v1-20261001"
 SCRIPT = Path(__file__).resolve()
 WORKTREE = SCRIPT.parents[3]
-PROTOCOL_TEMPLATE = SCRIPT.with_name("cha_gaussian_opt_protocol.json")
-PROTOCOL_TEMPLATE_SHA256 = (
-    "d70486de0e0c492a2f7231bd122920b77478eda0e1abd35e1f3a491ef1d55a0f"
+V1_PROFILE_ID = "gaussian-cha-r6-v1"
+V2_PROFILE_ID = (
+    "gaussian-cha-r6-derivative-v2-numerical-profile-" "20261001.2-direct-complement"
 )
-PLAN = ROOT / ".omx/plans/route1-cha-gaussian-opt-v1-20261001.md"
-PLAN_SHA256 = "74d4aac2a5275d38599985398e45bb1e8d79b0dfd1fc2e3ae5a33a9d8f401838"
 KCAL_PER_HARTREE = 627.5094740631
 FRESH_REPLAY_ENERGY_TOLERANCE_HARTREE = 1.0e-10
 FRESH_REPLAY_FORCE_TOLERANCE_HARTREE_PER_ANGSTROM = 1.0e-8
@@ -62,6 +56,132 @@ BENCHMARK_SOURCE_MODULES = (
     "docs/implicit-solvation/benchmarks/run_cha_gaussian_opt.py",
     "docs/implicit-solvation/benchmarks/cha_gaussian_opt_protocol.json",
 )
+
+
+class GaussianChaCalculatorFactory(NamedTuple):
+    numerical_profile_id: str
+    worktree: Path
+    root: Path
+    context_id: str
+
+    def __call__(
+        self, atoms: Atoms, topology: dict[str, Any], sigma_e: float, output_log: Path
+    ) -> Calculator:
+        return build_composed_calculator(
+            atoms,
+            topology,
+            sigma_e,
+            output_log,
+            numerical_profile_id=self.numerical_profile_id,
+            expected_worktree=self.worktree,
+            root=self.root,
+        )
+
+
+class GaussianChaRunContext(NamedTuple):
+    context_id: str
+    worktree: Path
+    root: Path
+    evidence_root: Path
+    output_root: Path
+    protocol_template: Path
+    protocol_template_sha256: str
+    approved_plan: Path
+    approved_plan_sha256: str
+    approved_handoff: Path
+    approved_handoff_sha256: str
+    external_evidence_sha256: tuple[tuple[Path, str], ...]
+    numerical_profile_id: str
+    calculator_factory: GaussianChaCalculatorFactory
+
+
+DEFAULT_V1_CONTEXT = GaussianChaRunContext(
+    context_id="gaussian-cha-r6-v1-replay-in-v2-worktree",
+    worktree=WORKTREE,
+    root=ROOT,
+    evidence_root=ROOT / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001",
+    output_root=(
+        ROOT
+        / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001/v1-profile-replay"
+    ),
+    protocol_template=SCRIPT.with_name("cha_gaussian_opt_protocol.json"),
+    protocol_template_sha256=(
+        "d70486de0e0c492a2f7231bd122920b77478eda0e1abd35e1f3a491ef1d55a0f"
+    ),
+    approved_plan=ROOT / ".omx/plans/route1-cha-gaussian-opt-v1-20261001.md",
+    approved_plan_sha256=(
+        "74d4aac2a5275d38599985398e45bb1e8d79b0dfd1fc2e3ae5a33a9d8f401838"
+    ),
+    approved_handoff=ROOT / ".omx/plans/route1-cha-gaussian-opt-v1-handoff.json",
+    approved_handoff_sha256=(
+        "18db0fac5297fa945dc9243ac896e1939438fa367c969f3b85bb224927764571"
+    ),
+    external_evidence_sha256=(),
+    numerical_profile_id=V1_PROFILE_ID,
+    calculator_factory=GaussianChaCalculatorFactory(
+        V1_PROFILE_ID, WORKTREE, ROOT, "gaussian-cha-r6-v1-replay-in-v2-worktree"
+    ),
+)
+
+V2_RUN_CONTEXT = GaussianChaRunContext(
+    context_id="gaussian-cha-r6-derivative-v2-campaign",
+    worktree=WORKTREE,
+    root=ROOT,
+    evidence_root=ROOT / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001",
+    output_root=(ROOT / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001"),
+    protocol_template=SCRIPT.with_name("cha_gaussian_r6_v2_protocol.json"),
+    protocol_template_sha256=(
+        "de61f1c624a8a5bad70cfcbc181c01524b620f9c92696bd29ef82bae9d551fe8"
+    ),
+    approved_plan=ROOT / ".omx/plans/route1-cha-r6-derivative-repair-v2-20261001.md",
+    approved_plan_sha256=(
+        "caa2a31a0bb895f4ef143d7632a2de45ab7e7892acef50de968d10ecfcaa81d9"
+    ),
+    approved_handoff=ROOT
+    / ".omx/plans/route1-cha-r6-derivative-repair-v2-handoff.json",
+    approved_handoff_sha256=(
+        "6e784f68dc2c912e405f301a9e48b756909fbcc40b244d2196524f0a58a6df7a"
+    ),
+    external_evidence_sha256=(
+        (
+            ROOT
+            / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001/planning/cap-classifier-preregistration-v2.json",
+            "94fc9258dbd39b80821c046098fce6db1fe2aed4b4797037e41bd40e60cbd665",
+        ),
+        (
+            ROOT
+            / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001/planning/CAP_CLASSIFIER_AND_CONDITIONING_V2.md",
+            "3bf44a4f05f2284fa9db9da37198b2d6771b43d9878419baa410fe3808f07e86",
+        ),
+        (
+            ROOT
+            / ".omx/benchmarks/route1-cha-r6-derivative-repair-v2-20261001/planning/planning-validation-v2.json",
+            "1b69569ad29c7788a65cf2fbe009442b97c69cd9e553b72041f510f1935dcbab",
+        ),
+        (
+            ROOT
+            / ".omx/benchmarks/route1-cha-gaussian-opt-v1-20261001/FAILED_V1_FINAL_EVIDENCE_MANIFEST.json",
+            "db9d862e3438cacf884ee9654aa0f33ab7cc58cab067462a3445e3f82be400f8",
+        ),
+        (
+            ROOT
+            / ".omx/benchmarks/route1-cha-gaussian-opt-v1-20261001/campaign-v2-20261001T110415Z/failed-v1-candidate-source.tar.gz",
+            "2b1f93af9c10242d75c3382d7f3ed717c716d5945d122a8ba103b3d3cbfcf982",
+        ),
+    ),
+    numerical_profile_id=V2_PROFILE_ID,
+    calculator_factory=GaussianChaCalculatorFactory(
+        V2_PROFILE_ID, WORKTREE, ROOT, "gaussian-cha-r6-derivative-v2-campaign"
+    ),
+)
+
+# Legacy names remain read-only aliases for tests and importers; execution uses context.
+EXPECTED_WORKTREE = DEFAULT_V1_CONTEXT.worktree
+OUTPUT_ROOT = DEFAULT_V1_CONTEXT.output_root
+PROTOCOL_TEMPLATE = DEFAULT_V1_CONTEXT.protocol_template
+PROTOCOL_TEMPLATE_SHA256 = DEFAULT_V1_CONTEXT.protocol_template_sha256
+PLAN = DEFAULT_V1_CONTEXT.approved_plan
+PLAN_SHA256 = DEFAULT_V1_CONTEXT.approved_plan_sha256
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -94,6 +214,66 @@ def json_safe(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [json_safe(item) for item in value]
     return value
+
+
+def _error_safe_value(value: Any) -> Any:
+    if isinstance(value, (float, np.floating)):
+        number = float(value)
+        if math.isnan(number):
+            return {"tag": "NONFINITE_FLOAT", "value": "NaN"}
+        if math.isinf(number):
+            return {
+                "tag": "NONFINITE_FLOAT",
+                "value": "+Infinity" if number > 0.0 else "-Infinity",
+            }
+        return number
+    if isinstance(value, (int, np.integer, str, bool)) or value is None:
+        return value.item() if isinstance(value, np.generic) else value
+    if isinstance(value, dict):
+        return {str(key): _error_safe_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_error_safe_value(item) for item in value]
+    return str(value)
+
+
+def _serialize_exception_details(exc: Exception) -> dict[str, Any]:
+    details: dict[str, Any] = {}
+    reason = getattr(exc, "reason", None)
+    if reason is not None:
+        details["reason"] = str(getattr(reason, "value", reason))
+    raw_margins = getattr(exc, "raw_margins", None)
+    if raw_margins is not None:
+        details["raw_margins"] = {
+            str(key): _error_safe_value(value) for key, value in raw_margins
+        }
+    for name in (
+        "owner_index",
+        "receiver_index",
+        "cap_index",
+        "node_index",
+        "order",
+    ):
+        if hasattr(exc, name):
+            details[name] = _error_safe_value(getattr(exc, name))
+    return details
+
+
+def serialize_exception(exc: Exception) -> dict[str, Any]:
+    """Serialize an error without allowing diagnostics to mask the original."""
+
+    try:
+        message = str(exc)
+    except Exception as message_exc:
+        message = f"<message unavailable: {type(message_exc).__name__}>"
+    result: dict[str, Any] = {"type": type(exc).__name__, "message": message}
+    try:
+        result.update(_serialize_exception_details(exc))
+    except Exception as serializer_exc:
+        result["serializer_error"] = {
+            "type": type(serializer_exc).__name__,
+            "message": str(serializer_exc),
+        }
+    return result
 
 
 def read_hashed_json(path: Path, label: str) -> tuple[dict[str, Any], str]:
@@ -176,14 +356,26 @@ def _inside(path: Path, root: Path) -> bool:
         return False
 
 
-def assert_runtime_origins(*, require_cwd: bool = True) -> dict[str, str]:
-    if WORKTREE != EXPECTED_WORKTREE or not _inside(SCRIPT, EXPECTED_WORKTREE):
+def _validate_context(context: GaussianChaRunContext) -> None:
+    factory = context.calculator_factory
+    if (
+        factory.numerical_profile_id != context.numerical_profile_id
+        or factory.worktree != context.worktree
+        or factory.root != context.root
+        or factory.context_id != context.context_id
+    ):
+        raise ValueError("calculator factory ownership differs from execution context")
+
+
+def _assert_runtime_origin_paths(
+    expected_worktree: Path, root: Path, *, require_cwd: bool
+) -> dict[str, str]:
+    if WORKTREE != expected_worktree or not _inside(SCRIPT, expected_worktree):
         raise RuntimeError("runner is not executing from the pinned candidate worktree")
-    if require_cwd and Path.cwd().resolve() != EXPECTED_WORKTREE:
+    if require_cwd and Path.cwd().resolve() != expected_worktree:
         raise RuntimeError("cwd must be the pinned candidate worktree")
-    # Never trust an inherited root PYTHONPATH ahead of the candidate.
-    candidate = str(EXPECTED_WORKTREE)
-    sys.path[:] = [entry for entry in sys.path if Path(entry or ".").resolve() != ROOT]
+    candidate = str(expected_worktree)
+    sys.path[:] = [entry for entry in sys.path if Path(entry or ".").resolve() != root]
     if candidate in sys.path:
         sys.path.remove(candidate)
     sys.path.insert(0, candidate)
@@ -198,17 +390,76 @@ def assert_runtime_origins(*, require_cwd: bool = True) -> dict[str, str]:
         ),
     }
     for name, path in origins.items():
-        if name != "cwd" and not _inside(Path(path), EXPECTED_WORKTREE):
+        if name != "cwd" and not _inside(Path(path), expected_worktree):
             raise RuntimeError(
                 f"{name} resolved outside the candidate worktree: {path}"
             )
     return origins
 
 
-def load_protocol_template() -> tuple[dict[str, Any], str]:
-    protocol, digest = read_hashed_json(PROTOCOL_TEMPLATE, "protocol template")
-    if digest != PROTOCOL_TEMPLATE_SHA256:
+def assert_runtime_origins(
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT, *, require_cwd: bool = True
+) -> dict[str, str]:
+    _validate_context(context)
+    return _assert_runtime_origin_paths(
+        context.worktree, context.root, require_cwd=require_cwd
+    )
+
+
+def load_protocol_template(
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
+) -> tuple[dict[str, Any], str]:
+    protocol, digest = read_hashed_json(context.protocol_template, "protocol template")
+    if digest != context.protocol_template_sha256:
         raise ValueError("external protocol template SHA256 changed")
+    if "base_protocol" in protocol:
+        wrapper_keys = {
+            "schema_version",
+            "protocol_id",
+            "numerical_profile_id",
+            "base_protocol",
+            "base_protocol_sha256",
+            "approved_plan_sha256",
+            "handoff_sha256",
+            "planning_artifacts",
+            "scientific_identity",
+        }
+        if set(protocol) != wrapper_keys:
+            raise ValueError("v2 wrapper protocol keys differ from the closed schema")
+        if protocol.get("numerical_profile_id") != context.numerical_profile_id:
+            raise ValueError("wrapper protocol numerical profile differs from context")
+        base_path = (context.worktree / str(protocol["base_protocol"])).resolve()
+        if not _inside(base_path, context.worktree):
+            raise ValueError("base protocol escapes the candidate worktree")
+        base, base_digest = read_hashed_json(base_path, "base protocol")
+        if base_digest != protocol.get("base_protocol_sha256"):
+            raise ValueError("base protocol SHA256 changed")
+        if protocol.get("approved_plan_sha256") != context.approved_plan_sha256:
+            raise ValueError("wrapper protocol plan pin differs from context")
+        if protocol.get("handoff_sha256") != context.approved_handoff_sha256:
+            raise ValueError("wrapper protocol handoff pin differs from context")
+        planning = protocol.get("planning_artifacts")
+        if planning != {
+            "cap_classifier_preregistration_sha256": (
+                "94fc9258dbd39b80821c046098fce6db1fe2aed4b4797037e41bd40e60cbd665"
+            ),
+            "cap_classifier_markdown_sha256": (
+                "3bf44a4f05f2284fa9db9da37198b2d6771b43d9878419baa410fe3808f07e86"
+            ),
+        }:
+            raise ValueError("v2 wrapper planning-artifact pins differ")
+        base_protocol_id = base.get("protocol_id")
+        wrapper_protocol_id = protocol.get("protocol_id")
+        protocol = dict(base)
+        protocol["base_protocol_id"] = base_protocol_id
+        protocol["protocol_id"] = wrapper_protocol_id
+        protocol["execution"] = dict(base["execution"])
+        protocol["execution"][
+            "campaign_output"
+        ] = "unique direct child campaign-v2-YYYYMMDDTHHMMSSZ"
+        protocol["numerical_profile_id"] = context.numerical_profile_id
+        protocol["context_protocol_sha256"] = digest
+        return protocol, digest
     allowed = {
         "schema_version",
         "protocol_id",
@@ -230,9 +481,11 @@ def load_protocol_template() -> tuple[dict[str, Any], str]:
     return protocol, digest
 
 
-def _root_path(relative: str) -> Path:
-    path = (ROOT / relative).resolve()
-    if not _inside(path, ROOT):
+def _root_path(
+    relative: str, context: GaussianChaRunContext = DEFAULT_V1_CONTEXT
+) -> Path:
+    path = (context.root / relative).resolve()
+    if not _inside(path, context.root):
         raise ValueError(f"input path escapes root: {relative}")
     return path
 
@@ -244,42 +497,59 @@ def _read_once(path: Path, cache: dict[Path, bytes]) -> bytes:
     return cache[resolved]
 
 
-def _source_paths() -> list[Path]:
-    paths = list((WORKTREE / "maple").rglob("*.py"))
-    paths.extend(WORKTREE / relative for relative in BENCHMARK_SOURCE_MODULES)
+def _source_paths(
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
+) -> list[Path]:
+    paths = list((context.worktree / "maple").rglob("*.py"))
+    paths.extend(context.worktree / relative for relative in BENCHMARK_SOURCE_MODULES)
+    paths.extend(
+        (
+            context.protocol_template,
+            SCRIPT.with_name("audit_cha_gaussian_terminal.py"),
+            SCRIPT.with_name("run_cha_gaussian_r6_v2.py"),
+        )
+    )
     return sorted({path.resolve() for path in paths})
 
 
 def _source_snapshot(
     cache: dict[Path, bytes] | None = None,
     *,
-    verified_protocol_sha256: str = PROTOCOL_TEMPLATE_SHA256,
+    verified_protocol_sha256: str | None = None,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, str]:
     byte_cache = {} if cache is None else cache
     snapshot = {}
-    for path in _source_paths():
+    protocol_sha256 = (
+        context.protocol_template_sha256
+        if verified_protocol_sha256 is None
+        else verified_protocol_sha256
+    )
+    for path in _source_paths(context):
         if not path.is_file():
             raise FileNotFoundError(path)
-        relative = str(path.relative_to(WORKTREE))
+        relative = str(path.relative_to(context.worktree))
         snapshot[relative] = (
-            verified_protocol_sha256
-            if path == PROTOCOL_TEMPLATE.resolve()
+            protocol_sha256
+            if path == context.protocol_template.resolve()
             else sha256_bytes(_read_once(path, byte_cache))
         )
     return snapshot
 
 
 def _input_snapshot(
-    protocol: dict[str, Any], cache: dict[Path, bytes] | None = None
+    protocol: dict[str, Any],
+    cache: dict[Path, bytes] | None = None,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, str]:
     byte_cache = {} if cache is None else cache
     inputs = protocol["inputs"]
     paths = {
-        "center_source": _root_path(inputs["center_source"]),
-        "topology": _root_path(inputs["topology"]),
-        "preparation_record": _root_path(inputs["preparation_record"]),
-        "gas_preflight": _root_path(inputs["gas_preflight"]),
-        "checkpoint": WORKTREE / inputs["checkpoint"],
+        "center_source": _root_path(inputs["center_source"], context),
+        "topology": _root_path(inputs["topology"], context),
+        "preparation_record": _root_path(inputs["preparation_record"], context),
+        "gas_preflight": _root_path(inputs["gas_preflight"], context),
+        "checkpoint": context.worktree / inputs["checkpoint"],
     }
     return {
         name: sha256_bytes(_read_once(path, byte_cache)) for name, path in paths.items()
@@ -287,11 +557,13 @@ def _input_snapshot(
 
 
 def _protected_snapshot(
-    protocol: dict[str, Any], cache: dict[Path, bytes] | None = None
+    protocol: dict[str, Any],
+    cache: dict[Path, bytes] | None = None,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, str]:
     byte_cache = {} if cache is None else cache
     inputs = protocol["inputs"]
-    manifest_path = _root_path(inputs["protected_manifest"])
+    manifest_path = _root_path(inputs["protected_manifest"], context)
     manifest_raw = _read_once(manifest_path, byte_cache)
     digest = sha256_bytes(manifest_raw)
     manifest = json.loads(manifest_raw)
@@ -302,7 +574,7 @@ def _protected_snapshot(
         raise ValueError("protected source manifest does not enumerate 24 files")
     observed = {}
     for relative, expected in sorted(files.items()):
-        path = WORKTREE / relative
+        path = context.worktree / relative
         actual = sha256_bytes(_read_once(path, byte_cache))
         if actual != expected:
             raise ValueError(f"protected source changed: {relative}")
@@ -346,15 +618,19 @@ def build_row_inventory(center_source: dict[str, Any], protocol: dict[str, Any])
 
 def _phase_evidence(
     protocol: dict[str, Any],
-    verified_protocol_sha256: str = PROTOCOL_TEMPLATE_SHA256,
+    verified_protocol_sha256: str | None = None,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, Any]:
     cache: dict[Path, bytes] = {}
     inputs = protocol["inputs"]
-    center_raw = _read_once(_root_path(inputs["center_source"]), cache)
-    topology_raw = _read_once(_root_path(inputs["topology"]), cache)
-    preparation_raw = _read_once(_root_path(inputs["preparation_record"]), cache)
-    gas_preflight_raw = _read_once(_root_path(inputs["gas_preflight"]), cache)
-    plan_raw = _read_once(PLAN, cache)
+    center_raw = _read_once(_root_path(inputs["center_source"], context), cache)
+    topology_raw = _read_once(_root_path(inputs["topology"], context), cache)
+    preparation_raw = _read_once(
+        _root_path(inputs["preparation_record"], context), cache
+    )
+    gas_preflight_raw = _read_once(_root_path(inputs["gas_preflight"], context), cache)
+    plan_raw = _read_once(context.approved_plan, cache)
+    handoff_raw = _read_once(context.approved_handoff, cache)
     center_digest = sha256_bytes(center_raw)
     topology_digest = sha256_bytes(topology_raw)
     preparation_digest = sha256_bytes(preparation_raw)
@@ -367,10 +643,16 @@ def _phase_evidence(
         raise ValueError("preparation record SHA256 changed")
     if gas_preflight_digest != inputs["gas_preflight_sha256"]:
         raise ValueError("gas preflight SHA256 changed")
-    if sha256_bytes(plan_raw) != PLAN_SHA256:
+    if sha256_bytes(plan_raw) != context.approved_plan_sha256:
         raise ValueError("approved plan SHA256 changed")
-    if b"## Accepted implementation handoff" not in plan_raw:
-        raise ValueError("approved plan no longer contains the accepted handoff")
+    if sha256_bytes(handoff_raw) != context.approved_handoff_sha256:
+        raise ValueError("approved handoff SHA256 changed")
+    external_evidence = {}
+    for path, expected in context.external_evidence_sha256:
+        observed = sha256_bytes(_read_once(path, cache))
+        if observed != expected:
+            raise ValueError(f"external evidence SHA256 changed: {path}")
+        external_evidence[str(path)] = observed
     center = json.loads(center_raw)
     topology = json.loads(topology_raw)
     preparation = json.loads(preparation_raw)
@@ -382,7 +664,7 @@ def _phase_evidence(
         raise ValueError("frozen inputs must be JSON objects")
     if topology.get("content_sha256") != inputs["topology_content_sha256"]:
         raise ValueError("topology content identity changed")
-    input_sha256 = _input_snapshot(protocol, cache)
+    input_sha256 = _input_snapshot(protocol, cache, context)
     if input_sha256["checkpoint"] != inputs["checkpoint_sha256"]:
         raise ValueError("checkpoint SHA256 changed")
     if preparation.get("topology_content_sha256") not in (
@@ -412,11 +694,20 @@ def _phase_evidence(
             raise ValueError(f"gas preflight mismatch: {key}")
     if gas_preflight.get("network_and_subprocess_disabled") is not True:
         raise ValueError("gas preflight did not disable network/subprocess")
-    source = _source_snapshot(cache, verified_protocol_sha256=verified_protocol_sha256)
-    protected = _protected_snapshot(protocol, cache)
+    source = _source_snapshot(
+        cache,
+        verified_protocol_sha256=verified_protocol_sha256,
+        context=context,
+    )
+    protected = _protected_snapshot(protocol, cache, context)
     identity_payload = {
-        "protocol_template_sha256": PROTOCOL_TEMPLATE_SHA256,
-        "approved_plan_sha256": PLAN_SHA256,
+        "context_id": context.context_id,
+        "external_evidence_sha256": external_evidence,
+        "protocol_template_sha256": context.protocol_template_sha256,
+        "approved_plan_sha256": context.approved_plan_sha256,
+        "approved_handoff_sha256": context.approved_handoff_sha256,
+        "protocol_id": protocol["protocol_id"],
+        "numerical_profile_id": context.numerical_profile_id,
         "input_sha256": input_sha256,
         "source": source,
         "protected": protected,
@@ -428,24 +719,38 @@ def _phase_evidence(
         "source": source,
         "protected": protected,
         "source_identity_sha256": sha256_bytes(canonical_bytes(identity_payload)),
+        "numerical_profile_id": context.numerical_profile_id,
+        "context_id": context.context_id,
+        "external_evidence_sha256": external_evidence,
+        "protocol_template_sha256": context.protocol_template_sha256,
+        "approved_plan_sha256": context.approved_plan_sha256,
+        "approved_handoff_sha256": context.approved_handoff_sha256,
+        "protocol_id": protocol["protocol_id"],
     }
 
 
-def preregister(output: Path) -> dict[str, Any]:
-    origins = assert_runtime_origins()
-    protocol, protocol_digest = load_protocol_template()
-    evidence = _phase_evidence(protocol, protocol_digest)
+def preregister(
+    output: Path, context: GaussianChaRunContext = DEFAULT_V1_CONTEXT
+) -> dict[str, Any]:
+    origins = assert_runtime_origins(context)
+    protocol, protocol_digest = load_protocol_template(context)
+    evidence = _phase_evidence(protocol, protocol_digest, context)
     record = seal(
         {
             "schema_version": 1,
             "phase": "PREREGISTERED",
             "protocol_template_sha256": protocol_digest,
-            "approved_plan_sha256": PLAN_SHA256,
+            "approved_plan_sha256": context.approved_plan_sha256,
+            "approved_handoff_sha256": context.approved_handoff_sha256,
             "runtime_origins": origins,
             "input_sha256": evidence["input_sha256"],
             "source_before": evidence["source"],
             "protected_before": evidence["protected"],
             "source_identity_sha256": evidence["source_identity_sha256"],
+            "external_evidence_sha256": evidence["external_evidence_sha256"],
+            "numerical_profile_id": evidence["numerical_profile_id"],
+            "context_id": evidence["context_id"],
+            "protocol_id": evidence["protocol_id"],
             "rows": build_row_inventory(evidence["center"], protocol),
             "prohibitions": dict(protocol["execution"]),
         }
@@ -455,9 +760,11 @@ def preregister(output: Path) -> dict[str, Any]:
 
 
 def load_preregistration(
-    output: Path, expected_preregistration_sha256: str
+    output: Path,
+    expected_preregistration_sha256: str,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
-    protocol, protocol_digest = load_protocol_template()
+    protocol, protocol_digest = load_protocol_template(context)
     prereg, observed_preregistration_sha256 = read_externally_pinned_json(
         output / "preregistration.json",
         expected_preregistration_sha256,
@@ -468,9 +775,17 @@ def load_preregistration(
         raise ValueError("invalid preregistration phase")
     if prereg.get("protocol_template_sha256") != protocol_digest:
         raise ValueError("preregistration protocol pin differs")
-    if prereg.get("approved_plan_sha256") != PLAN_SHA256:
+    if prereg.get("approved_plan_sha256") != context.approved_plan_sha256:
         raise ValueError("preregistration plan pin differs")
-    evidence = _phase_evidence(protocol, protocol_digest)
+    if prereg.get("approved_handoff_sha256") != context.approved_handoff_sha256:
+        raise ValueError("preregistration handoff pin differs")
+    if prereg.get("context_id") != context.context_id:
+        raise ValueError("preregistration execution context differs")
+    if prereg.get("numerical_profile_id") != context.numerical_profile_id:
+        raise ValueError("preregistration numerical profile differs")
+    if prereg.get("protocol_id") != protocol["protocol_id"]:
+        raise ValueError("preregistration protocol ID differs")
+    evidence = _phase_evidence(protocol, protocol_digest, context)
     if prereg.get("source_before") != evidence["source"]:
         raise ValueError("candidate source changed after preregistration")
     if prereg.get("protected_before") != evidence["protected"]:
@@ -479,6 +794,8 @@ def load_preregistration(
         raise ValueError("frozen input changed after preregistration")
     if prereg.get("source_identity_sha256") != evidence["source_identity_sha256"]:
         raise ValueError("source identity differs from preregistration")
+    if prereg.get("external_evidence_sha256") != evidence["external_evidence_sha256"]:
+        raise ValueError("external evidence differs from preregistration")
     reconstructed = build_row_inventory(evidence["center"], protocol)
     if canonical_bytes(prereg.get("rows")) != canonical_bytes(reconstructed):
         raise ValueError("preregistered row roster differs from frozen source")
@@ -546,13 +863,20 @@ class ComposedRecordingCalculator(Calculator):
 
     implemented_properties = ["energy", "free_energy", "forces"]
 
-    def __init__(self, composed: Calculator, *, caps: ObserverCaps):
+    def __init__(
+        self,
+        composed: Calculator,
+        *,
+        caps: ObserverCaps,
+        expected_solvation_profile: tuple[str, str, float, int] | None = None,
+    ):
         super().__init__()
         self.composed = composed
         self.caps = caps
         self.call_count = 0
         self.frames: list[dict[str, Any]] = []
         self._force_hashes: set[str] = set()
+        self.expected_solvation_profile = expected_solvation_profile
 
     @property
     def unique_force_coordinate_count(self) -> int:
@@ -585,7 +909,22 @@ class ComposedRecordingCalculator(Calculator):
             return
         try:
             positions, forces, energy = _extract_composed_frame(atoms, self.results)
+            if self.expected_solvation_profile is not None:
+                profile_id, topology_sha256, sigma_e, order = (
+                    self.expected_solvation_profile
+                )
+                _validate_solvation_profile(
+                    self.results["solvation"],
+                    profile_id,
+                    topology_sha256,
+                    sigma_e,
+                    order,
+                )
         except FloatingPointError:
+            self.results = {}
+            self.atoms = None
+            raise
+        except ValueError:
             self.results = {}
             self.atoms = None
             raise
@@ -645,13 +984,17 @@ def metrics_pass(
     return True
 
 
-def _import_owned(name: str):
+def _import_owned(name: str, context: GaussianChaRunContext = DEFAULT_V1_CONTEXT):
+    return _import_owned_from(name, context.worktree)
+
+
+def _import_owned_from(name: str, expected_worktree: Path):
     module = importlib.import_module(name)
     module_file = getattr(module, "__file__", None)
     if module_file is None:
         raise RuntimeError(f"{name} has no filesystem origin")
     origin = Path(module_file).resolve()
-    if not _inside(origin, EXPECTED_WORKTREE):
+    if not _inside(origin, expected_worktree):
         raise RuntimeError(f"{name} resolved outside candidate worktree")
     return module
 
@@ -672,8 +1015,14 @@ def _is_domain_exception(exc: Exception) -> bool:
     from maple.function.calculator.extra_correction.implicit.torch_continuum_chagb import (
         ContinuumChaDomainError,
     )
+    from maple.function.calculator.extra_correction.implicit.torch_continuum_r6_contact_v2 import (
+        ContactV2DomainError,
+    )
 
-    return isinstance(exc, (ContinuumChaDomainError, GaussianChaSizeDomainError))
+    return isinstance(
+        exc,
+        (ContinuumChaDomainError, GaussianChaSizeDomainError, ContactV2DomainError),
+    )
 
 
 def _assert_model_metadata(calculator: Calculator) -> dict[str, Any]:
@@ -709,21 +1058,36 @@ def _assert_model_metadata(calculator: Calculator) -> dict[str, Any]:
 
 
 def build_composed_calculator(
-    atoms: Atoms, topology: dict[str, Any], sigma_e: float, output_log: Path
+    atoms: Atoms,
+    topology: dict[str, Any],
+    sigma_e: float,
+    output_log: Path,
+    *,
+    numerical_profile_id: str = V1_PROFILE_ID,
+    expected_worktree: Path = WORKTREE,
+    root: Path = ROOT,
 ) -> Calculator:
-    assert_runtime_origins()
+    from maple.function.calculator.extra_correction.implicit.gaussian_cha_profiles import (
+        resolve_gaussian_cha_profile,
+    )
+
+    numerical_profile = resolve_gaussian_cha_profile(numerical_profile_id)
+    _assert_runtime_origin_paths(expected_worktree, root, require_cwd=True)
     os.environ["MAPLE_OFFLINE"] = "1"
     from maple.function.calculator.set_calculator import SetCalculator
 
-    correction_module = _import_owned(
-        "maple.function.calculator.extra_correction.implicit.gaussian_cha_correction"
+    correction_module = _import_owned_from(
+        "maple.function.calculator.extra_correction.implicit.gaussian_cha_correction",
+        expected_worktree,
     )
-    checkpoint = WORKTREE / "maple/function/calculator/model/maceoff23m.pt"
+    checkpoint = expected_worktree / "maple/function/calculator/model/maceoff23m.pt"
     if sha256_file(checkpoint) != (
         "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee"
     ):
         raise ValueError("gas checkpoint SHA256 changed before model load")
-    mace_source = WORKTREE / "maple/function/calculator/mace/_mace_calculator.py"
+    mace_source = (
+        expected_worktree / "maple/function/calculator/mace/_mace_calculator.py"
+    )
     if sha256_file(mace_source) != (
         "3423624cd58ba41abf567efe38a38386e9d4b062b2b3e8973f60aa15c534b73e"
     ):
@@ -738,13 +1102,17 @@ def build_composed_calculator(
         model_options={"model_path": str(checkpoint)},
     ).set_calculator()
     calculator.gaussian_opt_model_metadata = _assert_model_metadata(calculator)
-    calculator.solvent_correction = correction_module.GaussianChaCorrection(
+    correction = correction_module.GaussianChaCorrection(
         atoms,
         _typed_topology(topology),
         expected_topology_sha256=topology["content_sha256"],
         sigma_e=sigma_e,
         order=64,
+        numerical_profile_id=numerical_profile.profile_id,
     )
+    if correction.numerical_profile_id != numerical_profile.profile_id:
+        raise ValueError("constructed correction numerical profile differs")
+    calculator.solvent_correction = correction
     return calculator
 
 
@@ -761,6 +1129,15 @@ def _fresh_final(
     forces = np.asarray(fresh_atoms.get_forces(), dtype=np.float64)
     energy = float(fresh_atoms.get_potential_energy(force_consistent=True))
     solvation = json_safe(calculator.results.get("solvation"))
+    factory_profile_id = getattr(calculator_factory, "numerical_profile_id", None)
+    if isinstance(factory_profile_id, str):
+        _validate_solvation_profile(
+            solvation,
+            factory_profile_id,
+            topology["content_sha256"],
+            sigma_e,
+            64,
+        )
     return {
         "tag": "FRESH_FINAL_UNCACHED",
         "positions_angstrom": fresh_atoms.get_positions().tolist(),
@@ -802,6 +1179,34 @@ def _energy_ledger(record: dict[str, Any]) -> dict[str, float]:
     if not all(math.isfinite(value) for value in ledger.values()):
         raise ValueError("composed energy ledger is nonfinite")
     return ledger
+
+
+def _validate_solvation_profile(
+    solvation: dict[str, Any],
+    expected_profile_id: str,
+    expected_topology_sha256: str,
+    expected_sigma_e: float,
+    expected_order: int,
+) -> None:
+    provenance = solvation.get("provenance")
+    if not isinstance(provenance, dict):
+        raise ValueError("solvation provenance is missing")
+    backend = provenance.get("r6_backend_diagnostics")
+    expected_backend = (
+        "torch_continuum_chagb._r6_inverse_born"
+        if expected_profile_id == V1_PROFILE_ID
+        else "torch_continuum_r6_derivative_v2._r6_inverse_born_v2"
+    )
+    if not isinstance(backend, dict) or (
+        provenance.get("numerical_profile_id") != expected_profile_id
+        or provenance.get("topology_sha256") != expected_topology_sha256
+        or float(provenance.get("sigma_e", math.nan)) != float(expected_sigma_e)
+        or provenance.get("quadrature_order") != expected_order
+        or backend.get("profile_id") != expected_profile_id
+        or backend.get("backend_function") != expected_backend
+        or backend.get("order") != expected_order
+    ):
+        raise ValueError("solvation provenance differs from execution context")
 
 
 def compare_fresh_replay(
@@ -875,7 +1280,7 @@ def _safe_runtime_record() -> dict[str, Any]:
     try:
         return _runtime_record()
     except Exception as exc:
-        return {"error": type(exc).__name__, "message": str(exc)}
+        return serialize_exception(exc)
 
 
 def _load_optimizer_implementation() -> tuple[Callable[..., Any], dict[str, Any]]:
@@ -933,6 +1338,17 @@ def execute_opt_row(
             atoms, topology, row["sigma_e"], row_dir / "calculator.log"
         )
         caps = protocol["optimizer"]["per_row_caps"]
+        factory_profile_id = getattr(calculator_factory, "numerical_profile_id", None)
+        expected_solvation_profile = (
+            None
+            if not isinstance(factory_profile_id, str)
+            else (
+                factory_profile_id,
+                topology["content_sha256"],
+                float(row["sigma_e"]),
+                64,
+            )
+        )
         observer = ComposedRecordingCalculator(
             composed,
             caps=ObserverCaps(
@@ -941,6 +1357,7 @@ def execute_opt_row(
                     caps["unique_successful_force_coordinate_hashes"]
                 ),
             ),
+            expected_solvation_profile=expected_solvation_profile,
         )
         atoms.calc = observer
         if optimization_factory is None:
@@ -954,8 +1371,7 @@ def execute_opt_row(
     except Exception as exc:  # row boundary deliberately retains all failures
         rejected_positions, rejected_raw = _safe_positions(atoms.get_positions())
         rejected = {
-            "type": type(exc).__name__,
-            "message": str(exc),
+            **serialize_exception(exc),
             "positions_angstrom": rejected_positions,
             "raw_positions_repr": rejected_raw,
             "coordinate_sha256": (
@@ -999,14 +1415,24 @@ def execute_opt_row(
             <= thresholds["f_rms_hartree_per_angstrom"]
         )
     except Exception as exc:
+        try:
+            fresh_domain_rejected = _is_domain_exception(exc)
+        except Exception as classifier_exc:
+            fresh_domain_rejected = False
+            fresh_classification_error = serialize_exception(classifier_exc)
+        else:
+            fresh_classification_error = None
         fresh = {
             "tag": "FRESH_FINAL_UNCACHED",
-            "error": type(exc).__name__,
-            "message": str(exc),
+            "status": ("DOMAIN_REJECTED" if fresh_domain_rejected else "RUNTIME_ERROR"),
+            **serialize_exception(exc),
+            "classification_error": fresh_classification_error,
         }
         fresh_pass = False
         if failure is None:
-            provisional_status = "RUNTIME_ERROR"
+            provisional_status = (
+                "DOMAIN_REJECTED" if fresh_domain_rejected else "RUNTIME_ERROR"
+            )
     try:
         replay = (
             compare_fresh_replay(
@@ -1017,15 +1443,14 @@ def execute_opt_row(
                 ),
                 fresh,
             )
-            if "error" not in fresh
+            if "combined_forces_hartree_per_angstrom" in fresh
             else {"passed": False, "reason": "FRESH_FINAL_FAILED"}
         )
     except (KeyError, TypeError, ValueError) as exc:
         replay = {
             "passed": False,
             "reason": "FRESH_REPLAY_INVALID",
-            "error": type(exc).__name__,
-            "message": str(exc),
+            **serialize_exception(exc),
         }
     status = (
         "CONVERGED"
@@ -1131,6 +1556,12 @@ def _bind_receipt(
             "case_identity": case_identity,
             "preregistration_sha256": evidence["preregistration_sha256"],
             "source_identity_sha256": evidence["source_identity_sha256"],
+            "numerical_profile_id": evidence["numerical_profile_id"],
+            "context_id": evidence["context_id"],
+            "protocol_template_sha256": evidence["protocol_template_sha256"],
+            "approved_plan_sha256": evidence["approved_plan_sha256"],
+            "approved_handoff_sha256": evidence["approved_handoff_sha256"],
+            "protocol_id": evidence["protocol_id"],
         }
     )
 
@@ -1150,6 +1581,12 @@ def _verify_receipt_binding(
         "case_identity": case_identity,
         "preregistration_sha256": evidence["preregistration_sha256"],
         "source_identity_sha256": evidence["source_identity_sha256"],
+        "numerical_profile_id": evidence["numerical_profile_id"],
+        "context_id": evidence["context_id"],
+        "protocol_template_sha256": evidence["protocol_template_sha256"],
+        "approved_plan_sha256": evidence["approved_plan_sha256"],
+        "approved_handoff_sha256": evidence["approved_handoff_sha256"],
+        "protocol_id": evidence["protocol_id"],
     }
     for key, value in expected.items():
         if canonical_bytes(receipt.get(key)) != canonical_bytes(value):
@@ -1157,10 +1594,12 @@ def _verify_receipt_binding(
 
 
 def _assert_phase_stable(
-    protocol: dict[str, Any], evidence_before: dict[str, Any]
+    protocol: dict[str, Any],
+    evidence_before: dict[str, Any],
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> None:
-    _, protocol_digest = load_protocol_template()
-    evidence_after = _phase_evidence(protocol, protocol_digest)
+    _, protocol_digest = load_protocol_template(context)
+    evidence_after = _phase_evidence(protocol, protocol_digest, context)
     if (
         evidence_after["source_identity_sha256"]
         != evidence_before["source_identity_sha256"]
@@ -1169,10 +1608,12 @@ def _assert_phase_stable(
 
 
 def run_opt_matrix(
-    output: Path, expected_preregistration_sha256: str
+    output: Path,
+    expected_preregistration_sha256: str,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, Any]:
     protocol, prereg, evidence = load_preregistration(
-        output, expected_preregistration_sha256
+        output, expected_preregistration_sha256, context
     )
     topology = evidence["topology"]
     rows_dir = output / "rows"
@@ -1192,7 +1633,13 @@ def run_opt_matrix(
             continue
         row_dir = new_attempt_directory(output / "work", row["row_id"])
         receipt = _bind_receipt(
-            execute_opt_row(row, topology, protocol, row_dir),
+            execute_opt_row(
+                row,
+                topology,
+                protocol,
+                row_dir,
+                calculator_factory=context.calculator_factory,
+            ),
             evidence,
             receipt_kind="OPT_ROW",
             case_id=row["row_id"],
@@ -1212,7 +1659,14 @@ def run_opt_matrix(
             ),
         )
     summary = _bind_receipt(
-        recompute_opt_summary(collected, protocol, prereg["rows"], evidence["source"]),
+        recompute_opt_summary(
+            collected,
+            protocol,
+            prereg["rows"],
+            evidence["source"],
+            evidence["topology"]["content_sha256"],
+            context.numerical_profile_id,
+        ),
         evidence,
         receipt_kind="OPT_SUMMARY",
         case_id="optimization-summary",
@@ -1220,7 +1674,7 @@ def run_opt_matrix(
     )
     summary["rows"] = [row["row_id"] for row in collected]
     summary["content_sha256"] = content_sha256(summary)
-    _assert_phase_stable(protocol, evidence)
+    _assert_phase_stable(protocol, evidence, context)
     write_json_new_atomic(output / "optimization-summary.json", summary)
     return summary
 
@@ -1236,15 +1690,25 @@ def _combined_fd_row(
     topology: dict[str, Any],
     protocol: dict[str, Any],
     log: Path,
+    calculator_factory: Callable[..., Calculator] = build_composed_calculator,
 ) -> dict[str, Any]:
     steps = protocol["combined_fd_validation"]["fd_steps_angstrom"]
     log.parent.mkdir(parents=True, exist_ok=True)
     atoms = Atoms(
         numbers=topology["atomic_numbers"], positions=row["positions_angstrom"]
     )
-    atoms.calc = build_composed_calculator(atoms, topology, row["sigma_e"], log)
+    atoms.calc = calculator_factory(atoms, topology, row["sigma_e"], log)
     base = atoms.get_positions().copy()
     _, analytic = _evaluate_total(atoms)
+    factory_profile_id = getattr(calculator_factory, "numerical_profile_id", None)
+    if isinstance(factory_profile_id, str):
+        _validate_solvation_profile(
+            atoms.calc.results["solvation"],
+            factory_profile_id,
+            topology["content_sha256"],
+            float(row["sigma_e"]),
+            64,
+        )
     comparisons = []
     for flat in range(base.size):
         atom, axis = divmod(flat, 3)
@@ -1304,10 +1768,12 @@ def _combined_fd_row(
 
 
 def run_combined_fd(
-    output: Path, expected_preregistration_sha256: str
+    output: Path,
+    expected_preregistration_sha256: str,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, Any]:
     protocol, prereg, evidence = load_preregistration(
-        output, expected_preregistration_sha256
+        output, expected_preregistration_sha256, context
     )
     topology = evidence["topology"]
     records = []
@@ -1326,14 +1792,17 @@ def run_combined_fd(
             continue
         try:
             payload = _combined_fd_row(
-                row, topology, protocol, output / "combined-fd" / f"{row['row_id']}.log"
+                row,
+                topology,
+                protocol,
+                output / "combined-fd" / f"{row['row_id']}.log",
+                context.calculator_factory,
             )
         except Exception as exc:
             payload = {
                 "row_id": row["row_id"],
                 "passed": False,
-                "error": type(exc).__name__,
-                "message": str(exc),
+                **serialize_exception(exc),
             }
         record = _bind_receipt(
             payload,
@@ -1352,7 +1821,7 @@ def run_combined_fd(
         case_id="combined-fd-summary",
         case_identity={"row_ids": [row["row_id"] for row in prereg["rows"]]},
     )
-    _assert_phase_stable(protocol, evidence)
+    _assert_phase_stable(protocol, evidence, context)
     write_json_new_atomic(output / "combined-fd-summary.json", summary)
     return summary
 
@@ -1453,16 +1922,21 @@ def _validate_reference_geometry_metadata(
 
 
 def run_crossing_reference(
-    output: Path, expected_preregistration_sha256: str
+    output: Path,
+    expected_preregistration_sha256: str,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, Any]:
     """Run independent solvent reference/FD checks at the frozen event crossing."""
     protocol, prereg, evidence = load_preregistration(
-        output, expected_preregistration_sha256
+        output, expected_preregistration_sha256, context
     )
     topology = evidence["topology"]
-    oracle = _import_owned("docs.implicit-solvation.benchmarks.cha_gaussian_reference")
+    oracle = _import_owned(
+        "docs.implicit-solvation.benchmarks.cha_gaussian_reference", context
+    )
     correction_module = _import_owned(
-        "maple.function.calculator.extra_correction.implicit.gaussian_cha_correction"
+        "maple.function.calculator.extra_correction.implicit.gaussian_cha_correction",
+        context,
     )
     event = next(row for row in prereg["rows"] if row["center_scale"] == 1.0)
     base = np.asarray(event["positions_angstrom"], dtype=np.float64)
@@ -1542,8 +2016,16 @@ def run_crossing_reference(
                     expected_topology_sha256=topology["content_sha256"],
                     sigma_e=sigma_e,
                     order=64,
+                    numerical_profile_id=context.numerical_profile_id,
                 )
                 production = correction.evaluate(atoms, need_forces=True)
+                _validate_solvation_profile(
+                    {"provenance": production.provenance},
+                    context.numerical_profile_id,
+                    topology["content_sha256"],
+                    float(sigma_e),
+                    64,
+                )
                 geometry_by_order = {
                     str(order): geometry_for(center, order)
                     for order in protocol["scalar"]["reference_quadrature_orders"]
@@ -1642,8 +2124,7 @@ def run_crossing_reference(
                 payload = {
                     "record_id": record_id,
                     "status": "ERROR",
-                    "error": type(exc).__name__,
-                    "message": str(exc),
+                    **serialize_exception(exc),
                 }
             record = _bind_receipt(
                 payload,
@@ -1668,7 +2149,7 @@ def run_crossing_reference(
         case_id="crossing-reference-summary",
         case_identity={"record_ids": expected_ids},
     )
-    _assert_phase_stable(protocol, evidence)
+    _assert_phase_stable(protocol, evidence, context)
     write_json_new_atomic(output / "crossing-reference-summary.json", summary)
     return summary
 
@@ -1934,8 +2415,7 @@ def recompute_combined_fd_summary(
                 {
                     "row_id": record.get("row_id"),
                     "passed": False,
-                    "error": type(exc).__name__,
-                    "message": str(exc),
+                    **serialize_exception(exc),
                 }
             )
     return {
@@ -1955,6 +2435,8 @@ def recompute_opt_summary(
     protocol: dict[str, Any],
     expected_rows: list[dict[str, Any]],
     source_snapshot: dict[str, str],
+    expected_topology_sha256: str,
+    expected_profile_id: str,
 ) -> dict[str, Any]:
     thresholds = protocol["optimizer"]["thresholds"]
     caps = protocol["optimizer"]["per_row_caps"]
@@ -1973,6 +2455,14 @@ def recompute_opt_summary(
     for row in rows:
         try:
             frames = row["successful_force_frames"]
+            for frame in frames:
+                _validate_solvation_profile(
+                    frame["solvation"],
+                    expected_profile_id,
+                    expected_topology_sha256,
+                    float(row["sigma_e"]),
+                    64,
+                )
             valid_frames = all(
                 np.asarray(frame["positions_angstrom"]).shape == (3, 3)
                 and np.asarray(frame["combined_forces_hartree_per_angstrom"]).shape
@@ -1989,6 +2479,13 @@ def recompute_opt_summary(
             metrics = row["retained_metrics"]
             metrics_ok = isinstance(metrics, dict) and metrics_pass(metrics, thresholds)
             fresh = row["fresh_final"]
+            _validate_solvation_profile(
+                fresh["solvation"],
+                expected_profile_id,
+                expected_topology_sha256,
+                float(row["sigma_e"]),
+                64,
+            )
             fresh_forces = np.asarray(
                 fresh["combined_forces_hartree_per_angstrom"], dtype=np.float64
             )
@@ -2061,8 +2558,7 @@ def recompute_opt_summary(
                 {
                     "row_id": row.get("row_id"),
                     "passed": False,
-                    "error": type(exc).__name__,
-                    "message": str(exc),
+                    **serialize_exception(exc),
                 }
             )
     converged = sum(result["passed"] for result in results)
@@ -2078,23 +2574,26 @@ def recompute_opt_summary(
 
 
 def run(
-    output: Path, expected_preregistration_sha256: str, phase: str = "all"
+    output: Path,
+    expected_preregistration_sha256: str,
+    phase: str = "all",
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
 ) -> dict[str, Any]:
-    assert_runtime_origins()
+    assert_runtime_origins(context)
     if phase not in {"crossing", "combined-fd", "opt", "all"}:
         raise ValueError(f"unknown run phase: {phase!r}")
     results = {}
     if phase in ("crossing", "all"):
         results["crossing"] = run_crossing_reference(
-            output, expected_preregistration_sha256
+            output, expected_preregistration_sha256, context
         )
     if phase in ("combined-fd", "all"):
         results["combined_fd"] = run_combined_fd(
-            output, expected_preregistration_sha256
+            output, expected_preregistration_sha256, context
         )
     if phase in ("opt", "all"):
         results["optimization"] = run_opt_matrix(
-            output, expected_preregistration_sha256
+            output, expected_preregistration_sha256, context
         )
     phase_passed = bool(
         results
@@ -2112,13 +2611,21 @@ def run(
         )
     )
     results["phase"] = phase
+    results["context_id"] = context.context_id
+    results["numerical_profile_id"] = context.numerical_profile_id
     results["status"] = "PHASE_PASSED" if phase_passed else "GAUSSIAN_OPT_INCOMPLETE"
     return results
 
 
-def validate(output: Path, expected_preregistration_sha256: str) -> dict[str, Any]:
+def validate(
+    output: Path,
+    expected_preregistration_sha256: str,
+    context: GaussianChaRunContext = DEFAULT_V1_CONTEXT,
+    *,
+    write_output: bool = True,
+) -> dict[str, Any]:
     protocol, prereg, evidence = load_preregistration(
-        output, expected_preregistration_sha256
+        output, expected_preregistration_sha256, context
     )
     expected_rows = prereg["rows"]
     row_receipts = []
@@ -2192,10 +2699,15 @@ def validate(output: Path, expected_preregistration_sha256: str) -> dict[str, An
     )
     combined = recompute_combined_fd_summary(combined_receipts, protocol, expected_rows)
     optimization = recompute_opt_summary(
-        row_receipts, protocol, expected_rows, evidence["source"]
+        row_receipts,
+        protocol,
+        expected_rows,
+        evidence["source"],
+        evidence["topology"]["content_sha256"],
+        context.numerical_profile_id,
     )
-    _, post_protocol_digest = load_protocol_template()
-    after = _phase_evidence(protocol, post_protocol_digest)
+    _, post_protocol_digest = load_protocol_template(context)
+    after = _phase_evidence(protocol, post_protocol_digest, context)
     snapshot_stable = (
         after["source_identity_sha256"] == evidence["source_identity_sha256"]
     )
@@ -2222,21 +2734,40 @@ def validate(output: Path, expected_preregistration_sha256: str) -> dict[str, An
             "crossing_record_ids": expected_crossing_ids,
         },
     )
-    write_json_new_atomic(output / "validation.json", result)
+    if write_output:
+        write_json_new_atomic(output / "validation.json", result)
     return result
 
 
-def _output_allowed(output: Path) -> bool:
+def _output_allowed(output: Path, context: GaussianChaRunContext) -> bool:
     resolved = output.resolve()
-    return resolved == OUTPUT_ROOT.resolve() or _inside(resolved, OUTPUT_ROOT)
+    if context.numerical_profile_id == V2_PROFILE_ID:
+        return bool(
+            resolved.parent == context.output_root.resolve()
+            and re.fullmatch(r"campaign-v2-\d{8}T\d{6}Z", resolved.name)
+        )
+    return resolved == context.output_root.resolve() or _inside(
+        resolved, context.output_root
+    )
 
 
-def main(argv: list[str] | None = None) -> int:
+def _context_for_profile(profile_id: str) -> GaussianChaRunContext:
+    if profile_id == V1_PROFILE_ID:
+        return DEFAULT_V1_CONTEXT
+    if profile_id == V2_PROFILE_ID:
+        return V2_RUN_CONTEXT
+    raise ValueError(f"Unknown Gaussian-CHA numerical profile: {profile_id!r}")
+
+
+def main(
+    argv: list[str] | None = None, context: GaussianChaRunContext | None = None
+) -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("preregister", "run", "validate"):
         command = sub.add_parser(name)
         command.add_argument("--output", type=Path, required=True)
+        command.add_argument("--profile")
         if name in ("run", "validate"):
             command.add_argument("--expected-preregistration-sha256", required=True)
         if name == "run":
@@ -2246,16 +2777,34 @@ def main(argv: list[str] | None = None) -> int:
                 default="all",
             )
     args = parser.parse_args(argv)
-    if not _output_allowed(args.output):
+    requested_profile = args.profile or (
+        DEFAULT_V1_CONTEXT.numerical_profile_id
+        if context is None
+        else context.numerical_profile_id
+    )
+    try:
+        selected_context = _context_for_profile(requested_profile)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if context is not None and selected_context != context:
+        parser.error("--profile differs from the entrypoint execution context")
+    if not _output_allowed(args.output, selected_context):
         parser.error(
-            f"--output must be {OUTPUT_ROOT} or a descendant campaign directory"
+            f"--output must be {selected_context.output_root} or a descendant campaign directory"
         )
     if args.command == "preregister":
-        result = preregister(args.output)
+        result = preregister(args.output, selected_context)
     elif args.command == "run":
-        result = run(args.output, args.expected_preregistration_sha256, args.phase)
+        result = run(
+            args.output,
+            args.expected_preregistration_sha256,
+            args.phase,
+            selected_context,
+        )
     else:
-        result = validate(args.output, args.expected_preregistration_sha256)
+        result = validate(
+            args.output, args.expected_preregistration_sha256, selected_context
+        )
     print(json.dumps(json_safe(result), sort_keys=True))
     if args.command == "preregister":
         succeeded = result.get("phase") == "PREREGISTERED"

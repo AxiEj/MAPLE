@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "protocol_id": "route1-cha-r6-derivative-repair-v2-20261001",
+  "numerical_profile_id": "gaussian-cha-r6-derivative-v2-numerical-profile-20261001.2-direct-complement",
+  "base_protocol": "docs/implicit-solvation/benchmarks/cha_gaussian_opt_protocol.json",
+  "base_protocol_sha256": "d70486de0e0c492a2f7231bd122920b77478eda0e1abd35e1f3a491ef1d55a0f",
+  "approved_plan_sha256": "caa2a31a0bb895f4ef143d7632a2de45ab7e7892acef50de968d10ecfcaa81d9",
+  "handoff_sha256": "6e784f68dc2c912e405f301a9e48b756909fbcc40b244d2196524f0a58a6df7a",
+  "planning_artifacts": {
+    "cap_classifier_preregistration_sha256": "94fc9258dbd39b80821c046098fce6db1fe2aed4b4797037e41bd40e60cbd665",
+    "cap_classifier_markdown_sha256": "3bf44a4f05f2284fa9db9da37198b2d6771b43d9878419baa410fe3808f07e86"
+  },
+  "scientific_identity": {
+    "physical_model_unchanged": true,
+    "sigma_e": [0.001, 0.003, 0.01],
+    "production_order": 64,
+    "charges_radii_checkpoint_unchanged": true,
+    "only_contact_numerical_representation_changed": true
+  }
+}

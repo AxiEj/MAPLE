@@ -439,8 +439,149 @@ def test_runtime_reporting_failure_is_retained_not_raised(tmp_path, monkeypatch)
     )
     assert receipt["status"] == "RUNTIME_ERROR"
     assert receipt["runtime"] == {
-        "error": "RuntimeError",
+        "type": "RuntimeError",
         "message": "torch runtime probe failed",
+    }
+
+
+def test_contact_v2_domain_error_is_structured_and_nonfinite_values_are_tagged():
+    module = _module()
+    from maple.function.calculator.extra_correction.implicit.torch_continuum_r6_contact_v2 import (
+        ContactV2DomainError,
+        ContactV2FailureReason,
+    )
+
+    error = ContactV2DomainError(
+        ContactV2FailureReason.NONFINITE_ALGEBRA,
+        "bad node",
+        (
+            ("A", float("nan")),
+            ("Delta", float("inf")),
+            ("owner_index", 1.0),
+            ("receiver_index", 0.0),
+            ("node_index", 7.0),
+        ),
+    )
+    serialized = module.serialize_exception(error)
+    assert serialized["type"] == "ContactV2DomainError"
+    assert serialized["reason"] == "nonfinite-algebra"
+    assert serialized["raw_margins"]["A"] == {
+        "tag": "NONFINITE_FLOAT",
+        "value": "NaN",
+    }
+    assert serialized["raw_margins"]["Delta"] == {
+        "tag": "NONFINITE_FLOAT",
+        "value": "+Infinity",
+    }
+    assert module._is_domain_exception(error) is True
+    module.canonical_bytes(serialized)
+
+
+def test_fresh_final_domain_failure_retains_reason_and_is_truthfully_classified(
+    tmp_path,
+):
+    module = _module()
+    from maple.function.calculator.extra_correction.implicit.torch_continuum_r6_contact_v2 import (
+        ContactV2DomainError,
+        ContactV2FailureReason,
+    )
+
+    built = 0
+
+    def factory(atoms, topology, sigma, log):
+        nonlocal built
+        built += 1
+        if built == 1:
+            raise RuntimeError("initial setup failed")
+        raise ContactV2DomainError(
+            ContactV2FailureReason.ILL_CONDITIONED_DELTA,
+            "fresh node failed",
+            (("q", 1e-9), ("q_min", 2**-20), ("node_index", 2.0)),
+        )
+
+    receipt = module.execute_opt_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path,
+        calculator_factory=factory,
+        optimization_factory=lambda *args: None,
+    )
+    assert receipt["status"] == "RUNTIME_ERROR"
+    assert receipt["rejected_evaluation"]["message"] == "initial setup failed"
+    assert receipt["fresh_final"]["status"] == "DOMAIN_REJECTED"
+    assert receipt["fresh_final"]["reason"] == "ill-conditioned-delta"
+    assert receipt["fresh_final"]["raw_margins"]["node_index"] == 2.0
+
+
+def test_fresh_final_only_domain_failure_sets_overall_domain_rejected(tmp_path):
+    module = _module()
+    from maple.function.calculator.extra_correction.implicit.torch_continuum_r6_contact_v2 import (
+        ContactV2DomainError,
+        ContactV2FailureReason,
+    )
+
+    built = 0
+
+    def factory(atoms, topology, sigma, log):
+        nonlocal built
+        built += 1
+        if built == 1:
+            return HarmonicComposed()
+        raise ContactV2DomainError(
+            ContactV2FailureReason.TANGENCY,
+            "fresh-only tangency",
+            (("owner_index", 0.0), ("receiver_index", 1.0)),
+        )
+
+    class ConvergedOptimization:
+        def __init__(self, params, output, atoms):
+            self.atoms = atoms
+
+        def run(self):
+            self.atoms.set_positions(np.zeros((3, 3)))
+            self.atoms.get_forces()
+            self.atoms.max_dp = 1e-4
+            self.atoms.rms_dp = 1e-4
+            return self.atoms
+
+    receipt = module.execute_opt_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path,
+        calculator_factory=factory,
+        optimization_factory=ConvergedOptimization,
+    )
+    assert receipt["fresh_final"]["status"] == "DOMAIN_REJECTED"
+    assert receipt["status"] == "DOMAIN_REJECTED"
+
+
+def test_serializer_failure_never_masks_original_exception(tmp_path, monkeypatch):
+    module = _module()
+
+    def factory(atoms, topology, sigma, log):
+        raise RuntimeError("original failure")
+
+    monkeypatch.setattr(
+        module,
+        "_serialize_exception_details",
+        lambda exc: (_ for _ in ()).throw(OSError("serializer broke")),
+        raising=False,
+    )
+    receipt = module.execute_opt_row(
+        _row(),
+        _topology(),
+        _protocol(module),
+        tmp_path,
+        calculator_factory=factory,
+        optimization_factory=lambda *args: None,
+    )
+    assert receipt["rejected_evaluation"]["type"] == "RuntimeError"
+    assert receipt["rejected_evaluation"]["message"] == "original failure"
+    assert receipt["rejected_evaluation"]["serializer_error"] == {
+        "type": "OSError",
+        "message": "serializer broke",
     }
 
 
@@ -478,11 +619,11 @@ def test_hashed_json_and_external_protocol_are_single_read_race_safe(monkeypatch
     template = json.loads(module.PROTOCOL_TEMPLATE.read_text())
     serialized = json.dumps(template).encode()
     protocol_changing = _ChangingRead(serialized)
-    monkeypatch.setattr(module, "PROTOCOL_TEMPLATE", protocol_changing)
-    monkeypatch.setattr(
-        module, "PROTOCOL_TEMPLATE_SHA256", module.sha256_bytes(serialized)
+    context = module.DEFAULT_V1_CONTEXT._replace(
+        protocol_template=protocol_changing,
+        protocol_template_sha256=module.sha256_bytes(serialized),
     )
-    loaded, _ = module.load_protocol_template()
+    loaded, _ = module.load_protocol_template(context)
     assert loaded == template
     assert protocol_changing.count == 1
 
@@ -517,6 +658,9 @@ def test_preregistered_roster_is_reconstructed_not_only_counted(tmp_path, monkey
         "source": {"fixture.py": "2" * 64},
         "protected": {"old.py": "3" * 64},
         "source_identity_sha256": "4" * 64,
+        "numerical_profile_id": module.DEFAULT_V1_CONTEXT.numerical_profile_id,
+        "context_id": module.DEFAULT_V1_CONTEXT.context_id,
+        "external_evidence_sha256": {},
     }
     monkeypatch.setattr(module, "_phase_evidence", lambda *unused: evidence.copy())
     prereg = module.seal(
@@ -525,6 +669,11 @@ def test_preregistered_roster_is_reconstructed_not_only_counted(tmp_path, monkey
             "phase": "PREREGISTERED",
             "protocol_template_sha256": protocol_sha,
             "approved_plan_sha256": module.PLAN_SHA256,
+            "approved_handoff_sha256": module.DEFAULT_V1_CONTEXT.approved_handoff_sha256,
+            "numerical_profile_id": module.DEFAULT_V1_CONTEXT.numerical_profile_id,
+            "context_id": module.DEFAULT_V1_CONTEXT.context_id,
+            "external_evidence_sha256": {},
+            "protocol_id": protocol["protocol_id"],
             "runtime_origins": {},
             "input_sha256": evidence["input_sha256"],
             "source_before": evidence["source"],
@@ -604,11 +753,11 @@ def test_protocol_freezes_exact_matrix_optimizer_reference_and_prohibitions():
 
 def test_run_reports_phase_passed_or_incomplete_and_rejects_unknown_phase(monkeypatch):
     module = _module()
-    monkeypatch.setattr(module, "assert_runtime_origins", lambda: {})
+    monkeypatch.setattr(module, "assert_runtime_origins", lambda *args: {})
     monkeypatch.setattr(
         module,
         "run_crossing_reference",
-        lambda output, pin: {"passed": True},
+        lambda output, pin, context: {"passed": True},
     )
     passed = module.run(Path("unused"), "a" * 64, "crossing")
     assert passed["status"] == "PHASE_PASSED"
@@ -616,7 +765,7 @@ def test_run_reports_phase_passed_or_incomplete_and_rejects_unknown_phase(monkey
     monkeypatch.setattr(
         module,
         "run_crossing_reference",
-        lambda output, pin: {"passed": False},
+        lambda output, pin, context: {"passed": False},
     )
     failed = module.run(Path("unused"), "a" * 64, "crossing")
     assert failed["status"] == "GAUSSIAN_OPT_INCOMPLETE"
@@ -626,11 +775,11 @@ def test_run_reports_phase_passed_or_incomplete_and_rejects_unknown_phase(monkey
 
 def test_main_returns_nonzero_when_selected_phase_fails(monkeypatch):
     module = _module()
-    monkeypatch.setattr(module, "_output_allowed", lambda output: True)
+    monkeypatch.setattr(module, "_output_allowed", lambda output, context: True)
     monkeypatch.setattr(
         module,
         "run",
-        lambda output, pin, phase: {"status": "GAUSSIAN_OPT_INCOMPLETE"},
+        lambda output, pin, phase, context: {"status": "GAUSSIAN_OPT_INCOMPLETE"},
     )
     assert (
         module.main(
@@ -646,7 +795,7 @@ def test_main_returns_nonzero_when_selected_phase_fails(monkeypatch):
         )
         == 1
     )
-    monkeypatch.setattr(module, "run", lambda output, pin, phase: {})
+    monkeypatch.setattr(module, "run", lambda output, pin, phase, context: {})
     assert (
         module.main(
             [
@@ -670,12 +819,12 @@ def test_combined_fd_creates_log_parent_before_calculator_factory(
         assert log.parent.is_dir()
         return HarmonicComposed()
 
-    monkeypatch.setattr(module, "build_composed_calculator", factory)
     record = module._combined_fd_row(
         _row(),
         _topology(),
         _protocol(module),
         tmp_path / "new" / "nested" / "calculator.log",
+        factory,
     )
     assert record["row_id"] == _row()["row_id"]
 

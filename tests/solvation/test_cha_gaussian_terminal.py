@@ -233,6 +233,71 @@ def test_combined_audit_creates_log_parent_before_calculator_factory(tmp_path):
         )
 
 
+def test_terminal_receipt_binds_explicit_numerical_profile_context():
+    runner = audit._runner()
+    context = runner.V2_RUN_CONTEXT
+    entry = {"row_id": "row-v2"}
+    record = audit._row_receipt(
+        entry,
+        "a" * 64,
+        "c" * 64,
+        {"status": "fixture"},
+        runner,
+        context,
+    )
+    audit.verify_audit_record_binding(
+        record, entry, "a" * 64, "c" * 64, runner, context
+    )
+    assert record["numerical_profile_id"] == context.numerical_profile_id
+    assert record["context_id"] == context.context_id
+
+
+def test_campaign_recompute_uses_explicit_no_write_seam(tmp_path):
+    calls = []
+
+    class FakeRunner:
+        @staticmethod
+        def read_hashed_json(path, label):
+            return {"status": "VALIDATED", "content_sha256": "x"}, "digest"
+
+        @staticmethod
+        def verify_seal(value, label):
+            return None
+
+        @staticmethod
+        def validate(campaign, sha, context, *, write_output):
+            calls.append((campaign, sha, context, write_output))
+            return {"status": "VALIDATED", "content_sha256": "x"}
+
+        @staticmethod
+        def canonical_bytes(value):
+            return json.dumps(value, sort_keys=True).encode()
+
+    context = object()
+    assert audit._campaign_recomputed(FakeRunner(), tmp_path, "pinned", context)
+    assert calls == [(tmp_path, "pinned", context, False)]
+
+
+def test_terminal_cli_reuses_v2_unique_campaign_boundary(tmp_path):
+    runner = audit._runner()
+    reserved = runner.V2_RUN_CONTEXT.output_root / "planning"
+    with pytest.raises(SystemExit) as exc:
+        audit.main(
+            [
+                "preregister",
+                "--campaign",
+                str(reserved),
+                "--output",
+                str(reserved / "terminal-audit"),
+                "--profile",
+                runner.V2_PROFILE_ID,
+                "--expected-campaign-preregistration-sha256",
+                "a" * 64,
+            ]
+        )
+    assert exc.value.code == 2
+
+
 def test_reference_metadata_coordinate_hash_rejects_valid_metadata_from_other_point():
     positions = np.zeros((3, 3))
     other = positions.copy()
@@ -305,6 +370,10 @@ def test_failed_row_derivation_retains_exact_15_row_denominator():
         @staticmethod
         def verify_seal(record, label):
             return None
+
+        @staticmethod
+        def serialize_exception(exc):
+            return {"type": type(exc).__name__, "message": str(exc)}
 
     derived = audit.derive_terminal_records(records, entries, {}, FakeRunner())
 

@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import ClassVar
 
 import numpy as np
 
 from .common import KJ_PER_MOL_PER_HARTREE
 from .continuum_chagb_inputs import ContinuumChaTopology
+from .gaussian_cha_profiles import (
+    GAUSSIAN_CHA_R6_V1_PROFILE_ID,
+    resolve_gaussian_cha_profile,
+)
 from .result import SolvationResult
 from .torch_chagb_gaussian import (
     GAUSSIAN_CHA_MODEL_IDENTITY,
@@ -38,6 +42,7 @@ class GaussianChaCorrection:
     expected_topology_sha256: str
     sigma_e: float
     order: int
+    numerical_profile_id: str
     _frozen_atom_identity: tuple[int, ...]
     _frozen_atomic_numbers: tuple[int, ...]
 
@@ -52,7 +57,9 @@ class GaussianChaCorrection:
         expected_topology_sha256: str,
         sigma_e: float,
         order: int = 64,
+        numerical_profile_id: str = GAUSSIAN_CHA_R6_V1_PROFILE_ID,
     ):
+        numerical_profile = resolve_gaussian_cha_profile(numerical_profile_id)
         if not isinstance(topology, ContinuumChaTopology):
             raise TypeError("topology must be a ContinuumChaTopology.")
         topology.assert_current(expected_topology_sha256)
@@ -83,6 +90,7 @@ class GaussianChaCorrection:
         object.__setattr__(self, "expected_topology_sha256", expected_topology_sha256)
         object.__setattr__(self, "sigma_e", sigma)
         object.__setattr__(self, "order", order)
+        object.__setattr__(self, "numerical_profile_id", numerical_profile.profile_id)
         object.__setattr__(self, "_frozen_atom_identity", topology.atom_ids)
         object.__setattr__(self, "_frozen_atomic_numbers", numbers)
 
@@ -101,6 +109,7 @@ class GaussianChaCorrection:
             "profile": "three-site-water-programmatic-experimental-v1",
             "sigma_e": self.sigma_e,
             "quadrature_order": self.order,
+            "numerical_profile_id": self.numerical_profile_id,
             "platform": "CPU",
             "platform_properties": {"dtype": "torch.float64"},
             "placement": "CPU float64 torch",
@@ -177,6 +186,7 @@ class GaussianChaCorrection:
             expected_topology_sha256=self.expected_topology_sha256,
             sigma_e=self.sigma_e,
             order=self.order,
+            numerical_profile_id=self.numerical_profile_id,
         )
         force = None
         if need_forces:
@@ -238,6 +248,7 @@ class GaussianChaCorrection:
                 **self.provenance,
                 "point_domain": point_domain,
                 "polar_diagnostics": diagnostics,
+                "r6_backend_diagnostics": asdict(scalar.r6_backend_diagnostics),
                 "radius_provenance": {
                     name: getattr(scalar.radius_provenance, name)
                     for name in (

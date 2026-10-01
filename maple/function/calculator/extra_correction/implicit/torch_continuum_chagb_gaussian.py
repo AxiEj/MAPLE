@@ -6,6 +6,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
 from .continuum_chagb_inputs import ContinuumChaTopology
+from .gaussian_cha_profiles import (
+    GAUSSIAN_CHA_R6_V1_PROFILE_ID,
+    R6BackendDiagnostics,
+    resolve_gaussian_cha_profile,
+)
 from .torch_chagb_gaussian import (
     GAUSSIAN_CHA_MODEL_IDENTITY,
     GaussianChaPolarAlgebraResult,
@@ -18,7 +23,6 @@ from .torch_continuum_chagb import (
     ContinuumChaQuadratureIdentity,
     ContinuumChaRadiusProvenance,
     ContinuumChaResourceAccounting,
-    _r6_inverse_born,
 )
 from .torch_continuum_chagb_domain import (
     CertifiedLocalPatchScope,
@@ -58,6 +62,8 @@ class ContinuumGaussianChaScalarResult:
     quadrature_identity: ContinuumChaQuadratureIdentity
     resources: ContinuumChaResourceAccounting
     radius_provenance: ContinuumChaRadiusProvenance
+    numerical_profile_id: str
+    r6_backend_diagnostics: R6BackendDiagnostics
     scope: ClassVar[str] = "unregistered-three-site-gaussian-sign-point-scalar"
     model_identity: ClassVar[str] = GAUSSIAN_CHA_MODEL_IDENTITY
     supported_properties: ClassVar[tuple[str, ...]] = ()
@@ -84,11 +90,13 @@ def continuum_gaussian_cha_scalar(
     expected_topology_sha256: str,
     sigma_e: float,
     order: int = 64,
+    numerical_profile_id: str = GAUSSIAN_CHA_R6_V1_PROFILE_ID,
 ) -> ContinuumGaussianChaScalarResult:
     """Evaluate one complete live R6/Born/polar/cavity/dispersion scalar."""
     import torch
 
     sigma = validate_gaussian_sigma_e(sigma_e)
+    numerical_profile = resolve_gaussian_cha_profile(numerical_profile_id)
     if not isinstance(topology, ContinuumChaTopology):
         raise TypeError("topology must be a ContinuumChaTopology.")
     topology.assert_current(expected_topology_sha256)
@@ -119,9 +127,10 @@ def continuum_gaussian_cha_scalar(
     if isinstance(point_domain, DomainCertificationFailure):
         raise ContinuumChaDomainError(point_domain)
 
-    inverse_born = _r6_inverse_born(
+    r6_backend = numerical_profile.evaluate_inverse_born(
         positions_angstrom, fixed.cha_radii_angstrom, point_domain, order
     )
+    inverse_born = r6_backend.inverse_born_per_angstrom
     polar = gaussian_cha_polar_from_inverse_born(
         positions_angstrom,
         fixed.charges_e,
@@ -179,4 +188,6 @@ def continuum_gaussian_cha_scalar(
             dispersion_z_nodes_evaluated=dispersion.z_nodes_evaluated,
         ),
         radius_provenance=ContinuumChaRadiusProvenance(),
+        numerical_profile_id=numerical_profile.profile_id,
+        r6_backend_diagnostics=r6_backend.diagnostics,
     )

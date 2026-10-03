@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass
-from typing import Optional, Tuple, List
+from typing import Optional
 
 import numpy as np
 from ase import Atoms
@@ -579,6 +579,60 @@ class PRFO(JobABC):
                 atoms.max_dp <= self.params.dp_max_th and
                 atoms.rms_dp <= self.params.dp_rms_th)
     
+    def check_saddle_curvature(self, atoms: Atoms) -> bool:
+        """Require a fresh index-one Hessian before reporting TS convergence.
+
+        Use the same mass metric and explicitly selected optimization subspace
+        as the search. Rigid projection is not silently enabled for external
+        fields or periodic systems. Constrained saddle certification is not
+        implemented; force/displacement convergence cannot substitute for it.
+        """
+        from ...frequency.frequency import HARTREE_AMU_ANGSTROM2_TO_CM1
+
+        self.last_saddle_curvature = None
+        if bool(getattr(atoms, "constraints", None)):
+            raise ValueError("PRFO saddle certification does not support constraints.")
+        hessian_function = getattr(atoms.calc, "get_hessian", None)
+        if not callable(hessian_function):
+            raise ValueError("PRFO saddle certification requires get_hessian.")
+        hessian = np.asarray(hessian_function(atoms), dtype=np.float64)
+        n3 = 3 * len(atoms)
+        if hessian.shape != (n3, n3) or not np.isfinite(hessian).all():
+            raise ValueError("Final PRFO Hessian must be finite and have shape (3N,3N).")
+        scale = max(1.0, float(np.max(np.abs(hessian))))
+        if np.max(np.abs(hessian - hessian.T)) > 1e-8 * scale:
+            raise ValueError("Final PRFO Hessian has unresolved asymmetry.")
+        masses = np.repeat(np.asarray(atoms.get_masses(), dtype=np.float64), 3)
+        if not np.isfinite(masses).all() or np.any(masses <= 0):
+            raise ValueError("PRFO saddle certification requires finite positive masses.")
+        basis, rigid_rank = _mass_weighted_optimization_basis(
+            atoms, project_rigid_modes=self.params.project_rigid_modes,
+        )
+        inverse_mass = 1.0 / np.sqrt(masses)
+        weighted = inverse_mass[:, None] * hessian * inverse_mass[None, :]
+        reduced = basis.T @ weighted @ basis
+        eigenvalues = np.linalg.eigvalsh(0.5 * (reduced + reduced.T))
+        frequencies = (
+            np.sign(eigenvalues) * np.sqrt(np.abs(eigenvalues))
+            * HARTREE_AMU_ANGSTROM2_TO_CM1
+        )
+        negative_count = int(np.count_nonzero(frequencies < -10.0))
+        self.last_saddle_curvature = {
+            "source": "fresh-final-hessian",
+            "positions_angstrom": atoms.get_positions().tolist(),
+            "project_rigid_modes": bool(self.params.project_rigid_modes),
+            "rigid_rank": rigid_rank,
+            "frequencies_cm1": frequencies.tolist(),
+            "material_negative_threshold_cm1": -10.0,
+            "negative_mode_count": negative_count,
+        }
+        log_info(
+            [f"\nFinal saddle curvature: {negative_count} material negative modes "
+             "(required: exactly one below -10 cm^-1).\n"],
+            self.output,
+        )
+        return negative_count == 1
+
     def log_iteration(self, iteration: int, atoms: Atoms, E: float,
                      model_change: float, actual_change: float,
                      rho: Optional[float], trust_radius: float,
@@ -767,7 +821,6 @@ class PRFO(JobABC):
                 prepare()
         trust_radius = self.params.trust_radius
         
-        converged = False
         iteration = 0
         
         # Setup trajectory file
@@ -984,8 +1037,8 @@ class PRFO(JobABC):
                                         iteration=iteration + 1)
                     
                     # Check convergence
-                    if self.check_convergence(atoms):
-                        converged = True
+                    if (self.check_convergence(atoms)
+                            and self.check_saddle_curvature(atoms)):
                         info_message = [
                             '\n\n' + '-' * 70 + '\n',
                             f'{"Normal Termination".center(70)}\n\n'

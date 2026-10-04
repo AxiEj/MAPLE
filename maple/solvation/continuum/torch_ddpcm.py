@@ -95,15 +95,16 @@ def _dense_resource_estimate(
     n_lebedev: int,
     limit_bytes: int,
     derivative_order: int,
+    scalar_bytes: int = 8,
 ) -> DenseResourceEstimate:
     basis = atom_count * (lmax + 1) ** 2
-    matrix_bytes = 8 * basis * basis
+    matrix_bytes = scalar_bytes * basis * basis
     # Retained harmonic recurrences dominate the first reverse pass.  The
     # factor 12 is calibrated conservatively against measured float64 CPU and
     # CUDA energy+gradient peaks; it is deliberately separate from process
     # baseline memory and from a caller's full-Hessian row retention.
-    first_order_peak = 16 * matrix_bytes + 12 * 8 * atom_count * n_lebedev * (
-        basis + 32
+    first_order_peak = (
+        16 * matrix_bytes + 12 * scalar_bytes * atom_count * n_lebedev * (basis + 32)
     )
     forward_peak = max(matrix_bytes * 8, (first_order_peak + 1) // 2)
     second_order_peak = 4 * first_order_peak
@@ -178,6 +179,8 @@ class TorchDDPCMState:
     reps_stability: MatrixStabilityDiagnostics
     reps_relative_residual: float
     l_relative_residual: float
+    solve_residual_limit: float
+    assessment_gate_failures: tuple[str, ...]
 
 
 class TorchDDPCM(ContinuumEnergyFunctional):
@@ -221,8 +224,8 @@ class TorchDDPCM(ContinuumEnergyFunctional):
     ) -> None:
         torch = __import__("torch")
         dtype = torch.float64 if dtype is None else dtype
-        if dtype is not torch.float64:
-            raise TypeError("TorchDDPCM supports torch.float64 only.")
+        if dtype not in (torch.float32, torch.float64):
+            raise TypeError("TorchDDPCM supports only torch.float32 and torch.float64.")
         requested_device = torch.device(device)
         if requested_device.type not in {"cpu", "cuda"}:
             raise ValueError("TorchDDPCM device must be CPU or CUDA.")
@@ -276,7 +279,12 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             raise ValueError("topology_margin must be positive.")
 
         preflight = _dense_resource_estimate(
-            len(symbol_tuple), lmax, n_lebedev, max_dense_bytes, 1
+            len(symbol_tuple),
+            lmax,
+            n_lebedev,
+            max_dense_bytes,
+            1,
+            torch.finfo(dtype).bits // 8,
         )
         if not preflight.within_limit:
             raise MemoryError(
@@ -288,21 +296,29 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         radii = _immutable_float64(radii, (len(symbol_tuple),))
         directions = _immutable_float64(grid.directions, (n_lebedev, 3))
         weights = _immutable_float64(grid.weights, (n_lebedev,))
+        dtype_name = str(dtype)
+        dtype_epsilon = torch.finfo(dtype).eps
         policy = {
             "policy_id": "torch-ddpcm-dense-numerical-policy-v2",
             "backend": "dense-direct-two-solve",
-            "dtype": "torch.float64",
+            "dtype": dtype_name,
             "device": str(requested_device),
             "max_dense_bytes": max_dense_bytes,
             "solve_residual_tolerance": residual_tolerance,
             "topology_margin": margin,
             "matrix_peak_factor": 16,
             "condition_estimator": "torch.linalg.svdvals-on-requested-device-detached",
-            "minimum_reciprocal_condition": math.sqrt(np.finfo(np.float64).eps),
-            "rank_tolerance": "dimension*float64-epsilon*maximum-singular-value",
+            "minimum_reciprocal_condition": math.sqrt(dtype_epsilon),
+            "rank_tolerance": (
+                "dimension*float64-epsilon*maximum-singular-value"
+                if dtype is torch.float64
+                else "dimension*float32-epsilon*maximum-singular-value"
+            ),
             "conditioning_claim": "numerical-stability-guard-not-Hessian-error-bound",
             "fallback": "forbidden",
         }
+        if dtype is torch.float32:
+            policy.update({"autocast": "forbidden", "tf32": "forbidden"})
         object.__setattr__(self, "_symbols", symbol_tuple)
         object.__setattr__(self, "_radii_angstrom", radii)
         object.__setattr__(self, "_dielectric", dielectric_value)
@@ -419,7 +435,12 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         if isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0:
             raise ValueError("limit_bytes must be a positive integer.")
         return _dense_resource_estimate(
-            count, self._lmax, self._n_lebedev, limit, derivative_order
+            count,
+            self._lmax,
+            self._n_lebedev,
+            limit,
+            derivative_order,
+            __import__("torch").finfo(self._torch_dtype).bits // 8,
         )
 
     def preflight_resources(
@@ -445,8 +466,11 @@ class TorchDDPCM(ContinuumEnergyFunctional):
 
     def _constant(self, reference: Any, values: object):
         torch = __import__("torch")
+        numpy_dtype = np.float32 if reference.dtype is torch.float32 else np.float64
         return torch.tensor(
-            np.array(values, copy=True), dtype=reference.dtype, device=reference.device
+            np.array(values, dtype=numpy_dtype, copy=True),
+            dtype=reference.dtype,
+            device=reference.device,
         )
 
     def _switch(self, distance_ratio: Any):
@@ -503,9 +527,9 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             ui,
         )
 
-    def _certify_topology(
+    def _assess_topology(
         self, ratios: Any, chi: Any, fi: Any, ui: Any
-    ) -> DDPCMTopologyCertificate:
+    ) -> tuple[DDPCMTopologyCertificate, tuple[str, ...]]:
         torch = __import__("torch")
         count = len(self._symbols)
         nonself = ~torch.eye(count, dtype=torch.bool, device=fi.device)[:, None, :]
@@ -530,12 +554,9 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         ambiguous_f = transition_per_node & (
             torch.abs(fi - 1.0) <= self._topology_margin
         )
-        if (
+        branch_margin_failed = (
             minimum_switch is not None and minimum_switch <= self._topology_margin
-        ) or bool(ambiguous_f.any().detach().cpu()):
-            raise RuntimeError(
-                "ddPCM topology is within the certified branch-change margin."
-            )
+        ) or bool(ambiguous_f.any().detach().cpu())
         support = torch.where(
             chi == 0.0,
             torch.zeros_like(chi, dtype=torch.int8),
@@ -551,7 +572,7 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             topology_digest.update(str(array.shape).encode())
             topology_digest.update(b"\0")
             topology_digest.update(array.tobytes(order="C"))
-        return DDPCMTopologyCertificate(
+        certificate = DDPCMTopologyCertificate(
             contract="ddx-v0.8.0-fixed-branch-margin-v1",
             topology_sha256=topology_digest.hexdigest(),
             active_node_count=int((ui > 0.0).sum().detach().cpu()),
@@ -560,6 +581,18 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             minimum_switch_margin=minimum_switch,
             minimum_active_f_margin=minimum_active,
         )
+        failures = ("topology_branch_margin",) if branch_margin_failed else ()
+        return certificate, failures
+
+    def _certify_topology(
+        self, ratios: Any, chi: Any, fi: Any, ui: Any
+    ) -> DDPCMTopologyCertificate:
+        certificate, failures = TorchDDPCM._assess_topology(self, ratios, chi, fi, ui)
+        if failures:
+            raise RuntimeError(
+                "ddPCM topology is within the certified branch-change margin."
+            )
+        return certificate
 
     def _point_source(
         self, nodes: Any, centres_bohr: Any, radii_bohr: Any, source: Any
@@ -660,10 +693,10 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         return float((residual / scale).detach().cpu())
 
     @staticmethod
-    def _validate_matrix_stability(
+    def _assess_matrix_stability(
         matrix_name: str, matrix: Any
-    ) -> MatrixStabilityDiagnostics:
-        """Certify numerical rank/conditioning without entering the energy graph."""
+    ) -> tuple[MatrixStabilityDiagnostics, tuple[str, ...]]:
+        """Assess numerical rank/conditioning outside the energy graph."""
 
         torch = __import__("torch")
         if (
@@ -682,7 +715,7 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             maximum = float(singular_values[0].detach().cpu())
             minimum = float(singular_values[-1].detach().cpu())
             dimension = int(matrix.shape[0])
-            epsilon = np.finfo(np.float64).eps
+            epsilon = torch.finfo(matrix.dtype).eps
             rank_tolerance = dimension * epsilon * maximum
             numerical_rank = int(
                 torch.count_nonzero(singular_values > rank_tolerance).detach().cpu()
@@ -701,17 +734,65 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             maximum_singular_value=maximum,
             minimum_singular_value=minimum,
         )
-        if numerical_rank != dimension or reciprocal_condition <= minimum_reciprocal:
+        failures = (
+            (f"{matrix_name}_rank_or_condition",)
+            if numerical_rank != dimension or reciprocal_condition <= minimum_reciprocal
+            else ()
+        )
+        return diagnostics, failures
+
+    @staticmethod
+    def _validate_matrix_stability(
+        matrix_name: str, matrix: Any
+    ) -> MatrixStabilityDiagnostics:
+        """Certify numerical rank/conditioning without entering the energy graph."""
+
+        diagnostics, failures = TorchDDPCM._assess_matrix_stability(matrix_name, matrix)
+        if failures:
             raise RuntimeError(
                 f"TorchDDPCM {matrix_name} is rank deficient or ill-conditioned: "
-                f"rank={numerical_rank}/{dimension}, rcond={reciprocal_condition:.3e}, "
-                f"required>{minimum_reciprocal:.3e}."
+                f"rank={diagnostics.numerical_rank}/{diagnostics.dimension}, "
+                f"rcond={diagnostics.reciprocal_condition:.3e}, "
+                f"required>{diagnostics.minimum_reciprocal_condition:.3e}."
             )
         return diagnostics
 
-    def _state_torch(self, positions: Any, source: Any) -> TorchDDPCMState:
+    def _validate_tensor_inputs(self, positions: Any, source: Any) -> None:
+        torch = __import__("torch")
+        if not torch.is_tensor(positions) or not torch.is_tensor(source):
+            raise TypeError("positions and source must be Torch tensors.")
+        if (
+            positions.ndim != 2
+            or positions.shape != (len(self._symbols), 3)
+            or source.ndim != 2
+            or source.shape != (len(self._symbols), self.source_space.component_count)
+            or not torch.is_floating_point(positions)
+            or not torch.is_floating_point(source)
+            or positions.dtype != source.dtype
+            or positions.dtype != self._torch_dtype
+            or positions.device != source.device
+            or positions.device != self._torch_device
+            or not bool(torch.isfinite(positions).all())
+            or not bool(torch.isfinite(source).all())
+        ):
+            raise ValueError(
+                "positions/source do not satisfy the continuum scalar contract."
+            )
+        if self._torch_dtype is torch.float32:
+            if torch.is_autocast_enabled(positions.device.type):
+                raise RuntimeError("TorchDDPCM float32 forbids autocast.")
+            if (
+                positions.device.type == "cuda"
+                and torch.backends.cuda.matmul.allow_tf32
+            ):
+                raise RuntimeError("TorchDDPCM float32 forbids CUDA TF32 matmul.")
+
+    def _state_torch(
+        self, positions: Any, source: Any, *, enforce_checks: bool = True
+    ) -> TorchDDPCMState:
         torch = __import__("torch")
         self.configuration_sha256()
+        self._validate_tensor_inputs(positions, source)
         if bool(torch.count_nonzero(source[:, _UNUSED_SOURCE_INDICES]).detach().cpu()):
             raise ValueError(
                 "TorchDDPCM requires exact zeros in source columns (1,5,6,7)."
@@ -742,7 +823,11 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         ratios = torch.where(
             owner, torch.ones_like(pair_distance), pair_distance / radii[None, None, :]
         )
-        topology = self._certify_topology(ratios, chi, fi, ui)
+        topology, topology_failures = self._assess_topology(ratios, chi, fi, ui)
+        if enforce_checks and topology_failures:
+            raise RuntimeError(
+                "ddPCM topology is within the certified branch-change margin."
+            )
         phi, psi = self._point_source(nodes, centres, radii, source)
         L, D, design, ui = self._operators(positions, geometry)
         rhs_blocks = [
@@ -761,8 +846,24 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             * identity
             - D
         )
-        l_stability = self._validate_matrix_stability("L", L)
-        reps_stability = self._validate_matrix_stability("R_epsilon", r_eps)
+        l_stability, l_failures = self._assess_matrix_stability("L", L)
+        if enforce_checks and l_failures:
+            raise RuntimeError(
+                "TorchDDPCM L is rank deficient or ill-conditioned: "
+                f"rank={l_stability.numerical_rank}/{l_stability.dimension}, "
+                f"rcond={l_stability.reciprocal_condition:.3e}, "
+                f"required>{l_stability.minimum_reciprocal_condition:.3e}."
+            )
+        reps_stability, reps_failures = self._assess_matrix_stability(
+            "R_epsilon", r_eps
+        )
+        if enforce_checks and reps_failures:
+            raise RuntimeError(
+                "TorchDDPCM R_epsilon is rank deficient or ill-conditioned: "
+                f"rank={reps_stability.numerical_rank}/{reps_stability.dimension}, "
+                f"rcond={reps_stability.reciprocal_condition:.3e}, "
+                f"required>{reps_stability.minimum_reciprocal_condition:.3e}."
+            )
         try:
             dielectric_rhs = torch.linalg.solve(r_eps, r_inf @ rhs)
             solution = torch.linalg.solve(L, dielectric_rhs)
@@ -770,15 +871,27 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             raise RuntimeError("TorchDDPCM dense linear solve failed.") from exc
         reps_residual = self._relative_residual(r_eps, dielectric_rhs, r_inf @ rhs)
         l_residual = self._relative_residual(L, solution, dielectric_rhs)
+        if not math.isfinite(reps_residual) or not math.isfinite(l_residual):
+            raise RuntimeError("TorchDDPCM dense solve produced a non-finite residual.")
         # Direct LAPACK solves normally reach machine precision.  The factor
         # 100 protects a strict 1e-12 scientific contract from residual-rounding
         # noise without relaxing it to iterative-solver accuracy.
         limit = max(100.0 * np.finfo(np.float64).eps, self._solve_residual_tolerance)
-        if reps_residual > limit or l_residual > limit:
+        residual_failures = tuple(
+            name
+            for name, value in (
+                ("R_epsilon_residual", reps_residual),
+                ("L_residual", l_residual),
+            )
+            if value > limit
+        )
+        if enforce_checks and residual_failures:
             raise RuntimeError(
                 "TorchDDPCM dense solve residual exceeded its declared tolerance."
             )
         energy = 0.5 * torch.dot(psi, solution) * HARTREE_TO_EV
+        if not bool(torch.isfinite(energy).detach().cpu()):
+            raise RuntimeError("TorchDDPCM dense solve produced a non-finite energy.")
         return TorchDDPCMState(
             energy=energy,
             L=L,
@@ -792,17 +905,93 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             reps_stability=reps_stability,
             reps_relative_residual=reps_residual,
             l_relative_residual=l_residual,
+            solve_residual_limit=limit,
+            assessment_gate_failures=(
+                topology_failures + l_failures + reps_failures + residual_failures
+            ),
         )
 
     def _energy_torch(self, positions: Any, source: Any):
         return self._state_torch(positions, source).energy
 
-    def diagnostics(self, positions: Any, source: Any) -> dict[str, object]:
+    def diagnostics(
+        self, positions: Any, source: Any, *, allow_unqualified: bool = False
+    ) -> dict[str, object]:
         """Evaluate once and return detached diagnostics; never used for derivatives."""
 
+        if type(allow_unqualified) is not bool:
+            raise TypeError("allow_unqualified must be bool.")
         torch = __import__("torch")
         with torch.no_grad():
-            state = self._state_torch(positions.detach(), source.detach())
+            state = self._state_torch(
+                positions.detach(),
+                source.detach(),
+                enforce_checks=not allow_unqualified,
+            )
+        failed_gates = []
+        if any(
+            name == "topology_branch_margin" for name in state.assessment_gate_failures
+        ):
+            failed_gates.append("topology")
+        if any(
+            name.endswith("_rank_or_condition")
+            for name in state.assessment_gate_failures
+        ):
+            failed_gates.append("matrix_stability")
+        if any(name.endswith("_residual") for name in state.assessment_gate_failures):
+            failed_gates.append("solve_residual")
+        execution_receipt = {
+            "contract": "torch-ddpcm-dense-execution-receipt-v1",
+            "observation_mode": ("unqualified-raw" if allow_unqualified else "strict"),
+            "allow_unqualified": allow_unqualified,
+            "dtype": str(self._torch_dtype),
+            "device": str(self._torch_device),
+            "lmax": self._lmax,
+            "n_lebedev": self._n_lebedev,
+            "grid_sha256": self._grid_sha256,
+            "eta": self._eta,
+            "dielectric": self._dielectric,
+            "backend": self._numerical_policy["backend"],
+            "storage": "full-dense",
+            "source_tile": "not-applicable-full-dense",
+            "linear_solver": "torch.linalg.solve",
+            "linear_solve_count": 2,
+            "solve_residual_tolerance": self._solve_residual_tolerance,
+            "effective_solve_residual_limit": state.solve_residual_limit,
+            "topology_margin": self._topology_margin,
+            "L_shape": list(state.L.shape),
+            "D_shape": list(state.D.shape),
+            "positions_shape": list(positions.shape),
+            "source_shape": list(source.shape),
+            "positions_dtype": str(positions.dtype),
+            "source_dtype": str(source.dtype),
+            "positions_device": str(positions.device),
+            "source_device": str(source.device),
+            "state_tensors": {
+                name: {
+                    "shape": list(value.shape),
+                    "dtype": str(value.dtype),
+                    "device": str(value.device),
+                }
+                for name, value in (
+                    ("energy", state.energy),
+                    ("L", state.L),
+                    ("D", state.D),
+                    ("rhs", state.rhs),
+                    ("dielectric_rhs", state.dielectric_rhs),
+                    ("solution", state.solution),
+                )
+            },
+            "autocast_policy": self._numerical_policy.get(
+                "autocast", "not-applicable-float64"
+            ),
+            "autocast_active": torch.is_autocast_enabled(positions.device.type),
+            "tf32_policy": self._numerical_policy.get("tf32", "not-applicable-float64"),
+            "tf32_active": bool(
+                positions.device.type == "cuda"
+                and torch.backends.cuda.matmul.allow_tf32
+            ),
+        }
         return {
             "provider_id": self.provider_id,
             "configuration_sha256": self.configuration_sha256(),
@@ -814,6 +1003,11 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             "R_epsilon_stability": asdict(state.reps_stability),
             "reps_relative_residual": state.reps_relative_residual,
             "l_relative_residual": state.l_relative_residual,
+            "assessment_gate_pass": not state.assessment_gate_failures,
+            "assessment_gate_failures": list(state.assessment_gate_failures),
+            "failed_gates": failed_gates,
+            "scientific_admitted": False,
+            "execution_receipt": execution_receipt,
         }
 
 

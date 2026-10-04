@@ -11,11 +11,12 @@ from maple.solvation.surfaces.lebedev import (
 EXPECTED_HASHES = {
     50: "e693359e89a11d3ab1918fbaf68f2e1de0b71aa6faa08024ef42b453fd6f59da",
     194: "5c5d366f54a23faf3e1a4611fe02d432e51804bb09f5d779283a94ed8e19bf89",
+    302: "c3f3759cded436c3bdf8d4b895b47c343cb43d19e3b716bbcc75fec7c7921b90",
     1202: "199f8eb5d87092a47398a25f335ecf6fbe6383cd6b254e18d4641ba2fad9e7a6",
 }
 
 
-@pytest.mark.parametrize("point_count", (50, 194, 1202))
+@pytest.mark.parametrize("point_count", (50, 194, 302, 1202))
 def test_ordered_lebedev_rule_is_immutable_normalized_and_content_addressed(
     point_count: int,
 ) -> None:
@@ -41,7 +42,7 @@ def test_ordered_lebedev_rule_is_immutable_normalized_and_content_addressed(
     np.testing.assert_allclose(second, np.eye(3) * 4.0 * np.pi / 3.0, atol=2e-14)
 
 
-@pytest.mark.parametrize("point_count", (50, 194, 1202))
+@pytest.mark.parametrize("point_count", (50, 194, 302, 1202))
 def test_ordered_nodes_match_pyddx_0p8_single_sphere(point_count: int) -> None:
     pyddx = pytest.importorskip("pyddx")
     if pyddx.__version__ != "0.8.0":
@@ -65,7 +66,7 @@ def test_ordered_nodes_match_pyddx_0p8_single_sphere(point_count: int) -> None:
 
 def test_unsupported_grid_fails_closed() -> None:
     with pytest.raises(ValueError, match="one of"):
-        ordered_lebedev_grid(302)
+        ordered_lebedev_grid(230)
 
 
 def test_cached_grid_cannot_be_mutated_through_a_shared_reference() -> None:

@@ -15,7 +15,7 @@ import importlib
 
 import numpy as np
 
-SUPPORTED_LEBEDEV_ORDERS = (50, 194, 1202)
+SUPPORTED_LEBEDEV_ORDERS = (50, 194, 302, 1202)
 LEBEDEV_GRID_CONTRACT = "lebedev-laikov-ordered-pyscf-2.13.1-ddx-0.8.0-v1"
 
 

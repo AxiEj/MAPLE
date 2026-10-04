@@ -1,0 +1,54 @@
+{
+  "export_scope": "completed scan results; no rerun and no scientific admission",
+  "exporter_sha256": "45b7a98a2d946d1f0a9fb071781026f9a6c1669400208b33eb3cdcbebe31d1fb",
+  "mnsol_publication": "aggregate-only, following route2-mnsol-protocol-v1.json; no row IDs, computed row values, labels or structures",
+  "original_dense_source_sha256": "c5b17121f831e8351a64c538bee5c92342487e9181595abdced952bdb0980d43",
+  "schema": "parameter-scan-public-results-provenance-v1",
+  "source_artifacts": [
+    {
+      "path": ".omx/research/lmax-scan-20261002/verification/verified_results.json",
+      "sha256": "ed1d0d2bb7c56670bc8b3b2164c4d631cc2b9badf5569e98b44596b237f9355d"
+    },
+    {
+      "path": ".omx/research/lmax-low12345-20261002/verification-opt0.json",
+      "sha256": "9be307d6c9a35b0e77b90366ed321928ceb3a3386c3edb1ec799eb821ef3a31a"
+    },
+    {
+      "path": ".omx/research/lebedev-scan-20261004/verification/final-normal/verified-results.json",
+      "sha256": "f55acc1bd2a6f4b4b3fe758f5146c212beffeaa6208caed5d170909ab95d18f6"
+    },
+    {
+      "path": ".omx/research/fp32-vs-fp64-20261003/verification-v6-final/summary.json",
+      "sha256": "a41ab90cb0c1a25083387ef7a6dce8d302928325c67c9c8f1ca1551780e1a61f"
+    },
+    {
+      "path": ".omx/research/original-torch-fp32-20261004/verification-final-normal/summary.json",
+      "sha256": "37daf65e991c1ec54f32322d1abbe20b3d3f5009eb5586a517fa358bc629ecc2"
+    },
+    {
+      "path": ".omx/research/lebedev-scan-20261004/verification/final-normal/per-row-grid.tsv",
+      "sha256": "031851f568b77c47cee56e90bd75019ed16312b17b707bd391c0e41dbe9c4325"
+    },
+    {
+      "path": ".omx/research/fp32-vs-fp64-20261003/comparison-all1295.tsv",
+      "sha256": "e9e8528b4fddc61680060530ef50abcace5eba9f96e81ad4dc3c67337eb9467e"
+    },
+    {
+      "path": ".omx/research/original-torch-fp32-20261004/verification-final-normal/per-slot.tsv",
+      "sha256": "89e2ab57b4b10786dc8d00b0856b3b3acd2b2f02566b138f67f1487f6a6c9e31"
+    },
+    {
+      "path": ".omx/research/lmax-scan-20261002/verification/raw-row-sha256-manifest.json",
+      "sha256": "dd234072277a0019987f880e2bc12e082e3260837754d7dbbb109433603c7967"
+    },
+    {
+      "path": ".omx/research/lmax-low12345-20261002/row-manifest.json",
+      "sha256": "e8031524e81781e90b2a3c379b57fb11152fa2c73176362c5115348db9aa1684"
+    },
+    {
+      "path": ".omx/research/original-torch-fp32-20261004/completion.json",
+      "sha256": "79d9e04d12c54b1b874bbf0e3b7058a21ded6851d10edeee0e91accbd6983b80"
+    }
+  ],
+  "source_code_commit": "c0dc21fd54e3c3f818757100bf322d74a5388a62"
+}

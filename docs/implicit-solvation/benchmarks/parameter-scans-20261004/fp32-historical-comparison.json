@@ -1,0 +1,241 @@
+{
+  "boundary": "Historical private research FP32 continuum + FP32 MACE source/CDS versus native FP64; NOT the original dense TorchDDPCM implementation and NOT an isolated dtype-only comparison.",
+  "cds_timeout_audit": {
+    "candidate_prediction_count": 1215,
+    "fallback_used": false,
+    "initial_timeout_count": 80,
+    "initial_timeout_seconds": 2.0,
+    "observer_prediction_count": 0,
+    "persistent_timeout_count": 80,
+    "radius_or_EPSI_changed": false,
+    "retry_timeout_seconds": 10.0,
+    "shared_point_restart_unchanged_RK_count": 80
+  },
+  "datasets": {
+    "combined": {
+      "accepted_count": 0,
+      "attempted": 1295,
+      "expected": 1295,
+      "failure_intersections": {
+        "cds": 23,
+        "cds+model-neutrality": 57,
+        "continuum-charge+continuum-residual+continuum-topology": 52,
+        "continuum-charge+continuum-residual+continuum-topology+model-neutrality": 814,
+        "continuum-charge+continuum-residual+model-neutrality": 9,
+        "continuum-residual": 37,
+        "continuum-residual+continuum-topology": 251,
+        "continuum-residual+continuum-topology+model-neutrality": 52
+      },
+      "finite_count": 1215,
+      "full_accepted_mae_kcal_mol": null,
+      "full_mae_difference_fp32_minus_fp64_kcal_mol": null,
+      "full_matched_fp64_mae_kcal_mol": null,
+      "full_matched_fp64_rmse_kcal_mol": null,
+      "full_raw_mae_kcal_mol": null,
+      "full_raw_rmse_kcal_mol": null,
+      "full_rmse_difference_fp32_minus_fp64_kcal_mol": null,
+      "gate_failure_counts": {
+        "cds": 80,
+        "continuum-charge": 875,
+        "continuum-residual": 1215,
+        "continuum-topology": 1169,
+        "model-neutrality": 932
+      },
+      "partial_finite_pair_diagnostics_not_full_mae": {
+        "cds_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 0.07557083074034406
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 1.7427047705996812
+          },
+          "mean_absolute_eV": 8.622365573759838e-05,
+          "mean_absolute_kcal_mol": 0.0019883647529130386
+        },
+        "is_complete_dataset_or_panel": false,
+        "mae_difference_fp32_minus_fp64_kcal_mol": null,
+        "matched_id_fp32_raw_mae_kcal_mol": 1.4110015547804695,
+        "matched_id_fp32_raw_rmse_kcal_mol": 1.9043568407512597,
+        "matched_id_fp64_raw_mae_kcal_mol": 1.4095606220558263,
+        "matched_id_fp64_raw_rmse_kcal_mol": 1.9023268601136212,
+        "polar_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 1.6101991077155375e-05
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 0.0003713207383246561
+          },
+          "mean_absolute_eV": 1.2854158952785595e-06,
+          "mean_absolute_kcal_mol": 2.964239496854851e-05
+        },
+        "rmse_difference_fp32_minus_fp64_kcal_mol": null,
+        "subset_n": 1215,
+        "total_prediction_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 0.0755705782475759
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 1.742698947978079
+          },
+          "mean_absolute_eV": 8.735393597962477e-05,
+          "mean_absolute_kcal_mol": 0.0020144296347014068
+        }
+      },
+      "status_counts": {
+        "failed-native-fp32-cds": 80,
+        "finite-diagnostic-not-accepted": 1215
+      }
+    },
+    "freesolv": {
+      "accepted_count": 0,
+      "attempted": 642,
+      "expected": 642,
+      "failure_intersections": {
+        "cds+model-neutrality": 1,
+        "continuum-charge+continuum-residual+continuum-topology": 20,
+        "continuum-charge+continuum-residual+continuum-topology+model-neutrality": 474,
+        "continuum-residual": 4,
+        "continuum-residual+continuum-topology": 116,
+        "continuum-residual+continuum-topology+model-neutrality": 27
+      },
+      "finite_count": 641,
+      "full_accepted_mae_kcal_mol": null,
+      "full_mae_difference_fp32_minus_fp64_kcal_mol": null,
+      "full_matched_fp64_mae_kcal_mol": null,
+      "full_matched_fp64_rmse_kcal_mol": null,
+      "full_raw_mae_kcal_mol": null,
+      "full_raw_rmse_kcal_mol": null,
+      "full_rmse_difference_fp32_minus_fp64_kcal_mol": null,
+      "gate_failure_counts": {
+        "cds": 1,
+        "continuum-charge": 494,
+        "continuum-residual": 641,
+        "continuum-topology": 637,
+        "model-neutrality": 502
+      },
+      "partial_finite_pair_diagnostics_not_full_mae": {
+        "cds_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 2.1181204354486782e-06
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 4.8845017997009784e-05
+          },
+          "mean_absolute_eV": 1.7840813825479962e-07,
+          "mean_absolute_kcal_mol": 4.114189437968739e-06
+        },
+        "is_complete_dataset_or_panel": false,
+        "mae_difference_fp32_minus_fp64_kcal_mol": null,
+        "matched_id_fp32_raw_mae_kcal_mol": 1.5041986438754809,
+        "matched_id_fp32_raw_rmse_kcal_mol": 1.9628008282139657,
+        "matched_id_fp64_raw_mae_kcal_mol": 1.5041975570552784,
+        "matched_id_fp64_raw_rmse_kcal_mol": 1.962801181504107,
+        "polar_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 1.6101991077155375e-05
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 0.0003713207383246561
+          },
+          "mean_absolute_eV": 1.396736585441561e-06,
+          "mean_absolute_kcal_mol": 3.220951108878912e-05
+        },
+        "rmse_difference_fp32_minus_fp64_kcal_mol": null,
+        "subset_n": 641,
+        "total_prediction_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 1.6159259280223992e-05
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 0.0003726413744722379
+          },
+          "mean_absolute_eV": 1.4091916387946812e-06,
+          "mean_absolute_kcal_mol": 3.249673144464225e-05
+        }
+      },
+      "status_counts": {
+        "failed-native-fp32-cds": 1,
+        "finite-diagnostic-not-accepted": 641
+      }
+    },
+    "mnsol": {
+      "accepted_count": 0,
+      "attempted": 653,
+      "expected": 653,
+      "failure_intersections": {
+        "cds": 23,
+        "cds+model-neutrality": 56,
+        "continuum-charge+continuum-residual+continuum-topology": 32,
+        "continuum-charge+continuum-residual+continuum-topology+model-neutrality": 340,
+        "continuum-charge+continuum-residual+model-neutrality": 9,
+        "continuum-residual": 33,
+        "continuum-residual+continuum-topology": 135,
+        "continuum-residual+continuum-topology+model-neutrality": 25
+      },
+      "finite_count": 574,
+      "full_accepted_mae_kcal_mol": null,
+      "full_mae_difference_fp32_minus_fp64_kcal_mol": null,
+      "full_matched_fp64_mae_kcal_mol": null,
+      "full_matched_fp64_rmse_kcal_mol": null,
+      "full_raw_mae_kcal_mol": null,
+      "full_raw_rmse_kcal_mol": null,
+      "full_rmse_difference_fp32_minus_fp64_kcal_mol": null,
+      "gate_failure_counts": {
+        "cds": 79,
+        "continuum-charge": 381,
+        "continuum-residual": 574,
+        "continuum-topology": 532,
+        "model-neutrality": 430
+      },
+      "partial_finite_pair_diagnostics_not_full_mae": {
+        "cds_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 0.07557083074034406
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 1.7427047705996812
+          },
+          "mean_absolute_eV": 0.0001823125123772835,
+          "mean_absolute_kcal_mol": 0.00420422644487736
+        },
+        "is_complete_dataset_or_panel": false,
+        "mae_difference_fp32_minus_fp64_kcal_mol": null,
+        "matched_id_fp32_raw_mae_kcal_mol": 1.3069260598154833,
+        "matched_id_fp32_raw_rmse_kcal_mol": 1.8368945689976475,
+        "matched_id_fp64_raw_mae_kcal_mol": 1.3038772155494696,
+        "matched_id_fp64_raw_rmse_kcal_mol": 1.8324363919926854,
+        "polar_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 1.1411482861323208e-05
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 0.000263155048412452
+          },
+          "mean_absolute_eV": 1.1611013266470541e-06,
+          "mean_absolute_kcal_mol": 2.6775632890021976e-05
+        },
+        "rmse_difference_fp32_minus_fp64_kcal_mol": null,
+        "subset_n": 574,
+        "total_prediction_delta": {
+          "maximum_absolute_eV": {
+            "absolute_value": 0.0755705782475759
+          },
+          "maximum_absolute_kcal_mol": {
+            "absolute_value": 1.742698947978079
+          },
+          "mean_absolute_eV": 0.00018333055814421031,
+          "mean_absolute_kcal_mol": 0.0042277031381641
+        }
+      },
+      "status_counts": {
+        "failed-native-fp32-cds": 79,
+        "finite-diagnostic-not-accepted": 574
+      }
+    }
+  },
+  "full_mae_policy": "Dataset full raw MAE/RMSE is reported only when every expected dataset row is finite; combined full raw MAE/RMSE requires all 1295. Accepted MAE requires every expected row to pass common gates. Matched finite subsets are explicitly SUBSET_N diagnostics, never whole-panel claims.",
+  "scientific_admitted": false,
+  "source_protocol_sha256": "87a9cffb9848283b2b8e87b286d3c0f582ad41dd783e6581965925e410d5ed2d",
+  "source_summary_sha256": "a41ab90cb0c1a25083387ef7a6dce8d302928325c67c9c8f1ca1551780e1a61f",
+  "study": "fp32-historical-comparison"
+}

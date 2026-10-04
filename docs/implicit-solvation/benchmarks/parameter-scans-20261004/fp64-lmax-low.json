@@ -1,0 +1,229 @@
+{
+  "boundary": "same cached FP64 source/CDS; relative-l15 preservation, not absolute convergence or release admission",
+  "datasets": {
+    "freesolv": {
+      "configurations": {
+        "1": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.7156302784557484,
+            "max_abs": 8.576925418783684,
+            "mean_signed": 1.3386732443336176,
+            "rmse": 2.220851844601282
+          },
+          "mae_minus_l15": 0.2128457569985529,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.5614124375464381,
+            "max_abs": 2.5853829607542025,
+            "mean_signed": 0.5613464117154957,
+            "rmse": 0.6603633746503624
+          },
+          "rmse_minus_l15": 0.25943838256157004,
+          "rmse_threshold_pass": false
+        },
+        "2": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5976068520060231,
+            "max_abs": 8.161038258145565,
+            "mean_signed": 1.1394609420426924,
+            "rmse": 2.0817341620300844
+          },
+          "mae_minus_l15": 0.0948223305488276,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.36213410942457075,
+            "max_abs": 1.5841951875134725,
+            "mean_signed": 0.36213410942457075,
+            "rmse": 0.421425518534199
+          },
+          "rmse_minus_l15": 0.12032069999037254,
+          "rmse_threshold_pass": false
+        },
+        "3": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5431307904355736,
+            "max_abs": 7.883631420672058,
+            "mean_signed": 0.9479085666734718,
+            "rmse": 2.0125499039109376
+          },
+          "mae_minus_l15": 0.04034626897837801,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.17058512077379612,
+            "max_abs": 0.8127762154483227,
+            "mean_signed": 0.17058173405535001,
+            "rmse": 0.20099192287931983
+          },
+          "rmse_minus_l15": 0.05113644187122568,
+          "rmse_threshold_pass": false
+        },
+        "4": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5273705873016985,
+            "max_abs": 8.13199375003153,
+            "mean_signed": 0.8861807171863919,
+            "rmse": 1.9926877656802084
+          },
+          "mae_minus_l15": 0.024586065844502958,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.10885388456827017,
+            "max_abs": 0.5171545085379394,
+            "mean_signed": 0.10885388456827017,
+            "rmse": 0.12882842140319045
+          },
+          "rmse_minus_l15": 0.03127430364049655,
+          "rmse_threshold_pass": false
+        },
+        "5": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.518556511172003,
+            "max_abs": 8.258038188202121,
+            "mean_signed": 0.8475071571189848,
+            "rmse": 1.9812951625338542
+          },
+          "mae_minus_l15": 0.01577198971480742,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.07018032450086316,
+            "max_abs": 0.38032985607806324,
+            "mean_signed": 0.07018032450086316,
+            "rmse": 0.08491171640992863
+          },
+          "rmse_minus_l15": 0.019881700494142285,
+          "rmse_threshold_pass": false
+        }
+      },
+      "expected": 642
+    },
+    "mnsol": {
+      "configurations": {
+        "1": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.475983660282341,
+            "max_abs": 8.532408671532112,
+            "mean_signed": 1.1899681815049128,
+            "rmse": 2.0240266769281807
+          },
+          "mae_minus_l15": 0.20151595612133755,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.44890527357271787,
+            "max_abs": 2.4575548234625764,
+            "mean_signed": 0.44885408424267925,
+            "rmse": 0.5826809578752536
+          },
+          "rmse_minus_l15": 0.24277561970932293,
+          "rmse_threshold_pass": false
+        },
+        "2": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.3771938554082575,
+            "max_abs": 8.095025155752241,
+            "mean_signed": 1.0305781816474704,
+            "rmse": 1.9131595463908702
+          },
+          "mae_minus_l15": 0.10272615124725393,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.2894640843852369,
+            "max_abs": 1.5357533102900227,
+            "mean_signed": 0.2894640843852369,
+            "rmse": 0.3663773347404685
+          },
+          "rmse_minus_l15": 0.13190848917201237,
+          "rmse_threshold_pass": false
+        },
+        "3": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.319295603579357,
+            "max_abs": 7.598569177147258,
+            "mean_signed": 0.8820073516198484,
+            "rmse": 1.839305727179711
+          },
+          "mae_minus_l15": 0.04482789941835352,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.14090065029737384,
+            "max_abs": 0.7455283690653225,
+            "mean_signed": 0.14089325435761485,
+            "rmse": 0.18081391782517672
+          },
+          "rmse_minus_l15": 0.05805466996085329,
+          "rmse_threshold_pass": false
+        },
+        "4": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2999444896827672,
+            "max_abs": 7.523122477393747,
+            "mean_signed": 0.8272321389193342,
+            "rmse": 1.8156327890784072
+          },
+          "mae_minus_l15": 0.02547678552176369,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.08611804165710066,
+            "max_abs": 0.513306509717566,
+            "mean_signed": 0.08611804165710066,
+            "rmse": 0.11466195832839514
+          },
+          "rmse_minus_l15": 0.0343817318595494,
+          "rmse_threshold_pass": false
+        },
+        "5": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2911359421761768,
+            "max_abs": 7.417936033493724,
+            "mean_signed": 0.7982858888514006,
+            "rmse": 1.803091798594114
+          },
+          "mae_minus_l15": 0.016668238015173253,
+          "mae_threshold_pass": false,
+          "numerical_threshold_pass": false,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.05717179158916705,
+            "max_abs": 0.3704433891964598,
+            "mean_signed": 0.05717179158916705,
+            "rmse": 0.07796882613963525
+          },
+          "rmse_minus_l15": 0.021840741375256156,
+          "rmse_threshold_pass": false
+        }
+      },
+      "expected": 653
+    }
+  },
+  "scientific_admitted": false,
+  "source_protocol_sha256": "13148a7ea7153c87e08043785c74ef53916df976a3c1e48f4ba74e49be37a501",
+  "source_summary_sha256": "9be307d6c9a35b0e77b90366ed321928ceb3a3386c3edb1ec799eb821ef3a31a",
+  "study": "fp64-lmax-low"
+}

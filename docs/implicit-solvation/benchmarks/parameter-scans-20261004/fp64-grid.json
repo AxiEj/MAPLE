@@ -1,0 +1,616 @@
+{
+  "boundary": "relative-to-reused-1202 energy diagnostic only; not absolute convergence, derivative qualification, or scientific admission",
+  "coverage": {
+    "fresh_attempts": 6475,
+    "fresh_failure_count": 1189,
+    "fresh_grids_per_record": 5,
+    "native_grid_values": 6,
+    "records": 1295,
+    "requested_target_labels": 7,
+    "reused_1202_references": 1295,
+    "unique_configurations_checked": 7770
+  },
+  "datasets": {
+    "combined": {
+      "baseline_1202_full_panel": {
+        "count": 1295,
+        "mae": 1.3876564274846754,
+        "max_abs": 8.638368044280185,
+        "mean_signed": 0.7590666656780485,
+        "p95_abs": 3.8808442477222576,
+        "rmse": 1.8727347062266442,
+        "unit": "kcal/mol"
+      },
+      "configurations": {
+        "110": {
+          "attempted": 1295,
+          "complete_finite": false,
+          "experiment_full_panel": null,
+          "failure_count": 1189,
+          "failure_types": {
+            "RuntimeError": 1189
+          },
+          "finite_count": 106,
+          "mae_minus_1202_kcal_mol": null,
+          "practical_thresholds": null,
+          "relative_to_1202_full_panel": null,
+          "rmse_minus_1202_kcal_mol": null
+        },
+        "1202": {
+          "attempted": 1295,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 1295,
+            "mae": 1.3876564274846754,
+            "max_abs": 8.638368044280185,
+            "mean_signed": 0.7590666656780485,
+            "p95_abs": 3.8808442477222576,
+            "rmse": 1.8727347062266442,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 1295,
+          "mae_minus_1202_kcal_mol": 0.0,
+          "practical_thresholds": {
+            "all_pass": true,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": true,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 1295,
+            "mae": 0.0,
+            "max_abs": 0.0,
+            "mean_signed": 0.0,
+            "p95_abs": 0.0,
+            "rmse": 0.0,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 0.0
+        },
+        "302": {
+          "attempted": 1295,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 1295,
+            "mae": 1.3882172698405295,
+            "max_abs": 8.629661673274022,
+            "mean_signed": 0.759568441930354,
+            "p95_abs": 3.8801864361727416,
+            "rmse": 1.8736092884195403,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 1295,
+          "mae_minus_1202_kcal_mol": 0.0005608423558540743,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 1295,
+            "mae": 0.004537114384419201,
+            "max_abs": 0.07552509489012138,
+            "mean_signed": 0.0005017762523055708,
+            "p95_abs": 0.015188141305107716,
+            "rmse": 0.007647866721972202,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 0.0008745821928961561
+        },
+        "590": {
+          "attempted": 1295,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 1295,
+            "mae": 1.3875939601037857,
+            "max_abs": 8.636459363117208,
+            "mean_signed": 0.7592317110745825,
+            "p95_abs": 3.8817759007046444,
+            "rmse": 1.8726632190517338,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 1295,
+          "mae_minus_1202_kcal_mol": -6.246738088977466e-05,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 1295,
+            "mae": 0.001848387269851278,
+            "max_abs": 0.041930670231288936,
+            "mean_signed": 0.00016504539653422443,
+            "p95_abs": 0.006313469993134418,
+            "rmse": 0.003251937124941226,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -7.148717491034517e-05
+        },
+        "770": {
+          "attempted": 1295,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 1295,
+            "mae": 1.3875963988051925,
+            "max_abs": 8.639956128831379,
+            "mean_signed": 0.7590535550961308,
+            "p95_abs": 3.881818549304636,
+            "rmse": 1.872662579269056,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 1295,
+          "mae_minus_1202_kcal_mol": -6.0028679482959646e-05,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 1295,
+            "mae": 0.0013389174337741377,
+            "max_abs": 0.022044755679670125,
+            "mean_signed": -1.3110581917621808e-05,
+            "p95_abs": 0.004259995641121894,
+            "rmse": 0.002280586459479929,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -7.212695758807008e-05
+        },
+        "974": {
+          "attempted": 1295,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 1295,
+            "mae": 1.3875978823632307,
+            "max_abs": 8.640213715187851,
+            "mean_signed": 0.7592642246586774,
+            "p95_abs": 3.8804567269545656,
+            "rmse": 1.8726782927234251,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 1295,
+          "mae_minus_1202_kcal_mol": -5.854512144476409e-05,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 1295,
+            "mae": 0.0011266587889889091,
+            "max_abs": 0.027600190752224307,
+            "mean_signed": 0.0001975589806289809,
+            "p95_abs": 0.0036768219237583435,
+            "rmse": 0.0020393047863697497,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -5.641350321905492e-05
+        }
+      },
+      "expected_rows": 1295
+    },
+    "freesolv": {
+      "baseline_1202_full_panel": {
+        "count": 642,
+        "mae": 1.5027845214571955,
+        "max_abs": 8.638368044280185,
+        "mean_signed": 0.7773268326181217,
+        "p95_abs": 3.869516173834181,
+        "rmse": 1.961413462039712,
+        "unit": "kcal/mol"
+      },
+      "configurations": {
+        "110": {
+          "attempted": 642,
+          "complete_finite": false,
+          "experiment_full_panel": null,
+          "failure_count": 605,
+          "failure_types": {
+            "RuntimeError": 605
+          },
+          "finite_count": 37,
+          "mae_minus_1202_kcal_mol": null,
+          "practical_thresholds": null,
+          "relative_to_1202_full_panel": null,
+          "rmse_minus_1202_kcal_mol": null
+        },
+        "1202": {
+          "attempted": 642,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 642,
+            "mae": 1.5027845214571955,
+            "max_abs": 8.638368044280185,
+            "mean_signed": 0.7773268326181217,
+            "p95_abs": 3.869516173834181,
+            "rmse": 1.961413462039712,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 642,
+          "mae_minus_1202_kcal_mol": 0.0,
+          "practical_thresholds": {
+            "all_pass": true,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": true,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 642,
+            "mae": 0.0,
+            "max_abs": 0.0,
+            "mean_signed": 0.0,
+            "p95_abs": 0.0,
+            "rmse": 0.0,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 0.0
+        },
+        "302": {
+          "attempted": 642,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 642,
+            "mae": 1.5030180066735892,
+            "max_abs": 8.629661673274022,
+            "mean_signed": 0.7781349626165428,
+            "p95_abs": 3.868301766038652,
+            "rmse": 1.9618327673353537,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 642,
+          "mae_minus_1202_kcal_mol": 0.0002334852163936585,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 642,
+            "mae": 0.0039415740720142416,
+            "max_abs": 0.04712931639445639,
+            "mean_signed": 0.0008081299984210035,
+            "p95_abs": 0.013085437022073501,
+            "rmse": 0.006349451722849042,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 0.0004193052956418253
+        },
+        "590": {
+          "attempted": 642,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 642,
+            "mae": 1.5028223076792884,
+            "max_abs": 8.636459363117208,
+            "mean_signed": 0.7773484761956531,
+            "p95_abs": 3.8697041346917125,
+            "rmse": 1.9614044201324288,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 642,
+          "mae_minus_1202_kcal_mol": 3.7786222092828226e-05,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 642,
+            "mae": 0.0016718918219701844,
+            "max_abs": 0.01883001582582411,
+            "mean_signed": 2.164357753132563e-05,
+            "p95_abs": 0.005581269943927165,
+            "rmse": 0.0027504054660119443,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -9.041907283124928e-06
+        },
+        "770": {
+          "attempted": 642,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 642,
+            "mae": 1.5028327615773576,
+            "max_abs": 8.639956128831379,
+            "mean_signed": 0.777474823018201,
+            "p95_abs": 3.8716379188462313,
+            "rmse": 1.9614877197042349,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 642,
+          "mae_minus_1202_kcal_mol": 4.824012016202417e-05,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 642,
+            "mae": 0.001190541021577909,
+            "max_abs": 0.01738422891543223,
+            "mean_signed": 0.00014799040007929673,
+            "p95_abs": 0.00373815611916255,
+            "rmse": 0.001933295170480513,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 7.425766452295868e-05
+        },
+        "974": {
+          "attempted": 642,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 642,
+            "mae": 1.502779953626062,
+            "max_abs": 8.640213715187851,
+            "mean_signed": 0.7773321699892046,
+            "p95_abs": 3.870510896807011,
+            "rmse": 1.961342362307632,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 642,
+          "mae_minus_1202_kcal_mol": -4.567831133561739e-06,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 642,
+            "mae": 0.0009338367813671978,
+            "max_abs": 0.011522637372488376,
+            "mean_signed": 5.337371082895522e-06,
+            "p95_abs": 0.0029933269062886615,
+            "rmse": 0.0014877496661452598,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -7.109973207986009e-05
+        }
+      },
+      "expected_rows": 642
+    },
+    "mnsol": {
+      "baseline_1202_full_panel": {
+        "count": 653,
+        "mae": 1.2744677041610035,
+        "max_abs": 7.243453867387281,
+        "mean_signed": 0.7411140972622335,
+        "p95_abs": 3.8819336166823404,
+        "rmse": 1.781251057218858,
+        "unit": "kcal/mol"
+      },
+      "configurations": {
+        "110": {
+          "attempted": 653,
+          "complete_finite": false,
+          "experiment_full_panel": null,
+          "failure_count": 584,
+          "failure_types": {
+            "RuntimeError": 584
+          },
+          "finite_count": 69,
+          "mae_minus_1202_kcal_mol": null,
+          "practical_thresholds": null,
+          "relative_to_1202_full_panel": null,
+          "rmse_minus_1202_kcal_mol": null
+        },
+        "1202": {
+          "attempted": 653,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 653,
+            "mae": 1.2744677041610035,
+            "max_abs": 7.243453867387281,
+            "mean_signed": 0.7411140972622335,
+            "p95_abs": 3.8819336166823404,
+            "rmse": 1.781251057218858,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 653,
+          "mae_minus_1202_kcal_mol": 0.0,
+          "practical_thresholds": {
+            "all_pass": true,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": true,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 653,
+            "mae": 0.0,
+            "max_abs": 0.0,
+            "mean_signed": 0.0,
+            "p95_abs": 0.0,
+            "rmse": 0.0,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 0.0
+        },
+        "302": {
+          "attempted": 653,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 653,
+            "mae": 1.2753503892175215,
+            "max_abs": 7.257547485402762,
+            "mean_signed": 0.7413146803981439,
+            "p95_abs": 3.8808670060137485,
+            "rmse": 1.7826204812409716,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 653,
+          "mae_minus_1202_kcal_mol": 0.0008826850565180067,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 653,
+            "mae": 0.00512262262418028,
+            "max_abs": 0.07552509489012138,
+            "mean_signed": 0.0002005831359103062,
+            "p95_abs": 0.017961553801430875,
+            "rmse": 0.008738308822112864,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": 0.0013694240221135967
+        },
+        "590": {
+          "attempted": 653,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 653,
+            "mae": 1.2743066719820815,
+            "max_abs": 7.252104005964664,
+            "mean_signed": 0.7414201288269145,
+            "p95_abs": 3.883860598735748,
+            "rmse": 1.7811117919905508,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 653,
+          "mae_minus_1202_kcal_mol": -0.00016103217892204924,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 653,
+            "mae": 0.0020219095938017553,
+            "max_abs": 0.041930670231288936,
+            "mean_signed": 0.00030603156468102537,
+            "p95_abs": 0.006605255250112218,
+            "rmse": 0.0036789603578770962,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -0.000139265228307206
+        },
+        "770": {
+          "attempted": 653,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 653,
+            "mae": 1.274301230505453,
+            "max_abs": 7.251265302660627,
+            "mean_signed": 0.7409425994974032,
+            "p95_abs": 3.8834281881144572,
+            "rmse": 1.7810202674153608,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 653,
+          "mae_minus_1202_kcal_mol": -0.00016647365555044757,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 653,
+            "mae": 0.0014847943964540439,
+            "max_abs": 0.022044755679670125,
+            "mean_signed": -0.0001714977648303656,
+            "p95_abs": 0.004842622934730744,
+            "rmse": 0.002576793895454904,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -0.00023078980349722222
+        },
+        "974": {
+          "attempted": 653,
+          "complete_finite": true,
+          "experiment_full_panel": {
+            "count": 653,
+            "mae": 1.2743560910144742,
+            "max_abs": 7.2497158993655795,
+            "mean_signed": 0.7415006398161069,
+            "p95_abs": 3.8815105522337605,
+            "rmse": 1.7812104067171872,
+            "unit": "kcal/mol"
+          },
+          "failure_count": 0,
+          "failure_types": {},
+          "finite_count": 653,
+          "mae_minus_1202_kcal_mol": -0.0001116131465292991,
+          "practical_thresholds": {
+            "all_pass": false,
+            "mae_increase_le_0p01": true,
+            "max_abs_delta_le_0p01": false,
+            "rmse_increase_le_0p01": true
+          },
+          "relative_to_1202_full_panel": {
+            "count": 653,
+            "mae": 0.0013162326464056602,
+            "max_abs": 0.027600190752224307,
+            "mean_signed": 0.00038654255387337113,
+            "p95_abs": 0.0040543959422213215,
+            "rmse": 0.0024640127112775063,
+            "unit": "kcal/mol"
+          },
+          "rmse_minus_1202_kcal_mol": -4.065050167079143e-05
+        }
+      },
+      "expected_rows": 653
+    }
+  },
+  "duplicate_reference_mapping": {
+    "1100": 1202,
+    "1200": 1202
+  },
+  "requested_to_actual": {
+    "100": 110,
+    "1100": 1202,
+    "1200": 1202,
+    "300": 302,
+    "500": 590,
+    "700": 770,
+    "900": 974
+  },
+  "scientific_admitted": false,
+  "source_protocol_sha256": "fcb8ca3d48576080e7d21261ad90aa658371a424f9b17edf950b2507a958aec7",
+  "source_summary_sha256": "f55acc1bd2a6f4b4b3fe758f5146c212beffeaa6208caed5d170909ab95d18f6",
+  "study": "fp64-grid",
+  "units": {
+    "conversion_kcal_per_mol_per_eV": 23.060548012069493,
+    "polar_and_cds": "eV",
+    "prediction_error_and_delta": "kcal/mol"
+  }
+}

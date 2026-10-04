@@ -1,0 +1,259 @@
+{
+  "boundary": "relative-to-l15 diagnostic only; not absolute convergence or scientific admission",
+  "datasets": {
+    "freesolv": {
+      "configurations": {
+        "11": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5049652795788622,
+            "max_abs": 8.58194721592967,
+            "mean_signed": 0.7874502759848636,
+            "rmse": 1.9642883262140969
+          },
+          "mae_minus_l15_kcal_mol": 0.002180758121666626,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.01012344336674189,
+            "max_abs": 0.05644119401783598,
+            "mean_signed": 0.01012344336674189,
+            "rmse": 0.012506911063431977
+          },
+          "rmse_minus_l15_kcal_mol": 0.0028748641743849834,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "13": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5038058055739358,
+            "max_abs": 8.62197906117743,
+            "mean_signed": 0.781526934634596,
+            "rmse": 1.962793671019613
+          },
+          "mae_minus_l15_kcal_mol": 0.0010212841167402953,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.004201140857776593,
+            "max_abs": 0.021434959040895762,
+            "mean_signed": 0.0042001020164741994,
+            "rmse": 0.005094986370183514
+          },
+          "rmse_minus_l15_kcal_mol": 0.0013802089799010986,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "15": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5027845214571955,
+            "max_abs": 8.638368044280185,
+            "mean_signed": 0.7773268326181217,
+            "rmse": 1.961413462039712
+          },
+          "mae_minus_l15_kcal_mol": 0.0,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.0,
+            "max_abs": 0.0,
+            "mean_signed": 0.0,
+            "rmse": 0.0
+          },
+          "rmse_minus_l15_kcal_mol": 0.0,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": true,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": true,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "7": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.5098343245743822,
+            "max_abs": 8.464611756263277,
+            "mean_signed": 0.8142759023257438,
+            "rmse": 1.9709945829227673
+          },
+          "mae_minus_l15_kcal_mol": 0.007049803117186615,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.0369490697076221,
+            "max_abs": 0.19571606132987007,
+            "mean_signed": 0.0369490697076221,
+            "rmse": 0.04503631335151944
+          },
+          "rmse_minus_l15_kcal_mol": 0.009581120883055405,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "9": {
+          "experiment": {
+            "count": 642,
+            "mae": 1.507450443231707,
+            "max_abs": 8.527080495119424,
+            "mean_signed": 0.7987985527502349,
+            "rmse": 1.9675245390820235
+          },
+          "mae_minus_l15_kcal_mol": 0.004665921774511528,
+          "relative_to_l15": {
+            "count": 642,
+            "mae": 0.021471720132113164,
+            "max_abs": 0.11668333938868436,
+            "mean_signed": 0.021471720132113164,
+            "rmse": 0.026072786185731615
+          },
+          "rmse_minus_l15_kcal_mol": 0.006111077042311619,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        }
+      },
+      "expected": 642
+    },
+    "mnsol": {
+      "configurations": {
+        "11": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2770763930779623,
+            "max_abs": 7.271425589051081,
+            "mean_signed": 0.7496864084532732,
+            "rmse": 1.784478531763243
+          },
+          "mae_minus_l15_kcal_mol": 0.002608688916958757,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.008583564927148415,
+            "max_abs": 0.058905638256007364,
+            "mean_signed": 0.00857231119103956,
+            "rmse": 0.011804309632837125
+          },
+          "rmse_minus_l15_kcal_mol": 0.0032274745443849895,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "13": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2755750771897079,
+            "max_abs": 7.2553260136313344,
+            "mean_signed": 0.7446348746435203,
+            "rmse": 1.7826410414525262
+          },
+          "mae_minus_l15_kcal_mol": 0.0011073730287043393,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.003539388594524679,
+            "max_abs": 0.024684462547217123,
+            "mean_signed": 0.0035207773812867475,
+            "rmse": 0.0048691990896779155
+          },
+          "rmse_minus_l15_kcal_mol": 0.0013899842336682067,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "15": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2744677041610035,
+            "max_abs": 7.243453867387281,
+            "mean_signed": 0.7411140972622335,
+            "rmse": 1.781251057218858
+          },
+          "mae_minus_l15_kcal_mol": 0.0,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.0,
+            "max_abs": 0.0,
+            "mean_signed": 0.0,
+            "rmse": 0.0
+          },
+          "rmse_minus_l15_kcal_mol": 0.0,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": true,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": true,
+            "rmse_increase_at_most_0p01": true
+          }
+        },
+        "7": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2826992646372355,
+            "max_abs": 7.3373772692503145,
+            "mean_signed": 0.7700648171575669,
+            "rmse": 1.792228113357431
+          },
+          "mae_minus_l15_kcal_mol": 0.00823156047623197,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.02895071989533334,
+            "max_abs": 0.17672029421749613,
+            "mean_signed": 0.02895071989533334,
+            "rmse": 0.03947468359302863
+          },
+          "rmse_minus_l15_kcal_mol": 0.010977056138572916,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": false
+          }
+        },
+        "9": {
+          "experiment": {
+            "count": 653,
+            "mae": 1.2795935707232196,
+            "max_abs": 7.301324780172758,
+            "mean_signed": 0.7582722287636545,
+            "rmse": 1.7878642990969638
+          },
+          "mae_minus_l15_kcal_mol": 0.00512586656221603,
+          "relative_to_l15": {
+            "count": 653,
+            "mae": 0.017158131501420943,
+            "max_abs": 0.1153856642551645,
+            "mean_signed": 0.017158131501420943,
+            "rmse": 0.023651321453259114
+          },
+          "rmse_minus_l15_kcal_mol": 0.006613241878105747,
+          "thresholds": {
+            "all_frozen_0p01_gates_pass": false,
+            "mae_increase_at_most_0p01": true,
+            "numerical_max_abs_at_most_0p01": false,
+            "rmse_increase_at_most_0p01": true
+          }
+        }
+      },
+      "expected": 653
+    }
+  },
+  "scientific_admitted": false,
+  "source_protocol_sha256": "3c3324bf7a08dbe75b943949b72e53d9124221d8593cc8672b907fa3da003e58",
+  "source_summary_sha256": "ed1d0d2bb7c56670bc8b3b2164c4d631cc2b9badf5569e98b44596b237f9355d",
+  "study": "fp64-lmax-high"
+}

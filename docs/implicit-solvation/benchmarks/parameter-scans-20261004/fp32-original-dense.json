@@ -1,0 +1,2754 @@
+{
+  "boundary": "combined change: original TorchDDPCM FP32 continuum plus lower grid/lmax plus reused FP32 MACE source and native FP32 CDS versus matched native-FP64 lmax15/nlebedev1202; not an isolated dtype-only comparison",
+  "datasets": {
+    "combined": {
+      "configurations": {
+        "g194-l1": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.2159842299299426,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.2579452372384816,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.625544851985769,
+              "max_abs": 8.585756694212463,
+              "mean_signed": 1.295882580348646,
+              "rmse": 2.160272097352103,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.022451749925917384,
+              "max_abs": 0.11369074462724416,
+              "mean_signed": 0.02243330360511007,
+              "rmse": 0.02759771236592417,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.5177496571215956,
+              "max_abs": 2.621770875004496,
+              "mean_signed": 0.5173242748549726,
+              "rmse": 0.6364183710376784,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g194-l2": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.10322839849693333,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.12979440333283243,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.5127890205527597,
+              "max_abs": 8.166222866556677,
+              "mean_signed": 1.1095955424192694,
+              "rmse": 2.0321212634464536,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.014372354971085584,
+              "max_abs": 0.08272335913804069,
+              "mean_signed": 0.014355133137006825,
+              "rmse": 0.017537978261256765,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.3314343818572249,
+              "max_abs": 1.9076459951224551,
+              "mean_signed": 0.3310372369255958,
+              "rmse": 0.4044353897283428,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g194-l3": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.04540007757146114,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.05672153205858432,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.4549606996272875,
+              "max_abs": 7.83836873047397,
+              "mean_signed": 0.9377358702413897,
+              "rmse": 1.9590483921722055,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.006932818697525808,
+              "max_abs": 0.07889903572228446,
+              "mean_signed": 0.006902592456363362,
+              "rmse": 0.00875485842116883,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.15987459843326712,
+              "max_abs": 1.819455001379727,
+              "mean_signed": 0.15917756474771613,
+              "rmse": 0.2018918329602348,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g194-l4": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.027368917802965687,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.03480626029491751,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.436929539858792,
+              "max_abs": 8.093550332685965,
+              "mean_signed": 0.8785528871563181,
+              "rmse": 1.9371331204085387,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.004370008537662401,
+              "max_abs": 0.0772803076806356,
+              "mean_signed": 0.0043361754287152676,
+              "rmse": 0.005864986913933807,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.10077479169591755,
+              "max_abs": 1.7821262456568006,
+              "mean_signed": 0.0999945816626446,
+              "rmse": 0.13524981231893,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g194-l5": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.01805488461502791,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.022506745647032256,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.4276155066708542,
+              "max_abs": 8.221050415750973,
+              "mean_signed": 0.8443427843402133,
+              "rmse": 1.9248336057606534,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.0028894832318074695,
+              "max_abs": 0.07686283674862876,
+              "mean_signed": 0.0028526849757477143,
+              "rmse": 0.0042973182409492185,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.06663306679716605,
+              "max_abs": 1.772499137185613,
+              "mean_signed": 0.06578447884653964,
+              "rmse": 0.09909851361855163,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g194-l6": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.013350508039105202,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.016862367348130958,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.4229111300949315,
+              "max_abs": 8.352965443477522,
+              "mean_signed": 0.8256905175606514,
+              "rmse": 1.9191892274617521,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.002081555587873565,
+              "max_abs": 0.07602574911740317,
+              "mean_signed": 0.002043846141137219,
+              "rmse": 0.003451902381288695,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.04800181257395003,
+              "max_abs": 1.7531954376754264,
+              "mean_signed": 0.04713221206697794,
+              "rmse": 0.07960276059668508,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g194-l7": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.009124973099157385,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.011684572377783642,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.4186855951549837,
+              "max_abs": 8.423101485289457,
+              "mean_signed": 0.8136671360933214,
+              "rmse": 1.9140114324914048,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.0015609064158997757,
+              "max_abs": 0.07577177372601523,
+              "mean_signed": 0.0015224629779514514,
+              "rmse": 0.0029877462049360095,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.03599535734620424,
+              "max_abs": 1.7473386259684407,
+              "mean_signed": 0.03510883059964789,
+              "rmse": 0.06889906480680538,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 296
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 647,
+            "model-neutrality+solve_residual+topology": 228,
+            "solve_residual": 272,
+            "solve_residual+topology": 68
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l1": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.21816091944483063,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.26098287946132004,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.627721541500657,
+              "max_abs": 8.579924623789385,
+              "mean_signed": 1.2985228089302294,
+              "rmse": 2.163309739574941,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.022562479669461098,
+              "max_abs": 0.111896883238084,
+              "mean_signed": 0.02254779475164316,
+              "rmse": 0.02766355455590166,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.5203031456889496,
+              "max_abs": 2.5804034483127705,
+              "mean_signed": 0.5199645034365556,
+              "rmse": 0.6379367280208741,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l2": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.10461726086601741,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.13174509599602624,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.5141778829218437,
+              "max_abs": 8.156034955650275,
+              "mean_signed": 1.1116763972772095,
+              "rmse": 2.0340719561096474,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.014460154417229316,
+              "max_abs": 0.08272359755661979,
+              "mean_signed": 0.014445367543268603,
+              "rmse": 0.01757383303641163,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.3334590852004556,
+              "max_abs": 1.9076514931855453,
+              "mean_signed": 0.3331180917835361,
+              "rmse": 0.40526222049226357,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l3": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.04599388397835269,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.05815471437147779,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.455554506034179,
+              "max_abs": 7.872979037627667,
+              "mean_signed": 0.9380628906997532,
+              "rmse": 1.960481574485099,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.006945658652534271,
+              "max_abs": 0.07897805658009543,
+              "mean_signed": 0.006916773405497463,
+              "rmse": 0.008734670926956189,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.16017069483221258,
+              "max_abs": 1.8212772656652323,
+              "mean_signed": 0.1595045852060798,
+              "rmse": 0.20142629828070086,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l4": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.027920823200963563,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.03588224509584381,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.43748144525679,
+              "max_abs": 8.117137023343528,
+              "mean_signed": 0.878885918292965,
+              "rmse": 1.938209105209465,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.004383626535643793,
+              "max_abs": 0.07729958978322043,
+              "mean_signed": 0.004350617025526958,
+              "rmse": 0.005838823332097346,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.10108883019219572,
+              "max_abs": 1.7825709015092315,
+              "mean_signed": 0.10032761279929155,
+              "rmse": 0.13464646578382258,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l5": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.018667289461626213,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.02356635054511136,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.4282279115174525,
+              "max_abs": 8.241338268554333,
+              "mean_signed": 0.8443511566543668,
+              "rmse": 1.9258932106587325,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.002888815619926912,
+              "max_abs": 0.07689788427975669,
+              "mean_signed": 0.002853048033648563,
+              "rmse": 0.004258523151135128,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.066617671301341,
+              "max_abs": 1.7733073524598932,
+              "mean_signed": 0.06579285116069329,
+              "rmse": 0.0982038775872612,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l6": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.013945650872076554,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.017961844692764073,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.4235062729279029,
+              "max_abs": 8.381577363799657,
+              "mean_signed": 0.8254364124772129,
+              "rmse": 1.9202887048063852,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.0020701283510323265,
+              "max_abs": 0.07607161489155784,
+              "mean_signed": 0.0020328271018973157,
+              "rmse": 0.003404994987436545,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.047738294230127355,
+              "max_abs": 1.7542531275624302,
+              "mean_signed": 0.046878106983539274,
+              "rmse": 0.07852105038863652,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        },
+        "g302-l7": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 1295,
+          "finite_count": 1215,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.009732033575857724,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.012829950353486552,
+            "experiment": {
+              "count": 1215,
+              "mae": 1.419292655631684,
+              "max_abs": 8.453324338097062,
+              "mean_signed": 0.8132292780839931,
+              "rmse": 1.9151568104671077,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 1215,
+              "mae": 1.4095606220558263,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7785583054936736,
+              "rmse": 1.9023268601136212,
+              "unit": "kcal/mol"
+            },
+            "n": 1215,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 1215,
+              "mae": 0.0015414776802942368,
+              "max_abs": 0.07582979884770408,
+              "mean_signed": 0.001503475657741234,
+              "rmse": 0.0029332213079771973,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 1215,
+              "mae": 0.035547320055958884,
+              "max_abs": 1.7486767170730522,
+              "mean_signed": 0.034670972590319614,
+              "rmse": 0.06764169080263352,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 1215,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 80,
+            "model-neutrality": 932,
+            "solve_residual": 1215,
+            "topology": 463
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 57,
+            "model-neutrality+solve_residual": 516,
+            "model-neutrality+solve_residual+topology": 359,
+            "solve_residual": 236,
+            "solve_residual+topology": 104
+          },
+          "inherited_cds_blocked_count": 80,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 80,
+            "finite-raw-unqualified": 1215
+          }
+        }
+      },
+      "expected": 1295,
+      "fixed_cds_finite_panel_n": 1215
+    },
+    "freesolv": {
+      "configurations": {
+        "g194-l1": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.21019553942133262,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.25578678413487843,
+            "experiment": {
+              "count": 641,
+              "mae": 1.714393096476611,
+              "max_abs": 8.585756694212463,
+              "mean_signed": 1.3362243181624973,
+              "rmse": 2.2185879656389855,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.024227182988380648,
+              "max_abs": 0.11369074462724416,
+              "mean_signed": 0.02422389133679225,
+              "rmse": 0.02858565099037331,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.5586921165007454,
+              "max_abs": 2.621770875004496,
+              "mean_signed": 0.5586162092112521,
+              "rmse": 0.6592007771197658,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g194-l2": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.09294431915873402,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.11744419103495973,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5971418762140124,
+              "max_abs": 8.166222866556677,
+              "mean_signed": 1.1377685711118066,
+              "rmse": 2.080245372539067,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.015618035702016256,
+              "max_abs": 0.07083002632877344,
+              "mean_signed": 0.015618035702016256,
+              "rmse": 0.018250557512420905,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.3601604621605615,
+              "max_abs": 1.6333792228508273,
+              "mean_signed": 0.3601604621605615,
+              "rmse": 0.42086785776221797,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g194-l3": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.03930008986680722,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.04916380532633724,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5434976469220856,
+              "max_abs": 7.83836873047397,
+              "mean_signed": 0.9473328992435852,
+              "rmse": 2.0119649868304443,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.007360240607624466,
+              "max_abs": 0.03646738408876149,
+              "mean_signed": 0.007359963440743421,
+              "rmse": 0.008728890090460665,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.16973118191250766,
+              "max_abs": 0.8409578616534636,
+              "mean_signed": 0.16972479029233997,
+              "rmse": 0.20129298902314594,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g194-l4": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.023755886881679844,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.02971987183025071,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5279534439369582,
+              "max_abs": 8.093550332685965,
+              "mean_signed": 0.8860803575605917,
+              "rmse": 1.9925210533343578,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.004703801859026675,
+              "max_abs": 0.023625531852455084,
+              "mean_signed": 0.004703801859026675,
+              "rmse": 0.005619979124381626,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.10847224860934652,
+              "max_abs": 0.5448177115942201,
+              "mean_signed": 0.10847224860934652,
+              "rmse": 0.12959979842463096,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g194-l5": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.014949430005942954,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.01846263309563212,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5191469870612213,
+              "max_abs": 8.221050415750973,
+              "mean_signed": 0.8478779563425058,
+              "rmse": 1.9812638145997392,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.0030471889633534497,
+              "max_abs": 0.01809660500308985,
+              "mean_signed": 0.0030471889633534497,
+              "rmse": 0.0037472653111294872,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.07026984739126065,
+              "max_abs": 0.4173176285292115,
+              "mean_signed": 0.07026984739126065,
+              "rmse": 0.08641399162126423,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g194-l6": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.010583341483839215,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.013415099958529186,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5147808985391176,
+              "max_abs": 8.352965443477522,
+              "mean_signed": 0.8281887944158605,
+              "rmse": 1.9762162814626363,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.0021933860998507985,
+              "max_abs": 0.013003956068284195,
+              "mean_signed": 0.0021933860998507985,
+              "rmse": 0.0027190606495685913,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.05058068546461533,
+              "max_abs": 0.2998783532595102,
+              "mean_signed": 0.05058068546461533,
+              "rmse": 0.06270302865710552,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g194-l7": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.006414791843634804,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.008337289917329738,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5106123488989132,
+              "max_abs": 8.423101485289457,
+              "mean_signed": 0.8154140729697894,
+              "rmse": 1.9711384714214368,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.0016394233052780501,
+              "max_abs": 0.010077248800522964,
+              "mean_signed": 0.001639421751762238,
+              "rmse": 0.002073717874793211,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.037805999843470266,
+              "max_abs": 0.2323868797940296,
+              "mean_signed": 0.037805964018544296,
+              "rmse": 0.047821070615155704,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 155
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 374,
+            "model-neutrality+solve_residual+topology": 127,
+            "solve_residual": 112,
+            "solve_residual+topology": 28
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l1": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.2131944373359691,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.2602039032898631,
+            "experiment": {
+              "count": 641,
+              "mae": 1.7173919943912475,
+              "max_abs": 8.579924623789385,
+              "mean_signed": 1.340683326266926,
+              "rmse": 2.22300508479397,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.024419019148597447,
+              "max_abs": 0.111896883238084,
+              "mean_signed": 0.02441725222752628,
+              "rmse": 0.02874128666511091,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.5631159634838759,
+              "max_abs": 2.5804034483127705,
+              "mean_signed": 0.5630752173156808,
+              "rmse": 0.662789821069443,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l2": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.09494205177676229,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.12055758980619924,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5991396088320406,
+              "max_abs": 8.156034955650275,
+              "mean_signed": 1.1408123281355331,
+              "rmse": 2.0833587713103063,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.015750025497841297,
+              "max_abs": 0.06966690129062647,
+              "mean_signed": 0.015750025497841297,
+              "rmse": 0.01834220296276629,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.3632042191842881,
+              "max_abs": 1.6065569220645983,
+              "mean_signed": 0.3632042191842881,
+              "rmse": 0.42298125206999543,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l3": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.04045650030661063,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.051269693396974514,
+            "experiment": {
+              "count": 641,
+              "mae": 1.544654057361889,
+              "max_abs": 7.872979037627667,
+              "mean_signed": 0.9486810955051054,
+              "rmse": 2.0140708749010816,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.007418642094055475,
+              "max_abs": 0.035298596609360855,
+              "mean_signed": 0.007418426763506372,
+              "rmse": 0.008756062061876893,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.17107795219432617,
+              "max_abs": 0.8140049818688402,
+              "mean_signed": 0.17107298655386016,
+              "rmse": 0.20191958957457243,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l4": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.024766900305970285,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.031227467851538737,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5289644573612486,
+              "max_abs": 8.117137023343528,
+              "mean_signed": 0.88707688645448,
+              "rmse": 1.9940286493556458,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.0047470154415211905,
+              "max_abs": 0.02260271614810938,
+              "mean_signed": 0.0047470154415211905,
+              "rmse": 0.005633631333865003,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.1094687775032348,
+              "max_abs": 0.5212310209366571,
+              "mean_signed": 0.1094687775032348,
+              "rmse": 0.12991462585689315,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l5": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.01586301516778854,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.01976530501349849,
+            "experiment": {
+              "count": 641,
+              "mae": 1.520060572223067,
+              "max_abs": 8.241338268554333,
+              "mean_signed": 0.8483513420673682,
+              "rmse": 1.9825664865176056,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.0030677169111114413,
+              "max_abs": 0.017216840446205084,
+              "mean_signed": 0.0030677169111114413,
+              "rmse": 0.003730327842388512,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.07074323311612304,
+              "max_abs": 0.3970297757258514,
+              "mean_signed": 0.07074323311612304,
+              "rmse": 0.08602340431016,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l6": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.011278152621364557,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.014644056541703643,
+            "experiment": {
+              "count": 641,
+              "mae": 1.515475709676643,
+              "max_abs": 8.381577363799657,
+              "mean_signed": 0.828245275675967,
+              "rmse": 1.9774452380458107,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.002195835359082488,
+              "max_abs": 0.011164854753739517,
+              "mean_signed": 0.002195835359082488,
+              "rmse": 0.002676143298049927,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.050637166724721704,
+              "max_abs": 0.2574676690963926,
+              "mean_signed": 0.050637166724721704,
+              "rmse": 0.06171333101185848,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        },
+        "g302-l7": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 642,
+          "finite_count": 641,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.006981196475984053,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.009409542392952996,
+            "experiment": {
+              "count": 641,
+              "mae": 1.5111787535312624,
+              "max_abs": 8.453324338097062,
+              "mean_signed": 0.8149537963406545,
+              "rmse": 1.97221072389706,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 641,
+              "mae": 1.5041975570552784,
+              "max_abs": 8.638368044280185,
+              "mean_signed": 0.7776081089512452,
+              "rmse": 1.962801181504107,
+              "unit": "kcal/mol"
+            },
+            "n": 641,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 641,
+              "mae": 0.001619487998320207,
+              "max_abs": 0.008342396009690445,
+              "mean_signed": 0.0016194622681934097,
+              "rmse": 0.001999569067574121,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 641,
+              "mae": 0.03734628074023357,
+              "max_abs": 0.1923802237171639,
+              "mean_signed": 0.03734568738940921,
+              "rmse": 0.04611115848624218,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 641,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 1,
+            "model-neutrality": 502,
+            "solve_residual": 641,
+            "topology": 284
+          },
+          "gate_failure_intersections": {
+            "cds+model-neutrality": 1,
+            "model-neutrality+solve_residual": 264,
+            "model-neutrality+solve_residual+topology": 237,
+            "solve_residual": 93,
+            "solve_residual+topology": 47
+          },
+          "inherited_cds_blocked_count": 1,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 1,
+            "finite-raw-unqualified": 641
+          }
+        }
+      },
+      "expected": 642,
+      "fixed_cds_finite_panel_n": 641
+    },
+    "mnsol": {
+      "configurations": {
+        "g194-l1": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.22244860382544585,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.26079365406285326,
+            "experiment": {
+              "count": 574,
+              "mae": 1.5263258193749154,
+              "max_abs": 8.553866735025156,
+              "mean_signed": 1.2508319637307392,
+              "rmse": 2.0932300460555386,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.020469079903201442,
+              "max_abs": 0.10857415471893272,
+              "mean_signed": 0.020433709988370914,
+              "rmse": 0.026450881328917118,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.4720281998706637,
+              "max_abs": 2.5037795077658096,
+              "mean_signed": 0.47121255025153147,
+              "rmse": 0.6099718188470458,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g194-l2": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.11471288430840687,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.14455944976104385,
+            "experiment": {
+              "count": 574,
+              "mae": 1.4185900998578764,
+              "max_abs": 8.121112814668647,
+              "mean_signed": 1.0781340243148851,
+              "rmse": 1.9769958417537292,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.012981272482363351,
+              "max_abs": 0.08272335913804069,
+              "mean_signed": 0.012944818600123465,
+              "rmse": 0.016706339502488978,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.29935525733729673,
+              "max_abs": 1.9076459951224551,
+              "mean_signed": 0.29851461083567754,
+              "rmse": 0.38525734420308044,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g194-l3": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.05221208474686745,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.06577603967506884,
+            "experiment": {
+              "count": 574,
+              "mae": 1.356089300296337,
+              "max_abs": 7.616194067219865,
+              "mean_signed": 0.9270186305368474,
+              "rmse": 1.8982124316677542,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.006455506076666505,
+              "max_abs": 0.07889903572228446,
+              "mean_signed": 0.006391834963353573,
+              "rmse": 0.008783767161258942,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.14886750782317448,
+              "max_abs": 1.819455001379727,
+              "mean_signed": 0.14739921705763967,
+              "rmse": 0.2025584843490513,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g194-l4": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.03140367881436679,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.04090915332353662,
+            "experiment": {
+              "count": 574,
+              "mae": 1.3352808943638363,
+              "max_abs": 7.537184151580121,
+              "mean_signed": 0.8701467747362148,
+              "rmse": 1.873345545316222,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.0039972532780901005,
+              "max_abs": 0.0772803076806356,
+              "mean_signed": 0.0039256378993953855,
+              "rmse": 0.006127024571669601,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.0921788511357991,
+              "max_abs": 1.7821262456568006,
+              "mean_signed": 0.09052736125700708,
+              "rmse": 0.1412925443061165,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g194-l5": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.021522822601828473,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.027357636605452873,
+            "experiment": {
+              "count": 574,
+              "mae": 1.325400038151298,
+              "max_abs": 7.432051563682393,
+              "mean_signed": 0.8403949703097783,
+              "rmse": 1.8597940285981382,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.0027133693399590837,
+              "max_abs": 0.07686283674862876,
+              "mean_signed": 0.0026354775610172667,
+              "rmse": 0.004838221942953599,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.06257178393860395,
+              "max_abs": 1.772499137185613,
+              "mean_signed": 0.060775556830570676,
+              "rmse": 0.11157204940852973,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g194-l6": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.016440671387407457,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.02099667895158097,
+            "experiment": {
+              "count": 574,
+              "mae": 1.320317886936877,
+              "max_abs": 7.38734131463174,
+              "mean_signed": 0.8229006299923779,
+              "rmse": 1.8534330709442663,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.00195667168860979,
+              "max_abs": 0.07602574911740317,
+              "mean_signed": 0.0018768511698211818,
+              "rmse": 0.0041189608093721184,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.04512192141904331,
+              "max_abs": 1.7531954376754264,
+              "mean_signed": 0.04328121651317032,
+              "rmse": 0.09498549350435848,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g194-l7": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.012151499553495704,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.01569399721299014,
+            "experiment": {
+              "count": 574,
+              "mae": 1.3160287151029653,
+              "max_abs": 7.349944864007014,
+              "mean_signed": 0.8117162884664642,
+              "rmse": 1.8481303892056755,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.001473224663127173,
+              "max_abs": 0.07577177372601523,
+              "mean_signed": 0.00139185222183174,
+              "rmse": 0.0037540584866522786,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.033973368076609244,
+              "max_abs": 1.7473386259684407,
+              "mean_signed": 0.03209687498725661,
+              "rmse": 0.08657064597156192,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 141
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 273,
+            "model-neutrality+solve_residual+topology": 101,
+            "solve_residual": 160,
+            "solve_residual+topology": 40
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l1": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.2237071128799879,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.2622003176077681,
+            "experiment": {
+              "count": 574,
+              "mae": 1.5275843284294575,
+              "max_abs": 8.539387585876744,
+              "mean_signed": 1.2514411162249635,
+              "rmse": 2.0946367096004535,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.020489236104780952,
+              "max_abs": 0.10687148843627892,
+              "mean_signed": 0.020460125340421763,
+              "rmse": 0.026408092055652296,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.472493012924929,
+              "max_abs": 2.464515090206138,
+              "mean_signed": 0.47182170274575586,
+              "rmse": 0.6089850747565209,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l2": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.11542180620785114,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.14514448749015596,
+            "experiment": {
+              "count": 574,
+              "mae": 1.4192990217573207,
+              "max_abs": 8.106145712420966,
+              "mean_signed": 1.0791395825033674,
+              "rmse": 1.9775808794828413,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.013019723471807224,
+              "max_abs": 0.08272359755661979,
+              "mean_signed": 0.012988423729886898,
+              "rmse": 0.016673979014074698,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.3002419582254788,
+              "max_abs": 1.9076514931855453,
+              "mean_signed": 0.2995201690241597,
+              "rmse": 0.3845110936063089,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l3": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.05217761731212733,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.06641402596110213,
+            "experiment": {
+              "count": 574,
+              "mae": 1.356054832861597,
+              "max_abs": 7.603915517823362,
+              "mean_signed": 0.9262052787132888,
+              "rmse": 1.8988504179537875,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.0064174663424034495,
+              "max_abs": 0.07897805658009543,
+              "mean_signed": 0.0063565646903690435,
+              "rmse": 0.008710720831565238,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.14799029070483488,
+              "max_abs": 1.8212772656652323,
+              "mean_signed": 0.14658586523408115,
+              "rmse": 0.20087399595604424,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l4": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.03144288692167896,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.041473487417090116,
+            "experiment": {
+              "count": 574,
+              "mae": 1.3353201024711485,
+              "max_abs": 7.530389920116232,
+              "mean_signed": 0.8697388615132942,
+              "rmse": 1.8739098794097755,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.003977821154690115,
+              "max_abs": 0.07729958978322043,
+              "mean_signed": 0.0039079491080142355,
+              "rmse": 0.006059759925974953,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.09173073572115727,
+              "max_abs": 1.7825709015092315,
+              "mean_signed": 0.0901194480340866,
+              "rmse": 0.13974138471456019,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l5": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.021798891939588172,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.028129195663480377,
+            "experiment": {
+              "count": 574,
+              "mae": 1.3256761074890577,
+              "max_abs": 7.422258138802723,
+              "mean_signed": 0.8398840506443774,
+              "rmse": 1.8605655876561658,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.0026890321222800767,
+              "max_abs": 0.07689788427975669,
+              "mean_signed": 0.0026133219875619676,
+              "rmse": 0.004779877963510926,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.062010554361837014,
+              "max_abs": 1.7733073524598932,
+              "mean_signed": 0.060264637165169825,
+              "rmse": 0.11022660526937678,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l6": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.016924512159021354,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.02194320799359173,
+            "experiment": {
+              "count": 574,
+              "mae": 1.320801727708491,
+              "max_abs": 7.38064192475616,
+              "mean_signed": 0.8222996854556075,
+              "rmse": 1.854379599986277,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.0019297482253177733,
+              "max_abs": 0.07607161489155784,
+              "mean_signed": 0.0018507917484901798,
+              "rmse": 0.004067381437313649,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.04450105160114656,
+              "max_abs": 1.7542531275624302,
+              "mean_signed": 0.042680271976400015,
+              "rmse": 0.09379604491857173,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        },
+        "g302-l7": {
+          "additional_failure_count": 0,
+          "common_gate_pass_count": 0,
+          "expected_full": 653,
+          "finite_count": 574,
+          "fixed_panel_diagnostics": {
+            "MAE_change_vs_matched_native_fp64_kcal_mol": 0.012803961417354515,
+            "RMSE_change_vs_matched_native_fp64_kcal_mol": 0.01692775627061205,
+            "experiment": {
+              "count": 574,
+              "mae": 1.316681176966824,
+              "max_abs": 7.344165025183292,
+              "mean_signed": 0.811303465884481,
+              "rmse": 1.8493641482632974,
+              "unit": "kcal/mol"
+            },
+            "matched_native_fp64_l15_n1202": {
+              "count": 574,
+              "mae": 1.3038772155494696,
+              "max_abs": 7.243453867387281,
+              "mean_signed": 0.7796194134792076,
+              "rmse": 1.8324363919926854,
+              "unit": "kcal/mol"
+            },
+            "n": 574,
+            "paired_energy_delta_vs_matched_native_fp64_eV": {
+              "count": 574,
+              "mae": 0.001454361628282657,
+              "max_abs": 0.07582979884770408,
+              "mean_signed": 0.0013739505404941176,
+              "rmse": 0.003707677854137129,
+              "unit": "eV"
+            },
+            "paired_energy_delta_vs_matched_native_fp64_kcal_mol": {
+              "count": 574,
+              "mae": 0.03353837615592391,
+              "max_abs": 1.7486767170730522,
+              "mean_signed": 0.03168405240527358,
+              "rmse": 0.08550108316861611,
+              "unit": "kcal/mol"
+            },
+            "panel_is_not_full_dataset": true
+          },
+          "fixed_panel_expected": 574,
+          "full_panel_MAE_kcal_mol": null,
+          "gate_failure_counts": {
+            "cds": 79,
+            "model-neutrality": 430,
+            "solve_residual": 574,
+            "topology": 179
+          },
+          "gate_failure_intersections": {
+            "cds": 23,
+            "cds+model-neutrality": 56,
+            "model-neutrality+solve_residual": 252,
+            "model-neutrality+solve_residual+topology": 122,
+            "solve_residual": 143,
+            "solve_residual+topology": 57
+          },
+          "inherited_cds_blocked_count": 79,
+          "status_counts": {
+            "blocked-by-existing-native-fp32-cds-failure": 79,
+            "finite-raw-unqualified": 574
+          }
+        }
+      },
+      "expected": 653,
+      "fixed_cds_finite_panel_n": 574
+    }
+  },
+  "memory_probe": {
+    "atom_count": 46,
+    "boundary": "50 percent is a same-spec budget estimate, not measured RSS reduction; isolated FP32 RSS is an energy-only probe.",
+    "fp32_first_order_estimate_bytes": 2539141120,
+    "fp64_executed": false,
+    "fp64_first_order_estimate_bytes": 5078282240,
+    "lmax": 7,
+    "n_lebedev": 302,
+    "process_peak_rss_KiB": 1012648
+  },
+  "pair_count": 18130,
+  "scientific_admitted": false,
+  "source_protocol_sha256": "b2597588986d61dcbfa5a52c19be8189d3f896335b140c47874c0029ddb34a42",
+  "source_summary_sha256": "37daf65e991c1ec54f32322d1abbe20b3d3f5009eb5586a517fa358bc629ecc2",
+  "study": "fp32-original-dense"
+}

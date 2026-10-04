@@ -1,0 +1,45 @@
+{
+  "files": {
+    "README.md": {
+      "sha256": "2ffa7532d1b80e2027f7e995fbd746d4c99090b697672438d963691cd2821599",
+      "size_bytes": 6479
+    },
+    "configuration-summary.csv": {
+      "sha256": "74fe565c6be5cf6ae21d443b04ab0b54135afcc3c6caf42556f2b6d7c188e47b",
+      "size_bytes": 15826
+    },
+    "fp32-historical-comparison.json": {
+      "sha256": "ad12bfe7cf745cd5484ec826d96ce368002635e233811858b1674651bf42d1a0",
+      "size_bytes": 9515
+    },
+    "fp32-original-dense.json": {
+      "sha256": "94c575fcf65ea3fff1615211b113589846bd184ae29d4aff41189ead06f47642",
+      "size_bytes": 102926
+    },
+    "fp64-grid.json": {
+      "sha256": "dfc28b242336e3e03604d25aaa3ef169e325cba684e4de229fe6cc66153497f7",
+      "size_bytes": 20646
+    },
+    "fp64-lmax-high.json": {
+      "sha256": "c7515b7017dc9953942193c1faf93ae1e4aa2001addc6399d0a0c320f9b8aa2d",
+      "size_bytes": 8865
+    },
+    "fp64-lmax-low.json": {
+      "sha256": "6562864c24f776c63788c21ca1eea0943ed9608a14087e10dafc7816005262bb",
+      "size_bytes": 7727
+    },
+    "freesolv-records.csv": {
+      "sha256": "05c5255b8a0b3ba51476ba1e55dc613d216f236d1a617abfb98185774a4e83be",
+      "size_bytes": 3201031
+    },
+    "provenance.json": {
+      "sha256": "b9768a22acb25753bb4be9e98ff194b360957615f428bdd342bae0e93ab08935",
+      "size_bytes": 2585
+    },
+    "verify_results.py": {
+      "sha256": "c18af90436b1e26cb669eb0da46c19e7958c9d228450de91158bd02f504d70b8",
+      "size_bytes": 5995
+    }
+  },
+  "schema": "parameter-scan-public-results-manifest-v1"
+}

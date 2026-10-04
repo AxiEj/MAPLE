@@ -1,5 +1,16 @@
 # Route-2 secondary energy diagnostic
 
+## Completed parameter scans (2026-10-04)
+
+The [portable scan-result package](parameter-scans-20261004/README.md) contains
+83 dataset/configuration summaries and 19,902 FreeSolv per-record results for
+the lmax, Lebedev-grid, historical FP32/FP64, and original dense-Torch FP32 scans.
+MNSol remains aggregate-only. The package includes CSV, JSON, provenance hashes,
+and a standard-library verifier; no models or local runtime cache are required
+for cloud analysis. Historical private-backend results are explicitly separated
+from the current original `TorchDDPCM` results, and failed/full-panel boundaries
+are preserved.
+
 ## Route 2: MACE-POLAR-1-M/SMD/IEFPCM
 
 [`route2-protocol.json`](route2-protocol.json) is a reproducible FreeSolv

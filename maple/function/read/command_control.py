@@ -52,9 +52,7 @@ class CommandControl:
         "ts": {},
         "irc": {"method": "gs"},
         "scan": {},
-        "parmfit": {
-            "method": "abinitio",
-        },
+        "parmfit": {},
         "freq": {
             "method": "mw",
             "temperature": 298.15,
@@ -78,7 +76,7 @@ class CommandControl:
         "sp": set(),
         "irc": {"gs", "hpc", "eulerpc", "lqa"},
         "md": {"nve", "nvt", "npt"},
-        "parmfit": {"abinitio", "correction"},
+        "parmfit": {"correction", "corr", "ncaa", "metalaa"},
     }
     GLOBAL_PARAMS = GLOBAL_PARAMETER_KEYS
     LBFGS_PARAMS = {
@@ -224,7 +222,7 @@ class CommandControl:
             if paren_val is not None and assign_val is not None:
                 sub = {}
                 cls._parse_nested(sub, paren_val)
-                params[key] = cls._auto_cast(assign_val.strip())
+                params[key] = cls._auto_cast(assign_val.strip(), key)
                 params[f"{key}_options"] = sub
                 log_lines.append(f"Global parameter: {key} = {params[key]} with options {sub}\n")
                 continue
@@ -242,7 +240,7 @@ class CommandControl:
                 continue
 
             if assign_val:
-                value = cls._auto_cast(assign_val.strip())
+                value = cls._auto_cast(assign_val.strip(), key)
                 params[key] = value
                 log_lines.append(f"Global parameter: {key} = {value}\n")
                 continue
@@ -278,7 +276,7 @@ class CommandControl:
             if "=" in kv:
                 k, v = kv.split("=", 1)
                 normalized = CommandControl._normalize_key(k)
-                value = CommandControl._auto_cast(v.strip())
+                value = CommandControl._auto_cast(v.strip(), normalized)
             else:
                 normalized = CommandControl._normalize_key(kv)
                 value = True
@@ -312,9 +310,12 @@ class CommandControl:
         return cellpar
 
     @staticmethod
-    def _auto_cast(value: str) -> Any:
+    def _auto_cast(value: str, key: str = "") -> Any:
         if value.lower() in {"true", "false"}:
             return value.lower() == "true"
+        if key == "ion_ff":
+            # ion_ff values like 12_6 are identifiers, not Python numeric literals.
+            return value
         try:
             return int(value)
         except Exception:

@@ -567,24 +567,21 @@ def _absolute_basis_for_frames(
     if problem.grouped:
         for frame_index, atoms in enumerate(frames):
             positions = np.asarray(atoms.get_positions(), dtype=float)
-            phi_cache: dict[int, float] = {}
+            phi_cache: dict[tuple[int, int, int, int], float] = {}
             for torsion_bond in problem.torsion_bonds:
                 for group in problem.shared_groups_map.get(torsion_bond, ()):
-                    for dihedral_index in group.dihedral_indices:
-                        if dihedral_index not in phi_cache:
-                            phi_cache[dihedral_index] = dihedral_radians(
-                                positions,
-                                *reference.dihedrals[int(dihedral_index)].atoms,
-                            )
+                    for instance in group.instances:
+                        if instance not in phi_cache:
+                            phi_cache[instance] = dihedral_radians(positions, *instance)
                     for slot_index, slot_period in zip(group.slot_indices, group.slot_periods):
-                        abs_const[frame_index, slot_index] = float(len(group.dihedral_indices))
+                        abs_const[frame_index, slot_index] = float(len(group.instances))
                         abs_cos[frame_index, slot_index] = sum(
-                            np.cos(float(slot_period) * phi_cache[int(dihedral_index)])
-                            for dihedral_index in group.dihedral_indices
+                            np.cos(float(slot_period) * phi_cache[instance])
+                            for instance in group.instances
                         )
                         abs_sin[frame_index, slot_index] = sum(
-                            np.sin(float(slot_period) * phi_cache[int(dihedral_index)])
-                            for dihedral_index in group.dihedral_indices
+                            np.sin(float(slot_period) * phi_cache[instance])
+                            for instance in group.instances
                         )
         return abs_const, abs_cos, abs_sin
 

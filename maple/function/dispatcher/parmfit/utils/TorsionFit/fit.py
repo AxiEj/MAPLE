@@ -20,7 +20,7 @@ from .records import TorsionEnsembleResult, TorsionFitReport, TorsionScanData, T
 from .config import TorsionFitParams
 from .basis import _MMProfileCache, build_global_torsion_problem, build_improper_local_problem, build_local_torsion_problem
 from .report import format_torsion_final_point_table, format_torsion_fit_report, format_torsion_stage2_lines
-from .stage1 import _build_fit_report, local_fit_solver
+from .stage1 import _build_fit_report, _paramset_relative_profile, local_fit_solver
 from .stage2 import _build_stage2_objective_cache, _global_mm_rel_map, apply_global_delta, evaluate_global_refit_objective, refine_torsion_scans_global
 from .ensemble import attach_stage2_extra_targets
 
@@ -146,8 +146,6 @@ def _fit_stage1_cycle(
             stage0_mm_rel_override=stage0_mm_rel_override,
         )
         fit_reports.append(fit_report)
-        if log_info is not None:
-            log_info(format_torsion_fit_report(fit_report))
         if improper:
             stage1_paramset = apply_fitted_improper(fit_report, stage1_paramset)
         else:
@@ -158,6 +156,27 @@ def _fit_stage1_cycle(
                 for group in fit_report.terms.shared_groups
             },
         }
+
+    # Local fits start from the same parameter snapshot, but Stage1 exports
+    # all their replacements together. Report that combined MM potential.
+    stage1_cache = build_mm_topology_cache(stage1_paramset)
+    for fit_report in fit_reports:
+        torsion_bond = fit_report.torsion_bond
+        mm_rel = (
+            profile_cache.full_rel(stage1_paramset, torsion_bond)
+            if profile_cache is not None
+            else _paramset_relative_profile(
+                scan_data_map[torsion_bond], stage1_paramset, topology_cache=stage1_cache
+            )
+        )
+        residual = np.asarray(fit_report.curves.qm_rel, dtype=float) - mm_rel
+        fit_report.curves.mm_stage1_rel = mm_rel.copy()
+        fit_report.metrics.residual_after = residual.copy()
+        fit_report.metrics.rmse = float(np.sqrt(np.mean(residual**2)))
+        fit_report.metrics.mae = float(np.mean(np.abs(residual)))
+        fit_report.metrics.max_abs_error = float(np.max(np.abs(residual)))
+        if log_info is not None:
+            log_info(format_torsion_fit_report(fit_report))
 
     return stage1_paramset, fit_reports, diagnostics
 

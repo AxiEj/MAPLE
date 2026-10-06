@@ -21,6 +21,27 @@ from .rst_io import constraint_identity, read_rst_bytes
 from .utils import normalize_velocity_representation, set_atoms_velocity_representation
 
 
+def validate_fresh_velocity_representation(atoms: Atoms) -> None:
+    """Require self-contained standard velocities for fresh in-memory input.
+
+    LF-Middle carried velocities require the source timestep and PES to
+    reconstruct the standard velocity. Those are bound by an RST checkpoint,
+    but are not part of an ``Atoms`` velocity array or its representation tag.
+    """
+    if "velocities" not in atoms.arrays:
+        return
+    representation = atoms.info.get("velocity_representation")
+    if representation is None or representation == "standard":
+        return
+    if representation == "lfmiddle_carried":
+        raise RuntimeError(
+            "In-memory LF-Middle carried velocities do not include their source "
+            "timestep and PES identity. Use load_state=yes with rst_file to "
+            "initialize from the saved checkpoint."
+        )
+    raise ValueError(f"Unsupported MD input velocity representation: {representation!r}")
+
+
 @dataclass(frozen=True)
 class PreparedMDState:
     atoms: Atoms

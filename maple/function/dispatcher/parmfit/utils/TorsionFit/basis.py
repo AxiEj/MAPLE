@@ -835,11 +835,10 @@ def build_global_torsion_problem(
         abs_const = np.zeros((len(scan_data.frames), len(term_paths)), dtype=float)
         abs_cos = np.zeros((len(scan_data.frames), len(term_paths)), dtype=float)
         abs_sin = np.zeros((len(scan_data.frames), len(term_paths)), dtype=float)
-        start, end = block_slices[torsion_bond]
         for point_index, atoms in enumerate(scan_data.frames):
             positions = atoms.get_positions()
             phi_cache: dict[int, float] = {}
-            for global_index in range(start, end):
+            for global_index in range(len(term_paths)):
                 dihedral_index, term_index = term_paths[global_index]
                 dihedral = stage0_paramset.dihedrals[dihedral_index]
                 if dihedral_index not in phi_cache:
@@ -1038,6 +1037,48 @@ def _build_grouped_global_torsion_problem(
     centered_sin_basis_map: dict[tuple[int, int], np.ndarray] = {}
     constant_rel_map: dict[tuple[int, int], np.ndarray] = {}
 
+    # Every fitted group contributes to every relaxed scan: changing one
+    # torsion can change its energy on another center's scan geometries.
+    all_groups = tuple(
+        group
+        for torsion_bond in normalized_torsion_bonds
+        for group in shared_groups_map[torsion_bond]
+    )
+    for torsion_bond in normalized_torsion_bonds:
+        for group in shared_groups_map[torsion_bond]:
+            reference_instances = (
+                [reference_cache.improper_by_center[torsion_bond[0]][0]]
+                if group.improper
+                else [reference_paramset.dihedrals[index] for index in group.dihedral_indices]
+            )
+            original_instances = (
+                []
+                if group.improper
+                else [original_paramset.dihedrals[index] for index in group.dihedral_indices]
+            )
+            for slot_index, slot_period, slot_original in zip(
+                group.slot_indices, group.slot_periods, group.existing_slot_mask
+            ):
+                reference_coefficients = _aggregate_period_coefficients(reference_instances, slot_period)
+                original_coefficients = _aggregate_period_coefficients(original_instances, slot_period)
+                slot_k, resolved_phase = _coefficients_to_k_phase(reference_coefficients, slot_period)
+                k_orig[slot_index] = float(slot_k)
+                phase_orig[slot_index] = float(resolved_phase)
+                period_orig[slot_index] = slot_period
+                scales[slot_index] = max(1.0, abs(float(slot_k)))
+                if group.improper:
+                    prior_weights[slot_index] = (
+                        _IMPROPER_ACTIVE_TERM_PRIOR_WEIGHT
+                        if slot_index in improper_active_slots
+                        else _GLOBAL_INACTIVE_TERM_PRIOR_WEIGHT
+                    )
+                elif original_coefficients is not None:
+                    prior_weights[slot_index] = _GLOBAL_EXISTING_TERM_PRIOR_WEIGHT
+                elif slot_original:
+                    prior_weights[slot_index] = _GLOBAL_NEW_TERM_PRIOR_WEIGHT
+                else:
+                    prior_weights[slot_index] = _GLOBAL_INACTIVE_TERM_PRIOR_WEIGHT
+
     for torsion_bond in normalized_torsion_bonds:
         scan_data = normalized_scan_map[torsion_bond]
         base_mm_total = None
@@ -1050,97 +1091,35 @@ def _build_grouped_global_torsion_problem(
                 dtype=float,
             )
 
-        basis = np.zeros((len(scan_data.frames), n_slots), dtype=float)
-        abs_const = np.zeros((len(scan_data.frames), n_slots), dtype=float)
         abs_cos = np.zeros((len(scan_data.frames), n_slots), dtype=float)
         abs_sin = np.zeros((len(scan_data.frames), n_slots), dtype=float)
-        center_groups = shared_groups_map[torsion_bond]
         ref_idx = int(scan_data.ref_idx)
-        improper_instance = None
-        if torsion_bond[0] == torsion_bond[1]:
-            improper_instance = reference_cache.improper_by_center[torsion_bond[0]][0]
         for point_index, atoms in enumerate(scan_data.frames):
             positions = atoms.get_positions()
-            phi_cache: dict[int, float] = {}
-            if improper_instance is not None:
-                improper_phi = dihedral_radians(positions, *improper_instance.atoms)
-            for group in center_groups:
-                for dihedral_index in group.dihedral_indices:
-                    if dihedral_index not in phi_cache:
-                        phi_cache[dihedral_index] = dihedral_radians(positions, *reference_paramset.dihedrals[dihedral_index].atoms)
-                for slot_index, slot_period, slot_phase, slot_original in zip(
-                    group.slot_indices,
-                    group.slot_periods,
-                    group.slot_phases,
-                    group.existing_slot_mask,
-                ):
-                    if improper_instance is not None:
-                        abs_const[point_index, slot_index] = 1.0
-                        abs_cos[point_index, slot_index] = np.cos(slot_period * improper_phi)
-                        abs_sin[point_index, slot_index] = np.sin(slot_period * improper_phi)
-                    else:
-                        abs_const[point_index, slot_index] = float(len(group.dihedral_indices))
-                        abs_cos[point_index, slot_index] = sum(
-                            np.cos(slot_period * phi_cache[dihedral_index])
-                            for dihedral_index in group.dihedral_indices
-                        )
-                        abs_sin[point_index, slot_index] = sum(
-                            np.sin(slot_period * phi_cache[dihedral_index])
-                            for dihedral_index in group.dihedral_indices
-                        )
-                    basis[point_index, slot_index] = (
-                        abs_const[point_index, slot_index]
-                        + (abs_cos[point_index, slot_index] * np.cos(slot_phase))
-                        + (abs_sin[point_index, slot_index] * np.sin(slot_phase))
+            phi_cache: dict[tuple[int, int, int, int], float] = {}
+            for group in all_groups:
+                for instance in group.instances:
+                    if instance not in phi_cache:
+                        phi_cache[instance] = dihedral_radians(positions, *instance)
+                for slot_index, slot_period in zip(group.slot_indices, group.slot_periods):
+                    abs_cos[point_index, slot_index] = sum(
+                        np.cos(slot_period * phi_cache[instance]) for instance in group.instances
                     )
-                    if point_index == 0:
-                        if improper_instance is not None:
-                            reference_coefficients = _aggregate_period_coefficients((improper_instance,), slot_period)
-                            original_coefficients = None
-                        else:
-                            reference_coefficients = _aggregate_period_coefficients(
-                                [reference_paramset.dihedrals[dihedral_index] for dihedral_index in group.dihedral_indices],
-                                slot_period,
-                            )
-                            original_coefficients = _aggregate_period_coefficients(
-                                [original_paramset.dihedrals[dihedral_index] for dihedral_index in group.dihedral_indices],
-                                slot_period,
-                            )
-                        slot_k, resolved_phase = _coefficients_to_k_phase(reference_coefficients, slot_period)
-                        k_orig[slot_index] = float(slot_k)
-                        phase_orig[slot_index] = float(resolved_phase)
-                        period_orig[slot_index] = slot_period
-                        scales[slot_index] = max(1.0, abs(float(slot_k)))
-                        if improper_instance is not None:
-                            prior_weights[slot_index] = (
-                                _IMPROPER_ACTIVE_TERM_PRIOR_WEIGHT
-                                if slot_index in improper_active_slots
-                                else _GLOBAL_INACTIVE_TERM_PRIOR_WEIGHT
-                            )
-                        elif original_coefficients is not None:
-                            prior_weights[slot_index] = _GLOBAL_EXISTING_TERM_PRIOR_WEIGHT
-                        elif slot_original:
-                            prior_weights[slot_index] = _GLOBAL_NEW_TERM_PRIOR_WEIGHT
-                        else:
-                            prior_weights[slot_index] = _GLOBAL_INACTIVE_TERM_PRIOR_WEIGHT
-        centered_basis_map[torsion_bond] = basis - basis[ref_idx]
-        centered_cos_basis_map[torsion_bond] = abs_cos - abs_cos[ref_idx]
-        centered_sin_basis_map[torsion_bond] = abs_sin - abs_sin[ref_idx]
-        stage1_torsion_total = np.sum(
-            k_orig[np.newaxis, :]
-            * (
-                abs_const
-                + (abs_cos * np.cos(phase_orig)[np.newaxis, :])
-                + (abs_sin * np.sin(phase_orig)[np.newaxis, :])
-            ),
-            axis=1,
-        )
-        stage1_torsion_rel = stage1_torsion_total - stage1_torsion_total[ref_idx]
+                    abs_sin[point_index, slot_index] = sum(
+                        np.sin(slot_period * phi_cache[instance]) for instance in group.instances
+                    )
+        cos_basis = abs_cos - abs_cos[ref_idx]
+        sin_basis = abs_sin - abs_sin[ref_idx]
+        basis = cos_basis * np.cos(phase_orig) + sin_basis * np.sin(phase_orig)
+        centered_basis_map[torsion_bond] = basis
+        centered_cos_basis_map[torsion_bond] = cos_basis
+        centered_sin_basis_map[torsion_bond] = sin_basis
+        stage1_torsion_rel = basis @ k_orig
         if stage_mm_rel is not None:
             constant_rel_map[torsion_bond] = np.asarray(stage_mm_rel, dtype=float) - stage1_torsion_rel
         else:
-            constant_total = np.asarray(base_mm_total, dtype=float) - stage1_torsion_total
-            constant_rel_map[torsion_bond] = constant_total - constant_total[ref_idx]
+            base_values = np.asarray(base_mm_total, dtype=float)
+            constant_rel_map[torsion_bond] = base_values - base_values[ref_idx] - stage1_torsion_rel
 
     return TorsionGlobalProblem(
         stage0_paramset=reference_paramset,

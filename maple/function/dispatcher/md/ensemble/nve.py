@@ -20,7 +20,7 @@ from maple.function.timer import timer
 from ...jobABC import JobABC
 from ..integrator.velocity_verlet import VelocityVerlet
 from ..logger import MDLogger
-from ..state import validate_prepared_restart
+from ..state import validate_fresh_velocity_representation, validate_prepared_restart
 from ..utils import (
     FS_TO_AU,
     HA_PER_ANG_TO_AU,
@@ -295,6 +295,7 @@ class NVE(JobABC):
                     else self.params.steps - step_offset
                 )
             else:
+                validate_fresh_velocity_representation(self.atoms)
                 self._install_actual_state(
                     self.atoms, self._build_actual_state(self.atoms)
                 )
@@ -383,66 +384,21 @@ class NVE(JobABC):
 
         self.log_info(["="*80 + "\n"])
 
-        # ── NVT pre-equilibration advisory ────────────────────────────────────
-        # NVE started directly from an energy-minimised (0 K) structure will
-        # exhibit a large, irreversible drop in total energy during the first
-        # ~20 steps as the system relaxes from the 0 K geometry toward a
-        # geometry consistent with the Maxwell-Boltzmann velocity distribution.
-        # On the Ala-Glu dipeptide test system (AG_opt, 30 atoms) this artefact produced:
-        #   • ΔTE ≈ −7.7 kcal/mol in the first 20 steps
-        #   • Actual mean temperature settling at ~165 K instead of 300 K
-        #
-        # Root cause: the optimised geometry minimises V(r), so V(r_opt) is
-        # lower than the true 300 K average potential energy.  Kinetic energy
-        # poured in at t=0 is immediately absorbed by the PE well, lowering
-        # the equilibrium temperature.
-        #
-        # Standard solution (all major MD codes):
-        #   Run NVT equilibration first (≥ 10 ps recommended), then switch to
-        #   NVE for production.  The NVT thermostat drives the structure into a
-        #   proper 300 K Boltzmann distribution before energy conservation is
-        #   benchmarked.
-        #
-        # Refs:
-        #   GROMACS Reference Manual 2024, §3.4.2:
-        #     "Before running NVE for energy conservation benchmarks, always
-        #      equilibrate with NVT (and optionally NPT) to bring the system
-        #      to a proper thermodynamic state."
-        #   AMBER 2023 Manual (Case et al.), §3.1:
-        #     Multi-stage heating (NVT) before NVE production is standard;
-        #     skipping NVT equilibration leads to temperature underestimation.
-        #   OpenMM Best Practices (Eastman et al. 2017 PLOS Comput. Biol.):
-        #     LangevinMiddleIntegrator equilibration → VerletIntegrator NVE.
-        #   NAMD User Guide §2.2:
-        #     "langevin on" equilibration → "langevin off" NVE production.
-        #
-        # Recommended MAPLE workflow:
-        #   #md(ensemble=nvt, steps=100000, timestep=0.1, temperature=300,
-        #        thermostat=langevin, friction=0.001)   ; 10 ps NVT
-        #   #md(ensemble=nve, timestep=0.1, steps=100000, restart=true)
-        #
-        # Only suppress this warning if you have already equilibrated the
-        # system with NVT (restart=true from a completed NVT run, or
-        # load_state=true from an equilibrated NVT checkpoint).
         if not (self.params.restart or self.params.load_state):
-            nvt_warn = (
-                "\n"
-                "  ┌─ NVT PRE-EQUILIBRATION ADVISORY ──────────────────────────────────────┐\n"
-                "  │  Starting NVE from an optimised (0 K) structure without prior NVT     │\n"
-                "  │  equilibration is known to cause:                                      │\n"
-                "  │    • A large initial TE drop (~5–10 kcal/mol) in the first ~20 steps  │\n"
-                "  │    • Actual mean temperature well below the target value               │\n"
-                "  │    • Inflated σ(TE) that cannot be reduced by decreasing dt            │\n"
-                "  │                                                                        │\n"
-                "  │  Recommended workflow (GROMACS Manual 2024 §3.4.2; AMBER 2023 §3.1): │\n"
-                "  │    opt → NVT (≥ 10 ps, Langevin) → NVE (production)                  │\n"
-                "  │                                                                        │\n"
-                "  │  To suppress: set restart=true (assumes prior NVT was completed).     │\n"
-                "  └────────────────────────────────────────────────────────────────────────┘\n"
-                "\n"
+            nvt_advisory = (
+                "\nNVE initialization: equilibration can help prepare a representative "
+                "thermal state.\n"
+                "Starting from an energy minimum can transfer kinetic energy into "
+                "potential energy and lower the temperature. This does not explain "
+                "a loss of total energy.\n"
+                "Persistent total-energy drift requires checking the timestep, "
+                "force consistency, and any motion projections.\n"
+                "To start NVE from an equilibrated NVT checkpoint, use "
+                "load_state=yes with rst_file. restart=yes is reserved for "
+                "exact continuation of the same dynamics.\n\n"
             )
-            self.log_info([nvt_warn])
-            print(nvt_warn, end='', flush=True)
+            self.log_info([nvt_advisory])
+            print(nvt_advisory, end='', flush=True)
 
     def _initialize_velocities(self) -> np.ndarray:
         """

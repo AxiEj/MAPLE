@@ -9,14 +9,12 @@ This module provides essential calculations for MD:
 - XYZ trajectory writing utilities
 """
 
-import warnings
 from dataclasses import fields
 from math import isfinite
 from typing import Optional, Tuple, TypedDict
 
 import numpy as np
 from ase import Atoms
-from ase.calculators.calculator import PropertyNotImplementedError
 
 from ...parameter_ownership import (
     GLOBAL_PARAMETER_KEYS,
@@ -627,13 +625,32 @@ def calculate_kinetic_energy(atoms: Atoms, velocities: np.ndarray) -> float:
     return kinetic
 
 
+def validate_pressure_cell(atoms: Atoms) -> float:
+    """Require the finite, three-dimensionally periodic volume used by NPT."""
+    if not np.all(atoms.pbc):
+        raise ValueError("Isotropic pressure coupling requires PBC in all three dimensions.")
+    cell = np.asarray(atoms.cell, dtype=float)
+    if not np.all(np.isfinite(cell)):
+        raise ValueError("Pressure coupling requires a finite cell.")
+    if np.linalg.matrix_rank(cell) != 3:
+        raise ValueError("Pressure coupling requires a full-rank three-dimensional cell.")
+    volume = float(abs(np.linalg.det(cell)))
+    if not np.isfinite(volume) or volume <= 0.0:
+        raise ValueError("Pressure coupling requires a nonzero, finite cell volume.")
+    return volume
+
+
 def compute_configurational_pressure(atoms: Atoms) -> float:
     """Return the hydrostatic configurational pressure in bar.
 
-    The calculator stress follows ASE's tensile-positive convention, so the
-    configurational pressure is the negative mean normal stress.
+    The calculator stress is in ASE's eV/Å³, tensile-positive convention, so the
+    configurational pressure is the negative mean normal stress. Missing or
+    invalid stress must not be replaced with an ideal-gas virial.
     """
-    stress = atoms.get_stress(voigt=True)
+    validate_pressure_cell(atoms)
+    stress = np.asarray(atoms.get_stress(voigt=True), dtype=float)
+    if stress.shape != (6,) or not np.all(np.isfinite(stress)):
+        raise ValueError("Pressure coupling requires a finite six-component stress tensor.")
     return -float(np.mean(stress[:3])) * EV_PER_ANG3_TO_BAR
 
 
@@ -657,29 +674,27 @@ def compute_instantaneous_pressure(
     velocities : np.ndarray
         Current velocities in atomic units (Bohr/a.u. time), shape (N_atoms, 3).
     stress_warned : bool, default=False
-        Flag indicating whether stress-unavailable warning has already been issued.
-        If False and stress is unavailable, a warning is emitted and the flag is
-        set to True in the return value.
+        Legacy status flag, retained unchanged for API compatibility.
     class_name : str, default="Barostat"
-        Class name to include in warning message.
+        Legacy caller label, retained for API compatibility.
 
     Returns
     -------
     tuple of (float, bool)
         (pressure_in_bar, new_stress_warned_flag)
         pressure_in_bar: Instantaneous pressure in bar.
-        new_stress_warned_flag: Updated warning flag (True if warning was issued).
+        new_stress_warned_flag: The unchanged legacy status flag.
 
     Notes
     -----
-    If the calculator does not support stress tensor, the ideal-gas approximation
-    (W=0) is used, which underestimates pressure for dense systems.
+    Calculator stress is required. Missing stress and evaluation errors propagate
+    to the caller before the cell can be rescaled with an incorrect pressure.
 
     References
     ----------
     Allen & Tildesley, Computer Simulation of Liquids, 2nd ed. (2017), §3.3.
     """
-    volume = atoms.get_volume()   # Å³
+    volume = validate_pressure_cell(atoms)   # Å³
 
     # Kinetic contribution (in eV)
     active = active_atom_mask(atoms)
@@ -689,24 +704,11 @@ def compute_instantaneous_pressure(
     # KE in eV: 0.5 * m[amu] * v²[Å²/fs²] * (amu·Å²/fs² → eV)
     ke_ev = 0.5 * np.sum(masses_amu[:, np.newaxis] * v_ang_per_fs**2) * AMU_ANG2_PER_FS2_TO_EV
 
-    configurational_pressure = 0.0
-    new_stress_warned = stress_warned
-    try:
-        configurational_pressure = compute_configurational_pressure(atoms)
-    except (PropertyNotImplementedError, RuntimeError):
-        # Calculator does not support stress; fall back to ideal-gas pressure (virial = 0).
-        # Warn once per barostat instance so the user is aware.
-        if not stress_warned:
-            warnings.warn(
-                f"{class_name}: calculator does not provide a stress tensor; "
-                "pressure estimated from kinetic term only (ideal-gas approximation). "
-                "For accurate NPT simulations, use a calculator that supports stress.",
-                UserWarning, stacklevel=2
-            )
-            new_stress_warned = True
-
+    configurational_pressure = compute_configurational_pressure(atoms)
     kinetic_pressure = 2.0 * ke_ev / (3.0 * volume) * EV_PER_ANG3_TO_BAR
-    return kinetic_pressure + configurational_pressure, new_stress_warned
+    if not np.isfinite(kinetic_pressure):
+        raise ValueError("Pressure coupling requires finite kinetic energy.")
+    return kinetic_pressure + configurational_pressure, stress_warned
 
 
 def initialize_velocities(
@@ -876,7 +878,9 @@ def write_xyz_frame(
     if any(atoms.pbc):
         cp = atoms.cell.cellpar()  # [a, b, c, alpha, beta, gamma]
         pbc_tokens = ["T" if periodic else "F" for periodic in atoms.pbc]
-        cell_str = (f"  Cell = {cp[0]:.6f} {cp[1]:.6f} {cp[2]:.6f}"
+        lattice = " ".join(f"{value:.17g}" for value in atoms.cell.array.reshape(-1))
+        cell_str = (f'  Lattice="{lattice}"'
+                    f"  Cell = {cp[0]:.6f} {cp[1]:.6f} {cp[2]:.6f}"
                     f" {cp[3]:.6f} {cp[4]:.6f} {cp[5]:.6f}"
                     f"  PBC = {' '.join(pbc_tokens)}")
     # frame_number stores the MD step number (not sequential frame index) so that

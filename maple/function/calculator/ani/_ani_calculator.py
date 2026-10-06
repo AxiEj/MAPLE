@@ -190,6 +190,7 @@ class ANICalculator(CalcABC):
 
         Returns (Hn, forces, energy) as torch tensors, consumed by Dimer-mode TS.
         """
+        self._reject_unsupported_pbc(atoms)
         validate_electronic_state(atoms, self)
         if getattr(self, 'solvent_correction', None) is not None:
             raise NotImplementedError(

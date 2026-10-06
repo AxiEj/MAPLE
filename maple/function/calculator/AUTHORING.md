@@ -182,8 +182,13 @@ run with `load_state`, but cannot prove an exact continuation.
   calculator entry points, and model-bound thermochemistry; it is never ignored.
 - Partial or task-dependent support uses `validate_electronic_state_request(q, mult, settings)`.
   The factory supplies model options; an instance can supply its current context
-  through `electronic_state_settings()`. FeNNol accepts charged singlets only;
+  through `electronic_state_settings()`. The factory validates again after
+  loading so checkpoint-dependent capabilities are enforced. FeNNol accepts charged singlets only;
   UMA accepts non-default electronic states only for `omol`.
+- AIMNet2 accepts charged singlets. Open-shell states require the loaded
+  checkpoint's `num_charge_channels=2` (NSE); one-channel models ignore `mult`
+  internally and are rejected for `mult != 1`. This follows the checkpoint,
+  including when `model_path` overrides the selected model name.
 - MACE-POLAR rejects non-integer `mult` and passes it as `total_spin` unchanged.
 - `CalcABC` invalidates cached results when `charge` or `mult` changes, including
   metadata-only updates at fixed geometry. Non-`CalcABC` backends must preserve
@@ -233,7 +238,7 @@ backend that switches tasks for periodic input.
 | Backend (names) | PBC | charge/mult | Hessian | Implicit solvent | D4 | HVP (Dimer) |
 |---|---|---|---|---|---|---|
 | ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | disabled | yes | yes; no implicit solvent |
-| AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | disabled | no | no |
+| AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | charge yes; open-shell only with loaded NSE checkpoint | analytic + numerical | disabled | no | no |
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | disabled | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | disabled | no | no |
 | MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`total_spin = mult`) | analytic + numerical | disabled | no | no |
@@ -244,12 +249,12 @@ its Fukui equilibration subtracts one internally. This is also true of the
 shipped S/M/L TorchScript models. UMA's FAIR-Chem input is likewise `spin = mult`.
 Input-contract verification does not establish charged/open-shell accuracy.
 
-Observed on a local uma-s-1p1 checkpoint: direct FAIR-Chem and the MAPLE UMA
-wrapper agree for H₂O `q=0/+1/-1` and `mult=3`, so charge/spin reaches
-FAIR-Chem through MAPLE. The `q=0 → +1` same-geometry energy change is small
-(~4.6e-5 Ha) for that checkpoint, so keep a warning and verify charged/open-
-shell energetics against FAIR-Chem/reference calculations before relying on
-them for production chemistry.
+Reference comparisons must use physical electron/spin assignments: for H₂O,
+examples include neutral singlet/triplet (`q=0`, `mult=1/3`) and charged
+doublets (`q=+1/-1`, `mult=2`). Charged H₂O singlets or triplets violate electron
+parity and are rejected; wrapper agreement on those inputs cannot validate
+their chemistry. UMA charged/open-shell accuracy still requires accepted
+FAIR-Chem/reference benchmarks on admissible states.
 
 ## Plug-in discovery — three layers
 

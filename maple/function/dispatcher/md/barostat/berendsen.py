@@ -20,10 +20,10 @@ The instantaneous pressure is computed from the virial theorem:
 
     P = (2*KE + W) / (3*V)
 
-where W = -dU/dV is the virial. In this implementation, the stress tensor
+where W = -3V dU/dV is the virial. In this implementation, the stress tensor
 returned by the calculator is treated as the configurational/virial contribution,
 while the kinetic term is computed explicitly from the current velocities.
-If stress is unavailable, W is set to zero (ideal-gas fallback).
+Calculator stress is required; an unavailable virial stops pressure coupling.
 
 Note:
     The Berendsen barostat does NOT generate a rigorously correct NPT
@@ -42,6 +42,7 @@ from ase import Atoms
 from ..utils import (
     DEFAULT_COMPRESSIBILITY,
     compute_instantaneous_pressure,
+    validate_pressure_cell,
 )
 
 
@@ -75,6 +76,7 @@ class BerendsenBarostat:
         compressibility : float
             Isothermal compressibility in 1/bar (default: water ~4.5e-5)
         """
+        validate_pressure_cell(atoms)
         self.atoms = atoms
         self.pressure_target = pressure          # bar
         self.tau_p = tau_p                       # fs
@@ -84,7 +86,7 @@ class BerendsenBarostat:
         # Scaling prefactor (constant): β * dt / τ_P
         self._scale_prefactor = compressibility * timestep / tau_p
 
-        # Warning flag: emit stress-unavailable warning at most once per instance
+        # Legacy status retained for pressure-helper API compatibility.
         self._stress_warned = False
 
     def get_pressure(self, velocities: np.ndarray) -> float:
@@ -93,8 +95,8 @@ class BerendsenBarostat:
 
         P = (2*KE + W) / (3*V)
 
-        The virial W is read from the calculator stress tensor if available,
-        otherwise the ideal-gas (W=0) approximation is used.
+        The virial W is read from the calculator stress tensor. Missing stress
+        and calculator errors propagate before cell rescaling.
 
         Parameters
         ----------

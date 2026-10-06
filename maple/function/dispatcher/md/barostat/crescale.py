@@ -40,6 +40,7 @@ from ..utils import (
     DEFAULT_COMPRESSIBILITY,
     compute_configurational_pressure,
     compute_instantaneous_pressure,
+    validate_pressure_cell,
 )
 
 
@@ -80,9 +81,12 @@ class CRescaleBarostat:
         rng : np.random.Generator, optional
             Random number generator for reproducibility
         n_dof : int, optional
-            Translational degrees of freedom: ``3N`` or ``3N - 3`` when
-            center-of-mass motion is removed. Defaults to ``3N``.
+            Coordinate-scaling dimension: ``3N`` for local Langevin dynamics,
+            or ``3N - 3`` when a global thermostat preserves excluded COM
+            motion. Occasional velocity projection does not exclude COM
+            coordinates from Langevin dynamics. Defaults to ``3N``.
         """
+        validate_pressure_cell(atoms)
         if atoms.constraints:
             raise ValueError(
                 "C-rescale does not support constrained degrees of freedom"
@@ -104,7 +108,7 @@ class CRescaleBarostat:
         self.rng = rng if rng is not None else np.random.default_rng()
         self.n_dof = int(n_dof)
 
-        # Warning flag: emit stress-unavailable warning at most once per instance
+        # Legacy status retained for pressure-helper API compatibility.
         self._stress_warned = False
 
         # Deterministic prefactor: β * dt / τ_P  (dimensionless)

@@ -40,7 +40,7 @@ from ..barostat.crescale import CRescaleBarostat
 from ..integrator.velocity_verlet import VelocityVerlet
 from ..logger import MDLogger
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
-from ..state import validate_prepared_restart
+from ..state import validate_fresh_velocity_representation, validate_prepared_restart
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat
 from ..utils import (
@@ -67,6 +67,7 @@ from ..utils import (
     select_md_parameter_scope,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
+    validate_pressure_cell,
 )
 
 
@@ -260,10 +261,7 @@ class NPT(JobABC):
 
     def _build_actual_state(self, atoms: Atoms) -> _NPTConfiguration:
         """Build candidate-state NPT components without installing them."""
-        if not any(atoms.pbc):
-            raise ValueError(
-                "NPT ensemble requires a periodic cell (atoms.pbc must be True)."
-            )
+        validate_pressure_cell(atoms)
         if self.params.thermostat == "v-rescale":
             dof_policy = get_persistent_motion_dof_policy(
                 atoms,
@@ -308,6 +306,14 @@ class NPT(JobABC):
                 compressibility=self.params.compressibility,
             )
         else:
+            # Unscaled-momentum C-rescale uses N*kT/V for a local thermostat.
+            # Langevin noise restores COM motion between optional drift
+            # removals, so its pressure DOF differ from the thermal reporting
+            # subspace. Only global V-rescale preserves an excluded COM mode.
+            # Bernetti & Bussi (2020), Sec. II.2 and Supplementary Methods I.
+            barostat_n_dof = (
+                3 * len(atoms) if self.params.thermostat == "langevin" else n_dof
+            )
             barostat = CRescaleBarostat(
                 atoms,
                 pressure=self.params.pressure,
@@ -316,7 +322,7 @@ class NPT(JobABC):
                 timestep=self.params.timestep,
                 compressibility=self.params.compressibility,
                 rng=self._rng,
-                n_dof=n_dof,
+                n_dof=barostat_n_dof,
             )
         dynamics_parameters = {
             "ensemble": "npt",
@@ -331,6 +337,8 @@ class NPT(JobABC):
             "remove_angular_every": int(self.params.remove_angular_every),
             "motion_subspace": motion_subspace_identity(dof_policy),
         }
+        if isinstance(barostat, CRescaleBarostat):
+            dynamics_parameters["barostat_n_dof"] = barostat.n_dof
         if self.params.thermostat == "langevin":
             dynamics_parameters["friction"] = float(self.params.friction)
         else:
@@ -430,6 +438,7 @@ class NPT(JobABC):
                     else self.params.steps - step_offset
                 )
             else:
+                validate_fresh_velocity_representation(self.atoms)
                 self._install_actual_state(
                     self.atoms, self._build_actual_state(self.atoms)
                 )

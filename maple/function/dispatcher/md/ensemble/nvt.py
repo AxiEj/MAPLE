@@ -26,7 +26,7 @@ from ...jobABC import JobABC
 from ..integrator.velocity_verlet import VelocityVerlet
 from ..logger import MDLogger
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
-from ..state import validate_prepared_restart
+from ..state import validate_fresh_velocity_representation, validate_prepared_restart
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat
 from ..utils import (
@@ -417,6 +417,7 @@ class NVT(JobABC):
                     else self.params.steps - step_offset
                 )
             else:
+                validate_fresh_velocity_representation(self.atoms)
                 self._install_actual_state(
                     self.atoms, self._build_actual_state(self.atoms)
                 )

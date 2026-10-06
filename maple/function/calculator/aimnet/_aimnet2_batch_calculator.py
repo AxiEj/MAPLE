@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Out-of-scope for the unified MAPLE calculator protocol.
 
-Consumed by BatchLBFGS only; does not implement the CalcABC protocol
+Consumed by BatchLBFGS/BatchPRFO; does not implement the CalcABC protocol
 (`_finalize_results`, `_analytic_hessian`, `MODEL_*` class attrs). Keep
 self-contained until a future commit retrofits the batch path.
 """
@@ -9,6 +9,9 @@ import torch
 from typing import List
 from ase import Atoms
 import numpy as np
+
+from ..electronic_state import validate_electronic_state
+from ._aimnet2_calculator import AIMNet2Calculator
 
 EH2EV = 27.211386245988
 
@@ -68,6 +71,23 @@ class AIMNet2BatchCalc:
             p.requires_grad_(False)
 
         self.cutoff = float(cutoff)
+        model_cutoff = float(self.model.cutoff)
+        if not np.isfinite(self.cutoff) or self.cutoff < model_cutoff:
+            raise ValueError(
+                f"Batch cutoff={self.cutoff} must be finite and at least the "
+                f"loaded AIMNet2 short-range cutoff ({model_cutoff} Å)."
+            )
+        coulomb_modules = [
+            mod for name, mod in self.model.named_modules()
+            if name.rsplit('.', 1)[-1] == 'lrcoulomb'
+        ]
+        if not coulomb_modules or any(
+            getattr(mod, 'method', None) != 'simple' for mod in coulomb_modules
+        ):
+            raise NotImplementedError(
+                "AIMNet2BatchCalc requires a simple-Coulomb checkpoint; "
+                "other long-range methods are not supported by this batch wrapper."
+            )
 
         # prepare-related internal buffers
         self._prepared    = False
@@ -81,6 +101,7 @@ class AIMNet2BatchCalc:
         self.nmax_dof     = 0   # <<< will be overridden if fixed_nmax is provided
         self.sentinel_mol = 0
         self.charge       = None
+        self.mult         = None
 
         self._coord_backup = None
 
@@ -102,6 +123,13 @@ class AIMNet2BatchCalc:
                 "AIMNet2BatchCalc is a no-PBC batch wrapper; use a validated "
                 "periodic backend for periodic systems."
             )
+        state_settings = {
+            'num_charge_channels': int(getattr(self.model, 'num_charge_channels', 1))
+        }
+        states = [
+            validate_electronic_state(at, AIMNet2Calculator, model_options=state_settings)
+            for at in atoms_list
+        ]
 
         self._atoms_B = len(atoms_list)
         self._ptr     = _ptr_from_atoms(atoms_list, device)
@@ -153,7 +181,8 @@ class AIMNet2BatchCalc:
         self.coord = coord0.to(device, non_blocking=True).contiguous()
 
         self.sentinel_mol = (int(self.mol_idx.max().item()) + 1) if self.N_atoms > 0 else 0
-        self.charge       = torch.zeros(self._atoms_B + 1, dtype=dtype, device=device)
+        self.charge = torch.tensor([state[0] for state in states] + [0], dtype=dtype, device=device)
+        self.mult = torch.tensor([state[1] for state in states] + [1], dtype=dtype, device=device)
 
         self._coord_backup = None
         self._prepared     = True
@@ -203,7 +232,7 @@ class AIMNet2BatchCalc:
             self._coord_backup = None
 
     # -------------------------------------------------------------------------
-    # forward (unchanged)
+    # forward
     # -------------------------------------------------------------------------
     def _forward_energy_forces_(self, c: torch.Tensor, need_graph: bool):
         assert self._prepared, "call prepare() first"
@@ -213,14 +242,23 @@ class AIMNet2BatchCalc:
 
         coord_leaf = c.detach().to(device=device, dtype=dtype).requires_grad_(True)
         nbmat = nblist_dense_padded_multi(coord_leaf, self.mol_idx, self.cutoff)
+        # Simple Coulomb and molecular D3 need every pair within each molecule,
+        # including separations beyond the learned short-range cutoff. The
+        # same-molecule mask keeps distinct batch members non-interacting.
+        nbmat_lr = nblist_dense_padded_multi(coord_leaf, self.mol_idx, float('inf'))
+        # Masked padding must not coincide with a real atom: a zero-distance
+        # norm can yield NaN second derivatives before the model masks the pair.
+        # The sentinel has no physical derivative and stays outside the box.
+        sentinel_coord = coord_leaf.detach().amax(dim=0, keepdim=True) + self.cutoff
 
         data = {
-            "coord":    pad_dim0(coord_leaf, 0.0),
+            "coord":    torch.cat([coord_leaf, sentinel_coord], dim=0),
             "numbers":  pad_dim0(self.numbers, 0).to(torch.int64),
             "charge":   self.charge,
+            "mult":     self.mult,
             "mol_idx":  pad_dim0(self.mol_idx, self.sentinel_mol).to(torch.int64),
             "nbmat":    nbmat,
-            "nbmat_lr": nbmat,
+            "nbmat_lr": nbmat_lr,
         }
 
         with torch.jit.optimized_execution(False):

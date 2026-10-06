@@ -10,7 +10,7 @@ from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC, register_calculator
 from ..electronic_state import attach_calculator_identity, solvation_identity_settings
 
-IMPLEMENTATION_VERSION = "maple-aimnet2-adapter-v1"
+IMPLEMENTATION_VERSION = "maple-aimnet2-adapter-v2"
 
 
 def _aimnet_atomic_charges(model_output, n_atoms: int) -> np.ndarray:
@@ -157,6 +157,24 @@ class AIMNet2Calculator(CalcABC):
         )
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
+
+    def electronic_state_settings(self) -> dict[str, int]:
+        # A custom model_path can replace either named checkpoint. Only the
+        # loaded model's two-channel NSE architecture establishes spin support.
+        return {'num_charge_channels': int(getattr(self.model, 'num_charge_channels', 1))}
+
+    @staticmethod
+    def validate_electronic_state_request(charge, multiplicity, settings) -> None:
+        channels = settings.get('num_charge_channels')
+        # The factory's pre-load check has no checkpoint metadata yet; it also
+        # validates the constructed instance before returning it to a workflow.
+        if channels is not None and multiplicity != 1 and channels != 2:
+            raise ValueError(
+                "This AIMNet2 checkpoint does not use spin multiplicity "
+                f"(num_charge_channels={channels}); mult={multiplicity} would "
+                "silently produce a closed-shell result. Use an AIMNet2-NSE "
+                "checkpoint with num_charge_channels=2 for open-shell states."
+            )
 
     def _set_lrcoulomb_method(self, method: str, cutoff: float = 15.0, dsf_alpha: float = 0.2):
         """

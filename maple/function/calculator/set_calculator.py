@@ -479,6 +479,10 @@ class SetCalculator:
             **kwargs,
         )
 
+        if self.atoms is not None:
+            # Some electronic-state capabilities depend on the loaded weights,
+            # so the class/options check alone cannot establish support.
+            validate_electronic_state(self.atoms, calculator)
         self._apply_hessian_mode(calculator)
         return calculator
 

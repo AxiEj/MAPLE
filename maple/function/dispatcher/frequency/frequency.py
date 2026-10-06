@@ -142,7 +142,8 @@ class ThermoResults:
     Container for gas-phase thermochemistry results.
 
     Attributes:
-        zpe_kjmol: Zero-point vibrational energy (kJ/mol).
+        zpe_kjmol: Zero-point contribution to the selected vibrational energy
+            model (kJ/mol); damped for the MRRHO energy interpolation.
         h_trans_kjmol: Translational enthalpy contribution (kJ/mol).
         h_rot_kjmol: Rotational enthalpy contribution (kJ/mol).
         h_vib_thermal_kjmol: Thermal vibrational enthalpy (kJ/mol).
@@ -235,6 +236,8 @@ class FrequencyBase(JobABC):
         Notes:
             The attributes `alpha` (default 4) and `Bav_amuA2` (optional) may be
             referenced by some low-frequency models if present on `self`.
+            For ilowfreq=3, the reported zero-point contribution is damped with
+            the harmonic energy, so ZPE plus the thermal term is the MRRHO energy.
         """
         super().__init__(output)
         self.atoms = atoms
@@ -560,17 +563,21 @@ class FrequencyBase(JobABC):
         vib_mask = frequencies_cm1 > 0.0
         vib_freqs = frequencies_cm1[vib_mask]
         
-        # Zero-point energy from all real modes
-        zpe_j_per_mol = 0.5 * H * C * NA * np.sum(vib_freqs) / CM_TO_M
-        zpe_kjmol = zpe_j_per_mol * 1e-3
-        
         # Apply frequency floor
         nu_eff = np.maximum(vib_freqs, self.nu_floor_cm1)
         theta_v = (H * C * (nu_eff / CM_TO_M)) / K_B
+        energy_weights = (
+            self._headgordon_weight(nu_eff, self.omega0_cm1, getattr(self, "alpha", 4))
+            if self.ilowfreq == 3 else np.ones_like(vib_freqs)
+        )
+        # MRRHO interpolates the full harmonic energy, including its zero-point
+        # term, with the free rotor (Otlyotov--Minenkov, doi:10.1002/jcc.27129).
+        zpe_j_per_mol = 0.5 * H * C * NA * np.sum(energy_weights * vib_freqs) / CM_TO_M
+        zpe_kjmol = zpe_j_per_mol * 1e-3
         
         s_vib_total, u_vib_total_J = 0.0, 0.0
         
-        for nu_e, theta_i in zip(nu_eff, theta_v):
+        for nu_e, theta_i, w in zip(nu_eff, theta_v, energy_weights):
             x = theta_i / max(T, 1e-12)
             
             # Harmonic entropy and internal energy
@@ -587,7 +594,6 @@ class FrequencyBase(JobABC):
                 s_mode = self._grimme_entropy(nu_e, T, s_harmonic)
                 u_mode_J = u_harmonic_J
             elif self.ilowfreq == 3:
-                w = self._headgordon_weight(nu_e, getattr(self, "omega0_cm1", 100.0), getattr(self, "alpha", 4))
                 s_rotor = self._free_rotor_entropy(nu_e, T, getattr(self, "Bav_amuA2", None))
                 s_mode = w * s_harmonic + (1.0 - w) * s_rotor
                 R_local = 8.314462618
@@ -876,6 +882,8 @@ class FrequencyBase(JobABC):
         self.log_info(["-" * 60 + "\n\n"])
         
         self.log_info([f"Zero point energy                ...   {zpe_kcal:10.2f} kcal/mol\n"])
+        if self.ilowfreq == 3:
+            self.log_info(["  MRRHO zero-point term: damped with the harmonic energy.\n"])
         self.log_info([f"Thermal vibrational correction   ...   {h_vib_kcal:10.2f} kcal/mol\n"])
         self.log_info([f"Thermal rotational correction    ...   {h_rot_kcal:10.2f} kcal/mol\n"])
         self.log_info([f"Thermal translational correction ...   {h_trans_kcal:10.2f} kcal/mol\n"])
@@ -1076,6 +1084,8 @@ class FrequencyBase(JobABC):
                 f.write("Key Thermodynamic Values\n")
                 f.write("-" * 40 + "\n")
                 f.write(f"ZPE:                    {thermo.zpe_kjmol:12.4f} kJ/mol  ({zpe_kcal:10.4f} kcal/mol)\n")
+                if self.ilowfreq == 3:
+                    f.write("  MRRHO zero-point term: damped with the harmonic energy.\n")
                 f.write(f"H_corr (total):         {thermo.h_total_kjmol:12.4f} kJ/mol  ({h_total_kcal:10.4f} kcal/mol)\n")
                 f.write(f"G_corr (total):         {thermo.g_correction_kjmol:12.4f} kJ/mol  ({g_corr_kcal:10.4f} kcal/mol)\n")
                 f.write(f"S_total:                {thermo.s_total_jmolK:12.4f} J/mol/K ({s_total_calK:10.4f} cal/mol/K)\n\n")

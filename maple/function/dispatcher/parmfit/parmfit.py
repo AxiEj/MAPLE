@@ -22,14 +22,14 @@ class Parmfit(JobABC):
         self.atoms = atoms
         self.output = output
         self.params = params if params is not None else {}
-        self.method = (method or self.params.get("method") or ("" if self.params.get("input") else "correction")).lower()
+        self.method = (method or self.params.get("method") or ("" if self.params.get("input") else "refinement")).lower()
         self.extra = extra if extra is not None else {}
 
     def run(self):
         with timer("Parmfit optimization"):
             self._load_external_config()
             if not self.method:
-                raise ValueError("parmfit requires method=corr|ncaa|metalaa in #parmfit(...) when input=<config> is used.")
+                raise ValueError("parmfit requires method=refinement|ncaa|metalaa in #parmfit(...) when input=<config> is used.")
             self._normalize_paths()
 
             if self.method.lower() == "ncaa":
@@ -42,12 +42,13 @@ class Parmfit(JobABC):
 
                 parmfit = MetalAA(output=self.output, atoms=self.atoms, params=self.params)
                 return parmfit.run()
-            elif self.method.lower() in ("correction", "corr"):
+            elif self.method.lower() == "refinement":
                 # Old setting
                 #self._apply_cmo(use_oxy=False, info_fallback=True)
-                from .utils.CORR import Correction
+                self._prepare_refinement_mol2()
+                from .utils.Refinement import Refinement
 
-                parmfit = Correction(output=self.output, atoms=self.atoms, params=self.params)
+                parmfit = Refinement(output=self.output, atoms=self.atoms, params=self.params)
                 return parmfit.run()
             else:
                 raise NotImplementedError(f"Other parmfit strategy '{self.method}' not implemented yet.")
@@ -109,22 +110,18 @@ class Parmfit(JobABC):
         normalized = path if os.path.isabs(path) else os.path.join(self._input_base_dir(), path)
         normalized = os.path.abspath(normalized)
         if not os.path.isfile(normalized):
-            if self.method in ("correction", "corr"):
+            if self.method == "refinement":
                 raise ValueError(
-                    f"parmfit(method=correction) requires the following file inputs: {key} "
+                    f"parmfit(method=refinement) requires the following file inputs: {key} "
                     f"(not found: {path})"
                 )
             raise ValueError(f"parmfit input file not found for '{key}': {path}")
         self.params[key] = normalized
 
     def _normalize_paths(self) -> None:
-        if self.method in ("correction", "corr"):
-            mol2_path = self.params.get("mol2")
-            if not mol2_path:
-                raise ValueError(
-                    "parmfit(method=correction) requires the 'mol2' input file."
-            )
-            self._resolve_input_file("mol2")
+        if self.method == "refinement":
+            if self.params.get("mol2"):
+                self._resolve_input_file("mol2")
             return
 
         if self.method in ("ncaa", "metalaa"):
@@ -132,4 +129,40 @@ class Parmfit(JobABC):
             if not pdb_path:
                 raise ValueError("parmfit(method=ncaa/metalaa) requires a PDB block: PDB <path>.")
             self._resolve_input_file("pdb")
+
+    def _prepare_refinement_mol2(self) -> None:
+        """Auto-generate the GAFF2 mol2 via antechamber when mol2= is not given."""
+        if self.params.get("mol2"):
+            return
+        if str(self.params.get("chg_fit", "none")).strip().lower() in ("", "none"):
+            self.params["chg_fit"] = "abcg2"
+        from ase.io import write as ase_write
+
+        from .utils.interface import run_antechamber
+        from .utils.runtime import parmfit_output_dir
+
+        workdir = parmfit_output_dir(self.output)
+        stem = os.path.splitext(os.path.basename(self.output))[0]
+        ase_write(os.path.join(workdir, "ante.pdb"), self.atoms)
+        charge_file = os.path.join(workdir, "ante.chg")
+        with open(charge_file, "w", encoding="utf-8") as handle:
+            for _ in self.atoms:
+                handle.write("0.000000\n")
+
+        run_antechamber(
+            "ante.pdb",
+            {
+                "residue_name": "LIG",
+                "net_charge": int(self.atoms.info.get("charge", 0)),
+                "multiplicity": int(self.atoms.info.get("mult", 1)),
+            },
+            workdir,
+            input_format="pdb",
+            output_format="mol2",
+            charge_mode="rc",
+            charge_file=charge_file,
+        )
+        mol2_path = os.path.join(workdir, f"{stem}_ff.mol2")
+        os.replace(os.path.join(workdir, "LIG.mol2"), mol2_path)
+        self.params["mol2"] = mol2_path
 

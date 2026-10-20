@@ -21,7 +21,7 @@ def apply_seminario(
     vibrational_scaling: float = 1.0,
 ) -> tuple[list[Bond], list[Angle]]:
     """
-    Fill bond and angle instances using the original Seminario method.
+    Fill bond and angle instances using the Seminario method.
     """
     hessian_input = np.asarray(hessian_cart, dtype=float)
     expected_shape = (3 * len(atoms), 3 * len(atoms))

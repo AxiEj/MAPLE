@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
 from pathlib import Path
 import re
@@ -15,6 +14,7 @@ from ase import Atoms
 from ase.data import chemical_symbols
 
 from .calculator import QMReferenceConfig, QMReferenceResult
+from ...runconfig import as_tracked
 
 BOHR_TO_ANGSTROM = 0.529177210903
 HARTREE_PER_BOHR2_TO_HARTREE_PER_ANG2 = 1.0 / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM)
@@ -41,7 +41,8 @@ def _coerce_bool(value) -> bool:
 
 
 def build_qm_reference_config(raw_params: dict | None) -> QMReferenceConfig:
-    raw = dict(raw_params or {})
+    raw = as_tracked(raw_params)
+    raw.set_group("QM reference", "QM reference geometry and Hessian jobs")
     iqm = _coerce_bool(raw.get("iqm", False))
     engine = str(raw.get("qm_engine", "g16")).strip().lower()
     if iqm and engine not in {"gaussian", "g16", "g09", "orca"}:
@@ -148,7 +149,13 @@ def write_gaussian_input(
             if torsion_angle_deg is None:
                 raise ValueError("torsion_angle_deg is required when torsion is provided.")
             a, b, c, d = (int(value) for value in torsion)
-            handle.write(f"D {a:d} {b:d} {c:d} {d:d} {float(torsion_angle_deg):.6f} F\n")
+            # Freeze at the CURRENT value: the frame geometry already sits at
+            # the scan target. A stated value ("D i j k l <value> F") does
+            # NOT bind for dihedrals -- verified on a stiff rotor (choi001
+            # OH, 5.9 kcal/mol barrier): same-branch values of 9.98/89.98
+            # deg still let every frame free-optimize to a planar well,
+            # while this value-less form held drift to 0.00 deg.
+            handle.write(f"D {a:d} {b:d} {c:d} {d:d} F\n")
         for index in frozen:
             handle.write(f"X {index + 1:d} F\n")
         if torsion is not None or frozen:

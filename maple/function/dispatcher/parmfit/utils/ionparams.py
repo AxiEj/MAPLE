@@ -6,7 +6,7 @@ import re
 
 
 # Radii are extracted from MCPB's IonLJParaDict and stored locally.
-ION_LJ_BY_WATM: dict[str, dict[str, float]] = {
+ION_LJ_BY_WAT_FF: dict[str, dict[str, float]] = {
     "tip3p": {
         "Li1": 1.315,
         "Na1": 1.465,
@@ -517,8 +517,8 @@ def infer_ion_identity(residue: dict | str) -> tuple[str, int, str]:
     return element, formal_charge, key
 
 
-def lookup_ion_radius(*, watm: str, element: str, formal_charge: int, ion_key: str | None = None) -> float:
-    table = ION_LJ_BY_WATM[watm]
+def lookup_ion_radius(*, wat_ff: str, element: str, formal_charge: int, ion_key: str | None = None) -> float:
+    table = ION_LJ_BY_WAT_FF[wat_ff]
     if ion_key is not None:
         if ion_key in table:
             return float(table[ion_key])
@@ -529,7 +529,7 @@ def lookup_ion_radius(*, watm: str, element: str, formal_charge: int, ion_key: s
         if key_element == element:
             candidates.append((charge, float(radius)))
     if not candidates:
-        raise ValueError(f"No ion radius data is available for element {element!r} in water model {watm!r}.")
+        raise ValueError(f"No ion radius data is available for element {element!r} in water ff {wat_ff!r}.")
 
     _charge, radius = min(
         candidates,
@@ -538,27 +538,78 @@ def lookup_ion_radius(*, watm: str, element: str, formal_charge: int, ion_key: s
     return float(radius)
 
 
-def collect_gaussian_readradii_entries(model: dict, *, watm: str | None = None) -> list[tuple[str, float]]:
-    ion_residues = [residue for residue in model["residues"] if residue.get("kind") == "ion"]
-    if not ion_residues:
-        return []
+# Gaussian's built-in Merz-Kollman ESP radii, g16 Rev A.03. Membership defines
+# native coverage: atoms of these elements are left to Pop=MK's own table and
+# emit no ReadRadii entry. H-Cl are the "From Gaussian code" GetvdW values as
+# transcribed in Multiwfn (population.f90, setESPfitvdwr); eight of them
+# (H C O F Cl Si P S) reproduce exactly in probe molecules run against this
+# g16 install. Zn (1.00) and Br (2.30) were probed directly (ZnCl2 /
+# bromophenol). The table is otherwise SPARSE: Ar, K-Cu (Zn excepted; Mn
+# inferred missing with its neighbors Cr/Fe, SCF would not converge to probe),
+# and Ga-Kr return radius 0.00 and abort l602 with GetVDW -- covalently bound
+# metals and fifth-row atoms are NOT covered, despite the common fourth-row
+# lore.
+_GAUSSIAN_MK_RADII: dict[str, float] = {
+    "H": 1.20, "He": 1.20, "Li": 1.37, "Be": 1.45, "B": 1.45, "C": 1.50,
+    "N": 1.50, "O": 1.40, "F": 1.35, "Ne": 1.30, "Na": 1.57, "Mg": 1.36,
+    "Al": 1.24, "Si": 1.17, "P": 1.80, "S": 1.75, "Cl": 1.70,
+    "Zn": 1.00, "Br": 2.30,
+}
+
+# UFF van der Waals radii (Rappé et al., JACS 1992, 114, 10024, Table 1 x_i/2),
+# machine-checked against Multiwfn's vdwr_UFF transcription (define.f90; its
+# Eu entry 1.7465/1.2 = 1.4554 matches the value quoted independently in the
+# RESP literature). Dividing by 1.2 is the established ecosystem fallback for
+# ESP-fit radii of elements a program's native table lacks: "For atoms not
+# shown, the UFF radii divided by 1.2 are utilized" (MRCC manual, espcharge);
+# "missing radii are taken from UFF and scaled by 1/1.2" (PyConSolv manual
+# 4.2); Multiwfn manual 3.9.10 calls the UFF radius "multiplied by 1/1.2 ...
+# commonly a reasonable choice".
+_UFF_VDW_RADII: dict[str, float] = {
+    "H": 1.443, "He": 1.181,
+    "Li": 1.2255, "Be": 1.3725, "B": 2.0415, "C": 1.9255, "N": 1.83, "O": 1.75, "F": 1.682, "Ne": 1.6215,
+    "Na": 1.4915, "Mg": 1.5105, "Al": 2.2495, "Si": 2.1475, "P": 2.0735, "S": 2.0175, "Cl": 1.9735, "Ar": 1.934,
+    "K": 1.906, "Ca": 1.6995, "Sc": 1.6475, "Ti": 1.5875, "V": 1.572, "Cr": 1.5115, "Mn": 1.4805, "Fe": 1.456, "Co": 1.436,
+    "Ni": 1.417, "Cu": 1.7475, "Zn": 1.3815, "Ga": 2.1915, "Ge": 2.14, "As": 2.115, "Se": 2.1025, "Br": 2.0945, "Kr": 2.0705,
+    "Rb": 2.057, "Sr": 1.8205, "Y": 1.6725, "Zr": 1.562, "Nb": 1.5825, "Mo": 1.526, "Tc": 1.499, "Ru": 1.4815, "Rh": 1.4645,
+    "Pd": 1.4495, "Ag": 1.574, "Cd": 1.424, "In": 2.2315, "Sn": 2.196, "Sb": 2.21, "Te": 2.235, "I": 2.25, "Xe": 2.202,
+    "Cs": 2.2585, "Ba": 1.8515, "La": 1.761, "Ce": 1.778, "Pr": 1.803, "Nd": 1.7875, "Pm": 1.7735, "Sm": 1.76, "Eu": 1.7465,
+    "Gd": 1.684, "Tb": 1.7255, "Dy": 1.714, "Ho": 1.7045, "Er": 1.6955, "Tm": 1.687, "Yb": 1.6775, "Lu": 1.82,
+    "Hf": 1.5705, "Ta": 1.585, "W": 1.5345, "Re": 1.477, "Os": 1.56, "Ir": 1.42, "Pt": 1.377, "Au": 1.6465, "Hg": 1.3525,
+    "Tl": 2.1735, "Pb": 2.1485, "Bi": 2.185, "Po": 2.3545, "At": 2.375, "Rn": 2.3825,
+}
+
+
+def collect_gaussian_readradii_entries(model: dict, *, wat_ff: str | None = None) -> list[tuple[str, float]]:
     entries: list[tuple[str, float]] = []
-    for residue in ion_residues:
+    ions: set[str] = set()
+    for residue in model["residues"]:
+        if residue.get("kind") != "ion":
+            continue
         element, formal_charge, ion_key = infer_ion_identity(residue)
-        radius = lookup_ion_radius(
-            watm=watm,
-            element=element,
-            formal_charge=formal_charge,
-            ion_key=ion_key,
-        )
-        entries.append((element, radius))
+        entries.append((element, lookup_ion_radius(
+            wat_ff=wat_ff, element=element, formal_charge=formal_charge, ion_key=ion_key,
+        )))
+        ions.add(element)
+
+    # Covalent tier as set algebra: elements actually present, minus those the
+    # ion tier already covered, minus those Gaussian's built-in MK table knows;
+    # whatever remains has no native radius and gets the UFF/1.2 fallback.
+    present = {_normalize_element(atom["element"])
+               for residue in model["residues"] for atom in residue.get("atoms", [])}
+    heavy = sorted(present - ions - _GAUSSIAN_MK_RADII.keys())
+    missing = set(heavy) - _UFF_VDW_RADII.keys()
+    if missing:
+        raise ValueError(f"No ESP fitting radius for {sorted(missing)}: absent from Gaussian's "
+                         "built-in MK table and from the UFF fallback (covers up to Rn).")
+    entries.extend((element, _UFF_VDW_RADII[element] / 1.2) for element in heavy)
     return entries
 
 
-def infer_ion_frcmod_name(*, watm: str, ionm: str, residue: dict | str) -> str:
+def infer_ion_frcmod_name(*, wat_ff: str, ion_ff: str, residue: dict | str) -> str:
     _element, formal_charge, _ion_key = infer_ion_identity(residue)
 
-    if watm in {"tip3p", "spce", "tip4pew"}:
+    if wat_ff in {"tip3p", "spce", "tip4pew"}:
         if formal_charge in {-1, 1}:
             prefix = "frcmod.ions1lm_"
         elif formal_charge in {2, 3, 4}:
@@ -569,10 +620,10 @@ def infer_ion_frcmod_name(*, watm: str, ionm: str, residue: dict | str) -> str:
         prefix = "frcmod.ionslm_"
 
     suffix = {
-        "hfe": f"hfe_{watm}",
-        "cm": f"126_{watm}",
-        "12_6": f"126_{watm}",
-        "iod": "iod" if prefix == "frcmod.ions1lm_" else f"iod_{watm}",
-        "12_6_4": f"1264_{watm}",
-    }[ionm]
+        "hfe": f"hfe_{wat_ff}",
+        "cm": f"126_{wat_ff}",
+        "12_6": f"126_{wat_ff}",
+        "iod": "iod" if prefix == "frcmod.ions1lm_" else f"iod_{wat_ff}",
+        "12_6_4": f"1264_{wat_ff}",
+    }[ion_ff]
     return prefix + suffix

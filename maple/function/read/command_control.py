@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 from ..route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE,
     pure_macepolar_expected_device,
+    resolve_route2_smd_profile,
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
     validate_route2_smd_response_mode,
@@ -694,12 +695,16 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if "profile" not in solv_params:
-                    msg = (
-                        "Route 2 SMD requires an explicit versioned profile."
+                try:
+                    solv_params["profile"] = resolve_route2_smd_profile(
+                        provider,
+                        solv_params.get("profile"),
+                        device=params.get("device", "cpu"),
                     )
+                except ValueError as exc:
+                    msg = str(exc)
                     cls._log_error(output_path, msg)
-                    raise ValueError(msg)
+                    raise ValueError(msg) from exc
                 if (
                     provider == "pcmsolver"
                     and int(params.get("verbose", 0)) >= 1
@@ -861,6 +866,8 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
+                if provider == "torch" and "response" not in solv_params:
+                    solv_params["response"] = "frozen"
                 response = str(solv_params.get("response", "scf")).lower()
                 try:
                     response = validate_route2_smd_response_mode(

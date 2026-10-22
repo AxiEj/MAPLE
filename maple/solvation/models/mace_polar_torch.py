@@ -20,10 +20,38 @@ import numpy as np
 from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 
 _NEIGHBOR_CUTOFF_GUARD_ANGSTROM = 1.0e-8
+_FP32_NEIGHBOR_CUTOFF_EPSILON_FACTOR = 100.0
+
+
+def _neighbor_cutoff_policy(dtype: Any, cutoff_angstrom: float) -> dict[str, object]:
+    """Resolve the coordinate precision and cutoff guard used by the graph."""
+
+    torch = __import__("torch")
+    if dtype is torch.float64:
+        return {
+            "coordinate_dtype": "float64",
+            "guard_angstrom": _NEIGHBOR_CUTOFF_GUARD_ANGSTROM,
+            "guard_rule": "fixed-1e-8-angstrom-float64-legacy",
+        }
+    if dtype is torch.float32:
+        guard = max(
+            _NEIGHBOR_CUTOFF_GUARD_ANGSTROM,
+            _FP32_NEIGHBOR_CUTOFF_EPSILON_FACTOR
+            * float(torch.finfo(dtype).eps)
+            * max(1.0, cutoff_angstrom),
+        )
+        return {
+            "coordinate_dtype": "float32",
+            "guard_angstrom": guard,
+            "guard_rule": "max(1e-8,100eps*max(1,cutoff))-angstrom-float32",
+        }
+    raise TypeError(
+        "MACE-POLAR Torch graph supports only float32 or float64 calculator dtype."
+    )
 
 
 class _TorchModelOnlyMACEPolCalculator(MACEPolCalculator):
-    """V3-only live-coordinate boundary; the historical calculator is untouched."""
+    """Versioned Torch live-coordinate boundary; legacy calculators are untouched."""
 
     def implicit_solv_init(self, implicit: str, solvent: str) -> None:
         del implicit, solvent
@@ -197,6 +225,9 @@ class MACEPolarTorchGraphAdapter:
             raise ValueError(
                 "MACE-POLAR Torch graph requires a finite positive model cutoff."
             )
+        cutoff_policy = _neighbor_cutoff_policy(
+            getattr(calculator, "dtype", None), neighbor_cutoff_angstrom
+        )
         metadata = {
             "schema": "route2-mace-polar-zero-field-torch-graph-v1",
             "provider_id": base.provider_id,
@@ -216,7 +247,9 @@ class MACEPolarTorchGraphAdapter:
                 "all-nonself-pairs-fixed-mask-conservative-guard-v1"
             ),
             "neighbor_cutoff_angstrom": neighbor_cutoff_angstrom,
-            "neighbor_cutoff_guard_angstrom": _NEIGHBOR_CUTOFF_GUARD_ANGSTROM,
+            "neighbor_coordinate_dtype": cutoff_policy["coordinate_dtype"],
+            "neighbor_cutoff_guard_angstrom": cutoff_policy["guard_angstrom"],
+            "neighbor_cutoff_guard_rule": cutoff_policy["guard_rule"],
         }
         graph_configuration = _hash(
             {
@@ -272,10 +305,19 @@ class MACEPolarTorchGraphAdapter:
 
         self.configuration_sha256()
         self.domain.validate_atoms(atoms)
-        positions = np.asarray(atoms.get_positions(), dtype=float)
+        coordinate_dtype = np.dtype(
+            str(self._model_metadata["neighbor_coordinate_dtype"])
+        )
+        # Match the coordinates consumed by the configured model before host
+        # distance evaluation; otherwise an FP64 host check can certify a
+        # geometry that rounds onto the cutoff in the FP32 graph.
+        positions = np.asarray(atoms.get_positions(), dtype=coordinate_dtype)
         if positions.shape != (len(atoms), 3) or not np.all(np.isfinite(positions)):
             raise ValueError("MACE-POLAR topology positions must be finite (N,3).")
         cutoff = float(self._model_metadata["neighbor_cutoff_angstrom"])
+        cutoff_guard = float(
+            self._model_metadata["neighbor_cutoff_guard_angstrom"]
+        )
         pairs: list[list[object]] = []
         distances: list[float] = []
         cutoff_distances: list[float] = []
@@ -289,7 +331,7 @@ class MACEPolarTorchGraphAdapter:
                         "MACE-POLAR analytic topology rejects coincident atom centers."
                     )
                 cutoff_distance = abs(distance - cutoff)
-                if cutoff_distance <= _NEIGHBOR_CUTOFF_GUARD_ANGSTROM:
+                if cutoff_distance <= cutoff_guard:
                     raise ValueError(
                         "MACE-POLAR analytic topology is within the conservative "
                         "neighbor-cutoff guard."
@@ -313,7 +355,11 @@ class MACEPolarTorchGraphAdapter:
             "nonself_pair_count": len(pairs),
             "neighbor_pair_count": sum(bool(pair[2]) for pair in pairs),
             "cutoff_angstrom": cutoff,
-            "cutoff_guard_angstrom": _NEIGHBOR_CUTOFF_GUARD_ANGSTROM,
+            "coordinate_dtype": str(coordinate_dtype),
+            "cutoff_guard_angstrom": cutoff_guard,
+            "cutoff_guard_rule": self._model_metadata[
+                "neighbor_cutoff_guard_rule"
+            ],
             "minimum_pair_distance_angstrom": (min(distances) if distances else None),
             "minimum_cutoff_distance_angstrom": (
                 min(cutoff_distances) if cutoff_distances else None

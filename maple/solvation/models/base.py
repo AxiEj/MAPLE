@@ -197,27 +197,32 @@ class ModelDomain:
     """Explicit chemical and numerical domain of one provider artifact."""
 
     atomic_numbers: tuple[int, ...]
-    total_charge_range: tuple[int, int]
+    total_charge_range: tuple[int, int] | None
     spin_multiplicities: tuple[int, ...]
 
     def __post_init__(self) -> None:
         numbers = tuple(self.atomic_numbers)
         spins = tuple(self.spin_multiplicities)
-        charges = tuple(self.total_charge_range)
+        charges = (
+            None
+            if self.total_charge_range is None
+            else tuple(self.total_charge_range)
+        )
         if not numbers or any(
             isinstance(z, bool) or not isinstance(z, int) or z < 1 for z in numbers
         ):
             raise ValueError("atomic_numbers must contain positive integers.")
         if tuple(sorted(set(numbers))) != numbers:
             raise ValueError("atomic_numbers must be unique and sorted.")
-        if len(charges) != 2 or any(
-            isinstance(q, bool) or not isinstance(q, int) for q in charges
-        ):
-            raise ValueError("total_charge_range must contain two integers.")
-        if charges[0] > charges[1]:
-            raise ValueError(
-                "total_charge_range lower bound must not exceed its upper bound."
-            )
+        if charges is not None:
+            if len(charges) != 2 or any(
+                isinstance(q, bool) or not isinstance(q, int) for q in charges
+            ):
+                raise ValueError("total_charge_range must contain two integers.")
+            if charges[0] > charges[1]:
+                raise ValueError(
+                    "total_charge_range lower bound must not exceed its upper bound."
+                )
         if not spins or any(
             isinstance(s, bool) or not isinstance(s, int) or s < 1 for s in spins
         ):
@@ -225,13 +230,21 @@ class ModelDomain:
         if tuple(sorted(set(spins))) != spins:
             raise ValueError("spin_multiplicities must be unique and sorted.")
         object.__setattr__(self, "atomic_numbers", numbers)
-        object.__setattr__(self, "total_charge_range", (charges[0], charges[1]))
+        object.__setattr__(
+            self,
+            "total_charge_range",
+            None if charges is None else (charges[0], charges[1]),
+        )
         object.__setattr__(self, "spin_multiplicities", spins)
 
     def metadata(self) -> dict[str, object]:
         return {
             "atomic_numbers": list(self.atomic_numbers),
-            "total_charge_range": list(self.total_charge_range),
+            "total_charge_range": (
+                None
+                if self.total_charge_range is None
+                else list(self.total_charge_range)
+            ),
             "spin_multiplicities": list(self.spin_multiplicities),
         }
 
@@ -243,11 +256,12 @@ class ModelDomain:
         if unsupported:
             raise ValueError(f"atomic numbers outside model domain: {unsupported}.")
         charge, multiplicity = _model_charge_and_multiplicity(atoms)
-        lower, upper = self.total_charge_range
-        if not lower <= charge <= upper:
-            raise ValueError(
-                f"total charge {charge} is outside model domain [{lower}, {upper}]."
-            )
+        if self.total_charge_range is not None:
+            lower, upper = self.total_charge_range
+            if not lower <= charge <= upper:
+                raise ValueError(
+                    f"total charge {charge} is outside model domain [{lower}, {upper}]."
+                )
         if multiplicity not in self.spin_multiplicities:
             raise ValueError(
                 f"spin multiplicity {multiplicity} is outside model domain "

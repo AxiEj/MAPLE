@@ -208,6 +208,12 @@ def test_graph_adapter_reports_stable_neighbor_topology_certificate():
     assert first["neighbor_pair_count"] == 3
     assert first["nonself_pair_count"] == 3
     assert first["minimum_cutoff_distance_angstrom"] > 1.0e-8
+    assert first["coordinate_dtype"] == "float64"
+    assert first["cutoff_guard_angstrom"] == 1.0e-8
+    assert (
+        adapter.model_metadata["neighbor_cutoff_guard_rule"]
+        == "fixed-1e-8-angstrom-float64-legacy"
+    )
     assert len(first["pair_mask_order_sha256"]) == 64
     assert first["locally_fixed_neighbor_mask"] is True
     assert first["global_regularity_proved"] is False
@@ -224,6 +230,38 @@ def test_graph_adapter_rejects_geometry_near_neighbor_cutoff():
 
     with pytest.raises(ValueError, match="neighbor-cutoff guard"):
         adapter.energy_source_torch(atoms, positions)
+
+
+def test_fp32_graph_uses_dtype_aware_cutoff_guard_and_rounded_coordinates():
+    calculator = _calculator()
+    calculator.dtype = torch.float32
+    base = _BaseAdapter(calculator)
+    base.dtype = torch.float32
+    adapter = MACEPolarTorchGraphAdapter(base)
+    expected_guard = (
+        100.0 * torch.finfo(torch.float32).eps * calculator.r_max
+    )
+    assert adapter.model_metadata["neighbor_cutoff_guard_angstrom"] == pytest.approx(
+        expected_guard
+    )
+
+    near = Atoms(
+        "H2",
+        positions=np.asarray(
+            [[0.0, 0.0, 0.0], [calculator.r_max - expected_guard / 2.0, 0.0, 0.0]]
+        ),
+        info={"charge": 0, "mult": 1},
+    )
+    with pytest.raises(ValueError, match="neighbor-cutoff guard"):
+        adapter.topology_diagnostics(near)
+
+    away = near.copy()
+    away.positions[1, 0] = calculator.r_max - 2.0 * expected_guard
+    diagnostics = adapter.topology_diagnostics(away)
+    assert diagnostics["coordinate_dtype"] == "float32"
+    assert diagnostics["minimum_pair_distance_angstrom"] > 0.0
+    assert diagnostics["minimum_cutoff_distance_angstrom"] > expected_guard
+    assert diagnostics["locally_fixed_neighbor_mask"] is True
 
 
 @pytest.mark.skipif(

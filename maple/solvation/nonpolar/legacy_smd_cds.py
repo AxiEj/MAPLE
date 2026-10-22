@@ -31,6 +31,7 @@ _LEGACY_TOANGS = 0.52917724924
 _LEGACY_HARTREE_TO_KCAL_MOL = 627.509451
 _HARTREE_TO_EV = 27.211386024367243
 _COORDINATE_SCALE = _LEGACY_TOANGS / _PYSCF_BOHR_ANGSTROM
+_LEGACY_BRANCH_TOLERANCE = 1.0e-11
 _SOURCE_SHA256 = "f57b94c0eb6d5a29f1a1441294795321a5a39af74e0bec890628fac83027250b"
 
 _ATOMIC_NUMBER = {
@@ -170,9 +171,15 @@ def _host(value: torch.Tensor) -> float:
     return float(value.detach().cpu().item())
 
 
-def _switch(distance: torch.Tensor, reference: float, width: float) -> torch.Tensor:
+def _switch(
+    distance: torch.Tensor,
+    reference: float,
+    width: float,
+    *,
+    branch_tolerance: float,
+) -> torch.Tensor:
     cutoff_delta = _host(distance) - (reference + width)
-    if abs(cutoff_delta) <= 1.0e-11:
+    if abs(cutoff_delta) <= branch_tolerance:
         raise RuntimeError(
             "Legacy SMD CDS coordination switch is on its cutoff boundary."
         )
@@ -212,6 +219,8 @@ def _atomic_tensions(
     positions: torch.Tensor,
     sigma: Mapping[int, float],
     hsigma: Mapping[int, float],
+    *,
+    branch_tolerance: float = _LEGACY_BRANCH_TOLERANCE,
 ) -> torch.Tensor:
     n = len(symbols)
     distances: dict[tuple[int, int], torch.Tensor] = {}
@@ -235,7 +244,12 @@ def _atomic_tensions(
             width = 0.10 if {first, second} == {"C", "O"} else 0.30
             if width == 0.10:
                 reference = 1.33
-            cot[i][j] = _switch(distance(i, j), reference, width)
+            cot[i][j] = _switch(
+                distance(i, j),
+                reference,
+                width,
+                branch_tolerance=branch_tolerance,
+            )
 
     tensions: list[torch.Tensor] = []
     for i, symbol in enumerate(symbols):
@@ -268,6 +282,7 @@ def _atomic_tensions(
                         distance(j, q),
                         _REFERENCE_DISTANCE.get(("C", neighbor), 0.0),
                         0.30,
+                        branch_tolerance=branch_tolerance,
                     )
                     environment = environment + value
                     if neighbor == "O":
@@ -281,7 +296,12 @@ def _atomic_tensions(
             triple = positions.new_zeros(())
             for j, other in enumerate(symbols):
                 if i != j and other == "C":
-                    triple = triple + _switch(distance(i, j), 1.225, 0.065)
+                    triple = triple + _switch(
+                        distance(i, j),
+                        1.225,
+                        0.065,
+                        branch_tolerance=branch_tolerance,
+                    )
             tension = tension + triple * sigma.get(116, 0.0)
         elif symbol == "C":
             cc1 = positions.new_zeros(())
@@ -291,8 +311,18 @@ def _atomic_tensions(
                 if i == j:
                     continue
                 if other == "C":
-                    cc1 = cc1 + _switch(distance(i, j), 1.84, 0.30)
-                    cc2 = cc2 + _switch(distance(i, j), 1.27, 0.07)
+                    cc1 = cc1 + _switch(
+                        distance(i, j),
+                        1.84,
+                        0.30,
+                        branch_tolerance=branch_tolerance,
+                    )
+                    cc2 = cc2 + _switch(
+                        distance(i, j),
+                        1.27,
+                        0.07,
+                        branch_tolerance=branch_tolerance,
+                    )
                 elif other == "N":
                     cn = cn + cot[i][j]
             tension = tension + cc1 * sigma.get(101, 0.0) + cc2 * sigma.get(102, 0.0)
@@ -316,6 +346,7 @@ class TorchLegacySMDCDS:
         solvent: str,
         device: str | torch.device = "cpu",
         *,
+        dtype: torch.dtype = torch.float64,
         config: LegacySMDCDSConfig | None = None,
     ) -> None:
         normalized = tuple(str(symbol) for symbol in symbols)
@@ -329,17 +360,26 @@ class TorchLegacySMDCDS:
         self._symbols = normalized
         self._solvent_spec = route2_solvent_spec(solvent)
         self._device = torch.device(device)
+        if dtype not in (torch.float32, torch.float64):
+            raise TypeError(
+                "Legacy SMD CDS supports only torch.float32 and torch.float64."
+            )
+        self._dtype = dtype
         if self._device.type == "cuda" and not torch.cuda.is_available():
             raise RuntimeError(f"Requested CUDA device {self._device} is unavailable.")
         if self._device.type == "cuda" and self._device.index is None:
             self._device = torch.device("cuda", torch.cuda.current_device())
         self._config = LegacySMDCDSConfig() if config is None else config
+        (
+            self._effective_topology_tolerance,
+            self._topology_tolerance_policy,
+        ) = self._config.dareal.resolve_topology_tolerance(self._dtype)
         self._radii = torch.tensor(
             [
                 _BONDI_MANTINA[symbol] + self._config.probe_radius_angstrom
                 for symbol in normalized
             ],
-            dtype=torch.float64,
+            dtype=self._dtype,
             device=self._device,
         )
         self._sigma, self._hsigma, self._cssigma, self._icds = _parameter_tables(
@@ -355,6 +395,9 @@ class TorchLegacySMDCDS:
                 "maple.function.route2_solvents": (
                     module_path.parents[2] / "function" / "route2_solvents.py"
                 ),
+                "maple.function.smd_solvent_data": (
+                    module_path.parents[2] / "function" / "smd_solvent_data.py"
+                ),
             }
         )
         self._provenance = MappingProxyType(
@@ -367,6 +410,9 @@ class TorchLegacySMDCDS:
                 "upstream_sha256": _SOURCE_SHA256,
                 "solvent": self._solvent_spec.name,
                 "descriptor_source": self._solvent_spec.descriptor_source,
+                "dtype": str(self._dtype),
+                "topology_tolerance": str(self._effective_topology_tolerance),
+                "topology_tolerance_policy": self._topology_tolerance_policy,
                 "source_files_sha256": json.dumps(
                     self._source_files_sha256, separators=(",", ":")
                 ),
@@ -393,6 +439,9 @@ class TorchLegacySMDCDS:
             "symbols": self._symbols,
             "solvent": self._solvent_spec.name,
             "device": str(self._device),
+            "dtype": str(self._dtype),
+            "effective_topology_tolerance": self._effective_topology_tolerance,
+            "topology_tolerance_policy": self._topology_tolerance_policy,
             "config": asdict(self._config),
             "radii_angstrom": tuple(
                 float(value) for value in self._radii.detach().cpu()
@@ -415,11 +464,18 @@ class TorchLegacySMDCDS:
     def device(self) -> torch.device:
         return self._device
 
+    @property
+    def dtype(self) -> torch.dtype:
+        return self._dtype
+
     def evaluate_torch(self, positions_angstrom: torch.Tensor) -> LegacySMDCDSState:
         if not isinstance(positions_angstrom, torch.Tensor):
             raise TypeError("Legacy SMD CDS positions must be a Torch tensor.")
-        if positions_angstrom.dtype != torch.float64:
-            raise TypeError("Legacy SMD CDS requires torch.float64 positions.")
+        if positions_angstrom.dtype != self._dtype:
+            raise TypeError(
+                "Legacy SMD CDS positions must match the configured dtype "
+                f"{self._dtype}; received {positions_angstrom.dtype}."
+            )
         if positions_angstrom.device != self._device:
             raise ValueError(
                 f"Positions are on {positions_angstrom.device}, expected {self._device}."
@@ -438,7 +494,11 @@ class TorchLegacySMDCDS:
             legacy_positions, self._radii, config=self._config.dareal
         )
         tensions = _atomic_tensions(
-            self._symbols, legacy_positions, self._sigma, self._hsigma
+            self._symbols,
+            legacy_positions,
+            self._sigma,
+            self._hsigma,
+            branch_tolerance=dareal.diagnostics.effective_relative_topology_tolerance,
         )
         energy_kcal = (
             torch.sum(dareal.areas_angstrom2 * (tensions + self._cssigma)) * 0.001

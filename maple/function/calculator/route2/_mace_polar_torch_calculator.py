@@ -1,4 +1,4 @@
-"""ASE bridge for the explicit full-Torch analytic MACE-POLAR v3 scalar."""
+"""ASE bridge for versioned full-Torch analytic MACE-POLAR scalars."""
 
 from __future__ import annotations
 
@@ -11,7 +11,10 @@ from maple.function.calculator.extra_correction.implicit.route2_domain import (
 from maple.function.route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE,
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE,
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE,
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE,
     Route2SMDProfileSpec,
+    pure_macepolar_allows_charged,
     pure_macepolar_expected_device,
     route2_smd_profile_spec,
 )
@@ -23,6 +26,8 @@ _TORCH_PROFILE_NAMES = frozenset(
     {
         PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE,
         PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE,
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE,
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE,
     }
 )
 
@@ -60,7 +65,7 @@ def _validate_cuda_device(device: str) -> None:
 
 
 class PureMACEPolarTorchCalculator(Calculator):
-    """Expose the v3 single-graph Torch scalar through ASE's eV contract.
+    """Expose a registered single-graph Torch scalar through ASE's eV contract.
 
     This facade is intentionally separate from the legacy pyddx/PySCF wrapper.
     It never constructs a Richardson derivative backend and has no fallback to
@@ -71,7 +76,7 @@ class PureMACEPolarTorchCalculator(Calculator):
     workflow_kind = "pure-torch-analytic-total-pes"
     MODEL_ENERGY_UNIT = "eV"
     SUPPORTS_PBC = False
-    SUPPORTS_CHARGE_MULT = False
+    SUPPORTS_CHARGE_MULT = True
     SUPPORTED_HESSIAN_MODES = ("analytic",)
 
     def __init__(
@@ -97,7 +102,7 @@ class PureMACEPolarTorchCalculator(Calculator):
             or profile_spec.execution_route != self.workflow_kind
             or profile_spec.allowed_response_modes != ("frozen",)
         ):
-            raise ValueError("profile_spec is not a registered pure Torch v3 profile.")
+            raise ValueError("profile_spec is not a registered pure Torch profile.")
         expected_device = pure_macepolar_expected_device(profile_spec)
         if (expected_device == "cpu" and normalized_device != "cpu") or (
             expected_device == "cuda" and not normalized_device.startswith("cuda:")
@@ -112,7 +117,9 @@ class PureMACEPolarTorchCalculator(Calculator):
             raise ValueError(
                 f"Route 2 profile={profile_spec.name} does not support solvent={solvent}."
             )
-        validate_route2_domain(atoms)
+        validate_route2_domain(
+            atoms, allow_charged=pure_macepolar_allows_charged(profile_spec)
+        )
         if _testing_pes is not None and _testing_token is not _TEST_PES_FACTORY_TOKEN:
             raise ValueError("test PES injection is not a public construction path.")
         if _testing_pes is None:
@@ -124,6 +131,7 @@ class PureMACEPolarTorchCalculator(Calculator):
                 tuple(atoms.get_chemical_symbols()),
                 solvent=normalized_solvent,
                 device=normalized_device,
+                profile=profile_spec.name,
             )
         else:
             pes = _testing_pes
@@ -217,7 +225,9 @@ class PureMACEPolarTorchCalculator(Calculator):
             and _normalize_torch_device(pes_device) != self._device
         ):
             raise RuntimeError("pure Torch PES device drifted.")
-        validate_route2_domain(atoms)
+        validate_route2_domain(
+            atoms, allow_charged=pure_macepolar_allows_charged(self._profile_spec)
+        )
         if tuple(atoms.get_chemical_symbols()) != self._configured_symbols:
             raise ValueError("atoms differ from the calculator's configured symbols.")
         configuration = getattr(self._pes, "configuration_sha256", None)
@@ -246,7 +256,11 @@ class PureMACEPolarTorchCalculator(Calculator):
     def get_property(self, name, atoms=None, allow_calculation=True):
         target = atoms if atoms is not None else self.atoms
         if target is not None:
-            self._validate_atoms(target)
+            cache_key = self._validate_atoms(target)
+            # ASE's geometry change detector does not track atoms.info.
+            # Charge/spin are model inputs and must invalidate detached results.
+            if cache_key != self._cache_key:
+                self.results = {}
         return super().get_property(name, atoms, allow_calculation)
 
     def calculate(self, atoms=None, properties=None, system_changes=all_changes):

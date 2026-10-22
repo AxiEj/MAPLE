@@ -7,10 +7,19 @@ translation retains its branch ordering and constants but deliberately omits
 the hand-written first derivatives because Torch autograd differentiates the
 same scalar geometry twice.
 
-The discrete topology is selected on the host.  Every continuous geometric
-quantity used to assemble an area remains a live ``torch.float64`` tensor.
+The discrete topology is selected on the host.  Host branch values and
+diagnostic margins are Python ``float`` metadata, but they originate from
+scalar Torch operations in the configured dtype; conversion to a host double
+does not recover precision lost in a ``torch.float32`` operation.  Every
+continuous geometric quantity used to assemble an area remains a live tensor
+in the input's ``torch.float32`` or ``torch.float64`` dtype.
 Unlike the historical Fortran, ambiguous four-sphere/tangent events are not
-regularized by changing a radius: they fail closed.
+regularized by changing a radius. Derivative evaluation remains fail-closed.
+An explicit scalar-only policy resolves transverse shared vertices by their
+exposed tangent cone, without changing the geometry or radius inputs. This
+policy records small nonzero derivative margins without treating them as
+undefined scalar values; singular operations and boundary consistency remain
+hard requirements.
 """
 
 from __future__ import annotations
@@ -26,6 +35,7 @@ import torch
 
 _PI = 3.14159265358979
 _EPSI = 1.0e-11
+_ROUNDING_SAFETY_FACTOR = 100.0
 _SOURCE_SHA256 = "f57b94c0eb6d5a29f1a1441294795321a5a39af74e0bec890628fac83027250b"
 
 
@@ -35,22 +45,51 @@ class LegacyDAREALTopologyError(RuntimeError):
 
 @dataclass(frozen=True)
 class LegacyDAREALConfig:
-    relative_topology_tolerance: float = _EPSI
+    # None selects the dtype-aware policy.  A positive explicit value is used
+    # unchanged, including values below the dtype-derived roundoff floor.
+    relative_topology_tolerance: float | None = None
     guard_version: str = "pyscf-2.13.1-dareal-fixed-topology-v1"
+    scalar_energy_only: bool = False
 
     def __post_init__(self) -> None:
-        if self.relative_topology_tolerance <= 0.0:
+        if type(self.scalar_energy_only) is not bool:
+            raise TypeError("scalar_energy_only must be bool.")
+        if (
+            self.relative_topology_tolerance is not None
+            and self.relative_topology_tolerance <= 0.0
+        ):
             raise ValueError("DAREAL topology tolerance must be positive.")
+
+    def resolve_topology_tolerance(self, dtype: torch.dtype) -> tuple[float, str]:
+        if dtype not in (torch.float32, torch.float64):
+            raise TypeError("DAREAL supports only torch.float32 and torch.float64.")
+        if self.relative_topology_tolerance is not None:
+            return float(self.relative_topology_tolerance), "explicit"
+        if dtype is torch.float64:
+            return _EPSI, "legacy-fp64-default"
+        return (
+            max(_EPSI, _ROUNDING_SAFETY_FACTOR * torch.finfo(dtype).eps),
+            "max(legacy-epsi,100*machine-epsilon)",
+        )
 
 
 @dataclass(frozen=True)
 class LegacyDAREALDiagnostics:
     guard_version: str
+    floating_dtype: str
+    requested_relative_topology_tolerance: float | None
+    effective_relative_topology_tolerance: float
+    tolerance_policy: str
     atom_branches: tuple[str, ...]
     overlap_counts: tuple[int, ...]
     polygon_counts: tuple[int, ...]
     minimum_guard_margin: float | None
     topology_sha256: str
+    scalar_energy_only: bool = False
+    scalar_shared_pair_decisions: int = 0
+    minimum_scalar_cone_margin: float | None = None
+    scalar_derivative_margin_violations: int = 0
+    scalar_derivative_margin_categories: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -72,7 +111,12 @@ def _require_margin(
     value: float, scale: float, config: LegacyDAREALConfig, message: str
 ) -> float:
     margin = abs(value)
-    if margin <= config.relative_topology_tolerance * max(1.0, abs(scale)):
+    if not math.isfinite(margin) or not math.isfinite(scale) or margin == 0.0:
+        raise LegacyDAREALTopologyError(message)
+    if (
+        not config.scalar_energy_only
+        and margin <= config.relative_topology_tolerance * max(1.0, abs(scale))
+    ):
         raise LegacyDAREALTopologyError(message)
     return margin
 
@@ -91,11 +135,88 @@ def _cap_point(
     return negative if plus else positive
 
 
+def _scalar_shared_vertex_pair_is_exposed(
+    point: torch.Tensor,
+    i: int,
+    j: int,
+    directions: list[torch.Tensor],
+    cap_cos: list[torch.Tensor],
+    cap_sin: list[torch.Tensor],
+    embedded: list[bool],
+    config: LegacyDAREALConfig,
+) -> tuple[bool, tuple[int, ...], float | None]:
+    """Select the two extreme exposed arcs of a scalar multiple-cap vertex.
+
+    At a tied point the complement of the cap union has tangent inequalities
+    n_q.t <= 0. A pair is a boundary vertex iff both of its outgoing circle
+    tangents lie strictly outside every other active cap. Other pairs are
+    redundant; retaining them would duplicate vertices in the boundary walk.
+    No coordinates, radii, topology tolerance or continuous dtype are changed.
+    """
+    tied = [i, j]
+    for q, normal in enumerate(directions):
+        if embedded[q] or q in (i, j):
+            continue
+        signed = _host(torch.dot(point, normal) - cap_cos[q])
+        band = config.relative_topology_tolerance * _host(cap_sin[q])
+        if signed > band:
+            return False, tuple(tied), None
+        if abs(signed) <= band:
+            tied.append(q)
+
+    cone_margin = max(
+        config.relative_topology_tolerance,
+        _ROUNDING_SAFETY_FACTOR * torch.finfo(point.dtype).eps,
+    )
+    margins: list[float] = []
+
+    def outgoing_tangent(boundary: int, outside: int) -> torch.Tensor:
+        tangent = torch.linalg.cross(point, directions[boundary], dim=0)
+        norm = _host(torch.linalg.vector_norm(tangent))
+        if norm <= cone_margin:
+            raise LegacyDAREALTopologyError(
+                "DAREAL scalar shared-vertex tangent is unresolved."
+            )
+        tangent = tangent / norm
+        sign = _host(torch.dot(directions[outside], tangent))
+        if abs(sign) <= cone_margin:
+            raise LegacyDAREALTopologyError(
+                "DAREAL scalar shared-vertex pair is not transverse."
+            )
+        margins.append(abs(sign))
+        return -tangent if sign > 0.0 else tangent
+
+    tangent_i = outgoing_tangent(i, j)
+    tangent_j = outgoing_tangent(j, i)
+    products = [
+        _host(torch.dot(directions[q], tangent))
+        for q in tied
+        if q not in (i, j)
+        for tangent in (tangent_i, tangent_j)
+    ]
+    # A strictly covered outgoing edge already proves that this pair is
+    # redundant, even if another redundant constraint is collinear with it.
+    if any(value > cone_margin for value in products):
+        return (
+            False,
+            tuple(tied),
+            min(margins + [abs(v) for v in products if abs(v) > cone_margin]),
+        )
+    if any(abs(value) <= cone_margin for value in products):
+        raise LegacyDAREALTopologyError(
+            "DAREAL scalar shared-vertex cone has unresolved higher degeneracy."
+        )
+    return True, tuple(tied), min(margins + [abs(v) for v in products])
+
+
 def _solid_angle_one(
     positions: torch.Tensor,
     radii: torch.Tensor,
     k: int,
     config: LegacyDAREALConfig,
+    *,
+    scalar_vertex_events: list[dict] | None = None,
+    scalar_margin_violations: list[str] | None = None,
 ) -> tuple[torch.Tensor, str, int, int, float, str]:
     """Translate the energy path of DAREAL for sphere ``k``."""
 
@@ -113,6 +234,12 @@ def _solid_angle_one(
         nonlocal minimum_margin
         margin = _require_margin(value, scale, config, message)
         minimum_margin = min(minimum_margin, margin)
+        if (
+            config.scalar_energy_only
+            and scalar_margin_violations is not None
+            and margin <= config.relative_topology_tolerance * max(1.0, abs(scale))
+        ):
+            scalar_margin_violations.append(message)
         return margin
 
     for atom in range(positions.shape[0]):
@@ -273,6 +400,10 @@ def _solid_angle_one(
             if dot is None:
                 dot = torch.dot(directions[i], directions[j])
             intersection_denominator = 1.0 - dot * dot
+            if _host(intersection_denominator) <= 0.0:
+                raise LegacyDAREALTopologyError(
+                    "DAREAL intersection-circle denominator is singular."
+                )
             record_margin(
                 _host(intersection_denominator),
                 1.0,
@@ -325,9 +456,29 @@ def _solid_angle_one(
                         else:
                             free_negative = False
                     elif check_h >= low_h:
-                        raise LegacyDAREALTopologyError(
-                            "DAREAL four-sphere shared-point guard triggered; radius perturbation is forbidden."
+                        if not config.scalar_energy_only:
+                            raise LegacyDAREALTopologyError(
+                                "DAREAL four-sphere shared-point guard triggered; radius perturbation is forbidden."
+                            )
+                        keep, tied, cone_margin = _scalar_shared_vertex_pair_is_exposed(
+                            point, i, j, directions, cap_cos, cap_sin, embedded, config
                         )
+                        if scalar_vertex_events is not None:
+                            scalar_vertex_events.append(
+                                {
+                                    "sphere": k,
+                                    "pair": [i, j],
+                                    "point": label,
+                                    "tied_caps": list(tied),
+                                    "exposed": keep,
+                                    "cone_margin": cone_margin,
+                                }
+                            )
+                        if not keep:
+                            if label == "positive":
+                                free_positive = False
+                            else:
+                                free_negative = False
                     else:
                         record_margin(
                             low_h - check_h,
@@ -372,9 +523,17 @@ def _solid_angle_one(
         angles: list[tuple[float, torch.Tensor, int]] = []
         c2 = cap_cos[i] * cap_cos[i]
         vij = torch.linalg.cross(directions[i], first_point)
+        if config.scalar_energy_only:
+            first_tangent = (first_point - cap_cos[i] * directions[i]) / cap_sin[i]
+            vij = torch.linalg.cross(directions[i], first_tangent)
         for neighbor, point, _ in entries[1:]:
-            x = torch.dot(vij, point)
-            y = torch.dot(point, first_point) - c2
+            if config.scalar_energy_only:
+                tangent = (point - cap_cos[i] * directions[i]) / cap_sin[i]
+                x = torch.dot(vij, tangent)
+                y = torch.dot(tangent, first_tangent)
+            else:
+                x = torch.dot(vij, point)
+                y = torch.dot(point, first_point) - c2
             angle_denominator = _host(x * x + y * y)
             if angle_denominator <= 0.0:
                 raise LegacyDAREALTopologyError(
@@ -540,11 +699,10 @@ def legacy_dareal_areas_torch(
         radii_angstrom, torch.Tensor
     ):
         raise TypeError("DAREAL positions and radii must be Torch tensors.")
-    if (
-        positions_angstrom.dtype != torch.float64
-        or radii_angstrom.dtype != torch.float64
-    ):
-        raise TypeError("DAREAL requires torch.float64 positions and radii.")
+    if positions_angstrom.dtype not in (torch.float32, torch.float64):
+        raise TypeError("DAREAL supports only torch.float32 and torch.float64.")
+    if radii_angstrom.dtype != positions_angstrom.dtype:
+        raise TypeError("DAREAL positions and radii must share one floating dtype.")
     if positions_angstrom.device != radii_angstrom.device:
         raise ValueError("DAREAL positions and radii must share one device.")
     if positions_angstrom.ndim != 2 or positions_angstrom.shape[1] != 3:
@@ -557,6 +715,21 @@ def legacy_dareal_areas_torch(
         raise ValueError("DAREAL inputs must be finite.")
     if bool((radii_angstrom <= 0.0).any()):
         raise ValueError("DAREAL radii must be positive.")
+    if cfg.scalar_energy_only and (
+        positions_angstrom.requires_grad or radii_angstrom.requires_grad
+    ):
+        raise ValueError(
+            "DAREAL scalar_energy_only cannot certify coordinate or radius derivatives."
+        )
+
+    effective_tolerance, tolerance_policy = cfg.resolve_topology_tolerance(
+        positions_angstrom.dtype
+    )
+    resolved_cfg = LegacyDAREALConfig(
+        relative_topology_tolerance=effective_tolerance,
+        guard_version=cfg.guard_version,
+        scalar_energy_only=cfg.scalar_energy_only,
+    )
 
     solid, branches, overlaps, polygons, margins, topology_traces = (
         [],
@@ -566,9 +739,16 @@ def legacy_dareal_areas_torch(
         [],
         [],
     )
+    scalar_vertex_events: list[dict] = []
+    scalar_margin_violations: list[str] = []
     for atom in range(positions_angstrom.shape[0]):
         value, branch, overlap, polygon, margin, topology_trace = _solid_angle_one(
-            positions_angstrom, radii_angstrom, atom, cfg
+            positions_angstrom,
+            radii_angstrom,
+            atom,
+            resolved_cfg,
+            scalar_vertex_events=scalar_vertex_events,
+            scalar_margin_violations=scalar_margin_violations,
         )
         solid.append(value)
         branches.append(branch)
@@ -584,6 +764,10 @@ def legacy_dareal_areas_torch(
         solid_angles=solid_angles,
         diagnostics=LegacyDAREALDiagnostics(
             guard_version=cfg.guard_version,
+            floating_dtype=str(positions_angstrom.dtype),
+            requested_relative_topology_tolerance=cfg.relative_topology_tolerance,
+            effective_relative_topology_tolerance=effective_tolerance,
+            tolerance_policy=tolerance_policy,
             atom_branches=tuple(branches),
             overlap_counts=tuple(overlaps),
             polygon_counts=tuple(polygons),
@@ -591,14 +775,61 @@ def legacy_dareal_areas_torch(
                 minimum_guard_margin if math.isfinite(minimum_guard_margin) else None
             ),
             topology_sha256=hashlib.sha256(
-                json.dumps(topology_traces, separators=(",", ":")).encode("utf-8")
+                json.dumps(
+                    (
+                        [
+                            topology_traces,
+                            [
+                                {
+                                    key: event[key]
+                                    for key in (
+                                        "sphere",
+                                        "pair",
+                                        "point",
+                                        "tied_caps",
+                                        "exposed",
+                                    )
+                                }
+                                for event in scalar_vertex_events
+                            ],
+                        ]
+                        if cfg.scalar_energy_only
+                        else topology_traces
+                    ),
+                    separators=(",", ":"),
+                ).encode("utf-8")
             ).hexdigest(),
+            scalar_energy_only=cfg.scalar_energy_only,
+            scalar_shared_pair_decisions=len(scalar_vertex_events),
+            minimum_scalar_cone_margin=min(
+                (
+                    e["cone_margin"]
+                    for e in scalar_vertex_events
+                    if e["cone_margin"] is not None
+                ),
+                default=None,
+            ),
+            scalar_derivative_margin_violations=len(scalar_margin_violations),
+            scalar_derivative_margin_categories=tuple(
+                sorted(set(scalar_margin_violations))
+            ),
         ),
         provenance={
             "algorithm": "legacy-dareal-analytic-union-spheres",
+            "dtype": str(positions_angstrom.dtype),
             "upstream": "PySCF 2.13.1 pyscf/lib/solvent/mnsol.F:1332-2168",
             "upstream_license": "Apache-2.0",
             "upstream_sha256": _SOURCE_SHA256,
+            "scalar_shared_vertex_policy": (
+                "transverse-tangent-cone-v1"
+                if cfg.scalar_energy_only
+                else "strict-derivative-branch"
+            ),
+            "scalar_margin_policy": (
+                "nonzero-finite-geometry-with-boundary-consistency-v1"
+                if cfg.scalar_energy_only
+                else "strict-derivative-branch"
+            ),
         },
     )
 

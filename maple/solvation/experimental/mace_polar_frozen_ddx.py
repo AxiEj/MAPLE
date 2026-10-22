@@ -247,7 +247,7 @@ def _registered_point_model_bindings_match(
             and model.field_convention == provenance.field_convention
             and model.coordinate_frame_policy == provenance.coordinate_frame_policy
             and tuple(domain.atomic_numbers) == tuple(range(1, 84))
-            and tuple(domain.total_charge_range) == (0, 0)
+            and domain.total_charge_range == (0, 0)
             and tuple(domain.spin_multiplicities) == (1,)
             and model.configuration_sha256()
         )

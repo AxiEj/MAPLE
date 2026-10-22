@@ -17,6 +17,8 @@ from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE,
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE,
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE,
+    PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE,
     pure_macepolar_expected_device,
     route2_smd_profile_spec,
     route2_smd_profiles_for_provider,
@@ -25,6 +27,9 @@ from maple.function.route2_smd_profiles import (
 from maple.solvation.api.scalar_registry import (
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V3,
     EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V4,
+    EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4,
+    PURE_MACEPOLAR_TORCH_FP32_V4_ENGINEERING_EVIDENCE_ID,
     get_scalar_definition,
 )
 
@@ -119,7 +124,7 @@ def test_v3_profiles_are_explicit_torch_identities_and_do_not_mutate_legacy():
     assert cpu.allowed_response_modes == cuda.allowed_response_modes == ("frozen",)
     assert pure_macepolar_expected_device(cpu) == "cpu"
     assert pure_macepolar_expected_device(cuda) == "cuda"
-    assert route2_smd_profiles_for_provider("torch") == frozenset({cpu.name, cuda.name})
+    assert {cpu.name, cuda.name}.issubset(route2_smd_profiles_for_provider("torch"))
     assert validate_route2_smd_profile("torch", cpu.name, solvent="hexane") is cpu
     with pytest.raises(ValueError, match="does not support solvent"):
         validate_route2_smd_profile("torch", cpu.name, solvent="ethanol")
@@ -145,6 +150,47 @@ def test_v3_scalar_registry_is_callable_but_not_release_admitted(scalar_id):
     assert not scalar.admitted_capabilities.enabled_tiers
     assert scalar.nonpolar_profile == "torch-legacy-smd-cds"
     assert scalar.derivative_route.startswith("torch.float64 autograd")
+
+
+def test_v4_profiles_register_fp32_l5_n194_without_mutating_v3():
+    cpu = route2_smd_profile_spec(
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE
+    )
+    cuda = route2_smd_profile_spec(
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE
+    )
+    v3 = route2_smd_profile_spec(
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE
+    )
+
+    assert cpu.provider == cuda.provider == "torch"
+    assert cpu.default_eligible and cuda.default_eligible
+    assert pure_macepolar_expected_device(cpu) == "cpu"
+    assert pure_macepolar_expected_device(cuda) == "cuda"
+    assert "float32" in cpu.electronic_profile_binding
+    assert "ddpcm-l5-n194" in cpu.electronic_energy_semantics
+    assert "float64" in v3.electronic_profile_binding
+    assert not v3.default_eligible
+
+
+@pytest.mark.parametrize(
+    "scalar_id",
+    [
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V4,
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4,
+    ],
+)
+def test_v4_scalar_registry_is_experimental_and_has_only_v4_evidence(scalar_id):
+    scalar = get_scalar_definition(scalar_id)
+    assert scalar.experimental_execution.energy
+    assert scalar.experimental_execution.force
+    assert scalar.derivative_route.startswith("torch.float32 autograd")
+    assert "float32-l5-n194" in scalar.continuum_profile
+    assert scalar.experimental_evidence_artifact_ids == (
+        PURE_MACEPOLAR_TORCH_FP32_V4_ENGINEERING_EVIDENCE_ID,
+    )
+    assert scalar.evidence_artifact_ids == ()
+    assert not scalar.enabled
 
 
 def test_torch_calculator_has_analytic_only_hessian_and_exact_typeguard():
@@ -254,6 +300,48 @@ def test_set_calculator_selects_torch_wrapper_without_legacy_provider(
     assert "Richardson" not in log
 
 
+def test_set_calculator_defaults_torch_to_v4_and_routes_profile(monkeypatch, tmp_path):
+    atoms = _water()
+    profile = PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE
+    fake = _FakeTorchPES(
+        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V4
+    )
+    observed = {}
+
+    def fake_builder(symbols, **kwargs):
+        observed.update(kwargs)
+        return fake
+
+    monkeypatch.setattr(
+        "maple.solvation.experimental.mace_polar_torch."
+        "build_smd_mace_polar_torch_pes",
+        fake_builder,
+    )
+    calculator = SetCalculator(
+        device="cpu",
+        model="macepolm",
+        output=str(tmp_path / "factory-v4.out"),
+        atoms=atoms,
+        implicit="smd",
+        solvent="water",
+        solvation_options={
+            "method": "smd",
+            "implicit": "water",
+            "experimental": True,
+            "provider": "torch",
+            "standard_state": "1m",
+        },
+    ).set_calculator()
+
+    assert calculator.pes is fake
+    assert observed["profile"] == profile
+    assert calculator.profile_spec.allowed_response_modes == ("frozen",)
+    log = (tmp_path / "factory-v4.out").read_text()
+    assert "dtype=float32 response=frozen" in log
+    assert "torch-dense-l5/n194/tol=100eps(float32)/eta0.1" in log
+    assert "explicit float64 intermediates" in log
+
+
 @pytest.mark.parametrize(
     "task_line",
     ["#sp", "#opt(method=lbfgs)", "#freq(method=mw,treat_imag_as_real=false)"],
@@ -270,6 +358,81 @@ def test_input_contract_accepts_only_initial_v3_workflows(task_line):
         ]
     )
     assert command.params["solv"]["provider"] == "torch"
+
+
+def test_input_contract_accepts_explicit_v4_single_point():
+    command = CommandControl.from_settings(
+        [
+            "#model=macepolm",
+            "#sp",
+            "#device=cpu",
+            "#solv(implicit=water,method=smd,provider=torch,"
+            f"profile={PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE},"
+            "response=frozen,experimental=true)",
+        ]
+    )
+    assert command.params["solv"]["profile"].endswith("torch-cpu-v4")
+
+
+@pytest.mark.parametrize(
+    ("device", "expected"),
+    [
+        ("cpu", PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE),
+        ("cuda:0", PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE),
+    ],
+)
+def test_input_contract_defaults_only_torch_to_device_specific_v4(device, expected):
+    command = CommandControl.from_settings(
+        [
+            "#model=macepolm",
+            "#sp",
+            f"#device={device}",
+            "#solv(implicit=water,method=smd,provider=torch,"
+            "experimental=true)",
+        ]
+    )
+    assert command.params["solv"]["profile"] == expected
+    assert command.params["solv"]["response"] == "frozen"
+
+
+def test_input_contract_keeps_explicit_v3_unchanged():
+    command = CommandControl.from_settings(
+        [
+            "#model=macepolm",
+            "#sp",
+            "#device=cpu",
+            "#solv(implicit=water,method=smd,provider=torch,"
+            f"profile={PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE},"
+            "response=frozen,experimental=true)",
+        ]
+    )
+    assert command.params["solv"]["profile"].endswith("torch-cpu-v3")
+
+
+def test_non_torch_provider_still_requires_explicit_profile():
+    with pytest.raises(ValueError, match="requires an explicit versioned profile"):
+        CommandControl.from_settings(
+            [
+                "#model=macepolm",
+                "#sp",
+                "#device=cpu",
+                "#solv(implicit=water,method=smd,provider=pyddx,"
+                "response=frozen,experimental=true)",
+            ]
+        )
+
+
+def test_torch_explicit_scf_is_not_replaced_by_default():
+    with pytest.raises(ValueError, match="requires response in: frozen"):
+        CommandControl.from_settings(
+            [
+                "#model=macepolm",
+                "#sp",
+                "#device=cpu",
+                "#solv(implicit=water,method=smd,provider=torch,"
+                "response=scf,experimental=true)",
+            ]
+        )
 
 
 @pytest.mark.parametrize(

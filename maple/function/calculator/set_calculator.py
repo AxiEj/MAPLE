@@ -12,6 +12,8 @@ import ase
 from ase import Atoms
 
 from ..route2_smd_profiles import (
+    pure_macepolar_allows_charged,
+    resolve_route2_smd_profile,
     route2_smd_profile_spec,
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
@@ -231,7 +233,6 @@ class SetCalculator:
                 validate_route2_domain,
             )
 
-            validate_route2_domain(self.atoms)
             if self.d4:
                 raise ValueError("Route 2 v1 does not compose D4.")
             if self.model_options.get('hessian') is not None:
@@ -251,11 +252,12 @@ class SetCalculator:
                 raise ValueError(
                     "Route 2 provider must be pcmsolver, pyddx, fc-aswig, or torch."
                 )
-            if 'profile' not in self.solvation_options:
-                raise ValueError(
-                    "Route 2 SMD requires an explicit versioned profile."
-                )
-            profile = str(self.solvation_options['profile']).lower()
+            profile = resolve_route2_smd_profile(
+                provider,
+                self.solvation_options.get('profile'),
+                device=self.device,
+            )
+            self.solvation_options['profile'] = profile
             supported_profiles = route2_smd_profiles_for_provider(provider)
             if profile not in supported_profiles:
                 raise ValueError(
@@ -268,6 +270,10 @@ class SetCalculator:
                 solvent=self.solvent,
             )
             profile_spec = route2_smd_profile_spec(profile)
+            validate_route2_domain(
+                self.atoms,
+                allow_charged=pure_macepolar_allows_charged(profile_spec),
+            )
             validate_route2_input_model_family(
                 self.model,
                 expected_model_family=profile_spec.electronic_model_family,
@@ -288,9 +294,9 @@ class SetCalculator:
                     "This Route-2 profile requires one MOL2 molecule with "
                     "explicit topology/atom types."
                 )
-            response = str(
-                self.solvation_options.get('response', 'scf')
-            ).lower()
+            if provider == 'torch' and 'response' not in self.solvation_options:
+                self.solvation_options['response'] = 'frozen'
+            response = str(self.solvation_options.get('response', 'scf')).lower()
             validate_route2_smd_response_mode(profile_spec, response)
             if (
                 provider in {'pyddx', 'fc-aswig', 'torch'}
@@ -610,6 +616,19 @@ class SetCalculator:
                     model=requested_name,
                     profile_spec=profile_spec,
                 )
+                torch_v4 = profile_spec.name.endswith('-v4')
+                torch_dtype = 'float32' if torch_v4 else 'float64'
+                ddpcm_identity = (
+                    'torch-dense-l5/n194/tol=100eps(float32)/eta0.1'
+                    if torch_v4
+                    else 'torch-dense-l15/n1202/tol1e-12/eta0.1'
+                )
+                reduction_note = (
+                    " [INFO] Upstream precision-preserving reductions may use "
+                    "explicit float64 intermediates.\n"
+                    if torch_v4
+                    else ""
+                )
                 self.log_info(
                     [
                         " [EXPERIMENTAL] Route 2 pure Torch analytic total-PES workflow.\n",
@@ -618,10 +637,11 @@ class SetCalculator:
                         f" [INFO] execution_route={profile_spec.execution_route}\n",
                         f" [INFO] scalar_contract_id={profile_spec.scalar_contract_id}\n",
                         f" [INFO] model=macepolm device={calculator.device} "
-                        "dtype=float64 response=frozen\n",
-                        " [INFO] ddPCM=torch-dense-l15/n1202/tol1e-12/eta0.1; "
-                        "CDS=torch-legacy-smd-cds\n",
-                        " [INFO] Hessian policy: analytic torch.float64 autograd only; "
+                        f"dtype={torch_dtype} response=frozen\n",
+                        f" [INFO] ddPCM={ddpcm_identity}; "
+                        f"CDS=torch-legacy-smd-cds-{torch_dtype}\n",
+                        reduction_note,
+                        f" [INFO] Hessian policy: analytic torch.{torch_dtype} autograd only; "
                         "no coordinate finite differences or legacy fallback.\n",
                         " [WARNING] Experimental execution is not physical or release "
                         "certification.\n",

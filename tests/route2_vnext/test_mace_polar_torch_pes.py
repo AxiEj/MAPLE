@@ -205,3 +205,90 @@ def test_missing_graph_inspection_api_fails_explicitly_before_construction(monke
     monkeypatch.delattr(torch.autograd.graph, "get_gradient_edge")
     with pytest.raises(RuntimeError, match=r"PyTorch >=2.2"):
         build_smd_mace_polar_torch_pes(("O", "H", "H"), solvent="water")
+
+
+def test_fp32_profile_preserves_complete_polynomial_graph(atoms):
+    model = PolynomialModel()
+    model.dtype = torch.float32
+    pes = MACEPolarTorchPES._for_testing(
+        symbols=("O", "H", "H"),
+        model=model,
+        continuum=PolynomialContinuum(),
+        solvent_term=PolynomialCDS(),
+        requested_profile="pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v4",
+    )
+    r = atoms.positions.astype(np.float32)
+    assert pes._positions(atoms, requires_grad=True).dtype is torch.float32
+    expected_energy = np.sum(0.07 * r**2 + 0.15 * r**3 + 0.2 * r**4)
+    expected_forces = -(0.14 * r + 0.45 * r**2 + 0.8 * r**3)
+    assert pes.get_potential_energy(atoms) == pytest.approx(expected_energy, abs=2e-6)
+    np.testing.assert_allclose(pes.get_forces(atoms), expected_forces, atol=2e-6)
+    hessian = pes.evaluate_hessian(atoms)
+    expected_hessian = np.diag((0.14 + 0.9 * r + 2.4 * r**2).ravel())
+    np.testing.assert_allclose(hessian.hessian_eV_per_A2, expected_hessian, atol=2e-6)
+    assert (
+        hessian.verification_evidence_id
+        == "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
+    )
+
+
+@pytest.mark.parametrize("version", [None, 3, 4])
+def test_builder_binds_all_three_parameters_without_default_leakage(
+    monkeypatch, version
+):
+    import maple.solvation.experimental.mace_polar_torch as module
+    import maple.solvation.continuum.torch_ddpcm as continuum_module
+    import maple.solvation.models.mace_polar as model_module
+    import maple.solvation.models.mace_polar_torch as graph_module
+    import maple.solvation.models.mace_polar_fp32 as fp32_module
+    import maple.solvation.nonpolar.legacy_smd_cds as cds_module
+
+    captured = {}
+
+    def continuum(*args, **kwargs):
+        captured["continuum"] = kwargs
+        return object()
+
+    def cds(*args, **kwargs):
+        captured["cds"] = kwargs
+        return object()
+
+    monkeypatch.setattr(continuum_module, "TorchDDPCM", continuum)
+    monkeypatch.setattr(cds_module, "TorchLegacySMDCDS", cds)
+    monkeypatch.setattr(
+        fp32_module, "build_official_mace_polar_fp32_adapter", lambda **kw: object()
+    )
+    monkeypatch.setattr(
+        model_module, "build_official_mace_polar_1_m_adapter", lambda **kw: object()
+    )
+    monkeypatch.setattr(graph_module, "MACEPolarTorchGraphAdapter", lambda base: base)
+    monkeypatch.setattr(module, "MACEPolarTorchPES", lambda **kw: kw)
+    profile = (
+        None
+        if version is None
+        else f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v{version}"
+    )
+    result = module.build_smd_mace_polar_torch_pes(
+        ("O", "H", "H"), solvent="water", profile=profile
+    )
+    legacy = version == 3
+    assert captured["continuum"]["dtype"] is (
+        torch.float64 if legacy else torch.float32
+    )
+    assert captured["continuum"]["lmax"] == (15 if legacy else 5)
+    assert captured["continuum"]["n_lebedev"] == (1202 if legacy else 194)
+    assert captured["cds"]["dtype"] is captured["continuum"]["dtype"]
+    assert result["requested_profile"].endswith("v3" if legacy else "v4")
+
+
+def test_fp32_hessian_symmetry_budget_scales_without_changing_fp64():
+    from maple.solvation.numerical_precision import hessian_antisymmetry_tolerance
+
+    h32 = torch.eye(3, dtype=torch.float32) * 60
+    h64 = h32.to(torch.float64)
+    assert hessian_antisymmetry_tolerance(h64) == 1e-4
+    assert hessian_antisymmetry_tolerance(h32) == pytest.approx(
+        100 * torch.finfo(torch.float32).eps * 60
+    )
+    h32[0, 1] = 0.1
+    assert float((h32 - h32.T).abs().max()) > hessian_antisymmetry_tolerance(h32)

@@ -441,6 +441,10 @@ def build_smd_mace_polar_native_fp64_v2_oracle(
         symbols,
         smd_coulomb_radii(symbols, solvent=specification.name),
         dielectric=specification.descriptors.dielectric,
+        # Frozen FP64 reference: do not inherit exploratory defaults.
+        lmax=15,
+        n_lebedev=1202,
+        dtype=torch.float64,
         device=normalized_device,
     )
     continuum.preflight_resources(derivative_order=2, limit_bytes=4_000_000_000)

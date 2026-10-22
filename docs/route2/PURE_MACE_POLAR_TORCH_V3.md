@@ -1,5 +1,9 @@
 # Pure MACE-POLAR: explicit Torch analytic-derivative reference
 
+> This document describes the preserved FP64 v3 identity. The newer
+> FP32/lmax5/Lebedev194 profile is documented in
+> [PURE_MACE_POLAR_TORCH_V4.md](PURE_MACE_POLAR_TORCH_V4.md).
+
 ## Scientific identity
 
 This experimental route evaluates one coordinate-connected scalar:

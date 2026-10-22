@@ -18,6 +18,7 @@ from torch.utils._pytree import tree_flatten
 
 import maple.solvation.continuum.torch_ddpcm as torch_ddpcm_module
 from maple.solvation.continuum.torch_ddpcm import TorchDDPCM
+from maple.solvation.numerical_precision import source_charge_tolerance
 
 
 POSITIONS = np.array([[0.0, 0.0, 0.0], [2.4, 0.2, -0.1]])
@@ -48,7 +49,7 @@ def _functional(
     *,
     lmax: int = 2,
     n_lebedev: int = 50,
-    solve_residual_tolerance: float = 1.0e-12,
+    solve_residual_tolerance: float | None = None,
 ) -> TorchDDPCM:
     return TorchDDPCM(
         ("C", "O"),
@@ -91,6 +92,26 @@ class _FloatingOutputDtypeAudit(TorchDispatchMode):
         return result
 
 
+def test_user_defaults_are_float32_lmax5_lebedev194() -> None:
+    functional = TorchDDPCM(("C", "O"), RADII, dielectric=78.39)
+    explicit = _functional(torch.float32, lmax=5, n_lebedev=194)
+    assert functional.dtype is torch.float32
+    assert dict(functional.numerical_policy) == dict(explicit.numerical_policy)
+    assert functional.estimate_resources().basis_dimension == 2 * 36
+    positions, source = _tensors(torch.float32)
+    result = functional.diagnostics(positions, source)
+    receipt = result["execution_receipt"]
+    assert receipt["lmax"] == 5
+    assert receipt["n_lebedev"] == 194
+    assert receipt["solve_residual_tolerance"] == pytest.approx(
+        100.0 * torch.finfo(torch.float32).eps
+    )
+    assert receipt["topology_margin"] == pytest.approx(
+        100.0 * torch.finfo(torch.float32).eps
+    )
+    assert np.isfinite(result["energy_eV"])
+
+
 def test_constructor_accepts_only_float32_and_float64() -> None:
     assert _functional(torch.float32).dtype is torch.float32
     assert _functional(torch.float64).dtype is torch.float64
@@ -99,13 +120,14 @@ def test_constructor_accepts_only_float32_and_float64() -> None:
             _functional(rejected)
 
 
-def test_default_float64_reproduces_frozen_energy_gradient_and_hvp() -> None:
+def test_explicit_float64_reproduces_frozen_energy_gradient_and_hvp() -> None:
     functional = TorchDDPCM(
         ("C", "O"),
         RADII,
         dielectric=78.39,
         lmax=2,
         n_lebedev=50,
+        dtype=torch.float64,
         max_dense_bytes=100_000_000,
     )
     positions, source = _tensors(torch.float64, requires_grad=True)
@@ -122,7 +144,7 @@ def test_default_float64_reproduces_frozen_energy_gradient_and_hvp() -> None:
     np.testing.assert_array_equal(hvp.detach().numpy(), FP64_BASELINE_HVP_EV_PER_A2)
 
 
-def test_explicit_float64_and_default_have_identical_policy_and_resources() -> None:
+def test_explicit_float32_and_default_have_identical_policy_and_resources() -> None:
     default = TorchDDPCM(
         ("C", "O"),
         RADII,
@@ -137,7 +159,7 @@ def test_explicit_float64_and_default_have_identical_policy_and_resources() -> N
         dielectric=78.39,
         lmax=2,
         n_lebedev=50,
-        dtype=torch.float64,
+        dtype=torch.float32,
         max_dense_bytes=100_000_000,
     )
     assert dict(default.numerical_policy) == dict(explicit.numerical_policy)
@@ -241,13 +263,15 @@ def test_energy_rejects_input_dtype_mismatch() -> None:
         functional.energy_torch(positions, source)
 
 
-def test_float32_residual_gate_remains_exactly_one_e_minus_twelve(
+def test_float32_default_residual_gate_rejects_a_materially_bad_residual(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     functional = _functional(torch.float32, lmax=1, n_lebedev=194)
     positions, source = _tensors(torch.float32)
     monkeypatch.setattr(
-        TorchDDPCM, "_relative_residual", staticmethod(lambda matrix, solution, rhs: 2e-12)
+        TorchDDPCM,
+        "_relative_residual",
+        staticmethod(lambda matrix, solution, rhs: 2e-5),
     )
 
     with pytest.raises(RuntimeError, match="residual exceeded"):
@@ -257,9 +281,31 @@ def test_float32_residual_gate_remains_exactly_one_e_minus_twelve(
     raw = functional.diagnostics(positions, source, allow_unqualified=True)
     assert raw["scientific_admitted"] is False
     assert "solve_residual" in raw["failed_gates"]
-    assert raw["reps_relative_residual"] == 2e-12
-    assert raw["l_relative_residual"] == 2e-12
+    assert raw["reps_relative_residual"] == 2e-5
+    assert raw["l_relative_residual"] == 2e-5
     assert np.isfinite(raw["energy_eV"])
+
+
+def test_explicit_tight_float32_residual_tolerance_is_honored(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    functional = _functional(
+        torch.float32,
+        lmax=1,
+        n_lebedev=194,
+        solve_residual_tolerance=1.0e-7,
+    )
+    positions, source = _tensors(torch.float32)
+    monkeypatch.setattr(
+        TorchDDPCM,
+        "_relative_residual",
+        staticmethod(lambda matrix, solution, rhs: 2e-7),
+    )
+    with pytest.raises(RuntimeError, match="residual exceeded"):
+        functional.energy_torch(positions, source)
+    raw = functional.diagnostics(positions, source, allow_unqualified=True)
+    assert raw["execution_receipt"]["solve_residual_tolerance"] == 1.0e-7
+    assert raw["execution_receipt"]["effective_solve_residual_limit"] == 1.0e-7
 
 
 @pytest.mark.parametrize("invalid", (1, None, "false"))
@@ -276,7 +322,9 @@ def test_unqualified_diagnostics_false_is_strict_and_true_is_observational(
     functional = _functional(torch.float32, lmax=1, n_lebedev=194)
     positions, source = _tensors(torch.float32)
     monkeypatch.setattr(
-        TorchDDPCM, "_relative_residual", staticmethod(lambda matrix, solution, rhs: 2e-12)
+        TorchDDPCM,
+        "_relative_residual",
+        staticmethod(lambda matrix, solution, rhs: 2e-5),
     )
     with pytest.raises(RuntimeError, match="residual exceeded"):
         functional.diagnostics(positions, source, allow_unqualified=False)
@@ -309,9 +357,9 @@ def test_unqualified_diagnostics_reports_the_actual_dense_execution_receipt() ->
         "source_tile": "not-applicable-full-dense",
         "linear_solver": "torch.linalg.solve",
         "linear_solve_count": 2,
-        "solve_residual_tolerance": 1.0e-12,
-        "effective_solve_residual_limit": 1.0e-12,
-        "topology_margin": 1.0e-8,
+        "solve_residual_tolerance": 100.0 * torch.finfo(torch.float32).eps,
+        "effective_solve_residual_limit": 100.0 * torch.finfo(torch.float32).eps,
+        "topology_margin": 100.0 * torch.finfo(torch.float32).eps,
         "L_shape": [8, 8],
         "D_shape": [8, 8],
         "positions_shape": [2, 3],
@@ -408,6 +456,28 @@ def test_float32_energy_gradient_and_hvp_are_analytic_and_close_to_float64() -> 
     assert abs(fp32[0] - fp64[0]) <= 5.0e-5
     np.testing.assert_allclose(fp32[1], fp64[1], rtol=0.0, atol=5.0e-4)
     np.testing.assert_allclose(fp32[2], fp64[2], rtol=0.0, atol=5.0e-4)
+
+
+def test_float32_default_is_strict_for_regular_energy_gradient_and_hvp() -> None:
+    functional = _functional(torch.float32, lmax=1, n_lebedev=194)
+    positions, source = _tensors(torch.float32, requires_grad=True)
+    energy = functional.energy_torch(positions, source)
+    gradient = torch.autograd.grad(energy, positions, create_graph=True)[0]
+    direction = torch.tensor(DIRECTION, dtype=torch.float32)
+    hvp = torch.autograd.grad((gradient * direction).sum(), positions)[0]
+    assert torch.isfinite(energy)
+    assert torch.isfinite(gradient).all()
+    assert torch.isfinite(hvp).all()
+
+
+def test_source_charge_tolerance_is_dtype_and_scale_aware_without_mutation() -> None:
+    charges32 = torch.tensor([0.5, -0.5, 0.25, -0.25], dtype=torch.float32)
+    original = charges32.clone()
+    tolerance32 = source_charge_tolerance(charges32)
+    tolerance64 = source_charge_tolerance(charges32.double())
+    assert tolerance32 > 1.0e-8
+    assert tolerance64 == 1.0e-8
+    assert torch.equal(charges32, original)
 
 
 def test_dtype_is_bound_into_configuration_identity() -> None:

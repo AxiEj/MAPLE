@@ -615,7 +615,7 @@ def test_real_low_degree_scalar_gradient_and_hessian_match_dense_oracle():
     radii = (1.7, 1.5)
     kwargs = dict(dielectric=78.39, lmax=2, n_lebedev=50)
     response = response_module.TorchDDPCMResponse(symbols, radii, **kwargs)
-    dense = TorchDDPCM(symbols, radii, **kwargs)
+    dense = TorchDDPCM(symbols, radii, dtype=torch.float64, **kwargs)
     positions = torch.tensor([[0.0, 0.0, 0.0], [1.8, 0.23, 0.12]], requires_grad=True)
     active = torch.tensor([[0.4, 0.1, -0.1, 0.2], [-0.4, -0.05, 0.12, -0.18]])
     source = torch.zeros((2, 8))

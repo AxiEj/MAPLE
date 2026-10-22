@@ -94,6 +94,7 @@ def test_configuration_hash_binds_all_live_source_files(monkeypatch):
         name for name, _ in json.loads(baseline.provenance["source_files_sha256"])
     } == {
         "maple.function.route2_solvents",
+        "maple.function.smd_solvent_data",
         "maple.solvation.nonpolar.legacy_smd_cds",
         "maple.solvation.surfaces.legacy_dareal",
     }

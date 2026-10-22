@@ -1,24 +1,29 @@
-"""Immutable solvent specifications for experimental Route-2 SMD profiles.
+"""Immutable solvent specifications for Route-2 SMD profiles.
 
-The values are the eight SMD solvent descriptors exposed by the tested
-PySCF 2.13.1 ``solvent_db`` and trace back to the Minnesota solvation
-database.  This module is data-only: continuum equations, source
-representations, cavity policies, and non-polar models remain separate axes.
+The full catalog is a data-only snapshot of the eight SMD solvent descriptors
+exposed by PySCF 2.13.1. Runtime lookup does not import PySCF. The historical
+11-solvent Route-2 profile scope remains available separately so expanding the
+catalog does not silently expand existing scientific profiles.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
+import re
 from types import MappingProxyType
 from typing import Mapping
 
+from .smd_solvent_data import (
+    PYSCF_SMD_SOURCE_VERSION,
+    SMD_SOLVENT_DESCRIPTOR_SNAPSHOT,
+)
 
 MNSOL_DATABASE_DOI = "10.13020/3eks-j059"
 MNSOL_DATABASE_URL = (
-    "https://conservancy.umn.edu/items/0ae1c7f7-154f-4ab6-9a5c-"
-    "ba13e03546f3"
+    "https://conservancy.umn.edu/items/0ae1c7f7-154f-4ab6-9a5c-" "ba13e03546f3"
 )
-PYSCF_SMD_VERSION = "2.13.1"
+PYSCF_SMD_VERSION = PYSCF_SMD_SOURCE_VERSION
 
 
 @dataclass(frozen=True)
@@ -53,7 +58,7 @@ class Route2SolventSpec:
 
     name: str
     pyscf_smd_name: str
-    mnsol_name: str
+    mnsol_name: str | None
     descriptors: SMDSolventDescriptors
     aliases: frozenset[str] = frozenset()
     descriptor_source: str = "PySCF 2.13.1 SMD solvent_db"
@@ -61,114 +66,91 @@ class Route2SolventSpec:
     experimental_dataset_url: str = MNSOL_DATABASE_URL
 
 
-def _descriptors(values: tuple[float, ...]) -> SMDSolventDescriptors:
-    return SMDSolventDescriptors(*values)
+_HISTORICAL_ROUTE2_NAMES = (
+    "water",
+    "methanol",
+    "ethanol",
+    "acetonitrile",
+    "dimethylsulfoxide",
+    "dimethylformamide",
+    "tetrahydrofuran",
+    "chloroform",
+    "dichloromethane",
+    "toluene",
+    "hexane",
+)
 
-
-_SOLVENT_SPECS = {
-    "water": Route2SolventSpec(
-        name="water",
-        pyscf_smd_name="water",
-        mnsol_name="water",
-        descriptors=_descriptors(
-            (1.3328, 1.3323, 0.82, 0.35, -1.0, 78.355, -1.0, -1.0)
-        ),
-        aliases=frozenset({"h2o"}),
-    ),
-    "methanol": Route2SolventSpec(
-        name="methanol",
-        pyscf_smd_name="methanol",
-        mnsol_name="methanol",
-        descriptors=_descriptors(
-            (1.3288, 1.3265, 0.43, 0.47, 31.77, 32.613, 0.0, 0.0)
-        ),
-        aliases=frozenset({"meoh"}),
-    ),
-    "ethanol": Route2SolventSpec(
-        name="ethanol",
-        pyscf_smd_name="ethanol",
-        mnsol_name="ethanol",
-        descriptors=_descriptors(
-            (1.3611, 1.3593, 0.37, 0.48, 31.62, 24.852, 0.0, 0.0)
-        ),
-        aliases=frozenset({"etoh"}),
-    ),
-    "acetonitrile": Route2SolventSpec(
-        name="acetonitrile",
-        pyscf_smd_name="acetonitrile",
-        mnsol_name="acetonitrile",
-        descriptors=_descriptors(
-            (1.3442, 1.3416, 0.07, 0.32, 41.25, 35.688, 0.0, 0.0)
-        ),
-        aliases=frozenset({"mecn"}),
-    ),
-    "dimethylsulfoxide": Route2SolventSpec(
-        name="dimethylsulfoxide",
-        pyscf_smd_name="dimethylsulfoxide",
-        mnsol_name="dimethylsulfoxide",
-        descriptors=_descriptors(
-            (1.4783, 1.4783, 0.0, 0.88, 61.78, 46.826, 0.0, 0.0)
-        ),
-        aliases=frozenset({"dmso", "dimethyl sulfoxide"}),
-    ),
-    "dimethylformamide": Route2SolventSpec(
-        name="dimethylformamide",
-        pyscf_smd_name="N,N-dimethylformamide",
-        mnsol_name="dimethylformamide",
-        descriptors=_descriptors(
-            (1.4305, 1.4280, 0.0, 0.74, 49.56, 37.219, 0.0, 0.0)
-        ),
-        aliases=frozenset(
-            {"dmf", "N,N-dimethylformamide", "dimethyl formamide"}
-        ),
-    ),
-    "tetrahydrofuran": Route2SolventSpec(
-        name="tetrahydrofuran",
-        pyscf_smd_name="tetrahydrofuran",
-        mnsol_name="tetrahydrofuran",
-        descriptors=_descriptors(
-            (1.4050, 1.4044, 0.0, 0.48, 39.44, 7.4257, 0.0, 0.0)
-        ),
-        aliases=frozenset({"thf"}),
-    ),
-    "chloroform": Route2SolventSpec(
-        name="chloroform",
-        pyscf_smd_name="chloroform",
-        mnsol_name="chloroform",
-        descriptors=_descriptors(
-            (1.4459, 1.4431, 0.15, 0.02, 38.39, 4.7113, 0.0, 0.75)
-        ),
-    ),
-    "dichloromethane": Route2SolventSpec(
-        name="dichloromethane",
-        pyscf_smd_name="dichloromethane",
-        mnsol_name="methylenechloride",
-        descriptors=_descriptors(
-            (1.4242, 1.4212, 0.10, 0.05, 39.15, 8.93, 0.0, 0.667)
-        ),
-        aliases=frozenset({"dcm", "methylene chloride"}),
-    ),
-    "toluene": Route2SolventSpec(
-        name="toluene",
-        pyscf_smd_name="toluene",
-        mnsol_name="toluene",
-        descriptors=_descriptors(
-            (1.4961, 1.4936, 0.0, 0.14, 40.2, 2.3741, 0.857, 0.0)
-        ),
-    ),
-    "hexane": Route2SolventSpec(
-        name="hexane",
-        pyscf_smd_name="n-hexane",
-        mnsol_name="hexane",
-        descriptors=_descriptors(
-            (1.3749, 1.3722, 0.0, 0.0, 25.75, 1.8819, 0.0, 0.0)
-        ),
-        aliases=frozenset({"n-hexane"}),
-    ),
+_HISTORICAL_MNSOL_NAMES = {
+    "water": "water",
+    "methanol": "methanol",
+    "ethanol": "ethanol",
+    "acetonitrile": "acetonitrile",
+    "dimethylsulfoxide": "dimethylsulfoxide",
+    "dimethylformamide": "dimethylformamide",
+    "tetrahydrofuran": "tetrahydrofuran",
+    "chloroform": "chloroform",
+    "dichloromethane": "methylenechloride",
+    "toluene": "toluene",
+    "hexane": "hexane",
 }
 
+_EXPLICIT_ALIASES = {
+    "water": frozenset({"h2o"}),
+    "methanol": frozenset({"meoh"}),
+    "ethanol": frozenset({"etoh"}),
+    "acetonitrile": frozenset({"mecn"}),
+    "dimethylsulfoxide": frozenset({"dmso", "dimethyl sulfoxide"}),
+    "dimethylformamide": frozenset(
+        {"dmf", "N,N-dimethylformamide", "dimethyl formamide"}
+    ),
+    "tetrahydrofuran": frozenset({"thf"}),
+    "dichloromethane": frozenset({"dcm", "methylene chloride"}),
+    "hexane": frozenset({"n-hexane"}),
+    "ethylethanoate": frozenset({"ethyl acetate"}),
+    "methylethanoate": frozenset({"methyl acetate"}),
+    "1-2-ethanediol": frozenset({"ethylene glycol"}),
+    "2-propanol": frozenset({"isopropanol", "isopropyl alcohol"}),
+    "1-octanol": frozenset({"n-octanol"}),
+}
+
+_PARSER_SAFE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
+
+
+def _build_solvent_specs() -> dict[str, Route2SolventSpec]:
+    specs: dict[str, Route2SolventSpec] = {}
+    for canonical_name, pyscf_name, values in SMD_SOLVENT_DESCRIPTOR_SNAPSHOT:
+        if not _PARSER_SAFE_NAME.fullmatch(canonical_name):
+            raise RuntimeError(f"Invalid canonical SMD solvent name: {canonical_name}")
+        if canonical_name in specs:
+            raise RuntimeError(f"Duplicate canonical SMD solvent: {canonical_name}")
+        if len(values) != 8 or not all(math.isfinite(value) for value in values):
+            raise RuntimeError(f"Invalid SMD descriptors for {pyscf_name}")
+        if all(value == 0 for value in values):
+            raise RuntimeError(
+                f"All-zero SMD sentinel leaked into catalog: {pyscf_name}"
+            )
+
+        specs[canonical_name] = Route2SolventSpec(
+            name=canonical_name,
+            pyscf_smd_name=pyscf_name,
+            mnsol_name=_HISTORICAL_MNSOL_NAMES.get(canonical_name),
+            descriptors=SMDSolventDescriptors(*values),
+            aliases=_EXPLICIT_ALIASES.get(canonical_name, frozenset()),
+        )
+    return specs
+
+
+_SMD_SOLVENT_SPECS = _build_solvent_specs()
+
+# Full versioned SMD descriptor catalog. This is the lookup surface used by
+# normalize_route2_solvent_name() and route2_solvent_spec().
+SMD_SOLVENTS: Mapping[str, Route2SolventSpec] = MappingProxyType(_SMD_SOLVENT_SPECS)
+SUPPORTED_SMD_SOLVENTS = frozenset(SMD_SOLVENTS)
+
+# Historical profile scope. Do not replace this with the full catalog without
+# separately validating and versioning every profile that consumes it.
 ROUTE2_SMD_SOLVENTS: Mapping[str, Route2SolventSpec] = MappingProxyType(
-    _SOLVENT_SPECS
+    {name: SMD_SOLVENTS[name] for name in _HISTORICAL_ROUTE2_NAMES}
 )
 SUPPORTED_ROUTE2_SMD_SOLVENTS = frozenset(ROUTE2_SMD_SOLVENTS)
 
@@ -178,27 +160,42 @@ def _compact_solvent_name(value: object) -> str:
     return "".join(character for character in normalized if character.isalnum())
 
 
-_SOLVENT_ALIASES = {
-    _compact_solvent_name(alias): spec.name
-    for spec in ROUTE2_SMD_SOLVENTS.values()
-    for alias in {spec.name, spec.pyscf_smd_name, *spec.aliases}
-}
+def _build_aliases() -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for spec in SMD_SOLVENTS.values():
+        for alias in {spec.name, spec.pyscf_smd_name, *spec.aliases}:
+            compact = _compact_solvent_name(alias)
+            if not compact:
+                raise RuntimeError(f"Empty SMD solvent alias for {spec.name}")
+            previous = aliases.setdefault(compact, spec.name)
+            if previous != spec.name:
+                raise RuntimeError(
+                    f"Ambiguous SMD solvent alias {alias!r}: "
+                    f"{previous!r} versus {spec.name!r}"
+                )
+    return aliases
+
+
+_SOLVENT_ALIASES = _build_aliases()
 
 
 def normalize_route2_solvent_name(solvent: object) -> str:
+    """Return the parser-safe canonical name for any catalog solvent alias."""
+
     compact = _compact_solvent_name(solvent)
     try:
         return _SOLVENT_ALIASES[compact]
     except KeyError as exc:
-        supported = ", ".join(sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
         raise ValueError(
             f"Unsupported Route 2 SMD solvent: {solvent}. "
-            f"Supported solvents: {supported}."
+            f"The catalog contains {len(SUPPORTED_SMD_SOLVENTS)} solvents."
         ) from exc
 
 
 def route2_solvent_spec(solvent: object) -> Route2SolventSpec:
-    return ROUTE2_SMD_SOLVENTS[normalize_route2_solvent_name(solvent)]
+    """Resolve a solvent against the full vendored SMD catalog."""
+
+    return SMD_SOLVENTS[normalize_route2_solvent_name(solvent)]
 
 
 __all__ = [
@@ -206,9 +203,11 @@ __all__ = [
     "MNSOL_DATABASE_URL",
     "PYSCF_SMD_VERSION",
     "ROUTE2_SMD_SOLVENTS",
+    "SMD_SOLVENTS",
     "Route2SolventSpec",
     "SMDSolventDescriptors",
     "SUPPORTED_ROUTE2_SMD_SOLVENTS",
+    "SUPPORTED_SMD_SOLVENTS",
     "normalize_route2_solvent_name",
     "route2_solvent_spec",
 ]

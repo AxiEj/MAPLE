@@ -26,6 +26,7 @@ def _functional(**kwargs) -> TorchDDPCM:
     return TorchDDPCM(
         ("C", "O"),
         RADII,
+        dtype=torch.float64,
         dielectric=78.39,
         lmax=2,
         n_lebedev=50,
@@ -101,6 +102,7 @@ def test_registered_lmax15_lebedev1202_energy_and_gradient_match_pyddx() -> None
     functional = TorchDDPCM(
         ("C", "O"),
         RADII,
+        dtype=torch.float64,
         dielectric=78.39,
         lmax=15,
         n_lebedev=1202,
@@ -142,6 +144,7 @@ def test_registered_water_matrices_remain_full_rank_and_match_pyddx() -> None:
     functional = TorchDDPCM(
         symbols,
         radii,
+        dtype=torch.float64,
         dielectric=78.39,
         lmax=15,
         n_lebedev=1202,
@@ -174,6 +177,7 @@ def test_isolated_sphere_point_source_matches_pyddx() -> None:
     functional = TorchDDPCM(
         ("C",),
         np.array([1.5]),
+        dtype=torch.float64,
         dielectric=78.39,
         lmax=2,
         n_lebedev=50,
@@ -283,6 +287,7 @@ def test_source_layout_and_dense_resource_guard_fail_closed() -> None:
         TorchDDPCM(
             ("C", "O"),
             RADII,
+            dtype=torch.float64,
             dielectric=78.39,
             lmax=15,
             n_lebedev=50,
@@ -323,6 +328,7 @@ def test_derivative_order_resource_preflight_is_explicit() -> None:
     functional = TorchDDPCM(
         ("C", "O"),
         RADII,
+        dtype=torch.float64,
         dielectric=78.39,
         lmax=15,
         n_lebedev=1202,
@@ -380,6 +386,7 @@ def test_topology_guard_accepts_buried_plateau_and_rejects_active_crossing() -> 
     crossing = TorchDDPCM(
         ("H", "H", "H"),
         np.ones(3),
+        dtype=torch.float64,
         dielectric=78.39,
         lmax=2,
         n_lebedev=50,

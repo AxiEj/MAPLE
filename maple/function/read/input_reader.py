@@ -21,6 +21,7 @@ from maple.function.dispatcher.md.logger import _backup_file
 from maple.function.route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
+    pure_macepolar_allows_charged,
     route2_smd_profile_spec,
 )
 
@@ -256,6 +257,7 @@ class InputReader():
                         "Route 2 SMD requires an explicit versioned profile."
                     )
                 profile = route2_smd_profile_spec(implicit_options["profile"])
+                allow_charged = pure_macepolar_allows_charged(profile)
                 pure_v2 = profile.name in {
                     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CPU_V2_PROFILE,
                     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
@@ -283,13 +285,8 @@ class InputReader():
                         )
                     if "charge" not in atoms.info or "mult" not in atoms.info:
                         raise ValueError(
-                            "Every Route 2 SMD image requires an explicit '0 1' "
+                            "Every Route 2 SMD image requires an explicit integer "
                             "charge/multiplicity line before its coordinate source."
-                        )
-                    if atoms.info["charge"] != 0 or atoms.info["mult"] != 1:
-                        raise ValueError(
-                            "Every Route-2 SMD image must be neutral closed-shell "
-                            "with charge/multiplicity '0 1'."
                         )
                     symbols = tuple(atoms.get_chemical_symbols())
                     if symbols != expected_symbols:
@@ -297,7 +294,7 @@ class InputReader():
                             "Route 2 path images must have identical atom count and "
                             f"ordered symbols; image {image_index + 1} differs."
                         )
-                    validate_route2_domain(atoms)
+                    validate_route2_domain(atoms, allow_charged=allow_charged)
             for atoms in targets:
                 atoms.info["_maple_charge_options"] = dict(
                     self.command_control.params.get("charge", {})

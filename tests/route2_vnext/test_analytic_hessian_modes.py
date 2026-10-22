@@ -21,6 +21,10 @@ _REGISTERED_CPU_SCALAR_ID = (
     "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3"
 )
 _CONTRACT_EVIDENCE_ID = "route2-pure-macepolar-torch-analytic-v3-contract-tests"
+_REGISTERED_CPU_V4_SCALAR_ID = (
+    "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v4"
+)
+_FP32_V4_EVIDENCE_ID = "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
 
 
 def _evaluation(*, hessian: np.ndarray | None = None) -> AnalyticHessianEvaluation:
@@ -49,6 +53,8 @@ def test_analytic_hessian_evaluation_is_immutable_and_content_addressed():
     assert len(first.derivative_policy_sha256) == 64
     assert first.derivative_method == "torch-autograd"
     assert first.dtype == "float64"
+    assert first.computation_dtype == "float64"
+    assert first.storage_dtype == "float64"
     assert first.numerical_uncertainty_eV_per_A2 is None
     assert isinstance(first.component_energies_eV, MappingProxyType)
     assert isinstance(first.diagnostics, MappingProxyType)
@@ -60,6 +66,121 @@ def test_analytic_hessian_evaluation_is_immutable_and_content_addressed():
         first.hessian_eV_per_A2[0, 0] = 2.0
     with pytest.raises(TypeError):
         first.diagnostics["new"] = True
+
+
+def test_default_fp64_preserves_legacy_payload_digest():
+    evaluation = _evaluation()
+
+    assert evaluation.evaluation_sha256 == (
+        "5c68eae13ce46bfc355d5ca39bd797e39f8ed627a70eefe6ab832f48f22d6da4"
+    )
+
+
+def test_fp32_computation_is_hash_bound_but_arrays_remain_float64_storage():
+    fp64 = _evaluation()
+    fp32 = AnalyticHessianEvaluation(
+        hessian_eV_per_A2=np.eye(9, dtype=np.float32),
+        forces_eV_per_A=np.zeros((3, 3), dtype=np.float32),
+        energy_eV=-1.25,
+        geometry_sha256="a" * 64,
+        configuration_sha256="b" * 64,
+        scalar_contract_id="unregistered-engineering-test-fp32-scalar",
+        device="cpu",
+        component_energies_eV={"vacuum": -1.25},
+        diagnostics={"scientific_release_admitted": False},
+        computation_dtype="float32",
+    )
+
+    assert fp32.dtype == "float32"
+    assert fp32.computation_dtype == "float32"
+    assert fp32.storage_dtype == "float64"
+    assert fp32.hessian_eV_per_A2.dtype == np.float64
+    assert fp32.forces_eV_per_A.dtype == np.float64
+    assert fp32.evaluation_sha256 != fp64.evaluation_sha256
+
+
+def test_registered_torch_v4_requires_bound_fp32_evidence():
+    common = dict(
+        hessian_eV_per_A2=np.eye(9),
+        forces_eV_per_A=np.zeros((3, 3)),
+        energy_eV=-1.25,
+        geometry_sha256="a" * 64,
+        configuration_sha256="b" * 64,
+        scalar_contract_id=_REGISTERED_CPU_V4_SCALAR_ID,
+        device="cpu",
+        component_energies_eV={"vacuum": -1.25},
+        diagnostics={"scientific_release_admitted": False},
+        provider_id="provider-v4",
+        profile_id="profile-v4",
+        computation_dtype="float32",
+    )
+    with pytest.raises(ValueError, match="require non-empty"):
+        AnalyticHessianEvaluation(**common)
+    with pytest.raises(ValueError, match="bound FP32 engineering"):
+        AnalyticHessianEvaluation(
+            **common, verification_evidence_id="unverified-fp32-claim"
+        )
+
+    admitted = AnalyticHessianEvaluation(
+        **common, verification_evidence_id=_FP32_V4_EVIDENCE_ID
+    )
+    assert admitted.dtype == "float32"
+
+
+@pytest.mark.parametrize(
+    "scalar_contract_id,verification_evidence_id,computation_dtype,match",
+    [
+        (
+            _REGISTERED_CPU_SCALAR_ID,
+            _CONTRACT_EVIDENCE_ID,
+            "float32",
+            "v3 analytic results require float64 computation",
+        ),
+        (
+            _REGISTERED_CPU_V4_SCALAR_ID,
+            _FP32_V4_EVIDENCE_ID,
+            "float64",
+            "v4 analytic results require float32 computation",
+        ),
+    ],
+)
+def test_registered_torch_precision_must_match_version(
+    scalar_contract_id, verification_evidence_id, computation_dtype, match
+):
+    with pytest.raises(ValueError, match=match):
+        AnalyticHessianEvaluation(
+            hessian_eV_per_A2=np.eye(9),
+            forces_eV_per_A=np.zeros((3, 3)),
+            energy_eV=-1.25,
+            geometry_sha256="a" * 64,
+            configuration_sha256="b" * 64,
+            scalar_contract_id=scalar_contract_id,
+            device="cpu",
+            component_energies_eV={"vacuum": -1.25},
+            diagnostics={"scientific_release_admitted": False},
+            provider_id="provider",
+            profile_id="profile",
+            verification_evidence_id=verification_evidence_id,
+            computation_dtype=computation_dtype,
+        )
+
+
+@pytest.mark.parametrize("invalid", ["", "float16", "torch.float32", None])
+def test_computation_dtype_rejects_unsupported_values(invalid):
+    kwargs = dict(
+        hessian_eV_per_A2=np.eye(9),
+        forces_eV_per_A=np.zeros((3, 3)),
+        energy_eV=-1.25,
+        geometry_sha256="a" * 64,
+        configuration_sha256="b" * 64,
+        scalar_contract_id="route2-test-analytic-scalar-v1",
+        device="cpu",
+        component_energies_eV={"vacuum": -1.25},
+        diagnostics={"regular": True},
+        computation_dtype=invalid,
+    )
+    with pytest.raises(ValueError, match="computation_dtype"):
+        AnalyticHessianEvaluation(**kwargs)
 
 
 def test_analytic_hessian_hash_covers_raw_antisymmetry_and_diagnostics():

@@ -18,6 +18,7 @@ import math
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Sequence
+import warnings
 
 import numpy as np
 from ase.data import atomic_numbers
@@ -30,9 +31,20 @@ from maple.solvation.coupling.spaces import (
     MACE_POLAR_RADIAL_GTO_FIELD_DUAL_SPACE,
     MACE_POLAR_RADIAL_GTO_SOURCE_SPACE,
 )
+from maple.solvation.numerical_precision import (
+    default_solve_residual_tolerance,
+    default_topology_margin,
+)
 from maple.solvation.surfaces.lebedev import ordered_lebedev_grid
 
 from .functional import ContinuumEnergyFunctional
+from .fp32_partition import (
+    FP32_PARTITION_POLICY,
+    FP32PartitionDiagnostics,
+    assess_fp32_partition,
+    fp32_partition_normalizer,
+    stable_fp32_partition,
+)
 from .harmonic_torch_primitives import _torch_real_harmonic_design
 
 TORCH_DDPCM_PROVIDER_ID = "maple.route2.continuum.torch-ddpcm-dense.impl.v1"
@@ -74,6 +86,9 @@ def _implementation_files_sha256() -> tuple[tuple[str, str], ...]:
         {
             "solvation.api.units": solvation / "api" / "units.py",
             "solvation.continuum.functional": solvation / "continuum" / "functional.py",
+            "solvation.continuum.fp32_partition": solvation
+            / "continuum"
+            / "fp32_partition.py",
             "solvation.continuum.harmonic_coefficients": solvation
             / "continuum"
             / "harmonic_coefficients.py",
@@ -84,6 +99,7 @@ def _implementation_files_sha256() -> tuple[tuple[str, str], ...]:
             "solvation.coupling.metrics": solvation / "coupling" / "metrics.py",
             "solvation.coupling.operator": solvation / "coupling" / "operator.py",
             "solvation.coupling.spaces": solvation / "coupling" / "spaces.py",
+            "solvation.numerical_precision": solvation / "numerical_precision.py",
             "solvation.surfaces.lebedev": solvation / "surfaces" / "lebedev.py",
         }
     )
@@ -181,10 +197,16 @@ class TorchDDPCMState:
     l_relative_residual: float
     solve_residual_limit: float
     assessment_gate_failures: tuple[str, ...]
+    fp32_partition: FP32PartitionDiagnostics | None = None
 
 
 class TorchDDPCM(ContinuumEnergyFunctional):
-    """Dense differentiable ddPCM for the frozen MACE-POLAR point source."""
+    """Dense differentiable ddPCM for the frozen MACE-POLAR point source.
+
+    Defaults: FP32, lmax=5, Lebedev 194. Explicit FP64 callers retain their
+    original numerical contract. Residual and topology checks use resolved,
+    dtype-aware engineering tolerances and remain fail-closed.
+    """
 
     __slots__ = (
         "_configuration_sha256",
@@ -213,17 +235,17 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         radii_angstrom: object,
         *,
         dielectric: float,
-        lmax: int = 15,
-        n_lebedev: int = 1202,
+        lmax: int = 5,
+        n_lebedev: int = 194,
         eta: float = 0.1,
         device: object = "cpu",
         dtype: object = None,
         max_dense_bytes: int = 1_000_000_000,
-        solve_residual_tolerance: float = 1.0e-12,
-        topology_margin: float = 1.0e-8,
+        solve_residual_tolerance: float | None = None,
+        topology_margin: float | None = None,
     ) -> None:
         torch = __import__("torch")
-        dtype = torch.float64 if dtype is None else dtype
+        dtype = torch.float32 if dtype is None else dtype
         if dtype not in (torch.float32, torch.float64):
             raise TypeError("TorchDDPCM supports only torch.float32 and torch.float64.")
         requested_device = torch.device(device)
@@ -271,10 +293,18 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             or max_dense_bytes <= 0
         ):
             raise ValueError("max_dense_bytes must be a positive integer.")
-        residual_tolerance = float(solve_residual_tolerance)
+        residual_tolerance = (
+            default_solve_residual_tolerance(dtype)
+            if solve_residual_tolerance is None
+            else float(solve_residual_tolerance)
+        )
         if not math.isfinite(residual_tolerance) or residual_tolerance <= 0.0:
             raise ValueError("solve_residual_tolerance must be positive.")
-        margin = float(topology_margin)
+        margin = (
+            default_topology_margin(dtype)
+            if topology_margin is None
+            else float(topology_margin)
+        )
         if not math.isfinite(margin) or margin <= 0.0:
             raise ValueError("topology_margin must be positive.")
 
@@ -305,6 +335,7 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             "device": str(requested_device),
             "max_dense_bytes": max_dense_bytes,
             "solve_residual_tolerance": residual_tolerance,
+            "solve_residual_metric": "l2(Ax-b)/max(l2(b),1)",
             "topology_margin": margin,
             "matrix_peak_factor": 16,
             "condition_estimator": "torch.linalg.svdvals-on-requested-device-detached",
@@ -318,7 +349,13 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             "fallback": "forbidden",
         }
         if dtype is torch.float32:
-            policy.update({"autocast": "forbidden", "tf32": "forbidden"})
+            policy.update(
+                {
+                    "autocast": "forbidden",
+                    "tf32": "forbidden",
+                    "partition_policy": FP32_PARTITION_POLICY,
+                }
+            )
         object.__setattr__(self, "_symbols", symbol_tuple)
         object.__setattr__(self, "_radii_angstrom", radii)
         object.__setattr__(self, "_dielectric", dielectric_value)
@@ -474,6 +511,8 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         )
 
     def _switch(self, distance_ratio: Any):
+        """Evaluate the historical switch used by the unchanged FP64 path."""
+
         torch = __import__("torch")
         shifted = distance_ratio - 0.5 * self._eta
         a = 1.0 - shifted
@@ -511,9 +550,14 @@ class TorchDDPCM(ContinuumEnergyFunctional):
                 "a ddPCM grid node coincides with a distinct sphere centre."
             )
         ratios = safe_distance / radii_bohr[None, None, :]
-        chi = torch.where(owner_mask, torch.zeros_like(ratios), self._switch(ratios))
-        fi = torch.sum(chi, dim=-1)
-        ui = torch.clamp(1.0 - fi, min=0.0)
+        if positions.dtype is torch.float32:
+            chi, fi, ui = stable_fp32_partition(ratios, owner_mask, eta=self._eta)
+        else:
+            chi = torch.where(
+                owner_mask, torch.zeros_like(ratios), self._switch(ratios)
+            )
+            fi = torch.sum(chi, dim=-1)
+            ui = torch.clamp(1.0 - fi, min=0.0)
         return (
             directions,
             weights,
@@ -587,7 +631,34 @@ class TorchDDPCM(ContinuumEnergyFunctional):
     def _certify_topology(
         self, ratios: Any, chi: Any, fi: Any, ui: Any
     ) -> DDPCMTopologyCertificate:
-        certificate, failures = TorchDDPCM._assess_topology(self, ratios, chi, fi, ui)
+        torch = __import__("torch")
+        if fi.dtype is torch.float32:
+            owner = torch.eye(
+                len(self._symbols), dtype=torch.bool, device=fi.device
+            )[:, None, :]
+            partition = assess_fp32_partition(
+                ratios,
+                owner,
+                chi,
+                fi,
+                ui,
+                eta=self._eta,
+                margin=self._topology_margin,
+            )
+            certificate = DDPCMTopologyCertificate(
+                contract=partition.contract,
+                topology_sha256=partition.support_sha256,
+                active_node_count=partition.active_node_count,
+                buried_plateau_count=partition.buried_plateau_node_count,
+                transition_node_count=partition.transition_node_count,
+                minimum_switch_margin=partition.minimum_switch_margin,
+                minimum_active_f_margin=partition.minimum_active_f_margin,
+            )
+            failures = partition.hard_failures
+        else:
+            certificate, failures = TorchDDPCM._assess_topology(
+                self, ratios, chi, fi, ui
+            )
         if failures:
             raise RuntimeError(
                 "ddPCM topology is within the certified branch-change margin."
@@ -644,6 +715,19 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         )
         single_scale = 4.0 * math.pi / (2.0 * ell + 1.0)
         diagonal_l = torch.diag(single_scale)
+        fp32_normalizer = None
+        if positions.dtype is torch.float32:
+            owner_mask = torch.eye(
+                atom_count, dtype=torch.bool, device=positions.device
+            )[:, None, :]
+            ratios = torch.where(
+                owner_mask,
+                torch.ones_like(pair_distance),
+                pair_distance / radii[None, None, :],
+            )
+            fp32_normalizer = fp32_partition_normalizer(
+                ratios, owner_mask, fi, eta=self._eta
+            )
         l_rows = []
         d_rows = []
         for target in range(atom_count):
@@ -662,9 +746,14 @@ class TorchDDPCM(ContinuumEnergyFunctional):
                 unit = pair_delta[target, :, source_index, :] / distance[:, None]
                 source_design = _torch_real_harmonic_design(unit, lmax=self._lmax)
                 ratio = distance / radii[source_index]
-                overlap = chi[target, :, source_index] / torch.clamp(
-                    fi[target], min=1.0
-                )
+                if positions.dtype is torch.float32:
+                    # For the proven lower branch, the ddX normalizer is the
+                    # exact constant one even if rounded f itself equals one.
+                    # On the buried branch it remains f, as in ddX.
+                    normalizer = fp32_normalizer[target]
+                else:
+                    normalizer = torch.clamp(fi[target], min=1.0)
+                overlap = chi[target, :, source_index] / normalizer
                 l_potential = -source_design * (
                     overlap[:, None]
                     * ratio[:, None] ** ell[None, :]
@@ -823,7 +912,38 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         ratios = torch.where(
             owner, torch.ones_like(pair_distance), pair_distance / radii[None, None, :]
         )
-        topology, topology_failures = self._assess_topology(ratios, chi, fi, ui)
+        fp32_partition = None
+        if positions.dtype is torch.float32:
+            fp32_partition = assess_fp32_partition(
+                ratios,
+                owner,
+                chi,
+                fi,
+                ui,
+                eta=self._eta,
+                margin=self._topology_margin,
+            )
+            topology = DDPCMTopologyCertificate(
+                contract=fp32_partition.contract,
+                topology_sha256=fp32_partition.support_sha256,
+                active_node_count=fp32_partition.active_node_count,
+                buried_plateau_count=fp32_partition.buried_plateau_node_count,
+                transition_node_count=fp32_partition.transition_node_count,
+                minimum_switch_margin=fp32_partition.minimum_switch_margin,
+                minimum_active_f_margin=fp32_partition.minimum_active_f_margin,
+            )
+            topology_failures = fp32_partition.hard_failures
+            if fp32_partition.warnings:
+                warnings.warn(
+                    "ddPCM FP32 topology used a mathematically certified "
+                    "one-sided/C2 branch: " + ", ".join(fp32_partition.warnings),
+                    RuntimeWarning,
+                    stacklevel=3,
+                )
+        else:
+            topology, topology_failures = self._assess_topology(
+                ratios, chi, fi, ui
+            )
         if enforce_checks and topology_failures:
             raise RuntimeError(
                 "ddPCM topology is within the certified branch-change margin."
@@ -873,9 +993,8 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         l_residual = self._relative_residual(L, solution, dielectric_rhs)
         if not math.isfinite(reps_residual) or not math.isfinite(l_residual):
             raise RuntimeError("TorchDDPCM dense solve produced a non-finite residual.")
-        # Direct LAPACK solves normally reach machine precision.  The factor
-        # 100 protects a strict 1e-12 scientific contract from residual-rounding
-        # noise without relaxing it to iterative-solver accuracy.
+        # Keep the historical FP64 machine floor for explicit ultra-tight
+        # overrides.  Dtype-aware defaults are resolved in the constructor.
         limit = max(100.0 * np.finfo(np.float64).eps, self._solve_residual_tolerance)
         residual_failures = tuple(
             name
@@ -909,6 +1028,7 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             assessment_gate_failures=(
                 topology_failures + l_failures + reps_failures + residual_failures
             ),
+            fp32_partition=fp32_partition,
         )
 
     def _energy_torch(self, positions: Any, source: Any):
@@ -992,7 +1112,7 @@ class TorchDDPCM(ContinuumEnergyFunctional):
                 and torch.backends.cuda.matmul.allow_tf32
             ),
         }
-        return {
+        result = {
             "provider_id": self.provider_id,
             "configuration_sha256": self.configuration_sha256(),
             "provenance_sha256": self.provenance_sha256,
@@ -1009,6 +1129,12 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             "scientific_admitted": False,
             "execution_receipt": execution_receipt,
         }
+        if state.fp32_partition is not None:
+            result["fp32_partition"] = asdict(state.fp32_partition)
+            result["topology_warnings"] = list(state.fp32_partition.warnings)
+        else:
+            result["topology_warnings"] = []
+        return result
 
 
 __all__ = [

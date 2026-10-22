@@ -25,7 +25,7 @@ def problem(request):
         dtype=torch.float64,
     )
     kwargs = dict(dielectric=78.39, lmax=2, n_lebedev=50)
-    old = TorchDDPCM(symbols, radii, **kwargs)
+    old = TorchDDPCM(symbols, radii, dtype=torch.float64, **kwargs)
     new = DDPCMResponseOperators(symbols, radii, **kwargs)
     return old, new, positions, source
 

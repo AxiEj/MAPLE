@@ -47,6 +47,10 @@ _REGISTERED_TORCH_V3_SCALAR_PREFIX = (
 _REGISTERED_TORCH_V3_VERIFICATION_EVIDENCE_ID = (
     "route2-pure-macepolar-torch-analytic-v3-contract-tests"
 )
+_REGISTERED_TORCH_V4_VERIFICATION_EVIDENCE_ID = (
+    "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
+)
+_SUPPORTED_COMPUTATION_DTYPES = frozenset({"float32", "float64"})
 
 
 def _digest(value: object, *, name: str) -> str:
@@ -135,6 +139,7 @@ class AnalyticHessianEvaluation:
     provider_id: str | None = None
     profile_id: str | None = None
     verification_evidence_id: str | None = None
+    computation_dtype: str = "float64"
     evaluation_sha256: str = ""
     maximum_antisymmetry_eV_per_A2: float = field(init=False)
     derivative_policy_sha256: str = field(init=False)
@@ -165,15 +170,23 @@ class AnalyticHessianEvaluation:
         verification_evidence_id = self._optional_identity(
             self.verification_evidence_id, name="verification_evidence_id"
         )
+        computation_dtype = _nonempty_string(
+            self.computation_dtype, name="computation_dtype"
+        )
+        if computation_dtype not in _SUPPORTED_COMPUTATION_DTYPES:
+            raise ValueError("computation_dtype must be 'float32' or 'float64'.")
         registered_torch_v3 = scalar_contract_id.startswith(
             _REGISTERED_TORCH_V3_SCALAR_PREFIX
         ) and scalar_contract_id.endswith("-v3")
-        if registered_torch_v3 and any(
+        registered_torch_v4 = scalar_contract_id.startswith(
+            _REGISTERED_TORCH_V3_SCALAR_PREFIX
+        ) and scalar_contract_id.endswith("-v4")
+        if (registered_torch_v3 or registered_torch_v4) and any(
             value is None
             for value in (provider_id, profile_id, verification_evidence_id)
         ):
             raise ValueError(
-                "registered Torch v3 analytic results require non-empty "
+                "registered Torch analytic results require non-empty "
                 "provider_id, profile_id, and verification_evidence_id."
             )
         if (
@@ -184,6 +197,23 @@ class AnalyticHessianEvaluation:
             raise ValueError(
                 "registered Torch v3 analytic results require the bound contract "
                 "verification evidence ID."
+            )
+        if registered_torch_v3 and computation_dtype != "float64":
+            raise ValueError(
+                "registered Torch v3 analytic results require float64 computation."
+            )
+        if (
+            registered_torch_v4
+            and verification_evidence_id
+            != _REGISTERED_TORCH_V4_VERIFICATION_EVIDENCE_ID
+        ):
+            raise ValueError(
+                "registered Torch v4 analytic results require the bound FP32 "
+                "engineering verification evidence ID."
+            )
+        if registered_torch_v4 and computation_dtype != "float32":
+            raise ValueError(
+                "registered Torch v4 analytic results require float32 computation."
             )
 
         if not isinstance(self.component_energies_eV, Mapping):
@@ -215,7 +245,9 @@ class AnalyticHessianEvaluation:
             "profile_id": profile_id,
             "verification_evidence_id": verification_evidence_id,
             "device": device,
-            "dtype": "float64",
+            # Keep this legacy payload key so default-FP64 records retain their
+            # historical digest while FP32 computation is explicitly hash-bound.
+            "dtype": computation_dtype,
             "component_energies_eV": dict(frozen_components),
             "diagnostics": _plain_json(frozen_diagnostics),
             "maximum_antisymmetry_eV_per_A2": antisymmetry,
@@ -235,6 +267,7 @@ class AnalyticHessianEvaluation:
         object.__setattr__(self, "provider_id", provider_id)
         object.__setattr__(self, "profile_id", profile_id)
         object.__setattr__(self, "verification_evidence_id", verification_evidence_id)
+        object.__setattr__(self, "computation_dtype", computation_dtype)
         object.__setattr__(self, "device", device)
         object.__setattr__(self, "component_energies_eV", frozen_components)
         object.__setattr__(self, "diagnostics", frozen_diagnostics)
@@ -258,6 +291,14 @@ class AnalyticHessianEvaluation:
 
     @property
     def dtype(self) -> str:
+        """Dtype used by the producing computation, not NumPy storage."""
+
+        return self.computation_dtype
+
+    @property
+    def storage_dtype(self) -> str:
+        """Normalized immutable NumPy storage dtype for forces and Hessian."""
+
         return "float64"
 
     @property

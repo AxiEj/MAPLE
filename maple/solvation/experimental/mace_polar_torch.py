@@ -165,6 +165,8 @@ class MACEPolarTorchPES:
     solvent: str = "water"
     _testing_token: InitVar[object | None] = None
     _builder_token: InitVar[object | None] = None
+    requested_profile: InitVar[str | None] = None
+    _fp32: bool = field(init=False, repr=False)
     scalar_contract_id: str = field(init=False)
     profile_id: str = field(init=False)
     provider_id: str = field(init=False, default=_PROVIDER_ID)
@@ -172,7 +174,7 @@ class MACEPolarTorchPES:
     _configuration_hash: str = field(init=False, repr=False)
     _testing: bool = field(init=False, repr=False)
 
-    def __post_init__(self, _testing_token, _builder_token) -> None:
+    def __post_init__(self, _testing_token, _builder_token, requested_profile) -> None:
         import torch
 
         _require_graph_inspection_api()
@@ -190,6 +192,16 @@ class MACEPolarTorchPES:
                 or int(device[5:]) >= torch.cuda.device_count()
             ):
                 raise ValueError(f"Requested Torch PES device {device} is unavailable.")
+        kind = "cpu" if device == "cpu" else "cuda"
+        v3 = f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-{kind}-v3"
+        v4 = f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-{kind}-v4"
+        selected = v3 if requested_profile is None else requested_profile
+        if selected not in {v3, v4}:
+            raise ValueError(
+                "Torch PES profile must match the requested device/version."
+            )
+        fp32 = selected == v4
+        object.__setattr__(self, "_fp32", fp32)
         symbols = tuple(self.symbols)
         if not symbols or any(not isinstance(symbol, str) for symbol in symbols):
             raise ValueError("Torch PES requires a nonempty ordered symbols tuple.")
@@ -209,25 +221,44 @@ class MACEPolarTorchPES:
             )
             from maple.solvation.nonpolar.legacy_smd_cds import TorchLegacySMDCDS
 
+            from maple.solvation.models.mace_polar_fp32 import MACEPolarFP32Adapter
+
             if not (
-                isinstance(self.model, MACEPolarTorchGraphAdapter)
+                isinstance(
+                    self.model,
+                    MACEPolarFP32Adapter if fp32 else MACEPolarTorchGraphAdapter,
+                )
                 and isinstance(self.continuum, TorchDDPCM)
                 and isinstance(self.solvent_term, TorchLegacySMDCDS)
             ):
                 raise TypeError(
                     "Registered Torch PES requires the exact Torch components."
                 )
-        if (
-            str(self.model.device) != device
-            or str(self.model.dtype).removeprefix("torch.") != "float64"
-        ):
+        if str(self.model.device) != device or str(self.model.dtype).removeprefix(
+            "torch."
+        ) != ("float32" if fp32 else "float64"):
             raise ValueError(
-                "Torch PES model must match the requested device and float64."
+                "Torch PES model must match the requested device and profile dtype."
             )
         object.__setattr__(self, "device", device)
         object.__setattr__(self, "symbols", symbols)
         object.__setattr__(self, "_testing", testing)
-        kind = "cpu" if device == "cpu" else "cuda"
+        if not testing:
+            expected_dtype = torch.float32 if fp32 else torch.float64
+            if (
+                self.continuum.dtype is not expected_dtype
+                or self.solvent_term.dtype is not expected_dtype
+            ):
+                raise ValueError("Torch PES components must share the profile dtype.")
+            object.__setattr__(
+                self,
+                "provider_id",
+                (
+                    _PROVIDER_ID
+                    if not fp32
+                    else "maple.pure-macepolar-frozen-ddpcm-legacy-cds.torch-v4"
+                ),
+            )
         if testing:
             object.__setattr__(
                 self, "provider_id", "unregistered-engineering-test-torch-pes"
@@ -235,11 +266,7 @@ class MACEPolarTorchPES:
         object.__setattr__(
             self,
             "profile_id",
-            (
-                f"unregistered-engineering-test-torch-{kind}"
-                if testing
-                else f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-{kind}-v3"
-            ),
+            (f"unregistered-engineering-test-torch-{kind}" if testing else selected),
         )
         object.__setattr__(
             self,
@@ -248,7 +275,7 @@ class MACEPolarTorchPES:
                 f"unregistered-engineering-test-torch-{kind}"
                 if testing
                 else "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-"
-                f"torch-{kind}-v3"
+                f"torch-{kind}-v{4 if fp32 else 3}"
             ),
         )
         object.__setattr__(self, "_component_hashes", self._current_component_hashes())
@@ -277,11 +304,17 @@ class MACEPolarTorchPES:
                 "symbols": self.symbols,
                 "solvent": self.solvent,
                 "device": self.device,
-                "dtype": "float64",
+                "dtype": "float32" if self._fp32 else "float64",
                 "components": self._current_component_hashes(),
                 "embedding": mace_polar_learned_source_embedding_matrix().tolist(),
+                "source_charge_policy": (
+                    "fp32-roundoff-scaled" if self._fp32 else "fixed-1e-8"
+                ),
                 "source_charge_atol_e": _SOURCE_CHARGE_ATOL_E,
-                "maximum_raw_antisymmetry_eV_per_A2": _HESSIAN_PARITY_BUDGET_EV_A2,
+                "base_absolute_antisymmetry_budget_eV_per_A2": _HESSIAN_PARITY_BUDGET_EV_A2,
+                "hessian_antisymmetry_policy": (
+                    "max(1e-4,100eps*maxabsH)" if self._fp32 else "fixed-1e-4"
+                ),
                 "second_order_continuum_limit_bytes": _SECOND_ORDER_CONTINUUM_LIMIT_BYTES,
                 "model_runtime_reserve_bytes": _MODEL_RUNTIME_RESERVE_BYTES,
                 "cuda_model_runtime_reserve_bytes": _CUDA_MODEL_RUNTIME_RESERVE_BYTES,
@@ -291,6 +324,10 @@ class MACEPolarTorchPES:
                         "cuda_execution": root / "experimental" / "cuda_execution.py",
                         "analytic_result": root / "derivatives" / "analytic.py",
                         "source_embedding": root / "coupling" / "exact_gto.py",
+                        "precision_policy": root / "numerical_precision.py",
+                        "smd_solvent_data": root.parent
+                        / "function"
+                        / "smd_solvent_data.py",
                     }
                 ),
                 "engineering_test_injection": self._testing,
@@ -318,10 +355,10 @@ class MACEPolarTorchPES:
         self.configuration_sha256()
         if tuple(atoms.get_chemical_symbols()) != self.symbols:
             raise ValueError("Torch PES ordered symbols changed.")
-        validate_route2_domain(atoms)
+        validate_route2_domain(atoms, allow_charged=self._fp32)
         return torch.tensor(
             atoms.get_positions(),
-            dtype=torch.float64,
+            dtype=torch.float32 if self._fp32 else torch.float64,
             device=self.device,
             requires_grad=requires_grad,
         )
@@ -340,9 +377,22 @@ class MACEPolarTorchPES:
             raise RuntimeError(
                 "Torch source has invalid shape, dtype, device or values."
             )
-        if abs(float(learned[:, 0].sum().detach())) > _SOURCE_CHARGE_ATOL_E:
+        from maple.solvation.numerical_precision import source_charge_tolerance
+
+        charge_tolerance = (
+            source_charge_tolerance(learned[:, 0])
+            if self._fp32
+            else _SOURCE_CHARGE_ATOL_E
+        )
+        from maple.solvation.models.base import model_charge_and_multiplicity
+
+        requested_charge, _ = model_charge_and_multiplicity(atoms)
+        source_charge = float(learned[:, 0].sum().detach())
+        if abs(source_charge - requested_charge) > charge_tolerance:
             raise RuntimeError(
-                "Torch source violates the unchanged neutral charge contract."
+                "Torch source violates the molecular charge contract "
+                f"(source={source_charge:.8g} e, requested={requested_charge} e, "
+                f"tolerance={charge_tolerance:.3e} e)."
             )
         if positions.requires_grad and not _graph_has_path(learned, positions):
             raise RuntimeError("MACE source is disconnected from the coordinate graph.")
@@ -467,12 +517,20 @@ class MACEPolarTorchPES:
             if not bool(torch.isfinite(hessian).all()):
                 raise RuntimeError("Torch total-PES Hessian is not finite.")
             raw_asymmetry = float((hessian - hessian.T).abs().max().detach())
-            if raw_asymmetry > _HESSIAN_PARITY_BUDGET_EV_A2:
+            from maple.solvation.numerical_precision import (
+                hessian_antisymmetry_tolerance,
+            )
+
+            symmetry_budget = hessian_antisymmetry_tolerance(hessian)
+            if raw_asymmetry > symmetry_budget:
                 raise RuntimeError(
-                    "Raw Torch Hessian antisymmetry exceeds the fixed parity budget."
+                    f"Raw Torch Hessian antisymmetry {raw_asymmetry:.3e} exceeds "
+                    f"the dtype-aware parity budget {symmetry_budget:.3e}."
                 )
             diagnostics = {
                 "coordinate_finite_differences": False,
+                "raw_hessian_antisymmetry_eV_per_A2": raw_asymmetry,
+                "hessian_antisymmetry_budget_eV_per_A2": symmetry_budget,
                 "component_configuration_sha256": dict(
                     zip(("model", "ddpcm", "cds"), self._component_hashes)
                 ),
@@ -495,6 +553,7 @@ class MACEPolarTorchPES:
                 diagnostics["model_provenance"] = self.model.metadata()
             self.configuration_sha256()
             return AnalyticHessianEvaluation(
+                computation_dtype="float32" if self._fp32 else "float64",
                 hessian_eV_per_A2=hessian.detach().cpu().numpy(),
                 forces_eV_per_A=-gradient.detach().cpu().numpy(),
                 energy_eV=float(total.detach()),
@@ -508,14 +567,25 @@ class MACEPolarTorchPES:
                 diagnostics=diagnostics,
                 provider_id=self.provider_id,
                 profile_id=self.profile_id,
-                verification_evidence_id=_CONTRACT_EVIDENCE_ID,
+                verification_evidence_id=(
+                    "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
+                    if self._fp32
+                    else _CONTRACT_EVIDENCE_ID
+                ),
             )
 
 
 def build_smd_mace_polar_torch_pes(
-    symbols, *, solvent: str, device: str = "cpu", checkpoint_path=None
+    symbols,
+    *,
+    solvent: str,
+    device: str = "cpu",
+    checkpoint_path=None,
+    profile: str | None = None,
 ) -> MACEPolarTorchPES:
-    """Construct the explicit v3 reference; no scientific/numerical overrides."""
+    """Build default FP32/5/194 v4, or an explicitly selected historical v3."""
+    import torch
+
     _require_graph_inspection_api()
     from maple.function.calculator.extra_correction.implicit.smd_cds import (
         smd_coulomb_radii,
@@ -527,33 +597,57 @@ def build_smd_mace_polar_torch_pes(
     from maple.solvation.nonpolar.legacy_smd_cds import TorchLegacySMDCDS
 
     specification = route2_solvent_spec(solvent)
-    if specification.name not in {"water", "hexane"}:
-        raise ValueError("Torch v3 initially qualifies water and hexane only.")
     normalized_device = "cuda:0" if device == "cuda" else str(device)
     if normalized_device.startswith("cuda:"):
         from .cuda_execution import prepare_cuda_execution
 
         prepare_cuda_execution()
+    kind = "cpu" if normalized_device == "cpu" else "cuda"
+    v3 = f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-{kind}-v3"
+    v4 = f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-{kind}-v4"
+    selected = v4 if profile is None else profile
+    if selected not in {v3, v4}:
+        raise ValueError("Torch PES profile must match the requested device/version.")
+    fp32 = selected == v4
+    if not fp32 and specification.name not in {"water", "hexane"}:
+        raise ValueError("Historical Torch v3 supports water and hexane only.")
+    dtype = torch.float32 if fp32 else torch.float64
     symbols = tuple(symbols)
     # Reject the dense resource/domain limit before loading the large checkpoint.
     continuum = TorchDDPCM(
         symbols,
         smd_coulomb_radii(symbols, solvent=specification.name),
         dielectric=specification.descriptors.dielectric,
+        lmax=5 if fp32 else 15,
+        n_lebedev=194 if fp32 else 1202,
+        dtype=dtype,
         device=normalized_device,
     )
-    cds = TorchLegacySMDCDS(symbols, specification.name, device=normalized_device)
-    base = build_official_mace_polar_1_m_adapter(
-        device=normalized_device, checkpoint_path=checkpoint_path, torch_graph=True
+    cds = TorchLegacySMDCDS(
+        symbols, specification.name, device=normalized_device, dtype=dtype
     )
+    if fp32:
+        from maple.solvation.models.mace_polar_fp32 import (
+            build_official_mace_polar_fp32_adapter,
+        )
+
+        model = build_official_mace_polar_fp32_adapter(
+            device=normalized_device, checkpoint_path=checkpoint_path
+        )
+    else:
+        base = build_official_mace_polar_1_m_adapter(
+            device=normalized_device, checkpoint_path=checkpoint_path, torch_graph=True
+        )
+        model = MACEPolarTorchGraphAdapter(base)
     return MACEPolarTorchPES(
-        model=MACEPolarTorchGraphAdapter(base),
+        model=model,
         continuum=continuum,
         solvent_term=cds,
         symbols=symbols,
         device=normalized_device,
         solvent=specification.name,
         _builder_token=_REGISTERED_BUILDER_TOKEN,
+        requested_profile=selected,
     )
 
 

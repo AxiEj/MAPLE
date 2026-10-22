@@ -1,0 +1,1027 @@
+{
+  "B_computed": false,
+  "FP32_replay_bridge_kcal_mol": {
+    "baseline": {
+      "max_record_kcal_mol": 2.383228416391603e-06,
+      "max_state_kcal_mol": 2.041418875720069e-06
+    },
+    "fitted": {
+      "max_record_kcal_mol": 2.244994447231363e-06,
+      "max_state_kcal_mol": 2.2879480612303382e-06
+    }
+  },
+  "automatic_parameter_pruning": false,
+  "baseline_metrics": {
+    "all_neutral": {
+      "mae": 0.8013188000213299,
+      "max_absolute_error": 8.482910970704218,
+      "mean_signed_error": 0.18547158239745432,
+      "missing_n": 0,
+      "n": 1966,
+      "observed_n": 1966,
+      "rmse": 1.2105289431735988,
+      "sse": 2880.9377135651066
+    },
+    "nonwater_absolute": {
+      "mae": 0.716143477879906,
+      "max_absolute_error": 5.872933201861361,
+      "mean_signed_error": 0.19924368171635112,
+      "missing_n": 0,
+      "n": 1549,
+      "observed_n": 1549,
+      "rmse": 1.0484387948790017,
+      "sse": 1702.6978313347595
+    },
+    "train": {
+      "mae": 0.8032710611305004,
+      "max_absolute_error": 8.482910970704218,
+      "mean_signed_error": 0.15410044800424783,
+      "missing_n": 0,
+      "n": 1661,
+      "observed_n": 1661,
+      "rmse": 1.2069391045854763,
+      "sse": 2419.5820256169786
+    },
+    "validation": {
+      "mae": 0.7906869780464701,
+      "max_absolute_error": 6.881973625032411,
+      "mean_signed_error": 0.35631569461750673,
+      "missing_n": 0,
+      "n": 305,
+      "observed_n": 305,
+      "rmse": 1.2298949547948912,
+      "sse": 461.3556879481278
+    },
+    "water_absolute": {
+      "mae": 1.2626255847040675,
+      "max_absolute_error": 8.482910970704218,
+      "mean_signed_error": 0.2319375150255187,
+      "missing_n": 0,
+      "n": 300,
+      "observed_n": 300,
+      "rmse": 1.8915758053272267,
+      "sse": 1073.417708189804
+    },
+    "water_to_nonwater_transfer": {
+      "mae": 0.7461439161943602,
+      "max_absolute_error": 2.7060851848820495,
+      "mean_signed_error": -0.11600501275972899,
+      "missing_n": 0,
+      "n": 117,
+      "observed_n": 117,
+      "rmse": 0.9465284028704798,
+      "sse": 104.82217404054335
+    }
+  },
+  "coefficient_scope": "54 current nonzero SM8 slots; all structural zeros fixed",
+  "confirmation_accessed": false,
+  "fitted_metrics": {
+    "all_neutral": {
+      "mae": 0.6376790059482862,
+      "max_absolute_error": 6.006427858383001,
+      "mean_signed_error": -0.006191835441618802,
+      "missing_n": 0,
+      "n": 1966,
+      "observed_n": 1966,
+      "rmse": 0.937351264840532,
+      "sse": 1727.3814560105534
+    },
+    "nonwater_absolute": {
+      "mae": 0.5514269499446381,
+      "max_absolute_error": 4.870380296929558,
+      "mean_signed_error": 0.01288260663601619,
+      "missing_n": 0,
+      "n": 1549,
+      "observed_n": 1549,
+      "rmse": 0.7802362725783978,
+      "sse": 942.9826249818525
+    },
+    "train": {
+      "mae": 0.6262009439764726,
+      "max_absolute_error": 6.006427858383001,
+      "mean_signed_error": -0.030969433747333457,
+      "missing_n": 0,
+      "n": 1661,
+      "observed_n": 1661,
+      "rmse": 0.9247302125281734,
+      "sse": 1420.3642294635479
+    },
+    "validation": {
+      "mae": 0.7001874024570812,
+      "max_absolute_error": 4.870380296929558,
+      "mean_signed_error": 0.12874452779048629,
+      "missing_n": 0,
+      "n": 305,
+      "observed_n": 305,
+      "rmse": 1.0033014788841716,
+      "sse": 307.0172265470056
+    },
+    "water_absolute": {
+      "mae": 1.0280555499439665,
+      "max_absolute_error": 6.006427858383001,
+      "mean_signed_error": 0.0393991274709627,
+      "missing_n": 0,
+      "n": 300,
+      "observed_n": 300,
+      "rmse": 1.4738896445216114,
+      "sse": 651.7052052684122
+    },
+    "water_to_nonwater_transfer": {
+      "mae": 0.7786317542469784,
+      "max_absolute_error": 3.4944887978511483,
+      "mean_signed_error": -0.37562431110000394,
+      "missing_n": 0,
+      "n": 117,
+      "observed_n": 117,
+      "rmse": 1.0649570665086647,
+      "sse": 132.69362576028865
+    }
+  },
+  "fixed_configuration": {
+    "alpha_scale": 0.8,
+    "beta_scale": 1.1,
+    "branch": "A",
+    "coulomb": "all elements including O: 1.1*original-SMD+0.10 Angstrom",
+    "lebedev": 194,
+    "lmax": 5,
+    "probe_angstrom": 0.4,
+    "uniform_offset_angstrom": 0.0,
+    "vdw_scale": 0.95
+  },
+  "h_table6_columns": {
+    "16": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "6": [
+      -58.74721634281583,
+      -69.71775333182417,
+      0.0,
+      0.0
+    ],
+    "7": [
+      -165.35192457228973,
+      -77.49840226042738,
+      0.0,
+      0.0
+    ],
+    "8": [
+      -246.08497228280402,
+      -74.07731969308261,
+      0.0,
+      0.0
+    ]
+  },
+  "historical_execution": {
+    "new_geometry_count": 418,
+    "numerical_lstsq_seconds": 0.008809679995465558,
+    "total_seconds": 25.652142405997438,
+    "workers": 10
+  },
+  "intercept": false,
+  "linear_algebra_dtype": "FP64",
+  "linear_system": {
+    "condition_number": 276.7058311429771,
+    "n_columns": 54,
+    "n_rows": 1661,
+    "n_supported": 52,
+    "nullity": 0,
+    "rcond": 3.68816088780477e-13,
+    "rcond_cutoff": 5.0660491935438646e-11
+  },
+  "molecular_coefficients": {
+    "beta2": 3.741796517522442,
+    "gamma": 0.22990390374024552,
+    "phi2": -2.642469897270355,
+    "psi2": -9.042332372065982
+  },
+  "objective": "unweighted training sum of squared residuals",
+  "parameters": [
+    {
+      "change": -7.628346628703127,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": 51.30165337129687,
+      "identifiable": true,
+      "index": 1,
+      "name": "sigma[1].water",
+      "prior": 58.93,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 322
+    },
+    {
+      "change": 6.249067160299116,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": 28.269067160299116,
+      "identifiable": true,
+      "index": 1,
+      "name": "sigma[1].n",
+      "prior": 22.02,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 1395
+    },
+    {
+      "change": -80.16144683814541,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": 11.368553161854592,
+      "identifiable": true,
+      "index": 6,
+      "name": "sigma[6].water",
+      "prior": 91.53,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 326
+    },
+    {
+      "change": -27.80111166534929,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": 31.98888833465071,
+      "identifiable": true,
+      "index": 6,
+      "name": "sigma[6].n",
+      "prior": 59.79,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 1376
+    },
+    {
+      "change": 42.62460773795067,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": 61.924607737950666,
+      "identifiable": true,
+      "index": 6,
+      "name": "sigma[6].alpha",
+      "prior": 19.3,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 461
+    },
+    {
+      "change": -34.04637071091765,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": 41.61362928908235,
+      "identifiable": true,
+      "index": 6,
+      "name": "sigma[6].beta",
+      "prior": 75.66,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 908
+    },
+    {
+      "change": 29.32693051847656,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": 77.23693051847656,
+      "identifiable": true,
+      "index": 7,
+      "name": "sigma[7].water",
+      "prior": 47.91,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 137
+    },
+    {
+      "change": -7.702002631950357,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": 49.62799736804964,
+      "identifiable": true,
+      "index": 7,
+      "name": "sigma[7].n",
+      "prior": 57.33,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 296
+    },
+    {
+      "change": -35.401460451604095,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": -155.8114604516041,
+      "identifiable": true,
+      "index": 7,
+      "name": "sigma[7].alpha",
+      "prior": -120.41,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 134
+    },
+    {
+      "change": 99.60067139620327,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": 1.9206713962032609,
+      "identifiable": true,
+      "index": 8,
+      "name": "sigma[8].water",
+      "prior": -97.68,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 197
+    },
+    {
+      "change": -8.031977874100317,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -28.921977874100318,
+      "identifiable": true,
+      "index": 8,
+      "name": "sigma[8].n",
+      "prior": -20.89,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 939
+    },
+    {
+      "change": 17.971591741550995,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": 89.401591741551,
+      "identifiable": true,
+      "index": 8,
+      "name": "sigma[8].alpha",
+      "prior": 71.43,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 298
+    },
+    {
+      "change": 39.20471446901104,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": -103.21528553098895,
+      "identifiable": true,
+      "index": 8,
+      "name": "sigma[8].beta",
+      "prior": -142.42,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 654
+    },
+    {
+      "change": -0.8541705119493948,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": 31.275829488050608,
+      "identifiable": true,
+      "index": 9,
+      "name": "sigma[9].water",
+      "prior": 32.13,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 31
+    },
+    {
+      "change": -55.22467956188075,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -128.09467956188075,
+      "identifiable": true,
+      "index": 14,
+      "name": "sigma[14].n",
+      "prior": -72.87,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 8
+    },
+    {
+      "change": 9.217972828915027,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -28.86202717108497,
+      "identifiable": true,
+      "index": 16,
+      "name": "sigma[16].water",
+      "prior": -38.08,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 45
+    },
+    {
+      "change": 6.460118864444674,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -42.829881135555325,
+      "identifiable": true,
+      "index": 16,
+      "name": "sigma[16].n",
+      "prior": -49.29,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 37
+    },
+    {
+      "change": -3.3021373238304115,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -29.04213732383041,
+      "identifiable": true,
+      "index": 17,
+      "name": "sigma[17].n",
+      "prior": -25.74,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 77
+    },
+    {
+      "change": 9.727777071552838,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -10.192222928447164,
+      "identifiable": true,
+      "index": 35,
+      "name": "sigma[35].water",
+      "prior": -19.92,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 25
+    },
+    {
+      "change": 5.053290765603236,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -32.836709234396764,
+      "identifiable": true,
+      "index": 35,
+      "name": "sigma[35].n",
+      "prior": -37.89,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 47
+    },
+    {
+      "change": 53.24862940439594,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -17.32137059560405,
+      "identifiable": true,
+      "index": 101,
+      "name": "sigma[101].water",
+      "prior": -70.57,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 303
+    },
+    {
+      "change": 14.098846743084508,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -49.52115325691549,
+      "identifiable": true,
+      "index": 101,
+      "name": "sigma[101].n",
+      "prior": -63.62,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 1278
+    },
+    {
+      "change": 11.04609640487945,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": -43.78390359512055,
+      "identifiable": true,
+      "index": 101,
+      "name": "sigma[101].beta",
+      "prior": -54.83,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 841
+    },
+    {
+      "change": -180.33521490223407,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -15.615214902234072,
+      "identifiable": true,
+      "index": 103,
+      "name": "sigma[103].water",
+      "prior": 164.72,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 177
+    },
+    {
+      "change": 1.775107398202172,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -9.864892601797829,
+      "identifiable": true,
+      "index": 103,
+      "name": "sigma[103].n",
+      "prior": -11.64,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 873
+    },
+    {
+      "change": -17.845306341840484,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": 109.83469365815952,
+      "identifiable": true,
+      "index": 103,
+      "name": "sigma[103].alpha",
+      "prior": 127.68,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 279
+    },
+    {
+      "change": -73.30366513288782,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": 60.73633486711218,
+      "identifiable": true,
+      "index": 103,
+      "name": "sigma[103].beta",
+      "prior": 134.04,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 614
+    },
+    {
+      "change": -94.25372148146663,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -7.333721481466625,
+      "identifiable": true,
+      "index": 104,
+      "name": "sigma[104].water",
+      "prior": 86.92,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 1
+    },
+    {
+      "change": 0.0,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": 122.12,
+      "identifiable": false,
+      "index": 104,
+      "name": "sigma[104].alpha",
+      "prior": 122.12,
+      "status": "no-training-coverage-kept-prior",
+      "training_nonzero_rows": 0
+    },
+    {
+      "change": 0.0,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": -58.17,
+      "identifiable": false,
+      "index": 104,
+      "name": "sigma[104].beta",
+      "prior": -58.17,
+      "status": "no-training-coverage-kept-prior",
+      "training_nonzero_rows": 0
+    },
+    {
+      "change": 1.7372848542861945,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -50.71271514571381,
+      "identifiable": true,
+      "index": 105,
+      "name": "sigma[105].water",
+      "prior": -52.45,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 131
+    },
+    {
+      "change": 2.7939766909022072,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -1.0860233090977927,
+      "identifiable": true,
+      "index": 105,
+      "name": "sigma[105].n",
+      "prior": -3.88,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 283
+    },
+    {
+      "change": -21.715837073104645,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": -70.45583707310465,
+      "identifiable": true,
+      "index": 105,
+      "name": "sigma[105].alpha",
+      "prior": -48.74,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 130
+    },
+    {
+      "change": -127.54697132929086,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": 63.193028670709154,
+      "identifiable": true,
+      "index": 106,
+      "name": "sigma[106].water",
+      "prior": 190.74,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 17
+    },
+    {
+      "change": -28.219256025490694,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": 215.4207439745093,
+      "identifiable": true,
+      "index": 106,
+      "name": "sigma[106].beta",
+      "prior": 243.64,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 14
+    },
+    {
+      "change": -46.64074009696347,
+      "descriptor": "n",
+      "family": "sigma",
+      "fitted": -136.04074009696348,
+      "identifiable": true,
+      "index": 110,
+      "name": "sigma[110].n",
+      "prior": -89.4,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 283
+    },
+    {
+      "change": 295.29385300263175,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": 592.5538530026317,
+      "identifiable": true,
+      "index": 110,
+      "name": "sigma[110].alpha",
+      "prior": 297.26,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 130
+    },
+    {
+      "change": -20.734082899072234,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": -126.35408289907224,
+      "identifiable": true,
+      "index": 110,
+      "name": "sigma[110].beta",
+      "prior": -105.62,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 201
+    },
+    {
+      "change": 128.60285724804973,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -65.66714275195028,
+      "identifiable": true,
+      "index": 111,
+      "name": "sigma[111].water",
+      "prior": -194.27,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 66
+    },
+    {
+      "change": -129.37738773805575,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": -583.3673877380558,
+      "identifiable": true,
+      "index": 111,
+      "name": "sigma[111].alpha",
+      "prior": -453.99,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 55
+    },
+    {
+      "change": -188.76635947272132,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -25.32635947272132,
+      "identifiable": true,
+      "index": 114,
+      "name": "sigma[114].water",
+      "prior": 163.44,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 13
+    },
+    {
+      "change": -42.68722762041418,
+      "descriptor": "alpha",
+      "family": "sigma",
+      "fitted": 229.13277237958582,
+      "identifiable": true,
+      "index": 114,
+      "name": "sigma[114].alpha",
+      "prior": 271.82,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 8
+    },
+    {
+      "change": -131.17256994876803,
+      "descriptor": "water",
+      "family": "sigma",
+      "fitted": -61.37256994876803,
+      "identifiable": true,
+      "index": 116,
+      "name": "sigma[116].water",
+      "prior": 69.8,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 10
+    },
+    {
+      "change": -63.455232562306804,
+      "descriptor": "beta",
+      "family": "sigma",
+      "fitted": 98.0347674376932,
+      "identifiable": true,
+      "index": 116,
+      "name": "sigma[116].beta",
+      "prior": 161.49,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 12
+    },
+    {
+      "change": 22.602783657184162,
+      "descriptor": "water",
+      "family": "hsigma",
+      "fitted": -58.74721634281583,
+      "identifiable": true,
+      "index": 6,
+      "name": "hsigma[6].water",
+      "prior": -81.35,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 309
+    },
+    {
+      "change": -3.3677533318241757,
+      "descriptor": "n",
+      "family": "hsigma",
+      "fitted": -69.71775333182417,
+      "identifiable": true,
+      "index": 6,
+      "name": "hsigma[6].n",
+      "prior": -66.35,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 1349
+    },
+    {
+      "change": -46.85192457228973,
+      "descriptor": "water",
+      "family": "hsigma",
+      "fitted": -165.35192457228973,
+      "identifiable": true,
+      "index": 7,
+      "name": "hsigma[7].water",
+      "prior": -118.5,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 89
+    },
+    {
+      "change": -26.90840226042738,
+      "descriptor": "n",
+      "family": "hsigma",
+      "fitted": -77.49840226042738,
+      "identifiable": true,
+      "index": 7,
+      "name": "hsigma[7].n",
+      "prior": -50.59,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 201
+    },
+    {
+      "change": -122.57497228280401,
+      "descriptor": "water",
+      "family": "hsigma",
+      "fitted": -246.08497228280402,
+      "identifiable": true,
+      "index": 8,
+      "name": "hsigma[8].water",
+      "prior": -123.51,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 46
+    },
+    {
+      "change": 4.6926803069173815,
+      "descriptor": "n",
+      "family": "hsigma",
+      "fitted": -74.07731969308261,
+      "identifiable": true,
+      "index": 8,
+      "name": "hsigma[8].n",
+      "prior": -78.77,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 451
+    },
+    {
+      "change": 0.019903903740245532,
+      "descriptor": "gamma",
+      "family": "molecular",
+      "fitted": 0.22990390374024552,
+      "identifiable": true,
+      "index": null,
+      "name": "molecular.gamma",
+      "prior": 0.21,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 1412
+    },
+    {
+      "change": 0.14753010272964495,
+      "descriptor": "phi2",
+      "family": "molecular",
+      "fitted": -2.642469897270355,
+      "identifiable": true,
+      "index": null,
+      "name": "molecular.phi2",
+      "prior": -2.79,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 304
+    },
+    {
+      "change": -0.5823323720659808,
+      "descriptor": "psi2",
+      "family": "molecular",
+      "fitted": -9.042332372065982,
+      "identifiable": true,
+      "index": null,
+      "name": "molecular.psi2",
+      "prior": -8.46,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 259
+    },
+    {
+      "change": 1.2317965175224423,
+      "descriptor": "beta2",
+      "family": "molecular",
+      "fitted": 3.741796517522442,
+      "identifiable": true,
+      "index": null,
+      "name": "molecular.beta2",
+      "prior": 2.51,
+      "status": "unique-under-declared-numerical-rank",
+      "training_nonzero_rows": 937
+    }
+  ],
+  "physical_dtype": "FP32",
+  "populations": {
+    "all_neutral": 1966,
+    "nonwater_absolute": 1549,
+    "train": 1661,
+    "validation": 305,
+    "water_absolute": 300,
+    "water_to_nonwater_transfer": 117
+  },
+  "production_defaults_changed": false,
+  "provenance_sha256": {
+    "private_coefficients": "d063444bca14679cbb58bde94e677da9db66bdcc5d898efe252658fc6b90fade",
+    "private_fit": "959fbac0434e5e1abac8d7c05c1368ce008b06e0b40badb4c6386b4fe6305199",
+    "private_manifest": "3c950b4a01cfe804e37e2b75c7b8f958d8635218079d3ae21d6d9b188c42b670",
+    "public_solver_equal_to_executed_solver": "04e7b707e08d560cf3cf386df59d53301f2b16dbd5ae93c12197dfb82322f9f1"
+  },
+  "publication_boundary": {
+    "experimental_rows_included": false,
+    "full_dataset_reproduction_available_from_public_summary": false,
+    "geometries_included": false,
+    "private_cache_included": false,
+    "sources_or_model_weights_included": false
+  },
+  "rank": 52,
+  "regularization": null,
+  "schema": "route2-neutral-cds-first-ols-public-summary-v1",
+  "scope": "aggregate-only neutral development fit; not scientific release admission",
+  "status": "exploratory-candidate-not-adopted",
+  "table6_columns": {
+    "1": [
+      51.30165337129687,
+      28.269067160299116,
+      0.0,
+      0.0
+    ],
+    "101": [
+      -17.32137059560405,
+      -49.52115325691549,
+      0.0,
+      -43.78390359512055
+    ],
+    "102": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "103": [
+      -15.615214902234072,
+      -9.864892601797829,
+      109.83469365815952,
+      60.73633486711218
+    ],
+    "104": [
+      -7.333721481466625,
+      0.0,
+      122.12,
+      -58.17
+    ],
+    "105": [
+      -50.71271514571381,
+      -1.0860233090977927,
+      -70.45583707310465,
+      0.0
+    ],
+    "106": [
+      63.193028670709154,
+      0.0,
+      0.0,
+      215.4207439745093
+    ],
+    "107": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "110": [
+      0.0,
+      -136.04074009696348,
+      592.5538530026317,
+      -126.35408289907224
+    ],
+    "111": [
+      -65.66714275195028,
+      0.0,
+      -583.3673877380558,
+      0.0
+    ],
+    "114": [
+      -25.32635947272132,
+      0.0,
+      229.13277237958582,
+      0.0
+    ],
+    "115": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "116": [
+      -61.37256994876803,
+      0.0,
+      0.0,
+      98.0347674376932
+    ],
+    "117": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "118": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "14": [
+      0.0,
+      -128.09467956188075,
+      0.0,
+      0.0
+    ],
+    "15": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "16": [
+      -28.86202717108497,
+      -42.829881135555325,
+      0.0,
+      0.0
+    ],
+    "17": [
+      0.0,
+      -29.04213732383041,
+      0.0,
+      0.0
+    ],
+    "35": [
+      -10.192222928447164,
+      -32.836709234396764,
+      0.0,
+      0.0
+    ],
+    "6": [
+      11.368553161854592,
+      31.98888833465071,
+      61.924607737950666,
+      41.61362928908235
+    ],
+    "7": [
+      77.23693051847656,
+      49.62799736804964,
+      -155.8114604516041,
+      0.0
+    ],
+    "8": [
+      1.9206713962032609,
+      -28.921977874100318,
+      89.401591741551,
+      -103.21528553098895
+    ],
+    "9": [
+      31.275829488050608,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "train_sse_linear": 1420.3642793169424,
+  "validation_previously_inspected": true
+}

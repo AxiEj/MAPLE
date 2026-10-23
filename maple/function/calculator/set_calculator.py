@@ -17,14 +17,7 @@ from .calculator_base import (
     import_calculator_plugin,
     load_calculator_plugins_from_env,
     normalize_none_option,
-)
-from .model_capabilities import (
-    CombinationValidator,
-    MODEL_CARD_EXTENSIONS,
-    ModelCardError,
-    SolvationCapabilities,
-    is_explicit_cpu_device,
-    load_model_provenance_card,
+    validate_implicit_solvent_choice,
 )
 
 
@@ -46,20 +39,15 @@ _BUILTIN_NAME_TO_MODULE = {
     'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
-    'mace-off23-sc': 'maple.function.calculator.mace._maceoff23_sc_calculator',
-    'mace-off24-medium': 'maple.function.calculator.mace._maceoff24_calculator',
     'egret': 'maple.function.calculator.mace._mace_calculator',
     'maceomol': 'maple.function.calculator.mace._mace_general_calculator',
     'macepols': 'maple.function.calculator.mace._macepol_calculator',
     'macepolm': 'maple.function.calculator.mace._macepol_calculator',
     'macepoll': 'maple.function.calculator.mace._macepol_calculator',
-    'aimnet2-cpcms-v2': 'maple.function.calculator.aimnet._aimnet2_cpcms_calculator',
-    'aceff-2.0': 'maple.function.calculator.aceff._aceff2_calculator',
-    'fennix-bio1': 'maple.function.calculator.fennol._fennix_bio1_calculator',
-    'fennix-bio1-small': 'maple.function.calculator.fennol._fennix_bio1_calculator',
-    'fennix-bio1-medium': 'maple.function.calculator.fennol._fennix_bio1_calculator',
+    'fennol': 'maple.function.calculator.fennol._fennol_calculator',
+    'fennix-bio1s': 'maple.function.calculator.fennol._fennol_calculator',
+    'fennix-bio1m': 'maple.function.calculator.fennol._fennol_calculator',
     'uma': 'maple.function.calculator.uma._uma_calculator',
-    'anisolv-uma': 'maple.function.calculator.uma._anisolv_uma_calculator',
 }
 
 
@@ -76,7 +64,6 @@ def _compact_model_name(name: str) -> str:
         .replace(' ', '')
         .replace('(', '')
         .replace(')', '')
-        .replace('.', '')
     )
 
 
@@ -127,8 +114,6 @@ class SetCalculator:
         solvent: str = 'None',
         model_options: Optional[dict] = None,
         solvation_options: Optional[dict] = None,
-        charge_options: Optional[dict] = None,
-        task: Optional[str] = None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -138,14 +123,7 @@ class SetCalculator:
         self.implicit = normalize_none_option(implicit)
         self.solvent = normalize_none_option(solvent)
         self.model_options = _normalize_model_options(model_options)
-        atom_info = getattr(atoms, 'info', {}) if atoms is not None else {}
-        if solvation_options is None:
-            solvation_options = atom_info.get('_maple_solvation_options', {})
-        if charge_options is None:
-            charge_options = atom_info.get('_maple_charge_options', {})
-        self.solvation_options = dict(solvation_options)
-        self.charge_options = dict(charge_options)
-        self.task = str(task).strip().lower() if task is not None else None
+        self.solvation_options = solvation_options or {}
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -158,200 +136,41 @@ class SetCalculator:
             return f'{model_dir} (resolved: {resolved_dir})'
         return str(model_dir)
 
-    def _model_card_root(self) -> Path:
-        return Path(__file__).parent / 'model_cards'
-
-    def _validate_registered_model_task(self, cls) -> None:
-        """Validate Route 4 tasks before resolving or loading model weights."""
-        if self.task is None:
-            return
-        model_names = tuple(getattr(cls, 'MODEL_NAMES', ()))
-        if not model_names:
-            return
-
-        canonical_name = str(model_names[0]).strip().lower().replace('_', '-')
-        card_root = self._model_card_root()
-        if not any(
-            (card_root / f'{canonical_name}{extension}').is_file()
-            for extension in MODEL_CARD_EXTENSIONS
-        ):
-            return
-
-        try:
-            card = load_model_provenance_card(canonical_name, card_root)
-        except ModelCardError as exc:
-            raise ValueError(
-                f"Failed to load provenance card for model '{canonical_name}': {exc}"
-            ) from exc
-        card.validate_task(self.task)
-
-    def _validate_registered_model_acceleration(self, cls) -> None:
-        """Reject unverified Route 4 GPU paths before resolving model weights."""
-        model_names = tuple(getattr(cls, "MODEL_NAMES", ()))
-        if not model_names:
-            if is_explicit_cpu_device(self.device):
-                return
-            raise ValueError(
-                "Accelerator execution is disabled for a calculator without a "
-                "stable MODEL_NAMES identity and frozen no-loss CPU/GPU parity card."
-            )
-
-        canonical_name = str(model_names[0]).strip().lower().replace("_", "-")
-        card_root = self._model_card_root()
-        if not any(
-            (card_root / f"{canonical_name}{extension}").is_file()
-            for extension in MODEL_CARD_EXTENSIONS
-        ):
-            if is_explicit_cpu_device(self.device):
-                return
-            raise ValueError(
-                f"Accelerator execution for '{canonical_name}' is disabled: no frozen "
-                "no-loss CPU/GPU parity evidence card is registered."
-            )
-
-        try:
-            card = load_model_provenance_card(canonical_name, card_root)
-        except ModelCardError as exc:
-            raise ValueError(
-                f"Failed to load provenance card for model '{canonical_name}': {exc}"
-            ) from exc
-        card.validate_device(
-            self.device,
-            task=self.task,
-            inference_mode=self.model_options.get("inference"),
-            evidence_root=Path(__file__).resolve().parents[3],
-        )
-
     def _log_model_error(self, message: str) -> None:
         self._model_error_logged = True
         self.log_error(message)
 
     def _validate_solvent_config(self) -> None:
-        self.implicit = normalize_none_option(self.implicit)
-        self.solvent = normalize_none_option(self.solvent)
+        self.implicit, self.solvent = validate_implicit_solvent_choice(
+            self.implicit, self.solvent
+        )
         if self.implicit == 'none':
             return
 
-        if self.implicit == 'gbsa':
+        if self.implicit != 'gbsa':
             raise ValueError(
-                "Legacy method=gbsa is not a production implicit model. Use method=gb or method=pb "
-                "with explicit #charge(...), model, nonpolar, and profile selections."
+                "Unsupported implicit solvation method: "
+                f"'{self.implicit}'. Supported experimental method: gbsa."
             )
-        if self.implicit not in {'gb', 'pb', 'smd', 'anisolv'}:
-            raise ValueError(
-                f"Unsupported implicit solvation method: {self.implicit!r}; choose gb, pb, smd, or anisolv."
-            )
-        if self.implicit != 'anisolv' and self.solvent != 'water':
-            raise ValueError("The first implicit-solvation release supports water only.")
+
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
-                "Implicit-solvation providers have not passed MAPLE's public scientific benchmark gate; "
-                "set experimental=true explicitly."
+                "Implicit GB-polar/QEq solvation is experimental and disabled "
+                "by default. Add experimental=true in #solv(...) to request "
+                "energy-only use."
             )
-        configured_method = str(self.solvation_options.get('method', '')).lower()
-        if configured_method != self.implicit:
+
+        if self.model_options.get('hessian') is not None:
             raise ValueError(
-                "Implicit-solvent selector mismatch: "
-                f"implicit={self.implicit!r}, solv.method={configured_method!r}."
+                "Experimental implicit GB-polar solvation does not support "
+                "Hessian/HVP workflows."
             )
-        hessian_mode = self.model_options.get('hessian')
-        if hessian_mode is not None and self.implicit in {'gb', 'pb'}:
-            if hessian_mode != 'numerical':
-                raise ValueError("Implicit PB/GB currently supports numerical Hessian only.")
 
         if self.atoms is not None and atoms_has_pbc(self.atoms):
             raise ValueError(
-                "Implicit solvation is non-periodic only; "
+                "Experimental implicit GB-polar solvation is non-periodic only; "
                 "remove #pbc or use a periodic solvent backend."
             )
-        if self.atoms is None or 'mol2' not in self.atoms.info:
-            raise ValueError("Implicit solvation requires one MOL2 molecule with explicit topology.")
-        if self.implicit in {'gb', 'pb'} and not self.charge_options:
-            raise ValueError("Implicit PB/GB requires an explicit #charge(...) configuration.")
-        if self.implicit == "anisolv":
-            if _compact_model_name(self.model) != "anisolvuma":
-                raise ValueError(
-                    "AniSolv compact is exposed only through the sealed "
-                    "#model=anisolv-uma composition."
-                )
-            if self.d4:
-                raise ValueError("AniSolv UMA does not compose D4.")
-            if self.charge_options:
-                raise ValueError(
-                    "AniSolv UMA does not consume a #charge(...) model; remove it."
-                )
-            if self.model_options.get("checkpoint_path") or self.model_options.get(
-                "model_path"
-            ):
-                raise ValueError(
-                    "AniSolv UMA uses a hash-pinned UMA-S-1P2 checkpoint; "
-                    "custom base-model checkpoint options are disabled."
-                )
-            if self.model_options.get("overrides") is not None:
-                raise ValueError(
-                    "AniSolv UMA uses an unmodified hash-pinned UMA-S-1P2 checkpoint; "
-                    "overrides are disabled."
-                )
-            if self.model_options.get("size") not in {None, "uma-s-1p2"}:
-                raise ValueError("AniSolv UMA is pinned to base size='uma-s-1p2'.")
-            task = self.model_options.get("task")
-            if task not in {None, "omol"}:
-                raise ValueError(
-                    "AniSolv UMA is molecular and requires task='omol' if specified."
-                )
-            if self.task not in {None, "sp"}:
-                raise ValueError(
-                    "AniSolv UMA supports scalar single-point energy only because "
-                    "upstream AniSolv forces are not rotation-covariant."
-                )
-            if self.model_options.get("hessian") is not None:
-                raise ValueError(
-                    "AniSolv UMA does not expose a Hessian or force-derived task; "
-                    "remove hessian=."
-                )
-            if not self.model_options.get("solvation_model_path"):
-                raise ValueError(
-                    "AniSolv UMA requires model option solvation_model_path=<official "
-                    "model1_compact.pt>."
-                )
-            if not self.model_options.get("base_model_path"):
-                raise ValueError(
-                    "AniSolv UMA requires model option base_model_path=<verified "
-                    "UMA-S-1P2 compatibility checkpoint>."
-                )
-            if self.atoms is not None:
-                charge = self.atoms.info.get("charge")
-                mult = self.atoms.info.get("mult")
-                if charge != 0 or mult != 1:
-                    raise ValueError(
-                        "AniSolv UMA is currently limited to explicit neutral-singlet "
-                        "atoms.info charge=0 and mult=1."
-                    )
-        if self.implicit == 'smd':
-            if _compact_model_name(self.model) != 'macepolm':
-                raise ValueError(
-                    "Route 2 v1 is locked to the official MACE-POLAR-1-M checkpoint."
-                )
-            if self.model_options:
-                raise ValueError(
-                    "Route 2 uses the unmodified official MACE-POLAR-1-M checkpoint "
-                    "from MACE's upstream cache; custom model options are disabled."
-                )
-            if self.d4:
-                raise ValueError("Route 2 v1 does not compose D4.")
-            if self.model_options.get('hessian') is not None:
-                raise ValueError("Route 2 SMD is energy-only in the first release.")
-            if self.charge_options:
-                raise ValueError(
-                    "Route 2 uses the MACE-POLAR density; remove #charge(...). "
-                    "MOL2 partial charges are ignored."
-                )
-            if str(self.solvation_options.get('provider', 'pcmsolver')).lower() != 'pcmsolver':
-                raise ValueError("Route 2 certification requires provider=pcmsolver.")
-            if str(self.solvation_options.get('profile', 'smd-iefpcm')).lower() != 'smd-iefpcm':
-                raise ValueError("Route 2 requires profile=smd-iefpcm.")
-            if str(self.solvation_options.get('standard_state', '1m')).lower() != '1m':
-                raise ValueError("Route 2 standard_state must be 1m.")
 
     def _discover_calculator_class(self, name: str):
         """Resolve `name` to a registered calculator class.
@@ -519,6 +338,9 @@ class SetCalculator:
         - Else if `cls.REQUIRES_LOCAL_MODEL_FILE` is True → require local.
         - Else → no path (backend looks up its own default).
         """
+        local_filenames = getattr(cls, 'LOCAL_MODEL_FILENAMES', None)
+        if local_filenames and name in local_filenames:
+            return self._require_local_model_file(name, local_filenames[name])
         if cls.CHECKPOINT_FILENAME and name in cls.CHECKPOINT_FILENAME:
             filename = cls.CHECKPOINT_FILENAME[name]
             return self._ensure_model_file(filename, name)
@@ -640,9 +462,7 @@ class SetCalculator:
 
         cls = self._discover_calculator_class(requested_name)
         name = self.model
-        self._validate_registered_model_task(cls)
         self._validate_model_options(cls)
-        self._validate_registered_model_acceleration(cls)
         self._validate_against_class(cls)
         options = dict(self.model_options)
         options.setdefault('d4', self.d4)
@@ -656,11 +476,7 @@ class SetCalculator:
         # is given and the requested size has a known HF fallback, prefer a
         # locally-cached MAPLE copy if present. Handle the coercion here so that
         # UMACalculator only receives clean kwargs.
-        is_uma_class = cls.__module__.startswith('maple.function.calculator.uma.')
-        if is_uma_class:
-            from .uma._uma_calculator import UMACalculator
-
-        if is_uma_class and issubclass(cls, UMACalculator):
+        if cls.__name__ == 'UMACalculator':
             from .uma._uma_calculator import UMACalculator, UMA_DEFAULT_SIZE, UMA_FALLBACK_HF_MODELS
 
             inference = options.get('inference')
@@ -679,7 +495,7 @@ class SetCalculator:
             elif resolved_model_path is not None:
                 checkpoint_path = str(resolved_model_path)
             effective_size = str(options.get('size')).lower() if options.get('size') else UMA_DEFAULT_SIZE
-            if cls is UMACalculator and checkpoint_path is None and effective_size in UMA_FALLBACK_HF_MODELS:
+            if checkpoint_path is None and effective_size in UMA_FALLBACK_HF_MODELS:
                 local_checkpoint = self._local_model_file(f'{effective_size}.pt')
                 if local_checkpoint is not None:
                     checkpoint_path = str(local_checkpoint)
@@ -687,8 +503,6 @@ class SetCalculator:
 
         resolved_path_str = str(resolved_model_path) if resolved_model_path is not None else None
         kwargs = cls.build_kwargs_from_options(name, options, resolved_model_path=resolved_path_str)
-        if "execution_task" in inspect.signature(cls.__init__).parameters:
-            kwargs["execution_task"] = self.task
 
         calculator = cls(
             device=self.device,
@@ -698,52 +512,8 @@ class SetCalculator:
             **kwargs,
         )
 
-        if self.implicit in {'gb', 'pb', 'smd'}:
-            from .extra_correction.implicit import ImplicitSolvationCorrection
-
-            calculator.solvent_correction = ImplicitSolvationCorrection(
-                self.atoms,
-                self.charge_options,
-                self.solvation_options,
-                output=self.output,
-            )
-            calculator.chargecalc = None
-
         self._apply_hessian_mode(calculator)
-        self._apply_conservative_solvent_hessian_metadata(calculator)
         return calculator
-
-    def _apply_conservative_solvent_hessian_metadata(self, calculator) -> None:
-        mode = self.model_options.get('hessian')
-        if mode is None:
-            return
-
-        # PB/GB+numerical hessian is only allowed when the model provenance
-        # card explicitly allows conservative combined energy/force workflows.
-        if self.implicit in {'gb', 'pb', 'anisolv'} and mode == 'numerical':
-            try:
-                model_card = load_model_provenance_card(self.model, self._model_card_root())
-            except ModelCardError as exc:
-                raise ValueError(
-                    f"Failed to load provenance card for model '{self.model}': {exc}"
-                ) from exc
-
-            profile = CombinationValidator(
-                model_capabilities=model_card.capabilities,
-                implicit=self.implicit,
-                hessian_mode=mode,
-                solvation_capabilities=SolvationCapabilities.from_backend(
-                    calculator.solvent_correction
-                ),
-                task="frequency",
-            ).validate()
-            if profile is None:
-                raise ValueError(
-                    "Numerical solvent hessian requires a conservative-profile model card "
-                    f"for '{self.model}' with implicit='{self.implicit}'."
-                )
-            if profile.frequency_type is not None:
-                calculator.frequency_type = profile.frequency_type
 
     def _apply_hessian_mode(self, calculator) -> None:
         mode = self.model_options.get('hessian')

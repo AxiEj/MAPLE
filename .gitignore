@@ -162,6 +162,7 @@ cython_debug/
 #.idea/
 *.pt
 *.model
+*.fnx
 
 # Local assistant workspace artifacts
 /.claude/
@@ -178,27 +179,15 @@ examples/md/**/*.xyz
 # Local automation/session artifacts
 /.omc/
 /docs/
-!/docs/
-/docs/*
-!/docs/implicit-solvation/
-!/docs/implicit-solvation/*.md
-!/docs/implicit-solvation/benchmarks/
-!/docs/implicit-solvation/benchmarks/*.md
-!/docs/implicit-solvation/benchmarks/*.json
-!/docs/implicit-solvation/benchmarks/*.py
-!/docs/pretrained-solvation-hub/
-!/docs/pretrained-solvation-hub/**
-/docs/pretrained-solvation-hub/**/__pycache__/
-/docs/pretrained-solvation-hub/**/*.py[cod]
-
-# Frozen provider-parity evidence includes the original provider logs.
-!/tests/solvation/data/amber_gb_reference/audit/**/*.log
-!/tests/solvation/data/apbs_reference/audit/**/*.log
 
 # Generated explicit-solvent example outputs
 examples/opt/exp-solv/*.out
 examples/opt/exp-solv/*.xyz
 
-# External implicit-solvent provider scratch files written in the launch directory
-/io.mc
-/mdinfo
+# Parmfit artifacts
+maple/function/dispatcher/parmfit/doc/
+maple/function/dispatcher/parmfit/test/
+
+# Dock artifacts
+maple/function/dispatcher/dock/doc/
+maple/function/dispatcher/dock/test/

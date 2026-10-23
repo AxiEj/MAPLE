@@ -1,0 +1,353 @@
+"""Usage: recognize metal sites and cofactor templates for MetalAA."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Optional
+
+import numpy as np
+
+from ..context import collect_environment_residues, find_prev_next_peptide_residues, find_unique_residue
+from ..readparm import Mol2Topology, parse_mol2
+from ..structure import (
+    METAL_SITE_DONOR_ELEMENTS,
+    get_atom_xyz,
+    get_resid_info,
+    get_resid_key,
+    get_resid_label,
+    get_resid_mindist,
+    read_pdb,
+    residue_sort_key,
+)
+
+
+@dataclass(frozen=True)
+class MetalSiteSelection:
+    target: dict
+    core_residues: list[dict]
+    auto_core_residues: list[dict]
+    manual_core_residues: list[dict]
+    donor_atoms: dict[tuple[str, int, str], list[str]]
+    warnings: list[str]
+    donor_cutoff: float
+    ncaa_residues: tuple[dict, ...] = ()
+    ncaa_resnames: dict[tuple[str, int, str], str] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "target": self.target,
+            "core_residues": self.core_residues,
+            "auto_core_residues": self.auto_core_residues,
+            "manual_core_residues": self.manual_core_residues,
+            "donor_atoms": self.donor_atoms,
+            "warnings": self.warnings,
+            "donor_cutoff": self.donor_cutoff,
+            "ncaa_residues": list(self.ncaa_residues),
+            "ncaa_resnames": dict(self.ncaa_resnames),
+        }
+
+
+MetalSiteCore = MetalSiteSelection
+
+
+def _mol2_atoms_by_name(mol2: Mol2Topology, path: str) -> dict[str, object]:
+    atoms_by_name = {}
+    duplicates = []
+    for atom in mol2.atoms:
+        if atom.name in atoms_by_name:
+            duplicates.append(atom.name)
+        atoms_by_name[atom.name] = atom
+    if duplicates:
+        joined = ", ".join(sorted(set(duplicates)))
+        raise ValueError(f"typed ligand mol2 {path} has duplicate atom names: {joined}")
+    return atoms_by_name
+
+
+def inject_ligand_typed_mol2(structure: dict, residue: dict, typed_mol2_path: str) -> dict[str, float]:
+    """Inject atom types, charges, and bond pairs from our own antechamber-typed ligand mol2."""
+    mol2 = parse_mol2(typed_mol2_path)
+    atoms_by_name = _mol2_atoms_by_name(mol2, typed_mol2_path)
+    residue_atoms_by_name = {atom["name"]: atom for atom in residue["atoms"]}
+    atom_charges: dict[str, float] = {}
+    for name, mol2_atom in atoms_by_name.items():
+        residue_atoms_by_name[name]["atom_type"] = mol2_atom.atom_type
+        residue_atoms_by_name[name]["charge"] = float(mol2_atom.charge)
+        atom_charges[name] = float(mol2_atom.charge)
+    residue["_ligand_mol2"] = typed_mol2_path
+    # Charges were fitted upstream via lig_chgfit and merged into this mol2; the
+    # site RESP may re-fit coordinating ligands under a sum constraint, while
+    # non-coordinating exports keep them as written here.
+
+    atom_id_to_name = {atom.atom_id: atom.name for atom in mol2.atoms}
+    bond_name_pairs: set[tuple[str, str]] = set()
+    for bond in mol2.bonds:
+        left_name = atom_id_to_name[bond.atom1]
+        right_name = atom_id_to_name[bond.atom2]
+        bond_name_pairs.add(tuple(sorted((left_name, right_name))))
+    residue["_ligand_bond_pairs"] = bond_name_pairs
+    return atom_charges
+
+
+def _residue_has_formal_charge_hint(residue: dict) -> bool:
+    return bool(residue.get("formal_charge") or residue.get("net_charge"))
+
+
+def find_metal_site_core(
+    structure: dict,
+    *,
+    target: str | None = None,
+    target_residue: dict | None = None,
+    add_resid: Optional[list[str]] = None,
+    ncaa_resids: Optional[list[str]] = None,
+    ncaa_resnames: Optional[list[str]] = None,
+    set_bonded: Optional[list[tuple[int, int]]] = None,
+    donor_cutoff: float = 2.7,
+    bond_policy: str = "auto",
+) -> MetalSiteSelection:
+    if target_residue is None:
+        if target is None:
+            raise ValueError("Metal site selection requires either 'target' or 'target_residue'.")
+        target_residue = find_unique_residue(structure, target)
+    if target_residue["kind"] != "ion":
+        raise ValueError(f"Target {get_resid_label(target_residue)} is not recognized as an ion residue.")
+
+    metal_atom = target_residue["atoms"][0]
+    metal_xyz = get_atom_xyz(metal_atom)
+    manual_residues = [find_unique_residue(structure, selector) for selector in (add_resid or [])]
+    naa_residues: list[dict] = []
+    for selector in ncaa_resids or []:
+        residue = find_unique_residue(structure, selector, label="ncaa residue")
+        naa_residues.append(residue)
+    naa_keys = {get_resid_key(residue) for residue in naa_residues}
+
+    auto_residues: list[dict] = []
+    donor_atoms: dict[tuple[str, int, str], list[str]] = {}
+    explicit_pairs = list(set_bonded or [])
+    if explicit_pairs:
+        pdb_serial_to_serial = structure.get("pdb_serial_to_serial", {})
+        explicit_pairs = [
+            (
+                int(pdb_serial_to_serial.get(left, left)),
+                int(pdb_serial_to_serial.get(right, right)),
+            )
+            for left, right in explicit_pairs
+        ]
+        metal_serial = int(metal_atom["serial"])
+        atom_by_serial = {
+            int(atom["serial"]): (residue, atom)
+            for residue in structure["residues"]
+            for atom in residue["atoms"]
+        }
+        donor_name_sets: dict[tuple[str, int, str], set[str]] = {}
+        auto_by_key: dict[tuple[str, int, str], dict] = {}
+        for left_serial, right_serial in explicit_pairs:
+            if metal_serial not in (left_serial, right_serial) or left_serial == right_serial:
+                raise ValueError(
+                    f"set_bonded pair {left_serial}-{right_serial} must contain exactly one target metal serial "
+                    f"({metal_serial})."
+                )
+            donor_serial = right_serial if left_serial == metal_serial else left_serial
+            try:
+                donor_residue, donor_atom = atom_by_serial[donor_serial]
+            except KeyError as exc:
+                raise ValueError(f"set_bonded references unknown donor atom serial {donor_serial}.") from exc
+            typed_nonprotein = donor_residue.get("kind") in {"ligand", "cofactor"} and donor_residue.get("_ligand_mol2")
+            declared_ncaa = get_resid_key(donor_residue) in naa_keys
+            if donor_residue.get("kind") in {"ligand", "cofactor"} and not typed_nonprotein and not declared_ncaa:
+                raise ValueError(
+                    f"Explicit non-protein metal donor {get_resid_label(donor_residue)} requires typing; "
+                    "declare it via lig_resids (or ncaa_resids for non-standard amino acids)."
+                )
+            donor_key = get_resid_key(donor_residue)
+            donor_name_sets.setdefault(donor_key, set()).add(donor_atom["name"])
+            auto_by_key.setdefault(donor_key, donor_residue)
+        donor_atoms = {key: sorted(names) for key, names in donor_name_sets.items()}
+        auto_residues = sorted(auto_by_key.values(), key=residue_sort_key)
+    else:
+        metal_serial = int(metal_atom["serial"])
+        coordination_serials = {
+            right if left == metal_serial else left
+            for left, right in structure.get("coordination_pairs", set())
+            if left == metal_serial or right == metal_serial
+        }
+        use_coordination_graph = donor_cutoff <= float(structure.get("coordination_cutoff", 0.0))
+        for residue in structure["residues"]:
+            if get_resid_key(residue) == get_resid_key(target_residue):
+                continue
+            if residue["kind"] == "ion":
+                distance = get_resid_mindist(target_residue, residue)
+                if distance <= donor_cutoff:
+                    raise ValueError(
+                        f"Metal route currently supports a single metal center; found neighboring ion {get_resid_label(residue)}."
+                    )
+                continue
+
+            donor_names: list[str] = []
+            for atom in residue["atoms"]:
+                if atom["element"] not in METAL_SITE_DONOR_ELEMENTS:
+                    continue
+                if use_coordination_graph and atom["serial"] not in coordination_serials:
+                    continue
+                delta = get_atom_xyz(atom) - metal_xyz
+                distance = float(np.sqrt(np.dot(delta, delta)))
+                if distance <= donor_cutoff:
+                    donor_names.append(atom["name"])
+            if donor_names:
+                donor_atoms[get_resid_key(residue)] = sorted(set(donor_names))
+                typed_nonprotein = residue["kind"] in {"ligand", "cofactor"} and residue.get("_ligand_mol2")
+                if residue["kind"] == "protein" or typed_nonprotein:
+                    auto_residues.append(residue)
+                elif residue["kind"] in {"ligand", "cofactor"} and get_resid_key(residue) not in naa_keys:
+                    raise ValueError(
+                        f"Non-protein metal donor {get_resid_label(residue)} was found within donor_cutoff, "
+                        "but has no typed parameters; declare it via lig_resids/lig_charges (or ncaa_resids "
+                        "for non-standard amino acids)."
+                    )
+
+    residues: list[dict] = [target_residue]
+    seen = {get_resid_key(target_residue)}
+    for residue in sorted(auto_residues, key=residue_sort_key):
+        key = get_resid_key(residue)
+        if key not in seen:
+            residues.append(residue)
+            seen.add(key)
+    for residue in sorted(manual_residues, key=residue_sort_key):
+        key = get_resid_key(residue)
+        if key not in seen:
+            residues.append(residue)
+            seen.add(key)
+    # Declared NCAA residues enter the core only through the donor-detection
+    # branches above (a coordinating NCAA residue is already in auto_residues);
+    # non-coordinating ones stay out of the site model and are folded into the
+    # tleap export by write_site_model_files.
+
+    ncaa_rn_list = list(ncaa_resnames or [])
+    ncaa_resnames = {
+        get_resid_key(residue): ncaa_rn_list[index]
+        for index, residue in enumerate(naa_residues)
+        if index < len(ncaa_rn_list)
+    }
+
+    warnings: list[str] = []
+    for residue in manual_residues:
+        key = get_resid_key(residue)
+        if key == get_resid_key(target_residue):
+            continue
+        if key not in donor_atoms and residue["kind"] == "protein":
+            warnings.append(
+                f"Manual core residue {get_resid_label(residue)} was added without an automatically detected donor atom."
+            )
+
+    for residue in residues:
+        if residue["kind"] != "protein":
+            continue
+        prev_residue, next_residue = find_prev_next_peptide_residues(structure, residue, bond_policy=bond_policy)
+        residue["_prev_peptide_key"] = get_resid_key(prev_residue) if prev_residue is not None else None
+        residue["_next_peptide_key"] = get_resid_key(next_residue) if next_residue is not None else None
+
+    return MetalSiteSelection(
+        target=target_residue,
+        core_residues=residues,
+        auto_core_residues=sorted(auto_residues, key=residue_sort_key),
+        manual_core_residues=sorted(
+            [residue for residue in manual_residues if get_resid_key(residue) != get_resid_key(target_residue)],
+            key=residue_sort_key,
+        ),
+        donor_atoms=donor_atoms,
+        warnings=warnings,
+        donor_cutoff=float(donor_cutoff),
+        ncaa_residues=tuple(naa_residues),
+        ncaa_resnames=ncaa_resnames,
+    )
+
+
+def _split_entries(value) -> list[str]:
+    if isinstance(value, (list, tuple)):
+        return [str(token).strip() for token in value if str(token).strip()]
+    return [token.strip() for token in str(value).split(",") if token.strip()]
+
+
+def identify_metal_site_core(
+    structure: dict | str,
+    target: str,
+    add_resid: str = "",
+    set_bonded: str = "",
+    donor_cutoff: float = 2.7,
+    keep_altloc: str = "A",
+    bond_policy: str = "auto",
+) -> dict:
+    structure = (
+        read_pdb(structure, keep_altloc=keep_altloc, altloc_selectors=[target, *_split_entries(add_resid)])
+        if isinstance(structure, str)
+        else structure
+    )
+    bonded_pairs = []
+    for token in _split_entries(set_bonded):
+        parts = token.split("-")
+        if len(parts) != 2:
+            raise ValueError(f"Invalid set_bonded pair {token!r}; expected SERIAL-SERIAL.")
+        try:
+            bonded_pairs.append((int(parts[0]), int(parts[1])))
+        except ValueError as exc:
+            raise ValueError(f"Invalid set_bonded pair {token!r}; expected integer SERIAL-SERIAL.") from exc
+    return find_metal_site_core(
+        structure,
+        target=target,
+        add_resid=_split_entries(add_resid),
+        set_bonded=bonded_pairs,
+        donor_cutoff=donor_cutoff,
+        bond_policy=bond_policy,
+    ).to_dict()
+
+
+def extract_metal_cluster(
+    structure: dict | str,
+    target: str,
+    add_resid: str = "",
+    cluster_cutoff: float = 3.0,
+    donor_cutoff: float = 2.7,
+    keep_altloc: str = "A",
+    bond_policy: str = "auto",
+) -> dict:
+    if cluster_cutoff < 0.0:
+        raise ValueError(f"cluster_cutoff must be >= 0.0, got {cluster_cutoff}.")
+
+    structure = (
+        read_pdb(structure, keep_altloc=keep_altloc, altloc_selectors=[target, *_split_entries(add_resid)])
+        if isinstance(structure, str)
+        else structure
+    )
+    core = find_metal_site_core(
+        structure,
+        target=target,
+        add_resid=_split_entries(add_resid),
+        donor_cutoff=donor_cutoff,
+        bond_policy=bond_policy,
+    )
+    excluded = {get_resid_key(residue) for residue in core.core_residues}
+    environment = collect_environment_residues(
+        structure,
+        core.target,
+        cutoff=cluster_cutoff,
+        excluded_keys=excluded,
+        include_water=False,
+    )
+
+    warnings = list(core.warnings)
+    charged_env = [get_resid_label(residue) for residue in environment if _residue_has_formal_charge_hint(residue)]
+    if charged_env:
+        warnings.append(
+            "Cluster environment includes potentially charged standard residues outside the RESP/Hessian core: "
+            + ", ".join(charged_env[:8])
+        )
+
+    return {
+        "target": get_resid_info(core.target),
+        "core_residues": [get_resid_info(residue) for residue in core.core_residues],
+        "auto_core_residues": [get_resid_info(residue) for residue in core.auto_core_residues],
+        "keep_residues": [get_resid_info(residue) for residue in core.manual_core_residues],
+        "environment_residues": [get_resid_info(residue) for residue in environment],
+        "donor_atoms": {f"{key[0]}{key[1]}{key[2]}": list(names) for key, names in core.donor_atoms.items()},
+        "cutoff": float(cluster_cutoff),
+        "warnings": warnings,
+    }

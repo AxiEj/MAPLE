@@ -1,0 +1,126 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = uma with options {'size': 'uma-s-1p1'}
+Task set to 'parmfit'
+Global parameter: device = gpu0
+Parsed configuration:
+----------------------------------------
+Task: parmfit
+model          : uma(size=uma-s-1p1)
+method         : ncaa
+input          : MaDA.in
+device         : gpu0
+
+                             Coordinates                              
+**********************************************************************
+
+Group 1 (PDB File)
+Resolved PDB: /home/hungn/Desktop/MyRepo/MLP/MAPLE/examples/parmfit/MaDA.pdb
+PDB coordinates are parsed by the parmfit route at runtime.
+--------------------
+
+======================================================================
+                             Parmfit NCAA                             
+======================================================================
+Target: _89:HIF (protein)
+  PDB residue templates: matched=516, backbone_only=1, unmatched=0
+    non-standard (matched backbone only): _89:HIF (target)
+    template overrides (renamed): _10:CYM (CYX->CYM), _74:CYM (CYX->CYM)
+  PDB target charge: _89:HIF = -2 (from your input)
+  [NCAA] MLIP model preparation + reference optimization ...
+  NCAA target selector: HIF89
+  residue name: HF1
+  chirality: L
+  net charge / spin multiplicity: -2 1
+  protein ff: ff14SB
+  bonded refinement: mseminario
+  charge fitting: resp
+  charge level: HF/6-31G(d)
+  [NCAA] atomic charge fitting (resp) ...
+  [NCAA] AmberTools template build ...
+  [NCAA] MLIP Hessian + mSeminario ...
+  [NCAA] TorsionFit skipped ...
+  [NCAA] writing refined templates + tleap input ...
+  [NCAA] tleap validation ...
+  [NCAA] route completed; final summary follows.
+
+======================================================================
+                         PARMFIT NCAA RESULT                          
+======================================================================
+Status: completed
+Route: NCAA
+Target: _89:HIF
+Residue name: HF1
+Chirality: L
+Protein ff: ff14SB
+Res charge/spin-multi: -2 1
+Charge fitting: resp
+Charge level: HF/6-31G(d)
+Target charge: -2
+Actual charge: -2.00000400
+Charge MOL2: MaDA_work/ncaa/HIF89/MaDA_capped.mol2
+
+Main products:
+  refined prepin: MaDA_work/HF1_maple.prepin
+  refined frcmod: MaDA_work/HF1_maple.frcmod
+  tleap PDB:      MaDA_work/MaDA_ncaa_tleap.pdb
+  tleap input:    MaDA_work/MaDA_ncaa_tleap.in
+
+Stage timing:
+  charge fitting                   10m 53s
+  model preparation + reference     4m 38s
+  Hessian + mSeminario              4m 03s
+  tleap validation                      7s
+  AmberTools template build             0s
+  final export                          0s
+
+Next step:
+  cd MaDA_work
+  tleap -s -f MaDA_ncaa_tleap.in |tee MaDA_ncaa_tleap.out
+
+Tleap status:
+  Errors: 0
+  Warnings: 4
+  Notes: 0
+
+Warnings:
+  none
+======================================================================
+
+
+
+Program started: 2026-10-09 08:23:50
+
+======================================================================
+                      TIMING SUMMARY
+======================================================================
+Input Reading.......................................   0.021 s  (   0.0 %)
+  Settings Parsing....................................   0.016 s  (  78.7 %)
+  Coordinate Section Parsing..........................   0.002 s  (   9.2 %)
+  Post-Processing Expansion...........................   0.000 s  (   0.1 %)
+MLP Initialization..................................  26.293 s  (   2.2 %)
+Job Dispatching..................................... 1188.613 s  (  97.8 %)
+  Parmfit optimization................................ 1188.609 s  ( 100.0 %)
+    Parmfit NCAA........................................ 1188.413 s  ( 100.0 %)
+======================================================================
+Total wall time: 1214.928 s
+Total CPU time: 561.873 s
+======================================================================
+
+Program ended: 2026-10-09 08:44:05
+TOTAL RUN TIME: 0 days 0 hours 20 minutes 14 seconds 927 msec

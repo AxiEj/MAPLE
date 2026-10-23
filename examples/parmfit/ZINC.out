@@ -1,0 +1,139 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = uma with options {'size': 'uma-s-1p1'}
+Task set to 'parmfit'
+Global parameter: device = gpu0
+Parsed configuration:
+----------------------------------------
+Task: parmfit
+model          : uma(size=uma-s-1p1)
+method         : metalaa
+input          : ZINC.in
+device         : gpu0
+
+                             Coordinates                              
+**********************************************************************
+
+Group 1 (PDB File)
+Resolved PDB: /home/hungn/Desktop/MyRepo/MLP/parmfit-example/1OKL.pdb
+PDB coordinates are parsed by the parmfit route at runtime.
+--------------------
+
+======================================================================
+                           Parmfit MetalAA                            
+======================================================================
+Target: A262:ZN (ion)
+  PDB residue templates: matched=255, backbone_only=0, unmatched=1
+    not matched (seemingly not protein): A862:MNS
+    declare them via lig_resids (or ncaa_resids) to build parameters as small molecules
+  ion_resids: A262
+  add_resid: []
+  cluster_cutoff: 3.00 A
+  donor_cutoff: 2.70 A
+  water ff: tip3p
+  protein ff: ff14SB
+  ion ff: 12_6
+  ion_charges: 2
+  ion_mults: 1
+  ncaa_resids: []
+  large model charge/mult: 1 1
+  chgmod: 1
+  fixchg_resids: []
+  QM method: PBE1PBE/def2SV
+  [MetalAA] large-model input written.
+  [MetalAA] MLIP large-model optimization ...
+  [MetalAA] large-model RESP ...
+  [MetalAA] site files written.
+  [MetalAA] MLIP Hessian + mSeminario + final frcmod ...
+  [MetalAA] final parameter files written.
+  [MetalAA] running tleap validation ...
+  [MetalAA] route completed; final summary follows.
+
+======================================================================
+                        PARMFIT METALAA RESULT                        
+======================================================================
+Status: completed
+Route: MetalAA
+Target: A262:ZN
+Protein ff: ff14SB
+Ions charge: 2
+Large model charge/mult: 1 1
+Core residues: _90:HID, _92:HID, _115:HIE, A262:ZN, A862:MNS
+
+Main products:
+  final frcmod: ZINC_work/ZINC_metal.frcmod
+  tleap input: ZINC_work/ZINC_metal_tleap.in
+  tleap PDB:   ZINC_work/ZINC_metal_tleap.pdb
+  mol2 files:  ZINC_work/HD1.mol2, ZINC_work/HD2.mol2, ZINC_work/HE1.mol2, ZINC_work/ZN1.mol2, ZINC_work/MS1.mol2
+
+Renamed atom types:
+  residue      atom  old   new   charge
+  _90:HID      NE2   NB    Z1     0.002824
+  _92:HID      NE2   NB    Z2     0.018690
+  _115:HIE     ND1   NB    Z3     0.090774
+  A262:ZN      ZN    ZN    M1     0.180651
+  A862:MNS     O1S   o     Z4    -0.468141
+  A862:MNS     N3S   n2    Z5    -0.547345
+
+Stage timing:
+  RESP fitting             8m 42s
+  Hessian + mSeminario     1m 19s
+  model optimization          12s
+  ligand building              3s
+  tleap validation             2s
+  site export                  0s
+  model build                  0s
+  site selection               0s
+  ncaa building                0s
+
+Next step:
+  cd ZINC_work
+  tleap -s -f ZINC_metal_tleap.in |tee ZINC_metal_tleap.out
+
+Tleap status:
+  Errors: 0
+  Warnings: 14
+  Notes: 6
+  Check: long bond ZN-O1S = 3.207 A
+
+Warnings:
+  Environment contains potentially charged standard residues outside the site core: _1:TRP, _5:LYS, _10:GLU, _14:LYS, _15:ASP, _20:LYS, _22:GLU, _23:ARG
+======================================================================
+
+
+
+Program started: 2026-09-26 01:50:36
+
+======================================================================
+                      TIMING SUMMARY
+======================================================================
+Input Reading.......................................   1.139 s  (   0.2 %)
+  Settings Parsing....................................   1.138 s  (  99.9 %)
+  Coordinate Section Parsing..........................   0.001 s  (   0.0 %)
+  Post-Processing Expansion...........................   0.000 s  (   0.0 %)
+MLP Initialization..................................   8.773 s  (   1.4 %)
+Job Dispatching..................................... 619.102 s  (  98.4 %)
+  Parmfit optimization................................ 619.101 s  ( 100.0 %)
+    Parmfit MetalAA..................................... 619.046 s  ( 100.0 %)
+======================================================================
+Total wall time: 629.015 s
+Total CPU time: 104.183 s
+======================================================================
+
+Program ended: 2026-09-26 02:01:05
+TOTAL RUN TIME: 0 days 0 hours 10 minutes 29 seconds 15 msec

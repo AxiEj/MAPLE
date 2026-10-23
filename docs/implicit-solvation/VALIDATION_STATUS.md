@@ -1,5 +1,11 @@
 # Route 1 implicit-solvation validation status
 
+> **2026-10-23 scope update:** continuous/Gaussian CHA derivative research is
+> retired. CHA remains energy-only; independent OBC-II task integration remains
+> a separate goal, not a completed qualification. The dated milestones below
+> retain their historical meaning. Current cleanup verification and preserved
+> evidence are listed in [the retirement record](RESEARCH_RETIREMENT_20261023.md).
+
 > **New reference role (2026-09-09):** explicit finite-kappa ddX/ddLPB polar-only
 > SP/OPT/numerical FREQ/P-RFO/dimer workflows (expanded 2026-09-10) are separate
 > from FAST OBC-II/ACE and ACCURACY CHA-GB/ALPB. APBS remains

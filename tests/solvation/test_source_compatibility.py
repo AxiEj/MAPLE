@@ -18,8 +18,24 @@ from source_compatibility import (
 )
 
 
-def test_production_safety_source_compatibility_is_narrow_and_current():
+def test_production_safety_ledger_preserves_history_and_retained_sources():
     artifact = load_source_compatibility()
+    ledger = (
+        BENCHMARK_DIR / "route1-production-safety-source-compatibility-2026-09-27.json"
+    )
+    assert sha256_file(ledger) == (
+        "4658b7dc8e0d7c1fa510e62e391d04aab9d076b084183b590384055b651fc17d"
+    )
+    # Explicitly retired research is still present in the immutable ledger,
+    # not silently removed from history or accepted as an active source file.
+    retired = {
+        "maple/function/calculator/extra_correction/implicit/" + name + ".py"
+        for name in (
+            "continuum_chagb_inputs",
+            "torch_continuum_sav",
+            "torch_sphere_union_geometry",
+        )
+    }
 
     assert artifact["historical_evidence_bytes_unchanged"] is True
     assert artifact["frozen_results_recomputed"] is False
@@ -31,11 +47,15 @@ def test_production_safety_source_compatibility_is_narrow_and_current():
 
     records = artifact["source_changes"]
     assert records
+    assert retired <= {record["path"] for record in records}
     assert len({record["path"] for record in records}) == len(records)
     for record in records:
         path = REPOSITORY_ROOT / record["path"]
-        assert path.is_file()
-        assert sha256_file(path) == record["current_sha256"]
+        if record["path"] in retired:
+            assert not path.exists()
+        else:
+            assert path.is_file()
+            assert sha256_file(path) == record["current_sha256"]
         assert record["historical_numerical_results_recomputed"] is False
         assert record["scientific_claim_reuse_authorized"] is False
         assert all(len(value) == 64 for value in record["historical_sha256"])
@@ -44,9 +64,7 @@ def test_production_safety_source_compatibility_is_narrow_and_current():
 def test_documented_source_drift_never_authorizes_execution_or_sealing():
     artifact = load_source_compatibility()
     changed = next(
-        record
-        for record in artifact["source_changes"]
-        if record["historical_sha256"]
+        record for record in artifact["source_changes"] if record["historical_sha256"]
     )
 
     with pytest.raises(ValueError, match="historical-audit-only"):

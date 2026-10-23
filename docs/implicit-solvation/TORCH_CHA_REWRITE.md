@@ -1,5 +1,12 @@
 # Source-faithful Torch CHA-GB rewrite: staged evidence
 
+> **2026-10-23:** retain the faithful energy-only exact-SP chain. The separate
+> continuous/Gaussian derivative research is retired; its six old prototype
+> modules are removed from this baseline. The 2026-09-27 reports below remain
+> immutable historical evidence, not current-source certificates after cleanup.
+> See [the retirement record](RESEARCH_RETIREMENT_20261023.md) for the new
+> source-bound revalidation and recovery boundaries.
+
 ## Active scope decision (2026-09-24)
 
 The target is now an **energy-only, Amber-numerics-faithful Torch single-point

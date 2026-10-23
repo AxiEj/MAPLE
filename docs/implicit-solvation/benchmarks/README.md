@@ -1,5 +1,14 @@
 # Implicit-solvation benchmarks
 
+## Active scope update — 2026-10-23
+
+Continuous/Gaussian CHA derivative experiments below are historical, not active
+development targets. Their reports remain unchanged; their old continuous
+nonpolar runner and exclusive prototype tests have been retired. Retained CHA
+single-point components and existing OBC-II workflows use the new dated
+`route1-retained-solvent-revalidation-2026-10-23.json` receipt. See
+[scope and preservation](../RESEARCH_RETIREMENT_20261023.md).
+
 ## Route 1: FreeSolv ten-molecule pilot
 
 ## Reproducible full-corpus harness

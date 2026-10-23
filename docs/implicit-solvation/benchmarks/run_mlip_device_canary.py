@@ -76,7 +76,6 @@ SOURCE_PATHS = (
     "maple/function/calculator/extra_correction/implicit/openmm_gb.py",
     "maple/function/calculator/extra_correction/implicit/openmm_execution.py",
     "maple/function/calculator/extra_correction/implicit/radii.py",
-    "maple/function/calculator/extra_correction/implicit/sphere_union_dispersion.py",
     "maple/function/dispatcher/optimization/algorithm/LBFGS.py",
     "maple/function/dispatcher/optimization/optimization.py",
     "maple/function/dispatcher/frequency/frequency.py",
@@ -88,7 +87,7 @@ SOURCE_PATHS = (
 
 PROTOCOL: dict[str, Any] = {
     "schema_version": 1,
-    "protocol_id": "route1-mlip-device-canary-20260913-v1",
+    "protocol_id": "route1-mlip-device-canary-20261023-v2",
     "claim_scope": (
         "Local interface and execution canary for only the explicitly requested "
         "model/device pairs; not validation of every registered MAPLE model, "

@@ -1,5 +1,13 @@
 # Route 1: additive fixed-charge PB/GB implicit solvation
 
+> **Active scope (2026-10-23):** retain faithful independent CHA single-point
+> energy and pursue independent OBC-II integration across MAPLE tasks.
+> Continuous/Gaussian CHA force, OPT and FREQ/TS research is retired, not
+> qualified. The independent OBC-II candidate remains separate from this
+> baseline; existing provider defaults and other task paths are unchanged.
+> [Cleanup scope, evidence and preservation](RESEARCH_RETIREMENT_20261023.md).
+> Dated development plans below are historical where they conflict with this scope.
+
 > **Current architecture (2026-09-09):** FAST OBC-II/ACE; ACCURACY CHA-GB/ALPB
 > plus PBSA cavity/dispersion; REFERENCE ddX/ddLPB, with APBS as an independent
 > grid cross-check. See [numerical reference input and boundaries](NUMERICAL_REFERENCE.md).

@@ -1,7 +1,7 @@
-"""Fresh, label-free post-audit validation; never rewrite historical evidence.
+"""Fresh, label-free retained-solvent validation; preserve historical evidence.
 
 Re-evaluates the original 12 OBC molecule corpus with native OpenMM Reference,
-then runs the existing derivative/workflow and new contract regressions.
+then runs the retained CHA single-point and OBC derivative/workflow regressions.
 Snapshots implementation/test/input bytes before and after execution. This
 does not validate a complete Torch CHA endpoint or experimental accuracy.
 """
@@ -23,9 +23,12 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))
 import benchmark_core as core
+import run_mlip_device_canary as canary
 
 HISTORICAL = HERE / "route1-torch-obc2-analytic-derivatives-2026-09-22.json"
 HISTORICAL_SHA = "961ba66a97a7b9a0c6d80640409bfb1218de496d42757c06e8dfd2e1e81947f5"
+PREVIOUS = HERE / "route1-torch-post-audit-revalidation-2026-09-27.json"
+PREVIOUS_SHA = "5cfe3a3aaa5303a2d371fa3945eb5cbb8e7ab1bcc2a2d903d42cc5fcc2047989"
 CASES = (
     "benzene",
     "methanol",
@@ -49,11 +52,7 @@ TESTS = tuple(
         "test_provider_failure_gates",
         "test_qeq_shutdown",
         "test_obc2_parameter_contract",
-        "test_continuum_chagb_inputs",
-        "test_torch_quadrature_contract",
         "test_torch_dense_budgets",
-        "test_torch_continuum_sav",
-        "test_torch_continuum_dispersion",
         "test_torch_obc2_parity",
         "test_torch_obc2_derivatives",
         "test_implicit_analytic_derivatives",
@@ -62,38 +61,35 @@ TESTS = tuple(
         "test_pbsa_cavity_portable_oracle",
         "test_torch_pbsa_exact_cavity",
         "test_chagb_exact_sp_contract",
+        "test_retained_solvent_scope",
+        "test_source_compatibility",
+        "test_mlip_device_canary",
     )
 )
 
 
 def source_paths(historical):
     sources = set(historical["implementation_source_sha256"])
+    # Task dispatch and calculator imports are dynamic. Bind the whole runtime
+    # rather than maintaining an incomplete hand-written execution closure.
     sources.update(
-        "maple/function/calculator/extra_correction/implicit/" + name + ".py"
-        for name in (
-            "torch_dense_budget",
-            "torch_pbsa_exact_cavity",
-            "torch_chagb",
-            "continuum_chagb_inputs",
-            "torch_sphere_union_geometry",
-            "torch_continuum_sav",
-            "torch_continuum_dispersion",
-        )
+        str(path.relative_to(ROOT)) for path in (ROOT / "maple").rglob("*.py")
     )
+    sources.update(canary.SOURCE_PATHS)
     sources.update(TESTS)
     sources.update(
         {
             str(Path(__file__).resolve().relative_to(ROOT)),
             "tests/solvation/conftest.py",
-            "maple/function/read/charge_options.py",
-            "maple/function/calculator/extra_correction/implicit/charges.py",
             # This consumer is checked after artifact creation, not inside its
             # own producing run. Freeze its checks without a circular test run.
             "tests/solvation/test_torch_obc2_artifacts.py",
             "tests/solvation/data/pbsa_cavity_oracle_v1.json",
             "docs/implicit-solvation/benchmarks/freeze_pbsa_cavity_oracle.py",
             "docs/implicit-solvation/benchmarks/source_compatibility.py",
+            "docs/implicit-solvation/benchmarks/benchmark_core.py",
             "docs/implicit-solvation/benchmarks/route1-production-safety-source-compatibility-2026-09-27.json",
+            str(PREVIOUS.relative_to(ROOT)),
         }
     )
     sources.update(
@@ -194,7 +190,10 @@ def run(output, work):
         )
     if core.sha256_file(HISTORICAL) != HISTORICAL_SHA:
         raise ValueError("Historical evidence changed")
+    if core.sha256_file(PREVIOUS) != PREVIOUS_SHA:
+        raise ValueError("Previous revalidation evidence changed")
     historical = core.load_json(HISTORICAL)
+    previous = core.load_json(PREVIOUS)
     paths = source_paths(historical)
     before = snapshots(paths)
     work.mkdir(parents=True)
@@ -238,8 +237,9 @@ def run(output, work):
         for case in suites.iter("testcase")
     ]
     after = snapshots(paths)
+    source_unchanged = before == after and paths == source_paths(historical)
     passed = (
-        before == after
+        source_unchanged
         and executed.returncode == 0
         and all(row["passed"] for row in records)
         and bool(cells)
@@ -248,19 +248,26 @@ def run(output, work):
     artifact = core.seal_artifact(
         {
             "schema_version": 1,
-            "artifact_type": "route1-torch-post-audit-revalidation-v1",
-            "recorded_date": "2026-09-27",
+            "artifact_type": "route1-retained-solvent-revalidation-v2",
+            "recorded_date": "2026-10-23",
+            "scope": "Retained exact-CHA components and existing OBC-II workflows; continuous CHA prototypes retired",
             "label_reads": False,
             "new_qm": False,
             "experimental_accuracy_claim": False,
             "full_torch_cha_complete": False,
             "supersedes_current_source_binding_of": {
+                "file": PREVIOUS.name,
+                "file_sha256": PREVIOUS_SHA,
+                "content_sha256": previous["content_sha256"],
+            },
+            "original_validation": {
                 "file": HISTORICAL.name,
                 "file_sha256": HISTORICAL_SHA,
                 "content_sha256": historical["content_sha256"],
             },
             "historical_evidence_bytes_unchanged": core.sha256_file(HISTORICAL)
-            == HISTORICAL_SHA,
+            == HISTORICAL_SHA
+            and core.sha256_file(PREVIOUS) == PREVIOUS_SHA,
             "qualified_workflow_cell": {
                 "gas": "ani2x",
                 "device": "cpu",
@@ -271,7 +278,7 @@ def run(output, work):
             },
             "implementation_and_test_sha256": before,
             "source_sha256_after": after,
-            "source_unchanged": before == after,
+            "source_unchanged": source_unchanged,
             "environment": {
                 name: importlib.metadata.version(name)
                 for name in ("torch", "openmm", "numpy", "ase", "pytest")

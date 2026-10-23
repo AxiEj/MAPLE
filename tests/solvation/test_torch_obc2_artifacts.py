@@ -20,6 +20,12 @@ PERFORMANCE_PATH = (
 REVALIDATION_PATH = (
     BENCHMARK_DIR / "route1-torch-post-audit-revalidation-2026-09-27.json"
 )
+CURRENT_REVALIDATION_PATH = (
+    BENCHMARK_DIR / "route1-retained-solvent-revalidation-2026-10-23.json"
+)
+HISTORICAL_REVALIDATION_SHA256 = (
+    "5cfe3a3aaa5303a2d371fa3945eb5cbb8e7ab1bcc2a2d903d42cc5fcc2047989"
+)
 HISTORICAL_VALIDATION_SHA256 = (
     "961ba66a97a7b9a0c6d80640409bfb1218de496d42757c06e8dfd2e1e81947f5"
 )
@@ -59,8 +65,9 @@ def test_validation_artifact_is_self_hashed_source_bound_and_label_free():
     )
 
 
-def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
+def test_post_audit_revalidation_preserves_historical_sources_and_results():
     artifact = _load(REVALIDATION_PATH)
+    assert core.sha256_file(REVALIDATION_PATH) == HISTORICAL_REVALIDATION_SHA256
     assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
     assert artifact["passed"] is artifact["source_unchanged"] is True
     assert artifact["historical_evidence_bytes_unchanged"] is True
@@ -71,7 +78,6 @@ def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
         is False
     )
     for path, expected in artifact["implementation_and_test_sha256"].items():
-        assert core.sha256_file(REPOSITORY_ROOT / path) == expected
         assert artifact["source_sha256_after"][path] == expected
     assert artifact["qualified_workflow_cell"] == {
         "gas": "ani2x",
@@ -92,6 +98,52 @@ def test_post_audit_revalidation_binds_current_sources_and_fresh_results():
     assert any("test_actual_engine_analytic_frequency" in c["name"] for c in cells)
     assert any(
         "test_actual_engine_analytic_ts_derivative_paths" in c["name"] for c in cells
+    )
+
+
+def test_retained_solvent_revalidation_binds_current_sources_and_fresh_results():
+    artifact = _load(CURRENT_REVALIDATION_PATH)
+    previous = _load(REVALIDATION_PATH)
+    assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
+    assert artifact["supersedes_current_source_binding_of"] == {
+        "file": REVALIDATION_PATH.name,
+        "file_sha256": HISTORICAL_REVALIDATION_SHA256,
+        "content_sha256": previous["content_sha256"],
+    }
+    assert (
+        artifact["original_validation"]
+        == previous["supersedes_current_source_binding_of"]
+    )
+    assert artifact["passed"] is artifact["source_unchanged"] is True
+    assert artifact["historical_evidence_bytes_unchanged"] is True
+    assert artifact["label_reads"] is artifact["new_qm"] is False
+    assert (
+        artifact["experimental_accuracy_claim"]
+        is artifact["full_torch_cha_complete"]
+        is False
+    )
+    assert artifact["qualified_workflow_cell"] == previous["qualified_workflow_cell"]
+    for path, expected in artifact["implementation_and_test_sha256"].items():
+        assert core.sha256_file(REPOSITORY_ROOT / path) == expected
+        assert artifact["source_sha256_after"][path] == expected
+    records = artifact["corpus"]["records"]
+    assert artifact["corpus"]["comparison_count"] == len(records) == 48
+    assert len({r["case"] for r in records}) == len(artifact["corpus"]["cases"]) == 12
+    assert artifact["corpus"]["cases"] == previous["corpus"]["cases"]
+    for record in records:
+        assert record["passed"] is True
+        assert record["absolute_energy_delta_hartree"] <= (
+            2e-10 + 1e-9 * abs(record["reference_energy_hartree"])
+        )
+        assert max(record["component_absolute_deltas_hartree"].values()) <= 2e-10
+        assert record["force_max_delta_hartree_per_angstrom"] <= 2e-7
+        assert record["force_rms_delta_hartree_per_angstrom"] <= 5e-8
+    assert artifact["regression"]["exit_code"] == 0
+    cases = artifact["regression"]["cases"]
+    assert cases and all(c["status"] == "passed" for c in cases)
+    assert any("test_actual_engine_analytic_frequency" in c["name"] for c in cases)
+    assert any(
+        "test_actual_engine_analytic_ts_derivative_paths" in c["name"] for c in cases
     )
 
 

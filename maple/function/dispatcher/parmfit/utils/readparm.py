@@ -137,7 +137,7 @@ class FrcmodDB:
 
 
 @dataclass
-class CorrectionParameterSet:
+class RefinementParameterSet:
     mol2: Mol2Topology
     frcmod: FrcmodDB
     bonds: list[Bond]
@@ -163,7 +163,7 @@ def _canonical_angle(atom_types: tuple[str, str, str]) -> tuple[str, str, str]:
 
 
 def parse_mol2(path: str) -> Mol2Topology:
-    """Parse the minimal mol2 fields needed by correction parmfit."""
+    """Parse the minimal mol2 fields needed by refinement parmfit."""
     atoms: list[Mol2Atom] = []
     bonds: list[Mol2Bond] = []
     section: str | None = None
@@ -409,14 +409,23 @@ def _match_improper(
     return terms
 
 
-def build_correction_paramset(
+# Improper refit/scan/fit is disabled for now: the +/-90 deg improper scan is
+# not mature -- on transition-state geometries the relaxed scan collapses to
+# products/dissociation and the fitted force constants run into the frcmod
+# (2026-10 DA analysis). ATTN impropers keep the parmchk2 planarity estimate;
+# radical_center-driven refit is unaffected. To re-enable, flip the constant
+# back to True (and lower p_thresh if the parmchk2 penalty path should fire).
+IMPROPER_REFIT_ENABLED = False
+
+
+def build_refinement_paramset(
     atoms: Atoms,
     mol2_path: str,
     frcmod_path: str,
     p_thresh: float = 30.0,
     torsion_enabled: bool = False,
-) -> CorrectionParameterSet:
-    """Build correction-mode parmfit instances from inp atoms, mol2 topology, and frcmod templates."""
+) -> RefinementParameterSet:
+    """Build refinement-mode parmfit instances from inp atoms, mol2 topology, and frcmod templates."""
     mol2 = parse_mol2(mol2_path)
     frcmod = parse_frcmod(frcmod_path)
 
@@ -477,7 +486,9 @@ def build_correction_paramset(
         annotation = frcmod.improper_annotations.get(template_key, "") if template_key else ""
         has_attn = "ATTN" in annotation
         penalty = _PENALTY_RE.search(annotation)
-        refit = has_attn or (penalty is not None and float(penalty.group(1)) > p_thresh)
+        refit = IMPROPER_REFIT_ENABLED and (
+            has_attn or (penalty is not None and float(penalty.group(1)) > p_thresh)
+        )
         impropers.append(
             Improper(
                 atoms=improper_atoms,
@@ -486,7 +497,7 @@ def build_correction_paramset(
                 # will run, record an n=2, k=0 seed so the fit starts from a
                 # free zero prior; otherwise keep the parmchk2 estimate so the
                 # exported frcmod retains the planarity restraint.
-                terms=[FourierTerm(kPhi=0.0, period=2.0, phase=pi)] if has_attn and torsion_enabled else list(terms),
+                terms=[FourierTerm(kPhi=0.0, period=2.0, phase=pi)] if refit and torsion_enabled else list(terms),
                 refit=refit,
             )
         )
@@ -507,7 +518,7 @@ def build_correction_paramset(
             )
         )
 
-    return CorrectionParameterSet(
+    return RefinementParameterSet(
         mol2=mol2,
         frcmod=frcmod,
         bonds=bonds,

@@ -378,3 +378,19 @@ def test_operator_main_parses_explicit_paths_and_reports_published_seal(
         "receipt": sealer.RECEIPT_REL, "pointer": sealer.POINTER_REL,
         "content_sha256": receipt["content_sha256"],
     }
+
+
+def test_summary_only_full_matrix_cannot_authorize_qualification(fixture_repo):
+    """Preseal safety regression: claimed counts are not underlying evidence."""
+    root, _git, full, _candidate, full_path, candidate_path = fixture_repo
+    assert all(
+        "records" not in full[name]
+        for name in (
+            "replay_526", "portable_48_ef_radius",
+            "full_hessian_matrix", "direct_hvp_matrix",
+        )
+    )
+    with pytest.raises(ValueError):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert b"= None" in (root / sealer.POINTER_REL).read_bytes()

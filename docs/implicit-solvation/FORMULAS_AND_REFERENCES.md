@@ -1,5 +1,11 @@
 # Formula and reference ledger
 
+> **Current runtime (2026-10-24):** independent Torch OBC-II/mbondi2 with ACE
+> or NONE is the default OBC-II provider. OpenMM is an explicit optional legacy
+> provider and the source of frozen parity controls, not a runtime dependency
+> of independent OBC-II. [Installation and admission](INDEPENDENT_OBC2.md).
+> Dated benchmark sections retain their historical providers and results.
+
 The new finite-kappa ddX/ddLPB reference uses the [explicit reference contract](NUMERICAL_REFERENCE.md):
 fixed point charges, fixed union-mbondi2 spheres, polar-only energy and complete
 coordinate force. Historical ddPCM/CQEq sections below remain archival; no old
@@ -51,13 +57,13 @@ H_{ij}^{\mathrm{FD}}(R)=
 MAPLE symmetrizes the finite-difference matrix and keeps the fixed charges and
 provider parameters unchanged at every displacement. The calculation requires
 two complete force calls for each movable Cartesian coordinate. It is
-therefore available for force-capable OpenMM GB compositions after explicit
-`hessian=numerical` selection. Using an analytic gas-MLIP Hessian alone would omit
+therefore available for force-capable Torch OBC-II and explicit OpenMM GB
+compositions after explicit `hessian=numerical` selection. Using an analytic gas-MLIP Hessian alone would omit
 \(\partial^2(G_{\mathrm{polar}}+G_{\mathrm{nonpolar}})/\partial R^2\)
 and is rejected.
 
-For the separately qualified ANI2x/OBC-II profile, MAPLE evaluates the same
-OBC-II/ACE scalar with a source-pinned float64 Torch transcription and forms
+For an ANI2x/OBC-II profile admitted by a sealed exact-cell receipt, MAPLE
+evaluates the same OBC-II/ACE scalar with a source-pinned float64 Torch transcription and forms
 
 \[
 H_{\mathrm{solution}}^{\mathrm{analytic}}
@@ -68,9 +74,12 @@ H_{\mathrm{solution}}^{\mathrm{analytic}}
 The transcription preserves OpenMM's piecewise `step`, `max`, and `abs`
 semantics; it is not a smoothed model. Second derivatives fail closed within
 the frozen `1e-8 nm` effective switching/collision margin. The admitted task
-cell uses explicit OpenMM `platform=Reference`, while OpenMM CPU remains the
-ordinary energy/force runtime and the complete-force numerical Hessian remains
-the general fallback.
+cell for independent Torch requires the pinned ANI2x checkpoint, CPU,
+float64, D4 disabled, OBC-II/mbondi2 and ACE or NONE, plus source/model-bound
+sealed qualification. No OpenMM platform is involved. The historical explicit
+OpenMM analytic cell uses `platform=Reference` and retains its separate gates.
+Complete-force numerical curvature must be requested explicitly; rejection of
+an analytic request does not switch modes.
 
 This Hessian supplies local vibrational curvature of the Route 1 potential. It
 does not supply a gas/solution partition-function difference, conformer
@@ -917,12 +926,16 @@ References:
 
 ## Amber GB models
 
-MAPLE calls OpenMM's upstream `CustomAmberGBForceBase` implementations and
-their `getStandardParameters(topology)` radius assignment.  It does not copy the
-HCT/OBC/GBn descreening equations.
+The explicit legacy OpenMM provider calls upstream
+`CustomAmberGBForceBase` implementations and their
+`getStandardParameters(topology)` radius assignment. The default independent
+OBC-II provider instead uses a source-pinned Torch transcription and frozen
+mbondi2 parameter assets; it neither imports OpenMM nor queries its metadata.
+This migration does not create independent HCT/OBC-I/GBn/GBn2 implementations.
 
-The primary hydration benchmark uses OpenMM's ACE term, exactly as implemented
-by `customgbforces._createEnergyTerms`:
+The historical primary hydration benchmark uses OpenMM's ACE term, exactly as
+implemented by `customgbforces._createEnergyTerms`. Independent OBC-II
+preserves this scalar (with live effective Born radii):
 
 \[
 G_{np}^{\mathrm{ACE}}=\sum_i 28.3919551\,(r_i+0.14)^2

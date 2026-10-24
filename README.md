@@ -80,11 +80,16 @@ External runtime dependencies that users install manually:
 | `torch` | `>=2.0` | ANI, AIMNet2, MACE-OFF, MACE-O-MOL, MACE-Polar, UMA | PyTorch wheels must match the user's CUDA/CPU runtime and should be selected from the official PyTorch index. |
 | `fairchem-core` | FAIR-Chem release with UMA support; tested locally with `2.19.0` | UMA and FAIR-Chem-backed/PBC workflows | FAIR-Chem may impose its own compatible PyTorch/runtime constraints, so install it after the matching PyTorch wheel. |
 
-For implicit GB models, install the optional OpenMM provider:
+For default independent OBC-II, install the Torch-backed GB extra:
 
 ```bash
 pip install 'maple[implicit-gb]'
 ```
+
+This extra does not install OpenMM. The explicit legacy provider uses
+`maple[implicit-openmm]` and `provider=openmm`. See
+[independent OBC-II](docs/implicit-solvation/INDEPENDENT_OBC2.md) for inputs
+and the separate sealed analytic-task admission gate.
 
 APBS LPB, AM1-BCC, and ABCG2 are executable providers rather than core Python
 dependencies. Install APBS separately for `provider=apbs`; install AmberTools24+

@@ -1359,14 +1359,14 @@ def _record_index(section: Mapping[str, Any], fields: tuple[str, ...], expected:
     if not isinstance(rows, list) or len(rows) != len(expected):
         raise ValueError(f"Full-matrix records incomplete: expected {len(expected)}")
     indexed = {}
+    expected_types = [
+        {type(identity[index]) for identity in expected}
+        for index in range(len(fields))
+    ]
     for row in rows:
         if not isinstance(row, Mapping):
             raise ValueError("Full-matrix records must be mappings")
         key = tuple(row.get(field) for field in fields)
-        expected_types = [
-            {type(identity[index]) for identity in expected}
-            for index in range(len(fields))
-        ]
         if any(type(value) not in types for value, types in zip(key, expected_types, strict=True)):
             raise ValueError("Malformed full-matrix record identity types")
         try:
@@ -1399,8 +1399,8 @@ def _validate_energy_rows(section, golden_rows, *, portable: bool) -> None:
         "finalized_particle_charge_offset_scaled",
     }
     drifts, parameters, force_maxima, force_rms_values = [], [], [], []
-    for key, row in rows.items():
-        golden = golden_index[key]
+    for key, golden in golden_index.items():
+        row = rows[key]
         _require_equal(row.get("golden_record_content_sha256"), golden["record_content_sha256"], "golden record hash")
         _require_equal(row.get("topology_sha256"), golden["topology"]["topology_sha256"], "topology hash")
         _require_equal(row.get("topology_match"), True, "topology identity")
@@ -1527,6 +1527,15 @@ def _validate_hessian_rows(section, portable) -> set:
             ("raw_hessian_shape", [3 * len(atoms)] * 2),
         ):
             _require_equal(row.get(field), value, f"Hessian {field}")
+        provenance = row.get("provider_provenance")
+        if not isinstance(provenance, Mapping):
+            raise ValueError("Missing Hessian provider provenance")
+        for field, value in (
+            ("runtime_provider", "torch-obc2"), ("runtime_openmm_required", False),
+            ("model", "obc2"), ("profile", "obc2-mbondi2"), ("nonpolar", key[1]),
+            ("topology_sha256", row["topology_sha256"]),
+        ):
+            _require_equal(provenance.get(field), value, f"Hessian provider {field}")
         if not _valid_sha256(row.get("raw_hessian_sha256")):
             raise ValueError("Missing raw Hessian hash")
         _finite_metric(row.get("raw_hessian_max_abs"), "Hessian maximum")
@@ -1570,6 +1579,16 @@ def _validate_hvp_rows(section, portable, hessian_keys) -> None:
             case_index=PORTABLE_CASES.index(case), geometry_index=GEOMETRY_ORDER.index(geometry),
             direction_index=direction_index, size=size,
         )
+        provenance = row.get("derivative_provenance")
+        if not isinstance(provenance, Mapping):
+            raise ValueError("Missing HVP derivative provenance")
+        for field, value in (
+            ("runtime_provider", "torch-obc2"), ("runtime_openmm_required", False),
+            ("model", "obc2"), ("profile", "obc2-mbondi2"), ("nonpolar", profile),
+            ("topology_sha256", golden["topology"]["topology_sha256"]),
+            ("ordered_charge_sha256", golden["charge_vector_sha256"]),
+        ):
+            _require_equal(provenance.get(field), value, f"HVP provider {field}")
         _require_equal(row.get("seed"), seed, "HVP seed")
         direction = _finite_vector(row.get("direction"), size, "HVP direction")
         hvp = _finite_vector(row.get("hvp"), size, "HVP")

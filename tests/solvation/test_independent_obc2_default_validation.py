@@ -513,6 +513,11 @@ def _complete_matrix_fixture():
             "raw_hessian_max_abs": 0.0, "raw_hessian_frobenius": 0.0,
             "raw_hessian_asymmetry_max": 0.0, "translation_norms": [0.0] * 3,
             "translation_limit": validation.GATES["translation_absolute_hartree_per_angstrom2"],
+            "provider_provenance": {
+                "runtime_provider": "torch-obc2", "runtime_openmm_required": False,
+                "model": "obc2", "profile": "obc2-mbondi2", "nonpolar": profile,
+                "topology_sha256": OBC2Topology.from_atoms(atoms).identity_sha256,
+            },
             "fd_ladder": validation.assess_fd_ladder(
                 matrix, {step: matrix.copy() for step in validation.SOLVENT_FD_STEPS_ANGSTROM}),
             "passed": True,
@@ -547,6 +552,12 @@ def _complete_matrix_fixture():
                         "direction_l2_norm": float(np.linalg.norm(direction)),
                         "hvp": vector.tolist(),
                         "hvp_sha256": validation._canonical_array_sha256(vector),
+                        "derivative_provenance": {
+                            "runtime_provider": "torch-obc2", "runtime_openmm_required": False,
+                            "model": "obc2", "profile": "obc2-mbondi2", "nonpolar": profile,
+                            "topology_sha256": index[(case, profile, geometry)]["topology"]["topology_sha256"],
+                            "ordered_charge_sha256": index[(case, profile, geometry)]["charge_vector_sha256"],
+                        },
                         "same_scalar_energy_abs_hartree": 0.0,
                         "same_scalar_force_max_hartree_per_angstrom": 0.0,
                         "raw_hessian_product": vector.tolist() if compared else None,
@@ -700,3 +711,112 @@ def test_full_matrix_replays_original_hvp_relative_tolerance(complete_matrix, mo
     )
     monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
     validation.validate_artifact(_seal(artifact))
+
+
+@pytest.mark.parametrize("damage", [
+    "total_energy", "polar_energy", "nonpolar_energy", "energy_limit",
+    "negative_metric", "parameter_delta", "energy_flag", "row_flag",
+    "section_flag", "aggregate", "golden_hash", "topology", "charge",
+    "h_shape", "translation", "translation_limit", "hvp_seed", "hvp_direction",
+    "hvp_vector_nan", "hvp_vector_string", "hvp_hash", "hvp_dense_flag",
+    "hvp_missing_product", "hvp_extra_product", "hvp_wrong_product_hash",
+    "direction_identity_bool", "candidate_negative_metric", "candidate_boolean_metric",
+    "changed_protocol", "changed_top_steps", "changed_reference", "guard_script",
+    "guard_metadata", "guard_loaded", "guard_nonfinite_energy", "guard_hash",
+])
+def test_full_matrix_rejects_self_resealed_hidden_identity_and_metric_failures(
+    complete_matrix, monkeypatch, damage
+):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    e = artifact["replay_526"]["records"][0]
+    h = artifact["full_hessian_matrix"]["records"][0]
+    v = artifact["direct_hvp_matrix"]["records"][0]
+    if damage in {"total_energy", "polar_energy", "nonpolar_energy"}:
+        field = {"total_energy": "total_abs_hartree", "polar_energy": "polar_abs_hartree",
+                 "nonpolar_energy": "nonpolar_abs_hartree"}[damage]
+        e["energy"][field] = 1.0
+    elif damage == "energy_limit":
+        e["energy"]["total_limit_hartree"] = 1.0
+    elif damage == "negative_metric":
+        e["energy"]["total_abs_hartree"] = -1.0
+    elif damage == "parameter_delta":
+        e["parameter_deltas"]["screen_factors"] = 1.0
+        e["parameter_max_abs"] = 1.0
+    elif damage == "energy_flag":
+        e["energy"]["passed"] = False
+    elif damage == "row_flag":
+        e["passed"] = False
+    elif damage == "section_flag":
+        artifact["replay_526"]["passed"] = False
+    elif damage == "aggregate":
+        artifact["replay_526"]["mean_absolute_prediction_drift_hartree"] = 1.0
+    elif damage == "golden_hash":
+        e["golden_record_content_sha256"] = "0" * 64
+    elif damage == "topology":
+        e["topology_sha256"] = "0" * 64
+    elif damage == "charge":
+        e["provider_provenance"]["ordered_charge_sha256"] = "0" * 64
+    elif damage == "h_shape":
+        h["raw_hessian_shape"] = [1, 1]
+    elif damage == "translation":
+        h["translation_norms"][0] = 1.0
+    elif damage == "translation_limit":
+        h["translation_limit"] = 1.0
+    elif damage == "hvp_seed":
+        v["seed"] += 1
+    elif damage == "hvp_direction":
+        v["direction"][0] += 1.0
+    elif damage == "hvp_vector_nan":
+        v["hvp"][0] = float("nan")
+    elif damage == "hvp_vector_string":
+        v["hvp"][0] = "0.0"
+    elif damage == "hvp_hash":
+        v["hvp_sha256"] = "0" * 64
+    elif damage == "hvp_dense_flag":
+        v["dense_hessian_forbidden_during_call"] = False
+    elif damage in {"hvp_missing_product", "hvp_wrong_product_hash"}:
+        compared = next(row for row in artifact["direct_hvp_matrix"]["records"]
+                        if row["raw_hessian_product"] is not None)
+        if damage == "hvp_missing_product":
+            compared.pop("raw_hessian_product")
+        else:
+            compared["raw_hessian_product_sha256"] = "0" * 64
+    elif damage == "hvp_extra_product":
+        assert v["raw_hessian_product"] is None
+        v["raw_hessian_product"] = v["hvp"]
+    elif damage == "direction_identity_bool":
+        v["direction_index"] = False
+    elif damage.startswith("candidate_"):
+        candidate = artifact["candidate_exact_cell"]
+        candidate["records"][0]["same_scalar_energy_abs_hartree"] = (
+            -1.0 if damage == "candidate_negative_metric" else False)
+        candidate.pop("content_sha256")
+        validation.core.seal_artifact(candidate)
+        artifact["qualification_gates"]["candidate_exact_cell_public_composition"][
+            "evidence_content_sha256"] = candidate["content_sha256"]
+    elif damage == "changed_protocol":
+        artifact["gates"]["energy_abs_hartree"] = 1.0
+    elif damage == "changed_top_steps":
+        artifact["fd_steps_angstrom"][0] = 1e-7
+    elif damage == "changed_reference":
+        artifact["stage0_binding"]["oracle_file_sha256"] = "0" * 64
+    elif damage == "guard_script":
+        artifact["guarded_no_openmm"]["script_sha256"] = "0" * 64
+    elif damage == "guard_metadata":
+        artifact["guarded_no_openmm"]["metadata_blocker"] = False
+    elif damage == "guard_loaded":
+        artifact["guarded_no_openmm"]["result"]["openmm_loaded"] = True
+    elif damage == "guard_nonfinite_energy":
+        artifact["guarded_no_openmm"]["result"]["energy_hartree"] = float("inf")
+    else:
+        artifact["guarded_no_openmm"]["result"]["force_sha256"] = ""
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    with pytest.raises(ValueError):
+        validation.validate_artifact(_seal(artifact))
+
+
+def test_hvp_evidence_generator_records_products_only_for_frozen_dense_selection():
+    source = (ROOT / "docs/implicit-solvation/benchmarks/validate_independent_obc2_default.py").read_text()
+    assert '"raw_hessian_product": (' in source
+    assert "None if h_product is None else h_product.tolist()" in source

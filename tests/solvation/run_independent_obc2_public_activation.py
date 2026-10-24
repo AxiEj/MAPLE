@@ -103,7 +103,7 @@ def render_input(task: str, mol2: Path, checkpoint: Path) -> str:
         model_options += f",hessian={hessian}"
     task_lines = {
         "sp": "#sp(verbose=1)",
-        "opt": "#opt(method=lbfgs,max_iter=2,verbose=0,log_final_paths=false)",
+        "opt": "#opt(method=lbfgs,max_iter=2,verbose=1,log_final_paths=false)",
         "scan": "#scan(method=lbfgs,mode=rigid)",
         "nve": "#md(ensemble=nve,steps=2,timestep=0.05,traj_every=1,log_every=1,remove_com_every=0,rst_every=100)",
         "nvt": "#md(ensemble=nvt,steps=2,timestep=0.05,temperature=298.15,traj_every=1,log_every=1,random_seed=20261023,remove_com_every=0,rst_every=100)",
@@ -252,7 +252,10 @@ def _mol2_with_positions(source: Path, destination: Path, positions: list[list[f
     destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def audit_task(task: str, runtime_cwd: Path, *, stem: str | None = None) -> dict:
+def audit_task(
+    task: str, runtime_cwd: Path, *, stem: str | None = None,
+    expected_atom_count: int | None = None,
+) -> dict:
     stem = stem or task
     output = runtime_cwd / f"{stem}.out"
     if not output.is_file():
@@ -282,28 +285,76 @@ def audit_task(task: str, runtime_cwd: Path, *, stem: str | None = None) -> dict
     evidence: dict[str, object] = {}
     if task == "sp":
         match = re.search(r"^Energy:\s+([-+0-9.eE]+) Hartree$", text, re.MULTILINE)
-        gradient_section = text.split("Gradients (Hartree/Angstrom):", 1)
+        gradient_sections = text.split("Gradients (Hartree/Angstrom):")
         gradient_values = []
-        if len(gradient_section) == 2:
-            for line in gradient_section[1].split("\n\n", 1)[0].splitlines():
+        atom_indices = []
+        malformed_rows = []
+        if len(gradient_sections) == 2:
+            for line in gradient_sections[1].split("\n\n", 1)[0].splitlines():
                 fields = line.split()
-                if len(fields) == 5 and fields[0].isdigit():
-                    try:
-                        gradient_values.extend(float(value) for value in fields[2:5])
-                    except ValueError:
-                        pass
+                if not fields or fields[:3] == ["Gradient", "=", "-Force"] or fields[:2] == ["Atom", "El"]:
+                    continue
+                if len(fields) != 5 or not fields[0].isdigit():
+                    malformed_rows.append(line)
+                    continue
+                try:
+                    values = [float(value) for value in fields[2:]]
+                except ValueError:
+                    malformed_rows.append(line)
+                    continue
+                atom_indices.append(int(fields[0]))
+                gradient_values.extend(values)
+        expected_indices = (
+            list(range(1, expected_atom_count + 1))
+            if type(expected_atom_count) is int and expected_atom_count > 0 else []
+        )
         evidence = {
             "finite_energy": bool(match and math.isfinite(float(match.group(1)))),
+            "expected_atom_count": expected_atom_count,
             "force_component_count": len(gradient_values),
+            "malformed_force_rows": malformed_rows,
+            "complete_force_block": bool(
+                expected_indices and atom_indices == expected_indices
+                and not malformed_rows and len(gradient_sections) == 2
+                and len(gradient_values) == 3 * expected_atom_count
+            ),
             "finite_forces": bool(
                 gradient_values and all(math.isfinite(value) for value in gradient_values)
             ),
         }
     elif task == "opt":
         frames = _xyz_frames(runtime_cwd / "opt_opt.xyz")
-        energies = [float(re.search(r"Energy =\s*([-+0-9.eE]+)", row["comment"]).group(1)) for row in frames]
-        evidence = {"frame_count": len(frames), "finite_energies": all(map(math.isfinite, energies)),
-                    "bounded_nonconvergence_recorded": "did NOT converge" in text}
+        trajectory_path = runtime_cwd / "opt_opt_traj.xyz"
+        if not trajectory_path.is_file():
+            raise ValueError("missing OPT multistep trajectory")
+        trajectory = _xyz_frames(trajectory_path)
+        energies = [
+            float(re.search(r"Energy =\s*([-+0-9.eE]+)", frame["comment"]).group(1))
+            for frame in frames + trajectory
+        ]
+        image_indices = [
+            int(re.search(r"^Image (\d+)\s", frame["comment"]).group(1))
+            for frame in trajectory
+        ]
+        iterations = [int(value) for value in re.findall(r"^\s*Iteration:\s*(\d+)\s*$", text, re.MULTILINE)]
+        evidence = {
+            "frame_count": len(frames),
+            "trajectory_frame_count": len(trajectory),
+            "trajectory_image_indices": image_indices,
+            "iteration_numbers": iterations,
+            "finite_energies": all(map(math.isfinite, energies)),
+            "real_multistep_motion": bool(
+                len(trajectory) == 3
+                and all(len(frame["coordinates"]) == len(trajectory[0]["coordinates"]) for frame in trajectory)
+                and all(left["coordinates"] != right["coordinates"]
+                        for left, right in zip(trajectory, trajectory[1:]))
+            ),
+            "final_geometry_matches_trajectory": bool(
+                len(frames) == 1 and trajectory
+                and frames[0]["coordinates"] == trajectory[-1]["coordinates"]
+            ),
+            "bounded_nonconvergence_recorded": "did NOT converge after 2 iterations." in text,
+        }
     elif task == "scan":
         frames = _xyz_frames(runtime_cwd / "scan_scan_final.xyz")
         energies = [float(re.search(r"Energy =\s*([-+0-9.eE]+)", row["comment"]).group(1)) for row in frames]
@@ -354,11 +405,16 @@ def audit_task(task: str, runtime_cwd: Path, *, stem: str | None = None) -> dict
         evidence_passed = bool(
             evidence["finite_energy"] is True
             and evidence["finite_forces"] is True
-            and evidence["force_component_count"] > 0
+            and evidence["complete_force_block"] is True
         )
     elif task == "opt":
         evidence_passed = bool(
-            evidence["frame_count"] >= 1 and evidence["finite_energies"] is True
+            evidence["frame_count"] == 1
+            and evidence["finite_energies"] is True
+            and evidence["trajectory_image_indices"] == [0, 1, 2]
+            and evidence["iteration_numbers"] == [1, 2]
+            and evidence["real_multistep_motion"] is True
+            and evidence["final_geometry_matches_trajectory"] is True
         )
     elif task == "scan":
         evidence_passed = bool(
@@ -495,7 +551,7 @@ def main() -> None:
         tasks[task]["output"] = str(output)
         tasks[task]["output_sha256"] = sha256(output) if output.is_file() else None
         try:
-            tasks[task]["audit"] = audit_task(task, cwd)
+            tasks[task]["audit"] = audit_task(task, cwd, expected_atom_count=row["atom_count"])
         except Exception as exc:
             tasks[task]["audit"] = {
                 "passed": False,
@@ -523,7 +579,7 @@ def main() -> None:
         replay["input_sha256"] = rendered["opt_final_sp"]["sha256"]
         replay["output"] = str(replay_output)
         replay["output_sha256"] = sha256(replay_output) if replay_output.is_file() else None
-        replay["audit"] = audit_task("sp", cwd, stem="opt_final_sp")
+        replay["audit"] = audit_task("sp", cwd, stem="opt_final_sp", expected_atom_count=row["atom_count"])
     except Exception as exc:
         replay = {
             "returncode": None,

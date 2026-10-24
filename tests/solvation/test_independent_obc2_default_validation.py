@@ -315,3 +315,68 @@ def test_fresh_validation_artifact_is_self_consistent_when_sealed():
         row["dense_hessian_forbidden_during_call"]
         for row in artifact["direct_hvp_matrix"]["records"]
     )
+
+
+@pytest.fixture
+def qualification_repo(tmp_path, monkeypatch):
+    import subprocess
+
+    def git(*args):
+        return subprocess.check_output(["git", *args], cwd=tmp_path, text=True).strip()
+
+    git("init", "-q")
+    git("config", "user.email", "test@example.invalid")
+    git("config", "user.name", "Qualification Test")
+    (tmp_path / "runtime.py").write_text("frozen source\n")
+    git("add", ".")
+    git("commit", "-qm", "candidate")
+    monkeypatch.setattr(validation, "ROOT", tmp_path)
+    return tmp_path, git, validation.source_snapshot()
+
+
+def test_current_binding_allows_data_only_descendant_without_circular_head(qualification_repo):
+    root, git, frozen = qualification_repo
+    for relative in validation.QUALIFICATION_SOURCE_EXCLUDES:
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n")
+    git("add", ".")
+    git("commit", "-qm", "seal data only")
+    assert git("rev-parse", "HEAD") != frozen["git_head"]
+    validation.validate_current_source_binding(frozen)
+
+
+def test_current_binding_rejects_changed_source_inventory(qualification_repo):
+    root, git, frozen = qualification_repo
+    (root / "runtime.py").write_text("changed source\n")
+    git("add", ".")
+    git("commit", "-qm", "source changed")
+    with pytest.raises(ValueError, match="source inventory"):
+        validation.validate_current_source_binding(frozen)
+
+
+def test_current_binding_rejects_nonancestor_even_with_identical_files(qualification_repo):
+    root, git, frozen = qualification_repo
+    git("checkout", "--orphan", "unrelated")
+    git("commit", "-qm", "unrelated identical files")
+    with pytest.raises(ValueError, match="ancestor"):
+        validation.validate_current_source_binding(frozen)
+
+
+def test_current_binding_rejects_source_changed_then_reverted(qualification_repo):
+    root, git, frozen = qualification_repo
+    (root / "runtime.py").write_text("temporary change\n")
+    git("add", ".")
+    git("commit", "-qm", "temporary source change")
+    git("revert", "--no-edit", "HEAD")
+    with pytest.raises(ValueError, match="data-only"):
+        validation.validate_current_source_binding(frozen)
+
+
+def test_current_binding_rejects_dirty_data_pointer(qualification_repo):
+    root, _git, frozen = qualification_repo
+    path = root / next(iter(validation.QUALIFICATION_SOURCE_EXCLUDES))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("{}\n")
+    with pytest.raises(RuntimeError, match="clean committed tree"):
+        validation.validate_current_source_binding(frozen)

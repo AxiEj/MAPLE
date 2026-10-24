@@ -108,7 +108,7 @@ def test_task_audit_requires_finite_output_and_independent_provider(tmp_path):
     (tmp_path / "sp.out").write_text(SP_OUTPUT, encoding="utf-8")
     _write_manifest(tmp_path, "sp")
 
-    result = activation.audit_task("sp", tmp_path)
+    result = activation.audit_task("sp", tmp_path, expected_atom_count=1)
 
     assert result["passed"] is True
     assert result["provider"]["runtime_provider"] == "torch-obc2"
@@ -121,7 +121,7 @@ def test_task_audit_rejects_error_marker_even_with_readable_energy(tmp_path):
     )
     _write_manifest(tmp_path, "sp")
 
-    result = activation.audit_task("sp", tmp_path)
+    result = activation.audit_task("sp", tmp_path, expected_atom_count=1)
 
     assert result["passed"] is False
     assert result["fatal_markers"] == ["ERROR:"]
@@ -131,7 +131,7 @@ def test_task_audit_rejects_openmm_provider_provenance(tmp_path):
     (tmp_path / "sp.out").write_text(SP_OUTPUT, encoding="utf-8")
     _write_manifest(tmp_path, "sp", provider="openmm", openmm=True)
 
-    result = activation.audit_task("sp", tmp_path)
+    result = activation.audit_task("sp", tmp_path, expected_atom_count=1)
 
     assert result["passed"] is False
     assert result["provider"]["passed"] is False
@@ -188,3 +188,71 @@ def test_md_artifacts_require_all_scheduled_steps_and_frames(tmp_path):
     md = activation.audit_task("nve", tmp_path)
     assert md["passed"] is False
     assert md["evidence"]["thermo_steps"] == [1]
+
+
+import pytest
+
+
+@pytest.mark.parametrize("rows", [
+    "  1 H bad 0.0 0.0\n  2 H 0.0 0.0 0.0\n",
+    "  1 H 0.0 0.0\n  2 H 0.0 0.0 0.0\n",
+    "  1 H nan 0.0 0.0\n  2 H 0.0 0.0 0.0\n",
+    "  1 H 0.0 0.0 0.0\n",
+    "  1 H 0.0 0.0 0.0\n  1 H 0.0 0.0 0.0\n",
+    "  2 H 0.0 0.0 0.0\n  1 H 0.0 0.0 0.0\n",
+])
+def test_sp_audit_rejects_incomplete_or_malformed_gradient_rows(tmp_path, rows):
+    text = SP_OUTPUT.replace("  1 H 0.0 0.0 0.0\n", rows)
+    (tmp_path / "sp.out").write_text(text)
+    _write_manifest(tmp_path, "sp")
+    assert activation.audit_task("sp", tmp_path, expected_atom_count=2)["passed"] is False
+
+
+def test_sp_audit_accepts_complete_finite_3n_block(tmp_path):
+    (tmp_path / "sp.out").write_text(SP_OUTPUT.replace(
+        "  1 H 0.0 0.0 0.0\n", "  1 H 0.0 0.0 0.0\n  2 H 1e-3 -2.0 0.0\n"))
+    _write_manifest(tmp_path, "sp")
+    result = activation.audit_task("sp", tmp_path, expected_atom_count=2)
+    assert result["passed"] is True
+    assert result["evidence"]["force_component_count"] == 6
+
+
+def _opt_frame(index, x):
+    return f"1\nImage {index}  Energy = -1.0\nH {x} 0 0\n"
+
+
+def _write_opt(tmp_path, *, trajectory=True, moving=True):
+    (tmp_path / "opt.out").write_text(
+        "Iteration: 1\nIteration: 2\nLBFGS did NOT converge after 2 iterations.\n")
+    _write_manifest(tmp_path, "opt")
+    (tmp_path / "opt_opt.xyz").write_text(_opt_frame(0, 0.2 if moving else 0))
+    if trajectory:
+        (tmp_path / "opt_opt_traj.xyz").write_text(
+            _opt_frame(0, 0) + _opt_frame(1, 0.1 if moving else 0)
+            + _opt_frame(2, 0.2 if moving else 0))
+
+
+def test_opt_audit_rejects_final_xyz_without_multistep_evidence(tmp_path):
+    _write_opt(tmp_path, trajectory=False)
+    with pytest.raises(ValueError, match="trajectory"):
+        activation.audit_task("opt", tmp_path)
+
+
+def test_opt_audit_retains_bounded_nonconvergence_with_real_steps(tmp_path):
+    _write_opt(tmp_path)
+    result = activation.audit_task("opt", tmp_path)
+    assert result["passed"] is True
+    assert result["evidence"]["trajectory_frame_count"] == 3
+    assert result["evidence"]["iteration_numbers"] == [1, 2]
+    assert result["evidence"]["bounded_nonconvergence_recorded"] is True
+
+
+def test_opt_audit_rejects_duplicate_stationary_frames(tmp_path):
+    _write_opt(tmp_path, moving=False)
+    assert activation.audit_task("opt", tmp_path)["passed"] is False
+
+
+def test_opt_audit_rejects_final_geometry_not_matching_last_step(tmp_path):
+    _write_opt(tmp_path)
+    (tmp_path / "opt_opt.xyz").write_text(_opt_frame(0, 0.9))
+    assert activation.audit_task("opt", tmp_path)["passed"] is False

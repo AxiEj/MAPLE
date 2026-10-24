@@ -513,6 +513,15 @@ class ImplicitSolvationCorrection:
         self.analytic_task_derivatives_admitted = bool(is_legacy_openmm_obc2)
         self._write_audit_manifest()
 
+    def _set_analytic_task_derivatives_admitted(self, admitted: bool) -> None:
+        """Publish admission in the audit before enabling the live capability."""
+        self.analytic_task_derivatives_admitted = bool(admitted)
+        try:
+            self._write_audit_manifest()
+        except Exception:
+            self.analytic_task_derivatives_admitted = False
+            raise
+
     def _write_audit_manifest(self) -> None:
         route_formula = (
             "E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)"
@@ -601,10 +610,16 @@ class ImplicitSolvationCorrection:
                 "solver_scope": "OpenMM platform" if is_openmm_provider else "Torch/native external solver",
             },
         }
-        (self.audit_dir / "manifest.json").write_text(
-            json.dumps(manifest, indent=2, sort_keys=True, default=str),
-            encoding="utf-8",
-        )
+        destination = self.audit_dir / "manifest.json"
+        temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")
+        try:
+            temporary.write_text(
+                json.dumps(manifest, indent=2, sort_keys=True, default=str),
+                encoding="utf-8",
+            )
+            os.replace(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
 
     def resolve_outer_curvature_step(
         self,

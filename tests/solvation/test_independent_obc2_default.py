@@ -63,6 +63,10 @@ def _gate_objects(monkeypatch, *, precision_change=None):
         analytic_task_derivatives_admitted=True,
         underlying_provider=provider,
     )
+    def set_admission(admitted):
+        correction.analytic_task_derivatives_admitted = bool(admitted)
+
+    correction._set_analytic_task_derivatives_admitted = set_admission
     return calculator, correction
 
 
@@ -400,3 +404,150 @@ def test_direct_default_constructs_independent_provider_without_openmm(
     assert correction.solvation_options["provider"] == "torch"
     assert correction.provider.provenance["runtime_provider"] == "torch-obc2"
     assert correction.analytic_task_derivatives_admitted is False
+
+
+@pytest.fixture
+def audited_correction(water_mol2, tmp_path):
+    from maple.function.calculator.extra_correction.implicit.correction import (
+        ImplicitSolvationCorrection,
+    )
+    from maple.function.read.filereader.mol2_reader import MOL2Reader
+
+    return ImplicitSolvationCorrection(
+        MOL2Reader(str(water_mol2), charge=0, mult=1),
+        {"source": "mol2", "mode": "fixed", "geometry": "keep"},
+        {"method": "gb", "experimental": True},
+        output=tmp_path / "admission.out",
+        model_device="cpu",
+    )
+
+
+def _audit_admitted(correction):
+    manifest = json.loads((correction.audit_dir / "manifest.json").read_text())
+    assert manifest["capabilities"]["production_admitted"] is False
+    assert manifest["capabilities"]["accuracy_certified"] is False
+    return manifest["capabilities"]["analytic_task_derivatives_admitted"]
+
+
+def test_receipt_admission_refreshes_manifest_and_rejection_clears_it(
+    monkeypatch, audited_correction
+):
+    from maple.function.calculator import _independent_obc2_qualified_cell as pointer
+    from maple.function.calculator import set_calculator as module
+
+    calculator, _correction = _gate_objects(monkeypatch)
+    _install_receipt(monkeypatch, _valid_qualification_receipt())
+    assert _audit_admitted(audited_correction) is False
+    module._admit_independent_obc2_analytic_cell(
+        calculator, audited_correction, model="ani2x", device="cpu", d4=False
+    )
+    assert _audit_admitted(audited_correction) is True
+    monkeypatch.setattr(pointer, "QUALIFICATION_RECEIPT_SHA256", None)
+    with pytest.raises(RuntimeError, match="ANALYTIC_CELL_UNQUALIFIED"):
+        module._admit_independent_obc2_analytic_cell(
+            calculator, audited_correction, model="ani2x", device="cpu", d4=False
+        )
+    assert calculator.analytic_implicit_derivatives_admitted is False
+    assert audited_correction.analytic_task_derivatives_admitted is False
+    assert _audit_admitted(audited_correction) is False
+
+
+def test_manifest_refresh_is_atomic(monkeypatch, audited_correction):
+    from maple.function.calculator.extra_correction.implicit import correction as module
+
+    destination = audited_correction.audit_dir / "manifest.json"
+    original = destination.read_bytes()
+    replace = module.os.replace
+    replacements = []
+
+    def observe_replace(source, target):
+        assert Path(target) == destination
+        assert destination.read_bytes() == original
+        candidate = json.loads(Path(source).read_text())
+        assert candidate["capabilities"]["analytic_task_derivatives_admitted"] is True
+        replacements.append(Path(source))
+        return replace(source, target)
+
+    monkeypatch.setattr(module.os, "replace", observe_replace)
+    audited_correction._set_analytic_task_derivatives_admitted(True)
+    assert len(replacements) == 1
+    assert not replacements[0].exists()
+    assert _audit_admitted(audited_correction) is True
+
+
+def test_manifest_write_failure_cannot_admit_live_flags(monkeypatch, audited_correction):
+    from maple.function.calculator import set_calculator as module
+    from maple.function.calculator.extra_correction.implicit import correction as correction_module
+
+    calculator, _correction = _gate_objects(monkeypatch)
+    _install_receipt(monkeypatch, _valid_qualification_receipt())
+    replace = correction_module.os.replace
+
+    def reject_admission(source, target):
+        candidate = json.loads(Path(source).read_text())
+        if candidate["capabilities"]["analytic_task_derivatives_admitted"]:
+            raise OSError("audit disk unavailable")
+        return replace(source, target)
+
+    monkeypatch.setattr(correction_module.os, "replace", reject_admission)
+    with pytest.raises(OSError, match="audit disk unavailable"):
+        module._admit_independent_obc2_analytic_cell(
+            calculator, audited_correction, model="ani2x", device="cpu", d4=False
+        )
+    assert calculator.analytic_implicit_derivatives_admitted is False
+    assert audited_correction.analytic_task_derivatives_admitted is False
+    assert _audit_admitted(audited_correction) is False
+    assert not list(audited_correction.audit_dir.glob(".manifest.json.*.tmp"))
+
+
+def test_legacy_factory_restores_admission_in_manifest(monkeypatch, water_mol2, tmp_path):
+    pytest.importorskip("openmm")
+    from maple.function.calculator import set_calculator as module
+    from maple.function.calculator.extra_correction.implicit.correction import (
+        ImplicitSolvationCorrection,
+    )
+    from maple.function.read.filereader.mol2_reader import MOL2Reader
+
+    class GasForFactoryWiring:
+        SUPPORTED_HESSIAN_MODES = ("analytic",)
+
+        def __init__(self, **_kwargs):
+            self.hessian = "analytic"
+            self.device = "cpu"
+
+        @classmethod
+        def build_kwargs_from_options(cls, *_args, **_kwargs):
+            return {}
+
+        def prepare_analytic_derivatives(self):
+            pass
+
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    factory = module.SetCalculator(
+        "cpu", "ani2x", str(tmp_path / "legacy.out"), atoms=atoms,
+        implicit="gb", solvent="water", model_options={"hessian": "analytic"},
+        solvation_options={
+            "method": "gb", "provider": "openmm", "model": "obc2",
+            "platform": "Reference", "experimental": True,
+        },
+        charge_options={"source": "mol2", "mode": "fixed", "geometry": "keep"},
+    )
+    # Only gas loading/validation is stubbed; the legacy correction and factory
+    # admission wiring execute unchanged, without downloading a checkpoint.
+    monkeypatch.setattr(factory, "_discover_calculator_class", lambda _name: GasForFactoryWiring)
+    monkeypatch.setattr(factory, "_validate_model_options", lambda _cls: None)
+    monkeypatch.setattr(factory, "_validate_against_class", lambda _cls: None)
+    monkeypatch.setattr(factory, "_resolve_model_path", lambda *_args: None)
+    states = []
+    update = ImplicitSolvationCorrection._set_analytic_task_derivatives_admitted
+
+    def observe_update(correction, admitted):
+        update(correction, admitted)
+        states.append(_audit_admitted(correction))
+
+    monkeypatch.setattr(ImplicitSolvationCorrection, "_set_analytic_task_derivatives_admitted", observe_update)
+    calculator = factory.set_calculator()
+    assert states == [False, True]
+    assert calculator.analytic_implicit_derivatives_admitted is True
+    assert calculator.solvent_correction.analytic_task_derivatives_admitted is True
+    assert _audit_admitted(calculator.solvent_correction) is True

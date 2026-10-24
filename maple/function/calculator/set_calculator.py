@@ -89,7 +89,7 @@ def _admit_independent_obc2_analytic_cell(
 ) -> None:
     """Admit only the sealed ANI2x/independent-OBC-II analytic cell."""
     calculator.analytic_implicit_derivatives_admitted = False
-    correction.analytic_task_derivatives_admitted = False
+    correction._set_analytic_task_derivatives_admitted(False)
     try:
         from .ani._ani_calculator import ANICalculator
         from ._independent_obc2_qualified_cell import (
@@ -209,8 +209,8 @@ def _admit_independent_obc2_analytic_cell(
             raise ValueError('live gas/solvent analytic cell identity mismatch')
     except Exception as exc:
         raise RuntimeError(f'ANALYTIC_CELL_UNQUALIFIED: {exc}') from exc
+    correction._set_analytic_task_derivatives_admitted(True)
     calculator.analytic_implicit_derivatives_admitted = True
-    correction.analytic_task_derivatives_admitted = True
 
 
 # Static seed map: builtin name → module that registers the calculator class.
@@ -819,7 +819,7 @@ class SetCalculator:
                     correction.analytic_task_derivatives_admitted
                 )
                 calculator.analytic_implicit_derivatives_admitted = False
-                correction.analytic_task_derivatives_admitted = False
+                correction._set_analytic_task_derivatives_admitted(False)
                 provider = str(
                     correction.solvation_options.get('provider', '')
                 ).lower()
@@ -835,8 +835,8 @@ class SetCalculator:
                         d4=effective_d4,
                     )
                 elif provider == 'openmm' and legacy_openmm_admitted:
+                    correction._set_analytic_task_derivatives_admitted(True)
                     calculator.analytic_implicit_derivatives_admitted = True
-                    correction.analytic_task_derivatives_admitted = True
             calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)

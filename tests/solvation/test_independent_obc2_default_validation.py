@@ -820,3 +820,144 @@ def test_hvp_evidence_generator_records_products_only_for_frozen_dense_selection
     source = (ROOT / "docs/implicit-solvation/benchmarks/validate_independent_obc2_default.py").read_text()
     assert '"raw_hessian_product": (' in source
     assert "None if h_product is None else h_product.tolist()" in source
+
+
+@pytest.fixture
+def rejected_main_run(complete_matrix, monkeypatch, tmp_path):
+    """Run the real entry point/validator with synthetic completed failed rows."""
+    import copy
+
+    artifact = copy.deepcopy(complete_matrix)
+    row = artifact["replay_526"]["records"][0]
+    row["energy"].update(total_abs_hartree=1.0, passed=False)
+    row["passed"] = False
+    artifact["replay_526"]["passed"] = False
+    artifact["qualification_gates"]["sealed_oracle_1052_energy"].update(
+        passed_count=1051, passed=False
+    )
+    artifact["passed"] = False
+    artifact = _seal(artifact)
+    output = tmp_path / "candidate-validation.json"
+    monkeypatch.setattr(validation, "OUTPUT_REL", str(output))
+    monkeypatch.setattr(validation, "_build_artifact", lambda: artifact)
+    monkeypatch.setattr(validation, "source_snapshot", lambda: artifact["source_snapshot"])
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    monkeypatch.setattr(sys, "argv", ["validate-independent-obc2"])
+    return artifact, output
+
+
+def test_completed_rejected_main_retains_all_rows_and_original_error(rejected_main_run):
+    artifact, output = rejected_main_run
+    with pytest.raises(ValueError, match="Full-matrix energy failed original thresholds") as error:
+        validation.main()
+
+    attempts = list(output.parent.glob("completed-rejected-*.json"))
+    assert len(attempts) == 1
+    attempt = json.loads(attempts[0].read_bytes())
+    assert attempt["raw_artifact"] == artifact
+    assert [len(attempt["raw_artifact"][section]["records"]) for section in (
+        "replay_526", "portable_48_ef_radius", "full_hessian_matrix", "direct_hvp_matrix"
+    )] == [1052, 48, 16, 144]
+    assert attempt["raw_artifact"]["replay_526"]["records"][0]["energy"]["total_abs_hartree"] == 1.0
+    assert attempt["source_snapshot"] == artifact["source_snapshot"]
+    assert attempt["stage0_binding"] == artifact["stage0_binding"]
+    assert attempt["validation_exception"] == {
+        "type": "builtins.ValueError", "message": str(error.value)
+    }
+    assert attempt["status"] == "rejected"
+    assert not output.exists()
+
+
+def test_repeated_completed_rejections_do_not_overwrite_first_attempt(rejected_main_run):
+    _artifact, output = rejected_main_run
+    with pytest.raises(ValueError):
+        validation.main()
+    first = next(output.parent.glob("completed-rejected-*.json"))
+    original = first.read_bytes()
+    with pytest.raises(ValueError):
+        validation.main()
+    assert len(list(output.parent.glob("completed-rejected-*.json"))) == 2
+    assert first.read_bytes() == original
+    assert not output.exists()
+
+
+def test_rejected_attempt_and_its_raw_payload_cannot_be_sealed(rejected_main_run, monkeypatch):
+    import seal_independent_obc2_qualification as sealer
+
+    artifact, output = rejected_main_run
+    with pytest.raises(ValueError):
+        validation.main()
+    attempt = next(output.parent.glob("completed-rejected-*.json"))
+    raw_path = output.parent / "raw-failed.json"
+    raw_path.write_text(json.dumps(artifact))
+    candidate = output.parent / "candidate.json"
+    candidate.write_text(json.dumps(artifact["candidate_exact_cell"]))
+    monkeypatch.setattr(sealer, "ROOT", output.parent)
+    pointer = output.parent / sealer.POINTER_REL
+    pointer.parent.mkdir(parents=True)
+    pointer.write_text(
+        f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'
+        'QUALIFICATION_RECEIPT_SHA256 = None\n'
+    )
+    original = pointer.read_bytes()
+    for path in (attempt, raw_path):
+        with pytest.raises(ValueError):
+            sealer.seal_qualification(path, candidate)
+        assert pointer.read_bytes() == original
+        assert not (output.parent / sealer.RECEIPT_REL).exists()
+    assert not output.exists()
+
+
+def test_rejected_attempt_publication_is_atomic_and_exclusive(rejected_main_run, monkeypatch):
+    from types import SimpleNamespace
+
+    artifact, output = rejected_main_run
+    monkeypatch.setattr(validation, "uuid4", lambda: SimpleNamespace(hex="fixed-attempt"))
+    link = validation.os.link
+    publications = []
+
+    def checked_link(temporary, destination):
+        # Complete JSON exists before the destination becomes visible.
+        assert json.loads(temporary.read_bytes())["raw_artifact"] == artifact
+        publications.append(destination)
+        link(temporary, destination)
+
+    monkeypatch.setattr(validation.os, "link", checked_link)
+    path = validation._write_rejected_attempt(artifact, ValueError("first rejection"))
+    original = path.read_bytes()
+    with pytest.raises(FileExistsError):
+        validation._write_rejected_attempt(artifact, ValueError("second rejection"))
+    assert publications == [path, path]
+    assert path.read_bytes() == original
+    assert list(output.parent.iterdir()) == [path]
+
+
+@pytest.mark.parametrize("storage_fails", [False, True])
+def test_completed_rejection_reraises_same_exception_even_if_retention_fails(
+    rejected_main_run, monkeypatch, storage_fails
+):
+    error = ValueError("original strict validation rejection")
+
+    def reject(_artifact):
+        raise error
+
+    def unavailable_storage(_artifact, _error):
+        raise OSError("synthetic storage failure")
+
+    monkeypatch.setattr(validation, "validate_artifact", reject)
+    if storage_fails:
+        monkeypatch.setattr(validation, "_write_rejected_attempt", unavailable_storage)
+    with pytest.raises(ValueError) as caught:
+        validation.main()
+    assert caught.value is error
+
+
+def test_completed_passing_main_still_publishes_only_canonical_artifact(
+    rejected_main_run, complete_matrix, monkeypatch
+):
+    _failed_artifact, output = rejected_main_run
+    artifact = _seal(complete_matrix)
+    monkeypatch.setattr(validation, "_build_artifact", lambda: artifact)
+    validation.main()
+    assert json.loads(output.read_bytes()) == artifact
+    assert not list(output.parent.glob("completed-rejected-*.json"))

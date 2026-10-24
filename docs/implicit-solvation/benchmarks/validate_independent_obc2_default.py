@@ -24,6 +24,7 @@ import sys
 import tempfile
 from typing import Any, Mapping
 from unittest.mock import patch
+from uuid import uuid4
 
 import numpy as np
 
@@ -1768,6 +1769,45 @@ def _write_artifact(artifact: Mapping[str, Any]) -> None:
     core.write_json_atomic(destination, artifact)
 
 
+def _write_rejected_attempt(artifact: Mapping[str, Any], error: Exception) -> Path:
+    """Retain a completed rejection separately from passing/sealable evidence."""
+    destination = (ROOT / OUTPUT_REL).parent / f"completed-rejected-{uuid4().hex}.json"
+    attempt = core.seal_artifact({
+        "schema_version": 1,
+        "artifact_type": "independent-obc2-completed-rejected-attempt-v1",
+        "status": "rejected",
+        "source_snapshot": artifact.get("source_snapshot"),
+        "stage0_binding": artifact.get("stage0_binding"),
+        "validation_exception": {
+            "type": f"{type(error).__module__}.{type(error).__qualname__}",
+            "message": str(error),
+        },
+        "raw_artifact": artifact,
+    })
+    raw = (json.dumps(attempt, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=destination.parent, prefix=f".{destination.name}.", delete=False
+        ) as handle:
+            temporary = Path(handle.name)
+            handle.write(raw)
+            handle.flush()
+            os.fsync(handle.fileno())
+        # Atomic exclusive publication, including in the unlikely event of an ID collision.
+        os.link(temporary, destination)
+        directory_fd = os.open(destination.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    return destination
+
+
 def _self_test() -> None:
     _main, portable = load_stage0()
     selection = select_full_h_cases(portable)
@@ -1887,7 +1927,19 @@ def main() -> None:
             f"Validation artifact already exists: {ROOT / OUTPUT_REL}"
         )
     artifact = _build_artifact()
-    validate_artifact(artifact)
+    try:
+        validate_artifact(artifact)
+    except Exception as error:
+        try:
+            path = _write_rejected_attempt(artifact, error)
+            print(f"Completed rejected attempt retained: {path}", file=sys.stderr)
+        except Exception as retention_error:
+            # A storage failure must not replace the original validation rejection.
+            print(
+                f"Failed to retain completed rejected attempt: {retention_error}",
+                file=sys.stderr,
+            )
+        raise
     _write_artifact(artifact)
     print(
         json.dumps(

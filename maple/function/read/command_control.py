@@ -4,6 +4,7 @@ from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
 from .charge_options import CHARGE_OPTION_KEYS, normalize_charge_options
+from maple.function.calculator.extra_correction.implicit.selector import resolve_implicit_provider
 
 
 class CommandControl:
@@ -617,11 +618,7 @@ class CommandControl:
         charge = params.get("charge", {})
         solvation = params.get("solv", {})
         solvent_method = str(solvation.get("method", "")).lower()
-        provider = str(
-            solvation.get(
-                "provider", "openmm" if solvent_method == "gb" else "apbs"
-            )
-        ).lower()
+        provider = resolve_implicit_provider(solvation)
         solvent_model = str(
             solvation.get("model", "obc2" if solvent_method == "gb" else "lpb")
         ).lower()
@@ -632,10 +629,10 @@ class CommandControl:
         gas_model = str(params.get("model", "")).lower()
         analytic_solvent = (
             solvent_method == "gb"
-            and provider == "openmm"
+            and provider in {"torch", "openmm"}
             and solvent_model == "obc2"
             and nonpolar in {"ace", "none"}
-            and platform == "reference"
+            and (provider == "torch" or platform == "reference")
             and gas_model == "ani2x"
         )
         message = None
@@ -654,9 +651,9 @@ class CommandControl:
                 )
             elif hessian_mode == "analytic" and not analytic_solvent:
                 message = (
-                    "Implicit-solvent analytic derivatives support only OpenMM OBC-II "
-                    "with nonpolar=ace or nonpolar=none on the explicitly selected "
-                    "Reference platform and the qualified ANI2x gas backend; use "
+                    "Implicit-solvent analytic derivatives support only independent Torch "
+                    "OBC-II, or explicit OpenMM OBC-II on the Reference platform, "
+                    "with nonpolar=ace or nonpolar=none and qualified ANI2x; use "
                     "hessian=numerical for this "
                     "force-capable provider."
                 )
@@ -668,8 +665,9 @@ class CommandControl:
             if hessian_mode != "analytic" or not analytic_solvent:
                 message = (
                     "Implicit-solvent Dimer HVP use_hvp=true requires hessian=analytic "
-                    "with OpenMM OBC-II, nonpolar=ace or nonpolar=none, and "
-                    "platform=Reference on the qualified ANI2x gas backend."
+                    "with independent Torch OBC-II, or explicit OpenMM OBC-II on "
+                    "platform=Reference, with nonpolar=ace or nonpolar=none and "
+                    "qualified ANI2x."
                 )
         if message is None and charge.get("mode", "fixed") != "fixed":
             message = "Implicit-solvent FREQ/TS requires fixed charges."
@@ -748,7 +746,7 @@ class CommandControl:
         if mode is not None:
             options["mode"] = mode
 
-        native_provider = (method, provider) in {("gb", "openmm"), ("pb", "ddx")}
+        native_provider = (method, provider) in {("gb", "torch"), ("gb", "openmm"), ("pb", "ddx")}
         numerical_provider = (method, provider) in {
             ("gb", "ambertools"),
             ("pb", "apbs"),
@@ -827,9 +825,7 @@ class CommandControl:
             "opencl_platform_index",
         }
         openmm_execution_options = sorted(openmm_execution_keys.intersection(solv_params))
-        resolved_provider = str(
-            solv_params.get("provider", "openmm" if method == "gb" else "")
-        ).lower()
+        resolved_provider = resolve_implicit_provider(solv_params)
         if openmm_execution_options and not (
             implicit is not None and method == "gb" and resolved_provider == "openmm"
         ):
@@ -951,12 +947,7 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if inner == "prebuilt":
-                prebuilt_provider = str(
-                    solv_params.get(
-                        "provider",
-                        "openmm" if method == "gb" else "apbs",
-                    )
-                ).lower()
+                prebuilt_provider = resolve_implicit_provider(solv_params)
                 prebuilt_nonpolar = str(
                     solv_params.get(
                         "nonpolar",
@@ -974,11 +965,7 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-            provider_for_force_mode = str(
-                solv_params.get(
-                    "provider", "openmm" if method == "gb" else "apbs"
-                )
-            ).lower()
+            provider_for_force_mode = resolve_implicit_provider(solv_params)
             cls._validate_force_mode(
                 solv_params,
                 method=method,
@@ -986,7 +973,7 @@ class CommandControl:
                 output_path=output_path,
             )
             if method == "gb":
-                provider = str(solv_params.get("provider", "openmm")).lower()
+                provider = resolve_implicit_provider(solv_params)
                 if provider == "ambertools":
                     conflicts = sorted(
                         {
@@ -1057,6 +1044,47 @@ class CommandControl:
                             "AmberTools CHA-GB/cavity-dispersion is "
                             "single-point energy-only."
                         )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                elif provider == "torch":
+                    pb_only = {
+                        "executable", "grid_spacing", "grid_points", "probe_radius",
+                        "surface_tension", "pressure", "timeout",
+                    }
+                    conflicts = sorted(pb_only.intersection(solv_params))
+                    if conflicts:
+                        msg = "GB/Torch does not use PB provider options: " + ", ".join(conflicts) + "."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    model = str(solv_params.get("model", "obc2")).lower()
+                    profile = str(solv_params.get("profile", "obc2-mbondi2")).lower()
+                    nonpolar = str(solv_params.get("nonpolar", "ace")).lower()
+                    if model != "obc2":
+                        msg = "provider=torch requires model=obc2."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if profile != "obc2-mbondi2":
+                        msg = "provider=torch, model=obc2 requires profile=obc2-mbondi2."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if nonpolar not in {"ace", "none"}:
+                        msg = "provider=torch supports nonpolar=ace or nonpolar=none only."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task == "md":
+                        if charge.get("mode", "fixed") != "fixed":
+                            msg = "Route 1 implicit-GB MD currently requires fixed charges."
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        ensemble = str(params.get("ensemble", "nve")).lower()
+                        if ensemble not in {"nve", "nvt"}:
+                            msg = "Implicit GB supports only non-periodic NVE or NVT MD."
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                    elif task in {"freq", "ts"}:
+                        cls._validate_implicit_curvature_task(params, task, output_path)
+                    elif task not in {"sp", "opt", "scan"}:
+                        msg = "Independent OBC-II does not support this task."
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
                 elif provider == "openmm":
@@ -1206,7 +1234,7 @@ class CommandControl:
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
                 else:
-                    msg = "GB provider must be openmm or ambertools."
+                    msg = "GB provider must be torch, openmm, or ambertools."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 solv_params.update(

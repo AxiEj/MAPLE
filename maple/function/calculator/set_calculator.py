@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib
 from collections.abc import Iterable
+import hashlib
 import inspect
+import json
 import shutil
 import urllib.error
 import urllib.request
@@ -26,6 +28,189 @@ from .calculator_base import (
 HF_REPO_ID = 'Wayne7815/MAPLE_models'
 HF_MODEL_REVISION = 'd5d8eb902246fb3f0e3b24e0d4bbcdc12f12e816'
 _COMMON_MODEL_OPTION_KEYS = {'module', 'model_path', 'hessian'}
+_ANI2X_QUALIFIED_CHECKPOINT_SHA256 = (
+    'c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa'
+)
+_QUALIFICATION_GATE_COUNTS = {
+    'sealed_oracle_1052_energy': (1052, 1052),
+    'portable_oracle_48_energy_force': (48, 48),
+    'analytic_hessian_16_fd': (16, 16),
+    'direct_hvp_144': (144, 144),
+    'no_openmm_candidate_runtime': (1, 1),
+    'candidate_exact_cell_public_composition': (2, 2),
+    'source_unchanged': (1, 1),
+}
+
+
+def _is_sha256(value) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and value == value.lower()
+        and all(character in '0123456789abcdef' for character in value)
+    )
+
+
+def _canonical_receipt_payload(receipt: dict) -> bytes:
+    payload = dict(receipt)
+    payload.pop('content_sha256', None)
+    return json.dumps(
+        payload, sort_keys=True, separators=(',', ':'), ensure_ascii=False
+    ).encode('utf-8')
+
+
+def _installed_runtime_source_inventory() -> dict[str, str]:
+    """Hash the installed runtime inventory exactly once per admission attempt."""
+    package_root = Path(__file__).resolve().parents[2]
+    inventory_root = package_root.parent
+    excluded = {
+        'maple/function/calculator/_independent_obc2_qualified_cell.py',
+        'maple/function/calculator/data/independent_obc2_analytic_qualification.json',
+    }
+    paths = list(package_root.rglob('*.py'))
+    implicit_data = package_root / 'function/calculator/extra_correction/implicit/data'
+    paths.extend(
+        implicit_data / name
+        for name in ('obc2_profile_manifest.json', 'OPENMM_CUSTOMGBFORCES_LICENSE.txt')
+    )
+    result = {}
+    for path in sorted(set(paths)):
+        if not path.is_file():
+            raise FileNotFoundError(f'installed runtime source is missing: {path}')
+        relative = path.relative_to(inventory_root).as_posix()
+        if relative in excluded:
+            continue
+        result[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
+
+
+def _admit_independent_obc2_analytic_cell(
+    calculator, correction, *, model, device, d4
+) -> None:
+    """Admit only the sealed ANI2x/independent-OBC-II analytic cell."""
+    calculator.analytic_implicit_derivatives_admitted = False
+    correction.analytic_task_derivatives_admitted = False
+    try:
+        from .ani._ani_calculator import ANICalculator
+        from ._independent_obc2_qualified_cell import (
+            QUALIFICATION_RECEIPT_FILENAME,
+            QUALIFICATION_RECEIPT_SHA256,
+        )
+        from .extra_correction.implicit.obc2_profile import (
+            OBC2_CANONICAL_PAYLOAD_SHA256,
+            OBC2_FORMULA_MANIFEST_ID,
+            OPENMM_CUSTOMGBFORCES_SHA256,
+        )
+
+        if type(calculator) is not ANICalculator:
+            raise ValueError(
+                'gas calculator implementation is not the exact shipped ANICalculator'
+            )
+        expected_filename = 'independent_obc2_analytic_qualification.json'
+        if QUALIFICATION_RECEIPT_FILENAME != expected_filename:
+            raise ValueError('qualification receipt filename changed')
+        if not _is_sha256(QUALIFICATION_RECEIPT_SHA256):
+            raise ValueError('qualification receipt pointer is unsealed')
+        receipt_path = Path(__file__).with_name('data') / expected_filename
+        receipt_bytes = receipt_path.read_bytes()
+        if hashlib.sha256(receipt_bytes).hexdigest() != QUALIFICATION_RECEIPT_SHA256:
+            raise ValueError('qualification receipt SHA256 mismatch')
+        receipt = json.loads(receipt_bytes)
+        if not isinstance(receipt, dict):
+            raise ValueError('qualification receipt must be a JSON object')
+        if (
+            receipt.get('schema_version') != 1
+            or receipt.get('artifact_type') != 'maple-independent-obc2-analytic-qualification'
+            or receipt.get('status') != 'qualified'
+        ):
+            raise ValueError('qualification receipt identity/status mismatch')
+        content_sha = hashlib.sha256(_canonical_receipt_payload(receipt)).hexdigest()
+        if receipt.get('content_sha256') != content_sha:
+            raise ValueError('qualification receipt content seal mismatch')
+
+        installed = receipt.get('installed_runtime_sources')
+        if not isinstance(installed, dict) or installed != _installed_runtime_source_inventory():
+            raise ValueError('installed runtime source inventory mismatch')
+        qualification_sources = receipt.get('qualification_sources')
+        if not isinstance(qualification_sources, dict) or not qualification_sources:
+            raise ValueError('qualification source inventory is missing')
+        for path, digest in qualification_sources.items():
+            if (
+                not isinstance(path, str)
+                or not path
+                or path.startswith('/')
+                or Path(path).as_posix() != path
+                or '..' in Path(path).parts
+                or not _is_sha256(digest)
+            ):
+                raise ValueError('qualification source inventory is malformed')
+
+        gates = receipt.get('qualification_gates')
+        if not isinstance(gates, dict) or set(gates) != set(_QUALIFICATION_GATE_COUNTS):
+            raise ValueError('qualification gate set mismatch')
+        for name, (expected, passed) in _QUALIFICATION_GATE_COUNTS.items():
+            gate = gates.get(name)
+            if not isinstance(gate, dict) or gate.get('expected_count') != expected or gate.get('passed_count') != passed:
+                raise ValueError(f'qualification gate {name!r} count mismatch')
+        if gates['analytic_hessian_16_fd'].get('steps_angstrom') != [0.001, 0.0005, 0.00025]:
+            raise ValueError('analytic Hessian step ladder mismatch')
+        if gates['direct_hvp_144'].get('dense_hessian_forbidden') is not True:
+            raise ValueError('direct HVP gate did not forbid dense Hessian construction')
+        if gates['candidate_exact_cell_public_composition'].get('nonpolar') != ['ace', 'none']:
+            raise ValueError('candidate exact-cell nonpolar set mismatch')
+
+        expected_cells = []
+        for nonpolar in ('ace', 'none'):
+            expected_cells.append({
+                'gas': {
+                    'model': 'ani2x',
+                    'checkpoint_sha256': _ANI2X_QUALIFIED_CHECKPOINT_SHA256,
+                    'device': 'cpu',
+                    'dtype': 'float64',
+                    'd4': False,
+                },
+                'solvent': {
+                    'provider': 'torch',
+                    'runtime_provider': 'torch-obc2',
+                    'model': 'obc2',
+                    'profile': 'obc2-mbondi2',
+                    'nonpolar': nonpolar,
+                    'formula_manifest_id': OBC2_FORMULA_MANIFEST_ID,
+                    'formula_source_sha256': OPENMM_CUSTOMGBFORCES_SHA256,
+                    'canonical_payload_sha256': OBC2_CANONICAL_PAYLOAD_SHA256,
+                    'parameter_profile': 'obc2-zero-salt-v1',
+                },
+            })
+        if receipt.get('qualified_cells') != expected_cells:
+            raise ValueError('qualified analytic cells do not match ACE/NONE exactly')
+
+        precision = getattr(calculator, 'inference_precision_provenance', None)
+        provider = getattr(correction, 'underlying_provider', None)
+        provenance = getattr(provider, 'provenance', None)
+        if callable(provenance):
+            provenance = provenance()
+        if (
+            str(model).lower() != 'ani2x'
+            or str(device).split(':', 1)[0].lower() != 'cpu'
+            or d4 is not False
+            or not isinstance(precision, dict)
+            or precision.get('effective_dtype') != 'float64'
+            or precision.get('original_checkpoint_sha256') != _ANI2X_QUALIFIED_CHECKPOINT_SHA256
+            or not isinstance(provenance, dict)
+            or provenance.get('runtime_provider') != 'torch-obc2'
+            or provenance.get('model') != 'obc2'
+            or provenance.get('profile') != 'obc2-mbondi2'
+            or provenance.get('nonpolar') not in {'ace', 'none'}
+            or provenance.get('formula_manifest_id') != OBC2_FORMULA_MANIFEST_ID
+            or provenance.get('formula_source_sha256') != OPENMM_CUSTOMGBFORCES_SHA256
+            or provenance.get('canonical_payload_sha256') != OBC2_CANONICAL_PAYLOAD_SHA256
+            or provenance.get('equation_profile') != 'obc2-zero-salt-v1'
+        ):
+            raise ValueError('live gas/solvent analytic cell identity mismatch')
+    except Exception as exc:
+        raise RuntimeError(f'ANALYTIC_CELL_UNQUALIFIED: {exc}') from exc
+    calculator.analytic_implicit_derivatives_admitted = True
+    correction.analytic_task_derivatives_admitted = True
 
 
 # Static seed map: builtin name → module that registers the calculator class.
@@ -179,27 +364,26 @@ class SetCalculator:
         hessian_mode = self.model_options.get('hessian')
         if hessian_mode == 'analytic':
             method = str(self.solvation_options.get('method', '')).lower()
-            provider = str(
-                self.solvation_options.get(
-                    'provider', 'openmm' if method == 'gb' else 'apbs'
-                )
-            ).lower()
+            from .extra_correction.implicit.selector import resolve_implicit_provider
+
+            provider = resolve_implicit_provider(self.solvation_options)
             model = str(self.solvation_options.get('model', 'obc2')).lower()
             nonpolar = str(self.solvation_options.get('nonpolar', 'ace')).lower()
             platform = str(self.solvation_options.get('platform', 'auto')).lower()
             inner = self.solvation_options.get('inner')
             if not (
                 method == 'gb'
-                and provider == 'openmm'
+                and provider in {'torch', 'openmm'}
                 and model == 'obc2'
                 and nonpolar in {'ace', 'none'}
-                and platform == 'reference'
+                and (provider == 'torch' or platform == 'reference')
                 and inner is None
             ):
                 raise ValueError(
                     "Implicit-solvent analytic derivatives support only the "
-                    "single-solute OpenMM OBC-II profile with nonpolar=ace or "
-                    "nonpolar=none and explicit platform=Reference. Use "
+                    "single-solute independent Torch OBC-II profile, or explicit "
+                    "OpenMM OBC-II with platform=Reference, with nonpolar=ace or "
+                    "nonpolar=none. Use "
                     "hessian='numerical' for other force-capable profiles."
                 )
         elif hessian_mode not in {None, 'numerical'}:
@@ -629,6 +813,30 @@ class SetCalculator:
                 model_device=self.device,
                 task_context=self.task_context,
             )
+            if self.model_options.get('hessian') == 'analytic':
+                correction = calculator.solvent_correction
+                legacy_openmm_admitted = bool(
+                    correction.analytic_task_derivatives_admitted
+                )
+                calculator.analytic_implicit_derivatives_admitted = False
+                correction.analytic_task_derivatives_admitted = False
+                provider = str(
+                    correction.solvation_options.get('provider', '')
+                ).lower()
+                if provider == 'torch':
+                    effective_d4 = parse_bool_option(
+                        self.model_options.get('d4', self.d4), name='d4'
+                    )
+                    _admit_independent_obc2_analytic_cell(
+                        calculator,
+                        correction,
+                        model=self.model,
+                        device=self.device,
+                        d4=effective_d4,
+                    )
+                elif provider == 'openmm' and legacy_openmm_admitted:
+                    calculator.analytic_implicit_derivatives_admitted = True
+                    correction.analytic_task_derivatives_admitted = True
             calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)

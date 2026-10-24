@@ -68,7 +68,13 @@ def test_direct_invalid_identity_is_rejected_before_side_effects(
     ],
 )
 def test_direct_openmm_profiles_match_shared_radius_registry(model, profile):
-    options = {"method": "gb", "model": model, "profile": profile, "experimental": True}
+    options = {
+        "method": "gb",
+        "provider": "openmm",
+        "model": model,
+        "profile": profile,
+        "experimental": True,
+    }
     assert module._validate_direct_contract(options, "sp")[:2] == (
         "gb",
         "openmm",

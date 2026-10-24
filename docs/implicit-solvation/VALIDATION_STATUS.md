@@ -1,8 +1,9 @@
 # Route 1 implicit-solvation validation status
 
 > **2026-10-23 scope update:** continuous/Gaussian CHA derivative research is
-> retired. CHA remains energy-only; independent OBC-II task integration remains
-> a separate goal, not a completed qualification. The dated milestones below
+> retired. CHA remains energy-only; default OBC-II now uses the independent
+> Torch runtime, with [separate exact-cell task admission](INDEPENDENT_OBC2.md).
+> Provider capability is not all-model qualification. The dated milestones below
 > retain their historical meaning. Current cleanup verification and preserved
 > evidence are listed in [the retirement record](RESEARCH_RETIREMENT_20261023.md).
 

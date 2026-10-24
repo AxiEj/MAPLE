@@ -1,10 +1,11 @@
 # Route 1: additive fixed-charge PB/GB implicit solvation
 
 > **Active scope (2026-10-23):** retain faithful independent CHA single-point
-> energy and pursue independent OBC-II integration across MAPLE tasks.
+> energy and use independent Torch OBC-II as the default OBC-II runtime.
 > Continuous/Gaussian CHA force, OPT and FREQ/TS research is retired, not
-> qualified. The independent OBC-II candidate remains separate from this
-> baseline; existing provider defaults and other task paths are unchanged.
+> qualified. Explicit legacy OpenMM and other provider paths remain available;
+> analytic task admission still requires a sealed exact-cell qualification.
+> [Independent OBC-II installation, inputs and boundaries](INDEPENDENT_OBC2.md).
 > [Cleanup scope, evidence and preservation](RESEARCH_RETIREMENT_20261023.md).
 > Dated development plans below are historical where they conflict with this scope.
 

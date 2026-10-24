@@ -1,0 +1,1 @@
+"""Packaged calculator qualification data."""

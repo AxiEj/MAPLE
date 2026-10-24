@@ -155,11 +155,24 @@ class TransitionState(JobABC):
                         "exactly one Atoms geometry and method=prfo or dimer."
                     )
             if implicit_ts:
-                derivative = (
-                    "numerical Hessian"
-                    if self.method == "prfo"
-                    else "finite-difference curvature from the complete composed forces"
-                )
+                method = str(self.method).lower()
+                calculator = cast(Atoms, self.atoms).calc
+                if method == "prfo":
+                    derivative = (
+                        "analytic composed Hessian"
+                        if str(getattr(calculator, "hessian", "")).lower()
+                        == "analytic"
+                        else "numerical Hessian"
+                    )
+                else:
+                    dimer_params = JobABC._select_subdict(
+                        self.params, ("dimer", "DIMER", "ts")
+                    )
+                    derivative = (
+                        "direct analytic composed HVP"
+                        if dimer_params.get("use_hvp") is True
+                        else "finite-difference curvature from the complete composed forces"
+                    )
                 self.log_info(
                     [
                         f"\nEXPERIMENTAL IMPLICIT-SOLVENT {self.method.upper()} BOUNDARY\n",

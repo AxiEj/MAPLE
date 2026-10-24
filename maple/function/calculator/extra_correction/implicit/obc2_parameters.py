@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 from types import MappingProxyType
 from typing import Any, Mapping
 
 import numpy as np
 
-from .openmm_compat import (
-    VERIFIED_CUSTOMGBFORCES_SHA256,
-    VERIFIED_OBC2_EXPRESSION_PROFILE,
-    VERIFIED_OPENMM_VERSION,
+from .obc2_profile import (
+    OBC2_FORMULA_MANIFEST_ID,
+    obc2_profile_payload,
+    verify_obc2_profile_manifest,
 )
 
-OBC_OFFSET_NM = 0.009
-OBC_SOLVENT_DIELECTRIC = 78.5
-OBC_SOLUTE_DIELECTRIC = 1.0
+_PROFILE_PAYLOAD = obc2_profile_payload()
+OBC_OFFSET_NM = float(_PROFILE_PAYLOAD["offset_nm"])
+OBC_SOLVENT_DIELECTRIC = float(_PROFILE_PAYLOAD["solvent_dielectric"])
+OBC_SOLUTE_DIELECTRIC = float(_PROFILE_PAYLOAD["solute_dielectric"])
 SUPPORTED_NONPOLAR = frozenset({"ace", "none"})
 
 
@@ -173,18 +176,42 @@ def build_obc2_parameters(
         raise ValueError(
             "OBC-II radius provider must return radius/screening pairs."
         ) from exc
+    source_compatibility = verify_obc2_profile_manifest()
+    radius_provenance = radius_result.provenance
+    if not isinstance(radius_provenance, Mapping):
+        raise TypeError("OBC-II radius provenance must be a mapping.")
+    ordered_charge_sha256 = hashlib.sha256(
+        json.dumps(
+            charge_values.tolist(),
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
     provenance = {
         "category": "obc2-parameters",
-        "radius_provider": radius_result.provenance,
+        "radius_provider": radius_provenance,
         "radius_profile": radius_result.profile,
         "nonpolar": nonpolar,
+        "scalar_profile": f"obc2-mbondi2-{nonpolar}-v1",
         "offset_nm": OBC_OFFSET_NM,
-        "source": (
-            f"OpenMM {VERIFIED_OPENMM_VERSION} "
-            "openmm.app.internal.customgbforces; "
-            f"SHA256 {VERIFIED_CUSTOMGBFORCES_SHA256}"
+        "ordered_charge_sha256": ordered_charge_sha256,
+        "preparation_provider": radius_provenance.get(
+            "preparation_provider", radius_provenance.get("provider")
         ),
-        "expression_profile": VERIFIED_OBC2_EXPRESSION_PROFILE,
+        "topology_sha256": radius_provenance.get("topology_sha256"),
+        "formula_manifest_id": OBC2_FORMULA_MANIFEST_ID,
+        "formula_source_sha256": source_compatibility["source_sha256"],
+        "canonical_payload_sha256": source_compatibility[
+            "canonical_payload_sha256"
+        ],
+        "source": (
+            "OpenMM 8.5.2 openmm.app.internal.customgbforces; "
+            f"SHA256 {source_compatibility['source_sha256']}"
+        ),
+        "expression_profile": OBC2_FORMULA_MANIFEST_ID,
+        "equation_profile": "obc2-zero-salt-v1",
+        "runtime_openmm_required": False,
     }
     return OBC2Parameters(
         charges=charge_values,

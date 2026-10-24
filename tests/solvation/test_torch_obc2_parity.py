@@ -358,7 +358,7 @@ def test_parameter_builder_rejects_unsupported_nonpolar_profile(water_mol2):
         )
 
 
-def test_torch_derivative_backend_rejects_unverified_openmm_source(
+def test_only_legacy_derivative_backend_requires_live_openmm_source(
     water_mol2, monkeypatch
 ):
     from maple.function.calculator.extra_correction.implicit import openmm_compat
@@ -383,6 +383,8 @@ def test_torch_derivative_backend_rejects_unverified_openmm_source(
     )
     monkeypatch.setattr(openmm_compat, "VERIFIED_CUSTOMGBFORCES_SHA256", "0" * 64)
     assert np.isfinite(reference.evaluate(atoms).energy_hartree)
+    independent = TorchOBC2(parameters, device="cpu", dtype=torch.float64)
+    assert np.isfinite(independent.evaluate(atoms).energy_hartree)
 
     with pytest.raises(ImportError, match="customgbforces.py SHA256"):
-        TorchOBC2(parameters, device="cpu", dtype=torch.float64)
+        reference.derivative_backend()

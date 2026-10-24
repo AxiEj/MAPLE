@@ -13,7 +13,7 @@ def build_openmm_topology(atoms):
     except ImportError as exc:
         raise ImportError(
             "OpenMM topology construction requires the optional dependency. Install with "
-            "`pip install 'maple[implicit-gb]'`."
+            "`pip install 'maple[implicit-openmm]'`."
         ) from exc
 
     metadata = atoms.info.get("mol2")

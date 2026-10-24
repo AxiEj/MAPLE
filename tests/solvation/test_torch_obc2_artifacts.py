@@ -20,7 +20,7 @@ PERFORMANCE_PATH = (
 REVALIDATION_PATH = (
     BENCHMARK_DIR / "route1-torch-post-audit-revalidation-2026-09-27.json"
 )
-CURRENT_REVALIDATION_PATH = (
+CLEANUP_REVALIDATION_PATH = (
     BENCHMARK_DIR / "route1-retained-solvent-revalidation-2026-10-23.json"
 )
 HISTORICAL_REVALIDATION_SHA256 = (
@@ -101,8 +101,13 @@ def test_post_audit_revalidation_preserves_historical_sources_and_results():
     )
 
 
-def test_retained_solvent_revalidation_binds_current_sources_and_fresh_results():
-    artifact = _load(CURRENT_REVALIDATION_PATH)
+def test_retained_solvent_revalidation_preserves_cleanup_checkpoint():
+    # This receipt binds the pre-integration cleanup, not the new independent
+    # provider. Fresh independent qualification has its own receipt and tests.
+    assert core.sha256_file(CLEANUP_REVALIDATION_PATH) == (
+        "8d4e7d085cac2fcda37a3fc2c1292d1c5327d51b7115a54281895c0f4c3e6ad7"
+    )
+    artifact = _load(CLEANUP_REVALIDATION_PATH)
     previous = _load(REVALIDATION_PATH)
     assert core.artifact_content_sha256(artifact) == artifact["content_sha256"]
     assert artifact["supersedes_current_source_binding_of"] == {
@@ -124,7 +129,6 @@ def test_retained_solvent_revalidation_binds_current_sources_and_fresh_results()
     )
     assert artifact["qualified_workflow_cell"] == previous["qualified_workflow_cell"]
     for path, expected in artifact["implementation_and_test_sha256"].items():
-        assert core.sha256_file(REPOSITORY_ROOT / path) == expected
         assert artifact["source_sha256_after"][path] == expected
     records = artifact["corpus"]["records"]
     assert artifact["corpus"]["comparison_count"] == len(records) == 48

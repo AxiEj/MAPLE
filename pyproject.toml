@@ -14,12 +14,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# OpenMM supplies the five upstream Amber GB implementations.  Route 1 depends
-# on private customgbforces/LCPO modules, so installation is pinned to the
-# exact release covered by provider parity and the runtime compatibility gate.
-# APBS and AmberTools remain external executables.
-implicit-gb = ["openmm==8.5.2"]
-implicit = ["openmm==8.5.2"]
+# Independent OBC-II is the default GB runtime.  Torch remains unpinned so
+# users can select a wheel compatible with their CPU/CUDA environment.
+implicit-gb = ["torch"]
+implicit = ["torch"]
+implicit-obc2-torch = ["torch"]
+# The five legacy Amber GB implementations and LCPO remain explicit OpenMM.
+implicit-openmm = ["openmm==8.5.2"]
 # Explicit numerical LPB reference only; does not alter the GB/product extra.
 implicit-ddlpb = ["openmm==8.5.2", "pyddx==0.8.0"]
 # PyMBAR is optional because most MAPLE tasks do not perform multistate
@@ -36,3 +37,7 @@ maple = "maple.main:main"
 
 [tool.setuptools.packages.find]
 include = ["maple*"]
+
+[tool.setuptools.package-data]
+"maple.function.calculator.extra_correction.implicit.data" = ["*.json", "*.txt"]
+"maple.function.calculator.data" = ["*.json"]

@@ -23,7 +23,7 @@ def test_new_fixed_charge_gb_contract_normalizes_defaults():
         "mode": "fixed",
         "geometry": "keep",
     }
-    assert params["solv"]["provider"] == "openmm"
+    assert params["solv"]["provider"] == "torch"
     assert params["solv"]["profile"] == "obc2-mbondi2"
 
 
@@ -70,7 +70,7 @@ def test_force_capable_gb_route_accepts_product_tasks(task_line, task):
 
     assert params["task"] == task
     assert params["charge"]["method"] == "am1bcc"
-    assert params["solv"]["provider"] == "openmm"
+    assert params["solv"]["provider"] == "torch"
 
 
 def test_force_capable_gb_route_accepts_explicit_numerical_frequency():
@@ -84,7 +84,7 @@ def test_force_capable_gb_route_accepts_explicit_numerical_frequency():
     assert params["task"] == "freq"
     assert params["model_options"]["hessian"] == "numerical"
     assert params["charge"]["method"] == "am1bcc"
-    assert params["solv"]["provider"] == "openmm"
+    assert params["solv"]["provider"] == "torch"
 
 
 @pytest.mark.parametrize("method", ["nonmw", "both"])
@@ -147,7 +147,7 @@ def test_implicit_gb_frequency_accepts_admitted_analytic_obc2_hessian():
         "#model=ani2x(hessian=analytic)",
         "#freq(method=mw)",
         "#charge(source=maple)",
-        "#solv(implicit=water,method=gb,platform=Reference,experimental=true)",
+        "#solv(implicit=water,method=gb,provider=openmm,platform=Reference,experimental=true)",
     )
 
     assert params["model_options"]["hessian"] == "analytic"
@@ -159,7 +159,7 @@ def test_implicit_gb_analytic_frequency_requires_explicit_reference_platform():
             "#model=ani2x(hessian=analytic)",
             "#freq(method=mw)",
             "#charge(source=maple)",
-            "#solv(implicit=water,method=gb,experimental=true)",
+            "#solv(implicit=water,method=gb,provider=openmm,experimental=true)",
         )
 
 
@@ -175,7 +175,7 @@ def test_force_capable_fixed_charge_gb_route_accepts_nonperiodic_md(ensemble):
     assert params["task"] == "md"
     assert params["ensemble"] == ensemble
     assert params["charge"]["mode"] == "fixed"
-    assert params["solv"]["provider"] == "openmm"
+    assert params["solv"]["provider"] == "torch"
 
 
 def test_implicit_gb_md_rejects_npt_and_prebuilt_inner_shell():
@@ -192,7 +192,7 @@ def test_implicit_gb_md_rejects_npt_and_prebuilt_inner_shell():
             "#model=ani2x",
             "#md(ensemble=nvt,steps=2)",
             "#charge(source=mol2)",
-            ("#solv(implicit=water,inner=prebuilt,method=gb," "experimental=true)"),
+            ("#solv(implicit=water,inner=prebuilt,method=gb,provider=openmm," "experimental=true)"),
         )
 
 

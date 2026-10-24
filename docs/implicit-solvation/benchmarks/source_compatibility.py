@@ -14,14 +14,14 @@ from benchmark_core import artifact_content_sha256, load_json, sha256_file
 
 COMPATIBILITY_ARTIFACT = (
     Path(__file__).resolve().parent
-    / "route1-production-safety-source-compatibility-2026-09-27.json"
+    / "route1-production-safety-source-compatibility-2026-10-23-obc2-default.json"
 )
 PREVIOUS_COMPATIBILITY_ARTIFACT = (
     Path(__file__).resolve().parent
-    / "route1-production-safety-source-compatibility-2026-07-27.json"
+    / "route1-production-safety-source-compatibility-2026-09-27.json"
 )
 PREVIOUS_COMPATIBILITY_SHA256 = (
-    "834334ec44d83d48cf4947e3df6e6650970bd99e9b9d8c4ed7d70a3a005027a8"
+    "4658b7dc8e0d7c1fa510e62e391d04aab9d076b084183b590384055b651fc17d"
 )
 
 

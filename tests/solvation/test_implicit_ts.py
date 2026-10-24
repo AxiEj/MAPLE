@@ -322,6 +322,71 @@ def test_implicit_dimer_dispatch_preserves_composed_force_calculator(
     assert observed["atoms"] is atoms
 
 
+@pytest.mark.parametrize(
+    "method,params,expected,forbidden",
+    [
+        (
+            "prfo",
+            {"method": "prfo", "max_iter": 1},
+            "analytic composed Hessian",
+            "numerical Hessian",
+        ),
+        (
+            "dimer",
+            {"method": "dimer", "use_hvp": True, "max_iter": 1},
+            "direct analytic composed HVP",
+            "finite-difference curvature",
+        ),
+    ],
+)
+def test_implicit_ts_boundary_logs_actual_analytic_derivative_mode(
+    tmp_path, monkeypatch, method, params, expected, forbidden
+):
+    atoms = _direct_implicit_atoms()
+    calculator = cast(Any, atoms.calc)
+    correction = calculator.solvent_correction
+    calculator.hessian = "analytic"
+    calculator.analytic_implicit_derivatives_admitted = True
+    correction.analytic_task_derivatives_admitted = True
+    correction.get_hessian = lambda atoms: np.eye(3 * len(atoms))
+    correction.get_directional_derivatives = lambda atoms, direction: None
+
+    class NoOpAlgorithm:
+        def __init__(self, **kwargs):
+            pass
+
+        def run(self):
+            return None
+
+    monkeypatch.setattr(
+        algorithm, "PRFO" if method == "prfo" else "Dimer", NoOpAlgorithm
+    )
+    output = tmp_path / f"analytic-{method}.out"
+    TransitionState(str(output), atoms, params, method=method).run()
+    text = output.read_text(encoding="utf-8")
+    assert expected in text
+    assert forbidden not in text
+
+
+def test_implicit_ts_boundary_keeps_truthful_numerical_wording(tmp_path, monkeypatch):
+    atoms = _direct_implicit_atoms()
+    cast(Any, atoms.calc).hessian = "numerical"
+
+    class NoOpPRFO:
+        def __init__(self, **kwargs):
+            pass
+
+        def run(self):
+            return None
+
+    monkeypatch.setattr(algorithm, "PRFO", NoOpPRFO)
+    output = tmp_path / "numerical-prfo.out"
+    TransitionState(
+        str(output), atoms, {"method": "prfo", "max_iter": 1}, method="prfo"
+    ).run()
+    assert "numerical Hessian" in output.read_text(encoding="utf-8")
+
+
 def test_actual_engine_runs_one_experimental_implicit_prfo_iteration(
     water_mol2,
     tmp_path,

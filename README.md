@@ -135,6 +135,11 @@ PBC boundary:
 
 ## Quick Start
 
+For independent OBC-II implicit solvent, install `.[implicit-gb]` after selecting
+the appropriate PyTorch build. OBC-II no longer requires OpenMM by default;
+legacy OpenMM is explicit via `.[implicit-openmm]` and `provider=openmm`.
+See [independent OBC-II inputs and task boundaries](docs/implicit-solvation/INDEPENDENT_OBC2.md).
+
 ### Command Line
 
 ```bash

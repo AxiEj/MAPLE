@@ -63,7 +63,8 @@ def test_new_ddlpb_reference_is_opt_in_and_not_a_base_dependency():
     base, extras = pyproject.split("[project.optional-dependencies]", maxsplit=1)
     assert "pyddx" not in base.lower()
     assert 'implicit-ddlpb = ["openmm==8.5.2", "pyddx==0.8.0"]' in extras
-    assert 'implicit = ["openmm==8.5.2"]' in extras
+    assert 'implicit = ["torch"]' in extras
+    assert 'implicit-openmm = ["openmm==8.5.2"]' in extras
 
 
 def test_frozen_ddx_energy_artifact_is_complete_and_label_free():

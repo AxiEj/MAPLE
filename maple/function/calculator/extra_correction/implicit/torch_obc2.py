@@ -33,7 +33,7 @@ import numpy as np
 
 from .common import KJ_PER_MOL_PER_HARTREE
 from .obc2_parameters import OBC_OFFSET_NM, OBC2Parameters
-from .openmm_compat import require_verified_obc2_expression_source
+from .obc2_profile import OBC2_FORMULA_MANIFEST_ID, verify_obc2_profile_manifest
 from .result import SolvationDirectionalResult, SolvationResult
 from .torch_dense_budget import DEFAULT_DENSE_TORCH_BUDGET, DenseTorchBudget
 
@@ -74,7 +74,7 @@ class TorchOBC2:
         if parameters.nonpolar not in {"ace", "none"}:
             raise ValueError("Torch OBC-II nonpolar must be 'ace' or 'none'.")
         self.parameters = parameters
-        self.source_compatibility = require_verified_obc2_expression_source()
+        self.source_compatibility = verify_obc2_profile_manifest()
         self.device = torch.device(device)
         self.dtype = dtype
         if not isinstance(resource_budget, DenseTorchBudget):
@@ -95,16 +95,36 @@ class TorchOBC2:
         )
         self._provenance = {
             "provider": "torch-obc2",
+            "runtime_provider": "torch-obc2",
+            "preparation_provider": parameters.provenance.get(
+                "preparation_provider"
+            ),
+            "oracle_provider": None,
+            "implementation_profile": "torch-obc2-v2",
             "method": "gb",
             "model": "obc2",
             "amber_igb": 5,
+            "profile": "obc2-mbondi2",
             "nonpolar": parameters.nonpolar,
+            "scalar_profile": parameters.provenance.get("scalar_profile"),
+            "equation_profile": parameters.provenance.get("equation_profile"),
+            "formula_manifest_id": OBC2_FORMULA_MANIFEST_ID,
+            "formula_source_sha256": self.source_compatibility["source_sha256"],
+            "canonical_payload_sha256": self.source_compatibility[
+                "canonical_payload_sha256"
+            ],
+            "topology_sha256": parameters.provenance.get("topology_sha256"),
+            "ordered_charge_sha256": parameters.provenance.get(
+                "ordered_charge_sha256"
+            ),
             "derivatives": "torch automatic differentiation",
             "source_compatibility": dict(self.source_compatibility),
             "dtype": str(dtype),
             "device": str(self.device),
+            "platform": "torch",
             "solvent_dielectric": parameters.solvent_dielectric,
             "solute_dielectric": parameters.solute_dielectric,
+            "runtime_openmm_required": False,
         }
         self.last_derivative_provenance = None
 

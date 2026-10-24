@@ -35,7 +35,7 @@ def test_prebuilt_inner_contract_accepts_only_fixed_mol2_charges():
         "#opt",
         "#charge(source=mol2,label=prebuilt-cluster)",
         (
-            "#solv(implicit=water,inner=prebuilt,method=gb,model=obc2,"
+            "#solv(implicit=water,inner=prebuilt,method=gb,provider=openmm,model=obc2,"
             "nonpolar=ace,experimental=true)"
         ),
     )
@@ -49,7 +49,7 @@ def test_prebuilt_inner_contract_accepts_only_fixed_mol2_charges():
             "#model=ani2x",
             "#sp",
             "#charge(source=maple)",
-            "#solv(implicit=water,inner=prebuilt,method=gb,experimental=true)",
+            "#solv(implicit=water,inner=prebuilt,method=gb,provider=openmm,experimental=true)",
         )
 
 
@@ -123,7 +123,7 @@ def test_existing_explicit_generator_is_not_silently_used_as_a_prebuilt_inner():
             "#sp",
             "#charge(source=mol2)",
             (
-                "#solv(explicit=water,implicit=water,inner=prebuilt,method=gb,"
+                "#solv(explicit=water,implicit=water,inner=prebuilt,method=gb,provider=openmm,"
                 "experimental=true)"
             ),
         )
@@ -166,7 +166,7 @@ def test_input_reader_accepts_only_a_multicomponent_prebuilt_cluster(
                     "#sp",
                     "#charge(source=mol2,label=prebuilt-cluster)",
                     (
-                        "#solv(implicit=water,inner=prebuilt,method=gb,"
+                        "#solv(implicit=water,inner=prebuilt,method=gb,provider=openmm,"
                         "model=obc2,nonpolar=ace,experimental=true)"
                     ),
                     "",
@@ -233,6 +233,7 @@ def test_prebuilt_inner_manifest_names_the_quantity_without_free_energy_claim(
             "implicit": "water",
             "inner": "prebuilt",
             "method": "gb",
+            "provider": "openmm",
             "model": "obc2",
             "nonpolar": "ace",
             "experimental": True,

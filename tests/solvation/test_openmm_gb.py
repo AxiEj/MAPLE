@@ -202,7 +202,7 @@ def test_openmm_gb_exposes_first_class_radius_and_nonpolar_providers(water_mol2)
     assert provider.provenance["nonpolar_provider"]["name"] == "openmm-ace"
 
 
-def test_fixed_charge_runtime_manifest_freezes_route1_identity(water_mol2, tmp_path):
+def test_explicit_openmm_manifest_freezes_route1_identity(water_mol2, tmp_path):
     from maple.function.calculator.extra_correction.implicit.correction import (
         ImplicitSolvationCorrection,
     )
@@ -213,6 +213,7 @@ def test_fixed_charge_runtime_manifest_freezes_route1_identity(water_mol2, tmp_p
         {"source": "mol2", "mode": "fixed", "geometry": "keep"},
         {
             "method": "gb",
+            "provider": "openmm",
             "model": "obc2",
             "nonpolar": "ace",
             "experimental": True,

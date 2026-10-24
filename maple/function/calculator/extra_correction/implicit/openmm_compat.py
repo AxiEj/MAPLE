@@ -44,7 +44,7 @@ def require_verified_openmm() -> str:
         raise ImportError(
             "Route 1 uses private OpenMM GB/LCPO modules and is verified only "
             f"against OpenMM {VERIFIED_OPENMM_VERSION}; observed {version!r}. "
-            "Install the pinned 'maple[implicit-gb]' dependency and rerun the "
+            "Install the pinned 'maple[implicit-openmm]' dependency and rerun the "
             "provider parity suite before admitting another version."
         )
     return version

@@ -213,7 +213,6 @@ class ANICalculator(CalcABC):
             self._precision_cast_reason = (
                 "analytic_implicit_curvature_requires_float64"
             )
-        self.analytic_implicit_derivatives_admitted = True
 
     @property
     def inference_precision_provenance(self) -> dict:

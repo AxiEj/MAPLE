@@ -104,3 +104,46 @@ def test_alchemical_contract_exposes_lambda_derivative():
     )
     assert result.energy_hartree == 0.5
     assert result.dU_dlambda_hartree["lambda_global"] == 1.0
+
+
+@pytest.mark.parametrize("state", [{"charge": 1}, {"mult": 2}])
+def test_composite_invalidates_electronic_state_and_clears_rejected_results(state):
+    class NeutralSolvent(HarmonicSolvent):
+        def evaluate(self, atoms, **kwargs):
+            if atoms.info.get("charge", 0) != 0 or atoms.info.get("mult", 1) != 1:
+                raise ValueError("unsupported electronic state")
+            return super().evaluate(atoms, **kwargs)
+
+    atoms = Atoms("H", positions=[[1, 0, 0]], info={"charge": 0, "mult": 1})
+    atoms.calc = CompositeCalculator(HarmonicPotential(), NeutralSolvent())
+    assert atoms.get_potential_energy() == 0.75
+    atoms.info.update(state)
+    with pytest.raises(ValueError, match="electronic state"):
+        atoms.get_potential_energy()
+    assert atoms.calc.results == {}
+
+
+@pytest.mark.parametrize("failure_stage", ["validation", "base", "solvent", "hessian"])
+def test_composite_results_are_transactional_after_success(monkeypatch, failure_stage):
+    from maple.function.calculator import backends
+
+    atoms = Atoms("H", positions=[[1, 0, 0]])
+    calculator = CompositeCalculator(HarmonicPotential(), HarmonicSolvent())
+    calculator.calculate(atoms)
+    assert calculator.results["energy"] == 0.75
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected evaluation failure")
+
+    if failure_stage == "validation":
+        monkeypatch.setattr(calculator, "_validate", fail)
+    elif failure_stage == "base":
+        monkeypatch.setattr(calculator.potential, "evaluate", fail)
+    elif failure_stage == "solvent":
+        monkeypatch.setattr(calculator.solvation, "evaluate", fail)
+    else:
+        monkeypatch.setattr(backends, "numerical_hessian_from_atoms", fail)
+    properties = ["hessian"] if failure_stage == "hessian" else ["energy"]
+    with pytest.raises(RuntimeError, match="injected evaluation failure"):
+        calculator.calculate(atoms, properties=properties)
+    assert calculator.results == {}

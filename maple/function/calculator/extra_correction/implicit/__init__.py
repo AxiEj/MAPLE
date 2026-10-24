@@ -12,7 +12,7 @@ from .topology import CanonicalTopology, TopologyProvider, canonicalize_topology
 
 __all__ = [
     "ChargeResult",
-    "AniSolvCompactBackend",
+    "AnySolvBackend",
     "GNNISReferenceBackend",
     "ImplicitSolvationCorrection",
     "build_gnnis_reference_adapter",
@@ -30,8 +30,8 @@ __all__ = [
 def __getattr__(name: str):
     """Avoid importing additive backends while ``backends`` imports SolvationResult."""
 
-    if name == "AniSolvCompactBackend":
-        from .anisolv import AniSolvCompactBackend
+    if name == "AnySolvBackend":
+        from .anysolv import AnySolvBackend
 
-        return AniSolvCompactBackend
+        return AnySolvBackend
     raise AttributeError(name)

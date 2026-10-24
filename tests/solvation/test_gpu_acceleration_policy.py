@@ -892,14 +892,11 @@ def test_direct_route4_constructors_cannot_bypass_the_gpu_gate(tmp_path):
     from maple.function.calculator.aimnet._aimnet2_cpcms_calculator import (
         AIMNet2CPCMSCalculator,
     )
-    from maple.function.calculator.extra_correction.implicit.anisolv import (
-        AniSolvCompactBackend,
+    from maple.function.calculator.extra_correction.implicit.anysolv import (
+        AnySolvBackend,
     )
     from maple.function.calculator.mace._maceoff24_calculator import (
         MACEOFF24MediumCalculator,
-    )
-    from maple.function.calculator.uma._anisolv_uma_calculator import (
-        AniSolvUMACalculator,
     )
     from maple.function.calculator.uma._uma_calculator import UMACalculator
 
@@ -921,16 +918,10 @@ def test_direct_route4_constructors_cannot_bypass_the_gpu_gate(tmp_path):
             model_path=str(placeholder),
             execution_task="sp",
         ),
-        lambda: AniSolvCompactBackend(
+        lambda: AnySolvBackend(
             device="cuda:0",
             model_path=str(placeholder),
             solvent="water",
-            execution_task="sp",
-        ),
-        lambda: AniSolvUMACalculator(
-            device="cuda:0",
-            base_model_path=str(placeholder),
-            solvation_model_path=str(placeholder),
             execution_task="sp",
         ),
         lambda: UMACalculator(
@@ -950,8 +941,7 @@ def test_direct_route4_constructors_cannot_bypass_the_gpu_gate(tmp_path):
         "aimnet2-cpcms-v2",
         "mace-off24-medium",
         "aceff-2.0",
-        "anisolv-compact",
-        "anisolv-uma",
+        "anysolv-moe",
         "gnnis-reference",
     ],
 )

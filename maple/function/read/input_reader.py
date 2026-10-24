@@ -1,5 +1,6 @@
 import os
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Union
 
@@ -11,6 +12,8 @@ from .filereader import XYZReader
 from .filereader import PostReader
 from .filereader import XYZTrajReader
 from .filereader import PDBReader
+from .filereader import MOL2Reader
+from .filereader.pdb_reader import _parse_charge_mult as _parse_pdb_charge_mult
 from .command_control import CommandControl
 
 from .header.header import print_banner
@@ -18,6 +21,16 @@ from .header.header import print_banner
 from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
+
+_STRUCTURE_REFERENCE_KINDS = {"XYZ", "XYZTRAJ", "PDB", "MOL2"}
+
+
+def _structure_reference_kind(line: str) -> str | None:
+    """Share reference classification between section splitting and dispatch."""
+    parts = line.split(maxsplit=1)
+    kind = parts[0].upper() if parts else None
+    return kind if kind in _STRUCTURE_REFERENCE_KINDS else None
+
 
 class InputReader():
     def __init__(self):
@@ -86,7 +99,7 @@ class InputReader():
             #   1) SETTINGS  : consecutive lines starting with '#' at the top
             #                  (blank lines allowed; they are not part of settings)
             #   2) MOLECULES : lines that are either blank, '&',
-            #                  'XYZ /abs/path', 'PDB /abs/path', or atomic lines 'Elem x y z'
+            #                  XYZ/XYZTRAJ/PDB/MOL2 references, or atomic lines 'Elem x y z'
             #                  (supports scientific notation). Arbitrary blank
             #                  lines INSIDE this section are allowed.
             #                  The section ends at the first non-matching, non-blank line.
@@ -116,10 +129,6 @@ class InputReader():
             # Regex for charge/multiplicity line: two integers (e.g. "0 1", "-1 2")
             charge_mult_re = re.compile(r'^\s*[+-]?\d+\s+\d+\s*$')
 
-            def is_xyz_ref(s: str) -> bool:
-                upper = s.upper()
-                return upper.startswith('XYZ ') or upper.startswith('XYZTRAJ ')
-
             def is_scan_postproc_line(s: str) -> bool:
                 tokens = s.split()
                 if not tokens or tokens[0].upper() != 'S' or len(tokens) not in (5, 6, 7):
@@ -137,14 +146,10 @@ class InputReader():
             def is_valid_inline_atom_line(s: str) -> bool:
                 return atom_line_re.match(s) is not None and len(s.split()) in (4, 7)
 
-            def is_pdb_ref(s: str) -> bool:
-                parts = s.split(maxsplit=1)
-                return bool(parts) and parts[0].upper() == 'PDB'
-
             def is_coord_like(s: str) -> bool:
                 if s == '' or s == '&':
                     return True
-                if is_xyz_ref(s) or is_pdb_ref(s):
+                if _structure_reference_kind(s) is not None:
                     return True
                 if charge_mult_re.match(s):
                     return True
@@ -392,8 +397,10 @@ class InputReader():
 
         Each group can be:
           - Inline atomic coordinates (Elem x y z), or
-          - External file reference(s): 'XYZ /absolute/path/to/file.xyz'
-            If a group contains multiple 'XYZ ...' lines, each line is treated as a separate structure.
+          - XYZ/XYZTRAJ, PDB, or MOL2 file reference(s), resolved from the input directory.
+            One format family per group; XYZ and XYZTRAJ may share a group.
+            Each group may start with one charge/multiplicity line. Reference-local
+            XYZ/XYZTRAJ/PDB state syntax remains supported; conflicting state is rejected.
 
         Examples:
 
@@ -459,154 +466,124 @@ class InputReader():
             # Get input file directory for resolving relative paths
             input_dir = os.path.dirname(self.input)
 
+            params = self.command_control.params
+            charge_options = params.get("charge", {})
+            solvation_options = params.get("solv", {})
+            typed_solvent = solvation_options.get("method") in {"gb", "pb", "smd"}
+            if typed_solvent and self.pbc is not None:
+                raise ValueError("Implicit solvation is non-periodic; remove #pbc.")
+
+            def prepare_structure(atoms: Atoms, charge: int | None, mult: int | None) -> None:
+                if not np.isfinite(atoms.get_positions()).all():
+                    raise ValueError("Structure coordinates must be finite.")
+                # Reference-local state remains supported. Reject disagreement
+                # rather than silently choosing between two explicit states.
+                for key, value in (("charge", charge), ("mult", mult)):
+                    if value is not None:
+                        if key in atoms.info and atoms.info[key] != value:
+                            raise ValueError("Conflicting block and file-reference charge/multiplicity.")
+                        atoms.info[key] = value
+                if "mult" in atoms.info:
+                    if atoms.info["mult"] < 1:
+                        raise ValueError("Invalid multiplicity: must be >= 1.")
+                    atoms.info["spin"] = (atoms.info["mult"] - 1) / 2
+                atoms.info["_maple_charge_options"] = deepcopy(charge_options)
+                atoms.info["_maple_solvation_options"] = deepcopy(solvation_options)
+                if self.pbc is not None:
+                    from ase.cell import Cell
+                    atoms.set_pbc([True, True, True])
+                    atoms.set_cell(Cell.fromcellpar(self.pbc))
+
             for block in blocks:
                 # Normalize tokens for this block
                 tokens = [b.strip() for b in block if b.strip()]
                 if not tokens:
                     continue
 
-                # Case 1: the block contains only XYZ/XYZTRAJ file references
-                all_xyz = all(t.upper().startswith("XYZ ") or t.upper().startswith("XYZTRAJ ") for t in tokens)
-                any_xyz = any(t.upper().startswith("XYZ ") or t.upper().startswith("XYZTRAJ ") for t in tokens)
-                all_pdb = all(t.upper().startswith("PDB ") for t in tokens)
-                any_pdb = any(t.upper().startswith("PDB ") for t in tokens)
+                # Parse the optional block state once, before any input dispatch.
+                charge = mult = None
+                first_line_match = charge_mult_pattern.match(tokens[0])
+                if first_line_match:
+                    charge, mult = map(int, first_line_match.groups())
+                    tokens = tokens[1:]
+                    if mult < 1:
+                        raise ValueError(f"Invalid multiplicity: {mult}. Must be >= 1")
+                if not tokens:
+                    raise ValueError("Charge/multiplicity must be followed by a structure in the same group.")
 
-                if self.jobtype == "parmfit" and all_pdb:
-                    if len(blocks) != 1 or len(tokens) != 1:
-                        raise ValueError("parmfit requires exactly one PDB file reference block: PDB <path>.")
-                    parts = tokens[0].split(maxsplit=1)
-                    if len(parts) != 2:
-                        raise ValueError(f"Invalid PDB reference line: '{tokens[0]}'")
+                kinds = [_structure_reference_kind(token) for token in tokens]
+                # Only the legacy typed-solvent protocol requires MOL2. Modern
+                # AnySolv and native ConSolv retain their coordinate input routes.
+                if typed_solvent:
+                    if any(kind != "MOL2" for kind in kinds):
+                        raise ValueError("Implicit gb/pb/smd solvation requires a MOL2 file with explicit atom types and bonds.")
+                    if (charge, mult) != (0, 1):
+                        raise ValueError("Implicit gb/pb/smd solvation requires an explicit '0 1' charge/multiplicity line before MOL2.")
 
-                    file_path = parts[1]
-                    resolved = PDBReader.resolve_path(file_path, base_dir=input_dir)
-                    self.command_control.params["pdb"] = resolved
-                    atoms = Atoms("H", positions=np.array([[0.0, 0.0, 0.0]], dtype=np.float64))
-                    atoms_list.append(atoms)
+                if any(kind is not None for kind in kinds):
+                    # XYZ and XYZTRAJ already share one reference group. Other
+                    # formats and inline input must use separate groups.
+                    families = {"XYZ" if kind == "XYZTRAJ" else kind for kind in kinds}
+                    if None in families or len(families) != 1:
+                        raise ValueError(
+                            "Mixed file references or inline coordinates in the same group. "
+                            "Please separate them with a blank line or '&'."
+                        )
 
-                    group_counter += 1
-                    info_message.append(f"\nGroup {group_counter} (PDB File)\n")
-                    info_message.append(f"Resolved PDB: {resolved}\n")
-                    info_message.append("PDB coordinates are parsed by the parmfit route at runtime.\n")
-                    info_message.append('-' * 20 + '\n')
-                    continue
-
-                if all_pdb:
-                    for pdb_line in tokens:
-                        parts = pdb_line.split(maxsplit=1)
+                    if self.jobtype == "parmfit" and kinds[0] == "PDB":
+                        if len(blocks) != 1 or len(tokens) != 1:
+                            raise ValueError("parmfit requires exactly one PDB file reference block: PDB <path>.")
+                        parts = tokens[0].split(maxsplit=1)
                         if len(parts) != 2:
-                            raise ValueError(f"Invalid PDB reference line: '{pdb_line}'")
+                            raise ValueError(f"Invalid PDB reference line: '{tokens[0]}'")
+                        # Reuse the PDB reference grammar without loading geometry.
+                        # Reconcile both explicit states before deferring to parmfit.
+                        file_path, reference_charge, reference_mult = _parse_pdb_charge_mult(parts[1])
+                        atoms = Atoms("H", positions=np.zeros((1, 3), dtype=np.float64))
+                        if reference_charge is not None:
+                            atoms.info["charge"] = reference_charge
+                        if reference_mult is not None:
+                            atoms.info["mult"] = reference_mult
+                        prepare_structure(atoms, charge, mult)
+                        resolved = PDBReader.resolve_path(file_path, base_dir=input_dir)
+                        self.command_control.params["pdb"] = resolved
+                        atoms_list.append(atoms)
+                        group_counter += 1
+                        info_message.append(f"\nGroup {group_counter} (PDB File)\nResolved PDB: {resolved}\n")
+                        info_message.append("PDB coordinates are parsed by the parmfit route at runtime.\n")
+                        continue
+
+                    readers = {"XYZ": XYZReader, "XYZTRAJ": XYZTrajReader, "PDB": PDBReader, "MOL2": MOL2Reader}
+                    for token in tokens:
+                        parts = token.split(maxsplit=1)
+                        kind = parts[0].upper()
+                        if len(parts) != 2:
+                            raise ValueError(f"Invalid {kind} reference line: '{token}'")
                         file_path = parts[1]
-
-                        pdb_obj = PDBReader(file_path, base_dir=input_dir)
-                        pdb_frames = pdb_obj.multiatoms if isinstance(pdb_obj, Molecules) else [pdb_obj]
-
-                        if self.pbc is not None:
-                            from ase.cell import Cell
-                            for pdb_atoms in pdb_frames:
-                                pdb_atoms.set_pbc([True, True, True])
-                                pdb_atoms.set_cell(Cell.fromcellpar(self.pbc))
-
-                        atoms_list.extend(pdb_frames)
-                        group_counter += len(pdb_frames)
-                        if isinstance(pdb_obj, Molecules):
-                            info_message.append(f"\nLoaded {len(pdb_frames)} frames from PDB: {file_path}\n")
+                        if kind == "MOL2":
+                            loaded = MOL2Reader(
+                                file_path, charge=charge, mult=mult, base_dir=input_dir,
+                                validate_charge=charge_options.get("source") == "mol2",
+                            )
                         else:
-                            info_message.append(f"\nGroup {group_counter} (from PDB: {file_path})\n")
-                        if self.pbc is not None:
-                            info_message.append(f"PBC applied to PDB coordinates: cell = [{self.pbc[0]:.3f}, {self.pbc[1]:.3f}, {self.pbc[2]:.3f}] Angstrom\n")
-                        info_message.append('-' * 20 + '\n')
-                        for frame_index, pdb_atoms in enumerate(pdb_frames, start=1):
-                            if len(pdb_frames) > 1:
-                                info_message.append(f"Frame {frame_index}\n")
-                            syms = pdb_atoms.get_chemical_symbols()
-                            poss = pdb_atoms.get_positions()
-                            for i, (e, (x, y, z)) in enumerate(zip(syms, poss), start=1):
-                                info_message.append(f"{i:<4} {e:<2} {x:>20.6f} {y:>20.6f} {z:>20.6f}\n")
-                    continue
-
-                if any_pdb:
-                    raise ValueError(
-                        "Mixed PDB file references and other coordinate inputs in the same group. "
-                        "Please separate them with a blank line or '&'."
-                    )
-
-                if all_xyz:
-                    for xyz_line in tokens:
-                        parts = xyz_line.split(maxsplit=1)
-                        if len(parts) != 2:
-                            raise ValueError(f"Invalid XYZ reference line: '{xyz_line}'")
-                        
-                        # Check if this is XYZTRAJ or XYZ
-                        keyword = parts[0].upper()
-                        file_path = parts[1]
-                        
-                        if keyword == 'XYZTRAJ':
-                            # Read trajectory file, returns Molecules object
-                            molecules_obj = XYZTrajReader(file_path, base_dir=input_dir)
-
-                            # Apply PBC to all frames if specified
-                            if self.pbc is not None:
-                                from ase.cell import Cell
-                                for traj_atoms in molecules_obj.multiatoms:
-                                    traj_atoms.set_pbc([True, True, True])
-                                    # PBC format: [a, b, c, alpha, beta, gamma]
-                                    traj_atoms.set_cell(Cell.fromcellpar(self.pbc))
-
-                            # Add all frames from the trajectory to atoms_list
-                            atoms_list.extend(molecules_obj.multiatoms)
-
-                            group_counter += len(molecules_obj.multiatoms)
-                            info_message.append(f"\nLoaded {len(molecules_obj.multiatoms)} frames from trajectory: {file_path}\n")
-                            if self.pbc is not None:
-                                info_message.append(f"PBC applied to trajectory: cell = [{self.pbc[0]:.3f}, {self.pbc[1]:.3f}, {self.pbc[2]:.3f}] Angstrom\n")
-                            info_message.append('-' * 20 + '\n')
-                        elif keyword == 'XYZ':
-                            # Regular XYZ file
-                            atoms = XYZReader(file_path, base_dir=input_dir)
-
-                            # Apply PBC if specified
-                            if self.pbc is not None:
-                                from ase.cell import Cell
-                                atoms.set_pbc([True, True, True])
-                                # PBC format: [a, b, c, alpha, beta, gamma]
-                                atoms.set_cell(Cell.fromcellpar(self.pbc))
-
+                            loaded = readers[kind](file_path, base_dir=input_dir)
+                        loaded_frames = loaded.multiatoms if isinstance(loaded, Molecules) else [loaded]
+                        for frame_index, atoms in enumerate(loaded_frames, start=1):
+                            prepare_structure(atoms, charge, mult)
                             atoms_list.append(atoms)
-
                             group_counter += 1
-                            info_message.append(f"\nGroup {group_counter} (from file: {file_path})\n")
-                            info_message.append('-' * 20 + '\n')
-                            syms = atoms.get_chemical_symbols()
-                            poss = atoms.get_positions()
-                            for i, (e, (x, y, z)) in enumerate(zip(syms, poss), start=1):
+                            info_message.append(f"\nGroup {group_counter} (from {kind}: {file_path}, frame {frame_index})\n")
+                            if charge is not None:
+                                info_message.append(f"Charge: {charge}, Multiplicity: {mult}\n")
+                            if self.pbc is not None:
+                                info_message.append(f"PBC applied: cell = {self.pbc}\n")
+                            for i, (e, (x, y, z)) in enumerate(zip(atoms.get_chemical_symbols(), atoms.get_positions()), start=1):
                                 info_message.append(f"{i:<4} {e:<2} {x:>20.6f} {y:>20.6f} {z:>20.6f}\n")
                     continue
 
-                # Case 2: mixed XYZ + inline in the same block -> force user to split
-                if any_xyz and not all_xyz:
-                    raise ValueError(
-                        "Mixed inline coordinates and 'XYZ <path>' in the same group. "
-                        "Please separate them with a blank line or '&'."
-                    )
-
-                # Case 3: inline coordinates
+                # Inline coordinates use the same block state and metadata boundary.
                 elements: List[str] = []
                 coords: List[tuple] = []
-                charge = None
-                mult = None
-
-                # Check if first line contains charge and multiplicity
-                if tokens:
-                    first_line_match = charge_mult_pattern.match(tokens[0])
-                    if first_line_match:
-                        charge = int(first_line_match.group(1))
-                        mult = int(first_line_match.group(2))
-                        tokens = tokens[1:]  # Remove charge/mult line from processing
-
-                        # Validate multiplicity
-                        if mult < 1:
-                            raise ValueError(f"Invalid multiplicity: {mult}. Must be >= 1")
 
                 # Parse inline atomic coordinates. Formal inline structure input is
                 # still position-based, but we also detect the legacy 7-column form
@@ -639,19 +616,7 @@ class InputReader():
                 # Create Atoms object
                 atoms = Atoms(symbols=elements, positions=np.array(coords, dtype=np.float64))
 
-                # Store charge and multiplicity if provided
-                if charge is not None:
-                    atoms.info['charge'] = charge
-                if mult is not None:
-                    atoms.info['mult'] = mult
-                    atoms.info['spin'] = (mult - 1) / 2
-
-                # Apply PBC if specified
-                if self.pbc is not None:
-                    from ase.cell import Cell
-                    atoms.set_pbc([True, True, True])
-                    # PBC format: [a, b, c, alpha, beta, gamma]
-                    atoms.set_cell(Cell.fromcellpar(self.pbc))
+                prepare_structure(atoms, charge, mult)
 
                 atoms_list.append(atoms)
 

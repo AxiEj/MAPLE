@@ -1,0 +1,74 @@
+{
+  "model_id": "consolv",
+  "version": "consolv-torch-v1 from source 06801dd5",
+  "availability": "local-converted-checkpoint",
+  "source": {
+    "repository": "https://github.com/tummfm/ConSolv",
+    "revision": "06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+    "root_license": "not-published"
+  },
+  "checkpoints": {
+    "consolv-torch-v1": {
+      "checkpoint_sha256": "534114cd0a45d97308eb28506ccfe731df143ae5fb0c6d611b6c6c0cb1656767"
+    },
+    "source_vacuum": {
+      "checkpoint_sha256": "6ef9f20b5d5d2ef609d492d9a04c6d8af9c2057fe35ab8d574698db0cb089988"
+    },
+    "source_solvent_initialization": {
+      "checkpoint_sha256": "1ceebcd6288d08a507b85dc6d062dbfc8531ba61b578101e5f7b2b4240077021"
+    },
+    "source_solvent_delta": {
+      "checkpoint_sha256": "6b0d6a9125da4cc8d17e506b561b133d74f05cbda510448f5d3d19ffc6bd3044"
+    },
+    "consolv-vacuum-torch-v1": {
+      "checkpoint_sha256": "d0369560cd34312604d8f4df3a002c7544c8867236ce50a6808c75794a5195f0",
+      "role": "paired_vacuum_diagnostic_not_solution_runtime"
+    }
+  },
+  "license": {
+    "consolv_specific_source": "no root license grant; do not vendor or redistribute upstream source",
+    "model_and_data": "CC-BY-4.0 per Zenodo record 22956180",
+    "local_torch_implementation": "local integration artifact; redistribution not admitted"
+  },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_cpu_gpu_no_loss_and_accuracy_evidence",
+    "compute_dtype": "float64",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": true,
+    "conservative_forces": true,
+    "hessian": "none",
+    "supports_md": false,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "requires_topology": false,
+    "requires_partial_charges": false,
+    "solvation_mode": "native",
+    "energy_reference": "relative",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "forbidden_tasks": [
+    "opt",
+    "scan",
+    "ts",
+    "irc",
+    "frequency",
+    "md",
+    "absolute_solvation_free_energy",
+    "alchemical_free_energy"
+  ],
+  "notes": [
+    "The runtime loads only the weights-only consolv-torch-v1 checkpoint.",
+    "The public .ptb export omits the solvent selector and is not used.",
+    "Energy and force evaluation is SP mechanics evidence, not a thermodynamic free-energy result."
+  ]
+}

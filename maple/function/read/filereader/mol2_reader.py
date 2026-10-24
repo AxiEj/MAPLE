@@ -20,18 +20,65 @@ from ase.data import atomic_numbers
 MOL2_CHARGE_TOL = 1.0e-4
 
 
+_GAFF_TYPES_BY_ELEMENT = {
+    # Exact GAFF/GAFF2 labels from the sibling Route 1 mapping.
+    "C": (
+        "c", "c1", "c2", "c3", "c5", "c6", "ca", "cc",
+        "cd", "ce", "cf", "cg", "ch", "cp", "cq", "cs",
+        "cu", "cv", "cx", "cy", "cz",
+    ),
+    "H": (
+        "h1", "h2", "h3", "h4", "h5", "ha", "hb", "hc",
+        "hn", "ho", "hp", "hs", "hw", "hx",
+    ),
+    "F": (
+        "f",
+    ),
+    "Cl": (
+        "cl",
+    ),
+    "Br": (
+        "br",
+    ),
+    "I": (
+        "i",
+    ),
+    "N": (
+        "n", "n+", "n1", "n2", "n3", "n4", "n5", "n6",
+        "n7", "n8", "n9", "na", "nb", "nc", "nd", "ne",
+        "nf", "nh", "ni", "nj", "nk", "nl", "nm", "nn",
+        "no", "np", "nq", "ns", "nt", "nu", "nv", "nx",
+        "ny", "nz",
+    ),
+    "O": (
+        "o", "oh", "op", "oq", "os", "ow",
+    ),
+    "P": (
+        "p2", "p3", "p4", "p5", "pb", "pc", "pd", "pe",
+        "pf", "px", "py",
+    ),
+    "S": (
+        "s", "s2", "s4", "s6", "sh", "sp", "sq", "ss",
+        "sx", "sy",
+    ),
+}
+_GAFF_ELEMENT_BY_TYPE = {
+    atom_type: element
+    for element, atom_types in _GAFF_TYPES_BY_ELEMENT.items()
+    for atom_type in atom_types
+}
+
+
 def _element_from_mol2(atom_name: str, atom_type: str) -> str:
     token = atom_type.split(".", 1)[0].strip()
-    # Preserve an explicit, case-correct Tripos element token first.  Lowercase
-    # GAFF/GAFF2 types such as ``ho`` and ``ca`` are force-field labels, not Ho
-    # or Ca element symbols, so atom names must take precedence over title-casing
-    # those labels.
-    candidates = [token, atom_name[:2].capitalize(), atom_name[:1].upper(), token.capitalize()]
-    for candidate in candidates:
-        if candidate in atomic_numbers:
-            return candidate
+    if token in atomic_numbers and atomic_numbers[token] > 0:
+        return token
+    gaff_element = _GAFF_ELEMENT_BY_TYPE.get(atom_type.strip())
+    if gaff_element is not None:
+        return gaff_element
     raise ValueError(
-        f"Cannot determine an element from MOL2 atom name/type {atom_name!r}/{atom_type!r}."
+        "Cannot determine an element from the explicit Tripos or GAFF/GAFF2 "
+        f"MOL2 atom type {atom_type!r} (atom name {atom_name!r})."
     )
 
 
@@ -121,6 +168,8 @@ class MOL2Reader:
                 xyz = [float(fields[2]), float(fields[3]), float(fields[4])]
             except ValueError as exc:
                 raise ValueError(f"Invalid MOL2 ATOM record in {path}: {line!r}") from exc
+            if not np.all(np.isfinite(xyz)):
+                raise ValueError(f"MOL2 coordinates must be finite in {path}: {line!r}")
             if atom_id in atom_id_to_index:
                 raise ValueError(f"Duplicate MOL2 atom id {atom_id} in {path}.")
             atom_id_to_index[atom_id] = index
@@ -139,6 +188,9 @@ class MOL2Reader:
             else:
                 charges_present = False
                 charges.append(0.0)
+
+        if not np.all(np.isfinite(charges)):
+            raise ValueError(f"MOL2 partial charges must be finite in {path}.")
 
         bonds: list[list[object]] = []
         for line in bond_lines:

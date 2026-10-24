@@ -316,11 +316,37 @@ class CalcABC(ase.calculators.calculator.Calculator):
         properties=None,
         system_changes=ase.calculators.calculator.all_changes,
     ):
+        self.results = {}
         target_atoms = atoms if atoms is not None else getattr(self, 'atoms', None)
         self._reject_unsupported_pbc(target_atoms)
         properties = reject_implicit_solvent_derivatives(self, properties)
+        self._requested_properties = frozenset(properties)
         super().calculate(atoms, properties, system_changes)
         return target_atoms
+
+    def _validate_solvent_identity(self, atoms) -> None:
+        validate = getattr(getattr(self, "solvent_correction", None), "validate_atoms", None)
+        if callable(validate):
+            try:
+                validate(atoms)
+            except Exception:
+                self.results = {}
+                raise
+
+    def get_property(self, name, atoms=None, allow_calculation=True):
+        # ASE skips check_state when atoms is omitted, including cache hits.
+        if atoms is None and self.atoms is not None:
+            self._validate_solvent_identity(self.atoms)
+        return super().get_property(name, atoms, allow_calculation)
+
+    def check_state(self, atoms, tol=1e-15):
+        self._validate_solvent_identity(atoms)
+        changes = super().check_state(atoms, tol=tol)
+        if self.atoms is not None:
+            for key in ("charge", "mult"):
+                if not np.array_equal(self.atoms.info.get(key), atoms.info.get(key)):
+                    changes.append(key)
+        return changes
 
     @classmethod
     def build_kwargs_from_options(cls, model, model_options, *, resolved_model_path=None):
@@ -334,6 +360,19 @@ class CalcABC(ase.calculators.calculator.Calculator):
         MODEL_ENERGY_UNIT). This method converts to Hartree, then optionally
         adds the implicit-solvent correction, then writes self.results.
         """
+        self.results = {}
+        if hasattr(self, "solvation_result"):
+            del self.solvation_result
+        correction = getattr(self, "solvent_correction", None)
+        if correction is not None and "forces" not in getattr(
+            correction, "supported_properties", {"energy"}
+        ):
+            requested = getattr(self, "_requested_properties", None)
+            if requested is not None:
+                reject_implicit_solvent_derivatives(self, requested)
+                # An eager gas backend may compute forces for an energy request.
+                # Those forces are not derivatives of the corrected potential.
+                forces = None
         source_unit = unit if unit is not None else self.MODEL_ENERGY_UNIT
         energy_ha, forces_ha = _convert_energy_force_units(
             energy, forces, source_unit=source_unit
@@ -390,16 +429,21 @@ class CalcABC(ase.calculators.calculator.Calculator):
         if structured_solvation_result is not None:
             result = structured_solvation_result
             frequency_type = getattr(self, 'frequency_type', None)
-            self.results['solvation'] = {
-                'energy_hartree': float(result.energy_hartree),
-                'delta_g_solv_hartree': float(result.energy_hartree),
-                'gas_energy_hartree': gas_energy_ha,
-                'combined_energy_hartree': float(energy_ha),
-                'frequency_type': frequency_type,
-                'components_hartree': dict(result.components_hartree),
-                'provenance': dict(result.provenance),
-                'ase_free_energy_is_thermochemical_gibbs': False,
+            self.results["solvation"] = {
+                "energy_hartree": float(result.energy_hartree),
+                "correction_energy_hartree": float(result.energy_hartree),
+                "quantity_kind": result.quantity_kind,
+                "gas_energy_hartree": gas_energy_ha,
+                "combined_energy_hartree": float(energy_ha),
+                "frequency_type": frequency_type,
+                "components_hartree": dict(result.components_hartree),
+                "provenance": dict(result.provenance),
+                "ase_free_energy_is_thermochemical_gibbs": False,
             }
+            if result.quantity_kind == "solvation_free_energy_correction":
+                self.results["solvation"]["delta_g_solv_hartree"] = float(
+                    result.energy_hartree
+                )
         elif hasattr(self, 'solvation_result'):
             del self.solvation_result
 
@@ -426,7 +470,6 @@ class CalcABC(ase.calculators.calculator.Calculator):
             f"{type(self).__name__} does not implement analytic Hessian; "
             "set hessian='numerical' or override _analytic_hessian."
         )
-
 
     def log_error(self, error_message: str) -> None:
         """
@@ -466,7 +509,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
 
     def implicit_solv_init(self, implicit: str, solvent: str):
         init_implicit_solvent(self, implicit, solvent, self.device)
-    
+
     def implicit_solv_energy(self, atoms: ase.Atoms) -> torch.Tensor:
         """
         Compute implicit solvent correction energy if applicable.

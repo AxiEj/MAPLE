@@ -560,7 +560,7 @@ def test_rejects_unsupported_atomic_number_and_partial_periodicity(
         ("gb", "water"),
         ("pb", "water"),
         ("smd", "water"),
-        ("anisolv", "water"),
+        ("anysolv", "water"),
         ("none", "water"),
     ],
 )

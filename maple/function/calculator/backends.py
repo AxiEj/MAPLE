@@ -112,6 +112,7 @@ class CompositeCalculator(Calculator):
         self.frequency_type = None if profile is None else profile.frequency_type
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        self.results = {}
         super().calculate(atoms, properties, system_changes)
         properties = tuple(str(item).lower() for item in properties)
         need_hessian = "hessian" in properties
@@ -134,6 +135,8 @@ class CompositeCalculator(Calculator):
             "free_energy": energy,
             "solvation": {
                 "energy_hartree": float(solvent.energy_hartree),
+                "correction_energy_hartree": float(solvent.energy_hartree),
+                "quantity_kind": solvent.quantity_kind,
                 "gas_energy_hartree": float(base.energy_hartree),
                 "combined_energy_hartree": energy,
                 "components_hartree": dict(solvent.components_hartree),
@@ -143,6 +146,8 @@ class CompositeCalculator(Calculator):
             },
             "potential_provenance": dict(base.provenance),
         }
+        if solvent.quantity_kind == "solvation_free_energy_correction":
+            results["solvation"]["delta_g_solv_hartree"] = float(solvent.energy_hartree)
         if need_forces:
             if (
                 base.forces_hartree_per_angstrom is None
@@ -154,7 +159,14 @@ class CompositeCalculator(Calculator):
             results["forces"] = np.asarray(
                 base.forces_hartree_per_angstrom, dtype=float
             ) + np.asarray(solvent.forces_hartree_per_angstrom, dtype=float)
+        if need_hessian:
+            results["hessian"] = numerical_hessian_from_atoms(self, atoms)
         self.results = results
 
-        if need_hessian:
-            self.results["hessian"] = numerical_hessian_from_atoms(self, atoms)
+    def check_state(self, atoms, tol=1e-15):
+        changes = super().check_state(atoms, tol=tol)
+        if self.atoms is not None:
+            for key in ("charge", "mult"):
+                if not np.array_equal(self.atoms.info.get(key), atoms.info.get(key)):
+                    changes.append(key)
+        return changes

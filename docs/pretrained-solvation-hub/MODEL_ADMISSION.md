@@ -250,7 +250,7 @@ Primary sources:
 | ML-for-charges PBE0-ESP | yes, XGBoost charge regressor | no solvent input; water only in the published downstream hydration protocol | atomic-charge parameters plus a separate explicit-water alchemical workflow; no potential, endpoint pair, or estimator | excluded from Route 4; an authorization-gated future Route 1 charge-provider study only |
 | Organic_MPNICE + MLFF_HFE | no public Organic_MPNICE checkpoint; public generic HFE protocol only | water only | published explicit-water FEP/replica-exchange protocol, but the released source requires a user-provided lambda-aware TorchScript model | excluded from Route 4; no model may be substituted for the proprietary release |
 | ABCG2/GAFF2 | yes, official AmberTools fixed BCC parameters | water and diverse neutral organic-solvent protocols reported | explicit-solvent gas/solution alchemical simulation is possible, but the charge model is not an MLIP or implicit potential | direct runnable Route 1 physics control only; never a Route 4 substitution |
-| AniSolv compact | yes | 21 explicitly validated identifiers | geometry-level scalar `E_solv - E_gas` correction and exact zero vacuum gate; the upstream force path fails rotation-covariance/finite-difference consistency and no MAPLE thermodynamic protocol is published | sealed single-point energy control only |
+| AniSolv compact (retired) | historical only | 21 historical identifiers | geometry-level scalar `E_solv - E_gas` correction and exact zero vacuum gate; the upstream force path fails rotation-covariance/finite-difference consistency and no MAPLE thermodynamic protocol is published | retired; [historical evidence](history/anisolv-retired/README.md) only |
 | LSNN-v1 | yes, but upstream runtime/domain is incomplete | water only | lambda derivatives target the correct class of quantity, but the MAPLE compatibility pilot is not upstream reproduction and fails its pilot maximum-error gate | water-only research control, disabled by default |
 | AIMNet2-CPCMS v2 | yes | fixed THF metadata | native solution PES; no released gas/solution pair or FE protocol | neutral-singlet mechanics probe only |
 | C3Net | yes | 103 upstream solvent identifiers | direct scalar solvation-property prediction; no energy surface, endpoint pair, or sampled estimator | SDF-only property-prediction sidecar, never an ordinary calculator or absolute-solvation backend |
@@ -574,56 +574,18 @@ use it to calibrate another route.  It remains the cleanest no-retraining,
 official-runtime baseline if a future explicitly authorized Route 1
 multi-solvent TI/BAR/MBAR study is separately planned and identity-locked.
 
-AniSolv compact passes the released-identity gate: its source revision,
-bundled checkpoint, SHA256, MIT status, 21-solvent whitelist, exact vacuum
-gate, and scalar single-point runtime are pinned.  Its own model card describes
-a geometry-level additive correction, not a converged partition-function
-estimator with standard-state metadata.  A source-bound CPU float64 central-
-difference audit found orientation-specific upstream force failures for the
-exact sample water and methanol geometries.  The same geometries pass after a
-fixed rigid rotation while their energies remain invariant, so MAPLE exposes
-the correction only for scalar single-point energy and rejects every force-
-derived task.  The row-complete evidence is frozen in
-`benchmarks/anisolv-compact-force-consistency-audit-2026-07-30.json`.  The
-ordinary-calculator path is the sealed
-`anisolv-uma` composition: a user-authorized, hash-pinned UMA-S-1P2
-compatibility checkpoint plus the exact public compact AniSolv checkpoint.
-UMA access is gated upstream, so MAPLE neither downloads nor bypasses that
-gate.  It cannot emit gradients or an absolute solvation free energy, run
-optimization/scan/TS/IRC/frequency/MD, accept charged/open-shell inputs, select
-additional solvent descriptor entries, or substitute either checkpoint.
+AniSolv compact and the sealed `anisolv-uma` composition are **retired**.
+Their historical identity and scalar-only observations do not confer current
+runtime admission. The [historical cards and replay instructions](history/anisolv-retired/README.md)
+retain links to the unchanged six-row sample, force-consistency rejection and
+GPU rejection evidence. The historical `H2O_single_point.py` six-row sample
+does not qualify as an accuracy panel. Upstream
+force defects and missing thermodynamic endpoints remain disqualifying.
 
-The exact compact checkpoint and official source revision have been freshly
-executed for every one of those 21 enabled identifiers on the same neutral
-methanol geometry, with finite scalar energy in each case.  Upstream force
-arrays from that smoke run are not admitted.  This closes only the narrow
-runtime-coverage claim for the geometry-level scalar term; it supplies no
-experimental ΔG values, sampling diagnostics, or accuracy claim and therefore
-does not change its admission disposition.
-
-The upstream examples do not close this remaining gate.  MAPLE now reproduces
-the exact six rows from `H2O_single_point.py` in
-`benchmarks/anisolv-compact-upstream-sample-audit-2026-07-30.json`, using the
-pinned public checkpoint and official source on deterministic CPU float32
-`default` inference with all reduced-precision and fast modes disabled.  The
-six-row panel is below the mandatory ten-record/ten-functional-group accuracy
-floor, so it emits no Route 4 accuracy metrics and does not calculate
-experimental error, MAE, RMSE, or maximum error.  This is intentionally
-non-accuracy development evidence:
-the sample multiplies a raw geometry-level correction by an energy conversion
-factor and prints it beside experimental hydration free energies, while exact
-record IDs, training overlap, a sampled thermodynamic cycle, and standard-state
-metadata are unavailable.  Its row-complete CPU forces are a reference only;
-the separate force-consistency audit rejects them for MAPLE execution.  No GPU
-scalar-energy parity has been run or admitted.
-
-The separate `H2O_dGsolv.py` is a one-water harmonic-cycle example with a
-separately obtained UMA base potential, but it consumes the rejected upstream
-force path for optimization and vibrations.  It also has no released multi-
-solvent benchmark identity, sampled-state/convergence diagnostics, standard-
-state correction, or independent external confirmation panel.  Neither
-upstream example is an acceptance benchmark or independent extrapolation
-panel.
+Current AnySolv-MoE usage is documented once in [the public usage guide](CONSOLV_ANYSOLV.md).
+It is an additive geometry-level CPU/FP64 scalar-SP correction, not an
+absolute solvation or Gibbs free energy. No old selector or compact checkpoint
+is automatically mapped to MoE; no force/OPT/MD/GPU admission is implied.
 
 The decision remains deliberately conservative: current Route 4 does **not**
 have a single released pretrained backend that proves every requested
@@ -885,7 +847,7 @@ calculator/free-energy capability.
 | ML-for-charges PBE0-ESP | pretrained atomic charge prediction from MACE-OFF23-large descriptors | unavailable unmodified XGBoost runtime, no solvent input/PES/endpoints, and a separate explicit-water alchemical protocol | excluded from Route 4; a future authorization-gated Route 1 charge-provider audit only, with no fitting |
 | Organic_MPNICE + MLFF_HFE | published water-HFE FEP/replica-exchange protocol plus a proprietary pretrained MLFF result | no public Organic_MPNICE checkpoint, user-supplied lambda-aware TorchScript requirement, missing `openmmtools`, and no solvent selector | excluded from Route 4; neither a surrogate checkpoint nor a reconstructed protocol may be used |
 | ABCG2/GAFF2 | official AmberTools fixed-charge assignment, smoke-verified with no local fitting | a separately constructed explicit solvent/gas TI/BAR/MBAR protocol, record ledger, and independent panel; it is not an MLIP | Route 1 explicit-solvent physics control only; never Route 4 `#model` or a cross-panel score |
-| AniSolv compact | 21 solvent-conditioned scalar geometry-level corrections with a public compact checkpoint | rotation-covariant conservative forces, a sampled thermodynamic endpoint, standard state, and independent experimental panel | sealed `anisolv-uma` single-point energy control only |
+| AniSolv compact (retired) | historical 21-solvent compact checkpoint | rotation-covariant conservative forces, a sampled thermodynamic endpoint, standard state, and independent experimental panel | retired; [historical evidence](history/anisolv-retired/README.md) only |
 | C3Net | direct scalar predictions for 103 exact upstream solvent identifiers from a supplied SDF geometry | force/PES task contract, thermodynamic endpoint pair, and complete record-level training accounting | property-prediction sidecar only; never `#model` or an absolute-solvation ledger backend |
 | CIGIN | direct scalar prediction from one canonical solute SMILES and one canonical solvent SMILES | force/PES task contract, thermodynamic endpoint pair, and complete record-level training/multi-solvent accounting | CPU-only property-prediction sidecar; never `#model`, an absolute-solvation ledger backend, or a multi-solvent-coverage claim |
 | MoletoSolv | published neutral/anion/cation descriptor-regression study plus public data and precomputed predictions | no serialized pretrained estimators/scalers, incomplete neutral data asset, no maximum-error/holdout/GPU-parity evidence, and no PES/force contract | literature baseline only; local artifact reconstruction or training is prohibited |

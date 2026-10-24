@@ -1,5 +1,4 @@
 import re
-import os
 from difflib import get_close_matches
 from typing import Dict, Any, List, Optional
 
@@ -29,6 +28,7 @@ class CommandControl:
         "fennol",
         "fennix-bio1s",
         "fennix-bio1m",
+        "consolv",
     }
 
     SUPPORTED_TASKS = {"sp", "opt", "ts", "scan", "freq", "irc", "md", "parmfit"}
@@ -523,15 +523,31 @@ class CommandControl:
                 msg = "Solvation settings must use '#solv(key=value,...)' syntax."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+            allowed_solvent = cls.SOLV_PARAMS
+            is_anysolv = str(solv_params.get("method", "")).strip().lower() == "anysolv"
+            if is_anysolv:
+                allowed_solvent = allowed_solvent | {"model_path", "source_root"}
             for key in solv_params:
                 if key in cls.SOLV_REMOVED_PARAMS:
                     msg = cls.SOLV_REMOVED_PARAMS[key]
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if key not in cls.SOLV_PARAMS:
+                if key not in allowed_solvent:
                     cls._raise_unknown_param(
-                        output_path, "solvation", key, cls.SOLV_PARAMS
+                        output_path, "solvation", key, allowed_solvent
                     )
+            if is_anysolv:
+                for key in ("source_root", "model_path"):
+                    if key not in solv_params:
+                        continue
+                    value = solv_params[key]
+                    if not isinstance(value, str) or not value.strip():
+                        msg = (
+                            f"AnySolv {key} must be a non-empty path string; "
+                            f"got {value!r}."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
         if "charge" in params:
             charge_params = params["charge"]
             if not isinstance(charge_params, dict):
@@ -680,9 +696,49 @@ class CommandControl:
         explicit = solv_params.get("explicit")
         implicit = solv_params.get("implicit")
 
+        if str(method).lower() == "anysolv":
+            allowed = {
+                "method",
+                "implicit",
+                "experimental",
+                "model_path",
+                "source_root",
+            }
+            extra = set(solv_params) - allowed
+            if extra:
+                raise ValueError(
+                    f"AnySolv does not accept options: {', '.join(sorted(extra))}."
+                )
+            if task != "sp" or params.get("verbose", 0) != 0:
+                raise ValueError(
+                    "AnySolv-MoE supports scalar #sp(verbose=0) only; forces are disabled."
+                )
+            if solv_params.get("experimental") is not True:
+                raise ValueError("AnySolv-MoE requires experimental=true.")
+            if not implicit or str(implicit).lower() == "none":
+                raise ValueError("AnySolv requires implicit=<solvent>.")
+            if not solv_params.get("source_root"):
+                raise ValueError(
+                    "AnySolv requires source_root=<pinned official checkout>."
+                )
+            if "pbc" in params or "charge" in params or params.get("d4"):
+                raise ValueError(
+                    "AnySolv does not compose PBC, a #charge provider, or D4."
+                )
+            if params.get("model_options", {}).get("hessian") is not None:
+                raise ValueError("AnySolv does not expose a Hessian.")
+            solv_params["method"] = "anysolv"
+            solv_params["implicit"] = str(implicit).strip().lower()
+            return
+
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
+            if method == "anisolv":
+                raise ValueError(
+                    "method=anisolv is retired; select method=anysolv explicitly with "
+                    "the pinned AnySolv-MoE checkpoint and source_root. No automatic mapping."
+                )
             if method == "gbsa":
                 msg = (
                     "Legacy method=gbsa is no longer mapped silently. Migrate to "
@@ -690,8 +746,8 @@ class CommandControl:
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            if method not in {"gb", "pb", "smd", "anisolv"}:
-                msg = "Implicit solvation method must be 'gb', 'pb', 'smd', or 'anisolv'."
+            if method not in {"gb", "pb", "smd"}:
+                msg = "Implicit solvation method must be 'gb', 'pb', 'smd', or 'anysolv'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -701,15 +757,15 @@ class CommandControl:
             raise ValueError(msg)
 
         if implicit is not None:
-            if method not in {"gb", "pb", "smd", "anisolv"}:
+            if method not in {"gb", "pb", "smd"}:
                 msg = (
                     "Implicit solvation requires method=gb, method=pb, method=smd, "
-                    "or method=anisolv."
+                    "or method=anysolv."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             implicit = str(implicit).lower()
-            if method != "anisolv" and implicit != "water":
+            if implicit != "water":
                 msg = "The first implicit-solvation release supports implicit=water only."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
@@ -846,97 +902,6 @@ class CommandControl:
                     response=response,
                     standard_state=standard_state,
                 )
-            elif method == "anisolv":
-                if task != "sp":
-                    msg = (
-                        "AniSolv UMA is restricted to scalar single-point energy: "
-                        "upstream forces are not rotation-covariant, so optimization, "
-                        "scan, frequency, TS/IRC, MD, and free-energy tasks are disabled."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                model_name = str(params.get("model") or "").lower()
-                compact_model = re.sub(r"[-_ ()]", "", model_name)
-                if compact_model != "anisolvuma":
-                    msg = (
-                        "AniSolv compact is exposed only through the sealed "
-                        "#model=anisolv-uma composition."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if params.get("d4") is True:
-                    msg = "AniSolv UMA does not compose D4; remove #d4."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if "charge" in params:
-                    msg = (
-                        "AniSolv UMA does not consume a #charge(...) model; remove it. "
-                        "The common implicit-solvent input boundary supplies only explicit "
-                        "neutral-singlet metadata."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                model_options = params.get("model_options") or {}
-                allowed_model_options = {
-                    "base_model_path",
-                    "solvation_model_path",
-                    "size",
-                    "task",
-                    "inference",
-                }
-                model_conflicts = sorted(
-                    set(model_options).difference(allowed_model_options)
-                )
-                if model_conflicts:
-                    msg = (
-                        "AniSolv UMA accepts only base_model_path/solvation_model_path plus fixed-base "
-                        "size/task/inference options: "
-                        + ", ".join(model_conflicts)
-                        + "."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if not model_options.get("solvation_model_path"):
-                    msg = (
-                        "AniSolv UMA requires #model=anisolv-uma("
-                        "solvation_model_path=/path/to/model1_compact.pt)."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if not model_options.get("base_model_path"):
-                    msg = (
-                        "AniSolv UMA requires #model=anisolv-uma("
-                        "base_model_path=/path/to/verified-uma-s-1p2.pt,...)."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if model_options.get("size") not in {None, "uma-s-1p2"}:
-                    msg = "AniSolv UMA is pinned to size=uma-s-1p2."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if model_options.get("task") not in {None, "omol"}:
-                    msg = "AniSolv UMA is molecular and only permits task=omol."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if int(params.get("verbose", 0)) >= 1:
-                    msg = (
-                        "AniSolv UMA SP gradients are disabled because upstream "
-                        "AniSolv forces are not rotation-covariant; use #sp(verbose=0)."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                allowed_anisolv_options = {"method", "implicit", "experimental"}
-                route_conflicts = sorted(
-                    set(solv_params).difference(allowed_anisolv_options)
-                )
-                if route_conflicts:
-                    msg = (
-                        "AniSolv UMA does not accept continuum/provider or endpoint options: "
-                        + ", ".join(route_conflicts)
-                        + "."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
             else:
                 cls._validate_charge(params, required=True, output_path=output_path)
                 charge = params["charge"]
@@ -1044,12 +1009,6 @@ class CommandControl:
             elif method == "smd":
                 # Route 2 is calibrated separately from the fixed-charge path; keep the
                 # command contract explicit even though charge generation is not required.
-                pass
-            elif method == "anisolv":
-                # The sealed AniSolv compact adapter takes total electronic-state
-                # metadata, not user-supplied partial charges.  InputReader keeps the
-                # explicit neutral-singlet metadata requirement for the common implicit
-                # solvent boundary.
                 pass
 
             for key in ("grid_spacing", "probe_radius", "surface_tension", "pressure", "timeout"):
@@ -1298,6 +1257,32 @@ class CommandControl:
 
     @classmethod
     def _validate(cls, params: Dict[str, Any], task: str, output_path: Optional[str]) -> None:
+        if (
+            re.sub(r"[-_ ()]", "", str(params.get("model") or "").lower())
+            == "anisolvuma"
+        ):
+            raise ValueError(
+                "model=anisolv-uma is retired; choose a vacuum model and method=anysolv "
+                "explicitly. Old compact checkpoints are not AnySolv-MoE weights."
+            )
+        if str(params.get("model", "")).lower() == "consolv":
+            options = params.get("model_options", {})
+            if "model_path" in options:
+                path = options["model_path"]
+                if not isinstance(path, str) or not path.strip():
+                    raise ValueError(
+                        "ConSolv model_path must be a non-empty path string."
+                    )
+            if "solv" in params or params.get("d4"):
+                raise ValueError(
+                    "ConSolv is a native solution potential; remove #solv and D4."
+                )
+            if task != "sp":
+                raise ValueError("ConSolv currently supports #sp only.")
+            if not params.get("model_options", {}).get("native_solvent"):
+                raise ValueError(
+                    "ConSolv requires #model=consolv(native_solvent=<solvent>)."
+                )
         model = params.get("model")
         # Calculator names and class-declared model_options are registry-owned:
         # SetCalculator imports builtins, honors module= / MAPLE_CALCULATOR_PLUGINS,

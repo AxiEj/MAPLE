@@ -18,6 +18,7 @@ from .charges import (
 from .openmm_gb import EV_PER_HARTREE, OpenMMGB
 from .smd import SMDImplicitSolvation
 from .result import SolvationResult
+from .topology import TopologyProvider
 
 
 class ImplicitSolvationCorrection:
@@ -88,6 +89,7 @@ class ImplicitSolvationCorrection:
         self.mode = str(self.charge_options.get("mode", "fixed")).lower()
         if self.mode not in {"fixed", "polarizable"}:
             raise ValueError("Charge mode must be 'fixed' or 'polarizable'.")
+        self._reference_identity = self._noncoordinate_identity(atoms)
         if method == "gb":
             self.provider = OpenMMGB(
                 atoms,
@@ -128,6 +130,38 @@ class ImplicitSolvationCorrection:
         )
         self._write_audit_manifest()
 
+    def _noncoordinate_identity(self, atoms) -> tuple:
+        """Freeze physical topology/state, not mutable info, geometry or paths."""
+        if np.any(atoms.pbc):
+            raise ValueError("GB/PB implicit solvation is non-periodic; remove PBC.")
+        topology = TopologyProvider.from_mol2_atoms(atoms)
+        topology.validate_atoms(atoms)
+        bonds = tuple(sorted(
+            (min(i, j), max(i, j), order) for i, j, order in topology.bonds
+        ))
+        input_charges = None
+        if str(self.charge_options.get("source", "")).lower() == "mol2":
+            metadata = atoms.info["mol2"]
+            input_charges = (
+                tuple(atoms.get_initial_charges()),
+                metadata.get("charges_present"),
+                str(metadata.get("charge_type", "")).upper(),
+            )
+        return (
+            topology.symbols, topology.atom_names, topology.atom_types, bonds,
+            topology.total_formal_charge, atoms.info.get("mult"), input_charges,
+        )
+
+    def validate_atoms(self, atoms) -> None:
+        """Reject a different GB/PB Hamiltonian before evaluation or cache reuse."""
+        if self.method == "smd":
+            return  # Density/geometry validation remains owned by the SMD adapter.
+        if self._noncoordinate_identity(atoms) != self._reference_identity:
+            raise ValueError(
+                "Implicit-solvation topology, electronic state or input partial-charge "
+                "identity changed; construct a new correction for a different Hamiltonian."
+            )
+
     def _write_audit_manifest(self) -> None:
         manifest = {
             "schema_version": 2 if self.method == "smd" else 1,
@@ -166,6 +200,7 @@ class ImplicitSolvationCorrection:
         need_forces: bool = False,
         calculator=None,
     ) -> SolvationResult:
+        self.validate_atoms(atoms)
         if self.method == "smd":
             return self.provider.evaluate(atoms, need_forces=need_forces, calculator=calculator)
         if self.mode != "polarizable":

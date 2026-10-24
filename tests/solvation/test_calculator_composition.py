@@ -8,7 +8,15 @@ from maple.function.calculator.calculator_base import (
     CalcABC,
     reject_implicit_solvent_derivatives,
 )
+from maple.function.calculator.backends import (
+    CompositeCalculator,
+    PotentialResult,
+)
 from maple.function.calculator.extra_correction.implicit.result import SolvationResult
+from maple.function.calculator.model_capabilities import (
+    ModelCapabilities,
+    SolvationCapabilities,
+)
 from maple.function.dispatcher.sp.sp import SinglePoint
 
 
@@ -18,10 +26,92 @@ class DummyCorrection:
     def evaluate(self, atoms, need_forces=False):
         return SolvationResult(
             energy_hartree=0.25,
-            forces_hartree_per_angstrom=np.full((len(atoms), 3), 0.5) if need_forces else None,
+            forces_hartree_per_angstrom=(
+                np.full((len(atoms), 3), 0.5) if need_forces else None
+            ),
             components_hartree={"polar": 0.2, "nonpolar": 0.05},
             provenance={"provider": "dummy"},
         )
+
+
+class EnergyOnlyCorrection:
+    supported_properties = {"energy"}
+    capabilities = SolvationCapabilities(energy=True, forces=False)
+
+    def evaluate(self, atoms, *, need_forces=False, calculator=None):
+        assert need_forces is False
+        return SolvationResult(
+            energy_hartree=0.25,
+            quantity_kind="geometry_level_energy_correction",
+        )
+
+
+def test_energy_only_correction_discards_eager_gas_forces():
+    calc = CalcABC()
+    calc.solvent_correction = EnergyOnlyCorrection()
+    atoms = Atoms("H", positions=[[0, 0, 0]])
+    calc.calculate(atoms, properties=["energy"])
+    calc._finalize_results(atoms, energy=1.0, forces=np.ones((1, 3)), unit="hartree")
+    assert calc.results["energy"] == 1.25
+    assert "forces" not in calc.results
+    assert "delta_g_solv_hartree" not in calc.results["solvation"]
+    assert calc.results["solvation"]["correction_energy_hartree"] == 0.25
+    atoms.calc = calc
+    assert "Geometry-level solvent energy correction" in "".join(
+        SinglePoint._solvation_lines(atoms)
+    )
+    with pytest.raises(NotImplementedError):
+        calc.calculate(atoms, properties=["forces"])
+    assert calc.results == {}
+
+
+def test_composite_calculator_propagates_geometry_quantity_without_delta_g_label():
+    class Potential:
+        capabilities = ModelCapabilities(energy=True, forces=False)
+
+        def evaluate(self, atoms, *, need_forces=False, need_hessian=False):
+            return PotentialResult(energy_hartree=1.0)
+
+    calculator = CompositeCalculator(Potential(), EnergyOnlyCorrection())
+    atoms = Atoms("H", positions=[[0, 0, 0]])
+    calculator.calculate(atoms, properties=["energy"])
+
+    solvation = calculator.results["solvation"]
+    assert solvation["quantity_kind"] == "geometry_level_energy_correction"
+    assert solvation["correction_energy_hartree"] == 0.25
+    assert "delta_g_solv_hartree" not in solvation
+    atoms.calc = calculator
+    text = "".join(SinglePoint._solvation_lines(atoms))
+    assert "Geometry-level solvent energy correction: 0.2500000000 Hartree" in text
+    assert "Combined solution-phase energy: 1.2500000000 Hartree" in text
+    assert "Delta G" not in text
+
+
+def test_correction_failure_clears_previous_success():
+    class FailingCorrection:
+        supported_properties = {"energy"}
+
+        def evaluate(self, *args, **kwargs):
+            raise ValueError("invalid physical state")
+
+    calc = CalcABC()
+    atoms = Atoms("H")
+    calc._finalize_results(atoms, energy=1.0)
+    calc.solvent_correction = FailingCorrection()
+    with pytest.raises(ValueError, match="physical state"):
+        calc._finalize_results(atoms, energy=2.0)
+    assert calc.results == {}
+
+
+def test_charge_and_multiplicity_metadata_invalidate_ase_cache():
+    calc = CalcABC()
+    atoms = Atoms("H", info={"charge": 0, "mult": 2})
+    calc.calculate(atoms, properties=["energy"])
+    assert not calc.check_state(atoms)
+    atoms.info["charge"] = 1
+    assert "charge" in calc.check_state(atoms)
+    atoms.info["mult"] = 1
+    assert "mult" in calc.check_state(atoms)
 
 
 def test_shared_finalizer_adds_correction_energy_and_force_exactly_once():
@@ -58,6 +148,45 @@ def test_single_point_output_labels_gas_solvation_and_combined_energies():
     assert "0.2500000000 Hartree" in text
     assert "Combined E_MLIP(gas)+Delta G_solv: 1.2500000000 Hartree" in text
     assert "not a thermochemical Gibbs free energy" in text
+
+
+def test_trajectory_frame_output_includes_each_frames_decomposition(tmp_path):
+    class FrameCorrection(EnergyOnlyCorrection):
+        def evaluate(self, atoms, **kwargs):
+            return SolvationResult(
+                energy_hartree=float(atoms.positions[0, 0]) / 4,
+                quantity_kind="geometry_level_energy_correction",
+            )
+
+    class Base(CalcABC):
+        implemented_properties = ["energy", "free_energy"]
+
+        def calculate(self, atoms=None, properties=None, system_changes=None):
+            atoms = super().calculate(atoms, properties, system_changes)
+            self._finalize_results(
+                atoms, energy=float(atoms.positions[0, 0]), unit="hartree"
+            )
+
+    calc = Base()
+    calc.solvent_correction = FrameCorrection()
+    frames = [Atoms("H", positions=[[x, 0, 0]]) for x in (1, 2)]
+    for atoms in frames:
+        atoms.calc = calc
+    output = tmp_path / "trajectory.out"
+    SinglePoint(str(output), frames).run()
+    text = output.read_text()
+    first, second = text.split("Frame 1", 1)[1].split("Frame 2", 1)
+    for section, gas, delta, combined in [
+        (first, 1, 0.25, 1.25),
+        (second, 2, 0.5, 2.5),
+    ]:
+        assert f"Gas-phase MLIP energy: {gas:.10f} Hartree" in section
+        assert (
+            f"Geometry-level solvent energy correction: {delta:.10f} Hartree" in section
+        )
+        assert f"Combined solution-phase energy: {combined:.10f} Hartree" in section
+        assert "not an absolute solvation or Gibbs free energy" in section
+        assert "Delta G" not in section
 
 
 def test_shared_finalizer_does_not_leak_a_previous_solvation_result():
@@ -103,7 +232,10 @@ def test_numerical_hessian_blocked_with_implicit_correction_without_frequency_ty
         called["ok"] = True
         return np.zeros((3, 3))
 
-    monkeypatch.setattr("maple.function.calculator.calculator_base.numerical_hessian_from_atoms", _raise_if_called)
+    monkeypatch.setattr(
+        "maple.function.calculator.calculator_base.numerical_hessian_from_atoms",
+        _raise_if_called,
+    )
 
     class FakeCorrection:
         supported_properties = {"energy", "forces"}
@@ -127,7 +259,10 @@ def test_numerical_hessian_with_frequency_type_uses_numerical_solver(
     def _fake_numerical_hessian_from_atoms(_calc, _atoms, delta=0.002):
         return output
 
-    monkeypatch.setattr("maple.function.calculator.calculator_base.numerical_hessian_from_atoms", _fake_numerical_hessian_from_atoms)
+    monkeypatch.setattr(
+        "maple.function.calculator.calculator_base.numerical_hessian_from_atoms",
+        _fake_numerical_hessian_from_atoms,
+    )
 
     class FakeCorrection:
         supported_properties = {"energy", "forces"}

@@ -1,0 +1,82 @@
+{
+  "model_id": "anysolv-moe",
+  "version": "0.1.0-1778e1f",
+  "availability": "user-authorized-gated-checkpoint",
+  "audited": true,
+  "audit_scope": "source/checkpoint identity, CPU reference inference, two solvents, exact vacuum gate, finite-difference and rigid-motion mechanics; force admission rejected",
+  "source": {
+    "repository": "https://github.com/Ant-on-knee/anysolv",
+    "revision": "1778e1f18384e5f59de1475182765733a7401e39",
+    "checkpoint_path": "model_moe.pt",
+    "model_card": "https://huggingface.co/antonknee/anysolv"
+  },
+  "checkpoint_size_bytes": 1165270115,
+  "checkpoint_sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+  "license": {
+    "repository_code": "MIT",
+    "checkpoint": "FAIR Chemistry License v1; user-supplied authorized download"
+  },
+  "energy_reference": "relative",
+  "supports_absolute_solvation": false,
+  "scientific_status": "experimental-single-point-energy-only-force-rejected",
+  "force_consistency_evidence": {
+    "artifact": "docs/pretrained-solvation-hub/benchmarks/anysolv-moe-mechanics-2026-10-23/result.json",
+    "artifact_sha256": "da7f96e1fd399098d1d16499cc2b134389d5cd8f50e8aa5332baa63a9f4fbc78",
+    "status": "rejected_orientation_dependent_upstream_forces"
+  },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_formal_parity",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": false,
+    "conservative_forces": false,
+    "hessian": "none",
+    "supports_md": false,
+    "supports_pbc": false,
+    "supports_charge": true,
+    "supports_multiplicity": true,
+    "supports_multifragment": true,
+    "requires_topology": false,
+    "requires_partial_charges": false,
+    "solvation_mode": "additive",
+    "energy_reference": "relative",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "recommended_tasks": [
+    "single_point_geometry_level_energy_correction"
+  ],
+  "forbidden_tasks": [
+    "force_evaluation",
+    "geometry_optimization",
+    "scan",
+    "transition_state_search",
+    "intrinsic_reaction_coordinate",
+    "frequency",
+    "hessian",
+    "molecular_dynamics",
+    "periodic_simulation",
+    "absolute_solvation_free_energy",
+    "binding_free_energy",
+    "unvalidated_solvent_extrapolation",
+    "gpu_execution"
+  ],
+  "notes": [
+    "The checkpoint predicts a geometry-level E_SMD - E_gas correction, not thermodynamic Delta G.",
+    "The model accepts charge and multiplicity, but its validated element/charge/spin chemistry domain is not established by a public manifest.",
+    "A disconnected two-water input executes with finite scalar energy, establishing only mechanical multifragment capability; validated_multifragment_domain remains unknown.",
+    "The frozen CPU/default float64 audit found exact vacuum zero and solvent-dependent energies, but rejected forces due to an orientation-specific finite-difference and rotation-covariance defect."
+  ],
+  "multifragment_mechanics_evidence": {
+    "artifact": "docs/pretrained-solvation-hub/benchmarks/anysolv-multifragment-2026-10-24.json",
+    "artifact_sha256": "8dbe198ecc7351d22cc3735a8bff604a02215f212cdcfa2079efe0890164d240",
+    "status": "finite_scalar_mechanics_only",
+    "validated_multifragment_domain": "unknown"
+  }
+}

@@ -27,6 +27,24 @@ not thermochemical Gibbs energy, absolute solvation free energy, or binding
 free energy.  Thermodynamic results must be emitted by a dedicated protocol
 with sampling, estimator, standard-state, and uncertainty metadata.
 
+## Factory composition boundary
+
+Modern `gb`, `pb`, and `smd` selectors use `ImplicitSolvationCorrection` at
+the existing `CalcABC` finalizer; `gb` is not an alias for legacy `gbsa`.
+Explicit factory charge/solvation options override copied per-structure
+metadata defaults. Method and solvent selectors must agree, and
+`experimental=true` remains required. Native solution-phase and adapter-specific
+composition restrictions still apply.
+
+A numerical solvent Hessian requires an explicit base provenance card that
+permits frequency analysis and finite differences, plus an energy-derived,
+conservative solvent force provider. The resulting frequency type is
+`effective_solution_pmf`, not a thermochemical free energy. Analytic solvent
+Hessians remain closed. The current upstream MACE-POLAR adapter does not expose
+the declared Route 2 `polar_state()` density/response interface and profile;
+the factory therefore rejects its SMD composition before loading weights or
+constructing a provider. Restoring model discovery does not admit new physics.
+
 ## Experimental-accuracy evidence boundary
 
 An experimental accuracy metric is forbidden unless its immutable panel
@@ -101,6 +119,8 @@ convergence criteria, and accepted scalar precision as its reference path.
 MAPLE must not silently enable float16, bfloat16, TF32, fast-math,
 reduced-precision matrix multiplication, looser neighbor lists, shorter
 sampling, or relaxed convergence.
+A smaller panel may reject an accelerator by exposing a nonzero mismatch,
+but it can never unlock one or support an experimental-accuracy conclusion.
 
 Enablement requires a frozen paired audit of energy, forces, virial, and any
 lambda derivatives on identical configurations, followed by a paired
@@ -224,10 +244,12 @@ records, which are retained as a non-group bucket.  It never generates a conform
 propagates new MD.  This is a paper-split reproduction control, not an
 independent blind-validation claim.
 
-ConSolv is the direct multi-solvent successor and the preferred future
-mainline candidate, but its current manuscript defers code and weights until
-acceptance.  No ConSolv runtime, checkpoint, solvent-descriptor bundle, or
-license is reconstructed locally.
+ConSolv now has a user-authorized independent pure-Torch CPU adapter for
+native solution SP energies and gradients in 66 nonaqueous solvents. AnySolv
+MoE provides an additive scalar CPU SP correction in its frozen 36-solvent set;
+its measured force defect keeps derivative tasks disabled. See
+[public syntax, paths, domains, and quantities](CONSOLV_ANYSOLV.md). Historical
+release blockers and compact-model negative evidence remain in the registry.
 
 ## Initial engineering integration lanes
 
@@ -242,7 +264,7 @@ claimed here.
 | Conservative PES | MACE-OFF24(M), AceFF 2.0 | Adapter SP/force/numerical-Hessian contracts are unit-tested; live-checkpoint MD/NVE certification remains pending |
 | Explicit-system soft-core PES | MACE-OFF23-SC | The exact public checkpoint runs through the official MACE float64 runtime on CPU for energy/forces/PBC/multifragment systems. This is the full-coupling PES endpoint only; the separate OpenMM-ML/replica-exchange/MBAR protocol remains unavailable |
 | Native solution PES | AIMNet2-CPCMS v2 | Neutral-singlet mechanics probe only; MD is disabled until real-checkpoint stability evidence and solvent/license/reference metadata close |
-| Additive/reference solvent PMF | OpenFF + GNNIS; AniSolv compact | GNNIS remains a sealed reference Hamiltonian. AniSolv compact is a pinned 21-solvent scalar single-point correction whose upstream force path is rejected; both forbid absolute solvation free energy |
+| Additive/reference solvent PMF | OpenFF + GNNIS; AnySolv-MoE | GNNIS remains a sealed reference Hamiltonian. AnySolv-MoE is a pinned 36-solvent scalar single-point correction whose upstream force path is rejected; both forbid absolute solvation free energy |
 | Alchemical solvation | LSNN-v1 | Scaffold-only water TI/MBAR protocol contract; default execution remains disabled until the model domain and runtime are audited |
 | Direct scalar property prediction | C3Net; CIGIN; SolProp-mix Exp (blocked); AtomicESE (audit only) | C3Net/CIGIN run through separate property-only adapters. SolProp-mix is an exact pinned pure-and-mixture dGsolv ensemble whose original upstream runtime has unavailable dependencies. AtomicESE is a dedicated scalar multi-organic-solvent candidate represented only by a packaged-binary release audit; none exposes a PES, forces, ASE calculator, or acceptance-panel claim |
 
@@ -270,25 +292,14 @@ rejects accelerator requests and permits the original helper only when CUDA is
 not visible and the resulting OpenMM context proves a CPU or Reference
 platform.
 
-AniSolv compact is an additive geometry-level `E_solv - E_gas` correction. It
-is executable only with its pinned public compact checkpoint, its explicit
-21-solvent whitelist, explicit neutral-singlet metadata, and a non-periodic
-base potential. Its exact zero vacuum output anchors the paired gas/solution
-potential; it does **not** make ASE `free_energy` a thermodynamic quantity or
-certify absolute solvation free energy, MD, charged/open-shell chemistry, or
-descriptor-based solvent extrapolation.
+AnySolv-MoE is the current additive geometry-level correction through CalcABC.
+Use the single [AnySolv usage example](CONSOLV_ANYSOLV.md) with an explicit
+vacuum model, pinned source and MoE checkpoint. CPU/FP64 scalar SP only;
+forces, OPT, MD, GPU and absolute/Gibbs solvation free energy are not admitted.
 
-The ordinary MAPLE energy entry point is deliberately sealed rather than a
-generic modifier: `#model=anisolv-uma(base_model_path=/absolute/path/to/verified-uma-s-1p2.pt,solvation_model_path=/absolute/path/to/model1_compact.pt)`
-with `#solv(implicit=<one of the 21 names>,method=anisolv,experimental=true)`.
-The upstream UMA release is access-controlled, so MAPLE does not download or
-bypass it: `base_model_path` must be an already-authorized local compatibility
-checkpoint with the pinned SHA256.  The command also checks the public AniSolv
-compact SHA256 before loading, rejects custom base substitutions/D4/PBC/charged
-or open-shell inputs, and permits scalar `#sp(verbose=0)` only.  Exact-upstream
-AniSolv forces are not rotation-covariant at Euler-chart pole orientations, so
-MAPLE rejects gradients, optimization, scans, TS/IRC, frequencies/Hessians,
-MD, and absolute free-energy tasks.
+AniSolv compact and its sealed UMA wrapper are **retired**. Old selectors fail
+without automatic mapping. The [historical card archive](history/anisolv-retired/README.md)
+links unchanged benchmark evidence and source-commit replay instructions.
 
 MACE-OFF23-SC is a distinct explicit-system lane.  MAPLE now binds the exact
 public `MACE-OFF23-SC_swa.model` checkpoint and exposes its unchanged
@@ -312,110 +323,6 @@ panel.  MAPLE therefore keeps production CUDA selection fail-closed pending a
 predeclared experimental comparison with at least ten records and ten distinct
 primary functional groups showing no chemical-accuracy degradation.  This is
 an accuracy-admission block, not a runtime-support block.
-
-### Reproducible AniSolv compact upstream-sample audit
-
-`run_anisolv_compact_sample_audit.py` binds the exact clean upstream revision,
-compact checkpoint, source tree, sample definitions, geometries, and
-experimental labels.  Execution is materialized from the verified Git tree
-into an isolated temporary import root, so ignored bytecode and sibling
-modules cannot enter the result.  It then calls the official `predict_solvation_energy`
-API for the six water examples from `H2O_single_point.py`.  The audit is a
-deterministic **CPU reference**: float32 `default` inference, one thread,
-highest matmul precision, and TF32, autocast, reduced-precision reductions,
-compilation, and the upstream `fast`/`fast_gpu` modes all disabled.
-
-```bash
-python docs/pretrained-solvation-hub/run_anisolv_compact_sample_audit.py \
-  --upstream-root /absolute/path/to/clean/anisolv \
-  --output /absolute/path/to/anisolv-compact-sample-audit.json
-```
-
-The frozen artifact is
-`benchmarks/anisolv-compact-upstream-sample-audit-2026-07-30.json`
-(SHA256
-`9018364bef21b7d672f0a1404954b26702a096d0be4da266af719195349b07f6`).
-The six-row output is explicitly ineligible for accuracy evaluation: it has
-fewer than ten records and no predeclared ten-functional-group taxonomy.
-Consequently `metrics = null`; the artifact does not calculate, freeze, or
-display experimental errors, MAE, RMSE, or maximum error.
-
-It is water-only, its exact FreeSolv/MNSol record IDs and training overlap are
-unavailable, and it compares a geometry-level correction directly with
-experimental hydration free energies without a complete sampled
-thermodynamic cycle or standard-state ledger.  The artifact includes
-row-complete CPU correction forces only as identity diagnostics; they are not
-admitted scientific outputs.  No GPU run was performed, no CPU/GPU
-scalar-energy parity was demonstrated, and the AniSolv GPU gate remains
-closed.
-
-### Reproducible AniSolv compact no-loss GPU rejection audit
-
-`run_anisolv_compact_gpu_no_loss_audit.py` performs the separate physical-GPU
-check required before any accelerator admission.  It reuses the exact pinned
-six-example water identities and source-isolated official runtime, warms each
-model lane, and then executes three deterministic repetitions on CPU and an
-NVIDIA GeForce RTX 4060 Laptop GPU.  CPU and CUDA use the same float32 or
-float64 dtype and the upstream `default` inference mode.  Matmul precision is
-`highest`; TF32, autocast, float16/bfloat16 paths, reduced-precision
-reductions, compilation, and fast modes are disabled.  Literal scalar equality
-is mandatory on this diagnostic.  Experimental accuracy is not evaluated on
-the ineligible six-row panel; any future approval would separately require a
-formal panel satisfying the 10-record/10-functional-group gate.
-
-```bash
-python docs/pretrained-solvation-hub/run_anisolv_compact_gpu_no_loss_audit.py \
-  --upstream-root /absolute/path/to/clean/anisolv \
-  --output /absolute/path/to/anisolv-compact-gpu-no-loss-audit.json
-```
-
-The frozen negative artifact is
-`benchmarks/anisolv-compact-gpu-no-loss-audit-2026-07-30.json` (SHA256
-`5164e7ff38b9533ed9dd06d6f64e5ef53c555deb3fd346bf648a0d6b8d99462b`).
-Float64 has five nonidentical values out of six and a maximum CPU/CUDA energy
-difference of `1.110223e-16 eV`.  Float32 has six nonidentical values and a
-maximum energy difference of `4.398637e-8 eV`.  No experimental error is
-computed on this undersized panel.  The frozen six-record timing diagnostic
-also did not show a speedup, but timing is deliberately not an admission
-observable and could not override scientific failure if it had.
-
-The artifact verdict is therefore `fail_no_loss`.  Its six-row panel is also
-below the accuracy gate and cannot unlock an accelerator even if literal
-parity had passed.  A smaller panel may reject an accelerator by exposing a
-nonzero numerical mismatch, but it can never unlock one or support an
-experimental-accuracy conclusion.  It is not a parity approval token: the
-AniSolv model card retains null evidence fields, no allowed GPU task or
-inference mode, and `no_loss_parity_verified = false`.  Machine-rounding scale
-is still nonzero under the strict zero-loss contract, so MAPLE continues using
-the validated CPU route rather than silently accepting a tolerance.
-
-### Reproducible AniSolv compact force-consistency audit
-
-`run_anisolv_compact_force_consistency_audit.py` evaluates exact-upstream
-autograd forces against central finite differences on the sample H2O and
-CH3OH geometries.  It uses the same verified Git-archive source isolation,
-deterministic CPU float64 `default` inference, a `1e-5 angstrom` displacement,
-and a fixed proper rotation.  All reduced-precision and fast modes remain
-disabled.
-
-The frozen artifact is
-`benchmarks/anisolv-compact-force-consistency-audit-2026-07-30.json`
-(SHA256
-`44b095002282b80f5f4e9f8a16bbccded0f9bf105e020b8b8f243900c1edfb35`).
-The original geometries have maximum force discrepancies of
-`0.004636657 eV/angstrom` (H2O) and `0.005704464 eV/angstrom` (CH3OH), above
-the `1e-6 eV/angstrom` gate.  After the fixed rigid rotation the panel maximum
-is `1.086984e-9 eV/angstrom`, while the scalar-energy rotation drift is exactly
-zero.  This orientation-specific failure rejects upstream AniSolv forces and
-every force-derived MAPLE task; it does not reject the separately gated scalar
-single-point correction.
-
-MACE-POLAR-1 already uses the upstream `mace_polar()` loader and is audited,
-not reimplemented.  The public MACE-OFF23-SC checkpoint is pinned in this
-branch only as a full-coupling explicit-system PES endpoint
-(`solvation_mode=none`); its separate optional OpenMM-ML/OpenMMTools
-replica-exchange alchemical bridge remains pending.  The published
-MACE-OFF24-SC result is not assigned to that public OFF23-SC checkpoint.
 
 ### Reproducible MACE-OFF24-SC supplied-result audit
 
@@ -1004,7 +911,7 @@ experimental extrapolation set.
 
 - AIMNet2-CPCMS artifact context: <https://github.com/isayevlab/LoQI>
 - GNNIS: <https://github.com/rinikerlab/GNNImplicitSolvent>
-- AniSolv compact: <https://github.com/Ant-on-knee/anisolv> and <https://huggingface.co/antonknee/anisolv>
+- AniSolv compact (retired historical source; see [archive](history/anisolv-retired/README.md)): <https://github.com/Ant-on-knee/anisolv> and <https://huggingface.co/antonknee/anisolv>
 - C3Net: <https://github.com/SehanLee/C3Net> and <https://arxiv.org/abs/2309.15334>
 - CIGIN: <https://github.com/devalab/CIGIN> and <https://hai.iiit.ac.in/d4.html>
 - MoletoSolv: <https://github.com/lyjia-bnu/MoletoSolv> and <https://doi.org/10.1021/acs.jpcb.5c01669>

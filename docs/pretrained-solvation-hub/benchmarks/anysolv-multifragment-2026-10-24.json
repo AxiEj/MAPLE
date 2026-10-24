@@ -1,0 +1,63 @@
+{
+  "scope": "mechanical scalar execution only; validated chemistry domain unknown",
+  "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+  "checkpoint_sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+  "source_files_sha256": {
+    "data.py": "230310d321ccaccad92933e8eb8d04471591346802ae2e7f2cd3526ad489120d",
+    "predict.py": "e3ece22aa323c8b1165dbe588c8340735e0bc9be4ebe2a7276349bd691c4a0fc",
+    "_backbone/nn/embedding.py": "78f541c1fa2731f72bd4df416a4f9875b2c7f16757b86c1374fa1a2eb8c099bf"
+  },
+  "numbers": [
+    8,
+    1,
+    1,
+    8,
+    1,
+    1
+  ],
+  "positions_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.95,
+      0.0,
+      0.0
+    ],
+    [
+      -0.24,
+      0.92,
+      0.0
+    ],
+    [
+      8.0,
+      0.0,
+      0.0
+    ],
+    [
+      8.95,
+      0.0,
+      0.0
+    ],
+    [
+      7.76,
+      0.92,
+      0.0
+    ]
+  ],
+  "charge": 0,
+  "multiplicity": 1,
+  "solvent": "water",
+  "device": "cpu",
+  "dtype": "float64",
+  "inference_settings": "default",
+  "upstream_graph_cutoff_angstrom": 6.0,
+  "minimum_cross_fragment_distance_angstrom": 6.871862920635131,
+  "added_bonds": false,
+  "energy_hartree": -0.023199161175500378,
+  "quantity_kind": "geometry_level_energy_correction",
+  "supports_multifragment_mechanics": true,
+  "validated_multifragment_domain": "unknown"
+}

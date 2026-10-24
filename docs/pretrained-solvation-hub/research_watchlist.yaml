@@ -14,10 +14,10 @@
     {
       "model_id": "anisolv-compact",
       "availability": "public_solvent_checkpoint_pinned",
-      "adapter_status": "sealed_uma_single_point_energy_runtime_verified",
+      "adapter_status": "retired_historical_only",
       "source": "https://github.com/Ant-on-knee/anisolv",
-      "runtime_prerequisites": "The compact correction is bundled upstream; the sealed MAPLE composition additionally requires a user-authorized, hash-pinned UMA-S-1P2 compatibility checkpoint because the upstream UMA weights are access-controlled.",
-      "runtime_evidence": "2026-07-30: the exact public compact checkpoint and official source revision evaluated finite scalar corrections for all 21 enabled identifiers on a neutral methanol geometry. Upstream force arrays are not admitted because a source-bound central-difference audit found an orientation-chart defect.",
+      "runtime_prerequisites": "Historical only: The compact correction is bundled upstream; the sealed MAPLE composition additionally requires a user-authorized, hash-pinned UMA-S-1P2 compatibility checkpoint because the upstream UMA weights are access-controlled.",
+      "runtime_evidence": "Historical evidence only; runtime retired 2026-10-24. 2026-07-30: the exact public compact checkpoint and official source revision evaluated finite scalar corrections for all 21 enabled identifiers on a neutral methanol geometry. Upstream force arrays are not admitted because a source-bound central-difference audit found an orientation-chart defect.",
       "development_audit": {
         "artifact": "benchmarks/anisolv-compact-upstream-sample-audit-2026-07-30.json",
         "artifact_sha256": "9018364bef21b7d672f0a1404954b26702a096d0be4da266af719195349b07f6",
@@ -61,7 +61,12 @@
         "md",
         "periodic_simulation",
         "unvalidated_solvent_extrapolation"
-      ]
+      ],
+      "historical_adapter_status": "sealed_uma_single_point_energy_runtime_verified",
+      "runtime_status": "retired_historical_only",
+      "retired_on": "2026-10-24",
+      "historical_cards": "history/anisolv-retired/README.md",
+      "replay_source_commit": "8c27ed38"
     },
     {
       "model_id": "gnnis-chem-sci-water-2024",
@@ -241,11 +246,11 @@
     },
     {
       "model_id": "consolv",
-      "availability": "paper_only",
-      "adapter_status": "blocked_by_public_runtime_and_weights",
+      "availability": "local_converted_frozen_checkpoint",
+      "adapter_status": "independent_pure_torch_cpu_sp_mechanics",
       "source": "https://arxiv.org/abs/2606.24983",
       "solvent_scope": "66 nonaqueous organic solvents reported",
-      "free_energy_form": "published U_vac to U_solv differentiable free-energy path; execution artifact unavailable",
+      "free_energy_form": "Published free-energy path; current runtime provides geometry-level native solution energy and gradients, not sampled or harmonic free energy.",
       "direct_predecessor": "ReSolv; ConSolv keeps the two-stage vacuum/solution free-energy training method and adds solvent-conditioned MACE attention over solvent descriptors",
       "publication_evidence": {
         "solv_at_tum_filtered_records": 4577,
@@ -266,13 +271,42 @@
         "rtx4090_anti_fluorohydrin_chloroform_ns_per_day": 153,
         "matched_pure_qm_full_task_timing": false
       },
-      "release_evidence": "The v1 manuscript Data and Software Availability section defers code and data release until acceptance; as of 2026-07-31 no official runtime, checkpoint, descriptor bundle, or artifact license is public.",
+      "release_evidence": "Pinned source and public parameter files now available. User-authorized independent pure-Torch implementation; conversion receipts bind 60 source tensors / 768338 parameters. The reconstructed audit reference is not unmodified official-runtime parity.",
       "forbidden_tasks": [
-        "all_runtime_tasks",
-        "paper_metric_as_deployed_capability",
-        "matched_qm_speed_claim",
-        "local_retraining_or_checkpoint_reconstruction"
-      ]
+        "opt",
+        "scan",
+        "ts",
+        "irc",
+        "frequency",
+        "md",
+        "gpu_execution",
+        "absolute_solvation_free_energy",
+        "alchemical_free_energy",
+        "local_retraining",
+        "unmodified_official_parity_claim"
+      ],
+      "historical_evidence": {
+        "as_of": "2026-07-31",
+        "availability": "paper_only",
+        "adapter_status": "blocked_by_public_runtime_and_weights",
+        "free_energy_form": "published U_vac to U_solv differentiable free-energy path; execution artifact unavailable",
+        "release_evidence": "The v1 manuscript Data and Software Availability section defers code and data release until acceptance; as of 2026-07-31 no official runtime, checkpoint, descriptor bundle, or artifact license is public.",
+        "forbidden_tasks": [
+          "all_runtime_tasks",
+          "paper_metric_as_deployed_capability",
+          "matched_qm_speed_claim",
+          "local_retraining_or_checkpoint_reconstruction"
+        ]
+      },
+      "source_repository": "https://github.com/tummfm/ConSolv/tree/06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+      "source_revision": "06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+      "checkpoint": {
+        "path": "model/consolv/consolv-torch-v1.pt",
+        "sha256": "534114cd0a45d97308eb28506ccfe731df143ae5fb0c6d611b6c6c0cb1656767"
+      },
+      "license_boundary": "No upstream root code license; local integration and CC-BY model/data do not grant source redistribution.",
+      "usage": "CONSOLV_ANYSOLV.md",
+      "updated_on": "2026-10-24"
     },
     {
       "model_id": "twin",
@@ -472,6 +506,13 @@
     },
     {
       "model_id": "solprop-mix-exp",
+      "candidate_holdout_audit": {
+        "artifact": "benchmarks/solpropmix-not-used-candidate-holdout-audit-2026-07-30.json",
+        "artifact_sha256": "2cf068492206bbc01fa3841c9b2daa9b67885294d8c848f555111de707f9a62c",
+        "strict_final_holdout": false,
+        "overlap_audit_status": "pending",
+        "model_scoring_performed": false
+      },
       "availability": "public_v1_1_source_checkpoint_and_data_release_pinned",
       "adapter_status": "property_only_live_runtime_verified_development_accuracy_and_gpu_rejected",
       "source": "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop",
@@ -783,6 +824,41 @@
         "gpu_enablement_without_ten_functional_group_experimental_no_degradation",
         "claiming_mace_off24_sc_results"
       ]
+    },
+    {
+      "model_id": "anysolv-moe",
+      "availability": "user_authorized_gated_checkpoint",
+      "adapter_status": "experimental_cpu_scalar_sp_force_rejected",
+      "source": "https://github.com/Ant-on-knee/anysolv/tree/1778e1f18384e5f59de1475182765733a7401e39",
+      "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+      "checkpoint": {
+        "path": "model/anysolv/model_moe.pt",
+        "sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251"
+      },
+      "solvent_scope": "Frozen 36 trained/validated solvent identifiers, not all 179 descriptor entries",
+      "free_energy_form": "Geometry-level E_SMD - E_gas scalar correction, not thermodynamic Delta G",
+      "force_consistency_audit": {
+        "artifact": "benchmarks/anysolv-moe-mechanics-2026-10-23/result.json",
+        "sha256": "da7f96e1fd399098d1d16499cc2b134389d5cd8f50e8aa5332baa63a9f4fbc78",
+        "status": "rejected_orientation_dependent_upstream_forces"
+      },
+      "supports_multifragment_mechanics": true,
+      "validated_multifragment_domain": "unknown",
+      "validated_element_charge_spin_domain": "unknown; embedding capacity is not chemistry validation",
+      "forbidden_tasks": [
+        "forces",
+        "opt",
+        "scan",
+        "ts",
+        "irc",
+        "frequency",
+        "md",
+        "gpu_execution",
+        "absolute_solvation_free_energy",
+        "compact_fallback"
+      ],
+      "usage": "CONSOLV_ANYSOLV.md",
+      "updated_on": "2026-10-24"
     }
   ],
   "benchmark_datasets": [
@@ -846,5 +922,6 @@
       "SolvBERT",
       "MLSolv-A"
     ]
-  }
+  },
+  "consolv_anysolv_update_on": "2026-10-24"
 }

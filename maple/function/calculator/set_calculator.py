@@ -6,12 +6,14 @@ import shutil
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import ase
 from ase import Atoms
 
 from .calculator_base import (
+    ROUTE2_SMD_CALCULATOR_PROFILE,
+    CalcABC,
     atoms_has_pbc,
     get_registered_calculator,
     import_calculator_plugin,
@@ -19,7 +21,13 @@ from .calculator_base import (
     normalize_none_option,
     validate_implicit_solvent_choice,
 )
-
+from .model_capabilities import (
+    MODEL_CARD_EXTENSIONS,
+    CombinationValidator,
+    SolvationCapabilities,
+    is_explicit_cpu_device,
+    load_model_provenance_card,
+)
 
 HF_REPO_ID = 'Wayne7815/MAPLE_models'
 HF_MODEL_REVISION = 'd5d8eb902246fb3f0e3b24e0d4bbcdc12f12e816'
@@ -30,24 +38,32 @@ _COMMON_MODEL_OPTION_KEYS = {'module', 'model_path', 'hessian'}
 # External users add backends via input-header `module=` or the
 # MAPLE_CALCULATOR_PLUGINS env var; this dict is for shipped backends only.
 _BUILTIN_NAME_TO_MODULE = {
-    'ani2x': 'maple.function.calculator.ani._ani_calculator',
-    'ani1x': 'maple.function.calculator.ani._ani_calculator',
-    'ani1ccx': 'maple.function.calculator.ani._ani_calculator',
-    'ani1xnr': 'maple.function.calculator.ani._ani_calculator',
-    'aimnet2': 'maple.function.calculator.aimnet._aimnet2_calculator',
-    'aimnet2nse': 'maple.function.calculator.aimnet._aimnet2_calculator',
-    'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
-    'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
-    'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
-    'egret': 'maple.function.calculator.mace._mace_calculator',
-    'maceomol': 'maple.function.calculator.mace._mace_general_calculator',
-    'macepols': 'maple.function.calculator.mace._macepol_calculator',
-    'macepolm': 'maple.function.calculator.mace._macepol_calculator',
-    'macepoll': 'maple.function.calculator.mace._macepol_calculator',
-    'fennol': 'maple.function.calculator.fennol._fennol_calculator',
-    'fennix-bio1s': 'maple.function.calculator.fennol._fennol_calculator',
-    'fennix-bio1m': 'maple.function.calculator.fennol._fennol_calculator',
-    'uma': 'maple.function.calculator.uma._uma_calculator',
+    "ani2x": "maple.function.calculator.ani._ani_calculator",
+    "ani1x": "maple.function.calculator.ani._ani_calculator",
+    "ani1ccx": "maple.function.calculator.ani._ani_calculator",
+    "ani1xnr": "maple.function.calculator.ani._ani_calculator",
+    "aimnet2": "maple.function.calculator.aimnet._aimnet2_calculator",
+    "aimnet2nse": "maple.function.calculator.aimnet._aimnet2_calculator",
+    "aimnet2-cpcms-v2": "maple.function.calculator.aimnet._aimnet2_cpcms_calculator",
+    "mace-off24-medium": "maple.function.calculator.mace._maceoff24_calculator",
+    "mace-off23-sc": "maple.function.calculator.mace._maceoff23_sc_calculator",
+    "aceff-2.0": "maple.function.calculator.aceff._aceff2_calculator",
+    "maceoff23s": "maple.function.calculator.mace._mace_calculator",
+    "maceoff23m": "maple.function.calculator.mace._mace_calculator",
+    "maceoff23l": "maple.function.calculator.mace._mace_calculator",
+    "egret": "maple.function.calculator.mace._mace_calculator",
+    "maceomol": "maple.function.calculator.mace._mace_general_calculator",
+    "macepols": "maple.function.calculator.mace._macepol_calculator",
+    "macepolm": "maple.function.calculator.mace._macepol_calculator",
+    "macepoll": "maple.function.calculator.mace._macepol_calculator",
+    "fennol": "maple.function.calculator.fennol._fennol_calculator",
+    "fennix-bio1s": "maple.function.calculator.fennol._fennol_calculator",
+    "fennix-bio1m": "maple.function.calculator.fennol._fennol_calculator",
+    "fennix-bio1": "maple.function.calculator.fennol._fennix_bio1_calculator",
+    "fennix-bio1-small": "maple.function.calculator.fennol._fennix_bio1_calculator",
+    "fennix-bio1-medium": "maple.function.calculator.fennol._fennix_bio1_calculator",
+    "uma": "maple.function.calculator.uma._uma_calculator",
+    "consolv": "maple.function.calculator.consolv._consolv_calculator",
 }
 
 
@@ -61,6 +77,7 @@ def _compact_model_name(name: str) -> str:
         .lower()
         .replace('_', '')
         .replace('-', '')
+        .replace('.', '')
         .replace(' ', '')
         .replace('(', '')
         .replace(')', '')
@@ -92,6 +109,8 @@ def _normalize_model_options(model_options: Optional[dict]) -> dict:
             value = None
         elif key in {'hessian', 'coulomb_method', 'inference', 'task', 'size'}:
             value = str(raw_value).strip().lower()
+        elif key == "model_path" and not isinstance(raw_value, str):
+            value = raw_value
         elif key in {'module', 'model_path', 'checkpoint_path'}:
             value = str(raw_value).strip()
         elif isinstance(raw_value, str):
@@ -103,6 +122,7 @@ def _normalize_model_options(model_options: Optional[dict]) -> dict:
 
 
 class SetCalculator:
+
     def __init__(
         self,
         device,
@@ -110,10 +130,12 @@ class SetCalculator:
         output: str,
         atoms: Optional[Atoms] = None,
         d4: bool = False,
-        implicit: str = 'None',
-        solvent: str = 'None',
+        implicit: str = "None",
+        solvent: str = "None",
         model_options: Optional[dict] = None,
         solvation_options: Optional[dict] = None,
+        charge_options: Optional[dict] = None,
+        task: Optional[str] = None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -123,7 +145,12 @@ class SetCalculator:
         self.implicit = normalize_none_option(implicit)
         self.solvent = normalize_none_option(solvent)
         self.model_options = _normalize_model_options(model_options)
-        self.solvation_options = solvation_options or {}
+        info = atoms.info if atoms is not None else {}
+        self.solvation_options = dict(info.get('_maple_solvation_options', {}))
+        self.solvation_options.update(solvation_options or {})
+        self.charge_options = dict(info.get('_maple_charge_options', {}))
+        self.charge_options.update(charge_options or {})
+        self.task = str(task).strip().lower() if task is not None else None
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -140,11 +167,124 @@ class SetCalculator:
         self._model_error_logged = True
         self.log_error(message)
 
+    def _model_card_root(self) -> Path:
+        return Path(__file__).parent / "model_cards"
+
+    def _registered_model_card(self, cls):
+        names = tuple(getattr(cls, "MODEL_NAMES", ()))
+        if not names:
+            return None
+        name = str(names[0]).strip().lower().replace("_", "-")
+        root = self._model_card_root()
+        if not any((root / f"{name}{ext}").is_file() for ext in MODEL_CARD_EXTENSIONS):
+            return None
+        return load_model_provenance_card(name, root)
+
+    def _validate_registered_model_task(self, cls) -> None:
+        card = self._registered_model_card(cls)
+        if card is not None and self.task is not None:
+            card.validate_task(self.task)
+
+    def _validate_registered_model_acceleration(self, cls) -> None:
+        """Reject unverified accelerator paths before resolving any weights."""
+        if not getattr(cls, "MODEL_NAMES", ()) and not is_explicit_cpu_device(self.device):
+            raise ValueError("Accelerator execution requires a stable MODEL_NAMES identity.")
+        card = self._registered_model_card(cls)
+        if card is None:
+            if is_explicit_cpu_device(self.device):
+                return
+            raise ValueError(
+                f"Accelerator execution for '{self.model}' is disabled: no frozen "
+                "no-loss CPU/GPU parity evidence card is registered."
+            )
+        card.validate_device(
+            self.device,
+            task=self.task,
+            inference_mode=self.model_options.get("inference"),
+            evidence_root=Path(__file__).resolve().parents[3],
+        )
+
     def _validate_solvent_config(self) -> None:
         self.implicit, self.solvent = validate_implicit_solvent_choice(
             self.implicit, self.solvent
         )
         if self.implicit == 'none':
+            return
+
+        if self.implicit in {"gb", "pb", "smd"}:
+            for key, expected in (
+                ("method", self.implicit),
+                ("implicit", self.solvent),
+                ("solvent", self.solvent),
+            ):
+                if key in self.solvation_options and normalize_none_option(
+                    self.solvation_options[key]
+                ) != expected:
+                    raise ValueError(f"Conflicting implicit-solvation {key} selectors.")
+            self.solvation_options.setdefault("method", self.implicit)
+            self.solvation_options.setdefault("implicit", self.solvent)
+            if self.solvent != "water":
+                raise ValueError("Modern implicit solvation supports solvent='water' only.")
+            if self.solvation_options.get("experimental") is not True:
+                raise ValueError("Implicit-solvation providers require experimental=true.")
+            mode = self.model_options.get("hessian")
+            if mode not in (None, "numerical") or (
+                self.task in {"freq", "frequency"} and mode != "numerical"
+            ):
+                raise ValueError("Implicit solvation supports a numerical Hessian only.")
+            if self.atoms is None:
+                raise ValueError("Implicit solvation requires an input structure.")
+            if atoms_has_pbc(self.atoms):
+                raise ValueError("Implicit solvation is non-periodic; remove #pbc.")
+            if self.implicit == "smd" and (
+                self.task not in (None, "sp") or mode is not None or self.charge_options
+            ):
+                raise ValueError("Route 2 SMD is single-point energy-only and does not accept #charge.")
+            return
+
+        if self.implicit == "anysolv":
+            allowed = {
+                "method",
+                "implicit",
+                "experimental",
+                "model_path",
+                "source_root",
+            }
+            extra = set(self.solvation_options) - allowed
+            if extra:
+                raise ValueError(
+                    f"AnySolv does not accept options: {', '.join(sorted(extra))}."
+                )
+            if self.solvation_options.get("method", "anysolv") != "anysolv":
+                raise ValueError("Conflicting AnySolv method selectors.")
+            if self.solvation_options.get("implicit", self.solvent) != self.solvent:
+                raise ValueError("Conflicting AnySolv solvent selectors.")
+            if self.solvation_options.get("experimental") is not True:
+                raise ValueError("AnySolv-MoE requires experimental=true.")
+            if (
+                self.task not in (None, "sp")
+                or self.model_options.get("hessian") is not None
+            ):
+                raise ValueError(
+                    "AnySolv-MoE supports scalar single-point energy only."
+                )
+            if self.d4 or self.charge_options:
+                raise ValueError(
+                    "AnySolv does not compose D4 or a partial-charge provider."
+                )
+            source_root = self.solvation_options.get("source_root")
+            if not isinstance(source_root, str) or not source_root.strip():
+                raise ValueError(
+                    "AnySolv requires source_root=<non-empty pinned official checkout path>."
+                )
+            if "model_path" in self.solvation_options:
+                model_path = self.solvation_options["model_path"]
+                if not isinstance(model_path, str) or not model_path.strip():
+                    raise ValueError(
+                        "AnySolv model_path must be a non-empty path string."
+                    )
+            if self.atoms is not None and atoms_has_pbc(self.atoms):
+                raise ValueError("AnySolv-MoE is non-periodic; remove #pbc.")
             return
 
         if self.implicit != 'gbsa':
@@ -185,10 +325,11 @@ class SetCalculator:
             load_calculator_plugins_from_env()
             _plugins_loaded_from_env = True
 
-        normalized = name.lower()
+        normalized = str(name).strip().lower()
         module_override = self.model_options.get('module')
         if module_override:
             import_calculator_plugin(str(module_override))
+            resolved_name = normalized
         else:
             builtin_name = _builtin_canonical_name(normalized)
             builtin_module = _BUILTIN_NAME_TO_MODULE.get(normalized)
@@ -196,27 +337,74 @@ class SetCalculator:
                 builtin_module = _BUILTIN_NAME_TO_MODULE.get(builtin_name)
             if builtin_module is not None:
                 importlib.import_module(builtin_module)
+            # Implicit builtin discovery must not let a cached compact plugin
+            # name hijack a declared builtin alias. Explicit modules above keep
+            # the requested registry identity instead.
+            resolved_name = builtin_name or normalized
 
         try:
-            cls = get_registered_calculator(normalized)
-            self.model = normalized
+            cls = get_registered_calculator(resolved_name)
+            self.model = resolved_name
             return cls
         except KeyError:
             pass
 
-        builtin_name = _builtin_canonical_name(normalized)
-        if builtin_name is not None and builtin_name != normalized:
-            builtin_module = _BUILTIN_NAME_TO_MODULE.get(builtin_name)
-            if builtin_module is not None:
-                importlib.import_module(builtin_module)
-            try:
-                cls = get_registered_calculator(builtin_name)
-                self.model = builtin_name
-                return cls
-            except KeyError:
-                pass
-
         raise ValueError(f"Unsupported model: '{name}'.")
+
+    def _prepare_solvent_correction(self, cls):
+        """Validate composition and actual provider capabilities before weights."""
+        if not issubclass(cls, CalcABC):
+            raise TypeError("Modern implicit solvation requires the CalcABC finalizer.")
+        if self.implicit == "smd" and (
+            not callable(getattr(cls, "polar_state", None))
+            or getattr(cls, "route2_smd_profile", None) != ROUTE2_SMD_CALCULATOR_PROFILE
+        ):
+            raise TypeError(
+                "SMD requires the declared Route 2 polar_state() density/response API "
+                "and compatible calculator profile; this backend does not supply it."
+            )
+
+        mode = self.model_options.get("hessian")
+        card = self._registered_model_card(cls)
+        if mode == "numerical":
+            # This is a required scientific permission, not optional discovery.
+            names = tuple(getattr(cls, "MODEL_NAMES", ()))
+            if not names:
+                raise ValueError("Numerical solvent Hessian requires a stable MODEL_NAMES identity.")
+            card = load_model_provenance_card(names[0], self._model_card_root())
+            expected_identity = str(names[0]).strip().lower().replace("_", "-")
+            if card.model_id != expected_identity:
+                raise ValueError("Numerical solvent Hessian model-card identity mismatch.")
+            card.validate_task("frequency")
+        if card is not None:
+            CombinationValidator(
+                model_capabilities=card.capabilities,
+                implicit=self.implicit,
+                task=self.task or "sp",
+            ).validate()
+
+        from .extra_correction.implicit import ImplicitSolvationCorrection
+
+        correction = ImplicitSolvationCorrection(
+            self.atoms,
+            charge_options=self.charge_options,
+            solvation_options=self.solvation_options,
+            output=self.output,
+        )
+        capabilities = SolvationCapabilities.from_backend(correction)
+        if self.task in {"opt", "scan", "ts", "irc", "md", "freq", "frequency"} and not (
+            capabilities.energy and capabilities.forces and capabilities.conservative_forces
+        ):
+            raise ValueError("The requested task requires an energy-consistent solvent force backend.")
+        profile = None
+        if card is not None:
+            profile = CombinationValidator(
+                model_capabilities=card.capabilities,
+                implicit=self.implicit,
+                hessian_mode=mode,
+                solvation_capabilities=capabilities,
+            ).validate()
+        return correction, profile
 
     def _validate_against_class(self, cls) -> None:
         """Pre-instantiation gates: pbc, hessian mode, charge/mult, d4."""
@@ -274,6 +462,10 @@ class SetCalculator:
 
     def _validate_model_options(self, cls) -> None:
         """Fail loudly on misspelled/unsupported model_options for shipped backends."""
+        if self.model == "consolv" and "model_path" in self.model_options:
+            path = self.model_options["model_path"]
+            if not isinstance(path, str) or not path.strip():
+                raise ValueError("ConSolv model_path must be a non-empty path string.")
         option_keys = getattr(cls, 'OPTION_KEYS', None)
         if option_keys is None:
             return
@@ -462,8 +654,32 @@ class SetCalculator:
 
         cls = self._discover_calculator_class(requested_name)
         name = self.model
+        self._validate_registered_model_task(cls)
         self._validate_model_options(cls)
+        self._validate_registered_model_acceleration(cls)
         self._validate_against_class(cls)
+        correction = profile = None
+        if self.implicit in {"gb", "pb", "smd"}:
+            correction, profile = self._prepare_solvent_correction(cls)
+        if self.implicit == "anysolv":
+            # Keep composition at CalcABC's single result boundary.  UMA uses
+            # a separate path and is deliberately not wrapped or special-cased.
+            expected_module = _BUILTIN_NAME_TO_MODULE.get(name)
+            if not issubclass(cls, CalcABC) or cls.__module__ != expected_module:
+                raise ValueError("AnySolv requires a built-in vacuum CalcABC model.")
+            card = self._registered_model_card(cls)
+            if card is not None and card.capabilities.solvation_mode != "none":
+                raise ValueError(
+                    "AnySolv cannot be added to a native solution-phase model."
+                )
+            if self.atoms is not None and not cls.SUPPORTS_CHARGE_MULT:
+                if (
+                    self.atoms.info.get("charge", 0) != 0
+                    or self.atoms.info.get("mult", 1) != 1
+                ):
+                    raise ValueError(
+                        "The selected vacuum base cannot represent this charge/multiplicity."
+                    )
         options = dict(self.model_options)
         options.setdefault('d4', self.d4)
         # Allow input header to override the auto-resolved model path.
@@ -477,7 +693,11 @@ class SetCalculator:
         # locally-cached MAPLE copy if present. Handle the coercion here so that
         # UMACalculator only receives clean kwargs.
         if cls.__name__ == 'UMACalculator':
-            from .uma._uma_calculator import UMACalculator, UMA_DEFAULT_SIZE, UMA_FALLBACK_HF_MODELS
+            from .uma._uma_calculator import (
+                UMA_DEFAULT_SIZE,
+                UMA_FALLBACK_HF_MODELS,
+                UMACalculator,
+            )
 
             inference = options.get('inference')
             effective_device = UMACalculator._normalize_device(self.device)
@@ -503,14 +723,45 @@ class SetCalculator:
 
         resolved_path_str = str(resolved_model_path) if resolved_model_path is not None else None
         kwargs = cls.build_kwargs_from_options(name, options, resolved_model_path=resolved_path_str)
+        if "execution_task" in inspect.signature(cls.__init__).parameters:
+            kwargs["execution_task"] = self.task
 
-        calculator = cls(
+        calculator: Any = cls(
             device=self.device,
             model=name,
-            implicit=self.implicit,
-            solvent=self.solvent,
+            implicit="none" if self.implicit == "anysolv" else self.implicit,
+            solvent="none" if self.implicit == "anysolv" else self.solvent,
             **kwargs,
         )
+
+        if correction is not None:
+            if getattr(calculator, "solvent_correction", None) is not None:
+                raise ValueError("A second solvent correction cannot be attached.")
+            calculator.solvent_correction = correction
+            if profile is not None:
+                calculator.frequency_type = profile.frequency_type
+
+        if self.implicit == "anysolv":
+            from .extra_correction.implicit import AnySolvBackend
+
+            if getattr(calculator, "solvent_correction", None) is not None:
+                raise ValueError("A second solvent correction cannot be attached.")
+            calculator.solvent_correction = AnySolvBackend(
+                solvent=self.solvent,
+                source_root=self.solvation_options["source_root"],
+                device=str(self.device),
+                execution_task=self.task,
+                **(
+                    {"model_path": self.solvation_options["model_path"]}
+                    if "model_path" in self.solvation_options
+                    else {}
+                ),
+            )
+            calculator.implemented_properties = [
+                prop
+                for prop in calculator.implemented_properties
+                if prop in {"energy", "free_energy"}
+            ]
 
         self._apply_hessian_mode(calculator)
         return calculator

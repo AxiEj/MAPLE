@@ -68,7 +68,7 @@ def test_accuracy_taxonomy_is_hash_bound_and_contains_structural_groups_only():
 
 def test_anisolv_six_row_model_card_contains_no_accuracy_metrics():
     card = json.loads(
-        (ROOT / "maple/function/calculator/model_cards/anisolv-compact.yaml").read_text(
+        (HUB / "history/anisolv-retired/anisolv-compact.yaml").read_text(
             encoding="utf-8"
         )
     )
@@ -109,7 +109,8 @@ def test_watchlist_has_no_executable_placeholder_backends():
         model["model_id"]: model["adapter_status"] for model in watchlist["models"]
     }
 
-    assert statuses["consolv"] == "blocked_by_public_runtime_and_weights"
+    assert statuses["consolv"] == "independent_pure_torch_cpu_sp_mechanics"
+    assert statuses["anysolv-moe"] == "experimental_cpu_scalar_sp_force_rejected"
     assert statuses["resolv"] == (
         "dedicated_water_endpoint_bar_sidecar_full_panel_audit_in_progress"
     )
@@ -118,9 +119,7 @@ def test_watchlist_has_no_executable_placeholder_backends():
         "blocked_by_uninstalled_upstream_runtime_dependencies"
     )
     assert statuses["mace-off24-sc"] == "blocked_by_checkpoint_identity"
-    assert statuses["anisolv-compact"] == (
-        "sealed_uma_single_point_energy_runtime_verified"
-    )
+    assert statuses["anisolv-compact"] == "retired_historical_only"
     assert statuses["c3net"] == (
         "property_only_live_runtime_verified_formal_flexisol_"
         "development_accuracy_rejected"
@@ -190,10 +189,19 @@ def test_model_admission_record_requires_a_released_energy_gauge_and_holdout():
     assert "single-point energy difference" in text
     assert "full solvent-component multiset" in text
     assert "against the seven gates above" in text
-    assert candidates["consolv"]["availability"] == "paper_only"
+    assert candidates["consolv"]["availability"] == "local_converted_frozen_checkpoint"
     assert candidates["consolv"]["adapter_status"] == (
+        "independent_pure_torch_cpu_sp_mechanics"
+    )
+    assert candidates["consolv"]["historical_evidence"]["availability"] == "paper_only"
+    assert candidates["consolv"]["historical_evidence"]["adapter_status"] == (
         "blocked_by_public_runtime_and_weights"
     )
+    assert (
+        "unmodified_official_parity_claim" in candidates["consolv"]["forbidden_tasks"]
+    )
+    assert candidates["anysolv-moe"]["validated_multifragment_domain"] == "unknown"
+    assert "forces" in candidates["anysolv-moe"]["forbidden_tasks"]
     assert candidates["consolv"]["publication_evidence"]["test_records"] == 923
     assert (
         candidates["consolv"]["publication_evidence"][
@@ -466,7 +474,8 @@ def test_admission_record_assigns_each_candidate_to_a_scientific_route():
 
     assert "## Research sweep and route assignment" in text
     assert "dedicated `solvfe` sidecar/full-panel reproduction control only" in text
-    assert "sealed `anisolv-uma` single-point energy control only" in text
+    assert "AniSolv compact (retired)" in text
+    assert "history/anisolv-retired/README.md" in text
     assert "official inference runtime, weights" in text
     assert "### GNNIS original-runtime audit: identity verified" in text
     assert "### GNNIS upstream hydration-helper audit" in text

@@ -32,3 +32,6 @@ maple = "maple.main:main"
 
 [tool.setuptools.packages.find]
 include = ["maple*"]
+
+[tool.setuptools.package-data]
+"maple.function.calculator" = ["model_cards/*.yaml"]

@@ -59,6 +59,13 @@ class SinglePoint(JobABC):
         if gas is None or delta is None or combined is None:
             return []
         provenance = solvation.get("provenance", {})
+        if solvation.get("quantity_kind") == "geometry_level_energy_correction":
+            return [
+                f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
+                f"Geometry-level solvent energy correction: {float(delta):.10f} Hartree\n",
+                f"Combined solution-phase energy: {float(combined):.10f} Hartree\n",
+                "This single-geometry result is not an absolute solvation or Gibbs free energy.\n",
+            ]
         if solvation.get("quantity") == "geometry_level_solution_pmf":
             return [
                 f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
@@ -132,6 +139,7 @@ class SinglePoint(JobABC):
         positions = atoms_frame.get_positions()
         for i, (sym, pos) in enumerate(zip(symbols, positions), start=1):
             lines.append(f"  {i:<4} {sym:<2} {pos[0]:>15.8f} {pos[1]:>15.8f} {pos[2]:>15.8f}\n")
+        lines.extend(self._solvation_lines(atoms_frame))
         if self.verbose >= 1:
             lines.extend(self._gradient_lines(atoms_frame))
         lines.append("=" * 80 + "\n")

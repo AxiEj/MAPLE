@@ -104,7 +104,11 @@
       "repository_license": "MIT",
       "artifact_license": "MIT according to upstream README: compact checkpoint trained from scratch",
       "solvent_evidence": "21 explicitly trained/validated solvent entries upstream; descriptor extras disabled",
-      "scientific_status": "mechanics-only-experimental-not-absolute-solvation-free-energy"
+      "scientific_status": "mechanics-only-experimental-not-absolute-solvation-free-energy",
+      "runtime_status": "retired_historical_only",
+      "retired_on": "2026-10-24",
+      "historical_cards": "history/anisolv-retired/README.md",
+      "replay_source_commit": "8c27ed38"
     },
     {
       "model_id": "c3net-checkpoint-1",
@@ -348,6 +352,52 @@
       "artifact_license": "Apache-2.0 repository declaration",
       "solvent_evidence": "none; complete ordinary PES",
       "scientific_status": "adapter-unit-tested-runtime-not-installed"
+    },
+    {
+      "model_id": "consolv-torch-v1",
+      "source_revision": "06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+      "source_repository": "https://github.com/tummfm/ConSolv/tree/06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+      "source_path": "model/consolv/consolv-torch-v1.pt",
+      "size_bytes": 4578283,
+      "sha256": "534114cd0a45d97308eb28506ccfe731df143ae5fb0c6d611b6c6c0cb1656767",
+      "runtime_energy_unit": "eV; converted to Hartree at MAPLE boundary",
+      "runtime_force_unit": "eV/angstrom; converted to Hartree/angstrom at MAPLE boundary",
+      "repository_license": "no upstream root code license grant",
+      "artifact_license": "CC-BY-4.0 per Zenodo 22956180; local independent conversion, redistribution not admitted",
+      "solvent_evidence": "66 nonaqueous solvents; vacuum artifact is the fixed paired endpoint",
+      "scientific_status": "geometry-level-single-point-mechanics-not-absolute-free-energy",
+      "updated_on": "2026-10-24"
+    },
+    {
+      "model_id": "consolv-vacuum-torch-v1",
+      "source_revision": "06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+      "source_repository": "https://github.com/tummfm/ConSolv/tree/06801dd5f53182ed86c31eee1fa03cc011c05b5a",
+      "source_path": "model/consolv/consolv-vacuum-torch-v1.pt",
+      "size_bytes": 4578986,
+      "sha256": "d0369560cd34312604d8f4df3a002c7544c8867236ce50a6808c75794a5195f0",
+      "runtime_energy_unit": "eV; converted to Hartree at MAPLE boundary",
+      "runtime_force_unit": "eV/angstrom; converted to Hartree/angstrom at MAPLE boundary",
+      "repository_license": "no upstream root code license grant",
+      "artifact_license": "CC-BY-4.0 per Zenodo 22956180; local independent conversion, redistribution not admitted",
+      "solvent_evidence": "66 nonaqueous solvents; vacuum artifact is the fixed paired endpoint",
+      "scientific_status": "geometry-level-single-point-mechanics-not-absolute-free-energy",
+      "updated_on": "2026-10-24"
+    },
+    {
+      "model_id": "anysolv-moe",
+      "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+      "source_repository": "https://github.com/Ant-on-knee/anysolv/tree/1778e1f18384e5f59de1475182765733a7401e39",
+      "source_path": "model/anysolv/model_moe.pt",
+      "size_bytes": 1165270115,
+      "sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+      "runtime_energy_unit": "eV; converted to Hartree at MAPLE boundary",
+      "runtime_force_unit": "not exposed; force defect independently measured",
+      "repository_license": "MIT",
+      "artifact_license": "FAIR Chemistry License v1; user-authorized gated download",
+      "solvent_evidence": "frozen 36 trained/validated solvents",
+      "scientific_status": "geometry-level-single-point-mechanics-not-absolute-free-energy",
+      "updated_on": "2026-10-24"
     }
-  ]
+  ],
+  "consolv_anysolv_update_on": "2026-10-24"
 }

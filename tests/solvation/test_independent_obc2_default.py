@@ -500,7 +500,10 @@ def test_manifest_write_failure_cannot_admit_live_flags(monkeypatch, audited_cor
     assert not list(audited_correction.audit_dir.glob(".manifest.json.*.tmp"))
 
 
-def test_legacy_factory_restores_admission_in_manifest(monkeypatch, water_mol2, tmp_path):
+@pytest.mark.parametrize("platform, admitted", [("Reference", True), ("CPU", False)])
+def test_legacy_factory_restores_admission_in_manifest(
+    monkeypatch, water_mol2, tmp_path, platform, admitted
+):
     pytest.importorskip("openmm")
     from maple.function.calculator import set_calculator as module
     from maple.function.calculator.extra_correction.implicit.correction import (
@@ -528,7 +531,7 @@ def test_legacy_factory_restores_admission_in_manifest(monkeypatch, water_mol2, 
         implicit="gb", solvent="water", model_options={"hessian": "analytic"},
         solvation_options={
             "method": "gb", "provider": "openmm", "model": "obc2",
-            "platform": "Reference", "experimental": True,
+            "platform": platform, "experimental": True,
         },
         charge_options={"source": "mol2", "mode": "fixed", "geometry": "keep"},
     )
@@ -547,7 +550,7 @@ def test_legacy_factory_restores_admission_in_manifest(monkeypatch, water_mol2, 
 
     monkeypatch.setattr(ImplicitSolvationCorrection, "_set_analytic_task_derivatives_admitted", observe_update)
     calculator = factory.set_calculator()
-    assert states == [False, True]
-    assert calculator.analytic_implicit_derivatives_admitted is True
-    assert calculator.solvent_correction.analytic_task_derivatives_admitted is True
-    assert _audit_admitted(calculator.solvent_correction) is True
+    assert states == ([False, True] if admitted else [False])
+    assert calculator.analytic_implicit_derivatives_admitted is admitted
+    assert calculator.solvent_correction.analytic_task_derivatives_admitted is admitted
+    assert _audit_admitted(calculator.solvent_correction) is admitted

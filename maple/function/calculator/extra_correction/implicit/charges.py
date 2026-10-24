@@ -5,8 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import shutil
-import subprocess
 from collections import Counter
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
@@ -24,6 +22,15 @@ from maple.function.read.filereader.mol2_reader import (
 )
 
 from .amber_chagb import render_typed_mol2
+from .ambertools import resolve_antechamber, run_ambertools
+from .cartesian_sqm import run_cartesian_sqm_bcc
+from .cartesian_preparation import (
+    canonical_mol2,
+    infer_cartesian_topology,
+    preparation_record,
+    validate_cartesian_domain,
+    write_preparation_record,
+)
 
 MOL2_CHARGE_TOL = 1.0e-4
 # AmberTools SQM serializes the Mulliken precharges consumed by the AM1-BCC
@@ -199,12 +206,13 @@ class ChargeResult:
     reference_positions: np.ndarray | None = None
     provider_positions: np.ndarray | None = None
     provenance: dict[str, Any] = field(default_factory=dict)
+    prepared_atoms: Any = None
 
 
 def _molecular_charge_and_mult(atoms) -> tuple[int, int]:
     if "charge" not in atoms.info or "mult" not in atoms.info:
         raise ValueError(
-            "Implicit solvation requires an explicit 'charge multiplicity' line before MOL2."
+            "Implicit solvation requires an explicit 'charge multiplicity' line before the coordinate source."
         )
     charge_raw = atoms.info["charge"]
     mult_raw = atoms.info["mult"]
@@ -256,21 +264,17 @@ def _mol2_charges(atoms, label: str | None) -> ChargeResult:
     )
 
 
-def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> ChargeResult:
+def _charge_typed_mol2(
+    atoms, options: dict[str, Any], audit_dir: Path, tool, installation,
+    *, exact_cartesian: bool = False,
+) -> ChargeResult:
     audit_dir = audit_dir.resolve()
     method = str(options["method"]).lower()
     charge_method = {"am1bcc": "bcc", "abcg2": "abcg2"}[method]
     geometry_policy = str(options.get("geometry", "keep")).lower()
     if geometry_policy not in {"keep", "provider"}:
         raise ValueError("Antechamber charge geometry must be 'keep' or 'provider'.")
-    executable = str(options.get("executable", "antechamber"))
-    resolved = shutil.which(executable)
-    if resolved is None:
-        raise ImportError(
-            f"Charge method '{method}' requires AmberTools Antechamber. Install AmberTools24+ "
-            f"and ensure '{executable}' is on PATH."
-        )
-    installation = _ambertools_installation(resolved)
+    resolved = tool.executable
     total_charge, mult = _molecular_charge_and_mult(atoms)
     metadata = atoms.info.get("mol2")
     if not metadata:
@@ -300,10 +304,10 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
     if input_charges.shape != (len(atoms),) or not np.isfinite(input_charges).all():
         input_charges = np.zeros(len(atoms), dtype=np.float64)
     provider_input_path.write_text(
-        render_typed_mol2(
-            source_text,
-            atoms.get_positions(),
-            input_charges,
+        (
+            canonical_mol2(metadata, atoms.positions, input_charges)
+            if exact_cartesian
+            else render_typed_mol2(source_text, atoms.get_positions(), input_charges)
         ),
         encoding="utf-8",
     )
@@ -335,35 +339,27 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
         "-pf",
         "y",
     ]
-    completed = subprocess.run(
-        command,
-        cwd=audit_dir,
-        text=True,
-        capture_output=True,
-        timeout=float(options.get("timeout", 3600.0)),
-        check=False,
-    )
-    (audit_dir / f"charges-{method}.command.json").write_text(
-        json.dumps(
-            {
-                "command": command,
-                "returncode": completed.returncode,
+    cartesian_sqm = None
+    serialized_reference_positions = None
+    if exact_cartesian:
+        output_path, command, serialized_reference_positions, cartesian_sqm = run_cartesian_sqm_bcc(
+            atoms, method, provider_input_path, audit_dir, tool, installation,
+            float(options.get("timeout", 3600.0)),
+        )
+    else:
+        run_ambertools(
+            command,
+            installation=tool,
+            audit_dir=audit_dir,
+            stem=f"charges-{method}",
+            timeout=float(options.get("timeout", 3600.0)),
+            provenance={
+                **installation,
                 "source_mol2": str(source_path),
                 "source_mol2_sha256": source_sha256,
                 "provider_input_mol2": str(provider_input_path),
                 "provider_input_mol2_sha256": _sha256_file(provider_input_path),
-                **installation,
             },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    (audit_dir / f"charges-{method}.stdout.log").write_text(completed.stdout, encoding="utf-8")
-    (audit_dir / f"charges-{method}.stderr.log").write_text(completed.stderr, encoding="utf-8")
-    if completed.returncode != 0 or not output_path.is_file():
-        raise RuntimeError(
-            f"Antechamber {method} charge generation failed with exit code {completed.returncode}; "
-            f"see {audit_dir}."
         )
 
     provider_input_atoms = MOL2Reader(
@@ -402,6 +398,8 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
     provider_order = [
         provider_index_by_atom_id[atom_id] for atom_id in input_atom_ids
     ]
+    if exact_cartesian and provider_order != list(range(len(atoms))):
+        raise ValueError("Cartesian BCC output changed atom order; no remapping is permitted.")
     provider_to_input = {
         provider_index: input_index
         for input_index, provider_index in enumerate(provider_order)
@@ -434,7 +432,8 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
     ]
     if geometry_policy == "keep":
         expected_positions = np.asarray(
-            provider_input_atoms.get_positions(),
+            serialized_reference_positions
+            if exact_cartesian else provider_input_atoms.get_positions(),
             dtype=np.float64,
         )
         coordinate_half_widths = np.asarray(
@@ -577,7 +576,7 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
         ),
         encoding="utf-8",
     )
-    return ChargeResult(
+    result = ChargeResult(
         charges=charges,
         method=method,
         reference_positions=np.asarray(atoms.get_positions()).copy(),
@@ -586,12 +585,14 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
             "source": "ambertools-antechamber",
             "method": method,
             **installation,
+            "discovery": tool.discovery,
             "command": command,
             "source_mol2": str(source_path),
             "source_mol2_sha256": source_sha256,
             "provider_input_mol2": str(provider_input_path),
             "provider_input_mol2_sha256": _sha256_file(provider_input_path),
             "output_mol2": str(output_path),
+            "output_mol2_sha256": _sha256_file(output_path),
             "atom_mapping": str(mapping_path),
             "charge_normalization": str(normalization_path),
             "geometry_policy": geometry_policy,
@@ -621,6 +622,83 @@ def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> Char
             ],
         },
     )
+
+    if exact_cartesian:
+        result.provenance["cartesian_sqm"] = cartesian_sqm
+        result.provenance["provider_positions_role"] = "downstream BCC serialization, not SQM starting or optimized geometry"
+        result.provenance["reference_positions_role"] = "original MLIP preparation geometry, not the AM1 optimized charge-evaluation geometry"
+        # New Cartesian inputs adopt the validated charge provider's types;
+        # caller-supplied typed MOL2 retains its existing metadata semantics.
+        prepared_metadata = dict(metadata)
+        prepared_metadata["atom_types"] = [
+            provider_atom_types[index] for index in provider_order
+        ]
+        charged_path = audit_dir / f"prepared-{method}.mol2"
+        charged_path.write_text(
+            canonical_mol2(prepared_metadata, atoms.positions, charges), encoding="utf-8"
+        )
+        prepared = MOL2Reader(
+            str(charged_path), charge=total_charge, mult=mult, validate_charge=True
+        )
+        if (
+            prepared.positions.tobytes() != atoms.positions.tobytes()
+            or prepared.get_initial_charges().tobytes() != charges.tobytes()
+        ):
+            raise ValueError(
+                "Prepared charged MOL2 failed exact coordinate/charge round-trip validation."
+            )
+        result.prepared_atoms = prepared
+    return result
+
+
+def _ambertools_charges(atoms, options: dict[str, Any], audit_dir: Path) -> ChargeResult:
+    """Resolve once, infer new Cartesian topology, then charge exactly once.
+
+    Preparation uses owned Atoms. Only the correction boundary may adopt the
+    validated typed result, before constructing/fixing its provider topology.
+    """
+    _molecular_charge_and_mult(atoms)
+    if "mol2" in atoms.info:
+        tool = resolve_antechamber(options.get("executable"), method=options["method"])
+        return _charge_typed_mol2(
+            atoms, options, audit_dir, tool, _ambertools_installation(tool.executable)
+        )
+    validate_cartesian_domain(atoms, options)
+    audit_dir = audit_dir.resolve()
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    record = preparation_record(atoms)
+    write_preparation_record(audit_dir, record)
+    try:
+        tool = resolve_antechamber(options.get("executable"), method=options["method"])
+        installation = _ambertools_installation(tool.executable)
+        typed = infer_cartesian_topology(atoms, options, audit_dir, tool, installation, record)
+        result = _charge_typed_mol2(
+            typed, options, audit_dir, tool, installation, exact_cartesian=True
+        )
+        prepared = result.prepared_atoms
+        charged_path = Path(prepared.info["mol2"]["path"])
+        record.update(
+            status="complete",
+            charge_geometry_validated=True,
+            charge_input_geometry="exact-original-Cartesian-SQM-starting-geometry",
+            charge_evaluation_geometry="standard-AM1-optimized-geometry-not-original-MLIP-geometry",
+            geometry_keep_scope="final MLIP/solvent geometry only",
+            cartesian_sqm_audit=str(audit_dir / "cartesian-sqm.json"),
+            cartesian_sqm_audit_sha256=_sha256_file(audit_dir / "cartesian-sqm.json"),
+            prepared_charged_mol2=str(charged_path),
+            prepared_charged_mol2_sha256=_sha256_file(charged_path),
+        )
+        write_preparation_record(audit_dir, record)
+        result.provenance.update(
+            preparation=record,
+            prepared_charged_mol2=str(charged_path),
+            prepared_charged_mol2_sha256=_sha256_file(charged_path),
+        )
+        return result
+    except Exception as exc:
+        record.update(status="failed", error=f"{type(exc).__name__}: {exc}")
+        write_preparation_record(audit_dir, record)
+        raise
 
 
 def prepare_charges(

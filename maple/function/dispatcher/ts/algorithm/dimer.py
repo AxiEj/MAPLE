@@ -434,6 +434,7 @@ class Dimer(JobABC):
             )
         finally:
             self.atoms.set_positions(center)
+        self.log_numerical_directional_curvature(delta)
         return -(force_plus - force_minus) / (2.0 * delta)
 
     def _evaluate_derivatives(

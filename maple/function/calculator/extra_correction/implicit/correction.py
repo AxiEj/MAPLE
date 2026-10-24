@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 import math
 import os
@@ -332,7 +333,6 @@ class ImplicitSolvationCorrection:
         self._frozen_atomic_numbers = tuple(
             int(number) for number in atoms.get_atomic_numbers()
         )
-        self._frozen_mol2_topology_signature = _mol2_topology_signature(atoms)
         self.charge_options = charge_options
         self.solvation_options = solvation_options
         if force_mode is not None:
@@ -414,13 +414,33 @@ class ImplicitSolvationCorrection:
         output_path = Path(output).resolve() if output else Path.cwd() / "maple.out"
         # Configuration rejection must not mutate the caller's Atoms. Install
         # the reserved identity only after all provider/charge/inner gates pass.
-        if install_atom_identity:
-            atoms.new_array(_ATOM_IDENTITY_ARRAY, atom_identity)
         self.audit_dir = output_path.with_suffix(output_path.suffix + ".implicit")
         self.audit_dir.mkdir(parents=True, exist_ok=True)
         self.charge_result: ChargeResult = prepare_charges(
             atoms, self.charge_options, self.audit_dir
         )
+        if self.charge_result.prepared_atoms is not None:
+            prepared = self.charge_result.prepared_atoms
+            provenance = self.charge_result.provenance
+            with output_path.open("a", encoding="utf-8") as handle:
+                handle.write("\nWARNING: " + provenance["preparation"]["warning"] + "\n")
+                handle.write(
+                    f"AmberTools {provenance['provider_version']}: {provenance['method']}, "
+                    f"executable={provenance['executable']}, "
+                    f"discovery={provenance['discovery']['selection']}\n"
+                )
+                handle.write(
+                    "Source geometry SHA256: "
+                    + provenance["preparation"]["source_geometry_sha256"] + "\n"
+                )
+                handle.write("Prepared charged MOL2: " + provenance["prepared_charged_mol2"] + "\n")
+                handle.write("Prepared MOL2 SHA256: " + provenance["prepared_charged_mol2_sha256"] + "\n")
+                handle.write("AmberTools preparation audit: " + str(self.audit_dir / "preparation.json") + "\n")
+            atoms.info["mol2"] = deepcopy(prepared.info["mol2"])
+            atoms.set_array(MOL2_ATOM_ID_ARRAY, prepared.arrays[MOL2_ATOM_ID_ARRAY].copy())
+        if install_atom_identity:
+            atoms.new_array(_ATOM_IDENTITY_ARRAY, atom_identity)
+        self._frozen_mol2_topology_signature = _mol2_topology_signature(atoms)
         if (
             self.charge_result.provider_positions is not None
             and self.charge_options.get("geometry", "keep") == "provider"

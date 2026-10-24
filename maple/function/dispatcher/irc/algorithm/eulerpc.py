@@ -26,6 +26,7 @@ from typing import List, Optional, Dict, Tuple
 import numpy as np
 from ase import Atoms
 
+from ...jobABC import JobABC
 from .logger import log_info, log_error
 
 # =============================== Utilities ===============================
@@ -225,7 +226,7 @@ class EulerPCParams:
 
 
 # ================================== EulerPC ===================================
-class EulerPC:
+class EulerPC(JobABC):
     """
     Euler integration with a Hessian-based Predictor-Corrector:
 
@@ -241,8 +242,8 @@ class EulerPC:
     def __init__(self, atoms: Atoms, output: str,
                  params: Optional[EulerPCParams] = None,
                  paras: Optional[dict] = None):
+        super().__init__(output)
         self.atoms = atoms
-        self.output = output
         self.p = params if params is not None else EulerPCParams()
 
         # Parse optional dict overrides, supporting both {"EulerPC": {...}}
@@ -420,6 +421,7 @@ class EulerPC:
         or shape (1, 3N, 3N).
         """
         H = self.atoms.calc.get_hessian(self.atoms)
+        self.log_numerical_hessian_diagnostics(self.atoms.calc)
         H = to_f64(H)
         if H.ndim == 3 and H.shape[0] == 1:
             H = H[0]

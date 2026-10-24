@@ -131,7 +131,10 @@ one composition boundary.
 - AM1-BCC/CHA-GB/PBSA cavity-dispersion is an explicit SP-only accuracy
   provider. It does not replace the force-capable OBC-II/ACE default.
 - The default declared domain is a neutral, closed-shell, connected organic
-  molecule in water with explicit MOL2 hydrogens and connectivity.
+  molecule in water with explicit hydrogens and a validated MOL2 topology.
+  Single XYZ/Cartesian input can enter through the audited AmberTools
+  preparation boundary; charge/spin remain explicit and topology inference
+  does not authorize adding atoms or changing protonation.
 - `inner=prebuilt` is an experimental multicomponent-MOL2 extension. It uses
   fixed user-supplied charges for the entire cluster and does not alter the
   default single-solute charge-generation path. It is restricted to OpenMM GB

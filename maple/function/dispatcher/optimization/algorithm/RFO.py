@@ -192,6 +192,7 @@ class RFO(JobABC):
     def _calculate_hessian(self, atoms: Atoms) -> np.ndarray:
         """Fetch Hessian from calculator and ensure square (3N x 3N) float64."""
         H = atoms.calc.get_hessian(atoms)
+        self.log_numerical_hessian_diagnostics(atoms.calc)
         H = to_numpy_f64(H)
         if H.ndim == 3 and H.shape[0] == 1:
             H = H[0]

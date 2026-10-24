@@ -55,7 +55,8 @@ workflow availability does not imply transition-state convergence or accuracy.
 
 The default validation domain is one neutral, closed-shell, connected organic
 molecule in water, supplied as a Tripos MOL2 file with explicit bonds and
-hydrogens. An experimental prebuilt-cluster extension is described below; it
+hydrogens, or as single-geometry XYZ/Cartesian coordinates with explicit
+hydrogens and MAPLE-orchestrated AmberTools preparation. An experimental prebuilt-cluster extension is described below; it
 does not change the single-solute default or create an absolute hydration
 free-energy claim.
 
@@ -106,15 +107,49 @@ consistent-QEq variational energy. Their historical equations are retained
 below, but are not instructions for enabling those runtime paths. The CQEq
 variational solver and its GB coupling have been removed from this branch.
 
-AmberTools is an optional executable provider.  It can be kept outside the
+### XYZ preparation with AmberTools
+
+A single XYZ geometry can supply coordinates while AmberTools infers GAFF2
+atom types/connectivity and prepares fixed charges:
+
+```text
+#model=ani2x(model_path=/path/to/ani2x.pt,d4=false,hessian=analytic)
+#sp
+#device=cpu
+#charge(source=maple,method=am1bcc)
+#solv(implicit=water,method=gb,model=obc2,nonpolar=ace,experimental=true)
+
+0 1
+XYZ /path/to/molecule.xyz
+```
+
+The explicit `0 1` and all hydrogens remain required. XYZ has no bond-order or
+charge information: AmberTools inference is recorded, not treated as an
+experimentally supplied topology. MAPLE does not add/remove atoms, change
+protonation or guess charge/spin. `source=mol2` still requires a charged MOL2;
+it is never silently changed to generated charges. Multiple geometries,
+periodic inputs and prebuilt clusters are not XYZ-preparation inputs.
+
+Topology inference and charge calculation are separate preparation steps.
+AmberTools' AM1 charge reference can be optimized internally; this does not
+move the submitted MLIP/solvent geometry. The audit distinguishes the original
+XYZ, charge-provider input/reference, intermediate serialization and final
+charged MOL2. MAPLE preserves the original calculation coordinates and does
+not hide coordinate loss by relaxing the existing MOL2 checks. Charges are
+generated once during preparation, then held fixed during subsequent tasks.
+
+AmberTools is an optional executable provider. It can be kept outside the
 main MAPLE environment to avoid dependency conflicts:
 
 ```bash
 conda create -n maple-ambertools --override-channels -c conda-forge python=3.11 'ambertools=26.0'
 ```
 
-Either activate that environment before running MAPLE or point the charge
-provider at its Antechamber wrapper explicitly:
+MAPLE can discover Antechamber from `AMBERHOME`, `PATH`, the active prefix,
+or registered Conda environments. No package installation or broad filesystem
+scan is performed. An ambiguous set of registered installations requires an
+explicit choice. To select a particular installation, point the charge
+provider at its Antechamber wrapper:
 
 ```text
 #charge(source=maple,method=am1bcc,geometry=keep,executable=/path/to/maple-ambertools/bin/antechamber)
@@ -193,7 +228,11 @@ fails closed. Torch does not use OpenMM platform controls.
 The legacy OpenMM analytic path requires explicit `provider=openmm` and
 `platform=Reference` plus its own admission checks; it is not the default.
 Numerical Hessians are separately requested modes, never an automatic fallback
-for a rejected analytic request. Energy-only APBS PB and AmberTools CHA-GB
+for a rejected analytic request. When a task actually uses a numerical Hessian,
+its `.out` contains an explicit `WARNING`, including the finite-difference step
+when available. Force-difference Dimer is separately labeled as numerical
+directional curvature, not an analytical Hessian. SP does not warn about a
+Hessian that it never evaluates. Energy-only APBS PB and AmberTools CHA-GB
 providers cannot enter either derivative path. The admitted implicit-solvent frequency method is mass-weighted
 `method=mw`, with `ilowfreq` restricted to `0`, `1`, `2`, or `3`;
 non-mass-weighted and unimplemented dual-mode requests fail during parsing.

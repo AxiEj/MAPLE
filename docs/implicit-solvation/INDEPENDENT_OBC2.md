@@ -15,8 +15,11 @@ pip install '.[implicit-gb]'
 The `implicit` and `implicit-obc2-torch` extras select the same Torch dependency.
 Gas-model dependencies and checkpoints remain model-specific. Independence does
 not eliminate input preparation: topology, atom types and fixed charges are
-still required. Explicitly requesting AM1-BCC generation still requires its
-charge-preparation tools; prepared MOL2 charges do not.
+still required. AM1-BCC/ABCG2 generation requires AmberTools; prepared MOL2 charges do not.
+Single XYZ/Cartesian input with `#charge(source=maple)` uses the internal
+AmberTools preparation chain described in [the input contract](README.md#xyz-preparation-with-ambertools).
+MAPLE still requires its gas-model and Torch dependencies: AmberTools alone
+is not a complete MAPLE installation.
 
 ## Ordinary public input
 
@@ -43,10 +46,11 @@ solvent forces, Hessians and direct HVPs. A direct HVP does not build a dense H.
 
 ## Analytic task admission
 
-**Qualification status (2026-10-24):** the current receipt pointer is unset.
-The independent analytic default intentionally fails closed pending fresh
-candidate qualification, sealing and installed-console activation. The usage
-below describes the required qualified installation, not a completed gate.
+**Qualification is source-bound.** A receipt from an earlier checkout does not
+qualify modified runtime code. Fresh candidate qualification, sealing and
+installed-console activation are required after such changes; a missing or
+stale receipt fails closed. The recipe below applies only to a qualified
+installation.
 
 Provider capability alone does not qualify a composed MLIP task. Analytic
 implicit FREQ/P-RFO/direct-HVP Dimer requests require a sealed exact-cell
@@ -61,7 +65,8 @@ both admission flags. Missing or stale qualification raises
 
 For a qualified installation, request `hessian=analytic,d4=false` in the model
 header. Numerical Hessian and force-difference Dimer remain separately labeled
-existing modes, not fallbacks for a rejected analytic request. Other MLIPs,
+existing modes, not fallbacks for a rejected analytic request. Actual numerical
+Hessian or force-difference curvature use emits an explicit task-output warning. Other MLIPs,
 checkpoints, devices and dtypes do not inherit this analytic qualification.
 IRC and broader implicit TS workflows are not added by this provider migration.
 

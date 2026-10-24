@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 from pathlib import Path
@@ -19,6 +20,77 @@ from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
 from maple.function.device import resolve_torch_device
+
+def _read_single_implicit_xyz(file_path: str, *, charge, mult, base_dir: str) -> Atoms:
+    """Keep ordinary XYZReader leniency out of the topology inference boundary."""
+    from .filereader.xyz_reader import _case_insensitive_lookup
+
+    path = Path(file_path).expanduser()
+    if not path.is_absolute():
+        path = Path(base_dir) / path
+    path = Path(_case_insensitive_lookup(str(path))).resolve()
+    source = path.read_bytes()
+    lines = source.decode("utf-8").splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    try:
+        count = int(lines[0].strip())
+    except (ValueError, IndexError) as exc:
+        raise ValueError(
+            "Implicit preparation requires a single standard XYZ frame with an atom count."
+        ) from exc
+    rows = [line.split() for line in lines[2:] if line.strip()]
+    if count <= 0 or len(lines) < 2 or len(rows) != count:
+        raise ValueError(
+            "Implicit preparation requires a single XYZ frame with an exact atom count."
+        )
+    if any(len(row) != 4 for row in rows):
+        raise ValueError(
+            "Implicit XYZ requires exactly four columns per atom in a single frame."
+        )
+    try:
+        expected = Atoms(
+            [row[0] for row in rows],
+            positions=[[float(x) for x in row[1:]] for row in rows],
+        )
+    except (KeyError, ValueError) as exc:
+        raise ValueError(
+            "Invalid element or coordinate in the single implicit XYZ frame."
+        ) from exc
+    atoms = XYZReader(str(path), charge=charge, mult=mult)
+    # A pbc-only comment can be ignored by the legacy reader without a cell.
+    # Reject its periodic declaration explicitly at this stricter boundary.
+    pbc = re.search(
+        r"\bpbc\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|([^\n]*))", lines[1], re.IGNORECASE
+    )
+    pbc_tokens = (
+        next((group for group in pbc.groups() if group is not None), "").split()
+        if pbc
+        else []
+    )
+    periodic_comment = pbc and (
+        len(pbc_tokens) != 3
+        or any(token.upper() not in {"F", "FALSE", "0"} for token in pbc_tokens)
+    )
+    if np.any(atoms.pbc) or periodic_comment:
+        raise ValueError(
+            "Implicit Cartesian input is non-periodic; remove periodic XYZ metadata."
+        )
+    if (
+        not np.isfinite(expected.positions).all()
+        or not np.array_equal(atoms.numbers, expected.numbers)
+        or not np.array_equal(atoms.positions, expected.positions)
+    ):
+        raise ValueError(
+            "The single implicit XYZ frame must preserve all source atoms and finite coordinates."
+        )
+    atoms.info["_maple_cartesian_source"] = {
+        "kind": "XYZ",
+        "path": str(path),
+        "sha256": hashlib.sha256(source).hexdigest(),
+    }
+    return atoms
+
 
 class InputReader():
     def __init__(self):
@@ -241,25 +313,33 @@ class InputReader():
         implicit_options = self.command_control.params.get("solv", {})
         if isinstance(implicit_options, dict) and implicit_options.get("implicit") is not None:
             if isinstance(atoms_or_list, list):
-                raise ValueError("Implicit solvation currently accepts exactly one MOL2 molecule.")
-            if "mol2" not in atoms_or_list.info:
-                raise ValueError(
-                    "Implicit solvation requires a MOL2 coordinate source; XYZ/inline coordinates "
-                    "do not contain the explicit topology/parameter identity contract."
-                )
+                raise ValueError("Implicit solvation currently accepts exactly one molecule.")
+            charge_options = self.command_control.params.get("charge", {})
+            if "mol2" not in atoms_or_list.info and charge_options.get("source") == "mol2":
+                raise ValueError("#charge(source=mol2) requires a MOL2 coordinate source with explicit charges; it is never replaced by inferred charges.")
             if "charge" not in atoms_or_list.info or "mult" not in atoms_or_list.info:
                 raise ValueError(
                     "Implicit solvation requires an explicit '0 1' charge/multiplicity line "
-                    "immediately before the MOL2 reference."
+                    "immediately before the coordinate source."
                 )
             if atoms_or_list.info["charge"] != 0 or atoms_or_list.info["mult"] != 1:
                 raise ValueError(
                     "The first implicit-solvation domain is neutral closed-shell molecules "
                     "with charge/multiplicity '0 1'."
                 )
+            if np.any(atoms_or_list.pbc):
+                raise ValueError("Implicit-solvent input is non-periodic; remove #pbc or periodic XYZ metadata.")
+            if "mol2" not in atoms_or_list.info:
+                if charge_options.get("geometry", "keep") != "keep":
+                    raise ValueError("Cartesian implicit-solvent preparation requires geometry=keep.")
+                if "_maple_cartesian_source" not in atoms_or_list.info:
+                    atoms_or_list.info["_maple_cartesian_source"] = {
+                        "kind": "inline", "path": self.input,
+                        "sha256": hashlib.sha256(Path(self.input).read_bytes()).hexdigest(),
+                    }
             if (
                 implicit_options.get("inner") == "prebuilt"
-                and atoms_or_list.info["mol2"].get("component_count", 1) < 2
+                and atoms_or_list.info.get("mol2", {}).get("component_count", 1) < 2
             ):
                 raise ValueError(
                     "inner=prebuilt requires a MOL2 cluster with at least two "
@@ -517,7 +597,12 @@ class InputReader():
                         keyword = parts[0].upper()
                         file_path = parts[1]
                         
+                        implicit = self.command_control.params.get("solv", {}).get("implicit") is not None
+                        if implicit and (block_charge is None or block_mult is None):
+                            raise ValueError("Implicit solvation requires an explicit '0 1' line before the coordinate reference.")
                         if keyword == 'XYZTRAJ':
+                            if implicit:
+                                raise ValueError("Implicit preparation accepts a single XYZ frame, not XYZTRAJ.")
                             # Read trajectory file, returns Molecules object
                             molecules_obj = XYZTrajReader(
                                 file_path, charge=block_charge, mult=block_mult, base_dir=input_dir
@@ -541,7 +626,8 @@ class InputReader():
                             info_message.append('-' * 20 + '\n')
                         elif keyword == 'XYZ':
                             # Regular XYZ file
-                            atoms = XYZReader(
+                            reader = _read_single_implicit_xyz if implicit else XYZReader
+                            atoms = reader(
                                 file_path, charge=block_charge, mult=block_mult, base_dir=input_dir
                             )
 

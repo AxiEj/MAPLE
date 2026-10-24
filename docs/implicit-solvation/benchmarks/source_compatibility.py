@@ -14,7 +14,7 @@ from benchmark_core import artifact_content_sha256, load_json, sha256_file
 
 COMPATIBILITY_ARTIFACT = (
     Path(__file__).resolve().parent
-    / "route1-production-safety-source-compatibility-2026-10-23-obc2-default.json"
+    / "route1-production-safety-source-compatibility-2026-10-24-xyz-ambertools.json"
 )
 PREVIOUS_COMPATIBILITY_ARTIFACT = (
     Path(__file__).resolve().parent

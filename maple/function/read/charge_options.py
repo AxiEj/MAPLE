@@ -23,7 +23,7 @@ def normalize_charge_options(options: Mapping[str, Any]) -> dict[str, Any]:
     unknown = set(charge) - CHARGE_OPTION_KEYS
     if unknown:
         raise ValueError(f"Unsupported #charge options: {sorted(map(str, unknown))}.")
-    source = str(charge.get("source", "")).lower()
+    source = str(charge.get("source", "maple")).lower()
     if source not in {"mol2", "maple"}:
         raise ValueError("#charge source must be 'mol2' or 'maple'.")
     method = charge.get("method")

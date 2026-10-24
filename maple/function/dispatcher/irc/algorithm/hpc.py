@@ -26,6 +26,7 @@ from typing import List, Optional, Dict, Tuple
 import numpy as np
 from ase import Atoms
 
+from ...jobABC import JobABC
 from .logger import log_info, log_error
 
 # =============================== Utilities ===============================
@@ -224,7 +225,7 @@ class HPCParams:
 
 
 # ================================== HPC ===================================
-class HPC:
+class HPC(JobABC):
     """
     Hessian-based Predictor-Corrector(HPC):
 
@@ -240,8 +241,8 @@ class HPC:
     def __init__(self, atoms: Atoms, output: str,
                  params: Optional[HPCParams] = None,
                  paras: Optional[dict] = None):
+        super().__init__(output)
         self.atoms = atoms
-        self.output = output
         self.p = params if params is not None else HPCParams()
 
         # Parse optional dict overrides, supporting both {"hpc": {...}}
@@ -416,6 +417,7 @@ class HPC:
         or shape (1, 3N, 3N).
         """
         H = self.atoms.calc.get_hessian(self.atoms)
+        self.log_numerical_hessian_diagnostics(self.atoms.calc)
         H = to_f64(H)
         if H.ndim == 3 and H.shape[0] == 1:
             H = H[0]

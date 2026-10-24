@@ -596,6 +596,7 @@ class PRFO(JobABC):
         if not callable(hessian_function):
             raise ValueError("PRFO saddle certification requires get_hessian.")
         hessian = np.asarray(hessian_function(atoms), dtype=np.float64)
+        self.log_numerical_hessian_diagnostics(atoms.calc)
         n3 = 3 * len(atoms)
         if hessian.shape != (n3, n3) or not np.isfinite(hessian).all():
             raise ValueError("Final PRFO Hessian must be finite and have shape (3N,3N).")

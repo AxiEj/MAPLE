@@ -30,7 +30,7 @@ def test_input_reader_accepts_charge_mult_then_mol2(water_mol2, tmp_path):
     assert atoms.info["_maple_solvation_options"]["model"] == "obc2"
 
 
-def test_implicit_input_rejects_xyz_even_when_charge_method_can_use_geometry(tmp_path):
+def test_implicit_xyz_with_maple_charge_is_deferred_to_preparation(tmp_path):
     xyz = tmp_path / "water.xyz"
     xyz.write_text("3\nwater\nO 0 0 0\nH .96 0 0\nH -.24 .93 0\n")
     inp = tmp_path / "job.inp"
@@ -46,12 +46,11 @@ def test_implicit_input_rejects_xyz_even_when_charge_method_can_use_geometry(tmp
             ]
         )
     )
-    try:
-        InputReader()(str(inp), str(tmp_path / "job.out"))
-    except ValueError as exc:
-        assert "requires a MOL2" in str(exc)
-    else:
-        raise AssertionError("Implicit XYZ input should fail closed")
+    atoms = InputReader()(str(inp), str(tmp_path / "job.out"))
+    assert isinstance(atoms, Atoms)
+    assert atoms.get_chemical_symbols() == ["O", "H", "H"]
+    assert atoms.info["_maple_charge_options"]["source"] == "maple"
+    assert "mol2" not in atoms.info  # Preparation belongs to calculator setup.
 
 
 def test_implicit_mol2_requires_explicit_neutral_closed_shell_line(water_mol2, tmp_path):

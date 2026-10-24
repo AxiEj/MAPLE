@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from maple.function.calculator.extra_correction.charge.qeq import QEqGTO
-from maple.function.calculator.extra_correction.implicit import charges
+from maple.function.calculator.extra_correction.implicit import ambertools
 from maple.function.calculator.extra_correction.implicit.charges import prepare_charges
 from maple.function.calculator.extra_correction.implicit.correction import (
     ImplicitSolvationCorrection,
@@ -20,7 +20,7 @@ def test_missing_antechamber_dependency_is_actionable(
     water_mol2, tmp_path, monkeypatch
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
-    monkeypatch.setattr(charges.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(ambertools.shutil, "which", lambda _name: None)
     with pytest.raises(ImportError, match=r"AmberTools24\+"):
         prepare_charges(
             atoms,
@@ -32,7 +32,7 @@ def test_missing_antechamber_dependency_is_actionable(
 def test_ambertools_failure_never_falls_back_to_qeq(water_mol2, tmp_path, monkeypatch):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
     qeq_called = False
 
@@ -47,7 +47,7 @@ def test_ambertools_failure_never_falls_back_to_qeq(water_mol2, tmp_path, monkey
         )
 
     monkeypatch.setattr(QEqGTO, "solve", unexpected_qeq)
-    monkeypatch.setattr(charges.subprocess, "run", failed_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", failed_run)
 
     with pytest.raises(
         RuntimeError, match="Antechamber am1bcc charge generation failed"
@@ -68,7 +68,7 @@ def test_ambertools_charge_orchestration_and_mapping_audit(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -77,7 +77,7 @@ def test_ambertools_charge_orchestration_and_mapping_audit(
         output_path.write_text(input_path.read_text(), encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     result = prepare_charges(
         atoms,
         {"source": "maple", "method": method, "mode": "fixed", "geometry": "keep"},
@@ -99,7 +99,7 @@ def test_ambertools_charge_input_uses_current_atoms_geometry(
     current = atoms.get_positions() + np.asarray([2.0, -1.0, 0.5])
     atoms.set_positions(current)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -112,7 +112,7 @@ def test_ambertools_charge_input_uses_current_atoms_geometry(
         output_path.write_text(input_path.read_text(), encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     result = prepare_charges(
         atoms,
         {"source": "maple", "method": "am1bcc", "mode": "fixed", "geometry": "keep"},
@@ -129,7 +129,7 @@ def test_ambertools_rejects_coarse_provider_coordinate_tokens(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -148,7 +148,7 @@ def test_ambertools_rejects_coarse_provider_coordinate_tokens(
         output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     with pytest.raises(ValueError, match="coordinate token .* is coarser"):
         prepare_charges(
             atoms,
@@ -167,7 +167,7 @@ def test_ambertools_rejects_coarse_provider_charge_tokens(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -187,7 +187,7 @@ def test_ambertools_rejects_coarse_provider_charge_tokens(
         output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     with pytest.raises(ValueError, match="charge token .* is coarser"):
         prepare_charges(
             atoms,
@@ -210,7 +210,7 @@ def test_ambertools_charge_input_rejects_source_mol2_drift_before_execution(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
     provider_called = False
 
@@ -219,7 +219,7 @@ def test_ambertools_charge_input_rejects_source_mol2_drift_before_execution(
         provider_called = True
         raise AssertionError("Antechamber must not run after source drift")
 
-    monkeypatch.setattr(charges.subprocess, "run", unexpected_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", unexpected_run)
 
     with pytest.raises(ValueError, match="source MOL2 changed after MOL2Reader"):
         prepare_charges(
@@ -236,7 +236,7 @@ def test_ambertools_charge_input_rejects_mutated_mol2_metadata_before_execution(
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     atoms.info["mol2"]["atom_types"][0] = "O.2"
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
     provider_called = False
 
@@ -245,7 +245,7 @@ def test_ambertools_charge_input_rejects_mutated_mol2_metadata_before_execution(
         provider_called = True
         raise AssertionError("Antechamber must not run after metadata drift")
 
-    monkeypatch.setattr(charges.subprocess, "run", unexpected_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", unexpected_run)
 
     with pytest.raises(ValueError, match="metadata changed after MOL2Reader"):
         prepare_charges(
@@ -262,7 +262,7 @@ def test_ambertools_charge_input_rejects_preparation_after_atom_reordering(
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     reordered = atoms[[1, 0, 2]]
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     with pytest.raises(ValueError, match="source MOL2 atom IDs"):
@@ -278,7 +278,7 @@ def test_ambertools_charge_output_permutation_is_mapped_by_atom_ids(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -302,7 +302,7 @@ def test_ambertools_charge_output_permutation_is_mapped_by_atom_ids(
         output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     result = prepare_charges(
         atoms,
         {"source": "maple", "method": "am1bcc", "mode": "fixed", "geometry": "provider"},
@@ -320,7 +320,7 @@ def test_ambertools_charge_output_atom_name_changes_fail_closed(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -332,7 +332,7 @@ def test_ambertools_charge_output_atom_name_changes_fail_closed(
         )
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     with pytest.raises(ValueError, match="changed a MOL2 atom name"):
         prepare_charges(
             atoms,
@@ -346,7 +346,7 @@ def test_ambertools_charge_output_changed_atom_id_fails(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -368,7 +368,7 @@ def test_ambertools_charge_output_changed_atom_id_fails(
         output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     with pytest.raises(ValueError, match="changed, removed, or duplicated a MOL2 atom ID"):
         prepare_charges(
             atoms,
@@ -382,7 +382,7 @@ def test_ambertools_charge_output_duplicate_bond_fails_closed(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -414,7 +414,7 @@ def test_ambertools_charge_output_duplicate_bond_fails_closed(
         output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     with pytest.raises(ValueError, match="Duplicate MOL2 bond between"):
         prepare_charges(
             atoms,
@@ -429,7 +429,7 @@ def test_ambertools_relative_audit_directory_is_resolved_before_provider_run(
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **kwargs):
@@ -440,7 +440,7 @@ def test_ambertools_relative_audit_directory_is_resolved_before_provider_run(
         output_path.write_text(input_path.read_text(), encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     result = prepare_charges(
         atoms,
         {"source": "maple", "method": "am1bcc", "mode": "fixed"},
@@ -455,7 +455,7 @@ def test_ambertools_charge_serialization_rounding_is_repaired_and_audited(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -472,7 +472,7 @@ def test_ambertools_charge_serialization_rounding_is_repaired_and_audited(
         output_path.write_text(text, encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     result = prepare_charges(
         atoms,
         {"source": "maple", "method": "am1bcc", "mode": "fixed", "geometry": "keep"},
@@ -500,7 +500,7 @@ def test_ambertools_charge_residual_above_guard_fails(
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     monkeypatch.setattr(
-        charges.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
+        ambertools.shutil, "which", lambda _name: "/opt/amber/bin/antechamber"
     )
 
     def fake_run(command, **_kwargs):
@@ -513,7 +513,7 @@ def test_ambertools_charge_residual_above_guard_fails(
         output_path.write_text(text, encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
 
-    monkeypatch.setattr(charges.subprocess, "run", fake_run)
+    monkeypatch.setattr(ambertools.subprocess, "run", fake_run)
     with pytest.raises(ValueError, match="serialization rounding bound"):
         prepare_charges(
             atoms,
@@ -531,7 +531,7 @@ def test_amber_pbsa_profile_stops_at_evidence_gate_before_charge_provider(
     water_mol2, tmp_path, monkeypatch
 ):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
-    monkeypatch.setattr(charges.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(ambertools.shutil, "which", lambda _name: None)
     with pytest.raises(NotImplementedError, match="optimized atom-type radii"):
         ImplicitSolvationCorrection(
             atoms,

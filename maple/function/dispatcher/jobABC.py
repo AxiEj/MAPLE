@@ -8,10 +8,16 @@ class JobABC(ABC):
 
     def __init__(self, output: str):
         self.output = output
+        self._logged_warnings: set[str] = set()
 
     @abstractmethod
     def run(self):
         pass
+
+    def _run_subjob(self, job):
+        """Keep once-per-job warnings shared across nested task runners."""
+        job._logged_warnings = self._logged_warnings
+        return job.run()
 
     # ==============================================
     # Parameter handling utilities
@@ -60,6 +66,20 @@ class JobABC(ABC):
     # Logging utilities
     # ==============================================
 
+    def log_warning_once(self, key: str, message: str) -> None:
+        if key not in self._logged_warnings:
+            self.log_info([f"\nWARNING: {message}\n"])
+            self._logged_warnings.add(key)
+
+    def log_numerical_directional_curvature(self, step: float) -> None:
+        """Report Dimer force differences without claiming a dense Hessian."""
+        self.log_warning_once(
+            "numerical-curvature",
+            "Numerical directional curvature used by force-difference Dimer "
+            f"(mode=finite_difference; delta={step:.8g} Angstrom along the direction); "
+            "this is not a full Hessian.",
+        )
+
     def log_inference_precision(self, calculator) -> None:
         """Expose backend-selected numerical precision without inventing defaults."""
         precision = getattr(calculator, "inference_precision_provenance", None)
@@ -77,8 +97,31 @@ class JobABC(ABC):
         self.log_info(lines)
 
     def log_numerical_hessian_diagnostics(self, calculator) -> None:
-        """Report raw finite-difference quality, not symmetry imposed afterward."""
+        """Log a consumed numerical Hessian, even without optional diagnostics.
+
+        Call only after get_hessian succeeds, not when configuring a mode.
+        The declared default mirrors CalcABC when no instance mode is set.
+        """
+        mode = getattr(calculator, "hessian", None)
+        if mode is None:
+            supported = getattr(calculator, "SUPPORTED_HESSIAN_MODES", ())
+            mode = supported[0] if supported else None
+        if mode == "analytic":
+            return
         diagnostics = getattr(calculator, "last_numerical_hessian_diagnostics", None)
+        if mode == "numerical" or isinstance(diagnostics, dict):
+            step = (
+                diagnostics.get("cartesian_displacement_angstrom")
+                if isinstance(diagnostics, dict) else None
+            )
+            step_text = (
+                f"force-FD step={step:.8g} Angstrom"
+                if step is not None else "force-FD step not reported by backend"
+            )
+            self.log_warning_once(
+                "numerical-curvature",
+                f"Numerical Hessian used (hessian=numerical; {step_text}).",
+            )
         if not isinstance(diagnostics, dict):
             return
         self.log_info([

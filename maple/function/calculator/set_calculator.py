@@ -397,10 +397,19 @@ class SetCalculator:
                 "Implicit solvation is non-periodic only; "
                 "remove #pbc or use a periodic solvent backend."
             )
-        if self.atoms is None or 'mol2' not in self.atoms.info:
-            raise ValueError("Implicit solvation requires one MOL2 molecule with explicit topology.")
+        if self.atoms is None:
+            raise ValueError("Implicit solvation requires one molecule.")
         if not self.charge_options:
             raise ValueError("Implicit PB/GB requires an explicit #charge(...) configuration.")
+        if 'mol2' not in self.atoms.info:
+            from maple.function.read.charge_options import normalize_charge_options
+
+            charge = normalize_charge_options(self.charge_options)
+            if charge['source'] != 'maple':
+                raise ValueError(
+                    "#charge(source=mol2) requires a MOL2 molecule with explicit topology and charges; "
+                    "use source=maple for AmberTools Cartesian preparation."
+                )
 
     def _discover_calculator_class(self, name: str):
         """Resolve `name` to a registered calculator class.

@@ -21,8 +21,9 @@ class Optimization(JobABC):
                              paras=self.commandcontrol).run()
             elif method == 'rfo':
                 from .algorithm import RFO
-                return RFO(self.atoms, output=self.output,
-                           paras=self.commandcontrol).run()
+                return self._run_subjob(RFO(
+                    self.atoms, output=self.output, paras=self.commandcontrol,
+                ))
             elif method in ('sd', 'sdcg', 'cg'):
                 from .algorithm import SDCG
                 return SDCG(self.atoms, output=self.output,

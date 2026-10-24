@@ -9,6 +9,8 @@ its analytic tasks require the packaged pointer and qualification receipt.
 from __future__ import annotations
 
 import argparse
+import ast
+import importlib
 import hashlib
 import json
 import os
@@ -17,6 +19,7 @@ import math
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import venv
 import zipfile
@@ -466,6 +469,145 @@ def describe(args: argparse.Namespace) -> dict:
             "checkpoint_sha256": ANI2X_SHA256}
 
 
+POINTER_REL = "maple/function/calculator/_independent_obc2_qualified_cell.py"
+QUALIFICATION_RECEIPT_REL = (
+    "maple/function/calculator/data/independent_obc2_analytic_qualification.json"
+)
+
+
+def _binding_helpers():
+    # Lazy: describe/render-only must work before any qualification exists.
+    for directory in (ROOT, ROOT / "docs/implicit-solvation/benchmarks"):
+        if str(directory) not in sys.path:
+            sys.path.insert(0, str(directory))
+    qualification = importlib.import_module("validate_independent_obc2_default")
+    runtime = importlib.import_module("maple.function.calculator.set_calculator")
+    return qualification, runtime
+
+
+def final_source_snapshot(activation_receipt: Path, *, activation_inputs=()) -> dict:
+    qualification, _ = _binding_helpers()
+    candidate = qualification.source_snapshot(require_clean=False)
+    files = dict(candidate["files_sha256"])
+    # Candidate qualification excluded these to avoid self-hashing. Final
+    # activation must include both, whether tracked or newly published.
+    for relative in (POINTER_REL, QUALIFICATION_RECEIPT_REL):
+        files[relative] = sha256(ROOT / relative)
+    input_paths = {}
+    additional_input_paths = []
+    for path in activation_inputs:
+        relative = path.resolve().relative_to(ROOT.resolve()).as_posix()
+        if relative not in files:
+            additional_input_paths.append(relative)
+        input_paths[relative] = sha256(path)
+        files[relative] = input_paths[relative]
+    receipt_relative = activation_receipt.resolve().relative_to(ROOT.resolve()).as_posix()
+    files.pop(receipt_relative, None)
+    payload = {
+        "git_head": candidate["git_head"],
+        "files_sha256": dict(sorted(files.items())),
+        "inventory_policy": candidate["inventory_policy"],
+        "excluded_paths": [receipt_relative],
+        "activation_input_paths": sorted(input_paths),
+        "additional_input_paths": sorted(additional_input_paths),
+    }
+    payload["aggregate_sha256"] = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return payload
+
+
+def final_source_binding(wheel: Path, activation_receipt: Path, *, source_before=None) -> dict:
+    _, runtime = _binding_helpers()
+    before = source_before if source_before is not None else final_source_snapshot(activation_receipt)
+    files = before["files_sha256"]
+    pointer = ast.parse((ROOT / POINTER_REL).read_bytes())
+    assignments = {}
+    for statement in pointer.body:
+        if (not isinstance(statement, ast.Assign) or len(statement.targets) != 1
+                or not isinstance(statement.targets[0], ast.Name)
+                or statement.targets[0].id in assignments):
+            raise ValueError("Final qualification pointer must be data-only")
+        assignments[statement.targets[0].id] = ast.literal_eval(statement.value)
+    if assignments != {
+        "QUALIFICATION_RECEIPT_FILENAME": Path(QUALIFICATION_RECEIPT_REL).name,
+        "QUALIFICATION_RECEIPT_SHA256": files[QUALIFICATION_RECEIPT_REL],
+    }:
+        raise ValueError("Final qualification pointer is unsealed or stale")
+    receipt = json.loads((ROOT / QUALIFICATION_RECEIPT_REL).read_bytes())
+    if (receipt.get("schema_version") != 1
+            or receipt.get("artifact_type") != "maple-independent-obc2-analytic-qualification"
+            or receipt.get("status") != "qualified"
+            or receipt.get("content_sha256") != hashlib.sha256(
+                runtime._canonical_receipt_payload(receipt)).hexdigest()):
+        raise ValueError("Final qualification receipt identity/content seal mismatch")
+    qualified_sources = {name: value for name, value in files.items()
+                         if name not in {POINTER_REL, QUALIFICATION_RECEIPT_REL,
+                                         *before["additional_input_paths"]}}
+    if receipt.get("qualification_sources") != qualified_sources:
+        raise ValueError("Final qualification source inventory is stale")
+    expected = runtime._installed_runtime_source_inventory()
+    if receipt.get("installed_runtime_sources") != expected:
+        raise ValueError("Final qualification receipt runtime inventory is stale")
+    expected.update({relative: files[relative]
+                     for relative in (POINTER_REL, QUALIFICATION_RECEIPT_REL)})
+    if any(files.get(relative) != digest for relative, digest in expected.items()):
+        raise ValueError("Final runtime inventory is not covered by checkout source")
+    wheel_sha = sha256(wheel)
+    with zipfile.ZipFile(wheel) as archive:
+        names = archive.namelist()
+        if len(names) != len(set(names)):
+            raise ValueError("Final wheel has duplicate members")
+        runtime_names = {name for name in names
+                         if (name.startswith("maple/") and name.endswith(".py"))
+                         or name in expected}
+        if runtime_names != set(expected):
+            raise ValueError("Final wheel runtime member set differs from checkout")
+        if any(hashlib.sha256(archive.read(name)).hexdigest() != digest
+               for name, digest in expected.items()):
+            raise ValueError("Final wheel runtime bytes differ from checkout")
+    if sha256(wheel) != wheel_sha:
+        raise ValueError("Final wheel drift while comparing checkout members")
+    return {
+        "source_before": before,
+        "candidate_wheel": {"path": str(wheel.resolve()), "sha256": wheel_sha},
+        "expected_wheel_runtime": expected,
+        "final_pointer": {"path": POINTER_REL, "sha256": files[POINTER_REL]},
+        "qualification_receipt": {"path": QUALIFICATION_RECEIPT_REL,
+                                  "sha256": files[QUALIFICATION_RECEIPT_REL]},
+    }
+
+
+def verify_final_source_binding(binding: dict, activation_receipt: Path) -> None:
+    binding["source_after"] = final_source_snapshot(
+        activation_receipt,
+        activation_inputs=tuple(ROOT / path for path in binding["source_before"]["activation_input_paths"]),
+    )
+    if binding["source_after"] != binding["source_before"]:
+        raise ValueError("Final source drift during activation")
+    wheel = binding.get("candidate_wheel")
+    if wheel is not None and sha256(Path(wheel["path"])) != wheel["sha256"]:
+        raise ValueError("Final wheel drift during activation")
+
+
+def verify_installed_binding(payload: dict, purelib: Path, binding: dict) -> None:
+    expected_origin = purelib.resolve() / "maple/function/calculator/set_calculator.py"
+    if Path(payload["runtime_file"]).resolve() != expected_origin:
+        raise ValueError("Final installed runtime origin is outside fresh purelib")
+    if payload.get("runtime_sources") != binding["expected_wheel_runtime"]:
+        raise ValueError("Final installed runtime source/data differs from checkout/wheel")
+
+
+INSTALLED_BINDING_PROBE = (
+    "import hashlib,pathlib;"
+    "from maple.function.calculator import set_calculator as runtime;"
+    "root=pathlib.Path(runtime.__file__).resolve().parents[3];"
+    "sources=runtime._installed_runtime_source_inventory();"
+    f"data_paths={repr((POINTER_REL, QUALIFICATION_RECEIPT_REL))};"
+    "sources.update({p:hashlib.sha256((root/p).read_bytes()).hexdigest() for p in data_paths});"
+    "print(json.dumps({'runtime_file':runtime.__file__,'runtime_sources':sources}))"
+)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--describe", action="store_true")
@@ -486,7 +628,8 @@ def main() -> None:
     source_mol2 = ROOT / row["source_mol2_relative_path"]
     if sha256(source_mol2) != row["source_mol2_sha256"] or sha256(ANI2X) != ANI2X_SHA256:
         raise ValueError("Frozen public input or ANI2x checkpoint changed")
-    if args.runtime.exists(): shutil.rmtree(args.runtime)
+    if args.runtime.exists() or args.receipt.exists():
+        raise FileExistsError("Final activation/rendering requires new runtime/receipt paths; preserving previous evidence")
     assets = args.runtime / "assets"; inputs = args.runtime / "inputs"; raw = args.runtime / "raw"; cwd = args.runtime / "cwd"
     for path in (assets, inputs, raw, cwd): path.mkdir(parents=True)
     methanol = assets / "methanol.mol2"; water = assets / "water.mol2"
@@ -507,42 +650,64 @@ def main() -> None:
     if args.render_only:
         result = {**describe(args), "inputs": rendered, "passed": True}
         atomic_json(args.receipt, result); print(json.dumps(result, indent=2, sort_keys=True)); return
-    if args.candidate_wheel is None or not zipfile.is_zipfile(args.candidate_wheel):
-        raise ValueError("--candidate-wheel must name the final built wheel")
+    receipt = {**describe(args), "inputs": rendered, "passed": False,
+               "tasks": {task: {"status": "NOT_RUN"} for task in TASK_ORDER},
+               "failed_stage": "source-wheel-binding", "final_source_binding": {}}
+    try:
+        if args.candidate_wheel is None or not zipfile.is_zipfile(args.candidate_wheel):
+            raise ValueError("--candidate-wheel must name the final built wheel")
+        receipt["candidate_wheel"] = {"path": str(args.candidate_wheel.resolve()),
+                                      "sha256": sha256(args.candidate_wheel)}
+        binding = receipt["final_source_binding"]
+        binding["source_before"] = final_source_snapshot(
+            args.receipt, activation_inputs=(source_mol2, ANI2X))
+        binding.update(final_source_binding(args.candidate_wheel, args.receipt,
+                                            source_before=binding["source_before"]))
+        if binding["candidate_wheel"] != receipt["candidate_wheel"]:
+            raise ValueError("Final wheel drift before installation")
+        receipt["wheelhouse_files"] = {p.name: sha256(p) for p in sorted(args.wheelhouse.glob("*.whl"))}
+        receipt["failed_stage"] = "install"
+        _activate(args, rendered, row, assets, inputs, raw, cwd, checkpoint, methanol, receipt)
+    except BaseException as exc:
+        receipt["passed"] = False
+        receipt["error"] = {"type": type(exc).__name__, "message": str(exc)}
+        raise
+    finally:
+        try:
+            if "source_before" in receipt["final_source_binding"]:
+                verify_final_source_binding(receipt["final_source_binding"], args.receipt)
+        except Exception as exc:
+            receipt["passed"] = False
+            receipt["binding_error"] = {"type": type(exc).__name__, "message": str(exc)}
+            # Do not replace an earlier failure with the drift error.
+            if "error" not in receipt:
+                raise
+        finally:
+            if receipt["passed"]:
+                receipt.pop("failed_stage", None)
+            atomic_json(args.receipt, receipt)
+            print(json.dumps(receipt, indent=2, sort_keys=True))
+
+
+def _activate(args, rendered, row, assets, inputs, raw, cwd, checkpoint, methanol, receipt):
     if args.venv.exists(): shutil.rmtree(args.venv)
     venv.EnvBuilder(with_pip=True, clear=True, system_site_packages=False).create(args.venv)
     python = args.venv / "bin/python"; maple = args.venv / "bin/maple"; env = clean_environment()
     install = run_raw([str(python), "-I", "-m", "pip", "install", "--no-index", "--no-cache-dir",
                        f"--find-links={args.wheelhouse}", f"{args.candidate_wheel}[implicit-obc2-torch]"],
                       cwd, env, raw / "install", 900)
+    receipt["install"] = install
     if install["returncode"] != 0:
-        failure = {
-            **describe(args),
-            "candidate_wheel": {"path": str(args.candidate_wheel), "sha256": sha256(args.candidate_wheel)},
-            "inputs": rendered,
-            "install": install,
-            "tasks": {task: {"status": "NOT_RUN_INSTALL_FAILED"} for task in TASK_ORDER},
-            "failed_stage": "install",
-            "passed": False,
-        }
-        atomic_json(args.receipt, failure)
-        print(json.dumps(failure, indent=2, sort_keys=True))
-        raise SystemExit(1)
+        raise RuntimeError("Final wheel installation failed")
+    receipt["failed_stage"] = "preflight"
     purelib = subprocess.check_output([str(python), "-I", "-c", "import sysconfig;print(sysconfig.get_paths()['purelib'])"], text=True).strip()
     # Prove physical absence before enabling the stricter runtime trap.  Once
     # enabled, even probing OpenMM metadata is intentionally an error.
     probe_code = "import importlib.util,importlib.metadata,json,maple,sys;\ntry: d=importlib.metadata.distribution('openmm')\nexcept importlib.metadata.PackageNotFoundError: d=None\nprint(json.dumps({'maple_file':maple.__file__,'sys_path':sys.path,'openmm_spec':None if importlib.util.find_spec('openmm') is None else 'present','openmm_distribution':None if d is None else 'present','openmm_loaded':any(k=='openmm' or k.startswith('openmm.') for k in sys.modules)}))"
     probe = run_raw([str(python), "-I", "-c", probe_code], cwd, env, raw / "preflight", 60)
+    receipt["preflight"] = probe
     if probe["returncode"] != 0:
-        failure = {
-            **describe(args), "inputs": rendered, "install": install,
-            "preflight": probe,
-            "tasks": {task: {"status": "NOT_RUN_PREFLIGHT_FAILED"} for task in TASK_ORDER},
-            "failed_stage": "preflight", "passed": False,
-        }
-        atomic_json(args.receipt, failure)
-        print(json.dumps(failure, indent=2, sort_keys=True))
-        raise SystemExit(1)
+        raise RuntimeError("Final installed preflight failed")
     probe_payload = json.loads(Path(probe["stdout"]).read_text(encoding="utf-8"))
     if any(probe_payload[key] is not None for key in ("openmm_spec", "openmm_distribution")) or probe_payload["openmm_loaded"]:
         raise RuntimeError("OpenMM is present in the fresh activation environment")
@@ -550,9 +715,17 @@ def main() -> None:
     maple_file.relative_to(Path(purelib).resolve())
     if any(Path(entry).resolve() == ROOT.resolve() for entry in probe_payload["sys_path"] if entry):
         raise RuntimeError("source checkout leaked onto activation sys.path")
+    installed = run_raw([str(python), "-I", "-c", "import json;" + INSTALLED_BINDING_PROBE],
+                        cwd, env, raw / "installed-binding-before", 60)
+    receipt["installed_binding_before"] = installed
+    if installed["returncode"] != 0:
+        raise RuntimeError("Final installed binding probe failed")
+    verify_installed_binding(json.loads(Path(installed["stdout"]).read_text()), Path(purelib),
+                             receipt["final_source_binding"])
+    receipt["failed_stage"] = "tasks"
     Path(purelib, "maple_activation_guard.py").write_text(GUARD, encoding="utf-8")
     Path(purelib, "maple_activation_guard.pth").write_text("import maple_activation_guard\n", encoding="utf-8")
-    tasks = {}
+    tasks = receipt["tasks"]
     for task in TASK_ORDER:
         tasks[task] = run_raw([str(maple), str(inputs / f"{task}.inp"), str(cwd / f"{task}.out")],
                               cwd, env, raw / task, 1800)
@@ -648,22 +821,23 @@ def main() -> None:
         and postflight_payload.get("openmm_loaded") is False
         and postflight_payload.get("guard_loaded") is True
     )
-    passed = bool(
+    installed_after = run_raw(
+        [str(python), "-I", "-c", "import json;" + INSTALLED_BINDING_PROBE],
+        cwd, env, raw / "installed-binding-after", 60)
+    receipt.update(guard_canaries=guard_canaries, postflight=postflight,
+                   installed_binding_after=installed_after)
+    if installed_after["returncode"] != 0:
+        raise RuntimeError("Final installed postflight binding probe failed")
+    verify_installed_binding(json.loads(Path(installed_after["stdout"]).read_text()), Path(purelib),
+                             receipt["final_source_binding"])
+    receipt["passed"] = bool(
         probe["returncode"] == 0
-        and all(
-            row["returncode"] == 0 and row["audit"]["passed"] is True
-            for row in tasks.values()
-        )
-        and guard_passed
-        and postflight["physical_absence_passed"]
+        and all(row["returncode"] == 0 and row["audit"]["passed"] is True
+                for row in tasks.values())
+        and guard_passed and postflight["physical_absence_passed"]
     )
-    receipt = {**describe(args), "candidate_wheel": {"path": str(args.candidate_wheel), "sha256": sha256(args.candidate_wheel)},
-               "wheelhouse_files": {p.name: sha256(p) for p in sorted(args.wheelhouse.glob("*.whl"))},
-               "inputs": rendered, "install": install, "preflight": probe,
-               "tasks": tasks, "guard_canaries": guard_canaries,
-               "postflight": postflight, "passed": passed}
-    atomic_json(args.receipt, receipt); print(json.dumps(receipt, indent=2, sort_keys=True))
-    if not passed: raise SystemExit(1)
+    if not receipt["passed"]:
+        raise RuntimeError("Final public task/guard activation audit failed")
 
 
 if __name__ == "__main__":

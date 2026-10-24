@@ -161,3 +161,53 @@ def test_snapshot_rejects_nonportable_hydrogen_connectivity(
     atoms = _atoms_with_mol2(symbols, bonds, component_ids=components)
     with pytest.raises(ValueError, match=message):
         OBC2Topology.from_atoms(atoms)
+
+
+@pytest.mark.parametrize(
+    "identity_array",
+    [
+        np.array([1.25, 2.25]),
+        np.array([1.0, 2.0]),
+        np.array(["1", "2"]),
+        np.array([True, 2], dtype=object),
+        np.array([[1], [2]]),
+        np.array([[1, 2]]),
+    ],
+    ids=["fractional", "integral-float", "string", "bool-object", "column", "row"],
+)
+def test_snapshot_rejects_noninteger_or_nonvector_identity_array(identity_array):
+    from maple.function.calculator.extra_correction.implicit.obc2_topology import (
+        OBC2Topology,
+    )
+
+    atoms = _atoms_with_mol2(["C", "H"], [[0, 1, "1"]])
+    atoms.arrays[MOL2_ATOM_ID_ARRAY] = identity_array
+    with pytest.raises(ValueError, match="atom.*identity|identity.*array"):
+        OBC2Topology.from_atoms(atoms)
+
+
+@pytest.mark.parametrize("dtype", [np.int32, np.int64, np.uint32, np.uint64])
+def test_integer_identity_dtype_preserves_frozen_snapshot(dtype):
+    from maple.function.calculator.extra_correction.implicit.obc2_topology import (
+        OBC2Topology,
+    )
+
+    atoms = _atoms_with_mol2(["C", "H"], [[0, 1, "1"]])
+    original = OBC2Topology.from_atoms(atoms)
+    atoms.arrays[MOL2_ATOM_ID_ARRAY] = np.array([1, 2], dtype=dtype)
+    assert OBC2Topology.from_atoms(atoms) == original
+    atoms.arrays[MOL2_ATOM_ID_ARRAY][0] = 2
+    assert original.atom_ids == (1, 2)
+
+
+@pytest.mark.parametrize("values", [[1.25, 2], ["1", "2"], [True, 2], [[1], [2]]])
+def test_snapshot_rejects_coerced_metadata_atom_ids(values):
+    from maple.function.calculator.extra_correction.implicit.obc2_topology import (
+        OBC2Topology,
+    )
+
+    atoms = _atoms_with_mol2(["C", "H"], [[0, 1, "1"]])
+    atoms.info["mol2"]["atom_ids"] = values
+    with pytest.raises((ValueError, TypeError)):
+        atoms.info["mol2"][MOL2_IDENTITY_SHA256_KEY] = mol2_identity_sha256(atoms.info["mol2"])
+        OBC2Topology.from_atoms(atoms)

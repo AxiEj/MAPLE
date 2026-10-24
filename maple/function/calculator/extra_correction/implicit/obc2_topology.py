@@ -102,7 +102,12 @@ class OBC2Topology:
             raise ValueError("MOL2 atom ids must be unique.")
 
         identity_array = atoms.arrays.get(MOL2_ATOM_ID_ARRAY)
-        if identity_array is None or tuple(int(value) for value in identity_array) != atom_ids:
+        if (
+            not isinstance(identity_array, np.ndarray)
+            or identity_array.shape != (count,)
+            or identity_array.dtype.kind not in {"i", "u"}
+            or tuple(identity_array) != atom_ids
+        ):
             raise ValueError(
                 "Current ASE atom order does not match the frozen MOL2 atom identity."
             )

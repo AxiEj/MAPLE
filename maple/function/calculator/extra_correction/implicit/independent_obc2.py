@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import asdict
 from typing import Any
 
@@ -137,10 +138,10 @@ class IndependentOBC2:
 
     @property
     def provenance(self) -> dict[str, Any]:
-        return {
+        return deepcopy({
             **self._provenance,
-            "radius_provider": dict(self.radius_result.provenance),
-        }
+            "radius_provider": self.radius_result.provenance,
+        })
 
     @property
     def analytic_cell_identity(self) -> ScalarCellIdentity:
@@ -197,13 +198,13 @@ class IndependentOBC2:
             energy_hartree=result.energy_hartree,
             forces_hartree_per_angstrom=result.forces_hartree_per_angstrom,
             components_hartree=dict(result.components_hartree),
-            provenance={**self.provenance, **dict(result.provenance)},
+            provenance=deepcopy({**self.provenance, **dict(result.provenance)}),
         )
 
     def hessian(self, atoms) -> np.ndarray:
         self._validate_bound_atoms(atoms)
         value = self.kernel.hessian(atoms)
-        self.last_derivative_provenance = dict(
+        self.last_derivative_provenance = deepcopy(
             self.kernel.last_derivative_provenance or {}
         )
         return value
@@ -213,8 +214,8 @@ class IndependentOBC2:
     ) -> SolvationDirectionalResult:
         self._validate_bound_atoms(atoms)
         result = self.kernel.directional_derivatives(atoms, direction)
-        provenance = {**self.provenance, **dict(result.provenance)}
-        self.last_derivative_provenance = provenance
+        provenance = deepcopy({**self.provenance, **dict(result.provenance)})
+        self.last_derivative_provenance = deepcopy(provenance)
         return SolvationDirectionalResult(
             hvp_hartree_per_angstrom2=result.hvp_hartree_per_angstrom2,
             forces_hartree_per_angstrom=result.forces_hartree_per_angstrom,

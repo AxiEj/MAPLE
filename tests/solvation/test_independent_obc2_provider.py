@@ -199,3 +199,69 @@ def test_parser_rejects_non_obc2_or_non_ace_none_torch_profiles(selector):
             "#charge(source=mol2)",
             f"#solv(implicit=water,method=gb,provider=torch,{selector},experimental=true)",
         )
+
+
+@pytest.mark.parametrize("source", ["property", "evaluate", "directional", "hessian"])
+def test_returned_nested_provenance_is_detached(water_mol2, source):
+    from copy import deepcopy
+    from maple.function.calculator.extra_correction.implicit.independent_obc2 import (
+        IndependentOBC2,
+    )
+
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    provider = IndependentOBC2(atoms, atoms.get_initial_charges())
+    baseline = deepcopy(provider.provenance)
+    if source == "property":
+        exposed = provider.provenance
+    elif source == "evaluate":
+        exposed = provider.evaluate(atoms, need_forces=True).provenance
+    elif source == "directional":
+        exposed = provider.directional_derivatives(
+            atoms, np.ones(3 * len(atoms))
+        ).provenance
+    else:
+        provider.hessian(atoms)
+        exposed = provider.last_derivative_provenance
+
+    exposed["source_compatibility"]["source_sha256"] = "changed"
+    if "resource_budget" in exposed:
+        exposed["resource_budget"]["max_pair_graph_bytes"] = 1
+    if "supported_properties" in exposed:
+        exposed["supported_properties"].append("invented")
+    if "radius_provider" in exposed:
+        exposed["radius_provider"]["hydrogen_on_nitrogen_atom_indices"].append(99)
+    assert provider.provenance == baseline
+
+
+def test_directional_result_does_not_alias_last_derivative_audit(water_mol2):
+    from copy import deepcopy
+    from maple.function.calculator.extra_correction.implicit.independent_obc2 import (
+        IndependentOBC2,
+    )
+
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    provider = IndependentOBC2(atoms, atoms.get_initial_charges())
+    result = provider.directional_derivatives(atoms, np.ones(3 * len(atoms)))
+    audit = deepcopy(provider.last_derivative_provenance)
+    result.provenance["source_compatibility"]["source_sha256"] = "changed"
+    result.provenance["branch_diagnostics"].clear()
+    assert provider.last_derivative_provenance == audit
+
+
+@pytest.mark.parametrize("operation", ["evaluate", "hessian", "hvp", "scalar-identity"])
+def test_public_provider_rejects_coerced_bound_atom_ids(water_mol2, operation):
+    from maple.function.calculator.extra_correction.implicit.independent_obc2 import (
+        IndependentOBC2,
+    )
+    from maple.function.read.filereader.mol2_reader import MOL2_ATOM_ID_ARRAY
+
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    provider = IndependentOBC2(atoms, atoms.get_initial_charges())
+    atoms.arrays[MOL2_ATOM_ID_ARRAY] = np.array([1.25, 2.25, 3.25])
+    with pytest.raises(ValueError, match="atom.*identity"):
+        if operation == "hvp":
+            provider.hvp(atoms, np.ones(3 * len(atoms)))
+        elif operation == "scalar-identity":
+            provider.analytic_scalar_identity(atoms)
+        else:
+            getattr(provider, operation)(atoms)

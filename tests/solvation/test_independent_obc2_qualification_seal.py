@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from unittest.mock import Mock
 
 import pytest
 
@@ -129,10 +130,26 @@ def fixture_repo(tmp_path, monkeypatch):
     return tmp_path, git, artifact, candidate, full_path, candidate_path
 
 
-def test_deterministic_receipt_matches_factory_schema_and_raw_evidence(fixture_repo):
-    root, _git, _full, candidate, full_path, candidate_path = fixture_repo
+@pytest.fixture
+def io_repo(fixture_repo, monkeypatch):
+    """Isolate receipt I/O; authoritative full-matrix behavior is tested below.
+
+    Source lineage, exact candidate records, artifact seals and gate schema
+    still run through the real validator. Only full scientific matrix replay
+    is stubbed here, never in the operator or any qualification environment.
+    """
+    scientific_replay = Mock(name="authoritative_full_matrix_replay")
+    monkeypatch.setattr(
+        validation, "_validate_full_matrix_records", scientific_replay
+    )
+    return fixture_repo
+
+
+def test_deterministic_receipt_matches_factory_schema_and_raw_evidence(io_repo):
+    root, _git, _full, candidate, full_path, candidate_path = io_repo
     first = sealer.build_receipt(full_path, candidate_path)
     assert first == sealer.build_receipt(full_path, candidate_path)
+    assert validation._validate_full_matrix_records.call_count == 2
     assert first["content_sha256"] == hashlib.sha256(
         sealer.runtime._canonical_receipt_payload(first)
     ).hexdigest()
@@ -153,8 +170,8 @@ def test_deterministic_receipt_matches_factory_schema_and_raw_evidence(fixture_r
         assert binding["path"] == path.relative_to(root).as_posix()
 
 
-def test_publish_receipt_before_pointer_and_refuse_even_identical_rerun(fixture_repo):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_publish_receipt_before_pointer_and_refuse_even_identical_rerun(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     receipt = sealer.seal_qualification(full_path, candidate_path)
     receipt_path = root / sealer.RECEIPT_REL
     pointer_path = root / sealer.POINTER_REL
@@ -173,8 +190,8 @@ def test_publish_receipt_before_pointer_and_refuse_even_identical_rerun(fixture_
 
 
 @pytest.mark.parametrize("mutation", ["failed_record", "hash", "missing_record", "identity"])
-def test_invalid_candidate_evidence_never_publishes(fixture_repo, mutation):
-    root, _git, full, candidate, full_path, candidate_path = fixture_repo
+def test_invalid_candidate_evidence_never_publishes(io_repo, mutation):
+    root, _git, full, candidate, full_path, candidate_path = io_repo
     if mutation == "failed_record":
         candidate["records"][1]["passed"] = False
     elif mutation == "hash":
@@ -195,8 +212,8 @@ def test_invalid_candidate_evidence_never_publishes(fixture_repo, mutation):
 
 
 @pytest.mark.parametrize("mutation", ["hash", "gate_count", "false_pass", "missing_gate"])
-def test_invalid_full_evidence_never_publishes(fixture_repo, mutation):
-    root, _git, full, _candidate, full_path, candidate_path = fixture_repo
+def test_invalid_full_evidence_never_publishes(io_repo, mutation):
+    root, _git, full, _candidate, full_path, candidate_path = io_repo
     if mutation == "hash":
         full["content_sha256"] = "0" * 64
         full_path.write_text(json.dumps(full))
@@ -215,8 +232,8 @@ def test_invalid_full_evidence_never_publishes(fixture_repo, mutation):
     assert not (root / sealer.RECEIPT_REL).exists()
 
 
-def test_external_candidate_cannot_differ_from_embedded_evidence(fixture_repo):
-    root, _git, _full, candidate, full_path, candidate_path = fixture_repo
+def test_external_candidate_cannot_differ_from_embedded_evidence(io_repo):
+    root, _git, _full, candidate, full_path, candidate_path = io_repo
     candidate["fixture_note"] = "self-sealed but not the embedded artifact"
     _write_json(candidate_path, candidate)
     with pytest.raises(ValueError, match="embedded"):
@@ -225,8 +242,8 @@ def test_external_candidate_cannot_differ_from_embedded_evidence(fixture_repo):
 
 
 @pytest.mark.parametrize("missing", ["full", "candidate", "pointer"])
-def test_missing_input_or_pointer_does_not_publish(fixture_repo, missing):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_missing_input_or_pointer_does_not_publish(io_repo, missing):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     {"full": full_path, "candidate": candidate_path,
      "pointer": root / sealer.POINTER_REL}[missing].unlink()
     with pytest.raises(FileNotFoundError):
@@ -235,8 +252,8 @@ def test_missing_input_or_pointer_does_not_publish(fixture_repo, missing):
 
 
 @pytest.mark.parametrize("change", ["dirty", "committed", "unrelated"])
-def test_source_drift_or_nonancestor_never_publishes(fixture_repo, change):
-    root, git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_source_drift_or_nonancestor_never_publishes(io_repo, change):
+    root, git, _full, _candidate, full_path, candidate_path = io_repo
     if change == "unrelated":
         git("checkout", "--orphan", "unrelated")
         git("commit", "-qm", "same files unrelated history")
@@ -250,8 +267,8 @@ def test_source_drift_or_nonancestor_never_publishes(fixture_repo, change):
     assert not (root / sealer.RECEIPT_REL).exists()
 
 
-def test_runtime_inventory_must_match_frozen_checkout(fixture_repo, monkeypatch):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_runtime_inventory_must_match_frozen_checkout(io_repo, monkeypatch):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     monkeypatch.setattr(
         sealer.runtime, "_installed_runtime_source_inventory",
         lambda: {"runtime.py": "0" * 64},
@@ -262,8 +279,8 @@ def test_runtime_inventory_must_match_frozen_checkout(fixture_repo, monkeypatch)
 
 
 @pytest.mark.parametrize("failure", ["receipt", "pointer"])
-def test_partial_write_failure_never_qualifies_pointer(fixture_repo, monkeypatch, failure):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_partial_write_failure_never_qualifies_pointer(io_repo, monkeypatch, failure):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     original = sealer._publish
     before = (root / sealer.POINTER_REL).read_bytes()
 
@@ -288,8 +305,8 @@ def test_atomic_exclusive_receipt_install_cannot_overwrite(tmp_path):
     assert list(tmp_path.iterdir()) == [path]
 
 
-def test_pointer_must_be_unqualified_data_only(fixture_repo):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_pointer_must_be_unqualified_data_only(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     pointer = root / sealer.POINTER_REL
     pointer.write_text("raise RuntimeError('not data')\n")
     with pytest.raises(ValueError, match="two data assignments"):
@@ -297,8 +314,8 @@ def test_pointer_must_be_unqualified_data_only(fixture_repo):
     assert not (root / sealer.RECEIPT_REL).exists()
 
 
-def test_candidate_gate_hash_must_bind_the_embedded_evidence(fixture_repo):
-    root, _git, full, _candidate, full_path, candidate_path = fixture_repo
+def test_candidate_gate_hash_must_bind_the_embedded_evidence(io_repo):
+    root, _git, full, _candidate, full_path, candidate_path = io_repo
     full["qualification_gates"]["candidate_exact_cell_public_composition"][
         "evidence_content_sha256"
     ] = "0" * 64
@@ -308,8 +325,8 @@ def test_candidate_gate_hash_must_bind_the_embedded_evidence(fixture_repo):
     assert not (root / sealer.RECEIPT_REL).exists()
 
 
-def test_atomic_pointer_replace_observes_complete_matching_receipt(fixture_repo, monkeypatch):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_atomic_pointer_replace_observes_complete_matching_receipt(io_repo, monkeypatch):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     replace = sealer.os.replace
     calls = []
 
@@ -330,9 +347,9 @@ def test_atomic_pointer_replace_observes_complete_matching_receipt(fixture_repo,
 
 
 def test_failed_atomic_pointer_replace_leaves_unqualified_data_and_no_tempfile(
-    fixture_repo, monkeypatch
+    io_repo, monkeypatch
 ):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     pointer = root / sealer.POINTER_REL
     before = pointer.read_bytes()
 
@@ -348,8 +365,8 @@ def test_failed_atomic_pointer_replace_leaves_unqualified_data_and_no_tempfile(
 
 
 @pytest.mark.parametrize("target", ["pointer", "receipt"])
-def test_symlink_output_is_refused_without_touching_target(fixture_repo, target):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+def test_symlink_output_is_refused_without_touching_target(io_repo, target):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     destination = root / (
         sealer.POINTER_REL if target == "pointer" else sealer.RECEIPT_REL
     )
@@ -364,9 +381,9 @@ def test_symlink_output_is_refused_without_touching_target(fixture_repo, target)
 
 
 def test_operator_main_parses_explicit_paths_and_reports_published_seal(
-    fixture_repo, monkeypatch, capsys
+    io_repo, monkeypatch, capsys
 ):
-    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
     monkeypatch.setattr(
         sys, "argv", ["seal-independent-obc2", "--validation", str(full_path),
                       "--candidate", str(candidate_path)]
@@ -390,7 +407,20 @@ def test_summary_only_full_matrix_cannot_authorize_qualification(fixture_repo):
             "full_hessian_matrix", "direct_hvp_matrix",
         )
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="replay_526 records incomplete: expected 1052"):
         sealer.seal_qualification(full_path, candidate_path)
     assert not (root / sealer.RECEIPT_REL).exists()
     assert b"= None" in (root / sealer.POINTER_REL).read_bytes()
+
+
+def test_scientific_validator_failure_prevents_receipt_and_pointer_publication(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    validation._validate_full_matrix_records.side_effect = ValueError(
+        "scientific evidence rejected"
+    )
+    pointer_before = (root / sealer.POINTER_REL).read_bytes()
+    with pytest.raises(ValueError, match="scientific evidence rejected"):
+        sealer.seal_qualification(full_path, candidate_path)
+    validation._validate_full_matrix_records.assert_called_once()
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert (root / sealer.POINTER_REL).read_bytes() == pointer_before

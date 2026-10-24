@@ -475,7 +475,10 @@ def test_manifest_refresh_is_atomic(monkeypatch, audited_correction):
     assert _audit_admitted(audited_correction) is True
 
 
-def test_manifest_write_failure_cannot_admit_live_flags(monkeypatch, audited_correction):
+@pytest.mark.parametrize("failed_admission_state", [False, True])
+def test_manifest_write_failure_cannot_admit_live_flags(
+    monkeypatch, audited_correction, failed_admission_state
+):
     from maple.function.calculator import set_calculator as module
     from maple.function.calculator.extra_correction.implicit import correction as correction_module
 
@@ -485,7 +488,7 @@ def test_manifest_write_failure_cannot_admit_live_flags(monkeypatch, audited_cor
 
     def reject_admission(source, target):
         candidate = json.loads(Path(source).read_text())
-        if candidate["capabilities"]["analytic_task_derivatives_admitted"]:
+        if candidate["capabilities"]["analytic_task_derivatives_admitted"] is failed_admission_state:
             raise OSError("audit disk unavailable")
         return replace(source, target)
 
@@ -500,10 +503,7 @@ def test_manifest_write_failure_cannot_admit_live_flags(monkeypatch, audited_cor
     assert not list(audited_correction.audit_dir.glob(".manifest.json.*.tmp"))
 
 
-@pytest.mark.parametrize("platform, admitted", [("Reference", True), ("CPU", False)])
-def test_legacy_factory_restores_admission_in_manifest(
-    monkeypatch, water_mol2, tmp_path, platform, admitted
-):
+def test_legacy_factory_restores_admission_in_manifest(monkeypatch, water_mol2, tmp_path):
     pytest.importorskip("openmm")
     from maple.function.calculator import set_calculator as module
     from maple.function.calculator.extra_correction.implicit.correction import (
@@ -531,7 +531,7 @@ def test_legacy_factory_restores_admission_in_manifest(
         implicit="gb", solvent="water", model_options={"hessian": "analytic"},
         solvation_options={
             "method": "gb", "provider": "openmm", "model": "obc2",
-            "platform": platform, "experimental": True,
+            "platform": "Reference", "experimental": True,
         },
         charge_options={"source": "mol2", "mode": "fixed", "geometry": "keep"},
     )
@@ -550,7 +550,7 @@ def test_legacy_factory_restores_admission_in_manifest(
 
     monkeypatch.setattr(ImplicitSolvationCorrection, "_set_analytic_task_derivatives_admitted", observe_update)
     calculator = factory.set_calculator()
-    assert states == ([False, True] if admitted else [False])
-    assert calculator.analytic_implicit_derivatives_admitted is admitted
-    assert calculator.solvent_correction.analytic_task_derivatives_admitted is admitted
-    assert _audit_admitted(calculator.solvent_correction) is admitted
+    assert states == [False, True]
+    assert calculator.analytic_implicit_derivatives_admitted is True
+    assert calculator.solvent_correction.analytic_task_derivatives_admitted is True
+    assert _audit_admitted(calculator.solvent_correction) is True

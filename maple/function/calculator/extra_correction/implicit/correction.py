@@ -514,7 +514,7 @@ class ImplicitSolvationCorrection:
         self._write_audit_manifest()
 
     def _set_analytic_task_derivatives_admitted(self, admitted: bool) -> None:
-        """Publish admission in the audit before enabling the live capability."""
+        """Keep the live admission flag and its atomic audit record together."""
         self.analytic_task_derivatives_admitted = bool(admitted)
         try:
             self._write_audit_manifest()

@@ -907,6 +907,9 @@ def hvp_matrix(
                             "same_scalar_force_max_hartree_per_angstrom": force_delta,
                             "hvp_vs_raw_hessian_max": hvp_max,
                             "hvp_vs_raw_hessian_scaled_max": hvp_scaled,
+                            "raw_hessian_product": (
+                                None if h_product is None else h_product.tolist()
+                            ),
                             "raw_hessian_product_sha256": (
                                 None
                                 if h_product is None
@@ -1220,7 +1223,7 @@ def _validate_candidate_record(record: Mapping[str, Any], nonpolar: str) -> None
     }
     for field, limit in bounds.items():
         value = record.get(field)
-        if not isinstance(value, (int, float)) or not math.isfinite(value) or value > limit:
+        if _finite_metric(value, field) > limit:
             raise ValueError(f"Candidate record {nonpolar} failed {field}")
     if record.get("direct_hvp_dense_hessian_forbidden") is not True:
         raise ValueError(f"Candidate record {nonpolar} did not forbid dense Hessian")
@@ -1234,12 +1237,8 @@ def _validate_candidate_record(record: Mapping[str, Any], nonpolar: str) -> None
         maximum = row.get("max_hartree_per_angstrom2")
         if (
             row.get("passed") is not True
-            or not isinstance(rms, (int, float))
-            or not math.isfinite(rms)
-            or rms > 5.0e-6
-            or not isinstance(maximum, (int, float))
-            or not math.isfinite(maximum)
-            or maximum > 2.0e-5
+            or _finite_metric(rms, "candidate FD RMS") > 5.0e-6
+            or _finite_metric(maximum, "candidate FD maximum") > 2.0e-5
         ):
             raise ValueError(f"Candidate record {nonpolar} failed force-FD gate")
     identity = record.get("gate_identity")
@@ -1346,6 +1345,316 @@ def validate_candidate_cell_evidence(
             raise ValueError("Candidate source aggregate does not match current qualification source")
 
 
+def _finite_metric(value: object, label: str, *, nonnegative: bool = True) -> float:
+    if (
+        type(value) not in (int, float) or not math.isfinite(value)
+        or (nonnegative and value < 0)
+    ):
+        raise ValueError(f"Invalid finite numeric metric: {label}")
+    return float(value)
+
+
+def _record_index(section: Mapping[str, Any], fields: tuple[str, ...], expected: set) -> dict:
+    rows = section.get("records")
+    if not isinstance(rows, list) or len(rows) != len(expected):
+        raise ValueError(f"Full-matrix records incomplete: expected {len(expected)}")
+    indexed = {}
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("Full-matrix records must be mappings")
+        key = tuple(row.get(field) for field in fields)
+        expected_types = [
+            {type(identity[index]) for identity in expected}
+            for index in range(len(fields))
+        ]
+        if any(type(value) not in types for value, types in zip(key, expected_types, strict=True)):
+            raise ValueError("Malformed full-matrix record identity types")
+        try:
+            if key not in expected or key in indexed:
+                raise ValueError(f"Unexpected or duplicate full-matrix record identity: {key}")
+            indexed[key] = row
+        except TypeError as exc:
+            raise ValueError("Malformed full-matrix record identity") from exc
+    return indexed
+
+
+def _require_equal(observed: object, expected: object, label: str) -> None:
+    if type(observed) is not type(expected) or observed != expected:
+        raise ValueError(f"Full-matrix {label} does not replay")
+
+
+def _row_verdict(row: Mapping[str, Any], passed: bool, label: str) -> None:
+    _require_equal(row.get("passed"), bool(passed), f"{label} verdict")
+    if not passed:
+        raise ValueError(f"Full-matrix {label} failed original thresholds")
+
+
+def _validate_energy_rows(section, golden_rows, *, portable: bool) -> None:
+    fields = ("case", "nonpolar", "geometry") if portable else ("compound_id", "nonpolar")
+    golden_index = {tuple(row[field] for field in fields): row for row in golden_rows}
+    rows = _record_index(section, fields, set(golden_index))
+    parameter_names = {
+        "provider_parameters_radius_nm_screen", "intrinsic_radii_angstrom",
+        "screen_factors", "offset_radii_nm", "scaled_offset_radii_nm",
+        "finalized_particle_charge_offset_scaled",
+    }
+    drifts, parameters, force_maxima, force_rms_values = [], [], [], []
+    for key, row in rows.items():
+        golden = golden_index[key]
+        _require_equal(row.get("golden_record_content_sha256"), golden["record_content_sha256"], "golden record hash")
+        _require_equal(row.get("topology_sha256"), golden["topology"]["topology_sha256"], "topology hash")
+        _require_equal(row.get("topology_match"), True, "topology identity")
+        _require_equal(row.get("charge_identity_match"), True, "charge identity")
+        if not portable:
+            _require_equal(row.get("input_identity_sha256"), golden["input_identity_sha256"], "input identity")
+        provenance = row.get("provider_provenance", {})
+        if not isinstance(provenance, Mapping):
+            raise ValueError("Missing full-matrix provider provenance")
+        for field, expected in {
+            "runtime_provider": "torch-obc2", "runtime_openmm_required": False,
+            "model": "obc2", "profile": "obc2-mbondi2", "nonpolar": golden["nonpolar"],
+            "ordered_charge_sha256": golden["charge_vector_sha256"],
+            "topology_sha256": golden["topology"]["topology_sha256"],
+        }.items():
+            _require_equal(provenance.get(field), expected, f"provider {field}")
+        energy = row.get("energy")
+        if not isinstance(energy, Mapping):
+            raise ValueError("Missing full-matrix energy metrics")
+        energy_limit = GATES["energy_abs_hartree"] + GATES["energy_relative"] * abs(float(golden["total_hartree"]))
+        _require_equal(energy.get("total_limit_hartree"), energy_limit, "energy threshold")
+        total = _finite_metric(energy.get("total_abs_hartree"), "total energy")
+        polar = _finite_metric(energy.get("polar_abs_hartree"), "polar energy")
+        nonpolar = _finite_metric(energy.get("nonpolar_abs_hartree"), "nonpolar energy")
+        energy_pass = (
+            total <= energy_limit and polar <= GATES["component_abs_hartree"]
+            and nonpolar <= GATES["component_abs_hartree"]
+        )
+        _row_verdict(energy, energy_pass, "energy")
+        deltas = row.get("parameter_deltas")
+        if not isinstance(deltas, Mapping) or set(deltas) != parameter_names:
+            raise ValueError("Full-matrix parameter metrics incomplete")
+        parameter_max = max(_finite_metric(value, name) for name, value in deltas.items())
+        _require_equal(row.get("parameter_max_abs"), parameter_max, "parameter maximum")
+        passed = energy_pass and parameter_max <= GATES["radius_parameter_abs"]
+        if portable:
+            force_max = _finite_metric(row.get("force_max_abs_hartree_per_angstrom"), "force maximum")
+            force_rms = _finite_metric(row.get("force_rms_hartree_per_angstrom"), "force RMS")
+            passed = passed and force_max <= GATES["force_max_hartree_per_angstrom"] and force_rms <= GATES["force_rms_hartree_per_angstrom"]
+            force_maxima.append(force_max)
+            force_rms_values.append(force_rms)
+        _row_verdict(row, passed, "portable E/F" if portable else "sealed E")
+        drifts.append(total)
+        parameters.append(parameter_max)
+    _require_equal(section.get("passed"), True, "energy section verdict")
+    _require_equal(section.get("maximum_parameter_abs"), max(parameters), "parameter aggregate")
+    if portable:
+        _require_equal(section.get("case_count"), 12, "portable case count")
+        _require_equal(section.get("comparison_count"), 48, "portable denominator")
+        for field, value in (
+            ("maximum_total_energy_abs_hartree", max(drifts)),
+            ("maximum_force_abs_hartree_per_angstrom", max(force_maxima)),
+            ("maximum_force_rms_hartree_per_angstrom", max(force_rms_values)),
+        ):
+            _require_equal(section.get(field), value, field)
+    else:
+        mean = float(np.mean(drifts))
+        for field, value in (
+            ("case_count", 526), ("profile_count", 2), ("record_count", 1052),
+            ("maximum_absolute_prediction_drift_hartree", max(drifts)),
+            ("mean_absolute_prediction_drift_hartree", mean),
+            ("mae_drift_upper_bound_hartree", mean),
+            ("mae_drift_upper_bound_kcal_mol", mean * KCAL_PER_HARTREE),
+        ):
+            _require_equal(section.get(field), value, field)
+
+
+def _validate_fd_metrics(ladder: Mapping[str, Any]) -> None:
+    if not isinstance(ladder, Mapping):
+        raise ValueError("Missing Hessian FD ladder")
+    _require_equal(ladder.get("step_order"), list(SOLVENT_FD_STEPS_ANGSTROM), "FD steps")
+    rows = ladder.get("records")
+    if not isinstance(rows, list) or len(rows) != 3:
+        raise ValueError("Full-matrix FD records incomplete")
+    verdicts = []
+    for row, step in zip(rows, SOLVENT_FD_STEPS_ANGSTROM, strict=True):
+        if not isinstance(row, Mapping):
+            raise ValueError("Malformed FD record")
+        _require_equal(row.get("step_angstrom"), step, "FD step")
+        if not _valid_sha256(row.get("matrix_sha256")):
+            raise ValueError("Missing FD matrix hash")
+        rms = _finite_metric(row.get("rms_hartree_per_angstrom2"), "FD RMS")
+        maximum = _finite_metric(row.get("max_hartree_per_angstrom2"), "FD maximum")
+        passed = rms <= GATES["hessian_fd_rms_hartree_per_angstrom2"] and maximum <= GATES["hessian_fd_max_hartree_per_angstrom2"]
+        # Coarse failure is logged, not promoted into an admission gate.
+        _require_equal(row.get("passed"), passed, "FD row verdict")
+        verdicts.append(passed)
+    pair_rms = _finite_metric(ladder.get("finest_pair_difference_rms_hartree_per_angstrom2"), "FD pair RMS")
+    pair_max = _finite_metric(ladder.get("finest_pair_difference_max_hartree_per_angstrom2"), "FD pair maximum")
+    pair_pass = pair_rms <= 2 * GATES["hessian_fd_rms_hartree_per_angstrom2"] and pair_max <= 2 * GATES["hessian_fd_max_hartree_per_angstrom2"]
+    for field, value in (
+        ("coarse_pass_observed", verdicts[0]), ("all_three_pass_observed", all(verdicts)),
+        ("both_finest_pass", all(verdicts[1:])), ("finest_pair_pass", pair_pass),
+    ):
+        _require_equal(ladder.get(field), value, field)
+    _row_verdict(ladder, all(verdicts[1:]) and pair_pass, "Hessian FD ladder")
+
+
+def _validate_hessian_rows(section, portable) -> set:
+    from maple.function.calculator.extra_correction.implicit.obc2_topology import OBC2Topology
+
+    inputs = {
+        (case, profile, geometry): (atoms, source)
+        for case, profile, geometry, atoms, _charges, source in _full_h_inputs(portable)
+    }
+    rows = _record_index(section, ("case", "nonpolar", "geometry"), set(inputs))
+    _require_equal(section.get("selection"), select_full_h_cases(portable), "Hessian selection")
+    _require_equal(section.get("water_displacement_seed"), WATER_DISPLACEMENT_SEED, "water seed")
+    _require_equal(section.get("displacement_scale_angstrom"), DISPLACEMENT_SCALE_ANGSTROM, "water displacement")
+    oracle = section.get("live_force_fd_oracle")
+    if not isinstance(oracle, Mapping):
+        raise ValueError("Missing live force-FD oracle identity")
+    for field, value in (
+        ("version", OPENMM_VERSION), ("module", "openmm.app.internal.customgbforces"),
+        ("source_sha256", OPENMM_SOURCE_SHA256), ("platform", "Reference"),
+    ):
+        _require_equal(oracle.get(field), value, f"live oracle {field}")
+    for key, row in rows.items():
+        atoms, source = inputs[key]
+        for field, value in (
+            ("atom_count", len(atoms)), ("source_identity_sha256", source),
+            ("coordinate_sha256", core.sha256_bytes(core.canonical_json_bytes(np.asarray(atoms.positions, dtype=np.float64).tolist()))),
+            ("topology_sha256", OBC2Topology.from_atoms(atoms).identity_sha256),
+            ("raw_hessian_shape", [3 * len(atoms)] * 2),
+        ):
+            _require_equal(row.get(field), value, f"Hessian {field}")
+        if not _valid_sha256(row.get("raw_hessian_sha256")):
+            raise ValueError("Missing raw Hessian hash")
+        _finite_metric(row.get("raw_hessian_max_abs"), "Hessian maximum")
+        norm = _finite_metric(row.get("raw_hessian_frobenius"), "Hessian norm")
+        asymmetry = _finite_metric(row.get("raw_hessian_asymmetry_max"), "Hessian asymmetry")
+        translations = row.get("translation_norms")
+        if not isinstance(translations, list) or len(translations) != 3:
+            raise ValueError("Hessian translation norms incomplete")
+        translations = [_finite_metric(value, "translation norm") for value in translations]
+        limit = max(GATES["translation_absolute_hartree_per_angstrom2"], GATES["translation_relative_frobenius"] * norm)
+        _require_equal(row.get("translation_limit"), limit, "translation limit")
+        _validate_fd_metrics(row.get("fd_ladder"))
+        _row_verdict(row, asymmetry <= GATES["hessian_asymmetry_hartree_per_angstrom2"] and max(translations) <= limit, "Hessian")
+    _require_equal(section.get("record_count"), 16, "Hessian denominator")
+    _require_equal(section.get("passed"), True, "Hessian section verdict")
+    return set(rows)
+
+
+def _finite_vector(value: object, size: int, label: str) -> np.ndarray:
+    if not isinstance(value, list) or len(value) != size:
+        raise ValueError(f"Invalid full-matrix vector shape: {label}")
+    for item in value:
+        _finite_metric(item, label, nonnegative=False)
+    return np.asarray(value, dtype=np.float64)
+
+
+def _validate_hvp_rows(section, portable, hessian_keys) -> None:
+    golden_index = _portable_index(portable)
+    expected = {
+        (case, profile, geometry, direction)
+        for case in PORTABLE_CASES for profile in PROFILE_ORDER
+        for geometry in GEOMETRY_ORDER for direction in range(HVP_DIRECTION_COUNT)
+    }
+    rows = _record_index(section, ("case", "nonpolar", "geometry", "direction_index"), expected)
+    compared = 0
+    for key, row in rows.items():
+        case, profile, geometry, direction_index = key
+        golden = golden_index[(case, profile, geometry)]
+        size = 3 * golden["atom_count"]
+        seed, expected_direction = normalized_direction(
+            case_index=PORTABLE_CASES.index(case), geometry_index=GEOMETRY_ORDER.index(geometry),
+            direction_index=direction_index, size=size,
+        )
+        _require_equal(row.get("seed"), seed, "HVP seed")
+        direction = _finite_vector(row.get("direction"), size, "HVP direction")
+        hvp = _finite_vector(row.get("hvp"), size, "HVP")
+        if direction.shape != (size,) or not np.array_equal(direction, expected_direction):
+            raise ValueError("HVP seeded direction changed")
+        if hvp.shape != (size,) or not np.isfinite(hvp).all():
+            raise ValueError("HVP vector is incomplete or non-finite")
+        _require_equal(row.get("direction_sha256"), _canonical_array_sha256(direction), "direction hash")
+        _require_equal(row.get("direction_l2_norm"), float(np.linalg.norm(direction)), "direction norm")
+        _require_equal(row.get("hvp_sha256"), _canonical_array_sha256(hvp), "HVP hash")
+        _require_equal(row.get("dense_hessian_forbidden_during_call"), True, "direct-HVP prohibition")
+        energy = _finite_metric(row.get("same_scalar_energy_abs_hartree"), "HVP bundle energy")
+        force = _finite_metric(row.get("same_scalar_force_max_hartree_per_angstrom"), "HVP bundle force")
+        hvp_pass = True
+        if key[:3] in hessian_keys:
+            compared += 1
+            product = _finite_vector(row.get("raw_hessian_product"), size, "raw Hessian product")
+            if product.shape != (size,) or not np.isfinite(product).all():
+                raise ValueError("Compared HVP raw Hessian product is missing or non-finite")
+            _require_equal(row.get("raw_hessian_product_sha256"), _canonical_array_sha256(product), "raw Hessian product hash")
+            difference = hvp - product
+            maximum = float(np.max(np.abs(difference), initial=0.0))
+            scaled = float(np.max(np.abs(difference) / np.maximum(np.abs(product), GATES["hvp_atol_hartree_per_angstrom2"]), initial=0.0))
+            _require_equal(row.get("hvp_vs_raw_hessian_max"), maximum, "HVP maximum")
+            _require_equal(row.get("hvp_vs_raw_hessian_scaled_max"), scaled, "HVP scaled maximum")
+            hvp_pass = bool(np.allclose(hvp, product, rtol=GATES["hvp_rtol"], atol=GATES["hvp_atol_hartree_per_angstrom2"]))
+        else:
+            for field in ("raw_hessian_product", "raw_hessian_product_sha256", "hvp_vs_raw_hessian_max", "hvp_vs_raw_hessian_scaled_max"):
+                if row.get(field) is not None:
+                    raise ValueError("Unexpected dense comparison outside frozen HVP selection")
+        _row_verdict(row, energy <= GATES["bundle_energy_abs_hartree"] and force <= GATES["bundle_force_max_hartree_per_angstrom"] and hvp_pass, "direct HVP")
+    _require_equal(compared, 36, "dense HVP comparison denominator")
+    for field, value in (
+        ("base_seed", HVP_BASE_SEED), ("direction_count_per_case_geometry_profile", HVP_DIRECTION_COUNT),
+        ("record_count", 144), ("passed", True),
+    ):
+        _require_equal(section.get(field), value, f"HVP {field}")
+
+
+def _validate_full_matrix_records(artifact: Mapping[str, Any]) -> None:
+    # Fail on absent arrays before consulting any caller-controlled summary.
+    for name, count in (
+        ("replay_526", 1052), ("portable_48_ef_radius", 48),
+        ("full_hessian_matrix", 16), ("direct_hvp_matrix", 144),
+    ):
+        section = artifact.get(name)
+        if not isinstance(section, Mapping) or not isinstance(section.get("records"), list) or len(section["records"]) != count:
+            raise ValueError(f"{name} records incomplete: expected {count}")
+    stage0, portable = load_stage0()
+    expected_binding = {
+        "generator": STAGE0_GENERATOR_REL,
+        "generator_sha256": STAGE0_GENERATOR_SHA256,
+        "oracle": STAGE0_MAIN_REL,
+        "oracle_file_sha256": STAGE0_MAIN_FILE_SHA256,
+        "oracle_content_sha256": STAGE0_MAIN_CONTENT_SHA256,
+        "portable_fixture": STAGE0_PORTABLE_REL,
+        "portable_file_sha256": STAGE0_PORTABLE_FILE_SHA256,
+        "portable_content_sha256": STAGE0_PORTABLE_CONTENT_SHA256,
+        "source_freeze_sha256": STAGE0_SOURCE_FREEZE_SHA256,
+    }
+    _require_equal(artifact.get("schema_version"), 1, "schema")
+    _require_equal(artifact.get("stage0_binding"), expected_binding, "sealed reference binding")
+    _require_equal(artifact.get("gates"), GATES, "frozen thresholds")
+    _require_equal(artifact.get("fd_steps_angstrom"), list(SOLVENT_FD_STEPS_ANGSTROM), "frozen FD ladder")
+    _require_equal(artifact.get("selection"), select_full_h_cases(portable), "frozen selection")
+    _validate_energy_rows(artifact["replay_526"], stage0["records"], portable=False)
+    _validate_energy_rows(artifact["portable_48_ef_radius"], portable["records"], portable=True)
+    hessian_keys = _validate_hessian_rows(artifact["full_hessian_matrix"], portable)
+    _validate_hvp_rows(artifact["direct_hvp_matrix"], portable, hessian_keys)
+    independence = artifact.get("guarded_no_openmm")
+    if not isinstance(independence, Mapping):
+        raise ValueError("Missing no-OpenMM proof")
+    for field in ("network_disabled", "import_blocker", "metadata_blocker", "passed"):
+        _require_equal(independence.get(field), True, f"no-OpenMM {field}")
+    _require_equal(independence.get("script_sha256"), _sha256_text(_no_openmm_script()), "no-OpenMM script")
+    result = independence.get("result")
+    if not isinstance(result, Mapping):
+        raise ValueError("Missing no-OpenMM proof result")
+    for field, value in (("ok", True), ("openmm_loaded", False), ("provider", "torch-obc2")):
+        _require_equal(result.get(field), value, f"no-OpenMM result {field}")
+    _finite_metric(result.get("energy_hartree"), "no-OpenMM energy", nonnegative=False)
+    if not all(_valid_sha256(result.get(field)) for field in ("force_sha256", "hessian_sha256", "hvp_sha256")):
+        raise ValueError("No-OpenMM result hashes incomplete")
+
+
 def validate_artifact(artifact: Mapping[str, Any]) -> None:
     if core.artifact_content_sha256(artifact) != artifact.get("content_sha256"):
         raise ValueError("Independent OBC validation artifact self-hash mismatch")
@@ -1368,6 +1677,7 @@ def validate_artifact(artifact: Mapping[str, Any]) -> None:
     if candidate_cell.get("candidate_git_sha") != source.get("git_head"):
         raise ValueError("Validation candidate/source Git identity changed")
     validate_current_source_binding(source)
+    _validate_full_matrix_records(artifact)
     if artifact.get("selection", {}).get("selected_cases") != list(FULL_H_CASES):
         raise ValueError("Full-H preregistered selection changed")
     if artifact.get("replay_526", {}).get("record_count") != 1052:
@@ -1390,12 +1700,26 @@ def validate_artifact(artifact: Mapping[str, Any]) -> None:
     gates = artifact.get("qualification_gates", {})
     if set(gates) != expected_gates:
         raise ValueError("Qualification gate set changed")
-    if not all(
-        gate.get("passed") is True
-        and gate.get("passed_count") == gate.get("expected_count")
-        for gate in gates.values()
-    ):
-        raise ValueError("Qualification gate denominator is incomplete")
+    gate_counts = {
+        "sealed_oracle_1052_energy": 1052,
+        "portable_oracle_48_energy_force": 48,
+        "analytic_hessian_16_fd": 16,
+        "direct_hvp_144": 144,
+        "no_openmm_candidate_runtime": 1,
+        "candidate_exact_cell_public_composition": 2,
+        "source_unchanged": 1,
+    }
+    for name, count in gate_counts.items():
+        gate = gates[name]
+        if not isinstance(gate, Mapping):
+            raise ValueError("Qualification gate is not a mapping")
+        _require_equal(gate.get("expected_count"), count, f"{name} expected denominator")
+        _require_equal(gate.get("passed_count"), count, f"{name} passed denominator")
+        _require_equal(gate.get("passed"), True, f"{name} verdict")
+    _require_equal(
+        gates["candidate_exact_cell_public_composition"].get("evidence_content_sha256"),
+        candidate_cell["content_sha256"], "candidate gate evidence hash",
+    )
     if gates["analytic_hessian_16_fd"].get("steps_angstrom") != list(
         SOLVENT_FD_STEPS_ANGSTROM
     ):

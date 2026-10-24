@@ -386,3 +386,317 @@ def test_current_binding_rejects_dirty_data_pointer(qualification_repo):
 def test_current_binding_accepts_unchanged_candidate_head(qualification_repo):
     _root, _git, frozen = qualification_repo
     validation.validate_current_source_binding(frozen)
+
+
+def _summary_only_artifact():
+    candidate = _candidate_evidence()
+    counts = {
+        "sealed_oracle_1052_energy": 1052,
+        "portable_oracle_48_energy_force": 48,
+        "analytic_hessian_16_fd": 16,
+        "direct_hvp_144": 144,
+        "no_openmm_candidate_runtime": 1,
+        "candidate_exact_cell_public_composition": 2,
+        "source_unchanged": 1,
+    }
+    gates = {key: {"expected_count": count, "passed_count": count, "passed": True}
+             for key, count in counts.items()}
+    gates["analytic_hessian_16_fd"]["steps_angstrom"] = list(validation.SOLVENT_FD_STEPS_ANGSTROM)
+    gates["direct_hvp_144"]["dense_hessian_forbidden"] = True
+    gates["candidate_exact_cell_public_composition"].update(
+        nonpolar=["ace", "none"], evidence_content_sha256=candidate["content_sha256"])
+    return {
+        "schema_version": 1,
+        "artifact_type": "route1-independent-obc2-validation-v1",
+        "recorded_date": validation.RECORDED_DATE,
+        "source_unchanged": True,
+        "source_snapshot": candidate["candidate_source_snapshot"],
+        "candidate_exact_cell": candidate,
+        "selection": {"selected_cases": list(validation.FULL_H_CASES)},
+        "guarded_no_openmm": {"passed": True},
+        "replay_526": {"record_count": 1052, "passed": True},
+        "portable_48_ef_radius": {"comparison_count": 48, "passed": True},
+        "full_hessian_matrix": {"record_count": 16, "passed": True},
+        "direct_hvp_matrix": {"record_count": 144, "passed": True},
+        "qualification_gates": gates,
+        "passed": True,
+    }
+
+
+def test_summary_only_full_matrix_is_rejected_before_sealing(monkeypatch):
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    artifact = _seal(_summary_only_artifact())
+    with pytest.raises(ValueError, match="records"):
+        validation.validate_artifact(artifact)
+
+
+def _complete_matrix_fixture():
+    """Synthetic zero-error evidence for validator tests, never qualification."""
+    from maple.function.calculator.extra_correction.implicit.obc2_topology import OBC2Topology
+
+    main, portable = validation.load_stage0()
+    artifact = _summary_only_artifact()
+    artifact.update(stage0_binding={
+                        "generator": validation.STAGE0_GENERATOR_REL,
+                        "generator_sha256": validation.STAGE0_GENERATOR_SHA256,
+                        "oracle": validation.STAGE0_MAIN_REL,
+                        "oracle_file_sha256": validation.STAGE0_MAIN_FILE_SHA256,
+                        "oracle_content_sha256": validation.STAGE0_MAIN_CONTENT_SHA256,
+                        "portable_fixture": validation.STAGE0_PORTABLE_REL,
+                        "portable_file_sha256": validation.STAGE0_PORTABLE_FILE_SHA256,
+                        "portable_content_sha256": validation.STAGE0_PORTABLE_CONTENT_SHA256,
+                        "source_freeze_sha256": validation.STAGE0_SOURCE_FREEZE_SHA256,
+                    },
+                    gates=dict(validation.GATES),
+                    fd_steps_angstrom=list(validation.SOLVENT_FD_STEPS_ANGSTROM),
+                    selection=validation.select_full_h_cases(portable))
+    for section_name, golden_rows, is_portable in (
+        ("replay_526", main["records"], False),
+        ("portable_48_ef_radius", portable["records"], True),
+    ):
+        rows = []
+        for golden in golden_rows:
+            row = {
+                key: golden[key] for key in (
+                    ("case", "nonpolar", "geometry") if is_portable
+                    else ("compound_id", "nonpolar", "input_identity_sha256")
+                )
+            }
+            row.update(
+                golden_record_content_sha256=golden["record_content_sha256"],
+                topology_sha256=golden["topology"]["topology_sha256"],
+                topology_match=True, charge_identity_match=True,
+                energy={"total_abs_hartree": 0.0, "polar_abs_hartree": 0.0,
+                        "nonpolar_abs_hartree": 0.0,
+                        "total_limit_hartree": validation.GATES["energy_abs_hartree"]
+                        + validation.GATES["energy_relative"] * abs(golden["total_hartree"]),
+                        "passed": True},
+                parameter_max_abs=0.0,
+                parameter_deltas={name: 0.0 for name in (
+                    "provider_parameters_radius_nm_screen", "intrinsic_radii_angstrom",
+                    "screen_factors", "offset_radii_nm", "scaled_offset_radii_nm",
+                    "finalized_particle_charge_offset_scaled")},
+                provider_provenance={
+                    "runtime_provider": "torch-obc2", "runtime_openmm_required": False,
+                    "model": "obc2", "profile": "obc2-mbondi2", "nonpolar": golden["nonpolar"],
+                    "ordered_charge_sha256": golden["charge_vector_sha256"],
+                    "topology_sha256": golden["topology"]["topology_sha256"]},
+                passed=True,
+            )
+            if is_portable:
+                row.update(force_max_abs_hartree_per_angstrom=0.0,
+                           force_rms_hartree_per_angstrom=0.0)
+            rows.append(row)
+        section = artifact[section_name]
+        section.update(records=rows, maximum_parameter_abs=0.0)
+        if is_portable:
+            section.update(case_count=12, maximum_total_energy_abs_hartree=0.0,
+                           maximum_force_abs_hartree_per_angstrom=0.0,
+                           maximum_force_rms_hartree_per_angstrom=0.0)
+        else:
+            section.update(case_count=526, profile_count=2,
+                           maximum_absolute_prediction_drift_hartree=0.0,
+                           mean_absolute_prediction_drift_hartree=0.0,
+                           mae_drift_upper_bound_hartree=0.0,
+                           mae_drift_upper_bound_kcal_mol=0.0)
+    h_rows = []
+    for case, profile, geometry, atoms, _charges, source in validation._full_h_inputs(portable):
+        matrix = np.zeros((3 * len(atoms),) * 2)
+        h_rows.append({
+            "case": case, "nonpolar": profile, "geometry": geometry,
+            "atom_count": len(atoms), "source_identity_sha256": source,
+            "coordinate_sha256": validation.core.sha256_bytes(
+                validation.core.canonical_json_bytes(atoms.positions.tolist())),
+            "topology_sha256": OBC2Topology.from_atoms(atoms).identity_sha256,
+            "raw_hessian_shape": list(matrix.shape),
+            "raw_hessian_sha256": validation._canonical_array_sha256(matrix),
+            "raw_hessian_max_abs": 0.0, "raw_hessian_frobenius": 0.0,
+            "raw_hessian_asymmetry_max": 0.0, "translation_norms": [0.0] * 3,
+            "translation_limit": validation.GATES["translation_absolute_hartree_per_angstrom2"],
+            "fd_ladder": validation.assess_fd_ladder(
+                matrix, {step: matrix.copy() for step in validation.SOLVENT_FD_STEPS_ANGSTROM}),
+            "passed": True,
+        })
+    artifact["full_hessian_matrix"].update(
+        records=h_rows, selection=artifact["selection"],
+        live_force_fd_oracle={"version": validation.OPENMM_VERSION,
+                             "module": "openmm.app.internal.customgbforces",
+                             "source_sha256": validation.OPENMM_SOURCE_SHA256,
+                             "platform": "Reference"},
+        water_displacement_seed=validation.WATER_DISPLACEMENT_SEED,
+        displacement_scale_angstrom=validation.DISPLACEMENT_SCALE_ANGSTROM,
+    )
+    h_keys = {(row["case"], row["nonpolar"], row["geometry"]) for row in h_rows}
+    index = validation._portable_index(portable)
+    hvp_rows = []
+    for case_index, case in enumerate(validation.PORTABLE_CASES):
+        for geometry_index, geometry in enumerate(validation.GEOMETRY_ORDER):
+            for profile in validation.PROFILE_ORDER:
+                size = 3 * index[(case, profile, geometry)]["atom_count"]
+                for direction_index in range(validation.HVP_DIRECTION_COUNT):
+                    seed, direction = validation.normalized_direction(
+                        case_index=case_index, geometry_index=geometry_index,
+                        direction_index=direction_index, size=size)
+                    vector = np.zeros(size)
+                    compared = (case, profile, geometry) in h_keys
+                    hvp_rows.append({
+                        "case": case, "nonpolar": profile, "geometry": geometry,
+                        "direction_index": direction_index, "seed": seed,
+                        "direction": direction.tolist(),
+                        "direction_sha256": validation._canonical_array_sha256(direction),
+                        "direction_l2_norm": float(np.linalg.norm(direction)),
+                        "hvp": vector.tolist(),
+                        "hvp_sha256": validation._canonical_array_sha256(vector),
+                        "same_scalar_energy_abs_hartree": 0.0,
+                        "same_scalar_force_max_hartree_per_angstrom": 0.0,
+                        "raw_hessian_product": vector.tolist() if compared else None,
+                        "raw_hessian_product_sha256": validation._canonical_array_sha256(vector) if compared else None,
+                        "hvp_vs_raw_hessian_max": 0.0 if compared else None,
+                        "hvp_vs_raw_hessian_scaled_max": 0.0 if compared else None,
+                        "dense_hessian_forbidden_during_call": True,
+                        "passed": True,
+                    })
+    artifact["direct_hvp_matrix"].update(
+        records=hvp_rows, base_seed=validation.HVP_BASE_SEED,
+        direction_count_per_case_geometry_profile=validation.HVP_DIRECTION_COUNT)
+    artifact["guarded_no_openmm"] = {
+        "script_sha256": validation._sha256_text(validation._no_openmm_script()),
+        "network_disabled": True, "import_blocker": True, "metadata_blocker": True,
+        "passed": True,
+        "result": {"provider": "torch-obc2", "energy_hartree": -1.0,
+                   "force_sha256": "a" * 64, "hessian_sha256": "b" * 64,
+                   "hvp_sha256": "c" * 64, "openmm_loaded": False, "ok": True},
+    }
+    return artifact
+
+
+@pytest.fixture(scope="module")
+def complete_matrix():
+    return _complete_matrix_fixture()
+
+
+def test_complete_synthetic_full_matrix_replays_all_frozen_verdicts(complete_matrix, monkeypatch):
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    validation.validate_artifact(_seal(complete_matrix))
+
+
+@pytest.mark.parametrize("section,count", [
+    ("replay_526", 1052), ("portable_48_ef_radius", 48),
+    ("full_hessian_matrix", 16), ("direct_hvp_matrix", 144),
+])
+@pytest.mark.parametrize("damage", ["missing", "empty", "duplicate"])
+def test_full_matrix_rejects_incomplete_or_duplicate_records(
+    complete_matrix, monkeypatch, section, count, damage
+):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    rows = artifact[section]["records"]
+    assert len(rows) == count
+    if damage == "missing":
+        artifact[section].pop("records")
+    elif damage == "empty":
+        artifact[section]["records"] = []
+    else:
+        rows[-1] = copy.deepcopy(rows[0])
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    with pytest.raises(ValueError, match="records|identity"):
+        validation.validate_artifact(_seal(artifact))
+
+
+@pytest.mark.parametrize("section,field,value", [
+    ("replay_526", "parameter_max_abs", 1.0),
+    ("portable_48_ef_radius", "force_max_abs_hartree_per_angstrom", 1.0),
+    ("portable_48_ef_radius", "force_rms_hartree_per_angstrom", 1.0),
+    ("full_hessian_matrix", "raw_hessian_asymmetry_max", 1.0),
+    ("full_hessian_matrix", "raw_hessian_frobenius", float("nan")),
+    ("direct_hvp_matrix", "same_scalar_energy_abs_hartree", 1.0),
+    ("direct_hvp_matrix", "same_scalar_force_max_hartree_per_angstrom", float("inf")),
+])
+def test_full_matrix_rejects_hidden_bad_metric_despite_self_resealed_pass(
+    complete_matrix, monkeypatch, section, field, value
+):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    artifact[section]["records"][0][field] = value
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    with pytest.raises(ValueError):
+        validation.validate_artifact(_seal(artifact))
+
+
+@pytest.mark.parametrize("gate", [
+    "sealed_oracle_1052_energy", "portable_oracle_48_energy_force",
+    "analytic_hessian_16_fd", "direct_hvp_144", "no_openmm_candidate_runtime",
+    "candidate_exact_cell_public_composition", "source_unchanged",
+])
+def test_full_matrix_rejects_changed_gate_counts(complete_matrix, monkeypatch, gate):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    artifact["qualification_gates"][gate].update(expected_count=0, passed_count=0)
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    with pytest.raises(ValueError, match="denominator"):
+        validation.validate_artifact(_seal(artifact))
+
+
+def test_full_matrix_preserves_logged_coarse_fd_failure(complete_matrix, monkeypatch):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    ladder = artifact["full_hessian_matrix"]["records"][0]["fd_ladder"]
+    ladder["records"][0].update(rms_hartree_per_angstrom2=1.0, max_hartree_per_angstrom2=1.0, passed=False)
+    ladder.update(coarse_pass_observed=False, all_three_pass_observed=False)
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    validation.validate_artifact(_seal(artifact))
+
+
+@pytest.mark.parametrize("damage", ["step", "fine_fail", "pair_fail", "nan", "flag"])
+def test_full_matrix_replays_frozen_fd_ladder(complete_matrix, monkeypatch, damage):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    ladder = artifact["full_hessian_matrix"]["records"][0]["fd_ladder"]
+    if damage == "step":
+        ladder["records"][1]["step_angstrom"] = 1e-7
+    elif damage == "fine_fail":
+        ladder["records"][1]["rms_hartree_per_angstrom2"] = 1.0
+    elif damage == "pair_fail":
+        ladder["finest_pair_difference_max_hartree_per_angstrom2"] = 1.0
+    elif damage == "nan":
+        ladder["records"][0]["max_hartree_per_angstrom2"] = float("nan")
+    else:
+        ladder["all_three_pass_observed"] = False
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    with pytest.raises(ValueError):
+        validation.validate_artifact(_seal(artifact))
+
+
+def test_full_matrix_replays_hvp_allclose_not_claimed_scalars(complete_matrix, monkeypatch):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    row = next(row for row in artifact["direct_hvp_matrix"]["records"]
+               if row["raw_hessian_product"] is not None)
+    row["hvp"][0] = 1.0
+    row["hvp_sha256"] = validation._canonical_array_sha256(np.asarray(row["hvp"]))
+    row["hvp_vs_raw_hessian_max"] = 1.0
+    row["hvp_vs_raw_hessian_scaled_max"] = float(1.0 / validation.GATES["hvp_atol_hartree_per_angstrom2"])
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    with pytest.raises(ValueError, match="verdict|original thresholds"):
+        validation.validate_artifact(_seal(artifact))
+
+
+def test_full_matrix_replays_original_hvp_relative_tolerance(complete_matrix, monkeypatch):
+    import copy
+    artifact = copy.deepcopy(complete_matrix)
+    row = next(row for row in artifact["direct_hvp_matrix"]["records"]
+               if row["raw_hessian_product"] is not None)
+    # Above absolute tolerance but admitted by the unchanged relative term.
+    row["raw_hessian_product"][0] = 10.0
+    row["hvp"][0] = 10.0 + 5e-9
+    product, hvp = map(np.asarray, (row["raw_hessian_product"], row["hvp"]))
+    diff = np.abs(hvp - product)
+    row.update(
+        raw_hessian_product_sha256=validation._canonical_array_sha256(product),
+        hvp_sha256=validation._canonical_array_sha256(hvp),
+        hvp_vs_raw_hessian_max=float(np.max(diff)),
+        hvp_vs_raw_hessian_scaled_max=float(np.max(
+            diff / np.maximum(np.abs(product), validation.GATES["hvp_atol_hartree_per_angstrom2"]))),
+    )
+    monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
+    validation.validate_artifact(_seal(artifact))

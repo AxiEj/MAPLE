@@ -9,7 +9,7 @@ import shutil
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import ase
 from ase import Atoms
@@ -298,7 +298,7 @@ class SetCalculator:
         solvent: str = 'None',
         model_options: Optional[dict] = None,
         solvation_options: Optional[dict] = None,
-        charge_options: Optional[dict] = None,
+        charge_options: Optional[dict[str, Any]] = None,
         task_context: Optional[dict] = None,
     ) -> None:
         self.output = output
@@ -315,7 +315,7 @@ class SetCalculator:
         if charge_options is None:
             charge_options = atom_info.get('_maple_charge_options', {})
         self.solvation_options = dict(solvation_options)
-        self.charge_options = dict(charge_options)
+        self.charge_options: dict[str, Any] = dict(charge_options)
         self.task_context = dict(task_context or {})
         self._model_error_logged = False
 

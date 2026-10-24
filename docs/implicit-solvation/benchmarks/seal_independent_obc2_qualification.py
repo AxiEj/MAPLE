@@ -131,6 +131,11 @@ def build_receipt(validation_path: Path, candidate_path: Path) -> dict:
         ):
             raise ValueError(f"Qualification gate denominator changed: {name}")
 
+    if gates["candidate_exact_cell_public_composition"].get(
+        "evidence_content_sha256"
+    ) != candidate["content_sha256"]:
+        raise ValueError("Qualification gate candidate evidence hash changed")
+
     installed = runtime._installed_runtime_source_inventory()
     sources = frozen["files_sha256"]
     if not installed or any(sources.get(path) != sha for path, sha in installed.items()):
@@ -171,6 +176,11 @@ def _publish(path: Path, raw: bytes, *, replace: bool) -> None:
         else:
             # An atomic exclusive install also closes the concurrent-sealer race.
             os.link(temporary, path)
+        directory_fd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)

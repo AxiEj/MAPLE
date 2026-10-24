@@ -195,17 +195,21 @@ def _xyz_frames(path: Path) -> list[dict]:
             continue
         count = int(lines[cursor])
         end = cursor + count + 2
-        if end > len(lines):
+        if count <= 0 or end > len(lines):
             raise ValueError(f"truncated XYZ frame: {path}")
-        coordinates = [
-            [float(value) for value in line.split()[1:4]]
-            for line in lines[cursor + 2 : end]
-        ]
+        atom_rows = [line.split() for line in lines[cursor + 2 : end]]
+        if any(len(row) != 4 for row in atom_rows):
+            raise ValueError(f"invalid XYZ atom record: {path}")
+        coordinates = [[float(value) for value in row[1:]] for row in atom_rows]
         if len(coordinates) != count or not all(
             math.isfinite(value) for row in coordinates for value in row
         ):
             raise ValueError(f"invalid XYZ coordinates: {path}")
-        frames.append({"comment": lines[cursor + 1], "coordinates": coordinates})
+        frames.append({
+            "comment": lines[cursor + 1],
+            "symbols": [row[0] for row in atom_rows],
+            "coordinates": coordinates,
+        })
         cursor = end
     return frames
 
@@ -343,6 +347,11 @@ def audit_task(
             "trajectory_image_indices": image_indices,
             "iteration_numbers": iterations,
             "finite_energies": all(map(math.isfinite, energies)),
+            "atom_identity_consistent": bool(
+                frames and trajectory
+                and all(frame["symbols"] == frames[0]["symbols"] for frame in frames + trajectory)
+                and (expected_atom_count is None or len(frames[0]["coordinates"]) == expected_atom_count)
+            ),
             "real_multistep_motion": bool(
                 len(trajectory) == 3
                 and all(len(frame["coordinates"]) == len(trajectory[0]["coordinates"]) for frame in trajectory)
@@ -413,6 +422,7 @@ def audit_task(
             and evidence["finite_energies"] is True
             and evidence["trajectory_image_indices"] == [0, 1, 2]
             and evidence["iteration_numbers"] == [1, 2]
+            and evidence["atom_identity_consistent"] is True
             and evidence["real_multistep_motion"] is True
             and evidence["final_geometry_matches_trajectory"] is True
         )

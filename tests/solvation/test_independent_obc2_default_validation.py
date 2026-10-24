@@ -340,8 +340,8 @@ def test_current_binding_allows_data_only_descendant_without_circular_head(quali
         path = root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("{}\n")
-    git("add", ".")
-    git("commit", "-qm", "seal data only")
+        git("add", ".")
+        git("commit", "-qm", "seal data only")
     assert git("rev-parse", "HEAD") != frozen["git_head"]
     validation.validate_current_source_binding(frozen)
 
@@ -380,3 +380,9 @@ def test_current_binding_rejects_dirty_data_pointer(qualification_repo):
     path.write_text("{}\n")
     with pytest.raises(RuntimeError, match="clean committed tree"):
         validation.validate_current_source_binding(frozen)
+
+
+
+def test_current_binding_accepts_unchanged_candidate_head(qualification_repo):
+    _root, _git, frozen = qualification_repo
+    validation.validate_current_source_binding(frozen)

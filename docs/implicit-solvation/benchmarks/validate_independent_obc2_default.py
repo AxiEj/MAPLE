@@ -316,6 +316,34 @@ def source_snapshot(*, require_clean: bool = True) -> dict[str, Any]:
     return payload
 
 
+def validate_current_source_binding(frozen: Mapping[str, Any]) -> None:
+    """Permit committed sealing data, not source drift or unrelated lineage."""
+    current = source_snapshot(require_clean=True)
+    if (
+        current["files_sha256"] != frozen.get("files_sha256")
+        or current["files_aggregate_sha256"] != frozen.get("files_aggregate_sha256")
+    ):
+        raise ValueError("Current source inventory does not match frozen qualification source")
+    candidate_head = frozen.get("git_head")
+    if (
+        not isinstance(candidate_head, str) or len(candidate_head) != 40
+        or any(character not in "0123456789abcdef" for character in candidate_head)
+    ):
+        raise ValueError("Frozen qualification candidate Git SHA is malformed")
+    try:
+        _git("merge-base", "--is-ancestor", candidate_head, current["git_head"])
+    except subprocess.CalledProcessError as exc:
+        raise ValueError("Qualification candidate is not an ancestor of current HEAD") from exc
+    changed_paths = {
+        path for path in _git(
+            "log", "--format=", "--name-only", "--diff-merges=first-parent",
+            f"{candidate_head}..{current['git_head']}",
+        ).splitlines() if path
+    }
+    if changed_paths - QUALIFICATION_SOURCE_EXCLUDES:
+        raise ValueError("Post-qualification commits must contain only excluded data-only paths")
+
+
 def _provider_class():
     from maple.function.calculator.extra_correction.implicit.independent_obc2 import (
         IndependentOBC2,
@@ -1339,6 +1367,7 @@ def validate_artifact(artifact: Mapping[str, Any]) -> None:
     )
     if candidate_cell.get("candidate_git_sha") != source.get("git_head"):
         raise ValueError("Validation candidate/source Git identity changed")
+    validate_current_source_binding(source)
     if artifact.get("selection", {}).get("selected_cases") != list(FULL_H_CASES):
         raise ValueError("Full-H preregistered selection changed")
     if artifact.get("replay_526", {}).get("record_count") != 1052:

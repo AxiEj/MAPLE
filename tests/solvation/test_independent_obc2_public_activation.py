@@ -7,6 +7,8 @@ import subprocess
 import sys
 import shutil
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 HARNESS = ROOT / "tests/solvation/run_independent_obc2_public_activation.py"
 SPEC = importlib.util.spec_from_file_location("obc2_public_activation", HARNESS)
@@ -190,9 +192,6 @@ def test_md_artifacts_require_all_scheduled_steps_and_frames(tmp_path):
     assert md["evidence"]["thermo_steps"] == [1]
 
 
-import pytest
-
-
 @pytest.mark.parametrize("rows", [
     "  1 H bad 0.0 0.0\n  2 H 0.0 0.0 0.0\n",
     "  1 H 0.0 0.0\n  2 H 0.0 0.0 0.0\n",
@@ -256,3 +255,27 @@ def test_opt_audit_rejects_final_geometry_not_matching_last_step(tmp_path):
     _write_opt(tmp_path)
     (tmp_path / "opt_opt.xyz").write_text(_opt_frame(0, 0.9))
     assert activation.audit_task("opt", tmp_path)["passed"] is False
+
+
+
+@pytest.mark.parametrize("record", ["H 0 0", "H nan 0 0", "H 0 0 0 extra"])
+def test_xyz_parser_rejects_incomplete_or_nonfinite_coordinates(tmp_path, record):
+    path = tmp_path / "bad.xyz"
+    path.write_text(f"1\nImage 0 Energy = -1.0\n{record}\n")
+    with pytest.raises(ValueError):
+        activation._xyz_frames(path)
+
+
+def test_opt_audit_rejects_truncated_atom_inventory(tmp_path):
+    _write_opt(tmp_path)
+    assert activation.audit_task("opt", tmp_path, expected_atom_count=2)["passed"] is False
+
+
+def test_opt_input_enables_both_iteration_records(tmp_path):
+    assert "max_iter=2,verbose=1" in activation.render_input("opt", tmp_path / "m.mol2", tmp_path / "a.pt")
+
+
+def test_sp_audit_requires_expected_input_atom_count(tmp_path):
+    (tmp_path / "sp.out").write_text(SP_OUTPUT)
+    _write_manifest(tmp_path, "sp")
+    assert activation.audit_task("sp", tmp_path)["passed"] is False

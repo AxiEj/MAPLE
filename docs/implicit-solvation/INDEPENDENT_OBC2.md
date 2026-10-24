@@ -43,6 +43,11 @@ solvent forces, Hessians and direct HVPs. A direct HVP does not build a dense H.
 
 ## Analytic task admission
 
+**Qualification status (2026-10-24):** the current receipt pointer is unset.
+The independent analytic default intentionally fails closed pending fresh
+candidate qualification, sealing and installed-console activation. The usage
+below describes the required qualified installation, not a completed gate.
+
 Provider capability alone does not qualify a composed MLIP task. Analytic
 implicit FREQ/P-RFO/direct-HVP Dimer requests require a sealed exact-cell
 qualification: ANI2x checkpoint

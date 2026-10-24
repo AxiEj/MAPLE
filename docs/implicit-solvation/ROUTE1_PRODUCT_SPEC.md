@@ -1,5 +1,10 @@
 # Route 1 product specification
 
+> **Runtime update (2026-10-24):** default OBC-II is independent Torch, not
+> OpenMM. Analytic task capability remains separate from sealed qualification.
+> [Current install/input/admission contract](INDEPENDENT_OBC2.md). Dated
+> benchmark sections below preserve historical runtime identities and metrics.
+
 > **Four endpoints / three roles:** FAST OBC-II/ACE, ACCURACY CHA-GB/ALPB plus
 > PBSA cavity/dispersion, REFERENCE ddX/ddLPB, and independent APBS cross-check.
 > The new finite-kappa reference is polar-only and experimental, not a change
@@ -94,9 +99,9 @@ universally between gas models.
 |---|---|---|
 | gas model | MAPLE calculator registration, energy, and task-required derivatives | any registered molecular MLIP that passes the compatibility gate |
 | charge | one finite charge per atom, topology/order audit, declared lifecycle | MOL2 fixed charge or AmberTools AM1-BCC; ABCG2 is explicit-only |
-| radius | one positive radius per atom plus provider-native GB parameters and provenance | locked upstream OpenMM Amber assignments |
-| polar | additive energy and an honest derivative capability declaration | OpenMM Amber GB; APBS LPB and AmberTools CHA-GB are energy-only |
-| nonpolar | additive energy, derivative capability, parameters, implementation provenance | OpenMM ACE/LCPO/none, locked APBS SASA, or locked PBSA cavity/dispersion |
+| radius | one positive radius per atom plus provider-native GB parameters and provenance | frozen independent mbondi2 assets for Torch OBC-II; locked upstream Amber assignments for explicit OpenMM |
+| polar | additive energy and an honest derivative capability declaration | independent Torch OBC-II; explicit OpenMM Amber GB; APBS LPB and AmberTools CHA-GB are energy-only; ddLPB is a separate force-capable reference |
+| nonpolar | additive energy, derivative capability, parameters, implementation provenance | independent Torch ACE/none; explicit OpenMM ACE/LCPO/none, locked APBS SASA, or locked PBSA cavity/dispersion |
 
 Radius and nonpolar providers are first-class runtime objects. A provider record
 states its category, name, profile, implementation, parameters, and component
@@ -117,8 +122,10 @@ one composition boundary.
   neither fixed nor polarizable QEq is an active charge option.
 - OBC-II/ACE remains the forward development default. A literature candidate
   does not replace it without the frozen benchmark and confirmation process.
-- The product OpenMM platform default is single-thread CPU with deterministic
-  forces. `platform=Reference` remains the explicit independent
+- The OBC-II runtime default is independent Torch; the `implicit` and
+  `implicit-gb` extras select Torch, not OpenMM. Only the explicit
+  `provider=openmm` path uses single-thread CPU with deterministic forces.
+  `platform=Reference` remains the explicit independent
   correctness/parity control; platform selection never changes the solvent
   functional.
 - AM1-BCC/CHA-GB/PBSA cavity-dispersion is an explicit SP-only accuracy
@@ -138,7 +145,8 @@ one composition boundary.
 
 | provider composition | SP | OPT | SCAN/PES | FREQ | MD | policy |
 |---|---:|---:|---:|---:|---:|---|
-| fixed-charge OpenMM GB + ACE/LCPO | energy + gradient | yes | yes | explicit numerical complete-force Hessian; experimental analytic ANI2x/OBC-II/ACE or none on Reference | non-periodic NVE/NVT | combined conservative potential; OpenMM CPU remains the ordinary runtime default |
+| fixed-charge independent Torch OBC-II + ACE/none | energy + gradient | yes | yes | explicit numerical complete-force Hessian; analytic exact ANI2x CPU float64 cell after sealed qualification | non-periodic NVE/NVT | default OBC-II; no OpenMM runtime dependency or automatic fallback |
+| explicit fixed-charge OpenMM GB + ACE/LCPO | energy + gradient | yes | yes | explicit numerical complete-force Hessian; separately admitted legacy analytic cell on Reference | non-periodic NVE/NVT | optional legacy provider; platform controls do not select it implicitly |
 | prebuilt cluster + OpenMM GB + ACE/LCPO | energy + gradient | yes | yes | numerical fixed-shell curvature only | no | whole-cluster fixed-shell potential; occupancy-constrained MD not yet defined; no absolute `DeltaG_solv` claim |
 | automatic QCG/FEBISS explicit-inner cycle | unavailable | no | no | no | no | source-audited research path only; no arbitrary-MLIP QCG backend, complete neutral FreeSolv validation, or end-to-end speed evidence |
 | APBS LPB + APOLAR | energy only | no | no | no | no | fail closed on forces |
@@ -156,10 +164,15 @@ energy.
 
 Implicit-solvent FREQ follows the same rule at second-derivative order. The
 general path uses explicit `hessian=numerical`, which central-differences the
-complete combined force. A separate experimental profile admits
-`ANI2x(hessian=analytic)` with float64 plus an exact, source-pinned Torch
-transcription of OpenMM 8.5.2 OBC-II/ACE (or polar-only) and explicit
-`platform=Reference`. Both paths require the mass-weighted `method=mw`
+complete combined force. The independent analytic profile requires
+`ANI2x(hessian=analytic,d4=false)`, the pinned checkpoint SHA, CPU, float64,
+and OBC-II/mbondi2 with ACE or NONE. A sealed receipt must admit the exact
+installed source/model cell before the factory enables task derivatives;
+otherwise it raises `ANALYTIC_CELL_UNQUALIFIED`. Provider capability is not
+task admission. The explicit legacy OpenMM analytic path retains its separate
+gate and requires `platform=Reference`. Neither path silently falls back.
+See [the exact identity contract](INDEPENDENT_OBC2.md).
+Both frequency paths require the mass-weighted `method=mw`
 frequency path and `ilowfreq` in `0..3`. Non-mass-weighted and unimplemented dual-mode
 requests fail during input validation. A gas-backend analytic Hessian without
 an admitted solvent Hessian is rejected because it omits the solvent
@@ -177,7 +190,8 @@ reduced active-coordinate Hessian, mass matrix, and rigid-body projection;
 full-space projection of `FixAtoms` or `FixInternals` Hessians is not physical.
 These guards are enforced again at the computation API, which requires
 `mode=fixed`, solvent force support, calculator Route 1 composition capability,
-`hessian=numerical`, and non-periodic atoms. Text parsing is not the sole
+explicit numerical mode or admitted complete analytic derivatives, and
+non-periodic atoms. Text parsing is not the sole
 scientific boundary.
 
 The preregistered

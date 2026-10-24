@@ -54,7 +54,30 @@ explicit alternative and is never selected automatically. This user-selected
 development policy is not a scientific certification, and the historical
 ABCG2 benchmark artifacts below remain immutable evidence.
 
-## Current implementation progress (2026-09-10)
+## Current independent OBC-II migration (2026-10-24)
+
+- OBC-II defaults to the independent Torch runtime. The `implicit`,
+  `implicit-gb` and `implicit-obc2-torch` extras require Torch; the explicit
+  legacy `implicit-openmm` extra pins OpenMM 8.5.2.
+- Ordinary energy/force composition and analytic task admission are separate.
+  The current qualification pointer is unset: the analytic default is
+  intentionally fail-closed pending fresh candidate qualification, receipt
+  sealing and installed-console activation. No current matrix/activation pass
+  or release approval is claimed here.
+- The only candidate analytic cell is the exact ANI2x checkpoint, CPU float64,
+  D4 disabled, independent OBC-II/mbondi2, ACE or NONE.
+  [Checkpoint, source-inventory and admission contract](INDEPENDENT_OBC2.md).
+  Capability alone does not qualify other MLIPs, devices, dtypes or profiles.
+- Numerical Hessians and force-difference Dimer remain explicit modes, not
+  fallbacks for failed analytic admission. Historical OpenMM Reference parity,
+  task counts and timings below do not qualify the new independent default.
+- CHA remains energy-only. Continuous/Gaussian CHA derivatives are retired.
+  Historical prototypes below are not unfinished active runtime deliverables.
+
+## Historical implementation progress (2026-09-10)
+
+The table and engineering gates below describe their dated OpenMM-era
+implementation and frozen records, not current independent-default admission.
 
 | Workstream | Delivered | Remaining work / actual reason |
 |---|---|---|
@@ -72,7 +95,7 @@ many diagnostics and isolated numerical prototypes, while several runtime and
 batch-workflow connections remained undone. Available experimental task paths
 should proceed independently rather than wait for all of these extensions.
 
-## Passing engineering gates
+## Historical passing engineering gates
 
 - Tripos MOL2 topology, atom order, atom types, substructure metadata, and fixed
   charges are preserved; disconnected structures and charge-sum mismatches fail

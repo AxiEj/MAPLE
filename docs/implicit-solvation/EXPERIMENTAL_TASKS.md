@@ -17,7 +17,8 @@ explicit positive-kappa path, not restoration of those old runners. See
 
 | Implicit-solvent provider | SP | OPT | FREQ | TS |
 |---|---|---|---|---|
-| OpenMM GB, fixed charges | Yes | Yes | Numerical composed Hessian; analytic ANI2x/OBC-II/ACE or none on Reference | Experimental P-RFO / dimer, one solute geometry; analytic profile is separately gated |
+| independent Torch OBC-II, fixed charges | Yes | Yes | Numerical composed Hessian; analytic exact ANI2x CPU float64 ACE/none cell only after sealed qualification | Experimental P-RFO / dimer; direct HVP requires the same sealed exact cell |
+| explicit OpenMM GB, fixed charges | Yes | Yes | Numerical composed Hessian; legacy analytic ANI2x/OBC-II on Reference requires separate admission | Experimental P-RFO / dimer, one solute geometry |
 | AmberTools CHA-GB/PBSA | Energy only | Not implemented | Not implemented | Not implemented |
 | ddX/ddLPB reference | Polar energy + analytic force | Experimental | Numerical composed Hessian | Experimental P-RFO / dimer, one solute geometry |
 | APBS PB | Energy only | Not implemented | Not implemented | Not implemented |
@@ -25,16 +26,22 @@ explicit positive-kappa path, not restoration of those old runners. See
 Existing supported nonperiodic OpenMM GB SCAN/MD paths are unchanged. This
 implicit TS entry does not add NEB/string/AutoNEB, multicomponent
 `inner=prebuilt`, polarizable charge response, periodic boundaries or analytic
-implicit Hessians. Gas-phase TS paths are unchanged.
+implicit Hessian qualification beyond the exact cell below. Gas-phase TS
+paths are unchanged.
 
 The analytic profile is an execution-backend rewrite, not a new solvent
 model. It shares the existing fixed charges and mbondi2 parameters, reproduces
 the pinned OpenMM OBC-II/ACE energy and force, and obtains the solvent Hessian
-or HVP by Torch automatic differentiation. OpenMM CPU remains the ordinary
-SP/OPT/SCAN/MD default. Analytic FREQ/P-RFO/Dimer currently requires ANI2x,
-float64 (automatic promotion is allowed), `model=obc2`, `nonpolar=ace|none`,
-and explicit `platform=Reference`; other backend/device/profile cells retain
-the complete-force numerical fallback.
+or direct HVP by Torch automatic differentiation. Independent Torch is the
+default OBC-II SP/OPT/SCAN/MD provider; OpenMM is optional and explicit.
+Analytic FREQ/P-RFO/direct-HVP Dimer requires the exact ANI2x checkpoint,
+CPU, float64, D4 disabled, OBC-II/mbondi2, ACE or NONE, and a sealed installed
+source/model-bound receipt. Missing or stale qualification raises
+`ANALYTIC_CELL_UNQUALIFIED`; implementation capability alone is not admission.
+See [checkpoint identity and gate](INDEPENDENT_OBC2.md). Torch accepts no
+OpenMM platform controls. The explicit legacy OpenMM analytic path additionally
+requires `platform=Reference` and its own admission. Numerical curvature modes
+are explicit alternatives, not fallbacks for a rejected analytic request.
 
 ## P-RFO input
 
@@ -73,6 +80,9 @@ external-provider requirements still apply. Optimization uses the selected
 MLIP plus the **same** OpenMM GB energy and force; the numerical Hessian
 uses that composed force. No OBC-II force is substituted into CHA-GB energy.
 
+P-RFO checks a fresh final Hessian before claiming saddle convergence; a
+small force alone is insufficient.
+
 The output identifies the experimental candidate-search boundary. A completed
 program run or an iteration-limit exit is not a converged transition state.
 Inspect convergence and vibrational curvature before interpreting the result
@@ -96,8 +106,11 @@ MOL2 ts-guess.mol2
 
 Dimer estimates directional curvature by central differences of the **complete
 composed force**, without constructing a full Hessian. For implicit solvent,
-omit `use_hvp` or set `use_hvp=false`; `use_hvp=true` is rejected because the
-existing analytic HVP omits solvent. The legacy default displacement is
+omit `use_hvp` or set `use_hvp=false` to select this force-difference mode.
+Direct HVP mode uses `use_hvp=true` with `hessian=analytic` and requires the
+sealed exact-cell admission described above; it includes both gas and solvent
+curvature without constructing a dense Hessian. The legacy default
+displacement is
 `delta=0.005` angstrom for backends without a recommendation. ANI numerical
 curvature now selects float64 and `delta=0.0005`; an explicit delta overrides
 the recommendation. Gas-phase automatic mode retains the existing calculator HVP path.

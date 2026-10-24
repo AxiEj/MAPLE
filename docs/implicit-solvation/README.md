@@ -9,7 +9,7 @@
 > [Cleanup scope, evidence and preservation](RESEARCH_RETIREMENT_20261023.md).
 > Dated development plans below are historical where they conflict with this scope.
 
-> **Current architecture (2026-09-09):** FAST OBC-II/ACE; ACCURACY CHA-GB/ALPB
+> **Historical architecture notice (2026-09-09):** FAST OBC-II/ACE; ACCURACY CHA-GB/ALPB
 > plus PBSA cavity/dispersion; REFERENCE ddX/ddLPB, with APBS as an independent
 > grid cross-check. See [numerical reference input and boundaries](NUMERICAL_REFERENCE.md).
 > This newly requested finite-kappa reference selectively supersedes the earlier
@@ -48,8 +48,9 @@ explicit-inner/implicit-outer composition are optional extensions over the
 same additive potential; they do not redefine Route 1 or replace its core
 FreeSolv, provider-parity, and complete-potential force checks.
 
-Fixed-charge OpenMM GB also supports experimental single-geometry P-RFO and
-force-only dimer TS searches. See [task inputs and limitations](EXPERIMENTAL_TASKS.md);
+Force-capable fixed-charge GB supports experimental single-geometry P-RFO and
+force-difference dimer TS searches. Analytic Hessian/direct-HVP tasks require
+separate exact-cell admission. See [task inputs and limitations](EXPERIMENTAL_TASKS.md);
 workflow availability does not imply transition-state convergence or accuracy.
 
 The default validation domain is one neutral, closed-shell, connected organic
@@ -152,13 +153,14 @@ molecular charge within `1e-4 e`.
 
 ## Complete-potential frequency derivatives
 
-Force-capable OpenMM GB compositions admit an explicit numerical FREQ task:
+Force-capable Torch OBC-II and explicit legacy OpenMM GB compositions admit
+an explicit numerical FREQ task (the example uses the default Torch provider):
 
 ```text
 #model=ani2x(hessian=numerical)
 #freq(method=mw,ilowfreq=2)
 #charge(source=mol2,label=am1bcc-frozen)
-#solv(implicit=water,method=gb,provider=openmm,model=obc2,profile=obc2-mbondi2,nonpolar=ace,experimental=true)
+#solv(implicit=water,method=gb,model=obc2,profile=obc2-mbondi2,nonpolar=ace,experimental=true)
 
 0 1
 MOL2 molecule.mol2
@@ -167,25 +169,32 @@ MOL2 molecule.mol2
 The general opt-in `hessian=numerical` path central-differences the **complete
 reported MLIP-plus-GB force**. It takes two force evaluations per movable
 Cartesian degree of freedom. A gas-only analytic Hessian remains fail-closed.
-One separately qualified experimental profile supplies both terms analytically:
+A sealed exact-cell qualification is required before the independent analytic
+profile can supply both terms. The following is conditional usage, not a claim
+that this checkout is qualified:
 
 ```text
-#model=ani2x(hessian=analytic,dtype=float64)
+#model=ani2x(model_path=/path/to/qualified-ani2x.pt,hessian=analytic,dtype=float64,d4=false)
 #freq(method=mw,ilowfreq=2)
+#device=cpu
 #charge(source=mol2,label=am1bcc-frozen)
-#solv(implicit=water,method=gb,provider=openmm,model=obc2,profile=obc2-mbondi2,nonpolar=ace,platform=Reference,experimental=true)
+#solv(implicit=water,method=gb,model=obc2,profile=obc2-mbondi2,nonpolar=ace,experimental=true)
 
 0 1
 MOL2 molecule.mol2
 ```
 
-This profile adds the ANI2x gas analytic Hessian to a source-pinned Torch
-automatic-differentiation Hessian of the unchanged OpenMM 8.5.2 OBC-II/ACE
-expression. It requires float64 and explicit `platform=Reference`; it does not
-alter OpenMM CPU as the ordinary SP/OPT/SCAN/MD default. The numerical path
-remains the explicit fallback for all other gas backends, platforms, GB models,
-and LCPO. Energy-only APBS PB and AmberTools CHA-GB providers cannot enter
-either derivative path. The admitted implicit-solvent frequency method is mass-weighted
+This profile adds the ANI2x gas analytic Hessian to the independent Torch
+OBC-II/ACE Hessian from the same solvent scalar used for energy and force.
+It requires the exact checkpoint SHA, CPU, float64, D4 disabled, ACE or NONE,
+and a valid packaged receipt bound to installed source and model identities.
+See [the exact-cell contract](INDEPENDENT_OBC2.md); absent or stale qualification
+fails closed. Torch does not use OpenMM platform controls.
+The legacy OpenMM analytic path requires explicit `provider=openmm` and
+`platform=Reference` plus its own admission checks; it is not the default.
+Numerical Hessians are separately requested modes, never an automatic fallback
+for a rejected analytic request. Energy-only APBS PB and AmberTools CHA-GB
+providers cannot enter either derivative path. The admitted implicit-solvent frequency method is mass-weighted
 `method=mw`, with `ilowfreq` restricted to `0`, `1`, `2`, or `3`;
 non-mass-weighted and unimplemented dual-mode requests fail during parsing.
 The low-frequency choices are explicit physical approximations: `0` is
@@ -290,18 +299,22 @@ and
 |---|---:|---|---|
 | `hct` | `igb=1` | `hct-mbondi` | OpenMM `GBSAHCTForce` |
 | `obc1` | `igb=2` | `obc1-mbondi2` | OpenMM `GBSAOBC1Force` |
-| `obc2` | `igb=5` | `obc2-mbondi2` | OpenMM `GBSAOBC2Force` |
+| `obc2` | `igb=5` | `obc2-mbondi2` | independent Torch (default); explicit OpenMM `GBSAOBC2Force` |
 | `gbn` | `igb=7` | `gbn-bondi` | OpenMM `GBSAGBnForce` |
 | `gbn2` | `igb=8` | `gbn2-mbondi3` | OpenMM `GBSAGBn2Force` |
 | `chagb` | CHA-GB/ALPB | `chagb-bondi-pbsa-inp2` | AmberTools GBNSR6 `EGB` + PBSA `ECAVITY+EDISPER` (SP energy only) |
 
-OBC-II is the Route 1 development default.  `nonpolar=ace` is the default;
-`nonpolar=lcpo` requires OpenMM 8.5 or newer.  `nonpolar=none` is diagnostic
-only and requires `experimental=true`. The product OpenMM platform default is
-CPU with one thread and deterministic forces; `platform=Reference` remains an
-explicit correctness/parity control. OpenMM returns both correction energy and
-conservative correction force, so fixed-charge GB is available to SP, OPT,
-SCAN/PES, explicit numerical FREQ, and non-periodic NVE/NVT MD. NPT remains
+OBC-II uses independent Torch by default; `nonpolar=ace` is the default.
+Torch supports ACE or NONE, with solvent float64 arithmetic on the requested
+model device. All implicit providers require `experimental=true`.
+LCPO requires explicit `provider=openmm` and the pinned OpenMM extra.
+OpenMM-specific platform/precision controls and `inner=prebuilt` also require
+explicit OpenMM selection; none silently changes the provider. Other explicit
+GB model selections retain their legacy OpenMM provider.
+Only the explicit OpenMM path defaults to one deterministic CPU thread;
+`platform=Reference` is its correctness/parity control. Both force-capable
+GB paths add conservative correction forces to the reported energy and support
+SP, OPT, SCAN/PES, explicit numerical FREQ, and non-periodic NVE/NVT MD. NPT remains
 rejected because this implicit-solvent release is non-periodic.
 Polarizable-QEq code has been removed. `inner=prebuilt` MD remains unsupported
 pending a separate conservative sampling and fixed-shell occupancy contract.
@@ -477,7 +490,8 @@ invent or approximate them under the certified profile name.
 
 | endpoint | SP energy | SP gradient | OPT/SCAN | current role |
 |---|---:|---:|---:|---|
-| OpenMM Amber GB + ACE/LCPO | yes | yes | yes | Route 1 executable baseline |
+| independent Torch OBC-II + ACE/none | yes | yes | yes | default OBC-II runtime; analytic tasks require sealed exact-cell admission |
+| explicit OpenMM Amber GB + ACE/LCPO | yes | yes | yes | optional legacy provider |
 | prebuilt cluster + OpenMM GB + ACE/LCPO | yes | yes | yes | fixed-shell cluster potential; not absolute solvation free energy |
 | APBS LPB + APOLAR | yes | no | no | PB energy-only provider |
 | APBS molecular-surface LPB + OpenMM ACE | benchmark only | no | no | rejected: coarse grid unstable; converged fine grid still misses material-gain gate |

@@ -27,6 +27,29 @@ retain FP64 / 15 / 1202. No private research directory is needed at runtime.
 
 ## Current verification
 
+- Single-evaluation execution boundary (2026-10-25): force-capable ASE requests
+  use one MACE+ddPCM+CDS forward, down from two, and atomically receive energy
+  and forces from one immutable first-derivative result. Energy-only execution,
+  standalone force dtypes, historical Hessian results and scientific component
+  source bytes are preserved. See [evaluation ownership](TORCH_EVALUATION_CONTRACT.md)
+  and its source-bound aggregate evidence for current timing and exact test counts.
+- CDS/DAREAL CUDA batching (2026-10-25): 300 fixed development geometries were
+  compared against the frozen previous CUDA implementation. All outcomes matched:
+  230 successful pairs and 70 unchanged strict-SMD rejections, zero topology
+  differences; maximum CDS-energy difference was `9.536743e-6 kcal/mol`.
+  This is stock-CDS numerical parity, not a fitted-A accuracy evaluation.
+  Fresh public water/hexane energy/force/Hessian/HVP replay passed 4/4 cases;
+  full-catalog CPU/CUDA component replay passed 358/358. Previous evidence bytes
+  were archived before publishing the new source-bound receipts. No thresholds,
+  fit coefficients, radii, confirmation access or derivative scope were changed.
+- CUDA operator update (2026-10-24): bounded pair batching and exact QR-based
+  full-spectrum SVD checks are active only on CUDA FP32. Fresh replay passed
+  all four CPU/CUDA water/hexane derivative cases and all 358 CPU/CUDA catalog
+  component cases. Previous receipt bytes were archived under `evidence/history/`
+  before the current-source results replaced them. CPU/FP64 execution paths and
+  numerical thresholds were retained. The 300 already-open fixed-A water scalar
+  records also completed on CUDA with no topology/gate differences; this audit
+  reuses the frozen MACE source and fitted CDS, not end-to-end prediction timing.
 - Commit-time verification (2026-10-22): 577 changed/new public regression tests
   passed, 1 skipped. Genuine current-source replay passed all four CPU/CUDA
   water/hexane derivative cases and all 358 CPU/CUDA full-catalog component cases.

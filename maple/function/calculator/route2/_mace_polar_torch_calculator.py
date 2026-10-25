@@ -19,6 +19,8 @@ from maple.function.route2_smd_profiles import (
     route2_smd_profile_spec,
 )
 from maple.function.route2_solvents import normalize_route2_solvent_name
+from maple.solvation.coupling.state_equation import geometry_sha256
+from maple.solvation.derivatives.analytic import AnalyticForceEvaluation
 from maple.solvation.models.base import model_input_sha256
 
 _TEST_PES_FACTORY_TOKEN = object()
@@ -267,19 +269,57 @@ class PureMACEPolarTorchCalculator(Calculator):
         target = atoms if atoms is not None else self.atoms
         if target is None:
             raise ValueError("PureMACEPolarTorchCalculator requires atoms.")
+        self.results = {}
+        self._cache_key = None
         cache_key = self._validate_atoms(target)
         requested = frozenset(properties or self.implemented_properties)
         super().calculate(target, properties, system_changes)
 
-        energy = float(self._pes.get_potential_energy(target))
-        if not np.isfinite(energy):
-            raise RuntimeError("pure Torch total-PES energy is invalid.")
-        results: dict[str, object] = {"energy": energy, "free_energy": energy}
         if "forces" in requested:
-            forces = np.asarray(self._pes.get_forces(target), dtype=float)
+            evaluation = self._pes.evaluate_forces(target)
+            if not isinstance(evaluation, AnalyticForceEvaluation):
+                raise RuntimeError(
+                    "pure Torch PES did not return an analytic force evaluation."
+                )
+            if evaluation.model_input_sha256 != cache_key[0]:
+                raise RuntimeError(
+                    "pure Torch force evaluation model input identity changed."
+                )
+            if evaluation.configuration_sha256 != cache_key[1]:
+                raise RuntimeError(
+                    "pure Torch force evaluation configuration identity changed."
+                )
+            if evaluation.provider_id != self._pes.provider_id:
+                raise RuntimeError(
+                    "pure Torch force evaluation provider identity changed."
+                )
+            if (
+                evaluation.scalar_contract_id != cache_key[3]
+                or evaluation.profile_id != cache_key[2]
+                or evaluation.device != cache_key[4]
+                or evaluation.geometry_sha256 != geometry_sha256(target)
+            ):
+                raise RuntimeError(
+                    "pure Torch force evaluation scalar/profile/device/geometry identity changed."
+                )
+            energy = evaluation.energy_eV
+            forces = np.asarray(evaluation.forces_eV_per_A, dtype=float)
             if forces.shape != (len(target), 3) or not np.all(np.isfinite(forces)):
                 raise RuntimeError("pure Torch total-PES forces are invalid.")
-            results["forces"] = np.array(forces, copy=True)
+            results: dict[str, object] = {
+                "energy": energy,
+                "free_energy": energy,
+                "forces": np.array(forces, copy=True),
+            }
+        else:
+            energy = float(self._pes.get_potential_energy(target))
+            if not np.isfinite(energy):
+                raise RuntimeError("pure Torch total-PES energy is invalid.")
+            results = {"energy": energy, "free_energy": energy}
+        if self._validate_atoms(target) != cache_key:
+            raise RuntimeError(
+                "pure Torch model input or configuration changed during evaluation."
+            )
         self.results = results
         self._cache_key = cache_key
         if cache_key != self._hessian_cache_key:

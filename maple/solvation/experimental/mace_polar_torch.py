@@ -24,7 +24,11 @@ from maple.solvation.coupling.exact_gto import (
 )
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.coupling.operator import source_files_sha256
-from maple.solvation.derivatives.analytic import AnalyticHessianEvaluation
+from maple.solvation.derivatives.analytic import (
+    AnalyticForceEvaluation,
+    AnalyticHessianEvaluation,
+)
+from maple.solvation.models.base import model_input_sha256
 
 _TEST_COMPONENTS_TOKEN = object()
 _REGISTERED_BUILDER_TOKEN = object()
@@ -447,17 +451,49 @@ class MACEPolarTorchPES:
             self.configuration_sha256()
             return result
 
-    def get_forces(self, atoms) -> np.ndarray:
+    def evaluate_forces(self, atoms) -> AnalyticForceEvaluation:
+        """Return energy and analytic forces from one transient forward graph."""
         import torch
 
         with self._execution_context():
+            input_sha256 = model_input_sha256(atoms)
             positions = self._positions(atoms, requires_grad=True)
-            total, _, _ = self._energy_components(atoms, positions)
+            total, terms, _ = self._energy_components(atoms, positions)
             gradient = torch.autograd.grad(total, positions)[0]
             if not bool(torch.isfinite(gradient).all()):
                 raise RuntimeError("Torch total-PES coordinate gradient is not finite.")
             self.configuration_sha256()
-            return -gradient.detach().cpu().numpy().copy()
+            if model_input_sha256(atoms) != input_sha256:
+                raise RuntimeError(
+                    "Torch PES model inputs changed during force evaluation."
+                )
+            return AnalyticForceEvaluation(
+                energy_eV=float(total.detach()),
+                forces_eV_per_A=-gradient.detach().cpu().numpy(),
+                geometry_sha256=geometry_sha256(atoms),
+                model_input_sha256=input_sha256,
+                configuration_sha256=self._configuration_hash,
+                scalar_contract_id=self.scalar_contract_id,
+                device=self.device,
+                component_energies_eV={
+                    name: float(value.detach()) for name, value in terms.items()
+                },
+                provider_id=self.provider_id,
+                profile_id=self.profile_id,
+                verification_evidence_id=(
+                    "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
+                    if self._fp32
+                    else _CONTRACT_EVIDENCE_ID
+                ),
+                computation_dtype="float32" if self._fp32 else "float64",
+            )
+
+    def get_forces(self, atoms) -> np.ndarray:
+        evaluation = self.evaluate_forces(atoms)
+        # Result records normalize immutable storage to FP64. Preserve the
+        # standalone compatibility API's original computation-dtype array.
+        dtype = np.float32 if self._fp32 else np.float64
+        return np.array(evaluation.forces_eV_per_A, dtype=dtype, copy=True)
 
     @staticmethod
     def _gradient_derivative(value, positions, *, retain_graph: bool):

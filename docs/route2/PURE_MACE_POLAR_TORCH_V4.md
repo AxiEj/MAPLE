@@ -58,6 +58,35 @@ For an archival input, select the same identity explicitly:
 For CUDA, use `#device=cuda:0` and profile
 `pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v4`.
 
+The default-profile CUDA example is
+[`sp-cuda-default-fp32.inp`](../../examples/solvation/pure_torch/sp-cuda-default-fp32.inp).
+Run it with `python -m maple.main path/to/input.inp`. CUDA is explicit: an
+unavailable GPU is rejected, never silently replaced with CPU.
+
+### CUDA operator execution
+
+CUDA FP32 assembles the unchanged dense ddPCM operators in bounded batches of
+atom pairs instead of launching the harmonic recurrence separately for every
+pair. Each temporary harmonic array is bounded by the pair chunk size and grid
+size. The full dense matrices, coordinate AD graph, topology checks, two full
+singular-spectrum checks, two direct solves and residual thresholds remain.
+The CUDA FP32 stability checks use the exact QR-based cuSOLVER `gesvd` driver,
+not approximate `gesvda`. CPU and historical FP64 retain their reference loops
+and default SVD driver. TF32 and autocast remain forbidden.
+
+The continuum diagnostics receipt reports `operator_assembly` and `svd_driver`.
+This change does not alter A/B radii, fitted CDS coefficients, checkpoint,
+continuum equations, or the experimental/scientific admission boundary.
+
+CUDA FP32 legacy SMD-CDS also batches sphere/cap/intersection/angle geometry
+and coordination-switch calculations. Host transfers carry detached branch
+metadata only; continuous areas and tensions remain live GPU tensors. The
+original topology traversal and singularity checks are retained, including the
+host-double cutoff comparison and sequential FP32 switch denominator. CPU and
+FP64 use the reference scheduling. No geometry cache persists between calls.
+See [CDS CUDA performance and parity](CDS_CUDA_PERFORMANCE_20261025.md) for the
+full 300-geometry accounting and fresh public-entry timings.
+
 Direct calls to `build_smd_mace_polar_torch_pes()` also select the
 device-appropriate v4 profile when `profile` is omitted. Passing an explicit
 v3 profile preserves the historical FP64 / 15 / 1202 configuration.
@@ -69,6 +98,12 @@ See `SMD_SOLVENT_CATALOG.md` for parser-safe names. This parameter coverage is
 not a claim that every solute geometry passes numerical/topology checks.
 
 ## Validation
+
+The ASE facade evaluates energy and forces from one forward graph when forces
+are requested. Its transient immutable result and atomic cache handoff are
+described in [Torch evaluation ownership](TORCH_EVALUATION_CONTRACT.md).
+Energy-only calls remain separate; this optimization changes no scientific
+component or numerical parameter.
 
 See `FP32_L5_N194_STATUS.md` for current real-entry replay, dtype-aware numerical
 policies and known historical source-evidence mismatch. V4 evidence is limited

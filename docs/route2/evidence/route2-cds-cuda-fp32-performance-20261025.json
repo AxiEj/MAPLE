@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "artifact_id": "route2-cds-cuda-fp32-performance-20261025",
+  "scope": "Route2 CUDA FP32 legacy SMD-CDS scheduling only",
+  "configuration": {
+    "dtype": "float32",
+    "lmax": 5,
+    "n_lebedev": 194,
+    "device": "NVIDIA GeForce RTX 4060 Laptop GPU"
+  },
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "source_sha256": {
+    "maple/solvation/continuum/torch_ddpcm.py": "95a861c5c3dfd4498cce8ada63b6a2bf62904b7045d745f3902cac27943a0f2e",
+    "maple/solvation/surfaces/legacy_dareal.py": "3cb9edaf61ffbb79b8cc9feefa1ade35dc96100dd0440be33fd020e5097e4240",
+    "maple/solvation/nonpolar/legacy_smd_cds.py": "670a362f0d00447fee62c689ab41a9016a60899a974f960880e797dfa6eeab53"
+  },
+  "reference_dareal_sha256": "5cb36aa88934500e4514a3ce01496890a45cdae030bc972800e37398d1395e26",
+  "numerical_or_scientific_parameters_changed": false,
+  "cpu_fp64_reference_arithmetic_retained": true,
+  "fallback_introduced": false,
+  "scientific_admitted": false,
+  "confirmation_accessed": false,
+  "experimental_labels_used": false,
+  "timing_boundary": "public get_solvation_energy, fresh MACE+ddPCM+stockSMD-CDS on each call; model resident; no final energy cache",
+  "timing_order": [
+    "reference",
+    "optimized",
+    "optimized",
+    "reference",
+    "reference",
+    "optimized"
+  ],
+  "warm_repeats_per_variant": 3,
+  "hardware_loading_and_init_excluded": true,
+  "cuda_synchronized": true,
+  "cases": [
+    {
+      "atom_count": 9,
+      "reference_ms": 342.9644410061883,
+      "optimized_ms": 282.4786120036151,
+      "speedup": 1.2141253405825962,
+      "maximum_energy_difference_kcal_mol": 0.0,
+      "maximum_force_difference_eV_A": 4.656612873077393e-10,
+      "maximum_HVP_difference_eV_A2": 0.0
+    },
+    {
+      "atom_count": 20,
+      "reference_ms": 1792.2837200021604,
+      "optimized_ms": 640.8154189994093,
+      "speedup": 2.7968798297654764,
+      "maximum_energy_difference_kcal_mol": 3.4362894044248803e-07,
+      "maximum_force_difference_eV_A": 6.705522537231445e-08,
+      "maximum_HVP_difference_eV_A2": 4.76837158203125e-07
+    },
+    {
+      "atom_count": 35,
+      "reference_ms": 3768.479922990082,
+      "optimized_ms": 1313.6782499932451,
+      "speedup": 2.8686475725768155,
+      "maximum_energy_difference_kcal_mol": 6.185320927964785e-06,
+      "maximum_force_difference_eV_A": 1.1175870895385742e-07,
+      "maximum_HVP_difference_eV_A2": null
+    }
+  ],
+  "full_geometry_audit": {
+    "planned_records": 300,
+    "attempted": 300,
+    "matched_successes": 230,
+    "matched_rejections": 70,
+    "mismatch_count": 0,
+    "topology_difference_count": 0,
+    "maximum_energy_difference_kcal_mol": 9.5367431640625e-06,
+    "maximum_energy_difference_limit_kcal_mol": 0.0001,
+    "coefficients": "unchanged stock SMD water, not fitted-A accuracy scoring"
+  },
+  "instrumented_35_atom_CDS_profile": {
+    "reference_DAREAL_ms": 2512.1123969875043,
+    "optimized_DAREAL_ms": 358.5997089976445,
+    "reference_tensions_ms": 247.7813550067367,
+    "optimized_tensions_ms": 37.75684100401122,
+    "counted_reference_host_read_calls": 20850,
+    "counted_optimized_host_read_calls": 976,
+    "host_read_reduction_fraction": 0.953189448441247,
+    "boundary": "one instrumented diagnostic call per path; counts cover DAREAL helpers and tension distance snapshot, not every CUDA synchronization in the whole program"
+  },
+  "verification": {
+    "targeted_tests_passed": 241,
+    "regression_log_sha256": "be5a5fdd03436f63adebe0d064a23607b6dcc4a3762d590a713ee156f68a7901",
+    "public_cuda_cli_passed": true,
+    "public_cli_log_sha256": "a7bc6e4795f5b8a888ae004bd3aca0903ef6807d46b6e79fbad5ffb0e7bf877c",
+    "public_derivative_cases_passed": 4,
+    "public_derivative_evidence_sha256": "33f266313957e4669336e4c7a1623f79744b7fd5ce4dfca5c2d89cb57b5dd88f",
+    "catalog_component_cases_passed": 358,
+    "catalog_evidence_sha256": "b6873e548153ebdca1ebd3dbde7e1ac70a8546f1f51d5affda2a8eabbe359a81",
+    "old_new_geometry_audit_sha256": "473684ac117d25c0df18d2fb250851fed0ddab324bba65aaeffdc0211699b2fb",
+    "paired_timing_sha256": "8152c22f2a517e00ce58252cbee3cc5f7819ebfdf9f3b5cad5cc02b6813d4b35",
+    "instrumented_profile_sha256": "665700ca4abd184529ad02b5eeacf933f33d3b8fdfaf4b321c2d67daf56ff04f"
+  },
+  "independent_review": {
+    "code_review": "COMMENT; no correctness/security findings; static LSP/type-checking tooling unavailable",
+    "reviewer_scoped_tests_passed": 286,
+    "architecture": "WATCH; exact cutoff-arithmetic blocker repaired before final audits; discrete/continuous separation, dense scaling and batch rounding remain explicit boundaries",
+    "merge_approval_claimed": false
+  },
+  "limits": [
+    "This is stock-CDS numerical parity, not refitting or a new experimental accuracy result.",
+    "The 70 original strict-SMD rejections remain rejected; no survivor-only full-panel accuracy is claimed.",
+    "The 35-atom HVP was not tested; HVP old/new comparisons cover the 9- and 20-atom timing cases plus the existing bounded derivative suite.",
+    "Warm timing excludes loading and covers only three fixed size examples; not full-dataset throughput or universal CUDA superiority to CPU.",
+    "The original full six-geometry public panel's resource/topology restrictions remain; they were not removed to obtain speedup.",
+    "No full-project static type-check result is available; Black/Pyflakes/AST and targeted runtime tests are the available checks."
+  ]
+}

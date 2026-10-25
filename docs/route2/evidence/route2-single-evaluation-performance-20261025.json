@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "artifact_id": "route2-single-evaluation-performance-20261025",
+  "scope": "one transient analytic energy/force evaluation at the existing Route2 ASE/PES boundary",
+  "source_sha256": {
+    "maple/solvation/derivatives/analytic.py": "06ea735c762767d5a73becf6cd64672e4ff4628cc05b676367019c30fd9ccbf7",
+    "maple/solvation/experimental/mace_polar_torch.py": "0fedb4a75dc7097112e6724fe19ff281a890eec4635e5dad892c97d99527b401",
+    "maple/function/calculator/route2/_mace_polar_torch_calculator.py": "4d1d022b1bbb7c508f395ddb3965f36c83a6649763289ee01d18b4135c72d0cc",
+    "maple/solvation/continuum/torch_ddpcm.py": "95a861c5c3dfd4498cce8ada63b6a2bf62904b7045d745f3902cac27943a0f2e",
+    "maple/solvation/nonpolar/legacy_smd_cds.py": "670a362f0d00447fee62c689ab41a9016a60899a974f960880e797dfa6eeab53",
+    "maple/solvation/surfaces/legacy_dareal.py": "3cb9edaf61ffbb79b8cc9feefa1ade35dc96100dd0440be33fd020e5097e4240"
+  },
+  "reference_facade_sha256": "16a5f24c3f4c5e518ec798637088f051c8becfecd0f7280343297917a2809ff3",
+  "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "configuration": {
+    "dtype": "float32",
+    "lmax": 5,
+    "n_lebedev": 194
+  },
+  "timing_boundary": "fresh canonical ASE energy+force request; resident shared real PES; no final cache",
+  "reference": "frozen pre-change canonical ASE facade requests energy and forces separately from the same current real PES",
+  "optimized": "current canonical facade consumes one transient analytic energy/force evaluation",
+  "order": [
+    "reference",
+    "optimized",
+    "optimized",
+    "reference",
+    "reference",
+    "optimized"
+  ],
+  "samples_per_variant": 3,
+  "cuda_synchronized": true,
+  "model_loading_included": false,
+  "final_result_cache_used_in_timing": false,
+  "scientific_admitted": false,
+  "scientific_parameters_changed": false,
+  "new_persistent_cache": false,
+  "fallback_introduced": false,
+  "cases": [
+    {
+      "atom_count": 9,
+      "reference_energy_force_ms": 738.4175100014545,
+      "optimized_energy_force_ms": 417.3356009996496,
+      "speedup": 1.769361416166541,
+      "forward_counts": {
+        "reference": [
+          2,
+          2,
+          2
+        ],
+        "optimized": [
+          1,
+          1,
+          1
+        ]
+      },
+      "maximum_energy_difference_eV": 0.0,
+      "maximum_force_difference_eV_A": 0.0
+    },
+    {
+      "atom_count": 20,
+      "reference_energy_force_ms": 1601.8852710112697,
+      "optimized_energy_force_ms": 933.4690760006197,
+      "speedup": 1.716056066768093,
+      "forward_counts": {
+        "reference": [
+          2,
+          2,
+          2
+        ],
+        "optimized": [
+          1,
+          1,
+          1
+        ]
+      },
+      "maximum_energy_difference_eV": 0.0,
+      "maximum_force_difference_eV_A": 0.0
+    },
+    {
+      "atom_count": 35,
+      "reference_energy_force_ms": 2874.829383014003,
+      "optimized_energy_force_ms": 1720.5876920052106,
+      "speedup": 1.6708415365122213,
+      "forward_counts": {
+        "reference": [
+          2,
+          2,
+          2
+        ],
+        "optimized": [
+          1,
+          1,
+          1
+        ]
+      },
+      "maximum_energy_difference_eV": 0.0,
+      "maximum_force_difference_eV_A": 0.0
+    }
+  ],
+  "verification": {
+    "targeted_tests_passed": 317,
+    "regression_log_sha256": "82519b2fa20e93017160cd8f9b11f5d6afe8ceb88ccacc32541ea6b285f3d38f",
+    "public_derivative_cases_passed": 4,
+    "public_derivative_evidence_sha256": "436045b25ce4b89cb88001d2ddf056407dcfd9fdfa900139b4222aa426111b5c",
+    "catalog_component_cases_passed": 358,
+    "catalog_evidence_sha256": "103704b9afd3bf9b826f16ae2646a6407706d3e035312e830ac20b668f6baf04",
+    "public_verbose_CUDA_SP_forward_count": 1,
+    "public_cli_counter_sha256": "53c7f526b560182a11f812a787b0b92cdf0280234ad37a960d3537c57dc49f89",
+    "public_cli_log_sha256": "a67b115d07d7347f0f0af33d27b55684f90c080ce76c443efcf7bcaa2c5766d1",
+    "real_FP64_V3_water": {
+      "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v3",
+      "device": "cpu",
+      "native_force_dtype": "float64",
+      "energy_difference_eV": 0.0,
+      "maximum_force_difference_eV_A": 0.0,
+      "passed": true
+    },
+    "historical_Hessian_class_and_digest_unchanged": true,
+    "MACE_ddPCM_CDS_scientific_component_bytes_unchanged": true,
+    "prior_CDS_geometry_accounting_not_relabelled_as_new_force_audit": {
+      "attempted": 300,
+      "matched_successes": 230,
+      "matched_rejections": 70,
+      "provenance": "unchanged component implementation hashes; retained previous component-only audit"
+    }
+  },
+  "design": {
+    "result_contract": "AnalyticForceEvaluation; immutable detached FP64 NumPy storage, native FP32/FP64 standalone get_forces preserved",
+    "identity": "geometry + canonical charge/spin model-input + configuration + scalar/provider/profile/device + verification evidence + force derivative policy",
+    "cache_owner": "existing ASE detached results only; evaluation remains transient",
+    "commit": "clear old results/key, validate record, revalidate full input/config key, atomically commit",
+    "energy_only": "unchanged separate scalar path; no gradient required",
+    "HVP_fusion": "deferred; its repeated central observations are not fixed or claimed in this iteration"
+  },
+  "independent_review": {
+    "plan_consensus": "Planner -> Architect -> Critic approved sequentially",
+    "code_review": "COMMENT, no code/security findings; stale receipts and docstring findings resolved",
+    "code_simplifier": "no unnecessary cache/fallback/abstraction found; strict provider identity hardening applied",
+    "architectural_status": "no implementation blocker; published current-source receipts promoted",
+    "validation_gap": "LSP/static-type tooling unavailable; no full typecheck or merge approval claimed"
+  },
+  "limits": [
+    "Energy+force request timing is not the earlier energy-only timing and speedup factors must not be multiplied across different call scopes.",
+    "Three size examples and three samples each are a bounded engineering measurement, not full-dataset throughput or universal GPU superiority to CPU.",
+    "No scientific kernels, numerical thresholds, model weights, radii, fitted coefficients, confirmation labels or Route4 files changed in this iteration.",
+    "No persistent Torch graph or new cross-geometry cache; no dependencies, commit or push."
+  ]
+}

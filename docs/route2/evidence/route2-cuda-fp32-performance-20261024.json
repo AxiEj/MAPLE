@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "artifact_id": "route2-cuda-fp32-performance-20261024",
+  "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "configuration": {
+    "dtype": "float32",
+    "lmax": 5,
+    "n_lebedev": 194,
+    "eta": 0.1
+  },
+  "scientific_admitted": false,
+  "parameters_changed": false,
+  "continuum_source_sha256": "95a861c5c3dfd4498cce8ada63b6a2bf62904b7045d745f3902cac27943a0f2e",
+  "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+  "timing_boundary": "public get_solvation_energy: fresh MACE, ddPCM and stock CDS each call; not fitted-A timing",
+  "timing_protocol": {
+    "reference": "retained historical pair-loop + default SVD driver, forced in memory without source edits",
+    "optimized": "production CUDA FP32 batched pair assembly + full-spectrum gesvd",
+    "sample_order": [
+      "reference",
+      "optimized",
+      "optimized",
+      "reference",
+      "reference",
+      "optimized"
+    ],
+    "warm_samples_per_path": 3,
+    "threads": 1,
+    "cuda_synchronized": true,
+    "model_load_included": false,
+    "final_energy_cache_used": false,
+    "limitations": "Small descriptive size panel, not full-dataset throughput. Unrelated system load is not controlled."
+  },
+  "paired_public_cuda_timing": [
+    {
+      "atom_count": 9,
+      "reference_median_seconds": 0.7132314050104469,
+      "optimized_median_seconds": 0.3877950250025606,
+      "speedup": 1.8391968927547162,
+      "maximum_energy_difference_eV": 2.9802322387695312e-08,
+      "repetition_spread_eV": {
+        "reference": 0.0,
+        "optimized": 0.0
+      }
+    },
+    {
+      "atom_count": 20,
+      "reference_median_seconds": 3.596052763008629,
+      "optimized_median_seconds": 1.8988748050032882,
+      "speedup": 1.8937808609253741,
+      "maximum_energy_difference_eV": 0.0,
+      "repetition_spread_eV": {
+        "reference": 0.0,
+        "optimized": 0.0
+      }
+    },
+    {
+      "atom_count": 35,
+      "reference_median_seconds": 8.706150735000847,
+      "optimized_median_seconds": 3.503406138988794,
+      "speedup": 2.4850532280889785,
+      "maximum_energy_difference_eV": 0.0,
+      "repetition_spread_eV": {
+        "reference": 0.0,
+        "optimized": 0.0
+      }
+    }
+  ],
+  "public_six_geometry_panel": {
+    "planned": 6,
+    "successful_before": 4,
+    "successful_after": 4,
+    "unchanged_rejections": [
+      {
+        "atom_count": 62,
+        "reason": "MemoryError: TorchDDPCM dense preflight rejected allocation: estimated 1625943552 bytes exceeds limit 1000000000 bytes (B=2232)."
+      },
+      {
+        "atom_count": 14,
+        "reason": "LegacyDAREALTopologyError: DAREAL four-sphere shared-point guard triggered; radius perturbation is forbidden."
+      }
+    ],
+    "claim": "No survivor-only whole-panel timing or accuracy metric is reported."
+  },
+  "fixed_A_development_scalar_audit": {
+    "expected_records": 300,
+    "completed_records": 300,
+    "success_count": 300,
+    "failure_count": 0,
+    "confirmation_accessed": false,
+    "mace_source_reused": true,
+    "fitted_CDS_reused": true,
+    "final_PCM_energy_cache_used": false,
+    "energy_difference_limit_kcal_mol": 0.0001,
+    "maximum_difference_kcal_mol": 1.1683384066974562e-05,
+    "topology_difference_count": 0,
+    "gate_difference_count": 0,
+    "mae_kcal_mol": 1.0280554757113898,
+    "cpu_reference_mae_kcal_mol": 1.0280555499439665,
+    "derivative_topology_unqualified_records": 4
+  },
+  "verification": {
+    "targeted_tests_passed": 143,
+    "test_log_sha256": "bf003fa498538123248cc0554b3d04f52b8abd9472ba3a2c682c96fb7d4f03ca",
+    "public_cli_CUDA_FP32_passed": true,
+    "public_cli_log_sha256": "b0643b479f3ce0de23cec24cc0b69953e761245cfde451225e927a30e60b34a8",
+    "public_energy_force_hessian_hvp_cases_passed": 4,
+    "public_derivative_evidence_sha256": "98975d63c405c53add2ff10f61086e36234afee72b8381f53695aaa2bb8b6688",
+    "catalog_energy_force_cases_passed": 358,
+    "catalog_evidence_sha256": "db657dbd9520091fcbf5a31425ac04c3f4ab57be10ebfb93cc13880ae16516c7",
+    "engineering_evidence_source_unchanged": true
+  },
+  "limits": [
+    "Fixed-A audit reuses frozen source and fitted CDS and is not end-to-end timing.",
+    "Four fixed-A scalar records retain their original derivative-topology-unqualified status.",
+    "Small-molecule GPU execution is not guaranteed faster than CPU; no automatic device switching.",
+    "No scientific parameter selection, new fitting, confirmation access, or global scientific/release admission.",
+    "Independent code review: COMMENT with no code findings; LSP/static-type service unavailable. Architecture review: WATCH for performance scope, no architectural blocker. No merge approval is claimed."
+  ],
+  "independent_review": {
+    "code_review_recommendation": "COMMENT",
+    "code_findings": [],
+    "reviewer_targeted_tests_passed": 49,
+    "architecture_status": "WATCH",
+    "architectural_blockers": [],
+    "watch": "Acceleration is relative to previous CUDA, not universal CPU/GPU superiority or dense-size scalability.",
+    "validation_gap": "No LSP/static-type-analysis service or tool is installed; no merge approval is claimed."
+  }
+}

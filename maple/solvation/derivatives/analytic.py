@@ -1,4 +1,4 @@
-"""Immutable result contract for coordinate-connected analytic Hessians.
+"""Immutable result contracts for coordinate-connected analytic derivatives.
 
 This contract is deliberately separate from the numerical Richardson result.
 It records what a Torch autograd evaluation actually produced without
@@ -39,6 +39,19 @@ def _canonical_bytes(value: object) -> bytes:
 
 ANALYTIC_HESSIAN_DERIVATIVE_POLICY_SHA256 = hashlib.sha256(
     _canonical_bytes(dict(ANALYTIC_HESSIAN_DERIVATIVE_POLICY))
+).hexdigest()
+
+ANALYTIC_FORCE_DERIVATIVE_POLICY = MappingProxyType(
+    {
+        "policy_id": "maple-coordinate-connected-torch-autograd-force-v1",
+        "derivative_method": "torch-autograd",
+        "coordinate_finite_differences": False,
+        "numerical_uncertainty": "unavailable-unless-independently-audited",
+    }
+)
+
+ANALYTIC_FORCE_DERIVATIVE_POLICY_SHA256 = hashlib.sha256(
+    _canonical_bytes(dict(ANALYTIC_FORCE_DERIVATIVE_POLICY))
 ).hexdigest()
 
 _REGISTERED_TORCH_V3_SCALAR_PREFIX = (
@@ -306,8 +319,162 @@ class AnalyticHessianEvaluation:
         return None
 
 
+@dataclass(frozen=True, slots=True)
+class AnalyticForceEvaluation:
+    """One detached, identity-bound analytic energy/force evaluation."""
+
+    forces_eV_per_A: np.ndarray
+    energy_eV: float
+    geometry_sha256: str
+    model_input_sha256: str
+    configuration_sha256: str
+    scalar_contract_id: str
+    device: str
+    component_energies_eV: Mapping[str, float]
+    provider_id: str | None = None
+    profile_id: str | None = None
+    verification_evidence_id: str | None = None
+    computation_dtype: str = "float64"
+    evaluation_sha256: str = ""
+    derivative_policy_sha256: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        forces = _immutable_float64_array(self.forces_eV_per_A, name="forces_eV_per_A")
+        if forces.ndim != 2 or forces.shape[1] != 3 or forces.shape[0] == 0:
+            raise ValueError("forces_eV_per_A must have non-empty shape (N,3).")
+        energy = float(self.energy_eV)
+        if not np.isfinite(energy):
+            raise ValueError("energy_eV must be finite.")
+        geometry_sha256 = _digest(self.geometry_sha256, name="geometry_sha256")
+        model_input_sha256 = _digest(self.model_input_sha256, name="model_input_sha256")
+        configuration_sha256 = _digest(
+            self.configuration_sha256, name="configuration_sha256"
+        )
+        scalar_contract_id = _nonempty_string(
+            self.scalar_contract_id, name="scalar_contract_id"
+        )
+        device = _nonempty_string(self.device, name="device")
+        provider_id = self._optional_identity(self.provider_id, name="provider_id")
+        profile_id = self._optional_identity(self.profile_id, name="profile_id")
+        verification_evidence_id = self._optional_identity(
+            self.verification_evidence_id, name="verification_evidence_id"
+        )
+        computation_dtype = _nonempty_string(
+            self.computation_dtype, name="computation_dtype"
+        )
+        if computation_dtype not in _SUPPORTED_COMPUTATION_DTYPES:
+            raise ValueError("computation_dtype must be 'float32' or 'float64'.")
+
+        registered_v3 = scalar_contract_id.startswith(
+            _REGISTERED_TORCH_V3_SCALAR_PREFIX
+        ) and scalar_contract_id.endswith("-v3")
+        registered_v4 = scalar_contract_id.startswith(
+            _REGISTERED_TORCH_V3_SCALAR_PREFIX
+        ) and scalar_contract_id.endswith("-v4")
+        if (registered_v3 or registered_v4) and any(
+            value is None
+            for value in (provider_id, profile_id, verification_evidence_id)
+        ):
+            raise ValueError(
+                "registered Torch analytic force results require non-empty "
+                "provider_id, profile_id, and verification_evidence_id."
+            )
+        expected_evidence = (
+            _REGISTERED_TORCH_V3_VERIFICATION_EVIDENCE_ID
+            if registered_v3
+            else _REGISTERED_TORCH_V4_VERIFICATION_EVIDENCE_ID
+        )
+        if (registered_v3 or registered_v4) and (
+            verification_evidence_id != expected_evidence
+        ):
+            raise ValueError(
+                "registered Torch analytic force results require the bound "
+                "verification evidence ID."
+            )
+        if registered_v3 and computation_dtype != "float64":
+            raise ValueError(
+                "registered Torch v3 analytic force results require float64 computation."
+            )
+        if registered_v4 and computation_dtype != "float32":
+            raise ValueError(
+                "registered Torch v4 analytic force results require float32 computation."
+            )
+
+        if not isinstance(self.component_energies_eV, Mapping):
+            raise TypeError("component_energies_eV must be a mapping.")
+        if not self.component_energies_eV:
+            raise ValueError("component_energies_eV must not be empty.")
+        components: dict[str, float] = {}
+        for name, value in self.component_energies_eV.items():
+            component_name = _nonempty_string(name, name="component energy name")
+            component_energy = float(value)
+            if not np.isfinite(component_energy):
+                raise ValueError("component energies must be finite.")
+            components[component_name] = component_energy
+        frozen_components = MappingProxyType(dict(sorted(components.items())))
+
+        payload = {
+            "derivative_policy_sha256": ANALYTIC_FORCE_DERIVATIVE_POLICY_SHA256,
+            "forces_eV_per_A": forces.tolist(),
+            "energy_eV": energy,
+            "geometry_sha256": geometry_sha256,
+            "model_input_sha256": model_input_sha256,
+            "configuration_sha256": configuration_sha256,
+            "scalar_contract_id": scalar_contract_id,
+            "provider_id": provider_id,
+            "profile_id": profile_id,
+            "verification_evidence_id": verification_evidence_id,
+            "device": device,
+            "dtype": computation_dtype,
+            "component_energies_eV": dict(frozen_components),
+        }
+        expected_sha256 = hashlib.sha256(_canonical_bytes(payload)).hexdigest()
+        if self.evaluation_sha256 and self.evaluation_sha256 != expected_sha256:
+            raise ValueError("evaluation_sha256 does not match analytic force content.")
+
+        object.__setattr__(self, "forces_eV_per_A", forces)
+        object.__setattr__(self, "energy_eV", energy)
+        object.__setattr__(self, "geometry_sha256", geometry_sha256)
+        object.__setattr__(self, "model_input_sha256", model_input_sha256)
+        object.__setattr__(self, "configuration_sha256", configuration_sha256)
+        object.__setattr__(self, "scalar_contract_id", scalar_contract_id)
+        object.__setattr__(self, "provider_id", provider_id)
+        object.__setattr__(self, "profile_id", profile_id)
+        object.__setattr__(self, "verification_evidence_id", verification_evidence_id)
+        object.__setattr__(self, "computation_dtype", computation_dtype)
+        object.__setattr__(self, "device", device)
+        object.__setattr__(self, "component_energies_eV", frozen_components)
+        object.__setattr__(
+            self,
+            "derivative_policy_sha256",
+            ANALYTIC_FORCE_DERIVATIVE_POLICY_SHA256,
+        )
+        object.__setattr__(self, "evaluation_sha256", expected_sha256)
+
+    @property
+    def derivative_method(self) -> str:
+        return "torch-autograd"
+
+    @staticmethod
+    def _optional_identity(value: object, *, name: str) -> str | None:
+        if value is None:
+            return None
+        return _nonempty_string(value, name=name)
+
+    @property
+    def dtype(self) -> str:
+        return self.computation_dtype
+
+    @property
+    def storage_dtype(self) -> str:
+        return "float64"
+
+
 __all__ = [
+    "ANALYTIC_FORCE_DERIVATIVE_POLICY",
+    "ANALYTIC_FORCE_DERIVATIVE_POLICY_SHA256",
     "ANALYTIC_HESSIAN_DERIVATIVE_POLICY",
     "ANALYTIC_HESSIAN_DERIVATIVE_POLICY_SHA256",
+    "AnalyticForceEvaluation",
     "AnalyticHessianEvaluation",
 ]

@@ -214,7 +214,7 @@ def _parameter_tables(solvent: str):
     return MappingProxyType(sigma), MappingProxyType(hsigma), cssigma, 2
 
 
-def _atomic_tensions(
+def _atomic_tensions_reference(
     symbols: tuple[str, ...],
     positions: torch.Tensor,
     sigma: Mapping[int, float],
@@ -335,6 +335,223 @@ def _atomic_tensions(
                     tension = tension + cot[i][j] * sigma.get(115, 0.0)
         tensions.append(tension)
     return torch.stack(tensions)
+
+
+def _atomic_tensions_batched(
+    symbols: tuple[str, ...],
+    positions: torch.Tensor,
+    sigma: Mapping[int, float],
+    hsigma: Mapping[int, float],
+    *,
+    branch_tolerance: float = _LEGACY_BRANCH_TOLERANCE,
+) -> torch.Tensor:
+    """Evaluate the unchanged tension formulas with batched switch geometry.
+
+    One distance tensor and one host snapshot replace thousands of scalar
+    device synchronizations.  The snapshot selects only discrete cutoff
+    branches; every continuous switch value remains on the coordinate device
+    and in the input dtype so coordinate AD is preserved.
+    """
+
+    n = len(symbols)
+    delta = positions[:, None, :] - positions[None, :, :]
+    diagonal = torch.eye(n, dtype=torch.bool, device=positions.device)[:, :, None]
+    safe_delta = torch.where(diagonal, torch.ones_like(delta), delta)
+    distances = torch.linalg.vector_norm(safe_delta, dim=-1)
+    host_distances = distances.detach().to(device="cpu", dtype=torch.float64)
+
+    requests: list[tuple[int, int, float, float]] = []
+    requested: set[tuple[int, int, float, float]] = set()
+
+    def request(first: int, second: int, reference: float, width: float) -> None:
+        key = (first, second, reference, width)
+        if key not in requested:
+            requested.add(key)
+            requests.append(key)
+
+    cot_keys: list[list[tuple[int, int, float, float] | None]] = [
+        [None for _ in range(n)] for _ in range(n)
+    ]
+    for i, first in enumerate(symbols):
+        for j, second in enumerate(symbols):
+            if i == j:
+                continue
+            reference = _REFERENCE_DISTANCE.get((first, second), 0.0)
+            width = 0.10 if {first, second} == {"C", "O"} else 0.30
+            if width == 0.10:
+                reference = 1.33
+            key = (i, j, reference, width)
+            cot_keys[i][j] = key
+            request(*key)
+
+    # Register the extra switches reached by the N and C formulas before any
+    # branch decision. This permits one synchronized host snapshot for all
+    # requested distances while retaining the exact formula traversal below.
+    for i, symbol in enumerate(symbols):
+        if symbol == "N":
+            for j, other in enumerate(symbols):
+                if other != "C":
+                    continue
+                for q, neighbor in enumerate(symbols):
+                    if q not in (i, j):
+                        request(
+                            j,
+                            q,
+                            _REFERENCE_DISTANCE.get(("C", neighbor), 0.0),
+                            0.30,
+                        )
+                request(i, j, 1.225, 0.065)
+        elif symbol == "C":
+            for j, other in enumerate(symbols):
+                if i != j and other == "C":
+                    request(i, j, 1.84, 0.30)
+                    request(i, j, 1.27, 0.07)
+
+    grouped: dict[tuple[float, float], list[tuple[int, int]]] = {}
+    for i, j, reference, width in requests:
+        grouped.setdefault((reference, width), []).append((i, j))
+
+    switches: dict[tuple[int, int, float, float], torch.Tensor] = {}
+    for (reference, width), pairs in grouped.items():
+        host_values = [float(host_distances[i, j]) for i, j in pairs]
+        cutoff = reference + width
+        if any(abs(value - cutoff) <= branch_tolerance for value in host_values):
+            raise RuntimeError(
+                "Legacy SMD CDS coordination switch is on its cutoff boundary."
+            )
+        if reference == 0.0:
+            values = positions.new_zeros((len(pairs),))
+        else:
+            target = torch.tensor(
+                [pair[0] for pair in pairs], dtype=torch.long, device=positions.device
+            )
+            source = torch.tensor(
+                [pair[1] for pair in pairs], dtype=torch.long, device=positions.device
+            )
+            selected = distances[target, source]
+            active = torch.tensor(
+                [value - cutoff < 0.0 for value in host_values],
+                dtype=torch.bool,
+                device=positions.device,
+            )
+            # Preserve the original two tensor subtractions. Combining the
+            # Python cutoff first changes float32 rounding near the boundary.
+            denominator = selected - reference - width
+            safe_delta = torch.where(active, denominator, -torch.ones_like(denominator))
+            values = torch.where(
+                active,
+                torch.exp(selected.new_tensor(width) / safe_delta),
+                torch.zeros_like(selected),
+            )
+        for pair, value in zip(pairs, values, strict=True):
+            switches[(pair[0], pair[1], reference, width)] = value
+
+    def switch(first: int, second: int, reference: float, width: float) -> torch.Tensor:
+        return switches[(first, second, reference, width)]
+
+    zero = positions.new_zeros(())
+    cot: list[list[torch.Tensor]] = [[zero for _ in range(n)] for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            key = cot_keys[i][j]
+            if key is not None:
+                cot[i][j] = switches[key]
+
+    tensions: list[torch.Tensor] = []
+    for i, symbol in enumerate(symbols):
+        z = _ATOMIC_NUMBER[symbol]
+        tension = positions.new_tensor(sigma.get(z, 0.0))
+        if symbol == "H":
+            for j, other in enumerate(symbols):
+                tension = tension + cot[i][j] * hsigma.get(_ATOMIC_NUMBER[other], 0.0)
+        elif symbol == "O":
+            correction_index = {"C": 103, "N": 106, "S": 118, "P": 114}
+            for j, other in enumerate(symbols):
+                if other == "O" and i != j:
+                    tension = tension + cot[i][j] * sigma.get(104, 0.0)
+                elif other in correction_index:
+                    tension = tension + cot[i][j] * sigma.get(
+                        correction_index[other], 0.0
+                    )
+        elif symbol == "N":
+            rtkk_sum = positions.new_zeros(())
+            carbonyl_sum = positions.new_zeros(())
+            for j, other in enumerate(symbols):
+                if other != "C":
+                    continue
+                environment = positions.new_zeros(())
+                oxygen_environment = positions.new_zeros(())
+                for q, neighbor in enumerate(symbols):
+                    if q in (i, j):
+                        continue
+                    value = switch(
+                        j,
+                        q,
+                        _REFERENCE_DISTANCE.get(("C", neighbor), 0.0),
+                        0.30,
+                    )
+                    environment = environment + value
+                    if neighbor == "O":
+                        oxygen_environment = oxygen_environment + value
+                rtkk_sum = rtkk_sum + cot[i][j] * environment**2
+                carbonyl_sum = carbonyl_sum + cot[i][j] * oxygen_environment
+            # Preserve the exact-zero guard for the fractional power. This is
+            # one scalar decision per N atom, not one synchronization per pair.
+            if _host(rtkk_sum) != 0.0:
+                tension = tension + rtkk_sum**1.3 * sigma.get(105, 0.0)
+            tension = tension + carbonyl_sum * sigma.get(111, 0.0)
+            triple = positions.new_zeros(())
+            for j, other in enumerate(symbols):
+                if i != j and other == "C":
+                    triple = triple + switch(i, j, 1.225, 0.065)
+            tension = tension + triple * sigma.get(116, 0.0)
+        elif symbol == "C":
+            cc1 = positions.new_zeros(())
+            cc2 = positions.new_zeros(())
+            cn = positions.new_zeros(())
+            for j, other in enumerate(symbols):
+                if i == j:
+                    continue
+                if other == "C":
+                    cc1 = cc1 + switch(i, j, 1.84, 0.30)
+                    cc2 = cc2 + switch(i, j, 1.27, 0.07)
+                elif other == "N":
+                    cn = cn + cot[i][j]
+            tension = tension + cc1 * sigma.get(101, 0.0) + cc2 * sigma.get(102, 0.0)
+            tension = tension + cn * cn * sigma.get(110, 0.0)
+        elif symbol == "S":
+            for j, other in enumerate(symbols):
+                if i != j and other == "S":
+                    tension = tension + cot[i][j] * sigma.get(107, 0.0)
+                elif other == "P":
+                    tension = tension + cot[i][j] * sigma.get(115, 0.0)
+        tensions.append(tension)
+    return torch.stack(tensions)
+
+
+def _atomic_tensions(
+    symbols: tuple[str, ...],
+    positions: torch.Tensor,
+    sigma: Mapping[int, float],
+    hsigma: Mapping[int, float],
+    *,
+    branch_tolerance: float = _LEGACY_BRANCH_TOLERANCE,
+) -> torch.Tensor:
+    if positions.device.type == "cuda" and positions.dtype is torch.float32:
+        return _atomic_tensions_batched(
+            symbols,
+            positions,
+            sigma,
+            hsigma,
+            branch_tolerance=branch_tolerance,
+        )
+    return _atomic_tensions_reference(
+        symbols,
+        positions,
+        sigma,
+        hsigma,
+        branch_tolerance=branch_tolerance,
+    )
 
 
 class TorchLegacySMDCDS:

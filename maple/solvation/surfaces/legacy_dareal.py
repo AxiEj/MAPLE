@@ -209,7 +209,65 @@ def _scalar_shared_vertex_pair_is_exposed(
     return True, tuple(tied), min(margins + [abs(v) for v in products])
 
 
-def _solid_angle_one(
+def _host_values(value: torch.Tensor):
+    """Transfer one stage's branch metadata, never continuous area algebra."""
+    return value.detach().cpu().tolist()
+
+
+def _dot_rows(first: torch.Tensor, second: torch.Tensor) -> torch.Tensor:
+    return torch.sum(first * second, dim=-1)
+
+
+def _intersection_batches(pairs, directions, cap_cos):
+    """Yield bounded batches in the original ordered cap-pair traversal.
+
+    Only detached visibility/guard metadata is read on the host. Live points
+    retain their coordinate/radius graph on the original device. Chunking
+    prevents a full cap-pair-by-cap visibility tensor from being retained.
+    """
+    normals = torch.stack(directions)
+    cosine = torch.stack(cap_cos)
+    chunk_size = max(1, min(128, 131_072 // (2 * len(directions))))
+    for first in range(0, len(pairs), chunk_size):
+        chunk = pairs[first : first + chunk_size]
+        indices = torch.tensor(chunk, device=normals.device, dtype=torch.long)
+        i, j = indices.unbind(dim=1)
+        dot = _dot_rows(normals[i], normals[j])
+        denominator = 1.0 - dot * dot
+        inverse = 1.0 / denominator
+        ai = (cosine[i] - cosine[j] * dot) * inverse
+        bi = (cosine[j] - cosine[i] * dot) * inverse
+        ci2 = (1.0 - ai * cosine[i] - bi * cosine[j]) * inverse
+        cross = torch.linalg.cross(normals[i], normals[j], dim=-1)
+        centre = ai[:, None] * normals[i] + bi[:, None] * normals[j]
+        displacement = torch.sqrt(ci2)[:, None] * cross
+        positive, negative = centre + displacement, centre - displacement
+        points = torch.stack((positive, negative), dim=1)
+        checks = _dot_rows(points[:, :, None, :], normals[None, None, :, :])
+        guard_values = _host_values(torch.stack((denominator, ci2), dim=1))
+        visibility = _host_values(checks)
+        for offset, (left, right) in enumerate(chunk):
+            yield left, right, (
+                guard_values[offset],
+                positive[offset],
+                negative[offset],
+                visibility[offset],
+            )
+
+
+def _solid_angle_one(positions, radii, k, config, **kwargs):
+    if positions.device.type == "cuda" and positions.dtype is torch.float32:
+        return _solid_angle_one_batched(positions, radii, k, config, **kwargs)
+    return _solid_angle_one_reference(positions, radii, k, config, **kwargs)
+
+
+def _solid_angle_one_batched(positions, radii, k, config, **kwargs):
+    return _solid_angle_one_reference(
+        positions, radii, k, config, _batched=True, **kwargs
+    )
+
+
+def _solid_angle_one_reference(
     positions: torch.Tensor,
     radii: torch.Tensor,
     k: int,
@@ -217,13 +275,24 @@ def _solid_angle_one(
     *,
     scalar_vertex_events: list[dict] | None = None,
     scalar_margin_violations: list[str] | None = None,
+    _batched: bool = False,
 ) -> tuple[torch.Tensor, str, int, int, float, str]:
     """Translate the energy path of DAREAL for sphere ``k``."""
 
     two_pi = positions.new_tensor(2.0 * _PI)
     four_pi = positions.new_tensor(4.0 * _PI)
     rk = radii[k]
-    rk_h = _host(rk)
+    if _batched:
+        radii_host = _host_values(radii)
+        all_delta = positions - positions[k]
+        # The unused owner distance must not put norm(0) into second AD.
+        owner = torch.arange(len(radii), device=positions.device) == k
+        safe_delta = torch.where(owner[:, None], torch.ones_like(all_delta), all_delta)
+        all_distance = torch.linalg.vector_norm(safe_delta, dim=-1)
+        distances_host = _host_values(all_distance)
+        rk_h = radii_host[k]
+    else:
+        rk_h = _host(rk)
     if rk_h <= 0.0:
         return positions.new_zeros(()), "zero-radius", 0, 0, float("inf"), "zero-radius"
 
@@ -243,15 +312,21 @@ def _solid_angle_one(
         return margin
 
     for atom in range(positions.shape[0]):
-        if atom == k or _host(radii[atom]) <= 0.0:
+        if atom == k:
             continue
-        delta = positions[atom] - positions[k]
-        distance = torch.linalg.vector_norm(delta)
-        d_h = _host(distance)
+        radius_h = radii_host[atom] if _batched else _host(radii[atom])
+        if radius_h <= 0.0:
+            continue
+        if _batched:
+            d_h = distances_host[atom]
+        else:
+            delta = positions[atom] - positions[k]
+            distance = torch.linalg.vector_norm(delta)
+            d_h = _host(distance)
         if d_h == 0.0:
             raise LegacyDAREALTopologyError("DAREAL rejects coincident sphere centres.")
-        outer = rk_h + _host(radii[atom]) - d_h
-        inner = d_h - abs(rk_h - _host(radii[atom]))
+        outer = rk_h + radius_h - d_h
+        inner = d_h - abs(rk_h - radius_h)
         minimum_margin = min(minimum_margin, abs(outer), abs(inner))
         threshold = config.relative_topology_tolerance * rk_h
         if abs(outer) <= threshold or abs(inner) <= threshold:
@@ -261,7 +336,7 @@ def _solid_angle_one(
         if outer < threshold:
             continue
         if inner < threshold:
-            if rk_h <= _host(radii[atom]):
+            if rk_h <= radius_h:
                 return (
                     positions.new_zeros(()),
                     "contained",
@@ -280,12 +355,27 @@ def _solid_angle_one(
     cap_cos: list[torch.Tensor] = []
     cap_sin: list[torch.Tensor] = []
     directions: list[torch.Tensor] = []
-    for atom in overlap_atoms:
-        delta = positions[atom] - positions[k]
-        distance = torch.linalg.vector_norm(delta)
-        cosine = 0.5 / rk * (distance + (rk * rk - radii[atom] ** 2) / distance)
-        radicand = 1.0 - cosine * cosine
-        radicand_h = _host(radicand)
+    if _batched:
+        cap_distance = all_distance[overlap_atoms]
+        cosines = (
+            0.5
+            / rk
+            * (cap_distance + (rk * rk - radii[overlap_atoms] ** 2) / cap_distance)
+        )
+        radicands = 1.0 - cosines * cosines
+        radicands_host = _host_values(radicands)
+        cap_cos = list(cosines.unbind())
+        cap_sin = list(torch.sqrt(radicands).unbind())
+        directions = list((all_delta[overlap_atoms] / cap_distance[:, None]).unbind())
+    for cap_index, atom in enumerate(overlap_atoms):
+        if _batched:
+            radicand_h = radicands_host[cap_index]
+        else:
+            delta = positions[atom] - positions[k]
+            distance = torch.linalg.vector_norm(delta)
+            cosine = 0.5 / rk * (distance + (rk * rk - radii[atom] ** 2) / distance)
+            radicand = 1.0 - cosine * cosine
+            radicand_h = _host(radicand)
         if radicand_h <= 0.0:
             raise LegacyDAREALTopologyError(
                 "DAREAL cap half-angle is singular or tangent."
@@ -295,31 +385,63 @@ def _solid_angle_one(
             1.0,
             "DAREAL cap half-angle is too near a singular or tangent boundary.",
         )
-        cap_cos.append(cosine)
-        cap_sin.append(torch.sqrt(radicand))
-        directions.append(delta / distance)
+        if not _batched:
+            cap_cos.append(cosine)
+            cap_sin.append(torch.sqrt(radicand))
+            directions.append(delta / distance)
 
     embedded = [False] * count
     connected = [[False] * count for _ in range(count)]
     direction_cos: dict[tuple[int, int], torch.Tensor] = {}
+    if _batched:
+        normals = torch.stack(directions)
+        cosine, sine = torch.stack(cap_cos), torch.stack(cap_sin)
+        pair_dot = _dot_rows(normals[:, None, :], normals[None, :, :])
+        pair_tij = pair_dot - cosine[:, None] * cosine[None, :]
+        pair_sisj = sine[:, None] * sine[None, :]
+        pair_cisj = cosine[:, None] * sine[None, :]
+        pair_sicj = sine[:, None] * cosine[None, :]
+        pair_host = _host_values(
+            torch.stack(
+                (
+                    pair_tij
+                    - pair_sisj
+                    + config.relative_topology_tolerance
+                    * torch.abs(pair_cisj - pair_sicj),
+                    cosine[None, :] - cosine[:, None],
+                    pair_sicj + pair_cisj,
+                    pair_tij + pair_sisj,
+                ),
+                dim=-1,
+            )
+        )
     for i in range(1, count):
         for j in range(i):
             if embedded[j]:
                 continue
-            dot = torch.dot(directions[i], directions[j])
-            direction_cos[(j, i)] = dot
-            tij = dot - cap_cos[i] * cap_cos[j]
-            sisj = cap_sin[i] * cap_sin[j]
-            cisj = cap_cos[i] * cap_sin[j]
-            sicj = cap_sin[i] * cap_cos[j]
-            embed_test = _host(
-                tij - sisj + config.relative_topology_tolerance * torch.abs(cisj - sicj)
+            dot = (
+                pair_dot[i, j] if _batched else torch.dot(directions[i], directions[j])
             )
+            direction_cos[(j, i)] = dot
+            if _batched:
+                embed_test = pair_host[i][j][0]
+            else:
+                tij = dot - cap_cos[i] * cap_cos[j]
+                sisj = cap_sin[i] * cap_sin[j]
+                cisj = cap_cos[i] * cap_sin[j]
+                sicj = cap_sin[i] * cap_cos[j]
+                embed_test = _host(
+                    tij
+                    - sisj
+                    + config.relative_topology_tolerance * torch.abs(cisj - sicj)
+                )
             record_margin(
                 embed_test, 1.0, "DAREAL cap-containment topology is ambiguous."
             )
             if embed_test > 0.0:
-                containment_order = _host(cap_cos[j] - cap_cos[i])
+                containment_order = (
+                    pair_host[i][j][1] if _batched else _host(cap_cos[j] - cap_cos[i])
+                )
                 record_margin(
                     containment_order,
                     1.0,
@@ -331,8 +453,7 @@ def _solid_angle_one(
                     embedded[i] = True
                     break
             else:
-                sum_cs = sicj + cisj
-                sum_h = _host(sum_cs)
+                sum_h = pair_host[i][j][2] if _batched else _host(sicj + cisj)
                 record_margin(
                     sum_h,
                     1.0,
@@ -340,7 +461,9 @@ def _solid_angle_one(
                 )
                 epsij = config.relative_topology_tolerance * sum_h
                 if sum_h >= 0.0:
-                    cross_test = _host(tij + sisj) - epsij
+                    cross_test = (
+                        pair_host[i][j][3] if _batched else _host(tij + sisj)
+                    ) - epsij
                     record_margin(
                         cross_test,
                         1.0,
@@ -348,7 +471,9 @@ def _solid_angle_one(
                     )
                     connected[i][j] = connected[j][i] = cross_test > 0.0
                 else:
-                    burial_test = _host(tij + sisj) + epsij
+                    burial_test = (
+                        pair_host[i][j][3] if _batched else _host(tij + sisj)
+                    ) + epsij
                     record_margin(
                         burial_test,
                         1.0,
@@ -389,6 +514,23 @@ def _solid_angle_one(
 
     boundary: dict[int, list[tuple[int, torch.Tensor, str]]] = {i: [] for i in cluster}
     points: dict[tuple[int, int], tuple[torch.Tensor, torch.Tensor]] = {}
+    if _batched:
+        pairs = [
+            (cluster[ii], cluster[jj])
+            for ii in range(1, len(cluster))
+            for jj in range(ii)
+            if connected[cluster[ii]][cluster[jj]]
+        ]
+        batches = iter(_intersection_batches(pairs, directions, cap_cos))
+        visibility_bounds = _host_values(
+            torch.stack(
+                (
+                    cosine + config.relative_topology_tolerance * sine,
+                    cosine - config.relative_topology_tolerance * sine,
+                ),
+                dim=1,
+            )
+        )
     free_count = 0
     for ii in range(1, len(cluster)):
         i = cluster[ii]
@@ -396,24 +538,32 @@ def _solid_angle_one(
             j = cluster[jj]
             if not connected[i][j]:
                 continue
-            dot = direction_cos.get((min(i, j), max(i, j)))
-            if dot is None:
-                dot = torch.dot(directions[i], directions[j])
-            intersection_denominator = 1.0 - dot * dot
-            if _host(intersection_denominator) <= 0.0:
+            if _batched:
+                left, right, prepared = next(batches)
+                if (left, right) != (i, j):
+                    raise RuntimeError("DAREAL batched pair traversal changed.")
+                (denominator_h, ci2_h), positive, negative, visibility = prepared
+            else:
+                dot = direction_cos.get((min(i, j), max(i, j)))
+                if dot is None:
+                    dot = torch.dot(directions[i], directions[j])
+                intersection_denominator = 1.0 - dot * dot
+                denominator_h = _host(intersection_denominator)
+            if denominator_h <= 0.0:
                 raise LegacyDAREALTopologyError(
                     "DAREAL intersection-circle denominator is singular."
                 )
             record_margin(
-                _host(intersection_denominator),
+                denominator_h,
                 1.0,
                 "DAREAL intersection-circle denominator is singular.",
             )
-            sin2inv = 1.0 / intersection_denominator
-            ai = (cap_cos[i] - cap_cos[j] * dot) * sin2inv
-            bi = (cap_cos[j] - cap_cos[i] * dot) * sin2inv
-            ci2 = (1.0 - ai * cap_cos[i] - bi * cap_cos[j]) * sin2inv
-            ci2_h = _host(ci2)
+            if not _batched:
+                sin2inv = 1.0 / intersection_denominator
+                ai = (cap_cos[i] - cap_cos[j] * dot) * sin2inv
+                bi = (cap_cos[j] - cap_cos[i] * dot) * sin2inv
+                ci2 = (1.0 - ai * cap_cos[i] - bi * cap_cos[j]) * sin2inv
+                ci2_h = _host(ci2)
             if ci2_h <= 0.0:
                 raise LegacyDAREALTopologyError(
                     "DAREAL cap intersection is tangent or singular."
@@ -423,10 +573,11 @@ def _solid_angle_one(
                 1.0,
                 "DAREAL cap intersection is too near a tangent or singular boundary.",
             )
-            cross = torch.linalg.cross(directions[i], directions[j])
-            ci = torch.sqrt(ci2)
-            positive = ai * directions[i] + bi * directions[j] + ci * cross
-            negative = ai * directions[i] + bi * directions[j] - ci * cross
+            if not _batched:
+                cross = torch.linalg.cross(directions[i], directions[j])
+                ci = torch.sqrt(ci2)
+                positive = ai * directions[i] + bi * directions[j] + ci * cross
+                negative = ai * directions[i] + bi * directions[j] - ci * cross
             points[(min(i, j), max(i, j))] = (
                 positive if i < j else negative,
                 negative if i < j else positive,
@@ -436,15 +587,25 @@ def _solid_angle_one(
             for ell in cluster:
                 if ell in (i, j) or not (connected[ell][i] and connected[ell][j]):
                     continue
-                high = cap_cos[ell] + config.relative_topology_tolerance * cap_sin[ell]
-                low = cap_cos[ell] - config.relative_topology_tolerance * cap_sin[ell]
+                if _batched:
+                    high_h, low_h = visibility_bounds[ell]
+                else:
+                    high = (
+                        cap_cos[ell] + config.relative_topology_tolerance * cap_sin[ell]
+                    )
+                    low = (
+                        cap_cos[ell] - config.relative_topology_tolerance * cap_sin[ell]
+                    )
                 for label, point in (("positive", positive), ("negative", negative)):
                     if (label == "positive" and not free_positive) or (
                         label == "negative" and not free_negative
                     ):
                         continue
-                    check = torch.dot(point, directions[ell])
-                    check_h, high_h, low_h = _host(check), _host(high), _host(low)
+                    if _batched:
+                        check_h = visibility[0 if label == "positive" else 1][ell]
+                    else:
+                        check = torch.dot(point, directions[ell])
+                        check_h, high_h, low_h = _host(check), _host(high), _host(low)
                     if check_h > high_h:
                         record_margin(
                             check_h - high_h,
@@ -526,15 +687,45 @@ def _solid_angle_one(
         if config.scalar_energy_only:
             first_tangent = (first_point - cap_cos[i] * directions[i]) / cap_sin[i]
             vij = torch.linalg.cross(directions[i], first_tangent)
-        for neighbor, point, _ in entries[1:]:
+        if _batched and len(entries) > 1:
+            point_batch = torch.stack([entry[1] for entry in entries[1:]])
             if config.scalar_energy_only:
-                tangent = (point - cap_cos[i] * directions[i]) / cap_sin[i]
-                x = torch.dot(vij, tangent)
-                y = torch.dot(tangent, first_tangent)
+                tangents = (point_batch - cap_cos[i] * directions[i]) / cap_sin[i]
+                xx = _dot_rows(vij, tangents)
+                yy = _dot_rows(tangents, first_tangent)
             else:
-                x = torch.dot(vij, point)
-                y = torch.dot(point, first_point) - c2
-            angle_denominator = _host(x * x + y * y)
+                xx = _dot_rows(vij, point_batch)
+                yy = _dot_rows(point_batch, first_point) - c2
+            raw_angles = torch.atan2(xx, yy)
+            wrapped_angles = torch.where(
+                raw_angles <= 0.0, raw_angles + two_pi, raw_angles
+            )
+            angle_metadata = _host_values(
+                torch.stack(
+                    (
+                        xx * xx + yy * yy,
+                        xx,
+                        yy,
+                        raw_angles,
+                        wrapped_angles,
+                    ),
+                    dim=1,
+                )
+            )
+        for entry_index, (neighbor, point, _) in enumerate(entries[1:]):
+            if _batched:
+                angle_denominator, x_h, y_h, angle_h, wrapped_h = angle_metadata[
+                    entry_index
+                ]
+            else:
+                if config.scalar_energy_only:
+                    tangent = (point - cap_cos[i] * directions[i]) / cap_sin[i]
+                    x = torch.dot(vij, tangent)
+                    y = torch.dot(tangent, first_tangent)
+                else:
+                    x = torch.dot(vij, point)
+                    y = torch.dot(point, first_point) - c2
+                angle_denominator = _host(x * x + y * y)
             if angle_denominator <= 0.0:
                 raise LegacyDAREALTopologyError(
                     "DAREAL boundary-angle ordering is degenerate."
@@ -544,19 +735,23 @@ def _solid_angle_one(
                 1.0,
                 "DAREAL atan2 boundary-angle denominator is near singular.",
             )
-            angle = torch.atan2(x, y)
-            angle_h = _host(angle)
+            if _batched:
+                angle = wrapped_angles[entry_index]
+            else:
+                angle = torch.atan2(x, y)
+                angle_h = _host(angle)
+                y_h, x_h = _host(y), _host(x)
             # x=0,y>0 is not merely the atan2 chart seam here: it means this
             # boundary point coincides with the selected first point.
-            if _host(y) > 0.0:
+            if y_h > 0.0:
                 record_margin(
-                    _host(x),
+                    x_h,
                     1.0,
                     "DAREAL boundary-angle chart contains a duplicate point.",
                 )
-            if angle_h <= 0.0:
+            if not _batched and angle_h <= 0.0:
                 angle = angle + two_pi
-            angles.append((_host(angle), angle, neighbor))
+            angles.append((wrapped_h if _batched else _host(angle), angle, neighbor))
         angles.sort(key=lambda item: item[0])
         for left, right in zip(angles, angles[1:], strict=False):
             record_margin(

@@ -3,7 +3,7 @@
   "cases": [
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "36baa221cf6e9e66e75a6bfa7ebb0bb8bb01da198658a423319a6077f391b186",
+      "configuration_sha256": "85eb8a8a8fba4fff8f6a923f42b2ebf59cdb11d9d4cca293b22d8d39ee5ab7af",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -61,8 +61,8 @@
         },
         "cds_device": "cpu",
         "component_configuration_sha256": {
-          "cds": "8edd7d5f9be6c2648bea4c12317698783a8d8b924919b56b944360ca4a24c162",
-          "ddpcm": "622b09adca08da3122795db446ed0bd48ed167793a4afee56307ef00507bccbd",
+          "cds": "d858c8c176cbb7c48a6c3d3bdf6bbd9292d2ab40c574439f0f38d367254d1924",
+          "ddpcm": "f4232f9e3e9bbf83cdddf4b64c29f1551808451defa87e74499498f3b6019206",
           "model": "faf9ca57d0e57d4ad8315016e8e8afba846a93fbde8010e9da0f57835d94d05d"
         },
         "continuum_device": "cpu",
@@ -92,7 +92,7 @@
           },
           "assessment_gate_failures": [],
           "assessment_gate_pass": true,
-          "configuration_sha256": "622b09adca08da3122795db446ed0bd48ed167793a4afee56307ef00507bccbd",
+          "configuration_sha256": "f4232f9e3e9bbf83cdddf4b64c29f1551808451defa87e74499498f3b6019206",
           "energy_eV": -0.38643139600753784,
           "execution_receipt": {
             "D_shape": [
@@ -119,6 +119,7 @@
             "lmax": 5,
             "n_lebedev": 194,
             "observation_mode": "strict",
+            "operator_assembly": "reference-pair-loop-v1",
             "positions_device": "cpu",
             "positions_dtype": "torch.float32",
             "positions_shape": [
@@ -178,6 +179,7 @@
               }
             },
             "storage": "full-dense",
+            "svd_driver": "runtime-default",
             "tf32_active": false,
             "tf32_policy": "forbidden",
             "topology_margin": 1.1920928955078125e-05
@@ -201,7 +203,7 @@
             "warnings": []
           },
           "l_relative_residual": 4.9332861351558677e-08,
-          "provenance_sha256": "2fb1aa0738e824adca2064283cff0cc3b0a9678d6acad5e694f12e44f484a38c",
+          "provenance_sha256": "dac989ce3175f06218587d515dc5a9d1155087276cb5e95a2bd7d35a0ad1ae9f",
           "provider_id": "maple.route2.continuum.torch-ddpcm-dense.impl.v1",
           "reps_relative_residual": 2.2075460037740413e-07,
           "resource": {
@@ -302,17 +304,17 @@
             "limit_bytes": 4000000000,
             "second_order_peak_bytes": 18630144
           },
-          "device_available_bytes": 14071734272,
+          "device_available_bytes": 28124499968,
           "estimated_total_bytes": 2166113792,
-          "host_available_bytes": 14071734272,
+          "host_available_bytes": 28124499968,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 2147483648,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 9.522678095003357,
+      "elapsed_seconds_descriptive_only": 11.289207559995702,
       "energy_eV": -2080.1875,
-      "evaluation_sha256": "fb0e25497ee1d7e8418cf95c0d68885017b053e87f5afcc7b7b2d3ec78e45a18",
+      "evaluation_sha256": "58c593b0af59f11dc73adc395070189a8496593f6eafda7f05523066d46d78a9",
       "forces_eV_per_A": [
         [
           -0.19792398810386658,
@@ -458,7 +460,7 @@
     },
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "4276273e89acd7ffc046acf8f1c2794514903a9738a69cb4fd19fee2df473201",
+      "configuration_sha256": "19bae8212d72ca2dbbf1d847eaedbd94b907d3577daa7f3fa3924723d87f88fb",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -516,38 +518,38 @@
         },
         "cds_device": "cuda:0",
         "component_configuration_sha256": {
-          "cds": "db363810c3ccee48d3e92fb676a43806adefb85bbac3cacc7a5a7330e755cfcd",
-          "ddpcm": "adbb1df27cfefd9776cebd4ffc3a5ea80a9ae12cf147ba21464e97695eaaf38d",
+          "cds": "71889e7d01df768a469c6fb1a20bce78451d2a992e3f53273a820345683c28b7",
+          "ddpcm": "5e6d955b082cd9223e7ddaaf27fb1b7959cf0bf1422b830dec95f9f7d97afffa",
           "model": "b623fb3da191114a708d1dff907a3ad323929103a05c0351a53924d10336dc53"
         },
         "continuum_device": "cuda:0",
         "coordinate_finite_differences": false,
         "ddpcm": {
           "L_stability": {
-            "condition_number": 23.267397313272692,
+            "condition_number": 23.26728850237741,
             "dimension": 108,
             "matrix_name": "L",
-            "maximum_singular_value": 18.467815399169922,
+            "maximum_singular_value": 18.467666625976562,
             "minimum_reciprocal_condition": 0.00034526698300124393,
-            "minimum_singular_value": 0.7937207221984863,
+            "minimum_singular_value": 0.7937180399894714,
             "numerical_rank": 108,
-            "rank_tolerance": 0.0002377657965553226,
-            "reciprocal_condition": 0.042978593030237995
+            "rank_tolerance": 0.00023776388115948066,
+            "reciprocal_condition": 0.04297879402225239
           },
           "R_epsilon_stability": {
-            "condition_number": 3.0055126026168355,
+            "condition_number": 3.005505926400619,
             "dimension": 108,
             "matrix_name": "R_epsilon",
-            "maximum_singular_value": 12.633235931396484,
+            "maximum_singular_value": 12.633169174194336,
             "minimum_reciprocal_condition": 0.00034526698300124393,
-            "minimum_singular_value": 4.203354835510254,
+            "minimum_singular_value": 4.203341960906982,
             "numerical_rank": 108,
-            "rank_tolerance": 0.00016264790065179113,
-            "reciprocal_condition": 0.332721945377744
+            "rank_tolerance": 0.00016264704117929796,
+            "reciprocal_condition": 0.33272268446251096
           },
           "assessment_gate_failures": [],
           "assessment_gate_pass": true,
-          "configuration_sha256": "adbb1df27cfefd9776cebd4ffc3a5ea80a9ae12cf147ba21464e97695eaaf38d",
+          "configuration_sha256": "5e6d955b082cd9223e7ddaaf27fb1b7959cf0bf1422b830dec95f9f7d97afffa",
           "energy_eV": -0.38643091917037964,
           "execution_receipt": {
             "D_shape": [
@@ -574,6 +576,7 @@
             "lmax": 5,
             "n_lebedev": 194,
             "observation_mode": "strict",
+            "operator_assembly": "bounded-pair-batched-cuda-fp32-v1",
             "positions_device": "cuda:0",
             "positions_dtype": "torch.float32",
             "positions_shape": [
@@ -633,6 +636,7 @@
               }
             },
             "storage": "full-dense",
+            "svd_driver": "gesvd",
             "tf32_active": false,
             "tf32_policy": "forbidden",
             "topology_margin": 1.1920928955078125e-05
@@ -655,10 +659,10 @@
             "transition_node_count": 59,
             "warnings": []
           },
-          "l_relative_residual": 4.7441201189712956e-08,
-          "provenance_sha256": "27174950a7788b102c429823747dc0286e35b4e418e1742b503ada4d858f66b5",
+          "l_relative_residual": 4.674133435855765e-08,
+          "provenance_sha256": "e9b151d853a187985b44baa9a8e1783aa2f38c7fce8d77cce7911aa06571a187",
           "provider_id": "maple.route2.continuum.torch-ddpcm-dense.impl.v1",
-          "reps_relative_residual": 1.5429914412834478e-07,
+          "reps_relative_residual": 1.7244369132640713e-07,
           "resource": {
             "atom_count": 3,
             "basis_dimension": 108,
@@ -742,7 +746,7 @@
           "policy": "all-nonself-pairs-fixed-mask-conservative-guard-v1",
           "schema": "route2-mace-polar-neighbor-topology-diagnostics-v1"
         },
-        "raw_hessian_antisymmetry_eV_per_A2": 0.00015805158182047307,
+        "raw_hessian_antisymmetry_eV_per_A2": 0.0001559579250169918,
         "scientific_release_admitted": false,
         "second_order_resources": {
           "claim_boundary": "engineering estimate, not a guaranteed allocator upper bound",
@@ -759,149 +763,149 @@
           },
           "device_available_bytes": 7145821184,
           "estimated_total_bytes": 555501056,
-          "host_available_bytes": 13233741824,
+          "host_available_bytes": 27846844416,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 536870912,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 10.45594734500628,
+      "elapsed_seconds_descriptive_only": 7.742088593004155,
       "energy_eV": -2080.1875,
-      "evaluation_sha256": "d2c37c9a3d99c2f3185a99d5b396cb39abdeb8a5a5fba8bb6c3b0e57eb2ae559",
+      "evaluation_sha256": "a798a63987d5a46babe4d5b8da55ddf3f929d8c17e215cfbc853526b49810447",
       "forces_eV_per_A": [
         [
-          -0.1979384571313858,
-          -0.2758503556251526,
-          0.000291616132017225
+          -0.19793786108493805,
+          -0.27585116028785706,
+          0.0002925100561697036
         ],
         [
-          0.35910719633102417,
-          -0.06959898769855499,
-          -0.0001264649472432211
+          0.3591066300868988,
+          -0.06959937512874603,
+          -0.00012731598690152168
         ],
         [
-          -0.16117273271083832,
-          0.34545212984085083,
-          -0.00016515277093276381
+          -0.1611727476119995,
+          0.34545329213142395,
+          -0.00016518679331056774
         ]
       ],
       "hessian_eV_per_A2": [
         [
           59.16257858276367,
-          -10.899724960327148,
-          -0.00019559904467314482,
+          -10.89972972869873,
+          -0.00019539744243957102,
           -52.56898498535156,
-          -3.290919065475464,
-          0.000293149845674634,
-          -6.593591690063477,
-          14.190645217895508,
-          -9.754504571901634e-05
+          -3.2909188270568848,
+          0.00029329454991966486,
+          -6.593592166900635,
+          14.190649032592773,
+          -9.78880052571185e-05
         ],
         [
-          -10.899666786193848,
-          53.8491325378418,
-          -0.0005006600986234844,
-          2.263819456100464,
-          -4.0803399085998535,
-          0.00010459907935000956,
-          8.635845184326172,
-          -49.7687873840332,
-          0.0003960659960284829
+          -10.899672508239746,
+          53.84914779663086,
+          -0.0005006124265491962,
+          2.2638213634490967,
+          -4.080339431762695,
+          0.00010519850184209645,
+          8.635849952697754,
+          -49.76880645751953,
+          0.0003954229468945414
         ],
         [
-          -0.00031128746923059225,
-          -0.0006272665923461318,
-          -0.4552725553512573,
-          -3.232702874811366e-05,
-          0.0005051987827755511,
-          0.12622615694999695,
-          0.00034503452479839325,
-          0.00011673547851387411,
-          0.32904648780822754
+          -0.00030996568966656923,
+          -0.0006297266809269786,
+          -0.4552720785140991,
+          -3.3273670851485804e-05,
+          0.0005049315514042974,
+          0.12622584402561188,
+          0.00034461196628399193,
+          0.0001195072618429549,
+          0.32904621958732605
         ],
         [
           -52.56897735595703,
-          2.2638113498687744,
-          -0.00019037860329262912,
-          53.97419738769531,
-          -1.5452333688735962,
-          -3.6167213693261147e-05,
-          -1.4052155017852783,
-          -0.718578040599823,
-          0.00022654319764114916
+          2.2638120651245117,
+          -0.0001892315922304988,
+          53.97419357299805,
+          -1.5452340841293335,
+          -3.712558464030735e-05,
+          -1.4052144289016724,
+          -0.7185779809951782,
+          0.00022635681671090424
         ],
         [
-          -3.290928602218628,
-          -4.080334663391113,
-          0.0003804792941082269,
-          -1.5452910661697388,
-          4.419842720031738,
-          -0.00010425104119349271,
-          4.836225986480713,
-          -0.339508056640625,
-          -0.0002762357471510768
+          -3.2909278869628906,
+          -4.0803327560424805,
+          0.00038060263614170253,
+          -1.5452920198440552,
+          4.419841289520264,
+          -0.00010451243724673986,
+          4.836226463317871,
+          -0.3395087420940399,
+          -0.00027609363314695656
         ],
         [
-          0.00018470946815796196,
-          0.00017746885714586824,
-          0.12618575990200043,
-          -2.6051760869449936e-05,
-          -0.00022913975408300757,
-          -0.19433508813381195,
-          -0.0001563584228279069,
-          5.0997772632399574e-05,
-          0.06814958900213242
+          0.0001839629258029163,
+          0.0001772933464962989,
+          0.12618611752986908,
+          -2.51888923230581e-05,
+          -0.00023007983691059053,
+          -0.19433532655239105,
+          -0.00015649483248125762,
+          5.208241782383993e-05,
+          0.06814954429864883
         ],
         [
-          -6.593589782714844,
-          8.635899543762207,
-          0.000310436706058681,
-          -1.4051973819732666,
-          4.836269378662109,
-          -0.00015932595124468207,
-          7.998785018920898,
-          -13.472169876098633,
-          -0.0001511046284576878
+          -6.59359073638916,
+          8.635907173156738,
+          0.0003113335114903748,
+          -1.4051978588104248,
+          4.836268901824951,
+          -0.00016034120926633477,
+          7.998785972595215,
+          -13.472175598144531,
+          -0.0001509853027528152
         ],
         [
-          14.190596580505371,
-          -49.76873779296875,
-          9.157966997008771e-05,
-          -0.7185373902320862,
-          -0.33945441246032715,
-          5.1966293540317565e-05,
-          -13.472057342529297,
-          50.10819625854492,
-          -0.00014354857557918876
+          14.190601348876953,
+          -49.76874923706055,
+          9.34312556637451e-05,
+          -0.7185387015342712,
+          -0.33945438265800476,
+          5.103454532218166e-05,
+          -13.472062110900879,
+          50.10820770263672,
+          -0.00014446669956669211
         ],
         [
-          -0.00012498283467721194,
-          0.00036802468821406364,
-          0.3291931450366974,
-          0.00021519340225495398,
-          -0.0002464831341058016,
-          0.06805203855037689,
-          -8.973946387413889e-05,
-          -0.00012482113379519433,
-          -0.39724430441856384
+          -0.00012634406448341906,
+          0.000369152519851923,
+          0.3291923403739929,
+          0.00021567600197158754,
+          -0.0002460639225319028,
+          0.06805289536714554,
+          -8.88023350853473e-05,
+          -0.00012638562475331128,
+          -0.3972444236278534
         ]
       ],
-      "hvp_dense_defect_eV_per_A2": 0.00017080865654861555,
+      "hvp_dense_defect_eV_per_A2": 0.00017125158814856878,
       "hvp_eV_per_A2": [
         [
           -13.555339813232422,
-          -28.02718162536621,
-          0.2617338001728058
+          -28.027183532714844,
+          0.2617342174053192
         ],
         [
-          16.060653686523438,
-          3.955857276916504,
-          -0.01945088990032673
+          16.06065559387207,
+          3.955857515335083,
+          -0.01945098489522934
         ],
         [
-          -2.505312919616699,
+          -2.5053133964538574,
           24.07132911682129,
-          -0.24228160083293915
+          -0.2422819584608078
         ]
       ],
       "pass": true,
@@ -913,7 +917,7 @@
     },
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "1e4f86541fc23f42ada7e296d88e3e8da902a1b2cd8b549ce630ffc075b28743",
+      "configuration_sha256": "dc68f82ca37dd3bfe9833726a8e273ac6e0a573428dbdeb5208925590b0cba87",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -971,8 +975,8 @@
         },
         "cds_device": "cpu",
         "component_configuration_sha256": {
-          "cds": "d33a5d53720765d05488b5844f959dd50f93ce56c063de2f7c7e75674cb20b04",
-          "ddpcm": "d7baa05c25281f973057bd5ecc681e362c5918b875e4229dbf29de129b9ccddf",
+          "cds": "7c1d52520480abcf11b94adf666a553ac3fa2c177247746d00df429a00a1cf1d",
+          "ddpcm": "0e2b351f8ae889534c3f44a2bb56f07d1a04e2eeb878439b1d63171a22ebaa97",
           "model": "faf9ca57d0e57d4ad8315016e8e8afba846a93fbde8010e9da0f57835d94d05d"
         },
         "continuum_device": "cpu",
@@ -1002,7 +1006,7 @@
           },
           "assessment_gate_failures": [],
           "assessment_gate_pass": true,
-          "configuration_sha256": "d7baa05c25281f973057bd5ecc681e362c5918b875e4229dbf29de129b9ccddf",
+          "configuration_sha256": "0e2b351f8ae889534c3f44a2bb56f07d1a04e2eeb878439b1d63171a22ebaa97",
           "energy_eV": -0.060498472303152084,
           "execution_receipt": {
             "D_shape": [
@@ -1029,6 +1033,7 @@
             "lmax": 5,
             "n_lebedev": 194,
             "observation_mode": "strict",
+            "operator_assembly": "reference-pair-loop-v1",
             "positions_device": "cpu",
             "positions_dtype": "torch.float32",
             "positions_shape": [
@@ -1088,6 +1093,7 @@
               }
             },
             "storage": "full-dense",
+            "svd_driver": "runtime-default",
             "tf32_active": false,
             "tf32_policy": "forbidden",
             "topology_margin": 1.1920928955078125e-05
@@ -1111,7 +1117,7 @@
             "warnings": []
           },
           "l_relative_residual": 6.6830003753182154e-09,
-          "provenance_sha256": "ea77d63ebfe710da9c236dddae501896ca04dd5dfecc0fe2318eae7b98e4b54f",
+          "provenance_sha256": "d9f2a779172a7a09c35f296b353755a118c9af77a3f47f0701230ae7b3159eb9",
           "provider_id": "maple.route2.continuum.torch-ddpcm-dense.impl.v1",
           "reps_relative_residual": 7.512171329437933e-09,
           "resource": {
@@ -1212,17 +1218,17 @@
             "limit_bytes": 4000000000,
             "second_order_peak_bytes": 18630144
           },
-          "device_available_bytes": 12999352320,
+          "device_available_bytes": 27007275008,
           "estimated_total_bytes": 2166113792,
-          "host_available_bytes": 12999352320,
+          "host_available_bytes": 27007275008,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 2147483648,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 5.598813935008366,
+      "elapsed_seconds_descriptive_only": 4.725612803988042,
       "energy_eV": -2079.9541015625,
-      "evaluation_sha256": "74a116c6d1b22d194f555af4e671fe70cc64dc3d030feac75545b9c96291fb39",
+      "evaluation_sha256": "958c85aa338d54e121ed795e0fdbceaead28d765266ef7fa052b4ea4e1166836",
       "forces_eV_per_A": [
         [
           -0.18278327584266663,
@@ -1368,7 +1374,7 @@
     },
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "9d7e86e0a188c583670722592e40e6c8d107a48674d5fb6275fb3aa3eddaa185",
+      "configuration_sha256": "b5b56a30c4fee679a7295f857d5af2efb5f6821dc258465bf4299b48e8d03425",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -1426,39 +1432,39 @@
         },
         "cds_device": "cuda:0",
         "component_configuration_sha256": {
-          "cds": "3817f366e98d452067a77eb8706bad253dabf11beb289f959770134eb575b0f3",
-          "ddpcm": "baf0db1ce908bf37a0d0c590511dd79a7f2fdabda546e21d021e351f58b6ec75",
+          "cds": "b60f593f181f193423da926de49e24eb3cea30e6fda1c30af719975efaaadf27",
+          "ddpcm": "1760164631df3aa7a01bd8880af963d0363583c52ed2d4b94e05baafa7146df7",
           "model": "b623fb3da191114a708d1dff907a3ad323929103a05c0351a53924d10336dc53"
         },
         "continuum_device": "cuda:0",
         "coordinate_finite_differences": false,
         "ddpcm": {
           "L_stability": {
-            "condition_number": 22.465698369407125,
+            "condition_number": 22.465680111327913,
             "dimension": 108,
             "matrix_name": "L",
-            "maximum_singular_value": 22.970735549926758,
+            "maximum_singular_value": 22.9707088470459,
             "minimum_reciprocal_condition": 0.00034526698300124393,
-            "minimum_singular_value": 1.0224803686141968,
+            "minimum_singular_value": 1.0224800109863281,
             "numerical_rank": 108,
-            "rank_tolerance": 0.00029573910705948947,
-            "reciprocal_condition": 0.04451230420514144
+            "rank_tolerance": 0.0002957387632704922,
+            "reciprocal_condition": 0.04451234038072892
           },
           "R_epsilon_stability": {
-            "condition_number": 1.3398150553562644,
+            "condition_number": 1.3398185046570794,
             "dimension": 108,
             "matrix_name": "R_epsilon",
-            "maximum_singular_value": 26.815574645996094,
+            "maximum_singular_value": 26.815567016601562,
             "minimum_reciprocal_condition": 0.00034526698300124393,
-            "minimum_singular_value": 20.014385223388672,
+            "minimum_singular_value": 20.014328002929688,
             "numerical_rank": 108,
-            "rank_tolerance": 0.00034523988506407477,
-            "reciprocal_condition": 0.7463716697332486
+            "rank_tolerance": 0.000345239786838647,
+            "reciprocal_condition": 0.7463697482338816
           },
           "assessment_gate_failures": [],
           "assessment_gate_pass": true,
-          "configuration_sha256": "baf0db1ce908bf37a0d0c590511dd79a7f2fdabda546e21d021e351f58b6ec75",
-          "energy_eV": -0.0604984275996685,
+          "configuration_sha256": "1760164631df3aa7a01bd8880af963d0363583c52ed2d4b94e05baafa7146df7",
+          "energy_eV": -0.060498446226119995,
           "execution_receipt": {
             "D_shape": [
               108,
@@ -1484,6 +1490,7 @@
             "lmax": 5,
             "n_lebedev": 194,
             "observation_mode": "strict",
+            "operator_assembly": "bounded-pair-batched-cuda-fp32-v1",
             "positions_device": "cuda:0",
             "positions_dtype": "torch.float32",
             "positions_shape": [
@@ -1543,6 +1550,7 @@
               }
             },
             "storage": "full-dense",
+            "svd_driver": "gesvd",
             "tf32_active": false,
             "tf32_policy": "forbidden",
             "topology_margin": 1.1920928955078125e-05
@@ -1565,10 +1573,10 @@
             "transition_node_count": 14,
             "warnings": []
           },
-          "l_relative_residual": 6.45424380607551e-09,
-          "provenance_sha256": "3895f45b42c7aaada1e7f70f84283c91227388933dff41683e404eb0ace39385",
+          "l_relative_residual": 5.287378535001608e-09,
+          "provenance_sha256": "1c1c96577383664145e58d2193c595af6c015c7016fdc23aa90131e1e04a3258",
           "provider_id": "maple.route2.continuum.torch-ddpcm-dense.impl.v1",
-          "reps_relative_residual": 3.033691342579914e-08,
+          "reps_relative_residual": 4.233229944361483e-08,
           "resource": {
             "atom_count": 3,
             "basis_dimension": 108,
@@ -1592,7 +1600,7 @@
           },
           "topology_warnings": []
         },
-        "hessian_antisymmetry_budget_eV_per_A2": 0.0007035627731966088,
+        "hessian_antisymmetry_budget_eV_per_A2": 0.0007035628186713438,
         "model_device": "cuda:0",
         "model_provenance": {
           "all_operations_forced_to_fp32": false,
@@ -1652,7 +1660,7 @@
           "policy": "all-nonself-pairs-fixed-mask-conservative-guard-v1",
           "schema": "route2-mace-polar-neighbor-topology-diagnostics-v1"
         },
-        "raw_hessian_antisymmetry_eV_per_A2": 0.00015687487029936165,
+        "raw_hessian_antisymmetry_eV_per_A2": 0.00015849198098294437,
         "scientific_release_admitted": false,
         "second_order_resources": {
           "claim_boundary": "engineering estimate, not a guaranteed allocator upper bound",
@@ -1669,155 +1677,155 @@
           },
           "device_available_bytes": 7076915712,
           "estimated_total_bytes": 555501056,
-          "host_available_bytes": 12920901632,
+          "host_available_bytes": 26183372800,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 536870912,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 4.9398198279959615,
+      "elapsed_seconds_descriptive_only": 6.539707974996418,
       "energy_eV": -2079.9541015625,
-      "evaluation_sha256": "565c510d6ff1efb60cce47f289e05592fb40a693d6fb85614230fef78cbb066b",
+      "evaluation_sha256": "f9104d1cfa5d5efcc6c8218e3c8331e84b8f565b8c35c592b90dc8ba01bdd70e",
       "forces_eV_per_A": [
         [
-          -0.18279501795768738,
-          -0.25523310899734497,
-          0.00013148813741281629
+          -0.1827944666147232,
+          -0.25523269176483154,
+          0.00013175004278309643
         ],
         [
-          0.3052769601345062,
-          -0.0437752865254879,
-          -4.646083471016027e-05
+          0.3052767515182495,
+          -0.04377542808651924,
+          -4.62074312963523e-05
         ],
         [
-          -0.12248601019382477,
-          0.2990111708641052,
-          -8.502796845277771e-05
+          -0.12248634546995163,
+          0.29901084303855896,
+          -8.554277155781165e-05
         ]
       ],
       "hessian_eV_per_A2": [
         [
-          59.01912307739258,
-          -10.931327819824219,
-          -0.0002185836638091132,
-          -52.23776626586914,
-          -3.282071352005005,
-          0.0002708124229684472,
-          -6.78135347366333,
-          14.213398933410645,
-          -5.22274749528151e-05
+          59.019126892089844,
+          -10.931325912475586,
+          -0.00021869776537641883,
+          -52.23777389526367,
+          -3.2820703983306885,
+          0.0002711726410780102,
+          -6.781352996826172,
+          14.213397026062012,
+          -5.247609078651294e-05
         ],
         [
-          -10.931267738342285,
+          -10.931269645690918,
           53.49746322631836,
-          -0.000530158169567585,
-          2.462294578552246,
+          -0.0005305242957547307,
+          2.4622950553894043,
           -3.9757590293884277,
-          0.00014586988254450262,
-          8.468971252441406,
+          0.00014604016905650496,
+          8.468972206115723,
           -49.52170181274414,
-          0.00038428849074989557
+          0.00038448526174761355
         ],
         [
-          -0.0003349832259118557,
-          -0.0006583685171790421,
-          -0.5357158184051514,
-          0.00012470480578485876,
-          0.00041039500501938164,
-          0.26021406054496765,
-          0.00021162359917070717,
-          0.00024270165886264294,
-          0.2755017578601837
+          -0.00033492984948679805,
+          -0.0006583784124813974,
+          -0.5357147455215454,
+          0.0001262054720427841,
+          0.0004094441537745297,
+          0.26021379232406616,
+          0.0002100462297676131,
+          0.00024367717560380697,
+          0.275501012802124
         ],
         [
           -52.237762451171875,
-          2.4622867107391357,
-          -3.2170060876524076e-05,
+          2.462286949157715,
+          -3.228651621611789e-05,
           53.722930908203125,
-          -1.6790887117385864,
-          -8.734282164368778e-05,
-          -1.4851679801940918,
-          -0.7831979990005493,
-          0.00011951252963626757
+          -1.6790891885757446,
+          -8.785262616584077e-05,
+          -1.4851677417755127,
+          -0.7831979393959045,
+          0.00012013797095278278
         ],
         [
           -3.2820804119110107,
-          -3.9757537841796875,
-          0.00028356010443530977,
-          -1.679146409034729,
-          4.382197856903076,
-          -5.614271140075289e-05,
+          -3.9757533073425293,
+          0.00028328507323749363,
+          -1.6791458129882812,
+          4.382197380065918,
+          -5.5959793826332316e-05,
           4.961232662200928,
           -0.406444251537323,
-          -0.000227417447604239
+          -0.00022732529032509774
         ],
         [
-          0.00016211958427447826,
-          0.00021835837105754763,
-          0.2601730227470398,
-          -7.561092206742615e-05,
-          -0.00018055576947517693,
-          -0.30725714564323425,
-          -8.421200618613511e-05,
-          -3.845373430522159e-05,
-          0.047084346413612366
+          0.00016292950022034347,
+          0.00021818965615238994,
+          0.26017317175865173,
+          -7.670937338843942e-05,
+          -0.00018033002561423928,
+          -0.3072573244571686,
+          -8.393893949687481e-05,
+          -3.851927976938896e-05,
+          0.04708439111709595
         ],
         [
-          -6.7813520431518555,
-          8.469023704528809,
-          0.00017632577510084957,
-          -1.48514986038208,
-          4.961277008056641,
-          -8.621397864772007e-05,
-          8.266500473022461,
-          -13.43030071258545,
-          -9.011103247758001e-05
+          -6.781352519989014,
+          8.469026565551758,
+          0.00017621130973566324,
+          -1.4851502180099487,
+          4.961277961730957,
+          -8.633072138763964e-05,
+          8.266501426696777,
+          -13.430303573608398,
+          -8.988263289211318e-05
         ],
         [
-          14.213351249694824,
+          14.213350296020508,
           -49.52165222167969,
-          0.00021753164764959365,
-          -0.7831584811210632,
-          -0.4063921272754669,
-          -3.807342000072822e-05,
+          0.00021734779875259846,
+          -0.7831583619117737,
+          -0.406391441822052,
+          -3.795918382820673e-05,
           -13.430191040039062,
           49.92804718017578,
-          -0.00017945747822523117
+          -0.00017938717792276293
         ],
         [
-          -7.914192974567413e-05,
-          0.0003574625588953495,
-          0.27564865350723267,
-          0.00010895442392211407,
-          -0.00019968529522884637,
-          0.04698607325553894,
-          -2.91964224743424e-05,
-          -0.00016112442244775593,
-          -0.3226338326931
+          -7.902491051936522e-05,
+          0.0003561068151611835,
+          0.2756483852863312,
+          0.0001091925660148263,
+          -0.00019953896116930991,
+          0.046986326575279236,
+          -2.9589238693006337e-05,
+          -0.00015990098472684622,
+          -0.3226337730884552
         ]
       ],
-      "hvp_dense_defect_eV_per_A2": 0.00016839561350129317,
+      "hvp_dense_defect_eV_per_A2": 0.00016876871490645318,
       "hvp_eV_per_A2": [
         [
           -13.551969528198242,
-          -27.872678756713867,
-          0.27071812748908997
+          -27.872682571411133,
+          0.27071696519851685
         ],
         [
-          15.83581256866455,
-          3.9374513626098633,
-          -0.07114969938993454
+          15.835813522338867,
+          3.937450408935547,
+          -0.07114868611097336
         ],
         [
-          -2.2838428020477295,
-          23.935230255126953,
-          -0.19956713914871216
+          -2.2838430404663086,
+          23.93523406982422,
+          -0.19956696033477783
         ]
       ],
       "pass": true,
       "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v4",
       "scalar": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v4",
-      "solvation_energy_eV": -0.09047500044107437,
+      "solvation_energy_eV": -0.09047502279281616,
       "solvent": "hexane",
       "storage_dtype": "float64"
     }
@@ -2022,7 +2030,7 @@
     "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
     "maple/function/calculator/route2/__init__.py": "87653344293f4e59b7b13916a7fde8ec19939fe61e7879d7a0e81fe185160c1f",
     "maple/function/calculator/route2/_mace_polar_frozen_ddx_calculator.py": "63835097ab91282473c5b5b889db93b1dd8ebeaadbe7b8bffef05501ab6ee9b6",
-    "maple/function/calculator/route2/_mace_polar_torch_calculator.py": "16a5f24c3f4c5e518ec798637088f051c8becfecd0f7280343297917a2809ff3",
+    "maple/function/calculator/route2/_mace_polar_torch_calculator.py": "4d1d022b1bbb7c508f395ddb3965f36c83a6649763289ee01d18b4135c72d0cc",
     "maple/function/calculator/set_calculator.py": "f360d9a48e88a426a9c4ebf987a36bca09e0c0f0b51c0e3295dd0e9a1f2b1d40",
     "maple/function/calculator/uma/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "maple/function/calculator/uma/_uma_calculator.py": "dddb10cee3f6c1e95fe433297537eeff7f4b339d6e1f0c42798f8402203a3c4a",
@@ -2156,7 +2164,7 @@
     "maple/solvation/continuum/response_topology.py": "82fe9fab829aff096f7402492a40abd9b358720bd0ed9a82037bda65f62ae658",
     "maple/solvation/continuum/separated_source_ddx.py": "19bfd54cd53cf37325041ebcb182152ecad1002c0c1b1ad5ebc8c58b9f16b718",
     "maple/solvation/continuum/solid_harmonic_response.py": "c874eb73f371d92e2f01dde88262f6def32b297ba21b86b3dd3c98358fff64be",
-    "maple/solvation/continuum/torch_ddpcm.py": "2c34e7ab8cdedd1159852d82c8b3390d3770f8b0b429df04aeaf126d38be7ca9",
+    "maple/solvation/continuum/torch_ddpcm.py": "95a861c5c3dfd4498cce8ada63b6a2bf62904b7045d745f3902cac27943a0f2e",
     "maple/solvation/continuum/torch_reference_cpcm.py": "4c6ffda0490a794fe02698ea9a1fdc910e23e756ff5f6f0f4339d908314aa9e1",
     "maple/solvation/coupling/__init__.py": "536cced352b42dc41b8a5ce656c8e7df384244a96b2c94854bc50567e9c73eaa",
     "maple/solvation/coupling/adjoint.py": "7e41961c7b18ea578daab066a9f909313d3160d0e192cccbdbeee01083ca7a91",
@@ -2178,7 +2186,7 @@
     "maple/solvation/coupling/variational_adapters.py": "44d79a13ceec856ed4c97665d6953eda41b4bdadf1b7b157ffd60fc18d97edc9",
     "maple/solvation/coupling/variational_state.py": "cd7cf9c4685afcf572e15bcd720eab77df7894406e4f54ebcf834e92f01d6049",
     "maple/solvation/derivatives/__init__.py": "d3ece609116d95ce938b5f070c866a862c73cec34de63065a5ac542eaff6b8f2",
-    "maple/solvation/derivatives/analytic.py": "39cd00a0d0136a08b87f2116f775f2f2003f0f9f85340acd8cb900f5c29fb0ef",
+    "maple/solvation/derivatives/analytic.py": "06ea735c762767d5a73becf6cd64672e4ff4628cc05b676367019c30fd9ccbf7",
     "maple/solvation/derivatives/molecular_modes.py": "8d585140a54265b5166b570472f2fb69b6e399f23520a6842c316a44b2ceaef1",
     "maple/solvation/derivatives/response.py": "44be97796282b695945a94ba340235370845285990389b3ab30aa0c4d7bb3c8c",
     "maple/solvation/derivatives/scalar_finite_difference.py": "b438427ab0e119101a80a43c79b658ec4ac6c28e2dcd91c7c4d17b4af9f7aacc",
@@ -2192,7 +2200,7 @@
     "maple/solvation/experimental/mace_polar_response.py": "53d1114d476f172a0f52fac1d6047e83d7da2a68eb935a70e25d8b689083bb57",
     "maple/solvation/experimental/mace_polar_response_core.py": "9b9a3763f8df5bf113f5b94974f1ab661684e48b601a102b73ad466a12f3569d",
     "maple/solvation/experimental/mace_polar_response_native_fp64_v2.py": "1456439276c338865f89e307b67f24da3625d34c3deedd0ee20506a5d76d91f7",
-    "maple/solvation/experimental/mace_polar_torch.py": "0e3cddc9290350d47ed885d28a7b62d3c40037a1127fe476d576a2d832cf5653",
+    "maple/solvation/experimental/mace_polar_torch.py": "0fedb4a75dc7097112e6724fe19ff281a890eec4635e5dad892c97d99527b401",
     "maple/solvation/models/__init__.py": "14166a9dc34a29798c41e43abcbc9cb523f5edbb46048f24fbdc71af3133598d",
     "maple/solvation/models/base.py": "8a3ad8ebf631e5beb4299443de7bf4ec3a63e08f822fea802fcb358c520e88eb",
     "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",
@@ -2213,7 +2221,7 @@
     "maple/solvation/models/runtime/__init__.py": "64a17adc6d4e8e229b927a4fb2c257b43bb4cb2b4a07223e7c7976b4978bff61",
     "maple/solvation/models/runtime/analytic_gaussian_multipole.py": "d892e4986aebd34a3df9b1614e7845903785afa519415e465167dbb9380b70ad",
     "maple/solvation/nonpolar/__init__.py": "755f0e5f935265ebd037e9ccb09951f28820a8b6927ee67c0198008a8bab97e4",
-    "maple/solvation/nonpolar/legacy_smd_cds.py": "bb393f42fed8d9d920d573ccb080a60c7313ac9ec9a281e994668bbdaa04369c",
+    "maple/solvation/nonpolar/legacy_smd_cds.py": "670a362f0d00447fee62c689ab41a9016a60899a974f960880e797dfa6eeab53",
     "maple/solvation/nonpolar/native_smd_cds.py": "6782ffb15ce97f495acf4f9dbcfd3ef32f4bd310eef643390dbb9ac8a7f63453",
     "maple/solvation/nonpolar/native_smd_cds_parameters.py": "0b72907863c3deeb52bbcb71c77c55d85ad5bfc911d744a554a27ece41900b06",
     "maple/solvation/numerical_precision.py": "8e80aa50d9db3d6f48e3ee0a44c049f661f7fe51ac37c55ee1e9b3aac195cec2",
@@ -2242,7 +2250,7 @@
     "maple/solvation/surfaces/base.py": "f49af6fa92cca5e8408bfabc2ec20c1969fd815f3da38422406ee050bf8d18f0",
     "maple/solvation/surfaces/fixed_topology.py": "31c0dd77b64e93666ff759236ec41b204095bc224ec7bf09f623fcfaf9fc1e2a",
     "maple/solvation/surfaces/lebedev.py": "4e231ee59fee3c3aa6d7b89f7e8d715f8cff1812083280129b14943ceaf3547a",
-    "maple/solvation/surfaces/legacy_dareal.py": "5cb36aa88934500e4514a3ce01496890a45cdae030bc972800e37398d1395e26",
+    "maple/solvation/surfaces/legacy_dareal.py": "3cb9edaf61ffbb79b8cc9feefa1ade35dc96100dd0440be33fd020e5097e4240",
     "tools/route2_release/run_pure_mace_polar_fp32_smoke.py": "f0cf8a77582233b8169861d2fc24e0e28a9770d26241b610556e2ff10ce53348"
   },
   "source_unchanged": true

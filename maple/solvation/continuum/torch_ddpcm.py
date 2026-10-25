@@ -53,6 +53,7 @@ TORCH_DDPCM_PROVENANCE = (
 )
 _UNUSED_SOURCE_INDICES = (1, 5, 6, 7)
 _LEARNED_SOURCE_INDICES = (0, 2, 3, 4)
+_CUDA_PAIR_CHUNK_SIZE = 128
 
 
 def _sha(payload: object) -> str:
@@ -633,9 +634,9 @@ class TorchDDPCM(ContinuumEnergyFunctional):
     ) -> DDPCMTopologyCertificate:
         torch = __import__("torch")
         if fi.dtype is torch.float32:
-            owner = torch.eye(
-                len(self._symbols), dtype=torch.bool, device=fi.device
-            )[:, None, :]
+            owner = torch.eye(len(self._symbols), dtype=torch.bool, device=fi.device)[
+                :, None, :
+            ]
             partition = assess_fp32_partition(
                 ratios,
                 owner,
@@ -692,6 +693,104 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         return phi, psi.reshape(-1)
 
     def _operators(self, positions: Any, geometry: tuple[Any, ...]):
+        torch = __import__("torch")
+        if positions.device.type == "cuda" and positions.dtype is torch.float32:
+            return self._operators_batched(positions, geometry)
+        return self._operators_reference(positions, geometry)
+
+    def _operators_batched(self, positions: Any, geometry: tuple[Any, ...]):
+        """Assemble the same dense operators in bounded batches of atom pairs.
+
+        The CUDA-FP32 path avoids a Python/kernel-launch round trip for every
+        pair. It retains the full matrices and coordinate graph; topology,
+        stability diagnostics and both direct solves remain in ``_state_torch``.
+        """
+        torch = __import__("torch")
+        (
+            directions,
+            weights,
+            radii,
+            _,
+            _,
+            pair_delta,
+            pair_distance,
+            chi,
+            fi,
+            ui,
+        ) = geometry
+        atom_count = len(self._symbols)
+        basis = (self._lmax + 1) ** 2
+        design = _torch_real_harmonic_design(directions, lmax=self._lmax)
+        ell = self._constant(
+            positions,
+            np.concatenate(
+                [np.full(2 * l + 1, l, dtype=np.float64) for l in range(self._lmax + 1)]
+            ),
+        )
+        single_scale = 4.0 * math.pi / (2.0 * ell + 1.0)
+        owner = torch.eye(atom_count, dtype=torch.bool, device=positions.device)
+        ratios = torch.where(
+            owner[:, None, :],
+            torch.ones_like(pair_distance),
+            pair_distance / radii[None, None, :],
+        )
+        normalizer = fp32_partition_normalizer(
+            ratios, owner[:, None, :], fi, eta=self._eta
+        )
+        L = positions.new_zeros((atom_count, atom_count, basis, basis))
+        D = positions.new_zeros((atom_count, atom_count, basis, basis))
+        ids = torch.arange(atom_count, device=positions.device)
+        L[ids, ids] = torch.diag(single_scale)
+        target_weight = weights[None, :] * ui
+        self_potential = -0.5 * design * single_scale[None, :]
+        D[ids, ids] = design.T @ (target_weight[:, :, None] * self_potential)
+
+        # Construct the invariant pair schedule on the host, once per assembly.
+        # Bound temporary harmonic arrays even for explicit larger grid/order
+        # requests; no atom pair is dropped or approximated.
+        host_target, host_source = np.where(~np.eye(atom_count, dtype=bool))
+        targets = torch.as_tensor(host_target, device=positions.device)
+        sources = torch.as_tensor(host_source, device=positions.device)
+        chunk_size = min(
+            _CUDA_PAIR_CHUNK_SIZE,
+            max(1, 1_048_576 // (self._n_lebedev * basis)),
+        )
+        for first in range(0, len(host_target), chunk_size):
+            target = targets[first : first + chunk_size]
+            source_index = sources[first : first + chunk_size]
+            distance = pair_distance[target, :, source_index]
+            unit = pair_delta[target, :, source_index, :] / distance[:, :, None]
+            source_design = _torch_real_harmonic_design(
+                unit.reshape(-1, 3), lmax=self._lmax
+            ).reshape(len(target), self._n_lebedev, basis)
+            ratio = distance / radii[source_index, None]
+            overlap = chi[target, :, source_index] / normalizer[target]
+            l_potential = -source_design * (
+                overlap[:, :, None]
+                * ratio[:, :, None] ** ell[None, None, :]
+                * single_scale[None, None, :]
+            )
+            L[target, source_index] = design.T @ (weights[None, :, None] * l_potential)
+            d_scale = (
+                4.0
+                * math.pi
+                * ell[None, None, :]
+                / (2.0 * ell[None, None, :] + 1.0)
+                * ratio[:, :, None] ** (-(ell[None, None, :] + 1.0))
+            )
+            D[target, source_index] = design.T @ (
+                target_weight[target, :, None] * source_design * d_scale
+            )
+        dimension = atom_count * basis
+        return (
+            L.permute(0, 2, 1, 3).reshape(dimension, dimension),
+            D.permute(0, 2, 1, 3).reshape(dimension, dimension),
+            design,
+            ui,
+        )
+
+    def _operators_reference(self, positions: Any, geometry: tuple[Any, ...]):
+        """Historical CPU/FP64 pair-loop implementation, unchanged."""
         torch = __import__("torch")
         (
             directions,
@@ -796,7 +895,13 @@ class TorchDDPCM(ContinuumEnergyFunctional):
         ):
             raise ValueError(f"{matrix_name} must be a nonempty square tensor.")
         with torch.no_grad():
-            singular_values = torch.linalg.svdvals(matrix.detach())
+            # QR computes the full singular spectrum without the costly default
+            # CUDA Jacobi iteration. This is not the approximate gesvda driver;
+            # all rank/condition thresholds below remain unchanged.
+            if matrix.device.type == "cuda" and matrix.dtype is torch.float32:
+                singular_values = torch.linalg.svdvals(matrix.detach(), driver="gesvd")
+            else:
+                singular_values = torch.linalg.svdvals(matrix.detach())
             if not bool(torch.isfinite(singular_values).all().detach().cpu()):
                 raise RuntimeError(
                     f"TorchDDPCM {matrix_name} singular values are non-finite."
@@ -941,9 +1046,7 @@ class TorchDDPCM(ContinuumEnergyFunctional):
                     stacklevel=3,
                 )
         else:
-            topology, topology_failures = self._assess_topology(
-                ratios, chi, fi, ui
-            )
+            topology, topology_failures = self._assess_topology(ratios, chi, fi, ui)
         if enforce_checks and topology_failures:
             raise RuntimeError(
                 "ddPCM topology is within the certified branch-change margin."
@@ -1073,6 +1176,18 @@ class TorchDDPCM(ContinuumEnergyFunctional):
             "dielectric": self._dielectric,
             "backend": self._numerical_policy["backend"],
             "storage": "full-dense",
+            "operator_assembly": (
+                "bounded-pair-batched-cuda-fp32-v1"
+                if self._torch_device.type == "cuda"
+                and self._torch_dtype is torch.float32
+                else "reference-pair-loop-v1"
+            ),
+            "svd_driver": (
+                "gesvd"
+                if self._torch_device.type == "cuda"
+                and self._torch_dtype is torch.float32
+                else "runtime-default"
+            ),
             "source_tile": "not-applicable-full-dense",
             "linear_solver": "torch.linalg.solve",
             "linear_solve_count": 2,

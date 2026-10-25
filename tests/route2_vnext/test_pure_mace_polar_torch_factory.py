@@ -32,6 +32,9 @@ from maple.solvation.api.scalar_registry import (
     PURE_MACEPOLAR_TORCH_FP32_V4_ENGINEERING_EVIDENCE_ID,
     get_scalar_definition,
 )
+from maple.solvation.coupling.state_equation import geometry_sha256
+from maple.solvation.derivatives.analytic import AnalyticForceEvaluation
+from maple.solvation.models.base import model_input_sha256
 
 
 def _water() -> Atoms:
@@ -44,6 +47,8 @@ def _water() -> Atoms:
 
 
 class _FakeTorchPES:
+    provider_id = "test-torch-pes"
+
     def __init__(self, scalar_contract_id: str, *, device: str = "cpu") -> None:
         self.scalar_contract_id = scalar_contract_id
         self.device = device
@@ -59,6 +64,28 @@ class _FakeTorchPES:
     def get_forces(self, atoms) -> np.ndarray:
         self.calls.append("forces")
         return np.full((len(atoms), 3), 0.125)
+
+    def evaluate_forces(self, atoms) -> AnalyticForceEvaluation:
+        version = 4 if self.scalar_contract_id.endswith("-v4") else 3
+        kind = "cuda" if self.device.startswith("cuda") else "cpu"
+        return AnalyticForceEvaluation(
+            energy_eV=self.get_potential_energy(atoms),
+            forces_eV_per_A=self.get_forces(atoms),
+            geometry_sha256=geometry_sha256(atoms),
+            model_input_sha256=model_input_sha256(atoms),
+            configuration_sha256=self.configuration_sha256(),
+            scalar_contract_id=self.scalar_contract_id,
+            device=self.device,
+            component_energies_eV={"test": -2.5},
+            provider_id=self.provider_id,
+            profile_id=f"pure-macepolar-frozen-point-l1-ddpcm-smd-torch-{kind}-v{version}",
+            verification_evidence_id=(
+                "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
+                if version == 4
+                else "route2-pure-macepolar-torch-analytic-v3-contract-tests"
+            ),
+            computation_dtype="float32" if version == 4 else "float64",
+        )
 
     def evaluate_hessian(self, atoms):
         self.calls.append("hessian")
@@ -303,9 +330,7 @@ def test_set_calculator_selects_torch_wrapper_without_legacy_provider(
 def test_set_calculator_defaults_torch_to_v4_and_routes_profile(monkeypatch, tmp_path):
     atoms = _water()
     profile = PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE
-    fake = _FakeTorchPES(
-        EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V4
-    )
+    fake = _FakeTorchPES(EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V4)
     observed = {}
 
     def fake_builder(symbols, **kwargs):
@@ -387,8 +412,7 @@ def test_input_contract_defaults_only_torch_to_device_specific_v4(device, expect
             "#model=macepolm",
             "#sp",
             f"#device={device}",
-            "#solv(implicit=water,method=smd,provider=torch,"
-            "experimental=true)",
+            "#solv(implicit=water,method=smd,provider=torch," "experimental=true)",
         ]
     )
     assert command.params["solv"]["profile"] == expected

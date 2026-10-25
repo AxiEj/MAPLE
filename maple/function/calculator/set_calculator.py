@@ -45,7 +45,7 @@ _QUALIFICATION_GATE_COUNTS = {
     'aimnet2025_direct_hvp': (144, 144),
     'aimnet2025_cutoff_guard': (8, 8),
 }
-_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v2.json'
+_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v3.json'
 
 
 def _is_sha256(value) -> bool:

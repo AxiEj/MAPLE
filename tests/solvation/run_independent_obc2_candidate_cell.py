@@ -26,7 +26,7 @@ if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 import validate_independent_obc2_default as qualification  # noqa: E402
 
-OUTPUT = ROOT / ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/candidate-exact-cell.json"
+OUTPUT = ROOT / ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/candidate-exact-cell.json"
 CHECKPOINT = ROOT / "maple/function/calculator/model/ani2x.pt"
 CHECKPOINT_SHA256 = "c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa"
 WATER_MOL2 = """@<TRIPOS>MOLECULE

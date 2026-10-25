@@ -43,11 +43,11 @@ RECORDED_DATE = "2026-10-25"
 RUNNER_REL = "docs/implicit-solvation/benchmarks/validate_independent_obc2_default.py"
 TEST_REL = "tests/solvation/test_independent_obc2_default_validation.py"
 OUTPUT_REL = (
-    ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/"
+    ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/"
     "candidate-validation.json"
 )
 CANDIDATE_CELL_EVIDENCE_REL = (
-    ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/"
+    ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/"
     "candidate-exact-cell.json"
 )
 CANDIDATE_CELL_HARNESS_REL = "tests/solvation/run_independent_obc2_candidate_cell.py"
@@ -56,6 +56,7 @@ QUALIFICATION_SOURCE_EXCLUDES = frozenset(
         "maple/function/calculator/_independent_obc2_qualified_cell.py",
         "maple/function/calculator/data/independent_obc2_analytic_qualification.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json",
     }
 )
 ANI2X_CHECKPOINT_SHA256 = (

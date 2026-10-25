@@ -506,10 +506,12 @@ def test_recomputed_aim_gate_set_must_be_complete_and_passing(io_repo, mutation)
     assert not (root / sealer.RECEIPT_REL).exists()
 
 
-def test_active_v2_sealer_does_not_overwrite_or_consume_v1(io_repo):
+@pytest.mark.parametrize("old_name", ["independent_obc2_analytic_qualification.json",
+    "independent_obc2_analytic_qualification_v2.json"])
+def test_active_v3_sealer_preserves_prior_receipts(io_repo, old_name):
     root, git, _full, _candidate, full_path, candidate_path = io_repo
-    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v2.json")
-    old = root / "maple/function/calculator/data/independent_obc2_analytic_qualification.json"
+    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v3.json")
+    old = root / "maple/function/calculator/data" / old_name
     old.parent.mkdir(parents=True)
     old.write_bytes(b"immutable historical receipt")
     git("add", ".")
@@ -518,7 +520,7 @@ def test_active_v2_sealer_does_not_overwrite_or_consume_v1(io_repo):
     assert old.read_bytes() == b"immutable historical receipt"
 
 
-def test_already_qualified_v2_pointer_refused_without_receipt(io_repo):
+def test_already_qualified_v3_pointer_refused_without_receipt(io_repo):
     root, _git, _full, _candidate, full_path, candidate_path = io_repo
     pointer = root / sealer.POINTER_REL
     pointer.write_text(f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'
@@ -565,7 +567,7 @@ def test_sealer_cannot_omit_or_weaken_fourth_aim_cutoff_gate(io_repo, mutation):
     assert (root / sealer.POINTER_REL).read_bytes() == before
 
 
-def test_aim_strict_validator_exposes_only_candidate_v2_four_gate_contract():
+def test_aim_strict_validator_preserves_four_gate_contract():
     assert sealer.aimnet_validation.ARTIFACT_TYPE == "aimnet2025-candidate-qualification-v3"
     assert sealer.aimnet_validation.EXPECTED_COUNTS == {
         "aimnet2025_native_gas_identity": 24,
@@ -575,9 +577,9 @@ def test_aim_strict_validator_exposes_only_candidate_v2_four_gate_contract():
     }
 
 
-def test_sealer_default_is_v2_candidate_not_historical_v1():
+def test_sealer_uses_new_run_not_historical_candidate():
     assert sealer.AIMNET2025_EVIDENCE_REL == (
-        ".omx/benchmarks/route1-aimnet2025-20261024/candidate-aimnet2025-v3.json"
+        ".omx/benchmarks/route1-aimnet2025-performance-20261025/candidate-aimnet2025-v3.json"
     )
 
 
@@ -654,3 +656,29 @@ def test_sealer_replays_strict_raw_controls_not_headers_or_counts(
     validator_spy.assert_called_once_with(raw, expected_source_snapshot=frozen)
     assert not (root / sealer.RECEIPT_REL).exists()
     assert (root / sealer.POINTER_REL).read_bytes() == before
+
+
+@pytest.mark.parametrize('reject', [False, True])
+def test_sealer_cli_preserves_operator_precision_on_success_and_rejection(monkeypatch, reject):
+    import torch
+    monkeypatch.setattr(sys, 'argv', ['seal'])
+    monkeypatch.setattr(torch.backends.cuda.matmul, 'allow_tf32', True)
+    monkeypatch.setattr(torch.backends.cudnn, 'allow_tf32', True)
+
+    def seal(*args):
+        assert torch.is_grad_enabled()
+        assert not torch.backends.cuda.matmul.allow_tf32
+        assert not torch.backends.cudnn.allow_tf32
+        if reject:
+            raise ValueError('unqualified raw evidence')
+        return {'content_sha256': 'a'*64}
+
+    monkeypatch.setattr(sealer, 'seal_qualification', seal)
+    with torch.no_grad():
+        if reject:
+            with pytest.raises(ValueError, match='unqualified raw evidence'):
+                sealer.main()
+        else:
+            sealer.main()
+        assert not torch.is_grad_enabled()
+        assert torch.backends.cuda.matmul.allow_tf32 and torch.backends.cudnn.allow_tf32

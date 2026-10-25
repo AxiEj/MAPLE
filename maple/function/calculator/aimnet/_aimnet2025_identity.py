@@ -8,11 +8,15 @@ from __future__ import annotations
 from importlib import metadata
 from collections.abc import Mapping
 from pathlib import Path
+import os
+import stat
 import sys
 
 import numpy as np
 
-from ..analytic_protocol import AnalyticIdentityError, CheckpointFileIdentity, named_array_sha256
+from ..analytic_protocol import (
+    AnalyticIdentityError, CheckpointFileIdentity, file_stat_identity, named_array_sha256,
+)
 
 CHECKPOINT_FILENAME = "aimnet2_2025_b973c_d3_0.pt"
 CHECKPOINT_SHA256 = "043ed5418a104e31f79462f8e5ebeca64a2d24422174f5d29f894d32271981b5"
@@ -114,21 +118,60 @@ def canonical_neighbor_graph_sha256(graph):
 
 def _source_inventory(root):
     paths = []
+    root_stat = root.lstat()
+    if not stat.S_ISDIR(root_stat.st_mode):
+        raise AnalyticIdentityError("AIMNet2025 source inventory root is not a directory.")
+    directories = {str(root): _directory_snapshot(str(root))}
     for path in root.rglob("*"):
-        if path.is_symlink():
-            raise AnalyticIdentityError("AIMNet2025 source inventory contains a symlink/foreign origin.")
-        if path.is_file() and path.suffix in SOURCE_SUFFIXES:
-            paths.append(path)
-    return frozenset(path.relative_to(root).as_posix() for path in paths)
+        try:
+            observed = path.lstat()
+            if stat.S_ISLNK(observed.st_mode):
+                raise AnalyticIdentityError("AIMNet2025 source inventory contains a symlink/foreign origin.")
+            if stat.S_ISDIR(observed.st_mode):
+                directories[str(path)] = _directory_snapshot(str(path))
+            elif stat.S_ISREG(observed.st_mode) and path.suffix in SOURCE_SUFFIXES:
+                paths.append(path)
+        except FileNotFoundError:
+            # A vanished bytecode entry is no longer part of the inventory.
+            # Missing authoritative files still fail the exact inventory and
+            # original-file checks; no file identity is refreshed here.
+            continue
+    return frozenset(path.relative_to(root).as_posix() for path in paths), directories
+
+
+def _directory_identity(observed):
+    return (*file_stat_identity(observed), observed.st_mode, observed.st_ctime_ns)
+
+
+def _directory_snapshot(path):
+    observed = os.lstat(path)
+    entries = None
+    if stat.S_ISDIR(observed.st_mode):
+        # Directory timestamps can collide within one filesystem clock tick.
+        # Inspect entries as well: new helpers/symlinks must be caught even then.
+        with os.scandir(path) as iterator:
+            entries = frozenset((entry.name, entry.is_symlink(),
+                                 entry.is_dir(follow_symlinks=False),
+                                 entry.is_file(follow_symlinks=False)) for entry in iterator)
+    return _directory_identity(observed), entries
+
+
+def _anchor_identity(observed):
+    # Unrelated entries in a parent directory must not invalidate a package.
+    # Replacing that directory or retargeting a symlink must invalidate it.
+    if stat.S_ISDIR(observed.st_mode):
+        return observed.st_dev, observed.st_ino, stat.S_IFDIR
+    return _directory_identity(observed)
 
 
 def _require_source_inventory(root, expected):
-    actual = _source_inventory(root)
+    actual, directories = _source_inventory(root)
     if actual != frozenset(expected):
         raise AnalyticIdentityError(
             "AIMNet2025 source inventory changed: "
             f"added={sorted(actual - set(expected))}, missing={sorted(set(expected) - actual)}."
         )
+    return directories
 
 
 def _executing_aimnet_modules():
@@ -136,9 +179,9 @@ def _executing_aimnet_modules():
                  if module is not None and (name == "aimnet" or name.startswith("aimnet.")))
 
 
-def _require_executing_sources(root, expected):
+def _require_executing_sources(root, expected, modules=None):
     """Reject shadow packages/modules and foreign package search paths."""
-    for name, module in _executing_aimnet_modules():
+    for name, module in _executing_aimnet_modules() if modules is None else modules:
         origin = getattr(getattr(module, "__spec__", None), "origin", None)
         filename = getattr(module, "__file__", None)
         stem = name.removeprefix("aimnet").lstrip(".").replace(".", "/")
@@ -157,25 +200,94 @@ def _require_executing_sources(root, expected):
             raise AnalyticIdentityError(f"AIMNet2025 executing package search-path identity changed: {name}.")
 
 
-def require_external_sources(files):
-    """Cheap live complete-inventory/origin/stat guards, without byte hashing.
+class BoundExternalSources:
+    """One calculator's attested sources and incremental filesystem guards.
 
-    Bindings are a sorted immutable tuple, rooted at the pinned __init__.py.
-    AIMNet bytes are attested; the interpreter and exact version/build-pinned
-    Torch/nvalchemi/Warp frameworks remain trusted, not fully byte-attested.
-    This does not claim arbitrary in-memory monkeypatch or framework immunity.
+    File byte identities never refresh. Directory-entry changes trigger a full
+    inventory verification before refreshing directory tokens; ordinary pyc
+    churn is allowed, new mathematical source and all symlinks are not.
+    Existing module metadata is immutable. New lazy imports are validated once.
+    No global cache, polling interval, or admission bypass is involved.
     """
-    if not files or Path(files[0].path).name != "__init__.py":
+
+    def __init__(self, root, files, directories):
+        self.root = root
+        self.files = files
+        self._file_paths = frozenset(file.path for file in files)
+        self._expected = frozenset(Path(path).relative_to(root).as_posix() for path in self._file_paths)
+        self._directories = directories
+        self._modules = {}
+        self._anchors = {}
+        for parent in root.parents:
+            self._bind_anchor(str(parent))
+        self.require_unchanged()
+
+    def _bind_anchor(self, path):
+        if path in self._file_paths or path in self._directories:
+            return
+        current = _anchor_identity(os.lstat(path))
+        if path in self._anchors and self._anchors[path] != current:
+            raise AnalyticIdentityError("AIMNet2025 executing source origin/alias identity changed.")
+        self._anchors[path] = current
+
+    def _require_files(self):
+        for file in self.files:
+            current = os.lstat(file.path)
+            if not stat.S_ISREG(current.st_mode) or file_stat_identity(current) != file.stat_identity:
+                raise AnalyticIdentityError("AIMNet2025 bound source file identity changed.")
+
+    def _require_modules(self):
+        observed = _executing_aimnet_modules()
+        if self._modules.keys() - {name for name, _ in observed}:
+            raise AnalyticIdentityError("AIMNet2025 executing module identity was removed.")
+        for name, module in observed:
+            filename = getattr(module, "__file__", None)
+            origin = getattr(getattr(module, "__spec__", None), "origin", None)
+            search = getattr(module, "__path__", None)
+            search = None if search is None else tuple(search)
+            raw_paths = (filename, origin, *(search or ()))
+            cwd = os.getcwd() if any(path and not os.path.isabs(path) for path in raw_paths) else None
+            token = (filename, origin, search, cwd)
+            if name in self._modules:
+                previous, previous_token = self._modules[name]
+                if module is not previous or token != previous_token:
+                    raise AnalyticIdentityError("AIMNet2025 executing module identity changed.")
+                continue
+            _require_executing_sources(self.root, self._expected, ((name, module),))
+            for raw in raw_paths:
+                path = Path(raw).absolute()
+                for entry in (path, *path.parents):
+                    self._bind_anchor(str(entry))
+            self._modules[name] = (module, token)
+
+    def require_unchanged(self):
+        """Check every access, including cached ASE returns, without rewalking."""
+        try:
+            self._require_files()
+            for path, expected in self._anchors.items():
+                if _anchor_identity(os.lstat(path)) != expected:
+                    raise AnalyticIdentityError("AIMNet2025 executing source origin/alias identity changed.")
+            changed = False
+            for path, expected in self._directories.items():
+                try:
+                    current = _directory_snapshot(path)
+                except FileNotFoundError:
+                    current = None  # A removed pycache is verified by the full rescan.
+                changed |= current != expected
+            if changed:
+                directories = _require_source_inventory(self.root, self._expected)
+                self._require_files()
+                self._directories = directories
+            self._require_modules()
+        except OSError as exc:
+            raise AnalyticIdentityError("AIMNet2025 bound source identity is no longer readable.") from exc
+
+
+def require_external_sources(binding):
+    """Keep source checking at every boundary; only unchanged metadata is cached."""
+    if not isinstance(binding, BoundExternalSources):
         raise AnalyticIdentityError("AIMNet2025 complete source identity bindings are missing.")
-    root = Path(files[0].path).parent
-    try:
-        expected = frozenset(Path(file.path).relative_to(root).as_posix() for file in files)
-    except ValueError as exc:
-        raise AnalyticIdentityError("AIMNet2025 source identity binding escapes its package.") from exc
-    _require_source_inventory(root, expected)
-    _require_executing_sources(root, expected)
-    for file in files:
-        file.require_unchanged()
+    binding.require_unchanged()
 
 
 def bind_external_runtime():
@@ -193,12 +305,12 @@ def bind_external_runtime():
         root = Path(metadata.distribution("aimnet").locate_file("aimnet")).resolve()
     except metadata.PackageNotFoundError as exc:
         raise ImportError(INSTALL_HINT) from exc
-    _require_source_inventory(root, SOURCE_SHA256)
-    _require_executing_sources(root, SOURCE_SHA256)
+    directories = _require_source_inventory(root, SOURCE_SHA256)
     files = []
     for relative, expected in sorted(SOURCE_SHA256.items()):
         bound = CheckpointFileIdentity.bind(root / relative)
         if bound.sha256 != expected:
             raise RuntimeError(f"AIMNet2025 external source identity mismatch: aimnet/{relative}.")
         files.append(bound)
-    return {"packages": versions, "source_sha256": dict(SOURCE_SHA256)}, tuple(files)
+    binding = BoundExternalSources(root, tuple(files), directories)
+    return {"packages": versions, "source_sha256": dict(SOURCE_SHA256)}, binding

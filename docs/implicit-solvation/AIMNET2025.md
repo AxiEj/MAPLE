@@ -58,8 +58,9 @@ stale or mismatched receipt fails with `ANALYTIC_CELL_UNQUALIFIED`; the syntax
 alone does not constitute analytical qualification. Candidate testing is not
 installed-console admission, and no public bypass exists.
 
-Current development status: the new joint-FP32 receipt is not yet sealed.
-Syntax and unit tests are not installed analytical admission.
+Admission status is determined by the packaged receipt and its pointer, not by
+this document or the presence of an adapter. Any source change requires a fresh
+qualification; syntax and unit tests alone are not installed analytical admission.
 
 ## One scalar, native precision
 
@@ -85,6 +86,22 @@ RMS 0.0003 for directional HVP, with an added
 Source, graph, exact composition, raw symmetry, translation and direct-HVP
 consistency gates remain strict. Original OBC-only and ANI D64 gates remain unchanged. Strict D64-reference feasibility failures remain recorded as
 failures; they are not relabeled as successful native qualification.
+
+## Source identity and runtime cost
+
+The adapter binds the complete upstream source inventory and hashes at load
+time. Every runtime boundary still checks file identities, directory entries,
+module origins and configuration. Unchanged origins are validated once and
+then checked by metadata and path-ancestry identities; no repeated recursive
+filesystem traversal or path resolution is needed. Directory-entry changes
+trigger a complete inventory check before refreshing only the directory cache.
+This also detects additions within one filesystem timestamp tick. Ordinary
+bytecode-cache churn is allowed; new helpers, symlinks and module replacement
+are rejected. There is no polling interval or switch that disables checking.
+
+Full neighbor-graph evidence and the original tensor/configuration checks remain
+in place. Performance improvements do not change formulas, precision, native
+D3 execution, or qualification tolerances.
 
 ## Limits
 

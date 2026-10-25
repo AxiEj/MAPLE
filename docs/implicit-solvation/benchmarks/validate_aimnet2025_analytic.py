@@ -29,7 +29,8 @@ ARTIFACT_TYPE = 'aimnet2025-candidate-qualification-v3'
 STAGE = 'candidate qualification, not installed qualification'
 HARNESS_REL = 'tests/solvation/run_aimnet2025_candidate_cell.py'
 VALIDATOR_REL = 'docs/implicit-solvation/benchmarks/validate_aimnet2025_analytic.py'
-CAMPAIGN = ROOT / '.omx/benchmarks/route1-aimnet2025-20261024'
+CAMPAIGN = ROOT / '.omx/benchmarks/route1-aimnet2025-performance-20261025'
+CORPUS = ROOT / '.omx/benchmarks/route1-aimnet2025-20261024'
 CHECKPOINT = Path.home() / '.cache/aimnet/aimnet2_2025_b973c_d3_0.pt'
 CHECKPOINT_SHA256 = '043ed5418a104e31f79462f8e5ebeca64a2d24422174f5d29f894d32271981b5'
 PROFILE_ARCHIVE = HERE / 'aimnet2025-profiles'
@@ -151,7 +152,7 @@ def _load_corpus(folder, hashes):
     """Verify a pinned corpus without selecting or changing any geometry."""
     values, files = {}, {}
     for name, (file_sha, content_sha) in hashes.items():
-        path = CAMPAIGN / folder / name
+        path = CORPUS / folder / name
         require_equal(core.sha256_file(path), file_sha, f'frozen {name} bytes')
         value = json.loads(path.read_text())
         require_equal(value.get('content_sha256'), content_sha, f'frozen {name} self hash')
@@ -250,7 +251,7 @@ def load_frozen_inputs():
     for item in manifest['records']:
         validate_positive_geometry(item, old[item['case'], item['geometry']])
     require_equal(manifest['original_manifest_relative_path'],
-                  str((CAMPAIGN/'frozen-inputs/manifest.json').relative_to(ROOT)), 'original manifest location')
+                  str((CORPUS/'frozen-inputs/manifest.json').relative_to(ROOT)), 'original manifest location')
     require_equal(manifest['original_manifest_sha256'], FROZEN_HASHES['manifest.json'][0], 'original manifest lineage')
     selection = manifest['geometry_selection']
     require_equal(selection['chosen_scale'], .97, 'fixed geometry-only scale')
@@ -266,7 +267,7 @@ def load_frozen_inputs():
     require_equal(controls['records'], [r for r in old.values() if r['case'] == 'nitralin'], 'literal original cutoff controls')
     for name in ('manifest', 'directions'):
         require_equal(controls[f'original_{name}_relative_path'],
-                      str((CAMPAIGN/'frozen-inputs'/f'{name}.json').relative_to(ROOT)), 'negative source location')
+                      str((CORPUS/'frozen-inputs'/f'{name}.json').relative_to(ROOT)), 'negative source location')
         require_equal(controls[f'original_{name}_sha256'], FROZEN_HASHES[f'{name}.json'][0], 'negative source binding')
     require_equal(controls['runtime_cutoff_guard_margin_angstrom'], CUTOFF_GUARD, 'unchanged runtime guard')
     require_equal(controls['expected_device_profile_rows'], 8, 'negative control denominator')
@@ -897,11 +898,17 @@ def validate_artifact(artifact, *, expected_source_snapshot=None):
 
 
 def main():
+    from types import SimpleNamespace
+    from maple.function.calculator.aimnet._aimnet2025_calculator import _native_precision_context
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--validate-only', action='store_true', required=True)
     parser.add_argument('--output', type=Path, default=CAMPAIGN / 'candidate-aimnet2025-v3.json')
     args = parser.parse_args()
-    gates = validate_artifact(json.loads(args.output.read_text()))
+    # Replaying an IEEE-profile artifact needs the same scoped settings as its
+    # producer. Establish them explicitly and restore the operator's settings.
+    with _native_precision_context(SimpleNamespace(), 'qualification-replay'):
+        gates = validate_artifact(json.loads(args.output.read_text()))
     print(json.dumps({'path': str(args.output), 'gates': gates, 'stage': STAGE}, indent=2))
 
 

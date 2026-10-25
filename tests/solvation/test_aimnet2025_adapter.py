@@ -149,7 +149,7 @@ def calc(monkeypatch, tmp_path):
     path = tmp_path / "checkpoint.pt"
     path.write_bytes(b"only fake checkpoint")
     monkeypatch.setattr(adapter, "_resolve_checkpoint", lambda _: CheckpointFileIdentity.bind(path))
-    monkeypatch.setattr(adapter, "_bind_external_runtime", lambda: ({"packages": {}, "source_sha256": {}}, ()))
+    monkeypatch.setattr(adapter, "_bind_external_runtime", lambda: ({"packages": {}, "source_sha256": {}}, SimpleNamespace(files=())))
     monkeypatch.setattr(adapter, "_require_external_sources", lambda files: None, raising=False)
     monkeypatch.setattr(adapter, "_import_native_backend", lambda: FakeBackend)
     monkeypatch.setattr(adapter, "_verify_checkpoint_state", lambda *args: None)
@@ -569,7 +569,7 @@ def test_complete_source_inventory_rejects_added_or_missing_helpers(copied_sourc
 
 @pytest.mark.parametrize("mutation", ["drift", "added", "missing"])
 def test_external_helper_changes_block_ase_cached_return(calc, atoms, copied_source_package, monkeypatch, mutation):
-    _, calc._external_files = identity.bind_external_runtime()
+    _, calc._external_sources = identity.bind_external_runtime()
     monkeypatch.setattr(adapter, "_require_external_sources", lambda files: identity.require_external_sources(files), raising=False)
     atoms.calc = calc
     atoms.get_potential_energy()
@@ -616,7 +616,7 @@ def test_new_symlink_dispatch_directory_cannot_escape_inventory(copied_source_pa
 
 def test_live_source_stat_guards_do_not_hash_bytes(calc, atoms, copied_source_package, monkeypatch):
     _, files = identity.bind_external_runtime()
-    calc._external_files = files
+    calc._external_sources = files
     monkeypatch.setattr(adapter, "_require_external_sources", identity.require_external_sources)
     monkeypatch.setattr(CheckpointFileIdentity, "bind", forbid)
     monkeypatch.setattr(calc, "_state_digest", forbid)

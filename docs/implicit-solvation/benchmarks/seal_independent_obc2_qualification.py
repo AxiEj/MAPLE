@@ -29,10 +29,10 @@ from maple.function.calculator import set_calculator as runtime  # noqa: E402
 
 
 RECEIPT_REL = (
-    "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json"
+    "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json"
 )
 POINTER_REL = "maple/function/calculator/_independent_obc2_qualified_cell.py"
-AIMNET2025_EVIDENCE_REL = ".omx/benchmarks/route1-aimnet2025-20261024/candidate-aimnet2025-v3.json"
+AIMNET2025_EVIDENCE_REL = ".omx/benchmarks/route1-aimnet2025-performance-20261025/candidate-aimnet2025-v3.json"
 
 
 def _sha256(raw: bytes) -> str:
@@ -242,6 +242,9 @@ def seal_qualification(validation_path: Path, candidate_path: Path,
 
 
 def main() -> None:
+    from types import SimpleNamespace
+    from maple.function.calculator.aimnet._aimnet2025_calculator import _native_precision_context
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--validation", type=Path, default=ROOT / validation.OUTPUT_REL
@@ -254,7 +257,8 @@ def main() -> None:
         help="Complete source-bound AIMNet2025 raw qualification evidence",
     )
     args = parser.parse_args()
-    receipt = seal_qualification(args.validation, args.candidate, args.aimnet2025)
+    with _native_precision_context(SimpleNamespace(), 'qualification-seal'):
+        receipt = seal_qualification(args.validation, args.candidate, args.aimnet2025)
     print(json.dumps({
         "receipt": RECEIPT_REL, "pointer": POINTER_REL,
         "content_sha256": receipt["content_sha256"],

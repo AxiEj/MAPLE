@@ -712,7 +712,7 @@ def test_original_invalid_nitralin_cannot_be_relabelled_as_positive():
 def test_original_source_file_bytes_remain_pinned_in_v2_snapshot():
     frozen = validator.load_frozen_inputs()
     for name, (expected, _) in validator.FROZEN_HASHES.items():
-        relative = str((validator.CAMPAIGN/'frozen-inputs'/name).relative_to(ROOT))
+        relative = str((validator.CORPUS/'frozen-inputs'/name).relative_to(ROOT))
         assert frozen['snapshot']['files_sha256'][relative] == expected
         assert validator.core.sha256_file(ROOT/relative) == expected
 
@@ -1152,3 +1152,31 @@ def test_spectral_diagnostic_preserves_raw_asymmetry():
     np.testing.assert_array_equal(actual, before)
     assert metrics['symmetric_eigenvalue_max'] == 0.
     assert actual[0, 1] != actual[1, 0]
+
+
+@pytest.mark.parametrize('reject', [False, True])
+def test_replay_cli_establishes_and_restores_its_ieee_profile(monkeypatch, tmp_path, reject):
+    import torch
+    artifact = tmp_path / 'artifact.json'
+    artifact.write_text('{}')
+    monkeypatch.setattr(sys, 'argv', ['replay', '--validate-only', '--output', str(artifact)])
+    monkeypatch.setattr(torch.backends.cuda.matmul, 'allow_tf32', True)
+    monkeypatch.setattr(torch.backends.cudnn, 'allow_tf32', True)
+
+    def validate(value):
+        assert torch.is_grad_enabled()
+        assert not torch.backends.cuda.matmul.allow_tf32
+        assert not torch.backends.cudnn.allow_tf32
+        if reject:
+            raise ValueError('raw evidence rejected')
+        return {}
+
+    monkeypatch.setattr(validator, 'validate_artifact', validate)
+    with torch.no_grad():
+        if reject:
+            with pytest.raises(ValueError, match='raw evidence rejected'):
+                validator.main()
+        else:
+            validator.main()
+        assert not torch.is_grad_enabled()
+        assert torch.backends.cuda.matmul.allow_tf32 and torch.backends.cudnn.allow_tf32

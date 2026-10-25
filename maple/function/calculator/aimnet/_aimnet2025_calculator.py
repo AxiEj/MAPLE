@@ -281,7 +281,7 @@ class AIMNet2025Calculator(CalcABC):
         self.hessian, self.d4 = hessian, False
         self.implicit_solv_init(implicit, solvent)
         self._checkpoint = _resolve_checkpoint(model_path)
-        self._external_identity, self._external_files = _bind_external_runtime()
+        self._external_identity, self._external_sources = _bind_external_runtime()
         native = _import_native_backend()
         self.backend = native(self._checkpoint.path, device=str(self.device), train=False, compile_model=False)
         self._loaded_backend = self.backend
@@ -352,7 +352,7 @@ class AIMNet2025Calculator(CalcABC):
 
         try:
             self._checkpoint.require_unchanged()
-            _require_external_sources(self._external_files)
+            _require_external_sources(self._external_sources)
             require_no_amp_tf32(self.device)
             if not torch.is_grad_enabled():
                 raise AnalyticCapabilityError("AIMNet2025 requires a differentiable grad-enabled scalar for every operation.")
@@ -374,7 +374,7 @@ class AIMNet2025Calculator(CalcABC):
         # Full source/checkpoint/state hashing is done at preparation, not at
         # every force evaluation. Cheap tensor mutation/config/stat guards stay live.
         try:
-            for file in (self._checkpoint, *self._external_files):
+            for file in (self._checkpoint, *self._external_sources.files):
                 if CheckpointFileIdentity.bind(file.path).sha256 != file.sha256:
                     raise AnalyticIdentityError("AIMNet2025 prepared source/checkpoint identity changed.")
             if self._state_digest() != self._state_sha256:

@@ -177,8 +177,8 @@ def test_requested_device_and_d4_must_match_live_cell(monkeypatch, change):
     assert not correction.analytic_task_derivatives_admitted
 
 
-@pytest.mark.parametrize("mutation", ["old_filename", "old_schema", "missing_gate", "false_gate", "bool_count", "missing_profile", "missing_receipt"])
-def test_v2_receipt_required_without_v1_fallback(monkeypatch, mutation):
+@pytest.mark.parametrize("mutation", ["old_filename", "v2_filename", "old_schema", "missing_gate", "false_gate", "bool_count", "missing_profile", "missing_receipt"])
+def test_current_receipt_required_without_historical_fallback(monkeypatch, mutation):
     from test_independent_obc2_default import _valid_qualification_receipt
     from maple.function.calculator import _independent_obc2_qualified_cell as pointer
     from pathlib import Path
@@ -197,10 +197,12 @@ def test_v2_receipt_required_without_v1_fallback(monkeypatch, mutation):
     _install(monkeypatch, receipt)
     if mutation == "old_filename":
         monkeypatch.setattr(pointer, "QUALIFICATION_RECEIPT_FILENAME", "independent_obc2_analytic_qualification.json")
+    elif mutation == "v2_filename":
+        monkeypatch.setattr(pointer, "QUALIFICATION_RECEIPT_FILENAME", "independent_obc2_analytic_qualification_v2.json")
     elif mutation == "missing_receipt":
         original = Path.read_bytes
         def missing(path):
-            if path.name == "independent_obc2_analytic_qualification_v2.json":
+            if path.name == runtime._QUALIFICATION_RECEIPT_FILENAME:
                 raise FileNotFoundError(path)
             return original(path)
         monkeypatch.setattr(Path, "read_bytes", missing)

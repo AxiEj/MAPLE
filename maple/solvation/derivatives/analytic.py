@@ -8,7 +8,7 @@ inventing displacement steps or numerical error estimates.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import hashlib
 import json
 from types import MappingProxyType
@@ -52,6 +52,21 @@ ANALYTIC_FORCE_DERIVATIVE_POLICY = MappingProxyType(
 
 ANALYTIC_FORCE_DERIVATIVE_POLICY_SHA256 = hashlib.sha256(
     _canonical_bytes(dict(ANALYTIC_FORCE_DERIVATIVE_POLICY))
+).hexdigest()
+
+ANALYTIC_HVP_DERIVATIVE_POLICY = MappingProxyType(
+    {
+        "policy_id": "maple-coordinate-connected-torch-autograd-hvp-v1",
+        "derivative_method": "torch-autograd",
+        "hvp_evaluation": "direct",
+        "coordinate_finite_differences": False,
+        "dense_hessian_materialization": False,
+        "numerical_uncertainty": "unavailable-unless-independently-audited",
+    }
+)
+
+ANALYTIC_HVP_DERIVATIVE_POLICY_SHA256 = hashlib.sha256(
+    _canonical_bytes(dict(ANALYTIC_HVP_DERIVATIVE_POLICY))
 ).hexdigest()
 
 _REGISTERED_TORCH_V3_SCALAR_PREFIX = (
@@ -470,11 +485,90 @@ class AnalyticForceEvaluation:
         return "float64"
 
 
+@dataclass(frozen=True, slots=True)
+class AnalyticHVPEvaluation:
+    """One detached direct-HVP evaluation composed with its force result.
+
+    ``direction`` must be the probe values actually used by the producing
+    computation. The producer, rather than this storage contract, owns any
+    rounding into the computation dtype.
+    """
+
+    force_evaluation: AnalyticForceEvaluation
+    direction: np.ndarray
+    hvp_eV_per_A2: np.ndarray
+    evaluation_sha256: str = ""
+    derivative_policy_sha256: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        force_evaluation = self.force_evaluation
+        if type(force_evaluation) is not AnalyticForceEvaluation:
+            raise TypeError("force_evaluation must be an AnalyticForceEvaluation.")
+        try:
+            # Reconstructing revalidates the nested content against its supplied
+            # digest, including instances tampered with after initialization.
+            force_evaluation = replace(force_evaluation)
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise TypeError(
+                "force_evaluation must be a valid AnalyticForceEvaluation."
+            ) from exc
+
+        shape = force_evaluation.forces_eV_per_A.shape
+        direction = _immutable_float64_array(
+            self.direction,
+            name="direction",
+            shape=shape,
+        )
+        hvp = _immutable_float64_array(
+            self.hvp_eV_per_A2,
+            name="hvp_eV_per_A2",
+            shape=shape,
+        )
+        payload = {
+            "derivative_policy_sha256": ANALYTIC_HVP_DERIVATIVE_POLICY_SHA256,
+            "force_evaluation_sha256": force_evaluation.evaluation_sha256,
+            "direction": direction.tolist(),
+            "hvp_eV_per_A2": hvp.tolist(),
+        }
+        expected_sha256 = hashlib.sha256(_canonical_bytes(payload)).hexdigest()
+        if self.evaluation_sha256 and self.evaluation_sha256 != expected_sha256:
+            raise ValueError("evaluation_sha256 does not match analytic HVP content.")
+
+        object.__setattr__(self, "force_evaluation", force_evaluation)
+        object.__setattr__(self, "direction", direction)
+        object.__setattr__(self, "hvp_eV_per_A2", hvp)
+        object.__setattr__(
+            self,
+            "derivative_policy_sha256",
+            ANALYTIC_HVP_DERIVATIVE_POLICY_SHA256,
+        )
+        object.__setattr__(self, "evaluation_sha256", expected_sha256)
+
+    @property
+    def computation_dtype(self) -> str:
+        return self.force_evaluation.computation_dtype
+
+    @property
+    def derivative_method(self) -> str:
+        return self.force_evaluation.derivative_method
+
+    @property
+    def dtype(self) -> str:
+        return self.force_evaluation.dtype
+
+    @property
+    def storage_dtype(self) -> str:
+        return self.force_evaluation.storage_dtype
+
+
 __all__ = [
     "ANALYTIC_FORCE_DERIVATIVE_POLICY",
     "ANALYTIC_FORCE_DERIVATIVE_POLICY_SHA256",
     "ANALYTIC_HESSIAN_DERIVATIVE_POLICY",
     "ANALYTIC_HESSIAN_DERIVATIVE_POLICY_SHA256",
+    "ANALYTIC_HVP_DERIVATIVE_POLICY",
+    "ANALYTIC_HVP_DERIVATIVE_POLICY_SHA256",
     "AnalyticForceEvaluation",
     "AnalyticHessianEvaluation",
+    "AnalyticHVPEvaluation",
 ]

@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "artifact_id": "route2-hvp-single-graph-performance-20261025",
+  "scope": "Route2 HVP tuple graph reuse; original reverse arithmetic retained",
+  "baseline_pushed_commit": "fccd50d50e7c3e30c35f884e485ef255f86ef3b2",
+  "source_sha256": {
+    "maple/solvation/derivatives/analytic.py": "792c672d54c8f7360cf7b4473126eabd445461bb1899faae9a37fa14f9be1b9b",
+    "maple/solvation/experimental/mace_polar_torch.py": "280f03d620ff9b3cdea5b4ed0afa887aa7188c5d98373a5b1412e7f9bc69ff95",
+    "maple/function/calculator/route2/_mace_polar_torch_calculator.py": "c9eb4c79f9ffe0a7bcd814b38dbe0ab41d3804092f4ababfcb3348e4515721c3",
+    "maple/solvation/continuum/torch_ddpcm.py": "95a861c5c3dfd4498cce8ada63b6a2bf62904b7045d745f3902cac27943a0f2e",
+    "maple/solvation/nonpolar/legacy_smd_cds.py": "670a362f0d00447fee62c689ab41a9016a60899a974f960880e797dfa6eeab53",
+    "maple/solvation/surfaces/legacy_dareal.py": "3cb9edaf61ffbb79b8cc9feefa1ade35dc96100dd0440be33fd020e5097e4240"
+  },
+  "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "configuration": {
+    "dtype": "float32",
+    "lmax": 5,
+    "n_lebedev": 194
+  },
+  "timing_boundary": "fresh HVP/force/energy tuple; shared resident real PES; no result or graph cache",
+  "reference": "frozen old facade and unchanged frozen HVP/force method bodies; scientific components shared and unchanged",
+  "order": [
+    "reference",
+    "optimized",
+    "optimized",
+    "reference",
+    "reference",
+    "optimized"
+  ],
+  "warm_repetitions_per_variant": 3,
+  "cuda_synchronized": true,
+  "model_loading_included": false,
+  "final_result_cache_used": false,
+  "scientific_admitted": false,
+  "parameters_or_tolerances_changed": false,
+  "new_persistent_cache": false,
+  "cases": [
+    {
+      "atom_count": 9,
+      "reference_HVP_tuple_ms": 1488.049037012388,
+      "single_forward_HVP_tuple_ms": 893.8180660043145,
+      "speedup": 1.6648231822662725,
+      "forward_counts": {
+        "reference": [
+          3,
+          3,
+          3
+        ],
+        "optimized": [
+          1,
+          1,
+          1
+        ]
+      },
+      "maximum_differences": {
+        "hvp": 0.0,
+        "forces": 0.0,
+        "energy": 0.0
+      },
+      "within_variant_repeat_spread": {
+        "reference": {
+          "hvp": 0.0,
+          "forces": 0.0,
+          "energy": 0.0
+        },
+        "optimized": {
+          "hvp": 0.0,
+          "forces": 0.0,
+          "energy": 0.0
+        }
+      }
+    },
+    {
+      "atom_count": 20,
+      "reference_HVP_tuple_ms": 3897.908575992915,
+      "single_forward_HVP_tuple_ms": 2613.0649400001857,
+      "speedup": 1.491699848834464,
+      "forward_counts": {
+        "reference": [
+          3,
+          3,
+          3
+        ],
+        "optimized": [
+          1,
+          1,
+          1
+        ]
+      },
+      "maximum_differences": {
+        "hvp": 0.0,
+        "forces": 0.0,
+        "energy": 0.0
+      },
+      "within_variant_repeat_spread": {
+        "reference": {
+          "hvp": 0.0,
+          "forces": 0.0,
+          "energy": 0.0
+        },
+        "optimized": {
+          "hvp": 0.0,
+          "forces": 0.0,
+          "energy": 0.0
+        }
+      }
+    },
+    {
+      "atom_count": 35,
+      "reference_HVP_tuple_ms": 7294.800770992879,
+      "single_forward_HVP_tuple_ms": 4669.366586007527,
+      "speedup": 1.5622677373099958,
+      "forward_counts": {
+        "reference": [
+          3,
+          3,
+          3
+        ],
+        "optimized": [
+          1,
+          1,
+          1
+        ]
+      },
+      "maximum_differences": {
+        "hvp": 0.0,
+        "forces": 0.0,
+        "energy": 0.0
+      },
+      "within_variant_repeat_spread": {
+        "reference": {
+          "hvp": 0.0,
+          "forces": 0.0,
+          "energy": 0.0
+        },
+        "optimized": {
+          "hvp": 0.0,
+          "forces": 0.0,
+          "energy": 0.0
+        }
+      }
+    }
+  ],
+  "precision_contract": {
+    "composed_reverse_create_graph_sequence": [
+      false,
+      true,
+      false
+    ],
+    "standalone_reverse_create_graph_sequence": [
+      true,
+      false
+    ],
+    "exact_same_process_E_F_HVP_required": true,
+    "dense_molecular_Hessian_materialized": false,
+    "native_FP32_FP64_standalone_return_preserved": true,
+    "legacy_tuple_explicit_CPU_FP64_writable_copies": true,
+    "direction_guard": "independent FP64 snapshot; actual native probe recorded; full request reread after public result materialization",
+    "DTO_guard": "reconstruct and consume validated defensive HVP/nested-force copy before returning",
+    "ASE_and_Hessian_cache_mutation": false
+  },
+  "verification": {
+    "targeted_tests_passed": 446,
+    "test_log_sha256": "e9428b38af94f3fc157b13b1d98706fa72e9187f37e4a76ce6b2cb1d723ca446",
+    "paired_artifact_sha256": "0365160587a7af56f235d0e7f0586eee30768c8414e9b34c50dad6d2061aa804",
+    "public_derivative_cases_passed": 4,
+    "derivative_evidence_sha256": "c790cb2cd5ee0851e0b40e58b70c85b1aa3922616a150a4185459799f3698697",
+    "catalog_component_cases_passed": 358,
+    "catalog_evidence_sha256": "be2ead131b15be3f27b8e4a41d1802becba8f70caa7d86bb2fbe64228eda584e",
+    "real_verbose_CUDA_SP_forward_count": 1,
+    "CLI_counter_sha256": "d6728add7107f66be91d941082002167c0bdb7df0dff1e11697b5aca992c84cb",
+    "real_CPU_FP64_warm_pair_exact": true,
+    "CPU_FP64_warmup_per_path": 2,
+    "CPU_FP64_paired_repeats": 3,
+    "CPU_FP64_HVP_force_energy_maximum_differences": {
+      "maximum_HVP_difference": 0.0,
+      "maximum_standalone_HVP_difference": 0.0,
+      "maximum_energy_difference": 0.0,
+      "maximum_force_difference": 0.0
+    },
+    "CPU_FP64_artifact_sha256": "faf5664d1476f3e9dc49d79105a70754b6bbff37420e77a8b566498e91099bec",
+    "existing_Force_and_Hessian_class_AST_unchanged": true,
+    "scientific_kernel_bytes_unchanged": true
+  },
+  "retained_negative_diagnostics": {
+    "rejected_reuse_of_HVP_gradient_for_central_force": {
+      "maximum_force_difference_eV_A": 2.1338462829589844e-05,
+      "decision": "rejected; original force reverse retained on shared forward; no new tolerance",
+      "artifact_sha256": "eccd01853343e176c331900ce3cd9f2a37f498fc1ecc0eb84a94806223759102"
+    },
+    "earlier_unequal_warmup_FP64_check": {
+      "maximum_HVP_difference": 8.881784197001252e-16,
+      "exact_assertion_passed": false,
+      "decision": "preserved as cold/warm diagnostic, not used as acceptance; final matched warm comparison is exactly equal",
+      "artifact_sha256": "2e0e9718869560e706f1db15692498fe8fc115f812887395e46ff62fd38cd3fc"
+    }
+  },
+  "review": {
+    "architecture": "CLEAR after precision amendment",
+    "code_review": "no code findings; public summary publication is final delivery requirement",
+    "typecheck_gap": "LSP/Pyright/Mypy unavailable; no formal merge approval claimed"
+  },
+  "limits": [
+    "HVP+force+energy tuple timing differs from energy-only and energy+force timings; do not multiply speedups across operation scopes.",
+    "Three fixed size examples, three repeats each; not full-dataset throughput or universal GPU superiority.",
+    "Resource/topology constraints and scientific admission remain unchanged; no dense Hessian, fallback, new model or parameter fit.",
+    "The earlier 300-geometry CDS audit is retained component-only evidence, not relabeled as a new HVP population audit.",
+    "Earlier work was committed/pushed before this continuation; this new HVP work is local until separately committed."
+  ]
+}

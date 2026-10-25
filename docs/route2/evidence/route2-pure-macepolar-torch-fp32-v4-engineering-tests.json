@@ -3,7 +3,7 @@
   "cases": [
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "85eb8a8a8fba4fff8f6a923f42b2ebf59cdb11d9d4cca293b22d8d39ee5ab7af",
+      "configuration_sha256": "425a8609b5cf5214c649315403efc79dd10ed941d19ea3484c8d5642843dde2d",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -304,17 +304,17 @@
             "limit_bytes": 4000000000,
             "second_order_peak_bytes": 18630144
           },
-          "device_available_bytes": 28124499968,
+          "device_available_bytes": 27763822592,
           "estimated_total_bytes": 2166113792,
-          "host_available_bytes": 28124499968,
+          "host_available_bytes": 27763822592,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 2147483648,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 11.289207559995702,
+      "elapsed_seconds_descriptive_only": 8.343565767005202,
       "energy_eV": -2080.1875,
-      "evaluation_sha256": "58c593b0af59f11dc73adc395070189a8496593f6eafda7f05523066d46d78a9",
+      "evaluation_sha256": "325fa75fd82721043740d6294bc39b15b2320866f222bda469b51b254749be81",
       "forces_eV_per_A": [
         [
           -0.19792398810386658,
@@ -460,7 +460,7 @@
     },
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "19bae8212d72ca2dbbf1d847eaedbd94b907d3577daa7f3fa3924723d87f88fb",
+      "configuration_sha256": "aca74fef96f153402098a2627fd542a15774ef580b4b69fe0db1b5910515515d",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -763,15 +763,15 @@
           },
           "device_available_bytes": 7145821184,
           "estimated_total_bytes": 555501056,
-          "host_available_bytes": 27846844416,
+          "host_available_bytes": 26743676928,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 536870912,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 7.742088593004155,
+      "elapsed_seconds_descriptive_only": 5.567530550993979,
       "energy_eV": -2080.1875,
-      "evaluation_sha256": "a798a63987d5a46babe4d5b8da55ddf3f929d8c17e215cfbc853526b49810447",
+      "evaluation_sha256": "8fcbf0676eb6ff805e82a5c51d4a52d1eadcef011326f2bd49c970fd8419578a",
       "forces_eV_per_A": [
         [
           -0.19793786108493805,
@@ -917,7 +917,7 @@
     },
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "dc68f82ca37dd3bfe9833726a8e273ac6e0a573428dbdeb5208925590b0cba87",
+      "configuration_sha256": "2510e095b5d5b88dd9f9711ad8a979f9599df02644b627d070342ddb7b9bb56f",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -1218,17 +1218,17 @@
             "limit_bytes": 4000000000,
             "second_order_peak_bytes": 18630144
           },
-          "device_available_bytes": 27007275008,
+          "device_available_bytes": 27254112256,
           "estimated_total_bytes": 2166113792,
-          "host_available_bytes": 27007275008,
+          "host_available_bytes": 27254112256,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 2147483648,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 4.725612803988042,
+      "elapsed_seconds_descriptive_only": 3.9123191499966197,
       "energy_eV": -2079.9541015625,
-      "evaluation_sha256": "958c85aa338d54e121ed795e0fdbceaead28d765266ef7fa052b4ea4e1166836",
+      "evaluation_sha256": "6d83f5f1ded43c4728713d4755d0c23ba4cc13dd41b6cef13d0e771d552cf4fc",
       "forces_eV_per_A": [
         [
           -0.18278327584266663,
@@ -1374,7 +1374,7 @@
     },
     {
       "computation_dtype": "float32",
-      "configuration_sha256": "b5b56a30c4fee679a7295f857d5af2efb5f6821dc258465bf4299b48e8d03425",
+      "configuration_sha256": "216fc04d0ac117a7d8da5b0cf0d8853011a175fe4da0742ecb4baf63fbba740f",
       "continuum_policy": {
         "autocast": "forbidden",
         "backend": "dense-direct-two-solve",
@@ -1677,15 +1677,15 @@
           },
           "device_available_bytes": 7076915712,
           "estimated_total_bytes": 555501056,
-          "host_available_bytes": 26183372800,
+          "host_available_bytes": 26726563840,
           "host_runtime_reserve_bytes": 2147483648,
           "model_runtime_reserve_bytes": 536870912,
           "policy": "torch-v3-second-order-memory-envelope-v1"
         }
       },
-      "elapsed_seconds_descriptive_only": 6.539707974996418,
+      "elapsed_seconds_descriptive_only": 5.150282293005148,
       "energy_eV": -2079.9541015625,
-      "evaluation_sha256": "f9104d1cfa5d5efcc6c8218e3c8331e84b8f565b8c35c592b90dc8ba01bdd70e",
+      "evaluation_sha256": "75ae5ba1217b9b6b39e3c02806e67453acb1dbe184c6442419c91846a3710ba5",
       "forces_eV_per_A": [
         [
           -0.1827944666147232,
@@ -2030,7 +2030,7 @@
     "maple/function/calculator/mace/_macepol_long_range.py": "906c0ab8e4a884f2e1741d8e7fe6e6851bd5e09129f5c8b869d23aea684ccbac",
     "maple/function/calculator/route2/__init__.py": "87653344293f4e59b7b13916a7fde8ec19939fe61e7879d7a0e81fe185160c1f",
     "maple/function/calculator/route2/_mace_polar_frozen_ddx_calculator.py": "63835097ab91282473c5b5b889db93b1dd8ebeaadbe7b8bffef05501ab6ee9b6",
-    "maple/function/calculator/route2/_mace_polar_torch_calculator.py": "4d1d022b1bbb7c508f395ddb3965f36c83a6649763289ee01d18b4135c72d0cc",
+    "maple/function/calculator/route2/_mace_polar_torch_calculator.py": "c9eb4c79f9ffe0a7bcd814b38dbe0ab41d3804092f4ababfcb3348e4515721c3",
     "maple/function/calculator/set_calculator.py": "f360d9a48e88a426a9c4ebf987a36bca09e0c0f0b51c0e3295dd0e9a1f2b1d40",
     "maple/function/calculator/uma/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "maple/function/calculator/uma/_uma_calculator.py": "dddb10cee3f6c1e95fe433297537eeff7f4b339d6e1f0c42798f8402203a3c4a",
@@ -2186,7 +2186,7 @@
     "maple/solvation/coupling/variational_adapters.py": "44d79a13ceec856ed4c97665d6953eda41b4bdadf1b7b157ffd60fc18d97edc9",
     "maple/solvation/coupling/variational_state.py": "cd7cf9c4685afcf572e15bcd720eab77df7894406e4f54ebcf834e92f01d6049",
     "maple/solvation/derivatives/__init__.py": "d3ece609116d95ce938b5f070c866a862c73cec34de63065a5ac542eaff6b8f2",
-    "maple/solvation/derivatives/analytic.py": "06ea735c762767d5a73becf6cd64672e4ff4628cc05b676367019c30fd9ccbf7",
+    "maple/solvation/derivatives/analytic.py": "792c672d54c8f7360cf7b4473126eabd445461bb1899faae9a37fa14f9be1b9b",
     "maple/solvation/derivatives/molecular_modes.py": "8d585140a54265b5166b570472f2fb69b6e399f23520a6842c316a44b2ceaef1",
     "maple/solvation/derivatives/response.py": "44be97796282b695945a94ba340235370845285990389b3ab30aa0c4d7bb3c8c",
     "maple/solvation/derivatives/scalar_finite_difference.py": "b438427ab0e119101a80a43c79b658ec4ac6c28e2dcd91c7c4d17b4af9f7aacc",
@@ -2200,7 +2200,7 @@
     "maple/solvation/experimental/mace_polar_response.py": "53d1114d476f172a0f52fac1d6047e83d7da2a68eb935a70e25d8b689083bb57",
     "maple/solvation/experimental/mace_polar_response_core.py": "9b9a3763f8df5bf113f5b94974f1ab661684e48b601a102b73ad466a12f3569d",
     "maple/solvation/experimental/mace_polar_response_native_fp64_v2.py": "1456439276c338865f89e307b67f24da3625d34c3deedd0ee20506a5d76d91f7",
-    "maple/solvation/experimental/mace_polar_torch.py": "0fedb4a75dc7097112e6724fe19ff281a890eec4635e5dad892c97d99527b401",
+    "maple/solvation/experimental/mace_polar_torch.py": "280f03d620ff9b3cdea5b4ed0afa887aa7188c5d98373a5b1412e7f9bc69ff95",
     "maple/solvation/models/__init__.py": "14166a9dc34a29798c41e43abcbc9cb523f5edbb46048f24fbdc71af3133598d",
     "maple/solvation/models/base.py": "8a3ad8ebf631e5beb4299443de7bf4ec3a63e08f822fea802fcb358c520e88eb",
     "maple/solvation/models/bundle.py": "0297cdd2bf749715398813a27fdcf04c259a34f2cff346bac6a8950ac76fde7f",

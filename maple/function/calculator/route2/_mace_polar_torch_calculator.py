@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 from ase.calculators.calculator import Calculator, all_changes
 
@@ -20,7 +22,10 @@ from maple.function.route2_smd_profiles import (
 )
 from maple.function.route2_solvents import normalize_route2_solvent_name
 from maple.solvation.coupling.state_equation import geometry_sha256
-from maple.solvation.derivatives.analytic import AnalyticForceEvaluation
+from maple.solvation.derivatives.analytic import (
+    AnalyticForceEvaluation,
+    AnalyticHVPEvaluation,
+)
 from maple.solvation.models.base import model_input_sha256
 
 _TEST_PES_FACTORY_TOKEN = object()
@@ -277,35 +282,9 @@ class PureMACEPolarTorchCalculator(Calculator):
 
         if "forces" in requested:
             evaluation = self._pes.evaluate_forces(target)
-            if not isinstance(evaluation, AnalyticForceEvaluation):
-                raise RuntimeError(
-                    "pure Torch PES did not return an analytic force evaluation."
-                )
-            if evaluation.model_input_sha256 != cache_key[0]:
-                raise RuntimeError(
-                    "pure Torch force evaluation model input identity changed."
-                )
-            if evaluation.configuration_sha256 != cache_key[1]:
-                raise RuntimeError(
-                    "pure Torch force evaluation configuration identity changed."
-                )
-            if evaluation.provider_id != self._pes.provider_id:
-                raise RuntimeError(
-                    "pure Torch force evaluation provider identity changed."
-                )
-            if (
-                evaluation.scalar_contract_id != cache_key[3]
-                or evaluation.profile_id != cache_key[2]
-                or evaluation.device != cache_key[4]
-                or evaluation.geometry_sha256 != geometry_sha256(target)
-            ):
-                raise RuntimeError(
-                    "pure Torch force evaluation scalar/profile/device/geometry identity changed."
-                )
+            self._validate_force_evaluation(evaluation, target, cache_key)
             energy = evaluation.energy_eV
             forces = np.asarray(evaluation.forces_eV_per_A, dtype=float)
-            if forces.shape != (len(target), 3) or not np.all(np.isfinite(forces)):
-                raise RuntimeError("pure Torch total-PES forces are invalid.")
             results: dict[str, object] = {
                 "energy": energy,
                 "free_energy": energy,
@@ -325,6 +304,37 @@ class PureMACEPolarTorchCalculator(Calculator):
         if cache_key != self._hessian_cache_key:
             self._hessian_cache_key = None
             self._hessian_evaluation = None
+
+    def _validate_force_evaluation(self, evaluation, atoms, cache_key) -> None:
+        """Shared identity boundary for first-order and composed HVP results."""
+        if not isinstance(evaluation, AnalyticForceEvaluation):
+            raise RuntimeError(
+                "pure Torch PES did not return an analytic force evaluation."
+            )
+        if evaluation.model_input_sha256 != cache_key[0]:
+            raise RuntimeError(
+                "pure Torch force evaluation model input identity changed."
+            )
+        if evaluation.configuration_sha256 != cache_key[1]:
+            raise RuntimeError(
+                "pure Torch force evaluation configuration identity changed."
+            )
+        if evaluation.provider_id != self._pes.provider_id:
+            raise RuntimeError("pure Torch force evaluation provider identity changed.")
+        if (
+            evaluation.scalar_contract_id != cache_key[3]
+            or evaluation.profile_id != cache_key[2]
+            or evaluation.device != cache_key[4]
+            or evaluation.geometry_sha256 != geometry_sha256(atoms)
+        ):
+            raise RuntimeError(
+                "pure Torch force evaluation scalar/profile/device/geometry identity changed."
+            )
+        forces = evaluation.forces_eV_per_A
+        if forces.shape != (len(atoms), 3) or not np.all(np.isfinite(forces)):
+            raise RuntimeError("pure Torch total-PES forces are invalid.")
+        if not np.isfinite(evaluation.energy_eV):
+            raise RuntimeError("pure Torch total-PES energy is invalid.")
 
     def get_hessian_evaluation(self, atoms):
         self._reject_hessian_constraints(atoms)
@@ -356,29 +366,51 @@ class PureMACEPolarTorchCalculator(Calculator):
 
     def get_hvp(self, atoms, n: np.ndarray):
         self._reject_hessian_constraints(atoms)
-        self._validate_atoms(atoms)
-        direction = np.asarray(n, dtype=float)
+        cache_key = self._validate_atoms(atoms)
+        direction = np.array(n, dtype=np.float64, copy=True, order="C")
         if direction.size != 3 * len(atoms) or not np.all(np.isfinite(direction)):
             raise ValueError("HVP direction must contain 3N finite components.")
-        method = getattr(self._pes, "hessian_vector_product", None)
+        method = getattr(self._pes, "evaluate_hvp", None)
         if not callable(method):
             raise RuntimeError("pure Torch PES does not expose analytic HVP.")
-        hvp = np.asarray(method(atoms, direction.reshape(len(atoms), 3)), dtype=float)
+        evaluation = method(atoms, direction.reshape(len(atoms), 3).copy())
+        if not isinstance(evaluation, AnalyticHVPEvaluation):
+            raise RuntimeError(
+                "pure Torch PES did not return an analytic HVP evaluation."
+            )
+        try:
+            evaluation = replace(evaluation)
+        except (TypeError, ValueError) as error:
+            raise RuntimeError(
+                "pure Torch HVP evaluation failed content verification."
+            ) from error
+        self._validate_force_evaluation(evaluation.force_evaluation, atoms, cache_key)
+        hvp = np.array(evaluation.hvp_eV_per_A2, dtype=float, copy=True)
         if hvp.shape != (len(atoms), 3) or not np.all(np.isfinite(hvp)):
             raise RuntimeError("pure Torch total-PES HVP is invalid.")
-        forces = np.asarray(self._pes.get_forces(atoms), dtype=float)
-        energy = float(self._pes.get_potential_energy(atoms))
-        if forces.shape != (len(atoms), 3) or not np.all(np.isfinite(forces)):
-            raise RuntimeError("pure Torch total-PES forces are invalid.")
-        if not np.isfinite(energy):
-            raise RuntimeError("pure Torch total-PES energy is invalid.")
+        dtype = np.float32 if evaluation.computation_dtype == "float32" else np.float64
+        expected_probe = np.asarray(direction.reshape(len(atoms), 3), dtype=dtype)
+        if not np.array_equal(evaluation.direction, expected_probe):
+            raise RuntimeError("pure Torch HVP evaluation direction identity changed.")
+        if not np.array_equal(np.asarray(n, dtype=np.float64), direction):
+            raise RuntimeError("HVP direction changed during evaluation.")
+        if self._validate_atoms(atoms) != cache_key:
+            raise RuntimeError(
+                "pure Torch model input or configuration changed during HVP evaluation."
+            )
+        # The record is immutable; legacy tuple consumers receive independent,
+        # writable CPU arrays/tensors rather than views into its storage.
+        forces = np.array(
+            evaluation.force_evaluation.forces_eV_per_A, dtype=float, copy=True
+        )
+        energy = evaluation.force_evaluation.energy_eV
         try:
             import torch
 
             return (
-                torch.as_tensor(hvp.reshape(-1), dtype=torch.float64),
-                torch.as_tensor(forces.reshape(-1), dtype=torch.float64),
-                torch.as_tensor(energy, dtype=torch.float64),
+                torch.as_tensor(hvp.reshape(-1), dtype=torch.float64, device="cpu"),
+                torch.as_tensor(forces.reshape(-1), dtype=torch.float64, device="cpu"),
+                torch.as_tensor(energy, dtype=torch.float64, device="cpu"),
             )
         except ImportError:  # pragma: no cover - Torch is a v3 prerequisite
             return hvp.reshape(-1), forces.reshape(-1), energy

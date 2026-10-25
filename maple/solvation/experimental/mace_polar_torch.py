@@ -13,6 +13,7 @@ from dataclasses import InitVar, asdict, dataclass, field
 import hashlib
 import json
 from pathlib import Path
+from typing import Any, NamedTuple
 
 import numpy as np
 
@@ -27,6 +28,7 @@ from maple.solvation.coupling.operator import source_files_sha256
 from maple.solvation.derivatives.analytic import (
     AnalyticForceEvaluation,
     AnalyticHessianEvaluation,
+    AnalyticHVPEvaluation,
 )
 from maple.solvation.models.base import model_input_sha256
 
@@ -39,6 +41,18 @@ _SECOND_ORDER_CONTINUUM_LIMIT_BYTES = 4_000_000_000
 _MODEL_RUNTIME_RESERVE_BYTES = 2 * 1024**3
 _CUDA_MODEL_RUNTIME_RESERVE_BYTES = 512 * 1024**2
 _CONTRACT_EVIDENCE_ID = "route2-pure-macepolar-torch-analytic-v3-contract-tests"
+
+
+class _HVPTensors(NamedTuple):
+    """Transient graph data, consumed by one public HVP return and never cached."""
+
+    total: Any
+    terms: dict[str, Any]
+    central_gradient: Any
+    product: Any
+    probe: Any
+    input_sha256: str
+    direction_snapshot: np.ndarray
 
 
 def _require_graph_inspection_api() -> None:
@@ -460,33 +474,43 @@ class MACEPolarTorchPES:
             positions = self._positions(atoms, requires_grad=True)
             total, terms, _ = self._energy_components(atoms, positions)
             gradient = torch.autograd.grad(total, positions)[0]
-            if not bool(torch.isfinite(gradient).all()):
-                raise RuntimeError("Torch total-PES coordinate gradient is not finite.")
-            self.configuration_sha256()
-            if model_input_sha256(atoms) != input_sha256:
-                raise RuntimeError(
-                    "Torch PES model inputs changed during force evaluation."
-                )
-            return AnalyticForceEvaluation(
-                energy_eV=float(total.detach()),
-                forces_eV_per_A=-gradient.detach().cpu().numpy(),
-                geometry_sha256=geometry_sha256(atoms),
-                model_input_sha256=input_sha256,
-                configuration_sha256=self._configuration_hash,
-                scalar_contract_id=self.scalar_contract_id,
-                device=self.device,
-                component_energies_eV={
-                    name: float(value.detach()) for name, value in terms.items()
-                },
-                provider_id=self.provider_id,
-                profile_id=self.profile_id,
-                verification_evidence_id=(
-                    "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
-                    if self._fp32
-                    else _CONTRACT_EVIDENCE_ID
-                ),
-                computation_dtype="float32" if self._fp32 else "float64",
+            return self._force_evaluation_from_graph(
+                atoms, total, terms, gradient, input_sha256
             )
+
+    def _force_evaluation_from_graph(
+        self, atoms, total, terms, gradient, input_sha256: str
+    ) -> AnalyticForceEvaluation:
+        """Detach a first derivative already computed by a force or HVP request."""
+        import torch
+
+        if not bool(torch.isfinite(gradient).all()):
+            raise RuntimeError("Torch total-PES coordinate gradient is not finite.")
+        self.configuration_sha256()
+        if model_input_sha256(atoms) != input_sha256:
+            raise RuntimeError(
+                "Torch PES model inputs changed during force evaluation."
+            )
+        return AnalyticForceEvaluation(
+            energy_eV=float(total.detach()),
+            forces_eV_per_A=-gradient.detach().cpu().numpy(),
+            geometry_sha256=geometry_sha256(atoms),
+            model_input_sha256=input_sha256,
+            configuration_sha256=self._configuration_hash,
+            scalar_contract_id=self.scalar_contract_id,
+            device=self.device,
+            component_energies_eV={
+                name: float(value.detach()) for name, value in terms.items()
+            },
+            provider_id=self.provider_id,
+            profile_id=self.profile_id,
+            verification_evidence_id=(
+                "route2-pure-macepolar-torch-fp32-v4-engineering-tests"
+                if self._fp32
+                else _CONTRACT_EVIDENCE_ID
+            ),
+            computation_dtype="float32" if self._fp32 else "float64",
+        )
 
     def get_forces(self, atoms) -> np.ndarray:
         evaluation = self.evaluate_forces(atoms)
@@ -507,17 +531,52 @@ class MACEPolarTorchPES:
         )[0]
         return torch.zeros_like(positions) if derivative is None else derivative
 
-    def hessian_vector_product(self, atoms, direction) -> np.ndarray:
+    def evaluate_hvp(self, atoms, direction) -> AnalyticHVPEvaluation:
+        """Evaluate HVP and its central energy/forces from one transient graph."""
+        tensors = self._evaluate_hvp_tensors(
+            atoms, direction, include_central_force=True
+        )
+        evaluation = AnalyticHVPEvaluation(
+            force_evaluation=self._force_evaluation_from_graph(
+                atoms,
+                tensors.total,
+                tensors.terms,
+                tensors.central_gradient,
+                tensors.input_sha256,
+            ),
+            direction=tensors.probe.detach().cpu().numpy(),
+            hvp_eV_per_A2=tensors.product.detach().cpu().numpy(),
+        )
+        self._validate_hvp_request(atoms, direction, tensors)
+        return evaluation
+
+    def _evaluate_hvp_tensors(self, atoms, direction, *, include_central_force: bool):
+        """Share the forward, not two numerically distinct reverse-mode paths.
+
+        Legacy forces use create_graph=False; the gradient for a direct HVP
+        needs create_graph=True. Reusing the latter for forces changes FP32
+        rounding. A composed request therefore retains the original force
+        reverse pass on this same forward graph. A standalone HVP omits it.
+        The returned tensors are transient and are never retained on the PES.
+        """
         import torch
 
-        vector = np.asarray(direction, dtype=float)
+        vector = np.array(direction, dtype=np.float64, copy=True, order="C")
         if vector.shape != (len(self.symbols), 3) or not np.all(np.isfinite(vector)):
             raise ValueError("HVP direction must be finite with shape (N,3).")
         with self._execution_context():
             if not self._testing:
                 _second_order_resource_preflight(self.continuum, self.device)
+            input_sha256 = model_input_sha256(atoms)
             positions = self._positions(atoms, requires_grad=True)
-            total, _, _ = self._energy_components(atoms, positions)
+            total, terms, _ = self._energy_components(atoms, positions)
+            central_gradient = (
+                torch.autograd.grad(
+                    total, positions, create_graph=False, retain_graph=True
+                )[0]
+                if include_central_force
+                else None
+            )
             gradient = torch.autograd.grad(total, positions, create_graph=True)[0]
             probe = torch.tensor(vector, dtype=positions.dtype, device=positions.device)
             product = self._gradient_derivative(
@@ -527,8 +586,31 @@ class MACEPolarTorchPES:
                 raise RuntimeError(
                     "Torch total-PES Hessian-vector product is not finite."
                 )
-            self.configuration_sha256()
-            return product.detach().cpu().numpy().copy()
+            if central_gradient is not None and not bool(
+                torch.isfinite(central_gradient).all()
+            ):
+                raise RuntimeError("Torch total-PES coordinate gradient is not finite.")
+            return _HVPTensors(
+                total, terms, central_gradient, product, probe, input_sha256, vector
+            )
+
+    def _validate_hvp_request(self, atoms, direction, tensors: _HVPTensors) -> None:
+        """Recheck the complete request after public result materialization."""
+        self.configuration_sha256()
+        if model_input_sha256(atoms) != tensors.input_sha256:
+            raise RuntimeError("Torch PES model inputs changed during HVP evaluation.")
+        if not np.array_equal(
+            np.asarray(direction, dtype=np.float64), tensors.direction_snapshot
+        ):
+            raise RuntimeError("HVP direction changed during evaluation.")
+
+    def hessian_vector_product(self, atoms, direction) -> np.ndarray:
+        tensors = self._evaluate_hvp_tensors(
+            atoms, direction, include_central_force=False
+        )
+        result = tensors.product.detach().cpu().numpy().copy()
+        self._validate_hvp_request(atoms, direction, tensors)
+        return result
 
     def evaluate_hessian(self, atoms) -> AnalyticHessianEvaluation:
         import torch

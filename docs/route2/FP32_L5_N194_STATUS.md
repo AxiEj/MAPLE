@@ -27,6 +27,11 @@ retain FP64 / 15 / 1202. No private research directory is needed at runtime.
 
 ## Current verification
 
+- Direct HVP tuple execution (2026-10-25): one forward now supplies HVP, central
+  force and energy, rather than three. The original FP32 force reverse arithmetic
+  is retained on the shared graph; standalone HVP still uses only its original
+  two reverse operations. See [evaluation ownership](TORCH_EVALUATION_CONTRACT.md)
+  and its HVP evidence for exact paired parity, source-bound replay and limits.
 - Single-evaluation execution boundary (2026-10-25): force-capable ASE requests
   use one MACE+ddPCM+CDS forward, down from two, and atomically receive energy
   and forces from one immutable first-derivative result. Energy-only execution,

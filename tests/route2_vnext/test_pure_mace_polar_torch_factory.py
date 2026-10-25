@@ -33,7 +33,10 @@ from maple.solvation.api.scalar_registry import (
     get_scalar_definition,
 )
 from maple.solvation.coupling.state_equation import geometry_sha256
-from maple.solvation.derivatives.analytic import AnalyticForceEvaluation
+from maple.solvation.derivatives.analytic import (
+    AnalyticForceEvaluation,
+    AnalyticHVPEvaluation,
+)
 from maple.solvation.models.base import model_input_sha256
 
 
@@ -99,6 +102,20 @@ class _FakeTorchPES:
     def hessian_vector_product(self, atoms, direction):
         self.calls.append("hvp")
         return np.asarray(direction, dtype=float)
+
+    def evaluate_hvp(self, atoms, direction):
+        force_evaluation = self.evaluate_forces(atoms)
+        dtype = (
+            np.float32
+            if force_evaluation.computation_dtype == "float32"
+            else np.float64
+        )
+        probe = np.asarray(direction, dtype=dtype)
+        return AnalyticHVPEvaluation(
+            force_evaluation=force_evaluation,
+            direction=probe,
+            hvp_eV_per_A2=self.hessian_vector_product(atoms, probe),
+        )
 
 
 def test_direct_prfo_constructor_keeps_uncertified_v3_closed(tmp_path):

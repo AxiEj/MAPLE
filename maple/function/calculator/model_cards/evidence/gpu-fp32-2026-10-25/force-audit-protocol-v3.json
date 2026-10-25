@@ -1,0 +1,64 @@
+{
+  "all_other_gates": "unchanged original evaluator tolerances, geometry/case IDs, scalar/paired/motion/sample counts; reference and optimized independently",
+  "complete_failure_index": {
+    "path": "preserved-failure-index.json",
+    "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+  },
+  "energy_accumulation_dtype": "float32",
+  "evaluator_spec_sha256": "ac425ca9efcf8e51c2a0cf2cc61443ede20b2eaafd0ddced5ed94531f4dfaa2d",
+  "failed_receipts": {
+    "consolv-cpu-float32-reference-stable-reduction-v1.json": "fd84982a3605157c2c2ffa50b9a57e845c10ddd780bb40a17f5a1af12e289fcb",
+    "consolv-cpu-float32-reference.json": "ecea6c0fa53fafdf656e937676872bb7c35f9b9bcf2501a0c87b6ffb6b11dc71",
+    "consolv-cuda-float32-optimized-stable-reduction-v1.json": "b76a63aab2987a6fb8319818e8441974f53476d8663ba1b4d762186031368051",
+    "consolv-cuda-float32-reference-stable-reduction-v1.json": "b426036acbcc43ed54e86bf8a7700050d38f9b7c3cb942d7b624510d23a6dd96",
+    "consolv-cuda-float32-reference.json": "718e3b36eb32237419c8b73803a2e985af0c5e949fd41f8efda9702150849622"
+  },
+  "fd_comparison_count": 234,
+  "force_reference": "cpu64_central_fd",
+  "frozen_panel": "frozen-panel-v2.json",
+  "frozen_panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+  "h_angstrom": 0.002,
+  "implementation": "Restore original selected-dtype sum; remove experimentalKahan path. torch.compile(dynamic=True,fullgraph=True), actualbackendexecution, no limitraise/fallback.",
+  "no_loss_parity_verified": false,
+  "original_failure_index_sha256": "5c6eab96492c58a046ddd1e67c43dcf616b64a151661fbde841978fabf4ef83f",
+  "prior_protocol_sha256": "a3439cd0cc8dbffabd3be66023bf9c08fb9c320edb91f5d1c8ebbe42154358ea",
+  "production_compute_dtype": "float32",
+  "protocol_id": "consolv-pure-fp32-cross-precision-force-audit-v3",
+  "qualification_kind": "bounded_numerical_fp32",
+  "rationale": "At -59.45 eV, FP32 absolute-energy ULP / (2h) is near 9.54e-4 eV/A. Same-FP32 total-energy FD is resolution-limited and not retroactively passed. Use separately named higher-precision numerical reference while production stays pureFP32; not physicaltruth or strictno_loss.",
+  "required_comparisons": {
+    "cpu32_cross_precision_force_consistency": {
+      "candidate": "cpu32 AD",
+      "reference": "cpu64 central FD",
+      "threshold_ev_per_angstrom": 0.002
+    },
+    "cpu_precision_drift_force": {
+      "candidate": "cpu32 AD",
+      "reference": "cpu64 AD",
+      "threshold_ev_per_angstrom": 0.0001
+    },
+    "cross_precision_force_consistency": {
+      "candidate": "cuda32 AD",
+      "reference": "cpu64 central FD",
+      "threshold_ev_per_angstrom": 0.002
+    },
+    "high_precision_reference_fd": {
+      "candidate": "cpu64 AD",
+      "reference": "cpu64 central FD",
+      "threshold_ev_per_angstrom": 0.002
+    },
+    "precision_drift_force": {
+      "candidate": "cuda32 AD",
+      "reference": "cpu64 AD",
+      "threshold_ev_per_angstrom": 0.0001
+    },
+    "same_precision_device_force": {
+      "candidate": "cuda32 AD",
+      "reference": "cpu32 AD",
+      "threshold_ev_per_angstrom": 0.0001
+    }
+  },
+  "same_fp32_absolute_energy_fd": "failed_resolution_limited",
+  "sampled_coordinates_threshold_angstrom": 0.0001,
+  "schema_version": 3
+}

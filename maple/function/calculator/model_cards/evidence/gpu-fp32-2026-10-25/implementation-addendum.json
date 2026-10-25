@@ -1,0 +1,54 @@
+{
+  "anysolv_optimized": {
+    "owned_compile": "Inductor dynamic segments, stable backend identity with call-local weak owner attribution",
+    "scope": "upstream_hybrid",
+    "signature": [
+      "atom_count",
+      "composition",
+      "charge",
+      "multiplicity",
+      "solvent_descriptor",
+      "device",
+      "dtype"
+    ],
+    "state": "source/checkpoint-pinned, no CPU/mode fallback, actual backend execution required",
+    "upstream_backend": "umas_fast_gpu",
+    "upstream_compile": false
+  },
+  "consolv_optimized": {
+    "apis": [
+      "torch.func.functional_call(strict=True)",
+      "torch.export.export(strict=True).module()",
+      "torch.compile(fullgraph=True,dynamic=False)"
+    ],
+    "bounded_variants": 2,
+    "compilations_per_variant": 1,
+    "model_state": "explicit USER_INPUTS; no owned state/tensor constants in exported graph",
+    "process_cache_limits": "unchanged; no reset or code-object cloning",
+    "scope": "stateless_static_exported_energy_graph",
+    "signature": [
+      "checkpoint_state",
+      "atom_count",
+      "edge_count",
+      "solvent",
+      "exact_device",
+      "dtype",
+      "contiguous_layout",
+      "int64_indices"
+    ],
+    "source_state": "identity/version checks and before/after byte hashes"
+  },
+  "default_device": "cuda:0",
+  "default_inference": "reference",
+  "force_methodology_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+  "implementation_change_reason": "Direct shared Python-frame compilation hit its cache limit. Public strict stateless export provides isolated typed graphs and bounded storage; scientific force comparisons and thresholds from protocol v3 are unchanged.",
+  "implementation_id": "maple-pretrained-solvation-pure-fp32-v1",
+  "no_loss_parity_verified": false,
+  "production_compute_dtype": "float32",
+  "production_energy_accumulation_dtype": "float32",
+  "public_task_scope": {
+    "anysolv": "scalar SP only",
+    "consolv": "native SP energy/forces only"
+  },
+  "unrelated_models": "defaults and providers unchanged; AIMNet2 GPU qualification limited to the pinned scalar composition"
+}

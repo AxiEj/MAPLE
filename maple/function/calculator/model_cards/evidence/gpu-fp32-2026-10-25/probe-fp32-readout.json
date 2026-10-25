@@ -1,0 +1,32 @@
+[
+  {
+    "variant": "constant_plus_scaled_learned",
+    "expression": "return _sum_atomic_energy(atomic + shift) + scale * _sum_atomic_energy(per_atom)",
+    "max_fp32_fd_error_ev_a": 0.0027886629104614258,
+    "outputs_ev": false
+  },
+  {
+    "variant": "separate_native_terms",
+    "expression": "return _sum_atomic_energy(atomic) + shift * species.numel() + scale * _sum_atomic_energy(per_atom)",
+    "max_fp32_fd_error_ev_a": 0.0027886629104614258,
+    "outputs_ev": false
+  },
+  {
+    "variant": "constant_plus_learned",
+    "expression": "return _sum_atomic_energy(atomic + shift) + _sum_atomic_energy(scale * per_atom)",
+    "max_fp32_fd_error_ev_a": 0.002861067419871688,
+    "outputs_ev": false
+  },
+  {
+    "variant": "separate_ev_terms",
+    "expression": "return _sum_atomic_energy((atomic + shift) / 96.485) + _sum_atomic_energy(scale * per_atom / 96.485)",
+    "max_fp32_fd_error_ev_a": 0.0013693198561668396,
+    "outputs_ev": true
+  },
+  {
+    "variant": "scaled_learned_ev",
+    "expression": "return _sum_atomic_energy((atomic + shift) / 96.485) + (scale / 96.485) * _sum_atomic_energy(per_atom)",
+    "max_fp32_fd_error_ev_a": 0.00140487402677536,
+    "outputs_ev": true
+  }
+]

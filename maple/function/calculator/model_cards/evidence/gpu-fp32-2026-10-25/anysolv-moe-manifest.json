@@ -1,0 +1,51 @@
+{
+  "checkpoint_sha256s": [
+    "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251"
+  ],
+  "comparison_manifest_id": "anysolv-moe-cuda-fp32-public-ase-v1",
+  "model_id": "anysolv-moe",
+  "model_version": "0.1.0-1778e1f",
+  "observable_counts": {
+    "coverage": 10,
+    "energy": 36
+  },
+  "records": [
+    {
+      "configuration_sha256": "22e8fb5eafbc9b2f11f32b2d10e6ff294434a00f99cb2ab37dc1c440ff01676d",
+      "observable_output_sha256s": {
+        "coverage": {
+          "accelerator": "ee61e6350a498714a95c22d595cd56a52e3b1e248dbb27131ad5d6fb43862420",
+          "reference": "54312cf8f3cf59ec7c12b991800876f89946d4b25f31528adf7f76485e7c872f"
+        },
+        "energy": {
+          "accelerator": "e73b4e3a2652b17822e02d82969db1321c6aa2718a06ffa7fff3c56a33aa70df",
+          "reference": "adde59471f95bbbe7d899f3aae1a3836dbdb4360cfc803b1022a34f82c4893f6"
+        }
+      },
+      "panel_id": "frozen-ase-six-v2",
+      "record_id": "optimized:anysolv-moe:frozen-public-panel-v2",
+      "reference_sha256": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52"
+    },
+    {
+      "configuration_sha256": "b577b673ce8d3b865f02ce56b950b0d43361d7eee5934fcbc8b99cb3d5dc674b",
+      "observable_output_sha256s": {
+        "coverage": {
+          "accelerator": "9e8e41ad747bc85978979711944ba0be99f305ebbb0394e827819ee2e392ff0a",
+          "reference": "3149a34e74138a42533cae9ee60cf4970c8250dc9c84bafe824f5f4407080a3b"
+        },
+        "energy": {
+          "accelerator": "d8f514907ed6714d6a06d231c4a1fe25b7cbe5ed6c9382964331f485382bc1db",
+          "reference": "10efdfa8916ad1ffe029fdbd8bebb55ae224ea33009d90a4055c3dfdf61a3025"
+        }
+      },
+      "panel_id": "frozen-ase-six-v2",
+      "record_id": "reference:anysolv-moe:frozen-public-panel-v2",
+      "reference_sha256": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52"
+    }
+  ],
+  "schema_version": 1,
+  "task_modes": [
+    "sp:optimized",
+    "sp:reference"
+  ]
+}

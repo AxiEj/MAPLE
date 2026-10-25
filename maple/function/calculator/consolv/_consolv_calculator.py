@@ -15,6 +15,7 @@ from ase.data import covalent_radii
 
 from ..calculator_base import CalcABC, register_calculator
 from ..model_capabilities import ModelProvenanceCard, load_model_provenance_card
+from ..solvation_execution import SolvationExecution
 from ._torch_model import load_consolv_torch_checkpoint
 
 CONSOLV_SOURCE_REVISION = "06801dd5f53182ed86c31eee1fa03cc011c05b5a"
@@ -130,7 +131,7 @@ def _load_card() -> tuple[dict, ModelProvenanceCard]:
 
 @register_calculator
 class ConSolvCalculator(CalcABC):
-    """Neutral, closed-shell ConSolv solution potential on CPU/float64."""
+    """Neutral, closed-shell ConSolv solution potential with explicit execution policy."""
 
     implemented_properties = ["energy", "forces", "free_energy"]
     MODEL_NAMES = ("consolv",)
@@ -138,7 +139,7 @@ class ConSolvCalculator(CalcABC):
     SUPPORTED_HESSIAN_MODES = ()
     SUPPORTS_CHARGE_MULT = False
     SUPPORTS_PBC = False
-    OPTION_KEYS = ("native_solvent", "model_path")
+    OPTION_KEYS = ("native_solvent", "model_path", "dtype", "inference")
     MODEL_PATH_OPTION = "model_path"
     CHECKPOINT_FILENAME = None
     REQUIRES_LOCAL_MODEL_FILE = False
@@ -153,6 +154,9 @@ class ConSolvCalculator(CalcABC):
                 "ConSolv is a complete native potential and rejects D4 composition."
             )
         kwargs = {"native_solvent": model_options.get("native_solvent")}
+        for key in ("dtype", "inference"):
+            if key in model_options:
+                kwargs[key] = model_options[key]
         if resolved_model_path is not None:
             kwargs["model_path"] = resolved_model_path
         elif "model_path" in model_options:
@@ -161,7 +165,15 @@ class ConSolvCalculator(CalcABC):
 
     @property
     def device(self):
-        return self._consolv_device
+        return self._execution.device
+
+    @property
+    def dtype(self):
+        return self._execution.dtype
+
+    @property
+    def inference(self):
+        return self._execution.inference
 
     @property
     def model_path(self):
@@ -176,7 +188,14 @@ class ConSolvCalculator(CalcABC):
         return self._consolv_solvent_index
 
     def set(self, **kwargs):
-        immutable = {"native_solvent", "solvent_index", "model_path", "device"}
+        immutable = {
+            "native_solvent",
+            "solvent_index",
+            "model_path",
+            "device",
+            "dtype",
+            "inference",
+        }
         changed = sorted(immutable.intersection(kwargs))
         if changed:
             raise AttributeError(
@@ -186,14 +205,19 @@ class ConSolvCalculator(CalcABC):
 
     def __init__(
         self,
-        device,
+        device="cuda:0",
         model="consolv",
         implicit="none",
         solvent="none",
         native_solvent=None,
         model_path=CONSOLV_DEFAULT_MODEL_PATH,
         execution_task=None,
+        dtype="float32",
+        inference="reference",
     ):
+        self._execution = SolvationExecution(
+            device=device, dtype=dtype, inference=inference
+        )
         super().__init__()
         if str(model).strip().lower() != "consolv":
             raise ValueError("ConSolv requires model='consolv'.")
@@ -213,9 +237,7 @@ class ConSolvCalculator(CalcABC):
         self.model_card, self.model_provenance = _load_card()
         task = execution_task or "sp"
         self.model_provenance.validate_task(task)
-        self.model_provenance.validate_device(device, task=task)
-        if str(device).strip().lower() not in {"cpu", "none"}:
-            raise ValueError("ConSolv is admitted on CPU only.")
+        self._execution.validate_card(self.model_provenance, task=task)
         if not isinstance(model_path, (str, os.PathLike)):
             raise TypeError("ConSolv model_path must be a non-empty path string.")
         if not str(model_path).strip():
@@ -229,13 +251,16 @@ class ConSolvCalculator(CalcABC):
                 "ConSolv Torch checkpoint checksum mismatch: expected "
                 f"{CONSOLV_TORCH_CHECKPOINT_SHA256}, got {actual}."
             )
-        self._consolv_device = "cpu"
         self._consolv_model_path = checkpoint
         self._consolv_native_solvent = normalized
         self._consolv_solvent_index = CONSOLV_SOLVENTS[normalized]
         self.execution_task = task
         self._model = load_consolv_torch_checkpoint(
-            checkpoint, device="cpu", dtype=torch.float64, expected_state="solution"
+            checkpoint,
+            device=self.device,
+            dtype=self._execution.torch_dtype,
+            inference=self.inference,
+            expected_state="solution",
         )
         if self._model.metadata.get("source_revision") != CONSOLV_SOURCE_REVISION:
             raise ValueError("ConSolv converted checkpoint source revision mismatch.")
@@ -252,7 +277,15 @@ class ConSolvCalculator(CalcABC):
             "native_solvent": self.native_solvent,
             "solvent_index": self.solvent_index,
             "runtime": "pure_torch",
-            "compute_dtype": "float64",
+            **self._execution.provenance,
+            "compiled_scope": (
+                "static_exported_energy_graph"
+                if self.inference == "optimized"
+                else "eager"
+            ),
+            "compilation_active": bool(
+                getattr(self._model, "compilation_active", False)
+            ),
             "runtime_scope": "native_solution_potential_sp_mechanics",
             "license": self.model_card["license"],
         }
@@ -315,16 +348,29 @@ class ConSolvCalculator(CalcABC):
         calculated = self._validate_system(
             super().calculate(atoms, properties, system_changes)
         )
-        numbers = torch.as_tensor(calculated.get_atomic_numbers(), dtype=torch.long)
-        positions = torch.as_tensor(calculated.get_positions(), dtype=torch.float64)
-        if "forces" in properties:
-            energy, forces = self._model.energy_and_forces_ev(
-                numbers, positions, self.solvent_index
+        with self._execution.precision_context():
+            numbers = torch.as_tensor(
+                calculated.get_atomic_numbers(), dtype=torch.long, device=self.device
             )
-            forces_value = forces.detach().cpu().numpy()
-        else:
-            energy = self._model.energy_ev(numbers, positions, self.solvent_index)
-            forces_value = None
+            positions = torch.as_tensor(
+                calculated.get_positions(),
+                dtype=self._execution.torch_dtype,
+                device=self.device,
+            )
+            self._execution.check_precision(
+                inputs=(numbers, positions), model=self._model
+            )
+            if "forces" in properties:
+                energy, forces = self._model.energy_and_forces_ev(
+                    numbers, positions, self.solvent_index
+                )
+                forces_value = forces.detach().cpu().numpy()
+            else:
+                energy = self._model.energy_ev(numbers, positions, self.solvent_index)
+                forces_value = None
+            self._execution.check_precision(
+                inputs=(numbers, positions), model=self._model
+            )
         if not torch.isfinite(energy):
             raise ValueError("ConSolv energy must be finite.")
         if forces_value is not None and not np.isfinite(forces_value).all():

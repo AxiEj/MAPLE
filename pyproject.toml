@@ -34,4 +34,4 @@ maple = "maple.main:main"
 include = ["maple*"]
 
 [tool.setuptools.package-data]
-"maple.function.calculator" = ["model_cards/*.yaml"]
+"maple.function.calculator" = ["model_cards/*.yaml", "model_cards/evidence/*/*.json", "model_cards/evidence/*/*.sha256"]

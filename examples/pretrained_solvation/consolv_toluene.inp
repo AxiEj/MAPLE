@@ -1,5 +1,5 @@
 #model=consolv(native_solvent=toluene)
-#device=cpu
+#device=cuda:0
 #sp(verbose=1)
 
 0 1

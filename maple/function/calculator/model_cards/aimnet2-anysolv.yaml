@@ -1,0 +1,973 @@
+{
+  "capabilities": {
+    "energy": true,
+    "energy_reference": "relative",
+    "forces": false,
+    "hessian": "none",
+    "solvation_mode": "additive",
+    "supports_charge": true,
+    "supports_md": false,
+    "supports_multiplicity": true,
+    "supports_pbc": false
+  },
+  "checkpoints": {
+    "correction": {
+      "checkpoint_sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251"
+    },
+    "gas": {
+      "checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+    }
+  },
+  "execution_defaults": {
+    "device": "cuda:0",
+    "dtype": "float32",
+    "inference": "reference"
+  },
+  "forbidden_tasks": [
+    "opt",
+    "scan",
+    "ts",
+    "irc",
+    "frequency",
+    "md",
+    "binding_free_energy",
+    "absolute_solvation_free_energy"
+  ],
+  "gpu_acceleration": {
+    "allowed_hardware": [
+      "NVIDIA GeForce RTX 4060 Laptop GPU"
+    ],
+    "allowed_inference_modes": [
+      "optimized",
+      "reference"
+    ],
+    "allowed_tasks": [
+      "sp"
+    ],
+    "comparison_manifest_artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/aimnet2-anysolv-manifest.json",
+    "comparison_manifest_id": "aimnet2-anysolv-cuda-fp32-public-ase-v1",
+    "comparison_manifest_sha256": "0687bc5d5dbc3ac239bbfcdba3102654a9d10d6f3e869333e5e11803eca65645",
+    "compute_dtype": "float32",
+    "evidence_artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/aimnet2-anysolv-evidence.json",
+    "evidence_sha256": "66fe0f5119e8367b6854d99c09ba05b2517f0bc8a642123221fff38b30d90584",
+    "matmul_precision": "highest",
+    "no_loss_parity_verified": false,
+    "numerical_parity_verified": true,
+    "numerical_qualification": {
+      "implementation_source_sha256s": {
+        "maple/function/benchmarking/pretrained_solvation_gpu.py": "d42d77372c6f3d63955b522d629ff656b5ea581932302fa6f623735f7e7f7c0d",
+        "maple/function/benchmarking/solvation_gpu.py": "9f3ad510df4b8b1fcfb5552b941668230099ffaa05c0ca127418a36e2dc2229b",
+        "maple/function/benchmarking/solvation_gpu_evidence.py": "9b1055f9754ee240a15ddbf6a9dfbe8d3f3f198fcbd4379d8c843a85b63c84dd",
+        "maple/function/calculator/aimnet/_aimnet2_calculator.py": "d3d477d97dde9693072dafe83e93295aaea62c12af2e14b98fdb4482e7709b36",
+        "maple/function/calculator/calculator_base.py": "19d3c38fe065dc0138efd4281e6e2098d6901b34f8ff5455fb65931faf4ceab1",
+        "maple/function/calculator/extra_correction/implicit/anysolv.py": "2a359de6e58aec69526c9e30c9660a5340a796e9ef3a695299c53e9ed4bb65d1",
+        "maple/function/calculator/gpu_qualification.py": "c8bb3594493d694ee9532da6c7343887f3e43365cf90b9e793322d6a8a486862",
+        "maple/function/calculator/model_capabilities.py": "f0f95c8a05c96f70e31edd11a9c06fa494d670f37944467c00aba31d1c576c86",
+        "maple/function/calculator/set_calculator.py": "bcd97d72e184bdec541cda870a1791169817db17ee5b74defef0ff09e5c4625f",
+        "maple/function/calculator/solvation_execution.py": "91beb7e3cc4e306a1be7d17e1aa7de922973a896af04008d2b4a64a751136e98"
+      },
+      "performance_contracts": {
+        "optimized": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "e16d4da7974fe768f305519ce1d7c54346d6f97c8cba8f5576d304e9990e2461"
+          },
+          "cuda_synchronized": true,
+          "fresh_inference": true,
+          "minimum_headroom_bytes": 536870912,
+          "reference": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "repetitions": 10,
+          "unit": "s",
+          "warmups": 3
+        }
+      },
+      "protocol_id": "scalar_composition/v1",
+      "required_contracts": {
+        "composite_scalar_cuda32_optimized": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "composite_scalar",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "composite_scalar_cuda32_reference": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "composite_scalar",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "correction_drift_cpu32": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "correction_drift_cuda32_optimized": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "correction_drift_cuda32_reference": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "correction_parity_cuda32_optimized": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_parity",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "correction_parity_cuda32_reference": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_parity",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "energy_drift_cpu32": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "energy_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "energy_drift_cuda32_optimized": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "energy_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "energy_drift_cuda32_reference": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "energy_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "vacuum_zero_cpu32": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "vacuum_zero_cpu64": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "vacuum_zero_cuda32_optimized": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "vacuum_zero_cuda32_reference": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        }
+      }
+    },
+    "observable_contracts": {
+      "coverage": {
+        "comparison": "equal",
+        "threshold": 0.0,
+        "unit": "count"
+      },
+      "energy": {
+        "comparison": "absolute",
+        "threshold": 0.0002,
+        "unit": "eV/atom"
+      }
+    },
+    "qualification_kind": "bounded_numerical_fp32",
+    "required_runtime_packages": [
+      "torch",
+      "cuda",
+      "e3nn",
+      "triton",
+      "fairchem_core"
+    ],
+    "status": "passed_frozen_bounded_cuda_fp32_numerical_protocol"
+  },
+  "model_id": "aimnet2-anysolv",
+  "quantity_kind": "combined_solution_energy",
+  "scope": "Only scalar AIMNet2 gas energy plus one AnySolv correction; not standalone AIMNet2 GPU qualification",
+  "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+  "version": "scalar-composition-cuda-fp32-v1"
+}

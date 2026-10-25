@@ -1,0 +1,15 @@
+{
+  "files": {
+    "consolv-cpu-float32-reference-stable-reduction-v1.json": "fd84982a3605157c2c2ffa50b9a57e845c10ddd780bb40a17f5a1af12e289fcb",
+    "consolv-cpu-float32-reference.json": "ecea6c0fa53fafdf656e937676872bb7c35f9b9bcf2501a0c87b6ffb6b11dc71",
+    "consolv-cuda-float32-optimized-stable-reduction-v1.json": "b76a63aab2987a6fb8319818e8441974f53476d8663ba1b4d762186031368051",
+    "consolv-cuda-float32-reference-stable-reduction-v1.json": "b426036acbcc43ed54e86bf8a7700050d38f9b7c3cb942d7b624510d23a6dd96",
+    "consolv-cuda-float32-reference.json": "718e3b36eb32237419c8b73803a2e985af0c5e949fd41f8efda9702150849622",
+    "pre-reduction-fd-failures.sha256": "5c6eab96492c58a046ddd1e67c43dcf616b64a151661fbde841978fabf4ef83f",
+    "probe-fp32-readout-cuda.json": "815e44aa518373bb6b561c41f6701071044397798f8bbb058a603e5249654381",
+    "probe-fp32-readout.json": "db29b12630b2e18ae53ae140f8abfe4db64d02ae37448fc6eeb94e5e86a54a8f",
+    "stable-reduction-v1-preserved.sha256": "683fb019595420e4db64b94a630279505c8f5ccf763f483abbea4e318ee3face"
+  },
+  "notes": "Includes failed same-FP32 FD audits, failed compile-shape run, and exploratory algebraic readout variants; none are admission evidence.",
+  "status": "preserved_no_retroactive_pass"
+}

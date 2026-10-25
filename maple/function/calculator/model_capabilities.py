@@ -15,6 +15,7 @@ GPU_EVIDENCE_ROOT = Path(__file__).resolve().parents[3]
 GPU_PARITY_SCHEMA_VERSION = 2
 GPU_COMPARISON_MANIFEST_SCHEMA_VERSION = 1
 GPU_PARITY_VERDICT = "pass_no_loss"
+GPU_BOUNDED_QUALIFICATION = "bounded_numerical_fp32"
 GPU_FORBIDDEN_PRECISION_CONTROLS = (
     "autocast",
     "bfloat16",
@@ -551,6 +552,7 @@ def _validate_gpu_parity_artifact(
         Mapping[str, Mapping[str, str]],
     ],
     runtime_context: Mapping[str, object],
+    qualification_kind: str = "strict_no_loss",
 ) -> None:
     try:
         payload = json.loads(artifact.read_text(encoding="utf-8"))
@@ -565,8 +567,17 @@ def _validate_gpu_parity_artifact(
             "GPU parity artifact schema_version does not match the admitted "
             f"version {GPU_PARITY_SCHEMA_VERSION}."
         )
-    if payload.get("verdict") != GPU_PARITY_VERDICT:
-        raise ValueError(f"GPU parity artifact verdict must be {GPU_PARITY_VERDICT!r}.")
+    verdict = (
+        "pass_bounded_numerical_fp32"
+        if qualification_kind == GPU_BOUNDED_QUALIFICATION
+        else GPU_PARITY_VERDICT
+    )
+    if payload.get("verdict") != verdict:
+        raise ValueError(f"GPU parity artifact verdict must be {verdict!r}.")
+    if payload.get("qualification_kind", "strict_no_loss") != qualification_kind:
+        raise ValueError(
+            "GPU parity artifact qualification kind does not match the model card."
+        )
     if _require_nonempty_parity_string(payload, "model_id").lower() != model_id:
         raise ValueError("GPU parity artifact model_id does not match the model card.")
     if _require_nonempty_parity_string(payload, "model_version") != model_version:
@@ -874,6 +885,8 @@ class GPUAccelerationPolicy:
     """Fail-closed evidence gate for CUDA/GPU execution."""
 
     no_loss_parity_verified: bool = False
+    numerical_parity_verified: bool = False
+    qualification_kind: str = "strict_no_loss"
     status: str = "unverified"
     evidence_artifact: str | None = None
     evidence_sha256: str | None = None
@@ -887,6 +900,11 @@ class GPUAccelerationPolicy:
     allowed_hardware: tuple[str, ...] = ()
     required_runtime_packages: tuple[str, ...] = ()
     observable_contracts: tuple[tuple[str, str, str, float], ...] = ()
+    numerical_qualification_json: str | None = None
+
+    @property
+    def verified(self) -> bool:
+        return self.no_loss_parity_verified or self.numerical_parity_verified
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, object]) -> "GPUAccelerationPolicy":
@@ -897,6 +915,18 @@ class GPUAccelerationPolicy:
             raise ModelCardError("Model-card gpu_acceleration must be a mapping.")
 
         verified = _strict_bool(raw, "no_loss_parity_verified", default=False)
+        numerical = _strict_bool(raw, "numerical_parity_verified", default=False)
+        qualification = str(raw.get("qualification_kind", "strict_no_loss")).strip()
+        if qualification not in {"strict_no_loss", GPU_BOUNDED_QUALIFICATION}:
+            raise ModelCardError("Unknown GPU qualification_kind.")
+        if (
+            (verified and qualification != "strict_no_loss")
+            or (numerical and qualification != GPU_BOUNDED_QUALIFICATION)
+            or (verified and numerical)
+        ):
+            raise ModelCardError(
+                "Strict no-loss and bounded numerical GPU qualifications are mutually exclusive."
+            )
         artifact = raw.get("evidence_artifact")
         sha256 = raw.get("evidence_sha256")
         artifact = str(artifact).strip() if artifact is not None else None
@@ -937,7 +967,7 @@ class GPUAccelerationPolicy:
         )
         observable_contracts = _observable_contracts(raw.get("observable_contracts"))
 
-        if verified:
+        if verified or numerical:
             if not artifact or not sha256:
                 raise ModelCardError(
                     "Verified GPU acceleration requires a parity evidence artifact "
@@ -966,6 +996,10 @@ class GPUAccelerationPolicy:
                 raise ModelCardError(
                     "Verified GPU acceleration requires a concrete compute_dtype "
                     f"from {sorted(GPU_ADMITTED_SCALAR_DTYPES)}."
+                )
+            if numerical and compute_dtype != "float32":
+                raise ModelCardError(
+                    "Bounded numerical FP32 qualification requires compute_dtype=float32."
                 )
             if matmul_precision not in GPU_ADMITTED_MATMUL_PRECISIONS:
                 raise ModelCardError(
@@ -1003,8 +1037,45 @@ class GPUAccelerationPolicy:
                     "contracts."
                 )
 
+        numerical_qualification_json = None
+        if numerical:
+            from .gpu_qualification import validate_numerical_contract
+
+            capabilities = ModelCapabilities.from_payload(payload)
+            quantity_archetypes = {
+                "geometry_level_energy_correction": "scalar_correction",
+                "combined_solution_energy": "scalar_composition",
+                "native_solution_energy": "native_energy_forces",
+            }
+            quantity_kind = payload.get("quantity_kind")
+            expected_archetype = (
+                quantity_archetypes.get(quantity_kind)
+                if isinstance(quantity_kind, str)
+                else None
+            )
+            if expected_archetype is None:
+                raise ModelCardError(
+                    "Bounded GPU qualification requires explicit quantity_kind."
+                )
+            if not capabilities.energy or capabilities.forces != (
+                expected_archetype == "native_energy_forces"
+            ):
+                raise ModelCardError("Quantity kind/capability archetype mismatch.")
+            try:
+                numerical_qualification_json = validate_numerical_contract(
+                    raw.get("numerical_qualification"),
+                    modes=allowed_modes,
+                    forces=capabilities.forces,
+                    expected_archetype=expected_archetype,
+                )
+            except ValueError as exc:
+                raise ModelCardError(str(exc)) from exc
+
         return cls(
+            numerical_qualification_json=numerical_qualification_json,
             no_loss_parity_verified=verified,
+            numerical_parity_verified=numerical,
+            qualification_kind=qualification,
             status=str(raw.get("status", "unverified")).strip() or "unverified",
             evidence_artifact=artifact,
             evidence_sha256=sha256,
@@ -1040,9 +1111,14 @@ class GPUAccelerationPolicy:
                 f"Accelerator execution for {model_id!r} requires an explicit "
                 "execution task."
             )
-        if not self.no_loss_parity_verified:
+        if not self.verified:
+            label = (
+                "no-loss"
+                if self.qualification_kind == "strict_no_loss"
+                else "bounded numerical"
+            )
             raise ValueError(
-                f"Accelerator execution for {model_id!r} is disabled: no frozen no-loss "
+                f"Accelerator execution for {model_id!r} is disabled: no frozen {label} "
                 f"CPU/GPU parity evidence is admitted ({self.status})."
             )
         if inference_mode is None or not str(inference_mode).strip():
@@ -1130,7 +1206,19 @@ class GPUAccelerationPolicy:
             manifest_observable_counts=manifest_observable_counts,
             manifest_output_sha256s=manifest_output_sha256s,
             runtime_context=runtime_context,
+            qualification_kind=self.qualification_kind,
         )
+
+        if self.qualification_kind == GPU_BOUNDED_QUALIFICATION:
+            from .gpu_qualification import validate_numerical_qualification
+
+            validate_numerical_qualification(
+                str(self.numerical_qualification_json),
+                json.loads(artifact.read_text(encoding="utf-8")).get(
+                    "numerical_qualification"
+                ),
+                evidence_root=root,
+            )
 
         normalized_task = _normalize_task_name(task)
         if normalized_task not in self.allowed_tasks:
@@ -1181,8 +1269,14 @@ class ModelCapabilities:
     def supports_energy_derived_forces(self) -> bool:
         return self.forces and self.conservative_forces
 
-    def gpu_required_observables(self) -> tuple[str, ...]:
-        required = set(GPU_STRICT_ACCURACY_CONTRACTS)
+    def gpu_required_observables(
+        self, qualification_kind: str = "strict_no_loss"
+    ) -> tuple[str, ...]:
+        required = (
+            {"coverage"}
+            if qualification_kind == GPU_BOUNDED_QUALIFICATION
+            else set(GPU_STRICT_ACCURACY_CONTRACTS)
+        )
         if self.energy:
             required.add("energy")
         if self.forces:
@@ -1446,7 +1540,7 @@ class ModelProvenanceCard:
         gpu_acceleration = GPUAccelerationPolicy.from_payload(payload)
         checkpoint_sha256s = _checkpoint_sha256s(payload)
         forbidden_tasks = _normalize_forbidden_tasks(payload.get("forbidden_tasks"))
-        if gpu_acceleration.no_loss_parity_verified:
+        if gpu_acceleration.verified:
             if not checkpoint_sha256s:
                 raise ModelCardError(
                     "Verified GPU acceleration requires at least one pinned "
@@ -1460,7 +1554,9 @@ class ModelProvenanceCard:
                     "because direct energy/force APIs remain reusable by external "
                     "drivers."
                 )
-            required_observables = capabilities.gpu_required_observables()
+            required_observables = capabilities.gpu_required_observables(
+                gpu_acceleration.qualification_kind
+            )
             contract_by_name = {
                 name: (unit, comparison, threshold)
                 for name, unit, comparison, threshold in (
@@ -1472,13 +1568,24 @@ class ModelProvenanceCard:
                     "Verified GPU acceleration observable contracts must exactly "
                     "cover every exposed quantity and scientific-accuracy gate."
                 )
-            for name, comparison in GPU_STRICT_ACCURACY_CONTRACTS.items():
+            accuracy_contracts = (
+                {"coverage": "equal"}
+                if gpu_acceleration.qualification_kind == GPU_BOUNDED_QUALIFICATION
+                else GPU_STRICT_ACCURACY_CONTRACTS
+            )
+            for name, comparison in accuracy_contracts.items():
                 _, actual_comparison, threshold = contract_by_name[name]
                 if actual_comparison != comparison or threshold != 0.0:
                     raise ModelCardError(
                         f"GPU accuracy contract {name!r} must use comparison "
                         f"{comparison!r} with zero degradation threshold."
                     )
+            if gpu_acceleration.qualification_kind == GPU_BOUNDED_QUALIFICATION:
+                for name, (_, comparison, _) in contract_by_name.items():
+                    if name != "coverage" and comparison != "absolute":
+                        raise ModelCardError(
+                            "Bounded numerical observables require absolute-error contracts."
+                        )
         return cls(
             model_id=model_id,
             version=version,
@@ -1511,7 +1618,9 @@ class ModelProvenanceCard:
             model_id=self.model_id,
             model_version=self.version,
             checkpoint_sha256s=self.checkpoint_sha256s,
-            required_observables=self.capabilities.gpu_required_observables(),
+            required_observables=self.capabilities.gpu_required_observables(
+                self.gpu_acceleration.qualification_kind
+            ),
             task=task,
             inference_mode=inference_mode,
             evidence_root=evidence_root,

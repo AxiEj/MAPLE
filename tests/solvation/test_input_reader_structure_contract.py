@@ -209,7 +209,7 @@ def test_modern_anysolv_accepts_inline_and_copies_metadata(tmp_path):
     _, result = read_input(
         tmp_path,
         "0 1\nH 0 0 0",
-        "#model=ani2x\n#sp(verbose=0)\n#solv(implicit=water,method=anysolv,experimental=true,source_root=/pinned/anysolv)",
+        "#model=ani2x\n#device=cpu\n#sp(verbose=0)\n#solv(implicit=water,method=anysolv,experimental=true,source_root=/pinned/anysolv)",
     )
     assert isinstance(result, Atoms)
     assert result.info["_maple_solvation_options"]["method"] == "anysolv"
@@ -219,7 +219,7 @@ def test_native_consolv_accepts_xyz(structure_files):
     _, result = read_input(
         structure_files,
         "0 1\nXYZ water.xyz",
-        "#model=consolv(native_solvent=water)\n#sp",
+        "#model=consolv(native_solvent=ethanol)\n#device=cpu\n#sp",
     )
     assert isinstance(result, Atoms)
     assert result.get_chemical_symbols() == ["O", "H", "H"]
@@ -318,7 +318,7 @@ def test_anysolv_multiframe_metadata_without_mol2_only_gate(structure_files, ref
     reader, result = read_input(
         structure_files,
         f"0 1\n{reference}",
-        "#model=ani2x\n#sp(verbose=0)\n#solv(implicit=toluene,method=anysolv,experimental=true,source_root=/pinned/anysolv)",
+        "#model=ani2x\n#device=cpu\n#sp(verbose=0)\n#solv(implicit=toluene,method=anysolv,experimental=true,source_root=/pinned/anysolv)",
     )
     for atoms in frames(result):
         assert (

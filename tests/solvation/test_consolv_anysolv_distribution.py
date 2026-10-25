@@ -48,7 +48,7 @@ def test_public_examples_parse_without_weights(name):
     headers = [line for line in content.splitlines() if line.startswith("#")]
     control = CommandControl.from_settings(headers)
     assert control.task == "sp"
-    assert control.get("device") == "cpu"
+    assert control.get("device") == ("cpu" if name == "gas" else "cuda:0")
     if name.startswith("consolv"):
         assert control.get("model") == "consolv"
     else:
@@ -69,3 +69,21 @@ def test_runtime_model_cards_and_registries_keep_the_same_frozen_identities():
             artifacts[model_id]["sha256"]
             == consolv["checkpoints"][model_id]["checkpoint_sha256"]
         )
+
+
+def test_gpu_source_and_evidence_dependencies_are_package_local():
+    import hashlib
+
+    for model in ("anysolv-moe", "consolv", "aimnet2-anysolv"):
+        card = json.loads(
+            (
+                ROOT / "maple/function/calculator/model_cards" / f"{model}.yaml"
+            ).read_text()
+        )
+        sources = card["gpu_acceleration"]["numerical_qualification"][
+            "implementation_source_sha256s"
+        ]
+        assert "maple/function/benchmarking/solvation_gpu_evidence.py" in sources
+        assert all(name.startswith("maple/") for name in sources)
+        for name, expected in sources.items():
+            assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected

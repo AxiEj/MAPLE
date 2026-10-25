@@ -15,3 +15,10 @@ only its location if needed. ConSolv examples print gradients. AnySolv prints
 only scalar gas/correction/combined energies. All energies use Hartree and
 gradients use Hartree/angstrom. These are fixed-geometry SP mechanics examples.
 See [domains, exact identities, and default paths](../../docs/pretrained-solvation-hub/CONSOLV_ANYSOLV.md).
+
+AnySolv and ConSolv inputs now use CUDA/FP32 by default. `#device` can be omitted;
+these examples spell it out. Optimized inference is explicit: add
+`inference=optimized` inside AnySolv's `#solv(...)` or ConSolv's `#model(...)`.
+It is signature-bound and can have a slow first compilation. See the linked
+usage document for the hardware/evidence gate and FP32 force-audit boundary.
+The standalone gas reference example keeps its own existing CPU setting.

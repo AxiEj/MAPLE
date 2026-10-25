@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from contextlib import nullcontext
 from typing import Dict, Literal
 
 import numpy as np
@@ -159,27 +160,57 @@ class AIMNet2Calculator(CalcABC):
         self.cutoff_lr = float('inf') if method == 'simple' else float(cutoff)
         self._coulomb_method = method
 
-    def calculate(self, atoms=None, properties=['energy'], system_changes=all_changes):
+    def _set_scalar_composite_execution(self, execution):
+        """Configure only the pinned AnySolv scalar composition, before use."""
+        if (
+            self.results
+            or self.atoms is not None
+            or getattr(self, "_scalar_composite_execution", None) is not None
+        ):
+            raise ValueError("Scalar-composition execution is constructor-immutable.")
+        with execution.precision_context():
+            self.model.to(dtype=execution.torch_dtype)
+            execution.check_precision(model=self.model)
+        self._scalar_composite_execution = execution
+
+    def calculate(self, atoms=None, properties=["energy"], system_changes=all_changes):
+        execution = getattr(self, "_scalar_composite_execution", None)
+        with execution.precision_context() if execution is not None else nullcontext():
+            return self._calculate_scalar(atoms, properties, system_changes, execution)
+
+    def _calculate_scalar(self, atoms, properties, system_changes, execution):
         properties = self._normalize_properties(properties)
         atoms = super().calculate(atoms, properties, system_changes)
 
-        needs_grad = ('forces' in properties or 'hessian' in properties)
+        needs_grad = "forces" in properties or "hessian" in properties
         coord = torch.tensor(
             atoms.get_positions(),
-            dtype=torch.float32,
+            dtype=execution.torch_dtype if execution is not None else torch.float32,
             device=self.device,
             requires_grad=needs_grad,
         )
         data = self._build_data(coord, atoms)
+        if execution is not None:
+            data = {
+                name: (
+                    value.to(dtype=execution.torch_dtype)
+                    if value.is_floating_point()
+                    else value
+                )
+                for name, value in data.items()
+            }
+            execution.check_precision(inputs=data, model=self.model)
 
         # Pure model energy in eV; _finalize_results handles eV→Ha + solvent.
         with torch.jit.optimized_execution(False):
             model_output = self.model(data)
-        energy_eV = model_output['energy'].sum()
+        energy_eV = model_output["energy"].sum()
+        if execution is not None:
+            execution.check_precision(inputs=data, model=self.model)
 
-        if 'forces' in properties:
+        if "forces" in properties:
             grad_full = torch.autograd.grad(
-                energy_eV, data['coord'], create_graph=('hessian' in properties)
+                energy_eV, data["coord"], create_graph=("hessian" in properties)
             )[0]
             forces_eV = -grad_full[: coord.shape[0]]
             forces_np = forces_eV.detach().cpu().numpy()
@@ -187,10 +218,10 @@ class AIMNet2Calculator(CalcABC):
             forces_np = None
 
         hessian = None
-        if 'hessian' in properties:
+        if "hessian" in properties:
             if self.solvent_correction is not None:
                 raise NotImplementedError(
-                    'Hessian calculation with implicit solvent is not implemented yet.'
+                    "Hessian calculation with implicit solvent is not implemented yet."
                 )
             hessian = self.get_hessian(atoms)
 

@@ -57,7 +57,7 @@ def test_torch_units_solvent_index_and_metadata(fake_checkpoint):
     assert calculator.results["forces"] == pytest.approx(np.ones((2, 3)) * EV2HARTREE)
     assert model.calls[0][2:] == (19, True)
     assert calculator.results["model_metadata"]["runtime"] == "pure_torch"
-    assert calculator.results["model_metadata"]["compute_dtype"] == "float64"
+    assert calculator.results["model_metadata"]["compute_dtype"] == "float32"
 
 
 def test_energy_request_does_not_compute_or_expose_forces(fake_checkpoint):
@@ -98,7 +98,6 @@ def test_attached_correction_rejected_before_computing_or_reusing_cache(
         ({"native_solvent": "water"}, "frozen 66"),
         ({"native_solvent": "unknown"}, "frozen 66"),
         ({"execution_task": "opt"}, "explicitly forbids"),
-        ({"device": "cuda"}, "no frozen no-loss"),
     ],
 )
 def test_composition_solvent_task_and_device_fail_closed(
@@ -163,6 +162,8 @@ def test_constructor_configuration_is_read_only(fake_checkpoint):
     )
     expected = {
         "device": "cuda",
+        "dtype": "float64",
+        "inference": "optimized",
         "native_solvent": "toluene",
         "solvent_index": 45,
         "model_path": path.with_name("other.pt"),
@@ -280,9 +281,185 @@ def test_real_checkpoint_direct_calculator_two_solvents():
     )
     energies = []
     for solvent in ("ethanol", "toluene"):
-        calculator = ConSolvCalculator(device="cpu", native_solvent=solvent)
+        calculator = ConSolvCalculator(
+            device="cpu", dtype="float64", native_solvent=solvent
+        )
         calculator.calculate(atoms, properties=("energy", "forces"))
         assert np.isfinite(calculator.results["energy"])
         assert np.isfinite(calculator.results["forces"]).all()
         energies.append(calculator.results["energy"])
     assert energies[0] != energies[1]
+
+
+@pytest.mark.parametrize("dtype", ["float32", "float64"])
+def test_cpu_execution_dtype_and_loader_propagation(
+    fake_checkpoint, monkeypatch, dtype
+):
+    path, model = fake_checkpoint
+    received = {}
+
+    def load(*args, **kwargs):
+        received.update(kwargs)
+        return model
+
+    monkeypatch.setattr(module, "load_consolv_torch_checkpoint", load)
+    calculator = ConSolvCalculator(
+        device="cpu", dtype=dtype, native_solvent="ethanol", model_path=path
+    )
+    calculator.calculate(_atoms(), properties=("energy", "forces"))
+    assert received == {
+        "device": "cpu",
+        "dtype": getattr(torch, dtype),
+        "inference": "reference",
+        "expected_state": "solution",
+    }
+    assert model.calls[0][0].device.type == "cpu"
+    assert model.calls[0][1].dtype == getattr(torch, dtype)
+    assert calculator.dtype == dtype
+    assert calculator.inference == "reference"
+    assert calculator.provenance["device"] == "cpu"
+    assert calculator.provenance["compilation_active"] is False
+
+
+@pytest.mark.parametrize(
+    "controls",
+    [
+        {"device": "mps"},
+        {"device": "cpu", "dtype": "float16"},
+        {"device": "cpu", "inference": "fast"},
+        {"device": "cpu", "inference": "optimized"},
+    ],
+)
+def test_invalid_execution_fails_before_card_or_checkpoint_access(
+    monkeypatch, controls
+):
+    monkeypatch.setattr(module, "_load_card", lambda: pytest.fail("card accessed"))
+    with pytest.raises(ValueError):
+        ConSolvCalculator(native_solvent="ethanol", **controls)
+
+
+def test_default_cuda_unavailable_does_not_fall_back(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(module, "_load_card", lambda: pytest.fail("card accessed"))
+    with pytest.raises(ValueError, match="unavailable.*fallback"):
+        ConSolvCalculator(native_solvent="ethanol")
+
+
+def test_cuda_constructor_validates_card_before_checkpoint_load(monkeypatch):
+    from maple.function.calculator.solvation_execution import SolvationExecution
+    from maple.function.calculator.model_capabilities import ModelProvenanceCard
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(SolvationExecution, "runtime_context", lambda _: {})
+    payload = json.loads(module.CONSOLV_CARD.read_text())
+    payload["gpu_acceleration"] = {"no_loss_parity_verified": False}
+    pending = ModelProvenanceCard.from_payload(payload, model_name="consolv")
+    monkeypatch.setattr(module, "_load_card", lambda: (payload, pending))
+    monkeypatch.setattr(module, "_sha256", lambda _: pytest.fail("checkpoint accessed"))
+    with pytest.raises(ValueError, match="no frozen|evidence|qualification"):
+        ConSolvCalculator(native_solvent="ethanol")
+
+
+def test_build_kwargs_propagates_execution_options():
+    kwargs = ConSolvCalculator.build_kwargs_from_options(
+        "consolv",
+        {"native_solvent": "ethanol", "dtype": "float64", "inference": "reference"},
+    )
+    assert kwargs == {
+        "native_solvent": "ethanol",
+        "dtype": "float64",
+        "inference": "reference",
+    }
+
+
+@pytest.mark.parametrize("device,expected", [(None, "cuda:0"), ("cuda:1", "cuda:1")])
+def test_cuda_default_and_indexed_policy_propagation_without_gpu_workload(
+    fake_checkpoint, monkeypatch, device, expected
+):
+    from maple.function.calculator.solvation_execution import SolvationExecution
+
+    path, model = fake_checkpoint
+    policies = []
+    loads = []
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 2)
+    monkeypatch.setattr(
+        SolvationExecution,
+        "validate_card",
+        lambda self, card, **kwargs: policies.append(self),
+    )
+    monkeypatch.setattr(
+        module,
+        "load_consolv_torch_checkpoint",
+        lambda *args, **kwargs: loads.append(kwargs) or model,
+    )
+    kwargs = {} if device is None else {"device": device}
+    calculator = ConSolvCalculator(native_solvent="ethanol", model_path=path, **kwargs)
+    assert calculator.device == expected
+    assert calculator.dtype == "float32"
+    assert calculator.inference == "reference"
+    assert policies[0].device == expected
+    assert loads[0]["device"] == expected
+    assert loads[0]["dtype"] is torch.float32
+
+
+@pytest.mark.parametrize("device", [None, "none"])
+def test_missing_literal_device_does_not_select_cpu_or_default_cuda(device, monkeypatch):
+    monkeypatch.setattr(module, "_load_card", lambda: pytest.fail("card accessed"))
+    with pytest.raises(ValueError, match="explicit CPU or CUDA"):
+        ConSolvCalculator(device=device, native_solvent="ethanol")
+
+
+@pytest.mark.parametrize("forces", [False, True])
+@pytest.mark.parametrize("failure", [False, True])
+def test_fresh_inference_owns_precision_through_energy_and_ad_and_restores(
+    fake_checkpoint, monkeypatch, forces, failure
+):
+    from maple.function.calculator import solvation_execution
+
+    path, model = fake_checkpoint
+    calculator = ConSolvCalculator(device="cpu", native_solvent="ethanol", model_path=path)
+    monkeypatch.setattr(solvation_execution.metadata, "version", lambda _: pytest.fail("version lookup"))
+    monkeypatch.setattr(solvation_execution.SolvationExecution, "runtime_context", lambda _: pytest.fail("full fingerprint"))
+    checks = []
+    original = solvation_execution.SolvationExecution.check_precision
+
+    def checked(self, **kwargs):
+        checks.append(kwargs)
+        return original(self, **kwargs)
+
+    monkeypatch.setattr(solvation_execution.SolvationExecution, "check_precision", checked)
+
+    def evaluate(numbers, positions, index):
+        assert not torch.is_autocast_enabled("cpu")
+        assert torch.get_float32_matmul_precision() == "highest"
+        assert not torch.backends.cuda.matmul.allow_tf32
+        assert not torch.backends.cudnn.allow_tf32
+        assert positions.dtype is torch.float32
+        if failure:
+            raise RuntimeError("AD/model failure")
+        # Exercise real CPU autograd while the context is active.
+        r = positions.detach().clone().requires_grad_(True)
+        e = r.square().sum()
+        if forces:
+            return e, -torch.autograd.grad(e, r)[0]
+        return e
+
+    monkeypatch.setattr(model, "energy_and_forces_ev" if forces else "energy_ev", evaluate)
+    monkeypatch.setattr(torch.backends.cudnn, "allow_tf32", True)
+    before = (torch.get_float32_matmul_precision(), torch.backends.cuda.matmul.allow_tf32,
+              torch.backends.cudnn.allow_tf32)
+    properties = ("energy", "forces") if forces else ("energy",)
+    with torch.autocast("cpu", dtype=torch.bfloat16):
+        for _ in range(2):
+            if failure:
+                with pytest.raises(RuntimeError, match="AD/model failure"):
+                    calculator.calculate(_atoms(), properties=properties)
+            else:
+                calculator.calculate(_atoms(), properties=properties)
+            assert torch.is_autocast_enabled("cpu")
+            assert (torch.get_float32_matmul_precision(), torch.backends.cuda.matmul.allow_tf32,
+                    torch.backends.cudnn.allow_tf32) == before
+    assert len(checks) >= 2
+    assert all(check["model"] is model for check in checks)

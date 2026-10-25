@@ -1,0 +1,83 @@
+{
+  "checkpoint_sha256s": [
+    "1ceebcd6288d08a507b85dc6d062dbfc8531ba61b578101e5f7b2b4240077021",
+    "534114cd0a45d97308eb28506ccfe731df143ae5fb0c6d611b6c6c0cb1656767",
+    "6b0d6a9125da4cc8d17e506b561b133d74f05cbda510448f5d3d19ffc6bd3044",
+    "6ef9f20b5d5d2ef609d492d9a04c6d8af9c2057fe35ab8d574698db0cb089988",
+    "d0369560cd34312604d8f4df3a002c7544c8867236ce50a6808c75794a5195f0"
+  ],
+  "comparison_manifest_id": "consolv-cuda-fp32-public-ase-v1",
+  "model_id": "consolv",
+  "model_version": "consolv-torch-v1 from source 06801dd5",
+  "observable_counts": {
+    "coverage": 10,
+    "energy": 24,
+    "forces": 468,
+    "trajectory_or_sampled_observables": 720
+  },
+  "records": [
+    {
+      "configuration_sha256": "5779d2094d3e4fc846f3bc16531e6d8a94bf1fbf03d83b6730df00169897e713",
+      "observable_output_sha256s": {
+        "coverage": {
+          "accelerator": "aefa074d420eff0ed4dadae58bc3029c5b980dc3ea9f2334de9159411a79bec4",
+          "reference": "d82441d952ce31f61b68e19f2731b4fdf1a62d35818f88f02edee3a54f73e4b2"
+        },
+        "energy": {
+          "accelerator": "0a0095e273287d2f4db94ed336ee2eb97282b6def8f9d42e6bcdd85515767006",
+          "reference": "2b7a6c2f67f9a4b40b99a36f24f933fe62a759bd16494dbd6812d3ee4ba1c39c"
+        },
+        "forces": {
+          "accelerator": "c3aecfe3b3a89672e0f87ae8f7eaf6707d4af217fa2f28fe1a1e932248ae2e41",
+          "reference": "53126ec7720aba5f5c296da9ca288a71a20d5b20ff7a34201ad6a564011fcd3f"
+        },
+        "trajectory_or_sampled_observables": {
+          "accelerator": "15d28b0e9cfa6482ef4bf833dd693cc9cf53f2df1f01f9b286f0a29602f214b6",
+          "reference": "d910a1417b870e0ee6cf9403aa74c3e1fed3207d307b26e18f88312849f15853"
+        }
+      },
+      "panel_id": "frozen-ase-six-v2",
+      "record_id": "optimized:consolv:frozen-public-panel-v2",
+      "reference_sha256": "d6d6c9654103017eb1b93db71046b441ee7a0e9213ddfe7560ac7631adeb2c1a"
+    },
+    {
+      "configuration_sha256": "3c4494200870baf56ff10f0bcd2ebf3b7b4632373df1b6973a6ef8dfb3d8e3f1",
+      "observable_output_sha256s": {
+        "coverage": {
+          "accelerator": "05083ea1ebdf7158d81b80d7b1b86d6f6b2b514b16aff873ed1adf9fc7446e54",
+          "reference": "8257cdf528128874a74e65f5824af5f1b2cdd47d525deccae5a4b6099391f52f"
+        },
+        "energy": {
+          "accelerator": "10ab2fd5b320623e44f85aeede97314c92510c03ce1043ff5f03e27c0b8ef865",
+          "reference": "8d856f2fb2b377142e682225c0504dee2891f87a278915822e0215273a15b9e1"
+        },
+        "forces": {
+          "accelerator": "cbd46ba227899a2198dad695eae29cacca52aa4f2442ea5f7cb1ddd4575cdf9c",
+          "reference": "aa0e16d9ec284681bcff447b2cbbfe8a765daa06c87f9ba2b6aac115daafb198"
+        },
+        "trajectory_or_sampled_observables": {
+          "accelerator": "bf44f007f177edfaa9147ca114f565e0cc534cba8f41a1e8acb95fbcebe5307d",
+          "reference": "61be6dd6c28497abdd69e55cd328dca99e854d7f21c5b62b9a5650f9e76feb4c"
+        }
+      },
+      "panel_id": "frozen-ase-six-v2",
+      "record_id": "reference:consolv:frozen-public-panel-v2",
+      "reference_sha256": "d6d6c9654103017eb1b93db71046b441ee7a0e9213ddfe7560ac7631adeb2c1a"
+    }
+  ],
+  "schema_version": 1,
+  "task_modes": [
+    "irc:optimized",
+    "irc:reference",
+    "md:optimized",
+    "md:reference",
+    "opt:optimized",
+    "opt:reference",
+    "scan:optimized",
+    "scan:reference",
+    "sp:optimized",
+    "sp:reference",
+    "ts:optimized",
+    "ts:reference"
+  ]
+}

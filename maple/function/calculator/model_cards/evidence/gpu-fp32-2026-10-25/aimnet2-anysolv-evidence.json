@@ -1,0 +1,2864 @@
+{
+  "allowed_inference_modes": [
+    "optimized",
+    "reference"
+  ],
+  "allowed_tasks": [
+    "sp"
+  ],
+  "checkpoint_sha256s": [
+    "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+    "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  ],
+  "comparison_manifest_id": "aimnet2-anysolv-cuda-fp32-public-ase-v1",
+  "comparison_manifest_sha256": "0687bc5d5dbc3ac239bbfcdba3102654a9d10d6f3e869333e5e11803eca65645",
+  "force_reference": null,
+  "model_id": "aimnet2-anysolv",
+  "model_version": "scalar-composition-cuda-fp32-v1",
+  "numerical_qualification": {
+    "comparisons": {
+      "composite_scalar_cuda32_optimized": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "composite_scalar",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "observed_maximum": 8.97028940016753e-09,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "9ed9466c6f92223a052a6dc41a930d97a9e879d57baf28c6a5e361eea90564f2",
+            "accelerator_values": -693.7871678811983,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "b9fc830aaa7ed30f7e022760de70e8b0122408068814288ee5c73f6bab4bff68",
+            "reference_values": -693.7871678754574
+          },
+          {
+            "accelerator_sha256": "3b790c8119e002bf7ba28ee39aff52b04cbaed8039326b5664e3e08255cbb52a",
+            "accelerator_values": -693.7873767767227,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "717d000009183b9a7a402f85932cc9fbc8efe025763cec61b2754aaeb1ff7427",
+            "reference_values": -693.7873767767227
+          },
+          {
+            "accelerator_sha256": "5e8d76e0fd76b5c4e88da437488cd7d1d58480c80e9d257a892cabf7c116336f",
+            "accelerator_values": -693.7233359068159,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "37924a3e4e678e57176955e1d4f66fb4673aaf676c3647bec31c8ede5d72fd29",
+            "reference_values": -693.7233359068159
+          },
+          {
+            "accelerator_sha256": "f2cbefd82dcaaa520796361ca4a438f6809257cf3b74575213ff42bf079ad50e",
+            "accelerator_values": -220.58736099463576,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "869d948f0da31659569e107433c68bb307ea4edab47e38d7cb278d6a656311d3",
+            "reference_values": -220.58736099693215
+          },
+          {
+            "accelerator_sha256": "20056706d26535afcfd5a07498519f0453cd97ae7b1b62fb20b2a5baa2971acf",
+            "accelerator_values": -220.6017592690624,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "a970a0086ed6b3d538745f7af5b91dd785a3829ef4fae7edfaffb2afb40f4ca4",
+            "reference_values": -220.60175927049767
+          },
+          {
+            "accelerator_sha256": "b2e893997f5a6079830a2abf15b1a1dbb9cf6964fc16f267877c971fd57fc5b9",
+            "accelerator_values": -220.6045347158337,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "54a38e19767046bc5ff37249c857d0d2ea7d7974222619ff5a2ff05449155013",
+            "reference_values": -220.60453471009268
+          },
+          {
+            "accelerator_sha256": "78bb33e542a8a5d96f1483be1af3507c2e3d92ecf723ed57ea3bb8bd9f4a599a",
+            "accelerator_values": -385.0506617049563,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "469786dd87553c2ba0b7f4d67c0c4166067cf355b930d5eaeeaa7ecf0b850278",
+            "reference_values": -385.050661707468
+          },
+          {
+            "accelerator_sha256": "208d46c5119145f51977a5a4319de3085ce17eb131f2643b5d0865f751da3e8c",
+            "accelerator_values": -385.0560701784351,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "c2e570c5bcf0db2914db203bde1886226f0453375b84940a72b6f31659dd13c3",
+            "reference_values": -385.05607017054126
+          },
+          {
+            "accelerator_sha256": "06215470eedb158d18aa80a4832fac08d915abd5e57fbcc5c6d9457d5516772b",
+            "accelerator_values": -385.0301561637033,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "19a53edb459af5b2b4add49b89f04a08253731924c114cebe4271f5a2ba574a0",
+            "reference_values": -385.03015617267357
+          },
+          {
+            "accelerator_sha256": "35d6c3cf631e467a6ba8b097e92c697e09a5a715d1f05fbcb3279dfa58b497f3",
+            "accelerator_values": -525.1897335842995,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "80c915e581a416f37a19125499ad3c2c453cae1349a286d9020bf6f5c3beafd3",
+            "reference_values": -525.1897335857348
+          },
+          {
+            "accelerator_sha256": "513d06a8c63e6c5e14cf7f91b984cc90ab5ddd2b8cfbaea46c1279f3b1adfe0d",
+            "accelerator_values": -525.1949813480655,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "fc1271f53c8ff02a958c31fb9ed19b38487f722b0c12d86041f63535d5a82d7e",
+            "reference_values": -525.1949813487831
+          },
+          {
+            "accelerator_sha256": "19f61cc8f82ac659a998f413ec975b72a9cfc34cff2b7dccc53ab1d2a9df87bf",
+            "accelerator_values": -525.1747531759733,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "6bf281dd420c9c66f972291243ecadf06dc1bf69c7e482511022916501906415",
+            "reference_values": -525.1747531728635
+          },
+          {
+            "accelerator_sha256": "874c8f9ae1a08a133379ae85dc27bb6c69da8e7ee02f7fed6ff443925c40f69a",
+            "accelerator_values": -469.0834039164244,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "f524239c7039eb43009c67fb23b3916f8862ba9420f2d74ccf026d0d754f93f9",
+            "reference_values": -469.0834039113212
+          },
+          {
+            "accelerator_sha256": "ef4f8a3f493c2888d1fe64685b4f9f236ed750ae95dcca5c320a83191ba0e7eb",
+            "accelerator_values": -469.09141821142595,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "309850cc24569770e8fef222f8c9f2d6cdc7584dd2332599fe4a26c40cffa098",
+            "reference_values": -469.0914182085555
+          },
+          {
+            "accelerator_sha256": "c077f453ae2398d87e0cce7e5f165481f616cebfffc6ef75c1f1bfe031532725",
+            "accelerator_values": -469.07847352293095,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "06344c222d8ea53ac336bdc3fd2dc09209a291b442d04495b660a25b224354f3",
+            "reference_values": -469.07847352277145
+          },
+          {
+            "accelerator_sha256": "d0553d7e6f7c965745dd381726ea6cdc37e903fcce24fbc304fa85b3b3c037a6",
+            "accelerator_values": -527.0146660890308,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "7bf2a8987b89ba336dfda1bb26c91629dcb0e7c31dfe68ba31b09f61ffc37a66",
+            "reference_values": -527.0146660913032
+          },
+          {
+            "accelerator_sha256": "5db8ecf239173709bdbf72dc9a25b51c671f91f539ea38e3f450b309fc3ac8fd",
+            "accelerator_values": -527.0276087473279,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "eb3efa533b8e71db21cc9bce6b79a9cb4dd12de99f21b28a5e072a58ffd87f94",
+            "reference_values": -527.0276087497201
+          },
+          {
+            "accelerator_sha256": "3a808b403f27e540c93abdd0473c7084790d33f792cd41b606f7c995a852c881",
+            "accelerator_values": -527.0305773822962,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "a512cdfe7aebf709226bb32610c43e72ba77e6a59b1f3a9dc62d05f74c768bf8",
+            "reference_values": -527.0305773842099
+          }
+        ],
+        "passed": true
+      },
+      "composite_scalar_cuda32_reference": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "composite_scalar",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "observed_maximum": 8.25264123704983e-09,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "271447316ae3561192d41b89d7c8855049d275ff24f01e3ca000c910e60fe528",
+            "accelerator_values": -693.7871678811983,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "8d186fa69dadfd0290d2f1dc99d4da5e19d7d500fe181351fe9c8b02b507a5ea",
+            "reference_values": -693.7871678754574
+          },
+          {
+            "accelerator_sha256": "25106a5b30ffa5e9afc935d9bb482fbff41d7aefa9c1866240c04445c764e20b",
+            "accelerator_values": -693.787376769068,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "c48e06bc666f03738cdd7050d448f3e99fcfa96d6a04f25a37b69d342263433e",
+            "reference_values": -693.7873767767227
+          },
+          {
+            "accelerator_sha256": "1102da3b35e803fc23ee21755a2dde830338767290b2a886e85ff6cc5de9f9d4",
+            "accelerator_values": -693.7233359049022,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "9072429891d07512b56a81c86752b5298ce6cb8175a987ef6ce68a8b637d9e5b",
+            "reference_values": -693.7233359068159
+          },
+          {
+            "accelerator_sha256": "75065399d6bbb66bbe14a56e0b71a3594bbf74126d8f010ca44ad8d805af34cf",
+            "accelerator_values": -220.58736099463576,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "45a25b32ac9d502a77172a349110514f5e9534f1a4e448a140b93a43f6821ad2",
+            "reference_values": -220.58736099693215
+          },
+          {
+            "accelerator_sha256": "5f66874f9ac2e754a755a9799ea210b7b4a0bc4146807e2a017ed4ae6da2443d",
+            "accelerator_values": -220.60175927078473,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "406c5d3728596e987c908ec832bb775079a6c1c79029f72e0c077d4abfe3203a",
+            "reference_values": -220.60175927049767
+          },
+          {
+            "accelerator_sha256": "5e5d7a71cf383a32b8a5ee3a66ddf8de5f0fc50bed6528a0fecd00156490ed79",
+            "accelerator_values": -220.60453471554666,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "a66e82c4f7d922e7acdcd139dbc6764eabe65f26003122432b7780788b3927c3",
+            "reference_values": -220.60453471009268
+          },
+          {
+            "accelerator_sha256": "d07027d08ed7bd1766c4d635f471e37db3129cc5335639af44c2323e3c61bf98",
+            "accelerator_values": -385.05066170710916,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "6c4dffd6c9a4394f2ea6fd7af1e9b4a488d54f1b3e3f43349234c63064b46841",
+            "reference_values": -385.050661707468
+          },
+          {
+            "accelerator_sha256": "78fae9e4b4ce9410603b9b176384491afe74b48c9043540cd9bb76869b4a2b2f",
+            "accelerator_values": -385.056070174847,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "c1c2ff2416ecb998ff9d27f512d36896c1f91511e1d9343af75fd357c41e5174",
+            "reference_values": -385.05607017054126
+          },
+          {
+            "accelerator_sha256": "b1779d3bdae60a3eff64eb8858f506765e6b0db5cc453d01303162322737b3dd",
+            "accelerator_values": -385.03015616442093,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "383fc690c8d93d5a6bda04800cefe3ab1fa2690f3270d5a39daf857d8a9ddb94",
+            "reference_values": -385.03015617267357
+          },
+          {
+            "accelerator_sha256": "5e297641034e6ab23626d62a72227c9fc720272c8a15f54fe86e0198bcb08970",
+            "accelerator_values": -525.1897335840603,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "67145fa7bbd13987238c794b1b113e58b0f82ceb30c23e10cedc970bfa2f1a4e",
+            "reference_values": -525.1897335857348
+          },
+          {
+            "accelerator_sha256": "9d934e12d96981b1f79819031333d365ae13a4e643c8a638d0f91cb86adf04d0",
+            "accelerator_values": -525.1949813475871,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "f01243b3773234e12c5b8eb99447e50f426bb24b01f16b5bcc23a50330428d05",
+            "reference_values": -525.1949813487831
+          },
+          {
+            "accelerator_sha256": "6fdd9788d03e30b41b9dbf7dc11ff3b249ed22cff21f00ef3bf2e76073673a4c",
+            "accelerator_values": -525.174753173581,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "548dd3ecc39bbe485cc2b090cab1f62e1199eeabcbba5e0919cf64a470e7eb03",
+            "reference_values": -525.1747531728635
+          },
+          {
+            "accelerator_sha256": "6a23e3272fb55ef73af78a29f690fdcd2646c82823e63fa86c0cc5cb2a0f7a03",
+            "accelerator_values": -469.08340391339436,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "b32f2b56e0415e7b1a526d7275c465bad03544e6b1acdf5c0b283e4a6b8a5bb6",
+            "reference_values": -469.0834039113212
+          },
+          {
+            "accelerator_sha256": "f7c03bee4132a4966af94b22780676c3ab8d56fd4e1e1151c15c9f0eeb97fe5b",
+            "accelerator_values": -469.0914182122233,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "df1175c5fa37b75b260e286c9d1cc1cb13143e423664af795c31a35877e403fb",
+            "reference_values": -469.0914182085555
+          },
+          {
+            "accelerator_sha256": "171894387b8caad16e03002a4fbe9ef9461e3fdcc8329b508c70ceb94f961de5",
+            "accelerator_values": -469.07847352324984,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "dcac826fb94bf3a4763ee53c9fc23a16a8854c2b653581cc6f1ec9e9af8c08aa",
+            "reference_values": -469.07847352277145
+          },
+          {
+            "accelerator_sha256": "d4ed62d94300a7457cca3fc7320ad6104237aa99b54d9e9a48132431fd21c15e",
+            "accelerator_values": -527.0146660908248,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "f1f5cb814d46c3b673edd5ea418825e045e9dfdf92836f437a97b2a186ab6882",
+            "reference_values": -527.0146660913032
+          },
+          {
+            "accelerator_sha256": "5c5745e3f893023a022e24847c3ad6f0276d1118467febc9dd4ddeb3ef21fead",
+            "accelerator_values": -527.0276087494809,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "4233cb034d6c37d704f6af25f4c394b4eb4dd649b4a740f7a3fdcfc4ea90e775",
+            "reference_values": -527.0276087497201
+          },
+          {
+            "accelerator_sha256": "f8829553b56a7107797cb84500a968ee14ff24cace94c8283f01b6b48a8f1791",
+            "accelerator_values": -527.0305773827746,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "a51ea03dc851be6bc4316217078e64e752222eb874100a79949002717e5ce87e",
+            "reference_values": -527.0305773842099
+          }
+        ],
+        "passed": true
+      },
+      "correction_drift_cpu32": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "observed_maximum": 3.857720293209965e-08,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "1c40f49e43e217c54e7d9504bf34b57eb63d100efa1fb64e8d17fdaec0e30556",
+            "accelerator_values": -0.3204880013721362,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "84786bd3fb37bd34a46bcefa8aa5422a288e799200fbd0d568f306b3cb4e83d4",
+            "reference_values": -0.32048802789378705
+          },
+          {
+            "accelerator_sha256": "7627157c653e6d9f1158c4ffb1630e690a40f7e1520491ca20c26d7378843ffb",
+            "accelerator_values": -0.32111470516802243,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "e818bb5111b40a372a9abe0432d337f7af421ce725b5f36cca85e455d9a62a7f",
+            "reference_values": -0.3211147277800077
+          },
+          {
+            "accelerator_sha256": "af4cbd15570d441c18293dabeb9aae953122e033def947d0ae9100006fc07e2d",
+            "accelerator_values": -0.12899209544757473,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "17318fec549f47aacc995671f7c5209d8887ca68cee21662d08eff8135e46667",
+            "reference_values": -0.12899208261578576
+          },
+          {
+            "accelerator_sha256": "816db472f1ab0d2869a8a31795226f6e4da9e00ec0e990ce811e6f7c5d30aa4f",
+            "accelerator_values": 0.0922477497141595,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "79924d1a656a6189c8bc88d9524119524a410b626394b3eeda3f8b92c6a30c62",
+            "reference_values": 0.09224778829136243
+          },
+          {
+            "accelerator_sha256": "ce1bc0a6d1f8eba190f2502459f40ca9a8ae71b5ac4124b0d58ce5be7eda7e71",
+            "accelerator_values": 0.020256381886662258,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "1552a349beb4fb82a6fd95a68bc48a0054d9173c87ef4c2f421de244b5bd8ee9",
+            "reference_values": 0.020256415447473967
+          },
+          {
+            "accelerator_sha256": "207f4450e7acb583c427e47f32df99e717b93e72ad4bd36e48a5b6ddecb5c348",
+            "accelerator_values": 0.006379183911472803,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "ecd82e0699d2cbdb61ae9ccd61c4da0bbcd967046700cd63ab27cbba73f686ff",
+            "reference_values": 0.006379181270575002
+          },
+          {
+            "accelerator_sha256": "53b0cb91471070e10bda661804bddc5a9dfa0a775fa661ffb6237b2a03920f40",
+            "accelerator_values": -0.14539585330945956,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "9bf87296ab6f1c1a6aca6c1bc8034b5b2788705a6676d3fa2aa80ab1f99b7190",
+            "reference_values": -0.1453958561353801
+          },
+          {
+            "accelerator_sha256": "72a88bb037e1534fa02d3c10ca9169b21cf3e9985586517574f6501c9a434d34",
+            "accelerator_values": -0.16702970560248448,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "872b1c7de94590551e65fdb9e719fc95c5e197962de349b99e704527b583b04a",
+            "reference_values": -0.16702973737457005
+          },
+          {
+            "accelerator_sha256": "0f5ab3baaf9ba3465cf106329cf28dc6e183cd4f635f176ba8183c866922d427",
+            "accelerator_values": -0.06337371413181175,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "4cffdbaee7eeab6ee49eeb46a2cfcba49a8d7f56b1c84e2b5c679e6bb68980c9",
+            "reference_values": -0.0633737010363461
+          },
+          {
+            "accelerator_sha256": "f49b5d46496eec6865abf97dc8a3dec9c213647a4c0d0713a7f5ad84c637a658",
+            "accelerator_values": -0.1840558112833666,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "6ef9d1eae07219a43ffb559bde9ace2aa3aaf2161b4a30fa215f90c44c175037",
+            "reference_values": -0.1840557830141014
+          },
+          {
+            "accelerator_sha256": "9f13548ae1b70317ad140c58bbb5dafe7ac439b995c36394bca758836044fd6c",
+            "accelerator_values": -0.2155423895739792,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "15de76d37a32e6ec4df9417ebcbdb5ac412fb03769facae16134a5d635a297f4",
+            "reference_values": -0.215542369399289
+          },
+          {
+            "accelerator_sha256": "ce3b2b3742fee1788f491c0d0fcb3fd1dd1769e270bd9e12b839d4e8766bdc06",
+            "accelerator_values": -0.09417333405594436,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "a73e96d4fe6e17394d8ef0125dd16d2a6424d74043744c24fb5d4304dffffe74",
+            "reference_values": -0.09417333842788524
+          },
+          {
+            "accelerator_sha256": "7d07f0c6741e3fe7dabef33979e930455395900ab01e3386e488cb12cda7209b",
+            "accelerator_values": -0.19008832689112257,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "eab9ccc4b594f387440cc3ac1463adc475ed2351be7cf180adcf897ce2639907",
+            "reference_values": -0.19008836374227758
+          },
+          {
+            "accelerator_sha256": "0b97de90fb52b854d81b1dde285d4a850792232f5f3be44b7435d4af5966cea4",
+            "accelerator_values": -0.2622170019993487,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "2620ffca8d5f5abc0a4111887620dbdfa9f6936e50872aaaf2b874bc6e788c71",
+            "reference_values": -0.26221703173232336
+          },
+          {
+            "accelerator_sha256": "d4625eb0a7a431e5ee8c99966acd1cfe8f05771ea6359940cbd6360a6aef5854",
+            "accelerator_values": -0.14571482994329324,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "53559c10b51a2496c7e0a921de577d3bdfecccd78326764d2d307fbaa096dc4d",
+            "reference_values": -0.14571483480996433
+          },
+          {
+            "accelerator_sha256": "9388274e12d5ca175a3ce714bca76bcfe49d31f8520cb6563041ffbabfded939",
+            "accelerator_values": -0.04659856438865188,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "59eba885d5aa868988601867a9ac315c7b8520d98fb85432c1243768c30b8ad4",
+            "reference_values": -0.04659854292471415
+          },
+          {
+            "accelerator_sha256": "bc9ee0fee6b87dfb92f91879d2d7f4eb8e68af3b6173d624c0b1db0494bfc925",
+            "accelerator_values": -0.20191046539071192,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "a72fbf94d420c0fed7526f873e6e3a4259e56ead6c574b5c7a919bfe1354354a",
+            "reference_values": -0.20191046878850658
+          },
+          {
+            "accelerator_sha256": "f833b2feb3d675c000e5830fc7e4fc1a6eadcaf84ffee8e9b6e66f90d3595804",
+            "accelerator_values": -0.23753407926862866,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "f25c13cc1f8153168150ac9b6469f6a5cb117cbc647eead951a597896ddfc77d",
+            "reference_values": -0.23753408169586793
+          }
+        ],
+        "passed": true
+      },
+      "correction_drift_cuda32_optimized": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "observed_maximum": 3.2102749458751134e-08,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "48315ad6096edd10fb4deab25f13c03f788975ff0c1c79fdf4786f3b70985498",
+            "accelerator_values": -0.32048801859510906,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "671e2bb0b053f2864d0e530a2b49426858e5a9f005c8f6afe0dbdc953f33393b",
+            "reference_values": -0.32048802789378705
+          },
+          {
+            "accelerator_sha256": "2f5381140376fbf02c04374f1244d30e5f84f748c57dbc12ab2b7462954a0dd3",
+            "accelerator_values": -0.32111470516802243,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "e997d0644010dccb5a049570866c4218a8c34587d266147611945cd14ea31115",
+            "reference_values": -0.3211147277800077
+          },
+          {
+            "accelerator_sha256": "aba516287d276e2c26ad66045bee2c02a16f21d61c798a9bf0ee034ccd9f1156",
+            "accelerator_values": -0.12899209544757473,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "73e2009fae9bf2721744937032622ae59a7061de920f0094c844f4445fd29f26",
+            "reference_values": -0.12899208261578576
+          },
+          {
+            "accelerator_sha256": "cc50d9c1b078cc98e68d928aa0245a943b8e7d1f97c7041e7d349fa357be8799",
+            "accelerator_values": 0.09224776119614142,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "95d987589d5bd02867b2404fe420ae112c5fe37e6683eea9044c500e1f37e3c8",
+            "reference_values": 0.09224778829136243
+          },
+          {
+            "accelerator_sha256": "e7f0ba77c26e9b69cbe94dc8307901a4f94c51f55e40ccca571c46cc5c243300",
+            "accelerator_values": 0.020256389062900955,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "757f32bcb67badf9fb9167b2980923af4d48cdc20812a064248ac32efaa5f75c",
+            "reference_values": 0.020256415447473967
+          },
+          {
+            "accelerator_sha256": "ddbf34280870689f215ce3329b0186ae48d677425d597293a4885e7458a601fc",
+            "accelerator_values": 0.006379155206518015,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "d92736a447019d1059cfe143116e726d3470505f6c619c47eb16174e10042db9",
+            "reference_values": 0.006379181270575002
+          },
+          {
+            "accelerator_sha256": "5db05fbda695fe2abe749d83ef84a876f6760b06f5d157648f653ba231d7a93f",
+            "accelerator_values": -0.1453958432627254,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "140bf2fdb01f06e507296d526e6237809786348503e78310a7149d1b02371c81",
+            "reference_values": -0.1453958561353801
+          },
+          {
+            "accelerator_sha256": "9901a577189e7a079bc32ae97651a8907570ce4dc6d60a837a929c2a284ff2e1",
+            "accelerator_values": -0.16702973717793473,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "da9a971cfa16f5a5967decf856cb1ae4f68d782aee58c4d42deb063a685b7f4c",
+            "reference_values": -0.16702973737457005
+          },
+          {
+            "accelerator_sha256": "39527d1c616b2d13f832b11c55959b7cd72ffdd77ee3622bea486458d0bd93b3",
+            "accelerator_values": -0.06337367825061826,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "cea40c744a9e59957fecfa6c6cfeed33d8f1b07079d6eb41cc9d186efa4d900b",
+            "reference_values": -0.0633737010363461
+          },
+          {
+            "accelerator_sha256": "b775ef793e2219dfdb20b31e7d29804313471c546424c4b2b78dbaed761e808a",
+            "accelerator_values": -0.18405580267188018,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "010f87dfaa42258b758f64076aa916ed6642b78978b72e895a4b352f6b135981",
+            "reference_values": -0.1840557830141014
+          },
+          {
+            "accelerator_sha256": "08af476bfe9321d221a46f42afc06333f07d1ef38ae7b9919743ca37118dbe88",
+            "accelerator_values": -0.215542385268236,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "324e134d99f0cd951d841c75594c9bd5e0e851e2e8ee8d97df610336356de62a",
+            "reference_values": -0.215542369399289
+          },
+          {
+            "accelerator_sha256": "f9c71b92eface91e936150b8127d940c282b5f1581d6ec9334074e2354885c49",
+            "accelerator_values": -0.09417335271416497,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "70af3fc95ee456e46e8af13a7745579d5aaae614399114423a19409d5f7b1fd8",
+            "reference_values": -0.09417333842788524
+          },
+          {
+            "accelerator_sha256": "15297dff7ffb7332244d6b123d9523d466adbfebe667803e58321803f1f634ba",
+            "accelerator_values": -0.19008837281905022,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "a7ade1656b51a661cf4a3c510697875463cc1ea704fdeb8ec93fab6369ece490",
+            "reference_values": -0.19008836374227758
+          },
+          {
+            "accelerator_sha256": "1828f1ba5330aab73ed3241bcd046f60d2591429c3317e500b52cc1ca91eeb25",
+            "accelerator_values": -0.262217027833808,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "fc6c150cb54f78c84ad558bfb360aeb107badcc908b2b0b62027e8bda17f4292",
+            "reference_values": -0.26221703173232336
+          },
+          {
+            "accelerator_sha256": "0302e23396d89cb9d216694395052742d65e497c5f8df882c4ce402ee7ace0ff",
+            "accelerator_values": -0.145714831378541,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "cf7b9c39f8d8cdae98d1053b3082d509b8867990ab8f95236fbed6394e248749",
+            "reference_values": -0.14571483480996433
+          },
+          {
+            "accelerator_sha256": "41657fad61021769e119b633fc16491ad39d37c025ba378f6b561ca0e3a7fbf4",
+            "accelerator_values": -0.04659853711894483,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "c7b4d3ae4348d2ef0e1a338de350cb2315613be0f3c32fe7970d4ef5347c055b",
+            "reference_values": -0.04659854292471415
+          },
+          {
+            "accelerator_sha256": "b3cccb6372bc596825dfba9716591f91eab5e458fb0a2571529ca50906c87e8c",
+            "accelerator_values": -0.20191043668575712,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "5224600f7b31aded7224b2a3f61a5415ed53d824a593e01141e6d47c4bd1aa77",
+            "reference_values": -0.20191046878850658
+          },
+          {
+            "accelerator_sha256": "69901591bd3355307bac8b4adb1e831ecef24a8e7d07e18a99b96258a766dbc8",
+            "accelerator_values": -0.23753405630466481,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "ce2951c9b76f6af71f464a8584335dbf848bf9b995e37aab9a387489e435a0f8",
+            "reference_values": -0.23753408169586793
+          }
+        ],
+        "passed": true
+      },
+      "correction_drift_cuda32_reference": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "observed_maximum": 4.5575949070286725e-08,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "1942931b99637a1fbf895d60dbe098c43338c8542798296c2e711e829f745f0d",
+            "accelerator_values": -0.32048801859510906,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "678cc915eb998a5b8ba1ad5c26648277769d8d08d536a5505544b03ae967d920",
+            "reference_values": -0.32048802789378705
+          },
+          {
+            "accelerator_sha256": "f26f3d98de3f89e5360bd1b1bacb6924f464ae5c2081503b4d412eabaa388480",
+            "accelerator_values": -0.32111468220405864,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "0b5bcb3d33efcd3608f284c06de0737494c3e8b0a0537389ca7f3b6d6b31d235",
+            "reference_values": -0.3211147277800077
+          },
+          {
+            "accelerator_sha256": "0734d9973dd8b6f5c3a81b0785abe58750d02c037eb7f7d51d2d68227059938e",
+            "accelerator_values": -0.12899208970658377,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "50678106a2e79f5e07b81c5dc046eb781a8fe8f0f31dec758286e0be9d3aea5c",
+            "reference_values": -0.12899208261578576
+          },
+          {
+            "accelerator_sha256": "a85180b7166a8a0872d845d609649e1fbd954899f0c01a05c8c2499a03dcd458",
+            "accelerator_values": 0.09224776119614142,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "746ae5f68d470e3b562a3728cbca675708f459d82b496fc73ad085fec4fdbea3",
+            "reference_values": 0.09224778829136243
+          },
+          {
+            "accelerator_sha256": "3c38d772141d35fd4f979f7adec165ff2c554bea8f81e755b63356a4a48bfd14",
+            "accelerator_values": 0.020256380451414518,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "8e536140ff9fd2989846906acf9713f2e6a8467fe3711ca2f7dea9b66edf5297",
+            "reference_values": 0.020256415447473967
+          },
+          {
+            "accelerator_sha256": "440a19520e2e3d7c8f1887676bc559be6372ebc9ce8dbd65272d312d9f2ae0cd",
+            "accelerator_values": 0.006379156641765755,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "f26cb16302362bf447cef1efd7e41b58db3ff6bf22ebc78f9f06849557aa7554",
+            "reference_values": 0.006379181270575002
+          },
+          {
+            "accelerator_sha256": "6e91a42115020b76357eaabe04305bfbe02640926b5e1016a6f7d667b50b8b99",
+            "accelerator_values": -0.14539585187421183,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "5ba4db033e1fed7ed67fbb0b4fb9b80a258e4b7cf17a71d8bcc13e282212b785",
+            "reference_values": -0.1453958561353801
+          },
+          {
+            "accelerator_sha256": "b641dd95ca2dcfdaf503361833066a1b12120568d7778bf4560d725879fb21dc",
+            "accelerator_values": -0.16702972282545733,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "fed6a69ab9bb89f940f34035498d0c4dbb45cb7636605e5add7a3d99592ca455",
+            "reference_values": -0.16702973737457005
+          },
+          {
+            "accelerator_sha256": "4fadf33e4fe9ed3f0cfc9275c8826b22490cc4ab48eeb16966031db644c905c1",
+            "accelerator_values": -0.06337368112111375,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "70c0766ca66204432fac177a55dbb5117eb2af69b297cf7496ca9259c9db12b4",
+            "reference_values": -0.0633737010363461
+          },
+          {
+            "accelerator_sha256": "4f3ff723ec465b39f14014e46913ce9a60742c847477fd6e90121cb175396052",
+            "accelerator_values": -0.18405580123663243,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "7606a82e6707b1b9dcd3bf98c946981b4ca12c0d5d051e965f6951f510e62be1",
+            "reference_values": -0.1840557830141014
+          },
+          {
+            "accelerator_sha256": "c5f0e7a45f1cb85ca5defd2df4fef9e142dde6db051056a8bed8360f74f4b580",
+            "accelerator_values": -0.2155423823977405,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "fc1278f63cd3a39b286a3bb8d72836ab00240e38af38c5347f9376cf4b1cc418",
+            "reference_values": -0.215542369399289
+          },
+          {
+            "accelerator_sha256": "c0757dacb8df3bb0248e3d97406f5a889a13480124f0989329345222cf2da6dc",
+            "accelerator_values": -0.09417333836168758,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "bd6bb82072a22955802dd3a2625f9c0b98b25e14b03ef7028fdf676de831d85a",
+            "reference_values": -0.09417333842788524
+          },
+          {
+            "accelerator_sha256": "b120352dd7f7fae1b1500e2ec4241973989b87b2cd4d0276cc021d4d8d3a4db9",
+            "accelerator_values": -0.19008834554934317,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "1e9bed16a0b5d5b2d8783909d64cecc9f34bc113c8307abd8fbc66dfac4d4ac9",
+            "reference_values": -0.19008836374227758
+          },
+          {
+            "accelerator_sha256": "09fb75aa68bf28b1f7a273632dd0f8f5825a18efdd73e2e0213199e6d9dbf698",
+            "accelerator_values": -0.26221703501004673,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "2505c561e0dddfd2671ae3ac55ad17a26ce12b2acc92352d038cd31eca2a315f",
+            "reference_values": -0.26221703173232336
+          },
+          {
+            "accelerator_sha256": "af6b8833ab363aa12b1f06065ca9880a7b55c2b23fded992fa2ad848ae2bd3ba",
+            "accelerator_values": -0.14571483424903647,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "f5575b6dc139c18df51d0471dcf59bc727afe7566f1c846404c08b53c72aca7e",
+            "reference_values": -0.14571483480996433
+          },
+          {
+            "accelerator_sha256": "33c62dcc150e5c71593b9942bae7d67fda4046d31ebe287fe50ad7781fd31684",
+            "accelerator_values": -0.04659855864766092,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "431c4e6d98654004e9076415cd0162de51386e6499b4b43960765d02ae4dfb3b",
+            "reference_values": -0.04659854292471415
+          },
+          {
+            "accelerator_sha256": "3f3491f3c5ff3e91d5d49138567bcccd4d55cff5fc9757b0622047e6ae9e9353",
+            "accelerator_values": -0.20191046252021644,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "8afa79fa7ea839b05519dabf66a1fb7e4715cbe18f04a5f66494268e3a4b3c25",
+            "reference_values": -0.20191046878850658
+          },
+          {
+            "accelerator_sha256": "6cb09d1cd17fa4334aa9fa894c3c9d4a12cce046f35a1f07f99015992e314bed",
+            "accelerator_values": -0.23753406204565577,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "ae43c2b2f3d94e594e85cdac1818bd3da5f8ecd9e5baf82270e62870da0c925d",
+            "reference_values": -0.23753408169586793
+          }
+        ],
+        "passed": true
+      },
+      "correction_parity_cuda32_optimized": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_parity",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "observed_maximum": 4.5927927655453615e-08,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "003adac6b5c655d82aba08488c2368dcec273d51de802fb3493db8b2b650e712",
+            "accelerator_values": -0.32048801859510906,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "91ba3d0a64373748c61938dea0a36b34fc0be8c7586dc4977940bf417b562552",
+            "reference_values": -0.3204880013721362
+          },
+          {
+            "accelerator_sha256": "f756229ed77197fa39d77673865d72ec7aeff4e45f375bbc9291d4956f61818f",
+            "accelerator_values": -0.32111470516802243,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "5d5da14bf11b4ec83a72e7afe6bfd4016f6bc4acb9c05901cfbed05837932def",
+            "reference_values": -0.32111470516802243
+          },
+          {
+            "accelerator_sha256": "03cde39507798329b1edae3950b8d41e9147ec8740757e31ac424dfdf00c0d42",
+            "accelerator_values": -0.12899209544757473,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "d8411436b093cf54e28baabd50620999589872cf2527f5b86a34c23512ef15da",
+            "reference_values": -0.12899209544757473
+          },
+          {
+            "accelerator_sha256": "c00dcbc82c4a73c7badd962e1c5c6a86f7207d295bda1bc5a09d320569ec46c3",
+            "accelerator_values": 0.09224776119614142,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "7dfd307e2ca0d5d1226ba8d0cb28f25b5299ea5a9f859e490fd5d86959321223",
+            "reference_values": 0.0922477497141595
+          },
+          {
+            "accelerator_sha256": "091a4e856ede2a4c2e6fb2e49926825d8b185d4e16b1a0074dc5bbfb7646b76e",
+            "accelerator_values": 0.020256389062900955,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "b75d88ffcdbdffdd502adaf176683011351a52454da506b6fbd719c6dc65a987",
+            "reference_values": 0.020256381886662258
+          },
+          {
+            "accelerator_sha256": "288a7e24aca6134980d6881e97213b95e2345a75d934ca53e64f7223485ce135",
+            "accelerator_values": 0.006379155206518015,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "6f50e2aa299dfe0d181aa82883230cece8b7c213cefe1c9d44c9257051f4c83f",
+            "reference_values": 0.006379183911472803
+          },
+          {
+            "accelerator_sha256": "2e921076957555cafb8fafa4ca5fbd116cbdf30877424ee8e4474c844b272d2b",
+            "accelerator_values": -0.1453958432627254,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "bfde70f714c07d24cd7e539702b6f4c40a7fbdf371c84eb4dfd967f7e9306cd1",
+            "reference_values": -0.14539585330945956
+          },
+          {
+            "accelerator_sha256": "30279957a558e61f0d0e67eb06701f7a8d60cafc88b16eafa401da9096a90c4d",
+            "accelerator_values": -0.16702973717793473,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "3b597a71e5287d82ae8f43da000d85cf12a4f5052a6ea7f737ead6ee93ff9995",
+            "reference_values": -0.16702970560248448
+          },
+          {
+            "accelerator_sha256": "bacfa9837998651014d645ffc4299d7227f541f471c707f263e0d4612ad08547",
+            "accelerator_values": -0.06337367825061826,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "32daa263214e81771d4b5b72b8ebb32ea5953887db024190ab6b6eee0a86408a",
+            "reference_values": -0.06337371413181175
+          },
+          {
+            "accelerator_sha256": "782d7ac7e9a154c4530d2fc908231efb58b42860016b5df9824173daa1d8e192",
+            "accelerator_values": -0.18405580267188018,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "b4464af4d2eed18142b62b97a630d104325c7f7970252cfe916c75542537c4f0",
+            "reference_values": -0.1840558112833666
+          },
+          {
+            "accelerator_sha256": "08f5c80ef2e8c541f18daedd03c4e3d7b2bb58197fc92f63946888e8fea96aba",
+            "accelerator_values": -0.215542385268236,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "acf7b8829f960b4f3d56585b49a60ec6430777b72f315a6a374dd0d20b21948f",
+            "reference_values": -0.2155423895739792
+          },
+          {
+            "accelerator_sha256": "7bf91605e0c1aaef32fda6e5fe88498480e2fb9091f4e59260a2c317e800fcf7",
+            "accelerator_values": -0.09417335271416497,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "b43c81dc073e52811282ad7533ad5f11da2f7a0b2e9d0271c87dcc6f2bd1887c",
+            "reference_values": -0.09417333405594436
+          },
+          {
+            "accelerator_sha256": "3254d1048ffa3805f702246b2482ef981144c18ca9b2489c67f07ce8b044cb59",
+            "accelerator_values": -0.19008837281905022,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "93cab9dd32a5ab6b90f8110db49c86b371d9a0ab12dd1284ffbbdd6a66b66df9",
+            "reference_values": -0.19008832689112257
+          },
+          {
+            "accelerator_sha256": "bf7fcd4249587f032d4615ae42f7166f35d6d629a83c986b1a05c21c45d05d32",
+            "accelerator_values": -0.262217027833808,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "7c81d06152195126051f343ff5de7b34a4fdaa667d0cb010a1b0970a36bf8c0b",
+            "reference_values": -0.2622170019993487
+          },
+          {
+            "accelerator_sha256": "162d4ce8c28ffd9b35831dba16eb8a6c59ee77b7a9f6be74fd6a9437c8b90fe2",
+            "accelerator_values": -0.145714831378541,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "ed2ac734c252193577d29aa6f751d687adc319a11b250807d46f100bd82ae80e",
+            "reference_values": -0.14571482994329324
+          },
+          {
+            "accelerator_sha256": "49b7da1046acd10b9b0d051593a4a9011fde10c290ad4bb0c1322f6fa9d6debd",
+            "accelerator_values": -0.04659853711894483,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "155b6b7df2753fe8e0f5dcf40e743145742178fb5dc1f46af1f250841022cdfd",
+            "reference_values": -0.04659856438865188
+          },
+          {
+            "accelerator_sha256": "a3539732ac368d2e219148fc5c6f21627905e8e70d8c28fafce8c88195081b4c",
+            "accelerator_values": -0.20191043668575712,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "a0b9b0bf9b50c4647b0073ed75ef56d282a9e8f378473924469dfaf4c9c7e7d5",
+            "reference_values": -0.20191046539071192
+          },
+          {
+            "accelerator_sha256": "898fc6399a63503857da277fcf1383521b2f8242e22fec35af88b84b0cd6488b",
+            "accelerator_values": -0.23753405630466481,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "b0d297717f1dfd857609f947c0a3878cc8de6326bb10c0a478c01bcf27c6b03d",
+            "reference_values": -0.23753407926862866
+          }
+        ],
+        "passed": true
+      },
+      "correction_parity_cuda32_reference": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "correction_parity",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "threshold": 0.0001,
+          "unit": "eV"
+        },
+        "observed_maximum": 3.301069800842882e-08,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "de3e4552752ba65aef9c0fc7c693875da25b1025f228e7f6e9de844c5a6da8b7",
+            "accelerator_values": -0.32048801859510906,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "5937e85f9f4b253e869e7d55273d63d77dd54bb06bfa1015d0e1eeba524375de",
+            "reference_values": -0.3204880013721362
+          },
+          {
+            "accelerator_sha256": "5a4315a9af66c60bb93dc5267f6f72471414db9d0024b11fcc582c3f014931ba",
+            "accelerator_values": -0.32111468220405864,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "9ec47b846683a7353f4870866f57d9ce9169893d5b5dde8864efc8fa0dea9549",
+            "reference_values": -0.32111470516802243
+          },
+          {
+            "accelerator_sha256": "5156b2d78a5795b7586013111b4d4bb42c9b4289e6285b553cad6f85d144dabd",
+            "accelerator_values": -0.12899208970658377,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "8b8244072925eccc25a95bae4794c9016271b455ad0229ba4e342aba32f465da",
+            "reference_values": -0.12899209544757473
+          },
+          {
+            "accelerator_sha256": "b8aa11b910155e247ea79903102a069437c0ded706e3b9d727781d2729c74270",
+            "accelerator_values": 0.09224776119614142,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "fa953695b2cdd5a3073bcc29a329893c4fc2a4979204cb06f4c8ab86c87c5497",
+            "reference_values": 0.0922477497141595
+          },
+          {
+            "accelerator_sha256": "ed64773a87207efd9ecd74cfa155fb0477160ebd8394fd8bde0c62040dcc8b49",
+            "accelerator_values": 0.020256380451414518,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "2c0d4ab467a347014c0fd78ecacaf5fecd8898666c7e7b64542f7a10511b1b5c",
+            "reference_values": 0.020256381886662258
+          },
+          {
+            "accelerator_sha256": "327502851ce934c02d265d7a29b10bb19c424ab396feaf655a08507bb5e8ce87",
+            "accelerator_values": 0.006379156641765755,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "2a2a52ba85cf9be8185a4f9da8532b7c2e87ac0608d453a68fa47553a5a27b44",
+            "reference_values": 0.006379183911472803
+          },
+          {
+            "accelerator_sha256": "d0144f9e56cb61efd016de836ce6c3444719731d960f585e180c9b137f8948ce",
+            "accelerator_values": -0.14539585187421183,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "8f63358ec8e4d570cc77280344f0dc7b8abafd1c9ee3c7d1dfbfc53489d31e7c",
+            "reference_values": -0.14539585330945956
+          },
+          {
+            "accelerator_sha256": "d6871f6c71f1a04ab4080933f2c965f5f31e59cbd939e5086a98a5d4ea072c1d",
+            "accelerator_values": -0.16702972282545733,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "bfc0d300808dca2e57c96e0b76c01a7c4c316a4f57d4c5d19f4a4911855d8a8f",
+            "reference_values": -0.16702970560248448
+          },
+          {
+            "accelerator_sha256": "0466b18daf7b5991267e020a4432adb4b3f1ac1459ae96f46e09f33ebf3b246b",
+            "accelerator_values": -0.06337368112111375,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "bc396442cc79ccc1d5910a45cda63354611b67c6dfded640acfb101b89a6cef4",
+            "reference_values": -0.06337371413181175
+          },
+          {
+            "accelerator_sha256": "1840f5c6782df0d6846c5d3fa401007220498eb213ac36923607d9c0005e61e8",
+            "accelerator_values": -0.18405580123663243,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "b076257919ccc6e394c77e2b597a1ff1f906996c7cf5485e48dd0fa2b541a0f5",
+            "reference_values": -0.1840558112833666
+          },
+          {
+            "accelerator_sha256": "e25b68364b94bf964bc885b7acda2d52ff29d58bf5409efc0de22db0a42434f3",
+            "accelerator_values": -0.2155423823977405,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "68025b08b61e4197e7226886ea9a9f2a5895e6e3bf5371505221c181905b300d",
+            "reference_values": -0.2155423895739792
+          },
+          {
+            "accelerator_sha256": "e621131f4ce9cad136c1847ec429b5ed0d04fb43726de4eae569907a710af5c5",
+            "accelerator_values": -0.09417333836168758,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "43e0d5980f16287ef03224bcc92d0479ef9d73369c3b3df1ace7961ef7fe2d39",
+            "reference_values": -0.09417333405594436
+          },
+          {
+            "accelerator_sha256": "d02da058d2283d3986ee796436ce70c48f822166489850a2951f482ec15cfb37",
+            "accelerator_values": -0.19008834554934317,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "c36f56d2f29d27c7d78af04be6e0040b91e9d3f1dd2ab6f06873f2b26f51b8e5",
+            "reference_values": -0.19008832689112257
+          },
+          {
+            "accelerator_sha256": "062d0db806ceb3a864bebe5f2b85a324019a28674339e3caf60280d0664f0527",
+            "accelerator_values": -0.26221703501004673,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "7e2e109408a10be3c74e848be7d3ebc4f3953505a4ec9da3869cd35b86be417c",
+            "reference_values": -0.2622170019993487
+          },
+          {
+            "accelerator_sha256": "49aea4455bdc929a5ec3552d54f145f5c395a2f70433de5824715ea0b976a138",
+            "accelerator_values": -0.14571483424903647,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "6bea39222a886198267d1fd70368b60870afbaaac73f66c1355601f1cb181544",
+            "reference_values": -0.14571482994329324
+          },
+          {
+            "accelerator_sha256": "d22057f2b24f84a00bd5b3c4cdca4d5dd7f4cb3b256b1af88fa0eeae386192bc",
+            "accelerator_values": -0.04659855864766092,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "2e4055e7a2da21bcfa27bf950ad1fb96d5aef70572305363576e9f5b3e040197",
+            "reference_values": -0.04659856438865188
+          },
+          {
+            "accelerator_sha256": "62c4f5228e28c48493ed3cdef03e87bdb0ca421c31c49f3926286f4634d06efe",
+            "accelerator_values": -0.20191046252021644,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "912c5cc667d09f58f410203eec17c9092ded43505f463e2b2bff3bb90e46d347",
+            "reference_values": -0.20191046539071192
+          },
+          {
+            "accelerator_sha256": "5b88346cf60cb60698dbd0d783dc378204c191e6d4c022c78f6250ab22feec4c",
+            "accelerator_values": -0.23753406204565577,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "fcc7c6a186bd67005c1bec610f6b5fb04194abce5b30c8c8eeed80addba118f6",
+            "reference_values": -0.23753407926862866
+          }
+        ],
+        "passed": true
+      },
+      "energy_drift_cpu32": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "energy_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "observed_maximum": 0.00010253104403545876,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "56da675c29544b73c503cf7c50b871af70aea7cd226c738f62671f5a626b6ec0",
+            "accelerator_values": -693.7871678754574,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "0c8bb5eebaba7ebf9e6fd1e815fe92714ae3100eafea7b0b6bfc100130acbfbc",
+            "reference_values": -693.7871209898968
+          },
+          {
+            "accelerator_sha256": "43d8606ccc6fc06dcf0869d16c534c71f82d5e33ececdfb304a2e28c5dedec45",
+            "accelerator_values": -693.7873767767227,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "5df44235aaee40ae8abfea491ce38a2a7a9d1124ef2271468ae469bb47a859c8",
+            "reference_values": -693.7873298898589
+          },
+          {
+            "accelerator_sha256": "365b6029a93de869fd0c22bd09c80b332099228f78e1f9656285a7433c18e98a",
+            "accelerator_values": -693.7233359068159,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "21d09014c2d1f54f951c5c7346bd161625d48ce63b40d5bfe901facd61de8355",
+            "reference_values": -693.7232890081376
+          },
+          {
+            "accelerator_sha256": "a8a64dd95bea589ff0dfbb302e2652f61cbd9913ab42bce2036107b084ebb1b5",
+            "accelerator_values": -220.58736099693215,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "e878de61ec97caf186b1cea6bd06d7f04b011fc027c2f49adb6a364a20773ff7",
+            "reference_values": -220.5873604770342
+          },
+          {
+            "accelerator_sha256": "ad0c1bf8ff7d57a42223a6a9600e40902fa5d8ac1b4a13be01c553bdef3a496c",
+            "accelerator_values": -220.60175927049767,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "ce4fc67e355f05f47391932d609c2f76a2aff20d717be3173e9c21332c25e06a",
+            "reference_values": -220.60175875160297
+          },
+          {
+            "accelerator_sha256": "a7855ff6dce308517b34c74073a934be11f5ad0bd921ca58b699811a74a46903",
+            "accelerator_values": -220.60453471009268,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "1007f68cb1076820faf8a4e1f8ee21ab4e0d0dc645af0441113a1c50d95f49a1",
+            "reference_values": -220.60453419843833
+          },
+          {
+            "accelerator_sha256": "db1ffa8b5ffed098402415ecb1851221f334da42255f7dc56c061ddf2216beae",
+            "accelerator_values": -385.050661707468,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "ecc43440e01aad2612af361fce14ec3ac9e4b85654e232b0d2719cb2d1cc7adf",
+            "reference_values": -385.05069557686954
+          },
+          {
+            "accelerator_sha256": "cfbe237fa1cd7153154bd84134cc8dcebe228c3a474f7c1d529524969258ea14",
+            "accelerator_values": -385.05607017054126,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "c4e3f0f49b3ef435f4d1a13ca2fa47020472e9e0acc2805464ce373ca21e82aa",
+            "reference_values": -385.05610404717936
+          },
+          {
+            "accelerator_sha256": "816be4d14726193c1a4f6e29f7f0dc1690be0ded9aef34bbd94776860f5cc529",
+            "accelerator_values": -385.03015617267357,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "33b9ded816887ae1819fa1ea24b768c1749ef4bc8893acc8df3a7e9e9a18dfe4",
+            "reference_values": -385.0301900380948
+          },
+          {
+            "accelerator_sha256": "0c7ab2d30017d1c4276d8aef112eb3aa802381de75d275879a82a4d9761db72a",
+            "accelerator_values": -525.1897335857348,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "357b1de3ad4851a407d6306cffda5a9bc69bacf0f5f883f03c4cebb5118425a8",
+            "reference_values": -525.1896701732361
+          },
+          {
+            "accelerator_sha256": "9bce03317ed2854404e42a826fc66106f563cdf34222e44c2b3465eddd445d9d",
+            "accelerator_values": -525.1949813487831,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "bc5722ee7953a08ba341232c8691292266f5861ab418b95f9a3280cad0e636ed",
+            "reference_values": -525.1949179376337
+          },
+          {
+            "accelerator_sha256": "f9e7b1d6b76ef9cb272d41c532ea739c919d45fa5c199553ef58d5fd1ed16471",
+            "accelerator_values": -525.1747531728635,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "f7864737664e41d6616f720afb25113e3bed09786c18ab7ab2a8591c605ecaa7",
+            "reference_values": -525.174689765805
+          },
+          {
+            "accelerator_sha256": "cc9dbf381b490d56c6d238b57a21fb38009f64db343bfb6b940f493e7450928c",
+            "accelerator_values": -469.0834039113212,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "3198a2962e5175602388fff11057730b63d4e855a723563c9189e59019db24d8",
+            "reference_values": -469.0833809016839
+          },
+          {
+            "accelerator_sha256": "57665dd1d61e36ef27f85b65d769a36c447e2278d97dbba68028ca2a50463d29",
+            "accelerator_values": -469.0914182085555,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "97528eca2f841f7b6bd15d80783af09f47fdcf02d35f687757dc748d5dabe281",
+            "reference_values": -469.0913951981272
+          },
+          {
+            "accelerator_sha256": "edf81870898ace3878e5523dc243c22841e79454d6d25912e05a2d4b611515d0",
+            "accelerator_values": -469.07847352277145,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "7c4bab218a396cb6a026a386b8ed423df4163cdb7a80746df40ed260fdc75100",
+            "reference_values": -469.07845050958025
+          },
+          {
+            "accelerator_sha256": "2f96fa693814c95cd9694edd1d38d43cda9fed9c17a6d24a15506d356f4e0d67",
+            "accelerator_values": -527.0146660913032,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "24d4be6ac44b90d9150c34a11027a72bf8db4985330ca6c96c69904d18f46907",
+            "reference_values": -527.0145635602591
+          },
+          {
+            "accelerator_sha256": "e7bacd00eeff50fd5dd282b93cdec0f07254228205bd51b09da8fd39c8e5f17b",
+            "accelerator_values": -527.0276087497201,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "402cdf3c924eb6a46f4ff3eb70c2d2d1f8bd57b9b75c04485a2b709063643faf",
+            "reference_values": -527.0275062207478
+          },
+          {
+            "accelerator_sha256": "3afd6c7515a4c8fcb41320b630cd6bd531f1f43dc106a49da724c0a6d45f7f75",
+            "accelerator_values": -527.0305773842099,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "3805d8064c085a0ed93cf0a3c9f86c13935477fd0601243ab17d5eb5288eef48",
+            "reference_values": -527.0304748551567
+          }
+        ],
+        "passed": true
+      },
+      "energy_drift_cuda32_optimized": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "energy_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "observed_maximum": 0.00010252877166294638,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "900748d32b671e7c2bc224c306caede33d42c16a44c11fc52f5b47fec3319422",
+            "accelerator_values": -693.7871678811983,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "a549104714a55151e85a93e23bad51122290807019a8461df3ef365a7cad95bb",
+            "reference_values": -693.7871209898968
+          },
+          {
+            "accelerator_sha256": "195e412b7d46a42db0f79ac21497b01ce1756d5ed19051d09b5ea1b3a8be1420",
+            "accelerator_values": -693.7873767767227,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "a5bbca0ba2112f9681e4b91d8775bf871aa187e825d81d20523f71ecff1e8a7d",
+            "reference_values": -693.7873298898589
+          },
+          {
+            "accelerator_sha256": "53d4bdf142650a733d9da862218636d425cad26b3671f260b6518621a9774274",
+            "accelerator_values": -693.7233359068159,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "4279f5776473a58a1205526f31a4ef4caa8cd0b84884c3842a7a194ec64eb8b6",
+            "reference_values": -693.7232890081376
+          },
+          {
+            "accelerator_sha256": "dc0f93eacc372fa11c18b9943b7f12ff4eb8e2b4876fd99a4a27bd067e3df4bd",
+            "accelerator_values": -220.58736099463576,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "5c10296477d58104b3e939fc0f4dd2aba42557e0a940ffe74e26f03ad775a6de",
+            "reference_values": -220.5873604770342
+          },
+          {
+            "accelerator_sha256": "98dc0243fd22119b066d9ebc5b5df49796e8623f188c0537aa8d29dea3cb7fc8",
+            "accelerator_values": -220.6017592690624,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "3767bd4dcf2ad07d7407e462ef7aa773c9d933abe0c456c48104a0731f1104fc",
+            "reference_values": -220.60175875160297
+          },
+          {
+            "accelerator_sha256": "fafb96b2a1f4ab4e9c06adb4914ad977ffc9e3364661dfc8b002f21c962a0d5c",
+            "accelerator_values": -220.6045347158337,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "8bb085e5a7c2c033f2d5956a79e65e66016cf5a4e8048c0fe9636ed2c9a86a49",
+            "reference_values": -220.60453419843833
+          },
+          {
+            "accelerator_sha256": "0b54d6a44c62fe537a48c968044cabb90b4c5c225e55fa4e69c4af590110be91",
+            "accelerator_values": -385.0506617049563,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "26b64f235604ce592ea854839b7a6edaadf91e035195fdb6f2a0524ff210fe8d",
+            "reference_values": -385.05069557686954
+          },
+          {
+            "accelerator_sha256": "5b4fac39445a944b4bf12c61167a3800230451d71c17c73eca67c28f3fc9095b",
+            "accelerator_values": -385.0560701784351,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "64deeaf0ce60f5f3eaef3dff4e3f62aee7e75f1c37e746e8da641ed362b1d379",
+            "reference_values": -385.05610404717936
+          },
+          {
+            "accelerator_sha256": "807445f56dd58b8d35f789242ea58c34d4ae522ce97c16aae7cbf80ec88a5097",
+            "accelerator_values": -385.0301561637033,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "e6f4c8da2a02ae6b98d5c4020daec87fae940483151eded9e512de2c2a4362db",
+            "reference_values": -385.0301900380948
+          },
+          {
+            "accelerator_sha256": "b2308bed9a1a2ba8571b821ef646e3164814cfb6b5c3cd5ceaa74dd9fbe92e15",
+            "accelerator_values": -525.1897335842995,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "cc029eea26c521ad209ad37057b0640e94ed94c28f17b722d7e6ef9c2a7348be",
+            "reference_values": -525.1896701732361
+          },
+          {
+            "accelerator_sha256": "df67237c1d81c439e8a3c4af3071bb0b841d5368639d9d019313fe85185982b5",
+            "accelerator_values": -525.1949813480655,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "7809f98571384ddb5f949d452afa74ec08d3f7147a6726fb6f87efcd6ff2c49c",
+            "reference_values": -525.1949179376337
+          },
+          {
+            "accelerator_sha256": "29447adff98593b17841eb3cfcab8b93acb1a2f705583b4af5ab603280543796",
+            "accelerator_values": -525.1747531759733,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "4b87d0a2a7e16869dbea920cd0713a12d8de35bf376e844b444771d9f2f63844",
+            "reference_values": -525.174689765805
+          },
+          {
+            "accelerator_sha256": "e7a010b38511aea8e1a86c4b89616c83739c0a94a9dca2457f897d74400e17da",
+            "accelerator_values": -469.0834039164244,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "55163d88f451cdd4004f4260a9017fa141d669cf1ba4ce81c0aaf92bf5bc0f1d",
+            "reference_values": -469.0833809016839
+          },
+          {
+            "accelerator_sha256": "2b5ee1ba0cd4b1c933a254141e5f684cfe89f4fba321c86458b7658bb22a4d21",
+            "accelerator_values": -469.09141821142595,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "21452fbdda821d9dba0b8381391d00091869eff0c3e2b12169ceb418f1a61b7a",
+            "reference_values": -469.0913951981272
+          },
+          {
+            "accelerator_sha256": "b5b41bd0aa56ee76f2af912eff7b8fe0995a26ced2f55e73184aa1346688c1c8",
+            "accelerator_values": -469.07847352293095,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "7ef73f83904037d986e2e1ef8c18a222912f90428c556e4ab7944f3bca6fa0b9",
+            "reference_values": -469.07845050958025
+          },
+          {
+            "accelerator_sha256": "e843bab13a186918d856346a7536c73322f96ff1eafc00b7a49b92bf29e0a076",
+            "accelerator_values": -527.0146660890308,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "62744e74a0bcd0cc6310b336e206a3e3f004e832817cb2cfdc22200015a05798",
+            "reference_values": -527.0145635602591
+          },
+          {
+            "accelerator_sha256": "af3f491b696a87c749744f232d1c44a8eb157cf63885a2014156bdd9438d907f",
+            "accelerator_values": -527.0276087473279,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "4cce50b1b1273ddba18a4bdb2b594d08d765d2d31a3aac8635fb99fc5f42dde9",
+            "reference_values": -527.0275062207478
+          },
+          {
+            "accelerator_sha256": "00ac801ac03a2c8b5ae020ce32426841a7bce4fa8c304b1b2662bf3e8f5ea3a8",
+            "accelerator_values": -527.0305773822962,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "63b43b0f89e5e2481f8094dec392e2630f54c605a57522f205fab163379ce2b1",
+            "reference_values": -527.0304748551567
+          }
+        ],
+        "passed": true
+      },
+      "energy_drift_cuda32_reference": {
+        "comparison_count": 18,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:toluene": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C2H5OH:water": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "anysolv:C6H6:ethanol": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:toluene": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:C6H6:water": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "anysolv:CH3OH:ethanol": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:toluene": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH3OH:water": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "anysolv:CH4:ethanol": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:toluene": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:CH4:water": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "anysolv:H2O:ethanol": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:toluene": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:H2O:water": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "anysolv:NH3:ethanol": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:toluene": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "anysolv:NH3:water": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "absolute",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 18,
+          "gating": true,
+          "kind": "energy_drift",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0002,
+          "unit": "eV/atom"
+        },
+        "observed_maximum": 0.00010253056564124563,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "e67faee6b29c50c83d513b239ecfc697e7344c5da2af1b54455de362246e45a7",
+            "accelerator_values": -693.7871678811983,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:water",
+            "reference_sha256": "63a2c42cd7c166a7b635d1647971abc116efd233f7948fa864dcafb4fd4ea129",
+            "reference_values": -693.7871209898968
+          },
+          {
+            "accelerator_sha256": "b5d29ef6f3d1f8bc4eba45a8038f3c2aecc49fd2cb2302951c55c2b34f348cb0",
+            "accelerator_values": -693.787376769068,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:ethanol",
+            "reference_sha256": "1ac80ac7bc1d42c3a13fda72b5a0c2a8ee539bddb75f4addbea47c707d52b376",
+            "reference_values": -693.7873298898589
+          },
+          {
+            "accelerator_sha256": "6a21fcc9ad124053738812b5adba524b4d70eaf5d7e4fd4c412f228f281249a1",
+            "accelerator_values": -693.7233359049022,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "anysolv:H2O:toluene",
+            "reference_sha256": "19d0ac67d9590f2a8cee177a126ab2ae144447d5dfb79d59c6376fa277505e57",
+            "reference_values": -693.7232890081376
+          },
+          {
+            "accelerator_sha256": "63da295863165d01d20534eb92ebadc3ef8c3075788596ae1503aa2e610b21d2",
+            "accelerator_values": -220.58736099463576,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:water",
+            "reference_sha256": "5b167780c78f4f3eb73e03eb6a4e792e7da67f080a699869e72ae072ccdbf146",
+            "reference_values": -220.5873604770342
+          },
+          {
+            "accelerator_sha256": "2e4c4a948b6ad02dc93236d6702c923c856351acbf43b72e7cc75a4f9013eb04",
+            "accelerator_values": -220.60175927078473,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:ethanol",
+            "reference_sha256": "7960dd2a9c97559ff894c881f1a34aab6edd8ba5051e5073223a55a5a0a9f9a5",
+            "reference_values": -220.60175875160297
+          },
+          {
+            "accelerator_sha256": "6436632320fbfc2967620f14fb044dbb746529f7563c794e6266377bb792a02c",
+            "accelerator_values": -220.60453471554666,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "anysolv:CH4:toluene",
+            "reference_sha256": "914e916ae4e03c870697179dd455079333df92588bddd708cfa11c994c0efc65",
+            "reference_values": -220.60453419843833
+          },
+          {
+            "accelerator_sha256": "0bfb4067daa4a2f8f932e30c2fea15dc36478ce28e31ba66ba211a5c1f66daac",
+            "accelerator_values": -385.05066170710916,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:water",
+            "reference_sha256": "0e71a099095dcef89d5364ae324fa45cde7fe7003de78b128aa95aa7d690c0b0",
+            "reference_values": -385.05069557686954
+          },
+          {
+            "accelerator_sha256": "c303b8d489ef312e32988e74d4674780330bfe7bc8368089bc3c4436aaa413b0",
+            "accelerator_values": -385.056070174847,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:ethanol",
+            "reference_sha256": "5411dfefe0dc918af4dd5bdf7dfb5a6e0f9e134edd4cec61f6efa8a70cb3051e",
+            "reference_values": -385.05610404717936
+          },
+          {
+            "accelerator_sha256": "2cdeb94b8d372689e80e7db3867af90ca702d3b224002cb0720ebc3493746bea",
+            "accelerator_values": -385.03015616442093,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "anysolv:NH3:toluene",
+            "reference_sha256": "2608192fad690a6cefcbaa5e9e963541d1dd81fb2d5e65bac2af01ed70eeec02",
+            "reference_values": -385.0301900380948
+          },
+          {
+            "accelerator_sha256": "866098edab0ff5a85ebe9c3d3a8870b14712ac77c59a1473581e32b89599fde7",
+            "accelerator_values": -525.1897335840603,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:water",
+            "reference_sha256": "9d4523892d6832360e53788fb39b22e5e1d699859fbda89d3fe32511a378c532",
+            "reference_values": -525.1896701732361
+          },
+          {
+            "accelerator_sha256": "d90c15f87ff2f2608f89cf5bb2c6010f9a65c919c568233cfe2788b50312febb",
+            "accelerator_values": -525.1949813475871,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:ethanol",
+            "reference_sha256": "4b529bc9ed4815ae6d8f2a7d145cb240eefc7344d1f63b2dbb1bf2b33075fc90",
+            "reference_values": -525.1949179376337
+          },
+          {
+            "accelerator_sha256": "53ac051a05063992dfddaf96a6cfaff7f27e5d66a19dd8cad1d3f2eae89bcaa6",
+            "accelerator_values": -525.174753173581,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "anysolv:CH3OH:toluene",
+            "reference_sha256": "85abf9b175dc44782b0caaa2e50931a2284a0907a8fa9390decd562f67778dbc",
+            "reference_values": -525.174689765805
+          },
+          {
+            "accelerator_sha256": "80f9a318c4d980c3b9796a24e035513518d225b7a0675d73dd2de3dca07df596",
+            "accelerator_values": -469.08340391339436,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:water",
+            "reference_sha256": "e3d98c259c4f077d52b92a5ce692127a62fe56280c04231c376f9d2c1b874209",
+            "reference_values": -469.0833809016839
+          },
+          {
+            "accelerator_sha256": "e6c23061ff5b908d57fe0bfce1daa3de35ea445715a0ad10859897bf731aa664",
+            "accelerator_values": -469.0914182122233,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "2f38123faf93835eb8d317cbe8a5c618251180e93354c9a5eff8bb8deaa6cd08",
+            "reference_values": -469.0913951981272
+          },
+          {
+            "accelerator_sha256": "05419082618be4682d16ff1a9ded2337e629e22f7a617589b848a210661f207d",
+            "accelerator_values": -469.07847352324984,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "anysolv:C2H5OH:toluene",
+            "reference_sha256": "8a2535dbbfb57d594e90c43f5f591953ca8eb9bcb4af24a2fd0bcf09b6beffec",
+            "reference_values": -469.07845050958025
+          },
+          {
+            "accelerator_sha256": "e3d6b30e98be66fe9d2983d071f52577d6596ab7daec9ae7ff4519515f7b515d",
+            "accelerator_values": -527.0146660908248,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:water",
+            "reference_sha256": "abfde2deb70123c7d831489cdd6cb748919da0d01672b82fda316d9e68209135",
+            "reference_values": -527.0145635602591
+          },
+          {
+            "accelerator_sha256": "6c75ceb68f167ffea902fd1629d0aeb369089db815439696d5939a262ce75778",
+            "accelerator_values": -527.0276087494809,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:ethanol",
+            "reference_sha256": "5aac4d04f1b9788c091ba96ea529ba28d033f5171838524855d73b4f2a1b729d",
+            "reference_values": -527.0275062207478
+          },
+          {
+            "accelerator_sha256": "badbc294adfa3ddc530eda2a0835e5aab579f0ab7aa783d0f907e19db75a20d9",
+            "accelerator_values": -527.0305773827746,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "anysolv:C6H6:toluene",
+            "reference_sha256": "f0d58561edee47e9e607b310c00711d5e346ea9badf9f877d0e9a6deec244627",
+            "reference_values": -527.0304748551567
+          }
+        ],
+        "passed": true
+      },
+      "vacuum_zero_cpu32": {
+        "comparison_count": 6,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "observed_maximum": 0.0,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "81046e02222825e1d07801093fdc7fa407dc960b99dbd6241f705f4f36038059",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "vacuum:C2H5OH",
+            "reference_sha256": "4e5d35bab6cdb33ed1b2590e2090746f324965a7374d0d784dfd8fe1a9c671a7",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "8707d3adff6ae32c941951cb65eb73b7a58f299c14a766171aa4f49b2a74074b",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "vacuum:C6H6",
+            "reference_sha256": "1862dee0363aec0ffa9a2fb3adb6a233937f92f232f34134fd0e774d188e1969",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "32c70eb01f809383fddb7a2cb5d2f28da5efecaaeb206a03325b99540fbd7f5f",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "vacuum:CH3OH",
+            "reference_sha256": "c3a54907bfd252b4c30b26b72986c941689ab53787c111078d128e73d91ba26d",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "200c1d1c9263aa4dcf1924f26416098a16e90be059ba06334a4a3a2b173344f0",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "vacuum:CH4",
+            "reference_sha256": "2f2a4cf27a8be88ed0b41dc646069b0e12b4d60a7b9cfa8fb691e0ee46e58b4c",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "eea1a731110cc43a2edb699825bcf189bc50439206218fb3ac53bdbf9d6871a6",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "vacuum:H2O",
+            "reference_sha256": "3d8f0a13628dbafb6fd444ed22ef8b25e311668b0fbfbb15dbeb6b9185dd6792",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "d9341edaca88a554cfbe354f7ef66f09183fb05f566461dab8d9d734ff3121ca",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "vacuum:NH3",
+            "reference_sha256": "197139d73edfb5913e6679bc134b7462d7c03aa8b2d05b5f8b00588d6dd203b0",
+            "reference_values": 0.0
+          }
+        ],
+        "passed": true
+      },
+      "vacuum_zero_cpu64": {
+        "comparison_count": 6,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "observed_maximum": 0.0,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "1d679c7f2ab526d5839be6e063ae9521ff0891266c38e49c0b4901e4fb7f87b8",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "vacuum:C2H5OH",
+            "reference_sha256": "8dcf829d19738dd615809e50ac5e9a9e627a8ee0e30de9bc1da8c1ffc973ba96",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "e06e5ecd368e83829a825c9c24ccafa48dc2b5a89730c999f092ddd7f70c3a18",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "vacuum:C6H6",
+            "reference_sha256": "c8e90bc993008ae6e794190d8d1c27aa7b9fd85685f572716d108a5469276b61",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "42d017fcb3184228b0eb8dcf0e1cdc009e7010762fbba09300f0a6407bf1bff1",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "vacuum:CH3OH",
+            "reference_sha256": "615a9e495c83f8d617086f92d4e524df8e22dd0333ed6921339f7d826eb7e16e",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "e3c2a0ee3c736ece76911e9783841d3304781eba2cb168daaef6c2fb49957d00",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "vacuum:CH4",
+            "reference_sha256": "28737440f010aca61e6ec47615702549c97d88401194e00f5d6560ffe16fc2f6",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "139db42e77575e817f79b9762304bcdf34835be1b41d5d26c49c6823a49199f1",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "vacuum:H2O",
+            "reference_sha256": "d1d463da9d77d083f593f01406b3b77d2393ffb143eb02c7cf3b555c1e9d05d6",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "ca18a5a12ae96ba9be0c261624a3654c3c9b79f60ee0d4ae951bab1f29a23ba8",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "vacuum:NH3",
+            "reference_sha256": "857ef4443ebb1dcaa4959f46d9fd95ce3b13122afa807f4fc91e5b52c66ffd65",
+            "reference_values": 0.0
+          }
+        ],
+        "passed": true
+      },
+      "vacuum_zero_cuda32_optimized": {
+        "comparison_count": 6,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "observed_maximum": 0.0,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "f05292e7c81e814b9019f563dcf19b12d2a013f455ebb5dbfa6665912fabde1d",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "vacuum:C2H5OH",
+            "reference_sha256": "f2bc06b5af7e5a6b262cb2f6273b2846b258256daa1700f3890983d52dbe0654",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "ae31eb51c04e6a848fcd7f7b620b1f2b4f90adbea959bb2606582a0e9ba8cb8a",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "vacuum:C6H6",
+            "reference_sha256": "7321ccb54da1f0b4e51394c2c1f1761b89b0f06e16bf3dcb793c75ecf201eaf3",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "370828beef41ea1d022affb836c4c8675fbb3944ff36ac2e483bd18acb600801",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "vacuum:CH3OH",
+            "reference_sha256": "0636aeb25749406d0e80a0964521ecd31024ed249dce211245db2f2483624346",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "66caa2c225f994a51aa647a9bba95f9e96cf16f9fcece36d02c4fc0256678680",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "vacuum:CH4",
+            "reference_sha256": "46034f54b197664f21a18081884f80304166f1786b07bc0412f61d65a64c1166",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "53ed14fbfaa157b5fedcfc9a3b3e7cdaaa8fde4e2d0de6cef860b8db7352246f",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "vacuum:H2O",
+            "reference_sha256": "ff2c89f412973d4d98e98999553ff9d2ff56493df15ad169cc5815740d9b9f31",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "c0ff2991f4f9d6648febddafbdb17df6ab07502569bb69adddce766d6541303a",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "vacuum:NH3",
+            "reference_sha256": "3e33466cfc187aedf0f8f199792d035991c9027c89604496a3ed5bbfed6bbe5e",
+            "reference_values": 0.0
+          }
+        ],
+        "passed": true
+      },
+      "vacuum_zero_cuda32_reference": {
+        "comparison_count": 6,
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "cases": {
+            "vacuum:C2H5OH": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "vacuum:C6H6": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "vacuum:CH3OH": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "vacuum:CH4": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "vacuum:H2O": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "vacuum:NH3": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040"
+          },
+          "comparison": "equal",
+          "configuration": {
+            "composite_production_performance": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/composite-production-timing.json",
+              "sha256": "e95b1c3864ba1dcfabba40023345e74c09af06a71cc8ea1248b48667918c90cf"
+            },
+            "composite_production_performance_sha256": "e4d31082a2c50b32e12b7dfd80db8de129bfa37773b6cdb1dc484306104f1416",
+            "force_audit_protocol_sha256": "6bd6553c54c7424ce8762bb1149a0742f61d0b8f9c5ceeed1d6ae3d357411ba7",
+            "implementation_addendum": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/implementation-addendum.json",
+              "sha256": "6e01b5b5feff9d81be1fdb98fb9012400dff528ba30fe71a6c32fe69e13f61d6"
+            },
+            "implementation_description_precedence": "implementation addendum overrides prototype_dynamic implementation text only; v3 science, cases, h and tolerances remain immutable",
+            "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+            "preserved_failure_index": {
+              "artifact": "maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/preserved-failure-index.json",
+              "sha256": "1f4e2433a64b595dcf55ba17ae68f40f963d1aa0c2ce5dc988c953d8fb8ef87c"
+            },
+            "raw_receipt_content_sha256s": {
+              "cpu32": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52",
+              "cpu64": "8a44f618dbbedd93f6e3fb3cd1cfc6ec58a6dad2257d778eac94a902afcf84d8",
+              "optimized": "98894fb683f90e1b00b8f395b85c6dd8f506e0ca341ab6cd63a15decc2ed3d39",
+              "reference": "23fc4059b4d80596727b847de593dce50bb28298067402b7c78c0680c987bd1f"
+            }
+          },
+          "expected_count": 6,
+          "gating": true,
+          "kind": "vacuum_zero",
+          "reference": {
+            "backend": "torch",
+            "device": "cpu",
+            "dtype": "float64",
+            "mode": "reference"
+          },
+          "threshold": 0.0,
+          "unit": "eV"
+        },
+        "observed_maximum": 0.0,
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "9630b08c49596e68f1a569068d17deee253ebad21113b57efd6377e343f1882a",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "5ab84ed4805991276640891d9a12890074973f673e09a73a4a5850e0103d0d27",
+            "record_id": "vacuum:C2H5OH",
+            "reference_sha256": "6c69f3c5f617ac4d98f4ef3bf82d1eca8f61d99b0133b8f8fbc9c0c991e6aaff",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "2a785cd74267ded23f5e96a9855e2886fc10c5f81830b5497c2c9c3b5382bb1b",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "0400d6c224e967af065d6834a3444d26f204671cacd5f8dcb51cc3de5ebd80a6",
+            "record_id": "vacuum:C6H6",
+            "reference_sha256": "f80364bb91fd7011b41a3d386fd905a2d3b9f285b4c9bcf0d925bb5eb03c6374",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "117ce5694296ce257d4262ae9a8136d16569992821d35621500a4965bfe9ec44",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "d2b940711ba24da244da9d5417f700590478536a0b9ab824cb6b38e97800103e",
+            "record_id": "vacuum:CH3OH",
+            "reference_sha256": "53991719c10b114ab112f43ae70636f3bd211683aab1295975d61a0e2309b120",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "c690924e75ee375d0976a0181f28387a44cd0c86639d8345096f15a9036ece6d",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "a98b2a0c369ca2ef0f68ddbb871fd02acf77f5eecd37d68914bbcd42a7c3ef29",
+            "record_id": "vacuum:CH4",
+            "reference_sha256": "4d2320cc37b38a128530acb3fd4514b154b3759c11f8ecf2afd6d5e84f3531c6",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "e3391800e55fd7584bc722f598de02814a681ed01b3bb3dbdbbe9017d06e0a20",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "86df3765e0e77833a9854037d18fb781951bb69a7fcbdcab6e8fddf20a41b2d6",
+            "record_id": "vacuum:H2O",
+            "reference_sha256": "2af37e1f499f07f16a55a2eafee9c77dfb44f101a4e5ad1ee4c0c67e64b9c9c4",
+            "reference_values": 0.0
+          },
+          {
+            "accelerator_sha256": "20c0c20c897b058c827aeeea945646d66b516c0357cf786b8ae5a7343fd4f9a0",
+            "accelerator_values": 0.0,
+            "configuration_sha256": "200b52668e6b1ba46fa8057983744b76aefbc4e9bc6723cf1b0bb3eef5973040",
+            "record_id": "vacuum:NH3",
+            "reference_sha256": "e8e018352b607d3491e8ed19b3ec3e8c748bde7e240b8458641524538556e4c2",
+            "reference_values": 0.0
+          }
+        ],
+        "passed": true
+      }
+    },
+    "implementation_source_sha256s": {
+      "maple/function/benchmarking/pretrained_solvation_gpu.py": "d42d77372c6f3d63955b522d629ff656b5ea581932302fa6f623735f7e7f7c0d",
+      "maple/function/benchmarking/solvation_gpu.py": "9f3ad510df4b8b1fcfb5552b941668230099ffaa05c0ca127418a36e2dc2229b",
+      "maple/function/benchmarking/solvation_gpu_evidence.py": "9b1055f9754ee240a15ddbf6a9dfbe8d3f3f198fcbd4379d8c843a85b63c84dd",
+      "maple/function/calculator/aimnet/_aimnet2_calculator.py": "d3d477d97dde9693072dafe83e93295aaea62c12af2e14b98fdb4482e7709b36",
+      "maple/function/calculator/calculator_base.py": "19d3c38fe065dc0138efd4281e6e2098d6901b34f8ff5455fb65931faf4ceab1",
+      "maple/function/calculator/extra_correction/implicit/anysolv.py": "2a359de6e58aec69526c9e30c9660a5340a796e9ef3a695299c53e9ed4bb65d1",
+      "maple/function/calculator/gpu_qualification.py": "c8bb3594493d694ee9532da6c7343887f3e43365cf90b9e793322d6a8a486862",
+      "maple/function/calculator/model_capabilities.py": "f0f95c8a05c96f70e31edd11a9c06fa494d670f37944467c00aba31d1c576c86",
+      "maple/function/calculator/set_calculator.py": "bcd97d72e184bdec541cda870a1791169817db17ee5b74defef0ff09e5c4625f",
+      "maple/function/calculator/solvation_execution.py": "91beb7e3cc4e306a1be7d17e1aa7de922973a896af04008d2b4a64a751136e98"
+    },
+    "performance": {
+      "optimized": {
+        "contract": {
+          "candidate": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "optimized"
+          },
+          "cases": {
+            "anysolv:C2H5OH:ethanol": "e16d4da7974fe768f305519ce1d7c54346d6f97c8cba8f5576d304e9990e2461"
+          },
+          "cuda_synchronized": true,
+          "fresh_inference": true,
+          "minimum_headroom_bytes": 536870912,
+          "reference": {
+            "backend": "torch",
+            "device": "cuda",
+            "dtype": "float32",
+            "mode": "reference"
+          },
+          "repetitions": 10,
+          "unit": "s",
+          "warmups": 3
+        },
+        "paired_outputs": [
+          {
+            "accelerator_sha256": "beecac9fa739d5e5e7cd86dfb27fc77a1bcb340c76ed2b726d6f415ff2beadad",
+            "accelerator_values": [
+              0.05651714799751062,
+              0.04676887999812607,
+              0.04638797200459521,
+              0.049646579995169304,
+              0.04926537300343625,
+              0.04929902299772948,
+              0.0453021749999607,
+              0.04053904098691419,
+              0.0393323460011743,
+              0.038829598997836
+            ],
+            "candidate_median_s": 0.04657842600136064,
+            "configuration_sha256": "e16d4da7974fe768f305519ce1d7c54346d6f97c8cba8f5576d304e9990e2461",
+            "device_total_bytes": 8585216000,
+            "eager_median_s": 0.06371451200539013,
+            "free_bytes_at_peak": 6143606784,
+            "measured_headroom_bytes": 6143606784,
+            "peak_reserved_bytes": 1262485504,
+            "record_id": "anysolv:C2H5OH:ethanol",
+            "reference_sha256": "18feba3cf40ae5cd930f1f9d9058e87a512ca2ec4ffc2112fbc30bee52af27f9",
+            "reference_values": [
+              0.06574785300472286,
+              0.06062591899535619,
+              0.06281390799267683,
+              0.05773439999029506,
+              0.0653487889940152,
+              0.0606456029927358,
+              0.07044160200166516,
+              0.07142211400787346,
+              0.06373312100186013,
+              0.06369590300892014
+            ]
+          }
+        ]
+      }
+    },
+    "protocol_id": "scalar_composition/v1"
+  },
+  "observables": {
+    "coverage": {
+      "comparison": "equal",
+      "comparison_count": 10,
+      "observed_maximum": 0.0,
+      "paired_outputs": [
+        {
+          "accelerator_sha256": "1565f29a60deca1a2fc5825536593e4a56d04a3a94c400229ede38c831f14193",
+          "accelerator_values": [
+            18.0,
+            6.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "record_id": "optimized:aimnet2-anysolv:frozen-public-panel-v2",
+          "reference_sha256": "4ca72dd0909e8fd7805aada8a4579d77d032e961d109105131b1c5650dc02f9f",
+          "reference_values": [
+            18.0,
+            6.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "accelerator_sha256": "ddf879072c45e53ef2847e444894cd3ef5212204c73c79b6ac74fa3c1b2c3f8c",
+          "accelerator_values": [
+            18.0,
+            6.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "record_id": "reference:aimnet2-anysolv:frozen-public-panel-v2",
+          "reference_sha256": "8420637033b0091159b5fb4d05d7d72d208cd679798c7aa63effc2089cd9183a",
+          "reference_values": [
+            18.0,
+            6.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "passed": true,
+      "threshold": 0.0,
+      "unit": "count"
+    },
+    "energy": {
+      "comparison": "absolute",
+      "comparison_count": 36,
+      "observed_maximum": 8.97028940016753e-09,
+      "paired_outputs": [
+        {
+          "accelerator_sha256": "663d4e01c36c342190550d351d305dcd0363d4a03e40966615c42a492fafb91f",
+          "accelerator_values": [
+            -693.7871678811983,
+            -693.7873767767227,
+            -693.7233359068159,
+            -220.58736099463576,
+            -220.6017592690624,
+            -220.6045347158337,
+            -385.0506617049563,
+            -385.0560701784351,
+            -385.0301561637033,
+            -525.1897335842995,
+            -525.1949813480655,
+            -525.1747531759733,
+            -469.0834039164244,
+            -469.09141821142595,
+            -469.07847352293095,
+            -527.0146660890308,
+            -527.0276087473279,
+            -527.0305773822962
+          ],
+          "record_id": "optimized:aimnet2-anysolv:frozen-public-panel-v2",
+          "reference_sha256": "9f55c5f243f6c90ae3bb1e34b421ed58b778f4b72615dd60ed9cc67b40a93df1",
+          "reference_values": [
+            -693.7871678754574,
+            -693.7873767767227,
+            -693.7233359068159,
+            -220.58736099693215,
+            -220.60175927049767,
+            -220.60453471009268,
+            -385.050661707468,
+            -385.05607017054126,
+            -385.03015617267357,
+            -525.1897335857348,
+            -525.1949813487831,
+            -525.1747531728635,
+            -469.0834039113212,
+            -469.0914182085555,
+            -469.07847352277145,
+            -527.0146660913032,
+            -527.0276087497201,
+            -527.0305773842099
+          ]
+        },
+        {
+          "accelerator_sha256": "8d5fa24e9ea99e52390c87a63ff91ba57d3ca42a6b5d096611e3c6518eaab228",
+          "accelerator_values": [
+            -693.7871678811983,
+            -693.787376769068,
+            -693.7233359049022,
+            -220.58736099463576,
+            -220.60175927078473,
+            -220.60453471554666,
+            -385.05066170710916,
+            -385.056070174847,
+            -385.03015616442093,
+            -525.1897335840603,
+            -525.1949813475871,
+            -525.174753173581,
+            -469.08340391339436,
+            -469.0914182122233,
+            -469.07847352324984,
+            -527.0146660908248,
+            -527.0276087494809,
+            -527.0305773827746
+          ],
+          "record_id": "reference:aimnet2-anysolv:frozen-public-panel-v2",
+          "reference_sha256": "a7b103330d41942d1419ed0106863a622778cd161a1f0f3cc356b572536b80f1",
+          "reference_values": [
+            -693.7871678754574,
+            -693.7873767767227,
+            -693.7233359068159,
+            -220.58736099693215,
+            -220.60175927049767,
+            -220.60453471009268,
+            -385.050661707468,
+            -385.05607017054126,
+            -385.03015617267357,
+            -525.1897335857348,
+            -525.1949813487831,
+            -525.1747531728635,
+            -469.0834039113212,
+            -469.0914182085555,
+            -469.07847352277145,
+            -527.0146660913032,
+            -527.0276087497201,
+            -527.0305773842099
+          ]
+        }
+      ],
+      "passed": true,
+      "threshold": 0.0002,
+      "unit": "eV/atom"
+    }
+  },
+  "precision_controls": {
+    "accelerator_dtype": "float32",
+    "autocast": false,
+    "bfloat16": false,
+    "compute_dtype": "float32",
+    "fast_math": false,
+    "float16": false,
+    "matmul_precision": "highest",
+    "reduced_matmul": false,
+    "reference_dtype": "float32",
+    "relaxed_convergence": false,
+    "same_scalar_precision": true,
+    "shortened_sampling": false,
+    "tf32": false
+  },
+  "qualification_kind": "bounded_numerical_fp32",
+  "runtime": {
+    "accelerator_backend": "cuda",
+    "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "reference_backend": "cpu",
+    "software_versions": {
+      "cuda": "13.0",
+      "e3nn": "0.4.4",
+      "fairchem_core": "2.19.0",
+      "torch": "2.12.0+cu130",
+      "triton": "3.7.0"
+    }
+  },
+  "same_fp32_absolute_energy_fd": "not_applicable",
+  "schema_version": 2,
+  "scientific_scope": "bounded numerical execution only; no strict-no-loss, chemical accuracy, OPT/MD or thermodynamic admission",
+  "validated_task_modes": [
+    "sp:optimized",
+    "sp:reference"
+  ],
+  "verdict": "pass_bounded_numerical_fp32"
+}

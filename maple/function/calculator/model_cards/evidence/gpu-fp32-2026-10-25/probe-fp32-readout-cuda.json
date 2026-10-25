@@ -1,0 +1,14 @@
+[
+  {
+    "variant": "separate_ev_terms",
+    "expression": "return _sum_atomic_energy((atomic + shift) / 96.485) + _sum_atomic_energy(scale * per_atom / 96.485)",
+    "max_fp32_fd_error_ev_a": 0.002149239182472229,
+    "outputs_ev": true
+  },
+  {
+    "variant": "scaled_learned_ev",
+    "expression": "return _sum_atomic_energy((atomic + shift) / 96.485) + (scale / 96.485) * _sum_atomic_energy(per_atom)",
+    "max_fp32_fd_error_ev_a": 0.002103149890899658,
+    "outputs_ev": true
+  }
+]

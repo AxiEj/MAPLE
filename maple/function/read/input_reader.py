@@ -240,12 +240,12 @@ class InputReader():
         # === Step 2: Parse coordinate section ===
         with timer("Coordinate Section Parsing"):
             atoms_or_list = self.element_and_coordinates(molecules)
-        
+
         # === Step 3: Expand post-processing commands (handle POST references) ===
         with timer("Post-Processing Expansion"):
             if post_processing:
                 expanded_post_processing = self.expand_post_processing(post_processing)
-                
+
                 if isinstance(atoms_or_list, list):
                     processed_list = []
                     for idx, atoms in enumerate(atoms_or_list, start=1):
@@ -276,24 +276,24 @@ class InputReader():
         """
         expanded = []
         info_message = []
-        
+
         for line in post_processing:
             stripped = line.strip()
             if not stripped:
                 continue
-            
+
             # Check if this is a POST file reference
             if stripped.upper().startswith('POST '):
                 parts = stripped.split(maxsplit=1)
                 if len(parts) != 2:
                     raise ValueError(f"Invalid POST reference line: '{line}'")
-                
+
                 file_path = parts[1]
-                
+
                 # Log that we're loading from file
                 info_message.append(f"\nLoading post-processing commands from: {file_path}\n")
                 info_message.append('-' * 70 + '\n')
-                
+
                 try:
                     # Use PostReader to load commands from file
                     file_commands = PostReader(file_path)
@@ -304,10 +304,10 @@ class InputReader():
             else:
                 # Regular command, add directly
                 expanded.append(stripped)
-        
+
         if info_message:
             self.log_info(info_message)
-        
+
         return expanded
 
     def log_error(self, error_message: str) -> None:
@@ -352,9 +352,27 @@ class InputReader():
             self.model_params = model_options
 
             dev_str: str = params.get("device", "cpu").lower()
+            from ..calculator.solvation_execution import (
+                SolvationExecution,
+                is_pretrained_solvent_route,
+            )
+
+            strict_solvent_device = is_pretrained_solvent_route(
+                self.model, params.get("solv")
+            )
 
             # Automatically handle device selection with availability checks
-            if dev_str.startswith("gpu") or dev_str.startswith("cuda"):
+            if strict_solvent_device:
+                controls = (
+                    self.model_options if self.model == "consolv" else params["solv"]
+                )
+                execution = SolvationExecution(
+                    device=dev_str,
+                    dtype=controls.get("dtype", "float32"),
+                    inference=controls.get("inference", "reference"),
+                )
+                self.device = torch.device(execution.device)
+            elif dev_str.startswith("gpu") or dev_str.startswith("cuda"):
                 idx = ''.join([c for c in dev_str if c.isdigit()])
                 cuda_idx = idx if idx != '' else '0'
                 if torch.cuda.is_available():
@@ -375,20 +393,15 @@ class InputReader():
                     self.log_info(["\nWARNING: Unrecognized device. Falling back to CPU.\n"])
                     self.device = torch.device('cpu')
 
-
             self.d4 = params.get("d4", False)
             self.jobtype = params.get("task")  # ← now replaces jobtype
             self.pbc = params.get("pbc", None)  # PBC cell dimensions [X, Y, Z]
-
 
             self.log_info([cc.summary()])
 
         except ValueError as e:
             self.log_error(str(e))
             raise
-
-
-
 
     def element_and_coordinates(self, molecules: List[str]) -> Union[Atoms, List[Atoms]]:
         """
@@ -644,8 +657,6 @@ class InputReader():
             self.log_info(info_message)
             self.log_error(str(e))
             raise
-
-
 
     def post_processing_command(self, post_processing: list, atoms: Union[Atoms, List[Atoms]]) -> Union[Atoms, List[Atoms]]:
         """

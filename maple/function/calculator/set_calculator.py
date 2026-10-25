@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import hashlib
 import inspect
 import shutil
 import urllib.error
@@ -28,6 +29,7 @@ from .model_capabilities import (
     is_explicit_cpu_device,
     load_model_provenance_card,
 )
+from .solvation_execution import SolvationExecution
 
 HF_REPO_ID = 'Wayne7815/MAPLE_models'
 HF_MODEL_REVISION = 'd5d8eb902246fb3f0e3b24e0d4bbcdc12f12e816'
@@ -187,6 +189,9 @@ class SetCalculator:
 
     def _validate_registered_model_acceleration(self, cls) -> None:
         """Reject unverified accelerator paths before resolving any weights."""
+        if self.implicit == "anysolv" and not is_explicit_cpu_device(self.device):
+            self._validate_anysolv_composite_acceleration(cls)
+            return
         if not getattr(cls, "MODEL_NAMES", ()) and not is_explicit_cpu_device(self.device):
             raise ValueError("Accelerator execution requires a stable MODEL_NAMES identity.")
         card = self._registered_model_card(cls)
@@ -197,12 +202,62 @@ class SetCalculator:
                 f"Accelerator execution for '{self.model}' is disabled: no frozen "
                 "no-loss CPU/GPU parity evidence card is registered."
             )
+        if self.model == "consolv":
+            SolvationExecution(
+                self.device,
+                self.model_options.get("dtype", "float32"),
+                self.model_options.get("inference", "reference"),
+            ).validate_card(card, task=self.task or "sp")
+            return
         card.validate_device(
             self.device,
             task=self.task,
             inference_mode=self.model_options.get("inference"),
             evidence_root=Path(__file__).resolve().parents[3],
         )
+
+    def _validate_anysolv_composite_acceleration(self, cls) -> None:
+        """Qualify the scalar composition, not standalone AIMNet2 mechanics."""
+        if (
+            self.model != "aimnet2"
+            or cls.__module__ != _BUILTIN_NAME_TO_MODULE["aimnet2"]
+            or not issubclass(cls, CalcABC)
+        ):
+            raise ValueError(
+                "CUDA AnySolv composition is qualified only for the exact AIMNet2 scalar base."
+            )
+        if (
+            self.d4
+            or str(self.model_options.get("coulomb_method", "simple")).lower()
+            != "simple"
+        ):
+            raise ValueError(
+                "The qualified CUDA AnySolv composition requires the unmodified AIMNet2 simple-Coulomb base, without D4."
+            )
+        card = load_model_provenance_card("aimnet2-anysolv", self._model_card_root())
+        card.validate_task(self.task or "sp")
+        execution = SolvationExecution(
+            self.device,
+            self.solvation_options.get("dtype", "float32"),
+            self.solvation_options.get("inference", "reference"),
+        )
+        execution.validate_card(card, task=self.task or "sp")
+        self._anysolv_composite_card = card
+
+    def _validate_anysolv_base_checkpoint(self, checkpoint) -> None:
+        card = getattr(self, "_anysolv_composite_card", None)
+        if card is None:
+            return
+        expected = card.payload["checkpoints"]["gas"]["checkpoint_sha256"]
+        if checkpoint is None or not Path(checkpoint).is_file():
+            raise FileNotFoundError(
+                "The qualified CUDA AnySolv composition requires its pinned local AIMNet2 checkpoint."
+            )
+        actual = hashlib.sha256(Path(checkpoint).read_bytes()).hexdigest()
+        if actual != expected:
+            raise ValueError(
+                "AIMNet2 checkpoint does not match the qualified CUDA AnySolv composition."
+            )
 
     def _validate_solvent_config(self) -> None:
         self.implicit, self.solvent = validate_implicit_solvent_choice(
@@ -249,6 +304,8 @@ class SetCalculator:
                 "experimental",
                 "model_path",
                 "source_root",
+                "dtype",
+                "inference",
             }
             extra = set(self.solvation_options) - allowed
             if extra:
@@ -687,6 +744,7 @@ class SetCalculator:
             resolved_model_path = self._resolve_explicit_model_path(cls, options)
         else:
             resolved_model_path = self._resolve_model_path(cls, name)
+        self._validate_anysolv_base_checkpoint(resolved_model_path)
 
         # UMA's `size`/`checkpoint_path` resolution is special: when no checkpoint
         # is given and the requested size has a known HF fallback, prefer a
@@ -746,10 +804,21 @@ class SetCalculator:
 
             if getattr(calculator, "solvent_correction", None) is not None:
                 raise ValueError("A second solvent correction cannot be attached.")
+            configure = getattr(calculator, "_set_scalar_composite_execution", None)
+            if name == "aimnet2" and callable(configure):
+                configure(
+                    SolvationExecution(
+                        self.device,
+                        self.solvation_options.get("dtype", "float32"),
+                        "reference",
+                    )
+                )
             calculator.solvent_correction = AnySolvBackend(
                 solvent=self.solvent,
                 source_root=self.solvation_options["source_root"],
                 device=str(self.device),
+                dtype=self.solvation_options.get("dtype", "float32"),
+                inference=self.solvation_options.get("inference", "reference"),
                 execution_task=self.task,
                 **(
                     {"model_path": self.solvation_options["model_path"]}

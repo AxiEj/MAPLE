@@ -1,0 +1,380 @@
+{
+  "case_id": "anysolv:C2H5OH:ethanol",
+  "checkpoint_sha256s": [
+    "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+    "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  ],
+  "checkpoints": {
+    "correction": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+    "gas": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  },
+  "measurement_path": "AIMNet2Calculator.calculate -> CalcABC._finalize_results -> AnySolvBackend.evaluate",
+  "measurement_scope": "combined_gas_plus_correction",
+  "model_id": "aimnet2-anysolv",
+  "optimized": {
+    "correction_provenance": {
+      "autocast": false,
+      "checkpoint_sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+      "compilation_active": true,
+      "compiled_scope": "upstream_hybrid",
+      "compute_dtype": "float32",
+      "device": "cuda:0",
+      "energy_reference": "relative",
+      "force_rejection_artifact": "docs/pretrained-solvation-hub/benchmarks/anysolv-moe-mechanics-2026-10-23/result.json",
+      "forces_exposed": false,
+      "inference_mode": "optimized",
+      "matmul_precision": "highest",
+      "model_path": "/home/axie/MAPLE/MAPLE-fork/maple/function/calculator/model/anysolv/model_moe.pt",
+      "provider": "anysolv-moe",
+      "quantity_kind": "geometry_level_energy_correction",
+      "runtime_versions": {
+        "fairchem-core": "2.19.0",
+        "numpy": "2.4.6",
+        "torch": "2.12.0+cu130"
+      },
+      "solvent": "ethanol",
+      "source_digest": "e55c1ed1cd8ab1fb961606ef8d0fdd7048c5b0d1d5cb789d8f43ef8dbfbd2f64",
+      "source_identity": "pinned Git revision, clean tracked tree, and hash-bound runtime constants",
+      "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+      "source_root": "/home/axie/.cache/maple/anysolv/anysolv",
+      "supports_absolute_solvation": false,
+      "supports_multifragment_mechanics": true,
+      "tf32": false,
+      "units": {
+        "energy": "eV",
+        "forces": "eV/angstrom"
+      },
+      "validated_multifragment_domain": "unknown"
+    },
+    "effective_precision": {
+      "autocast": false,
+      "available_reduced_precision_flags": {
+        "allow_bf16_reduced_precision_reduction": true,
+        "allow_bf16_reduced_precision_reduction_split_k": true,
+        "allow_fp16_accumulation": false,
+        "allow_fp16_reduced_precision_reduction": true,
+        "allow_fp16_reduced_precision_reduction_split_k": true
+      },
+      "compiler_options": {
+        "cuda.use_fast_math": false,
+        "cutlass.use_fast_math": false,
+        "force_same_precision": true,
+        "use_fast_math": false
+      },
+      "compute_dtype": "float32",
+      "cudnn_tf32": false,
+      "matmul_precision": "highest",
+      "matmul_tf32": false
+    },
+    "execution": {
+      "autocast": false,
+      "compute_dtype": "float32",
+      "device": "cuda:0",
+      "inference_mode": "optimized",
+      "matmul_precision": "highest",
+      "tf32": false
+    },
+    "first_call_seconds": 72.50803844699112,
+    "gas_device": "cuda:0",
+    "gas_tensor_dtype": "torch.float32",
+    "hostile_precision_restored": true,
+    "inference_mode": "optimized",
+    "initial_energy_hartree": -155.14912491917946,
+    "initialization_seconds": 4.052264224010287,
+    "memory": {
+      "device_total_bytes": 8585216000,
+      "free_bytes_at_peak": 6143606784,
+      "measured_headroom_bytes": 6143606784,
+      "peak_reserved_bytes": 1262485504
+    },
+    "resident_models": [
+      "gas",
+      "correction"
+    ],
+    "runtime": {
+      "accelerator_backend": "cuda",
+      "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "precision_controls": {
+        "autocast": false,
+        "bfloat16": false,
+        "compute_dtype": "float32",
+        "fast_math": false,
+        "float16": false,
+        "matmul_precision": "highest",
+        "reduced_matmul": false,
+        "relaxed_convergence": false,
+        "shortened_sampling": false,
+        "tf32": false
+      },
+      "precision_protocol": {
+        "fast_math": "owned_inductor_options",
+        "float16_bfloat16_reduced_matmul": "unused_selected_fp32_or_fp64_inputs_parameters_buffers_and_autocast_off",
+        "relaxed_convergence": "inapplicable_direct_feed_forward_sp",
+        "shortened_sampling": "inapplicable_direct_feed_forward_sp"
+      },
+      "precision_state": {
+        "autocast": false,
+        "available_reduced_precision_flags": {
+          "allow_bf16_reduced_precision_reduction": true,
+          "allow_bf16_reduced_precision_reduction_split_k": true,
+          "allow_fp16_accumulation": false,
+          "allow_fp16_reduced_precision_reduction": true,
+          "allow_fp16_reduced_precision_reduction_split_k": true
+        },
+        "compiler_options": {
+          "cuda.use_fast_math": false,
+          "cutlass.use_fast_math": false,
+          "force_same_precision": true,
+          "use_fast_math": false
+        },
+        "compute_dtype": "float32",
+        "cudnn_tf32": false,
+        "matmul_precision": "highest",
+        "matmul_tf32": false
+      },
+      "software_versions": {
+        "cuda": "13.0",
+        "e3nn": "0.4.4",
+        "fairchem_core": "2.19.0",
+        "torch": "2.12.0+cu130",
+        "triton": "3.7.0"
+      }
+    },
+    "timing": {
+      "case_id": "anysolv:C2H5OH:ethanol",
+      "cuda_synchronized": true,
+      "fresh_inference": {
+        "count": 10,
+        "geometry_sha256s": [
+          "463f99b68b579133bcdb7e46fbafbe9e86e0a30221e5fc1def6c210f7235ab68",
+          "4e775d625d47520e0b1ebf882f7fa70c178e53a2867caf10e4472f0d34929f36",
+          "e4b00621573b59dd467bc030a78279c68f8bb679017a14ef53ee0cfe2ac73c54",
+          "4db6ba6a35aac9d65c848dff864112f1194b625a9b783941f520d1a4eafa82a5",
+          "998cdbb67ff2f4c198522d46788f360907609b8361a7932471bad9f76b598d29",
+          "0457bbfb3823172f4551020deaabec73f5723bcba2b9def2ae449efc363260f2",
+          "356249665590369d3165e39c490745ce7ee63f5f545c2ba6ec6ca3ff01e90b68",
+          "285eb8d8c7c8cf139bc165f8675e5a9c6d1c36086ebf51b11054e1a3fc3666b6",
+          "26e8932b69e1b23a941bb85282a092d837f4aa354e345aae801293325c774793",
+          "d28ec9c1b276d84219784ef628e213453e736cb8cbee4e91b345c19a2335ecf0"
+        ],
+        "median_seconds": 0.04657842600136064,
+        "samples_seconds": [
+          0.05651714799751062,
+          0.04676887999812607,
+          0.04638797200459521,
+          0.049646579995169304,
+          0.04926537300343625,
+          0.04929902299772948,
+          0.0453021749999607,
+          0.04053904098691419,
+          0.0393323460011743,
+          0.038829598997836
+        ]
+      },
+      "status": "success",
+      "warmup_count": 3
+    }
+  },
+  "panel_sha256": "fbfeb576eb37c7444190c497a9b0c459387d1a7ffd7395424779ea854713ec70",
+  "reference": {
+    "correction_provenance": {
+      "autocast": false,
+      "checkpoint_sha256": "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+      "compilation_active": false,
+      "compiled_scope": "none",
+      "compute_dtype": "float32",
+      "device": "cuda:0",
+      "energy_reference": "relative",
+      "force_rejection_artifact": "docs/pretrained-solvation-hub/benchmarks/anysolv-moe-mechanics-2026-10-23/result.json",
+      "forces_exposed": false,
+      "inference_mode": "reference",
+      "matmul_precision": "highest",
+      "model_path": "/home/axie/MAPLE/MAPLE-fork/maple/function/calculator/model/anysolv/model_moe.pt",
+      "provider": "anysolv-moe",
+      "quantity_kind": "geometry_level_energy_correction",
+      "runtime_versions": {
+        "fairchem-core": "2.19.0",
+        "numpy": "2.4.6",
+        "torch": "2.12.0+cu130"
+      },
+      "solvent": "ethanol",
+      "source_digest": "e55c1ed1cd8ab1fb961606ef8d0fdd7048c5b0d1d5cb789d8f43ef8dbfbd2f64",
+      "source_identity": "pinned Git revision, clean tracked tree, and hash-bound runtime constants",
+      "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+      "source_root": "/home/axie/.cache/maple/anysolv/anysolv",
+      "supports_absolute_solvation": false,
+      "supports_multifragment_mechanics": true,
+      "tf32": false,
+      "units": {
+        "energy": "eV",
+        "forces": "eV/angstrom"
+      },
+      "validated_multifragment_domain": "unknown"
+    },
+    "effective_precision": {
+      "autocast": false,
+      "available_reduced_precision_flags": {
+        "allow_bf16_reduced_precision_reduction": true,
+        "allow_bf16_reduced_precision_reduction_split_k": true,
+        "allow_fp16_accumulation": false,
+        "allow_fp16_reduced_precision_reduction": true,
+        "allow_fp16_reduced_precision_reduction_split_k": true
+      },
+      "compiler_options": {},
+      "compute_dtype": "float32",
+      "cudnn_tf32": false,
+      "matmul_precision": "highest",
+      "matmul_tf32": false
+    },
+    "execution": {
+      "autocast": false,
+      "compute_dtype": "float32",
+      "device": "cuda:0",
+      "inference_mode": "reference",
+      "matmul_precision": "highest",
+      "tf32": false
+    },
+    "first_call_seconds": 0.5370207060041139,
+    "gas_device": "cuda:0",
+    "gas_tensor_dtype": "torch.float32",
+    "hostile_precision_restored": true,
+    "inference_mode": "reference",
+    "initial_energy_hartree": -155.1491249196014,
+    "initialization_seconds": 4.855269658000907,
+    "memory": {
+      "device_total_bytes": 8585216000,
+      "free_bytes_at_peak": 6149898240,
+      "measured_headroom_bytes": 6149898240,
+      "peak_reserved_bytes": 1258291200
+    },
+    "resident_models": [
+      "gas",
+      "correction"
+    ],
+    "runtime": {
+      "accelerator_backend": "cuda",
+      "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "precision_controls": {
+        "autocast": false,
+        "bfloat16": false,
+        "compute_dtype": "float32",
+        "fast_math": false,
+        "float16": false,
+        "matmul_precision": "highest",
+        "reduced_matmul": false,
+        "relaxed_convergence": false,
+        "shortened_sampling": false,
+        "tf32": false
+      },
+      "precision_protocol": {
+        "fast_math": "inapplicable_reference_eager",
+        "float16_bfloat16_reduced_matmul": "unused_selected_fp32_or_fp64_inputs_parameters_buffers_and_autocast_off",
+        "relaxed_convergence": "inapplicable_direct_feed_forward_sp",
+        "shortened_sampling": "inapplicable_direct_feed_forward_sp"
+      },
+      "precision_state": {
+        "autocast": false,
+        "available_reduced_precision_flags": {
+          "allow_bf16_reduced_precision_reduction": true,
+          "allow_bf16_reduced_precision_reduction_split_k": true,
+          "allow_fp16_accumulation": false,
+          "allow_fp16_reduced_precision_reduction": true,
+          "allow_fp16_reduced_precision_reduction_split_k": true
+        },
+        "compiler_options": {},
+        "compute_dtype": "float32",
+        "cudnn_tf32": false,
+        "matmul_precision": "highest",
+        "matmul_tf32": false
+      },
+      "software_versions": {
+        "cuda": "13.0",
+        "e3nn": "0.4.4",
+        "fairchem_core": "2.19.0",
+        "torch": "2.12.0+cu130",
+        "triton": "3.7.0"
+      }
+    },
+    "timing": {
+      "case_id": "anysolv:C2H5OH:ethanol",
+      "cuda_synchronized": true,
+      "fresh_inference": {
+        "count": 10,
+        "geometry_sha256s": [
+          "463f99b68b579133bcdb7e46fbafbe9e86e0a30221e5fc1def6c210f7235ab68",
+          "4e775d625d47520e0b1ebf882f7fa70c178e53a2867caf10e4472f0d34929f36",
+          "e4b00621573b59dd467bc030a78279c68f8bb679017a14ef53ee0cfe2ac73c54",
+          "4db6ba6a35aac9d65c848dff864112f1194b625a9b783941f520d1a4eafa82a5",
+          "998cdbb67ff2f4c198522d46788f360907609b8361a7932471bad9f76b598d29",
+          "0457bbfb3823172f4551020deaabec73f5723bcba2b9def2ae449efc363260f2",
+          "356249665590369d3165e39c490745ce7ee63f5f545c2ba6ec6ca3ff01e90b68",
+          "285eb8d8c7c8cf139bc165f8675e5a9c6d1c36086ebf51b11054e1a3fc3666b6",
+          "26e8932b69e1b23a941bb85282a092d837f4aa354e345aae801293325c774793",
+          "d28ec9c1b276d84219784ef628e213453e736cb8cbee4e91b345c19a2335ecf0"
+        ],
+        "median_seconds": 0.06371451200539013,
+        "samples_seconds": [
+          0.06574785300472286,
+          0.06062591899535619,
+          0.06281390799267683,
+          0.05773439999029506,
+          0.0653487889940152,
+          0.0606456029927358,
+          0.07044160200166516,
+          0.07142211400787346,
+          0.06373312100186013,
+          0.06369590300892014
+        ]
+      },
+      "status": "success",
+      "warmup_count": 3
+    }
+  },
+  "route": "anysolv",
+  "schema_version": 1,
+  "scope": "public_production_calculate_gas_plus_correction",
+  "source_drift": false,
+  "source_identity": {
+    "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+    "source_root": "/home/axie/.cache/maple/anysolv/anysolv"
+  },
+  "source_revision": "1778e1f18384e5f59de1475182765733a7401e39",
+  "source_sha256_after": {
+    "/home/axie/.cache/maple/anysolv/anysolv/LICENSE": "8e329a100b25a4caaa2db75bdbe7ba494d7b61673470a666b87745eb808d287a",
+    "/home/axie/.cache/maple/anysolv/anysolv/__init__.py": "93ec85c99be8dad866be3358b74883e16e9da2f332d780030766c149fc48d481",
+    "/home/axie/.cache/maple/anysolv/anysolv/_backbone/Jd.pt": "b4059c45be246dcb6c49c545670b65c56550eb0c2e7a9c92b4b50a92d370dbe2",
+    "/home/axie/.cache/maple/anysolv/anysolv/_backbone/_compat/inference.py": "42eda0762a18ed4d3c1c820246782dfaa93f4f0a2f55c8f74cd2d00494dca792",
+    "/home/axie/.cache/maple/anysolv/anysolv/_const/grid_mats.pt": "35411a01d3fb6ec5b9a690c2b664afcb979634f6f64130c5e5b767b18ca19622",
+    "/home/axie/.cache/maple/anysolv/anysolv/_const/solvent_descriptors.json": "21fc32459bea59b64441da1af2da4a0dab6ae3509920eea84bb3f16a555f3bec",
+    "/home/axie/.cache/maple/anysolv/anysolv/data.py": "230310d321ccaccad92933e8eb8d04471591346802ae2e7f2cd3526ad489120d",
+    "/home/axie/.cache/maple/anysolv/anysolv/model.py": "12e81d1bd5aaae67ce509cb56d2e7de044990345ce639f6b413249d583388027",
+    "/home/axie/.cache/maple/anysolv/anysolv/predict.py": "e3ece22aa323c8b1165dbe588c8340735e0bc9be4ebe2a7276349bd691c4a0fc",
+    "/home/axie/.cache/maple/anysolv/anysolv/solvent.py": "301111cf396a674b615fa0ec5aec87219ca381210c99c44d78964e807f00e595",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/benchmarking/pretrained_solvation_gpu.py": "d42d77372c6f3d63955b522d629ff656b5ea581932302fa6f623735f7e7f7c0d",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/benchmarking/solvation_gpu.py": "9f3ad510df4b8b1fcfb5552b941668230099ffaa05c0ca127418a36e2dc2229b",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/aimnet/_aimnet2_calculator.py": "d3d477d97dde9693072dafe83e93295aaea62c12af2e14b98fdb4482e7709b36",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/calculator_base.py": "19d3c38fe065dc0138efd4281e6e2098d6901b34f8ff5455fb65931faf4ceab1",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/extra_correction/implicit/anysolv.py": "2a359de6e58aec69526c9e30c9660a5340a796e9ef3a695299c53e9ed4bb65d1",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/set_calculator.py": "bcd97d72e184bdec541cda870a1791169817db17ee5b74defef0ff09e5c4625f",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/solvation_execution.py": "91beb7e3cc4e306a1be7d17e1aa7de922973a896af04008d2b4a64a751136e98"
+  },
+  "source_sha256_before": {
+    "/home/axie/.cache/maple/anysolv/anysolv/LICENSE": "8e329a100b25a4caaa2db75bdbe7ba494d7b61673470a666b87745eb808d287a",
+    "/home/axie/.cache/maple/anysolv/anysolv/__init__.py": "93ec85c99be8dad866be3358b74883e16e9da2f332d780030766c149fc48d481",
+    "/home/axie/.cache/maple/anysolv/anysolv/_backbone/Jd.pt": "b4059c45be246dcb6c49c545670b65c56550eb0c2e7a9c92b4b50a92d370dbe2",
+    "/home/axie/.cache/maple/anysolv/anysolv/_backbone/_compat/inference.py": "42eda0762a18ed4d3c1c820246782dfaa93f4f0a2f55c8f74cd2d00494dca792",
+    "/home/axie/.cache/maple/anysolv/anysolv/_const/grid_mats.pt": "35411a01d3fb6ec5b9a690c2b664afcb979634f6f64130c5e5b767b18ca19622",
+    "/home/axie/.cache/maple/anysolv/anysolv/_const/solvent_descriptors.json": "21fc32459bea59b64441da1af2da4a0dab6ae3509920eea84bb3f16a555f3bec",
+    "/home/axie/.cache/maple/anysolv/anysolv/data.py": "230310d321ccaccad92933e8eb8d04471591346802ae2e7f2cd3526ad489120d",
+    "/home/axie/.cache/maple/anysolv/anysolv/model.py": "12e81d1bd5aaae67ce509cb56d2e7de044990345ce639f6b413249d583388027",
+    "/home/axie/.cache/maple/anysolv/anysolv/predict.py": "e3ece22aa323c8b1165dbe588c8340735e0bc9be4ebe2a7276349bd691c4a0fc",
+    "/home/axie/.cache/maple/anysolv/anysolv/solvent.py": "301111cf396a674b615fa0ec5aec87219ca381210c99c44d78964e807f00e595",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/benchmarking/pretrained_solvation_gpu.py": "d42d77372c6f3d63955b522d629ff656b5ea581932302fa6f623735f7e7f7c0d",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/benchmarking/solvation_gpu.py": "9f3ad510df4b8b1fcfb5552b941668230099ffaa05c0ca127418a36e2dc2229b",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/aimnet/_aimnet2_calculator.py": "d3d477d97dde9693072dafe83e93295aaea62c12af2e14b98fdb4482e7709b36",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/calculator_base.py": "19d3c38fe065dc0138efd4281e6e2098d6901b34f8ff5455fb65931faf4ceab1",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/extra_correction/implicit/anysolv.py": "2a359de6e58aec69526c9e30c9660a5340a796e9ef3a695299c53e9ed4bb65d1",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/set_calculator.py": "bcd97d72e184bdec541cda870a1791169817db17ee5b74defef0ff09e5c4625f",
+    "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/solvation_execution.py": "91beb7e3cc4e306a1be7d17e1aa7de922973a896af04008d2b4a64a751136e98"
+  }
+}

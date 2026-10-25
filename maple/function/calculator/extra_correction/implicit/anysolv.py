@@ -12,6 +12,7 @@ import json
 import subprocess
 import sys
 from collections.abc import Callable
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from importlib import metadata
 from importlib import import_module
@@ -20,12 +21,13 @@ from pathlib import Path
 from threading import Lock
 from types import ModuleType
 from typing import Any, ClassVar, cast
-from weakref import WeakValueDictionary
+from weakref import WeakValueDictionary, ref
 
 import numpy as np
 
 from ...backends import CompositeCalculator, SolvationBackend
 from ...model_capabilities import SolvationCapabilities, load_model_provenance_card
+from ...solvation_execution import SolvationExecution, STRICT_INDUCTOR_OPTIONS
 from .result import SolvationResult
 
 ANYSOLV_SOURCE_REVISION = "1778e1f18384e5f59de1475182765733a7401e39"
@@ -37,6 +39,31 @@ ANYSOLV_MOE_DEFAULT_PATH = (
     Path(__file__).resolve().parents[2] / "model" / "anysolv" / "model_moe.pt"
 )
 EV_PER_HARTREE = 27.211386245988
+
+_ACTIVE_COMPILED_OWNER = ContextVar("maple_anysolv_compiled_owner", default=None)
+
+
+def _owned_inductor_backend(graph, inputs):
+    """Stable compiler identity; execution attribution is call-local, not cached."""
+    from torch._dynamo.backends.registry import lookup_backend
+
+    compiled = lookup_backend("inductor")(
+        graph, inputs, config_patches=dict(STRICT_INDUCTOR_OPTIONS)
+    )
+
+    def execute(*values):
+        reference = _ACTIVE_COMPILED_OWNER.get()
+        owner = reference() if reference is not None else None
+        if owner is None:
+            raise RuntimeError(
+                "AnySolv compiled owner has been released or is not active."
+            )
+        result = compiled(*values)
+        owner._compiled_backend_executions += 1
+        return result
+
+    return execute
+
 
 ANYSOLV_SOURCE_ARTIFACTS = {
     "__init__.py": "93ec85c99be8dad866be3358b74883e16e9da2f332d780030766c149fc48d481",
@@ -68,6 +95,7 @@ class _OwnedResident:
 # The upstream pathname cache is neither consumed nor modified.
 _RESIDENTS: WeakValueDictionary[tuple[str, ...], _OwnedResident] = WeakValueDictionary()
 _RESIDENT_LOCK = Lock()
+_PREPARATION_LOCK = Lock()
 
 # Only the upstream trained/validated set is executable.  Descriptor availability
 # for 179 solvents is not treated as scientific admission.
@@ -186,9 +214,17 @@ class _OfficialAnySolvRuntime:
         checkpoint: Path,
         device: str,
         checkpoint_sha256: str,
+        dtype: str = "float32",
+        inference: str = "reference",
     ) -> None:
-        if device != "cpu":
-            raise ValueError("AnySolv-MoE resident inference requires CPU.")
+        self._execution = SolvationExecution(
+            device=device, dtype=dtype, inference=inference
+        )
+        self._signature = None
+        self._compiled_run = None
+        self._compiled_backend_executions = 0
+        self.compilation_active = False
+        self._evaluation_lock = Lock()
         module: ModuleType | None = sys.modules.get("anysolv")
         if module is None:
             spec = importlib_util.spec_from_file_location(
@@ -230,32 +266,77 @@ class _OfficialAnySolvRuntime:
         self._solvent_vector = cast(
             Callable[..., Any], solvent_module.get_solvent_vector
         )
-        self._device = device
-        import torch
-
-        # Fresh dataclass defaults are the pinned reference controls; a mutable
-        # upstream preset or a pathname-cache occupant is not model authority.
-        settings = settings_type()
+        self._device = self._execution.device
+        settings = (
+            settings_type()
+            if self._execution.inference == "reference"
+            else settings_type(
+                execution_mode="umas_fast_gpu",
+                tf32=False,
+                compile=False,
+                merge_mole=True,
+            )
+        )
         key = (
             str(source_root.resolve()),
             _SOURCE_DIGEST,
             checkpoint_sha256,
-            device,
-            str(torch.float64),
+            self._device,
+            self._execution.dtype,
+            self._execution.inference,
             repr(settings),
         )
         with _RESIDENT_LOCK:
-            resident = _RESIDENTS.get(key)
+            # Merged MoE weights belong to exactly one runtime/signature.
+            resident = (
+                _RESIDENTS.get(key)
+                if self._execution.inference == "reference"
+                else None
+            )
             if resident is None:
                 model = load_model(
                     checkpoint,
-                    device=device,
-                    dtype=torch.float64,
+                    device=self._device,
+                    dtype=self._execution.torch_dtype,
                     inference_settings=settings,
                 )
                 resident = _OwnedResident(identity=key, model=model)
-                _RESIDENTS[key] = resident
+                if self._execution.inference == "reference":
+                    _RESIDENTS[key] = resident
             self._resident = resident
+
+    def _attach_owned_compile(self):
+        """Compile the exact prepared forward; upstream staging remains hybrid."""
+        import torch
+
+        model = self._resident.model
+        self._compiled_run = torch.compile(
+            model._raw_forward, backend=_owned_inductor_backend, dynamic=True
+        )
+        model._run = self._compiled_run
+
+    def _check_optimized_activation(self, data) -> None:
+        model = self._resident.model
+        settings = model._settings
+        backend = model.backbone.backend
+        if (
+            not model._prepared
+            or self._compiled_run is None
+            or model._run is not self._compiled_run
+            or settings.execution_mode != "umas_fast_gpu"
+            or settings.tf32
+            or settings.compile
+            or not settings.merge_mole
+            or type(backend).__name__ != "UMASFastGPUBackend"
+            or model.backbone._merged_composition is None
+        ):
+            raise RuntimeError(
+                "AnySolv optimized inference did not activate owned compilation and merged "
+                "umas_fast_gpu execution; eager fallback is forbidden."
+            )
+        # Use the pinned backbone's actual merge-signature check, in addition
+        # to our stronger immutable atom-count/composition/solvent signature.
+        model.backbone.on_predict_check(data)
 
     def evaluate(
         self,
@@ -264,31 +345,105 @@ class _OfficialAnySolvRuntime:
         *,
         charge: int,
         multiplicity: int,
-        solvent: str,
-    ) -> tuple[float, np.ndarray]:
+        solvent: str | None,
+        scalar_only: bool = False,
+    ) -> tuple[float, np.ndarray | None]:
+        with self._execution.precision_context():
+            if self._execution.inference == "optimized":
+                self.compilation_active = False
+            self._execution.check_precision()
+            return self._evaluate_strict(
+                numbers,
+                positions,
+                charge=charge,
+                multiplicity=multiplicity,
+                solvent=solvent,
+                scalar_only=scalar_only,
+            )
+
+    def _evaluate_strict(
+        self,
+        numbers,
+        positions,
+        *,
+        charge,
+        multiplicity,
+        solvent,
+        scalar_only,
+    ):
         import torch
 
         model = self._resident.model
         solvent_vector = self._solvent_vector(
             solvent, eps_transform=getattr(model, "eps_transform", None)
         )
-        data = self._build_data(
-            (numbers, positions),
-            charge=charge,
-            spin=multiplicity,
-            solvent=solvent_vector,
-            dtype=torch.float64,
-            device=self._device,
-        )
-        out = model(data)
+        with self._evaluation_lock:
+            if self._execution.inference == "optimized":
+                # The official vector is CPU-resident, before its direct transfer
+                # by build_atomic_data. Coordinates may change; merged weights may not.
+                signature = (
+                    len(numbers),
+                    tuple(np.bincount(numbers, minlength=100).tolist()),
+                    charge,
+                    multiplicity,
+                    tuple(solvent_vector.reshape(-1).tolist()),
+                )
+                if self._signature is not None and signature != self._signature:
+                    raise ValueError(
+                        "AnySolv optimized input signature changed; construct a new calculator."
+                    )
+                self._signature = signature
+            data = self._build_data(
+                (numbers, positions),
+                charge=charge,
+                spin=multiplicity,
+                solvent=solvent_vector,
+                dtype=self._execution.torch_dtype,
+                device=self._device,
+            )
+            self._execution.check_precision(inputs=data, model=model)
+            if self._execution.inference == "optimized":
+                # compile=False leaves upstream preparation free of Dynamo
+                # cache-limit mutation. Keep preparation + invocation serialized.
+                with _PREPARATION_LOCK:
+                    config = torch._dynamo.config
+                    if config.suppress_errors:
+                        raise ValueError(
+                            "AnySolv optimized inference requires Dynamo suppress_errors=False; "
+                            "eager fallback is forbidden."
+                        )
+                    self.compilation_active = False
+                    if not model._prepared:
+                        model._prepare(data)
+                        self._attach_owned_compile()
+                    self._check_optimized_activation(data)
+                    self._execution.check_precision(inputs=data, model=model)
+                    previous_executions = self._compiled_backend_executions
+                    token = _ACTIVE_COMPILED_OWNER.set(ref(self))
+                    try:
+                        with config.patch(fail_on_recompile_limit_hit=True):
+                            out = model(data)
+                    finally:
+                        _ACTIVE_COMPILED_OWNER.reset(token)
+                    self._check_optimized_activation(data)
+                    if self._compiled_backend_executions <= previous_executions:
+                        raise RuntimeError(
+                            "AnySolv compiled backend did not execute; eager fallback is forbidden."
+                        )
+                    self.compilation_active = True
+            else:
+                out = model(data)
+            self._execution.check_precision(inputs=data, model=model)
         energy = out["energy"]
-        forces = out["forces"]
         raw_energy = energy["energy"] if isinstance(energy, dict) else energy
-        raw_forces = forces["forces"] if isinstance(forces, dict) else forces
         rmsd = model.norm["energy"]["rmsd"]
         mean = model.norm["energy"]["mean"]
         # Exact unnormalization from the pinned official predictor.
         delta_energy = float((raw_energy.reshape(-1)[0] * rmsd + mean).item())
+        if scalar_only:
+            return delta_energy, None
+        forces = out["forces"]
+        raw_forces = forces["forces"] if isinstance(forces, dict) else forces
         delta_forces = (raw_forces * rmsd).detach().cpu().numpy().astype(np.float64)
         return delta_energy, delta_forces
 
@@ -300,8 +455,11 @@ class AnySolvBackend(SolvationBackend):
     solvent: str
     model_path: str | Path = ANYSOLV_MOE_DEFAULT_PATH
     source_root: str | None = None
-    device: str = "cpu"
+    device: str = "cuda:0"
+    dtype: str = "float32"
+    inference: str = "reference"
     execution_task: str | None = None
+    _execution: SolvationExecution = field(init=False, repr=False, compare=False)
     _source_identity: dict[str, str] = field(init=False, repr=False, compare=False)
     _runtime: _OfficialAnySolvRuntime = field(init=False, repr=False, compare=False)
 
@@ -326,9 +484,11 @@ class AnySolvBackend(SolvationBackend):
         provenance = load_model_provenance_card("anysolv-moe", ANYSOLV_MODEL_CARD_ROOT)
         if self.execution_task is not None:
             provenance.validate_task(self.execution_task)
-        provenance.validate_device(self.device, task=self.execution_task)
-        if str(self.device).strip().lower() not in {"cpu", "none"}:
-            raise ValueError("AnySolv-MoE is admitted on CPU/reference inference only.")
+        execution = SolvationExecution(self.device, self.dtype, self.inference)
+        execution.validate_card(provenance, task=self.execution_task or "sp")
+        for name in ("device", "dtype", "inference"):
+            object.__setattr__(self, name, getattr(execution, name))
+        object.__setattr__(self, "_execution", execution)
         solvent = _resolve_solvent(self.solvent)
         if not isinstance(self.model_path, (str, Path)):
             raise TypeError("AnySolv-MoE model_path must be a string or Path.")
@@ -362,7 +522,9 @@ class AnySolvBackend(SolvationBackend):
             _OfficialAnySolvRuntime(
                 source_root=source,
                 checkpoint=checkpoint,
-                device="cpu",
+                device=execution.device,
+                dtype=execution.dtype,
+                inference=execution.inference,
                 checkpoint_sha256=actual,
             ),
         )
@@ -407,6 +569,14 @@ class AnySolvBackend(SolvationBackend):
                 runtime_versions[distribution] = "not-installed"
         return {
             "provider": "anysolv-moe",
+            **self._execution.provenance,
+            "compiled_scope": (
+                "upstream_hybrid" if self.inference == "optimized" else "none"
+            ),
+            "compilation_active": bool(
+                getattr(self._runtime, "compilation_active", False)
+            ),
+            "source_digest": _SOURCE_DIGEST,
             **self._source_identity,
             "checkpoint_sha256": ANYSOLV_MOE_CHECKPOINT_SHA256,
             "model_path": self.model_path,
@@ -485,6 +655,7 @@ class AnySolvBackend(SolvationBackend):
             charge=charge,
             multiplicity=multiplicity,
             solvent=self.solvent,
+            scalar_only=True,
         )
         if not np.isfinite(energy_ev):
             raise ValueError("AnySolv-MoE correction energy must be finite.")

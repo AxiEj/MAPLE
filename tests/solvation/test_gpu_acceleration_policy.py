@@ -6,6 +6,7 @@ import json
 import pytest
 
 from maple.function.calculator.model_capabilities import (
+    GPU_BOUNDED_QUALIFICATION,
     GPU_FORBIDDEN_PRECISION_CONTROLS,
     GPU_STRICT_ACCURACY_CONTRACTS,
     ModelCardError,
@@ -131,7 +132,9 @@ def _contracts(capabilities):
     }
 
 
-def _card(*, capabilities=None, forbidden_tasks=None, **gpu_acceleration):
+def _card(
+    *, capabilities=None, forbidden_tasks=None, quantity_kind=None, **gpu_acceleration
+):
     capabilities = capabilities or {"energy": True}
     if gpu_acceleration.get("no_loss_parity_verified") is True:
         gpu_acceleration.setdefault("compute_dtype", "float64")
@@ -157,6 +160,12 @@ def _card(*, capabilities=None, forbidden_tasks=None, **gpu_acceleration):
         "checkpoint_sha256": "c" * 64,
         "capabilities": capabilities,
     }
+    if gpu_acceleration.get("numerical_parity_verified") is True:
+        payload["quantity_kind"] = quantity_kind or (
+            "native_solution_energy"
+            if capabilities.get("forces")
+            else "geometry_level_energy_correction"
+        )
     if forbidden_tasks is not None:
         payload["forbidden_tasks"] = forbidden_tasks
     if gpu_acceleration:
@@ -887,7 +896,18 @@ def test_calculator_without_stable_model_identity_cannot_use_an_accelerator(tmp_
         setter._validate_registered_model_acceleration(AnonymousCalculator)
 
 
-def test_direct_route4_constructors_cannot_bypass_the_gpu_gate(tmp_path):
+def test_direct_route4_constructors_cannot_bypass_the_gpu_gate(tmp_path, monkeypatch):
+    # The gate test uses a pending synthetic card, independent of published assets.
+    import maple.function.calculator.extra_correction.implicit.anysolv as anysolv_api
+
+    monkeypatch.setattr(
+        anysolv_api, "load_model_provenance_card", lambda *a, **k: _card()
+    )
+    import torch
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(torch.cuda, "get_device_name", lambda device: "Synthetic GPU")
     from maple.function.calculator.aceff._aceff2_calculator import AceFF2Calculator
     from maple.function.calculator.aimnet._aimnet2_cpcms_calculator import (
         AIMNet2CPCMSCalculator,
@@ -941,7 +961,6 @@ def test_direct_route4_constructors_cannot_bypass_the_gpu_gate(tmp_path):
         "aimnet2-cpcms-v2",
         "mace-off24-medium",
         "aceff-2.0",
-        "anysolv-moe",
         "gnnis-reference",
     ],
 )
@@ -963,3 +982,332 @@ def test_current_route4_gpu_capable_cards_are_explicitly_unverified(model_id):
 
     assert card.gpu_acceleration.no_loss_parity_verified is False
     assert card.gpu_acceleration.status.startswith("blocked_pending_")
+
+
+# Bounded FP32 evidence is deliberately separate from the strict no-loss helper
+# above.  Keeping two builders makes it difficult for a bounded receipt to
+# inherit or impersonate chemical/literature non-degradation fields.
+BOUNDED_CAPABILITIES = {
+    "energy": True,
+    "forces": True,
+    "conservative_forces": True,
+}
+BOUNDED_TASKS = ["irc", "md", "opt", "scan", "sp", "ts"]
+BOUNDED_PRECISION_STATE = {
+    "compute_dtype": "float32",
+    "matmul_precision": "highest",
+    **{name: False for name in GPU_FORBIDDEN_PRECISION_CONTROLS},
+}
+BOUNDED_RUNTIME_CONTEXT = {
+    "accelerator_backend": "cuda",
+    "hardware": "synthetic-gpu",
+    "software_versions": {"runtime": "1"},
+    "precision_controls": BOUNDED_PRECISION_STATE,
+}
+
+
+def _bounded_contracts(capabilities=BOUNDED_CAPABILITIES):
+    names = ModelCapabilities.from_payload(
+        {"capabilities": capabilities}
+    ).gpu_required_observables(GPU_BOUNDED_QUALIFICATION)
+    return {
+        name: {
+            "unit": "count" if name == "coverage" else "synthetic-unit",
+            "comparison": "equal" if name == "coverage" else "absolute",
+            "threshold": 0.0 if name == "coverage" else 1.0e-4,
+        }
+        for name in names
+    }
+
+
+def _bounded_observables(capabilities=BOUNDED_CAPABILITIES):
+    observables = {}
+    for name, contract in _bounded_contracts(capabilities).items():
+        reference = [0.0, 1.0, 2.0, 3.0]
+        accelerator = list(reference)
+        if name != "coverage":
+            accelerator[0] = 5.0e-5
+        pair = {
+            "record_id": "case-1",
+            "reference_values": reference,
+            "accelerator_values": accelerator,
+            "reference_sha256": _output_sha256("case-1", name, "reference", reference),
+            "accelerator_sha256": _output_sha256(
+                "case-1", name, "accelerator", accelerator
+            ),
+        }
+        observables[name] = {
+            "passed": True,
+            "comparison_count": 4,
+            "unit": contract["unit"],
+            "comparison": contract["comparison"],
+            "threshold": contract["threshold"],
+            "observed_maximum": 0.0 if name == "coverage" else 5.0e-5,
+            "paired_outputs": [pair],
+        }
+    return observables
+
+
+def _write_bounded_artifact(path, *, artifact_overrides=None, capabilities=None):
+    capabilities = capabilities or BOUNDED_CAPABILITIES
+    observables = _bounded_observables(capabilities)
+    manifest_bytes = _comparison_manifest_bytes(
+        observables,
+        [f"{task}:reference" for task in BOUNDED_TASKS],
+    )
+    manifest = path.parent / COMPARISON_MANIFEST_NAME
+    manifest.write_bytes(manifest_bytes)
+    manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
+    payload = {
+        "schema_version": 2,
+        "verdict": "pass_bounded_numerical_fp32",
+        "qualification_kind": GPU_BOUNDED_QUALIFICATION,
+        "model_id": "synthetic",
+        "model_version": "1",
+        "checkpoint_sha256s": ["c" * 64],
+        "comparison_manifest_id": "synthetic-panel-v1",
+        "comparison_manifest_sha256": manifest_sha256,
+        "allowed_tasks": BOUNDED_TASKS,
+        "allowed_inference_modes": ["reference"],
+        "validated_task_modes": [f"{task}:reference" for task in BOUNDED_TASKS],
+        "precision_controls": {
+            "reference_dtype": "float32",
+            "accelerator_dtype": "float32",
+            "same_scalar_precision": True,
+            "matmul_precision": "highest",
+            **{name: False for name in GPU_FORBIDDEN_PRECISION_CONTROLS},
+        },
+        "runtime": {
+            "reference_backend": "cpu",
+            "accelerator_backend": "cuda",
+            "hardware": "synthetic-gpu",
+            "software_versions": {"runtime": "1"},
+        },
+        "observables": observables,
+    }
+    from test_gpu_qualification_matrix import synthetic_matrix
+
+    _, payload["numerical_qualification"] = synthetic_matrix(
+        path.parent, forces=capabilities.get("forces", False)
+    )
+    payload.update(artifact_overrides or {})
+    path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+    return manifest_sha256
+
+
+def _bounded_card(evidence, *, capabilities=None, **overrides):
+    capabilities = capabilities or BOUNDED_CAPABILITIES
+    fields = {
+        "numerical_parity_verified": True,
+        "qualification_kind": GPU_BOUNDED_QUALIFICATION,
+        "status": "verified",
+        "evidence_artifact": evidence.name,
+        "evidence_sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
+        "comparison_manifest_sha256": hashlib.sha256(
+            (evidence.parent / COMPARISON_MANIFEST_NAME).read_bytes()
+        ).hexdigest(),
+        "allowed_tasks": BOUNDED_TASKS,
+        "allowed_inference_modes": ["reference"],
+        "compute_dtype": "float32",
+        "matmul_precision": "highest",
+        "allowed_hardware": ["synthetic-gpu"],
+        "required_runtime_packages": ["runtime"],
+        "observable_contracts": _bounded_contracts(capabilities),
+        "comparison_manifest_artifact": COMPARISON_MANIFEST_NAME,
+        "comparison_manifest_id": "synthetic-panel-v1",
+    }
+    from test_gpu_qualification_matrix import synthetic_matrix
+
+    fields["numerical_qualification"], _ = synthetic_matrix(
+        evidence.parent, forces=capabilities.get("forces", False)
+    )
+    fields.update(overrides)
+    return _card(capabilities=capabilities, **fields)
+
+
+def test_bounded_fp32_policy_validates_hash_bound_energy_force_and_sample_evidence(
+    tmp_path,
+):
+    evidence = tmp_path / "bounded-gpu-parity.json"
+    _write_bounded_artifact(evidence)
+    card = _bounded_card(evidence)
+
+    assert card.gpu_acceleration.verified is True
+    assert card.gpu_acceleration.no_loss_parity_verified is False
+    assert card.gpu_acceleration.numerical_parity_verified is True
+    for task in BOUNDED_TASKS:
+        card.validate_device(
+            "cuda:0",
+            task=task,
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context=BOUNDED_RUNTIME_CONTEXT,
+        )
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {
+            "no_loss_parity_verified": True,
+            "numerical_parity_verified": True,
+            "qualification_kind": GPU_BOUNDED_QUALIFICATION,
+        },
+        {
+            "numerical_parity_verified": True,
+            "qualification_kind": "strict_no_loss",
+        },
+        {
+            "no_loss_parity_verified": True,
+            "qualification_kind": GPU_BOUNDED_QUALIFICATION,
+        },
+    ],
+)
+def test_bounded_and_strict_qualification_flags_cannot_impersonate_each_other(fields):
+    with pytest.raises(ModelCardError, match="mutually exclusive"):
+        _card(**fields)
+
+
+def test_bounded_artifact_cannot_claim_a_strict_verdict_or_qualification(tmp_path):
+    evidence = tmp_path / "bounded-gpu-parity.json"
+    _write_bounded_artifact(
+        evidence,
+        artifact_overrides={
+            "verdict": "pass_no_loss",
+            "qualification_kind": "strict_no_loss",
+        },
+    )
+    card = _bounded_card(evidence)
+
+    with pytest.raises(ValueError, match="verdict must be 'pass_bounded"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context=BOUNDED_RUNTIME_CONTEXT,
+        )
+
+    _write_bounded_artifact(
+        evidence,
+        artifact_overrides={"qualification_kind": "strict_no_loss"},
+    )
+    card = _bounded_card(evidence)
+    with pytest.raises(ValueError, match="qualification kind does not match"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context=BOUNDED_RUNTIME_CONTEXT,
+        )
+
+
+def test_bounded_policy_requires_float32_on_both_reference_and_accelerator(tmp_path):
+    evidence = tmp_path / "bounded-gpu-parity.json"
+    _write_bounded_artifact(evidence)
+
+    with pytest.raises(ModelCardError, match="requires compute_dtype=float32"):
+        _bounded_card(evidence, compute_dtype="float64")
+
+    payload = json.loads(evidence.read_text(encoding="utf-8"))
+    payload["precision_controls"]["reference_dtype"] = "float64"
+    evidence.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+    card = _bounded_card(evidence)
+    with pytest.raises(ValueError, match="dtypes must match"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context=BOUNDED_RUNTIME_CONTEXT,
+        )
+
+
+def test_bounded_policy_recomputes_paired_outputs_instead_of_trusting_verdict(tmp_path):
+    evidence = tmp_path / "bounded-gpu-parity.json"
+    _write_bounded_artifact(evidence)
+    payload = json.loads(evidence.read_text(encoding="utf-8"))
+    payload["observables"]["energy"]["paired_outputs"][0]["accelerator_values"][
+        0
+    ] = 9.0e-5
+    evidence.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+    card = _bounded_card(evidence)
+
+    with pytest.raises(ValueError, match="accelerator output SHA256 does not match"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context=BOUNDED_RUNTIME_CONTEXT,
+        )
+
+
+def test_bounded_policy_rejects_unrequested_chemical_accuracy_metrics(tmp_path):
+    evidence = tmp_path / "bounded-gpu-parity.json"
+    _write_bounded_artifact(evidence)
+    payload = json.loads(evidence.read_text(encoding="utf-8"))
+    payload["observables"]["literature_panel_metrics"] = payload["observables"][
+        "energy"
+    ]
+    evidence.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+    card = _bounded_card(evidence)
+
+    with pytest.raises(ValueError, match="observables must exactly match"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context=BOUNDED_RUNTIME_CONTEXT,
+        )
+
+
+def test_bounded_policy_is_bound_to_runtime_and_strict_precision_state(tmp_path):
+    evidence = tmp_path / "bounded-gpu-parity.json"
+    _write_bounded_artifact(evidence)
+    card = _bounded_card(evidence)
+
+    with pytest.raises(ValueError, match="hardware does not match"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context={**BOUNDED_RUNTIME_CONTEXT, "hardware": "other-gpu"},
+        )
+    with pytest.raises(ValueError, match="precision state must record tf32=false"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context={
+                **BOUNDED_RUNTIME_CONTEXT,
+                "precision_controls": {
+                    **BOUNDED_PRECISION_STATE,
+                    "tf32": True,
+                },
+            },
+        )
+    with pytest.raises(ValueError, match="'runtime'.*does not match"):
+        card.validate_device(
+            "cuda",
+            task="sp",
+            inference_mode="reference",
+            evidence_root=tmp_path,
+            runtime_context={
+                **BOUNDED_RUNTIME_CONTEXT,
+                "software_versions": {"runtime": "2"},
+            },
+        )
+
+
+def test_strict_no_loss_contracts_still_require_zero_non_degradation():
+    contracts = _contracts(BOUNDED_CAPABILITIES)
+
+    for name in GPU_STRICT_ACCURACY_CONTRACTS:
+        assert contracts[name]["comparison"] == GPU_STRICT_ACCURACY_CONTRACTS[name]
+        assert contracts[name]["threshold"] == 0.0
+    assert "literature_panel_metrics" not in _bounded_contracts()

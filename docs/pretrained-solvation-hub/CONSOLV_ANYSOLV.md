@@ -8,12 +8,12 @@ occurs on these routes.
 
 | Route | Public header | Quantity and admitted tasks |
 | --- | --- | --- |
-| ConSolv | `#model=consolv(native_solvent=ethanol)` | Native solution potential; CPU float64 `#sp`, including `#sp(verbose=1)` gradients |
-| AnySolv MoE | `#model=aimnet2` plus the directive below | Gas potential plus one geometry-level correction; CPU float64 `#sp(verbose=0)` only |
+| ConSolv | `#model=consolv(native_solvent=ethanol)` | Native solution potential; CUDA FP32 by default, `#sp`, including `#sp(verbose=1)` gradients |
+| AnySolv MoE | `#model=aimnet2` plus the directive below | Gas potential plus one geometry-level correction; CUDA FP32 by default, `#sp(verbose=0)` only |
 
 ```text
 #model=aimnet2
-#device=cpu
+#device=cuda:0
 #sp(verbose=0)
 #solv(implicit=water,method=anysolv,experimental=true,source_root=/home/axie/.cache/maple/anysolv/anysolv)
 
@@ -37,6 +37,61 @@ constant uses a legacy Torch serialization API; this installation's public
 replay uses `TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1` for that hash-verified constant.
 The MoE checkpoint itself is explicitly loaded with `weights_only=True`.
 
+## Execution controls
+
+Only these two routes default to `cuda:0` and `float32` when omitted. Other MAPLE
+models keep their existing defaults. Missing/requested CUDA raises an error; no
+CPU fallback or implicit device/dtype substitution occurs. Explicit `#device=cpu`
+is supported, still FP32 unless `dtype=float64` is selected. FP64 is an audit
+reference on CPU, not the default production precision. The pinned AIMNet2+AnySolv
+composition propagates the selected dtype to both gas and correction components.
+
+- ConSolv controls belong to `#model=consolv(native_solvent=ethanol,dtype=float32,inference=optimized)`.
+- AnySolv controls belong to `#solv(...,dtype=float32,inference=optimized)`.
+- `inference=reference` is default (eager CUDA, **not** a CPU selector).
+- `inference=optimized` requires separately hash-bound numerical, fresh-inference
+  speed, and GPU-memory evidence. Compilation can make the first call much slower.
+
+AnySolv uses upstream merged block-GEMM/Triton plus owned Inductor execution.
+Its compile scope is `upstream_hybrid`, not a claim of a fully compiled backbone.
+ConSolv uses strict stateless FX export and fullgraph static Inductor programs.
+ConSolv optimized owners freeze atom/edge counts, solvent, device and dtype;
+changed signatures require a new calculator. Weights are explicit graph inputs,
+not model constants retained by compiler caches. Both energy and AD variants
+require actual compiled backend execution; eager fallback is an error.
+
+CUDA FP32 uses scoped IEEE controls: no TF32, AMP, FP16/BF16 or fast-math.
+The owned context restores caller settings on success and failure. GPU cards bind
+exact checkpoints, implementation sources, runtime/hardware and numerical modes.
+This is `bounded_numerical_fp32`, with `no_loss_parity_verified=false`: it is
+not a claim of unchanged experimental/literature accuracy. The supported CUDA
+AnySolv composition is the exact pinned AIMNet2 scalar base plus the correction,
+not blanket GPU admission of standalone AIMNet2 or other gas calculators.
+
+### Force-audit precision
+
+ConSolv production weights, network operations, scalar reduction and gradients
+remain FP32. At small displacements, finite differences of its returned FP32
+absolute energies are resolution-limited; the original same-FP32 FD failures
+are retained, not relabeled as passes. The separately versioned force audit uses
+CPU-FP64 central differences as a higher-precision numerical reference and also
+requires direct CPU64/CPU32/CUDA32 analytic-force parity. It does not enable
+optimization, MD, or thermodynamic free-energy calculations.
+
+Reproduce label-free numerical diagnostics (not a production calculator):
+
+```bash
+TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1 OMP_NUM_THREADS=1 PYTHONPATH="$PWD" \
+python -m maple.function.benchmarking.pretrained_solvation_gpu \
+  --diagnostic --route consolv --device cuda:0 --dtype float32 \
+  --inference optimized \
+  --panel maple/function/calculator/model_cards/evidence/gpu-fp32-2026-10-25/frozen-panel-v2.json \
+  --output /tmp/consolv-gpu-audit.json
+```
+
+The output path must not already exist. CPU64 is used only for the separate audit
+run; original checkpoints and task gates are unchanged.
+
 Default paths are relative to `maple/function/calculator/`:
 
 | Model | Default path | SHA256 |
@@ -54,17 +109,19 @@ a new instance to change them. ASE positions and electronic-state metadata
 continue to invalidate cached results.
 
 AnySolv owns its resident model, loaded directly by the pinned official
-`load_model` with CPU/FP64 reference controls. A private weak cache shares that
-resident across solvents using verified source/checkpoint digests and exact
-runtime controls. The upstream pathname cache is not consumed or modified;
+`load_model` with explicit device/dtype/inference controls. A private weak cache shares that
+unmerged reference resident across solvents using verified source/checkpoint digests and exact
+runtime controls. Optimized MoE residents are owner-local and freeze atom count,
+composition, charge, multiplicity, and solvent; a changed signature requires a
+new calculator, never implicit remerging or an unbounded resident cache. The upstream pathname cache is not consumed or modified;
 evaluation does not rehash the checkpoint. Composite calculators invalidate
 charge/multiplicity changes and require the potential's separate capabilities.
 Direct AnySolv evaluation rejects native, alchemical, and property-only contexts.
 ConSolv also rejects an attached correction before inference or cache reuse.
 
 The low-level loader is an internal diagnostic in `consolv._torch_model`, not
-a package export or an admitted calculation API. It rejects non-CPU/non-FP64
-controls before file access and keeps explicit `expected_state="vacuum"` for
+a package export or an admitted calculation API. It validates explicit CPU/CUDA
+and FP32/FP64 controls before file access and keeps explicit `expected_state="vacuum"` for
 paired-endpoint diagnostics. Use `ConSolvCalculator` for supported calculations.
 
 ConSolv accepts one connected, nonperiodic, neutral closed-shell molecule
@@ -75,8 +132,8 @@ only its frozen 36 trained/validated solvent names. Its atomic-number capacity
 embeddings, not a validated chemistry domain. A separated two-water scalar
 probe ([frozen receipt](benchmarks/anysolv-multifragment-2026-10-24.json))
 establishes mechanical multifragment execution only; the validated
-multifragment domain remains unknown. Neither route supports PBC or GPU.
-OPT/scan/TS/IRC/FREQ/MD remain disabled.
+multifragment domain remains unknown. Neither route supports PBC.
+OPT/scan/TS/IRC/FREQ/MD remain disabled; GPU acceleration does not open derivative tasks for AnySolv.
 
 AnySolv returns `quantity_kind=geometry_level_energy_correction` with gas,
 correction, and combined energies in Hartree. It exposes no forces and no

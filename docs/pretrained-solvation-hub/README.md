@@ -244,9 +244,9 @@ records, which are retained as a non-group bucket.  It never generates a conform
 propagates new MD.  This is a paper-split reproduction control, not an
 independent blind-validation claim.
 
-ConSolv now has a user-authorized independent pure-Torch CPU adapter for
+ConSolv now has a user-authorized independent pure-Torch CUDA/FP32 adapter for
 native solution SP energies and gradients in 66 nonaqueous solvents. AnySolv
-MoE provides an additive scalar CPU SP correction in its frozen 36-solvent set;
+MoE provides an additive scalar CUDA/FP32 SP correction in its frozen 36-solvent set;
 its measured force defect keeps derivative tasks disabled. See
 [public syntax, paths, domains, and quantities](CONSOLV_ANYSOLV.md). Historical
 release blockers and compact-model negative evidence remain in the registry.
@@ -294,8 +294,8 @@ platform.
 
 AnySolv-MoE is the current additive geometry-level correction through CalcABC.
 Use the single [AnySolv usage example](CONSOLV_ANYSOLV.md) with an explicit
-vacuum model, pinned source and MoE checkpoint. CPU/FP64 scalar SP only;
-forces, OPT, MD, GPU and absolute/Gibbs solvation free energy are not admitted.
+vacuum model, pinned source and MoE checkpoint. CUDA/FP32 scalar SP by default, with separately qualified optimized inference;
+forces, OPT, MD and absolute/Gibbs solvation free energy remain unadmitted.
 
 AniSolv compact and its sealed UMA wrapper are **retired**. Old selectors fail
 without automatic mapping. The [historical card archive](history/anisolv-retired/README.md)

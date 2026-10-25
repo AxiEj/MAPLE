@@ -1,0 +1,52 @@
+{
+  "checkpoint_sha256s": [
+    "77b7d883ac1a01fc13d78b8cf5530e5709af679e6fbdec53cb086ae0a90bd251",
+    "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  ],
+  "comparison_manifest_id": "aimnet2-anysolv-cuda-fp32-public-ase-v1",
+  "model_id": "aimnet2-anysolv",
+  "model_version": "scalar-composition-cuda-fp32-v1",
+  "observable_counts": {
+    "coverage": 10,
+    "energy": 36
+  },
+  "records": [
+    {
+      "configuration_sha256": "cd9e26e03e8d5356f2a37c83de951a8a81a6a65b38375d80b48f2db3c3448b2f",
+      "observable_output_sha256s": {
+        "coverage": {
+          "accelerator": "1565f29a60deca1a2fc5825536593e4a56d04a3a94c400229ede38c831f14193",
+          "reference": "4ca72dd0909e8fd7805aada8a4579d77d032e961d109105131b1c5650dc02f9f"
+        },
+        "energy": {
+          "accelerator": "663d4e01c36c342190550d351d305dcd0363d4a03e40966615c42a492fafb91f",
+          "reference": "9f55c5f243f6c90ae3bb1e34b421ed58b778f4b72615dd60ed9cc67b40a93df1"
+        }
+      },
+      "panel_id": "frozen-ase-six-v2",
+      "record_id": "optimized:aimnet2-anysolv:frozen-public-panel-v2",
+      "reference_sha256": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52"
+    },
+    {
+      "configuration_sha256": "9113d9ab39063dad5cd20e9312c4cf333ec8cbd2f6079efcbf97a82c873b9b27",
+      "observable_output_sha256s": {
+        "coverage": {
+          "accelerator": "ddf879072c45e53ef2847e444894cd3ef5212204c73c79b6ac74fa3c1b2c3f8c",
+          "reference": "8420637033b0091159b5fb4d05d7d72d208cd679798c7aa63effc2089cd9183a"
+        },
+        "energy": {
+          "accelerator": "8d5fa24e9ea99e52390c87a63ff91ba57d3ca42a6b5d096611e3c6518eaab228",
+          "reference": "a7b103330d41942d1419ed0106863a622778cd161a1f0f3cc356b572536b80f1"
+        }
+      },
+      "panel_id": "frozen-ase-six-v2",
+      "record_id": "reference:aimnet2-anysolv:frozen-public-panel-v2",
+      "reference_sha256": "9e804b534288055ea6a60a96af664abf99e1aeba24ba9de9ff74b0704c61be52"
+    }
+  ],
+  "schema_version": 1,
+  "task_modes": [
+    "sp:optimized",
+    "sp:reference"
+  ]
+}

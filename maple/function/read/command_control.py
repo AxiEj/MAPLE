@@ -320,6 +320,23 @@ class CommandControl:
         cls._normalize_params(params)
         cls._normalize_method_flags(params, task, output_path)
         cls._validate(params, task, output_path)
+        from ..calculator.solvation_execution import (
+            is_pretrained_solvent_route,
+            normalize_execution_options,
+        )
+
+        if is_pretrained_solvent_route(params.get("model"), params.get("solv")):
+            controls = (
+                params.setdefault("model_options", {})
+                if params.get("model") == "consolv"
+                else params["solv"]
+            )
+            controls.update(normalize_execution_options(controls))
+            params.setdefault("device", "cuda:0")
+            if not isinstance(params["device"], str):
+                raise ValueError(
+                    "Pretrained solvent models require an explicit CPU or CUDA device name."
+                )
         cls._log_info(output_path, log_lines)
 
         return cls(params, task, output_path)
@@ -526,7 +543,12 @@ class CommandControl:
             allowed_solvent = cls.SOLV_PARAMS
             is_anysolv = str(solv_params.get("method", "")).strip().lower() == "anysolv"
             if is_anysolv:
-                allowed_solvent = allowed_solvent | {"model_path", "source_root"}
+                allowed_solvent = allowed_solvent | {
+                    "model_path",
+                    "source_root",
+                    "dtype",
+                    "inference",
+                }
             for key in solv_params:
                 if key in cls.SOLV_REMOVED_PARAMS:
                     msg = cls.SOLV_REMOVED_PARAMS[key]
@@ -703,6 +725,8 @@ class CommandControl:
                 "experimental",
                 "model_path",
                 "source_root",
+                "dtype",
+                "inference",
             }
             extra = set(solv_params) - allowed
             if extra:

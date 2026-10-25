@@ -15,6 +15,8 @@ from typing import Iterable
 import torch
 from e3nn import o3
 
+from ..solvation_execution import SolvationExecution
+
 FORMAT = "consolv-torch-v1"
 SOURCE_REVISION = "06801dd5f53182ed86c31eee1fa03cc011c05b5a"
 CHECKPOINT_IDENTITIES = {
@@ -75,10 +77,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+class _FXFullTensorProduct(o3.FullTensorProduct):
+    """Keep e3nn's generated equations traceable without global JIT changes."""
+
+    def _codegen_register(self, funcs):
+        for name, graph in funcs.items():
+            self.add_module(name, graph)
+
+
 class _ConSolvTorchModel(torch.nn.Module):
     """Frozen two-interaction ConSolv graph with energy-derived forces."""
 
-    def __init__(self, checkpoint: dict):
+    def __init__(self, checkpoint: dict, *, inference="reference"):
         super().__init__()
         if checkpoint.get("format") != FORMAT:
             raise ValueError(
@@ -88,15 +98,27 @@ class _ConSolvTorchModel(torch.nn.Module):
         self.parameter_map = dict(checkpoint["parameter_map"])
         for name, value in checkpoint["state_dict"].items():
             self.register_buffer(name, value.detach().clone())
-        self.tp0 = o3.FullTensorProduct(
+        self.inference = inference
+        self.compilation_active = False
+        self._compiled_energy = None
+        tensor_product = (
+            _FXFullTensorProduct if inference == "optimized" else o3.FullTensorProduct
+        )
+        self.tp0 = tensor_product(
             "64x0e",
             "1x1o+1x2e+1x3o",
             filter_ir_out=[o3.Irrep(x) for x in ("0e", "1o", "2e", "3o")],
         )
-        self.tp1 = o3.FullTensorProduct(
+        self.tp1 = tensor_product(
             "64x0e+32x1o",
             "1x1o+1x2e+1x3o",
             filter_ir_out=[o3.Irrep(x) for x in ("0e", "1o", "2e", "3o")],
+        )
+
+        # Store only plain integers in the traced graph, not e3nn Irrep objects.
+        self._tp_layouts = tuple(
+            tuple((mul, ir.l, ir.dim) for mul, ir in tp.irreps_out)
+            for tp in (self.tp0, self.tp1)
         )
 
     def _p(self, source_name: str):
@@ -158,17 +180,14 @@ class _ConSolvTorchModel(torch.nn.Module):
 
     def _message(self, layer, node, rbf, vectors, sender, receiver, descriptor):
         in_groups = GROUPS_0 if layer == 0 else GROUPS_HIDDEN
-        up = _linear(
-            node,
-            in_groups,
-            in_groups,
-            {
-                ell: self._p(
-                    f"mace_consol/layer_{layer}/interaction_layer/linear_up::w[{ell},{ell}] {mul}x{o3.Irrep((ell, 1 if ell % 2 == 0 else -1))},{mul}x{o3.Irrep((ell, 1 if ell % 2 == 0 else -1))}"
-                )
-                for mul, ell in in_groups
-            },
-        )
+        up_weights = {}
+        for mul, ell in in_groups:
+            parity = "e" if ell % 2 == 0 else "o"
+            up_weights[ell] = self._p(
+                f"mace_consol/layer_{layer}/interaction_layer/linear_up::w[{ell},{ell}] "
+                f"{mul}x{ell}{parity},{mul}x{ell}{parity}"
+            )
+        up = _linear(node, in_groups, in_groups, up_weights)
         sh = o3.spherical_harmonics(
             [1, 2, 3], vectors, normalize=True, normalization="component"
         )
@@ -176,11 +195,9 @@ class _ConSolvTorchModel(torch.nn.Module):
         tp = tp_module(up[sender], sh)
         tp_slices = []
         start = 0
-        for mul, ir in tp_module.irreps_out:
-            stop = start + mul * ir.dim
-            tp_slices.append(
-                (ir.l, tp[:, start:stop].reshape(tp.shape[0], mul, ir.dim))
-            )
+        for mul, ell, dim in self._tp_layouts[layer]:
+            stop = start + mul * dim
+            tp_slices.append((ell, tp[:, start:stop].reshape(tp.shape[0], mul, dim)))
             start = stop
         source_slices = _slices(in_groups)
         messages = []
@@ -281,8 +298,21 @@ class _ConSolvTorchModel(torch.nn.Module):
         solvent_index = int(solvent_index)
         if not 0 <= solvent_index < 148:
             raise ValueError("solvent index outside ConSolv tensor capacity")
+        sender, receiver, _ = self._valid_edges(positions_angstrom)
+        if self.inference == "optimized":
+            return self._optimized_energy(
+                species, positions_angstrom, solvent_index, sender, receiver
+            )
+        return self._energy_graph(
+            species, positions_angstrom, solvent_index, sender, receiver
+        )
+
+    def _energy_graph(
+        self, species, positions_angstrom, solvent_index, sender, receiver
+    ):
+        # Edges are selected anew outside compilation. Vectors remain inside AD.
+        vectors = (positions_angstrom[sender] - positions_angstrom[receiver]) / 5.0
         node, descriptor = self._attention_embedding(species, solvent_index)
-        sender, receiver, vectors = self._valid_edges(positions_angstrom)
         rbf = self._rbf(torch.linalg.vector_norm(vectors, dim=-1))
         for layer in range(2):
             old = node
@@ -319,30 +349,62 @@ class _ConSolvTorchModel(torch.nn.Module):
         scale = self._p("atomic_energy_layer/~/scale_shift_layer::scale")
         shift = self._p("atomic_energy_layer/~/scale_shift_layer::shift")
         atomic = self._p("atomic_energy_layer/~/embed::embeddings")[species, 0]
-        return (atomic + scale * per_atom + shift).sum(dtype=torch.float64)
+        return (atomic + scale * per_atom + shift).sum(dtype=positions_angstrom.dtype)
+
+    def _optimized_energy(self, *args):
+        try:
+            if self._compiled_energy is None:
+                from ._compiled import ConSolvCompiledGraph
+
+                self._compiled_energy = ConSolvCompiledGraph(self)
+            self.compilation_active = False
+            result = self._compiled_energy(*args)
+            self.compilation_active = True
+            return result
+        except ValueError:
+            self.compilation_active = False
+            raise
+        except Exception as exc:
+            self.compilation_active = False
+            raise RuntimeError(
+                "ConSolv optimized compilation failed; eager fallback is disabled."
+            ) from exc
 
     def energy_ev(self, numbers, positions_angstrom, solvent_index):
         return self.energy_native(numbers, positions_angstrom, solvent_index) / 96.485
 
     def energy_and_forces_ev(self, numbers, positions_angstrom, solvent_index):
-        positions = positions_angstrom.detach().clone().requires_grad_(True)
-        energy = self.energy_ev(numbers, positions, solvent_index)
-        forces = -torch.autograd.grad(energy, positions, create_graph=False)[0]
-        return energy, forces
+        with torch.inference_mode(False), torch.enable_grad():
+            positions = positions_angstrom.detach().clone().requires_grad_(True)
+            energy = self.energy_ev(numbers, positions, solvent_index)
+            try:
+                forces = -torch.autograd.grad(energy, positions, create_graph=False)[0]
+            except Exception as exc:
+                if self.inference == "optimized":
+                    self.compilation_active = False
+                    raise RuntimeError(
+                        "ConSolv optimized force differentiation failed; eager fallback is disabled."
+                    ) from exc
+                raise
+            return energy, forces
 
 
 def load_consolv_torch_checkpoint(
-    path, *, device="cpu", dtype=torch.float64, expected_state="solution"
+    path,
+    *,
+    device="cpu",
+    dtype=torch.float64,
+    expected_state="solution",
+    inference="reference",
 ):
-    """Internal CPU/FP64 diagnostic loader, including the paired vacuum state.
+    """Internal diagnostic loader, including the hash-bound paired vacuum state.
 
     This raw graph does not enforce the calculator's chemistry/task domain.
     Supported calculations use ConSolvCalculator.
     """
-    if str(device).strip().lower() != "cpu":
-        raise ValueError("ConSolv diagnostic loading requires CPU.")
-    if dtype is not torch.float64:
-        raise ValueError("ConSolv diagnostic loading requires FP64 (torch.float64).")
+    execution = SolvationExecution(device=device, dtype=dtype, inference=inference)
+    with execution.precision_context():
+        execution.check_precision()
     if expected_state not in CHECKPOINT_IDENTITIES:
         raise ValueError(f"Unsupported ConSolv potential state: {expected_state!r}")
     checkpoint = Path(path).expanduser().resolve()
@@ -368,7 +430,10 @@ def load_consolv_torch_checkpoint(
             "Unrecognized ConSolv Torch checkpoint identity: "
             f"expected {expected}, got {actual}."
         )
-    payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
+    with torch.inference_mode(False):
+        payload = torch.load(
+            checkpoint, map_location="cpu", weights_only=True, mmap=True
+        )
     metadata = payload.get("metadata", {})
     if metadata.get("source_revision") != SOURCE_REVISION:
         raise ValueError("ConSolv converted checkpoint source revision mismatch.")
@@ -382,6 +447,13 @@ def load_consolv_torch_checkpoint(
         raise ValueError(
             f"ConSolv checkpoint metadata state mismatch: {recorded_state!r}."
         )
-    model = _ConSolvTorchModel(payload).to(device=device, dtype=dtype)
+    with torch.inference_mode(False):
+        model = _ConSolvTorchModel(payload, inference=execution.inference).to(
+            device=execution.device, dtype=execution.torch_dtype
+        )
+    model._checkpoint_sha256 = actual
+    model._potential_state = expected_state
+    model._execution = execution
+    model.execution = execution
     model.eval()
     return model

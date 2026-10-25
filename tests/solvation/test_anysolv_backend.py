@@ -19,7 +19,9 @@ class FakeRuntime:
         self.kwargs = kwargs
         self.calls = []
 
-    def evaluate(self, numbers, positions, *, charge, multiplicity, solvent):
+    def evaluate(
+        self, numbers, positions, *, charge, multiplicity, solvent, scalar_only=False
+    ):
         self.calls.append(
             (numbers.copy(), positions.copy(), charge, multiplicity, solvent)
         )
@@ -55,6 +57,7 @@ def backend(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(anysolv, "_OfficialAnySolvRuntime", FakeRuntime)
     return anysolv.AnySolvBackend(
+        dtype="float64",
         solvent="water",
         model_path=str(checkpoint),
         source_root=str(source),
@@ -109,6 +112,8 @@ def test_only_frozen_trained_solvents_are_accepted(tmp_path, monkeypatch):
     monkeypatch.setattr(anysolv, "_OfficialAnySolvRuntime", FakeRuntime)
     with pytest.raises(ValueError, match="36-solvent"):
         anysolv.AnySolvBackend(
+            device="cpu",
+            dtype="float64",
             solvent="untrained-solvent",
             model_path=str(checkpoint),
             source_root=str(source),
@@ -125,6 +130,8 @@ def test_checkpoint_mismatch_fails_before_runtime(tmp_path, monkeypatch):
     )
     with pytest.raises(ValueError, match="checkpoint checksum mismatch"):
         anysolv.AnySolvBackend(
+            device="cpu",
+            dtype="float64",
             solvent="water",
             model_path=str(checkpoint),
             source_root=str(source),
@@ -143,7 +150,11 @@ def test_default_checkpoint_uses_maple_model_storage_contract():
 def test_invalid_source_path_rejected_before_checkpoint_access(tmp_path, source_root):
     with pytest.raises((TypeError, ValueError), match="source_root"):
         anysolv.AnySolvBackend(
-            solvent="water", model_path=tmp_path / "absent.pt", source_root=source_root
+            device="cpu",
+            dtype="float64",
+            solvent="water",
+            model_path=tmp_path / "absent.pt",
+            source_root=source_root,
         )
 
 
@@ -339,6 +350,8 @@ def test_explicit_paths_never_fall_back(
     monkeypatch.setattr(Path, "is_file", lambda _: True)
     with pytest.raises((TypeError, ValueError), match=message):
         anysolv.AnySolvBackend(
+            device="cpu",
+            dtype="float64",
             solvent="water",
             model_path=model_path,
             source_root=source_root,
@@ -373,6 +386,7 @@ def test_official_runtime_uses_explicit_package_spec_without_sys_path_pollution(
         sys.modules.pop(name, None)
     try:
         runtime = anysolv._OfficialAnySolvRuntime(
+            dtype="float64",
             source_root=source,
             checkpoint=checkpoint,
             device="cpu",
@@ -444,6 +458,7 @@ def test_official_runtime_rejects_preimported_package_without_pinned_location(
     before = list(sys.path)
     with pytest.raises(ImportError, match="filesystem location|expected pinned source"):
         anysolv._OfficialAnySolvRuntime(
+            dtype="float64",
             source_root=tmp_path,
             checkpoint=tmp_path / "model.pt",
             device="cpu",
@@ -461,6 +476,7 @@ def test_failed_source_import_leaves_no_modules_or_path_residue(tmp_path, monkey
     before = list(sys.path)
     with pytest.raises(RuntimeError, match="source failed"):
         anysolv._OfficialAnySolvRuntime(
+            dtype="float64",
             source_root=tmp_path,
             checkpoint=tmp_path / "model.pt",
             device="cpu",
@@ -501,3 +517,76 @@ def test_force_rejection_model_card_binds_exact_frozen_result():
     )
     assert frozen["added_bonds"] is False
     assert frozen["validated_multifragment_domain"] == "unknown"
+
+
+def test_execution_policy_provenance_and_immutability(backend):
+    assert backend.device == "cpu"
+    assert backend.dtype == "float64"
+    assert backend.inference == "reference"
+    assert backend._runtime.kwargs["dtype"] == "float64"
+    assert backend.provenance["compute_dtype"] == "float64"
+    assert backend.provenance["source_digest"] == anysolv._SOURCE_DIGEST
+    for name, value in (
+        ("device", "cuda:1"),
+        ("dtype", "float32"),
+        ("inference", "optimized"),
+    ):
+        with pytest.raises(AttributeError):
+            setattr(backend, name, value)
+
+
+def test_default_cuda32_policy_validates_card_before_loading(monkeypatch):
+    import torch
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(
+        anysolv.SolvationExecution, "runtime_context", lambda self: {"live": True}
+    )
+    calls = []
+
+    def blocked(device, **kwargs):
+        calls.append((device, kwargs))
+        raise ValueError("missing CUDA32 diagnostic evidence")
+
+    card = SimpleNamespace(validate_device=blocked)
+    monkeypatch.setattr(anysolv, "load_model_provenance_card", lambda *args: card)
+    monkeypatch.setattr(
+        anysolv,
+        "_OfficialAnySolvRuntime",
+        lambda **kwargs: pytest.fail("loader reached"),
+    )
+    with pytest.raises(ValueError, match="missing CUDA32 diagnostic evidence"):
+        anysolv.AnySolvBackend(solvent="water")
+    assert calls == [
+        (
+            "cuda:0",
+            {
+                "task": "sp",
+                "inference_mode": "reference",
+                "runtime_context": {"live": True},
+            },
+        )
+    ]
+    assert anysolv.AnySolvBackend.__dataclass_fields__["dtype"].default == "float32"
+
+
+def test_default_unavailable_cuda_has_no_cpu_fallback(monkeypatch):
+    import torch
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(
+        anysolv,
+        "_OfficialAnySolvRuntime",
+        lambda **kwargs: pytest.fail("loader reached"),
+    )
+    with pytest.raises(ValueError, match="unavailable.*fallback is disabled"):
+        anysolv.AnySolvBackend(solvent="water")
+
+
+@pytest.mark.parametrize("device", [None, "none"])
+def test_missing_literal_device_rejected_before_runtime_loading(monkeypatch, device):
+    monkeypatch.setattr(anysolv, "_OfficialAnySolvRuntime", lambda **kwargs: pytest.fail("loader reached"))
+    with pytest.raises(ValueError, match="explicit CPU or CUDA"):
+        anysolv.AnySolvBackend(solvent="water", device=device)

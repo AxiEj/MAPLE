@@ -1,0 +1,106 @@
+{
+  "profile_id": "aimnet2025-obc2-fp32-engineering-v3",
+  "status": "user-authorized-revision-after-retained-N32-probe-failures-before-full-joint-FP32-matrix",
+  "based_on_preexisting_protocol": {
+    "path": ".omx/plans/test-spec-route1-independent-obc2-analytic-mlip-20260927.md",
+    "sha256": "1d912c48a0ae162e6a571f4dff9e8487751e42e37146bfcd5edf36e9185461e4",
+    "section": "C: D64/N32 numerical profiles"
+  },
+  "model": "aimnet2025",
+  "official_family": "AIMNet2-2025 B97-3c",
+  "member": 0,
+  "checkpoint_sha256": "043ed5418a104e31f79462f8e5ebeca64a2d24422174f5d29f894d32271981b5",
+  "gas_precision_class": "N32",
+  "devices": [
+    "cpu",
+    "cuda"
+  ],
+  "gas_nn_coordinates_dtype": "float32",
+  "solvent_dtype": "float32",
+  "runtime_engine": "official staged same scalar with differentiable torch D3 for ALL E/F/H/HVP operations, not per-operation model switching",
+  "autocast": false,
+  "tf32": false,
+  "fp16_bf16": false,
+  "fd_steps_angstrom": [
+    0.002,
+    0.001,
+    0.0005
+  ],
+  "all_steps_retained": true,
+  "passing_steps": "both fixed finest steps plus their pairwise difference <=2x RMS/max bounds; no best step",
+  "gates": {
+    "native_graph_energy_abs_hartree": 2e-05,
+    "native_graph_force_max_hartree_per_angstrom": 2e-06,
+    "native_graph_force_rms_hartree_per_angstrom": 5e-07,
+    "raw_hessian_asymmetry": "2e-6*max(1,maxabs(H)) Ha/A^2",
+    "hvp_vs_raw_Hv_atol": 5e-06,
+    "hvp_vs_raw_Hv_rtol": 5e-05,
+    "force_fd_hessian_rms_hartree_per_angstrom2": 0.0001,
+    "force_fd_hessian_max_hartree_per_angstrom2": 0.002,
+    "translation_leakage": "max(1e-5,1e-5*FrobeniusNorm(H))",
+    "force_fd_relative_l2": 0.005,
+    "force_fd_relative_norm_floor": 0.001,
+    "force_fd_symmetric_eigenvalue_max_hartree_per_angstrom2": 0.002,
+    "directional_force_fd_hvp_rms_hartree_per_angstrom2": 0.0003
+  },
+  "frozen_molecules": [
+    "water",
+    "methanol",
+    "ethane",
+    "benzene",
+    "methyl-hexanoate",
+    "nitralin"
+  ],
+  "geometries": [
+    "base",
+    "deterministic_displaced"
+  ],
+  "solvent_nonpolar": [
+    "ace",
+    "none"
+  ],
+  "expected_gas_rows": 24,
+  "expected_composed_hessian_rows": 48,
+  "directions_per_composed_cell": 3,
+  "expected_composed_hvp_rows": 144,
+  "notes": [
+    "Threshold revision is explicitly post-observation and user-authorized, not preregistered or proof that older thresholds passed.",
+    "Same 12 positive geometries, 36 directions, 24 gas/48 H/144 HVP rows and 8 negative controls; all failures remain in denominator.",
+    "All 3 fixed FD steps retained; both finest steps plus pairwise stability required, no best-step selection.",
+    "Source/state/complete potential/graph, exact same-call accounting, raw symmetry, translation and HVP-vs-H gates are not relaxed.",
+    "Added <=0.5 percent relative L2 and symmetric-H eigenvalue checks at both finest steps to detect serious curvature changes.",
+    "No runtime FD fallback, no dense-H direct HVP, no mixed model paths. OBC32 profile is explicit and distinct from historical OBC64.",
+    "Official atomic constants and energy addition retain FP64 because upstream explicitly promotes them; no FP64 NN/Hessian branch.",
+    "No new FP64 model/reference or OBC reference run. Existing archived higher-precision oracles may be read as static validation data.",
+    "Directional vector differences have a separately declared RMS bound 3e-4 Ha/A^2; H-matrix RMS remains 1e-4. Max, relative, pairwise and AD checks remain required.",
+    "Revision follows retained JOINT_FP32_PARTIAL_V3.json: methyl-hexanoate directional FD RMS up to 2.06e-4 but <=0.118 percent relative L2; direct Hv-vs-Hv max <=1.70e-7. No inference that all untested molecules pass."
+  ],
+  "supersedes_for_new_branch_only": {
+    "profile_id": "aimnet2025-native-f32-analytic-d3-v1",
+    "content_sha256": "c118376bac0a58bbf1682abaf573f3c521c843cd52c912b388c3a839de96c835",
+    "path": ".omx/checkpoints/route1-aimnet2025-20261024/N32_QUALIFICATION_PROFILE.json"
+  },
+  "user_authority": {
+    "date": "2026-10-25",
+    "model_and_obc": "AIMNet 与 OBC 都改成 FP32",
+    "acceptance": "CPU/GPU FP32; relax precision validation if no serious issue; no FP64 model/reference branch"
+  },
+  "scalar_contract": {
+    "nn_coordinates_gradients_hessian_hvp": "float32",
+    "obc_kernel": "float32",
+    "official_atomic_reference_and_energy_aggregation": "float64, unmodified pinned upstream",
+    "output_container": "float64; not a D64 derivative claim"
+  },
+  "retained_failed_evidence": [
+    "ACCOUNTING_NATIVE_SMOKE_V2.json",
+    "FEASIBILITY_REPORT.md",
+    "JOINT_FP32_PARTIAL_V3.json"
+  ],
+  "claim_boundary": "Engineering FP32 derivative consistency only; not D64 parity or experimental/DFT accuracy",
+  "intermediate_profile": {
+    "path": ".omx/checkpoints/route1-aimnet2025-20261024/JOINT_FP32_QUALIFICATION_PROFILE_V2.json",
+    "file_sha256": "e6201a825ef5c26efc9ab3ae9497bd121386f17ca131758fcaf79fa6847d91a8",
+    "content_sha256": "24f3d89dc6905764b2ae9efac1e3650057604d0fe3f0c8be34f77206d6889104"
+  },
+  "content_sha256": "19060417d315e994d3cb4a87e0db261b62537b9c75b3cb0b2daa5d6c0a23352e"
+}

@@ -54,9 +54,12 @@ installation.
 
 Provider capability alone does not qualify a composed MLIP task. Analytic
 implicit FREQ/P-RFO/direct-HVP Dimer requests require a sealed exact-cell
-qualification: ANI2x checkpoint
+qualification. The established ANI2x cell uses checkpoint
 `c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa`, CPU,
 float64, D4 disabled, OBC-II/mbondi2, and ACE or NONE.
+AIMNet2-2025 has a separate native-N32 CPU/CUDA profile with its own complete
+Coulomb/D3 identity and qualification; it never inherits the ANI proof. See
+[the exact 2025 contract](AIMNET2025.md).
 
 The factory verifies the packaged receipt, current installed source inventory,
 actual calculator implementation and model/solvent identities before enabling

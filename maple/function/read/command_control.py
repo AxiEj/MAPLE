@@ -161,6 +161,7 @@ class CommandControl:
         "profile",
         "model",
         "nonpolar",
+        "dtype",
         "platform",
         "precision",
         "device_index",
@@ -633,7 +634,13 @@ class CommandControl:
             and solvent_model == "obc2"
             and nonpolar in {"ace", "none"}
             and (provider == "torch" or platform == "reference")
-            and gas_model == "ani2x"
+            and (
+                gas_model == "ani2x"
+                or (
+                    gas_model in {"aimnet2025", "aimnet2-2025", "aimnet2_2025"}
+                    and provider == "torch"
+                )
+            )
         )
         message = None
         if task == "freq" and task_method != "mw":
@@ -653,7 +660,7 @@ class CommandControl:
                 message = (
                     "Implicit-solvent analytic derivatives support only independent Torch "
                     "OBC-II, or explicit OpenMM OBC-II on the Reference platform, "
-                    "with nonpolar=ace or nonpolar=none and qualified ANI2x; use "
+                    "with nonpolar=ace or nonpolar=none and a qualified ANI2x or AIMNet2025 cell; use "
                     "hessian=numerical for this "
                     "force-capable provider."
                 )
@@ -667,7 +674,7 @@ class CommandControl:
                     "Implicit-solvent Dimer HVP use_hvp=true requires hessian=analytic "
                     "with independent Torch OBC-II, or explicit OpenMM OBC-II on "
                     "platform=Reference, with nonpolar=ace or nonpolar=none and "
-                    "qualified ANI2x."
+                    "qualified ANI2x or AIMNet2025 (Torch only)."
                 )
         if message is None and charge.get("mode", "fixed") != "fixed":
             message = "Implicit-solvent FREQ/TS requires fixed charges."

@@ -19,6 +19,15 @@ dependencies = [
 implicit-gb = ["torch"]
 implicit = ["torch"]
 implicit-obc2-torch = ["torch"]
+# Exact 2025 runtime is optional; core MAPLE remains usable on Python 3.10.
+# Install the qualified Torch CUDA build separately; the public version pin
+# accepts its +cu130 local version without changing other model defaults.
+aimnet2025 = [
+    "aimnet==0.2.0; python_version >= '3.11'",
+    "torch==2.12.0; python_version >= '3.11'",
+    "nvalchemi-toolkit-ops==0.3.1; python_version >= '3.11'",
+    "warp-lang==1.13.0; python_version >= '3.11'",
+]
 # The five legacy Amber GB implementations and LCPO remain explicit OpenMM.
 implicit-openmm = ["openmm==8.5.2"]
 # Explicit numerical LPB reference only; does not alter the GB/product extra.
@@ -27,9 +36,9 @@ implicit-ddlpb = ["openmm==8.5.2", "pyddx==0.8.0"]
 # free-energy analysis.  Route 1 delegates MBAR and time-series decorrelation to
 # this maintained upstream implementation instead of shipping a local estimator.
 implicit-free-energy = ["openmm==8.5.2", "pymbar==4.0.3"]
-# PyTorch/CUDA and fairchem-core are intentionally not declared here because
-# users must install versions that match their CUDA/CPU runtime before using
-# MAPLE's torch-backed and UMA/PBC-backed models. fairchem-core supplies its
+# Other Torch backends and fairchem-core still require user-selected builds
+# matching their CUDA/CPU runtime; the optional AIMNet2025 lane above is pinned.
+# fairchem-core supplies its
 # own UMA runtime companions such as huggingface-hub and omegaconf.
 
 [project.scripts]

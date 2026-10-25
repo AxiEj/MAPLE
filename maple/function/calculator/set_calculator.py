@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 from collections.abc import Iterable
+from copy import deepcopy
 import hashlib
 import inspect
 import json
@@ -39,7 +40,12 @@ _QUALIFICATION_GATE_COUNTS = {
     'no_openmm_candidate_runtime': (1, 1),
     'candidate_exact_cell_public_composition': (2, 2),
     'source_unchanged': (1, 1),
+    'aimnet2025_native_gas_identity': (24, 24),
+    'aimnet2025_composed_hessian': (48, 48),
+    'aimnet2025_direct_hvp': (144, 144),
+    'aimnet2025_cutoff_guard': (8, 8),
 }
+_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v2.json'
 
 
 def _is_sha256(value) -> bool:
@@ -66,6 +72,7 @@ def _installed_runtime_source_inventory() -> dict[str, str]:
     excluded = {
         'maple/function/calculator/_independent_obc2_qualified_cell.py',
         'maple/function/calculator/data/independent_obc2_analytic_qualification.json',
+        'maple/function/calculator/data/' + _QUALIFICATION_RECEIPT_FILENAME,
     }
     paths = list(package_root.rglob('*.py'))
     implicit_data = package_root / 'function/calculator/extra_correction/implicit/data'
@@ -84,34 +91,144 @@ def _installed_runtime_source_inventory() -> dict[str, str]:
     return result
 
 
+def _same_json(actual, expected) -> bool:
+    """Compare sealed JSON identities without accepting bool-as-int or NaN."""
+    def encode(value):
+        return json.dumps(value, sort_keys=True, separators=(',', ':'),
+                          ensure_ascii=False, allow_nan=False)
+    return encode(actual) == encode(expected)
+
+
+def _validate_aimnet2025_runtime_profile(identity, device_type) -> None:
+    """Check portable pins only; never import an optional native dependency.
+
+    The full configuration/state is also compared to the actual adapter getter
+    at admission. These shape/pin checks cannot replace validated raw evidence.
+    """
+    from .aimnet._aimnet2025_identity import (
+        CHECKPOINT_SHA256, MODEL_METADATA, PACKAGES, PROFILE_ID, REGISTRY_KEY,
+        SOURCE_SHA256,
+    )
+
+    if not isinstance(identity, dict):
+        raise ValueError('AIMNet2025 runtime profile is missing')
+    pinned = {
+        'model': 'aimnet2025', 'registry_key': REGISTRY_KEY, 'profile_id': PROFILE_ID,
+        'checkpoint_sha256': CHECKPOINT_SHA256, 'effective_nn_dtype': 'float32',
+        'effective_ad_class': 'N32', 'atomic_shift_dtype': 'float64',
+        'energy_accumulation_dtype': 'float64', 'd4': False, 'source_energy_unit': 'eV',
+        'external_runtime': {'packages': PACKAGES, 'source_sha256': SOURCE_SHA256},
+    }
+    if any(not _same_json(identity.get(key), value) for key, value in pinned.items()):
+        raise ValueError('AIMNet2025 pinned runtime/precision/source identity mismatch')
+    device = identity.get('device')
+    if device_type == 'cpu':
+        valid_device = device == 'cpu'
+    else:
+        suffix = device[5:] if isinstance(device, str) and device.startswith('cuda:') else ''
+        valid_device = bool(suffix) and suffix.isascii() and suffix.isdigit() and str(int(suffix)) == suffix
+    if not valid_device or not _is_sha256(identity.get('state_sha256')):
+        raise ValueError('AIMNet2025 actual device/state fingerprint mismatch')
+    config = identity.get('native_configuration')
+    if not isinstance(config, dict):
+        raise ValueError('AIMNet2025 complete potential configuration is missing')
+    fixed = {
+        'engine': 'official aimnet public scalar; forces=False,hessian=False; requires_grad leaf',
+        'device': device, 'train': False, 'compiled': False, 'lr': True,
+        'cutoff': 5.0, 'cutoff_lr': 'inf', 'coulomb_cutoff': 'inf',
+        'coulomb_method': 'simple', 'd3_cutoff': 15.0,
+        'd3': dict(MODEL_METADATA['d3_params'], smoothing_on=12.0,
+                   smoothing_off=15.0, key_out='energy'),
+    }
+    if any(not _same_json(config.get(key), value) for key, value in fixed.items()):
+        raise ValueError('AIMNet2025 complete potential configuration mismatch')
+    metadata = config.get('metadata')
+    if (not isinstance(metadata, dict)
+            or any(not _same_json(metadata.get(k), v) for k, v in MODEL_METADATA.items())):
+        raise ValueError('AIMNet2025 native metadata pins mismatch')
+    for key in ('input_dtypes', 'model_flags', 'neighbor_cutoffs'):
+        if not isinstance(config.get(key), dict) or not config[key]:
+            raise ValueError(f'AIMNet2025 native {key} fingerprint missing')
+    if (config['input_dtypes'].get('coord') != 'torch.float32'
+            or not isinstance(config.get('model_input_dtypes'), list)
+            or not config['model_input_dtypes']
+            or config['model_input_dtypes'][0] != 'torch.float32'
+            or type(config.get('nb_threshold')) is not int or config['nb_threshold'] <= 0):
+        raise ValueError('AIMNet2025 native input/neighbor configuration mismatch')
+    for term in ('coulomb', 'embedded_sr'):
+        values = config.get(term)
+        expected = {'rc': MODEL_METADATA['coulomb_sr_rc'], 'envelope': 'exp',
+                    'key_in': 'charges', 'key_out': 'energy'}
+        if (not isinstance(values, dict)
+                or any(not _same_json(values.get(k), v) for k, v in expected.items())
+                or type(values.get('factor')) is not float
+                or not _same_json(values['factor'], config.get('coulomb', {}).get('factor'))):
+            raise ValueError(f'AIMNet2025 {term} identity mismatch')
+    if config['coulomb'].get('method') != 'simple' or config['coulomb'].get('subtract_sr') is not False:
+        raise ValueError('AIMNet2025 requires full native simple Coulomb')
+
+
+def _qualified_independent_obc2_cells(aimnet2025_runtime_profiles) -> list[dict]:
+    """The sole six-cell schema, shared by the strict loader and v2 sealer.
+
+    AIM profiles must come from the strictly validated raw candidate artifact,
+    never synthesized from labels or package versions by a production caller.
+    """
+    from .extra_correction.implicit.obc2_profile import (
+        OBC2_CANONICAL_PAYLOAD_SHA256, OBC2_FORMULA_MANIFEST_ID,
+        OPENMM_CUSTOMGBFORCES_SHA256,
+    )
+
+    if (not isinstance(aimnet2025_runtime_profiles, dict)
+            or set(aimnet2025_runtime_profiles) != {'cpu', 'cuda'}):
+        raise ValueError('AIMNet2025 requires exact CPU/CUDA runtime profiles')
+    gases = [{'model': 'ani2x', 'checkpoint_sha256': _ANI2X_QUALIFIED_CHECKPOINT_SHA256,
+              'device': 'cpu', 'dtype': 'float64', 'd4': False}]
+    for device in ('cpu', 'cuda'):
+        identity = aimnet2025_runtime_profiles[device]
+        _validate_aimnet2025_runtime_profile(identity, device)
+        gases.append({'model': 'aimnet2025', 'checkpoint_sha256': identity['checkpoint_sha256'],
+                      'device': identity['device'], 'dtype': 'float32', 'd4': False,
+                      'runtime_profile': identity})
+    return deepcopy([
+        {'gas': gas, 'solvent': {
+            'provider': 'torch', 'runtime_provider': 'torch-obc2', 'model': 'obc2',
+            'profile': 'obc2-mbondi2', 'nonpolar': nonpolar,
+            'formula_manifest_id': OBC2_FORMULA_MANIFEST_ID,
+            'formula_source_sha256': OPENMM_CUSTOMGBFORCES_SHA256,
+            'canonical_payload_sha256': OBC2_CANONICAL_PAYLOAD_SHA256,
+            'parameter_profile': 'obc2-zero-salt-v1',
+            'dtype': 'torch.float32' if gas['model'] == 'aimnet2025' else 'torch.float64',
+        }} for gas in gases for nonpolar in ('ace', 'none')
+    ])
+
+
 def _admit_independent_obc2_analytic_cell(
     calculator, correction, *, model, device, d4
 ) -> None:
-    """Admit only the sealed ANI2x/independent-OBC-II analytic cell."""
+    """Admit only exact sealed ANI2x/F64 or official AIMNet2025/N32 cells."""
     calculator.analytic_implicit_derivatives_admitted = False
     correction._set_analytic_task_derivatives_admitted(False)
     try:
-        from .ani._ani_calculator import ANICalculator
         from ._independent_obc2_qualified_cell import (
-            QUALIFICATION_RECEIPT_FILENAME,
-            QUALIFICATION_RECEIPT_SHA256,
-        )
-        from .extra_correction.implicit.obc2_profile import (
-            OBC2_CANONICAL_PAYLOAD_SHA256,
-            OBC2_FORMULA_MANIFEST_ID,
-            OPENMM_CUSTOMGBFORCES_SHA256,
+            QUALIFICATION_RECEIPT_FILENAME, QUALIFICATION_RECEIPT_SHA256,
         )
 
-        if type(calculator) is not ANICalculator:
-            raise ValueError(
-                'gas calculator implementation is not the exact shipped ANICalculator'
-            )
-        expected_filename = 'independent_obc2_analytic_qualification.json'
-        if QUALIFICATION_RECEIPT_FILENAME != expected_filename:
+        requested_model = str(model).lower()
+        is_aim = requested_model in {'aimnet2025', 'aimnet2-2025', 'aimnet2_2025'}
+        if is_aim:
+            from .aimnet._aimnet2025_calculator import AIMNet2025Calculator
+            expected_class = AIMNet2025Calculator
+        else:
+            from .ani._ani_calculator import ANICalculator
+            expected_class = ANICalculator
+        if type(calculator) is not expected_class:
+            raise ValueError(f'gas calculator implementation is not the exact shipped {expected_class.__name__}')
+        if QUALIFICATION_RECEIPT_FILENAME != _QUALIFICATION_RECEIPT_FILENAME:
             raise ValueError('qualification receipt filename changed')
         if not _is_sha256(QUALIFICATION_RECEIPT_SHA256):
             raise ValueError('qualification receipt pointer is unsealed')
-        receipt_path = Path(__file__).with_name('data') / expected_filename
+        receipt_path = Path(__file__).with_name('data') / _QUALIFICATION_RECEIPT_FILENAME
         receipt_bytes = receipt_path.read_bytes()
         if hashlib.sha256(receipt_bytes).hexdigest() != QUALIFICATION_RECEIPT_SHA256:
             raise ValueError('qualification receipt SHA256 mismatch')
@@ -119,7 +236,8 @@ def _admit_independent_obc2_analytic_cell(
         if not isinstance(receipt, dict):
             raise ValueError('qualification receipt must be a JSON object')
         if (
-            receipt.get('schema_version') != 1
+            type(receipt.get('schema_version')) is not int
+            or receipt['schema_version'] != 2
             or receipt.get('artifact_type') != 'maple-independent-obc2-analytic-qualification'
             or receipt.get('status') != 'qualified'
         ):
@@ -127,7 +245,6 @@ def _admit_independent_obc2_analytic_cell(
         content_sha = hashlib.sha256(_canonical_receipt_payload(receipt)).hexdigest()
         if receipt.get('content_sha256') != content_sha:
             raise ValueError('qualification receipt content seal mismatch')
-
         installed = receipt.get('installed_runtime_sources')
         if not isinstance(installed, dict) or installed != _installed_runtime_source_inventory():
             raise ValueError('installed runtime source inventory mismatch')
@@ -135,80 +252,71 @@ def _admit_independent_obc2_analytic_cell(
         if not isinstance(qualification_sources, dict) or not qualification_sources:
             raise ValueError('qualification source inventory is missing')
         for path, digest in qualification_sources.items():
-            if (
-                not isinstance(path, str)
-                or not path
-                or path.startswith('/')
-                or Path(path).as_posix() != path
-                or '..' in Path(path).parts
-                or not _is_sha256(digest)
-            ):
+            if (not isinstance(path, str) or not path or path.startswith('/')
+                    or Path(path).as_posix() != path or '..' in Path(path).parts
+                    or not _is_sha256(digest)):
                 raise ValueError('qualification source inventory is malformed')
-
         gates = receipt.get('qualification_gates')
         if not isinstance(gates, dict) or set(gates) != set(_QUALIFICATION_GATE_COUNTS):
             raise ValueError('qualification gate set mismatch')
         for name, (expected, passed) in _QUALIFICATION_GATE_COUNTS.items():
-            gate = gates.get(name)
-            if not isinstance(gate, dict) or gate.get('expected_count') != expected or gate.get('passed_count') != passed:
-                raise ValueError(f'qualification gate {name!r} count mismatch')
+            gate = gates[name]
+            if (not isinstance(gate, dict)
+                    or type(gate.get('expected_count')) is not int
+                    or type(gate.get('passed_count')) is not int
+                    or gate['expected_count'] != expected or gate['passed_count'] != passed
+                    or gate.get('passed') is not True):
+                raise ValueError(f'qualification gate {name!r} count/verdict mismatch')
         if gates['analytic_hessian_16_fd'].get('steps_angstrom') != [0.001, 0.0005, 0.00025]:
             raise ValueError('analytic Hessian step ladder mismatch')
         if gates['direct_hvp_144'].get('dense_hessian_forbidden') is not True:
             raise ValueError('direct HVP gate did not forbid dense Hessian construction')
         if gates['candidate_exact_cell_public_composition'].get('nonpolar') != ['ace', 'none']:
             raise ValueError('candidate exact-cell nonpolar set mismatch')
-
-        expected_cells = []
-        for nonpolar in ('ace', 'none'):
-            expected_cells.append({
-                'gas': {
-                    'model': 'ani2x',
-                    'checkpoint_sha256': _ANI2X_QUALIFIED_CHECKPOINT_SHA256,
-                    'device': 'cpu',
-                    'dtype': 'float64',
-                    'd4': False,
-                },
-                'solvent': {
-                    'provider': 'torch',
-                    'runtime_provider': 'torch-obc2',
-                    'model': 'obc2',
-                    'profile': 'obc2-mbondi2',
-                    'nonpolar': nonpolar,
-                    'formula_manifest_id': OBC2_FORMULA_MANIFEST_ID,
-                    'formula_source_sha256': OPENMM_CUSTOMGBFORCES_SHA256,
-                    'canonical_payload_sha256': OBC2_CANONICAL_PAYLOAD_SHA256,
-                    'parameter_profile': 'obc2-zero-salt-v1',
-                },
-            })
-        if receipt.get('qualified_cells') != expected_cells:
-            raise ValueError('qualified analytic cells do not match ACE/NONE exactly')
-
-        precision = getattr(calculator, 'inference_precision_provenance', None)
+        expected_cells = _qualified_independent_obc2_cells(receipt.get('aimnet2025_runtime_profiles'))
+        if not _same_json(receipt.get('qualified_cells'), expected_cells):
+            raise ValueError('qualified analytic cells do not match the exact six-cell contract')
         provider = getattr(correction, 'underlying_provider', None)
         provenance = getattr(provider, 'provenance', None)
         if callable(provenance):
             provenance = provenance()
-        if (
-            str(model).lower() != 'ani2x'
-            or str(device).split(':', 1)[0].lower() != 'cpu'
-            or d4 is not False
-            or not isinstance(precision, dict)
-            or precision.get('effective_dtype') != 'float64'
-            or precision.get('original_checkpoint_sha256') != _ANI2X_QUALIFIED_CHECKPOINT_SHA256
-            or not isinstance(provenance, dict)
-            or provenance.get('runtime_provider') != 'torch-obc2'
-            or provenance.get('model') != 'obc2'
-            or provenance.get('profile') != 'obc2-mbondi2'
-            or provenance.get('nonpolar') not in {'ace', 'none'}
-            or provenance.get('formula_manifest_id') != OBC2_FORMULA_MANIFEST_ID
-            or provenance.get('formula_source_sha256') != OPENMM_CUSTOMGBFORCES_SHA256
-            or provenance.get('canonical_payload_sha256') != OBC2_CANONICAL_PAYLOAD_SHA256
-            or provenance.get('equation_profile') != 'obc2-zero-salt-v1'
-        ):
+        if not isinstance(provenance, dict):
+            raise ValueError('live solvent analytic cell identity is missing')
+        live_solvent = {key: provenance.get(key) for key in (
+            'runtime_provider', 'model', 'profile', 'nonpolar', 'formula_manifest_id',
+            'formula_source_sha256', 'canonical_payload_sha256',
+            'dtype',
+        )}
+        live_solvent.update(provider='torch', parameter_profile=provenance.get('equation_profile'))
+        if is_aim:
+            identity = getattr(calculator, 'analytic_cell_identity', None)
+            runtime_profile = getattr(calculator, 'runtime_profile_identity', None)
+            if not isinstance(identity, dict) or not _same_json(identity, runtime_profile):
+                raise ValueError('live AIMNet2025 runtime profile getters disagree')
+            actual_device = identity.get('device')
+            if (str(calculator.device) != actual_device
+                    or str(calculator.dtype) != 'torch.float32' or calculator.d4 is not False
+                    or (str(device).lower() != actual_device and not (
+                        str(device).lower() == 'cuda' and isinstance(actual_device, str)
+                        and actual_device.startswith('cuda:')))):
+                raise ValueError('live AIMNet2025 actual device/dtype/D4 mismatch')
+            live_gas = {'model': 'aimnet2025', 'checkpoint_sha256': identity.get('checkpoint_sha256'),
+                        'device': actual_device, 'dtype': 'float32', 'd4': d4,
+                        'runtime_profile': identity}
+        else:
+            precision = getattr(calculator, 'inference_precision_provenance', None)
+            if not isinstance(precision, dict):
+                raise ValueError('live ANI precision identity is missing')
+            live_gas = {'model': requested_model,
+                        'checkpoint_sha256': precision.get('original_checkpoint_sha256'),
+                        'device': str(device).split(':', 1)[0].lower(),
+                        'dtype': precision.get('effective_dtype'), 'd4': d4}
+        if not any(_same_json({'gas': live_gas, 'solvent': live_solvent}, cell)
+                   for cell in expected_cells):
             raise ValueError('live gas/solvent analytic cell identity mismatch')
     except Exception as exc:
         raise RuntimeError(f'ANALYTIC_CELL_UNQUALIFIED: {exc}') from exc
+    # Manifest update precedes both admitted flags; failure leaves both false.
     correction._set_analytic_task_derivatives_admitted(True)
     calculator.analytic_implicit_derivatives_admitted = True
 
@@ -223,6 +331,9 @@ _BUILTIN_NAME_TO_MODULE = {
     'ani1xnr': 'maple.function.calculator.ani._ani_calculator',
     'aimnet2': 'maple.function.calculator.aimnet._aimnet2_calculator',
     'aimnet2nse': 'maple.function.calculator.aimnet._aimnet2_calculator',
+    'aimnet2025': 'maple.function.calculator.aimnet._aimnet2025_calculator',
+    'aimnet2-2025': 'maple.function.calculator.aimnet._aimnet2025_calculator',
+    'aimnet2_2025': 'maple.function.calculator.aimnet._aimnet2025_calculator',
     'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
@@ -367,6 +478,11 @@ class SetCalculator:
             from .extra_correction.implicit.selector import resolve_implicit_provider
 
             provider = resolve_implicit_provider(self.solvation_options)
+            if self.model in {'aimnet2025', 'aimnet2-2025', 'aimnet2_2025'} and provider != 'torch':
+                raise ValueError(
+                    "AIMNet2025 analytic composition requires independent Torch OBC-II; "
+                    "it does not inherit legacy OpenMM qualification."
+                )
             model = str(self.solvation_options.get('model', 'obc2')).lower()
             nonpolar = str(self.solvation_options.get('nonpolar', 'ace')).lower()
             platform = str(self.solvation_options.get('platform', 'auto')).lower()
@@ -497,10 +613,14 @@ class SetCalculator:
                 effective_d4 = parse_bool_option(
                     self.model_options.get('d4', self.d4), name='d4'
                 )
-                if str(self.device).split(':', 1)[0].lower() != 'cpu' or effective_d4:
+                allowed_devices = tuple(
+                    getattr(cls, 'ANALYTIC_IMPLICIT_HESSIAN_DEVICES', ('cpu',))
+                )
+                if str(self.device).split(':', 1)[0].lower() not in allowed_devices or effective_d4:
+                    devices = 'CPU' if allowed_devices == ('cpu',) else '/'.join(allowed_devices)
                     raise ValueError(
                         "The qualified analytic implicit-solvent cell requires "
-                        "CPU and D4 disabled. Other device/D4 combinations "
+                        f"{devices} and D4 disabled. Other device/D4 combinations "
                         "need independent Hessian/HVP workflow qualification."
                     )
 
@@ -802,6 +922,20 @@ class SetCalculator:
         self._validate_calculator_element_domain(calculator)
 
         if self.implicit in {'gb', 'pb'}:
+            # Precision is an explicit shared-provider option. Only the new
+            # backend declares a preferred FP32 line; existing models retain
+            # their established provider defaults unless explicitly selected.
+            preferred = getattr(cls, 'IMPLICIT_SOLVENT_DTYPE', None)
+            if preferred is not None:
+                from .extra_correction.implicit.selector import resolve_implicit_provider
+                if resolve_implicit_provider(self.solvation_options) == 'torch':
+                    requested = self.solvation_options.get('dtype', preferred)
+                    if requested != preferred:
+                        raise ValueError(
+                            f"Model '{self.model}' requires independent OBC-II dtype={preferred}; "
+                            f"requested {requested!r}."
+                        )
+                    self.solvation_options.setdefault('dtype', preferred)
             if self.model_options.get('hessian') == 'analytic':
                 prepare_analytic = getattr(
                     calculator, 'prepare_analytic_derivatives', None

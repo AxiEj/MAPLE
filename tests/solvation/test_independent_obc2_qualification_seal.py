@@ -18,8 +18,11 @@ if str(BENCHMARKS) not in sys.path:
     sys.path.insert(0, str(BENCHMARKS))
 
 import seal_independent_obc2_qualification as sealer  # noqa: E402
+from test_aimnet2025_admission import _aim_identities  # noqa: E402
+import test_aimnet2025_candidate_validation as aimnet_tests  # noqa: E402
 
 validation = sealer.validation
+raw_aim_artifact = aimnet_tests.receipt
 
 
 def _write_json(path, artifact):
@@ -101,6 +104,7 @@ def fixture_repo(tmp_path, monkeypatch):
     gates = {
         key: {"expected_count": count, "passed_count": passed, "passed": True}
         for key, (count, passed) in sealer.runtime._QUALIFICATION_GATE_COUNTS.items()
+        if not key.startswith("aimnet2025_")
     }
     gates["analytic_hessian_16_fd"]["steps_angstrom"] = [0.001, 0.0005, 0.00025]
     gates["direct_hvp_144"]["dense_hessian_forbidden"] = True
@@ -127,6 +131,20 @@ def fixture_repo(tmp_path, monkeypatch):
     candidate_path = evidence_dir / "synthetic-candidate.json"
     _write_json(full_path, artifact)
     _write_json(candidate_path, candidate)
+    aim_path = evidence_dir / "synthetic-aimnet2025.json"
+    # Deliberately summary-only. Successful I/O tests patch ONLY the scientific
+    # validator; independent new-lane tests exercise 216 positives + 8 controls.
+    aim = {
+        "candidate_git_sha": frozen["git_head"],
+        "source_snapshot_before": frozen, "source_snapshot_after": frozen,
+        "inputs_before": sealer.aimnet_validation.load_frozen_inputs()["snapshot"],
+        "inputs_after": sealer.aimnet_validation.load_frozen_inputs()["snapshot"],
+        "model_identities_before": _aim_identities(),
+        "model_identities_after": _aim_identities(),
+        "harness_sha256": "a" * 64, "validator_sha256": "b" * 64,
+    }
+    _write_json(aim_path, aim)
+    monkeypatch.setattr(sealer, "AIMNET2025_EVIDENCE_REL", aim_path.relative_to(tmp_path).as_posix())
     return tmp_path, git, artifact, candidate, full_path, candidate_path
 
 
@@ -142,6 +160,12 @@ def io_repo(fixture_repo, monkeypatch):
     monkeypatch.setattr(
         validation, "_validate_full_matrix_records", scientific_replay
     )
+    gates = {
+        name: {"expected_count": n, "passed_count": n, "passed": True}
+        for name, (n, _passed) in sealer.runtime._QUALIFICATION_GATE_COUNTS.items()
+        if name.startswith("aimnet2025_")
+    }
+    monkeypatch.setattr(sealer.aimnet_validation, "validate_artifact", Mock(return_value=gates))
     return fixture_repo
 
 
@@ -153,17 +177,20 @@ def test_deterministic_receipt_matches_factory_schema_and_raw_evidence(io_repo):
     assert first["content_sha256"] == hashlib.sha256(
         sealer.runtime._canonical_receipt_payload(first)
     ).hexdigest()
-    assert first["qualified_cells"] == sealer._qualified_cells()
+    assert first["qualified_cells"] == sealer.runtime._qualified_independent_obc2_cells(_aim_identities())
     assert [cell["solvent"]["nonpolar"] for cell in first["qualified_cells"]] == [
-        "ace", "none"
+        "ace", "none", "ace", "none", "ace", "none"
     ]
-    assert len(first["qualification_gates"]) == 7
+    assert first["schema_version"] == 2
+    assert first["aimnet2025_runtime_profiles"] == _aim_identities()
+    assert len(first["qualification_gates"]) == 11
     assert first["candidate_git_sha"] == candidate["candidate_git_sha"]
     assert first["qualification_sources"] == candidate[
         "candidate_source_snapshot"
     ]["files_sha256"]
     for key, path in (
-        ("candidate_validation", full_path), ("candidate_exact_cell", candidate_path)
+        ("candidate_validation", full_path), ("candidate_exact_cell", candidate_path),
+        ("aimnet2025_candidate", root / sealer.AIMNET2025_EVIDENCE_REL)
     ):
         binding = first["evidence"][key]
         assert binding["file_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
@@ -386,7 +413,8 @@ def test_operator_main_parses_explicit_paths_and_reports_published_seal(
     root, _git, _full, _candidate, full_path, candidate_path = io_repo
     monkeypatch.setattr(
         sys, "argv", ["seal-independent-obc2", "--validation", str(full_path),
-                      "--candidate", str(candidate_path)]
+                      "--candidate", str(candidate_path),
+                      "--aimnet2025", str(root / sealer.AIMNET2025_EVIDENCE_REL)]
     )
     sealer.main()
     output = json.loads(capsys.readouterr().out)
@@ -424,3 +452,205 @@ def test_scientific_validator_failure_prevents_receipt_and_pointer_publication(i
     validation._validate_full_matrix_records.assert_called_once()
     assert not (root / sealer.RECEIPT_REL).exists()
     assert (root / sealer.POINTER_REL).read_bytes() == pointer_before
+
+
+def test_summary_only_aim_matrix_cannot_authorize_qualification(fixture_repo, monkeypatch):
+    root, _git, _full, _candidate, full_path, candidate_path = fixture_repo
+    monkeypatch.setattr(validation, "_validate_full_matrix_records", Mock())
+    before = (root / sealer.POINTER_REL).read_bytes()
+    with pytest.raises(ValueError):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert (root / sealer.POINTER_REL).read_bytes() == before
+
+
+def test_aim_strict_validator_failure_prevents_publication(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    sealer.aimnet_validation.validate_artifact.side_effect = ValueError("AIM raw matrix rejected")
+    with pytest.raises(ValueError, match="AIM raw matrix rejected"):
+        sealer.seal_qualification(full_path, candidate_path)
+    sealer.aimnet_validation.validate_artifact.assert_called_once()
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert b"= None" in (root / sealer.POINTER_REL).read_bytes()
+
+
+@pytest.mark.parametrize("field", ["source_snapshot_before", "source_snapshot_after", "candidate_git_sha", "inputs_after"])
+def test_aim_and_obc_must_share_identical_freeze_and_unchanged_inputs(io_repo, field):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    aim_path = root / sealer.AIMNET2025_EVIDENCE_REL
+    aim = json.loads(aim_path.read_bytes())
+    aim[field] = "0" * 40 if field == "candidate_git_sha" else {}
+    _write_json(aim_path, aim)
+    with pytest.raises(ValueError):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert b"= None" in (root / sealer.POINTER_REL).read_bytes()
+
+
+@pytest.mark.parametrize("mutation", ["missing", "false", "count", "extra"])
+def test_recomputed_aim_gate_set_must_be_complete_and_passing(io_repo, mutation):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    gates = copy.deepcopy(sealer.aimnet_validation.validate_artifact.return_value)
+    name = "aimnet2025_native_gas_identity"
+    if mutation == "missing":
+        gates.pop(name)
+    elif mutation == "extra":
+        gates["unqualified_profile"] = dict(gates[name])
+    elif mutation == "false":
+        gates[name]["passed"] = False
+    else:
+        gates[name].update(expected_count=1, passed_count=1)
+    sealer.aimnet_validation.validate_artifact.return_value = gates
+    with pytest.raises(ValueError):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+
+
+def test_active_v2_sealer_does_not_overwrite_or_consume_v1(io_repo):
+    root, git, _full, _candidate, full_path, candidate_path = io_repo
+    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v2.json")
+    old = root / "maple/function/calculator/data/independent_obc2_analytic_qualification.json"
+    old.parent.mkdir(parents=True)
+    old.write_bytes(b"immutable historical receipt")
+    git("add", ".")
+    git("commit", "-qm", "historical data only")
+    sealer.seal_qualification(full_path, candidate_path)
+    assert old.read_bytes() == b"immutable historical receipt"
+
+
+def test_already_qualified_v2_pointer_refused_without_receipt(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    pointer = root / sealer.POINTER_REL
+    pointer.write_text(f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'
+                       f'QUALIFICATION_RECEIPT_SHA256 = "{"a" * 64}"\n')
+    with pytest.raises(ValueError, match="refusing overwrite"):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+
+
+def test_error_after_pointer_replace_restores_unqualified_pointer(io_repo, monkeypatch):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    pointer = root / sealer.POINTER_REL
+    before = pointer.read_bytes()
+    original = sealer._publish
+    def publish_then_fail(path, raw, *, replace):
+        original(path, raw, replace=replace)
+        if path == pointer and b"= None" not in raw:
+            raise OSError("directory fsync failed after pointer replace")
+    monkeypatch.setattr(sealer, "_publish", publish_then_fail)
+    with pytest.raises(OSError, match="directory fsync"):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert pointer.read_bytes() == before
+    assert (root / sealer.RECEIPT_REL).exists()
+
+
+@pytest.mark.parametrize("mutation", ["old_three", "wrong_count", "false_verdict"])
+def test_sealer_cannot_omit_or_weaken_fourth_aim_cutoff_gate(io_repo, mutation):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    gates = copy.deepcopy(sealer.aimnet_validation.validate_artifact.return_value)
+    if mutation == "old_three":
+        gates.pop("aimnet2025_cutoff_guard", None)
+    else:
+        gate = gates.setdefault("aimnet2025_cutoff_guard", {
+            "expected_count": 8, "passed_count": 8, "passed": True})
+        if mutation == "wrong_count":
+            gate.update(expected_count=7, passed_count=7)
+        else:
+            gate["passed"] = False
+    sealer.aimnet_validation.validate_artifact.return_value = gates
+    before = (root / sealer.POINTER_REL).read_bytes()
+    with pytest.raises(ValueError):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert (root / sealer.POINTER_REL).read_bytes() == before
+
+
+def test_aim_strict_validator_exposes_only_candidate_v2_four_gate_contract():
+    assert sealer.aimnet_validation.ARTIFACT_TYPE == "aimnet2025-candidate-qualification-v3"
+    assert sealer.aimnet_validation.EXPECTED_COUNTS == {
+        "aimnet2025_native_gas_identity": 24,
+        "aimnet2025_composed_hessian": 48,
+        "aimnet2025_direct_hvp": 144,
+        "aimnet2025_cutoff_guard": 8,
+    }
+
+
+def test_sealer_default_is_v2_candidate_not_historical_v1():
+    assert sealer.AIMNET2025_EVIDENCE_REL == (
+        ".omx/benchmarks/route1-aimnet2025-20261024/candidate-aimnet2025-v3.json"
+    )
+
+
+def test_sealer_preserves_complete_positive_and_original_negative_input_binding(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    receipt = sealer.build_receipt(full_path, candidate_path)
+    raw = json.loads((root / sealer.AIMNET2025_EVIDENCE_REL).read_bytes())
+    inputs = receipt["evidence"]["aimnet2025_inputs"]
+    assert inputs == raw["inputs_before"] == raw["inputs_after"]
+    prefix = ".omx/benchmarks/route1-aimnet2025-20261024/"
+    for relative, sha in {
+        "frozen-inputs-v2/manifest.json": "39b5444fadcf910d17bf672f78119163986f56727f19fa8e8e63e5e0d4a96760",
+        "frozen-inputs-v2/directions.json": "a1d43b73ed7007aaf1b1218aa7c3e5bcf5baa2adf56932c30437bc812632fa81",
+        "frozen-inputs-v2/cutoff-controls.json": "213568b8cdd0d5d011ba9209c159666073aa60114104fd88a79ea23e8935d32e",
+        "frozen-inputs/manifest.json": "af9c95401d445af8f4ab1922a7222024efe05217f601525309e6768bb26d537f",
+        "frozen-inputs/directions.json": "db75d2d9dac8a0990ab1b058baaaf8d1407920898d4dcb6b3e73f342e2701da7",
+    }.items():
+        assert inputs["files_sha256"][prefix + relative] == sha
+    for key in ("original_manifest_content_sha256", "original_directions_content_sha256",
+                "cutoff_controls_content_sha256", "original_serialized_arrays_sha256"):
+        assert len(inputs[key]) == 64
+    assert receipt["qualification_gates"]["aimnet2025_cutoff_guard"] == {
+        "expected_count": 8, "passed_count": 8, "passed": True}
+    assert len(receipt["qualification_gates"]) == 11
+    assert len(receipt["qualified_cells"]) == 6
+
+
+@pytest.mark.parametrize("mutation", ["missing_controls", "duplicate_control", "old_schema", "missing_gate", "hash", "negative_input_hash"])
+def test_sealer_replays_strict_raw_controls_not_headers_or_counts(
+    fixture_repo, raw_aim_artifact, monkeypatch, mutation
+):
+    root, _git, full, candidate, full_path, candidate_path = fixture_repo
+    # Do not mutate the fixture's independently frozen input-reference object.
+    raw = copy.deepcopy(raw_aim_artifact)
+    strict = sealer.aimnet_validation.validate_artifact
+    # Establish a genuinely accepted 224-row synthetic baseline before damage.
+    gates = strict(raw)
+    assert gates["aimnet2025_cutoff_guard"]["passed_count"] == 8
+    frozen = raw["source_snapshot_before"]
+    candidate.update(candidate_git_sha=frozen["git_head"], candidate_source_snapshot=frozen)
+    validation.core.seal_artifact(candidate)
+    full.update(source_snapshot=frozen, candidate_exact_cell=copy.deepcopy(candidate))
+    full["qualification_gates"]["candidate_exact_cell_public_composition"][
+        "evidence_content_sha256"] = candidate["content_sha256"]
+    _write_json(candidate_path, candidate)
+    _write_json(full_path, full)
+    monkeypatch.setattr(validation, "_validate_full_matrix_records", Mock())
+    # Malformed AIM raw evidence must fail inside its strict validator, before
+    # the sealer's cell builder can interpret any summary/profile metadata.
+    def forbidden_cell_builder(*_args):
+        pytest.fail("invalid raw controls reached cell authorization")
+    monkeypatch.setattr(sealer.runtime, "_qualified_independent_obc2_cells", forbidden_cell_builder)
+    if mutation == "missing_controls":
+        raw.pop("cutoff_control_records")
+    elif mutation == "duplicate_control":
+        raw["cutoff_control_records"][-1] = copy.deepcopy(raw["cutoff_control_records"][0])
+    elif mutation == "old_schema":
+        raw.update(schema_version=1, artifact_type="aimnet2025-candidate-qualification-v1")
+    elif mutation == "missing_gate":
+        raw["gates"].pop("aimnet2025_cutoff_guard")
+    elif mutation == "negative_input_hash":
+        raw["inputs_before"]["cutoff_controls_content_sha256"] = "0" * 64
+        raw["inputs_after"] = copy.deepcopy(raw["inputs_before"])
+    aim_path = root / sealer.AIMNET2025_EVIDENCE_REL
+    _write_json(aim_path, raw)
+    if mutation == "hash":
+        raw["content_sha256"] = "0" * 64
+        aim_path.write_text(json.dumps(raw))
+    validator_spy = Mock(wraps=strict)
+    monkeypatch.setattr(sealer.aimnet_validation, "validate_artifact", validator_spy)
+    before = (root / sealer.POINTER_REL).read_bytes()
+    with pytest.raises(ValueError):
+        sealer.seal_qualification(full_path, candidate_path)
+    validator_spy.assert_called_once_with(raw, expected_source_snapshot=frozen)
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert (root / sealer.POINTER_REL).read_bytes() == before

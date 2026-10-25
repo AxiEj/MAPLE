@@ -54,7 +54,7 @@ def _torch():
 
 
 class TorchOBC2:
-    """Exact float64 Torch transcription of zero-salt OpenMM OBC-II/ACE."""
+    """One zero-salt OBC-II scalar with explicitly identified FP32/FP64 arithmetic."""
 
     supported_properties = frozenset({"energy", "forces", "hessian", "hvp"})
 
@@ -69,8 +69,10 @@ class TorchOBC2:
         torch = _torch()
         if dtype is None:
             dtype = torch.float64
-        if dtype != torch.float64:
-            raise ValueError("Torch OBC-II requires torch.float64 for parity.")
+        elif isinstance(dtype, str):
+            dtype = {'float32': torch.float32, 'float64': torch.float64}.get(dtype)
+        if dtype not in (torch.float32, torch.float64):
+            raise ValueError("Torch OBC-II dtype must be float32 or float64; half precision is unsupported.")
         if parameters.nonpolar not in {"ace", "none"}:
             raise ValueError("Torch OBC-II nonpolar must be 'ace' or 'none'.")
         self.parameters = parameters
@@ -120,6 +122,7 @@ class TorchOBC2:
             "derivatives": "torch automatic differentiation",
             "source_compatibility": dict(self.source_compatibility),
             "dtype": str(dtype),
+            "arithmetic_profile": "obc2-fp32-v1" if dtype == torch.float32 else "obc2-fp64-v1",
             "device": str(self.device),
             "platform": "torch",
             "solvent_dielectric": parameters.solvent_dielectric,
@@ -309,20 +312,22 @@ class TorchOBC2:
             positions, derivative_order=1 if need_forces else 0
         )
         total = polar + nonpolar
+        energy = total / KJ_PER_MOL_PER_HARTREE
         forces = None
         if need_forces:
-            gradient = torch.autograd.grad(total, positions)[0]
-            forces = (-gradient / KJ_PER_MOL_PER_HARTREE).detach().cpu().numpy()
+            gradient = torch.autograd.grad(energy, positions)[0]
+            forces = (-gradient).detach().cpu().numpy()
         polar_value = float((polar / KJ_PER_MOL_PER_HARTREE).detach().cpu())
         nonpolar_value = float((nonpolar / KJ_PER_MOL_PER_HARTREE).detach().cpu())
         return SolvationResult(
-            energy_hartree=polar_value + nonpolar_value,
+            energy_hartree=float(energy.detach().cpu()),
             forces_hartree_per_angstrom=forces,
             components_hartree={
                 "polar": polar_value,
                 "nonpolar": nonpolar_value,
             },
-            provenance={**self.provenance, "branch_diagnostics": diagnostics},
+            provenance={**self.provenance, "branch_diagnostics": diagnostics,
+                        "component_sum_roundoff_hartree": float(energy.detach().cpu())-(polar_value+nonpolar_value)},
         )
 
     def hessian(self, atoms) -> np.ndarray:

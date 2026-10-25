@@ -8,6 +8,7 @@ or change any scientific gate. Receipt publication precedes pointer publication.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import ast
 import hashlib
 import json
@@ -23,17 +24,15 @@ for directory in (ROOT, HERE):
         sys.path.insert(0, str(directory))
 
 import validate_independent_obc2_default as validation  # noqa: E402
+import validate_aimnet2025_analytic as aimnet_validation  # noqa: E402
 from maple.function.calculator import set_calculator as runtime  # noqa: E402
-from maple.function.calculator.extra_correction.implicit.obc2_profile import (  # noqa: E402
-    OBC2_CANONICAL_PAYLOAD_SHA256,
-    OBC2_FORMULA_MANIFEST_ID,
-    OPENMM_CUSTOMGBFORCES_SHA256,
-)
+
 
 RECEIPT_REL = (
-    "maple/function/calculator/data/independent_obc2_analytic_qualification.json"
+    "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json"
 )
 POINTER_REL = "maple/function/calculator/_independent_obc2_qualified_cell.py"
+AIMNET2025_EVIDENCE_REL = ".omx/benchmarks/route1-aimnet2025-20261024/candidate-aimnet2025-v3.json"
 
 
 def _sha256(raw: bytes) -> str:
@@ -76,33 +75,8 @@ def _unqualified_pointer(path: Path) -> bytes:
     return raw
 
 
-def _qualified_cells() -> list[dict]:
-    return [
-        {
-            "gas": {
-                "model": "ani2x",
-                "checkpoint_sha256": runtime._ANI2X_QUALIFIED_CHECKPOINT_SHA256,
-                "device": "cpu",
-                "dtype": "float64",
-                "d4": False,
-            },
-            "solvent": {
-                "provider": "torch",
-                "runtime_provider": "torch-obc2",
-                "model": "obc2",
-                "profile": "obc2-mbondi2",
-                "nonpolar": nonpolar,
-                "formula_manifest_id": OBC2_FORMULA_MANIFEST_ID,
-                "formula_source_sha256": OPENMM_CUSTOMGBFORCES_SHA256,
-                "canonical_payload_sha256": OBC2_CANONICAL_PAYLOAD_SHA256,
-                "parameter_profile": "obc2-zero-salt-v1",
-            },
-        }
-        for nonpolar in ("ace", "none")
-    ]
-
-
-def build_receipt(validation_path: Path, candidate_path: Path) -> dict:
+def build_receipt(validation_path: Path, candidate_path: Path,
+                  aimnet2025_path: Path | None = None) -> dict:
     """Validate raw inputs and current source before constructing any output."""
     artifact, artifact_binding = _read_evidence(validation_path)
     candidate, candidate_binding = _read_evidence(candidate_path)
@@ -116,8 +90,42 @@ def build_receipt(validation_path: Path, candidate_path: Path) -> dict:
     if candidate != artifact.get("candidate_exact_cell"):
         raise ValueError("External and embedded candidate exact-cell evidence differ")
     validation.validate_current_source_binding(frozen)
+    if not runtime._same_json(candidate["candidate_source_snapshot"], frozen):
+        raise ValueError("ANI and OBC evidence must use the same complete source freeze")
 
-    gates = artifact["qualification_gates"]
+    aimnet, aimnet_binding = _read_evidence(
+        ROOT / AIMNET2025_EVIDENCE_REL if aimnet2025_path is None else aimnet2025_path
+    )
+    # This entry point replays raw sections, full failure denominators, numerical
+    # gates, runtime/checkpoint/input/source before/after binding. Assess-only is
+    # deliberately insufficient: it also accepts completed failed attempts.
+    aimnet_gates = aimnet_validation.validate_artifact(
+        aimnet, expected_source_snapshot=frozen
+    )
+    for field in ("source_snapshot_before", "source_snapshot_after"):
+        if not runtime._same_json(aimnet.get(field), frozen):
+            raise ValueError("AIMNet2025 and OBC evidence must share the same source freeze")
+    if aimnet.get("candidate_git_sha") != candidate["candidate_git_sha"]:
+        raise ValueError("AIMNet2025 and ANI candidate Git identities differ")
+    # The v2 snapshot binds positive inputs AND original negative-control
+    # sources/control file. Compare/store it whole; never project to positives.
+    if (not isinstance(aimnet.get("inputs_before"), dict) or not aimnet["inputs_before"]
+            or not runtime._same_json(aimnet["inputs_before"], aimnet.get("inputs_after"))):
+        raise ValueError("AIMNet2025 frozen inputs changed during qualification")
+    expected_aimnet_gates = {
+        name for name in runtime._QUALIFICATION_GATE_COUNTS
+        if name.startswith("aimnet2025_")
+    }
+    if not isinstance(aimnet_gates, dict) or set(aimnet_gates) != expected_aimnet_gates:
+        raise ValueError("Recomputed AIMNet2025 qualification gate set mismatch")
+    profiles = aimnet.get("model_identities_before")
+    if not runtime._same_json(profiles, aimnet.get("model_identities_after")):
+        raise ValueError("AIMNet2025 model identities changed during qualification")
+    cells = runtime._qualified_independent_obc2_cells(profiles)
+    gates = deepcopy(artifact["qualification_gates"])
+    if set(gates) & set(aimnet_gates):
+        raise ValueError("AIMNet2025 gates cannot replace original OBC/ANI gates")
+    gates.update(deepcopy(aimnet_gates))
     if set(gates) != set(runtime._QUALIFICATION_GATE_COUNTS):
         raise ValueError("Qualification gate set does not match runtime contract")
     for name, (expected, passed) in runtime._QUALIFICATION_GATE_COUNTS.items():
@@ -141,18 +149,23 @@ def build_receipt(validation_path: Path, candidate_path: Path) -> dict:
     if not installed or any(sources.get(path) != sha for path, sha in installed.items()):
         raise ValueError("Installed runtime inventory is not covered by frozen sources")
     receipt = {
-        "schema_version": 1,
+        "schema_version": 2,
         "artifact_type": "maple-independent-obc2-analytic-qualification",
         "status": "qualified",
         "candidate_git_sha": candidate["candidate_git_sha"],
         "qualification_source_aggregate_sha256": frozen["files_aggregate_sha256"],
         "installed_runtime_sources": installed,
         "qualification_sources": sources,
-        "qualified_cells": _qualified_cells(),
+        "qualified_cells": cells,
+        "aimnet2025_runtime_profiles": deepcopy(profiles),
         "qualification_gates": gates,
         "evidence": {
             "candidate_validation": artifact_binding,
             "candidate_exact_cell": candidate_binding,
+            "aimnet2025_candidate": aimnet_binding,
+            "aimnet2025_inputs": deepcopy(aimnet["inputs_before"]),
+            "aimnet2025_harness_sha256": aimnet["harness_sha256"],
+            "aimnet2025_validator_sha256": aimnet["validator_sha256"],
             "candidate_harness_sha256": candidate["harness_sha256"],
         },
     }
@@ -186,13 +199,14 @@ def _publish(path: Path, raw: bytes, *, replace: bool) -> None:
             temporary.unlink(missing_ok=True)
 
 
-def seal_qualification(validation_path: Path, candidate_path: Path) -> dict:
+def seal_qualification(validation_path: Path, candidate_path: Path,
+                       aimnet2025_path: Path | None = None) -> dict:
     receipt_path = ROOT / RECEIPT_REL
     pointer_path = ROOT / POINTER_REL
     if receipt_path.exists() or receipt_path.is_symlink():
         raise FileExistsError(f"Existing sealed receipt is immutable: {receipt_path}")
     original_pointer = _unqualified_pointer(pointer_path)
-    receipt = build_receipt(validation_path, candidate_path)
+    receipt = build_receipt(validation_path, candidate_path, aimnet2025_path)
     receipt_raw = (
         json.dumps(receipt, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False)
         + "\n"
@@ -215,7 +229,15 @@ def seal_qualification(validation_path: Path, candidate_path: Path) -> dict:
         raise ValueError("Published receipt bytes changed; pointer remains unqualified")
     if pointer_path.read_bytes() != original_pointer:
         raise ValueError("Qualification pointer changed before publication")
-    _publish(pointer_path, pointer_raw, replace=True)
+    try:
+        _publish(pointer_path, pointer_raw, replace=True)
+    except Exception:
+        # A failure after replace (e.g. directory fsync) must not leave an
+        # apparently successful admission. Retain immutable receipt evidence;
+        # restore only this operator's own pointer, never another writer's.
+        if pointer_path.read_bytes() == pointer_raw:
+            _publish(pointer_path, original_pointer, replace=True)
+        raise
     return receipt
 
 
@@ -227,8 +249,12 @@ def main() -> None:
     parser.add_argument(
         "--candidate", type=Path, default=ROOT / validation.CANDIDATE_CELL_EVIDENCE_REL
     )
+    parser.add_argument(
+        "--aimnet2025", type=Path, default=ROOT / AIMNET2025_EVIDENCE_REL,
+        help="Complete source-bound AIMNet2025 raw qualification evidence",
+    )
     args = parser.parse_args()
-    receipt = seal_qualification(args.validation, args.candidate)
+    receipt = seal_qualification(args.validation, args.candidate, args.aimnet2025)
     print(json.dumps({
         "receipt": RECEIPT_REL, "pointer": POINTER_REL,
         "content_sha256": receipt["content_sha256"],

@@ -17,9 +17,12 @@ import validate_independent_obc2_default as validation
 
 
 def test_validation_output_uses_the_current_run_date_without_rewriting_stage0():
-    assert validation.RECORDED_DATE == "2026-10-24"
-    assert validation.OUTPUT_REL.endswith(
-        "candidate-validation.json"
+    assert validation.RECORDED_DATE == "2026-10-25"
+    assert validation.OUTPUT_REL == (
+        ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/candidate-validation.json"
+    )
+    assert validation.CANDIDATE_CELL_EVIDENCE_REL == (
+        ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/candidate-exact-cell.json"
     )
     assert validation.STAGE0_MAIN_REL.endswith(
         "route1-obc2-am1bcc-526-reference-2026-09-27.json"
@@ -256,6 +259,11 @@ def test_qualification_source_inventory_covers_runtime_data_and_contract_tests()
 def test_qualification_source_inventory_excludes_only_final_data_artifacts():
     snapshot = validation.source_snapshot(require_clean=False)
 
+    assert validation.QUALIFICATION_SOURCE_EXCLUDES == frozenset({
+        "maple/function/calculator/_independent_obc2_qualified_cell.py",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json",
+    })
     assert set(snapshot["excluded_data_only_paths"]) == set(
         validation.QUALIFICATION_SOURCE_EXCLUDES
     )

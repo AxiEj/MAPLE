@@ -186,6 +186,14 @@ NVE/NVT MD.
 MOL2 charges are never silently normalized.  Their sum must match the declared
 molecular charge within `1e-4 e`.
 
+## AIMNet2-2025 backend
+
+`aimnet2025` is the separately identified official 2025 member-0 backend, not
+the old `aimnet2` checkpoint. Its complete Coulomb/D3 scalar and native-N32
+CPU/CUDA cells require their own source/model/runtime-bound qualification.
+See [installation, precision and admission](AIMNET2025.md). There is no
+automatic analytic admission for other AIMNet2 variants or arbitrary MLIPs.
+
 ## Complete-potential frequency derivatives
 
 Force-capable Torch OBC-II and explicit legacy OpenMM GB compositions admit

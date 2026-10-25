@@ -57,6 +57,7 @@ def _gate_objects(monkeypatch, *, precision_change=None):
                 "6387f1a16e10569d91ea8dc03a90c56035cf4a52888df54c18a1bd5a4bf8c30f"
             ),
             "equation_profile": "obc2-zero-salt-v1",
+            "dtype": "torch.float64",
         }
     )
     correction = SimpleNamespace(
@@ -99,11 +100,16 @@ def _valid_qualification_receipt():
                     "formula_source_sha256": OPENMM_CUSTOMGBFORCES_SHA256,
                     "canonical_payload_sha256": OBC2_CANONICAL_PAYLOAD_SHA256,
                     "parameter_profile": "obc2-zero-salt-v1",
+                    "dtype": "torch.float64",
                 },
             }
         )
+    from test_aimnet2025_admission import _aim_identities
+
+    profiles = _aim_identities()
+    cells.extend(module._qualified_independent_obc2_cells(profiles)[2:])
     gates = {
-        name: {"expected_count": expected, "passed_count": passed}
+        name: {"expected_count": expected, "passed_count": passed, "passed": True}
         for name, (expected, passed) in module._QUALIFICATION_GATE_COUNTS.items()
     }
     gates["analytic_hessian_16_fd"]["steps_angstrom"] = [
@@ -117,12 +123,13 @@ def _valid_qualification_receipt():
         "none",
     ]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "artifact_type": "maple-independent-obc2-analytic-qualification",
         "status": "qualified",
         "installed_runtime_sources": module._installed_runtime_source_inventory(),
         "qualification_sources": {"tests/private-harness.py": "a" * 64},
         "qualified_cells": cells,
+        "aimnet2025_runtime_profiles": profiles,
         "qualification_gates": gates,
     }
 
@@ -139,7 +146,7 @@ def _install_receipt(monkeypatch, receipt, *, seal=True):
     monkeypatch.setattr(
         pointer,
         "QUALIFICATION_RECEIPT_FILENAME",
-        "independent_obc2_analytic_qualification.json",
+        "independent_obc2_analytic_qualification_v2.json",
     )
     monkeypatch.setattr(
         pointer,
@@ -407,7 +414,7 @@ def test_direct_default_constructs_independent_provider_without_openmm(
 
 
 @pytest.fixture
-def audited_correction(water_mol2, tmp_path):
+def audited_correction(water_mol2, tmp_path, request):
     from maple.function.calculator.extra_correction.implicit.correction import (
         ImplicitSolvationCorrection,
     )
@@ -416,7 +423,7 @@ def audited_correction(water_mol2, tmp_path):
     return ImplicitSolvationCorrection(
         MOL2Reader(str(water_mol2), charge=0, mult=1),
         {"source": "mol2", "mode": "fixed", "geometry": "keep"},
-        {"method": "gb", "experimental": True},
+        {"method": "gb", "experimental": True, "dtype": getattr(request, 'param', 'float64')},
         output=tmp_path / "admission.out",
         model_device="cpu",
     )
@@ -554,3 +561,27 @@ def test_legacy_factory_restores_admission_in_manifest(monkeypatch, water_mol2, 
     assert calculator.analytic_implicit_derivatives_admitted is True
     assert calculator.solvent_correction.analytic_task_derivatives_admitted is True
     assert _audit_admitted(calculator.solvent_correction) is True
+
+
+@pytest.mark.parametrize('audited_correction', ['float32'], indirect=True)
+def test_aim_live_cell_authority_precedes_manifest_and_rejection_clears_it(
+    monkeypatch, audited_correction
+):
+    from test_aimnet2025_admission import _aim_identities, _objects
+    from maple.function.calculator import set_calculator as module
+
+    calc, _correction = _objects(monkeypatch, _aim_identities()["cpu"])
+    _install_receipt(monkeypatch, _valid_qualification_receipt())
+    module._admit_independent_obc2_analytic_cell(
+        calc, audited_correction, model="aimnet2025", device="cpu", d4=False
+    )
+    assert calc.analytic_implicit_derivatives_admitted is True
+    assert audited_correction.analytic_task_derivatives_admitted is True
+    assert _audit_admitted(audited_correction) is True
+    with pytest.raises(RuntimeError, match="ANALYTIC_CELL_UNQUALIFIED"):
+        module._admit_independent_obc2_analytic_cell(
+            calc, audited_correction, model="aimnet2025", device="cuda:0", d4=False
+        )
+    assert calc.analytic_implicit_derivatives_admitted is False
+    assert audited_correction.analytic_task_derivatives_admitted is False
+    assert _audit_admitted(audited_correction) is False

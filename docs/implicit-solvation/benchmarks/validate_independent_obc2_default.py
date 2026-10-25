@@ -39,15 +39,15 @@ import benchmark_core as core  # noqa: E402
 from maple.function.read.filereader.mol2_reader import MOL2Reader  # noqa: E402
 
 BASE_HEAD = "e4044219"
-RECORDED_DATE = "2026-10-24"
+RECORDED_DATE = "2026-10-25"
 RUNNER_REL = "docs/implicit-solvation/benchmarks/validate_independent_obc2_default.py"
 TEST_REL = "tests/solvation/test_independent_obc2_default_validation.py"
 OUTPUT_REL = (
-    ".omx/benchmarks/route1-independent-obc2-default-20261023/xyz-ambertools-20261024/"
+    ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/"
     "candidate-validation.json"
 )
 CANDIDATE_CELL_EVIDENCE_REL = (
-    ".omx/benchmarks/route1-independent-obc2-default-20261023/xyz-ambertools-20261024/"
+    ".omx/benchmarks/route1-aimnet2025-20261024/obc-ani/"
     "candidate-exact-cell.json"
 )
 CANDIDATE_CELL_HARNESS_REL = "tests/solvation/run_independent_obc2_candidate_cell.py"
@@ -55,6 +55,7 @@ QUALIFICATION_SOURCE_EXCLUDES = frozenset(
     {
         "maple/function/calculator/_independent_obc2_qualified_cell.py",
         "maple/function/calculator/data/independent_obc2_analytic_qualification.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json",
     }
 )
 ANI2X_CHECKPOINT_SHA256 = (

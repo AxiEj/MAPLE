@@ -81,7 +81,9 @@ def _validate_provider_identity(
     if family != ("gb", "openmm") and _OPENMM_EXECUTION_KEYS.intersection(options):
         raise ValueError("OpenMM execution options require method=gb, provider=openmm.")
     if family == ("gb", "torch"):
-        extra = frozenset()
+        extra = frozenset({'dtype'})
+        if options.get('dtype', 'float64') not in {'float32', 'float64'}:
+            raise ValueError('Independent OBC-II dtype must be float32 or float64.')
         model = "obc2"
         profile = "obc2-mbondi2"
         default_nonpolar, allowed_nonpolar = "ace", {"ace", "none"}
@@ -460,6 +462,7 @@ class ImplicitSolvationCorrection:
                     self.charge_result.charges,
                     nonpolar=self.solvation_options.get("nonpolar", "ace"),
                     device=model_device or "cpu",
+                    dtype=self.solvation_options.get("dtype"),
                 )
             elif provider == "openmm":
                 from .openmm_gb import DEFAULT_OPENMM_PLATFORM, OpenMMGB

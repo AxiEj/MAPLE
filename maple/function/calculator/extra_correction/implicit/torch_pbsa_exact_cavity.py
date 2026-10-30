@@ -25,8 +25,9 @@ CAVITY_OFFSET_KCAL_MOL = -0.5692
 _MAX_PAIR_TEMPORARY_BYTES = 64 * 1024 * 1024
 # Conservative displacement/square/reduction/mask temporaries per point/site.
 _BYTES_PER_POINT_ATOM = 96
-# Integer lattice coordinates must still be exactly representable as float64.
-_MAX_EXACT_GRID_INDEX = 2**52 - 1
+# Integer lattice coordinates must still be exactly representable in the selected dtype.
+_MAX_EXACT_GRID_INDEX_FLOAT32 = 2**24 - 1
+_MAX_EXACT_GRID_INDEX_FLOAT64 = 2**52 - 1
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,9 @@ def cavity_from_native_grid(
     *,
     max_grid_points: int = 4_000_000,
     max_pair_evaluations: int = 100_000_000,
+    coordinates_validated_f12_7: bool = False,
+    grid_chunk_size: int | None = None,
+    readback_budget=None,
 ) -> DiscretePbsaCavityResult:
     """Count lattice points in the union of rmin+1.3-A atomic balls.
 
@@ -56,67 +60,124 @@ def cavity_from_native_grid(
 
     if (
         not isinstance(positions_angstrom, torch.Tensor)
-        or positions_angstrom.dtype != torch.float64
+        or positions_angstrom.dtype not in (torch.float32, torch.float64)
         or positions_angstrom.ndim != 2
         or positions_angstrom.shape[1] != 3
         or positions_angstrom.shape[0] == 0
         or not isinstance(lj_rmin_angstrom, torch.Tensor)
-        or lj_rmin_angstrom.dtype != torch.float64
+        or lj_rmin_angstrom.dtype != positions_angstrom.dtype
         or lj_rmin_angstrom.shape != (len(positions_angstrom),)
         or lj_rmin_angstrom.device != positions_angstrom.device
     ):
         raise TypeError(
-            "PBSA cavity requires same-device float64 [N,3] and [N] tensors."
+            "PBSA cavity requires same-device, same-dtype float32 or float64 "
+            "[N,3] and [N] tensors."
         )
     if positions_angstrom.requires_grad or lj_rmin_angstrom.requires_grad:
         raise ValueError(
             "The discrete PBSA cavity is energy-only; forces are unsupported."
         )
-    if not bool(
-        torch.isfinite(positions_angstrom).all()
-        and torch.isfinite(lj_rmin_angstrom).all()
-        and (lj_rmin_angstrom > 0.0).all()
-    ):
-        raise ValueError(
-            "PBSA cavity coordinates and rmin must be finite and positive."
-        )
-    for value in positions_angstrom.detach().cpu().reshape(-1).tolist():
-        token = f"{value:12.7f}"
-        # Python's field width is a minimum; an oversized token is not an
-        # Amber F12.7 coordinate even when rounding leaves its value unchanged.
-        if len(token) != 12 or value != float(token):
+    is_cuda = positions_angstrom.device.type == "cuda"
+    private_cuda = is_cuda and positions_angstrom.dtype == torch.float32
+    if private_cuda:
+        if not coordinates_validated_f12_7:
             raise ValueError(
-                "PBSA cavity requires serialized native 12.7f coordinates."
+                "CUDA PBSA cavity requires F12.7 validation before upload."
             )
+        if readback_budget is None:
+            raise TypeError("CUDA PBSA cavity requires a readback budget.")
+        input_error = (~torch.isfinite(positions_angstrom).all()).to(torch.int32)
+        input_error |= (~torch.isfinite(lj_rmin_angstrom).all()).to(torch.int32) * 2
+        input_error |= (lj_rmin_angstrom <= 0.0).any().to(torch.int32) * 4
+        if readback_budget.read_count(
+            input_error, stage="cavity", purpose="aggregate-input-validation"
+        ):
+            raise ValueError(
+                "PBSA cavity coordinates and rmin must be finite and positive."
+            )
+    else:
+        if not bool(
+            torch.isfinite(positions_angstrom).all()
+            and torch.isfinite(lj_rmin_angstrom).all()
+            and (lj_rmin_angstrom > 0.0).all()
+        ):
+            raise ValueError(
+                "PBSA cavity coordinates and rmin must be finite and positive."
+            )
+        for value in positions_angstrom.detach().cpu().reshape(-1).tolist():
+            token = f"{value:12.7f}"
+            # Python's field width is a minimum; an oversized token is not an
+            # Amber F12.7 coordinate even when rounding leaves its value unchanged.
+            serialized_value = float(token)
+            if positions_angstrom.dtype == torch.float32:
+                serialized_value = positions_angstrom.new_tensor(serialized_value).item()
+            if len(token) != 12 or value != serialized_value:
+                raise ValueError(
+                    "PBSA cavity requires serialized native 12.7f coordinates."
+                )
     if type(max_grid_points) is not int or max_grid_points < 1:
         raise ValueError("max_grid_points must be a positive integer.")
     if type(max_pair_evaluations) is not int or max_pair_evaluations < 1:
         raise ValueError("max_pair_evaluations must be a positive integer.")
+    if grid_chunk_size is not None and (
+        type(grid_chunk_size) is not int or grid_chunk_size < 1
+    ):
+        raise ValueError("grid_chunk_size must be None or a positive integer.")
     point_atom_bytes = len(positions_angstrom) * _BYTES_PER_POINT_ATOM
     if point_atom_bytes > _MAX_PAIR_TEMPORARY_BYTES:
         raise RuntimeError("PBSA cavity single-point pair memory budget exceeded.")
 
-    expanded = lj_rmin_angstrom + CAVITY_PROBE_ANGSTROM
+    if positions_angstrom.dtype == torch.float32:
+        spacing = positions_angstrom.new_tensor(GRID_SPACING_ANGSTROM)
+        probe = positions_angstrom.new_tensor(CAVITY_PROBE_ANGSTROM)
+        expanded = lj_rmin_angstrom + probe
+    else:
+        spacing = GRID_SPACING_ANGSTROM
+        expanded = lj_rmin_angstrom + CAVITY_PROBE_ANGSTROM
     lower = torch.floor(
-        torch.min(positions_angstrom - expanded[:, None], dim=0).values
-        / GRID_SPACING_ANGSTROM
+        torch.min(positions_angstrom - expanded[:, None], dim=0).values / spacing
     )
     upper = torch.ceil(
-        torch.max(positions_angstrom + expanded[:, None], dim=0).values
-        / GRID_SPACING_ANGSTROM
+        torch.max(positions_angstrom + expanded[:, None], dim=0).values / spacing
     )
     # Conversion of huge finite floats to int64 may yield the minimum integer
     # for BOTH bounds, falsely making a huge domain look like one grid point.
     # Reject before casting, not after the already-corrupted extent estimate.
-    if not bool(
+    exact_limit = (
+        _MAX_EXACT_GRID_INDEX_FLOAT32
+        if positions_angstrom.dtype == torch.float32
+        else _MAX_EXACT_GRID_INDEX_FLOAT64
+    )
+    bounds_valid = (
         torch.isfinite(lower).all()
-        and torch.isfinite(upper).all()
-        and (lower.abs() <= _MAX_EXACT_GRID_INDEX).all()
-        and (upper.abs() <= _MAX_EXACT_GRID_INDEX).all()
-    ):
-        raise RuntimeError("PBSA cavity grid index range exceeds exact arithmetic.")
+        & torch.isfinite(upper).all()
+        & (lower.abs() <= exact_limit).all()
+        & (upper.abs() <= exact_limit).all()
+    )
+    if private_cuda:
+        packed_bounds = torch.cat(
+            (
+                (~bounds_valid).to(torch.int64).reshape(1),
+                lower.to(torch.int64),
+                upper.to(torch.int64),
+            )
+        )
+        host_bounds = readback_budget.read_scalars(
+            packed_bounds,
+            stage="cavity",
+            purpose="grid-extents-validation",
+        )
+        if host_bounds[0]:
+            raise RuntimeError("PBSA cavity grid index range exceeds exact arithmetic.")
+        lower_host = tuple(int(value) for value in host_bounds[1:4])
+        upper_host = tuple(int(value) for value in host_bounds[4:7])
+    else:
+        if not bool(bounds_valid):
+            raise RuntimeError("PBSA cavity grid index range exceeds exact arithmetic.")
+        lower_host = tuple(int(value) for value in lower.tolist())
+        upper_host = tuple(int(value) for value in upper.tolist())
     lower, upper = lower.to(torch.int64), upper.to(torch.int64)
-    extents = (upper - lower + 1).tolist()
+    extents = [high - low + 1 for low, high in zip(lower_host, upper_host)]
     if any(size <= 0 for size in extents):
         raise RuntimeError("PBSA cavity grid index range is empty or invalid.")
     grid_points = math.prod(extents)
@@ -131,7 +192,7 @@ def cavity_from_native_grid(
             f"{pair_evaluations} > {max_pair_evaluations}."
         )
 
-    count = 0
+    count = torch.zeros((), dtype=torch.int64, device=positions_angstrom.device)
     yz_stride = extents[1] * extents[2]
     # The displacement and squared-distance intermediates scale with the
     # atom count as well as grid size. Bound each chunk instead of assuming
@@ -140,6 +201,8 @@ def cavity_from_native_grid(
         32_768,
         _MAX_PAIR_TEMPORARY_BYTES // point_atom_bytes,
     )
+    if grid_chunk_size is not None:
+        chunk_size = min(chunk_size, grid_chunk_size)
     for start in range(0, grid_points, chunk_size):
         indices = torch.arange(
             start,
@@ -156,15 +219,32 @@ def cavity_from_native_grid(
             dim=1,
         )
         points = (xyz_indices + lower[None, :]).to(
-            dtype=torch.float64
-        ) * GRID_SPACING_ANGSTROM
+            dtype=positions_angstrom.dtype
+        ) * spacing
         squared_distances = (
             (points[:, None, :] - positions_angstrom[None, :, :]).square().sum(dim=-1)
         )
-        count += int((squared_distances <= expanded.square()[None, :]).any(dim=1).sum())
+        count += (squared_distances <= expanded.square()[None, :]).any(dim=1).sum(
+            dtype=torch.int64
+        )
 
-    energy = positions_angstrom.new_tensor(
-        CAVITY_COEFFICIENT_KCAL_MOL_ANGSTROM3 * GRID_SPACING_ANGSTROM**3 * count
-        + CAVITY_OFFSET_KCAL_MOL
-    )
-    return DiscretePbsaCavityResult(energy, count, grid_points)
+    if private_cuda:
+        occupied_count = readback_budget.read_count(
+            count, stage="cavity", purpose="final-occupied-voxel-count"
+        )
+    else:
+        occupied_count = int(count)
+
+    if positions_angstrom.dtype == torch.float64:
+        energy = positions_angstrom.new_tensor(
+            CAVITY_COEFFICIENT_KCAL_MOL_ANGSTROM3 * GRID_SPACING_ANGSTROM**3 * occupied_count
+            + CAVITY_OFFSET_KCAL_MOL
+        )
+    else:
+        coefficient = positions_angstrom.new_tensor(
+            CAVITY_COEFFICIENT_KCAL_MOL_ANGSTROM3
+        )
+        offset = positions_angstrom.new_tensor(CAVITY_OFFSET_KCAL_MOL)
+        occupied = count.to(dtype=torch.float32)
+        energy = coefficient * occupied * spacing.pow(3) + offset
+    return DiscretePbsaCavityResult(energy, occupied_count, grid_points)

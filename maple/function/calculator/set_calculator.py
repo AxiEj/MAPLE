@@ -45,7 +45,7 @@ _QUALIFICATION_GATE_COUNTS = {
     'aimnet2025_direct_hvp': (144, 144),
     'aimnet2025_cutoff_guard': (8, 8),
 }
-_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v3.json'
+_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v4.json'
 
 
 def _is_sha256(value) -> bool:
@@ -72,9 +72,10 @@ def _installed_runtime_source_inventory() -> dict[str, str]:
     excluded = {
         'maple/function/calculator/_independent_obc2_qualified_cell.py',
         'maple/function/calculator/data/independent_obc2_analytic_qualification.json',
-        'maple/function/calculator/data/' + _QUALIFICATION_RECEIPT_FILENAME,
+        'maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json',
     }
     paths = list(package_root.rglob('*.py'))
+    paths.append(package_root / 'function/calculator/data/private_cha_torch_fp32_release_v1.json')
     implicit_data = package_root / 'function/calculator/extra_correction/implicit/data'
     paths.extend(
         implicit_data / name

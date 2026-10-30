@@ -36,6 +36,7 @@ from .._batch_utils import default_calculate_many
 from ..calculator_base import (
     EV2HARTREE,
     IMPLICIT_SOLVENT_FORCE_ERROR,
+    build_solvation_result,
     calculator_execution,
     init_implicit_solvent,
     numerical_hessian_from_atoms,
@@ -521,11 +522,15 @@ class UMACalculator(FAIRChemCalculator):
 
         if self.solvent_correction is not None:
             if hasattr(self.solvent_correction, "evaluate"):
+                if "energy" not in self.results:
+                    raise ValueError(
+                        "UMA implicit-solvent composition requires FAIR-Chem energy output."
+                    )
+                gas_energy_hartree = float(self.results["energy"])
                 solvent_result = self.solvent_correction.evaluate(
                     calc_atoms, need_forces="forces" in self.results
                 )
-                if "energy" in self.results:
-                    self.results["energy"] += float(solvent_result.energy_hartree)
+                self.results["energy"] += float(solvent_result.energy_hartree)
                 if "free_energy" in self.results:
                     self.results["free_energy"] += float(solvent_result.energy_hartree)
                 if "forces" in self.results:
@@ -534,11 +539,10 @@ class UMACalculator(FAIRChemCalculator):
                     self.results["forces"] += np.asarray(
                         solvent_result.forces_hartree_per_angstrom
                     )
-                self.results["solvation"] = {
-                    "energy_hartree": float(solvent_result.energy_hartree),
-                    "components_hartree": dict(solvent_result.components_hartree),
-                    "provenance": dict(solvent_result.provenance),
-                }
+                self.results["solvation"] = build_solvation_result(
+                    gas_energy_hartree,
+                    solvent_result,
+                )
             else:
                 raise RuntimeError(
                     "Unstructured legacy implicit-solvent corrections are no "

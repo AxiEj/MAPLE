@@ -24,8 +24,8 @@ def normalize_charge_options(options: Mapping[str, Any]) -> dict[str, Any]:
     if unknown:
         raise ValueError(f"Unsupported #charge options: {sorted(map(str, unknown))}.")
     source = str(charge.get("source", "maple")).lower()
-    if source not in {"mol2", "maple"}:
-        raise ValueError("#charge source must be 'mol2' or 'maple'.")
+    if source not in {"mol2", "maple", "prepared"}:
+        raise ValueError("#charge source must be 'mol2', 'maple', or 'prepared'.")
     method = charge.get("method")
     mode = str(charge.get("mode", "fixed")).lower()
     geometry = str(charge.get("geometry", "keep")).lower()
@@ -44,7 +44,21 @@ def normalize_charge_options(options: Mapping[str, Any]) -> dict[str, Any]:
         )
     if geometry not in {"keep", "provider"}:
         raise ValueError("#charge geometry must be 'keep' or 'provider'.")
-    if source == "mol2":
+    if source == "prepared":
+        if mode != "fixed" or geometry != "keep":
+            raise ValueError(
+                "#charge(source=prepared) requires mode=fixed and geometry=keep."
+            )
+        ignored = sorted(
+            {"method", "label", "executable", "timeout"}.intersection(charge)
+        )
+        if ignored:
+            raise ValueError(
+                "#charge(source=prepared) uses only the validated private topology; remove "
+                + ", ".join(ignored)
+                + "."
+            )
+    elif source == "mol2":
         if "method" in charge:
             raise ValueError(
                 "#charge(source=mol2) reads fixed charges and does not accept method=."

@@ -706,6 +706,11 @@ def prepare_charges(
 ) -> ChargeResult:
     """Prepare a charge record once at the reference geometry."""
     options = normalize_charge_options(options)
+    if options["source"] == "prepared":
+        raise ValueError(
+            "#charge(source=prepared) is available only through the validated "
+            "private-torch-cha preparation transaction."
+        )
     if options["source"] == "mol2":
         return _mol2_charges(atoms, options.get("label"))
     return _ambertools_charges(atoms, options, Path(audit_dir))

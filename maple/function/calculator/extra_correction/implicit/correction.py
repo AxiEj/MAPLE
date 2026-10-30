@@ -18,7 +18,7 @@ from maple.function.read.filereader.mol2_reader import (
     mol2_identity_sha256,
 )
 
-from .charges import ChargeResult, prepare_charges
+from .charges import ChargeResult, _molecular_charge_and_mult, prepare_charges
 from .radii import GB_MODELS
 from .result import SolvationDirectionalResult, SolvationResult
 from .selector import resolve_implicit_provider
@@ -78,6 +78,13 @@ def _validate_provider_identity(
     if str(options.get("implicit", "water")).lower() != "water":
         raise ValueError("Implicit-solvation providers support implicit=water only.")
     family = (method, provider)
+    if family == ("gb", "private-torch-cha") and _OPENMM_EXECUTION_KEYS.intersection(
+        options
+    ):
+        raise ValueError(
+            "private-torch-cha takes its Torch device from MAPLE's model device "
+            "and rejects OpenMM execution options."
+        )
     if family != ("gb", "openmm") and _OPENMM_EXECUTION_KEYS.intersection(options):
         raise ValueError("OpenMM execution options require method=gb, provider=openmm.")
     if family == ("gb", "torch"):
@@ -98,6 +105,10 @@ def _validate_provider_identity(
         default_nonpolar, allowed_nonpolar = "ace", {"ace", "lcpo", "none"}
     else:
         profiles = {
+            ("gb", "private-torch-cha"): (
+                "chagb", "chagb-bondi-pbsa-inp2", "cavity-dispersion",
+                {"dtype", "prepared_topology", "prepared_topology_sha256"},
+            ),
             ("gb", "ambertools"): (
                 "chagb",
                 "chagb-bondi-pbsa-inp2",
@@ -139,6 +150,18 @@ def _validate_provider_identity(
         raise ValueError(
             f"provider={provider}, model={model} requires nonpolar in {sorted(allowed_nonpolar)}."
         )
+    if family == ("gb", "private-torch-cha"):
+        if str(options.get("dtype", "float32")).lower() != "float32":
+            raise ValueError("private-torch-cha requires dtype=float32.")
+        if options.get("inner") is not None:
+            raise ValueError("private-torch-cha supports no inner shell.")
+        if not options.get("prepared_topology"):
+            raise ValueError("private-torch-cha requires explicit prepared_topology JSON path.")
+        if not isinstance(options["prepared_topology"], (str, os.PathLike)):
+            raise ValueError("private-torch-cha prepared_topology must be a filesystem path.")
+        digest = str(options.get("prepared_topology_sha256", ""))
+        if len(digest) != 64 or any(ch not in "0123456789abcdefABCDEF" for ch in digest):
+            raise ValueError("private-torch-cha requires prepared_topology_sha256.")
 
 
 def _positive_finite(value: Any, *, name: str) -> float:
@@ -191,6 +214,10 @@ def _validate_direct_contract(
     if force_mode not in {None, "native", "numerical"}:
         raise ValueError("Solvation mode must be native or numerical.")
     supplied = _NUMERICAL_FORCE_KEYS.intersection(solvation_options)
+    if (method, provider) == ("gb", "private-torch-cha") and (
+        force_mode is not None or supplied
+    ):
+        raise ValueError("private-torch-cha is single-point energy-only.")
     native_provider = (method, provider) in {("gb", "torch"), ("gb", "openmm"), ("pb", "ddx")}
     numerical_provider = (method, provider) in {
         ("gb", "ambertools"),
@@ -218,6 +245,8 @@ def _validate_direct_contract(
     _validate_provider_identity(solvation_options, method, provider)
 
     task, task_method, task_delta = _task_contract(task_context)
+    if (method, provider) == ("gb", "private-torch-cha") and task != "sp":
+        raise ValueError("private-torch-cha is single-point energy-only.")
     return method, provider, force_mode, task, task_method, task_delta
 
 
@@ -271,6 +300,14 @@ class ImplicitSolvationCorrection:
         ) = _validate_direct_contract(
             solvation_options, task_context
         )
+        if (
+            charge_options.get("source") == "prepared"
+            and (method, provider_name) != ("gb", "private-torch-cha")
+        ):
+            raise ValueError(
+                "#charge(source=prepared) is valid only with the explicit "
+                "private-torch-cha single-point profile."
+            )
         if method == "gb" and provider_name == "torch":
             solvation_options.update(
                 provider="torch",
@@ -285,6 +322,22 @@ class ImplicitSolvationCorrection:
                 model=model,
                 profile=GB_MODELS[model]["profile"],
                 nonpolar=str(solvation_options.get("nonpolar", "ace")).lower(),
+            )
+        elif method == "gb" and provider_name == "private-torch-cha":
+            if "prepared_topology" not in solvation_options:
+                raise ValueError("private-torch-cha requires explicit prepared_topology JSON path.")
+            if "prepared_topology_sha256" not in solvation_options:
+                raise ValueError("private-torch-cha requires explicit prepared_topology_sha256.")
+            if str(solvation_options.get("dtype", "float32")).lower() != "float32":
+                raise ValueError("private-torch-cha requires dtype=float32.")
+            selected_device = model_device
+            solvation_options.update(
+                provider="private-torch-cha", model="chagb",
+                profile="chagb-bondi-pbsa-inp2", nonpolar="cavity-dispersion",
+                dtype="float32",
+                prepared_topology_sha256=str(
+                    solvation_options["prepared_topology_sha256"]
+                ).lower(),
             )
         self.atoms = atoms
         mol2_metadata = atoms.info.get("mol2")
@@ -399,6 +452,18 @@ class ImplicitSolvationCorrection:
                 "provider=apbs,profile=generic-mbondi2,experimental=true now."
             )
         gb_provider = provider_name
+        if method == "gb" and gb_provider == "private-torch-cha":
+            if (
+                self.inner_mode is not None
+                or self.charge_options.get("source") not in {"mol2", "prepared"}
+                or str(self.charge_options.get("mode", "fixed")).lower() != "fixed"
+                or str(self.charge_options.get("geometry", "keep")).lower() != "keep"
+            ):
+                raise ValueError(
+                    "private-torch-cha requires a charged typed MOL2 with fixed "
+                    "#charge(source=mol2|prepared,mode=fixed,geometry=keep) and "
+                    "no inner=prebuilt."
+                )
         if method == "gb" and gb_provider == "ambertools":
             if (
                 self.inner_mode is not None
@@ -413,14 +478,52 @@ class ImplicitSolvationCorrection:
                     "model=chagb, profile=chagb-bondi-pbsa-inp2, "
                     "nonpolar=cavity-dispersion, and no inner=prebuilt."
                 )
+        prepared_private_provider = None
+        prepared_private_charge_result = None
+        if (
+            method == "gb"
+            and gb_provider == "private-torch-cha"
+            and self.charge_options.get("source") == "prepared"
+        ):
+            from .private_chagb_preparation import prepare_private_chagb_frozen_source
+            prepared_private_provider, prepared_private_charge_result = (
+                prepare_private_chagb_frozen_source(
+                    atoms,
+                    prepared_topology=self.solvation_options["prepared_topology"],
+                    prepared_topology_sha256=self.solvation_options[
+                        "prepared_topology_sha256"
+                    ],
+                    device=selected_device,
+                    dtype=self.solvation_options["dtype"],
+                )
+            )
         output_path = Path(output).resolve() if output else Path.cwd() / "maple.out"
         # Configuration rejection must not mutate the caller's Atoms. Install
         # the reserved identity only after all provider/charge/inner gates pass.
         self.audit_dir = output_path.with_suffix(output_path.suffix + ".implicit")
         self.audit_dir.mkdir(parents=True, exist_ok=True)
-        self.charge_result: ChargeResult = prepare_charges(
-            atoms, self.charge_options, self.audit_dir
+        self.charge_result: ChargeResult = (
+            prepared_private_charge_result
+            if prepared_private_charge_result is not None
+            else prepare_charges(atoms, self.charge_options, self.audit_dir)
         )
+        if (
+            method == "gb"
+            and gb_provider == "private-torch-cha"
+            and prepared_private_provider is None
+        ):
+            from .private_torch_chagb import PrivateTorchChaGB
+
+            prepared_private_provider = PrivateTorchChaGB(
+                atoms,
+                self.charge_result,
+                prepared_topology=self.solvation_options["prepared_topology"],
+                prepared_topology_sha256=self.solvation_options[
+                    "prepared_topology_sha256"
+                ],
+                device=selected_device,
+                dtype=self.solvation_options["dtype"],
+            )
         if self.charge_result.prepared_atoms is not None:
             prepared = self.charge_result.prepared_atoms
             provenance = self.charge_result.provenance
@@ -490,6 +593,10 @@ class ImplicitSolvationCorrection:
                     timeout=self.solvation_options.get("timeout", 3600.0),
                     audit_dir=self.audit_dir,
                 )
+            elif provider == "private-torch-cha":
+                if prepared_private_provider is None:
+                    raise RuntimeError("private-torch-cha provider was not prepared.")
+                self.provider = prepared_private_provider
             else:
                 raise ValueError(f"Unsupported implicit-GB provider: {provider!r}.")
         elif method == "pb":
@@ -726,6 +833,7 @@ class ImplicitSolvationCorrection:
 
     def _validate_bound_atoms(self, atoms) -> None:
         """Enforce the one frozen charge/radius/topology lifecycle."""
+        _molecular_charge_and_mult(atoms)
         current_atom_identity = atoms.arrays.get(_ATOM_IDENTITY_ARRAY)
         if (
             current_atom_identity is None

@@ -201,13 +201,14 @@ def test_translation_rotation_and_permutation_preserve_scalar():
 
 
 @pytest.mark.parametrize(
-    "bad", ["empty", "float32", "nan", "zero-radius", "bad-born", "shape", "collision"]
+    "bad",
+    ["empty", "mixed-dtype", "nan", "zero-radius", "bad-born", "shape", "collision"],
 )
 def test_invalid_inputs_fail_closed(bad):
     x, q, radii, inv = _case()
     if bad == "empty":
         x, q, radii, inv = x[:0], q[:0], radii[:0], inv[:0]
-    elif bad == "float32":
+    elif bad == "mixed-dtype":
         x = x.float()
     elif bad == "nan":
         x[0, 0] = float("nan")

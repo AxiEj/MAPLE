@@ -51,25 +51,40 @@ class ChaPolarAlgebraResult:
     born_radii_angstrom: Tensor
     effective_charges_e: Tensor
     cha_factors: Tensor
+    validation_code: Tensor
     scope: ClassVar[str] = "polar-algebra-with-supplied-inverse-born"
     complete_coordinate_graph: ClassVar[bool] = False
 
 
-def _require_tensor(name, value, *, shape=None, positive=False, device=None):
+def _require_tensor(
+    name, value, *, shape=None, positive=False, device=None, dtype=None
+):
     import torch
 
-    if not isinstance(value, torch.Tensor) or value.dtype != torch.float64:
-        raise TypeError(f"{name} must be an explicit torch.float64 tensor.")
+    if not isinstance(value, torch.Tensor) or value.dtype not in (
+        torch.float32,
+        torch.float64,
+    ):
+        raise TypeError(
+            f"{name} must be an explicit torch.float32 or torch.float64 tensor."
+        )
+    if dtype is not None and value.dtype != dtype:
+        raise TypeError(
+            f"{name} must use the same explicit dtype {dtype} as the other inputs."
+        )
     if shape is not None and tuple(value.shape) != shape:
         raise ValueError(f"{name} must have shape {shape}, got {tuple(value.shape)}.")
     if device is not None and value.device != device:
         raise ValueError(
             f"{name} must use device {device}; no implicit transfer is made."
         )
-    if not bool(torch.isfinite(value).all()):
-        raise ValueError(f"{name} must be finite.")
-    if positive and not bool((value > 0).all()):
-        raise ValueError(f"{name} must be positive.")
+    # CUDA callers aggregate all value-domain checks at the component
+    # boundary.  Structural checks here intentionally do not synchronize.
+    if value.device.type != "cuda":
+        if not bool(torch.isfinite(value).all()):
+            raise ValueError(f"{name} must be finite.")
+        if positive and not bool((value > value.new_zeros(())).all()):
+            raise ValueError(f"{name} must be positive.")
 
 
 def cha_electrostatic_size(
@@ -95,18 +110,49 @@ def cha_electrostatic_size(
         shape=(count,),
         positive=True,
         device=positions_angstrom.device,
+        dtype=positions_angstrom.dtype,
     )
-    weights = radii**3
-    mass = weights.sum()
-    center = (weights[:, None] * positions_angstrom).sum(dim=0) / mass
-    centered = positions_angstrom - center
-    second_moment = centered.T @ (weights[:, None] * centered)
-    sphere_moment = (2.0 / 5.0) * (weights * radii**2).sum()
-    identity = torch.eye(3, dtype=radii.dtype, device=radii.device)
-    inertia = (torch.trace(second_moment) + sphere_moment) * identity - second_moment
-    determinant = torch.linalg.det(inertia)
-    _require_tensor("electrostatic inertia determinant", determinant, positive=True)
-    size = (2.5 / mass).sqrt() * determinant.pow(1.0 / 6.0)
+    if radii.dtype == torch.float64:
+        # Preserve the historical binary64 evaluation order exactly.
+        weights = radii**3
+        mass = weights.sum()
+        center = (weights[:, None] * positions_angstrom).sum(dim=0) / mass
+        centered = positions_angstrom - center
+        second_moment = centered.T @ (weights[:, None] * centered)
+        sphere_moment = (2.0 / 5.0) * (weights * radii**2).sum()
+        identity = torch.eye(3, dtype=radii.dtype, device=radii.device)
+        inertia = (
+            torch.trace(second_moment) + sphere_moment
+        ) * identity - second_moment
+        determinant = torch.linalg.det(inertia)
+        _require_tensor("electrostatic inertia determinant", determinant, positive=True)
+        size = (2.5 / mass).sqrt() * determinant.pow(1.0 / 6.0)
+    else:
+        # Materialize every non-integer coefficient before FP32 arithmetic.
+        two = radii.new_tensor(2.0)
+        five = radii.new_tensor(5.0)
+        six = radii.new_tensor(6.0)
+        size_coefficient = radii.new_tensor(2.5)
+        weights = radii.pow(3)
+        mass = weights.sum()
+        center = (weights[:, None] * positions_angstrom).sum(dim=0) / mass
+        centered = positions_angstrom - center
+        # Do not route this three-vector reduction through matmul.  The CUDA
+        # FP32 path must not depend on process-global TF32 matmul policy.
+        weighted_centered = weights[:, None] * centered
+        second_moment = (
+            centered[:, :, None] * weighted_centered[:, None, :]
+        ).sum(dim=0)
+        sphere_moment = (two / five) * (weights * radii.pow(2)).sum()
+        identity = torch.eye(3, dtype=radii.dtype, device=radii.device)
+        inertia = (
+            torch.trace(second_moment) + sphere_moment
+        ) * identity - second_moment
+        determinant = torch.linalg.det(inertia)
+        _require_tensor("electrostatic inertia determinant", determinant, positive=True)
+        size = (size_coefficient / mass).sqrt() * determinant.pow(
+            radii.new_tensor(1.0) / six
+        )
     _require_tensor("electrostatic size", size, positive=True)
     return size
 
@@ -117,6 +163,15 @@ def cha_inverse_born_shift(electrostatic_size_angstrom: Tensor) -> Tensor:
 
     size = electrostatic_size_angstrom
     _require_tensor("electrostatic_size_angstrom", size, positive=True)
+    if size.dtype == torch.float32:
+        switch = size.new_tensor(SIZE_SWITCH_ANGSTROM)
+        slope = size.new_tensor(_SHIFT_SLOPE)
+        intercept = size.new_tensor(_SHIFT_INTERCEPT)
+        return torch.where(
+            size < switch,
+            torch.zeros_like(size),
+            slope * size + intercept,
+        )
     return torch.where(
         size < SIZE_SWITCH_ANGSTROM,
         torch.zeros_like(size),
@@ -137,16 +192,18 @@ def validate_cha_derivative_branch(result: ChaPolarAlgebraResult, charges_e: Ten
         charges_e,
         shape=tuple(result.effective_charges_e.shape),
         device=result.effective_charges_e.device,
+        dtype=result.effective_charges_e.dtype,
     )
-    active = charges_e != 0.0
-    if bool((active & (result.effective_charges_e.abs() <= CHARGE_SIGN_GUARD_E)).any()):
+    zero = charges_e.new_zeros(())
+    sign_guard = charges_e.new_tensor(CHARGE_SIGN_GUARD_E)
+    size_switch = charges_e.new_tensor(SIZE_SWITCH_ANGSTROM)
+    size_guard = charges_e.new_tensor(SIZE_GUARD_ANGSTROM)
+    active = charges_e != zero
+    if bool((active & (result.effective_charges_e.abs() <= sign_guard)).any()):
         raise ValueError(
             "CHA algebra derivative is undefined near an effective-charge sign switch."
         )
-    if bool(
-        torch.abs(result.electrostatic_size_angstrom - SIZE_SWITCH_ANGSTROM)
-        <= SIZE_GUARD_ANGSTROM
-    ):
+    if bool(torch.abs(result.electrostatic_size_angstrom - size_switch) <= size_guard):
         raise ValueError(
             "CHA algebra derivative is undefined near the size-shift switch."
         )
@@ -159,6 +216,7 @@ def cha_polar_from_inverse_born(
     unshifted_inverse_born_per_angstrom: Tensor,
     *,
     resource_budget: DenseTorchBudget = DEFAULT_DENSE_TORCH_BUDGET,
+    readback_budget=None,
 ) -> ChaPolarAlgebraResult:
     """Evaluate fixed-profile CHA polar algebra in kcal/mol without detaching inputs.
 
@@ -167,7 +225,7 @@ def cha_polar_from_inverse_born(
     Charges are in electrons; the Amber native-charge conversion is internal.
     The effective probe is 1.4 - 0.52 A, matching gb_read for chagb=1.
 
-    Requires float64 tensors on one explicit device. A differentiable upstream
+    Requires same-dtype float32 or float64 tensors on one explicit device. A differentiable upstream
     R6 tensor keeps its graph, but graph presence alone is NOT certification
     of that upstream algorithm. No force adapter is exposed by this module.
     """
@@ -175,6 +233,14 @@ def cha_polar_from_inverse_born(
 
     if not isinstance(resource_budget, DenseTorchBudget):
         raise TypeError("resource_budget must be a DenseTorchBudget.")
+    _require_tensor("positions_angstrom", positions_angstrom)
+    input_dtype = positions_angstrom.dtype
+    for name, value in (
+        ("charges_e", charges_e),
+        ("effective_cha_radii_angstrom", effective_cha_radii_angstrom),
+        ("unshifted_inverse_born_per_angstrom", unshifted_inverse_born_per_angstrom),
+    ):
+        _require_tensor(name, value, dtype=input_dtype)
     count = len(positions_angstrom)
     derivative_order = (
         2
@@ -195,7 +261,11 @@ def cha_polar_from_inverse_born(
 
     size = cha_electrostatic_size(positions_angstrom, effective_cha_radii_angstrom)
     _require_tensor(
-        "charges_e", charges_e, shape=(count,), device=positions_angstrom.device
+        "charges_e",
+        charges_e,
+        shape=(count,),
+        device=positions_angstrom.device,
+        dtype=input_dtype,
     )
     raw_inverse = unshifted_inverse_born_per_angstrom
     _require_tensor(
@@ -204,13 +274,16 @@ def cha_polar_from_inverse_born(
         shape=(count,),
         positive=True,
         device=positions_angstrom.device,
+        dtype=input_dtype,
     )
     differences = positions_angstrom[:, None, :] - positions_angstrom[None, :, :]
     distances_squared = differences.square().sum(dim=-1)
     first, second = torch.triu_indices(
         count, count, offset=1, device=positions_angstrom.device
     )
-    if bool((distances_squared[first, second] <= 0.0).any()):
+    zero = positions_angstrom.new_zeros(())
+    coincident = (distances_squared[first, second] <= zero).any()
+    if positions_angstrom.device.type != "cuda" and bool(coincident):
         raise ValueError(
             "Coincident distinct atoms are outside the CHA algebra domain."
         )
@@ -220,27 +293,57 @@ def cha_polar_from_inverse_born(
     born = shifted_inverse.reciprocal()
     _require_tensor("shifted Born radii", born, positive=True)
     born_products = born[:, None] * born[None, :]
-    native_charges = charges_e * AMBER_CHARGE_SCALE
-    weights = torch.exp(-CHA_TAU * distances_squared / born_products)
-    effective_native = (weights * native_charges[None, :]).sum(dim=1)
-    effective_e = effective_native / AMBER_CHARGE_SCALE
-    mu = 1.0 + effective_native.sign() * CHA_ROH_ANGSTROM / (
-        born + EFFECTIVE_PROBE_ANGSTROM
-    )
-    _require_tensor("CHA factors", mu, positive=True)
-    beta = ALPB_ALPHA / 78.5
-    dielectric = (1.0 - 1.0 / 78.5) / (1.0 + beta)
-    size_term = beta / size
-    self_energy = (
-        -0.5
-        * dielectric
-        * (native_charges.square() * (shifted_inverse / mu + size_term)).sum()
-    )
+    if input_dtype == torch.float64:
+        # Preserve the historical binary64 evaluation order exactly.
+        native_charges = charges_e * AMBER_CHARGE_SCALE
+        weights = torch.exp(-CHA_TAU * distances_squared / born_products)
+        effective_native = (weights * native_charges[None, :]).sum(dim=1)
+        effective_e = effective_native / AMBER_CHARGE_SCALE
+        mu = 1.0 + effective_native.sign() * CHA_ROH_ANGSTROM / (
+            born + EFFECTIVE_PROBE_ANGSTROM
+        )
+        _require_tensor("CHA factors", mu, positive=True)
+        beta = ALPB_ALPHA / 78.5
+        dielectric = (1.0 - 1.0 / 78.5) / (1.0 + beta)
+        size_term = beta / size
+        self_energy = (
+            -0.5
+            * dielectric
+            * (native_charges.square() * (shifted_inverse / mu + size_term)).sum()
+        )
+        pair_exponent_coefficient = -0.25
+    else:
+        one = positions_angstrom.new_tensor(1.0)
+        half = positions_angstrom.new_tensor(0.5)
+        charge_scale = positions_angstrom.new_tensor(AMBER_CHARGE_SCALE)
+        tau = positions_angstrom.new_tensor(CHA_TAU)
+        roh = positions_angstrom.new_tensor(CHA_ROH_ANGSTROM)
+        probe = positions_angstrom.new_tensor(EFFECTIVE_PROBE_ANGSTROM)
+        alpha = positions_angstrom.new_tensor(ALPB_ALPHA)
+        solvent_dielectric = positions_angstrom.new_tensor(78.5)
+        pair_exponent_coefficient = positions_angstrom.new_tensor(-0.25)
+        native_charges = charges_e * charge_scale
+        weights = torch.exp(-tau * distances_squared / born_products)
+        effective_native = (weights * native_charges[None, :]).sum(dim=1)
+        effective_e = effective_native / charge_scale
+        mu = one + effective_native.sign() * roh / (born + probe)
+        _require_tensor("CHA factors", mu, positive=True)
+        beta = alpha / solvent_dielectric
+        dielectric = (one - one / solvent_dielectric) / (one + beta)
+        size_term = beta / size
+        self_energy = (
+            -half
+            * dielectric
+            * (native_charges.square() * (shifted_inverse / mu + size_term)).sum()
+        )
     pair_r2 = distances_squared[first, second]
     pair_born = born_products[first, second]
     radicand = (
         pair_r2
-        + pair_born * torch.exp(-0.25 * pair_r2 / pair_born) * mu[first] * mu[second]
+        + pair_born
+        * torch.exp(pair_exponent_coefficient * pair_r2 / pair_born)
+        * mu[first]
+        * mu[second]
     )
     _require_tensor("CHA pair radicand", radicand, positive=True)
     pair_energy = (
@@ -261,7 +364,30 @@ def cha_polar_from_inverse_born(
         born_radii_angstrom=born,
         effective_charges_e=effective_e,
         cha_factors=mu,
+        validation_code=positions_angstrom.new_zeros((), dtype=torch.int32),
     )
+    if positions_angstrom.device.type == "cuda":
+        values = (
+            positions_angstrom,
+            charges_e,
+            effective_cha_radii_angstrom,
+            raw_inverse,
+            size,
+            shifted_inverse,
+            born,
+            mu,
+            radicand,
+            result.polar_kcal_mol,
+        )
+        error = (~torch.stack([torch.isfinite(value).all() for value in values]).all()).to(torch.int32)
+        error |= (effective_cha_radii_angstrom <= zero).any().to(torch.int32) * 2
+        error |= (raw_inverse <= zero).any().to(torch.int32) * 4
+        error |= (size <= zero).to(torch.int32) * 8
+        error |= (born <= zero).any().to(torch.int32) * 16
+        error |= (mu <= zero).any().to(torch.int32) * 32
+        error |= (radicand <= zero).any().to(torch.int32) * 64
+        error |= coincident.to(torch.int32) * 128
+        object.__setattr__(result, "validation_code", error)
     _require_tensor("polar energy", result.polar_kcal_mol)
     if any(
         t.requires_grad

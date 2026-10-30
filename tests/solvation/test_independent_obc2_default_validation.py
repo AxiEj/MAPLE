@@ -17,12 +17,12 @@ import validate_independent_obc2_default as validation
 
 
 def test_validation_output_uses_the_current_run_date_without_rewriting_stage0():
-    assert validation.RECORDED_DATE == "2026-10-25"
+    assert validation.RECORDED_DATE == "2026-10-30"
     assert validation.OUTPUT_REL == (
-        ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/candidate-validation.json"
+        ".omx/benchmarks/route1-private-cha-fp32-20261029/obc-ani/candidate-validation.json"
     )
     assert validation.CANDIDATE_CELL_EVIDENCE_REL == (
-        ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/candidate-exact-cell.json"
+        ".omx/benchmarks/route1-private-cha-fp32-20261029/obc-ani/candidate-exact-cell.json"
     )
     assert validation.STAGE0_MAIN_REL.endswith(
         "route1-obc2-am1bcc-526-reference-2026-09-27.json"
@@ -264,6 +264,7 @@ def test_qualification_source_inventory_excludes_only_final_data_artifacts():
         "maple/function/calculator/data/independent_obc2_analytic_qualification.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json",
     })
     assert set(snapshot["excluded_data_only_paths"]) == set(
         validation.QUALIFICATION_SOURCE_EXCLUDES
@@ -271,6 +272,38 @@ def test_qualification_source_inventory_excludes_only_final_data_artifacts():
     assert not set(snapshot["files_sha256"]) & set(
         validation.QUALIFICATION_SOURCE_EXCLUDES
     )
+
+
+def test_cli_output_rejects_outside_root_and_symlink_parent(tmp_path, monkeypatch):
+    root = tmp_path / "checkout"
+    root.mkdir()
+    monkeypatch.setattr(validation, "ROOT", root)
+
+    with pytest.raises(ValueError, match="inside the checkout"):
+        validation._validated_output_path(tmp_path / "outside.json")
+
+    target = root / "real"
+    target.mkdir()
+    linked = root / "linked"
+    linked.symlink_to(target, target_is_directory=True)
+    with pytest.raises(ValueError, match="symlink"):
+        validation._validated_output_path(linked / "candidate-validation.json")
+
+
+def test_cli_candidate_requires_existing_regular_nonsymlink(tmp_path, monkeypatch):
+    root = tmp_path / "checkout"
+    root.mkdir()
+    monkeypatch.setattr(validation, "ROOT", root)
+    candidate = root / "candidate.json"
+    candidate.write_text("{}")
+    assert validation._validated_candidate_path(candidate) == candidate
+
+    alias = root / "candidate-link.json"
+    alias.symlink_to(candidate)
+    with pytest.raises(ValueError, match="symlink"):
+        validation._validated_candidate_path(alias)
+    with pytest.raises(FileNotFoundError, match="existing regular file"):
+        validation._validated_candidate_path(root / "missing.json")
 
 
 def test_qualification_source_snapshot_rejects_dirty_tree(monkeypatch):
@@ -836,6 +869,9 @@ def rejected_main_run(complete_matrix, monkeypatch, tmp_path):
     """Run the real entry point/validator with synthetic completed failed rows."""
     import copy
 
+    source_root = validation.ROOT
+    stage0 = validation.load_stage0()
+    harness_bytes = (source_root / validation.CANDIDATE_CELL_HARNESS_REL).read_bytes()
     artifact = copy.deepcopy(complete_matrix)
     row = artifact["replay_526"]["records"][0]
     row["energy"].update(total_abs_hartree=1.0, passed=False)
@@ -847,7 +883,26 @@ def rejected_main_run(complete_matrix, monkeypatch, tmp_path):
     artifact["passed"] = False
     artifact = _seal(artifact)
     output = tmp_path / "candidate-validation.json"
-    monkeypatch.setattr(validation, "OUTPUT_REL", str(output))
+    provider = (
+        tmp_path
+        / "maple/function/calculator/extra_correction/implicit/independent_obc2.py"
+    )
+    provider.parent.mkdir(parents=True)
+    provider.write_text("synthetic provider fixture\n")
+    harness = tmp_path / validation.CANDIDATE_CELL_HARNESS_REL
+    harness.parent.mkdir(parents=True, exist_ok=True)
+    harness.write_bytes(harness_bytes)
+    for record in stage0[1]["records"]:
+        relative = Path(record["source_mol2_relative_path"])
+        destination = tmp_path / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes((source_root / relative).read_bytes())
+    monkeypatch.setattr(validation, "ROOT", tmp_path)
+    monkeypatch.setattr(validation, "OUTPUT_REL", "candidate-validation.json")
+    monkeypatch.setattr(validation, "load_stage0", lambda: stage0)
+    monkeypatch.setattr(
+        validation, "_git", lambda *args: artifact["source_snapshot"]["git_head"]
+    )
     monkeypatch.setattr(validation, "_build_artifact", lambda: artifact)
     monkeypatch.setattr(validation, "source_snapshot", lambda: artifact["source_snapshot"])
     monkeypatch.setattr(validation, "validate_current_source_binding", lambda source: None)
@@ -903,7 +958,7 @@ def test_rejected_attempt_and_its_raw_payload_cannot_be_sealed(rejected_main_run
     candidate.write_text(json.dumps(artifact["candidate_exact_cell"]))
     monkeypatch.setattr(sealer, "ROOT", output.parent)
     pointer = output.parent / sealer.POINTER_REL
-    pointer.parent.mkdir(parents=True)
+    pointer.parent.mkdir(parents=True, exist_ok=True)
     pointer.write_text(
         f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'
         'QUALIFICATION_RECEIPT_SHA256 = None\n'
@@ -938,7 +993,8 @@ def test_rejected_attempt_publication_is_atomic_and_exclusive(rejected_main_run,
         validation._write_rejected_attempt(artifact, ValueError("second rejection"))
     assert publications == [path, path]
     assert path.read_bytes() == original
-    assert list(output.parent.iterdir()) == [path]
+    assert list(output.parent.glob("completed-rejected-*.json")) == [path]
+    assert not list(output.parent.glob(".*.tmp"))
 
 
 @pytest.mark.parametrize("storage_fails", [False, True])

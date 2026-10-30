@@ -13,6 +13,7 @@ from ._batch_utils import default_calculate_many
 
 if TYPE_CHECKING:
     import torch
+    from .extra_correction.implicit.result import SolvationResult
 
 
 _REGISTRY: dict[str, type] = {}
@@ -391,6 +392,42 @@ def calculator_execution(calculator) -> dict[str, Any]:
     return result
 
 
+def build_solvation_result(
+    gas_energy_hartree: float,
+    result: "SolvationResult",
+    *,
+    gas_inference_precision: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the shared gas-plus-solvent energy result."""
+    gas_energy = float(gas_energy_hartree)
+    correction_energy = float(result.energy_hartree)
+    combined_energy = gas_energy + correction_energy
+    if not all(
+        np.isfinite(value)
+        for value in (gas_energy, correction_energy, combined_energy)
+    ):
+        raise ValueError("Gas, solvation, and combined energies must be finite.")
+
+    provenance = dict(result.provenance)
+    structured = {
+        "energy_hartree": correction_energy,
+        "gas_energy_hartree": gas_energy,
+        "combined_energy_hartree": combined_energy,
+        "components_hartree": dict(result.components_hartree),
+        "provenance": provenance,
+        "ase_free_energy_is_thermochemical_gibbs": False,
+    }
+    if gas_inference_precision is not None:
+        structured["gas_inference_precision"] = dict(gas_inference_precision)
+    if provenance.get("reference_only") is True:
+        structured["reference_correction_hartree"] = correction_energy
+    elif provenance.get("absolute_solvation_free_energy_claim") is False:
+        structured["cluster_continuum_correction_hartree"] = correction_energy
+    else:
+        structured["delta_g_solv_hartree"] = correction_energy
+    return structured
+
+
 class CalcABC(ase.calculators.calculator.Calculator):
     # Protocol attributes — each subclass overrides what's relevant.
     MODEL_NAMES: tuple = ()
@@ -531,27 +568,11 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 raise TypeError('Inference precision provenance must be a dictionary.')
             self.results['inference_precision'] = dict(precision)
         if structured_solvation_result is not None:
-            result = structured_solvation_result
-            provenance = dict(result.provenance)
-            structured = {
-                'energy_hartree': float(result.energy_hartree),
-                'gas_energy_hartree': gas_energy_ha,
-                'combined_energy_hartree': float(energy_ha),
-                'components_hartree': dict(result.components_hartree),
-                'provenance': provenance,
-                'ase_free_energy_is_thermochemical_gibbs': False,
-            }
-            if precision is not None:
-                structured['gas_inference_precision'] = dict(precision)
-            if provenance.get('reference_only') is True:
-                structured['reference_correction_hartree'] = float(result.energy_hartree)
-            elif provenance.get('absolute_solvation_free_energy_claim') is False:
-                structured['cluster_continuum_correction_hartree'] = float(
-                    result.energy_hartree
-                )
-            else:
-                structured['delta_g_solv_hartree'] = float(result.energy_hartree)
-            self.results['solvation'] = structured
+            self.results['solvation'] = build_solvation_result(
+                gas_energy_ha,
+                structured_solvation_result,
+                gas_inference_precision=precision,
+            )
         elif hasattr(self, 'solvation_result'):
             del self.solvation_result
 

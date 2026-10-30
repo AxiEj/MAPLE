@@ -39,15 +39,15 @@ import benchmark_core as core  # noqa: E402
 from maple.function.read.filereader.mol2_reader import MOL2Reader  # noqa: E402
 
 BASE_HEAD = "e4044219"
-RECORDED_DATE = "2026-10-25"
+RECORDED_DATE = "2026-10-30"
 RUNNER_REL = "docs/implicit-solvation/benchmarks/validate_independent_obc2_default.py"
 TEST_REL = "tests/solvation/test_independent_obc2_default_validation.py"
 OUTPUT_REL = (
-    ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/"
+    ".omx/benchmarks/route1-private-cha-fp32-20261029/obc-ani/"
     "candidate-validation.json"
 )
 CANDIDATE_CELL_EVIDENCE_REL = (
-    ".omx/benchmarks/route1-aimnet2025-performance-20261025/obc-ani/"
+    ".omx/benchmarks/route1-private-cha-fp32-20261029/obc-ani/"
     "candidate-exact-cell.json"
 )
 CANDIDATE_CELL_HARNESS_REL = "tests/solvation/run_independent_obc2_candidate_cell.py"
@@ -57,6 +57,7 @@ QUALIFICATION_SOURCE_EXCLUDES = frozenset(
         "maple/function/calculator/data/independent_obc2_analytic_qualification.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json",
     }
 )
 ANI2X_CHECKPOINT_SHA256 = (
@@ -317,6 +318,41 @@ def source_snapshot(*, require_clean: bool = True) -> dict[str, Any]:
     }
     payload["aggregate_sha256"] = core.sha256_bytes(core.canonical_json_bytes(payload))
     return payload
+
+
+def _checkout_path(path: Path, *, label: str) -> Path:
+    candidate = path if path.is_absolute() else ROOT / path
+    root = ROOT.resolve()
+    try:
+        relative = candidate.absolute().relative_to(ROOT.absolute())
+    except ValueError as exc:
+        raise ValueError(f"{label} must be inside the checkout") from exc
+    current = root
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise ValueError(f"{label} cannot use a symlink path component: {current}")
+    try:
+        candidate.resolve(strict=False).relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"{label} must be inside the checkout") from exc
+    return candidate.absolute()
+
+
+def _validated_output_path(path: Path) -> Path:
+    destination = _checkout_path(path, label="output")
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(f"Validation artifact already exists: {destination}")
+    if not destination.parent.is_dir():
+        raise FileNotFoundError(f"Output parent must be an existing directory: {destination.parent}")
+    return destination
+
+
+def _validated_candidate_path(path: Path) -> Path:
+    candidate = _checkout_path(path, label="candidate")
+    if candidate.is_symlink() or not candidate.is_file():
+        raise FileNotFoundError(f"Candidate must be an existing regular file: {candidate}")
+    return candidate
 
 
 def validate_current_source_binding(frozen: Mapping[str, Any]) -> None:
@@ -1078,13 +1114,12 @@ def _environment() -> dict[str, Any]:
     }
 
 
-def _build_artifact() -> dict[str, Any]:
+def _build_artifact(candidate_path: Path | None = None) -> dict[str, Any]:
     stage0, portable = load_stage0()
     selection = select_full_h_cases(portable)
     before = source_snapshot(require_clean=True)
-    candidate_cell = json.loads(
-        (ROOT / CANDIDATE_CELL_EVIDENCE_REL).read_text(encoding="utf-8")
-    )
+    candidate_path = ROOT / CANDIDATE_CELL_EVIDENCE_REL if candidate_path is None else candidate_path
+    candidate_cell = json.loads(candidate_path.read_text(encoding="utf-8"))
     validate_candidate_cell_evidence(
         candidate_cell,
         expected_source_snapshot=before,
@@ -1764,16 +1799,19 @@ def validate_artifact(artifact: Mapping[str, Any]) -> None:
         raise ValueError("Validation artifact aggregate status is inconsistent")
 
 
-def _write_artifact(artifact: Mapping[str, Any]) -> None:
-    destination = ROOT / OUTPUT_REL
+def _write_artifact(artifact: Mapping[str, Any], output_path: Path | None = None) -> None:
+    destination = ROOT / OUTPUT_REL if output_path is None else output_path
     if destination.exists():
         raise FileExistsError(f"Validation artifacts are immutable: {destination}")
     core.write_json_atomic(destination, artifact)
 
 
-def _write_rejected_attempt(artifact: Mapping[str, Any], error: Exception) -> Path:
+def _write_rejected_attempt(
+    artifact: Mapping[str, Any], error: Exception, output_path: Path | None = None
+) -> Path:
     """Retain a completed rejection separately from passing/sealable evidence."""
-    destination = (ROOT / OUTPUT_REL).parent / f"completed-rejected-{uuid4().hex}.json"
+    output_path = ROOT / OUTPUT_REL if output_path is None else output_path
+    destination = output_path.parent / f"completed-rejected-{uuid4().hex}.json"
     attempt = core.seal_artifact({
         "schema_version": 1,
         "artifact_type": "independent-obc2-completed-rejected-attempt-v1",
@@ -1877,18 +1915,23 @@ def main() -> None:
     modes.add_argument("--validate-only", action="store_true")
     modes.add_argument("--self-test", action="store_true")
     modes.add_argument("--core-canary", action="store_true")
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--candidate", type=Path)
     args = parser.parse_args()
     if args.self_test:
         _self_test()
         return
     if args.validate_only:
-        artifact = json.loads((ROOT / OUTPUT_REL).read_text(encoding="utf-8"))
+        validation_path = _validated_candidate_path(
+            ROOT / OUTPUT_REL if args.output is None else args.output
+        )
+        artifact = json.loads(validation_path.read_text(encoding="utf-8"))
         validate_artifact(artifact)
         print(
             json.dumps(
                 {
-                    "path": OUTPUT_REL,
-                    "file_sha256": core.sha256_file(ROOT / OUTPUT_REL),
+                    "path": str(validation_path.relative_to(ROOT.resolve())),
+                    "file_sha256": core.sha256_file(validation_path),
                     "content_sha256": artifact["content_sha256"],
                     "passed": artifact["passed"],
                 },
@@ -1924,16 +1967,28 @@ def main() -> None:
     if preflight["status"] != "READY":
         print(json.dumps(preflight, indent=2, sort_keys=True))
         raise RuntimeError("IndependentOBC2 core is not yet available")
-    if (ROOT / OUTPUT_REL).exists():
-        raise FileExistsError(
-            f"Validation artifact already exists: {ROOT / OUTPUT_REL}"
+    explicit_paths = args.output is not None or args.candidate is not None
+    if explicit_paths:
+        output_path = _validated_output_path(
+            ROOT / OUTPUT_REL if args.output is None else args.output
         )
-    artifact = _build_artifact()
+        candidate_path = _validated_candidate_path(
+            ROOT / CANDIDATE_CELL_EVIDENCE_REL if args.candidate is None else args.candidate
+        )
+    else:
+        output_path = ROOT / OUTPUT_REL
+        candidate_path = ROOT / CANDIDATE_CELL_EVIDENCE_REL
+        if output_path.exists() or output_path.is_symlink():
+            raise FileExistsError(f"Validation artifact already exists: {output_path}")
+    artifact = _build_artifact(candidate_path) if explicit_paths else _build_artifact()
     try:
         validate_artifact(artifact)
     except Exception as error:
         try:
-            path = _write_rejected_attempt(artifact, error)
+            path = (
+                _write_rejected_attempt(artifact, error, output_path)
+                if explicit_paths else _write_rejected_attempt(artifact, error)
+            )
             print(f"Completed rejected attempt retained: {path}", file=sys.stderr)
         except Exception as retention_error:
             # A storage failure must not replace the original validation rejection.
@@ -1942,12 +1997,15 @@ def main() -> None:
                 file=sys.stderr,
             )
         raise
-    _write_artifact(artifact)
+    if explicit_paths:
+        _write_artifact(artifact, output_path)
+    else:
+        _write_artifact(artifact)
     print(
         json.dumps(
             {
-                "path": OUTPUT_REL,
-                "file_sha256": core.sha256_file(ROOT / OUTPUT_REL),
+                "path": str(output_path.relative_to(ROOT.resolve())),
+                "file_sha256": core.sha256_file(output_path),
                 "content_sha256": artifact["content_sha256"],
                 "passed": artifact["passed"],
             },

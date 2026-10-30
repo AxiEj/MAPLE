@@ -507,10 +507,11 @@ def test_recomputed_aim_gate_set_must_be_complete_and_passing(io_repo, mutation)
 
 
 @pytest.mark.parametrize("old_name", ["independent_obc2_analytic_qualification.json",
-    "independent_obc2_analytic_qualification_v2.json"])
-def test_active_v3_sealer_preserves_prior_receipts(io_repo, old_name):
+    "independent_obc2_analytic_qualification_v2.json",
+    "independent_obc2_analytic_qualification_v3.json"])
+def test_active_v4_sealer_preserves_prior_receipts(io_repo, old_name):
     root, git, _full, _candidate, full_path, candidate_path = io_repo
-    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v3.json")
+    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v4.json")
     old = root / "maple/function/calculator/data" / old_name
     old.parent.mkdir(parents=True)
     old.write_bytes(b"immutable historical receipt")
@@ -520,7 +521,7 @@ def test_active_v3_sealer_preserves_prior_receipts(io_repo, old_name):
     assert old.read_bytes() == b"immutable historical receipt"
 
 
-def test_already_qualified_v3_pointer_refused_without_receipt(io_repo):
+def test_already_qualified_v4_pointer_refused_without_receipt(io_repo):
     root, _git, _full, _candidate, full_path, candidate_path = io_repo
     pointer = root / sealer.POINTER_REL
     pointer.write_text(f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'
@@ -579,7 +580,7 @@ def test_aim_strict_validator_preserves_four_gate_contract():
 
 def test_sealer_uses_new_run_not_historical_candidate():
     assert sealer.AIMNET2025_EVIDENCE_REL == (
-        ".omx/benchmarks/route1-aimnet2025-performance-20261025/candidate-aimnet2025-v3.json"
+        ".omx/benchmarks/route1-private-cha-fp32-20261029/candidate-aimnet2025-v3.json"
     )
 
 

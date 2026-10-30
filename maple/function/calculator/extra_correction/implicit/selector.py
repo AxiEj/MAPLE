@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-
 _LEGACY_OPENMM_MODELS = frozenset({"hct", "obc1", "gbn", "gbn2"})
 _OPENMM_ONLY_OPTIONS = frozenset(
     {"platform", "precision", "device_index", "opencl_platform_index"}
@@ -27,7 +26,10 @@ def resolve_implicit_provider(options: Mapping[str, Any]) -> str:
         provider = explicit.strip().lower()
     elif method == "gb":
         model = str(options.get("model", "obc2")).strip().lower()
-        provider = "openmm" if model in _LEGACY_OPENMM_MODELS else "torch"
+        if model == "chagb":
+            provider = "private-torch-cha"
+        else:
+            provider = "openmm" if model in _LEGACY_OPENMM_MODELS else "torch"
     elif method == "pb":
         provider = "apbs"
     else:

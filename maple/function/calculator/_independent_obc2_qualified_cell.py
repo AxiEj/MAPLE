@@ -1,2 +1,2 @@
-QUALIFICATION_RECEIPT_FILENAME = "independent_obc2_analytic_qualification_v3.json"
-QUALIFICATION_RECEIPT_SHA256 = "47ced690c82fbd41f2e1769263537e8580dab98c89127bee9f22437c6d39ec32"
+QUALIFICATION_RECEIPT_FILENAME = "independent_obc2_analytic_qualification_v4.json"
+QUALIFICATION_RECEIPT_SHA256 = None

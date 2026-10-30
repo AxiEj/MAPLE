@@ -162,6 +162,8 @@ class CommandControl:
         "model",
         "nonpolar",
         "dtype",
+        "prepared_topology",
+        "prepared_topology_sha256",
         "platform",
         "precision",
         "device_index",
@@ -366,9 +368,11 @@ class CommandControl:
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(
-                    v.strip()
-                )
+                normalized_key = CommandControl._normalize_key(k)
+                if normalized_key == "prepared_topology_sha256":
+                    target[normalized_key] = v.strip()
+                else:
+                    target[normalized_key] = CommandControl._auto_cast(v.strip())
             else:
                 target[CommandControl._normalize_key(kv)] = True
 
@@ -833,6 +837,14 @@ class CommandControl:
         }
         openmm_execution_options = sorted(openmm_execution_keys.intersection(solv_params))
         resolved_provider = resolve_implicit_provider(solv_params)
+        if openmm_execution_options and resolved_provider == "private-torch-cha":
+            msg = (
+                "private-torch-cha uses MAPLE's Torch device and rejects OpenMM execution options: "
+                + ", ".join(openmm_execution_options)
+                + "."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
         if openmm_execution_options and not (
             implicit is not None and method == "gb" and resolved_provider == "openmm"
         ):
@@ -946,6 +958,16 @@ class CommandControl:
 
             cls._validate_charge(params, required=True, output_path=output_path)
             charge = params["charge"]
+            if (
+                charge.get("source") == "prepared"
+                and resolve_implicit_provider(solv_params) != "private-torch-cha"
+            ):
+                msg = (
+                    "#charge(source=prepared) is valid only with the explicit "
+                    "private-torch-cha single-point profile."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
             if inner == "prebuilt" and charge.get("source") != "mol2":
                 msg = (
                     "inner=prebuilt requires #charge(source=mol2) with fixed "
@@ -981,7 +1003,80 @@ class CommandControl:
             )
             if method == "gb":
                 provider = resolve_implicit_provider(solv_params)
-                if provider == "ambertools":
+                if provider == "private-torch-cha":
+                    conflicts = sorted(
+                        {
+                            "platform",
+                            "precision",
+                            "device_index",
+                            "opencl_platform_index",
+                            "executable",
+                            "timeout",
+                            "grid_spacing",
+                            "grid_points",
+                            "probe_radius",
+                            "surface_tension",
+                            "pressure",
+                            "inner",
+                        }.intersection(solv_params)
+                    )
+                    if conflicts:
+                        msg = (
+                            "private-torch-cha is Torch FP32-only with no inner shell and "
+                            "does not support options: " + ", ".join(conflicts) + "."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    model = str(solv_params.get("model", "chagb")).lower()
+                    profile = str(
+                        solv_params.get("profile", "chagb-bondi-pbsa-inp2")
+                    ).lower()
+                    nonpolar = str(
+                        solv_params.get("nonpolar", "cavity-dispersion")
+                    ).lower()
+                    dtype = str(solv_params.get("dtype", "float32")).lower()
+                    if model != "chagb":
+                        msg = "provider=private-torch-cha requires model=chagb."
+                    elif profile != "chagb-bondi-pbsa-inp2":
+                        msg = "private-torch-cha requires profile=chagb-bondi-pbsa-inp2."
+                    elif nonpolar != "cavity-dispersion":
+                        msg = "private-torch-cha requires nonpolar=cavity-dispersion."
+                    elif dtype != "float32":
+                        msg = "private-torch-cha requires dtype=float32."
+                    elif (
+                        not isinstance(solv_params.get("prepared_topology"), str)
+                        or not solv_params["prepared_topology"].strip()
+                    ):
+                        msg = (
+                            "private-torch-cha requires prepared_topology as a "
+                            "non-empty filesystem path string."
+                        )
+                    elif not re.fullmatch(
+                        r"[0-9a-fA-F]{64}",
+                        str(solv_params.get("prepared_topology_sha256", "")),
+                    ):
+                        msg = "private-torch-cha requires prepared_topology_sha256 as 64 hex characters."
+                    elif (
+                        charge.get("source") not in {"mol2", "prepared"}
+                        or charge.get("mode", "fixed") != "fixed"
+                        or charge.get("geometry", "keep") != "keep"
+                    ):
+                        msg = (
+                            "private-torch-cha requires fixed #charge("
+                            "source=mol2|prepared,mode=fixed,geometry=keep)."
+                        )
+                    elif task != "sp" or params.get("verbose", 0) >= 1:
+                        msg = "private-torch-cha is single-point energy-only."
+                    else:
+                        msg = None
+                    if msg is not None:
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    solv_params["dtype"] = "float32"
+                    solv_params["prepared_topology_sha256"] = str(
+                        solv_params["prepared_topology_sha256"]
+                    ).lower()
+                elif provider == "ambertools":
                     conflicts = sorted(
                         {
                             "platform",
@@ -1241,7 +1336,10 @@ class CommandControl:
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
                 else:
-                    msg = "GB provider must be torch, openmm, or ambertools."
+                    msg = (
+                        "GB provider must be private-torch-cha, torch, openmm, "
+                        "or ambertools."
+                    )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 solv_params.update(
@@ -1560,6 +1658,22 @@ class CommandControl:
         cls._validate_unknown_params(params, task, output_path)
         cls._validate_solvation(params, task, output_path)
         cls._validate_charge(params, required=False, output_path=output_path)
+        charge = params.get("charge")
+        if isinstance(charge, dict) and charge.get("source") == "prepared":
+            solvation = params.get("solv")
+            if not (
+                task == "sp"
+                and isinstance(solvation, dict)
+                and solvation.get("implicit") == "water"
+                and solvation.get("method") == "gb"
+                and resolve_implicit_provider(solvation) == "private-torch-cha"
+            ):
+                msg = (
+                    "#charge(source=prepared) is valid only with the explicit "
+                    "private-torch-cha single-point profile."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
 
         if (
             "gpuid" in params

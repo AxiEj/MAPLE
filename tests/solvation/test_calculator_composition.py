@@ -183,6 +183,10 @@ def test_registered_plugin_without_route1_composition_capability_fails_closed(
 
 def test_shared_finalizer_adds_correction_energy_and_force_exactly_once():
     calc = CalcABC()
+    calc.inference_precision_provenance = {
+        "device": "cpu",
+        "dtype": "torch.float32",
+    }
     calc.solvent_correction = DummyCorrection()
     atoms = Atoms("H", positions=[[0, 0, 0]])
     calc._finalize_results(
@@ -197,8 +201,53 @@ def test_shared_finalizer_adds_correction_energy_and_force_exactly_once():
     assert solvation["components_hartree"]["nonpolar"] == 0.05
     assert solvation["gas_energy_hartree"] == 1.0
     assert solvation["delta_g_solv_hartree"] == 0.25
+    assert "reference_correction_hartree" not in solvation
+    assert "cluster_continuum_correction_hartree" not in solvation
     assert solvation["combined_energy_hartree"] == 1.25
     assert solvation["ase_free_energy_is_thermochemical_gibbs"] is False
+    assert solvation["gas_inference_precision"] == {
+        "device": "cpu",
+        "dtype": "torch.float32",
+    }
+
+
+def test_shared_finalizer_rejects_nonfinite_energy_composition():
+    class NonFiniteCorrection(DummyCorrection):
+        def evaluate(self, atoms, need_forces=False, calculator=None):
+            result = super().evaluate(atoms, need_forces, calculator)
+            result.energy_hartree = np.nan
+            return result
+
+    calc = CalcABC()
+    calc.solvent_correction = NonFiniteCorrection()
+
+    with pytest.raises(ValueError, match="energies must be finite"):
+        calc._finalize_results(
+            Atoms("H", positions=[[0.0, 0.0, 0.0]]),
+            energy=1.0,
+            unit="hartree",
+        )
+
+
+def test_cluster_continuum_result_uses_only_the_cluster_alias():
+    class ClusterCorrection(DummyCorrection):
+        def evaluate(self, atoms, need_forces=False, calculator=None):
+            result = super().evaluate(atoms, need_forces, calculator)
+            result.provenance["absolute_solvation_free_energy_claim"] = False
+            return result
+
+    calc = CalcABC()
+    calc.solvent_correction = ClusterCorrection()
+    calc._finalize_results(
+        Atoms("H", positions=[[0.0, 0.0, 0.0]]),
+        energy=1.0,
+        unit="hartree",
+    )
+
+    solvation = calc.results["solvation"]
+    assert solvation["cluster_continuum_correction_hartree"] == pytest.approx(0.25)
+    assert "reference_correction_hartree" not in solvation
+    assert "delta_g_solv_hartree" not in solvation
 
 
 def test_numerical_hessian_prepares_backend_and_honors_explicit_step():

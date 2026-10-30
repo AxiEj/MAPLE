@@ -29,10 +29,10 @@ from maple.function.calculator import set_calculator as runtime  # noqa: E402
 
 
 RECEIPT_REL = (
-    "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json"
+    "maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json"
 )
 POINTER_REL = "maple/function/calculator/_independent_obc2_qualified_cell.py"
-AIMNET2025_EVIDENCE_REL = ".omx/benchmarks/route1-aimnet2025-performance-20261025/candidate-aimnet2025-v3.json"
+AIMNET2025_EVIDENCE_REL = ".omx/benchmarks/route1-private-cha-fp32-20261029/candidate-aimnet2025-v3.json"
 
 
 def _sha256(raw: bytes) -> str:

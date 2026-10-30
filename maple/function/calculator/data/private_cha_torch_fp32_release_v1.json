@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "release_id": "private-cha-torch-fp32-release-v1",
+  "api_version": 4,
+  "distribution": {
+    "name": "maple-cha-exact-private",
+    "version": "0.4.0",
+    "package": "maple_cha_exact_private"
+  },
+  "maple_distribution": {
+    "name": "maple"
+  },
+  "arithmetic_profile": "torch-fp32-sp-v1",
+  "model_profile_sha256": "8df26c5dd35caa9ff5a075cd9730f62e7246c2bd0e22521311ca08dd7b86e2fd",
+  "runtime": {
+    "torch_version": "2.12.0+cu130",
+    "numpy_version": "2.4.6",
+    "python_major_minor": "3.11"
+  },
+  "private_source_sha256": {
+    "__init__.py": "debbb72a4eef02b9214f155dc45ccaa25e0c706e01695e611583c9938d7490ac",
+    "dispersion.py": "1b57e198756a3b367153654c546442f79f7816c87b0eb982ef1cedff1cd5e56b",
+    "exact_sp_chain.py": "43b7d071471ddff11345fc78d3b8b7baeb4e6e9f4d6fd3712ea36155e483cdc1",
+    "exact_sp_inputs.py": "8eb1e6f67ce151e55c78be79960dba3634b622e2c8b3aa81d5790d0fcbeacad2",
+    "identity.py": "835d4c812144837f91554d04197fc46094d382cc972b7e3efb485eda41cbc584",
+    "prepared.py": "1dd970f72073cfa6466b5833a6027706b45612ae82cf587a78d86362288a6d85",
+    "r6_surface_accumulator.py": "5f6da250a8f04fb38b9cc7a20375ec8938c6c187c0a99c9b5c40b183001a57ee",
+    "ses_boundary.py": "69342ad45dc0cbe885f72bae23715e3e4fbce69564af269a41915ae065f54beb",
+    "ses_grid_setup.py": "ed126a5600033a7f083c5db560180f869c1a2fcbbec5a71fd5a55b1cea7575c6",
+    "ses_grid_stage_d.py": "4f0e478635b96319e9753bd6a21c4984243e0066c16dc3ad0cf33b4539d8ece9",
+    "ses_grid_stage_e.py": "6a8fb2aceec524e8e03196ef71185557e5cfc45484477b9750d569bde121f1dc",
+    "ses_grid_stage_f.py": "9a5dc18926b05b7b6fc3c218c1f4661eed105b77aa1a41fa7405941aa8158717",
+    "ses_probe_arcs.py": "e7cb326485b4943077772ab488389fca0e549f859926eab9c34347e52dab392d",
+    "ses_setup.py": "88ed41ff373e1aa87ed320d4a6a81937eebab90bf7534d198cdb46c7fb56856d",
+    "torch_runtime.py": "290fd5865cf3693d82c095b19abe3f1e683755f0a90472ad8626bdefe5d94cbb"
+  },
+  "private_provenance_sha256": {
+    "share/doc/maple-cha-exact-private/API.md": "d8fdc21d237e68db394125b9cb687b981b105c08bd3c2492158f56269ac28613",
+    "share/doc/maple-cha-exact-private/BASELINE.json": "4425afb243bc822cbe7b96d49bc0c9df671e62f7f6851a679a46a6f62635fb02",
+    "share/doc/maple-cha-exact-private/NOTICE.md": "624b82cdab0c1ad25d7d39f23652e78cc86d1f5e4835fb7cc82c80c23f9c16dc",
+    "share/doc/maple-cha-exact-private/SOURCE_MAP.json": "4d032e7955743ecbc313ea4e96f63e0ae93c4b98daa2a79c1a76242423ba862c",
+    "share/licenses/maple-cha-exact-private/COPYING.GPL-2.0": "ab15fd526bd8dd18a9e77ebc139656bf4d33e97fc7238cd11bf60e2b9b8666c6",
+    "share/licenses/maple-cha-exact-private/COPYING.LESSER.LGPL-3.0": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+    "share/licenses/maple-cha-exact-private/GPL-SOURCE-NOTES.md": "d497ce15fe532f8fcd60498e6e23b41100c3567f7169c3977a6f52c7a600aae6",
+    "share/licenses/maple-cha-exact-private/LGPL-NOTICE.md": "307c91c540458d6d2665260f1e2e49b2200f344c6836960ea55b77487643ba0c"
+  },
+  "maple_public_source": {
+    "maple_public_polar": {
+      "module": "maple.function.calculator.extra_correction.implicit.torch_chagb",
+      "relative_path": "maple/function/calculator/extra_correction/implicit/torch_chagb.py",
+      "sha256": "7a93d09622f2aec07a5af67281f47a19bef66a1c27fd7159f3a8e911c1582e5f"
+    },
+    "maple_public_cavity": {
+      "module": "maple.function.calculator.extra_correction.implicit.torch_pbsa_exact_cavity",
+      "relative_path": "maple/function/calculator/extra_correction/implicit/torch_pbsa_exact_cavity.py",
+      "sha256": "eeb7545bad7db17aa018fbe955d853ee14ce90dd28c8fb618a94495aa1ce39f6"
+    },
+    "maple_public_dense_budget": {
+      "module": "maple.function.calculator.extra_correction.implicit.torch_dense_budget",
+      "relative_path": "maple/function/calculator/extra_correction/implicit/torch_dense_budget.py",
+      "sha256": "6bf26bbce4458aadd07c066681b8e06e0c3a5f8fb154e27ef99330b5e6e19fdb"
+    }
+  },
+  "runtime_contract": {
+    "supported_device_types": [
+      "cpu",
+      "cuda"
+    ],
+    "default_device": "cpu",
+    "floating_dtype": "float32",
+    "supports_forces": false,
+    "failure_fallback": false
+  },
+  "approved_source_aggregate_sha256": "e4c1ed36e0cc321bcc10f804086440a55cdea992e9a6cc9dede7455beb6c8cc0",
+  "content_sha256": "56e62585dbd986e0fb9b8248b908949c7c45939d3e9b7eeb4aeaf86f91d2964e"
+}

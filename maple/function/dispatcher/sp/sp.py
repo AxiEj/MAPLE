@@ -1,3 +1,4 @@
+import math
 from typing import Union, List, Optional
 from dataclasses import dataclass
 
@@ -48,18 +49,34 @@ class SinglePoint(JobABC):
     @staticmethod
     def _solvation_lines(atoms: Atoms) -> list:
         results = getattr(getattr(atoms, "calc", None), "results", {})
-        solvation = results.get("solvation") if isinstance(results, dict) else None
-        if not isinstance(solvation, dict):
+        if not isinstance(results, dict) or "solvation" not in results:
             return []
-        gas = solvation.get("gas_energy_hartree")
-        delta = solvation.get(
-            "delta_g_solv_hartree", solvation.get("energy_hartree")
-        )
-        combined = solvation.get("combined_energy_hartree")
-        if gas is None or delta is None or combined is None:
-            return []
-        provenance = solvation.get("provenance", {})
+        solvation = results["solvation"]
+        required = {
+            "energy_hartree",
+            "gas_energy_hartree",
+            "combined_energy_hartree",
+            "components_hartree",
+            "provenance",
+            "ase_free_energy_is_thermochemical_gibbs",
+        }
+        if not isinstance(solvation, dict) or not required.issubset(solvation):
+            raise ValueError("Malformed solvation result: required core fields are missing.")
+        if (
+            not isinstance(solvation["components_hartree"], dict)
+            or not isinstance(solvation["provenance"], dict)
+            or solvation["ase_free_energy_is_thermochemical_gibbs"] is not False
+        ):
+            raise ValueError("Malformed solvation result: core field types are invalid.")
+        gas = solvation["gas_energy_hartree"]
+        combined = solvation["combined_energy_hartree"]
+        provenance = solvation["provenance"]
         if provenance.get("reference_only") is True:
+            delta = solvation.get("reference_correction_hartree")
+            if delta is None:
+                raise ValueError(
+                    "Malformed solvation result: reference correction is missing."
+                )
             return [
                 f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
                 f"Numerical reference correction: {float(delta):.10f} Hartree\n",
@@ -67,12 +84,11 @@ class SinglePoint(JobABC):
                 "This reference result is not a complete solvation free energy.\n",
             ]
         if provenance.get("absolute_solvation_free_energy_claim") is False:
-            correction = solvation.get(
-                "cluster_continuum_correction_hartree",
-                solvation.get("energy_hartree"),
-            )
+            correction = solvation.get("cluster_continuum_correction_hartree")
             if correction is None:
-                return []
+                raise ValueError(
+                    "Malformed solvation result: cluster-continuum correction is missing."
+                )
             return [
                 f"Gas-phase MLIP cluster energy: {float(gas):.10f} Hartree\n",
                 (
@@ -89,8 +105,11 @@ class SinglePoint(JobABC):
                     "reference, and ensemble terms are not computed.\n"
                 ),
             ]
+        delta = solvation.get("delta_g_solv_hartree")
+        if delta is None:
+            raise ValueError("Malformed solvation result: Delta G_solv is missing.")
         standard_state = provenance.get("standard_state", "provider-defined")
-        return [
+        lines = [
             f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
             (
                 "Solvation free-energy correction (Delta G_solv, "
@@ -105,6 +124,115 @@ class SinglePoint(JobABC):
                 "value, not a thermochemical Gibbs free energy.\n"
             ),
         ]
+        lines.extend(SinglePoint._private_chagb_torch_lines(solvation, provenance))
+        return lines
+
+    @staticmethod
+    def _private_chagb_torch_lines(solvation: dict, provenance: dict) -> list:
+        """Render the current dual-device private CHA runtime contract."""
+        if provenance.get("runtime_provider") != "private-torch-cha":
+            return []
+        def malformed(detail: str) -> None:
+            raise ValueError(f"Malformed private CHA Torch SP provenance: {detail}.")
+
+        engine = provenance.get("engine")
+        api_version = engine.get("api_version") if isinstance(engine, dict) else None
+        profile = provenance.get("arithmetic_profile")
+        if (api_version, profile) in {
+            (2, "cpu-fp32-exact-sp-v1"),
+            (3, "cuda-fp32-sp-v1"),
+        }:
+            # These exact historical engine/profile pairs remain archival
+            # evidence and retain their original basic SP output.
+            return []
+        if profile == "torch-fp32-sp-v1" or api_version == 4:
+            if not isinstance(engine, dict) or api_version != 4:
+                malformed("torch-fp32-sp-v1 requires an API 4 engine identity")
+        else:
+            malformed("engine and arithmetic_profile are not a recognized pair")
+        if profile != "torch-fp32-sp-v1":
+            malformed("arithmetic_profile must be torch-fp32-sp-v1")
+        if provenance.get("supports_forces") is not False:
+            malformed("supports_forces must be false")
+
+        components = solvation.get("components_hartree")
+        runtime = provenance.get("runtime")
+        if not isinstance(components, dict) or not isinstance(runtime, dict):
+            malformed("components_hartree and runtime must be mappings")
+        required_components = ("polar", "cavity", "dispersion")
+        required_runtime = (
+            "device",
+            "dtype",
+            "workspace_bytes",
+            "peak_allocated_bytes",
+            "peak_reserved_bytes",
+        )
+        if any(name not in components for name in required_components) or any(
+            name not in runtime for name in required_runtime
+        ):
+            malformed("required component or runtime fields are missing")
+
+        device = provenance.get("device")
+        if not isinstance(device, str) or runtime["device"] != device:
+            malformed("runtime device must match the selected device")
+        if device == "cpu":
+            expected_platform = "CPU"
+            if runtime["peak_allocated_bytes"] is not None or runtime["peak_reserved_bytes"] is not None:
+                malformed("CPU CUDA peak-memory fields must be null")
+        else:
+            kind, separator, index = device.partition(":")
+            if (
+                kind != "cuda"
+                or separator != ":"
+                or not index.isdigit()
+                or str(int(index)) != index
+            ):
+                malformed("device must be cpu or canonical cuda:N")
+            expected_platform = "CUDA"
+            if any(
+                type(runtime[name]) is not int or runtime[name] < 0
+                for name in ("peak_allocated_bytes", "peak_reserved_bytes")
+            ):
+                malformed("CUDA peak-memory fields must be non-negative bytes")
+        if provenance.get("platform") != expected_platform:
+            malformed("platform must match the selected device")
+        if runtime["dtype"] != "torch.float32":
+            malformed("dtype must be torch.float32")
+        if type(runtime["workspace_bytes"]) is not int or runtime["workspace_bytes"] < 0:
+            malformed("workspace must be non-negative bytes")
+        try:
+            component_values = {
+                name: float(components[name]) for name in required_components
+            }
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "Malformed private CHA Torch SP provenance: components must be numeric."
+            ) from exc
+        if not all(math.isfinite(value) for value in component_values.values()):
+            malformed("components must be finite")
+
+        lines = [
+            (
+                "Private CHA Torch runtime: "
+                f"device={device}, platform={expected_platform}, "
+                f"dtype={runtime['dtype']}, "
+                f"profile={provenance['arithmetic_profile']}\n"
+            ),
+            f"Private CHA polar component: {component_values['polar']:.10f} Hartree\n",
+            f"Private CHA cavity component: {component_values['cavity']:.10f} Hartree\n",
+            f"Private CHA dispersion component: {component_values['dispersion']:.10f} Hartree\n",
+            f"Private CHA workspace: {runtime['workspace_bytes']} bytes\n",
+        ]
+        if expected_platform == "CUDA":
+            lines.append(
+                "Private CHA CUDA memory: "
+                f"peak allocated={runtime['peak_allocated_bytes']} bytes, "
+                f"peak reserved={runtime['peak_reserved_bytes']} bytes\n"
+            )
+        else:
+            lines.append("Private CHA CUDA memory: not applicable on CPU\n")
+        lines.append("Private CHA capability: supports_forces=false (energy-only)\n")
+        return lines
 
     def _charge_mult_lines(self, atoms: Atoms) -> list:
         """Return charge and multiplicity metadata lines for SP output."""

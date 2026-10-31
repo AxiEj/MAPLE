@@ -555,14 +555,7 @@ class ImplicitSolvationCorrection:
         self._frozen_charges = tuple(
             float(value) for value in np.asarray(self.charge_result.charges).reshape(-1)
         )
-        masses = np.asarray(atoms.get_masses(), dtype=np.float64)
-        if (
-            masses.shape != (len(atoms),)
-            or not np.isfinite(masses).all()
-            or np.any(masses <= 0.0)
-        ):
-            raise ValueError("Implicit solvation requires finite positive atomic masses.")
-        self._frozen_masses = tuple(float(value) for value in masses)
+        self._path_frozen_masses = None
 
         self.method = method
         self.mode = str(self.charge_options.get("mode", "fixed")).lower()
@@ -879,14 +872,15 @@ class ImplicitSolvationCorrection:
             or tuple(float(value) for value in charges) != self._frozen_charges
         ):
             raise ValueError("Implicit solvation is bound to one frozen charge vector.")
-        masses = np.asarray(atoms.get_masses(), dtype=np.float64)
-        if (
-            masses.shape != (len(atoms),)
-            or not np.isfinite(masses).all()
-            or np.any(masses <= 0.0)
-            or tuple(float(value) for value in masses) != self._frozen_masses
-        ):
-            raise ValueError("Implicit solvation is bound to one positive mass vector.")
+        if self._path_frozen_masses is not None:
+            masses = np.asarray(atoms.get_masses(), dtype=np.float64)
+            if (
+                masses.shape != (len(atoms),)
+                or not np.isfinite(masses).all()
+                or np.any(masses <= 0.0)
+                or tuple(float(value) for value in masses) != self._path_frozen_masses
+            ):
+                raise ValueError("Implicit path is bound to one positive mass vector.")
 
     def bind_compatible_geometries(self, images) -> None:
         """Atomically bind compatible path images to this parameterization.
@@ -899,7 +893,14 @@ class ImplicitSolvationCorrection:
         if len(images) < 1:
             raise ValueError("An implicit-solvent path requires at least one image.")
         pending = []
+        reference_masses = None
         for image in images:
+            positions = np.asarray(image.get_positions(), dtype=np.float64)
+            if positions.shape != (len(image), 3) or not np.isfinite(positions).all():
+                raise ValueError("Implicit path images require finite Cartesian coordinates.")
+            charge, mult = _molecular_charge_and_mult(image)
+            if charge != 0 or mult != 1:
+                raise ValueError("Implicit path images require molecular charge 0 and multiplicity 1.")
             if np.any(image.get_pbc()):
                 raise ValueError("Implicit-solvent paths are non-periodic.")
             if bool(getattr(image, "constraints", None)):
@@ -916,8 +917,12 @@ class ImplicitSolvationCorrection:
                 masses.shape != (len(image),)
                 or not np.isfinite(masses).all()
                 or np.any(masses <= 0.0)
-                or tuple(float(value) for value in masses) != self._frozen_masses
             ):
+                raise ValueError("Path images require finite positive atomic masses.")
+            mass_tuple = tuple(float(value) for value in masses)
+            if reference_masses is None:
+                reference_masses = mass_tuple
+            elif mass_tuple != reference_masses:
                 raise ValueError("Path images must preserve one positive mass vector.")
             charges = np.asarray(image.get_initial_charges(), dtype=np.float64)
             if (
@@ -936,6 +941,7 @@ class ImplicitSolvationCorrection:
                 _ATOM_IDENTITY_ARRAY,
                 np.asarray(self._frozen_atom_identity, dtype=np.int64),
             )
+        self._path_frozen_masses = reference_masses
 
     def _analytic_derivative_backend(self):
         if self.inner_mode is not None:

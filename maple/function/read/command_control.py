@@ -742,8 +742,8 @@ class CommandControl:
         if options.get("inner") is not None:
             raise ValueError("Implicit paths support one solute and no inner shell.")
         model_options = params.get("model_options", {})
-        if task == "irc" and model_options.get("hessian") != "analytic":
-            raise ValueError("Implicit GS-IRC requires hessian=analytic.")
+        if model_options.get("hessian") != "analytic":
+            raise ValueError(f"Implicit {method} requires explicit hessian=analytic enrollment.")
         if task == "irc":
             from maple.function.dispatcher.irc.algorithm.gs import GSParams
             from maple.function.dispatcher.implicit_path import validate_path_parameters

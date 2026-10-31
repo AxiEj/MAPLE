@@ -242,6 +242,8 @@ class GS(JobABC):
             raise ValueError("GS-IRC requires finite input energy and forces.")
         H_cart_ts = self._get_hessian_cart()
         n3 = 3 * len(self.atoms)
+        if F_ts.shape != (n3,):
+            raise ValueError("GS-IRC requires one 3N force vector.")
         if H_cart_ts.shape != (n3, n3) or not np.isfinite(H_cart_ts).all():
             raise ValueError("GS-IRC requires a finite 3N by 3N Hessian.")
         asymmetry = np.max(np.abs(H_cart_ts - H_cart_ts.T))
@@ -333,15 +335,24 @@ class GS(JobABC):
         merged = self._merge_and_mark_ts(forward_log, backward_log, input_ts)
 
         if self.p.write_traj:
-            self._write_trajs(forward_log, backward_log)
+            self._write_trajs(forward_log, backward_log, input_ts)
 
         converged = forward_log["converged"] and backward_log["converged"]
+        failed = any(
+            side["termination_reason"] == "numerical_failure"
+            for side in (forward_log, backward_log)
+        )
         ordered_path = list(reversed(backward_log["records"])) + [input_ts] + forward_log["records"]
         return {
-            "status": "converged" if converged else "bounded_nonconverged",
+            "status": (
+                "converged" if converged else
+                "failure" if failed else
+                "bounded_nonconverged"
+            ),
             "converged": converged,
             "termination_reason": (
-                "force_converged" if converged else "maximum_steps"
+                "force_converged" if converged else
+                f"forward:{forward_log['termination_reason']};backward:{backward_log['termination_reason']}"
             ),
             "iterations": forward_log["iterations"] + backward_log["iterations"],
             "forward": forward_log, "backward": backward_log,
@@ -372,6 +383,12 @@ class GS(JobABC):
             H = H[0]
         if H.ndim != 2 or H.shape[0] != H.shape[1]:
             raise ValueError(f"Hessian must be square 2D, got shape {H.shape}")
+        n3 = 3 * len(self.atoms)
+        if H.shape != (n3, n3) or not np.isfinite(H).all():
+            raise ValueError("GS-IRC requires a finite 3N by 3N Hessian.")
+        scale = max(1.0, float(np.max(np.abs(H))))
+        if np.max(np.abs(H - H.T)) > 2e-6 * scale:
+            raise ValueError("GS-IRC Hessian has unresolved asymmetry.")
         return H
 
     def _energy_forces_from_mw(self, q_mw: np.ndarray) -> Tuple[float, np.ndarray]:
@@ -385,6 +402,8 @@ class GS(JobABC):
         self.atoms.set_positions(q_cart.reshape(-1, 3))
         E = float(self.atoms.get_potential_energy(force_consistent=True))
         F_cart = to_f64(self.atoms.get_forces()).reshape(-1)
+        if not np.isfinite(E) or F_cart.shape != q_cart.shape or not np.isfinite(F_cart).all():
+            raise ValueError("GS-IRC requires finite energy and 3N forces at every point.")
         return E, F_cart
 
     def _gradient_mw_from_forces(self, F_cart: np.ndarray) -> np.ndarray:
@@ -606,6 +625,7 @@ class GS(JobABC):
         converged = False
         # Macro steps
         for it in range(1, p.max_steps + 1):
+            macro_start = self.mw_coords.copy()
             # Anchor gradient at current MW coordinates
             E_anchor, F_anchor = self._energy_forces_from_mw(self.mw_coords)
             g_anchor_mw = self._gradient_mw_from_forces(F_anchor)
@@ -664,6 +684,10 @@ class GS(JobABC):
                 }
             )
 
+            if _norm(self.mw_coords - macro_start) <= 1e-14:
+                termination_reason = "step_too_small"
+                break
+
             # Convergence in terms of Cartesian forces
             if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
                 self._print_hurray()
@@ -673,7 +697,7 @@ class GS(JobABC):
 
         return {
             "title": title, "records": records, "E_ts": E_ts,
-            "iterations": len(records), "termination_reason": termination_reason,
+            "iterations": max(0, len(records) - 1), "termination_reason": termination_reason,
             "converged": converged,
         }
 
@@ -719,7 +743,7 @@ class GS(JobABC):
         }
 
     # --------------------------- Trajectories -----------------------------
-    def _write_trajs(self, f: Dict, b: Dict):
+    def _write_trajs(self, f: Dict, b: Dict, input_ts: Dict):
         """Write full, forward, and backward trajectories as XYZ files."""
         base, _ = os.path.splitext(self.output)
         full_path = base + "_full.xyz"
@@ -744,9 +768,13 @@ class GS(JobABC):
             b_E.append(rec["E"])
         write_xyz(bwd_path, b_atoms, b_E)
 
-        # Full (concatenate forward then backward)
-        full_atoms = f_atoms + b_atoms
-        full_E = f_E + b_E
+        full_records = list(reversed(b["records"])) + [input_ts] + f["records"]
+        full_atoms, full_E = [], []
+        for rec in full_records:
+            atom = self.atoms.copy()
+            atom.set_positions(rec["x"])
+            full_atoms.append(atom)
+            full_E.append(rec["E"])
         write_xyz(full_path, full_atoms, full_E)
 
         log_info(

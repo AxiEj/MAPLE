@@ -8,8 +8,12 @@ potential.
 - GS-IRC uses AIMNet2025 and independent Torch OBC-II with ACE or no nonpolar
   term. It requires an admitted analytic composed Hessian and rigid-mode
   projection for an isolated molecule.
-- Standard NEB uses the same composed calculator on every image.
-- String generates a Cartesian path only when `refine=None`.
+- Standard NEB uses the same composed calculator on every image. The model
+  configuration must explicitly declare `hessian=analytic` for receipt-bound
+  enrollment, but NEB requests only energy and forces.
+- String generates a Cartesian candidate path only when `refine=None`. The
+  model configuration must explicitly declare `hessian=analytic`, but String
+  requests only energy and forces.
 
 The boundary does not open other IRC integrators, AutoNEB, climbing-image
 refinement, PRFO/BPRFO refinement from a path, another gas model, OpenMM GB,
@@ -54,6 +58,9 @@ reason. `merged_path` means that path growth reached the existing merge
 criterion. It does not certify a force-converged MEP, transition state,
 reaction connection, or chemical accuracy.
 
+The String writer uses `_gsm_candidate_path.xyz` and
+`_gsm_equal_arc_candidate.xyz`. The file names do not claim an MEP.
+
 ## Qualification boundary
 
 Source changes require a new immutable
@@ -61,3 +68,7 @@ Source changes require a new immutable
 unqualified until fresh ANI/OBC and AIMNet2025 evidence from one committed
 source freeze passes the existing denominators and is sealed. Historical v1
 through v4 receipts remain unchanged.
+
+The new GS route retains the existing N32 raw-Hessian symmetry guard of
+`2e-6 * max(1, max(abs(H)))`. The older PRFO `1e-8` behavior is outside this
+path-only change and remains unchanged.

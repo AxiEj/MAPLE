@@ -366,13 +366,8 @@ class GSM(JobABC):
 
     @staticmethod
     def _evaluate_images(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
-        calculator = images[0].calc
-        if calculator is None or any(image.calc is not calculator for image in images):
-            raise ValueError("String images must share one calculator instance.")
-        result = calculator.calculate_many(images, properties=("energy", "forces"))
-        if result.energies is None or result.forces is None:
-            raise RuntimeError("String evaluation did not return complete energy and forces.")
-        return list(result.energies), list(result.forces)
+        from maple.function.dispatcher.implicit_path import evaluate_path_images
+        return evaluate_path_images(images, label="String")
 
     @classmethod
     def _evaluate_image(cls, image: Atoms) -> Tuple[float, np.ndarray]:
@@ -716,7 +711,7 @@ class GSM(JobABC):
                 "highest_energy_image": int(np.argmax(energies)),
             }
 
-        # First bilateral growth (adaptive)
+        # The first bilateral growth consumes the first growth round.
         newL, dsL, fpL = self._predict_and_relax_one(L[-1], dirL, E_L_last, "L")
         L.append(newL); E_L_last = self._evaluate_image(newL)[0]
         newR, dsR, fpR = self._predict_and_relax_one(R_[-1], dirR, E_R_last, "R")
@@ -740,9 +735,11 @@ class GSM(JobABC):
         inc_streak      = 0
         inc_streak_tr   = getattr(self.params, "guide_inc_trigger", 2)
 
-        it = 0
+        it = 1
         d_min = self._min_image_distance(L[-1], R_[-1])
-        while it < self.params.max_iter_grow:
+        terminal_reason = "merged_path" if d_min <= self.params.merge_threshold else "growth_limit"
+        while it < self.params.max_iter_grow and d_min > self.params.merge_threshold:
+            it += 1
             d_min_old = self._min_image_distance(L[-1], R_[-1])
 
             # Imbalance gating: pause the longer side
@@ -791,6 +788,9 @@ class GSM(JobABC):
             beta_conn = max(conn_min, max(0.0, 1.0 - d_min_old / d_switch))
             dirL3 = self._unit((1.0 - beta_conn) * tauL3 + beta_conn * connL3)
             dirR3 = self._unit((1.0 - beta_conn) * tauR3 + beta_conn * connR3)
+            if np.linalg.norm(dirL3) < 1e-14 or np.linalg.norm(dirR3) < 1e-14:
+                terminal_reason = "degenerate_guide"
+                break
 
             def preset_step(dmin, base_step):
                 """Shrink step when close to merge."""
@@ -840,6 +840,7 @@ class GSM(JobABC):
 
             if not options:
                 log_info(["\nNo feasible growth candidates; stopping growth.\n"], self.output)
+                terminal_reason = "no_feasible_growth"
                 break
 
             options.sort(key=lambda x: x[1])  # prefer smaller d_min
@@ -889,12 +890,13 @@ class GSM(JobABC):
                         if len(L) >= 2: align_path_inplace(L[-2:],  mode="chain")
                         if len(R_)>= 2: align_path_inplace(R_[-2:], mode="chain")
                         d_now = self._min_image_distance(L[-1], R_[-1])
+                        d_min = d_now
                         if it % self.params.log_every == 0:
                             log_info([f"{it:>8d} {d_now:12.4f} {self.params.merge_threshold:7.3f} "
                                     f"{len(L):5d} {len(R_):5d} {0.0:6.3f} {0.0:6.3f} {0.0:13.5f} {0.0:13.5f}\n"], self.output)
                         if d_now <= self.params.merge_threshold:
+                            terminal_reason = "merged_path"
                             break
-                        it += 1
                         continue
                 else:
                     inc_streak = 0
@@ -922,10 +924,10 @@ class GSM(JobABC):
 
             # Merge check
             if d_min <= self.params.merge_threshold:
+                terminal_reason = "merged_path"
                 break
-            it += 1
 
-        if it == self.params.max_iter_grow:
+        if terminal_reason == "growth_limit" and it >= self.params.max_iter_grow:
             log_info(["\nGSM growth reached maximum iterations; proceeding to merge.\n"], self.output)
 
         # --- Merge & equal-arc reparameterization to fixed n_images
@@ -966,29 +968,32 @@ class GSM(JobABC):
         linear_reparam(images)
 
         # Dump growth-final equal-arc path & HEI
-        grow_final = base + "_gsm_grow_final.xyz"
+        grow_final = base + "_gsm_candidate_path.xyz"
         Es, _ = self._evaluate_images(images)
         write_xyz(grow_final, images, energies=Es)
         hei = max(range(1, len(images) - 1), key=lambda i: Es[i]) if len(images) > 2 else 0
-        mep_path = base + "_gsm_mep.xyz"   # equal-arc path
+        candidate_path = base + "_gsm_equal_arc_candidate.xyz"
         hei_path = base + "_gsm_hei.xyz"
-        write_xyz(mep_path, images, energies=Es)
+        write_xyz(candidate_path, images, energies=Es)
         write_xyz(hei_path, [images[hei]], energies=[Es[hei]])
 
         log_info([
-            f"\nWrote GSM grow-final path to: {grow_final}\n",
-            f"Wrote GSM MEP (equal-arc) to: {mep_path}\n",
+            f"\nWrote GSM candidate path to: {grow_final}\n",
+            f"Wrote equal-arc candidate path to: {candidate_path}\n",
             f"Wrote HEI to:                 {hei_path}\n"
         ], self.output)
 
         # Refinement is a separate optional operation.  refine=None is path-only.
         if self.params.refine is not None:
             self.restart_run(images, hei, base)
+        d_min = self._min_image_distance(L[-1], R_[-1])
         merged = d_min <= self.params.merge_threshold
+        if merged:
+            terminal_reason = "merged_path"
         return {
             "status": "path_generated" if merged else "bounded_nonconverged",
             "converged": False,
-            "termination_reason": "merged_path" if merged else "growth_limit",
+            "termination_reason": terminal_reason,
             "growth_iterations": it,
             "images": images,
             "energies": Es,

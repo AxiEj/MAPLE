@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from types import SimpleNamespace
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
@@ -11,7 +12,10 @@ from maple.function.calculator.extra_correction.implicit.correction import (
     _ATOM_IDENTITY_ARRAY,
 )
 from maple.function.dispatcher.curvature import bofill_update
-from maple.function.dispatcher.implicit_path import validate_path_parameters
+from maple.function.dispatcher.implicit_path import (
+    bind_admitted_implicit_path,
+    validate_path_parameters,
+)
 from maple.function.dispatcher.irc.algorithm.gs import GS, GSParams
 from maple.function.dispatcher.ts.algorithm.neb import NEB, NEBParams, improved_tangent
 from maple.function.dispatcher.ts.algorithm.string import GSM, GSMParams
@@ -49,7 +53,7 @@ class LinearYCalculator(QuadraticCalculator):
         forces = []
         for image in images:
             force = np.zeros((len(image), 3), dtype=np.float64)
-            force[:, 1] = -1.0
+            force[:, 1] = np.linspace(-1.0, 1.0, len(image))
             forces.append(force)
         return BatchResult(energies=energies, forces=forces)
 
@@ -185,6 +189,7 @@ def test_string_refine_none_returns_path_without_prfo(tmp_path, monkeypatch):
 def test_neb_zero_budget_reports_force_based_nonconvergence_and_one_batch(tmp_path):
     left, right = _two_atom_endpoints()
     calculator = LinearYCalculator()
+    calculator.solvent_correction = SimpleNamespace(_path_frozen_masses=(1.0, 1.0))
     left.calc = right.calc = calculator
     calls = 0
     original = calculator.calculate_many
@@ -218,10 +223,12 @@ def test_bind_compatible_geometries_is_atomic_on_invalid_second_image():
     correction._frozen_atomic_numbers = (1, 1)
     correction._frozen_atom_identity = (10, 20)
     correction._frozen_mol2_topology_signature = None
-    correction._frozen_masses = tuple(float(value) for value in first.get_masses())
+    correction._path_frozen_masses = None
     correction._frozen_charges = (0.0, 0.0)
     first.set_initial_charges([0.0, 0.0])
     second.set_initial_charges([0.1, -0.1])
+    first.info.update(charge=0, mult=1)
+    second.info.update(charge=0, mult=1)
     with pytest.raises(ValueError, match="charge vector"):
         correction.bind_compatible_geometries([first, second])
     assert _ATOM_IDENTITY_ARRAY not in first.arrays
@@ -234,7 +241,7 @@ def test_bound_path_rejects_live_charge_and_mass_mutation():
     correction._frozen_atomic_numbers = (1, 1)
     correction._frozen_atom_identity = (10, 20)
     correction._frozen_mol2_topology_signature = None
-    correction._frozen_masses = tuple(float(value) for value in first.get_masses())
+    correction._path_frozen_masses = None
     correction._frozen_charges = (0.0, 0.0)
     for image in (first, second):
         image.set_initial_charges([0.0, 0.0])
@@ -260,3 +267,293 @@ def test_v5_receipt_pointer_is_unqualified_and_v4_remains_historical():
     inventory_source = inspect.getsource(runtime._installed_runtime_source_inventory)
     assert "independent_obc2_analytic_qualification_v4.json" in inventory_source
     assert "independent_obc2_analytic_qualification_v5.json" in inventory_source
+
+
+def test_neb_improved_tangent_uses_absolute_extrema_weights():
+    rm1 = np.array([[0.0, 0.0, 0.0]])
+    current = np.array([[1.0, 0.0, 0.0]])
+    rp1 = np.array([[1.0, 2.0, 0.0]])
+    expected_max = np.array([1.0, 3.0, 0.0])
+    expected_max /= np.linalg.norm(expected_max)
+    np.testing.assert_allclose(
+        improved_tangent(rm1, current, rp1, 0.0, 3.0, 1.0), expected_max
+    )
+    expected_min = np.array([3.0, 4.0, 0.0])
+    expected_min /= np.linalg.norm(expected_min)
+    np.testing.assert_allclose(
+        improved_tangent(rm1, current, rp1, 3.0, 0.0, 2.0), expected_min
+    )
+
+
+@pytest.mark.parametrize(
+    "method, params, error",
+    [
+        ("string", {"string": {"n_images": 1}}, "at least 2"),
+        ("string", {"string": {"log_every": 0}}, "positive"),
+        ("neb", {"neb": {"ifidpp": 2}}, "0 or 1"),
+        ("gs", {"gs": {"hessian_recalc": True}}, "integer"),
+        ("neb", {"neb": {"k_min": 0.4, "k_max": 0.3}}, "must not exceed"),
+        ("string", {"string": {"grow_step_min": 0.4, "grow_step": 0.3}}, "must not exceed"),
+    ],
+)
+def test_path_parameter_validation_rejects_method_specific_invalid_values(method, params, error):
+    cls = {"gs": GSParams, "neb": NEBParams, "string": GSMParams}[method]
+    with pytest.raises((TypeError, ValueError), match=error):
+        validate_path_parameters(method, params, cls)
+
+
+@pytest.mark.parametrize("method", ["neb", "string"])
+def test_command_boundary_requires_explicit_analytic_hessian_for_all_new_paths(method):
+    task = (
+        f"#ts(method={method},n_images=3,max_iter=0)"
+        if method == "neb"
+        else f"#ts(method={method},n_images=3,max_iter_grow=0,refine=None)"
+    )
+    with pytest.raises(ValueError, match="hessian=analytic"):
+        CommandControl.from_settings([
+            "#model=aimnet2025",
+            task,
+            "#charge(source=mol2,mode=fixed,geometry=keep)",
+            "#solv(implicit=water,method=gb,provider=torch,model=obc2,profile=obc2-mbondi2,nonpolar=ace,experimental=true)",
+        ])
+
+
+def test_gas_neb_and_string_evaluate_distinct_per_image_calculators():
+    left = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    right = Atoms("H", positions=[[1.0, 0.0, 0.0]])
+    left.calc = QuadraticCalculator()
+    right.calc = QuadraticCalculator()
+    neb_energies, _ = NEB._evaluate_images([left, right])
+    string_energies, _ = GSM._evaluate_images([left, right])
+    assert neb_energies == string_energies == [0.0, 1.0]
+
+
+@pytest.mark.parametrize("algorithm", [NEB, GSM])
+def test_gas_path_with_shared_calculator_keeps_per_image_ase_evaluation(algorithm):
+    left, right = _two_atom_endpoints()
+    calculator = left.calc
+    calls = 0
+
+    def forbidden_batch(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        raise AssertionError("ordinary gas paths must not use calculate_many")
+
+    calculator.calculate_many = forbidden_batch
+    energies, forces = algorithm._evaluate_images([left, right])
+    assert energies == pytest.approx([0.5, 1.28])
+    assert [force.shape for force in forces] == [(2, 3), (2, 3)]
+    assert calls == 0
+
+
+def test_unbound_single_point_does_not_freeze_isotope_masses():
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info.update(charge=0, mult=1)
+    atoms.set_initial_charges([0.0])
+    atoms.new_array(_ATOM_IDENTITY_ARRAY, np.array([7], dtype=np.int64))
+    correction = ImplicitSolvationCorrection.__new__(ImplicitSolvationCorrection)
+    correction._frozen_atomic_numbers = (1,)
+    correction._frozen_atom_identity = (7,)
+    correction._frozen_mol2_topology_signature = None
+    correction._frozen_charges = (0.0,)
+    correction._path_frozen_masses = None
+    atoms.set_masses([2.014])
+    correction._validate_bound_atoms(atoms)
+
+
+def test_direct_path_binding_rejects_invalid_second_image_without_tokens():
+    first, second = _two_atom_endpoints()
+    for image in (first, second):
+        image.info.update(charge=0, mult=1)
+        image.set_initial_charges([0.0, 0.0])
+    second.positions[0, 0] = np.nan
+    correction = ImplicitSolvationCorrection.__new__(ImplicitSolvationCorrection)
+    correction._frozen_atomic_numbers = (1, 1)
+    correction._frozen_atom_identity = (10, 20)
+    correction._frozen_mol2_topology_signature = None
+    correction._frozen_charges = (0.0, 0.0)
+    correction._path_frozen_masses = None
+    with pytest.raises(ValueError, match="finite Cartesian"):
+        correction.bind_compatible_geometries([first, second])
+    assert _ATOM_IDENTITY_ARRAY not in first.arrays
+    assert _ATOM_IDENTITY_ARRAY not in second.arrays
+
+
+@pytest.mark.parametrize("container", [list, Molecules])
+@pytest.mark.parametrize("method", ["neb", "string"])
+def test_transition_state_path_containers_reach_algorithm_boundary(
+    tmp_path, monkeypatch, container, method
+):
+    import maple.function.dispatcher.ts.ts as ts_module
+    import maple.function.dispatcher.ts.algorithm as algorithms
+
+    left, right = _two_atom_endpoints()
+    left.calc.solvent_correction = SimpleNamespace()
+    monkeypatch.setattr(ts_module, "bind_admitted_implicit_path", lambda *_args, **_kwargs: True)
+    expected = {"method": method}
+    algorithm = algorithms.NEB if method == "neb" else algorithms.GSM
+    monkeypatch.setattr(algorithm, "run", lambda _self: expected)
+    params = {"method": method, "n_images": 2, "refine": None}
+    params["max_iter" if method == "neb" else "max_iter_grow"] = 0
+    result = ts_module.TransitionState(
+        str(tmp_path / f"{method}.out"), container([left, right]), params, method
+    ).run()
+    assert result is expected
+
+
+def test_transition_state_string_rejects_more_than_two_inputs(tmp_path):
+    import maple.function.dispatcher.ts.ts as ts_module
+
+    left, right = _two_atom_endpoints()
+    third = right.copy()
+    third.calc = right.calc
+    with pytest.raises(ValueError, match="exactly two"):
+        ts_module.TransitionState(
+            str(tmp_path / "string.out"), [left, right, third],
+            {"method": "string", "n_images": 3, "max_iter_grow": 0}, "string"
+        ).run()
+
+
+def test_string_first_bilateral_growth_consumes_one_round(tmp_path, monkeypatch):
+    left, right = _two_atom_endpoints()
+    string = GSM(
+        str(tmp_path / "string.out"), left, right,
+        paras={"string": {"n_images": 3, "max_iter_grow": 1, "merge_threshold": 0.01}},
+    )
+    calls = 0
+
+    def unchanged(last, _direction, _energy, _label):
+        nonlocal calls
+        calls += 1
+        return string._copy_with_inherit(last), 0.0, 0.0
+
+    monkeypatch.setattr(string, "_predict_and_relax_one", unchanged)
+    result = string.run()
+    assert calls == 2
+    assert result["growth_iterations"] == 1
+    assert result["termination_reason"] == "growth_limit"
+    assert (tmp_path / "string_gsm_equal_arc_candidate.xyz").is_file()
+    assert not (tmp_path / "string_gsm_mep.xyz").exists()
+
+
+def test_cache_context_restores_absence_values_and_exceptions():
+    from maple.function.dispatcher.implicit_path import preserve_path_calculator_caches
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    calculator = QuadraticCalculator()
+    atoms.calc = calculator
+    del calculator.atoms
+    calculator.results = {"energy": 7.0}
+    calculator.solvation_result = "before"
+    assert not hasattr(calculator, "_evaluated_correction")
+    with pytest.raises(RuntimeError, match="injected"):
+        with preserve_path_calculator_caches([atoms], enabled=True):
+            calculator.results = {"energy": 9.0}
+            calculator.solvation_result = "during"
+            calculator._evaluated_correction = object()
+            calculator.atoms = atoms.copy()
+            raise RuntimeError("injected")
+    assert calculator.results == {"energy": 7.0}
+    assert calculator.solvation_result == "before"
+    assert not hasattr(calculator, "_evaluated_correction")
+    assert not hasattr(calculator, "atoms")
+
+
+def test_gs_one_macrostep_counts_one_iteration_and_keeps_exact_ts(tmp_path):
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.2]])
+    atoms.calc = QuadraticCalculator()
+    input_positions = atoms.get_positions().copy()
+    result = GS(
+        atoms, str(tmp_path / "gs.out"),
+        params=GSParams(max_steps=1, max_micro_cycles=0, write_traj=False, print_each=False),
+    ).run()
+    assert result["forward"]["iterations"] == 1
+    assert result["backward"]["iterations"] == 1
+    assert result["iterations"] == 2
+    matches = [np.array_equal(record["x"], input_positions) for record in result["ordered_path"]]
+    assert sum(matches) == 1
+    assert "forward:" in result["termination_reason"]
+
+
+def test_gas_irc_keeps_normal_caller_geometry_and_cache_behavior(tmp_path, monkeypatch):
+    import maple.function.dispatcher.irc.algorithm as algorithms
+    from maple.function.dispatcher.irc.irc import IRC
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.2]])
+    atoms.calc = QuadraticCalculator()
+    original_calc = atoms.calc
+
+    class CapturingGS:
+        def __init__(self, received, **_kwargs):
+            assert received is atoms
+            self.received = received
+
+        def run(self):
+            self.received.positions[0, 0] = 4.0
+            self.received.calc.results = {"energy": 12.0}
+            return {"status": "gas"}
+
+    monkeypatch.setattr(algorithms, "GS", CapturingGS)
+    result = IRC({"gs": {"max_steps": 1}}, str(tmp_path / "gas.out"), atoms, "gs").run()
+    assert result == {"status": "gas"}
+    assert atoms.positions[0, 0] == 4.0
+    assert atoms.calc is original_calc
+    assert atoms.calc.results == {"energy": 12.0}
+
+
+def test_final_implicit_preflight_rejects_postprocessed_constraint_before_metadata(tmp_path):
+    from ase.constraints import FixAtoms
+    from maple.function.read.input_reader import InputReader
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info.update(charge=0, mult=1)
+    atoms.set_initial_charges([0.0])
+    atoms.set_constraint(FixAtoms(indices=[0]))
+    reader = InputReader()
+    reader.input = str(tmp_path / "input.inp")
+    (tmp_path / "input.inp").write_text("synthetic\n")
+    reader.output = str(tmp_path / "input.out")
+    reader.command_control = SimpleNamespace(
+        task="ts",
+        params={
+            "method": "neb",
+            "charge": {"source": "maple", "geometry": "keep"},
+        },
+    )
+    with pytest.raises(ValueError, match="constraints"):
+        reader._validate_final_implicit_images(
+            [atoms, atoms.copy()], {"implicit": "water"}
+        )
+    for image in (atoms,):
+        assert "_maple_charge_options" not in image.info
+        assert "_maple_solvation_options" not in image.info
+
+
+@pytest.mark.parametrize("method", ["neb", "string"])
+def test_direct_implicit_path_requires_analytic_model_enrollment(method):
+    from maple.function.calculator.aimnet._aimnet2025_calculator import (
+        AIMNet2025Calculator,
+    )
+
+    correction = SimpleNamespace(
+        solvation_options={
+            "provider": "torch",
+            "model": "obc2",
+            "profile": "obc2-mbondi2",
+            "nonpolar": "ace",
+        },
+        mode="fixed",
+        inner_mode=None,
+        analytic_task_derivatives_admitted=True,
+        bind_compatible_geometries=lambda _images: pytest.fail(
+            "binding must not start before analytic enrollment passes"
+        ),
+    )
+    calculator = AIMNet2025Calculator.__new__(AIMNet2025Calculator)
+    calculator.solvent_correction = correction
+    calculator.analytic_implicit_derivatives_admitted = True
+    calculator.hessian = None
+    left, right = _two_atom_endpoints()
+    left.calc = right.calc = calculator
+    with pytest.raises(ValueError, match="analytic enrolled"):
+        bind_admitted_implicit_path([left, right], method)

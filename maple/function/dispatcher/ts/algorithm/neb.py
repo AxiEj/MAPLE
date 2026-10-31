@@ -276,9 +276,14 @@ def improved_tangent(Rm1, R, Rp1, Em1, E, Ep1):
     elif Ep < E and E < Em:
         t = dm
     else:
-        dE_plus  = max(Ep - E, 0.0)
-        dE_minus = max(Em - E, 0.0)
-        t = dE_plus * dp + dE_minus * dm
+        dE_plus = abs(Ep - E)
+        dE_minus = abs(Em - E)
+        dE_max = max(dE_plus, dE_minus)
+        dE_min = min(dE_plus, dE_minus)
+        if Ep > Em:
+            t = dE_max * dp + dE_min * dm
+        else:
+            t = dE_min * dp + dE_max * dm
 
     # normalize
     norm = np.linalg.norm(t)
@@ -563,14 +568,8 @@ class NEB(JobABC):
 
     @staticmethod
     def _evaluate_images(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
-        """Evaluate complete energy and forces once per image through one calculator."""
-        calculator = images[0].calc
-        if calculator is None or any(image.calc is not calculator for image in images):
-            raise ValueError("NEB images must share one calculator instance.")
-        result = calculator.calculate_many(images, properties=("energy", "forces"))
-        if result.energies is None or result.forces is None:
-            raise RuntimeError("NEB batch evaluation did not return complete energy and forces.")
-        return list(result.energies), list(result.forces)
+        from maple.function.dispatcher.implicit_path import evaluate_path_images
+        return evaluate_path_images(images, label="NEB")
 
 
     def optimize_endpoints(self, atoms_R: Atoms, atoms_P: Atoms, 

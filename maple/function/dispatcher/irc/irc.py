@@ -5,6 +5,7 @@ from ..jobABC import JobABC
 from maple.function.timer import timer
 from maple.function.dispatcher.implicit_path import (
     bind_admitted_implicit_path,
+    preserve_path_calculator_caches,
     validate_path_parameters,
 )
 
@@ -20,10 +21,6 @@ class IRC(JobABC):
         with timer("IRC Calculation"):
             original_positions = self.atoms.get_positions().copy()
             original_calc = self.atoms.calc
-            cache = {
-                name: getattr(original_calc, name, None)
-                for name in ("atoms", "results", "solvation_result", "_evaluated_correction")
-            } if original_calc is not None else {}
             implicit = getattr(original_calc, "solvent_correction", None) is not None
             if implicit and self.method != "gs":
                 raise ValueError("Implicit IRC admits only method=gs.")
@@ -38,16 +35,18 @@ class IRC(JobABC):
                     bind_admitted_implicit_path(
                         [self.atoms], "gs", require_hessian=True
                     )
+                if not implicit:
+                    irc = GS(self.atoms, output=self.output, paras={"gs": selected})
+                    return irc.run()
                 working = self.atoms.copy()
                 working.calc = original_calc
-                try:
+                with preserve_path_calculator_caches([self.atoms], enabled=implicit):
                     irc = GS(working, output=self.output, paras={"gs": selected})
-                    return irc.run()
-                finally:
-                    self.atoms.set_positions(original_positions)
-                    self.atoms.calc = original_calc
-                    for name, value in cache.items():
-                        setattr(original_calc, name, value)
+                    try:
+                        return irc.run()
+                    finally:
+                        self.atoms.set_positions(original_positions)
+                        self.atoms.calc = original_calc
             elif self.method == 'hpc':
                 from .algorithm import HPC
                 irc = HPC(self.atoms, output=self.output, paras=self.commandcontrol)

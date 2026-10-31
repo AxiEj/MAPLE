@@ -312,45 +312,10 @@ class InputReader():
             atoms_or_list = self.element_and_coordinates(molecules)
 
         implicit_options = self.command_control.params.get("solv", {})
-        if isinstance(implicit_options, dict) and implicit_options.get("implicit") is not None:
-            task = self.command_control.task
-            method = str(self.command_control.params.get("method", "")).lower()
-            path_input = isinstance(atoms_or_list, list) and task == "ts" and method in {"neb", "string"}
-            if isinstance(atoms_or_list, list) and not path_input:
-                raise ValueError("Implicit multi-geometry input is admitted only for NEB or String.")
-            images = atoms_or_list if isinstance(atoms_or_list, list) else [atoms_or_list]
-            charge_options = self.command_control.params.get("charge", {})
-            reference = None
-            for image in images:
-                if "mol2" not in image.info and charge_options.get("source") == "mol2":
-                    raise ValueError("#charge(source=mol2) requires MOL2 metadata on every path image.")
-                if image.info.get("charge") != 0 or image.info.get("mult") != 1:
-                    raise ValueError("Every implicit-solvent image must declare charge/multiplicity '0 1'.")
-                if np.any(image.pbc):
-                    raise ValueError("Implicit-solvent input is non-periodic.")
-                if bool(getattr(image, "constraints", None)):
-                    raise ValueError("Implicit-solvent paths do not accept constraints.")
-                if "mol2" not in image.info:
-                    if charge_options.get("geometry", "keep") != "keep":
-                        raise ValueError("Cartesian implicit-solvent preparation requires geometry=keep.")
-                    image.info.setdefault("_maple_cartesian_source", {
-                        "kind": "inline", "path": self.input,
-                        "sha256": hashlib.sha256(Path(self.input).read_bytes()).hexdigest(),
-                    })
-                signature = (
-                    tuple(int(value) for value in image.get_atomic_numbers()),
-                    tuple(float(value) for value in image.get_masses()),
-                    tuple(float(value) for value in image.get_initial_charges()),
-                    image.info.get("mol2", {}).get(MOL2_IDENTITY_SHA256_KEY),
-                )
-                if reference is None:
-                    reference = signature
-                elif signature != reference:
-                    raise ValueError("Implicit path images must preserve atom, mass, charge, and MOL2 identity.")
-            for image in images:
-                image.info["_maple_charge_options"] = dict(self.command_control.params.get("charge", {}))
-                image.info["_maple_solvation_options"] = dict(implicit_options)
-                image.info["_maple_output"] = self.output
+        implicit_requested = (
+            isinstance(implicit_options, dict)
+            and implicit_options.get("implicit") is not None
+        )
 
         # === Step 3: Expand post-processing commands (handle POST references) ===
         with timer("Post-Processing Expansion"):
@@ -366,11 +331,65 @@ class InputReader():
                 else:
                     atoms_or_list = self.post_processing_command(expanded_post_processing, atoms_or_list)
 
+        if implicit_requested:
+            self._validate_final_implicit_images(atoms_or_list, implicit_options)
+
         # Return Atoms if single structure, Molecules if multiple
         if isinstance(atoms_or_list, list):
             return Molecules(atoms_or_list)
         else:
             return atoms_or_list
+
+    def _validate_final_implicit_images(self, atoms_or_list, implicit_options) -> None:
+        """Validate every processed image before calculator construction."""
+        task = self.command_control.task
+        method = str(self.command_control.params.get("method", "")).lower()
+        images = atoms_or_list if isinstance(atoms_or_list, list) else [atoms_or_list]
+        if len(images) > 1 and not (task == "ts" and method in {"neb", "string"}):
+            raise ValueError("Implicit multi-geometry input is admitted only for NEB or String.")
+        if task == "ts" and method == "string" and len(images) != 2:
+            raise ValueError("Implicit String requires exactly two endpoint structures.")
+        charge_options = self.command_control.params.get("charge", {})
+        reference = None
+        for image in images:
+            positions = np.asarray(image.get_positions(), dtype=np.float64)
+            masses = np.asarray(image.get_masses(), dtype=np.float64)
+            charges = np.asarray(image.get_initial_charges(), dtype=np.float64)
+            if positions.shape != (len(image), 3) or not np.isfinite(positions).all():
+                raise ValueError("Every implicit path image needs finite Cartesian coordinates.")
+            if "mol2" not in image.info and charge_options.get("source") == "mol2":
+                raise ValueError("#charge(source=mol2) requires MOL2 metadata on every path image.")
+            if image.info.get("charge") != 0 or image.info.get("mult") != 1:
+                raise ValueError("Every implicit-solvent image must declare charge/multiplicity '0 1'.")
+            if np.any(image.pbc):
+                raise ValueError("Implicit-solvent input is non-periodic.")
+            if bool(getattr(image, "constraints", None)):
+                raise ValueError("Implicit-solvent paths do not accept constraints.")
+            if masses.shape != (len(image),) or not np.isfinite(masses).all() or np.any(masses <= 0):
+                raise ValueError("Every implicit path image needs finite positive masses.")
+            if charges.shape != (len(image),) or not np.isfinite(charges).all():
+                raise ValueError("Every implicit path image needs one finite charge per atom.")
+            signature = (
+                tuple(int(value) for value in image.get_atomic_numbers()),
+                tuple(float(value) for value in masses),
+                tuple(float(value) for value in charges),
+                image.info.get("mol2", {}).get(MOL2_IDENTITY_SHA256_KEY),
+            )
+            if reference is None:
+                reference = signature
+            elif signature != reference:
+                raise ValueError("Implicit path images must preserve atom, mass, charge, and MOL2 identity.")
+        source_hash = hashlib.sha256(Path(self.input).read_bytes()).hexdigest()
+        for image in images:
+            if "mol2" not in image.info:
+                if charge_options.get("geometry", "keep") != "keep":
+                    raise ValueError("Cartesian implicit-solvent preparation requires geometry=keep.")
+                image.info.setdefault("_maple_cartesian_source", {
+                    "kind": "inline", "path": self.input, "sha256": source_hash,
+                })
+            image.info["_maple_charge_options"] = dict(charge_options)
+            image.info["_maple_solvation_options"] = dict(implicit_options)
+            image.info["_maple_output"] = self.output
 
     def expand_post_processing(self, post_processing: List[str]) -> List[str]:
         """

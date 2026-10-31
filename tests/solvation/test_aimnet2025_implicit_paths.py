@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
-from types import SimpleNamespace
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
@@ -557,3 +559,79 @@ def test_direct_implicit_path_requires_analytic_model_enrollment(method):
     left.calc = right.calc = calculator
     with pytest.raises(ValueError, match="analytic enrolled"):
         bind_admitted_implicit_path([left, right], method)
+
+
+def _write_two_mol2_neb_input(tmp_path, first, second):
+    input_path = tmp_path / "path.inp"
+    input_path.write_text(
+        "\n".join([
+            "#model=aimnet2025(hessian=analytic)",
+            "#ts(method=neb,n_images=1,max_iter=0,ifidpp=0,refine=None)",
+            "#charge(source=mol2,mode=fixed,geometry=keep)",
+            "#solv(implicit=water,method=gb,provider=torch,model=obc2,"
+            "profile=obc2-mbondi2,nonpolar=ace,experimental=true)",
+            "", "0 1", f"MOL2 {first}", "", "0 1", f"MOL2 {second}", "",
+        ])
+    )
+    return input_path
+
+
+def test_engine_preflights_invalid_second_image_before_model_construction(
+    tmp_path, monkeypatch
+):
+    from maple.function.engine import engine
+
+    data = Path(__file__).parent / "data" / "amber_gb_reference" / "mol2"
+    input_path = _write_two_mol2_neb_input(
+        tmp_path, data / "mobley_3053621.mol2", data / "mobley_2725215.mol2"
+    )
+    job = engine()
+    model_calls = 0
+
+    def forbidden_model(*_args):
+        nonlocal model_calls
+        model_calls += 1
+
+    monkeypatch.setattr(job, "_mlp_initiator", forbidden_model)
+    with pytest.raises(ValueError, match="preserve atom"):
+        job(str(input_path), str(tmp_path / "path.out"))
+    assert model_calls == 0
+
+
+def test_engine_prepares_one_model_provider_and_parameterization_for_path(
+    tmp_path, monkeypatch
+):
+    from maple.function.engine import engine
+
+    source = (
+        Path(__file__).parent
+        / "data" / "amber_gb_reference" / "mol2" / "mobley_3053621.mol2"
+    )
+    input_path = _write_two_mol2_neb_input(tmp_path, source, source)
+    job = engine()
+    calls = {"model": 0, "provider": 0, "preparation": 0, "binding": 0}
+    calculator = SimpleNamespace()
+
+    def initiate(*_args):
+        calls["model"] += 1
+        calls["provider"] += 1
+        calls["preparation"] += 1
+
+        def bind(images):
+            calls["binding"] += 1
+            assert len(images) == 2
+
+        calculator.solvent_correction = SimpleNamespace(
+            bind_compatible_geometries=bind
+        )
+        job.calulator = calculator
+
+    def dispatch(_control, _jobtype, atoms, _output, extra=None):
+        assert extra == {}
+        assert all(image.calc is calculator for image in atoms.multiatoms)
+        return {"status": "reached"}
+
+    monkeypatch.setattr(job, "_mlp_initiator", initiate)
+    monkeypatch.setattr(job, "_jobtype_dispatcher", dispatch)
+    job(str(input_path), str(tmp_path / "path.out"))
+    assert calls == {"model": 1, "provider": 1, "preparation": 1, "binding": 1}

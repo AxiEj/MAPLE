@@ -212,9 +212,15 @@ class TransitionState(JobABC):
                         (
                             "This workflow uses the complete composed "
                             "MLIP+implicit-solvent potential with "
-                            f"{derivative}. It is a TS candidate-search "
-                            "capability, not a claim of convergence or accuracy "
-                            "certification.\n"
+                            f"{derivative}. "
+                            + (
+                                "It is a path-generation capability, not a claim of "
+                                "a converged MEP, transition state, or accuracy certification.\n"
+                                if method in {"neb", "string"}
+                                else
+                                "It is a TS candidate-search capability, not a claim of "
+                                "convergence or accuracy certification.\n"
+                            )
                         ),
                     ]
                 )

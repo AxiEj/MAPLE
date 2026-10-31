@@ -316,6 +316,8 @@ class InputReader():
             isinstance(implicit_options, dict)
             and implicit_options.get("implicit") is not None
         )
+        if implicit_requested:
+            self._validate_implicit_input_scope(atoms_or_list, implicit_options)
 
         # === Step 3: Expand post-processing commands (handle POST references) ===
         with timer("Post-Processing Expansion"):
@@ -340,15 +342,42 @@ class InputReader():
         else:
             return atoms_or_list
 
-    def _validate_final_implicit_images(self, atoms_or_list, implicit_options) -> None:
-        """Validate every processed image before calculator construction."""
+    def _implicit_path_method(self) -> str | None:
         task = self.command_control.task
         method = str(self.command_control.params.get("method", "")).lower()
+        if task == "irc" and method == "gs":
+            return "gs"
+        if task == "ts" and method in {"neb", "string"}:
+            return method
+        return None
+
+    def _validate_implicit_input_scope(self, atoms_or_list, implicit_options) -> None:
+        """Reject invalid route shape and prebuilt clusters before post-processing."""
         images = atoms_or_list if isinstance(atoms_or_list, list) else [atoms_or_list]
-        if len(images) > 1 and not (task == "ts" and method in {"neb", "string"}):
-            raise ValueError("Implicit multi-geometry input is admitted only for NEB or String.")
-        if task == "ts" and method == "string" and len(images) != 2:
+        method = self._implicit_path_method()
+        if method == "gs" and len(images) != 1:
+            raise ValueError("Implicit GS-IRC requires exactly one input geometry.")
+        if method == "neb" and len(images) < 2:
+            raise ValueError("Implicit NEB requires at least two endpoint structures.")
+        if method == "string" and len(images) != 2:
             raise ValueError("Implicit String requires exactly two endpoint structures.")
+        if method is None and len(images) != 1:
+            raise ValueError("This implicit-solvent task requires exactly one input geometry.")
+        if (
+            implicit_options.get("inner") == "prebuilt"
+            and len(images) == 1
+            and images[0].info.get("mol2", {}).get("component_count", 1) < 2
+        ):
+            raise ValueError(
+                "inner=prebuilt requires a MOL2 cluster with at least two "
+                "connected components."
+            )
+
+    def _validate_final_implicit_images(self, atoms_or_list, implicit_options) -> None:
+        """Validate every processed image before calculator construction."""
+        method = self._implicit_path_method()
+        images = atoms_or_list if isinstance(atoms_or_list, list) else [atoms_or_list]
+        self._validate_implicit_input_scope(atoms_or_list, implicit_options)
         charge_options = self.command_control.params.get("charge", {})
         reference = None
         for image in images:
@@ -363,22 +392,30 @@ class InputReader():
                 raise ValueError("Every implicit-solvent image must declare charge/multiplicity '0 1'.")
             if np.any(image.pbc):
                 raise ValueError("Implicit-solvent input is non-periodic.")
-            if bool(getattr(image, "constraints", None)):
+            if method is not None and bool(getattr(image, "constraints", None)):
                 raise ValueError("Implicit-solvent paths do not accept constraints.")
-            if masses.shape != (len(image),) or not np.isfinite(masses).all() or np.any(masses <= 0):
+            if (
+                method is not None
+                and (
+                    masses.shape != (len(image),)
+                    or not np.isfinite(masses).all()
+                    or np.any(masses <= 0)
+                )
+            ):
                 raise ValueError("Every implicit path image needs finite positive masses.")
             if charges.shape != (len(image),) or not np.isfinite(charges).all():
                 raise ValueError("Every implicit path image needs one finite charge per atom.")
-            signature = (
-                tuple(int(value) for value in image.get_atomic_numbers()),
-                tuple(float(value) for value in masses),
-                tuple(float(value) for value in charges),
-                image.info.get("mol2", {}).get(MOL2_IDENTITY_SHA256_KEY),
-            )
-            if reference is None:
-                reference = signature
-            elif signature != reference:
-                raise ValueError("Implicit path images must preserve atom, mass, charge, and MOL2 identity.")
+            if method is not None:
+                signature = (
+                    tuple(int(value) for value in image.get_atomic_numbers()),
+                    tuple(float(value) for value in masses),
+                    tuple(float(value) for value in charges),
+                    image.info.get("mol2", {}).get(MOL2_IDENTITY_SHA256_KEY),
+                )
+                if reference is None:
+                    reference = signature
+                elif signature != reference:
+                    raise ValueError("Implicit path images must preserve atom, mass, charge, and MOL2 identity.")
         source_hash = hashlib.sha256(Path(self.input).read_bytes()).hexdigest()
         for image in images:
             if "mol2" not in image.info:

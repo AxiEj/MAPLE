@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 from contextlib import contextmanager
-from dataclasses import fields
+from dataclasses import dataclass, fields
 from numbers import Real
+from types import MappingProxyType
 
 import numpy as np
 from ase import Atoms
@@ -17,6 +18,92 @@ _ALIASES = {
     "neb": {},
     "string": {},
 }
+
+
+@dataclass(frozen=True)
+class ParameterRule:
+    kind: str
+    minimum: float | None = None
+    maximum: float | None = None
+    minimum_inclusive: bool = True
+    maximum_inclusive: bool = True
+    choices: frozenset | None = None
+    inactive_reason: str | None = None
+
+
+def _rule(kind: str, **kwargs) -> ParameterRule:
+    return ParameterRule(kind=kind, **kwargs)
+
+
+def _inactive(reason: str) -> ParameterRule:
+    return ParameterRule(kind="inactive", inactive_reason=reason)
+
+
+PATH_PARAMETER_SCHEMAS = MappingProxyType({
+    "gs": MappingProxyType({
+        "target_mode": _rule("int", minimum=1),
+        "step_length_bohr": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "max_steps": _rule("int", minimum=0),
+        "max_micro_cycles": _rule("int", minimum=0),
+        "micro_step_thresh": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "hessian_recalc": _rule("optional_int", minimum=0),
+        "hessian_update": _rule("enum", choices=frozenset({"bfgs", "bofill"})),
+        "f_max_th": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "f_rms_th": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "print_each": _rule("bool"),
+        "write_traj": _rule("bool"),
+        "project_rigid_modes": _rule("bool"),
+    }),
+    "neb": MappingProxyType({
+        "n_images": _rule("int", minimum=1),
+        "k_min": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "k_max": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "use_dynamic_k": _rule("bool"),
+        "k_decay": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "max_iter": _rule("int", minimum=0),
+        "lbfgs_m": _rule("int", minimum=1),
+        "step0": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "ifidpp": _rule("int", choices=frozenset({0, 1})),
+        "neb_f_max_th": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "neb_f_rms_th": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "initial_opt": _rule("bool"),
+        "refine": _rule("none"),
+        "cineb_f_max_th": _inactive("CINEB refinement is closed for this path-only opening"),
+        "cineb_f_rms_th": _inactive("CINEB refinement is closed for this path-only opening"),
+        "cilbfgs_m": _inactive("CINEB refinement is closed for this path-only opening"),
+        "cistep0": _inactive("CINEB refinement is closed for this path-only opening"),
+    }),
+    "string": MappingProxyType({
+        "grow_step": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "grow_step_min": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "grow_backtrack": _rule(
+            "real", minimum=0.0, maximum=1.0,
+            minimum_inclusive=False, maximum_inclusive=False,
+        ),
+        "grow_relax_iters": _rule("int", minimum=0),
+        "grow_relax_tol": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "grow_energy_tol": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "pause_imbalance": _rule("int", minimum=0),
+        "refine_end_every": _rule("int", minimum=0),
+        "merge_threshold": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "n_images": _rule("int", minimum=2),
+        "max_iter_relax": _inactive("full String relaxation is not run when refine=None"),
+        "string_f_max_th": _inactive("full String relaxation is not run when refine=None"),
+        "string_f_rms_th": _inactive("full String relaxation is not run when refine=None"),
+        "lbfgs_memory": _inactive("full String relaxation is not run when refine=None"),
+        "lbfgs_curvature": _inactive("full String relaxation is not run when refine=None"),
+        "lbfgs_max_step": _inactive("full String relaxation is not run when refine=None"),
+        "reparam_every": _inactive("full String relaxation is not run when refine=None"),
+        "refine": _rule("none"),
+        "cistring_f_max_th": _inactive("CI-String refinement is closed for this path-only opening"),
+        "cistring_f_rms_th": _inactive("CI-String refinement is closed for this path-only opening"),
+        "max_iter_grow": _rule("int", minimum=0),
+        "log_every": _rule("int", minimum=1),
+        "guide_conn_min": _rule("real", minimum=0.0, maximum=1.0),
+        "guide_d_switch": _rule("real", minimum=0.0, minimum_inclusive=False),
+        "guide_inc_trigger": _rule("int", minimum=0),
+    }),
+})
 
 
 def path_images(value) -> list[Atoms]:
@@ -34,65 +121,77 @@ def path_images(value) -> list[Atoms]:
 def validate_path_parameters(method: str, params: dict, params_class) -> dict:
     """Validate one method's public parameter mapping before model work."""
     method = method.lower()
+    if method not in PATH_PARAMETER_SCHEMAS:
+        raise ValueError(f"Unknown implicit path method: {method}")
     source = params if isinstance(params, dict) else {}
     lowered = {str(key).lower(): value for key, value in source.items()}
     nested = lowered.get(method)
     selected = nested if isinstance(nested, dict) else lowered
-    allowed = {field.name: field for field in fields(params_class)}
+    declared = {field.name for field in fields(params_class)}
+    schema = PATH_PARAMETER_SCHEMAS[method]
+    if set(schema) != declared:
+        raise RuntimeError(f"{method} parameter schema does not match {params_class.__name__}")
     aliases = _ALIASES[method]
     normalized = {}
     for raw_key, value in selected.items():
         key = aliases.get(str(raw_key).lower(), str(raw_key).lower())
-        if key not in allowed:
+        if key not in schema:
             raise ValueError(f"Unknown {method} parameter: {raw_key}")
         normalized[key] = value
 
     defaults = params_class()
     for key, value in normalized.items():
-        default = getattr(defaults, key)
-        if isinstance(default, bool):
+        rule = schema[key]
+        if rule.inactive_reason is not None:
+            raise ValueError(
+                f"{method}.{key} is inactive for this path: {rule.inactive_reason}"
+            )
+        if rule.kind == "bool":
             if not isinstance(value, (bool, np.bool_)):
                 raise TypeError(f"{method}.{key} must be boolean")
-        elif isinstance(default, int):
+        elif rule.kind in {"int", "optional_int"}:
+            if rule.kind == "optional_int" and value is None:
+                continue
             if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)):
                 raise TypeError(f"{method}.{key} must be an integer")
-        elif isinstance(default, float):
+        elif rule.kind == "real":
             if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
                 raise TypeError(f"{method}.{key} must be numeric")
             if not math.isfinite(float(value)):
                 raise ValueError(f"{method}.{key} must be finite")
-        elif default is None and value is not None:
-            if key == "hessian_recalc":
-                if (
-                    isinstance(value, (bool, np.bool_))
-                    or not isinstance(value, (int, np.integer))
-                ):
-                    raise TypeError(f"{method}.{key} must be an integer or None")
-            elif key == "refine" and not isinstance(value, str):
-                raise TypeError(f"{method}.{key} must be a string or None")
+        elif rule.kind == "enum":
+            if not isinstance(value, str):
+                raise TypeError(f"{method}.{key} must be a string")
+        elif rule.kind == "none":
+            if value is not None:
+                raise ValueError(f"Implicit {method} is path-only and requires {key}=None")
+            continue
+        else:
+            raise RuntimeError(f"Unknown parameter rule kind: {rule.kind}")
 
-    nonnegative = {
-        "max_steps", "max_micro_cycles", "max_iter", "max_iter_grow",
-        "grow_relax_iters", "hessian_recalc", "refine_end_every", "pause_imbalance",
-    }
-    positive = {
-        "target_mode", "step_length_bohr", "micro_step_thresh", "f_max_th",
-        "f_rms_th", "n_images", "k_min", "k_max", "step0", "grow_step",
-        "grow_step_min", "grow_relax_tol", "merge_threshold",
-        "log_every",
-    }
-    for key in nonnegative.intersection(normalized):
-        if normalized[key] is not None and normalized[key] < 0:
-            raise ValueError(f"{method}.{key} must be nonnegative")
-    for key in positive.intersection(normalized):
-        if normalized[key] <= 0:
-            raise ValueError(f"{method}.{key} must be positive")
-    if method == "gs" and normalized.get("hessian_update", "bofill") not in {"bofill", "bfgs"}:
-        raise ValueError("gs.hessian_update must be bofill or bfgs")
-    if method == "neb" and normalized.get("ifidpp", 1) not in {0, 1}:
-        raise ValueError("neb.ifidpp must be 0 or 1")
-    if method == "string" and normalized.get("n_images", defaults.n_images) < 2:
-        raise ValueError("string.n_images must be at least 2")
+        if rule.choices is not None and value not in rule.choices:
+            choices = ", ".join(str(choice) for choice in sorted(rule.choices, key=str))
+            if rule.choices == frozenset({0, 1}):
+                raise ValueError(f"{method}.{key} must be 0 or 1")
+            raise ValueError(f"{method}.{key} must be one of: {choices}")
+        if rule.minimum is not None:
+            below = value < rule.minimum if rule.minimum_inclusive else value <= rule.minimum
+            if below:
+                if rule.minimum == 0 and rule.minimum_inclusive:
+                    raise ValueError(f"{method}.{key} must be nonnegative")
+                if (
+                    (rule.minimum == 0 and not rule.minimum_inclusive)
+                    or (rule.minimum == 1 and rule.minimum_inclusive)
+                ):
+                    raise ValueError(f"{method}.{key} must be positive")
+                relation = "at least" if rule.minimum_inclusive else "greater than"
+                raise ValueError(f"{method}.{key} must be {relation} {rule.minimum}")
+        if rule.maximum is not None:
+            above = value > rule.maximum if rule.maximum_inclusive else value >= rule.maximum
+            if above:
+                relation = "at most" if rule.maximum_inclusive else "less than"
+                raise ValueError(f"{method}.{key} must be {relation} {rule.maximum}")
+
     if (
         method == "neb"
         and normalized.get("k_min", defaults.k_min)
@@ -105,8 +204,6 @@ def validate_path_parameters(method: str, params: dict, params_class) -> dict:
         > normalized.get("grow_step", defaults.grow_step)
     ):
         raise ValueError("string.grow_step_min must not exceed string.grow_step")
-    if method in {"neb", "string"} and normalized.get("refine") is not None:
-        raise ValueError(f"Implicit {method} is path-only and requires refine=None")
     return normalized
 
 

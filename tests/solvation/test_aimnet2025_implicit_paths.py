@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import fields
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -93,6 +94,179 @@ def test_path_parameter_validation_rejects_invalid_or_cross_method_keys(params, 
         validate_path_parameters(method, params, cls)
 
 
+PATH_PARAMETER_CASES = {
+    "gs": {
+        "target_mode": (2, 0),
+        "step_length_bohr": (0.2, 0.0),
+        "max_steps": (0, -1),
+        "max_micro_cycles": (0, -1),
+        "micro_step_thresh": (0.002, 0.0),
+        "hessian_recalc": (3, -1),
+        "hessian_update": ("bfgs", "sr1"),
+        "f_max_th": (0.003, 0.0),
+        "f_rms_th": (0.001, 0.0),
+        "print_each": (False, 0),
+        "write_traj": (False, 0),
+        "project_rigid_modes": (True, 1),
+    },
+    "neb": {
+        "n_images": (1, 0),
+        "k_min": (0.02, 0.0),
+        "k_max": (0.4, 0.0),
+        "use_dynamic_k": (False, 0),
+        "k_decay": (0.25, 0.0),
+        "max_iter": (0, -1),
+        "lbfgs_m": (5, 0),
+        "step0": (0.01, 0.0),
+        "ifidpp": (0, 2),
+        "neb_f_max_th": (0.01, 0.0),
+        "neb_f_rms_th": (0.006, 0.0),
+        "initial_opt": (True, 1),
+        "refine": (None, "cineb"),
+    },
+    "string": {
+        "grow_step": (0.2, 0.0),
+        "grow_step_min": (0.01, 0.0),
+        "grow_backtrack": (0.25, 1.0),
+        "grow_relax_iters": (0, -1),
+        "grow_relax_tol": (0.003, 0.0),
+        "grow_energy_tol": (0.002, 0.0),
+        "pause_imbalance": (0, -1),
+        "refine_end_every": (0, -1),
+        "merge_threshold": (0.4, 0.0),
+        "n_images": (2, 1),
+        "refine": (None, "stringts"),
+        "max_iter_grow": (0, -1),
+        "log_every": (2, 0),
+        "guide_conn_min": (0.5, 1.1),
+        "guide_d_switch": (2.0, 0.0),
+        "guide_inc_trigger": (0, -1),
+    },
+}
+
+INACTIVE_PATH_PARAMETERS = {
+    "gs": set(),
+    "neb": {"cineb_f_max_th", "cineb_f_rms_th", "cilbfgs_m", "cistep0"},
+    "string": {
+        "max_iter_relax", "string_f_max_th", "string_f_rms_th",
+        "lbfgs_memory", "lbfgs_curvature", "lbfgs_max_step", "reparam_every",
+        "cistring_f_max_th", "cistring_f_rms_th",
+    },
+}
+
+
+@pytest.mark.parametrize("method, params_class", [
+    ("gs", GSParams), ("neb", NEBParams), ("string", GSMParams),
+])
+def test_path_parameter_schema_covers_every_dataclass_field(method, params_class):
+    import maple.function.dispatcher.implicit_path as contract
+
+    schema = contract.PATH_PARAMETER_SCHEMAS[method]
+    assert set(schema) == {field.name for field in fields(params_class)}
+    assert {name for name, rule in schema.items() if rule.inactive_reason} == (
+        INACTIVE_PATH_PARAMETERS[method]
+    )
+
+
+@pytest.mark.parametrize("method, params_class", [
+    ("gs", GSParams), ("neb", NEBParams), ("string", GSMParams),
+])
+def test_path_parameter_defaults_remain_valid_and_implicit(method, params_class):
+    assert validate_path_parameters(method, {method: {}}, params_class) == {}
+
+
+@pytest.mark.parametrize(
+    "method,key,valid,invalid",
+    [
+        (method, key, values[0], values[1])
+        for method, cases in PATH_PARAMETER_CASES.items()
+        for key, values in cases.items()
+    ],
+)
+def test_each_active_path_parameter_rule_accepts_valid_and_rejects_invalid(
+    method, key, valid, invalid
+):
+    params_class = {"gs": GSParams, "neb": NEBParams, "string": GSMParams}[method]
+    assert validate_path_parameters(
+        method, {method: {key: valid}}, params_class
+    ) == {key: valid}
+    with pytest.raises((TypeError, ValueError)):
+        validate_path_parameters(method, {method: {key: invalid}}, params_class)
+
+
+@pytest.mark.parametrize(
+    "method,key",
+    [
+        (method, key)
+        for method, keys in INACTIVE_PATH_PARAMETERS.items()
+        for key in sorted(keys)
+    ],
+)
+def test_each_inactive_path_parameter_rejects_explicit_default(method, key):
+    params_class = {"gs": GSParams, "neb": NEBParams, "string": GSMParams}[method]
+    default = getattr(params_class(), key)
+    with pytest.raises(ValueError, match="inactive"):
+        validate_path_parameters(method, {method: {key: default}}, params_class)
+
+
+@pytest.mark.parametrize("method, params_class", [
+    ("gs", GSParams), ("neb", NEBParams), ("string", GSMParams),
+])
+def test_every_active_path_rule_enforces_its_declared_type(method, params_class):
+    import maple.function.dispatcher.implicit_path as contract
+
+    for key, rule in contract.PATH_PARAMETER_SCHEMAS[method].items():
+        if rule.inactive_reason:
+            continue
+        if rule.kind in {"int", "optional_int"}:
+            invalid_values = (True,)
+            error = "integer"
+        elif rule.kind == "real":
+            invalid_values = (float("nan"), float("inf"), float("-inf"))
+            error = "finite"
+        elif rule.kind == "bool":
+            invalid_values = (1,)
+            error = "boolean"
+        elif rule.kind == "enum":
+            invalid_values = (1,)
+            error = "string"
+        elif rule.kind == "none":
+            invalid_values = ("enabled",)
+            error = "requires"
+        else:
+            raise AssertionError(f"uncovered rule kind: {rule.kind}")
+        for invalid in invalid_values:
+            with pytest.raises((TypeError, ValueError), match=error):
+                validate_path_parameters(
+                    method, {method: {key: invalid}}, params_class
+                )
+
+
+def test_optional_hessian_recalculation_preserves_explicit_none():
+    assert validate_path_parameters(
+        "gs", {"gs": {"hessian_recalc": None}}, GSParams
+    ) == {"hessian_recalc": None}
+
+
+@pytest.mark.parametrize(
+    "task_line,error",
+    [
+        ("#ts(method=neb,n_images=1,max_iter=0,cistep0=0.005,refine=None)", "inactive"),
+        ("#ts(method=string,n_images=3,max_iter_grow=0,max_iter_relax=300,refine=None)", "inactive"),
+        ("#ts(method=string,n_images=3,max_iter_grow=0,grow_backtrack=1,refine=None)", "grow_backtrack"),
+        ("#ts(method=string,n_images=3,max_iter_grow=0,guide_d_switch=0,refine=None)", "guide_d_switch"),
+    ],
+)
+def test_command_boundary_rejects_inactive_and_invalid_path_parameters(task_line, error):
+    with pytest.raises((TypeError, ValueError), match=error):
+        CommandControl.from_settings([
+            "#model=aimnet2025(hessian=analytic)", task_line,
+            "#charge(source=mol2,mode=fixed,geometry=keep)",
+            "#solv(implicit=water,method=gb,provider=torch,model=obc2,"
+            "profile=obc2-mbondi2,nonpolar=ace,experimental=true)",
+        ])
+
+
 @pytest.mark.parametrize("method", ["neb", "string"])
 def test_command_boundary_accepts_only_exact_aimnet_torch_obc2_path(method):
     control = CommandControl.from_settings([
@@ -141,6 +315,42 @@ def test_gs_zero_budget_returns_exact_input_ts_once_and_restores_geometry(tmp_pa
     assert len(result["ordered_path"]) == 1
     np.testing.assert_array_equal(result["ordered_path"][0]["x"], original)
     np.testing.assert_array_equal(atoms.get_positions(), original)
+
+
+def test_gs_force_convergence_precedes_step_too_small(tmp_path, monkeypatch):
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.calc = QuadraticCalculator()
+    gs = GS(
+        atoms,
+        str(tmp_path / "gs.out"),
+        params=GSParams(
+            step_length_bohr=1e-16,
+            max_steps=1,
+            max_micro_cycles=0,
+            write_traj=False,
+            print_each=False,
+        ),
+    )
+    gs._D = np.ones(3)
+    gs._step_len_mw = gs.p.step_length_bohr
+    force_calls = iter([
+        np.ones(3),
+        np.ones(3),
+        np.zeros(3),
+    ])
+    monkeypatch.setattr(gs, "_energy_forces_from_mw", lambda _coords: (0.0, next(force_calls)))
+    monkeypatch.setattr(gs, "_get_hessian_cart", lambda: np.eye(3))
+
+    result = gs._one_side(
+        forward=True,
+        sign=1.0,
+        q_ts_cart=np.zeros(3),
+        v_neg_mw=np.array([1.0, 0.0, 0.0]),
+        E_ts=0.0,
+    )
+
+    assert result["converged"] is True
+    assert result["termination_reason"] == "force_converged"
 
 
 def test_gs_rejects_nonpositive_masses_before_displacement(tmp_path):
@@ -403,6 +613,29 @@ def test_transition_state_path_containers_reach_algorithm_boundary(
     assert result is expected
 
 
+@pytest.mark.parametrize("method", ["neb", "string"])
+def test_implicit_path_log_describes_path_generation_not_ts_candidate_search(
+    tmp_path, monkeypatch, method
+):
+    import maple.function.dispatcher.ts.ts as ts_module
+    import maple.function.dispatcher.ts.algorithm as algorithms
+
+    left, right = _two_atom_endpoints()
+    left.calc.solvent_correction = SimpleNamespace()
+    monkeypatch.setattr(ts_module, "bind_admitted_implicit_path", lambda *_args, **_kwargs: True)
+    algorithm = algorithms.NEB if method == "neb" else algorithms.GSM
+    monkeypatch.setattr(algorithm, "run", lambda _self: {"status": "done"})
+    params = {"method": method, "n_images": 2, "refine": None}
+    params["max_iter" if method == "neb" else "max_iter_grow"] = 0
+    output = tmp_path / f"{method}.out"
+
+    ts_module.TransitionState(str(output), [left, right], params, method).run()
+
+    log = output.read_text()
+    assert "path-generation capability" in log
+    assert "TS candidate-search capability" not in log
+
+
 def test_transition_state_string_rejects_more_than_two_inputs(tmp_path):
     import maple.function.dispatcher.ts.ts as ts_module
 
@@ -531,6 +764,96 @@ def test_final_implicit_preflight_rejects_postprocessed_constraint_before_metada
         assert "_maple_solvation_options" not in image.info
 
 
+def _preflight_reader(tmp_path, task, method, *, inner=None):
+    from maple.function.read.input_reader import InputReader
+
+    reader = InputReader()
+    reader.input = str(tmp_path / f"{task}-{method}.inp")
+    Path(reader.input).write_text("synthetic\n")
+    reader.output = str(tmp_path / f"{task}-{method}.out")
+    reader.command_control = SimpleNamespace(
+        task=task,
+        params={
+            "method": method,
+            "charge": {"source": "maple", "geometry": "keep"},
+            "solv": {"inner": inner},
+        },
+    )
+    return reader
+
+
+def _implicit_atom(*, constrained=False):
+    atom = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atom.info.update(charge=0, mult=1)
+    atom.set_initial_charges([0.0])
+    if constrained:
+        from ase.constraints import FixAtoms
+        atom.set_constraint(FixAtoms(indices=[0]))
+    return atom
+
+
+@pytest.mark.parametrize(
+    "task,method,count,error",
+    [
+        ("irc", "gs", 2, "exactly one"),
+        ("ts", "neb", 1, "at least two"),
+        ("ts", "string", 1, "exactly two"),
+        ("ts", "string", 3, "exactly two"),
+    ],
+)
+def test_new_implicit_path_preflight_uses_requested_task_and_method(
+    tmp_path, task, method, count, error
+):
+    reader = _preflight_reader(tmp_path, task, method)
+    images = [_implicit_atom() for _ in range(count)]
+    value = images[0] if count == 1 else images
+    with pytest.raises(ValueError, match=error):
+        reader._validate_final_implicit_images(value, {"implicit": "water"})
+
+
+@pytest.mark.parametrize("task,method", [("opt", ""), ("freq", "mw"), ("ts", "prfo")])
+def test_legacy_single_geometry_implicit_tasks_keep_constraints(
+    tmp_path, task, method
+):
+    reader = _preflight_reader(tmp_path, task, method)
+    atom = _implicit_atom(constrained=True)
+    reader._validate_final_implicit_images(atom, {"implicit": "water"})
+    assert atom.constraints
+
+
+def test_prebuilt_inner_component_guard_remains_before_postprocessing(tmp_path, monkeypatch):
+    from maple.function.read.input_reader import InputReader
+
+    source = (
+        Path(__file__).parent
+        / "data" / "amber_gb_reference" / "mol2" / "mobley_3053621.mol2"
+    )
+    input_path = tmp_path / "prebuilt.inp"
+    input_path.write_text("\n".join([
+        "#model=ani2x", "#opt", "#charge(source=mol2,mode=fixed,geometry=keep)",
+        "#solv(implicit=water,inner=prebuilt,method=gb,provider=openmm,model=obc2,experimental=true)",
+        "", "0 1", f"MOL2 {source}", "", "POST setcharge 0", "",
+    ]))
+    post_calls = 0
+
+    def forbidden_post(*_args, **_kwargs):
+        nonlocal post_calls
+        post_calls += 1
+
+    monkeypatch.setattr(InputReader, "post_processing_command", forbidden_post)
+    with pytest.raises(ValueError, match="at least two connected components"):
+        InputReader()(str(input_path), str(tmp_path / "prebuilt.out"))
+    assert post_calls == 0
+
+
+def test_gs_success_result_has_no_unreachable_numerical_failure_status_branch():
+    import inspect
+    from maple.function.dispatcher.irc.algorithm.gs import GS
+
+    source = inspect.getsource(GS.run)
+    assert '== "numerical_failure"' not in source
+
+
 @pytest.mark.parametrize("method", ["neb", "string"])
 def test_direct_implicit_path_requires_analytic_model_enrollment(method):
     from maple.function.calculator.aimnet._aimnet2025_calculator import (
@@ -574,6 +897,37 @@ def _write_two_mol2_neb_input(tmp_path, first, second):
         ])
     )
     return input_path
+
+
+def test_engine_rejects_missing_neb_endpoint_before_model_construction(
+    tmp_path, monkeypatch
+):
+    from maple.function.engine import engine
+
+    source = (
+        Path(__file__).parent
+        / "data" / "amber_gb_reference" / "mol2" / "mobley_3053621.mol2"
+    )
+    input_path = tmp_path / "one-endpoint.inp"
+    input_path.write_text("\n".join([
+        "#model=aimnet2025(hessian=analytic)",
+        "#ts(method=neb,n_images=1,max_iter=0,ifidpp=0,refine=None)",
+        "#charge(source=mol2,mode=fixed,geometry=keep)",
+        "#solv(implicit=water,method=gb,provider=torch,model=obc2,"
+        "profile=obc2-mbondi2,nonpolar=ace,experimental=true)",
+        "", "0 1", f"MOL2 {source}", "",
+    ]))
+    job = engine()
+    model_calls = 0
+
+    def forbidden_model(*_args):
+        nonlocal model_calls
+        model_calls += 1
+
+    monkeypatch.setattr(job, "_mlp_initiator", forbidden_model)
+    with pytest.raises(ValueError, match="at least two endpoint"):
+        job(str(input_path), str(tmp_path / "one-endpoint.out"))
+    assert model_calls == 0
 
 
 def test_engine_preflights_invalid_second_image_before_model_construction(

@@ -338,17 +338,9 @@ class GS(JobABC):
             self._write_trajs(forward_log, backward_log, input_ts)
 
         converged = forward_log["converged"] and backward_log["converged"]
-        failed = any(
-            side["termination_reason"] == "numerical_failure"
-            for side in (forward_log, backward_log)
-        )
         ordered_path = list(reversed(backward_log["records"])) + [input_ts] + forward_log["records"]
         return {
-            "status": (
-                "converged" if converged else
-                "failure" if failed else
-                "bounded_nonconverged"
-            ),
+            "status": "converged" if converged else "bounded_nonconverged",
             "converged": converged,
             "termination_reason": (
                 "force_converged" if converged else
@@ -684,15 +676,15 @@ class GS(JobABC):
                 }
             )
 
-            if _norm(self.mw_coords - macro_start) <= 1e-14:
-                termination_reason = "step_too_small"
-                break
-
             # Convergence in terms of Cartesian forces
             if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
                 self._print_hurray()
                 termination_reason = "force_converged"
                 converged = True
+                break
+
+            if _norm(self.mw_coords - macro_start) <= 1e-14:
+                termination_reason = "step_too_small"
                 break
 
         return {

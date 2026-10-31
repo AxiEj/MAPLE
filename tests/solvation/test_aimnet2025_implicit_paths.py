@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import fields
+import hashlib
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -468,17 +470,113 @@ def test_bound_path_rejects_live_charge_and_mass_mutation():
         correction._validate_bound_atoms(second)
 
 
-def test_v5_receipt_pointer_is_unqualified_and_v4_remains_historical():
+_V5_RECEIPT_SHA256 = "a1e55a7043b809a919701f88860945e9c871e8455260a4f95dbc0c885060c5a7"
+
+
+def _assert_v6_receipt_lifecycle(filename, digest, receipt_path, historical_v5):
+    from maple.function.calculator import set_calculator as runtime
+
+    assert filename == "independent_obc2_analytic_qualification_v6.json"
+    assert historical_v5.is_file() and not historical_v5.is_symlink()
+    assert hashlib.sha256(historical_v5.read_bytes()).hexdigest() == _V5_RECEIPT_SHA256
+    if digest is None:
+        assert not receipt_path.exists()
+        return
+    assert runtime._is_sha256(digest)
+    assert receipt_path.is_file() and not receipt_path.is_symlink()
+    raw = receipt_path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == digest
+    receipt = json.loads(raw)
+    assert receipt.get("schema_version") == 2
+    assert receipt.get("artifact_type") == "maple-independent-obc2-analytic-qualification"
+    assert receipt.get("status") == "qualified"
+    assert receipt.get("content_sha256") == hashlib.sha256(
+        runtime._canonical_receipt_payload(receipt)
+    ).hexdigest()
+
+
+def _synthetic_v6_receipt():
+    from maple.function.calculator import set_calculator as runtime
+
+    receipt = {
+        "schema_version": 2,
+        "artifact_type": "maple-independent-obc2-analytic-qualification",
+        "status": "qualified",
+    }
+    receipt["content_sha256"] = hashlib.sha256(
+        runtime._canonical_receipt_payload(receipt)
+    ).hexdigest()
+    return receipt
+
+
+def test_v6_receipt_pointer_has_valid_lifecycle_state_and_v5_remains_historical():
     import inspect
 
     from maple.function.calculator import _independent_obc2_qualified_cell as pointer
     from maple.function.calculator import set_calculator as runtime
 
-    assert pointer.QUALIFICATION_RECEIPT_FILENAME.endswith("_v5.json")
-    assert pointer.QUALIFICATION_RECEIPT_SHA256 is None
+    data = Path(runtime.__file__).with_name("data")
+    _assert_v6_receipt_lifecycle(
+        pointer.QUALIFICATION_RECEIPT_FILENAME,
+        pointer.QUALIFICATION_RECEIPT_SHA256,
+        data / pointer.QUALIFICATION_RECEIPT_FILENAME,
+        data / "independent_obc2_analytic_qualification_v5.json",
+    )
     inventory_source = inspect.getsource(runtime._installed_runtime_source_inventory)
     assert "independent_obc2_analytic_qualification_v4.json" in inventory_source
     assert "independent_obc2_analytic_qualification_v5.json" in inventory_source
+    assert "independent_obc2_analytic_qualification_v6.json" in inventory_source
+
+
+def test_v6_receipt_lifecycle_accepts_a_valid_sealed_state(tmp_path):
+    from maple.function.calculator import set_calculator as runtime
+
+    data = Path(runtime.__file__).with_name("data")
+    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v6.json"
+    receipt_path.write_text(json.dumps(_synthetic_v6_receipt(), sort_keys=True) + "\n")
+    _assert_v6_receipt_lifecycle(
+        receipt_path.name,
+        hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        receipt_path,
+        data / "independent_obc2_analytic_qualification_v5.json",
+    )
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["uppercase_pointer", "wrong_pointer", "symlink", "wrong_status", "wrong_content_seal"],
+)
+def test_v6_receipt_lifecycle_rejects_malformed_sealed_states(tmp_path, mutation):
+    from maple.function.calculator import set_calculator as runtime
+
+    data = Path(runtime.__file__).with_name("data")
+    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v6.json"
+    receipt = _synthetic_v6_receipt()
+    if mutation == "wrong_status":
+        receipt["status"] = "candidate"
+        receipt["content_sha256"] = hashlib.sha256(
+            runtime._canonical_receipt_payload(receipt)
+        ).hexdigest()
+    elif mutation == "wrong_content_seal":
+        receipt["content_sha256"] = "0" * 64
+    if mutation == "symlink":
+        target = tmp_path / "receipt-target.json"
+        target.write_text(json.dumps(receipt, sort_keys=True) + "\n")
+        receipt_path.symlink_to(target)
+    else:
+        receipt_path.write_text(json.dumps(receipt, sort_keys=True) + "\n")
+    digest = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+    if mutation == "uppercase_pointer":
+        digest = digest.upper()
+    elif mutation == "wrong_pointer":
+        digest = "f" * 64
+    with pytest.raises(AssertionError):
+        _assert_v6_receipt_lifecycle(
+            receipt_path.name,
+            digest,
+            receipt_path,
+            data / "independent_obc2_analytic_qualification_v5.json",
+        )
 
 
 def test_neb_improved_tangent_uses_absolute_extrema_weights():

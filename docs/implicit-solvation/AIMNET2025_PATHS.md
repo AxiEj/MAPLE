@@ -64,10 +64,10 @@ The String writer uses `_gsm_candidate_path.xyz` and
 ## Qualification boundary
 
 Source changes require a new immutable
-`independent_obc2_analytic_qualification_v5.json` receipt. The v5 pointer is
+`independent_obc2_analytic_qualification_v6.json` receipt. The v6 pointer is
 unqualified until fresh ANI/OBC and AIMNet2025 evidence from one committed
 source freeze passes the existing denominators and is sealed. Historical v1
-through v4 receipts remain unchanged.
+through v5 receipts remain unchanged.
 
 The new GS route retains the existing N32 raw-Hessian symmetry guard of
 `2e-6 * max(1, max(abs(H)))`. The older PRFO `1e-8` behavior is outside this

@@ -59,6 +59,7 @@ QUALIFICATION_SOURCE_EXCLUDES = frozenset(
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v5.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v6.json",
     }
 )
 ANI2X_CHECKPOINT_SHA256 = (

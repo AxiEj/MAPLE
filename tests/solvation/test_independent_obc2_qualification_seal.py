@@ -509,10 +509,11 @@ def test_recomputed_aim_gate_set_must_be_complete_and_passing(io_repo, mutation)
 @pytest.mark.parametrize("old_name", ["independent_obc2_analytic_qualification.json",
     "independent_obc2_analytic_qualification_v2.json",
     "independent_obc2_analytic_qualification_v3.json",
-    "independent_obc2_analytic_qualification_v4.json"])
-def test_active_v5_sealer_preserves_prior_receipts(io_repo, old_name):
+    "independent_obc2_analytic_qualification_v4.json",
+    "independent_obc2_analytic_qualification_v5.json"])
+def test_active_v6_sealer_preserves_prior_receipts(io_repo, old_name):
     root, git, _full, _candidate, full_path, candidate_path = io_repo
-    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v5.json")
+    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v6.json")
     old = root / "maple/function/calculator/data" / old_name
     old.parent.mkdir(parents=True)
     old.write_bytes(b"immutable historical receipt")
@@ -522,7 +523,7 @@ def test_active_v5_sealer_preserves_prior_receipts(io_repo, old_name):
     assert old.read_bytes() == b"immutable historical receipt"
 
 
-def test_already_qualified_v5_pointer_refused_without_receipt(io_repo):
+def test_already_qualified_v6_pointer_refused_without_receipt(io_repo):
     root, _git, _full, _candidate, full_path, candidate_path = io_repo
     pointer = root / sealer.POINTER_REL
     pointer.write_text(f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'

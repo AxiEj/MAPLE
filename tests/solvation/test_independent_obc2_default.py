@@ -146,7 +146,7 @@ def _install_receipt(monkeypatch, receipt, *, seal=True):
     monkeypatch.setattr(
         pointer,
         "QUALIFICATION_RECEIPT_FILENAME",
-        "independent_obc2_analytic_qualification_v5.json",
+        "independent_obc2_analytic_qualification_v6.json",
     )
     monkeypatch.setattr(
         pointer,

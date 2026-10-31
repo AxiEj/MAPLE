@@ -131,6 +131,7 @@ class TransitionState(JobABC):
         self.atoms = atoms
         self.params = params
         self.method = method
+        self._path_params = None
 
     def run(self):
 
@@ -165,17 +166,13 @@ class TransitionState(JobABC):
                         )
                     if method == "neb":
                         from .algorithm.neb import NEBParams
-                        validate_path_parameters(
-                            "neb",
-                            {"neb": {key: value for key, value in self.params.items() if key != "method"}},
-                            NEBParams,
+                        self._path_params = validate_path_parameters(
+                            "neb", self.params, NEBParams
                         )
                     else:
                         from .algorithm.string import GSMParams
-                        validate_path_parameters(
-                            "string",
-                            {"string": {key: value for key, value in self.params.items() if key != "method"}},
-                            GSMParams,
+                        self._path_params = validate_path_parameters(
+                            "string", self.params, GSMParams
                         )
                     implicit_ts = bind_admitted_implicit_path(structures, method)
                     working = []
@@ -251,7 +248,11 @@ class TransitionState(JobABC):
             neb = NEB(
                 output=self.output,
                 atoms_or_molecules=Molecules(structures),
-                paras=self.params,
+                paras=(
+                    {"neb": self._path_params}
+                    if self._path_params is not None
+                    else self.params
+                ),
             )
             return neb.run()
 
@@ -264,7 +265,11 @@ class TransitionState(JobABC):
                 output=self.output,
                 atoms_R=structures[0],
                 atoms_P=structures[1],
-                paras=self.params
+                paras=(
+                    {"string": self._path_params}
+                    if self._path_params is not None
+                    else self.params
+                ),
             )
             return string.run()
 

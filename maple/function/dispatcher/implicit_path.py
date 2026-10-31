@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, fields
 from numbers import Real
@@ -118,25 +119,101 @@ def path_images(value) -> list[Atoms]:
     return list(structures)
 
 
-def validate_path_parameters(method: str, params: dict, params_class) -> dict:
+def _normalized_path_parameter_items(method: str, params) -> list[tuple[str, object]]:
+    if params is None:
+        return []
+    if not isinstance(params, Mapping):
+        raise TypeError(f"{method} parameters must be a mapping or None")
+
+    def keyed_items(mapping, location):
+        items = []
+        origins = {}
+        for raw_key, value in mapping.items():
+            if not isinstance(raw_key, str):
+                raise TypeError(f"{location} parameter keys must be strings")
+            key = raw_key.lower()
+            if key in origins:
+                raise ValueError(
+                    f"duplicate {location} parameter '{raw_key}' conflicts with "
+                    f"'{origins[key]}'"
+                )
+            origins[key] = raw_key
+            items.append((raw_key, key, value))
+        return items
+
+    outer = keyed_items(params, method)
+    method_groups = [
+        (raw_key, key, value)
+        for raw_key, key, value in outer
+        if key in PATH_PARAMETER_SCHEMAS
+    ]
+    if len(method_groups) > 1:
+        names = ", ".join(raw_key for raw_key, _key, _value in method_groups)
+        raise ValueError(f"multiple method parameter groups were provided: {names}")
+    if method_groups and method_groups[0][1] != method:
+        raise ValueError(
+            f"parameter group '{method_groups[0][0]}' does not match method '{method}'"
+        )
+
+    from maple.function.read.command_control import CommandControl
+
+    context_keys = set(CommandControl.GLOBAL_PARAMS) | {"task", "method"}
+    if method_groups:
+        raw_group, _group_key, nested = method_groups[0]
+        if not isinstance(nested, Mapping):
+            raise TypeError(f"{raw_group} parameters must be a mapping")
+        flat = [
+            raw_key
+            for raw_key, key, _value in outer
+            if key not in context_keys and key not in PATH_PARAMETER_SCHEMAS
+        ]
+        if flat:
+            names = ", ".join(flat)
+            raise ValueError(
+                f"{method} request mixes flat parameters with the nested "
+                f"'{raw_group}' group: {names}"
+            )
+        selected = keyed_items(nested, f"{method} nested")
+    else:
+        selected = outer
+
+    selector = next(
+        (value for _raw_key, key, value in selected if key == "method"),
+        next((value for _raw_key, key, value in outer if key == "method"), None),
+    )
+    if selector is not None and str(selector).lower() != method:
+        raise ValueError(f"method selector '{selector}' does not match '{method}'")
+
+    aliases = _ALIASES[method]
+    normalized = []
+    origins = {}
+    for raw_key, key, value in selected:
+        if key in context_keys:
+            continue
+        canonical = aliases.get(key, key)
+        if canonical in origins:
+            raise ValueError(
+                f"duplicate {method} parameter '{raw_key}' resolves to "
+                f"'{canonical}', already provided by '{origins[canonical]}'"
+            )
+        origins[canonical] = raw_key
+        normalized.append((canonical, value))
+    return normalized
+
+
+def validate_path_parameters(method: str, params, params_class) -> dict:
     """Validate one method's public parameter mapping before model work."""
     method = method.lower()
     if method not in PATH_PARAMETER_SCHEMAS:
         raise ValueError(f"Unknown implicit path method: {method}")
-    source = params if isinstance(params, dict) else {}
-    lowered = {str(key).lower(): value for key, value in source.items()}
-    nested = lowered.get(method)
-    selected = nested if isinstance(nested, dict) else lowered
     declared = {field.name for field in fields(params_class)}
     schema = PATH_PARAMETER_SCHEMAS[method]
     if set(schema) != declared:
         raise RuntimeError(f"{method} parameter schema does not match {params_class.__name__}")
-    aliases = _ALIASES[method]
     normalized = {}
-    for raw_key, value in selected.items():
-        key = aliases.get(str(raw_key).lower(), str(raw_key).lower())
+    for key, value in _normalized_path_parameter_items(method, params):
         if key not in schema:
-            raise ValueError(f"Unknown {method} parameter: {raw_key}")
+            raise ValueError(f"Unknown {method} parameter: {key}")
         normalized[key] = value
 
     defaults = params_class()

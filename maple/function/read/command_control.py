@@ -365,17 +365,33 @@ class CommandControl:
             else:
                 coalesced_fields.append(field)
 
+        seen_keys = {}
         for kv in coalesced_fields:
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
                 normalized_key = CommandControl._normalize_key(k)
+                raw_key = k.strip()
+                if normalized_key in seen_keys:
+                    raise ValueError(
+                        f"Duplicate nested parameter: '{raw_key}' conflicts with "
+                        f"'{seen_keys[normalized_key]}'."
+                    )
+                seen_keys[normalized_key] = raw_key
                 if normalized_key == "prepared_topology_sha256":
                     target[normalized_key] = v.strip()
                 else:
                     target[normalized_key] = CommandControl._auto_cast(v.strip())
             else:
-                target[CommandControl._normalize_key(kv)] = True
+                normalized_key = CommandControl._normalize_key(kv)
+                raw_key = kv.strip()
+                if normalized_key in seen_keys:
+                    raise ValueError(
+                        f"Duplicate nested parameter: '{raw_key}' conflicts with "
+                        f"'{seen_keys[normalized_key]}'."
+                    )
+                seen_keys[normalized_key] = raw_key
+                target[normalized_key] = True
 
     @classmethod
     def _parse_pbc(cls, inner: str, output_path: Optional[str]) -> List[float]:
@@ -747,24 +763,17 @@ class CommandControl:
         if task == "irc":
             from maple.function.dispatcher.irc.algorithm.gs import GSParams
             from maple.function.dispatcher.implicit_path import validate_path_parameters
-            allowed = {field.name for field in fields(GSParams)} | {
-                "sd_len_bohr", "steplength_bohr", "max_points", "tol_maxf", "tol_rmsf"
-            }
-            selected = validate_path_parameters(
-                "gs", {"gs": {key: value for key, value in params.items() if key in allowed}}, GSParams
-            )
+            selected = validate_path_parameters("gs", params, GSParams)
             if selected.get("project_rigid_modes") is False:
                 raise ValueError("Implicit GS-IRC requires project_rigid_modes=true.")
         elif method == "neb":
             from maple.function.dispatcher.ts.algorithm.neb import NEBParams
             from maple.function.dispatcher.implicit_path import validate_path_parameters
-            allowed = {field.name for field in fields(NEBParams)}
-            validate_path_parameters("neb", {"neb": {key: value for key, value in params.items() if key in allowed}}, NEBParams)
+            validate_path_parameters("neb", params, NEBParams)
         else:
             from maple.function.dispatcher.ts.algorithm.string import GSMParams
             from maple.function.dispatcher.implicit_path import validate_path_parameters
-            allowed = {field.name for field in fields(GSMParams)}
-            validate_path_parameters("string", {"string": {key: value for key, value in params.items() if key in allowed}}, GSMParams)
+            validate_path_parameters("string", params, GSMParams)
 
     @classmethod
     def _validate_ddlpb_reference(cls, options: dict, task: str, output_path) -> None:

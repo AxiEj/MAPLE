@@ -4,6 +4,11 @@ import pytest
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 
+from maple.function.dispatcher.convergence import (
+    CONVERGENCE_CONTEXT_KEYS,
+    CONVERGENCE_THRESHOLDS,
+    convergence_thresholds,
+)
 from maple.function.dispatcher.dispatcher import Dispatcher
 from maple.function.dispatcher.implicit_path import validate_path_parameters
 from maple.function.dispatcher.irc.algorithm.gs import GSParams
@@ -54,8 +59,22 @@ def _implicit_atom(x=0.0):
         ),
     ],
 )
+@pytest.mark.parametrize(
+    "level,expected_thresholds",
+    [
+        (None, dict(CONVERGENCE_THRESHOLDS["medium"])),
+        ("tight", dict(CONVERGENCE_THRESHOLDS["tight"])),
+    ],
+)
 def test_real_dispatcher_and_wrappers_extract_path_parameters_from_full_config(
-    tmp_path, monkeypatch, method, task_line, algorithm_name, expected
+    tmp_path,
+    monkeypatch,
+    method,
+    task_line,
+    algorithm_name,
+    expected,
+    level,
+    expected_thresholds,
 ):
     import maple.function.dispatcher.irc.irc as irc_module
     import maple.function.dispatcher.ts.ts as ts_module
@@ -75,12 +94,13 @@ def test_real_dispatcher_and_wrappers_extract_path_parameters_from_full_config(
         return {"status": "captured"}
 
     monkeypatch.setattr(algorithm, "run", capture)
-    monkeypatch.setattr(Dispatcher, "set_throshould", lambda *_args: None)
     monkeypatch.setattr(irc_module, "bind_admitted_implicit_path", lambda *_args, **_kwargs: True)
     monkeypatch.setattr(ts_module, "bind_admitted_implicit_path", lambda *_args, **_kwargs: True)
 
     control = _control(task_line)
     command = SimpleNamespace(params=control.as_dict())
+    if level is not None:
+        command.params["level"] = level
     atoms = _implicit_atom() if method == "gs" else [_implicit_atom(), _implicit_atom(1.0)]
     if method != "gs":
         atoms[1].calc = atoms[0].calc
@@ -88,6 +108,67 @@ def test_real_dispatcher_and_wrappers_extract_path_parameters_from_full_config(
     Dispatcher()(command, control.task, atoms, str(tmp_path / f"{method}.out"))
 
     assert {key: captured[key] for key in expected} == expected
+    assert {
+        key: command.params[key] for key in CONVERGENCE_CONTEXT_KEYS
+    } == expected_thresholds
+    for image in atoms if isinstance(atoms, list) else [atoms]:
+        assert {
+            key: getattr(image, key) for key in CONVERGENCE_CONTEXT_KEYS
+        } == expected_thresholds
+    if method == "gs":
+        assert captured["f_max_th"] == expected_thresholds["f_max_th"]
+        assert captured["f_rms_th"] == expected_thresholds["f_rms_th"]
+
+
+def test_dispatcher_and_path_boundary_share_one_convergence_context_schema():
+    expected = {
+        "extratight": (0.00030, 0.00020, 0.00030, 0.00020),
+        "tight": (0.00085, 0.00055, 0.00110, 0.00075),
+        "medium": (0.00285, 0.00190, 0.00315, 0.00210),
+        "loose": (0.00380, 0.00250, 0.00600, 0.00400),
+        "extraloose": (0.00755, 0.00500, 0.01200, 0.00800),
+        "superloose": (0.08500, 0.05500, 0.14500, 0.09500),
+    }
+    names = ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th")
+    assert {
+        level: tuple(thresholds[name] for name in names)
+        for level, thresholds in CONVERGENCE_THRESHOLDS.items()
+    } == expected
+    assert all(
+        frozenset(thresholds) == CONVERGENCE_CONTEXT_KEYS
+        for thresholds in CONVERGENCE_THRESHOLDS.values()
+    )
+    assert dict(convergence_thresholds(None)) == dict(CONVERGENCE_THRESHOLDS["medium"])
+    assert dict(convergence_thresholds("unknown")) == dict(CONVERGENCE_THRESHOLDS["medium"])
+    assert dict(convergence_thresholds("TIGHT")) == dict(CONVERGENCE_THRESHOLDS["medium"])
+
+
+def test_nested_gs_override_wins_over_dispatcher_convergence_default():
+    configuration = {
+        "level": "tight",
+        **dict(CONVERGENCE_THRESHOLDS["tight"]),
+        "gs": {"max_steps": 2, "f_max_th": 0.0012},
+    }
+    assert validate_path_parameters("gs", configuration, GSParams) == {
+        "f_rms_th": CONVERGENCE_THRESHOLDS["tight"]["f_rms_th"],
+        "max_steps": 2,
+        "f_max_th": 0.0012,
+    }
+
+
+@pytest.mark.parametrize(
+    "method,params_class,key",
+    [
+        ("gs", GSParams, "dp_max_th"),
+        ("neb", NEBParams, "f_max_th"),
+        ("string", GSMParams, "f_max_th"),
+    ],
+)
+def test_partial_dispatcher_convergence_context_is_not_silently_ignored(
+    method, params_class, key
+):
+    with pytest.raises(ValueError, match=f"Unknown {method} parameter: {key}"):
+        validate_path_parameters(method, {key: 0.001}, params_class)
 
 
 @pytest.mark.parametrize(

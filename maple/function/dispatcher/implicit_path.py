@@ -12,6 +12,8 @@ from types import MappingProxyType
 import numpy as np
 from ase import Atoms
 
+from .convergence import CONVERGENCE_CONTEXT_KEYS
+
 
 _ALIASES = {
     "gs": {"sd_len_bohr": "step_length_bohr", "steplength_bohr": "step_length_bohr",
@@ -157,7 +159,20 @@ def _normalized_path_parameter_items(method: str, params) -> list[tuple[str, obj
 
     from maple.function.read.command_control import CommandControl
 
-    context_keys = set(CommandControl.GLOBAL_PARAMS) | {"task", "method"}
+    present_convergence_keys = {
+        key for _raw_key, key, _value in outer if key in CONVERGENCE_CONTEXT_KEYS
+    }
+    convergence_context_keys = (
+        CONVERGENCE_CONTEXT_KEYS
+        if present_convergence_keys == CONVERGENCE_CONTEXT_KEYS
+        else frozenset()
+    )
+    context_keys = (
+        set(CommandControl.GLOBAL_PARAMS)
+        | convergence_context_keys
+        | {"task", "method"}
+    )
+    aliases = _ALIASES[method]
     if method_groups:
         raw_group, _group_key, nested = method_groups[0]
         if not isinstance(nested, Mapping):
@@ -174,6 +189,14 @@ def _normalized_path_parameter_items(method: str, params) -> list[tuple[str, obj
                 f"'{raw_group}' group: {names}"
             )
         selected = keyed_items(nested, f"{method} nested")
+        nested_fields = {aliases.get(key, key) for _raw_key, key, _value in selected}
+        selected = [
+            (raw_key, key, value)
+            for raw_key, key, value in outer
+            if key in convergence_context_keys
+            and aliases.get(key, key) in PATH_PARAMETER_SCHEMAS[method]
+            and aliases.get(key, key) not in nested_fields
+        ] + selected
     else:
         selected = outer
 
@@ -184,11 +207,10 @@ def _normalized_path_parameter_items(method: str, params) -> list[tuple[str, obj
     if selector is not None and str(selector).lower() != method:
         raise ValueError(f"method selector '{selector}' does not match '{method}'")
 
-    aliases = _ALIASES[method]
     normalized = []
     origins = {}
     for raw_key, key, value in selected:
-        if key in context_keys:
+        if key in context_keys and aliases.get(key, key) not in PATH_PARAMETER_SCHEMAS[method]:
             continue
         canonical = aliases.get(key, key)
         if canonical in origins:

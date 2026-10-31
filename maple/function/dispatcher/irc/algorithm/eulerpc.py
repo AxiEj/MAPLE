@@ -27,6 +27,7 @@ import numpy as np
 from ase import Atoms
 
 from ...jobABC import JobABC
+from ...curvature import bofill_update
 from .logger import log_info, log_error
 
 # =============================== Utilities ===============================
@@ -484,27 +485,6 @@ class EulerPC(JobABC):
         term2 = np.outer(Hy, Hy) / sTHs
         return H + term1 - term2
 
-    @staticmethod
-    def _bofill_update(H: np.ndarray,
-                       s: np.ndarray,
-                       y: np.ndarray) -> np.ndarray:
-        """
-        Bofill update:
-        Combines Murtagh-Sargent and Powell-symmetric-Broyden updates using the Bofill mixing factor.
-        """
-        dx, dg = s, y
-
-        z = dg - H.dot(dx)
-        # MS
-        ms = np.outer(z, z) / z.dot(dx)
-        # PSB
-        dx2 = dx.dot(dx)
-        psb = ((np.outer(dx, z) + np.outer(z, dx)) / dx2) - (z.dot(dx)) * np.outer(dx, dx) / (dx2 * dx2)
-        # Bofill mixing
-        mix = (z.dot(dx) ** 2) / (z.dot(z) * dx2)
-
-        dH = mix * ms + (1.0 - mix) * psb
-        return H + dH
 
     @staticmethod
     def _newton_1d(on_sphere,
@@ -563,7 +543,7 @@ class EulerPC(JobABC):
             gradient_diff = g_curr - self.prev_grad
             coords_diff = init_mw - self.prev_coords
             if str(self.p.hessian_update).lower() == "bofill":
-                self.mw_hessian = self._bofill_update(self.mw_hessian, coords_diff, gradient_diff)
+                self.mw_hessian = bofill_update(self.mw_hessian, coords_diff, gradient_diff)
             else:
                 self.mw_hessian = self._bfgs_update(self.mw_hessian, coords_diff, gradient_diff)
 
@@ -631,7 +611,7 @@ class EulerPC(JobABC):
         dx_pred = pred_mw - init_mw
         dg_pred = g_pred - g_curr
         if str(self.p.hessian_update).lower() == "bofill":
-            self.mw_hessian = self._bofill_update(self.mw_hessian, dx_pred, dg_pred)
+            self.mw_hessian = bofill_update(self.mw_hessian, dx_pred, dg_pred)
         else:
             self.mw_hessian = self._bfgs_update(self.mw_hessian, dx_pred, dg_pred)
 
@@ -745,7 +725,7 @@ class EulerPC(JobABC):
 
         # Hessian update using TS -> displaced point
         if str(self.p.hessian_update).lower() == "bofill":
-            H0_mw = self._bofill_update(H0_mw, q0_mw - q_ts_mw, g0_mw - g_ts_mw)
+            H0_mw = bofill_update(H0_mw, q0_mw - q_ts_mw, g0_mw - g_ts_mw)
         else:
             H0_mw = self._bfgs_update(H0_mw, q0_mw - q_ts_mw, g0_mw - g_ts_mw)
 

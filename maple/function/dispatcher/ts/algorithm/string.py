@@ -365,6 +365,21 @@ class GSM(JobABC):
         return out
 
     @staticmethod
+    def _evaluate_images(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
+        calculator = images[0].calc
+        if calculator is None or any(image.calc is not calculator for image in images):
+            raise ValueError("String images must share one calculator instance.")
+        result = calculator.calculate_many(images, properties=("energy", "forces"))
+        if result.energies is None or result.forces is None:
+            raise RuntimeError("String evaluation did not return complete energy and forces.")
+        return list(result.energies), list(result.forces)
+
+    @classmethod
+    def _evaluate_image(cls, image: Atoms) -> Tuple[float, np.ndarray]:
+        energies, forces = cls._evaluate_images([image])
+        return float(energies[0]), to_numpy_f64(forces[0])
+
+    @staticmethod
     def _unit(v: np.ndarray, eps: float = 1e-16) -> np.ndarray:
         n = np.linalg.norm(v)
         if n < eps:
@@ -395,21 +410,21 @@ class GSM(JobABC):
         return t / n
 
     def _endpoint_tangent3(self, prev_img: Atoms, last_img: Atoms, fallback_dir3: np.ndarray) -> np.ndarray:
-        """Estimate 3D endpoint tangent from the last two images on one side."""
+        """Estimate a full Cartesian 3N endpoint tangent."""
         R0 = to_numpy_f64(prev_img.get_positions())
         R1 = to_numpy_f64(last_img.get_positions())
         d = R1 - R0
         if np.linalg.norm(d) < 1e-12:
             return self._unit(fallback_dir3)
-        return self._unit(d.mean(axis=0))
+        return self._unit(d.reshape(-1))
 
     def _endpoint_direct_step(self, at: Atoms, dir3: np.ndarray, step: float):
-        """Translate an endpoint image by 'step' along dir3 (Å), then keep calc etc."""
+        """Move an endpoint in full Cartesian configuration space."""
         pos = to_numpy_f64(at.get_positions())
         nrm = np.linalg.norm(dir3)
         if nrm < 1e-15:
             return
-        disp = (dir3 / nrm) * float(step)
+        disp = (dir3 / nrm).reshape(pos.shape) * float(step)
         at.set_positions(pos + disp)
 
 
@@ -422,15 +437,15 @@ class GSM(JobABC):
         """
         pos = to_numpy_f64(img.get_positions()).reshape(-1)
         masses = to_numpy_f64(img.get_masses())
-        tau3N = np.tile(tau3.reshape(1,3), (len(img),1)).reshape(-1)
+        tau3N = self._unit(np.asarray(tau3, dtype=np.float64).reshape(-1))
 
         def proj_perp(vec):
             return vec - float(np.dot(vec, tau3N)) * tau3N
 
         def energy_and_grad(xvec):
             img.set_positions(xvec.reshape(-1,3))
-            E = float(img.get_potential_energy(force_consistent=True))
-            F = to_numpy_f64(img.get_forces()).reshape(-1,3)
+            E, F = self._evaluate_image(img)
+            F = F.reshape(-1,3)
             F = project_out_rigidbody_forces(F, xvec.reshape(-1,3), masses).reshape(-1)
             g = -F
             g = proj_perp(g)
@@ -470,17 +485,17 @@ class GSM(JobABC):
             # predict
             trial = self._copy_with_inherit(last_img)
             pos_last = to_numpy_f64(last_img.get_positions())
-            trial.set_positions(pos_last + ds * dir3.reshape(1, 3))
+            trial.set_positions(pos_last + ds * dir3.reshape(pos_last.shape))
 
             # quick check at predicted point
             pos  = to_numpy_f64(trial.get_positions())
-            Fraw = to_numpy_f64(trial.get_forces()).reshape(-1,3)
+            E_pred, Fraw = self._evaluate_image(trial)
+            Fraw = Fraw.reshape(-1,3)
             Frb  = project_out_rigidbody_forces(Fraw, pos, masses_last).reshape(-1)
-            tau3N = np.tile(dir3.reshape(1,3), (len(trial),1)).reshape(-1)
+            tau3N = dir3
             F_perp = Frb - float(np.dot(Frb, tau3N)) * tau3N
             maxFperp_pred = float(np.max(np.abs(F_perp)))
 
-            E_pred = float(trial.get_potential_energy(force_consistent=True))
             uphill = (E_pred - E_last) > p.grow_energy_tol
 
             # backtrack on step if energy is too uphill or force is too large
@@ -493,7 +508,8 @@ class GSM(JobABC):
 
             # recompute max|F_perp| after relax
             pos  = to_numpy_f64(trial.get_positions())
-            Fraw = to_numpy_f64(trial.get_forces()).reshape(-1,3)
+            _, Fraw = self._evaluate_image(trial)
+            Fraw = Fraw.reshape(-1,3)
             Frb  = project_out_rigidbody_forces(Fraw, pos, masses_last).reshape(-1)
             F_perp = Frb - float(np.dot(Frb, tau3N)) * tau3N
             maxFperp_final = float(np.max(np.abs(F_perp)))
@@ -502,12 +518,13 @@ class GSM(JobABC):
         # fallback minimal step
         trial = self._copy_with_inherit(last_img)
         pos_last = to_numpy_f64(last_img.get_positions())
-        trial.set_positions(pos_last + p.grow_step_min * dir3.reshape(1, 3))
+        trial.set_positions(pos_last + p.grow_step_min * dir3.reshape(pos_last.shape))
         self._mini_relax_perp_lbfgs(trial, dir3, max_iter=p.grow_relax_iters, gtol=p.grow_relax_tol)
         pos  = to_numpy_f64(trial.get_positions())
-        Fraw = to_numpy_f64(trial.get_forces()).reshape(-1,3)
+        _, Fraw = self._evaluate_image(trial)
+        Fraw = Fraw.reshape(-1,3)
         Frb  = project_out_rigidbody_forces(Fraw, pos, masses_last).reshape(-1)
-        tau3N = np.tile(dir3.reshape(1,3), (len(trial),1)).reshape(-1)
+        tau3N = dir3
         F_perp = Frb - float(np.dot(Frb, tau3N)) * tau3N
         return trial, p.grow_step_min, float(np.max(np.abs(F_perp)))
 
@@ -633,19 +650,19 @@ class GSM(JobABC):
         Main GSM workflow:
         1) Two-ended adaptive growth with stabilizers (connector floor, monotonic guard, forced pull).
         2) Merge L + reversed R and equal-arc reparameterization to fixed n_images.
-        3) Take HEI (on the reparameterized path) as TS guess and call PRFO via restart_run().
+        3) Return the path at refine=None, or refine the HEI only when requested.
         """
-        def forces_info(atoms):
-            F = to_numpy_f64(atoms.get_forces())
+        def forces_info_from_array(forces):
+            F = to_numpy_f64(forces)
             maxF = np.max(np.linalg.norm(F, axis=1))
             rmsF = np.sqrt(np.mean(np.linalg.norm(F, axis=1) ** 2))
             return maxF, rmsF
 
         # --- Report endpoints
-        E_R = self.atoms_R.get_potential_energy(force_consistent=True)
-        E_P = self.atoms_P.get_potential_energy(force_consistent=True)
-        maxF_R, rmsF_R = forces_info(self.atoms_R)
-        maxF_P, rmsF_P = forces_info(self.atoms_P)
+        endpoint_energies, endpoint_forces = self._evaluate_images([self.atoms_R, self.atoms_P])
+        E_R, E_P = endpoint_energies
+        maxF_R, rmsF_R = forces_info_from_array(endpoint_forces[0])
+        maxF_P, rmsF_P = forces_info_from_array(endpoint_forces[1])
 
         log_info([
             "\nProperties of fixed STRING end points:\n",
@@ -671,18 +688,39 @@ class GSM(JobABC):
         # --- Initialize two growth fronts
         L: List[Atoms] = [self._copy_with_inherit(self.atoms_R)]
         R_: List[Atoms] = [self._copy_with_inherit(self.atoms_P)]
-        E_L_last = float(L[-1].get_potential_energy(force_consistent=True))
-        E_R_last = float(R_[-1].get_potential_energy(force_consistent=True))
+        E_L_last = self._evaluate_image(L[-1])[0]
+        E_R_last = self._evaluate_image(R_[-1])[0]
 
-        # Initial directions: centroid connector (first step only)
-        cR = R.mean(axis=0); cP = P_aligned.mean(axis=0)
-        dirL = self._unit(cP - cR); dirR = self._unit(cR - cP)
+        # Initial directions retain the complete non-rigid endpoint displacement.
+        connector = (P_aligned - R).reshape(-1)
+        if np.linalg.norm(connector) < 1e-14:
+            images = [self._copy_with_inherit(self.atoms_R), self._copy_with_inherit(self.atoms_P)]
+            energies, _ = self._evaluate_images(images)
+            return {
+                "status": "bounded_nonconverged", "converged": False,
+                "termination_reason": "degenerate_guide", "growth_iterations": 0,
+                "images": images, "energies": energies,
+            }
+        dirL = self._unit(connector); dirR = -dirL
+        if self.params.max_iter_grow == 0:
+            images = []
+            for fraction in np.linspace(0.0, 1.0, self.params.n_images):
+                image = self._copy_with_inherit(self.atoms_R)
+                image.set_positions((1.0 - fraction) * R + fraction * P_aligned)
+                images.append(image)
+            energies, _ = self._evaluate_images(images)
+            return {
+                "status": "bounded_nonconverged", "converged": False,
+                "termination_reason": "growth_limit", "growth_iterations": 0,
+                "images": images, "energies": energies,
+                "highest_energy_image": int(np.argmax(energies)),
+            }
 
         # First bilateral growth (adaptive)
         newL, dsL, fpL = self._predict_and_relax_one(L[-1], dirL, E_L_last, "L")
-        L.append(newL); E_L_last = float(newL.get_potential_energy(force_consistent=True))
+        L.append(newL); E_L_last = self._evaluate_image(newL)[0]
         newR, dsR, fpR = self._predict_and_relax_one(R_[-1], dirR, E_R_last, "R")
-        R_.append(newR); E_R_last = float(newR.get_potential_energy(force_consistent=True))
+        R_.append(newR); E_R_last = self._evaluate_image(newR)[0]
 
         # Growth log header
         log_info([
@@ -703,6 +741,7 @@ class GSM(JobABC):
         inc_streak_tr   = getattr(self.params, "guide_inc_trigger", 2)
 
         it = 0
+        d_min = self._min_image_distance(L[-1], R_[-1])
         while it < self.params.max_iter_grow:
             d_min_old = self._min_image_distance(L[-1], R_[-1])
 
@@ -716,23 +755,23 @@ class GSM(JobABC):
             # Periodic endpoint mini-relax in the plane normal to the local direction
             if self.params.refine_end_every > 0 and it > 0 and (it % self.params.refine_end_every == 0):
                 if len(L) >= 2:
-                    E_prev = float(L[-2].get_potential_energy(force_consistent=True))
-                    E_last = float(L[-1].get_potential_energy(force_consistent=True))
+                    E_prev = self._evaluate_image(L[-2])[0]
+                    E_last = self._evaluate_image(L[-1])[0]
                     v = to_numpy_f64(L[-1].get_positions()) - to_numpy_f64(L[-2].get_positions())
-                    dir3 = self._unit((E_last - E_prev) * v.mean(axis=0))
+                    dir3 = self._unit((E_last - E_prev) * v.reshape(-1))
                     self._mini_relax_perp_lbfgs(L[-1], dir3, max_iter=self.params.grow_relax_iters, gtol=self.params.grow_relax_tol)
-                    E_L_last = float(L[-1].get_potential_energy(force_consistent=True))
+                    E_L_last = self._evaluate_image(L[-1])[0]
                 if len(R_) >= 2:
-                    E_prev = float(R_[-2].get_potential_energy(force_consistent=True))
-                    E_last = float(R_[-1].get_potential_energy(force_consistent=True))
+                    E_prev = self._evaluate_image(R_[-2])[0]
+                    E_last = self._evaluate_image(R_[-1])[0]
                     v = to_numpy_f64(R_[-1].get_positions()) - to_numpy_f64(R_[-2].get_positions())
-                    dir3 = self._unit((E_last - E_prev) * v.mean(axis=0))
+                    dir3 = self._unit((E_last - E_prev) * v.reshape(-1))
                     self._mini_relax_perp_lbfgs(R_[-1], dir3, max_iter=self.params.grow_relax_iters, gtol=self.params.grow_relax_tol)
-                    E_R_last = float(R_[-1].get_potential_energy(force_consistent=True))
+                    E_R_last = self._evaluate_image(R_[-1])[0]
 
             # --- Blended directions: energy-weighted endpoint tangent + connector (with floor)
-            connL3 = self._unit((to_numpy_f64(R_[-1].get_positions()) - to_numpy_f64(L[-1].get_positions())).mean(axis=0))
-            connR3 = self._unit((to_numpy_f64(L[-1].get_positions()) - to_numpy_f64(R_[-1].get_positions())).mean(axis=0))
+            connL3 = self._unit((to_numpy_f64(R_[-1].get_positions()) - to_numpy_f64(L[-1].get_positions())).reshape(-1))
+            connR3 = self._unit((to_numpy_f64(L[-1].get_positions()) - to_numpy_f64(R_[-1].get_positions())).reshape(-1))
 
             def ew_tangent_end(chain):
                 """Energy-weighted endpoint tangent as a 3D guide vector."""
@@ -741,9 +780,9 @@ class GSM(JobABC):
                 v = to_numpy_f64(chain[-1].get_positions()) - to_numpy_f64(chain[-2].get_positions())
                 if np.linalg.norm(v) < 1e-14:
                     return None
-                E_prev = float(chain[-2].get_potential_energy(force_consistent=True))
-                E_last = float(chain[-1].get_potential_energy(force_consistent=True))
-                return self._unit((E_last - E_prev) * v.mean(axis=0))
+                E_prev = self._evaluate_image(chain[-2])[0]
+                E_last = self._evaluate_image(chain[-1])[0]
+                return self._unit((E_last - E_prev) * v.reshape(-1))
 
             tauL3 = ew_tangent_end(L);  tauL3 = connL3 if tauL3 is None else tauL3
             tauR3 = ew_tangent_end(R_); tauR3 = connR3 if tauR3 is None else tauR3
@@ -767,7 +806,7 @@ class GSM(JobABC):
                 self.params.grow_step = preset_step(d_min_old, base_step_saved)
                 retry = 0
                 while True:
-                    testL, ds_try, fp_try = self._predict_and_relax_one(L[-1], dirL3, float(L[-1].get_potential_energy(force_consistent=True)), "L")
+                    testL, ds_try, fp_try = self._predict_and_relax_one(L[-1], dirL3, self._evaluate_image(L[-1])[0], "L")
                     dL_only = self._min_image_distance(testL, R_[-1])
                     if (dL_only <= d_min_old * (1.0 + dmin_tol)) or (ds_try <= self.params.grow_step_min) or (retry >= max_retry_side):
                         candL, dsL, fpL = testL, ds_try, fp_try
@@ -780,7 +819,7 @@ class GSM(JobABC):
                 self.params.grow_step = preset_step(d_min_old, base_step_saved)
                 retry = 0
                 while True:
-                    testR, ds_try, fp_try = self._predict_and_relax_one(R_[-1], dirR3, float(R_[-1].get_potential_energy(force_consistent=True)), "R")
+                    testR, ds_try, fp_try = self._predict_and_relax_one(R_[-1], dirR3, self._evaluate_image(R_[-1])[0], "R")
                     dR_only = self._min_image_distance(L[-1], testR)
                     if (dR_only <= d_min_old * (1.0 + dmin_tol)) or (ds_try <= self.params.grow_step_min) or (retry >= max_retry_side):
                         candR, dsR, fpR = testR, ds_try, fp_try
@@ -815,12 +854,12 @@ class GSM(JobABC):
                     self.params.grow_step = max(self.params.grow_step * 0.5, self.params.grow_step_min)
                     # Rebuild candidates with smaller step
                     if grow_left and len(L) >= 2:
-                        testL, ds_try, fp_try = self._predict_and_relax_one(L[-1], dirL3, float(L[-1].get_potential_energy(force_consistent=True)), "L")
+                        testL, ds_try, fp_try = self._predict_and_relax_one(L[-1], dirL3, self._evaluate_image(L[-1])[0], "L")
                         dL_only = self._min_image_distance(testL, R_[-1])
                         if dL_only <= d_min_old * (1.0 + dmin_tol):
                             candL, dsL, fpL = testL, ds_try, fp_try
                     if grow_right and len(R_) >= 2:
-                        testR, ds_try, fp_try = self._predict_and_relax_one(R_[-1], dirR3, float(R_[-1].get_potential_energy(force_consistent=True)), "R")
+                        testR, ds_try, fp_try = self._predict_and_relax_one(R_[-1], dirR3, self._evaluate_image(R_[-1])[0], "R")
                         dR_only = self._min_image_distance(L[-1], testR)
                         if dR_only <= d_min_old * (1.0 + dmin_tol):
                             candR, dsR, fpR = testR, ds_try, fp_try
@@ -864,12 +903,12 @@ class GSM(JobABC):
 
             # --- Commit chosen candidates
             if chosen[0] == "L":
-                L.append(candL); E_L_last = float(candL.get_potential_energy(force_consistent=True))
+                L.append(candL); E_L_last = self._evaluate_image(candL)[0]
             elif chosen[0] == "R":
-                R_.append(candR); E_R_last = float(candR.get_potential_energy(force_consistent=True))
+                R_.append(candR); E_R_last = self._evaluate_image(candR)[0]
             else:
-                L.append(candL); E_L_last = float(candL.get_potential_energy(force_consistent=True))
-                R_.append(candR); E_R_last = float(candR.get_potential_energy(force_consistent=True))
+                L.append(candL); E_L_last = self._evaluate_image(candL)[0]
+                R_.append(candR); E_R_last = self._evaluate_image(candR)[0]
 
             # Local alignment for each side
             if len(L) >= 3: align_path_inplace(L[-3:], mode="chain")
@@ -928,8 +967,8 @@ class GSM(JobABC):
 
         # Dump growth-final equal-arc path & HEI
         grow_final = base + "_gsm_grow_final.xyz"
-        write_xyz(grow_final, images, energies=get_energies(images))
-        Es = get_energies(images)
+        Es, _ = self._evaluate_images(images)
+        write_xyz(grow_final, images, energies=Es)
         hei = max(range(1, len(images) - 1), key=lambda i: Es[i]) if len(images) > 2 else 0
         mep_path = base + "_gsm_mep.xyz"   # equal-arc path
         hei_path = base + "_gsm_hei.xyz"
@@ -942,6 +981,17 @@ class GSM(JobABC):
             f"Wrote HEI to:                 {hei_path}\n"
         ], self.output)
 
-        # --- Direct TS refinement via PRFO/RFO on HEI (no CI-STRING / no full relax)
-        self.restart_run(images, hei, base)
+        # Refinement is a separate optional operation.  refine=None is path-only.
+        if self.params.refine is not None:
+            self.restart_run(images, hei, base)
+        merged = d_min <= self.params.merge_threshold
+        return {
+            "status": "path_generated" if merged else "bounded_nonconverged",
+            "converged": False,
+            "termination_reason": "merged_path" if merged else "growth_limit",
+            "growth_iterations": it,
+            "images": images,
+            "energies": Es,
+            "highest_energy_image": hei,
+        }
 

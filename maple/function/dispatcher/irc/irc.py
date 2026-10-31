@@ -3,6 +3,10 @@ from ase import Atoms
 from ..jobABC import JobABC
 
 from maple.function.timer import timer
+from maple.function.dispatcher.implicit_path import (
+    bind_admitted_implicit_path,
+    validate_path_parameters,
+)
 
 class IRC(JobABC):
     def __init__(self, params: dict, output:str, atoms:Atoms, method:str='gs'):
@@ -14,21 +18,47 @@ class IRC(JobABC):
 
     def run(self):
         with timer("IRC Calculation"):
+            original_positions = self.atoms.get_positions().copy()
+            original_calc = self.atoms.calc
+            cache = {
+                name: getattr(original_calc, name, None)
+                for name in ("atoms", "results", "solvation_result", "_evaluated_correction")
+            } if original_calc is not None else {}
+            implicit = getattr(original_calc, "solvent_correction", None) is not None
+            if implicit and self.method != "gs":
+                raise ValueError("Implicit IRC admits only method=gs.")
             if self.method == 'gs':
                 from .algorithm import GS
-                irc = GS(self.atoms, output=self.output, paras=self.commandcontrol)
-                irc.run()
+                from .algorithm.gs import GSParams
+                selected = validate_path_parameters("gs", self.commandcontrol, GSParams)
+                if implicit:
+                    if selected.get("project_rigid_modes") is False:
+                        raise ValueError("Implicit GS-IRC requires project_rigid_modes=true.")
+                    selected.setdefault("project_rigid_modes", True)
+                    bind_admitted_implicit_path(
+                        [self.atoms], "gs", require_hessian=True
+                    )
+                working = self.atoms.copy()
+                working.calc = original_calc
+                try:
+                    irc = GS(working, output=self.output, paras={"gs": selected})
+                    return irc.run()
+                finally:
+                    self.atoms.set_positions(original_positions)
+                    self.atoms.calc = original_calc
+                    for name, value in cache.items():
+                        setattr(original_calc, name, value)
             elif self.method == 'hpc':
                 from .algorithm import HPC
                 irc = HPC(self.atoms, output=self.output, paras=self.commandcontrol)
-                irc.run()
+                return irc.run()
             elif self.method == 'eulerpc':
                 from .algorithm import EulerPC
                 irc = EulerPC(self.atoms, output=self.output, paras=self.commandcontrol)
-                irc.run()
+                return irc.run()
             elif self.method == 'lqa':
                 from .algorithm import LQA
                 irc = LQA(self.atoms, output=self.output, paras=self.commandcontrol)
-                irc.run()
+                return irc.run()
             else:
                 raise NotImplementedError(f'IRC method {self.method} not implemented yet.')

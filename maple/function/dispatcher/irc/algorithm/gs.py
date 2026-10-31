@@ -27,6 +27,7 @@ import numpy as np
 from ase import Atoms
 
 from ...jobABC import JobABC
+from ...curvature import bofill_update
 from .logger import log_info, log_error
 
 # =============================== Utilities ===============================
@@ -75,7 +76,8 @@ def masses_D(atoms: Atoms) -> np.ndarray:
         g_mw = D * g_cart
     """
     m = to_f64(atoms.get_masses())
-    m = np.where(m > 0.0, m, 1.0)
+    if m.shape != (len(atoms),) or not np.isfinite(m).all() or np.any(m <= 0.0):
+        raise ValueError("GS-IRC requires finite positive atomic masses.")
     return v1(1.0 / np.sqrt(np.repeat(m, 3)))
 
 
@@ -134,6 +136,9 @@ class GSParams:
     # Output controls
     print_each: bool = True
     write_traj: bool = True
+    # Gas behavior stays full-3N by default.  The admitted isolated implicit
+    # route requires this option to be true at its boundary.
+    project_rigid_modes: bool = False
 
 
 # ================================== GS ===================================
@@ -187,6 +192,7 @@ class GS(JobABC):
                 "tol_rmsf": "f_rms_th",       # backward compatibility
                 "print_each": "print_each",
                 "write_traj": "write_traj",
+                "project_rigid_modes": "project_rigid_modes",
             }
 
             for k, v in sub_low.items():
@@ -225,10 +231,35 @@ class GS(JobABC):
         self._D = masses_D(self.atoms)
         self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
 
-        # Diagonalize mass-weighted Hessian at TS to get negative mode
+        positions = to_f64(self.atoms.get_positions())
+        if positions.shape != (len(self.atoms), 3) or not np.isfinite(positions).all():
+            raise ValueError("GS-IRC requires finite Cartesian coordinates.")
+
+        # Evaluate and validate the exact input TS before any displacement.
+        E_ts = float(self.atoms.get_potential_energy(force_consistent=True))
+        F_ts = to_f64(self.atoms.get_forces()).reshape(-1)
+        if not np.isfinite(E_ts) or not np.isfinite(F_ts).all():
+            raise ValueError("GS-IRC requires finite input energy and forces.")
         H_cart_ts = self._get_hessian_cart()
+        n3 = 3 * len(self.atoms)
+        if H_cart_ts.shape != (n3, n3) or not np.isfinite(H_cart_ts).all():
+            raise ValueError("GS-IRC requires a finite 3N by 3N Hessian.")
+        asymmetry = np.max(np.abs(H_cart_ts - H_cart_ts.T))
+        scale = max(1.0, float(np.max(np.abs(H_cart_ts))))
+        if asymmetry > 2e-6 * scale:
+            raise ValueError("GS-IRC input Hessian has unresolved asymmetry.")
         H_mw_ts = (self._D[:, None] * H_cart_ts) * self._D[None, :]
-        w, V = np.linalg.eigh(H_mw_ts)
+        basis = np.eye(n3, dtype=np.float64)
+        if self.p.project_rigid_modes:
+            from ...ts.algorithm.PRFO import _mass_weighted_optimization_basis
+            basis, _ = _mass_weighted_optimization_basis(
+                self.atoms, project_rigid_modes=True
+            )
+            if basis.shape[1] == 0:
+                raise ValueError("GS-IRC rigid projection left no internal coordinates.")
+        reduced = basis.T @ H_mw_ts @ basis
+        w, vectors = np.linalg.eigh(0.5 * (reduced + reduced.T))
+        V = basis @ vectors
 
         neg_idx = np.where(w < 0.0)[0]
         if len(neg_idx) == 0:
@@ -260,11 +291,28 @@ class GS(JobABC):
             self.output,
         )
 
-        # Reference TS energy
-        E_ts = float(self.atoms.get_potential_energy(force_consistent=True))
-
         # Store original TS Cartesian positions, reused for both directions
         R_ts_cart = self.atoms.get_positions().copy().reshape(-1)
+        input_ts = {
+            "E": E_ts,
+            "maxG": float(np.max(np.abs(F_ts))),
+            "rmsG": float(np.sqrt(np.mean(F_ts ** 2))),
+            "x": self.atoms.get_positions().copy(),
+        }
+        if self.p.max_steps == 0:
+            side = {
+                "records": [], "E_ts": E_ts, "iterations": 0,
+                "termination_reason": "maximum_steps", "converged": False,
+            }
+            return {
+                "status": "bounded_nonconverged", "converged": False,
+                "termination_reason": "maximum_steps", "iterations": 0,
+                "forward": dict(side, title="FORWARD GS-IRC"),
+                "backward": dict(side, title="BACKWARD GS-IRC"),
+                "input_ts": input_ts, "ts_index": 0,
+                "ordered_path": [input_ts],
+                "summary": {"E_ref": E_ts, "ts_index": 1, "merged_rows": []},
+            }
 
         # Forward and backward GS-IRC
         forward_log = self._one_side(
@@ -282,12 +330,24 @@ class GS(JobABC):
             E_ts=E_ts,
         )
 
-        merged = self._merge_and_mark_ts(forward_log, backward_log)
+        merged = self._merge_and_mark_ts(forward_log, backward_log, input_ts)
 
         if self.p.write_traj:
             self._write_trajs(forward_log, backward_log)
 
-        return {"forward": forward_log, "backward": backward_log, "summary": merged}
+        converged = forward_log["converged"] and backward_log["converged"]
+        ordered_path = list(reversed(backward_log["records"])) + [input_ts] + forward_log["records"]
+        return {
+            "status": "converged" if converged else "bounded_nonconverged",
+            "converged": converged,
+            "termination_reason": (
+                "force_converged" if converged else "maximum_steps"
+            ),
+            "iterations": forward_log["iterations"] + backward_log["iterations"],
+            "forward": forward_log, "backward": backward_log,
+            "input_ts": input_ts, "ts_index": len(backward_log["records"]),
+            "ordered_path": ordered_path, "summary": merged,
+        }
 
     # --------------------------- Low-level helpers --------------------------
     def _cart_from_mw(self, q_mw: np.ndarray) -> np.ndarray:
@@ -369,27 +429,6 @@ class GS(JobABC):
         term2 = np.outer(Hy, Hy) / sTHs
         return H + term1 - term2
 
-    @staticmethod
-    def _bofill_update(H: np.ndarray,
-                       s: np.ndarray,
-                       y: np.ndarray) -> np.ndarray:
-        """
-        Bofill update:
-        Combines Murtagh-Sargent and Powell-symmetric-Broyden updates using the Bofill mixing factor.
-        """
-        dx, dg = s, y
-
-        z = dg - H.dot(dx)
-        # MS
-        ms = np.outer(z, z) / z.dot(dx)
-        # PSB
-        dx2 = dx.dot(dx)
-        psb = ((np.outer(dx, z) + np.outer(z, dx)) / dx2) - (z.dot(dx)) * np.outer(dx, dx) / (dx2 * dx2)
-        # Bofill mixing
-        mix = (z.dot(dx) ** 2) / (z.dot(z) * dx2)
-
-        dH = mix * ms + (1.0 - mix) * psb
-        return H + dH
 
     @staticmethod
     def _newton_1d(on_sphere,
@@ -449,7 +488,7 @@ class GS(JobABC):
             self.mw_hessian = (self._D[:, None] * H_cart) * self._D[None, :]
         else:
             if str(self.p.hessian_update).lower() == "bofill":
-                self.mw_hessian = self._bofill_update(self.mw_hessian, coords_diff, gradient_diff)
+                self.mw_hessian = bofill_update(self.mw_hessian, coords_diff, gradient_diff)
             else:
                 self.mw_hessian = self._bfgs_update(self.mw_hessian, coords_diff, gradient_diff)
         eigvals, eigvecs = np.linalg.eigh(self.mw_hessian)
@@ -563,6 +602,8 @@ class GS(JobABC):
             }
         )
 
+        termination_reason = "maximum_steps"
+        converged = False
         # Macro steps
         for it in range(1, p.max_steps + 1):
             # Anchor gradient at current MW coordinates
@@ -575,6 +616,7 @@ class GS(JobABC):
                     [f"[INFO] {title}: gradient norm ~ 0 at step {it}, stopping.\n"],
                     self.output,
                 )
+                termination_reason = "zero_gradient"
                 break
 
             # For BFGS in first micro-cycle
@@ -625,33 +667,26 @@ class GS(JobABC):
             # Convergence in terms of Cartesian forces
             if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
                 self._print_hurray()
+                termination_reason = "force_converged"
+                converged = True
                 break
 
-        return {"title": title, "records": records, "E_ts": E_ts}
+        return {
+            "title": title, "records": records, "E_ts": E_ts,
+            "iterations": len(records), "termination_reason": termination_reason,
+            "converged": converged,
+        }
 
     # --------------------------- Merge & summary ----------------------------
-    def _merge_and_mark_ts(self, f: Dict, b: Dict) -> Dict:
+    def _merge_and_mark_ts(self, f: Dict, b: Dict, input_ts: Dict) -> Dict:
         fR, bR = f["records"], b["records"]
         if not fR or not bR:
             log_error(["[ERROR] GS-IRC: One path side is empty.\n"], self.output)
             raise RuntimeError("GS-IRC: one path side is empty.")
 
         Ef_end, Eb_end = fR[-1]["E"], bR[-1]["E"]
-        if Ef_end <= Eb_end:
-            first, second = fR, bR
-        else:
-            first, second = bR, fR
-
-        merged = []
-        # Reverse first (to go from minimum to TS), then append second
-        for k in range(len(first) - 1, -1, -1):
-            merged.append(first[k])
-        for k in range(0, len(second)):
-            merged.append(second[k])
-
-        # Find TS index as maximum energy point
-        E_list = [rec["E"] for rec in merged]
-        ts_idx = int(np.argmax(E_list))
+        merged = list(reversed(bR)) + [input_ts] + fR
+        ts_idx = len(bR)
         E_ref = float(min(Ef_end, Eb_end))
 
         log_info(

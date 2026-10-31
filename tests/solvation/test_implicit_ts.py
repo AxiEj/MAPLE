@@ -253,15 +253,20 @@ def test_direct_api_rejects_other_implicit_ts_methods(tmp_path):
 
 
 @pytest.mark.parametrize("container", [list, Molecules])
-@pytest.mark.parametrize("method", ["prfo", "dimer", "neb"])
+@pytest.mark.parametrize(
+    "method, message",
+    [("prfo", "exactly one Atoms geometry"), ("dimer", "exactly one Atoms geometry"),
+     ("neb", "share one exact composed calculator")],
+)
 def test_direct_api_rejects_implicit_multi_geometry_ts_paths(
     tmp_path,
     container,
     method,
+    message,
 ):
     structures = [_direct_implicit_atoms(), _direct_implicit_atoms()]
 
-    with pytest.raises(ValueError, match="exactly one Atoms geometry"):
+    with pytest.raises(ValueError, match=message):
         TransitionState(
             str(tmp_path / "multi-geometry-implicit-prfo.out"),
             container(structures),

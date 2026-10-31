@@ -78,7 +78,10 @@ class engine():
             if isinstance(self.atoms, Atoms):
                 self.atoms.calc = self.calulator
             elif isinstance(self.atoms, Molecules):
-                # For Molecules object, set calculator for all atoms in multiatoms
+                correction = getattr(self.calulator, "solvent_correction", None)
+                if correction is not None:
+                    correction.bind_compatible_geometries(self.atoms.multiatoms)
+                # Attach one exact composed calculator only after atomic binding succeeds.
                 for atom in self.atoms.multiatoms:
                     atom.calc = self.calulator
             elif isinstance(self.atoms, list):

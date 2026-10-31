@@ -288,10 +288,7 @@ def improved_tangent(Rm1, R, Rp1, Em1, E, Ep1):
         t = dp + dm
         norm = np.linalg.norm(t)
         if norm < 1e-16:
-            # fallback 2: return any unit vector
-            unit = np.zeros_like(t)
-            unit[0] = 1.0
-            return unit
+            raise ValueError("NEB tangent is degenerate; no path direction exists.")
     
     return t / norm
 
@@ -341,10 +338,7 @@ def cineb_tangent(Rm1, R, Rp1, Em1, E, Ep1):
         t = dp + dm
         norm = np.linalg.norm(t)
         if norm < 1e-16:
-            # Extreme fallback: choose any unit vector
-            unit = np.zeros_like(t)
-            unit[0] = 1.0
-            return unit
+            raise ValueError("CINEB tangent is degenerate; no path direction exists.")
 
     return t / norm
 
@@ -352,7 +346,8 @@ def cineb_tangent(Rm1, R, Rp1, Em1, E, Ep1):
 def neb_forces(images: List[Atoms], energies: List[float], 
                k_spring: float = None, k_springs: List[float] = None,
                use_dynamic_k: bool = False, k_min: float = 0.03, 
-               k_max: float = 0.3, k_decay: float = 0.5) -> Tuple[List[np.ndarray], float, int]:
+               k_max: float = 0.3, k_decay: float = 0.5,
+               raw_forces: Optional[List[np.ndarray]] = None) -> Tuple[List[np.ndarray], float, int]:
     """
     Compute NEB projected forces for internal images:
     F_NEB = F_true_perp + F_spring_parallel  (per image)
@@ -387,7 +382,10 @@ def neb_forces(images: List[Atoms], energies: List[float],
     hei_idx = 1
 
     # get raw forces and flatten
-    raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
+    if raw_forces is None:
+        raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
+    else:
+        raw_forces = [to_numpy_f64(force) for force in raw_forces]
     coords = [to_numpy_f64(at.get_positions()) for at in images]
     Es = [float(e) for e in energies]
 
@@ -562,6 +560,17 @@ class NEB(JobABC):
             raise ValueError("n_images must be >= 1")
 
         self.params.n_images = int(self.params.n_images) + 2  # total images including endpoints
+
+    @staticmethod
+    def _evaluate_images(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
+        """Evaluate complete energy and forces once per image through one calculator."""
+        calculator = images[0].calc
+        if calculator is None or any(image.calc is not calculator for image in images):
+            raise ValueError("NEB images must share one calculator instance.")
+        result = calculator.calculate_many(images, properties=("energy", "forces"))
+        if result.energies is None or result.forces is None:
+            raise RuntimeError("NEB batch evaluation did not return complete energy and forces.")
+        return list(result.energies), list(result.forces)
 
 
     def optimize_endpoints(self, atoms_R: Atoms, atoms_P: Atoms, 
@@ -1289,16 +1298,20 @@ class NEB(JobABC):
         # ===================================================================
         # Step 2: Endpoint properties and alignment
         # ===================================================================
-        def forces_info(atoms):
-            F = atoms.get_forces()
+        initial_energies, initial_forces = self._evaluate_images(images)
+        initial_geometry = tuple(
+            image.get_positions().tobytes() for image in images
+        )
+
+        def forces_info(F):
             maxF = np.max(np.linalg.norm(F, axis=1))            
             rmsF = np.sqrt(np.mean(np.linalg.norm(F, axis=1) ** 2))
             return maxF, rmsF
 
-        E_R = images[0].get_potential_energy(force_consistent=True)
-        E_P = images[-1].get_potential_energy(force_consistent=True)
-        maxF_R, rmsF_R = forces_info(images[0])
-        maxF_P, rmsF_P = forces_info(images[-1])
+        E_R = initial_energies[0]
+        E_P = initial_energies[-1]
+        maxF_R, rmsF_R = forces_info(initial_forces[0])
+        maxF_P, rmsF_P = forces_info(initial_forces[-1])
 
         log_info([
             "\nProperties of fixed NEB end points:\n",
@@ -1343,7 +1356,12 @@ class NEB(JobABC):
         
         def eval_grad(x_flat):
             self._unpack_internal(x_flat, images)
-            Es = self.get_energies(images)
+            current_geometry = tuple(image.get_positions().tobytes() for image in images)
+            if current_geometry == initial_geometry and not hasattr(self, "_last_evaluation"):
+                Es, raw_forces = initial_energies, initial_forces
+            else:
+                Es, raw_forces = self._evaluate_images(images)
+            self._last_evaluation = (Es, raw_forces)
             
             Fp_list, _, _ = neb_forces(
                 images, Es,
@@ -1352,7 +1370,8 @@ class NEB(JobABC):
                 use_dynamic_k=self.params.use_dynamic_k,
                 k_min=self.params.k_min,
                 k_max=self.params.k_max,
-                k_decay=self.params.k_decay
+                k_decay=self.params.k_decay,
+                raw_forces=raw_forces,
             )
             
             grads = [(-Fp_list[i]).reshape(-1) for i in range(1, len(images) - 1)]
@@ -1362,7 +1381,7 @@ class NEB(JobABC):
         g = eval_grad(x)
         iteration = 0
         
-        Es = self.get_energies(images)
+        Es, raw_forces = self._last_evaluation
         
         if self.params.use_dynamic_k:
             k_springs = compute_dynamic_k(Es, self.params.k_min, self.params.k_max, self.params.k_decay)
@@ -1374,7 +1393,8 @@ class NEB(JobABC):
             images, Es,
             k_spring=None,
             k_springs=k_springs,
-            use_dynamic_k=False
+            use_dynamic_k=False,
+            raw_forces=raw_forces,
         )
         rmsfp = rms_force(Fp_list)
         dE_hei = Es[hei] - Es[0]
@@ -1418,7 +1438,7 @@ class NEB(JobABC):
             g = g_new
             
             # Compute forces and energies for logging
-            Es = self.get_energies(images)
+            Es, raw_forces = self._last_evaluation
             
             if self.params.use_dynamic_k:
                 k_springs = compute_dynamic_k(Es, self.params.k_min, self.params.k_max, self.params.k_decay)
@@ -1430,7 +1450,8 @@ class NEB(JobABC):
                 images, Es,
                 k_spring=None,
                 k_springs=k_springs,
-                use_dynamic_k=False
+                use_dynamic_k=False,
+                raw_forces=raw_forces,
             )
             
             rmsfp = rms_force(Fp_list)
@@ -1444,8 +1465,11 @@ class NEB(JobABC):
             else:
                 log_info([f"   LBFGS {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}\n"], self.output)
         
-        if iteration == 0:
-            log_info(["\nNEB already converged at initial geometry (iteration 0).\n"], self.output)
+        converged = driver.should_stop(
+            g, self.params.neb_f_max_th, self.params.neb_f_rms_th
+        )
+        if converged:
+            log_info([f"\nNEB force criterion met after {iteration} iterations.\n"], self.output)
         elif iteration == self.params.max_iter:
             log_info(["\nNEB optimization reached maximum iterations.\n"], self.output)
         else:
@@ -1515,3 +1539,14 @@ class NEB(JobABC):
                 ], self.output)
             else:
                 self.restart_run(images, energies=Es)
+        return {
+            "status": "converged" if converged else "bounded_nonconverged",
+            "converged": bool(converged),
+            "termination_reason": "force_converged" if converged else "maximum_iterations",
+            "iterations": iteration,
+            "images": images,
+            "energies": list(Es),
+            "projected_forces": Fp_list,
+            "max_projected_force": float(maxfp),
+            "rms_projected_force": float(rmsfp),
+        }

@@ -12,6 +12,7 @@ from .filereader import XYZReader
 from .filereader import PostReader
 from .filereader import XYZTrajReader
 from .filereader import MOL2Reader
+from .filereader.mol2_reader import MOL2_IDENTITY_SHA256_KEY
 from .command_control import CommandControl
 
 from .header.header import print_banner
@@ -312,45 +313,45 @@ class InputReader():
 
         implicit_options = self.command_control.params.get("solv", {})
         if isinstance(implicit_options, dict) and implicit_options.get("implicit") is not None:
-            if isinstance(atoms_or_list, list):
-                raise ValueError("Implicit solvation currently accepts exactly one molecule.")
+            task = self.command_control.task
+            method = str(self.command_control.params.get("method", "")).lower()
+            path_input = isinstance(atoms_or_list, list) and task == "ts" and method in {"neb", "string"}
+            if isinstance(atoms_or_list, list) and not path_input:
+                raise ValueError("Implicit multi-geometry input is admitted only for NEB or String.")
+            images = atoms_or_list if isinstance(atoms_or_list, list) else [atoms_or_list]
             charge_options = self.command_control.params.get("charge", {})
-            if "mol2" not in atoms_or_list.info and charge_options.get("source") == "mol2":
-                raise ValueError("#charge(source=mol2) requires a MOL2 coordinate source with explicit charges; it is never replaced by inferred charges.")
-            if "charge" not in atoms_or_list.info or "mult" not in atoms_or_list.info:
-                raise ValueError(
-                    "Implicit solvation requires an explicit '0 1' charge/multiplicity line "
-                    "immediately before the coordinate source."
-                )
-            if atoms_or_list.info["charge"] != 0 or atoms_or_list.info["mult"] != 1:
-                raise ValueError(
-                    "The first implicit-solvation domain is neutral closed-shell molecules "
-                    "with charge/multiplicity '0 1'."
-                )
-            if np.any(atoms_or_list.pbc):
-                raise ValueError("Implicit-solvent input is non-periodic; remove #pbc or periodic XYZ metadata.")
-            if "mol2" not in atoms_or_list.info:
-                if charge_options.get("geometry", "keep") != "keep":
-                    raise ValueError("Cartesian implicit-solvent preparation requires geometry=keep.")
-                if "_maple_cartesian_source" not in atoms_or_list.info:
-                    atoms_or_list.info["_maple_cartesian_source"] = {
+            reference = None
+            for image in images:
+                if "mol2" not in image.info and charge_options.get("source") == "mol2":
+                    raise ValueError("#charge(source=mol2) requires MOL2 metadata on every path image.")
+                if image.info.get("charge") != 0 or image.info.get("mult") != 1:
+                    raise ValueError("Every implicit-solvent image must declare charge/multiplicity '0 1'.")
+                if np.any(image.pbc):
+                    raise ValueError("Implicit-solvent input is non-periodic.")
+                if bool(getattr(image, "constraints", None)):
+                    raise ValueError("Implicit-solvent paths do not accept constraints.")
+                if "mol2" not in image.info:
+                    if charge_options.get("geometry", "keep") != "keep":
+                        raise ValueError("Cartesian implicit-solvent preparation requires geometry=keep.")
+                    image.info.setdefault("_maple_cartesian_source", {
                         "kind": "inline", "path": self.input,
                         "sha256": hashlib.sha256(Path(self.input).read_bytes()).hexdigest(),
-                    }
-            if (
-                implicit_options.get("inner") == "prebuilt"
-                and atoms_or_list.info.get("mol2", {}).get("component_count", 1) < 2
-            ):
-                raise ValueError(
-                    "inner=prebuilt requires a MOL2 cluster with at least two "
-                    "connected components."
+                    })
+                signature = (
+                    tuple(int(value) for value in image.get_atomic_numbers()),
+                    tuple(float(value) for value in image.get_masses()),
+                    tuple(float(value) for value in image.get_initial_charges()),
+                    image.info.get("mol2", {}).get(MOL2_IDENTITY_SHA256_KEY),
                 )
-            atoms_or_list.info["_maple_charge_options"] = dict(
-                self.command_control.params.get("charge", {})
-            )
-            atoms_or_list.info["_maple_solvation_options"] = dict(implicit_options)
-            atoms_or_list.info["_maple_output"] = self.output
-        
+                if reference is None:
+                    reference = signature
+                elif signature != reference:
+                    raise ValueError("Implicit path images must preserve atom, mass, charge, and MOL2 identity.")
+            for image in images:
+                image.info["_maple_charge_options"] = dict(self.command_control.params.get("charge", {}))
+                image.info["_maple_solvation_options"] = dict(implicit_options)
+                image.info["_maple_output"] = self.output
+
         # === Step 3: Expand post-processing commands (handle POST references) ===
         with timer("Post-Processing Expansion"):
             if post_processing:

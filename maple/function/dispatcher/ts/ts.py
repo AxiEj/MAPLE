@@ -7,6 +7,11 @@ from ase import Atoms
 
 from maple.function.timer import timer
 from maple.function.utility import Molecules
+from maple.function.dispatcher.implicit_path import (
+    bind_admitted_implicit_path,
+    path_images,
+    validate_path_parameters,
+)
 
 from ..jobABC import JobABC
 
@@ -150,10 +155,33 @@ class TransitionState(JobABC):
                     is not None
                     for atoms in structures
                 ):
-                    raise ValueError(
-                        "The initial experimental implicit-solvent TS path requires "
-                        "exactly one Atoms geometry and method=prfo or dimer."
-                    )
+                    method = str(self.method).lower()
+                    if method not in {"neb", "string"}:
+                        raise ValueError(
+                            "Implicit PRFO and Dimer require exactly one Atoms geometry; "
+                            "multi-image TS admits only standard NEB or path-only String."
+                        )
+                    if method == "neb":
+                        from .algorithm.neb import NEBParams
+                        validate_path_parameters(
+                            "neb",
+                            {"neb": {key: value for key, value in self.params.items() if key != "method"}},
+                            NEBParams,
+                        )
+                    else:
+                        from .algorithm.string import GSMParams
+                        validate_path_parameters(
+                            "string",
+                            {"string": {key: value for key, value in self.params.items() if key != "method"}},
+                            GSMParams,
+                        )
+                    implicit_ts = bind_admitted_implicit_path(structures, method)
+                    working = []
+                    for image in structures:
+                        copied = image.copy()
+                        copied.calc = image.calc
+                        working.append(copied)
+                    self.atoms = Molecules(working) if isinstance(self.atoms, Molecules) else working
             if implicit_ts:
                 method = str(self.method).lower()
                 calculator = cast(Atoms, self.atoms).calc
@@ -193,7 +221,7 @@ class TransitionState(JobABC):
                     output=self.output,
                     paras=self.params,
                 )
-                prfo.run()
+                return prfo.run()
                 
             elif self.method == 'neb':
                 # NEB now accepts Molecules object
@@ -204,7 +232,7 @@ class TransitionState(JobABC):
                         atoms_or_molecules=self.atoms,
                         paras=self.params
                     )
-                    neb.run()
+                    return neb.run()
                 elif isinstance(self.atoms, list):
                     # Legacy support for list input
                     if len(self.atoms) < 2:
@@ -217,7 +245,7 @@ class TransitionState(JobABC):
                         atoms_or_molecules=molecules,
                         paras=self.params
                     )
-                    neb.run()
+                    return neb.run()
                 else:
                     raise ValueError('For NEB method, you should provide a Molecules object or a list of at least two structures.')
                     
@@ -234,7 +262,7 @@ class TransitionState(JobABC):
                     atoms_P=self.atoms[1],
                     paras=self.params
                 )
-                string.run()
+                return string.run()
                 
             elif self.method == 'dimer':
                 from .algorithm import Dimer
@@ -248,7 +276,7 @@ class TransitionState(JobABC):
                     atoms_init=cast(Atoms, atoms_input),
                     paras=self.params
                 )
-                dimer.run()
+                return dimer.run()
                 
             elif self.method == 'autoneb':
                 # AutoNEB: automated multi-step reaction pathway exploration

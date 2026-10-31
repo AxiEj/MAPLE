@@ -265,6 +265,7 @@ def test_qualification_source_inventory_excludes_only_final_data_artifacts():
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v2.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v3.json",
         "maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json",
+        "maple/function/calculator/data/independent_obc2_analytic_qualification_v5.json",
     })
     assert set(snapshot["excluded_data_only_paths"]) == set(
         validation.QUALIFICATION_SOURCE_EXCLUDES

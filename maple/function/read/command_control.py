@@ -1,5 +1,6 @@
 import math
 import re
+from dataclasses import fields
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
@@ -200,7 +201,7 @@ class CommandControl:
         ),
     }
 
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "md"}
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "md", "ts", "irc"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
@@ -543,6 +544,23 @@ class CommandControl:
         if task == "freq":
             allowed.update(cls.DEFAULTS["freq"])
             return allowed
+        if task in {"ts", "irc"}:
+            from dataclasses import fields
+            method = str(params.get("method", "gs" if task == "irc" else "")).lower()
+            if task == "irc" and method == "gs":
+                from maple.function.dispatcher.irc.algorithm.gs import GSParams
+                allowed.update(field.name for field in fields(GSParams))
+                allowed.update({"sd_len_bohr", "steplength_bohr", "max_points", "tol_maxf", "tol_rmsf"})
+            elif task == "ts" and method == "neb":
+                from maple.function.dispatcher.ts.algorithm.neb import NEBParams
+                allowed.update(field.name for field in fields(NEBParams))
+            elif task == "ts" and method == "string":
+                from maple.function.dispatcher.ts.algorithm.string import GSMParams
+                allowed.update(field.name for field in fields(GSMParams))
+            else:
+                return None
+            allowed.add("method")
+            return allowed
 
         method = str(params.get("method") or "lbfgs").lower()
         method_params = cls.OPT_METHOD_PARAMS.get(method)
@@ -694,6 +712,59 @@ class CommandControl:
         if message is not None:
             cls._log_error(output_path, message)
             raise ValueError(message)
+
+    @classmethod
+    def _validate_implicit_path_command(cls, params: dict, task: str, output_path) -> None:
+        """Validate the exact command-level AIMNet2025/Torch-OBC-II path cell."""
+        method = str(params.get("method", "gs" if task == "irc" else "")).lower()
+        if isinstance(params.get("refine"), str) and params["refine"].lower() == "none":
+            params["refine"] = None
+        expected = {"irc": {"gs"}, "ts": {"neb", "string"}}[task]
+        if method not in expected:
+            raise ValueError(
+                "Implicit path opening admits only irc(method=gs), ts(method=neb), "
+                "or ts(method=string)."
+            )
+        if str(params.get("model", "")).lower() not in {
+            "aimnet2025", "aimnet2-2025", "aimnet2_2025"
+        }:
+            raise ValueError("Implicit paths admit only AIMNet2025 plus Torch OBC-II.")
+        charge = params.get("charge", {})
+        if (
+            charge.get("source") != "mol2"
+            or charge.get("mode", "fixed") != "fixed"
+            or charge.get("geometry", "keep") != "keep"
+        ):
+            raise ValueError(
+                "Implicit paths require fixed MOL2 charges with geometry=keep."
+            )
+        options = params.get("solv", {})
+        if options.get("inner") is not None:
+            raise ValueError("Implicit paths support one solute and no inner shell.")
+        model_options = params.get("model_options", {})
+        if task == "irc" and model_options.get("hessian") != "analytic":
+            raise ValueError("Implicit GS-IRC requires hessian=analytic.")
+        if task == "irc":
+            from maple.function.dispatcher.irc.algorithm.gs import GSParams
+            from maple.function.dispatcher.implicit_path import validate_path_parameters
+            allowed = {field.name for field in fields(GSParams)} | {
+                "sd_len_bohr", "steplength_bohr", "max_points", "tol_maxf", "tol_rmsf"
+            }
+            selected = validate_path_parameters(
+                "gs", {"gs": {key: value for key, value in params.items() if key in allowed}}, GSParams
+            )
+            if selected.get("project_rigid_modes") is False:
+                raise ValueError("Implicit GS-IRC requires project_rigid_modes=true.")
+        elif method == "neb":
+            from maple.function.dispatcher.ts.algorithm.neb import NEBParams
+            from maple.function.dispatcher.implicit_path import validate_path_parameters
+            allowed = {field.name for field in fields(NEBParams)}
+            validate_path_parameters("neb", {"neb": {key: value for key, value in params.items() if key in allowed}}, NEBParams)
+        else:
+            from maple.function.dispatcher.ts.algorithm.string import GSMParams
+            from maple.function.dispatcher.implicit_path import validate_path_parameters
+            allowed = {field.name for field in fields(GSMParams)}
+            validate_path_parameters("string", {"string": {key: value for key, value in params.items() if key in allowed}}, GSMParams)
 
     @classmethod
     def _validate_ddlpb_reference(cls, options: dict, task: str, output_path) -> None:
@@ -1184,7 +1255,12 @@ class CommandControl:
                             cls._log_error(output_path, msg)
                             raise ValueError(msg)
                     elif task in {"freq", "ts"}:
-                        cls._validate_implicit_curvature_task(params, task, output_path)
+                        if task == "ts" and str(params.get("method", "")).lower() in {"neb", "string"}:
+                            cls._validate_implicit_path_command(params, task, output_path)
+                        else:
+                            cls._validate_implicit_curvature_task(params, task, output_path)
+                    elif task == "irc":
+                        cls._validate_implicit_path_command(params, task, output_path)
                     elif task not in {"sp", "opt", "scan"}:
                         msg = "Independent OBC-II does not support this task."
                         cls._log_error(output_path, msg)
@@ -1729,7 +1805,7 @@ class CommandControl:
                     f"Method '{params['method']}' not implemented for task '{task}'."
                 )
 
-        if task == "ts" and "refine" in params:
+        if task == "ts" and "refine" in params and params["refine"] is not None:
             method = params.get("method")
             allowed_refines = (
                 cls.TS_REFINE_MAP.get(method) if isinstance(method, str) else None

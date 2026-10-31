@@ -18,6 +18,7 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
+from ...curvature import bofill_update
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -436,47 +437,6 @@ def _bfgs_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
     H_new = H + np.outer(y, y) / ys - np.outer(Hs, Hs) / sHs
     return 0.5 * (H_new + H_new.T)
 
-def _bofill_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """
-    Bofill = mixed MS/SR1 + PSB.
-    If the SR1/MS denominator is unsafe, fall back to pure PSB.
-    """
-    H = to_numpy_f64(H)
-    s = vec1d(s)
-    y = vec1d(y, s.size)
-
-    s2 = float(np.dot(s, s))
-    y2 = float(np.dot(y, y))
-    if s2 <= 1e-16 or y2 <= 1e-16:
-        return H
-
-    # Residual: z = Δg - H Δx
-    z = y - H.dot(s)
-    z2 = float(np.dot(z, z))
-    sz = float(np.dot(s, z))
-
-    # PSB term is safe as long as s2 is nonzero, already guaranteed above.
-    psb = (
-        (np.outer(z, s) + np.outer(s, z)) / s2
-        - (sz / (s2 * s2)) * np.outer(s, s)
-    )
-
-    # if s·z is too small, do NOT divide by it; use pure PSB.
-    use_sr1 = (abs(sz) > 1e-8) and (z2 > 1e-16)
-
-    if use_sr1:
-        ms = np.outer(z, z) / sz
-        if s2 > 1e-16 and z2 > 1e-16:
-            ratio = (sz * sz) / (s2 * z2)
-            phi = float(np.clip(1.0 - ratio, 0.0, 1.0))
-        else:
-            phi = 1.0
-    else:
-        ms = np.zeros_like(H)
-        phi = 1.0
-
-    H_new = H + (1.0 - phi) * ms + phi * psb
-    return 0.5 * (H_new + H_new.T)
 
 # =============================================================================
 # ------------------------------- PRFO Parameters -----------------------------
@@ -1019,7 +979,7 @@ class PRFO(JobABC):
                         if self.params.hessian_update == "bfgs":
                             H_work = _bfgs_update(H_work, s_cart, y_cart)
                         else:
-                            H_work = _bofill_update(H_work, s_cart, y_cart)
+                            H_work = bofill_update(H_work, s_cart, y_cart)
                     
                     # Compute convergence metrics (per DOF RMS)
                     dof = s_cart.size

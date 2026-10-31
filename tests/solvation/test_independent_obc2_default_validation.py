@@ -17,7 +17,7 @@ import validate_independent_obc2_default as validation
 
 
 def test_validation_output_uses_the_current_run_date_without_rewriting_stage0():
-    assert validation.RECORDED_DATE == "2026-10-30"
+    assert validation.RECORDED_DATE == "2026-10-31"
     assert validation.OUTPUT_REL == (
         ".omx/benchmarks/route1-private-cha-fp32-20261029/obc-ani/candidate-validation.json"
     )

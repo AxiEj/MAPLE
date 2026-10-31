@@ -39,7 +39,7 @@ import benchmark_core as core  # noqa: E402
 from maple.function.read.filereader.mol2_reader import MOL2Reader  # noqa: E402
 
 BASE_HEAD = "e4044219"
-RECORDED_DATE = "2026-10-30"
+RECORDED_DATE = "2026-10-31"
 RUNNER_REL = "docs/implicit-solvation/benchmarks/validate_independent_obc2_default.py"
 TEST_REL = "tests/solvation/test_independent_obc2_default_validation.py"
 OUTPUT_REL = (

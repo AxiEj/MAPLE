@@ -178,7 +178,7 @@ def _load_corpus(folder, hashes):
         if 'fixture_relative_path' in source:
             provenance.append((source['fixture_relative_path'], source['fixture_sha256']))
         for relative, expected_sha in provenance:
-            path = ROOT / relative
+            path = (ROOT / relative).resolve()
             path.relative_to(ROOT)
             require_equal(core.sha256_file(path), expected_sha, 'frozen provenance file')
             files[relative] = expected_sha

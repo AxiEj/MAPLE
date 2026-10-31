@@ -480,7 +480,7 @@ def _assert_v6_receipt_lifecycle(filename, digest, receipt_path, historical_v5):
     assert historical_v5.is_file() and not historical_v5.is_symlink()
     assert hashlib.sha256(historical_v5.read_bytes()).hexdigest() == _V5_RECEIPT_SHA256
     if digest is None:
-        assert not receipt_path.exists()
+        assert not receipt_path.exists() and not receipt_path.is_symlink()
         return
     assert runtime._is_sha256(digest)
     assert receipt_path.is_file() and not receipt_path.is_symlink()
@@ -540,6 +540,23 @@ def test_v6_receipt_lifecycle_accepts_a_valid_sealed_state(tmp_path):
         receipt_path,
         data / "independent_obc2_analytic_qualification_v5.json",
     )
+
+
+@pytest.mark.parametrize("receipt_state", ["absent", "present", "dangling_symlink"])
+def test_v6_unqualified_lifecycle_requires_absent_receipt(tmp_path, receipt_state):
+    from maple.function.calculator import set_calculator as runtime
+
+    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v6.json"
+    historical_v5 = Path(runtime.__file__).with_name("data") / "independent_obc2_analytic_qualification_v5.json"
+    if receipt_state == "present":
+        receipt_path.write_text(json.dumps(_synthetic_v6_receipt()) + "\n")
+    elif receipt_state == "dangling_symlink":
+        receipt_path.symlink_to(tmp_path / "absent-target.json")
+    if receipt_state == "absent":
+        _assert_v6_receipt_lifecycle(receipt_path.name, None, receipt_path, historical_v5)
+    else:
+        with pytest.raises(AssertionError):
+            _assert_v6_receipt_lifecycle(receipt_path.name, None, receipt_path, historical_v5)
 
 
 @pytest.mark.parametrize(

@@ -67,6 +67,11 @@ def main() -> None:
             )
         completed = cache[node]
         test_file = node.split("::", 1)[0]
+        expected = (
+            f"capability-contract-pass:{capability}"
+            if capability is not None
+            else f"hostile-guard-pass:{row_id}"
+        )
         rows[row_id] = {
             "capability_key": capability,
             "implementation_files_sha256": {implementation: _sha256(ROOT / implementation)},
@@ -74,8 +79,8 @@ def main() -> None:
             "test_node": node,
             "test_file_sha256": _sha256(ROOT / test_file),
             "fixture_identity": {"kind": "deterministic-cpu-pytest-node", "node": node},
-            "expected": "pytest-pass",
-            "observed": "pytest-pass" if completed.returncode == 0 else completed.stdout + completed.stderr,
+            "expected": expected,
+            "observed": expected if completed.returncode == 0 else completed.stdout + completed.stderr,
             "passed": completed.returncode == 0,
         }
     after = qualification.source_snapshot(require_clean=True)

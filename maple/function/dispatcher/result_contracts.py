@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import hashlib
@@ -19,6 +18,57 @@ class RunStatus(str, Enum):
     BOUNDED_NONCONVERGED = "bounded_nonconverged"
     FAILED = "failed"
     REFUSED = "refused"
+
+
+_HEX_DIGITS = frozenset("0123456789abcdef")
+_PRECISION_PROFILES = frozenset(
+    {
+        "strict-generic",
+        "qualified-aimnet2025-n32-gas",
+        "qualified-aimnet2025-n32-torch-obc2",
+    }
+)
+
+
+def _require_sha256(value: str, *, name: str) -> None:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in _HEX_DIGITS for character in value)
+    ):
+        raise ValueError(f"{name} must be a lowercase 64-character SHA256 digest.")
+
+
+def _deep_freeze(value):
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return tuple(_deep_freeze(item) for item in value.tolist())
+    if isinstance(value, Mapping):
+        return MappingProxyType(
+            {key: _deep_freeze(item) for key, item in value.items()}
+        )
+    if isinstance(value, (list, tuple)):
+        return tuple(_deep_freeze(item) for item in value)
+    if isinstance(value, (set, frozenset)):
+        return frozenset(_deep_freeze(item) for item in value)
+    return value
+
+
+def _freeze_budgets(value: Mapping[str, int]) -> Mapping[str, int]:
+    if not isinstance(value, Mapping):
+        raise TypeError("Result budgets must be a mapping.")
+    budgets = dict(value)
+    for name, count in budgets.items():
+        if not isinstance(name, str) or not name:
+            raise TypeError("Result budget names must be non-empty strings.")
+        if type(count) is not int or count < 0:
+            raise TypeError("Result budget counts must be non-negative exact integers.")
+    maximum = budgets.get("maximum_iterations")
+    used = budgets.get("used_iterations")
+    if maximum is not None and used is not None and used > maximum:
+        raise ValueError("Used iterations cannot exceed the maximum iteration budget.")
+    return MappingProxyType(budgets)
 
 
 def geometry_sha256(atoms: Atoms) -> str:
@@ -58,6 +108,16 @@ def _readonly_array(value, *, shape: tuple[int, ...], name: str) -> np.ndarray:
     return array
 
 
+def _real_finite_scalar(value, *, name: str) -> float:
+    raw = np.asarray(value)
+    if raw.ndim != 0 or np.iscomplexobj(raw):
+        raise ValueError(f"{name} must be a real finite scalar.")
+    converted = np.asarray(raw, dtype=np.float64)
+    if not np.isfinite(converted).all():
+        raise ValueError(f"{name} must be a real finite scalar.")
+    return float(converted.item())
+
+
 @dataclass(frozen=True)
 class SaddleCertification:
     geometry_sha256: str
@@ -69,12 +129,50 @@ class SaddleCertification:
     refusal_reason: str | None = None
 
     def __post_init__(self) -> None:
-        if self.material_negative_mode_count is not None and self.material_negative_mode_count < 0:
-            raise ValueError("A material negative-mode count cannot be negative.")
+        _require_sha256(self.geometry_sha256, name="Certification geometry identity")
+        if self.raw_hessian_sha256 is not None:
+            _require_sha256(
+                self.raw_hessian_sha256,
+                name="Certification raw Hessian identity",
+            )
+        if self.precision_profile is not None and (
+            not isinstance(self.precision_profile, str)
+            or self.precision_profile not in _PRECISION_PROFILES
+        ):
+            raise ValueError("Certification precision profile is not recognized.")
+        if self.material_negative_mode_count is not None and (
+            type(self.material_negative_mode_count) is not int
+            or self.material_negative_mode_count < 0
+        ):
+            raise TypeError(
+                "A material negative-mode count must be a non-negative exact integer."
+            )
+        if type(self.force_displacement_converged) is not bool:
+            raise TypeError("Certification convergence must be an exact boolean.")
+        if self.refusal_reason is not None and (
+            not isinstance(self.refusal_reason, str) or not self.refusal_reason
+        ):
+            raise ValueError("Certification refusal reason must be a non-empty string.")
+        complete_curvature = (
+            self.raw_hessian_sha256 is not None
+            and self.precision_profile is not None
+            and self.material_negative_mode_count is not None
+        )
+        if self.refusal_reason is None and not complete_curvature:
+            raise ValueError(
+                "A non-refused certification requires complete curvature evidence."
+            )
+        if self.refusal_reason is None and (
+            not self.force_displacement_converged
+            or self.material_negative_mode_count != 1
+        ):
+            raise ValueError(
+                "A non-refused certification requires converged index-one evidence."
+            )
         object.__setattr__(
             self,
             "diagnostics",
-            MappingProxyType(deepcopy(dict(self.diagnostics))),
+            _deep_freeze(dict(self.diagnostics)),
         )
 
     @property
@@ -103,10 +201,15 @@ class PRFOResult:
     output_paths: Mapping[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if not isinstance(self.status, RunStatus):
+            raise TypeError("PRFO status must be a RunStatus.")
+        if type(self.iterations) is not int or self.iterations < 0:
+            raise TypeError("PRFO iteration count must be a non-negative exact integer.")
+        if type(self.force_displacement_converged) is not bool:
+            raise TypeError("PRFO convergence must be an exact boolean.")
         snapshot = _snapshot_atoms(self.atoms)
         object.__setattr__(self, "atoms", snapshot)
-        if self.iterations < 0:
-            raise ValueError("PRFO iteration count cannot be negative.")
+        _require_sha256(self.geometry_sha256, name="PRFO geometry identity")
         if self.geometry_sha256 != geometry_sha256(self.atoms):
             raise ValueError("PRFO geometry identity does not match its snapshot.")
         if self.status is RunStatus.CONVERGED:
@@ -120,8 +223,12 @@ class PRFOResult:
             self.certification.geometry_sha256 != self.geometry_sha256
         ):
             raise ValueError("PRFO certification and result geometry identities differ.")
-        if self.energy_hartree is not None and not np.isfinite(self.energy_hartree):
-            raise ValueError("PRFO final energy must be finite when present.")
+        if self.energy_hartree is not None:
+            object.__setattr__(
+                self,
+                "energy_hartree",
+                _real_finite_scalar(self.energy_hartree, name="PRFO final energy"),
+            )
         if self.forces_hartree_per_angstrom is not None:
             forces = _readonly_array(
                 self.forces_hartree_per_angstrom,
@@ -133,7 +240,14 @@ class PRFOResult:
             self.energy_hartree is None or self.forces_hartree_per_angstrom is None
         ):
             raise ValueError("A certified TS requires finite final energy and forces.")
-        object.__setattr__(self, "budgets", MappingProxyType(dict(self.budgets)))
+        budgets = _freeze_budgets(self.budgets)
+        if "maximum_iterations" not in budgets or "used_iterations" not in budgets:
+            raise ValueError(
+                "PRFO budgets require maximum_iterations and used_iterations."
+            )
+        if budgets.get("used_iterations") != self.iterations:
+            raise ValueError("PRFO used-iteration budget must equal its iteration count.")
+        object.__setattr__(self, "budgets", budgets)
         object.__setattr__(
             self,
             "convergence_metrics",
@@ -166,6 +280,10 @@ class PRFOResult:
         certification: SaddleCertification | None,
         output_paths: Mapping[str, str],
     ) -> "PRFOResult":
+        if type(iterations) is not int or type(max_iterations) is not int:
+            raise TypeError("PRFO iteration counts must be exact integers.")
+        if type(force_displacement_converged) is not bool:
+            raise TypeError("PRFO convergence must be an exact boolean.")
         snapshot = _snapshot_atoms(atoms)
         geometry_id = geometry_sha256(snapshot)
         metrics = {
@@ -184,11 +302,18 @@ class PRFOResult:
             status=status,
             atoms=snapshot,
             iterations=iterations,
-            budgets={"maximum_iterations": int(max_iterations), "used_iterations": int(iterations)},
+            budgets={"maximum_iterations": max_iterations, "used_iterations": iterations},
             force_displacement_converged=force_displacement_converged,
             termination_reason=termination_reason,
             geometry_sha256=geometry_id,
-            energy_hartree=None if energy_hartree is None else float(energy_hartree),
+            energy_hartree=(
+                None
+                if energy_hartree is None
+                else _real_finite_scalar(
+                    energy_hartree,
+                    name="PRFO final energy",
+                )
+            ),
             forces_hartree_per_angstrom=forces,
             convergence_metrics=metrics,
             certification=certification,
@@ -210,8 +335,12 @@ class PathStageResult:
     certification: SaddleCertification | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.status, RunStatus):
+            raise TypeError("Path-stage status must be a RunStatus.")
         snapshots = tuple(_snapshot_atoms(image) for image in self.images)
         object.__setattr__(self, "images", snapshots)
+        geometry_ids = tuple(self.geometry_sha256)
+        object.__setattr__(self, "geometry_sha256", geometry_ids)
         if self.candidate is not None:
             object.__setattr__(self, "candidate", _snapshot_atoms(self.candidate))
         if len(self.geometry_sha256) != len(self.images):
@@ -242,12 +371,27 @@ class PathStageResult:
                     for image, value in zip(self.images, self.forces_hartree_per_angstrom)
                 ),
             )
-        object.__setattr__(self, "budgets", MappingProxyType(dict(self.budgets)))
+        object.__setattr__(self, "budgets", _freeze_budgets(self.budgets))
         if self.candidate is None:
             if self.candidate_geometry_sha256 is not None:
                 raise ValueError("A path-stage candidate identity requires a candidate.")
         elif self.candidate_geometry_sha256 != geometry_sha256(self.candidate):
             raise ValueError("The path-stage candidate identity does not match its snapshot.")
+        if self.certification is not None:
+            designated_geometry = (
+                self.candidate_geometry_sha256
+                if self.candidate is not None
+                else None
+            )
+            if designated_geometry is None:
+                if self.certification.geometry_sha256 not in self.geometry_sha256:
+                    raise ValueError(
+                        "Path-stage certification does not match any stage geometry."
+                    )
+            elif self.certification.geometry_sha256 != designated_geometry:
+                raise ValueError(
+                    "Path-stage certification does not match the candidate geometry."
+                )
 
     @classmethod
     def capture(

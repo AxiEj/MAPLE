@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 import hashlib
 from pathlib import Path
@@ -229,6 +230,62 @@ def test_bound_profile_cannot_transfer_to_other_atoms(monkeypatch):
         validate_cartesian_hessian(other, raw, profile)
 
 
+def test_profile_display_fields_cannot_widen_bound_policy(monkeypatch):
+    atoms = _water()
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+    profile = resolve_hessian_precision_profile(atoms, purpose="frequency")
+    raw = np.eye(9)
+    raw[0, 1] = 0.25
+
+    with pytest.raises(ValueError, match="profile|policy|binding"):
+        validate_cartesian_hessian(
+            atoms,
+            raw,
+            replace(
+                profile,
+                identity="forged-wide",
+                relative_skew_tolerance=1.0,
+            ),
+        )
+
+
+def test_unbound_nan_tolerance_cannot_disable_strict_policy():
+    raw = np.eye(9)
+    raw[0, 1] = 1.0
+    profile = HessianPrecisionProfile("strict-generic", float("nan"), False)
+
+    with pytest.raises(ValueError, match="asymmetry|profile|policy"):
+        validate_cartesian_hessian(_water(), raw, profile)
+
+
+def test_initial_charge_fallback_cannot_receive_neutral_n32_profile(monkeypatch):
+    atoms = _water()
+    atoms.set_initial_charges([1.0, 0.0, 0.0])
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+
+    with pytest.raises(ValueError, match="neutral closed-shell"):
+        resolve_hessian_precision_profile(atoms, purpose="frequency")
+
+
+def test_bound_profile_allows_new_geometry_and_per_image_source_provenance(monkeypatch):
+    atoms = _water()
+    atoms.info["mol2"] = {
+        "source_path": "image-0.mol2",
+        "source_sha256": "a" * 64,
+    }
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+    profile = resolve_hessian_precision_profile(atoms, purpose="path-image")
+    atoms.positions[0, 0] += 0.01
+    atoms.info["mol2"] = {
+        "source_path": "image-1.mol2",
+        "source_sha256": "b" * 64,
+    }
+
+    validated = validate_cartesian_hessian(atoms, np.eye(9), profile)
+
+    assert validated.precision_profile.identity == "qualified-aimnet2025-n32-gas"
+
+
 @pytest.mark.parametrize("info", [{"charge": 1}, {"charge": -1}, {"mult": 3}])
 def test_bound_profile_refuses_unqualified_charge_and_spin(monkeypatch, info):
     atoms = _water()
@@ -287,19 +344,14 @@ def test_saved_n32_policy_accepts_raw_diagnostics_before_symmetrizing(monkeypatc
 
 
 def test_saved_ace_and_none_n32_replays_are_index_one(monkeypatch):
-    checkpoint = next(
-        (
-            parent
-            / ".omx/checkpoints/route1-aimnet-paths-20261031/"
-            "stationary-fixture/RESULT.json"
-            for parent in Path(__file__).resolve().parents
-            if (parent / ".omx/checkpoints").is_dir()
-        ),
-        None,
+    fixture = (
+        Path(__file__).with_name("data")
+        / "aimnet2025_n32_nh3_saved_hessians.json"
     )
-    if checkpoint is None or not checkpoint.is_file():
-        pytest.skip("saved qualification replay is not present in this checkout")
-    saved = json.loads(checkpoint.read_text())
+    saved = json.loads(fixture.read_text())
+    assert saved["source_artifact_sha256"] == (
+        "f44e204dc054fe36523a553d42689364f977e41998c768ce0ef12b361eb513cf"
+    )
     observed = {}
     for cell in saved["cells"]:
         atoms = Atoms(

@@ -10,11 +10,18 @@ Features:
 from __future__ import annotations
 import os
 import sys
+from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
 from ase import Atoms
+
+from ....calculator.analytic_protocol import (
+    AnalyticCapabilityError,
+    AnalyticIdentityError,
+)
 
 from .logger import log_info
 from ...jobABC import JobABC
@@ -40,26 +47,26 @@ class NumericalStateError(ValueError):
     """Expected refusal for non-real or non-finite numerical state."""
 
 def to_numpy_f64(x):
-    """Convert input (numpy/torch/list/scalar) to float64 numpy array or float."""
-    if isinstance(x, np.ndarray):
-        if np.iscomplexobj(x):
-            raise NumericalStateError("Complex numerical state cannot be converted to float64.")
-        return x.astype(np.float64, copy=False)
+    """Convert one real finite numerical value before any float cast."""
     try:
         import torch
-        if isinstance(x, torch.Tensor):
-            arr = x.detach().cpu().numpy()
-            if np.iscomplexobj(arr):
-                raise NumericalStateError("Complex numerical state cannot be converted to float64.")
-            return arr.astype(np.float64, copy=False)
-    except Exception:
-        pass
-    if np.isscalar(x):
-        return float(x)
+    except ImportError:
+        torch = None
+    if torch is not None and isinstance(x, torch.Tensor):
+        if torch.is_complex(x):
+            raise NumericalStateError(
+                "Complex numerical state cannot be converted to float64."
+            )
+        x = x.detach().cpu().numpy()
     raw = np.asarray(x)
     if np.iscomplexobj(raw):
         raise NumericalStateError("Complex numerical state cannot be converted to float64.")
-    return np.asarray(raw, dtype=np.float64)
+    converted = np.asarray(raw, dtype=np.float64)
+    if not np.isfinite(converted).all():
+        raise NumericalStateError("Numerical state must contain only finite values.")
+    if converted.ndim == 0:
+        return float(converted.item())
+    return converted
 
 def vec1d(x, n_expected=None):
     """Convert to float64 1D vector and optionally check length."""
@@ -366,6 +373,113 @@ def prfo_step(H, g, is_ts=False, target_mode=None, trust_radius=0.2,
 
     return V @ s_p
 
+def _values_equal(left, right) -> bool:
+    if isinstance(left, np.ndarray) or isinstance(right, np.ndarray):
+        try:
+            return np.array_equal(np.asarray(left), np.asarray(right))
+        except (TypeError, ValueError):
+            return False
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            _values_equal(left[key], right[key]) for key in left
+        )
+    if isinstance(left, (list, tuple)) and isinstance(right, (list, tuple)):
+        return len(left) == len(right) and all(
+            _values_equal(a, b) for a, b in zip(left, right)
+        )
+    try:
+        return bool(left == right)
+    except (TypeError, ValueError):
+        return False
+
+
+def _constraint_identity(constraints):
+    return tuple(
+        constraint.todict() if hasattr(constraint, "todict") else repr(constraint)
+        for constraint in constraints
+    )
+
+
+@dataclass
+class _ScientificAtomsSnapshot:
+    arrays: dict
+    cell: np.ndarray
+    pbc: np.ndarray
+    constraints: list
+    constraint_identity: tuple
+    info: dict
+    calculator: object
+    metrics: dict
+
+    @classmethod
+    def capture(cls, atoms: Atoms) -> "_ScientificAtomsSnapshot":
+        return cls(
+            arrays={name: np.array(value, copy=True) for name, value in atoms.arrays.items()},
+            cell=np.asarray(atoms.cell).copy(),
+            pbc=np.asarray(atoms.pbc).copy(),
+            constraints=deepcopy(list(atoms.constraints)),
+            constraint_identity=_constraint_identity(atoms.constraints),
+            info=deepcopy(dict(atoms.info)),
+            calculator=atoms.calc,
+            metrics={
+                name: deepcopy(getattr(atoms, name))
+                for name in ("max_f", "rms_f", "max_dp", "rms_dp")
+                if hasattr(atoms, name)
+            },
+        )
+
+    def matches(self, atoms: Atoms) -> bool:
+        return (
+            atoms.arrays.keys() == self.arrays.keys()
+            and all(
+                np.array_equal(atoms.arrays[name], value)
+                for name, value in self.arrays.items()
+            )
+            and np.array_equal(np.asarray(atoms.cell), self.cell)
+            and np.array_equal(np.asarray(atoms.pbc), self.pbc)
+            and _constraint_identity(atoms.constraints) == self.constraint_identity
+            and _values_equal(atoms.info, self.info)
+            and atoms.calc is self.calculator
+        )
+
+    def restore(self, atoms: Atoms) -> None:
+        atoms.arrays = {
+            name: np.array(value, copy=True) for name, value in self.arrays.items()
+        }
+        atoms.set_cell(self.cell)
+        atoms.set_pbc(self.pbc)
+        atoms.set_constraint(deepcopy(self.constraints))
+        atoms.info.clear()
+        atoms.info.update(deepcopy(self.info))
+        atoms.calc = self.calculator
+        for name in ("max_f", "rms_f", "max_dp", "rms_dp"):
+            if name in self.metrics:
+                setattr(atoms, name, deepcopy(self.metrics[name]))
+            elif hasattr(atoms, name):
+                delattr(atoms, name)
+
+
+@contextmanager
+def _scientific_atoms_transaction(atoms: Atoms, *, operation: str):
+    snapshot = _ScientificAtomsSnapshot.capture(atoms)
+    try:
+        yield
+    except BaseException as exc:
+        try:
+            snapshot.restore(atoms)
+        except Exception as restore_error:
+            exc.add_note(
+                f"Scientific Atoms restoration also failed: {restore_error!r}"
+            )
+        raise
+    mutated = not snapshot.matches(atoms)
+    snapshot.restore(atoms)
+    if mutated:
+        raise CurvatureValidationError(
+            f"{operation} provider mutated scientific Atoms state during evaluation."
+        )
+
+
 def calculate_Hessian(atoms: Atoms):
     """
     Calculate Hessian matrix from calculator.
@@ -381,32 +495,24 @@ def calculate_Hessian(atoms: Atoms):
         Hessian matrix in float64
     """
     calc = atoms.calc
-    before_numbers = atoms.get_atomic_numbers().copy()
-    before_positions = atoms.get_positions().copy()
-    before_cell = np.asarray(atoms.cell).copy()
-    before_pbc = np.asarray(atoms.pbc).copy()
     try:
-        hessian = np.asarray(calc.get_hessian(atoms))
-    except ValueError as exc:
-        message = str(exc)
-        if "Hessian" in message and ("real" in message or "finite" in message):
-            raise CurvatureValidationError(message) from exc
-        raise
-    mutated = (
-        not np.array_equal(atoms.get_atomic_numbers(), before_numbers)
-        or not np.array_equal(atoms.get_positions(), before_positions)
-        or not np.array_equal(np.asarray(atoms.cell), before_cell)
-        or not np.array_equal(np.asarray(atoms.pbc), before_pbc)
-    )
-    if mutated:
-        atoms.set_atomic_numbers(before_numbers)
-        atoms.set_positions(before_positions)
-        atoms.set_cell(before_cell)
-        atoms.set_pbc(before_pbc)
-        raise CurvatureValidationError(
-            "Hessian provider mutated the geometry during evaluation."
-        )
+        with _scientific_atoms_transaction(atoms, operation="Hessian"):
+            hessian = np.asarray(calc.get_hessian(atoms))
+    except (AnalyticIdentityError, AnalyticCapabilityError) as exc:
+        raise CurvatureValidationError(str(exc)) from exc
     return hessian
+
+
+def _evaluate_energy(atoms: Atoms) -> float:
+    with _scientific_atoms_transaction(atoms, operation="Energy"):
+        return to_numpy_f64(
+            atoms.get_potential_energy(force_consistent=True)
+        )
+
+
+def _evaluate_forces(atoms: Atoms) -> np.ndarray:
+    with _scientific_atoms_transaction(atoms, operation="Force"):
+        return to_numpy_f64(atoms.get_forces())
 
 def _bfgs_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
     """BFGS update of Hessian approximation."""
@@ -521,10 +627,12 @@ class PRFO(JobABC):
         bool
             True if all convergence criteria are met
         """
-        return (atoms.max_f <= self.params.f_max_th and
-                atoms.rms_f <= self.params.f_rms_th and
-                atoms.max_dp <= self.params.dp_max_th and
-                atoms.rms_dp <= self.params.dp_rms_th)
+        return bool(
+            atoms.max_f <= self.params.f_max_th
+            and atoms.rms_f <= self.params.f_rms_th
+            and atoms.max_dp <= self.params.dp_max_th
+            and atoms.rms_dp <= self.params.dp_rms_th
+        )
     
     def check_saddle_curvature(self, atoms: Atoms) -> SaddleCertification:
         """Require a fresh index-one Hessian before reporting TS convergence.
@@ -598,15 +706,14 @@ class PRFO(JobABC):
         energy=None,
         forces=None,
         certification: SaddleCertification | None = None,
+        force_displacement_converged: bool = False,
     ) -> PRFOResult:
         return PRFOResult.capture(
             status=RunStatus.REFUSED,
             atoms=atoms,
             iterations=iteration,
             max_iterations=self.params.max_iter,
-            force_displacement_converged=bool(
-                certification and certification.force_displacement_converged
-            ),
+            force_displacement_converged=force_displacement_converged,
             termination_reason=reason,
             energy_hartree=energy,
             forces_hartree_per_angstrom=forces,
@@ -615,13 +722,8 @@ class PRFO(JobABC):
         )
 
     def _final_energy_forces(self, atoms: Atoms):
-        before = geometry_sha256(atoms)
-        energy = to_numpy_f64(atoms.get_potential_energy(force_consistent=True))
-        forces = to_numpy_f64(atoms.get_forces())
-        if geometry_sha256(atoms) != before:
-            raise CurvatureValidationError(
-                "Energy/force provider mutated the final geometry during evaluation."
-            )
+        energy = _evaluate_energy(atoms)
+        forces = _evaluate_forces(atoms)
         if np.ndim(energy) != 0 or not np.isfinite(float(energy)):
             raise CurvatureValidationError("Final energy must be finite.")
         if forces.shape != (len(atoms), 3) or not np.isfinite(forces).all():
@@ -860,11 +962,9 @@ class PRFO(JobABC):
             # Get current geometry and energy/forces
             X = atoms.get_positions().reshape(-1, 3)
             try:
-                E_old = to_numpy_f64(
-                    atoms.get_potential_energy(force_consistent=True)
-                )
-                F_cart = to_numpy_f64(atoms.get_forces())
-            except NumericalStateError as exc:
+                E_old = _evaluate_energy(atoms)
+                F_cart = _evaluate_forces(atoms)
+            except (NumericalStateError, CurvatureValidationError) as exc:
                 return self._refused_result(
                     atoms=atoms,
                     iteration=iteration,
@@ -1021,9 +1121,16 @@ class PRFO(JobABC):
                 atoms.set_positions(X_new)
                 
                 # New energy
-                E_new = to_numpy_f64(
-                    atoms.get_potential_energy(force_consistent=True)
-                )
+                try:
+                    E_new = _evaluate_energy(atoms)
+                except (NumericalStateError, CurvatureValidationError) as exc:
+                    return self._refused_result(
+                        atoms=atoms,
+                        iteration=iteration,
+                        reason=str(exc),
+                        energy=float(E_old),
+                        forces=F_cart,
+                    )
                 
                 actual_change = float(E_new - E_old)
                 rho = None
@@ -1051,7 +1158,15 @@ class PRFO(JobABC):
                                          2.0 * trust_radius)
                     
                     # Get new forces for convergence check
-                    F_new = to_numpy_f64(atoms.get_forces())
+                    try:
+                        F_new = _evaluate_forces(atoms)
+                    except (NumericalStateError, CurvatureValidationError) as exc:
+                        return self._refused_result(
+                            atoms=atoms,
+                            iteration=iteration + 1,
+                            reason=str(exc),
+                            energy=float(E_new),
+                        )
                     g_new_cart = vec1d(-F_new, n3)
                     if not need_recalc:
                         y_cart = g_new_cart - g_cart
@@ -1083,12 +1198,23 @@ class PRFO(JobABC):
                     if force_displacement_converged:
                         try:
                             final_energy, final_forces = self._final_energy_forces(atoms)
+                        except (CurvatureValidationError, NumericalStateError) as exc:
+                            return self._refused_result(
+                                atoms=atoms,
+                                iteration=iteration + 1,
+                                reason=str(exc),
+                                force_displacement_converged=True,
+                            )
+                        try:
                             certification = self.check_saddle_curvature(atoms)
                         except CurvatureValidationError as exc:
                             return self._refused_result(
                                 atoms=atoms,
                                 iteration=iteration + 1,
                                 reason=str(exc),
+                                energy=final_energy,
+                                forces=final_forces,
+                                force_displacement_converged=True,
                             )
                     if force_displacement_converged and certification.certified_ts:
                         info_message = [
@@ -1146,7 +1272,7 @@ class PRFO(JobABC):
         # Preserve a candidate without naming it as a certified transition state.
         try:
             E_final, F_final = self._final_energy_forces(atoms)
-        except CurvatureValidationError as exc:
+        except (CurvatureValidationError, NumericalStateError) as exc:
             return self._refused_result(
                 atoms=atoms,
                 iteration=iteration,

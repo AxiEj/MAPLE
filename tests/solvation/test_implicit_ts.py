@@ -10,6 +10,11 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator
 
 from maple.function.dispatcher.ts import algorithm
+from maple.function.calculator.calculator_base import (
+    _mint_hessian_precision_binding,
+    _mint_method_capability_binding,
+)
+from maple.function.dispatcher.method_registry import CapabilityKey
 from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
 from maple.function.dispatcher.ts.ts import TransitionState
 from maple.function.engine import engine
@@ -360,6 +365,22 @@ def test_implicit_ts_boundary_logs_actual_analytic_derivative_mode(
     correction.analytic_task_derivatives_admitted = True
     correction.get_hessian = lambda atoms: np.eye(3 * len(atoms))
     correction.get_directional_derivatives = lambda atoms, direction: None
+    if method == "prfo":
+        calculator._hessian_precision_binding = _mint_hessian_precision_binding(
+            profile_id="qualified-aimnet2025-n32-torch-obc2",
+            runtime_identity_sha256="1" * 64,
+            receipt_sha256="2" * 64,
+            composition="torch-obc2",
+            composition_identity_sha256="3" * 64,
+            owner_token=id(calculator),
+        )
+        calculator._method_capability_binding = _mint_method_capability_binding(
+            capability_keys=frozenset({CapabilityKey.TS_PRFO.value}),
+            runtime_identity_sha256="1" * 64,
+            receipt_sha256="2" * 64,
+            composition_identity_sha256="3" * 64,
+            owner_token=id(calculator),
+        )
 
     class NoOpAlgorithm:
         def __init__(self, **kwargs):
@@ -378,6 +399,23 @@ def test_implicit_ts_boundary_logs_actual_analytic_derivative_mode(
     text = output.read_text(encoding="utf-8")
     assert expected in text
     assert forbidden not in text
+
+
+def test_analytic_implicit_prfo_requires_the_exact_live_capability_binding(tmp_path):
+    atoms = _direct_implicit_atoms(hessian="analytic")
+    calculator = cast(Any, atoms.calc)
+    correction = calculator.solvent_correction
+    calculator.analytic_implicit_derivatives_admitted = True
+    correction.analytic_task_derivatives_admitted = True
+    correction.get_hessian = lambda current: np.eye(3 * len(current))
+
+    with pytest.raises(ValueError, match="does not admit ts.prfo"):
+        TransitionState(
+            str(tmp_path / "unbound-analytic-prfo.out"),
+            atoms,
+            {"method": "prfo", "max_iter": 1},
+            method="prfo",
+        ).run()
 
 
 def test_implicit_ts_boundary_keeps_truthful_numerical_wording(tmp_path, monkeypatch):

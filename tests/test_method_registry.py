@@ -94,6 +94,47 @@ def test_refinement_owns_active_fields_and_capabilities():
     }
 
 
+@pytest.mark.parametrize(
+    "prfo_params,error",
+    [
+        ({"max_iter": True}, TypeError),
+        ({"trust_radius": -1.0}, ValueError),
+        ({"unknown_key": 1}, ValueError),
+        ({"prfo": {"max_iter": 1}}, ValueError),
+        ({"MAX_ITER": 1, "max_iter": 2}, ValueError),
+        ({"project_rigid_modes": True}, ValueError),
+        ({"recalc": None}, TypeError),
+        ({"recalc": 0}, ValueError),
+    ],
+)
+def test_string_prfo_params_use_the_canonical_prfo_contract(prfo_params, error):
+    with pytest.raises(error):
+        validate_method_parameters(
+            PublicMethodKey.TS_STRING,
+            {"refine": "stringts", "prfo_params": prfo_params},
+        )
+
+
+def test_string_prfo_params_are_normalized_before_dispatch():
+    normalized = validate_method_parameters(
+        PublicMethodKey.TS_STRING,
+        {"refine": "stringts", "prfo_params": {"MAX_ITER": 3}},
+    )
+    assert normalized["prfo_params"] == {"max_iter": 3}
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"trust_min": 0.3, "trust_radius": 0.2},
+        {"trust_radius": 0.2, "trust_max": 0.1},
+    ],
+)
+def test_prfo_cross_field_invariants_fail_at_the_registry_boundary(params):
+    with pytest.raises(ValueError):
+        validate_method_parameters(PublicMethodKey.TS_PRFO, params)
+
+
 def test_dimer_preserves_existing_derivative_admission_without_advanced_key():
     key = normalize_public_method("ts", "dimer")
     params = validate_method_parameters(key, {"use_hvp": True})
@@ -110,6 +151,13 @@ def test_autoneb_domain_and_capability_selection_are_explicit():
     assert required_capabilities(PublicMethodKey.TS_AUTONEB, base) == {
         CapabilityKey.TS_AUTONEB_BASE,
     }
+
+
+@pytest.mark.parametrize("key", [PublicMethodKey.IRC_HPC, PublicMethodKey.IRC_EULERPC])
+def test_dwi_grid_size_must_be_even_at_the_registry_boundary(key):
+    with pytest.raises(ValueError, match="positive even"):
+        validate_method_parameters(key, {"dwi_n": 3})
+    assert validate_method_parameters(key, {"dwi_n": 4}) == {"dwi_n": 4}
 
 
 def test_unknown_public_method_is_rejected():

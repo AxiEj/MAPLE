@@ -229,7 +229,7 @@ PRFO_RULES = {
     "evals_eps": POSITIVE_REAL,
     "mu_margin": POSITIVE_REAL,
     "max_bisect_it": POSITIVE_INT,
-    "recalc": OPTIONAL_NONNEGATIVE_INT,
+    "recalc": POSITIVE_INT,
     "hessian_update": HESSIAN_UPDATE,
     "project_rigid_modes": BOOLEAN,
     "f_max_th": NONNEGATIVE_REAL,
@@ -567,6 +567,13 @@ def _validate_value(name: str, value, rule: ParameterRule) -> None:
             raise ValueError(f"{name} is above its allowed maximum")
 
 
+def _validate_prfo_values(values: Mapping[str, object]) -> None:
+    if values["trust_min"] > values["trust_radius"]:
+        raise ValueError("prfo.trust_min must not exceed prfo.trust_radius")
+    if values["trust_radius"] > values["trust_max"]:
+        raise ValueError("prfo.trust_radius must not exceed prfo.trust_max")
+
+
 def validate_method_parameters(public_key: PublicMethodKey | str, params) -> dict:
     spec = method_spec(public_key)
     params_class = spec.parameter_dataclass()
@@ -591,6 +598,11 @@ def validate_method_parameters(public_key: PublicMethodKey | str, params) -> dic
         _validate_value(f"{spec.method}.{key}", value, rule)
     values = {field.name: normalized.get(field.name, getattr(defaults, field.name))
               for field in fields(params_class)}
+    if spec.public_key is PublicMethodKey.TS_PRFO:
+        _validate_prfo_values(values)
+    if spec.public_key in {PublicMethodKey.IRC_HPC, PublicMethodKey.IRC_EULERPC}:
+        if values["dwi_n"] % 2:
+            raise ValueError(f"{spec.method}.dwi_n must be a positive even integer")
     if spec.public_key is PublicMethodKey.TS_NEB and values["k_min"] > values["k_max"]:
         raise ValueError("neb.k_min must not exceed neb.k_max")
     if spec.public_key is PublicMethodKey.TS_STRING:
@@ -600,10 +612,21 @@ def validate_method_parameters(public_key: PublicMethodKey | str, params) -> dic
             raise ValueError("refined String requires n_images >= 3")
         if values["refine"] is not None and values["reparam_every"] != 1:
             raise ValueError("refined String requires reparam_every=1")
-        if values["prfo_params"] and "project_rigid_modes" in {
-            str(key).lower() for key in values["prfo_params"]
-        }:
-            raise ValueError("String project_rigid_modes must not be duplicated in prfo_params")
+        if values["prfo_params"]:
+            nested_items = _keyed_items(values["prfo_params"], "String prfo_params")
+            nested_values = {key: value for _raw, key, value in nested_items}
+            unknown_prfo = sorted(set(nested_values) - set(PRFO_RULES))
+            if unknown_prfo:
+                raise ValueError(f"Unknown prfo parameter: {unknown_prfo[0]}")
+            nested_prfo = validate_method_parameters(
+                PublicMethodKey.TS_PRFO,
+                nested_values,
+            )
+            if "project_rigid_modes" in nested_prfo:
+                raise ValueError(
+                    "String project_rigid_modes must not be duplicated in prfo_params"
+                )
+            normalized["prfo_params"] = nested_prfo
     if spec.public_key is PublicMethodKey.TS_AUTONEB and values["climb"] and values["n_max"] < 3:
         raise ValueError("AutoNEB climb=true requires n_max >= 3")
     return normalized

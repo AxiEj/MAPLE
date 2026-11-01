@@ -64,6 +64,7 @@ class engine():
                 output_file_name: The path to the output file. (Default: None)
         """
         
+        self.last_result = None
         timer.start_total()
 
         fallback_output = None

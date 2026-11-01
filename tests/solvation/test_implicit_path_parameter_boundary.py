@@ -49,6 +49,12 @@ def _implicit_atom(x=0.0):
     return atoms
 
 
+@pytest.mark.parametrize("method", ["hpc", "eulerpc"])
+def test_command_boundary_rejects_odd_dwi_grid_before_model_work(method):
+    with pytest.raises(ValueError, match="positive even"):
+        _control(f"#irc(method={method},dwi_n=3)")
+
+
 @pytest.mark.parametrize(
     "method,task_line,algorithm_name,expected",
     [

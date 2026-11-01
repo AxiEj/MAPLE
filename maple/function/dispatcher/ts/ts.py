@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from ase import Atoms
@@ -23,6 +23,9 @@ from maple.function.dispatcher.method_registry import (
 )
 
 from ..jobABC import JobABC
+
+if TYPE_CHECKING:
+    from .algorithm.autoneb import AutoNEBResult
 
 
 def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> bool:
@@ -87,7 +90,7 @@ def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> b
             is True
             and callable(getattr(solvent_correction, "get_hessian", None))
         ):
-            pass
+            resolve_method_capability(CapabilityKey.TS_PRFO, calculator)
         elif hessian_mode == "analytic":
             raise ValueError(
                 "Implicit-solvent analytic PRFO requires an admitted analytic "
@@ -98,7 +101,6 @@ def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> b
                 "Implicit-solvent PRFO requires hessian=numerical or an admitted "
                 "hessian=analytic solvent derivative backend."
             )
-        resolve_method_capability(CapabilityKey.TS_PRFO, calculator)
     if method == "dimer":
         dimer_params = JobABC._select_subdict(params, ("dimer", "ts"))
         if dimer_params.get("use_hvp") is True:
@@ -142,7 +144,7 @@ class TransitionState(JobABC):
         self.method = method
         self._path_params = None
         self._method_params = None
-        self.last_result: PRFOResult | None = None
+        self.last_result: PRFOResult | AutoNEBResult | None = None
 
     def run(self):
         self.last_result = None
@@ -301,7 +303,9 @@ class TransitionState(JobABC):
                 atoms_or_molecules=structures,
                 paras={"autoneb": self._method_params},
             )
-            return autoneb.run()
+            result = autoneb.run()
+            self.last_result = result
+            return result
 
         else:
             raise ValueError(f'Method {self.method} not recognized.')

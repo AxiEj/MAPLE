@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 import stat
+import tempfile
+from contextlib import contextmanager
 from os import PathLike
 
 
@@ -24,3 +26,23 @@ def retire_certified_output(exact_owned_path: str | PathLike[str]) -> str | None
             os.replace(current, archive)
             return archive
         archive_index += 1
+
+
+@contextmanager
+def atomic_output_path(exact_owned_path: str | PathLike[str]):
+    """Yield a sibling temporary path and publish it only after successful writing."""
+    current = os.path.abspath(os.fspath(exact_owned_path))
+    directory = os.path.dirname(current)
+    os.makedirs(directory, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(
+        dir=directory,
+        prefix=os.path.basename(current) + ".",
+        suffix=".tmp",
+    )
+    os.close(descriptor)
+    try:
+        yield temporary
+        os.replace(temporary, current)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)

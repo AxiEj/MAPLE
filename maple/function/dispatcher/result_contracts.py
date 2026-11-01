@@ -12,6 +12,8 @@ from typing import Any, Mapping
 import numpy as np
 from ase import Atoms
 
+from .convergence import copy_convergence_context
+
 
 class RunStatus(str, Enum):
     CONVERGED = "converged"
@@ -91,6 +93,7 @@ def geometry_sha256(atoms: Atoms) -> str:
 def _snapshot_atoms(atoms: Atoms) -> Atoms:
     snapshot = atoms.copy()
     snapshot.calc = atoms.calc
+    copy_convergence_context(atoms, snapshot)
     for name in ("max_f", "rms_f", "max_dp", "rms_dp"):
         if hasattr(atoms, name):
             setattr(snapshot, name, float(getattr(atoms, name)))

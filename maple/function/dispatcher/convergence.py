@@ -47,6 +47,14 @@ CONVERGENCE_CONTEXT_KEYS = frozenset(
 )
 
 
+def copy_convergence_context(source, destination):
+    """Copy dispatcher job thresholds without copying point convergence metrics."""
+    for name in CONVERGENCE_CONTEXT_KEYS:
+        if hasattr(source, name):
+            setattr(destination, name, getattr(source, name))
+    return destination
+
+
 def convergence_thresholds(level):
     if isinstance(level, str):
         return CONVERGENCE_THRESHOLDS.get(

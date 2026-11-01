@@ -32,6 +32,8 @@ from ase import Atoms
 from .logger import log_info
 from .path_optimizer import LBFGSDriver
 from ...curvature import CurvatureValidationError
+from ...artifacts import atomic_output_path, retire_certified_output
+from ...convergence import CONVERGENCE_CONTEXT_KEYS, copy_convergence_context
 from ...jobABC import JobABC
 from ...numerical_state import (
     NumericalStateError,
@@ -92,9 +94,7 @@ def inherit_attrs(src: Atoms, dst: Atoms):
     if getattr(src, "calc", None) is not None:
         dst.calc = src.calc
     # user thresholds set by Dispatcher.set_threshold()
-    for name in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th"):
-        if hasattr(src, name):
-            setattr(dst, name, getattr(src, name))
+    copy_convergence_context(src, dst)
 
 
 def atoms_to_xyz_block(atoms: Atoms) -> str:
@@ -288,6 +288,7 @@ STRING_PARAMETER_METADATA = {
         field.name: getattr(GSMParams(), field.name) for field in fields(GSMParams)
     },
     "stage_fields": {
+        "selector": {"refine"},
         "growth": {
             "grow_step", "grow_step_min", "grow_backtrack", "grow_relax_iters",
             "grow_relax_tol", "grow_energy_tol", "pause_imbalance",
@@ -353,6 +354,7 @@ class GSM(JobABC):
         # Initialize params from paras dict
         self.params = self._init_params(GSMParams, paras, ("gsm", "GSM", "string", "STRING", "ts"))
         self._validate_params()
+        self._job_thresholds = self._validated_job_thresholds()
 
     def _validate_params(self):
         p = self.params
@@ -409,6 +411,8 @@ class GSM(JobABC):
             raise ValueError("grow_step_min must not exceed grow_step.")
         if not isinstance(p.project_rigid_modes, (bool, np.bool_)):
             raise TypeError("project_rigid_modes must be a boolean.")
+        if p.project_rigid_modes and p.refine != "stringts":
+            raise ValueError("project_rigid_modes is active only when refine='stringts'.")
         if p.prfo_params is None:
             p.prfo_params = {}
         if not isinstance(p.prfo_params, dict):
@@ -444,6 +448,27 @@ class GSM(JobABC):
                 raise ValueError(f"unknown PRFO parameter: {', '.join(unknown)}")
             if p.refine != "stringts":
                 raise ValueError("prfo_params are active only when refine='stringts'.")
+
+    def _validated_job_thresholds(self) -> dict[str, float]:
+        if self.params.refine != "stringts":
+            return {}
+        contexts = []
+        for endpoint in (self.atoms_R, self.atoms_P):
+            if any(not hasattr(endpoint, name) for name in CONVERGENCE_CONTEXT_KEYS):
+                raise ValueError(
+                    "String-TS requires complete matching endpoint convergence thresholds."
+                )
+            contexts.append(
+                {name: float(getattr(endpoint, name)) for name in CONVERGENCE_CONTEXT_KEYS}
+            )
+        if contexts[0] != contexts[1]:
+            raise ValueError("String-TS requires matching endpoint convergence thresholds.")
+        for name, value in contexts[0].items():
+            if name in self.params.prfo_params and float(self.params.prfo_params[name]) != value:
+                raise ValueError(
+                    f"PRFO {name} must match the authoritative endpoint convergence threshold."
+                )
+        return contexts[0]
 
     # --------------------------- helpers (geometry) ---------------------------
 
@@ -951,6 +976,14 @@ class GSM(JobABC):
 
     # ---------------------------- restart / STRING-TS --------------------------
 
+    def _retire_prior_certified_ts(self, base_prefix: str) -> None:
+        archived_ts = retire_certified_output(base_prefix + "_stringts_ts.xyz")
+        if archived_ts is not None:
+            log_info(
+                [f"Archived previous certified String-TS output to: {archived_ts}\n"],
+                self.output,
+            )
+
     def restart_run(
         self,
         ci_stage: PathStageResult,
@@ -969,12 +1002,14 @@ class GSM(JobABC):
             raise ValueError("String-TS requires final CI-String energy and forces.")
         if not 0 < hei_idx < len(ci_stage.images) - 1:
             raise ValueError("String-TS candidate index must be an interior image.")
+        self._retire_prior_certified_ts(base_prefix)
 
         from .PRFO import PRFO
 
         images = self._copy_images(list(ci_stage.images))
         ts_guess = self._copy_with_inherit(images[hei_idx])
         prfo_parameters = dict(self.params.prfo_params)
+        prfo_parameters.update(self._job_thresholds)
         prfo_parameters["project_rigid_modes"] = bool(self.params.project_rigid_modes)
         prfo = PRFO(
             output=self.output,
@@ -1005,21 +1040,28 @@ class GSM(JobABC):
         candidate = prfo_result.atoms
         candidate_energy = prfo_result.energy_hartree
         candidate_forces = prfo_result.forces_hartree_per_angstrom
-        if candidate_energy is None or candidate_forces is None:
-            candidate_energy, candidate_forces = self._evaluate_image(candidate)
-        candidate_force = to_numpy_f64(candidate_forces).reshape(-1)
-        candidate_max = float(np.max(np.abs(candidate_force)))
-        candidate_rms = float(np.sqrt(np.mean(candidate_force**2)))
+        candidate_evidence_available = (
+            candidate_energy is not None and candidate_forces is not None
+        )
+        if candidate_evidence_available:
+            candidate_force = to_numpy_f64(candidate_forces).reshape(-1)
+            candidate_max = float(np.max(np.abs(candidate_force)))
+            candidate_rms = float(np.sqrt(np.mean(candidate_force**2)))
 
         mep_path = base_prefix + "_stringts_mep.xyz"
         write_xyz(mep_path, images, energies=list(energies))
         if prfo_result.certified_ts:
             structure_path = base_prefix + "_stringts_ts.xyz"
             structure_label = "certified TS"
-        else:
+            with atomic_output_path(structure_path) as temporary_path:
+                write_xyz(temporary_path, [candidate], energies=[candidate_energy])
+        elif candidate_evidence_available:
             structure_path = base_prefix + "_stringts_candidate.xyz"
             structure_label = "uncertified candidate"
-        write_xyz(structure_path, [candidate], energies=[candidate_energy])
+            write_xyz(structure_path, [candidate], energies=[candidate_energy])
+        else:
+            structure_path = None
+            structure_label = "uncertified candidate with final energy/forces unavailable"
 
         kcal_per_Eh = 627.509
         log_info([
@@ -1036,13 +1078,20 @@ class GSM(JobABC):
                 f"{index:4d} {energy:12.5f} {(energy - energies[0]) * kcal_per_Eh:11.2f} "
                 f"{maximum:11.5f} {rms:10.5f}{marker}\n"
             ], self.output)
-        log_info([
-            f"  TS candidate {candidate_energy:12.5f} "
-            f"{(candidate_energy - energies[0]) * kcal_per_Eh:11.2f} "
-            f"{candidate_max:11.5f} {candidate_rms:10.5f} <= {structure_label}\n",
-            f"\nWrote converged CI-String MEP to: {mep_path}\n",
-            f"Wrote separate {structure_label} structure to: {structure_path}\n",
-        ], self.output)
+        summary = [f"\nWrote converged CI-String MEP to: {mep_path}\n"]
+        if candidate_evidence_available:
+            summary[:0] = [
+                f"  TS candidate {candidate_energy:12.5f} "
+                f"{(candidate_energy - energies[0]) * kcal_per_Eh:11.2f} "
+                f"{candidate_max:11.5f} {candidate_rms:10.5f} <= {structure_label}\n"
+            ]
+            summary.append(f"Wrote separate {structure_label} structure to: {structure_path}\n")
+        else:
+            summary.append(
+                f"PRFO {prfo_result.status.value}: {prfo_result.termination_reason}; "
+                "final energy/forces unavailable, so no candidate artifact was written.\n"
+            )
+        log_info(summary, self.output)
         return prfo_result
 
     # ------------------------------- main flow --------------------------------
@@ -1054,6 +1103,10 @@ class GSM(JobABC):
         2) Merge L + reversed R and equal-arc reparameterization to fixed n_images.
         3) Return the path at refine=None, or refine the HEI only when requested.
         """
+        base, _ = os.path.splitext(self.output)
+        if self.params.refine == "stringts":
+            self._retire_prior_certified_ts(base)
+
         def forces_info_from_array(forces):
             F = to_numpy_f64(forces)
             maxF = np.max(np.linalg.norm(F, axis=1))
@@ -1084,8 +1137,6 @@ class GSM(JobABC):
         P_aligned, rmsd, _, _ = kabsch_align(R, P)
         self.atoms_P.set_positions(P_aligned)
         log_info([f"\nAlignment done. RMSD: {rmsd:.6f} (Angstrom)\n"], self.output)
-
-        base, _ = os.path.splitext(self.output)
 
         # --- Initialize two growth fronts
         L: List[Atoms] = [self._copy_with_inherit(self.atoms_R)]

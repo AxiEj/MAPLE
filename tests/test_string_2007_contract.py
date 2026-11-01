@@ -23,6 +23,12 @@ from maple.function.dispatcher.ts.algorithm import string as string_module
 prfo_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
 
 
+
+
+
+
+
+
 class DoubleWellCalculator(Calculator):
     """Analytic V=(x^2-1)^2+2y^2 in one atom's Cartesian container."""
 
@@ -67,6 +73,10 @@ def image(x: float, y: float, calculator=None) -> Atoms:
     atoms.calc = calculator or DoubleWellCalculator()
     atoms.info.update({"source_id": "analytic-double-well", "topology_id": "H-1"})
     atoms.set_masses([1.25])
+    atoms.f_max_th = 1.1e-7
+    atoms.f_rms_th = 2.2e-7
+    atoms.dp_max_th = 3.3e-7
+    atoms.dp_rms_th = 4.4e-7
     return atoms
 
 
@@ -240,6 +250,10 @@ def test_stage_snapshots_have_same_geometry_final_composed_ef_and_do_not_alias(t
         assert all(image.info["source_id"] == "analytic-double-well" for image in stage.images)
         assert all(image.calc is images[0].calc for image in stage.images)
         assert all(image.get_masses()[0] == pytest.approx(1.25) for image in stage.images)
+        assert all(image.f_max_th == pytest.approx(1.1e-7) for image in stage.images)
+        assert all(image.f_rms_th == pytest.approx(2.2e-7) for image in stage.images)
+        assert all(image.dp_max_th == pytest.approx(3.3e-7) for image in stage.images)
+        assert all(image.dp_rms_th == pytest.approx(4.4e-7) for image in stage.images)
 
 
 def test_actual_ordinary_and_ci_stages_converge_to_known_index_one_saddle(tmp_path):
@@ -508,6 +522,10 @@ def test_stringts_uses_typed_prfo_params_reports_actual_force_and_writes_no_fals
     assert calls[0]["paras"]["prfo"]["max_iter"] == 2
     assert calls[0]["paras"]["prfo"]["trust_radius"] == pytest.approx(0.12)
     assert calls[0]["paras"]["prfo"]["project_rigid_modes"] is True
+    assert calls[0]["paras"]["prfo"]["f_max_th"] == pytest.approx(1.1e-7)
+    assert calls[0]["paras"]["prfo"]["f_rms_th"] == pytest.approx(2.2e-7)
+    assert calls[0]["paras"]["prfo"]["dp_max_th"] == pytest.approx(3.3e-7)
+    assert calls[0]["paras"]["prfo"]["dp_rms_th"] == pytest.approx(4.4e-7)
     ts_lines = [
         line
         for line in Path(runner.output).read_text().splitlines()
@@ -532,6 +550,11 @@ def test_parameter_metadata_states_active_inactive_and_cross_field_rules():
     }
     assert "max_iter_cistring" in STRING_PARAMETER_METADATA["stage_fields"]["ci"]
     assert "prfo_params" in STRING_PARAMETER_METADATA["stage_fields"]["ts"]
+    categories = STRING_PARAMETER_METADATA["stage_fields"]
+    assert categories["selector"] == {"refine"}
+    owned = [name for names in categories.values() for name in names]
+    assert len(owned) == len(set(owned))
+    assert set(owned) == STRING_PARAMETER_METADATA["all_fields"]
     assert "refine=None" in STRING_PARAMETER_METADATA["inactive_rules"]
     assert any("reparam_every == 1" in rule for rule in STRING_PARAMETER_METADATA["cross_field_rules"])
 
@@ -549,3 +572,100 @@ def test_invalid_2007_and_nested_prfo_parameters_fail_at_string_boundary(tmp_pat
         )
     with pytest.raises(ValueError, match="unknown PRFO parameter"):
         job(tmp_path, images, refine="stringts", prfo_params={"not_a_parameter": 1})
+    with pytest.raises(ValueError, match="project_rigid_modes.*stringts"):
+        job(tmp_path, images, refine="cistring", project_rigid_modes=True)
+    with pytest.raises(ValueError, match="project_rigid_modes.*stringts"):
+        job(tmp_path, images, refine=None, project_rigid_modes=True)
+
+
+def test_stringts_rejects_mismatched_endpoint_job_thresholds(tmp_path):
+    images = path([(-1.0, 0.0), (0.0, 0.1), (1.0, 0.0)])
+    images[-1].dp_rms_th = 9.9e-7
+    with pytest.raises(ValueError, match="matching endpoint convergence thresholds"):
+        job(tmp_path, images, refine="stringts")
+
+
+def test_growth_only_accepts_default_inactive_ts_controls(tmp_path):
+    images = path([(-1.0, 0.0), (0.0, 0.1), (1.0, 0.0)])
+    runner = job(
+        tmp_path,
+        images,
+        refine=None,
+        max_iter_grow=0,
+        prfo_params={},
+        project_rigid_modes=False,
+    )
+
+    result = runner.run()
+
+    assert result["status"] == "bounded_nonconverged"
+    assert result["refinement_skipped_reason"] == "growth_not_merged"
+    assert result["prfo_result"] is None
+
+
+def test_refused_prfo_without_final_ef_is_preserved_without_reevaluation_or_artifact(
+    tmp_path, monkeypatch
+):
+    class RefusingPRFO:
+        def __init__(self, output, atoms, paras):
+            self.output = output
+            self.atoms = atoms
+
+        def run(self):
+            return PRFOResult.capture(
+                status=RunStatus.REFUSED,
+                atoms=self.atoms,
+                iterations=0,
+                max_iterations=4,
+                force_displacement_converged=False,
+                termination_reason="curvature_evidence_unavailable",
+                energy_hartree=None,
+                forces_hartree_per_angstrom=None,
+                certification=None,
+                output_paths={},
+            )
+
+    monkeypatch.setattr(prfo_module, "PRFO", RefusingPRFO)
+    images = path([(-1.0, 0.0), (-0.5, 0.0), (0.15, 0.0), (0.6, 0.0), (1.0, 0.0)])
+    runner = job(tmp_path, images, refine="stringts")
+    energies, forces = runner._evaluate_images(images)
+    stage = PathStageResult.capture(
+        status=RunStatus.CONVERGED,
+        images=images,
+        energies_hartree=energies,
+        forces_hartree_per_angstrom=forces,
+        budgets={"maximum_iterations": 1, "used_iterations": 1},
+        termination_reason="cistring_converged",
+        candidate=images[2],
+    )
+    monkeypatch.setattr(
+        runner,
+        "_evaluate_image",
+        lambda *_args: pytest.fail("a refused PRFO candidate must not be re-evaluated"),
+    )
+
+    result = runner.restart_run(stage, 2, str(tmp_path / "refused"))
+
+    assert result.status is RunStatus.REFUSED
+    assert result.termination_reason == "curvature_evidence_unavailable"
+    assert result.energy_hartree is None
+    assert result.forces_hartree_per_angstrom is None
+    assert not (tmp_path / "refused_stringts_candidate.xyz").exists()
+    log = Path(runner.output).read_text()
+    assert "final energy/forces unavailable" in log
+    assert "0.00000     0.00000" not in log
+
+
+def test_stringts_retires_old_certified_output_before_growth_limit(tmp_path):
+    images = path([(-1.0, 0.0), (0.0, 0.1), (1.0, 0.0)])
+    runner = job(tmp_path, images, refine="stringts", max_iter_grow=0)
+    certified = tmp_path / "string_stringts_ts.xyz"
+    certified.write_bytes(b"old-validated-ts\n")
+
+    result = runner.run()
+
+    assert result["status"] == "bounded_nonconverged"
+    assert not certified.exists()
+    archive = tmp_path / "string_stringts_ts.previous-1.xyz"
+    assert archive.read_bytes() == b"old-validated-ts\n"
+    assert str(archive) in Path(runner.output).read_text()

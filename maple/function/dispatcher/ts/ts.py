@@ -14,6 +14,7 @@ from maple.function.dispatcher.implicit_path import (
     validate_path_parameters,
 )
 from maple.function.dispatcher.result_contracts import PRFOResult
+from maple.function.dispatcher.convergence import copy_convergence_context
 
 from ..jobABC import JobABC
 
@@ -181,6 +182,7 @@ class TransitionState(JobABC):
                     for image in structures:
                         copied = image.copy()
                         copied.calc = image.calc
+                        copy_convergence_context(image, copied)
                         working.append(copied)
                     self.atoms = working
                     path_structures = working

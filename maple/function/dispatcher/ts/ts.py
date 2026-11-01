@@ -13,6 +13,7 @@ from maple.function.dispatcher.implicit_path import (
     preserve_path_calculator_caches,
     validate_path_parameters,
 )
+from maple.function.dispatcher.result_contracts import PRFOResult
 
 from ..jobABC import JobABC
 
@@ -132,6 +133,7 @@ class TransitionState(JobABC):
         self.params = params
         self.method = method
         self._path_params = None
+        self.last_result: PRFOResult | None = None
 
     def run(self):
 
@@ -238,7 +240,9 @@ class TransitionState(JobABC):
                 output=self.output,
                 paras=self.params,
             )
-            return prfo.run()
+            result = prfo.run()
+            self.last_result = result
+            return result.atoms if result.certified_ts else result
 
         elif self.method == 'neb':
             structures = path_images(self.atoms)

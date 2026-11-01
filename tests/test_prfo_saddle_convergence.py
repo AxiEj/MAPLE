@@ -9,10 +9,26 @@ from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import FixAtoms
 
 from maple.function.dispatcher.frequency.frequency import HARTREE_AMU_ANGSTROM2_TO_CM1
-from maple.function.dispatcher.ts.algorithm.PRFO import (
-    PRFO,
-    _mass_weighted_optimization_basis,
+from maple.function.dispatcher.curvature import (
+    HessianPrecisionProfile,
+    build_mass_weighted_mode_basis,
+    validate_cartesian_hessian,
 )
+from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+
+def _test_mode_basis(atoms, *, project_rigid_modes):
+    validated = validate_cartesian_hessian(
+        atoms,
+        np.eye(3 * len(atoms)),
+        HessianPrecisionProfile("test-symmetric", 1.0e-8, False),
+    )
+    modes = build_mass_weighted_mode_basis(
+        atoms,
+        validated,
+        project_rigid_modes=project_rigid_modes,
+    )
+    return modes.basis, modes.rigid_rank
 
 
 @pytest.mark.parametrize(
@@ -28,7 +44,7 @@ def test_prfo_requires_exactly_one_material_negative_mode(
     tmp_path, frequencies, accepted
 ):
     atoms = Atoms("OH2", positions=[[0, 0, 0], [0.96, 0, 0], [-0.24, 0.93, 0]])
-    basis, rank = _mass_weighted_optimization_basis(atoms, project_rigid_modes=True)
+    basis, rank = _test_mode_basis(atoms, project_rigid_modes=True)
     assert rank == 6
     freq = np.asarray(frequencies)
     eigenvalues = np.sign(freq) * (freq / HARTREE_AMU_ANGSTROM2_TO_CM1) ** 2
@@ -100,7 +116,7 @@ class Quadratic(Calculator):
 @pytest.mark.parametrize("index_one", [False, True])
 def test_real_prfo_run_accepts_only_an_index_one_stationary_point(tmp_path, index_one):
     atoms = Atoms("OH2", positions=[[0, 0, 0], [0.96, 0, 0], [-0.24, 0.93, 0]])
-    basis, _ = _mass_weighted_optimization_basis(atoms, project_rigid_modes=True)
+    basis, _ = _test_mode_basis(atoms, project_rigid_modes=True)
     mass = np.repeat(np.sqrt(atoms.get_masses()), 3)
     modes = np.diag([-1.0 if index_one else 1.0, 2.0, 3.0])
     hessian = mass[:, None] * (basis @ modes @ basis.T) * mass[None, :]

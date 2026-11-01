@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import nullcontext
+from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING
 from collections.abc import Iterable, Mapping
 
@@ -17,6 +18,41 @@ if TYPE_CHECKING:
 
 
 _REGISTRY: dict[str, type] = {}
+_HESSIAN_PRECISION_BINDING_AUTHORITY = object()
+
+
+@dataclass(frozen=True)
+class HessianPrecisionBinding:
+    """Factory-minted identity for a sealed derivative precision cell."""
+
+    profile_id: str
+    runtime_identity_sha256: str
+    receipt_sha256: str
+    composition: str
+    _authority: object = field(repr=False, compare=False)
+
+
+def _mint_hessian_precision_binding(
+    *,
+    profile_id: str,
+    runtime_identity_sha256: str,
+    receipt_sha256: str,
+    composition: str,
+) -> HessianPrecisionBinding:
+    return HessianPrecisionBinding(
+        profile_id=profile_id,
+        runtime_identity_sha256=runtime_identity_sha256,
+        receipt_sha256=receipt_sha256,
+        composition=composition,
+        _authority=_HESSIAN_PRECISION_BINDING_AUTHORITY,
+    )
+
+
+def _is_factory_hessian_precision_binding(binding) -> bool:
+    return (
+        isinstance(binding, HessianPrecisionBinding)
+        and binding._authority is _HESSIAN_PRECISION_BINDING_AUTHORITY
+    )
 
 
 def register_calculator(cls):

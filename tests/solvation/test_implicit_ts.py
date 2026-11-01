@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Collection
+from types import SimpleNamespace
 from typing import Any, cast
 
 import numpy as np
@@ -221,10 +222,12 @@ def test_direct_api_leaves_gas_phase_prfo_unchanged(tmp_path, monkeypatch):
 
     class CapturingPRFO:
         def __init__(self, *, atoms, output, paras):
+            self.atoms = atoms
             observed.update(atoms=atoms, output=output, paras=paras)
 
         def run(self):
             observed["ran"] = True
+            return SimpleNamespace(atoms=self.atoms, certified_ts=False)
 
     monkeypatch.setattr(algorithm, "PRFO", CapturingPRFO)
     output = str(tmp_path / "gas-prfo.out")
@@ -284,10 +287,12 @@ def test_implicit_prfo_dispatch_receives_the_composed_calculator(
 
     class CapturingPRFO:
         def __init__(self, *, atoms, output, paras):
+            self.atoms = atoms
             observed.update(atoms=atoms, calculator=atoms.calc, paras=paras)
 
         def run(self):
             observed["ran"] = True
+            return SimpleNamespace(atoms=self.atoms, certified_ts=False)
 
     monkeypatch.setattr(algorithm, "PRFO", CapturingPRFO)
 
@@ -358,10 +363,12 @@ def test_implicit_ts_boundary_logs_actual_analytic_derivative_mode(
 
     class NoOpAlgorithm:
         def __init__(self, **kwargs):
-            pass
+            self.atoms = kwargs.get("atoms")
 
         def run(self):
-            return None
+            if self.atoms is None:
+                return None
+            return SimpleNamespace(atoms=self.atoms, certified_ts=False)
 
     monkeypatch.setattr(
         algorithm, "PRFO" if method == "prfo" else "Dimer", NoOpAlgorithm
@@ -379,10 +386,10 @@ def test_implicit_ts_boundary_keeps_truthful_numerical_wording(tmp_path, monkeyp
 
     class NoOpPRFO:
         def __init__(self, **kwargs):
-            pass
+            self.atoms = kwargs["atoms"]
 
         def run(self):
-            return None
+            return SimpleNamespace(atoms=self.atoms, certified_ts=False)
 
     monkeypatch.setattr(algorithm, "PRFO", NoOpPRFO)
     output = tmp_path / "numerical-prfo.out"

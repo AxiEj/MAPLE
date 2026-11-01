@@ -590,12 +590,27 @@ def run_workflows(
         _planar_ammonia(ammonia)
         _set_stationary_stops(ammonia)
         prfo_output = attempt_dir / "ammonia-prfo.out"
-        saddle = PRFO(
+        prfo_result = PRFO(
             str(prfo_output), ammonia, paras=deepcopy(PROTOCOL["prfo"])
         ).run()
         record["prfo_task_executed"] = True
+        record["prfo_result"] = {
+            "status": prfo_result.status.value,
+            "certified_ts": prfo_result.certified_ts,
+            "force_displacement_converged": (
+                prfo_result.force_displacement_converged
+            ),
+            "termination_reason": prfo_result.termination_reason,
+            "geometry_sha256": prfo_result.geometry_sha256,
+        }
+        if not prfo_result.certified_ts:
+            raise RuntimeError(
+                "PRFO did not certify a fresh index-one transition state: "
+                f"{prfo_result.status.value}"
+            )
+        saddle = prfo_result.atoms
         if saddle.calc is None:
-            raise RuntimeError("PRFO returned atoms without the composed calculator")
+            raise RuntimeError("Certified PRFO atoms lost the composed calculator")
         saddle_hessian = np.asarray(
             saddle.calc.get_hessian(
                 saddle, delta=PROTOCOL["numerical_hessian_step_angstrom"]

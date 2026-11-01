@@ -27,7 +27,12 @@ import numpy as np
 from ase import Atoms
 
 from ...jobABC import JobABC
-from ...curvature import bofill_update
+from ...curvature import (
+    bofill_update,
+    build_mass_weighted_mode_basis,
+    resolve_hessian_precision_profile,
+    validate_cartesian_hessian,
+)
 from .logger import log_info, log_error
 
 # =============================== Utilities ===============================
@@ -244,24 +249,15 @@ class GS(JobABC):
         n3 = 3 * len(self.atoms)
         if F_ts.shape != (n3,):
             raise ValueError("GS-IRC requires one 3N force vector.")
-        if H_cart_ts.shape != (n3, n3) or not np.isfinite(H_cart_ts).all():
-            raise ValueError("GS-IRC requires a finite 3N by 3N Hessian.")
-        asymmetry = np.max(np.abs(H_cart_ts - H_cart_ts.T))
-        scale = max(1.0, float(np.max(np.abs(H_cart_ts))))
-        if asymmetry > 2e-6 * scale:
-            raise ValueError("GS-IRC input Hessian has unresolved asymmetry.")
-        H_mw_ts = (self._D[:, None] * H_cart_ts) * self._D[None, :]
-        basis = np.eye(n3, dtype=np.float64)
-        if self.p.project_rigid_modes:
-            from ...ts.algorithm.PRFO import _mass_weighted_optimization_basis
-            basis, _ = _mass_weighted_optimization_basis(
-                self.atoms, project_rigid_modes=True
-            )
-            if basis.shape[1] == 0:
-                raise ValueError("GS-IRC rigid projection left no internal coordinates.")
-        reduced = basis.T @ H_mw_ts @ basis
-        w, vectors = np.linalg.eigh(0.5 * (reduced + reduced.T))
-        V = basis @ vectors
+        modes = build_mass_weighted_mode_basis(
+            self.atoms,
+            self.last_validated_hessian,
+            project_rigid_modes=self.p.project_rigid_modes,
+        )
+        if modes.basis.shape[1] == 0:
+            raise ValueError("GS-IRC rigid projection left no internal coordinates.")
+        w = modes.eigenvalues
+        V = modes.eigenvectors
 
         neg_idx = np.where(w < 0.0)[0]
         if len(neg_idx) == 0:
@@ -368,20 +364,18 @@ class GS(JobABC):
         Assumes atoms.calc implements get_hessian(atoms) and returns 3N x 3N
         or shape (1, 3N, 3N).
         """
-        H = self.atoms.calc.get_hessian(self.atoms)
+        raw_hessian = self.atoms.calc.get_hessian(self.atoms)
         self.log_numerical_hessian_diagnostics(self.atoms.calc)
-        H = to_f64(H)
-        if H.ndim == 3 and H.shape[0] == 1:
-            H = H[0]
-        if H.ndim != 2 or H.shape[0] != H.shape[1]:
-            raise ValueError(f"Hessian must be square 2D, got shape {H.shape}")
-        n3 = 3 * len(self.atoms)
-        if H.shape != (n3, n3) or not np.isfinite(H).all():
-            raise ValueError("GS-IRC requires a finite 3N by 3N Hessian.")
-        scale = max(1.0, float(np.max(np.abs(H))))
-        if np.max(np.abs(H - H.T)) > 2e-6 * scale:
-            raise ValueError("GS-IRC Hessian has unresolved asymmetry.")
-        return H
+        profile = resolve_hessian_precision_profile(
+            self.atoms,
+            purpose="gs-irc",
+        )
+        self.last_validated_hessian = validate_cartesian_hessian(
+            self.atoms,
+            raw_hessian,
+            profile,
+        )
+        return self.last_validated_hessian.physical_hessian
 
     def _energy_forces_from_mw(self, q_mw: np.ndarray) -> Tuple[float, np.ndarray]:
         """

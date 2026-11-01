@@ -505,10 +505,11 @@ def _endpoint_attempt(
     )
     if getattr(prfo.params, "project_rigid_modes", None) is not True:
         raise RuntimeError("PRFO rigid-mode projection repair is not available")
-    optimized = prfo.run()
-    final_energy = float(optimized.get_potential_energy(force_consistent=True))
-    final_forces = np.asarray(optimized.get_forces(), dtype=np.float64)
-    optimizer_metrics = _optimizer_metrics(optimized)
+    prfo_result = prfo.run()
+    candidate = prfo_result.atoms
+    final_energy = prfo_result.energy_hartree
+    final_forces = prfo_result.forces_hartree_per_angstrom
+    optimizer_metrics = _optimizer_metrics(candidate)
     optimizer_converged = bool(
         optimizer_metrics["maximum_force_hartree_per_angstrom"]
         <= ATTEMPT_CONFIG.force_max_stop_hartree_per_angstrom
@@ -529,14 +530,14 @@ def _endpoint_attempt(
         ATTEMPT_CONFIG.hessian_step_large_angstrom,
         ATTEMPT_CONFIG.hessian_step_small_angstrom,
     ):
-        raw, symmetric = _raw_force_hessian(optimized, step)
+        raw, symmetric = _raw_force_hessian(candidate, step)
         label = f"{step:.8f}".rstrip("0")
         raw_path = attempt_dir / f"hessian-raw-step-{label}-angstrom.npy"
         symmetric_path = attempt_dir / f"hessian-symmetric-step-{label}-angstrom.npy"
         np.save(raw_path, raw)
         np.save(symmetric_path, symmetric)
         analysis = analyze_stationary_point(
-            optimized,
+            candidate,
             raw,
             final_forces,
             negative_cutoff_cm1=ATTEMPT_CONFIG.negative_cutoff_cm1,
@@ -590,16 +591,16 @@ def _endpoint_attempt(
     mode1 = analyses[1]["negative_mode_cartesian"]
     mode_overlap = None
     umbrella_overlaps: list[float | None] = []
-    umbrella_reference = _umbrella_reference_mode(optimized)
+    umbrella_reference = _umbrella_reference_mode(candidate)
     for analysis in analyses:
         negative_mode = analysis["negative_mode_cartesian"]
         umbrella_overlaps.append(
-            _mass_metric_overlap(optimized, negative_mode, umbrella_reference)
+            _mass_metric_overlap(candidate, negative_mode, umbrella_reference)
             if negative_mode is not None
             else None
         )
     if mode0 is not None and mode1 is not None:
-        mode_overlap = _mass_metric_overlap(optimized, mode0, mode1)
+        mode_overlap = _mass_metric_overlap(candidate, mode0, mode1)
     stable_index_one = bool(
         all(analysis["is_first_order_saddle"] for analysis in analyses)
         and hessian_step_pass
@@ -618,7 +619,7 @@ def _endpoint_attempt(
     if analyses[1]["negative_mode_cartesian"] is not None:
         for sign in (-1, 1):
             optimized_downhill, downhill = _optimize_downhill(
-                optimized,
+                candidate,
                 analyses[1]["negative_mode_cartesian"],
                 sign,
                 attempt_dir,
@@ -710,6 +711,15 @@ def _endpoint_attempt(
         "final_forces_hartree_per_angstrom": final_forces,
         "optimizer_metrics": optimizer_metrics,
         "optimizer_converged": optimizer_converged,
+        "prfo_result": {
+            "status": prfo_result.status.value,
+            "certified_ts": prfo_result.certified_ts,
+            "force_displacement_converged": (
+                prfo_result.force_displacement_converged
+            ),
+            "termination_reason": prfo_result.termination_reason,
+            "geometry_sha256": prfo_result.geometry_sha256,
+        },
         "actual_prfo_iterations": prfo_iterations,
         "optimizer_limits": {
             "maximum_iterations": 80,
@@ -758,7 +768,8 @@ def _endpoint_attempt(
         live_source_hashes_after == frozen_source_hashes
     )
     result["accepted"] = bool(
-        optimizer_converged
+        prfo_result.certified_ts
+        and optimizer_converged
         and stable_index_one
         and downhill_pass
         and result["input_identity_unchanged"]

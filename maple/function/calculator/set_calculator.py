@@ -16,6 +16,7 @@ import ase
 from ase import Atoms
 
 from .calculator_base import (
+    _mint_hessian_precision_binding,
     atoms_has_pbc,
     calculator_execution,
     get_registered_calculator,
@@ -322,6 +323,102 @@ def _admit_independent_obc2_analytic_cell(
     # Manifest update precedes both admitted flags; failure leaves both false.
     correction._set_analytic_task_derivatives_admitted(True)
     calculator.analytic_implicit_derivatives_admitted = True
+
+
+def _bind_hessian_precision_cell(calculator) -> None:
+    """Mint the N32 consumer binding once, after exact factory validation."""
+    if hasattr(calculator, "_hessian_precision_binding"):
+        del calculator._hessian_precision_binding
+    try:
+        from .aimnet._aimnet2025_calculator import AIMNet2025Calculator
+    except ImportError:
+        return
+    if type(calculator) is not AIMNet2025Calculator:
+        return
+    identity = calculator.analytic_cell_identity
+    runtime_identity = calculator.runtime_profile_identity
+    if not isinstance(identity, dict) or not _same_json(identity, runtime_identity):
+        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: live runtime identity drift")
+    from ._independent_obc2_qualified_cell import (
+        QUALIFICATION_RECEIPT_FILENAME,
+        QUALIFICATION_RECEIPT_SHA256,
+    )
+
+    if (
+        QUALIFICATION_RECEIPT_FILENAME != _QUALIFICATION_RECEIPT_FILENAME
+        or not _is_sha256(QUALIFICATION_RECEIPT_SHA256)
+    ):
+        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: qualification pointer is invalid")
+    receipt_path = Path(__file__).with_name("data") / QUALIFICATION_RECEIPT_FILENAME
+    receipt_bytes = receipt_path.read_bytes()
+    if hashlib.sha256(receipt_bytes).hexdigest() != QUALIFICATION_RECEIPT_SHA256:
+        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: qualification receipt drift")
+    receipt = json.loads(receipt_bytes)
+    if (
+        receipt.get("status") != "qualified"
+        or receipt.get("content_sha256")
+        != hashlib.sha256(_canonical_receipt_payload(receipt)).hexdigest()
+        or receipt.get("installed_runtime_sources")
+        != _installed_runtime_source_inventory()
+    ):
+        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: qualification source binding drift")
+    matching = [
+        cell
+        for cell in receipt.get("qualified_cells", [])
+        if cell.get("gas", {}).get("model") == "aimnet2025"
+        and _same_json(cell.get("gas", {}).get("runtime_profile"), identity)
+    ]
+    correction = getattr(calculator, "solvent_correction", None)
+    if correction is None:
+        composition = "gas"
+        if not matching:
+            raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: gas runtime profile is not sealed")
+    else:
+        if (
+            getattr(calculator, "analytic_implicit_derivatives_admitted", False)
+            is not True
+            or getattr(correction, "analytic_task_derivatives_admitted", False)
+            is not True
+        ):
+            return
+        provider = getattr(correction, "underlying_provider", None)
+        provenance = getattr(provider, "provenance", None)
+        provenance = provenance() if callable(provenance) else provenance
+        if not isinstance(provenance, dict):
+            return
+        matching = [
+            cell
+            for cell in matching
+            if all(
+                _same_json(provenance.get(source), cell["solvent"].get(target))
+                for source, target in (
+                    ("runtime_provider", "runtime_provider"),
+                    ("model", "model"),
+                    ("profile", "profile"),
+                    ("nonpolar", "nonpolar"),
+                    ("equation_profile", "parameter_profile"),
+                    ("dtype", "dtype"),
+                )
+            )
+        ]
+        if not matching:
+            raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: composed runtime profile is not sealed")
+        composition = "torch-obc2"
+    identity_sha = hashlib.sha256(
+        json.dumps(
+            identity,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    calculator._hessian_precision_binding = _mint_hessian_precision_binding(
+        profile_id="qualified-aimnet2025-n32",
+        runtime_identity_sha256=identity_sha,
+        receipt_sha256=QUALIFICATION_RECEIPT_SHA256,
+        composition=composition,
+    )
 
 
 # Static seed map: builtin name → module that registers the calculator class.
@@ -986,6 +1083,13 @@ class SetCalculator:
             calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)
+        try:
+            _bind_hessian_precision_cell(calculator)
+        except (OSError, RuntimeError, ValueError):
+            # Ordinary gas E/F remains available when an advanced derivative
+            # precision cell is unsealed or source-drifted. The absent binding
+            # keeps every Hessian consumer on the strict generic policy.
+            pass
         execution = calculator_execution(calculator)
         calculator.execution_provenance = execution
         model_device = execution['model']['reported_device']

@@ -17,6 +17,12 @@ from dataclasses import dataclass, fields
 from typing import Tuple, Optional, Dict, Tuple as Tup
 from ase import Atoms
 from ..jobABC import JobABC
+from ..curvature import (
+    HARTREE_AMU_ANGSTROM2_TO_CM1,
+    build_mass_weighted_mode_basis,
+    resolve_hessian_precision_profile,
+    validate_cartesian_hessian,
+)
 
 from maple.function.timer import timer
 from maple.function.device import resolve_torch_device
@@ -41,11 +47,6 @@ R_GAS = K_B * NA                   # Ideal gas constant (J/mol/K)
 AMU = 1.66053906660e-27            # Atomic mass unit (kg)
 ANG2_TO_M2 = 1e-20                 # Å² -> m² conversion factor
 HARTREE_J = 4.3597447222071e-18    # Hartree energy (J)
-HARTREE_AMU_ANGSTROM2_TO_CM1 = (
-    np.sqrt(HARTREE_J / (AMU * ANG2_TO_M2))
-    / (2.0 * np.pi * C * 100.0)
-)
-
 # ======================================================================
 # Unit conversions (kJ <-> kcal / Hartree)
 # ======================================================================
@@ -458,15 +459,17 @@ class FrequencyBase(JobABC):
         if hessian.ndim == 3 and hessian.shape[0] == 1:
             hessian = hessian[0]
 
-        # Validate final shape.
-        n_atoms = len(self.atoms)
-        expected_shape = (3 * n_atoms, 3 * n_atoms)
-
-        if hessian.shape != expected_shape:
-            raise ValueError(f"Hessian shape{hessian.shape}does not match expected{expected_shape}")
-
         self.log_numerical_hessian_diagnostics(calc)
-        return hessian
+        profile = resolve_hessian_precision_profile(
+            self.atoms,
+            purpose="frequency",
+        )
+        self.validated_hessian = validate_cartesian_hessian(
+            self.atoms,
+            hessian,
+            profile,
+        )
+        return self.validated_hessian.physical_hessian
 
     def compute_frequencies(self, hessian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -1195,25 +1198,31 @@ class MWFrequency(FrequencyBase):
                 - modes_cart: Mass-weighted normalized normal modes
         """
         masses = np.asarray(self.atoms.get_masses())
-        
-        # Step 1: Mass-weighting transformation
-        # H_mw = M^{-1/2} @ H @ M^{-1/2}
-        # where M is in amu (consistent with Hessian in Angstrom²)
-        inv_sqrt_m = np.repeat(1.0 / np.sqrt(masses), 3)
-        h_mw = (
-            hessian_matrix
-            * inv_sqrt_m[None, :]
-            * inv_sqrt_m[:, None]
-        )
-
-        # Step 2: Project the mass-weighted Hessian with the mass-weighted
-        # rigid-body basis. Projection and mass weighting do not commute.
+        validated = getattr(self, "validated_hessian", None)
+        if validated is None:
+            profile = resolve_hessian_precision_profile(
+                self.atoms,
+                purpose="frequency-direct",
+            )
+            validated = validate_cartesian_hessian(
+                self.atoms,
+                hessian_matrix,
+                profile,
+            )
         if self.verbosity >= 2:
             self.log_info(["Projecting out translations and rotations...\n"])
-        h_mw = self._project_hessian(h_mw)
-        
-        # Step 3: Diagonalize mass-weighted Hessian
-        evals, evecs_mw = self._eigh(h_mw)
+        modes = build_mass_weighted_mode_basis(
+            self.atoms,
+            validated,
+            project_rigid_modes=True,
+        )
+        inv_sqrt_m = modes.inverse_sqrt_mass
+        evals = np.concatenate([np.zeros(modes.rigid_rank), modes.eigenvalues])
+        rigid_count = modes.rigid_rank
+        complete_basis, _ = np.linalg.qr(modes.basis, mode="complete")
+        evecs_mw = np.empty((3 * len(self.atoms), 3 * len(self.atoms)))
+        evecs_mw[:, :rigid_count] = complete_basis[:, modes.basis.shape[1]:]
+        evecs_mw[:, rigid_count:] = modes.eigenvectors
         
         # Step 4: Convert eigenvalues to frequencies (cm⁻¹)
         # Conversion factor for Ha/Angstrom² + amu units:

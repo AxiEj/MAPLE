@@ -985,15 +985,22 @@ class NEB(JobABC):
             ts_guess.dp_rms_th = images[0].dp_rms_th
 
             prfo = PRFO(output=self.output, atoms=ts_guess)
-            ts_opt = prfo.run()
+            self.prfo_result = prfo.run()
+            if not self.prfo_result.certified_ts:
+                log_info([
+                    "\nPRFO refinement did not certify an index-one transition state; "
+                    "the CI candidate remains separate from the MEP.\n"
+                ], self.output)
+                return self.prfo_result
+            ts_opt = self.prfo_result.atoms
 
-            E_TS = ts_opt.get_potential_energy(force_consistent=True)
-            maxF_TS = np.max(np.linalg.norm(ts_opt.get_forces(), axis=1))
-            rmsF_TS = np.sqrt(np.mean(np.linalg.norm(ts_opt.get_forces(), axis=1) ** 2))
-
-            # Insert TS right after CI
-            images.insert(hei + 1, ts_opt)
-            Es.insert(hei + 1, E_TS)
+            E_TS = self.prfo_result.energy_hartree
+            ts_force_norms = np.linalg.norm(
+                self.prfo_result.forces_hartree_per_angstrom,
+                axis=1,
+            )
+            maxF_TS = np.max(ts_force_norms)
+            rmsF_TS = np.sqrt(np.mean(ts_force_norms**2))
 
             nebts_mep = base + "_nebts_mep.xyz"
             nebts_ts = base + "_nebts_ts.xyz"
@@ -1011,13 +1018,17 @@ class NEB(JobABC):
             kcal_per_Eh = 627.509
             for i, E in enumerate(Es):
                 dE = (E - Es[0]) * kcal_per_Eh
-                label = " TS" if i == hei + 1 else f"{i:3d}"
-                marker = " <= TS" if i == hei + 1 else (" <= CI" if i == hei else "")
+                label = f"{i:3d}"
+                marker = " <= CI" if i == hei else ""
                 maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
                 rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
                 log_info([
                     f"{label:>4s} {E:12.5f} {dE:11.2f} {maxF:11.5f} {rmsF:10.5f}{marker}\n"
                 ], self.output)
+            log_info([
+                f"  TS {E_TS:12.5f} {(E_TS - Es[0]) * kcal_per_Eh:11.2f} "
+                f"{maxF_TS:11.5f} {rmsF_TS:10.5f} <= certified TS (separate)\n"
+            ], self.output)
 
             log_info([
                 "\n-----------------------------------------\n",
@@ -1027,9 +1038,10 @@ class NEB(JobABC):
             ], self.output)
 
             log_info([
-                f"\nWrote NEB-TS MEP to: {nebts_mep}\n",
-                f"Wrote TS structure to: {nebts_ts}\n"
+                f"\nWrote unchanged NEB-TS MEP to: {nebts_mep}\n",
+                f"Wrote separate certified TS structure to: {nebts_ts}\n"
             ], self.output)
+            return self.prfo_result
 
 
 
@@ -1530,6 +1542,7 @@ class NEB(JobABC):
         
         
         # 3) Optional: CINEB refinement
+        prfo_result = None
         if self.params.refine == 'cineb' or self.params.refine == 'nebts':
             if iteration == self.params.max_iter:
                 log_info([
@@ -1537,7 +1550,7 @@ class NEB(JobABC):
                     "You may try to increase max_iter or check the initial path.\n"
                 ], self.output)
             else:
-                self.restart_run(images, energies=Es)
+                prfo_result = self.restart_run(images, energies=Es)
         return {
             "status": "converged" if converged else "bounded_nonconverged",
             "converged": bool(converged),
@@ -1548,4 +1561,5 @@ class NEB(JobABC):
             "projected_forces": Fp_list,
             "max_projected_force": float(maxfp),
             "rms_projected_force": float(rmsfp),
+            "prfo_result": prfo_result,
         }

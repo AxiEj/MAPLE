@@ -6,11 +6,12 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import FixAtoms
 
-from maple.function.dispatcher.ts.algorithm.PRFO import (
-    PRFO,
-    _mass_weighted_optimization_basis,
-    prfo_step,
+from maple.function.dispatcher.curvature import (
+    HessianPrecisionProfile,
+    build_mass_weighted_mode_basis,
+    validate_cartesian_hessian,
 )
+from maple.function.dispatcher.ts.algorithm.PRFO import PRFO, prfo_step
 from maple.function.read.command_control import CommandControl
 
 
@@ -37,6 +38,21 @@ def _nonlinear_water() -> Atoms:
     )
 
 
+def _test_mode_basis(atoms, *, project_rigid_modes):
+    profile = HessianPrecisionProfile("test-symmetric", 1.0e-8, False)
+    validated = validate_cartesian_hessian(
+        atoms,
+        np.eye(3 * len(atoms)),
+        profile,
+    )
+    modes = build_mass_weighted_mode_basis(
+        atoms,
+        validated,
+        project_rigid_modes=project_rigid_modes,
+    )
+    return modes.basis, modes.rigid_rank
+
+
 def _mass_weighted_rigid_columns(atoms: Atoms) -> np.ndarray:
     masses = np.asarray(atoms.get_masses(), dtype=np.float64)
     positions = np.asarray(atoms.get_positions(), dtype=np.float64)
@@ -60,7 +76,7 @@ def _mass_weighted_rigid_columns(atoms: Atoms) -> np.ndarray:
 def test_internal_basis_removes_six_nonlinear_rigid_modes():
     atoms = _nonlinear_water()
 
-    basis, rigid_rank = _mass_weighted_optimization_basis(
+    basis, rigid_rank = _test_mode_basis(
         atoms,
         project_rigid_modes=True,
     )
@@ -78,7 +94,7 @@ def test_internal_basis_preserves_four_vibrations_for_linear_triatomic():
         positions=[[-1.16, 0.0, 0.0], [0.0, 0.0, 0.0], [1.16, 0.0, 0.0]],
     )
 
-    basis, rigid_rank = _mass_weighted_optimization_basis(
+    basis, rigid_rank = _test_mode_basis(
         atoms,
         project_rigid_modes=True,
     )
@@ -96,14 +112,14 @@ def test_projection_is_explicit_and_fails_closed_outside_free_molecules():
     constrained.set_constraint(FixAtoms(indices=[0]))
 
     for atoms in (periodic, constrained):
-        basis, rigid_rank = _mass_weighted_optimization_basis(
+        basis, rigid_rank = _test_mode_basis(
             atoms,
             project_rigid_modes=False,
         )
         np.testing.assert_array_equal(basis, np.eye(9))
         assert rigid_rank == 0
         with pytest.raises(ValueError, match="isolated unconstrained"):
-            _mass_weighted_optimization_basis(atoms, project_rigid_modes=True)
+            _test_mode_basis(atoms, project_rigid_modes=True)
 
 
 @pytest.mark.parametrize("invalid", ["mass", "position"])
@@ -121,12 +137,12 @@ def test_projection_rejects_nonfinite_geometry_data(invalid):
         message = "finite positions"
 
     with pytest.raises(ValueError, match=message):
-        _mass_weighted_optimization_basis(atoms, project_rigid_modes=True)
+        _test_mode_basis(atoms, project_rigid_modes=True)
 
 
 def test_reduced_prfo_step_ignores_rigid_hessian_and_gradient_contamination():
     atoms = _nonlinear_water()
-    internal, rigid_rank = _mass_weighted_optimization_basis(
+    internal, rigid_rank = _test_mode_basis(
         atoms,
         project_rigid_modes=True,
     )
@@ -158,7 +174,7 @@ def test_reduced_prfo_step_ignores_rigid_hessian_and_gradient_contamination():
 
 def test_mode_tracking_compares_ambient_modes_when_internal_basis_rotates(tmp_path):
     atoms = _nonlinear_water()
-    first_basis, _ = _mass_weighted_optimization_basis(
+    first_basis, _ = _test_mode_basis(
         atoms,
         project_rigid_modes=True,
     )
@@ -238,7 +254,7 @@ class _ContaminatedQuadratic(Calculator):
 def _run_contaminated_quadratic_prfo(tmp_path, *, project_rigid_modes: bool):
     atoms = _nonlinear_water()
     reference = atoms.get_positions().copy()
-    internal, rigid_rank = _mass_weighted_optimization_basis(
+    internal, rigid_rank = _test_mode_basis(
         atoms,
         project_rigid_modes=True,
     )

@@ -538,15 +538,17 @@ class GSM(JobABC):
 
         # Run PRFO to refine TS
         prfo = PRFO(output=self.output, atoms=ts_guess)
-        ts_opt = prfo.run()
-        E_TS   = float(ts_opt.get_potential_energy(force_consistent=True))
+        prfo_result = prfo.run()
+        if not prfo_result.certified_ts:
+            log_info([
+                "\nPRFO refinement did not certify an index-one transition state; "
+                "the string highest-energy candidate remains uncertified.\n"
+            ], self.output)
+            return prfo_result
+        ts_opt = prfo_result.atoms
+        E_TS = prfo_result.energy_hartree
 
-        # Create a path with TS inserted after the original CI (HEI)
-        images_ts = [img for img in images]
-        images_ts.insert(hei_idx + 1, ts_opt)
-
-        # Energies of the augmented path
-        Es_path = get_energies(images_ts)
+        Es_path = get_energies(images)
         kcal_per_Eh = 627.509
 
         # Helper: energy-weighted tangent for projected-perp forces
@@ -569,31 +571,29 @@ class GSM(JobABC):
                 t_flat = np.zeros_like(t_flat); t_flat[0] = 1.0; nrm = 1.0
             return t_flat / nrm
 
-        # Compute per-image metrics:
-        # - Non-TS rows: projected-perpendicular forces (Fp)
-        # - TS row: global forces (printed as 0.0/0.0 if you want identical to sample)
         maxFp_list = []
         rmsFp_list = []
-        for i, at in enumerate(images_ts):
-            if i == hei_idx + 1:
-                # TS: global forces; print zeros to match your sample format
-                maxFp_list.append(0.0)
-                rmsFp_list.append(0.0)
-            else:
-                F_raw = to_numpy_f64(at.get_forces())
-                pos   = to_numpy_f64(at.get_positions())
-                masses= to_numpy_f64(at.get_masses())
-                F_rb  = project_out_rigidbody_forces(F_raw, pos, masses).reshape(-1)
-                tau   = energy_weighted_tangent(images_ts, Es_path, i)
-                c     = float(np.dot(F_rb, tau))
-                Fp    = (F_rb - c * tau).reshape(-1, 3)
-                maxFp_list.append(float(np.max(np.linalg.norm(Fp, axis=1))))
-                rmsFp_list.append(float(np.sqrt(np.mean(np.linalg.norm(Fp, axis=1) ** 2))))
+        for i, at in enumerate(images):
+            F_raw = to_numpy_f64(at.get_forces())
+            pos = to_numpy_f64(at.get_positions())
+            masses = to_numpy_f64(at.get_masses())
+            F_rb = project_out_rigidbody_forces(F_raw, pos, masses).reshape(-1)
+            tau = energy_weighted_tangent(images, Es_path, i)
+            c = float(np.dot(F_rb, tau))
+            Fp = (F_rb - c * tau).reshape(-1, 3)
+            maxFp_list.append(float(np.max(np.linalg.norm(Fp, axis=1))))
+            rmsFp_list.append(float(np.sqrt(np.mean(np.linalg.norm(Fp, axis=1) ** 2))))
+        ts_force_norms = np.linalg.norm(
+            prfo_result.forces_hartree_per_angstrom,
+            axis=1,
+        )
+        maxF_TS = float(np.max(ts_force_norms))
+        rmsF_TS = float(np.sqrt(np.mean(ts_force_norms**2)))
 
         # Dump STRING-TS files
         stringts_mep = base_prefix + "_stringts_mep.xyz"
         stringts_ts  = base_prefix + "_stringts_ts.xyz"
-        write_xyz(stringts_mep, images_ts, energies=Es_path)
+        write_xyz(stringts_mep, images, energies=Es_path)
         write_xyz(stringts_ts, [ts_opt], energies=[E_TS])
 
         # Pretty-print TS coordinates
@@ -618,10 +618,12 @@ class GSM(JobABC):
             dE = (E - Es_path[0]) * kcal_per_Eh
             if i == hei_idx:
                 log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f} <= CI\n"], self.output)
-            elif i == hei_idx + 1:
-                log_info([f"  TS {E:12.5f} {dE:11.2f} {0.0:11.5f} {0.0:10.5f} <= TS\n"], self.output)
             else:
                 log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f}\n"], self.output)
+        log_info([
+            f"  TS {E_TS:12.5f} {(E_TS - Es_path[0]) * kcal_per_Eh:11.2f} "
+            f"{maxF_TS:11.5f} {rmsF_TS:10.5f} <= certified TS (separate)\n"
+        ], self.output)
 
         log_info([
             "\n-----------------------------------------\n",
@@ -631,12 +633,10 @@ class GSM(JobABC):
         ], self.output)
 
         log_info([
-            f"\nWrote STRING-TS MEP to: {stringts_mep}\n",
-            f"Wrote TS structure to:  {stringts_ts}\n"
+            f"\nWrote unchanged STRING-TS MEP to: {stringts_mep}\n",
+            f"Wrote separate certified TS structure to: {stringts_ts}\n"
         ], self.output)
-
-
-
+        return prfo_result
 
     # ------------------------------- main flow --------------------------------
 
@@ -984,8 +984,9 @@ class GSM(JobABC):
         ], self.output)
 
         # Refinement is a separate optional operation.  refine=None is path-only.
+        prfo_result = None
         if self.params.refine is not None:
-            self.restart_run(images, hei, base)
+            prfo_result = self.restart_run(images, hei, base)
         d_min = self._min_image_distance(L[-1], R_[-1])
         merged = d_min <= self.params.merge_threshold
         if merged:
@@ -998,5 +999,6 @@ class GSM(JobABC):
             "images": images,
             "energies": Es,
             "highest_energy_image": hei,
+            "prfo_result": prfo_result,
         }
 

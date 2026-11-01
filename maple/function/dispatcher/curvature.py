@@ -404,7 +404,12 @@ def validate_cartesian_hessian(
 def _validated_mode_domain(
     atoms, *, project_rigid_modes: bool
 ) -> tuple[np.ndarray, np.ndarray]:
-    masses = np.asarray(atoms.get_masses(), dtype=np.float64)
+    raw_masses = np.asarray(atoms.get_masses())
+    if np.iscomplexobj(raw_masses):
+        raise CurvatureValidationError(
+            "Mode analysis requires real atomic masses; complex values are not supported."
+        )
+    masses = np.asarray(raw_masses, dtype=np.float64)
     if (
         masses.shape != (len(atoms),)
         or not np.isfinite(masses).all()
@@ -413,7 +418,12 @@ def _validated_mode_domain(
         raise CurvatureValidationError(
             "Mode analysis requires finite positive atomic masses."
         )
-    positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+    raw_positions = np.asarray(atoms.get_positions())
+    if np.iscomplexobj(raw_positions):
+        raise CurvatureValidationError(
+            "Mode analysis requires real positions; complex values are not supported."
+        )
+    positions = np.asarray(raw_positions, dtype=np.float64)
     if positions.shape != (len(atoms), 3) or not np.isfinite(positions).all():
         raise CurvatureValidationError("Mode analysis requires finite positions.")
     if project_rigid_modes and (

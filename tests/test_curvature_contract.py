@@ -444,6 +444,36 @@ def test_bad_masses_refuse_before_mode_analysis(bad_mass):
     assert type(exc_info.value).__name__ == "CurvatureValidationError"
 
 
+def test_complex_positions_refuse_before_float_cast():
+    atoms = _water()
+    atoms.arrays["positions"] = atoms.get_positions().astype(np.complex128)
+    atoms.arrays["positions"][0, 0] += 1000.0j
+    validated = validate_cartesian_hessian(atoms, np.eye(9), _profile(1.0e-8))
+
+    with pytest.raises(ValueError, match="complex") as exc_info:
+        build_mass_weighted_mode_basis(
+            atoms,
+            validated,
+            project_rigid_modes=False,
+        )
+
+    assert type(exc_info.value).__name__ == "CurvatureValidationError"
+
+
+def test_real_mass_mode_domain_remains_supported():
+    atoms = _water()
+    atoms.arrays["masses"] = np.asarray(atoms.get_masses(), dtype=np.float64)
+    validated = validate_cartesian_hessian(atoms, np.eye(9), _profile(1.0e-8))
+
+    modes = build_mass_weighted_mode_basis(
+        atoms,
+        validated,
+        project_rigid_modes=False,
+    )
+
+    assert np.isfinite(modes.frequencies_cm1).all()
+
+
 @pytest.mark.parametrize("negative_count", [0, 1, 2])
 def test_shared_mode_analysis_counts_material_negative_modes(negative_count):
     atoms = _water()

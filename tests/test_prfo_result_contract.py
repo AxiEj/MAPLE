@@ -518,6 +518,24 @@ def test_invalid_mass_returns_typed_refusal(tmp_path, bad_mass):
     assert "positive atomic masses" in result.termination_reason
 
 
+def test_complex_mass_returns_typed_refusal_without_ts_file(tmp_path):
+    atoms = _stationary_hydrogen(negative_modes=1)
+    atoms.arrays["masses"] = np.array([1.0 + 1000.0j])
+    transition = TransitionState(
+        str(tmp_path / "complex-mass.out"),
+        atoms,
+        {"max_iter": 1},
+        method="prfo",
+    )
+
+    result = transition.run()
+
+    assert result.status is RunStatus.REFUSED
+    assert transition.last_result is result
+    assert "complex" in result.termination_reason.lower()
+    assert not (tmp_path / "complex-mass_prfo_ts.xyz").exists()
+
+
 def test_invalid_mass_in_updated_curvature_returns_typed_refusal(tmp_path, monkeypatch):
     atoms = Atoms("H", positions=[[0.2, 0.0, 0.0]])
     atoms.calc = Quadratic(

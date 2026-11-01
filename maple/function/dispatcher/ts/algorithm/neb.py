@@ -10,7 +10,11 @@ NEB implementation with:
 from __future__ import annotations
 from contextlib import ExitStack
 import os
+import stat
+import tempfile
 from dataclasses import dataclass
+from numbers import Real
+from types import MappingProxyType
 from typing import List, Literal, Tuple, Optional
 
 import numpy as np
@@ -79,6 +83,47 @@ def write_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]
                 f.write(f"Image {i}\n")
             for s, (x, y, z) in zip(symbols, pos):
                 f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
+
+
+def _write_xyz_atomic(
+    filename: str,
+    images: List[Atoms],
+    energies: Optional[List[float]] = None,
+) -> None:
+    """Publish a complete XYZ without exposing a partial current artifact."""
+    directory = os.path.dirname(os.path.abspath(filename))
+    os.makedirs(directory, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(
+        dir=directory,
+        prefix=os.path.basename(filename) + ".",
+        suffix=".tmp",
+    )
+    os.close(descriptor)
+    try:
+        write_xyz(temporary, images, energies=energies)
+        os.replace(temporary, filename)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
+
+
+def _retire_owned_nebts_output(output: str) -> Optional[str]:
+    """Atomically archive this NEB job's current certified-TS artifact."""
+    base, _ = os.path.splitext(os.path.abspath(output))
+    current = base + "_nebts_ts.xyz"
+    if not os.path.lexists(current):
+        return None
+    mode = os.lstat(current).st_mode
+    if stat.S_ISLNK(mode) or not stat.S_ISREG(mode):
+        raise ValueError("Refusing to retire a symlink or non-file NEB-TS output.")
+    archive_index = 1
+    while True:
+        archive = f"{base}_nebts_ts.previous-{archive_index}.xyz"
+        if not os.path.lexists(archive):
+            break
+        archive_index += 1
+    os.replace(current, archive)
+    return archive
 
 def write_all_images_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]] = None, iteration: int = 0):
     """
@@ -172,8 +217,21 @@ class NEBParams:
     cilbfgs_m: int = 20                    # memory size for L-BFGS in CINEB
     cistep0: float = 5e-3                  # initial step length for CINEB
     cineb_max_iter: Optional[int] = None   # independent CI budget; None preserves max_iter
+    # Optional maximum per-atom physical CI step length (Angstrom).
+    ci_displacement_tol: Optional[float] = None
     prfo_max_iter: int = 256               # independent PRFO budget for NEB-TS
     prfo_project_rigid_modes: bool = False # explicit PRFO optimization subspace
+
+
+def _validate_ci_displacement_tol(value: Optional[float]) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
+        raise ValueError("ci_displacement_tol must be finite and nonnegative or None.")
+    converted = float(value)
+    if not np.isfinite(converted) or converted < 0.0:
+        raise ValueError("ci_displacement_tol must be finite and nonnegative or None.")
+    return converted
 
 
 def compute_dynamic_k(energies: List[float], k_min: float, k_max: float, k_decay: float = 0.5) -> List[float]:
@@ -523,6 +581,9 @@ def run_neb_stage(
         raise ValueError("stage_kind must be 'base' or 'ci'.")
     if len(images) < 3:
         raise ValueError("An NEB stage requires at least one internal image.")
+    ci_displacement_tol = _validate_ci_displacement_tol(
+        params.ci_displacement_tol
+    )
 
     if stage_kind == "base":
         maximum_iterations = int(params.max_iter)
@@ -550,9 +611,11 @@ def run_neb_stage(
         raise ValueError("NEB stage iteration budgets must be nonnegative.")
 
     climbing_index = None
+    previous_ci_positions = None
+    ci_max_displacement = 0.0
 
     def evaluate(coordinates):
-        nonlocal climbing_index
+        nonlocal climbing_index, previous_ci_positions, ci_max_displacement
         _unpack_internal(coordinates, images)
         energies, raw_forces = _evaluate_neb_images(images)
         if stage_kind == "base":
@@ -570,6 +633,17 @@ def run_neb_stage(
                 climbing_index = max(
                     range(1, len(images) - 1), key=lambda index: energies[index]
                 )
+            current_ci_positions = to_numpy_f64(
+                images[climbing_index].get_positions()
+            )
+            if previous_ci_positions is not None:
+                ci_max_displacement = float(
+                    np.linalg.norm(
+                        current_ci_positions - previous_ci_positions,
+                        axis=1,
+                    ).max(initial=0.0)
+                )
+            previous_ci_positions = np.array(current_ci_positions, copy=True)
             highest_index = climbing_index
             projected = _cineb_forces(
                 images,
@@ -601,10 +675,15 @@ def run_neb_stage(
         regular_forces = (
             np.concatenate(regular) if regular else np.zeros(0, dtype=np.float64)
         )
-        return driver.ci_should_stop(
+        force_converged = driver.ci_should_stop(
             regular_forces,
             raw_forces[climbing_index].reshape(-1),
         )
+        displacement_converged = (
+            ci_displacement_tol is None
+            or ci_max_displacement <= ci_displacement_tol
+        )
+        return force_converged and displacement_converged
 
     converged = is_converged()
     iterations = 0
@@ -633,7 +712,7 @@ def run_neb_stage(
             iteration=iterations,
         )
 
-    return PathStageResult.capture(
+    result = PathStageResult.capture(
         status=(RunStatus.CONVERGED if converged else RunStatus.BOUNDED_NONCONVERGED),
         images=images,
         energies_hartree=energies,
@@ -645,6 +724,19 @@ def run_neb_stage(
         termination_reason="force_converged" if converged else "maximum_iterations",
         candidate=images[highest_index],
     )
+    object.__setattr__(
+        result,
+        "_stage_diagnostics",
+        MappingProxyType(
+            {
+                "climbing_image_index": climbing_index,
+                "ci_max_displacement_angstrom": (
+                    ci_max_displacement if stage_kind == "ci" else None
+                ),
+            }
+        ),
+    )
+    return result
 
 # =============================================================================
 # ------------------------------- NEB Class -----------------------------------
@@ -665,6 +757,25 @@ class NEB(JobABC):
         else:
             raise ValueError("Please provide Molecules object containing all images")
 
+        threshold_names = ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th")
+        self._prfo_thresholds = {}
+        for name in threshold_names:
+            endpoint_values = [
+                getattr(endpoint, name, None)
+                for endpoint in (self.input_images[0], self.input_images[-1])
+            ]
+            if (endpoint_values[0] is None) != (endpoint_values[1] is None):
+                raise ValueError(
+                    f"NEB endpoint thresholds disagree for {name}: one is missing."
+                )
+            if endpoint_values[0] is not None:
+                if endpoint_values[0] != endpoint_values[1]:
+                    raise ValueError(
+                        f"NEB endpoint thresholds disagree for {name}: "
+                        f"{endpoint_values[0]!r} != {endpoint_values[1]!r}."
+                    )
+                self._prfo_thresholds[name] = endpoint_values[0]
+
         # Initialize params from paras dict
         self.params = self._init_params(NEBParams, paras, ("neb", "NEB", "ts"))
 
@@ -676,6 +787,9 @@ class NEB(JobABC):
             or self.params.cineb_max_iter < 0
         ):
             raise ValueError("cineb_max_iter must be a nonnegative integer or None.")
+        self.params.ci_displacement_tol = _validate_ci_displacement_tol(
+            self.params.ci_displacement_tol
+        )
         if type(self.params.prfo_max_iter) is not int or self.params.prfo_max_iter < 0:
             raise ValueError("prfo_max_iter must be a nonnegative integer.")
         if type(self.params.prfo_project_rigid_modes) is not bool:
@@ -684,6 +798,7 @@ class NEB(JobABC):
             raise ValueError("NEB refine must be None, 'cineb', or 'nebts'.")
 
         self.params.n_images = int(self.params.n_images) + 2  # total images including endpoints
+        self.nebts_retired_output = None
 
     @staticmethod
     def _evaluate_images(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
@@ -912,12 +1027,9 @@ class NEB(JobABC):
             stage_kind="ci",
             output=self.output,
         )
-        climbing_index = next(
-            index
-            for index, image in enumerate(stage.images)
-            if image.get_positions().tobytes()
-            == stage.candidate.get_positions().tobytes()
-        )
+        climbing_index = stage._stage_diagnostics["climbing_image_index"]
+        if climbing_index not in range(1, len(images) - 1):
+            raise RuntimeError("CI stage did not report a valid internal climbing index.")
         projected = _cineb_forces(
             images,
             list(stage.energies_hartree),
@@ -943,11 +1055,11 @@ class NEB(JobABC):
         """Refine a converged CI candidate without changing the MEP images."""
         from .PRFO import PRFO
 
+        self._retire_nebts_current()
         ts_guess = self._ci_candidate.copy()
         ts_guess.calc = self._ci_candidate.calc
-        for name in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th"):
-            if hasattr(self._ci_candidate, name):
-                setattr(ts_guess, name, getattr(self._ci_candidate, name))
+        for name, value in self._prfo_thresholds.items():
+            setattr(ts_guess, name, value)
 
         prfo_parameters = {
             "prfo": {
@@ -971,7 +1083,7 @@ class NEB(JobABC):
                 list(ci_stage.images),
                 energies=list(ci_stage.energies_hartree),
             )
-            write_xyz(
+            _write_xyz_atomic(
                 base + "_nebts_ts.xyz",
                 [prfo_result.atoms],
                 energies=[prfo_result.energy_hartree],
@@ -991,9 +1103,25 @@ class NEB(JobABC):
             certification=prfo_result.certification,
         )
 
+    def _retire_nebts_current(self) -> None:
+        if self.params.refine != "nebts":
+            return
+        retired_output = _retire_owned_nebts_output(self.output)
+        if retired_output is not None:
+            self.nebts_retired_output = retired_output
+            log_info(
+                [
+                    "Retired previous certified NEB-TS output to: ",
+                    retired_output,
+                    "\n",
+                ],
+                self.output,
+            )
+
     def restart_run(self, images: List[Atoms], energies=None) -> PathStageResult:
         """Run CI-NEB and optional certified-only PRFO refinement."""
         del energies
+        self._retire_nebts_current()
         self.ci_stage_result = self._run_cineb_stage(images)
         self.nebts_stage_result = None
         if self.ci_stage_result.status is not RunStatus.CONVERGED:
@@ -1168,6 +1296,8 @@ class NEB(JobABC):
                 f"requires exactly {n_required} images (including endpoints). "
                 f"Please reduce input images or increase n_images parameter."
             )
+
+        self._retire_nebts_current()
         
         # Assign endpoints
         self.atoms_R = self.input_images[0]

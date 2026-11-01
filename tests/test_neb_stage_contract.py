@@ -205,6 +205,8 @@ def test_last_allowed_base_step_can_converge_and_start_ci(tmp_path, monkeypatch)
 
 def test_bounded_base_blocks_ci_and_prfo(tmp_path, monkeypatch):
     path = nonconverged_images()
+    old_current = tmp_path / "bounded_nebts_ts.xyz"
+    old_current.write_bytes(b"old certified output\n")
     job = NEB(
         str(tmp_path / "bounded.out"),
         Molecules([path[0], path[-1]]),
@@ -219,6 +221,10 @@ def test_bounded_base_blocks_ci_and_prfo(tmp_path, monkeypatch):
     assert result["status"] == RunStatus.BOUNDED_NONCONVERGED.value
     assert result["ci_stage"] is None
     assert result["prfo_result"] is None
+    assert not old_current.exists()
+    assert (tmp_path / "bounded_nebts_ts.previous-1.xyz").read_bytes() == (
+        b"old certified output\n"
+    )
 
 
 def test_ci_uses_its_memory_budget_and_returns_final_state(tmp_path, monkeypatch):
@@ -419,6 +425,8 @@ def test_only_certified_prfo_writes_nebts_file(tmp_path, monkeypatch):
 
     prfo_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
     monkeypatch.setattr(prfo_module, "PRFO", CertifiedPRFO)
+    old_current = tmp_path / "certified_nebts_ts.xyz"
+    old_current.write_bytes(b"old certified bytes\n")
     path = images()
     job = NEB(
         str(tmp_path / "certified.out"),
@@ -441,7 +449,12 @@ def test_only_certified_prfo_writes_nebts_file(tmp_path, monkeypatch):
     result = job.run()
     assert result["status"] == RunStatus.CONVERGED.value
     assert result["certification"].certified_ts
-    assert (tmp_path / "certified_nebts_ts.xyz").is_file()
+    assert old_current.is_file()
+    assert old_current.read_bytes() != b"old certified bytes\n"
+    assert (tmp_path / "certified_nebts_ts.previous-1.xyz").read_bytes() == (
+        b"old certified bytes\n"
+    )
+    assert not list(tmp_path.glob("certified_nebts_ts.xyz.*.tmp"))
 
 
 def test_provider_mutation_is_restored_and_refused(tmp_path):
@@ -494,3 +507,281 @@ def test_unknown_stage_refuses_before_evaluation(tmp_path):
             output=str(tmp_path / "unknown.out"),
         )
     assert not Path(tmp_path / "unknown_image_traj.xyz").exists()
+
+
+def test_nebts_uses_original_endpoint_thresholds_after_interpolation(
+    tmp_path, monkeypatch
+):
+    observed = {}
+
+    class BoundedPRFO:
+        def __init__(self, output, atoms, paras):
+            observed["thresholds"] = {
+                name: getattr(atoms, name)
+                for name in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th")
+            }
+            self.atoms = atoms
+
+        def run(self):
+            return PRFOResult.capture(
+                status=RunStatus.BOUNDED_NONCONVERGED,
+                atoms=self.atoms,
+                iterations=0,
+                max_iterations=0,
+                force_displacement_converged=False,
+                termination_reason="maximum_iterations",
+                energy_hartree=self.atoms.get_potential_energy(force_consistent=True),
+                forces_hartree_per_angstrom=self.atoms.get_forces(),
+                certification=None,
+                output_paths={},
+            )
+
+    prfo_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
+    monkeypatch.setattr(prfo_module, "PRFO", BoundedPRFO)
+    endpoints = images()[::2]
+    expected = {
+        "f_max_th": 1.1e-4,
+        "f_rms_th": 2.2e-4,
+        "dp_max_th": 3.3e-4,
+        "dp_rms_th": 4.4e-4,
+    }
+    for endpoint in endpoints:
+        for name, value in expected.items():
+            setattr(endpoint, name, value)
+
+    NEB(
+        str(tmp_path / "thresholds.out"),
+        Molecules(endpoints),
+        paras={
+            "neb": {
+                "n_images": 1,
+                "max_iter": 0,
+                "cineb_max_iter": 0,
+                "ifidpp": 0,
+                "refine": "nebts",
+                "neb_f_max_th": 1.0e6,
+                "neb_f_rms_th": 1.0e6,
+                "cineb_f_max_th": 1.0e6,
+                "cineb_f_rms_th": 1.0e6,
+                "prfo_max_iter": 0,
+            }
+        },
+    ).run()
+    assert observed["thresholds"] == expected
+
+
+def test_neb_refuses_inconsistent_endpoint_thresholds(tmp_path):
+    endpoints = images()[::2]
+    endpoints[0].f_max_th = 1.0e-4
+    endpoints[1].f_max_th = 2.0e-4
+    with pytest.raises(ValueError, match="endpoint thresholds disagree"):
+        NEB(
+            str(tmp_path / "threshold-mismatch.out"),
+            Molecules(endpoints),
+            paras={"neb": {"n_images": 1}},
+        )
+
+
+def test_requested_nebts_rerun_archives_old_current_before_bounded_attempt(
+    tmp_path, monkeypatch
+):
+    old_bytes = b"previous certified TS\n"
+    current = tmp_path / "rerun_nebts_ts.xyz"
+    current.write_bytes(old_bytes)
+
+    class BoundedPRFO:
+        def __init__(self, output, atoms, paras):
+            self.atoms = atoms
+
+        def run(self):
+            assert not current.exists()
+            return PRFOResult.capture(
+                status=RunStatus.BOUNDED_NONCONVERGED,
+                atoms=self.atoms,
+                iterations=0,
+                max_iterations=0,
+                force_displacement_converged=False,
+                termination_reason="maximum_iterations",
+                energy_hartree=self.atoms.get_potential_energy(force_consistent=True),
+                forces_hartree_per_angstrom=self.atoms.get_forces(),
+                certification=None,
+                output_paths={},
+            )
+
+    prfo_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
+    monkeypatch.setattr(prfo_module, "PRFO", BoundedPRFO)
+    path = images()
+    job = NEB(
+        str(tmp_path / "rerun.out"),
+        Molecules(path),
+        paras={
+            "neb": {
+                "n_images": 1,
+                "max_iter": 0,
+                "cineb_max_iter": 0,
+                "ifidpp": 0,
+                "refine": "nebts",
+                "neb_f_max_th": 1.0e6,
+                "neb_f_rms_th": 1.0e6,
+                "cineb_f_max_th": 1.0e6,
+                "cineb_f_rms_th": 1.0e6,
+                "prfo_max_iter": 0,
+            }
+        },
+    )
+    result = job.run()
+    assert result["status"] == RunStatus.BOUNDED_NONCONVERGED.value
+    assert not current.exists()
+    archive = Path(job.nebts_retired_output)
+    assert archive.name == "rerun_nebts_ts.previous-1.xyz"
+    assert archive.read_bytes() == old_bytes
+    assert str(archive) in (tmp_path / "rerun.out").read_text()
+
+
+def test_nebts_retirement_refuses_symlink_without_touching_target(tmp_path):
+    unrelated = tmp_path / "unrelated.xyz"
+    unrelated.write_bytes(b"unrelated valid bytes\n")
+    current = tmp_path / "linked_nebts_ts.xyz"
+    current.symlink_to(unrelated)
+    with pytest.raises(ValueError, match="symlink or non-file"):
+        neb_module._retire_owned_nebts_output(str(tmp_path / "linked.out"))
+    assert current.is_symlink()
+    assert unrelated.read_bytes() == b"unrelated valid bytes\n"
+
+
+def test_ci_wrapper_keeps_exact_selected_internal_index_with_duplicate_pose(tmp_path):
+    class ConstantCalculator(Calculator):
+        implemented_properties = ["energy", "free_energy", "forces"]
+
+        def __init__(self, energy, force_x):
+            super().__init__()
+            self.energy = energy
+            self.force_x = force_x
+
+        def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+            super().calculate(atoms, properties, system_changes)
+            forces = np.zeros_like(atoms.positions)
+            forces[:, 0] = self.force_x
+            self.results = {
+                "energy": self.energy,
+                "free_energy": self.energy,
+                "forces": forces,
+            }
+
+    path = []
+    for position, energy, force_x in (
+        (0.0, 0.0, 10.0),
+        (0.0, 5.0, 20.0),
+        (1.0, 1.0, 30.0),
+        (2.0, 0.0, 40.0),
+    ):
+        atom = Atoms("H", positions=[[position, 0.0, 0.0]])
+        atom.calc = ConstantCalculator(energy, force_x)
+        path.append(atom)
+    job = NEB(
+        str(tmp_path / "duplicate.out"),
+        Molecules(path),
+        paras={
+            "neb": {
+                "n_images": 2,
+                "max_iter": 0,
+                "cineb_max_iter": 0,
+                "ifidpp": 0,
+                "refine": "cineb",
+                "neb_f_max_th": 1.0e6,
+                "neb_f_rms_th": 1.0e6,
+                "cineb_f_max_th": 1.0e6,
+                "cineb_f_rms_th": 1.0e6,
+            }
+        },
+    )
+    stage = job._run_cineb_stage(path)
+    assert job._ci_climbing_index == 1
+    assert job._ci_candidate is path[1]
+    assert job._ci_candidate.calc is path[1].calc
+    np.testing.assert_array_equal(job._ci_projected_forces[0], np.zeros((1, 3)))
+    assert getattr(stage, "_stage_diagnostics")["climbing_image_index"] == 1
+
+
+def test_explicit_ci_displacement_tolerance_blocks_force_only_convergence(
+    tmp_path, monkeypatch
+):
+    class ForcePassesAfterLargeMove:
+        def __init__(self, *args, **kwargs):
+            self.calls = 0
+
+        def ci_should_stop(self, regular, climbing):
+            self.calls += 1
+            return self.calls >= 2
+
+        def two_loop(self, gradient):
+            step = np.zeros_like(gradient)
+            step[0] = 0.2
+            return step
+
+        def step_limit(self, step):
+            return step
+
+        def update(self, *args):
+            return None
+
+    monkeypatch.setattr(neb_module, "LBFGSDriver", ForcePassesAfterLargeMove)
+    stage = run_neb_stage(
+        images(),
+        params=NEBParams(
+            cineb_max_iter=1,
+            ci_displacement_tol=0.05,
+            neb_f_max_th=1.0e6,
+            neb_f_rms_th=1.0e6,
+            cineb_f_max_th=1.0e6,
+            cineb_f_rms_th=1.0e6,
+        ),
+        stage_kind="ci",
+        output=str(tmp_path / "ci-displacement.out"),
+    )
+    assert stage.status is RunStatus.BOUNDED_NONCONVERGED
+    assert stage.termination_reason == "maximum_iterations"
+    assert getattr(stage, "_stage_diagnostics")[
+        "ci_max_displacement_angstrom"
+    ] == pytest.approx(0.2)
+
+
+def test_explicit_ci_displacement_tolerance_accepts_initial_converged_point(
+    tmp_path, monkeypatch
+):
+    class InitiallyConverged:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def ci_should_stop(self, regular, climbing):
+            return True
+
+    monkeypatch.setattr(neb_module, "LBFGSDriver", InitiallyConverged)
+    stage = run_neb_stage(
+        images(),
+        params=NEBParams(
+            cineb_max_iter=0,
+            ci_displacement_tol=0.0,
+            neb_f_max_th=1.0e6,
+            neb_f_rms_th=1.0e6,
+            cineb_f_max_th=1.0e6,
+            cineb_f_rms_th=1.0e6,
+        ),
+        stage_kind="ci",
+        output=str(tmp_path / "initial-ci-displacement.out"),
+    )
+    assert stage.status is RunStatus.CONVERGED
+    assert getattr(stage, "_stage_diagnostics")[
+        "ci_max_displacement_angstrom"
+    ] == 0.0
+
+
+@pytest.mark.parametrize("value", [-1.0, np.nan, np.inf, 1.0j, True, "0.1"])
+def test_ci_displacement_tolerance_must_be_finite_and_nonnegative(tmp_path, value):
+    with pytest.raises(ValueError, match="ci_displacement_tol"):
+        run_neb_stage(
+            images(),
+            params=NEBParams(ci_displacement_tol=value),
+            stage_kind="ci",
+            output=str(tmp_path / "invalid-ci-displacement.out"),
+        )

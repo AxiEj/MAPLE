@@ -145,6 +145,23 @@ def fixture_repo(tmp_path, monkeypatch):
     }
     _write_json(aim_path, aim)
     monkeypatch.setattr(sealer, "AIMNET2025_EVIDENCE_REL", aim_path.relative_to(tmp_path).as_posix())
+    algorithm_path = evidence_dir / "synthetic-algorithm-contracts.json"
+    _write_json(algorithm_path, {"artifact_type": "synthetic-algorithm-contracts"})
+    monkeypatch.setattr(
+        sealer, "ALGORITHM_EVIDENCE_REL",
+        algorithm_path.relative_to(tmp_path).as_posix(),
+    )
+    monkeypatch.setattr(
+        sealer.algorithm_validation,
+        "validate_artifact",
+        Mock(return_value={
+            "schema_version": 1,
+            "source_git_sha": frozen["git_head"],
+            "source_inventory_aggregate_sha256": frozen["files_aggregate_sha256"],
+            "capability_keys": sorted(sealer.algorithm_validation.EXPECTED_CAPABILITIES),
+            "rows": {"synthetic": {"passed": True}},
+        }),
+    )
     return tmp_path, git, artifact, candidate, full_path, candidate_path
 
 
@@ -166,6 +183,21 @@ def io_repo(fixture_repo, monkeypatch):
         if name.startswith("aimnet2025_")
     }
     monkeypatch.setattr(sealer.aimnet_validation, "validate_artifact", Mock(return_value=gates))
+    capabilities = sorted(
+        key.value for key in sealer.algorithm_validation.CapabilityKey
+    )
+    algorithm_contracts = {
+        "schema_version": 1,
+        "source_git_sha": fixture_repo[2]["source_snapshot"]["git_head"],
+        "source_inventory_aggregate_sha256": fixture_repo[2]["source_snapshot"]["files_aggregate_sha256"],
+        "capability_keys": capabilities,
+        "rows": {"synthetic": {"passed": True}},
+    }
+    monkeypatch.setattr(
+        sealer.algorithm_validation,
+        "validate_artifact",
+        Mock(return_value=algorithm_contracts),
+    )
     return fixture_repo
 
 
@@ -181,9 +213,11 @@ def test_deterministic_receipt_matches_factory_schema_and_raw_evidence(io_repo):
     assert [cell["solvent"]["nonpolar"] for cell in first["qualified_cells"]] == [
         "ace", "none", "ace", "none", "ace", "none"
     ]
-    assert first["schema_version"] == 2
+    assert first["schema_version"] == 3
+    assert first["recorded_date"] == "2026-11-01"
     assert first["aimnet2025_runtime_profiles"] == _aim_identities()
     assert len(first["qualification_gates"]) == 11
+    assert first["algorithm_contracts"]["capability_keys"]
     assert first["candidate_git_sha"] == candidate["candidate_git_sha"]
     assert first["qualification_sources"] == candidate[
         "candidate_source_snapshot"
@@ -474,6 +508,17 @@ def test_aim_strict_validator_failure_prevents_publication(io_repo):
     assert b"= None" in (root / sealer.POINTER_REL).read_bytes()
 
 
+def test_algorithm_contract_failure_prevents_publication(io_repo):
+    root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    sealer.algorithm_validation.validate_artifact.side_effect = ValueError(
+        "algorithm source binding rejected"
+    )
+    with pytest.raises(ValueError, match="algorithm source binding rejected"):
+        sealer.seal_qualification(full_path, candidate_path)
+    assert not (root / sealer.RECEIPT_REL).exists()
+    assert b"= None" in (root / sealer.POINTER_REL).read_bytes()
+
+
 @pytest.mark.parametrize("field", ["source_snapshot_before", "source_snapshot_after", "candidate_git_sha", "inputs_after"])
 def test_aim_and_obc_must_share_identical_freeze_and_unchanged_inputs(io_repo, field):
     root, _git, _full, _candidate, full_path, candidate_path = io_repo
@@ -510,10 +555,11 @@ def test_recomputed_aim_gate_set_must_be_complete_and_passing(io_repo, mutation)
     "independent_obc2_analytic_qualification_v2.json",
     "independent_obc2_analytic_qualification_v3.json",
     "independent_obc2_analytic_qualification_v4.json",
-    "independent_obc2_analytic_qualification_v5.json"])
-def test_active_v6_sealer_preserves_prior_receipts(io_repo, old_name):
+    "independent_obc2_analytic_qualification_v5.json",
+    "independent_obc2_analytic_qualification_v6.json"])
+def test_active_v7_sealer_preserves_prior_receipts(io_repo, old_name):
     root, git, _full, _candidate, full_path, candidate_path = io_repo
-    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v6.json")
+    assert sealer.RECEIPT_REL.endswith("independent_obc2_analytic_qualification_v7.json")
     old = root / "maple/function/calculator/data" / old_name
     old.parent.mkdir(parents=True)
     old.write_bytes(b"immutable historical receipt")
@@ -523,7 +569,7 @@ def test_active_v6_sealer_preserves_prior_receipts(io_repo, old_name):
     assert old.read_bytes() == b"immutable historical receipt"
 
 
-def test_already_qualified_v6_pointer_refused_without_receipt(io_repo):
+def test_already_qualified_v7_pointer_refused_without_receipt(io_repo):
     root, _git, _full, _candidate, full_path, candidate_path = io_repo
     pointer = root / sealer.POINTER_REL
     pointer.write_text(f'QUALIFICATION_RECEIPT_FILENAME = "{Path(sealer.RECEIPT_REL).name}"\n'

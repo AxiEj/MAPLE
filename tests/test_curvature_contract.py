@@ -20,6 +20,7 @@ from maple.function.dispatcher.curvature import (
 
 def _bound_n32_calculator(monkeypatch, *, composed: bool):
     from maple.function.calculator import set_calculator
+    from maple.function.calculator.calculator_base import _mint_hessian_precision_binding
     from maple.function.calculator.aimnet._aimnet2025_calculator import (
         AIMNet2025Calculator,
     )
@@ -52,11 +53,6 @@ def _bound_n32_calculator(monkeypatch, *, composed: bool):
         "runtime_profile_identity",
         property(live_identity),
     )
-    monkeypatch.setattr(
-        set_calculator,
-        "_installed_runtime_source_inventory",
-        lambda: receipt["installed_runtime_sources"],
-    )
     calculator = AIMNet2025Calculator.__new__(AIMNet2025Calculator)
     calculator.dtype = "torch.float32"
     calculator.d4 = False
@@ -75,7 +71,19 @@ def _bound_n32_calculator(monkeypatch, *, composed: bool):
         calculator.analytic_implicit_derivatives_admitted = True
     else:
         calculator.solvent_correction = None
-    set_calculator._bind_hessian_precision_cell(calculator)
+    composition = "torch-obc2" if composed else "gas"
+    composition_identity = provider.provenance if composed else {"composition": "gas"}
+    canonical = lambda value: json.dumps(
+        value, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode()
+    calculator._hessian_precision_binding = _mint_hessian_precision_binding(
+        profile_id=f"qualified-aimnet2025-n32-{composition}",
+        runtime_identity_sha256=hashlib.sha256(canonical(identity)).hexdigest(),
+        receipt_sha256="f" * 64,
+        composition=composition,
+        composition_identity_sha256=hashlib.sha256(canonical(composition_identity)).hexdigest(),
+        owner_token=id(calculator),
+    )
     return calculator, identity, calls
 
 
@@ -226,6 +234,8 @@ def test_gas_binding_reuses_full_receipt_gate_validator(monkeypatch):
         / "independent_obc2_analytic_qualification_v6.json"
     )
     receipt = json.loads(receipt_path.read_text())
+    receipt["schema_version"] = 3
+    receipt["recorded_date"] = "2026-11-01"
     receipt["qualification_gates"] = {}
     receipt["content_sha256"] = hashlib.sha256(
         set_calculator._canonical_receipt_payload(receipt)

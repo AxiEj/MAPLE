@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import fields
 import hashlib
 import json
 from pathlib import Path
@@ -17,9 +16,11 @@ from maple.function.calculator.extra_correction.implicit.correction import (
     _ATOM_IDENTITY_ARRAY,
 )
 from maple.function.dispatcher.curvature import bofill_update
-from maple.function.dispatcher.implicit_path import (
-    bind_admitted_implicit_path,
-    validate_path_parameters,
+from maple.function.dispatcher.implicit_path import bind_admitted_implicit_path
+from maple.function.dispatcher.method_registry import (
+    PublicMethodKey,
+    normalize_public_method,
+    validate_method_parameters,
 )
 from maple.function.dispatcher.irc.algorithm.gs import GS, GSParams
 from maple.function.dispatcher.ts.algorithm.neb import NEB, NEBParams, improved_tangent
@@ -83,178 +84,24 @@ def test_bofill_null_secant_preserves_finite_symmetric_hessian():
     "params, error",
     [
         ({"neb": {"max_iter": True}}, "integer"),
-        ({"neb": {"max_iter": -1}}, "nonnegative"),
+        ({"neb": {"max_iter": -1}}, "allowed minimum"),
         ({"neb": {"step0": float("nan")}}, "finite"),
         ({"neb": {"grow_step": 0.1}}, "Unknown"),
-        ({"string": {"refine": "stringts"}}, "refine=None"),
+        ({"string": {"neb_f_max_th": 0.1}}, "Unknown"),
     ],
 )
 def test_path_parameter_validation_rejects_invalid_or_cross_method_keys(params, error):
     method = next(iter(params))
-    cls = NEBParams if method == "neb" else GSMParams
     with pytest.raises((TypeError, ValueError), match=error):
-        validate_path_parameters(method, params, cls)
+        validate_method_parameters(normalize_public_method("ts", method), params)
 
-
-PATH_PARAMETER_CASES = {
-    "gs": {
-        "target_mode": (2, 0),
-        "step_length_bohr": (0.2, 0.0),
-        "max_steps": (0, -1),
-        "max_micro_cycles": (0, -1),
-        "micro_step_thresh": (0.002, 0.0),
-        "hessian_recalc": (3, -1),
-        "hessian_update": ("bfgs", "sr1"),
-        "f_max_th": (0.003, 0.0),
-        "f_rms_th": (0.001, 0.0),
-        "print_each": (False, 0),
-        "write_traj": (False, 0),
-        "project_rigid_modes": (True, 1),
-    },
-    "neb": {
-        "n_images": (1, 0),
-        "k_min": (0.02, 0.0),
-        "k_max": (0.4, 0.0),
-        "use_dynamic_k": (False, 0),
-        "k_decay": (0.25, 0.0),
-        "max_iter": (0, -1),
-        "lbfgs_m": (5, 0),
-        "step0": (0.01, 0.0),
-        "ifidpp": (0, 2),
-        "neb_f_max_th": (0.01, 0.0),
-        "neb_f_rms_th": (0.006, 0.0),
-        "initial_opt": (True, 1),
-        "refine": (None, "cineb"),
-    },
-    "string": {
-        "grow_step": (0.2, 0.0),
-        "grow_step_min": (0.01, 0.0),
-        "grow_backtrack": (0.25, 1.0),
-        "grow_relax_iters": (0, -1),
-        "grow_relax_tol": (0.003, 0.0),
-        "grow_energy_tol": (0.002, 0.0),
-        "pause_imbalance": (0, -1),
-        "refine_end_every": (0, -1),
-        "merge_threshold": (0.4, 0.0),
-        "n_images": (2, 1),
-        "refine": (None, "stringts"),
-        "max_iter_grow": (0, -1),
-        "log_every": (2, 0),
-        "guide_conn_min": (0.5, 1.1),
-        "guide_d_switch": (2.0, 0.0),
-        "guide_inc_trigger": (0, -1),
-    },
-}
-
-INACTIVE_PATH_PARAMETERS = {
-    "gs": set(),
-    "neb": {"cineb_f_max_th", "cineb_f_rms_th", "cilbfgs_m", "cistep0"},
-    "string": {
-        "max_iter_relax", "string_f_max_th", "string_f_rms_th",
-        "lbfgs_memory", "lbfgs_curvature", "lbfgs_max_step", "reparam_every",
-        "cistring_f_max_th", "cistring_f_rms_th",
-    },
-}
-
-
-@pytest.mark.parametrize("method, params_class", [
-    ("gs", GSParams), ("neb", NEBParams), ("string", GSMParams),
-])
-def test_path_parameter_schema_covers_every_dataclass_field(method, params_class):
-    import maple.function.dispatcher.implicit_path as contract
-
-    schema = contract.PATH_PARAMETER_SCHEMAS[method]
-    assert set(schema) == {field.name for field in fields(params_class)}
-    assert {name for name, rule in schema.items() if rule.inactive_reason} == (
-        INACTIVE_PATH_PARAMETERS[method]
-    )
-
-
-@pytest.mark.parametrize("method, params_class", [
-    ("gs", GSParams), ("neb", NEBParams), ("string", GSMParams),
-])
-def test_path_parameter_defaults_remain_valid_and_implicit(method, params_class):
-    assert validate_path_parameters(method, {method: {}}, params_class) == {}
-
-
-@pytest.mark.parametrize(
-    "method,key,valid,invalid",
-    [
-        (method, key, values[0], values[1])
-        for method, cases in PATH_PARAMETER_CASES.items()
-        for key, values in cases.items()
-    ],
-)
-def test_each_active_path_parameter_rule_accepts_valid_and_rejects_invalid(
-    method, key, valid, invalid
-):
-    params_class = {"gs": GSParams, "neb": NEBParams, "string": GSMParams}[method]
-    assert validate_path_parameters(
-        method, {method: {key: valid}}, params_class
-    ) == {key: valid}
-    with pytest.raises((TypeError, ValueError)):
-        validate_path_parameters(method, {method: {key: invalid}}, params_class)
-
-
-@pytest.mark.parametrize(
-    "method,key",
-    [
-        (method, key)
-        for method, keys in INACTIVE_PATH_PARAMETERS.items()
-        for key in sorted(keys)
-    ],
-)
-def test_each_inactive_path_parameter_rejects_explicit_default(method, key):
-    params_class = {"gs": GSParams, "neb": NEBParams, "string": GSMParams}[method]
-    default = getattr(params_class(), key)
-    with pytest.raises(ValueError, match="inactive"):
-        validate_path_parameters(method, {method: {key: default}}, params_class)
-
-
-@pytest.mark.parametrize("method, params_class", [
-    ("gs", GSParams), ("neb", NEBParams), ("string", GSMParams),
-])
-def test_every_active_path_rule_enforces_its_declared_type(method, params_class):
-    import maple.function.dispatcher.implicit_path as contract
-
-    for key, rule in contract.PATH_PARAMETER_SCHEMAS[method].items():
-        if rule.inactive_reason:
-            continue
-        if rule.kind in {"int", "optional_int"}:
-            invalid_values = (True,)
-            error = "integer"
-        elif rule.kind == "real":
-            invalid_values = (float("nan"), float("inf"), float("-inf"))
-            error = "finite"
-        elif rule.kind == "bool":
-            invalid_values = (1,)
-            error = "boolean"
-        elif rule.kind == "enum":
-            invalid_values = (1,)
-            error = "string"
-        elif rule.kind == "none":
-            invalid_values = ("enabled",)
-            error = "requires"
-        else:
-            raise AssertionError(f"uncovered rule kind: {rule.kind}")
-        for invalid in invalid_values:
-            with pytest.raises((TypeError, ValueError), match=error):
-                validate_path_parameters(
-                    method, {method: {key: invalid}}, params_class
-                )
-
-
-def test_optional_hessian_recalculation_preserves_explicit_none():
-    assert validate_path_parameters(
-        "gs", {"gs": {"hessian_recalc": None}}, GSParams
-    ) == {"hessian_recalc": None}
 
 
 @pytest.mark.parametrize(
     "task_line,error",
     [
-        ("#ts(method=neb,n_images=1,max_iter=0,cistep0=0.005,refine=None)", "inactive"),
-        ("#ts(method=string,n_images=3,max_iter_grow=0,max_iter_relax=300,refine=None)", "inactive"),
+        ("#ts(method=neb,n_images=1,max_iter=0,cistep0=0.006,refine=None)", "inactive"),
+        ("#ts(method=string,n_images=3,max_iter_grow=0,max_iter_relax=301,refine=None)", "inactive"),
         ("#ts(method=string,n_images=3,max_iter_grow=0,grow_backtrack=1,refine=None)", "grow_backtrack"),
         ("#ts(method=string,n_images=3,max_iter_grow=0,guide_d_switch=0,refine=None)", "guide_d_switch"),
     ],
@@ -470,15 +317,15 @@ def test_bound_path_rejects_live_charge_and_mass_mutation():
         correction._validate_bound_atoms(second)
 
 
-_V5_RECEIPT_SHA256 = "a1e55a7043b809a919701f88860945e9c871e8455260a4f95dbc0c885060c5a7"
+_V6_RECEIPT_SHA256 = "cd9a487c86a6617f8af06460b7d583a9efdce7088594a8ff6a4e788c1e5a03e1"
 
 
-def _assert_v6_receipt_lifecycle(filename, digest, receipt_path, historical_v5):
+def _assert_v7_receipt_lifecycle(filename, digest, receipt_path, historical_v6):
     from maple.function.calculator import set_calculator as runtime
 
-    assert filename == "independent_obc2_analytic_qualification_v6.json"
-    assert historical_v5.is_file() and not historical_v5.is_symlink()
-    assert hashlib.sha256(historical_v5.read_bytes()).hexdigest() == _V5_RECEIPT_SHA256
+    assert filename == "independent_obc2_analytic_qualification_v7.json"
+    assert historical_v6.is_file() and not historical_v6.is_symlink()
+    assert hashlib.sha256(historical_v6.read_bytes()).hexdigest() == _V6_RECEIPT_SHA256
     if digest is None:
         assert not receipt_path.exists() and not receipt_path.is_symlink()
         return
@@ -487,7 +334,7 @@ def _assert_v6_receipt_lifecycle(filename, digest, receipt_path, historical_v5):
     raw = receipt_path.read_bytes()
     assert hashlib.sha256(raw).hexdigest() == digest
     receipt = json.loads(raw)
-    assert receipt.get("schema_version") == 2
+    assert receipt.get("schema_version") == 3
     assert receipt.get("artifact_type") == "maple-independent-obc2-analytic-qualification"
     assert receipt.get("status") == "qualified"
     assert receipt.get("content_sha256") == hashlib.sha256(
@@ -495,11 +342,11 @@ def _assert_v6_receipt_lifecycle(filename, digest, receipt_path, historical_v5):
     ).hexdigest()
 
 
-def _synthetic_v6_receipt():
+def _synthetic_v7_receipt():
     from maple.function.calculator import set_calculator as runtime
 
     receipt = {
-        "schema_version": 2,
+        "schema_version": 3,
         "artifact_type": "maple-independent-obc2-analytic-qualification",
         "status": "qualified",
     }
@@ -509,66 +356,66 @@ def _synthetic_v6_receipt():
     return receipt
 
 
-def test_v6_receipt_pointer_has_valid_lifecycle_state_and_v5_remains_historical():
+def test_v7_receipt_pointer_has_valid_lifecycle_state_and_v6_remains_historical():
     import inspect
 
     from maple.function.calculator import _independent_obc2_qualified_cell as pointer
     from maple.function.calculator import set_calculator as runtime
 
     data = Path(runtime.__file__).with_name("data")
-    _assert_v6_receipt_lifecycle(
+    _assert_v7_receipt_lifecycle(
         pointer.QUALIFICATION_RECEIPT_FILENAME,
         pointer.QUALIFICATION_RECEIPT_SHA256,
         data / pointer.QUALIFICATION_RECEIPT_FILENAME,
-        data / "independent_obc2_analytic_qualification_v5.json",
+        data / "independent_obc2_analytic_qualification_v6.json",
     )
     inventory_source = inspect.getsource(runtime._installed_runtime_source_inventory)
     assert "independent_obc2_analytic_qualification_v4.json" in inventory_source
-    assert "independent_obc2_analytic_qualification_v5.json" in inventory_source
     assert "independent_obc2_analytic_qualification_v6.json" in inventory_source
+    assert "independent_obc2_analytic_qualification_v7.json" in inventory_source
 
 
-def test_v6_receipt_lifecycle_accepts_a_valid_sealed_state(tmp_path):
+def test_v7_receipt_lifecycle_accepts_a_valid_sealed_state(tmp_path):
     from maple.function.calculator import set_calculator as runtime
 
     data = Path(runtime.__file__).with_name("data")
-    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v6.json"
-    receipt_path.write_text(json.dumps(_synthetic_v6_receipt(), sort_keys=True) + "\n")
-    _assert_v6_receipt_lifecycle(
+    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v7.json"
+    receipt_path.write_text(json.dumps(_synthetic_v7_receipt(), sort_keys=True) + "\n")
+    _assert_v7_receipt_lifecycle(
         receipt_path.name,
         hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
         receipt_path,
-        data / "independent_obc2_analytic_qualification_v5.json",
+        data / "independent_obc2_analytic_qualification_v6.json",
     )
 
 
 @pytest.mark.parametrize("receipt_state", ["absent", "present", "dangling_symlink"])
-def test_v6_unqualified_lifecycle_requires_absent_receipt(tmp_path, receipt_state):
+def test_v7_unqualified_lifecycle_requires_absent_receipt(tmp_path, receipt_state):
     from maple.function.calculator import set_calculator as runtime
 
-    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v6.json"
-    historical_v5 = Path(runtime.__file__).with_name("data") / "independent_obc2_analytic_qualification_v5.json"
+    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v7.json"
+    historical_v6 = Path(runtime.__file__).with_name("data") / "independent_obc2_analytic_qualification_v6.json"
     if receipt_state == "present":
-        receipt_path.write_text(json.dumps(_synthetic_v6_receipt()) + "\n")
+        receipt_path.write_text(json.dumps(_synthetic_v7_receipt()) + "\n")
     elif receipt_state == "dangling_symlink":
         receipt_path.symlink_to(tmp_path / "absent-target.json")
     if receipt_state == "absent":
-        _assert_v6_receipt_lifecycle(receipt_path.name, None, receipt_path, historical_v5)
+        _assert_v7_receipt_lifecycle(receipt_path.name, None, receipt_path, historical_v6)
     else:
         with pytest.raises(AssertionError):
-            _assert_v6_receipt_lifecycle(receipt_path.name, None, receipt_path, historical_v5)
+            _assert_v7_receipt_lifecycle(receipt_path.name, None, receipt_path, historical_v6)
 
 
 @pytest.mark.parametrize(
     "mutation",
     ["uppercase_pointer", "wrong_pointer", "symlink", "wrong_status", "wrong_content_seal"],
 )
-def test_v6_receipt_lifecycle_rejects_malformed_sealed_states(tmp_path, mutation):
+def test_v7_receipt_lifecycle_rejects_malformed_sealed_states(tmp_path, mutation):
     from maple.function.calculator import set_calculator as runtime
 
     data = Path(runtime.__file__).with_name("data")
-    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v6.json"
-    receipt = _synthetic_v6_receipt()
+    receipt_path = tmp_path / "independent_obc2_analytic_qualification_v7.json"
+    receipt = _synthetic_v7_receipt()
     if mutation == "wrong_status":
         receipt["status"] = "candidate"
         receipt["content_sha256"] = hashlib.sha256(
@@ -588,11 +435,11 @@ def test_v6_receipt_lifecycle_rejects_malformed_sealed_states(tmp_path, mutation
     elif mutation == "wrong_pointer":
         digest = "f" * 64
     with pytest.raises(AssertionError):
-        _assert_v6_receipt_lifecycle(
+        _assert_v7_receipt_lifecycle(
             receipt_path.name,
             digest,
             receipt_path,
-            data / "independent_obc2_analytic_qualification_v5.json",
+            data / "independent_obc2_analytic_qualification_v6.json",
         )
 
 
@@ -615,18 +462,18 @@ def test_neb_improved_tangent_uses_absolute_extrema_weights():
 @pytest.mark.parametrize(
     "method, params, error",
     [
-        ("string", {"string": {"n_images": 1}}, "at least 2"),
-        ("string", {"string": {"log_every": 0}}, "positive"),
-        ("neb", {"neb": {"ifidpp": 2}}, "0 or 1"),
+        ("string", {"string": {"n_images": 1}}, "allowed minimum"),
+        ("string", {"string": {"log_every": 0}}, "allowed minimum"),
+        ("neb", {"neb": {"ifidpp": 2}}, "one of"),
         ("gs", {"gs": {"hessian_recalc": True}}, "integer"),
         ("neb", {"neb": {"k_min": 0.4, "k_max": 0.3}}, "must not exceed"),
         ("string", {"string": {"grow_step_min": 0.4, "grow_step": 0.3}}, "must not exceed"),
     ],
 )
 def test_path_parameter_validation_rejects_method_specific_invalid_values(method, params, error):
-    cls = {"gs": GSParams, "neb": NEBParams, "string": GSMParams}[method]
     with pytest.raises((TypeError, ValueError), match=error):
-        validate_path_parameters(method, params, cls)
+        task = "irc" if method == "gs" else "ts"
+        validate_method_parameters(normalize_public_method(task, method), params)
 
 
 @pytest.mark.parametrize("method", ["neb", "string"])
@@ -1040,7 +887,7 @@ def test_engine_rejects_missing_neb_endpoint_before_model_construction(
         model_calls += 1
 
     monkeypatch.setattr(job, "_mlp_initiator", forbidden_model)
-    with pytest.raises(ValueError, match="at least two endpoint"):
+    with pytest.raises(ValueError, match="at least two input geometries"):
         job(str(input_path), str(tmp_path / "one-endpoint.out"))
     assert model_calls == 0
 

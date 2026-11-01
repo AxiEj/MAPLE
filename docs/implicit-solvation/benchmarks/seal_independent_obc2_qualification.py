@@ -25,14 +25,17 @@ for directory in (ROOT, HERE):
 
 import validate_independent_obc2_default as validation  # noqa: E402
 import validate_aimnet2025_analytic as aimnet_validation  # noqa: E402
+import validate_route1_algorithm_contracts as algorithm_validation  # noqa: E402
 from maple.function.calculator import set_calculator as runtime  # noqa: E402
 
 
 RECEIPT_REL = (
-    "maple/function/calculator/data/independent_obc2_analytic_qualification_v6.json"
+    "maple/function/calculator/data/independent_obc2_analytic_qualification_v7.json"
 )
 POINTER_REL = "maple/function/calculator/_independent_obc2_qualified_cell.py"
 AIMNET2025_EVIDENCE_REL = ".omx/benchmarks/route1-private-cha-fp32-20261029/candidate-aimnet2025-v3.json"
+ALGORITHM_EVIDENCE_REL = ".omx/benchmarks/route1-advanced-paths-v7-20261101/algorithm-contracts.json"
+RECORDED_DATE = "2026-11-01"
 
 
 def _sha256(raw: bytes) -> str:
@@ -76,7 +79,8 @@ def _unqualified_pointer(path: Path) -> bytes:
 
 
 def build_receipt(validation_path: Path, candidate_path: Path,
-                  aimnet2025_path: Path | None = None) -> dict:
+                  aimnet2025_path: Path | None = None,
+                  algorithm_path: Path | None = None) -> dict:
     """Validate raw inputs and current source before constructing any output."""
     artifact, artifact_binding = _read_evidence(validation_path)
     candidate, candidate_binding = _read_evidence(candidate_path)
@@ -95,6 +99,12 @@ def build_receipt(validation_path: Path, candidate_path: Path,
 
     aimnet, aimnet_binding = _read_evidence(
         ROOT / AIMNET2025_EVIDENCE_REL if aimnet2025_path is None else aimnet2025_path
+    )
+    algorithm, algorithm_binding = _read_evidence(
+        ROOT / ALGORITHM_EVIDENCE_REL if algorithm_path is None else algorithm_path
+    )
+    algorithm_contracts = algorithm_validation.validate_artifact(
+        algorithm, expected_source_snapshot=frozen
     )
     # This entry point replays raw sections, full failure denominators, numerical
     # gates, runtime/checkpoint/input/source before/after binding. Assess-only is
@@ -149,9 +159,10 @@ def build_receipt(validation_path: Path, candidate_path: Path,
     if not installed or any(sources.get(path) != sha for path, sha in installed.items()):
         raise ValueError("Installed runtime inventory is not covered by frozen sources")
     receipt = {
-        "schema_version": 2,
+        "schema_version": 3,
         "artifact_type": "maple-independent-obc2-analytic-qualification",
         "status": "qualified",
+        "recorded_date": RECORDED_DATE,
         "candidate_git_sha": candidate["candidate_git_sha"],
         "qualification_source_aggregate_sha256": frozen["files_aggregate_sha256"],
         "installed_runtime_sources": installed,
@@ -159,6 +170,7 @@ def build_receipt(validation_path: Path, candidate_path: Path,
         "qualified_cells": cells,
         "aimnet2025_runtime_profiles": deepcopy(profiles),
         "qualification_gates": gates,
+        "algorithm_contracts": algorithm_contracts,
         "evidence": {
             "candidate_validation": artifact_binding,
             "candidate_exact_cell": candidate_binding,
@@ -167,6 +179,7 @@ def build_receipt(validation_path: Path, candidate_path: Path,
             "aimnet2025_harness_sha256": aimnet["harness_sha256"],
             "aimnet2025_validator_sha256": aimnet["validator_sha256"],
             "candidate_harness_sha256": candidate["harness_sha256"],
+            "algorithm_contracts": algorithm_binding,
         },
     }
     receipt["content_sha256"] = _sha256(runtime._canonical_receipt_payload(receipt))
@@ -200,13 +213,16 @@ def _publish(path: Path, raw: bytes, *, replace: bool) -> None:
 
 
 def seal_qualification(validation_path: Path, candidate_path: Path,
-                       aimnet2025_path: Path | None = None) -> dict:
+                       aimnet2025_path: Path | None = None,
+                       algorithm_path: Path | None = None) -> dict:
     receipt_path = ROOT / RECEIPT_REL
     pointer_path = ROOT / POINTER_REL
     if receipt_path.exists() or receipt_path.is_symlink():
         raise FileExistsError(f"Existing sealed receipt is immutable: {receipt_path}")
     original_pointer = _unqualified_pointer(pointer_path)
-    receipt = build_receipt(validation_path, candidate_path, aimnet2025_path)
+    receipt = build_receipt(
+        validation_path, candidate_path, aimnet2025_path, algorithm_path
+    )
     receipt_raw = (
         json.dumps(receipt, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False)
         + "\n"
@@ -256,9 +272,17 @@ def main() -> None:
         "--aimnet2025", type=Path, default=ROOT / AIMNET2025_EVIDENCE_REL,
         help="Complete source-bound AIMNet2025 raw qualification evidence",
     )
+    parser.add_argument(
+        "--algorithm-contracts", type=Path,
+        default=ROOT / ALGORITHM_EVIDENCE_REL,
+        help="Source-bound deterministic algorithm contract evidence",
+    )
     args = parser.parse_args()
     with _native_precision_context(SimpleNamespace(), 'qualification-seal'):
-        receipt = seal_qualification(args.validation, args.candidate, args.aimnet2025)
+        receipt = seal_qualification(
+            args.validation, args.candidate, args.aimnet2025,
+            args.algorithm_contracts,
+        )
     print(json.dumps({
         "receipt": RECEIPT_REL, "pointer": POINTER_REL,
         "content_sha256": receipt["content_sha256"],

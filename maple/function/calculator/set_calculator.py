@@ -17,6 +17,7 @@ from ase import Atoms
 
 from .calculator_base import (
     _mint_hessian_precision_binding,
+    _mint_method_capability_binding,
     atoms_has_pbc,
     calculator_execution,
     get_registered_calculator,
@@ -46,7 +47,7 @@ _QUALIFICATION_GATE_COUNTS = {
     'aimnet2025_direct_hvp': (144, 144),
     'aimnet2025_cutoff_guard': (8, 8),
 }
-_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v6.json'
+_QUALIFICATION_RECEIPT_FILENAME = 'independent_obc2_analytic_qualification_v7.json'
 
 
 def _is_sha256(value) -> bool:
@@ -86,9 +87,10 @@ def _load_validated_qualification_receipt() -> tuple[dict, str]:
         raise ValueError('qualification receipt must be a JSON object')
     if (
         type(receipt.get('schema_version')) is not int
-        or receipt['schema_version'] != 2
+        or receipt['schema_version'] != 3
         or receipt.get('artifact_type') != 'maple-independent-obc2-analytic-qualification'
         or receipt.get('status') != 'qualified'
+        or receipt.get('recorded_date') != '2026-11-01'
     ):
         raise ValueError('qualification receipt identity/status mismatch')
     if receipt.get('content_sha256') != hashlib.sha256(
@@ -136,7 +138,54 @@ def _load_validated_qualification_receipt() -> tuple[dict, str]:
     )
     if not _same_json(receipt.get('qualified_cells'), expected_cells):
         raise ValueError('qualified analytic cells do not match the exact six-cell contract')
+    _validated_algorithm_capabilities(receipt)
     return receipt, QUALIFICATION_RECEIPT_SHA256
+
+
+def _validated_algorithm_capabilities(receipt: dict) -> frozenset[str]:
+    section = receipt.get('algorithm_contracts')
+    if not isinstance(section, dict) or section.get('schema_version') != 1:
+        raise ValueError('algorithm contract evidence is missing')
+    if (
+        section.get('source_git_sha') != receipt.get('candidate_git_sha')
+        or section.get('source_inventory_aggregate_sha256')
+        != receipt.get('qualification_source_aggregate_sha256')
+    ):
+        raise ValueError('algorithm contract source binding mismatch')
+    capabilities = section.get('capability_keys')
+    rows = section.get('rows')
+    if (
+        not isinstance(capabilities, list)
+        or not capabilities
+        or len(capabilities) != len(set(capabilities))
+        or not all(isinstance(key, str) and key for key in capabilities)
+        or not isinstance(rows, dict)
+        or not rows
+    ):
+        raise ValueError('algorithm contract capability set is malformed')
+    observed = set()
+    hostile = 0
+    for row_id, row in rows.items():
+        if not isinstance(row_id, str) or not isinstance(row, dict):
+            raise ValueError('algorithm contract row is malformed')
+        if row.get('passed') is not True:
+            raise ValueError(f'algorithm contract row did not pass: {row_id}')
+        capability = row.get('capability_key')
+        if capability is None:
+            hostile += 1
+        elif capability in capabilities:
+            observed.add(capability)
+        else:
+            raise ValueError(f'algorithm contract row has unknown capability: {row_id}')
+        for field in (
+            'implementation_files_sha256', 'test_file', 'test_node',
+            'test_file_sha256', 'fixture_identity', 'expected', 'observed',
+        ):
+            if field not in row:
+                raise ValueError(f'algorithm contract row lacks {field}: {row_id}')
+    if observed != set(capabilities) or hostile < 10:
+        raise ValueError('algorithm contract rows are incomplete')
+    return frozenset(capabilities)
 
 
 def _installed_runtime_source_inventory() -> dict[str, str]:
@@ -149,6 +198,7 @@ def _installed_runtime_source_inventory() -> dict[str, str]:
         'maple/function/calculator/data/independent_obc2_analytic_qualification_v4.json',
         'maple/function/calculator/data/independent_obc2_analytic_qualification_v5.json',
         'maple/function/calculator/data/independent_obc2_analytic_qualification_v6.json',
+        'maple/function/calculator/data/independent_obc2_analytic_qualification_v7.json',
     }
     paths = list(package_root.rglob('*.py'))
     paths.append(package_root / 'function/calculator/data/private_cha_torch_fp32_release_v1.json')
@@ -429,6 +479,25 @@ def _bind_hessian_precision_cell(calculator) -> None:
                 allow_nan=False,
             ).encode("utf-8")
         ).hexdigest(),
+        owner_token=id(calculator),
+    )
+
+
+def _bind_method_capabilities(calculator) -> None:
+    if hasattr(calculator, '_method_capability_binding'):
+        del calculator._method_capability_binding
+    correction = getattr(calculator, 'solvent_correction', None)
+    precision = getattr(calculator, '_hessian_precision_binding', None)
+    if correction is None or precision is None or precision.composition != 'torch-obc2':
+        return
+    receipt, receipt_sha256 = _load_validated_qualification_receipt()
+    if receipt_sha256 != precision.receipt_sha256:
+        raise RuntimeError('ANALYTIC_CELL_UNQUALIFIED: method and derivative receipts differ')
+    calculator._method_capability_binding = _mint_method_capability_binding(
+        capability_keys=_validated_algorithm_capabilities(receipt),
+        runtime_identity_sha256=precision.runtime_identity_sha256,
+        receipt_sha256=receipt_sha256,
+        composition_identity_sha256=precision.composition_identity_sha256,
         owner_token=id(calculator),
     )
 
@@ -1097,6 +1166,7 @@ class SetCalculator:
         self._apply_hessian_mode(calculator)
         try:
             _bind_hessian_precision_cell(calculator)
+            _bind_method_capabilities(calculator)
         except (OSError, RuntimeError, ValueError):
             # Ordinary gas E/F remains available when an advanced derivative
             # precision cell is unsealed or source-drifted. The absent binding

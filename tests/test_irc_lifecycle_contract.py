@@ -410,3 +410,35 @@ def test_path_summary_is_written_for_zero_step_run(tmp_path, method):
     assert result["summary"]["merged_rows"] == [
         line + "\n" for line in text.splitlines() if "<= TS" in line
     ]
+
+
+@pytest.mark.parametrize("method,class_name", [("hpc", "HPC"), ("lqa", "LQA"), ("eulerpc", "EulerPC")])
+def test_implicit_advanced_wrapper_restores_caller_and_cache_on_failure(
+    tmp_path, monkeypatch, method, class_name
+):
+    import maple.function.dispatcher.irc.irc as irc_module
+    from maple.function.dispatcher.irc import algorithm
+
+    atoms = make_ts()
+    atoms.calc.solvent_correction = object()
+    original_positions = atoms.positions.copy()
+    original_results = atoms.calc.results
+    original_results.clear()
+    original_results["energy"] = 7.0
+
+    class FailingRunner:
+        def __init__(self, working, output, paras):
+            self.working = working
+
+        def run(self):
+            self.working.positions[:] = 9.0
+            self.working.calc.results["energy"] = -4.0
+            raise RuntimeError("subjob failed")
+
+    monkeypatch.setattr(irc_module, "bind_admitted_implicit_path", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(algorithm, class_name, FailingRunner)
+    with pytest.raises(RuntimeError, match="subjob failed"):
+        IRC(_params(method, 0), str(tmp_path / f"{method}.out"), atoms, method).run()
+    np.testing.assert_array_equal(atoms.positions, original_positions)
+    assert atoms.calc.results is original_results
+    assert atoms.calc.results == {"energy": 7.0}

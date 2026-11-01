@@ -10,11 +10,19 @@ from maple.function.dispatcher.convergence import (
     convergence_thresholds,
 )
 from maple.function.dispatcher.dispatcher import Dispatcher
-from maple.function.dispatcher.implicit_path import validate_path_parameters
+from maple.function.dispatcher.method_registry import (
+    normalize_public_method,
+    validate_method_parameters,
+)
 from maple.function.dispatcher.irc.algorithm.gs import GSParams
 from maple.function.dispatcher.ts.algorithm.neb import NEBParams
 from maple.function.dispatcher.ts.algorithm.string import GSMParams
 from maple.function.read.command_control import CommandControl
+
+
+def validate_path_parameters(method, params, _params_class):
+    task = "irc" if method in {"gs", "hpc", "lqa", "eulerpc"} else "ts"
+    return validate_method_parameters(normalize_public_method(task, method), params)
 
 
 class _ImplicitCalculator(Calculator):
@@ -247,7 +255,7 @@ def test_nested_full_configuration_keeps_only_method_parameters():
     "configuration,error",
     [
         ({"max_steps": 1, "gs": {"f_max_th": 0.01}}, "mixes flat"),
-        ({"neb": {"max_iter": 1}, "string": {}}, "multiple method"),
+        ({"neb": {"max_iter": 1}, "string": {}}, "Unknown gs parameter"),
         ({"MAX_STEPS": 1, "max_steps": 1}, "duplicate"),
         ({"step_length_bohr": 0.1, "sd_len_bohr": 0.1}, "duplicate"),
         ({"unknown": 1}, "Unknown gs parameter"),

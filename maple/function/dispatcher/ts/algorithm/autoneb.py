@@ -81,8 +81,8 @@ class AutoNEBParams:
     verbose: int = 1
 
     def __post_init__(self) -> None:
-        if type(self.n_max) is not int or self.n_max < 2:
-            raise ValueError("n_max must be an exact integer of at least 2.")
+        if type(self.n_max) is not int or self.n_max < 3:
+            raise ValueError("n_max must be an exact integer of at least 3.")
         _exact_nonnegative_int(self.max_iter, name="max_iter")
         _exact_nonnegative_int(self.ci_max_iter, name="ci_max_iter")
         if type(self.climb) is not bool:
@@ -349,19 +349,32 @@ class AutoNEB(JobABC):
         elif not isinstance(paras, Mapping):
             raise TypeError("AutoNEB parameters must be a mapping.")
         else:
-            lowered = {
-                (key.lower() if isinstance(key, str) else key): value
-                for key, value in paras.items()
-            }
-            nested = next(
-                (lowered[name] for name in ("autoneb", "ts") if isinstance(lowered.get(name), Mapping)),
-                None,
-            )
-            selected = dict(nested if nested is not None else lowered)
-        selected = {
-            (key.lower() if isinstance(key, str) else key): value
-            for key, value in selected.items()
-        }
+            lowered = {}
+            origins = {}
+            for raw_key, value in paras.items():
+                if not isinstance(raw_key, str):
+                    raise TypeError("AutoNEB parameter keys must be strings.")
+                key = raw_key.lower()
+                if key in origins:
+                    raise ValueError(
+                        f"Conflicting AutoNEB parameter spellings: {origins[key]!r} and {raw_key!r}."
+                    )
+                origins[key] = raw_key
+                lowered[key] = value
+            groups = [name for name in ("autoneb", "ts") if name in lowered]
+            if len(groups) > 1:
+                raise ValueError("AutoNEB accepts only one nested parameter group.")
+            if groups:
+                group = groups[0]
+                if not isinstance(lowered[group], Mapping):
+                    raise TypeError(f"{group} parameters must be a mapping.")
+                flat = sorted(key for key in lowered if key != group)
+                if flat:
+                    raise ValueError(
+                        "AutoNEB cannot mix flat parameters with a nested parameter group."
+                    )
+                return AutoNEB._parse_params(dict(lowered[group]))
+            selected = lowered
         obsolete = sorted(str(key) for key in selected if key in _OBSOLETE_FIELDS)
         if obsolete:
             raise ValueError(f"Obsolete AutoNEB parameter: {obsolete[0]}")

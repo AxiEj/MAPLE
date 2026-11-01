@@ -2,7 +2,6 @@ import os
 from typing import Union, List
 
 from ase import Atoms 
-import ase
 import torch
 
 from ..function.read import InputReader
@@ -26,6 +25,7 @@ class engine():
         # 5: ts
 
         self.calulator = None
+        self.last_result = None
 
         self.d4 = False
         # DFT-D4 dispersion correction
@@ -90,7 +90,7 @@ class engine():
                     atom.calc = self.calulator
 
             # Self.atoms printing
-            self._jobtype_dispatcher(
+            self.last_result = self._jobtype_dispatcher(
                 self.commandcontrol,
                 self.jobtype,
                 self.atoms,
@@ -99,6 +99,7 @@ class engine():
             )
 
             timer.print_summary(self.output)
+            return self.last_result
         except Exception as exc:
             self._append_error_if_missing(self.output or fallback_output, exc)
             raise
@@ -193,7 +194,7 @@ class engine():
                             })
             self.calulator = setcalculator.set_calculator()
     
-    def _jobtype_dispatcher(self, commandcontrol, jobtype:int, atoms:Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    def _jobtype_dispatcher(self, commandcontrol, jobtype:int, atoms:Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None):
         """
             This function dispatches the job type.
 
@@ -208,5 +209,5 @@ class engine():
         """
         with timer("Job Dispatching"):
             dispatcher = Dispatcher()
-            dispatcher(commandcontrol, jobtype, atoms, output, extra)
+            return dispatcher(commandcontrol, jobtype, atoms, output, extra)
     

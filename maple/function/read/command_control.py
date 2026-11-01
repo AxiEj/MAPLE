@@ -1,11 +1,18 @@
 import math
 import re
-from dataclasses import fields
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
 from .charge_options import CHARGE_OPTION_KEYS, normalize_charge_options
 from maple.function.calculator.extra_correction.implicit.selector import resolve_implicit_provider
+from maple.function.dispatcher.method_registry import (
+    GLOBAL_PARAMETER_KEYS,
+    allowed_refinements,
+    implemented_methods,
+    normalize_public_method,
+    parameter_names,
+    validate_method_parameters,
+)
 
 
 class CommandControl:
@@ -76,23 +83,13 @@ class CommandControl:
     IMPLEMENTATION_MAP = {
         "opt": {"lbfgs", "rfo", "sd", "cg", "sdcg", ""},
         "scan": {"lbfgs", "rfo", "sd", "cg", "sdcg"},
-        "ts": {"prfo", "string", "neb", "dimer", "autoneb"},
+        "ts": set(implemented_methods("ts")),
         "freq": {"mw", "nonmw"},
         "sp": set(),
-        "irc": {"gs", "hpc", "eulerpc", "lqa"},
+        "irc": set(implemented_methods("irc")),
         "md": {"nve", "nvt", "npt"},
     }
-    GLOBAL_PARAMS = {
-        "model",
-        "model_options",
-        "device",
-        "gpuid",
-        "d4",
-        "pbc",
-        "solv",
-        "charge",
-        "level",
-    }
+    GLOBAL_PARAMS = set(GLOBAL_PARAMETER_KEYS - {"task", "method"})
     LBFGS_PARAMS = {
         "memory",
         "curvature",
@@ -202,11 +199,6 @@ class CommandControl:
     }
 
     VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "md", "ts", "irc"}
-
-    TS_REFINE_MAP = {
-        "neb": {"cineb", "nebts"},
-        "string": {"cistring", "stringts"},
-    }
 
     def __init__(
         self, params: Dict[str, Any], task: str, output_path: Optional[str] = None
@@ -561,19 +553,10 @@ class CommandControl:
             allowed.update(cls.DEFAULTS["freq"])
             return allowed
         if task in {"ts", "irc"}:
-            from dataclasses import fields
             method = str(params.get("method", "gs" if task == "irc" else "")).lower()
-            if task == "irc" and method == "gs":
-                from maple.function.dispatcher.irc.algorithm.gs import GSParams
-                allowed.update(field.name for field in fields(GSParams))
-                allowed.update({"sd_len_bohr", "steplength_bohr", "max_points", "tol_maxf", "tol_rmsf"})
-            elif task == "ts" and method == "neb":
-                from maple.function.dispatcher.ts.algorithm.neb import NEBParams
-                allowed.update(field.name for field in fields(NEBParams))
-            elif task == "ts" and method == "string":
-                from maple.function.dispatcher.ts.algorithm.string import GSMParams
-                allowed.update(field.name for field in fields(GSMParams))
-            else:
+            try:
+                allowed.update(parameter_names(task, method))
+            except (TypeError, ValueError):
                 return None
             allowed.add("method")
             return allowed
@@ -735,12 +718,7 @@ class CommandControl:
         method = str(params.get("method", "gs" if task == "irc" else "")).lower()
         if isinstance(params.get("refine"), str) and params["refine"].lower() == "none":
             params["refine"] = None
-        expected = {"irc": {"gs"}, "ts": {"neb", "string"}}[task]
-        if method not in expected:
-            raise ValueError(
-                "Implicit path opening admits only irc(method=gs), ts(method=neb), "
-                "or ts(method=string)."
-            )
+        public_key = normalize_public_method(task, method)
         if str(params.get("model", "")).lower() not in {
             "aimnet2025", "aimnet2-2025", "aimnet2_2025"
         }:
@@ -760,20 +738,10 @@ class CommandControl:
         model_options = params.get("model_options", {})
         if model_options.get("hessian") != "analytic":
             raise ValueError(f"Implicit {method} requires explicit hessian=analytic enrollment.")
+        selected = validate_method_parameters(public_key, params)
         if task == "irc":
-            from maple.function.dispatcher.irc.algorithm.gs import GSParams
-            from maple.function.dispatcher.implicit_path import validate_path_parameters
-            selected = validate_path_parameters("gs", params, GSParams)
-            if selected.get("project_rigid_modes") is False:
+            if method == "gs" and selected.get("project_rigid_modes") is False:
                 raise ValueError("Implicit GS-IRC requires project_rigid_modes=true.")
-        elif method == "neb":
-            from maple.function.dispatcher.ts.algorithm.neb import NEBParams
-            from maple.function.dispatcher.implicit_path import validate_path_parameters
-            validate_path_parameters("neb", params, NEBParams)
-        else:
-            from maple.function.dispatcher.ts.algorithm.string import GSMParams
-            from maple.function.dispatcher.implicit_path import validate_path_parameters
-            validate_path_parameters("string", params, GSMParams)
 
     @classmethod
     def _validate_ddlpb_reference(cls, options: dict, task: str, output_path) -> None:
@@ -1264,7 +1232,7 @@ class CommandControl:
                             cls._log_error(output_path, msg)
                             raise ValueError(msg)
                     elif task in {"freq", "ts"}:
-                        if task == "ts" and str(params.get("method", "")).lower() in {"neb", "string"}:
+                        if task == "ts" and str(params.get("method", "")).lower() in {"neb", "string", "autoneb"}:
                             cls._validate_implicit_path_command(params, task, output_path)
                         else:
                             cls._validate_implicit_curvature_task(params, task, output_path)
@@ -1816,10 +1784,11 @@ class CommandControl:
 
         if task == "ts" and "refine" in params and params["refine"] is not None:
             method = params.get("method")
-            allowed_refines = (
-                cls.TS_REFINE_MAP.get(method) if isinstance(method, str) else None
-            )
-            if allowed_refines is None:
+            try:
+                allowed_refines = allowed_refinements("ts", method)
+            except (TypeError, ValueError):
+                allowed_refines = frozenset()
+            if not allowed_refines:
                 cls._log_error(
                     output_path, f"'refine' is not valid for TS method '{method}'."
                 )

@@ -4,13 +4,12 @@ from ase import Atoms
 from ..utility import Molecules
 
 from .convergence import convergence_thresholds
-from maple.function.timer import timer
 
 class Dispatcher():
     def __init__(self):
         pass
 
-    def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None) -> None:
+    def __call__(self, commandcontrol: dict, jobtype: int, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict=None):
 
         """
         Dispatches the job based on the job type.
@@ -31,7 +30,7 @@ class Dispatcher():
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For optimization job, only one Atoms object is allowed.')
             opt = Optimization(output=output, atoms=atoms, params=commandcontrol.params)
-            opt.run()
+            return opt.run()
             
         elif jobtype == 'sp':
             from .sp import SinglePoint
@@ -42,14 +41,14 @@ class Dispatcher():
             if isinstance(atoms, Molecules):
                 atoms_input = atoms.multiatoms
                 sp = SinglePoint(output=output, atoms=atoms_input, paras=sp_params)
-                sp.run()
+                return sp.run()
             elif isinstance(atoms, list):
                 sp = SinglePoint(output=output, atoms=atoms, paras=sp_params)
-                sp.run()
+                return sp.run()
             else:
                 # Single structure (backward compatibility)
                 sp = SinglePoint(output=output, atoms=atoms, paras=sp_params)
-                sp.run()
+                return sp.run()
 
         elif jobtype == 'scan':
             from .scan import Scan
@@ -64,14 +63,14 @@ class Dispatcher():
                 raise NotImplementedError('For scan job, only one Atoms object is allowed.')
 
             scan = Scan(output=output, atoms=atoms, method=commandcontrol.params.get('method'), constraints=extra['scan'], params=commandcontrol.params)
-            scan.run()
+            return scan.run()
             
         elif jobtype == 'freq':
             from .frequency import Frequency
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For frequency job, only one Atoms object is allowed.')
             freq = Frequency(output=output, atoms=atoms, paras=commandcontrol.params)
-            freq.run()
+            return freq.run()
             
         elif jobtype == 'ts':
             from .ts import TransitionState
@@ -83,8 +82,7 @@ class Dispatcher():
                     # Convert Molecules to its internal list if needed
                     atoms_input = atoms.multiatoms if isinstance(atoms, Molecules) else atoms
                     ts = TransitionState(output=output, atoms=atoms_input, method=method, params=commandcontrol.params)
-                    ts.run()
-                    return
+                    return ts.run()
                 elif method == 'prfo':
                     raise NotImplementedError('For transition state search job with PRFO method, only one Atoms object is allowed.')
                 else:
@@ -92,7 +90,7 @@ class Dispatcher():
 
             # Single Atoms object
             ts = TransitionState(output=output, atoms=atoms, method=commandcontrol.params.get('method'), params=commandcontrol.params)
-            ts.run()
+            return ts.run()
         
         elif jobtype == 'irc':
             from .irc import IRC
@@ -100,7 +98,7 @@ class Dispatcher():
             if isinstance(atoms, (list, Molecules)):
                 raise NotImplementedError('For IRC job, only one Atoms object is allowed.')
             irc = IRC(output=output, atoms=atoms, method=commandcontrol.params.get('method'), params=commandcontrol.params)
-            irc.run()
+            return irc.run()
 
         elif jobtype == 'md':
             from .md.ensemble.nve import NVE
@@ -125,7 +123,7 @@ class Dispatcher():
                 md = NPT(output=output, atoms=atoms, paras=commandcontrol.params)
             else:
                 raise ValueError(f"Unknown MD ensemble: '{ensemble}'")
-            md.run()
+            return md.run()
             
             
         else:

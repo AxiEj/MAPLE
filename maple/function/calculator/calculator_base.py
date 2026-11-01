@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 _REGISTRY: dict[str, type] = {}
 _HESSIAN_PRECISION_BINDING_AUTHORITY = object()
+_METHOD_CAPABILITY_BINDING_AUTHORITY = object()
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,43 @@ def _is_factory_hessian_precision_binding(binding) -> bool:
     return (
         isinstance(binding, HessianPrecisionBinding)
         and binding._authority is _HESSIAN_PRECISION_BINDING_AUTHORITY
+    )
+
+
+@dataclass(frozen=True)
+class MethodCapabilityBinding:
+    """Factory-minted software capabilities from one sealed source receipt."""
+
+    capability_keys: frozenset[str]
+    runtime_identity_sha256: str
+    receipt_sha256: str
+    composition_identity_sha256: str
+    owner_token: int
+    _authority: object = field(repr=False, compare=False)
+
+
+def _mint_method_capability_binding(
+    *,
+    capability_keys: frozenset[str],
+    runtime_identity_sha256: str,
+    receipt_sha256: str,
+    composition_identity_sha256: str,
+    owner_token: int,
+) -> MethodCapabilityBinding:
+    return MethodCapabilityBinding(
+        capability_keys=capability_keys,
+        runtime_identity_sha256=runtime_identity_sha256,
+        receipt_sha256=receipt_sha256,
+        composition_identity_sha256=composition_identity_sha256,
+        owner_token=owner_token,
+        _authority=_METHOD_CAPABILITY_BINDING_AUTHORITY,
+    )
+
+
+def _is_factory_method_capability_binding(binding) -> bool:
+    return (
+        isinstance(binding, MethodCapabilityBinding)
+        and binding._authority is _METHOD_CAPABILITY_BINDING_AUTHORITY
     )
 
 

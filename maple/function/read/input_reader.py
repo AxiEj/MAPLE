@@ -21,6 +21,10 @@ from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
 from maple.function.device import resolve_torch_device
+from maple.function.dispatcher.method_registry import (
+    normalize_public_method,
+    validate_input_arity,
+)
 
 def _read_single_implicit_xyz(file_path: str, *, charge, mult, base_dir: str) -> Atoms:
     """Keep ordinary XYZReader leniency out of the topology inference boundary."""
@@ -342,25 +346,19 @@ class InputReader():
         else:
             return atoms_or_list
 
-    def _implicit_path_method(self) -> str | None:
+    def _implicit_path_method(self):
         task = self.command_control.task
         method = str(self.command_control.params.get("method", "")).lower()
-        if task == "irc" and method == "gs":
-            return "gs"
-        if task == "ts" and method in {"neb", "string"}:
-            return method
+        if task == "irc" or (task == "ts" and method in {"neb", "string", "autoneb"}):
+            return normalize_public_method(task, method)
         return None
 
     def _validate_implicit_input_scope(self, atoms_or_list, implicit_options) -> None:
         """Reject invalid route shape and prebuilt clusters before post-processing."""
         images = atoms_or_list if isinstance(atoms_or_list, list) else [atoms_or_list]
         method = self._implicit_path_method()
-        if method == "gs" and len(images) != 1:
-            raise ValueError("Implicit GS-IRC requires exactly one input geometry.")
-        if method == "neb" and len(images) < 2:
-            raise ValueError("Implicit NEB requires at least two endpoint structures.")
-        if method == "string" and len(images) != 2:
-            raise ValueError("Implicit String requires exactly two endpoint structures.")
+        if method is not None:
+            validate_input_arity(method, len(images))
         if method is None and len(images) != 1:
             raise ValueError("This implicit-solvent task requires exactly one input geometry.")
         if (

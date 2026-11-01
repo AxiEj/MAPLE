@@ -11,10 +11,16 @@ from maple.function.dispatcher.implicit_path import (
     bind_admitted_implicit_path,
     path_images,
     preserve_path_calculator_caches,
-    validate_path_parameters,
 )
 from maple.function.dispatcher.result_contracts import PRFOResult
 from maple.function.dispatcher.convergence import copy_convergence_context
+from maple.function.dispatcher.method_registry import (
+    CapabilityKey,
+    normalize_public_method,
+    resolve_method_capability,
+    validate_input_arity,
+    validate_method_parameters,
+)
 
 from ..jobABC import JobABC
 
@@ -92,6 +98,7 @@ def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> b
                 "Implicit-solvent PRFO requires hessian=numerical or an admitted "
                 "hessian=analytic solvent derivative backend."
             )
+        resolve_method_capability(CapabilityKey.TS_PRFO, calculator)
     if method == "dimer":
         dimer_params = JobABC._select_subdict(params, ("dimer", "ts"))
         if dimer_params.get("use_hvp") is True:
@@ -134,6 +141,7 @@ class TransitionState(JobABC):
         self.params = params
         self.method = method
         self._path_params = None
+        self._method_params = None
         self.last_result: PRFOResult | None = None
 
     def run(self):
@@ -141,6 +149,11 @@ class TransitionState(JobABC):
         with timer("Transition State Optimization"):
             if self.method is None:
                 raise ValueError('Method is not provided.')
+            public_key = normalize_public_method("ts", self.method)
+            self.method = public_key.value.split(".", 1)[1]
+            image_count = 1 if isinstance(self.atoms, Atoms) else len(path_images(self.atoms))
+            validate_input_arity(public_key, image_count)
+            self._method_params = validate_method_parameters(public_key, self.params)
 
             implicit_ts = False
             path_structures = None
@@ -154,30 +167,21 @@ class TransitionState(JobABC):
                 structures = path_images(self.atoms)
                 self.atoms = structures
                 path_structures = structures
-                method = str(self.method).lower()
-                if method == "string" and len(structures) != 2:
-                    raise ValueError("String requires exactly two endpoint structures.")
+                method = self.method
                 if any(
                     getattr(getattr(atoms, "calc", None), "solvent_correction", None)
                     is not None
                     for atoms in structures
                 ):
-                    if method not in {"neb", "string"}:
+                    if method not in {"neb", "string", "autoneb"}:
                         raise ValueError(
                             "Implicit PRFO and Dimer require exactly one Atoms geometry; "
                             "multi-image TS admits only standard NEB or path-only String."
                         )
-                    if method == "neb":
-                        from .algorithm.neb import NEBParams
-                        self._path_params = validate_path_parameters(
-                            "neb", self.params, NEBParams
-                        )
-                    else:
-                        from .algorithm.string import GSMParams
-                        self._path_params = validate_path_parameters(
-                            "string", self.params, GSMParams
-                        )
-                    implicit_ts = bind_admitted_implicit_path(structures, method)
+                    self._path_params = self._method_params
+                    implicit_ts = bind_admitted_implicit_path(
+                        structures, method, normalized_params=self._method_params,
+                    )
                     working = []
                     for image in structures:
                         copied = image.copy()
@@ -189,7 +193,7 @@ class TransitionState(JobABC):
             if implicit_ts:
                 method = str(self.method).lower()
                 calculator = self.atoms.calc if isinstance(self.atoms, Atoms) else path_structures[0].calc
-                if method in {"neb", "string"}:
+                if method in {"neb", "string", "autoneb"}:
                     derivative = "complete composed energy and forces only"
                 elif method == "prfo":
                     derivative = (
@@ -217,7 +221,7 @@ class TransitionState(JobABC):
                             + (
                                 "It is a path-generation capability, not a claim of "
                                 "a converged MEP, transition state, or accuracy certification.\n"
-                                if method in {"neb", "string"}
+                                if method in {"neb", "string", "autoneb"}
                                 else
                                 "It is a TS candidate-search capability, not a claim of "
                                 "convergence or accuracy certification.\n"
@@ -240,7 +244,7 @@ class TransitionState(JobABC):
             prfo = PRFO(
                 atoms=cast(Atoms, self.atoms),
                 output=self.output,
-                paras=self.params,
+                paras={"prfo": self._method_params},
             )
             result = prfo.run()
             self.last_result = result
@@ -248,8 +252,6 @@ class TransitionState(JobABC):
 
         elif self.method == 'neb':
             structures = path_images(self.atoms)
-            if len(structures) < 2:
-                raise ValueError('NEB requires at least two structures.')
             from .algorithm import NEB
             neb = NEB(
                 output=self.output,
@@ -257,15 +259,13 @@ class TransitionState(JobABC):
                 paras=(
                     {"neb": self._path_params}
                     if self._path_params is not None
-                    else self.params
+                    else {"neb": self._method_params}
                 ),
             )
             return neb.run()
 
         elif self.method == 'string':
             structures = path_images(self.atoms)
-            if len(structures) != 2:
-                raise ValueError('String requires exactly two endpoint structures.')
             from .algorithm import GSM
             string = GSM(
                 output=self.output,
@@ -274,7 +274,7 @@ class TransitionState(JobABC):
                 paras=(
                     {"string": self._path_params}
                     if self._path_params is not None
-                    else self.params
+                    else {"string": self._method_params}
                 ),
             )
             return string.run()
@@ -289,32 +289,19 @@ class TransitionState(JobABC):
             dimer = Dimer(
                 output=self.output,
                 atoms_init=cast(Atoms, atoms_input),
-                paras=self.params
+                paras={"dimer": self._method_params}
             )
             return dimer.run()
 
         elif self.method == 'autoneb':
-            # AutoNEB: automated multi-step reaction pathway exploration
-            if isinstance(self.atoms, Molecules):
-                from .algorithm import AutoNEB
-                autoneb = AutoNEB(
-                    output=self.output,
-                    atoms_or_molecules=self.atoms,
-                    paras=self.params
-                )
-                autoneb.run()
-            elif isinstance(self.atoms, list):
-                if len(self.atoms) < 2:
-                    raise ValueError('For AutoNEB method, you should provide at least two structures.')
-                from .algorithm import AutoNEB
-                autoneb = AutoNEB(
-                    output=self.output,
-                    atoms_or_molecules=self.atoms,
-                    paras=self.params
-                )
-                autoneb.run()
-            else:
-                raise ValueError('For AutoNEB method, you should provide a Molecules object or a list of structures.')
+            from .algorithm import AutoNEB
+            structures = path_images(self.atoms)
+            autoneb = AutoNEB(
+                output=self.output,
+                atoms_or_molecules=structures,
+                paras={"autoneb": self._method_params},
+            )
+            return autoneb.run()
 
         else:
-            raise ValueError(f'Method {self.method} not recognized. Available methods are: prfo, neb, string, dimer, autoneb.')
+            raise ValueError(f'Method {self.method} not recognized.')

@@ -154,8 +154,8 @@ def test_obsolete_tree_and_phantom_budget_fields_are_rejected(tmp_path, field, v
 @pytest.mark.parametrize(
     "changes,match",
     [
-        ({"n_max": 2, "climb": True}, "interior"),
-        ({"n_max": 1}, "at least"),
+        ({"n_max": 2, "climb": False}, "at least 3"),
+        ({"n_max": 1}, "at least 3"),
         ({"max_iter": -1}, "max_iter"),
         ({"fmax": np.nan}, "finite"),
         ({"climb": 1}, "boolean"),
@@ -171,6 +171,7 @@ def test_n_max_must_cover_the_supplied_path(tmp_path):
     calculator = _QuadraticCalculator()
     images = [
         _image(0.0, calculator, role="reactant"),
+        _image(0.25, calculator, role="interior"),
         _image(0.5, calculator, role="interior"),
         _image(1.0, calculator, role="product"),
     ]
@@ -178,8 +179,23 @@ def test_n_max_must_cover_the_supplied_path(tmp_path):
         AutoNEB(
             str(tmp_path / "autoneb.out"),
             images,
-            {"n_max": 2, "climb": False},
+            {"n_max": 3, "climb": False},
         )
+
+
+@pytest.mark.parametrize(
+    "params,match",
+    [
+        ({"N_MAX": 4, "n_max": 5}, "Conflicting"),
+        ({"autoneb": {"n_max": 4}, "max_iter": 1}, "cannot mix"),
+        ({"autoneb": {"n_max": 4}, "ts": {"n_max": 5}}, "only one"),
+    ],
+)
+def test_constructor_rejects_ambiguous_parameter_sources(tmp_path, params, match):
+    calculator = _QuadraticCalculator()
+    images = [_image(0.0, calculator, role="reactant"), _image(1.0, calculator, role="product")]
+    with pytest.raises(ValueError, match=match):
+        AutoNEB(str(tmp_path / "autoneb.out"), images, params)
 
 
 def test_zero_budget_is_unmoved_bounded_nonconvergence(monkeypatch, tmp_path):

@@ -2,111 +2,17 @@
 
 from __future__ import annotations
 
-import math
-from collections.abc import Mapping
 from contextlib import contextmanager
-from dataclasses import dataclass, fields
-from numbers import Real
-from types import MappingProxyType
 
 import numpy as np
 from ase import Atoms
 
-from .convergence import CONVERGENCE_CONTEXT_KEYS
-
-
-_ALIASES = {
-    "gs": {"sd_len_bohr": "step_length_bohr", "steplength_bohr": "step_length_bohr",
-           "max_points": "max_steps", "tol_maxf": "f_max_th", "tol_rmsf": "f_rms_th"},
-    "neb": {},
-    "string": {},
-}
-
-
-@dataclass(frozen=True)
-class ParameterRule:
-    kind: str
-    minimum: float | None = None
-    maximum: float | None = None
-    minimum_inclusive: bool = True
-    maximum_inclusive: bool = True
-    choices: frozenset | None = None
-    inactive_reason: str | None = None
-
-
-def _rule(kind: str, **kwargs) -> ParameterRule:
-    return ParameterRule(kind=kind, **kwargs)
-
-
-def _inactive(reason: str) -> ParameterRule:
-    return ParameterRule(kind="inactive", inactive_reason=reason)
-
-
-PATH_PARAMETER_SCHEMAS = MappingProxyType({
-    "gs": MappingProxyType({
-        "target_mode": _rule("int", minimum=1),
-        "step_length_bohr": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "max_steps": _rule("int", minimum=0),
-        "max_micro_cycles": _rule("int", minimum=0),
-        "micro_step_thresh": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "hessian_recalc": _rule("optional_int", minimum=0),
-        "hessian_update": _rule("enum", choices=frozenset({"bfgs", "bofill"})),
-        "f_max_th": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "f_rms_th": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "print_each": _rule("bool"),
-        "write_traj": _rule("bool"),
-        "project_rigid_modes": _rule("bool"),
-    }),
-    "neb": MappingProxyType({
-        "n_images": _rule("int", minimum=1),
-        "k_min": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "k_max": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "use_dynamic_k": _rule("bool"),
-        "k_decay": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "max_iter": _rule("int", minimum=0),
-        "lbfgs_m": _rule("int", minimum=1),
-        "step0": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "ifidpp": _rule("int", choices=frozenset({0, 1})),
-        "neb_f_max_th": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "neb_f_rms_th": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "initial_opt": _rule("bool"),
-        "refine": _rule("none"),
-        "cineb_f_max_th": _inactive("CINEB refinement is closed for this path-only opening"),
-        "cineb_f_rms_th": _inactive("CINEB refinement is closed for this path-only opening"),
-        "cilbfgs_m": _inactive("CINEB refinement is closed for this path-only opening"),
-        "cistep0": _inactive("CINEB refinement is closed for this path-only opening"),
-    }),
-    "string": MappingProxyType({
-        "grow_step": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "grow_step_min": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "grow_backtrack": _rule(
-            "real", minimum=0.0, maximum=1.0,
-            minimum_inclusive=False, maximum_inclusive=False,
-        ),
-        "grow_relax_iters": _rule("int", minimum=0),
-        "grow_relax_tol": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "grow_energy_tol": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "pause_imbalance": _rule("int", minimum=0),
-        "refine_end_every": _rule("int", minimum=0),
-        "merge_threshold": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "n_images": _rule("int", minimum=2),
-        "max_iter_relax": _inactive("full String relaxation is not run when refine=None"),
-        "string_f_max_th": _inactive("full String relaxation is not run when refine=None"),
-        "string_f_rms_th": _inactive("full String relaxation is not run when refine=None"),
-        "lbfgs_memory": _inactive("full String relaxation is not run when refine=None"),
-        "lbfgs_curvature": _inactive("full String relaxation is not run when refine=None"),
-        "lbfgs_max_step": _inactive("full String relaxation is not run when refine=None"),
-        "reparam_every": _inactive("full String relaxation is not run when refine=None"),
-        "refine": _rule("none"),
-        "cistring_f_max_th": _inactive("CI-String refinement is closed for this path-only opening"),
-        "cistring_f_rms_th": _inactive("CI-String refinement is closed for this path-only opening"),
-        "max_iter_grow": _rule("int", minimum=0),
-        "log_every": _rule("int", minimum=1),
-        "guide_conn_min": _rule("real", minimum=0.0, maximum=1.0),
-        "guide_d_switch": _rule("real", minimum=0.0, minimum_inclusive=False),
-        "guide_inc_trigger": _rule("int", minimum=0),
-    }),
-})
+from .method_registry import (
+    normalize_public_method,
+    resolve_method_capability,
+    required_capabilities,
+    validate_method_parameters,
+)
 
 
 def path_images(value) -> list[Atoms]:
@@ -119,191 +25,6 @@ def path_images(value) -> list[Atoms]:
     if not all(isinstance(image, Atoms) for image in structures):
         raise TypeError("Every path image must be an ASE Atoms object.")
     return list(structures)
-
-
-def _normalized_path_parameter_items(method: str, params) -> list[tuple[str, object]]:
-    if params is None:
-        return []
-    if not isinstance(params, Mapping):
-        raise TypeError(f"{method} parameters must be a mapping or None")
-
-    def keyed_items(mapping, location):
-        items = []
-        origins = {}
-        for raw_key, value in mapping.items():
-            if not isinstance(raw_key, str):
-                raise TypeError(f"{location} parameter keys must be strings")
-            key = raw_key.lower()
-            if key in origins:
-                raise ValueError(
-                    f"duplicate {location} parameter '{raw_key}' conflicts with "
-                    f"'{origins[key]}'"
-                )
-            origins[key] = raw_key
-            items.append((raw_key, key, value))
-        return items
-
-    outer = keyed_items(params, method)
-    method_groups = [
-        (raw_key, key, value)
-        for raw_key, key, value in outer
-        if key in PATH_PARAMETER_SCHEMAS
-    ]
-    if len(method_groups) > 1:
-        names = ", ".join(raw_key for raw_key, _key, _value in method_groups)
-        raise ValueError(f"multiple method parameter groups were provided: {names}")
-    if method_groups and method_groups[0][1] != method:
-        raise ValueError(
-            f"parameter group '{method_groups[0][0]}' does not match method '{method}'"
-        )
-
-    from maple.function.read.command_control import CommandControl
-
-    present_convergence_keys = {
-        key for _raw_key, key, _value in outer if key in CONVERGENCE_CONTEXT_KEYS
-    }
-    convergence_context_keys = (
-        CONVERGENCE_CONTEXT_KEYS
-        if present_convergence_keys == CONVERGENCE_CONTEXT_KEYS
-        else frozenset()
-    )
-    context_keys = (
-        set(CommandControl.GLOBAL_PARAMS)
-        | convergence_context_keys
-        | {"task", "method"}
-    )
-    aliases = _ALIASES[method]
-    if method_groups:
-        raw_group, _group_key, nested = method_groups[0]
-        if not isinstance(nested, Mapping):
-            raise TypeError(f"{raw_group} parameters must be a mapping")
-        flat = [
-            raw_key
-            for raw_key, key, _value in outer
-            if key not in context_keys and key not in PATH_PARAMETER_SCHEMAS
-        ]
-        if flat:
-            names = ", ".join(flat)
-            raise ValueError(
-                f"{method} request mixes flat parameters with the nested "
-                f"'{raw_group}' group: {names}"
-            )
-        selected = keyed_items(nested, f"{method} nested")
-        nested_fields = {aliases.get(key, key) for _raw_key, key, _value in selected}
-        selected = [
-            (raw_key, key, value)
-            for raw_key, key, value in outer
-            if key in convergence_context_keys
-            and aliases.get(key, key) in PATH_PARAMETER_SCHEMAS[method]
-            and aliases.get(key, key) not in nested_fields
-        ] + selected
-    else:
-        selected = outer
-
-    selector = next(
-        (value for _raw_key, key, value in selected if key == "method"),
-        next((value for _raw_key, key, value in outer if key == "method"), None),
-    )
-    if selector is not None and str(selector).lower() != method:
-        raise ValueError(f"method selector '{selector}' does not match '{method}'")
-
-    normalized = []
-    origins = {}
-    for raw_key, key, value in selected:
-        if key in context_keys and aliases.get(key, key) not in PATH_PARAMETER_SCHEMAS[method]:
-            continue
-        canonical = aliases.get(key, key)
-        if canonical in origins:
-            raise ValueError(
-                f"duplicate {method} parameter '{raw_key}' resolves to "
-                f"'{canonical}', already provided by '{origins[canonical]}'"
-            )
-        origins[canonical] = raw_key
-        normalized.append((canonical, value))
-    return normalized
-
-
-def validate_path_parameters(method: str, params, params_class) -> dict:
-    """Validate one method's public parameter mapping before model work."""
-    method = method.lower()
-    if method not in PATH_PARAMETER_SCHEMAS:
-        raise ValueError(f"Unknown implicit path method: {method}")
-    declared = {field.name for field in fields(params_class)}
-    schema = PATH_PARAMETER_SCHEMAS[method]
-    if set(schema) != declared:
-        raise RuntimeError(f"{method} parameter schema does not match {params_class.__name__}")
-    normalized = {}
-    for key, value in _normalized_path_parameter_items(method, params):
-        if key not in schema:
-            raise ValueError(f"Unknown {method} parameter: {key}")
-        normalized[key] = value
-
-    defaults = params_class()
-    for key, value in normalized.items():
-        rule = schema[key]
-        if rule.inactive_reason is not None:
-            raise ValueError(
-                f"{method}.{key} is inactive for this path: {rule.inactive_reason}"
-            )
-        if rule.kind == "bool":
-            if not isinstance(value, (bool, np.bool_)):
-                raise TypeError(f"{method}.{key} must be boolean")
-        elif rule.kind in {"int", "optional_int"}:
-            if rule.kind == "optional_int" and value is None:
-                continue
-            if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)):
-                raise TypeError(f"{method}.{key} must be an integer")
-        elif rule.kind == "real":
-            if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
-                raise TypeError(f"{method}.{key} must be numeric")
-            if not math.isfinite(float(value)):
-                raise ValueError(f"{method}.{key} must be finite")
-        elif rule.kind == "enum":
-            if not isinstance(value, str):
-                raise TypeError(f"{method}.{key} must be a string")
-        elif rule.kind == "none":
-            if value is not None:
-                raise ValueError(f"Implicit {method} is path-only and requires {key}=None")
-            continue
-        else:
-            raise RuntimeError(f"Unknown parameter rule kind: {rule.kind}")
-
-        if rule.choices is not None and value not in rule.choices:
-            choices = ", ".join(str(choice) for choice in sorted(rule.choices, key=str))
-            if rule.choices == frozenset({0, 1}):
-                raise ValueError(f"{method}.{key} must be 0 or 1")
-            raise ValueError(f"{method}.{key} must be one of: {choices}")
-        if rule.minimum is not None:
-            below = value < rule.minimum if rule.minimum_inclusive else value <= rule.minimum
-            if below:
-                if rule.minimum == 0 and rule.minimum_inclusive:
-                    raise ValueError(f"{method}.{key} must be nonnegative")
-                if (
-                    (rule.minimum == 0 and not rule.minimum_inclusive)
-                    or (rule.minimum == 1 and rule.minimum_inclusive)
-                ):
-                    raise ValueError(f"{method}.{key} must be positive")
-                relation = "at least" if rule.minimum_inclusive else "greater than"
-                raise ValueError(f"{method}.{key} must be {relation} {rule.minimum}")
-        if rule.maximum is not None:
-            above = value > rule.maximum if rule.maximum_inclusive else value >= rule.maximum
-            if above:
-                relation = "at most" if rule.maximum_inclusive else "less than"
-                raise ValueError(f"{method}.{key} must be {relation} {rule.maximum}")
-
-    if (
-        method == "neb"
-        and normalized.get("k_min", defaults.k_min)
-        > normalized.get("k_max", defaults.k_max)
-    ):
-        raise ValueError("neb.k_min must not exceed neb.k_max")
-    if (
-        method == "string"
-        and normalized.get("grow_step_min", defaults.grow_step_min)
-        > normalized.get("grow_step", defaults.grow_step)
-    ):
-        raise ValueError("string.grow_step_min must not exceed string.grow_step")
-    return normalized
 
 
 def uses_admitted_implicit_path(images) -> bool:
@@ -352,7 +73,13 @@ def preserve_path_calculator_caches(images, *, enabled: bool):
             snapshot.restore()
 
 
-def bind_admitted_implicit_path(images, method: str, *, require_hessian: bool = False) -> bool:
+def bind_admitted_implicit_path(
+    images,
+    method: str,
+    *,
+    require_hessian: bool = False,
+    normalized_params=None,
+) -> bool:
     """Bind one exact AIMNet2025/Torch-OBC-II composition to all images."""
     images = path_images(images)
     calculators = [image.calc for image in images]
@@ -365,6 +92,11 @@ def bind_admitted_implicit_path(images, method: str, *, require_hessian: bool = 
     if any(calc is not calculators[0] for calc in calculators[1:]):
         raise ValueError("All implicit path images must share one exact composed calculator instance.")
     calculator = calculators[0]
+    task = "irc" if method in {"gs", "hpc", "lqa", "eulerpc"} else "ts"
+    public_key = normalize_public_method(task, method)
+    if normalized_params is None:
+        normalized_params = validate_method_parameters(public_key, {})
+    requested_capabilities = required_capabilities(public_key, normalized_params)
     correction = getattr(calculator, "solvent_correction", None)
     if correction is None:
         raise ValueError("Implicit path calculator is missing its correction.")
@@ -390,5 +122,7 @@ def bind_admitted_implicit_path(images, method: str, *, require_hessian: bool = 
         raise ValueError("Implicit paths require the qualified AIMNet2025/Torch-OBC-II cell.")
     if str(getattr(calculator, "hessian", "")).lower() != "analytic":
         raise ValueError(f"Implicit {method} requires an analytic enrolled model configuration.")
+    for capability in requested_capabilities:
+        resolve_method_capability(capability, calculator)
     correction.bind_compatible_geometries(images)
     return True

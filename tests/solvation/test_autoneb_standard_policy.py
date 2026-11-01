@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from types import MappingProxyType
 
 import numpy as np
 import pytest
@@ -86,13 +87,25 @@ def _install_stage_oracle(monkeypatch, statuses):
         calls.append((stage_kind, params, output, tuple(images)))
         maximum = params.max_iter if stage_kind == "base" else params.cineb_max_iter
         candidate = images[1] if stage_kind == "ci" else None
-        return _stage_result(
+        stage = _stage_result(
             images,
             status=status,
             maximum=maximum,
             used=maximum,
             candidate=candidate,
         )
+        if stage_kind == "ci":
+            object.__setattr__(
+                stage,
+                "_stage_diagnostics",
+                MappingProxyType(
+                    {
+                        "climbing_image_index": 1,
+                        "ci_max_displacement_angstrom": 0.0,
+                    }
+                ),
+            )
+        return stage
 
     monkeypatch.setattr(
         autoneb_module,

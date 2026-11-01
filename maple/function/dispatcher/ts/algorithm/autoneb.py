@@ -615,19 +615,41 @@ class AutoNEB(JobABC):
             ci_stage.images,
             expected_roles=expected_roles,
         )
-        ci_candidate = ci_stage.candidate or _highest_energy_interior(ci_stage)
-        interior_geometry = set(ci_stage.geometry_sha256[1:-1])
-        if ci_candidate is None or geometry_sha256(ci_candidate) not in interior_geometry:
+        diagnostics = getattr(ci_stage, "_stage_diagnostics", None)
+        if not isinstance(diagnostics, Mapping):
+            raise RuntimeError("The CI stage did not return displacement diagnostics.")
+        climbing_index = diagnostics.get("climbing_image_index")
+        if (
+            type(climbing_index) is not int
+            or climbing_index <= 0
+            or climbing_index >= len(ci_stage.images) - 1
+        ):
+            raise RuntimeError("The CI stage did not return an interior climbing-image index.")
+        displacement = diagnostics.get("ci_max_displacement_angstrom")
+        displacement_array = np.asarray(displacement)
+        if displacement_array.ndim != 0 or np.iscomplexobj(displacement_array):
+            raise RuntimeError("The CI stage did not return a valid displacement metric.")
+        try:
+            displacement_value = float(displacement_array)
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(
+                "The CI stage did not return a valid displacement metric."
+            ) from exc
+        if not np.isfinite(displacement_value) or displacement_value < 0.0:
+            raise RuntimeError("The CI stage did not return a valid displacement metric.")
+        if (
+            ci_stage.status is RunStatus.CONVERGED
+            and displacement_value > self.params.ci_displacement_tol
+        ):
+            raise RuntimeError("The CI stage convergence contradicts its displacement metric.")
+        ci_candidate = ci_stage.candidate
+        if (
+            ci_candidate is None
+            or geometry_sha256(ci_candidate)
+            != ci_stage.geometry_sha256[climbing_index]
+        ):
             raise RuntimeError("The CI stage did not return an interior candidate.")
-        final_stage = PathStageResult.capture(
-            status=ci_stage.status,
-            images=ci_stage.images,
-            energies_hartree=ci_stage.energies_hartree,
-            forces_hartree_per_angstrom=ci_stage.forces_hartree_per_angstrom,
-            budgets=ci_stage.budgets,
-            termination_reason=ci_stage.termination_reason,
-            candidate=ci_candidate,
-        )
+        final_stage = ci_stage
         return self._result(
             final_stage=final_stage,
             base_stages=base_stages,

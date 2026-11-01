@@ -332,9 +332,6 @@ def evaluate_path_images(images, *, label: str):
     return energies, forces
 
 
-_MISSING = object()
-
-
 @contextmanager
 def preserve_path_calculator_caches(images, *, enabled: bool):
     """Restore published calculator cache fields for admitted implicit paths."""
@@ -345,21 +342,14 @@ def preserve_path_calculator_caches(images, *, enabled: bool):
     for image in path_images(images):
         if image.calc is not None and all(image.calc is not item for item in calculators):
             calculators.append(image.calc)
-    names = ("atoms", "results", "solvation_result", "_evaluated_correction")
-    saved = {
-        calculator: {name: getattr(calculator, name, _MISSING) for name in names}
-        for calculator in calculators
-    }
+    from .numerical_state import PublishedCalculatorCacheSnapshot
+
+    saved = [PublishedCalculatorCacheSnapshot.capture(item) for item in calculators]
     try:
         yield
     finally:
-        for calculator, state in saved.items():
-            for name, value in state.items():
-                if value is _MISSING:
-                    if hasattr(calculator, name):
-                        delattr(calculator, name)
-                else:
-                    setattr(calculator, name, value)
+        for snapshot in saved:
+            snapshot.restore()
 
 
 def bind_admitted_implicit_path(images, method: str, *, require_hessian: bool = False) -> bool:

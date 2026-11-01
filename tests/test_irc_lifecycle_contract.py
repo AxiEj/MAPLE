@@ -288,3 +288,107 @@ def test_mutating_hessian_provider_refuses_and_restores_caller(tmp_path, method)
             paras=_params(method),
         ).run()
     assert np.array_equal(atoms.positions, before)
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_failed_run_restores_published_calculator_cache_in_place(tmp_path, method):
+    atoms = make_ts()
+    calculator = atoms.calc
+    cached_atoms = atoms.copy()
+    cached_results = {
+        "energy": -7.0,
+        "nested": {"values": np.array([1.0, 2.0])},
+    }
+    cached_solvation = object()
+    cached_correction = object()
+    calculator.atoms = cached_atoms
+    calculator.results = cached_results
+    calculator.solvation_result = cached_solvation
+    calculator._evaluated_correction = cached_correction
+    initial_positions = atoms.positions.copy()
+    original_values = calculator._values
+
+    def fail_after_displacement(changed):
+        if not np.array_equal(changed.positions, initial_positions):
+            cached_results["nested"]["values"][0] = np.nan
+            calculator.solvation_result = object()
+            calculator._evaluated_correction = object()
+            raise RuntimeError("injected displaced-point failure")
+        return original_values(changed)
+
+    calculator._values = fail_after_displacement
+    with pytest.raises(RuntimeError, match="injected displaced-point failure"):
+        METHODS[method](
+            atoms,
+            str(tmp_path / f"{method}.out"),
+            paras=_params(method, 1),
+        ).run()
+
+    assert np.array_equal(atoms.positions, initial_positions)
+    assert calculator.atoms is cached_atoms
+    assert calculator.results is cached_results
+    np.testing.assert_array_equal(
+        calculator.results["nested"]["values"], np.array([1.0, 2.0])
+    )
+    assert calculator.solvation_result is cached_solvation
+    assert calculator._evaluated_correction is cached_correction
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_successful_gas_run_keeps_final_endpoint_cache(tmp_path, method):
+    atoms = make_ts()
+    calculator = atoms.calc
+    cached_atoms = atoms.copy()
+    cached_results = {"energy": -7.0}
+    calculator.atoms = cached_atoms
+    calculator.results = cached_results
+
+    result = METHODS[method](
+        atoms,
+        str(tmp_path / f"{method}.out"),
+        paras=_params(method, 1),
+    ).run()
+
+    endpoint = result["backward"]["records"][-1]
+    assert calculator.atoms is not cached_atoms
+    assert calculator.results is not cached_results
+    assert calculator.results["energy"] == pytest.approx(endpoint["E"])
+    np.testing.assert_array_equal(calculator.atoms.positions, endpoint["x"])
+    np.testing.assert_array_equal(atoms.positions, endpoint["x"])
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_path_summary_rows_follow_exact_ordered_path(tmp_path, method):
+    atoms = make_ts()
+    result = METHODS[method](
+        atoms,
+        str(tmp_path / f"{method}.out"),
+        paras=_params(method, 2),
+    ).run()
+
+    ordered = result["ordered_path"]
+    summary = result["summary"]
+    assert summary["ts_index"] == len(result["backward"]["records"])
+    assert len(summary["images"]) == len(summary["merged_rows"]) == len(ordered)
+    assert (
+        len(summary["energies"])
+        == len(summary["relative_energies_kcal_mol"])
+        == len(ordered)
+    )
+    for index, (record, image, energy, relative, row) in enumerate(
+        zip(
+            ordered,
+            summary["images"],
+            summary["energies"],
+            summary["relative_energies_kcal_mol"],
+            summary["merged_rows"],
+        )
+    ):
+        np.testing.assert_array_equal(image, record["x"])
+        assert energy == record["E"]
+        assert relative == pytest.approx(
+            (record["E"] - summary["E_ref"]) * 627.509474
+        )
+        assert f"{record['E']:14.6f}" in row
+        assert f"{relative:12.6f}" in row
+        assert ("<= TS" in row) is (index == summary["ts_index"])

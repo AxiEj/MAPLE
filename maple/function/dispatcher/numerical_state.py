@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import MutableMapping
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
@@ -16,6 +17,87 @@ from .curvature import CurvatureValidationError
 
 class NumericalStateError(ValueError):
     """Expected refusal for non-real or non-finite numerical state."""
+
+
+_MISSING = object()
+_PUBLISHED_CALCULATOR_CACHE_FIELDS = (
+    "atoms",
+    "results",
+    "solvation_result",
+    "_evaluated_correction",
+)
+
+
+@dataclass
+class _CacheValueSnapshot:
+    original: object
+    contents: object = None
+    kind: str = "opaque"
+
+    @classmethod
+    def capture(cls, value):
+        if isinstance(value, np.ndarray):
+            return cls(value, value.copy(), "array")
+        if isinstance(value, MutableMapping):
+            return cls(
+                value,
+                [(key, cls.capture(item)) for key, item in value.items()],
+                "mapping",
+            )
+        if isinstance(value, list):
+            return cls(value, [cls.capture(item) for item in value], "list")
+        if isinstance(value, tuple):
+            return cls(value, tuple(cls.capture(item) for item in value), "tuple")
+        return cls(value)
+
+    def restore(self):
+        if self.kind == "array":
+            if self.original.shape == self.contents.shape:
+                self.original[...] = self.contents
+                return self.original
+            return self.contents.copy()
+        if self.kind == "mapping":
+            self.original.clear()
+            self.original.update(
+                (key, snapshot.restore()) for key, snapshot in self.contents
+            )
+            return self.original
+        if self.kind == "list":
+            self.original[:] = [snapshot.restore() for snapshot in self.contents]
+            return self.original
+        if self.kind == "tuple":
+            for snapshot in self.contents:
+                snapshot.restore()
+            return self.original
+        return self.original
+
+
+@dataclass
+class PublishedCalculatorCacheSnapshot:
+    calculator: object
+    fields: dict
+
+    @classmethod
+    def capture(cls, calculator):
+        return cls(
+            calculator,
+            {
+                name: (
+                    _MISSING
+                    if not hasattr(calculator, name)
+                    else _CacheValueSnapshot.capture(getattr(calculator, name))
+                )
+                for name in _PUBLISHED_CALCULATOR_CACHE_FIELDS
+            },
+        )
+
+    def restore(self) -> None:
+        for name, snapshot in self.fields.items():
+            if snapshot is _MISSING:
+                if hasattr(self.calculator, name):
+                    delattr(self.calculator, name)
+            else:
+                setattr(self.calculator, name, snapshot.restore())
 
 
 def to_numpy_f64(x):

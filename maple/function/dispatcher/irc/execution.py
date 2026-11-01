@@ -13,6 +13,7 @@ from ..curvature import (
     validate_cartesian_hessian,
 )
 from ..numerical_state import (
+    PublishedCalculatorCacheSnapshot,
     ScientificAtomsSnapshot,
     evaluate_energy,
     evaluate_forces,
@@ -38,11 +39,11 @@ IRC_PARAMETER_RULES = {
     "euler_n": "positive_integer",
     "max_pred_steps": "positive_integer",
     "loose_cycles": "nonnegative_integer",
-    "hessian_recalc": "optional_positive_integer",
+    "hessian_recalc": "optional_nonnegative_integer",
     "hessian_update": "hessian_update",
     "dwi_n": "positive_even_integer",
-    "mbs_max_k": "positive_integer",
-    "mbs_points": "positive_integer",
+    "mbs_max_k": "at_least_two_integer",
+    "mbs_points": "at_least_two_integer",
     "mbs_tol": "positive_finite",
     "f_max_th": "positive_finite",
     "f_rms_th": "positive_finite",
@@ -91,14 +92,14 @@ def coerce_irc_parameters(params, paras, *, method: str, aliases: dict | None = 
         return params
     if not isinstance(paras, dict):
         raise TypeError(f"{method.upper()}-IRC parameters must be a dictionary.")
-    lowered = {str(key).lower(): value for key, value in paras.items()}
+    lowered = _lower_unique_parameters(paras, method)
     nested = [key for key in (method.lower(), "irc") if key in lowered]
     if len(nested) > 1:
         raise ValueError(f"Conflicting {method.upper()}-IRC parameter sections.")
     selected = lowered[nested[0]] if nested else lowered
     if not isinstance(selected, dict):
         raise TypeError(f"{method.upper()}-IRC parameter section must be a dictionary.")
-    selected = {str(key).lower(): value for key, value in selected.items()}
+    selected = _lower_unique_parameters(selected, method)
     spec = irc_parameter_spec(method, type(params), aliases)
     allowed = set(spec["parameters"])
     mapped = {}
@@ -115,6 +116,16 @@ def coerce_irc_parameters(params, paras, *, method: str, aliases: dict | None = 
     return params
 
 
+def _lower_unique_parameters(values: dict, method: str) -> dict:
+    lowered = {}
+    for raw_name, value in values.items():
+        name = str(raw_name).lower()
+        if name in lowered:
+            raise ValueError(f"Conflicting {method.upper()}-IRC parameter: {name}")
+        lowered[name] = value
+    return lowered
+
+
 def _validate_parameters(params, method: str) -> None:
     for field in fields(type(params)):
         name = field.name
@@ -126,10 +137,12 @@ def _validate_parameters(params, method: str) -> None:
             valid = type(value) is int and value >= 0
         elif rule == "positive_integer":
             valid = type(value) is int and value >= 1
+        elif rule == "at_least_two_integer":
+            valid = type(value) is int and value >= 2
         elif rule == "positive_even_integer":
             valid = type(value) is int and value >= 1 and value % 2 == 0
-        elif rule == "optional_positive_integer":
-            valid = value is None or (type(value) is int and value >= 1)
+        elif rule == "optional_nonnegative_integer":
+            valid = value is None or (type(value) is int and value >= 0)
         elif rule == "positive_finite":
             try:
                 numeric = float(value)
@@ -162,13 +175,26 @@ def _validate_parameters(params, method: str) -> None:
 @contextmanager
 def restore_scientific_state_on_error(atoms):
     snapshot = ScientificAtomsSnapshot.capture(atoms)
+    calculator_snapshot = (
+        PublishedCalculatorCacheSnapshot.capture(atoms.calc)
+        if atoms.calc is not None
+        else None
+    )
     try:
         yield
     except BaseException as exc:
+        restore_errors = []
         try:
             snapshot.restore(atoms)
         except Exception as restore_error:
-            exc.add_note(f"Scientific Atoms restoration also failed: {restore_error!r}")
+            restore_errors.append(f"scientific Atoms: {restore_error!r}")
+        if calculator_snapshot is not None:
+            try:
+                calculator_snapshot.restore()
+            except Exception as restore_error:
+                restore_errors.append(f"calculator cache: {restore_error!r}")
+        if restore_errors:
+            exc.add_note("Restoration also failed for " + "; ".join(restore_errors))
         raise
 
 
@@ -281,11 +307,29 @@ def assemble_irc_result(forward: dict, backward: dict, input_ts: dict) -> dict:
     ]
     reference = float(min(endpoints)) if endpoints else float(input_ts["E"])
     ts_index = len(backward["records"])
+    energies = [float(record["E"]) for record in ordered_path]
+    relative_energies = [
+        (energy - reference) * 627.509474 for energy in energies
+    ]
+    rows = []
+    for index, (record, energy, relative) in enumerate(
+        zip(ordered_path, energies, relative_energies),
+        start=1,
+    ):
+        line = (
+            f"{index:4d}  {energy:14.6f}  {relative:12.6f}    "
+            f"{record['maxG']:8.6f}  {record['rmsG']:8.6f}"
+        )
+        if index - 1 == ts_index:
+            line += " <= TS"
+        rows.append(line + "\n")
     summary = {
         "E_ref": reference,
         "ts_index": ts_index,
-        "merged_rows": [],
+        "merged_rows": rows,
         "images": [record["x"].copy() for record in ordered_path],
+        "energies": energies,
+        "relative_energies_kcal_mol": relative_energies,
         "status": "converged" if converged else "bounded_nonconverged",
     }
     return {

@@ -136,7 +136,7 @@ class TransitionState(JobABC):
         self.last_result: PRFOResult | None = None
 
     def run(self):
-
+        self.last_result = None
         with timer("Transition State Optimization"):
             if self.method is None:
                 raise ValueError('Method is not provided.')

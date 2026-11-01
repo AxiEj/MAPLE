@@ -21,6 +21,10 @@ HARTREE_AMU_ANGSTROM2_TO_CM1 = (
 )
 
 
+class CurvatureValidationError(ValueError):
+    """Expected scientific refusal at the Cartesian-curvature boundary."""
+
+
 @dataclass(frozen=True)
 class HessianPrecisionProfile:
     """A source-derived raw-skew policy for one Hessian consumer."""
@@ -28,6 +32,14 @@ class HessianPrecisionProfile:
     identity: str
     relative_skew_tolerance: float
     source_bound: bool
+    calculator_token: int | None = None
+    atoms_token: int | None = None
+    runtime_identity_sha256: str | None = None
+    receipt_sha256: str | None = None
+    composition: str | None = None
+    composition_identity_sha256: str | None = None
+    atom_domain_sha256: str | None = None
+    _authority: object | None = None
 
 
 @dataclass(frozen=True)
@@ -61,15 +73,44 @@ _STRICT_PROFILE = HessianPrecisionProfile(
     relative_skew_tolerance=1.0e-8,
     source_bound=False,
 )
-_AIMNET2025_N32_PROFILE = HessianPrecisionProfile(
-    identity="qualified-aimnet2025-n32",
-    relative_skew_tolerance=2.0e-6,
-    source_bound=True,
-)
+_PROFILE_AUTHORITY = object()
 
 
 def _same_identity(left, right) -> bool:
     return isinstance(left, dict) and isinstance(right, dict) and left == right
+
+
+def _json_sha256(value) -> str:
+    try:
+        encoded = json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise CurvatureValidationError(
+            "Hessian provenance identity is not canonical JSON."
+        ) from exc
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _atom_domain(atoms) -> dict:
+    info = getattr(atoms, "info", {})
+    try:
+        charge = float(info.get("charge", 0.0))
+        multiplicity = info.get("mult", info.get("multiplicity", 1))
+    except (TypeError, ValueError) as exc:
+        raise CurvatureValidationError(
+            "Hessian Atoms charge and multiplicity must be numeric."
+        ) from exc
+    return {
+        "atomic_numbers": atoms.get_atomic_numbers().tolist(),
+        "charge": charge,
+        "multiplicity": multiplicity,
+        "pbc": np.asarray(atoms.get_pbc(), dtype=bool).tolist(),
+    }
 
 
 def resolve_hessian_precision_profile(
@@ -95,28 +136,32 @@ def resolve_hessian_precision_profile(
         return _STRICT_PROFILE
     if type(calculator) is not AIMNet2025Calculator:
         return _STRICT_PROFILE
-
-    identity = calculator.analytic_cell_identity
-    runtime_identity = calculator.runtime_profile_identity
-    if not _same_identity(identity, runtime_identity):
+    if str(getattr(calculator, "hessian", "")).lower() != "analytic":
         return _STRICT_PROFILE
+
+    try:
+        identity = calculator.analytic_cell_identity
+        runtime_identity = calculator.runtime_profile_identity
+    except (RuntimeError, TypeError, ValueError) as exc:
+        raise CurvatureValidationError(
+            "Exact AIMNet2025 Hessian runtime binding validation failed."
+        ) from exc
+    if not _same_identity(identity, runtime_identity):
+        raise CurvatureValidationError("Exact AIMNet2025 Hessian claim has a drifted runtime binding.")
     binding = getattr(calculator, "_hessian_precision_binding", None)
     if not _is_factory_hessian_precision_binding(binding):
-        return _STRICT_PROFILE
-    identity_sha = hashlib.sha256(
-        json.dumps(
-            identity,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode("utf-8")
-    ).hexdigest()
+        raise CurvatureValidationError("Exact AIMNet2025 Hessian claim lacks a factory binding.")
+    identity_sha = _json_sha256(identity)
     if (
-        binding.profile_id != _AIMNET2025_N32_PROFILE.identity
+        binding.profile_id
+        not in {
+            "qualified-aimnet2025-n32-gas",
+            "qualified-aimnet2025-n32-torch-obc2",
+        }
         or binding.runtime_identity_sha256 != identity_sha
+        or binding.owner_token != id(calculator)
     ):
-        return _STRICT_PROFILE
+        raise CurvatureValidationError("Exact AIMNet2025 Hessian claim has an invalid source binding.")
     if (
         identity.get("model") != "aimnet2025"
         or identity.get("effective_ad_class") != "N32"
@@ -125,34 +170,63 @@ def resolve_hessian_precision_profile(
         or getattr(calculator, "d4", None) is not False
         or str(getattr(calculator, "hessian", "")).lower() != "analytic"
     ):
-        return _STRICT_PROFILE
+        raise CurvatureValidationError("Exact AIMNet2025 Hessian claim is outside the qualified N32 cell.")
+    charge = float(getattr(atoms, "info", {}).get("charge", 0.0))
+    multiplicity = getattr(atoms, "info", {}).get(
+        "mult", getattr(atoms, "info", {}).get("multiplicity", 1)
+    )
+    if not np.isfinite(charge) or charge != 0.0 or multiplicity != 1:
+        raise CurvatureValidationError(
+            "Qualified AIMNet2025 curvature requires a neutral closed-shell domain."
+        )
+    if np.any(atoms.get_pbc()):
+        raise CurvatureValidationError("Qualified AIMNet2025 curvature requires a nonperiodic domain.")
 
     correction = getattr(calculator, "solvent_correction", None)
     if correction is not None:
         if binding.composition != "torch-obc2":
-            return _STRICT_PROFILE
+            raise CurvatureValidationError("Exact AIMNet2025 composed Hessian binding has drifted.")
         if (
             getattr(calculator, "analytic_implicit_derivatives_admitted", False)
             is not True
             or getattr(correction, "analytic_task_derivatives_admitted", False)
             is not True
         ):
-            return _STRICT_PROFILE
+            raise CurvatureValidationError("Exact AIMNet2025 composed derivative admission has drifted.")
         provider = getattr(correction, "underlying_provider", None)
         provenance = getattr(provider, "provenance", None)
         provenance = provenance() if callable(provenance) else provenance
         if not isinstance(provenance, dict):
-            return _STRICT_PROFILE
+            raise CurvatureValidationError("Exact AIMNet2025 composed provenance is missing.")
         if (
             provenance.get("runtime_provider") != "torch-obc2"
             or provenance.get("equation_profile") != "obc2-zero-salt-v1"
             or provenance.get("dtype") != "torch.float32"
             or provenance.get("nonpolar") not in {"ace", "none"}
         ):
-            return _STRICT_PROFILE
+            raise CurvatureValidationError("Exact AIMNet2025 composed provenance has drifted.")
+        composition_identity_sha = _json_sha256(provenance)
     elif binding.composition != "gas":
-        return _STRICT_PROFILE
-    return _AIMNET2025_N32_PROFILE
+        raise CurvatureValidationError("Exact AIMNet2025 gas Hessian binding has drifted.")
+    else:
+        composition_identity_sha = _json_sha256({"composition": "gas"})
+    if composition_identity_sha != binding.composition_identity_sha256:
+        raise CurvatureValidationError(
+            "Exact AIMNet2025 Hessian composition changed after factory binding."
+        )
+    return HessianPrecisionProfile(
+        identity=binding.profile_id,
+        relative_skew_tolerance=2.0e-6,
+        source_bound=True,
+        calculator_token=id(calculator),
+        atoms_token=id(atoms),
+        runtime_identity_sha256=identity_sha,
+        receipt_sha256=binding.receipt_sha256,
+        composition=binding.composition,
+        composition_identity_sha256=composition_identity_sha,
+        atom_domain_sha256=_json_sha256(_atom_domain(atoms)),
+        _authority=_PROFILE_AUTHORITY,
+    )
 
 
 def validate_cartesian_hessian(
@@ -163,27 +237,71 @@ def validate_cartesian_hessian(
     """Validate raw curvature before returning its physical symmetric part."""
     if not isinstance(profile, HessianPrecisionProfile):
         raise TypeError("Hessian validation requires a precision profile.")
-    if (
-        profile.relative_skew_tolerance > _STRICT_PROFILE.relative_skew_tolerance
-        and profile is not _AIMNET2025_N32_PROFILE
-    ):
-        raise ValueError("A relaxed Hessian precision profile must be factory-bound.")
-    raw = np.asarray(raw_hessian, dtype=np.float64)
+    if profile.relative_skew_tolerance > _STRICT_PROFILE.relative_skew_tolerance:
+        if profile._authority is not _PROFILE_AUTHORITY:
+            raise CurvatureValidationError("A relaxed Hessian precision profile must be factory-bound.")
+        if profile.atoms_token != id(atoms):
+            raise CurvatureValidationError("A bound Hessian profile cannot validate a different Atoms object.")
+        calculator = getattr(atoms, "calc", None)
+        if profile.calculator_token != id(calculator):
+            raise CurvatureValidationError("A bound Hessian profile cannot validate a different calculator.")
+        binding = getattr(calculator, "_hessian_precision_binding", None)
+        if (
+            not _is_factory_hessian_precision_binding(binding)
+            or binding.owner_token != profile.calculator_token
+            or binding.runtime_identity_sha256 != profile.runtime_identity_sha256
+            or binding.receipt_sha256 != profile.receipt_sha256
+            or binding.composition != profile.composition
+            or binding.composition_identity_sha256
+            != profile.composition_identity_sha256
+        ):
+            raise CurvatureValidationError("The Hessian source binding changed after resolution.")
+        try:
+            identity = getattr(calculator, "analytic_cell_identity", None)
+            runtime_identity = getattr(calculator, "runtime_profile_identity", None)
+        except (RuntimeError, TypeError, ValueError) as exc:
+            raise CurvatureValidationError(
+                "The Hessian runtime binding failed its live validation."
+            ) from exc
+        if (
+            str(getattr(calculator, "hessian", "")).lower() != "analytic"
+            or not _same_identity(identity, runtime_identity)
+            or _json_sha256(identity) != profile.runtime_identity_sha256
+        ):
+            raise CurvatureValidationError("The Hessian runtime identity changed after resolution.")
+        if _json_sha256(_atom_domain(atoms)) != profile.atom_domain_sha256:
+            raise CurvatureValidationError("The Hessian Atoms domain changed after resolution.")
+        correction = getattr(calculator, "solvent_correction", None)
+        if profile.composition == "gas":
+            current_composition_sha = _json_sha256({"composition": "gas"})
+        else:
+            provider = getattr(correction, "underlying_provider", None)
+            provenance = getattr(provider, "provenance", None)
+            provenance = provenance() if callable(provenance) else provenance
+            if not isinstance(provenance, dict):
+                raise CurvatureValidationError("The Hessian composition provenance is missing.")
+            current_composition_sha = _json_sha256(provenance)
+        if current_composition_sha != profile.composition_identity_sha256:
+            raise CurvatureValidationError("The Hessian composition changed after resolution.")
+    raw_input = np.asarray(raw_hessian)
+    if np.iscomplexobj(raw_input):
+        raise CurvatureValidationError("Cartesian Hessian must be real; complex values are not supported.")
+    raw = np.asarray(raw_input, dtype=np.float64)
     if raw.ndim == 3 and raw.shape[0] == 1:
         raw = raw[0]
     expected = (3 * len(atoms), 3 * len(atoms))
     if raw.shape != expected:
-        raise ValueError(
+        raise CurvatureValidationError(
             f"Cartesian Hessian shape {raw.shape} does not match exact 3N shape {expected}."
         )
     if not np.isfinite(raw).all():
-        raise ValueError("Cartesian Hessian must contain only finite values.")
+        raise CurvatureValidationError("Cartesian Hessian must contain only finite values.")
     raw_maximum_absolute = float(np.max(np.abs(raw))) if raw.size else 0.0
     scale = max(1.0, raw_maximum_absolute)
     raw_maximum_skew = float(np.max(np.abs(raw - raw.T))) if raw.size else 0.0
     raw_relative_skew = raw_maximum_skew / scale
     if raw_relative_skew > profile.relative_skew_tolerance:
-        raise ValueError(
+        raise CurvatureValidationError(
             "Cartesian Hessian has unresolved asymmetry "
             f"({raw_relative_skew:.8e} > {profile.relative_skew_tolerance:.8e}; "
             f"profile={profile.identity})."

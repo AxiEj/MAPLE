@@ -60,7 +60,7 @@ def test_prfo_requires_exactly_one_material_negative_mode(
     optimizer = PRFO(
         str(tmp_path / "index.out"), atoms, paras={"project_rigid_modes": True}
     )
-    assert optimizer.check_saddle_curvature(atoms) is accepted
+    assert optimizer.check_saddle_curvature(atoms).certified_ts is accepted
     assert len(calls) == 1
     np.testing.assert_array_equal(calls[0], atoms.get_positions())
     assert optimizer.last_saddle_curvature is not None
@@ -136,4 +136,4 @@ def test_real_prfo_run_accepts_only_an_index_one_stationary_point(tmp_path, inde
     assert ("Normal Termination" in text) is index_one
     assert f"Final saddle curvature: {int(index_one)}" in text
     if not index_one:
-        assert "Maximum Iterations Reached" in text
+        assert "Normal Termination" not in text

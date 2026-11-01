@@ -29,6 +29,8 @@ class HessianPrecisionBinding:
     runtime_identity_sha256: str
     receipt_sha256: str
     composition: str
+    composition_identity_sha256: str
+    owner_token: int
     _authority: object = field(repr=False, compare=False)
 
 
@@ -38,12 +40,16 @@ def _mint_hessian_precision_binding(
     runtime_identity_sha256: str,
     receipt_sha256: str,
     composition: str,
+    composition_identity_sha256: str,
+    owner_token: int,
 ) -> HessianPrecisionBinding:
     return HessianPrecisionBinding(
         profile_id=profile_id,
         runtime_identity_sha256=runtime_identity_sha256,
         receipt_sha256=receipt_sha256,
         composition=composition,
+        composition_identity_sha256=composition_identity_sha256,
+        owner_token=owner_token,
         _authority=_HESSIAN_PRECISION_BINDING_AUTHORITY,
     )
 
@@ -636,7 +642,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
         self._reject_unsupported_pbc(atoms)
         mode = getattr(self, 'hessian', self.SUPPORTED_HESSIAN_MODES[0])
         if mode == 'analytic':
-            gas_hessian = np.asarray(self._analytic_hessian(atoms), dtype=np.float64)
+            gas_raw = np.asarray(self._analytic_hessian(atoms))
+            if np.iscomplexobj(gas_raw):
+                raise ValueError("The analytic gas Hessian must be real.")
+            gas_hessian = np.asarray(gas_raw, dtype=np.float64)
             expected_shape = (3 * len(atoms),) * 2
             if gas_hessian.shape != expected_shape or not np.isfinite(gas_hessian).all():
                 raise ValueError(
@@ -662,9 +671,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
                     + " The attached correction has no admitted analytic solvent Hessian; "
                     "use hessian=numerical for the complete composed-force fallback."
                 )
-            solvent_hessian = np.asarray(
-                solvent_hessian_fn(atoms), dtype=np.float64
-            )
+            solvent_raw = np.asarray(solvent_hessian_fn(atoms))
+            if np.iscomplexobj(solvent_raw):
+                raise ValueError("The analytic solvent Hessian must be real.")
+            solvent_hessian = np.asarray(solvent_raw, dtype=np.float64)
             if (
                 solvent_hessian.shape != expected_shape
                 or not np.isfinite(solvent_hessian).all()

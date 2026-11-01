@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -9,7 +10,6 @@ import pytest
 from ase import Atoms
 
 from maple.function.dispatcher.curvature import (
-    _AIMNET2025_N32_PROFILE,
     HessianPrecisionProfile,
     build_mass_weighted_mode_basis,
     resolve_hessian_precision_profile,
@@ -86,8 +86,6 @@ def _water() -> Atoms:
 
 
 def _profile(relative_skew_tolerance: float) -> HessianPrecisionProfile:
-    if relative_skew_tolerance == 2.0e-6:
-        return _AIMNET2025_N32_PROFILE
     return HessianPrecisionProfile(
         identity="test-replay",
         relative_skew_tolerance=relative_skew_tolerance,
@@ -113,6 +111,36 @@ def test_composed_obc_n32(monkeypatch):
 
     assert profile.relative_skew_tolerance == 2.0e-6
     assert profile.source_bound is True
+
+
+def test_composed_binding_refuses_nonpolar_drift(monkeypatch):
+    atoms = _water()
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=True)
+    atoms.calc.solvent_correction.underlying_provider.provenance["nonpolar"] = "none"
+
+    with pytest.raises(ValueError, match="composition changed"):
+        resolve_hessian_precision_profile(atoms, purpose="prfo-search")
+
+
+def test_resolved_profile_refuses_later_composition_drift(monkeypatch):
+    atoms = _water()
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=True)
+    profile = resolve_hessian_precision_profile(atoms, purpose="prfo-search")
+    atoms.calc.solvent_correction.underlying_provider.provenance["nonpolar"] = "none"
+
+    with pytest.raises(ValueError, match="composition changed"):
+        validate_cartesian_hessian(atoms, np.eye(9), profile)
+
+
+def test_exact_aimnet_numerical_mode_keeps_strict_profile(monkeypatch):
+    atoms = _water()
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+    atoms.calc.hessian = "numerical"
+
+    profile = resolve_hessian_precision_profile(atoms, purpose="frequency")
+
+    assert profile.identity == "strict-generic"
+    assert profile.source_bound is False
 
 
 def test_forged_or_drifted_n32_refuses(monkeypatch):
@@ -146,13 +174,8 @@ def test_forged_or_drifted_n32_refuses(monkeypatch):
         property(lambda self: drifted),
     )
     atoms.calc = calculator
-    drifted_profile = resolve_hessian_precision_profile(
-        atoms,
-        purpose="prfo-search",
-    )
-    assert drifted_profile.identity == "strict-generic"
-    with pytest.raises(ValueError, match="asymmetry"):
-        validate_cartesian_hessian(atoms, raw, drifted_profile)
+    with pytest.raises(ValueError, match="binding"):
+        resolve_hessian_precision_profile(atoms, purpose="prfo-search")
     forged_profile = HessianPrecisionProfile("forged-n32", 2.0e-6, True)
     with pytest.raises(ValueError, match="factory-bound"):
         validate_cartesian_hessian(atoms, raw, forged_profile)
@@ -163,18 +186,95 @@ def test_bound_guard_is_reused(monkeypatch):
     atoms.calc, _, calls = _bound_n32_calculator(monkeypatch, composed=False)
     calls_before = calls["identity"]
     profile = resolve_hessian_precision_profile(atoms, purpose="frequency")
-    assert profile.identity == "qualified-aimnet2025-n32"
+    assert profile.identity == "qualified-aimnet2025-n32-gas"
     assert calls["identity"] == calls_before + 2
 
 
-@pytest.mark.parametrize("skew", [2.7851243245002877e-7, 4.159060036368345e-7])
-def test_saved_n32_policy_accepts_raw_diagnostics_before_symmetrizing(skew):
+def test_gas_binding_reuses_full_receipt_gate_validator(monkeypatch):
+    from maple.function.calculator import set_calculator
+    from maple.function.calculator import _independent_obc2_qualified_cell as pointer
+
+    receipt_path = (
+        Path(set_calculator.__file__).with_name("data")
+        / "independent_obc2_analytic_qualification_v6.json"
+    )
+    receipt = json.loads(receipt_path.read_text())
+    receipt["qualification_gates"] = {}
+    receipt["content_sha256"] = hashlib.sha256(
+        set_calculator._canonical_receipt_payload(receipt)
+    ).hexdigest()
+    payload = json.dumps(receipt).encode()
+    monkeypatch.setattr(pointer, "QUALIFICATION_RECEIPT_SHA256", hashlib.sha256(payload).hexdigest())
+    monkeypatch.setattr(Path, "read_bytes", lambda self: payload)
+    monkeypatch.setattr(
+        set_calculator,
+        "_installed_runtime_source_inventory",
+        lambda: receipt["installed_runtime_sources"],
+    )
+
+    with pytest.raises(ValueError, match="gate set"):
+        set_calculator._load_validated_qualification_receipt()
+
+
+def test_bound_profile_cannot_transfer_to_other_atoms(monkeypatch):
     atoms = _water()
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+    profile = resolve_hessian_precision_profile(atoms, purpose="frequency")
+    other = _water()
+    other.calc = atoms.calc
+    raw = np.eye(9)
+    raw[0, 1] = 5.0e-7
+
+    with pytest.raises(ValueError, match="different Atoms"):
+        validate_cartesian_hessian(other, raw, profile)
+
+
+@pytest.mark.parametrize("info", [{"charge": 1}, {"charge": -1}, {"mult": 3}])
+def test_bound_profile_refuses_unqualified_charge_and_spin(monkeypatch, info):
+    atoms = _water()
+    atoms.info.update(info)
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+
+    with pytest.raises(ValueError, match="neutral closed-shell"):
+        resolve_hessian_precision_profile(atoms, purpose="frequency")
+
+
+def test_bound_profile_refuses_pbc(monkeypatch):
+    atoms = _water()
+    atoms.pbc = True
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+
+    with pytest.raises(ValueError, match="nonperiodic"):
+        resolve_hessian_precision_profile(atoms, purpose="frequency")
+
+
+def test_drifted_exact_aimnet_claim_refuses_instead_of_downgrading(monkeypatch):
+    atoms = _water()
+    calculator, identity, _ = _bound_n32_calculator(monkeypatch, composed=False)
+    drifted = dict(identity, state_sha256="0" * 64)
+    calculator_type = type(calculator)
+    monkeypatch.setattr(
+        calculator_type, "analytic_cell_identity", property(lambda self: drifted)
+    )
+    monkeypatch.setattr(
+        calculator_type, "runtime_profile_identity", property(lambda self: drifted)
+    )
+    atoms.calc = calculator
+
+    with pytest.raises(ValueError, match="binding"):
+        resolve_hessian_precision_profile(atoms, purpose="frequency")
+
+
+@pytest.mark.parametrize("skew", [2.7851243245002877e-7, 4.159060036368345e-7])
+def test_saved_n32_policy_accepts_raw_diagnostics_before_symmetrizing(monkeypatch, skew):
+    atoms = _water()
+    atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+    profile = resolve_hessian_precision_profile(atoms, purpose="saved-replay")
     raw = np.eye(9)
     raw[0, 1] += skew
     before = raw.tobytes()
 
-    validated = validate_cartesian_hessian(atoms, raw, _profile(2.0e-6))
+    validated = validate_cartesian_hessian(atoms, raw, profile)
 
     assert raw.tobytes() == before
     assert validated.raw_maximum_skew == pytest.approx(skew)
@@ -186,7 +286,7 @@ def test_saved_n32_policy_accepts_raw_diagnostics_before_symmetrizing(skew):
     )
 
 
-def test_saved_ace_and_none_n32_replays_are_index_one():
+def test_saved_ace_and_none_n32_replays_are_index_one(monkeypatch):
     checkpoint = next(
         (
             parent
@@ -206,11 +306,13 @@ def test_saved_ace_and_none_n32_replays_are_index_one():
             cell["source_identity"]["symbols"],
             positions=cell["frozen_written_geometry"]["positions_angstrom"],
         )
+        atoms.calc, _, _ = _bound_n32_calculator(monkeypatch, composed=False)
+        profile = resolve_hessian_precision_profile(atoms, purpose="saved-replay")
         raw = np.asarray(
             cell["frozen_written_geometry"]["hessian_hartree_per_angstrom2"],
             dtype=np.float64,
         )
-        validated = validate_cartesian_hessian(atoms, raw, _profile(2.0e-6))
+        validated = validate_cartesian_hessian(atoms, raw, profile)
         modes = build_mass_weighted_mode_basis(
             atoms,
             validated,
@@ -231,14 +333,21 @@ def test_saved_ace_and_none_n32_replays_are_index_one():
 )
 def test_invalid_shape_and_nonfinite_hessians_refuse(raw, message):
     with pytest.raises(ValueError, match=message):
-        validate_cartesian_hessian(_water(), raw, _profile(2.0e-6))
+        validate_cartesian_hessian(_water(), raw, _profile(1.0e-8))
+
+
+def test_complex_hessian_refuses_before_float_cast():
+    raw = np.eye(9, dtype=np.complex128)
+    raw[0, 0] += 1000.0j
+    with pytest.raises(ValueError, match="complex"):
+        validate_cartesian_hessian(_water(), raw, _profile(1.0e-8))
 
 
 def test_material_skew_refuses():
     raw = np.eye(9)
     raw[0, 1] = 1.0e-3
     with pytest.raises(ValueError, match="asymmetry"):
-        validate_cartesian_hessian(_water(), raw, _profile(2.0e-6))
+        validate_cartesian_hessian(_water(), raw, _profile(1.0e-8))
 
 
 def test_bad_masses_refuse_before_mode_analysis():

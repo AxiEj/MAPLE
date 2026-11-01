@@ -19,31 +19,47 @@ from ase import Atoms
 from .logger import log_info
 from ...jobABC import JobABC
 from ...curvature import (
+    CurvatureValidationError,
     bofill_update,
     build_mass_weighted_mode_basis,
     resolve_hessian_precision_profile,
     validate_cartesian_hessian,
 )
-from ...result_contracts import PRFOResult, PRFOStatus
+from ...result_contracts import (
+    PRFOResult,
+    RunStatus,
+    SaddleCertification,
+    geometry_sha256,
+)
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
 # =============================================================================
 
+class NumericalStateError(ValueError):
+    """Expected refusal for non-real or non-finite numerical state."""
+
 def to_numpy_f64(x):
     """Convert input (numpy/torch/list/scalar) to float64 numpy array or float."""
     if isinstance(x, np.ndarray):
+        if np.iscomplexobj(x):
+            raise NumericalStateError("Complex numerical state cannot be converted to float64.")
         return x.astype(np.float64, copy=False)
     try:
         import torch
         if isinstance(x, torch.Tensor):
             arr = x.detach().cpu().numpy()
+            if np.iscomplexobj(arr):
+                raise NumericalStateError("Complex numerical state cannot be converted to float64.")
             return arr.astype(np.float64, copy=False)
     except Exception:
         pass
     if np.isscalar(x):
         return float(x)
-    return np.asarray(x, dtype=np.float64)
+    raw = np.asarray(x)
+    if np.iscomplexobj(raw):
+        raise NumericalStateError("Complex numerical state cannot be converted to float64.")
+    return np.asarray(raw, dtype=np.float64)
 
 def vec1d(x, n_expected=None):
     """Convert to float64 1D vector and optionally check length."""
@@ -89,6 +105,16 @@ def write_xyz(filename: str, atoms: Atoms, energy: Optional[float] = None,
         
         for s, (x, y, z) in zip(symbols, pos):
             f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
+
+
+def write_xyz_atomic(filename: str, atoms: Atoms, **kwargs) -> None:
+    temporary = filename + ".tmp"
+    try:
+        write_xyz(temporary, atoms, **kwargs)
+        os.replace(temporary, filename)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
 
 def append_xyz_trajectory(filename: str, atoms: Atoms, energy: Optional[float] = None,
                          iteration: int = 0):
@@ -355,8 +381,32 @@ def calculate_Hessian(atoms: Atoms):
         Hessian matrix in float64
     """
     calc = atoms.calc
-    H = calc.get_hessian(atoms)
-    return to_numpy_f64(H)
+    before_numbers = atoms.get_atomic_numbers().copy()
+    before_positions = atoms.get_positions().copy()
+    before_cell = np.asarray(atoms.cell).copy()
+    before_pbc = np.asarray(atoms.pbc).copy()
+    try:
+        hessian = np.asarray(calc.get_hessian(atoms))
+    except ValueError as exc:
+        message = str(exc)
+        if "Hessian" in message and ("real" in message or "finite" in message):
+            raise CurvatureValidationError(message) from exc
+        raise
+    mutated = (
+        not np.array_equal(atoms.get_atomic_numbers(), before_numbers)
+        or not np.array_equal(atoms.get_positions(), before_positions)
+        or not np.array_equal(np.asarray(atoms.cell), before_cell)
+        or not np.array_equal(np.asarray(atoms.pbc), before_pbc)
+    )
+    if mutated:
+        atoms.set_atomic_numbers(before_numbers)
+        atoms.set_positions(before_positions)
+        atoms.set_cell(before_cell)
+        atoms.set_pbc(before_pbc)
+        raise CurvatureValidationError(
+            "Hessian provider mutated the geometry during evaluation."
+        )
+    return hessian
 
 def _bfgs_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
     """BFGS update of Hessian approximation."""
@@ -476,7 +526,7 @@ class PRFO(JobABC):
                 atoms.max_dp <= self.params.dp_max_th and
                 atoms.rms_dp <= self.params.dp_rms_th)
     
-    def check_saddle_curvature(self, atoms: Atoms) -> bool:
+    def check_saddle_curvature(self, atoms: Atoms) -> SaddleCertification:
         """Require a fresh index-one Hessian before reporting TS convergence.
 
         Use the same mass metric and explicitly selected optimization subspace
@@ -486,11 +536,16 @@ class PRFO(JobABC):
         """
         self.last_saddle_curvature = None
         if bool(getattr(atoms, "constraints", None)):
-            raise ValueError("PRFO saddle certification does not support constraints.")
+            raise CurvatureValidationError(
+                "PRFO saddle certification does not support constraints."
+            )
         hessian_function = getattr(atoms.calc, "get_hessian", None)
         if not callable(hessian_function):
-            raise ValueError("PRFO saddle certification requires get_hessian.")
-        raw_hessian = hessian_function(atoms)
+            raise CurvatureValidationError(
+                "PRFO saddle certification requires get_hessian."
+            )
+        before_geometry = geometry_sha256(atoms)
+        raw_hessian = calculate_Hessian(atoms)
         self.log_numerical_hessian_diagnostics(atoms.calc)
         profile = resolve_hessian_precision_profile(
             atoms,
@@ -522,7 +577,56 @@ class PRFO(JobABC):
              "(required: exactly one below -10 cm^-1).\n"],
             self.output,
         )
-        return negative_count == 1
+        return SaddleCertification(
+            geometry_sha256=before_geometry,
+            raw_hessian_sha256=validated.raw_sha256,
+            precision_profile=profile.identity,
+            material_negative_mode_count=negative_count,
+            force_displacement_converged=True,
+            diagnostics=self.last_saddle_curvature,
+            refusal_reason=(
+                None if negative_count == 1 else "fresh_final_hessian_not_index_one"
+            ),
+        )
+
+    def _refused_result(
+        self,
+        *,
+        atoms: Atoms,
+        iteration: int,
+        reason: str,
+        energy=None,
+        forces=None,
+        certification: SaddleCertification | None = None,
+    ) -> PRFOResult:
+        return PRFOResult.capture(
+            status=RunStatus.REFUSED,
+            atoms=atoms,
+            iterations=iteration,
+            max_iterations=self.params.max_iter,
+            force_displacement_converged=bool(
+                certification and certification.force_displacement_converged
+            ),
+            termination_reason=reason,
+            energy_hartree=energy,
+            forces_hartree_per_angstrom=forces,
+            certification=certification,
+            output_paths={},
+        )
+
+    def _final_energy_forces(self, atoms: Atoms):
+        before = geometry_sha256(atoms)
+        energy = to_numpy_f64(atoms.get_potential_energy(force_consistent=True))
+        forces = to_numpy_f64(atoms.get_forces())
+        if geometry_sha256(atoms) != before:
+            raise CurvatureValidationError(
+                "Energy/force provider mutated the final geometry during evaluation."
+            )
+        if np.ndim(energy) != 0 or not np.isfinite(float(energy)):
+            raise CurvatureValidationError("Final energy must be finite.")
+        if forces.shape != (len(atoms), 3) or not np.isfinite(forces).all():
+            raise CurvatureValidationError("Final forces must be finite with shape (N, 3).")
+        return float(energy), forces
 
     def log_iteration(self, iteration: int, atoms: Atoms, E: float,
                      model_change: float, actual_change: float,
@@ -719,6 +823,8 @@ class PRFO(JobABC):
         traj_file = base + "_prfo_traj.xyz"
         ts_file = base + "_prfo_ts.xyz"
         candidate_file = base + "_prfo_candidate.xyz"
+        if os.path.exists(ts_file):
+            os.remove(ts_file)
         
         # Log header
         info_message = [
@@ -753,11 +859,30 @@ class PRFO(JobABC):
         while iteration < self.params.max_iter:
             # Get current geometry and energy/forces
             X = atoms.get_positions().reshape(-1, 3)
-            E_old = to_numpy_f64(
-                atoms.get_potential_energy(force_consistent=True)
-            )
-            
-            F_cart = to_numpy_f64(atoms.get_forces())
+            try:
+                E_old = to_numpy_f64(
+                    atoms.get_potential_energy(force_consistent=True)
+                )
+                F_cart = to_numpy_f64(atoms.get_forces())
+            except NumericalStateError as exc:
+                return self._refused_result(
+                    atoms=atoms,
+                    iteration=iteration,
+                    reason=str(exc),
+                )
+            if np.ndim(E_old) != 0 or not np.isfinite(float(E_old)):
+                return self._refused_result(
+                    atoms=atoms,
+                    iteration=iteration,
+                    reason="Final energy must be finite.",
+                )
+            if F_cart.shape != (len(atoms), 3) or not np.isfinite(F_cart).all():
+                return self._refused_result(
+                    atoms=atoms,
+                    iteration=iteration,
+                    reason="Final forces must be finite with shape (N, 3).",
+                    energy=float(E_old),
+                )
             g_cart = vec1d(-F_cart)
             
             need_recalc = (
@@ -765,13 +890,22 @@ class PRFO(JobABC):
                 or (iteration % self.params.recalc == 0)
             )
             if need_recalc:
-                raw_hessian = calculate_Hessian(atoms)
-                self.log_numerical_hessian_diagnostics(calculator)
-                profile = resolve_hessian_precision_profile(
-                    atoms,
-                    purpose="prfo-search",
-                )
-                validated = validate_cartesian_hessian(atoms, raw_hessian, profile)
+                try:
+                    raw_hessian = calculate_Hessian(atoms)
+                    self.log_numerical_hessian_diagnostics(calculator)
+                    profile = resolve_hessian_precision_profile(
+                        atoms,
+                        purpose="prfo-search",
+                    )
+                    validated = validate_cartesian_hessian(atoms, raw_hessian, profile)
+                except CurvatureValidationError as exc:
+                    return self._refused_result(
+                        atoms=atoms,
+                        iteration=iteration,
+                        reason=str(exc),
+                        energy=float(E_old),
+                        forces=F_cart,
+                    )
                 modes = build_mass_weighted_mode_basis(
                     atoms,
                     validated,
@@ -946,29 +1080,62 @@ class PRFO(JobABC):
                     force_displacement_converged = self.check_convergence(atoms)
                     if force_displacement_converged:
                         curvature_checked = True
-                    if (force_displacement_converged
-                            and self.check_saddle_curvature(atoms)):
+                    if force_displacement_converged:
+                        try:
+                            final_energy, final_forces = self._final_energy_forces(atoms)
+                            certification = self.check_saddle_curvature(atoms)
+                        except CurvatureValidationError as exc:
+                            return self._refused_result(
+                                atoms=atoms,
+                                iteration=iteration + 1,
+                                reason=str(exc),
+                            )
+                    if force_displacement_converged and certification.certified_ts:
                         info_message = [
                             '\n\n' + '-' * 70 + '\n',
                             f'{"Normal Termination".center(70)}\n\n'
                         ]
                         log_info(info_message, self.output)
                         
-                        # Write final TS structure
-                        write_xyz(ts_file, atoms, energy=E_new,
-                                iteration=iteration + 1)
-                        
-                        return PRFOResult.capture(
-                            status=PRFOStatus.CERTIFIED_TS,
+                        result = PRFOResult.capture(
+                            status=RunStatus.CONVERGED,
                             atoms=atoms,
                             iterations=iteration + 1,
+                            max_iterations=self.params.max_iter,
                             force_displacement_converged=True,
                             termination_reason="force_displacement_and_index_one",
-                            energy_hartree=E_new,
-                            forces_hartree_per_angstrom=F_new,
-                            curvature=self.last_saddle_curvature,
+                            energy_hartree=final_energy,
+                            forces_hartree_per_angstrom=final_forces,
+                            certification=certification,
                             output_paths={"trajectory": traj_file, "certified_ts": ts_file},
                         )
+                        write_xyz_atomic(
+                            ts_file,
+                            result.atoms,
+                            energy=result.energy_hartree,
+                            iteration=iteration + 1,
+                        )
+                        return result
+                    if force_displacement_converged:
+                        result = PRFOResult.capture(
+                            status=RunStatus.REFUSED,
+                            atoms=atoms,
+                            iterations=iteration + 1,
+                            max_iterations=self.params.max_iter,
+                            force_displacement_converged=True,
+                            termination_reason="fresh_final_hessian_not_index_one",
+                            energy_hartree=final_energy,
+                            forces_hartree_per_angstrom=final_forces,
+                            certification=certification,
+                            output_paths={"trajectory": traj_file, "candidate": candidate_file},
+                        )
+                        write_xyz_atomic(
+                            candidate_file,
+                            result.atoms,
+                            energy=result.energy_hartree,
+                            iteration=iteration + 1,
+                        )
+                        return result
             
             iteration += 1
         
@@ -977,31 +1144,35 @@ class PRFO(JobABC):
                 self.output)
         
         # Preserve a candidate without naming it as a certified transition state.
-        E_final = atoms.get_potential_energy(force_consistent=True)
-        F_final = atoms.get_forces()
-        write_xyz(candidate_file, atoms, energy=E_final, iteration=iteration)
+        try:
+            E_final, F_final = self._final_energy_forces(atoms)
+        except CurvatureValidationError as exc:
+            return self._refused_result(
+                atoms=atoms,
+                iteration=iteration,
+                reason=str(exc),
+            )
         
         log_info([
             f"\nWrote trajectory to: {traj_file}\n",
             f"Wrote uncertified candidate structure to: {candidate_file}\n"
         ], self.output)
-        status = (
-            PRFOStatus.REJECTED_NOT_INDEX_ONE
-            if force_displacement_converged and curvature_checked
-            else PRFOStatus.BOUNDED_NONCONVERGED
-        )
-        return PRFOResult.capture(
-            status=status,
+        result = PRFOResult.capture(
+            status=RunStatus.BOUNDED_NONCONVERGED,
             atoms=atoms,
             iterations=iteration,
+            max_iterations=self.params.max_iter,
             force_displacement_converged=force_displacement_converged,
-            termination_reason=(
-                "fresh_final_hessian_not_index_one"
-                if status is PRFOStatus.REJECTED_NOT_INDEX_ONE
-                else "maximum_iterations"
-            ),
+            termination_reason="maximum_iterations",
             energy_hartree=E_final,
             forces_hartree_per_angstrom=F_final,
-            curvature=self.last_saddle_curvature,
+            certification=None,
             output_paths={"trajectory": traj_file, "candidate": candidate_file},
         )
+        write_xyz_atomic(
+            candidate_file,
+            result.atoms,
+            energy=result.energy_hartree,
+            iteration=iteration,
+        )
+        return result

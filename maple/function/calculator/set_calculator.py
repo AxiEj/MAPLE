@@ -66,6 +66,79 @@ def _canonical_receipt_payload(receipt: dict) -> bytes:
     ).encode('utf-8')
 
 
+def _load_validated_qualification_receipt() -> tuple[dict, str]:
+    """Load the sealed receipt through the complete shared admission gate."""
+    from ._independent_obc2_qualified_cell import (
+        QUALIFICATION_RECEIPT_FILENAME,
+        QUALIFICATION_RECEIPT_SHA256,
+    )
+
+    if QUALIFICATION_RECEIPT_FILENAME != _QUALIFICATION_RECEIPT_FILENAME:
+        raise ValueError('qualification receipt filename changed')
+    if not _is_sha256(QUALIFICATION_RECEIPT_SHA256):
+        raise ValueError('qualification receipt pointer is unsealed')
+    receipt_path = Path(__file__).with_name('data') / QUALIFICATION_RECEIPT_FILENAME
+    receipt_bytes = receipt_path.read_bytes()
+    if hashlib.sha256(receipt_bytes).hexdigest() != QUALIFICATION_RECEIPT_SHA256:
+        raise ValueError('qualification receipt SHA256 mismatch')
+    receipt = json.loads(receipt_bytes)
+    if not isinstance(receipt, dict):
+        raise ValueError('qualification receipt must be a JSON object')
+    if (
+        type(receipt.get('schema_version')) is not int
+        or receipt['schema_version'] != 2
+        or receipt.get('artifact_type') != 'maple-independent-obc2-analytic-qualification'
+        or receipt.get('status') != 'qualified'
+    ):
+        raise ValueError('qualification receipt identity/status mismatch')
+    if receipt.get('content_sha256') != hashlib.sha256(
+        _canonical_receipt_payload(receipt)
+    ).hexdigest():
+        raise ValueError('qualification receipt content seal mismatch')
+    installed = receipt.get('installed_runtime_sources')
+    if not isinstance(installed, dict) or installed != _installed_runtime_source_inventory():
+        raise ValueError('installed runtime source inventory mismatch')
+    sources = receipt.get('qualification_sources')
+    if not isinstance(sources, dict) or not sources:
+        raise ValueError('qualification source inventory is missing')
+    for path, digest in sources.items():
+        if (
+            not isinstance(path, str)
+            or not path
+            or path.startswith('/')
+            or Path(path).as_posix() != path
+            or '..' in Path(path).parts
+            or not _is_sha256(digest)
+        ):
+            raise ValueError('qualification source inventory is malformed')
+    gates = receipt.get('qualification_gates')
+    if not isinstance(gates, dict) or set(gates) != set(_QUALIFICATION_GATE_COUNTS):
+        raise ValueError('qualification gate set mismatch')
+    for name, (expected, passed) in _QUALIFICATION_GATE_COUNTS.items():
+        gate = gates[name]
+        if (
+            not isinstance(gate, dict)
+            or type(gate.get('expected_count')) is not int
+            or type(gate.get('passed_count')) is not int
+            or gate['expected_count'] != expected
+            or gate['passed_count'] != passed
+            or gate.get('passed') is not True
+        ):
+            raise ValueError(f'qualification gate {name!r} count/verdict mismatch')
+    if gates['analytic_hessian_16_fd'].get('steps_angstrom') != [0.001, 0.0005, 0.00025]:
+        raise ValueError('analytic Hessian step ladder mismatch')
+    if gates['direct_hvp_144'].get('dense_hessian_forbidden') is not True:
+        raise ValueError('direct HVP gate did not forbid dense Hessian construction')
+    if gates['candidate_exact_cell_public_composition'].get('nonpolar') != ['ace', 'none']:
+        raise ValueError('candidate exact-cell nonpolar set mismatch')
+    expected_cells = _qualified_independent_obc2_cells(
+        receipt.get('aimnet2025_runtime_profiles')
+    )
+    if not _same_json(receipt.get('qualified_cells'), expected_cells):
+        raise ValueError('qualified analytic cells do not match the exact six-cell contract')
+    return receipt, QUALIFICATION_RECEIPT_SHA256
+
+
 def _installed_runtime_source_inventory() -> dict[str, str]:
     """Hash the installed runtime inventory exactly once per admission attempt."""
     package_root = Path(__file__).resolve().parents[2]
@@ -214,10 +287,6 @@ def _admit_independent_obc2_analytic_cell(
     calculator.analytic_implicit_derivatives_admitted = False
     correction._set_analytic_task_derivatives_admitted(False)
     try:
-        from ._independent_obc2_qualified_cell import (
-            QUALIFICATION_RECEIPT_FILENAME, QUALIFICATION_RECEIPT_SHA256,
-        )
-
         requested_model = str(model).lower()
         is_aim = requested_model in {'aimnet2025', 'aimnet2-2025', 'aimnet2_2025'}
         if is_aim:
@@ -228,58 +297,8 @@ def _admit_independent_obc2_analytic_cell(
             expected_class = ANICalculator
         if type(calculator) is not expected_class:
             raise ValueError(f'gas calculator implementation is not the exact shipped {expected_class.__name__}')
-        if QUALIFICATION_RECEIPT_FILENAME != _QUALIFICATION_RECEIPT_FILENAME:
-            raise ValueError('qualification receipt filename changed')
-        if not _is_sha256(QUALIFICATION_RECEIPT_SHA256):
-            raise ValueError('qualification receipt pointer is unsealed')
-        receipt_path = Path(__file__).with_name('data') / _QUALIFICATION_RECEIPT_FILENAME
-        receipt_bytes = receipt_path.read_bytes()
-        if hashlib.sha256(receipt_bytes).hexdigest() != QUALIFICATION_RECEIPT_SHA256:
-            raise ValueError('qualification receipt SHA256 mismatch')
-        receipt = json.loads(receipt_bytes)
-        if not isinstance(receipt, dict):
-            raise ValueError('qualification receipt must be a JSON object')
-        if (
-            type(receipt.get('schema_version')) is not int
-            or receipt['schema_version'] != 2
-            or receipt.get('artifact_type') != 'maple-independent-obc2-analytic-qualification'
-            or receipt.get('status') != 'qualified'
-        ):
-            raise ValueError('qualification receipt identity/status mismatch')
-        content_sha = hashlib.sha256(_canonical_receipt_payload(receipt)).hexdigest()
-        if receipt.get('content_sha256') != content_sha:
-            raise ValueError('qualification receipt content seal mismatch')
-        installed = receipt.get('installed_runtime_sources')
-        if not isinstance(installed, dict) or installed != _installed_runtime_source_inventory():
-            raise ValueError('installed runtime source inventory mismatch')
-        qualification_sources = receipt.get('qualification_sources')
-        if not isinstance(qualification_sources, dict) or not qualification_sources:
-            raise ValueError('qualification source inventory is missing')
-        for path, digest in qualification_sources.items():
-            if (not isinstance(path, str) or not path or path.startswith('/')
-                    or Path(path).as_posix() != path or '..' in Path(path).parts
-                    or not _is_sha256(digest)):
-                raise ValueError('qualification source inventory is malformed')
-        gates = receipt.get('qualification_gates')
-        if not isinstance(gates, dict) or set(gates) != set(_QUALIFICATION_GATE_COUNTS):
-            raise ValueError('qualification gate set mismatch')
-        for name, (expected, passed) in _QUALIFICATION_GATE_COUNTS.items():
-            gate = gates[name]
-            if (not isinstance(gate, dict)
-                    or type(gate.get('expected_count')) is not int
-                    or type(gate.get('passed_count')) is not int
-                    or gate['expected_count'] != expected or gate['passed_count'] != passed
-                    or gate.get('passed') is not True):
-                raise ValueError(f'qualification gate {name!r} count/verdict mismatch')
-        if gates['analytic_hessian_16_fd'].get('steps_angstrom') != [0.001, 0.0005, 0.00025]:
-            raise ValueError('analytic Hessian step ladder mismatch')
-        if gates['direct_hvp_144'].get('dense_hessian_forbidden') is not True:
-            raise ValueError('direct HVP gate did not forbid dense Hessian construction')
-        if gates['candidate_exact_cell_public_composition'].get('nonpolar') != ['ace', 'none']:
-            raise ValueError('candidate exact-cell nonpolar set mismatch')
-        expected_cells = _qualified_independent_obc2_cells(receipt.get('aimnet2025_runtime_profiles'))
-        if not _same_json(receipt.get('qualified_cells'), expected_cells):
-            raise ValueError('qualified analytic cells do not match the exact six-cell contract')
+        receipt, _ = _load_validated_qualification_receipt()
+        expected_cells = receipt['qualified_cells']
         provider = getattr(correction, 'underlying_provider', None)
         provenance = getattr(provider, 'provenance', None)
         if callable(provenance):
@@ -339,29 +358,10 @@ def _bind_hessian_precision_cell(calculator) -> None:
     runtime_identity = calculator.runtime_profile_identity
     if not isinstance(identity, dict) or not _same_json(identity, runtime_identity):
         raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: live runtime identity drift")
-    from ._independent_obc2_qualified_cell import (
-        QUALIFICATION_RECEIPT_FILENAME,
-        QUALIFICATION_RECEIPT_SHA256,
-    )
-
-    if (
-        QUALIFICATION_RECEIPT_FILENAME != _QUALIFICATION_RECEIPT_FILENAME
-        or not _is_sha256(QUALIFICATION_RECEIPT_SHA256)
-    ):
-        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: qualification pointer is invalid")
-    receipt_path = Path(__file__).with_name("data") / QUALIFICATION_RECEIPT_FILENAME
-    receipt_bytes = receipt_path.read_bytes()
-    if hashlib.sha256(receipt_bytes).hexdigest() != QUALIFICATION_RECEIPT_SHA256:
-        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: qualification receipt drift")
-    receipt = json.loads(receipt_bytes)
-    if (
-        receipt.get("status") != "qualified"
-        or receipt.get("content_sha256")
-        != hashlib.sha256(_canonical_receipt_payload(receipt)).hexdigest()
-        or receipt.get("installed_runtime_sources")
-        != _installed_runtime_source_inventory()
-    ):
-        raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: qualification source binding drift")
+    try:
+        receipt, receipt_sha256 = _load_validated_qualification_receipt()
+    except (OSError, TypeError, ValueError) as exc:
+        raise RuntimeError(f"ANALYTIC_CELL_UNQUALIFIED: {exc}") from exc
     matching = [
         cell
         for cell in receipt.get("qualified_cells", [])
@@ -371,6 +371,7 @@ def _bind_hessian_precision_cell(calculator) -> None:
     correction = getattr(calculator, "solvent_correction", None)
     if correction is None:
         composition = "gas"
+        composition_identity = {"composition": "gas"}
         if not matching:
             raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: gas runtime profile is not sealed")
     else:
@@ -404,6 +405,7 @@ def _bind_hessian_precision_cell(calculator) -> None:
         if not matching:
             raise RuntimeError("ANALYTIC_CELL_UNQUALIFIED: composed runtime profile is not sealed")
         composition = "torch-obc2"
+        composition_identity = provenance
     identity_sha = hashlib.sha256(
         json.dumps(
             identity,
@@ -414,10 +416,20 @@ def _bind_hessian_precision_cell(calculator) -> None:
         ).encode("utf-8")
     ).hexdigest()
     calculator._hessian_precision_binding = _mint_hessian_precision_binding(
-        profile_id="qualified-aimnet2025-n32",
+        profile_id=f"qualified-aimnet2025-n32-{composition}",
         runtime_identity_sha256=identity_sha,
-        receipt_sha256=QUALIFICATION_RECEIPT_SHA256,
+        receipt_sha256=receipt_sha256,
         composition=composition,
+        composition_identity_sha256=hashlib.sha256(
+            json.dumps(
+                composition_identity,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+                allow_nan=False,
+            ).encode("utf-8")
+        ).hexdigest(),
+        owner_token=id(calculator),
     )
 
 

@@ -1,74 +1,102 @@
 # AIMNet2025 plus Torch OBC-II path tasks
 
-## Scope
+## Execution domain
 
-This experimental boundary opens three path tasks for one exact composed
-potential.
+The v7 implementation supports these tasks after source-bound qualification.
+An unsealed or stale receipt does not admit them.
 
-- GS-IRC uses AIMNet2025 and independent Torch OBC-II with ACE or no nonpolar
-  term. It requires an admitted analytic composed Hessian and rigid-mode
-  projection for an isolated molecule.
-- Standard NEB uses the same composed calculator on every image. The model
-  configuration must explicitly declare `hessian=analytic` for receipt-bound
-  enrollment, but NEB requests only energy and forces.
-- String generates a Cartesian candidate path only when `refine=None`. The
-  model configuration must explicitly declare `hessian=analytic`, but String
-  requests only energy and forces.
+| Task | Method and refinement | Result |
+|---|---|---|
+| IRC | `gs`, `hpc`, `lqa`, `eulerpc` | Ordered path and exact input TS |
+| TS | `prfo` | Certified TS or explicit non-success candidate |
+| NEB | `neb`, `refine=None` | Base path stage |
+| CI-NEB | `neb`, `refine=cineb` | Base and CI stages |
+| NEB-TS | `neb`, `refine=nebts` | Base, CI, then PRFO after CI convergence |
+| String | `string`, `refine=None` | Candidate path growth |
+| CI-String | `string`, `refine=cistring` | Growth, ordinary String, then CI-String |
+| String-TS | `string`, `refine=stringts` | String stages, then PRFO after CI convergence |
+| AutoNEB | `autoneb`, optional `climb=true` | Adaptive single path with base and optional CI stages |
 
-The boundary does not open other IRC integrators, AutoNEB, climbing-image
-refinement, PRFO/BPRFO refinement from a path, another gas model, OpenMM GB,
-PB, an inner shell, constraints, periodic systems, charged systems, or
-open-shell systems. The private Torch CHA provider remains single-point and
-energy-only.
+The exact composed cell uses AIMNet2025 N32 and independent Torch OBC-II
+FP32 with ACE or no nonpolar term. Omitted device selects CPU; CUDA must be
+explicit. Receipt-bound enrollment requires `hessian=analytic`. Path stages
+use energy and forces; IRC and PRFO also consume analytic curvature.
 
-Every image must retain its own source MOL2 metadata. All images must have the
-same ordered atoms, topology, fixed charge vector, positive mass vector, and
-one exact composed calculator instance. Charge, radius, topology, model, and
-provider preparation occurs once for the path.
+Images retain source MOL2 metadata and share ordered atoms, topology, fixed
+charges, positive masses, and one prepared composed calculator. The domain is
+one isolated, neutral, closed-shell solute. This extension does not admit PBC,
+constraints, inner shells, polarizable charges, PB, another gas model, or BPRFO.
+Private Torch CHA remains single-point energy-only. Previously admitted ANI
+analytic PRFO, numerical PRFO, and Dimer retain their separate boundaries.
 
-## Units
+## Parameters and ownership
 
-- Positions and path displacements use angstrom.
-- GS step input uses bohr and is converted with the existing GS conversion.
-- Energies use hartree.
-- Forces use hartree per angstrom.
-- Cartesian Hessians use hartree per square angstrom.
-- GS mass-weighted coordinates use square-root atomic-mass-unit angstrom.
+`dispatcher/method_registry.py` owns method names, input arity, parameter rules,
+and required capabilities. CLI parsing and direct dispatch use that definition.
+Unknown keys, case collisions, mixed flat and nested parameters, and inactive
+refinement controls fail before model work. String's nested `prfo_params` uses
+the same PRFO rules as standalone PRFO.
 
-String directions are normalized `3N` Cartesian displacements after Kabsch
-alignment. They are not centroid translations. NEB and String do not alter the
-physical potential or fitted parameters.
+AutoNEB inserts images into one path using spatial and energy resolution. It is
+not the former recursive tree. `n_max` is at least three. Base and CI budgets
+are separate; budget exhaustion is not convergence.
 
-## Result contracts
+Ordinary String uses full-force evolution and equal-arc reparameterization.
+CI-String freezes its initial CI tangent for the CI stage. Each update moves
+the climbing image, then holds its updated position fixed during separate
+left and right reparameterizations. CI-String is not an alias for PRFO.
 
-Every opened task returns a small dictionary with `status`, `converged`, and
-`termination_reason`.
+## Units and curvature
 
-GS-IRC also returns forward and backward TS-outward records, the exact input TS,
-its index, and the ordered path `reversed(backward) + input TS + forward`.
-Zero steps validates the input energy, force, Hessian, masses, and selected
-internal negative mode. It returns the input TS once and performs no half-step.
+Positions use angstrom, energies use hartree, forces use hartree per angstrom,
+and Cartesian Hessians use hartree per square angstrom. IRC parameters named
+in bohr retain their method-specific conversion. Mass-weighted coordinates
+use square-root atomic-mass-unit angstrom.
 
-NEB returns images, energies, projected-force diagnostics, and the iteration
-count. A zero iteration budget is bounded execution. Convergence is true only
-when the existing projected-force predicate is met.
+`dispatcher/curvature.py` checks the raw Hessian before forming its physical
+symmetric part. Exact qualified N32 sources retain the raw-skew budget
+`2e-6 * max(1, max(abs(H)))`. Unknown sources retain the strict generic rule;
+forged or drifted analytic identity is refused. NumPy storage precision does
+not establish backend computation precision. Physical equations, fitted
+parameters, and raw backend Hessians remain unchanged.
 
-String returns images, energies, growth iterations, and a path-generation
-reason. `merged_path` means that path growth reached the existing merge
-criterion. It does not certify a force-converged MEP, transition state,
-reaction connection, or chemical accuracy.
+## Results and output lifecycle
 
-The String writer uses `_gsm_candidate_path.xyz` and
-`_gsm_equal_arc_candidate.xyz`. The file names do not claim an MEP.
+IRC returns TS-outward records and the ordered path
+`reversed(backward) + [input_ts] + forward`, with TS index `len(backward)`.
+Zero steps validates energy, forces, curvature, masses, and the selected
+internal negative mode, then returns the input TS once without a half-step.
 
-## Qualification boundary
+NEB and String retain dictionary results and add immutable stage records.
+AutoNEB returns `AutoNEBResult` with insertion counts and stage records.
+Stages distinguish `converged`, `bounded_nonconverged`, `failed`, and `refused`.
+Final geometry, energy, forces, and metrics describe the same point. A stage
+can converge with zero updates only if its actual initial state passes that
+stage's convergence checks.
 
-Source changes require a new immutable
-`independent_obc2_analytic_qualification_v6.json` receipt. The v6 pointer is
-unqualified until fresh ANI/OBC and AIMNet2025 evidence from one committed
-source freeze passes the existing denominators and is sealed. Historical v1
-through v5 receipts remain unchanged.
+Low-level PRFO returns `PRFOResult`. High-level PRFO returns `Atoms` only for
+a certified result and retains the typed result in `TransitionState.last_result`.
+Other outcomes remain typed candidates. Certification requires force and
+displacement convergence plus fresh index-one curvature at the final geometry.
+A refined candidate stays separate from the MEP. An HEI or climbing image is
+not automatically a certified TS.
 
-The new GS route retains the existing N32 raw-Hessian symmetry guard of
-`2e-6 * max(1, max(abs(H)))`. The older PRFO `1e-8` behavior is outside this
-path-only change and remains unchanged.
+Certified TS outputs are archived before a new attempt and published atomically
+only after certification. Failed reruns cannot present an old TS file as current.
+Implicit wrappers restore caller-visible calculator caches and preserve job
+convergence thresholds across working copies. Engine results are cleared at
+the start of each new attempt.
+
+## Qualification and scientific claims
+
+The v7 receipt is `independent_obc2_analytic_qualification_v7.json`. It binds the
+unchanged 11 numeric gates, 40 cutoff refusals, frozen task matrix, and canonical
+software-contract rows to one source identity. The sealer independently replays
+canonical rows. Runtime admission requires sealed numeric evidence and the
+matching software capability. Historical v1 through v6 receipts are retained.
+
+Implementation, source tests, sealed numeric qualification, and installed
+CPU/CUDA execution are separate evidence stages. A bounded task check is not
+chemical convergence, reaction connectivity, solvation accuracy, or a performance
+result. An unqualified pointer remains fail-closed even when code and software
+tests are present.

@@ -23,8 +23,13 @@ explicit positive-kappa path, not restoration of those old runners. See
 | ddX/ddLPB reference | Polar energy + analytic force | Experimental | Numerical composed Hessian | Experimental P-RFO / dimer, one solute geometry |
 | APBS PB | Energy only | Not implemented | Not implemented | Not implemented |
 
+The exact AIMNet2025 N32 plus Torch OBC-II FP32 extension has a separate
+[v7 path-task boundary](AIMNET2025_PATHS.md), including advanced IRC,
+NEB/String refinement, and AutoNEB after source-bound qualification. The
+legacy ANI and numerical boundaries below remain separate.
+
 Existing supported nonperiodic OpenMM GB SCAN/MD paths are unchanged. This
-implicit TS entry does not add NEB/string/AutoNEB, multicomponent
+legacy implicit TS entry does not add NEB/string/AutoNEB, multicomponent
 `inner=prebuilt`, polarizable charge response, periodic boundaries or analytic
 implicit Hessian qualification beyond the exact cell below. Gas-phase TS
 paths are unchanged.

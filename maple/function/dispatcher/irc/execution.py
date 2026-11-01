@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, fields
 from functools import wraps
@@ -348,6 +349,23 @@ def assemble_irc_result(forward: dict, backward: dict, input_ts: dict) -> dict:
         "ordered_path": ordered_path,
         "summary": summary,
     }
+
+
+def emit_irc_path_summary(
+    method: str,
+    result: dict,
+    output: str,
+    writer: Callable[[list[str], str], None],
+) -> None:
+    lines = [
+        "\n---------------------------------------------------------------\n",
+        f"                       {method.upper()}-IRC PATH SUMMARY           \n",
+        "---------------------------------------------------------------\n",
+        "All forces are in Eh/Å.\n\n",
+        "Step        E(Eh)      dE(kcal/mol)  max(|G|)   RMS(G) \n",
+        *result["summary"]["merged_rows"],
+    ]
+    writer(lines, output)
 
 
 def write_irc_trajectories(atoms, output, forward, backward, input_ts, writer) -> None:

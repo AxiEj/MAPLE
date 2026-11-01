@@ -31,6 +31,7 @@ from .logger import log_info
 from ..execution import (
     assemble_irc_result,
     coerce_irc_parameters,
+    emit_irc_path_summary,
     empty_side,
     evaluate_irc_hessian,
     evaluate_irc_state,
@@ -312,6 +313,7 @@ class HPC(JobABC):
                     H_ts_cart=start.hessian,
                 )
             result = assemble_irc_result(forward, backward, start.record)
+            emit_irc_path_summary("hpc", result, self.output, log_info)
             if self.p.write_traj:
                 self._write_trajs(forward, backward, start.record)
             return result

@@ -392,3 +392,21 @@ def test_path_summary_rows_follow_exact_ordered_path(tmp_path, method):
         assert f"{record['E']:14.6f}" in row
         assert f"{relative:12.6f}" in row
         assert ("<= TS" in row) is (index == summary["ts_index"])
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_path_summary_is_written_for_zero_step_run(tmp_path, method):
+    output = tmp_path / f"{method}.out"
+    result = METHODS[method](
+        make_ts(),
+        str(output),
+        paras=_params(method, 0),
+    ).run()
+
+    text = output.read_text()
+    assert f"{method.upper()}-IRC PATH SUMMARY" in text
+    assert "Step        E(Eh)      dE(kcal/mol)  max(|G|)   RMS(G)" in text
+    assert text.count("<= TS") == 1
+    assert result["summary"]["merged_rows"] == [
+        line + "\n" for line in text.splitlines() if "<= TS" in line
+    ]

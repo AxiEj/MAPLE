@@ -17,14 +17,10 @@ from maple.function.calculator.extra_correction.implicit.correction import (
 )
 from maple.function.dispatcher.curvature import bofill_update
 from maple.function.dispatcher.implicit_path import bind_admitted_implicit_path
-from maple.function.dispatcher.method_registry import (
-    PublicMethodKey,
-    normalize_public_method,
-    validate_method_parameters,
-)
+from maple.function.dispatcher.method_registry import normalize_public_method, validate_method_parameters
 from maple.function.dispatcher.irc.algorithm.gs import GS, GSParams
-from maple.function.dispatcher.ts.algorithm.neb import NEB, NEBParams, improved_tangent
-from maple.function.dispatcher.ts.algorithm.string import GSM, GSMParams
+from maple.function.dispatcher.ts.algorithm.neb import NEB, improved_tangent
+from maple.function.dispatcher.ts.algorithm.string import GSM
 from maple.function.utility import Molecules
 from maple.function.read.command_control import CommandControl
 

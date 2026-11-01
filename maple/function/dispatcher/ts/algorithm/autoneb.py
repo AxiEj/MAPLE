@@ -453,6 +453,10 @@ class AutoNEB(JobABC):
             "ci_displacement_tol": self.params.ci_displacement_tol,
         }
         for name, value in assignments.items():
+            if not hasattr(params, name):
+                raise RuntimeError(
+                    f"The reviewed NEB stage does not support AutoNEB parameter {name}."
+                )
             setattr(params, name, value)
         return params
 

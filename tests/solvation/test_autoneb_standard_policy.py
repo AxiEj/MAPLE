@@ -67,6 +67,16 @@ class _FakeNEBParams:
     ci_displacement_tol: float = 0.0
 
 
+@dataclass
+class _MissingCIDisplacementNEBParams:
+    max_iter: int = 0
+    neb_f_max_th: float = 0.0
+    neb_f_rms_th: float = 0.0
+    cineb_max_iter: int = 0
+    cineb_f_max_th: float = 0.0
+    cineb_f_rms_th: float = 0.0
+
+
 def _install_stage_oracle(monkeypatch, statuses):
     calls = []
     remaining = iter(statuses)
@@ -333,4 +343,21 @@ def test_stage_kernel_cannot_move_fixed_endpoint(monkeypatch, tmp_path):
             str(tmp_path / "autoneb.out"),
             images,
             {"n_max": 3, "max_iter": 2, "climb": False},
+        ).run()
+
+
+def test_neb_stage_without_ci_displacement_contract_fails_closed(monkeypatch, tmp_path):
+    calculator = _QuadraticCalculator()
+    images = [_image(0.0, calculator, role="reactant"), _image(1.0, calculator, role="product")]
+    monkeypatch.setattr(
+        autoneb_module,
+        "_load_neb_stage_api",
+        lambda: (_MissingCIDisplacementNEBParams, pytest.fail),
+    )
+
+    with pytest.raises(RuntimeError, match="ci_displacement_tol"):
+        AutoNEB(
+            str(tmp_path / "autoneb.out"),
+            images,
+            {"n_max": 3, "max_iter": 2, "climb": True},
         ).run()

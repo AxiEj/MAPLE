@@ -27,6 +27,9 @@ import validate_independent_obc2_default as validation  # noqa: E402
 import validate_aimnet2025_analytic as aimnet_validation  # noqa: E402
 import validate_route1_algorithm_contracts as algorithm_validation  # noqa: E402
 from maple.function.calculator import set_calculator as runtime  # noqa: E402
+from maple.function.calculator.algorithm_contracts import (  # noqa: E402
+    MATRIX_CORE_MANIFEST_SHA256,
+)
 
 
 RECEIPT_REL = (
@@ -104,8 +107,9 @@ def build_receipt(validation_path: Path, candidate_path: Path,
         ROOT / ALGORITHM_EVIDENCE_REL if algorithm_path is None else algorithm_path
     )
     algorithm_contracts = algorithm_validation.validate_artifact(
-        algorithm, expected_source_snapshot=frozen
+        algorithm, expected_source_snapshot=frozen, replay=True
     )
+    validation.validate_current_source_binding(frozen)
     # This entry point replays raw sections, full failure denominators, numerical
     # gates, runtime/checkpoint/input/source before/after binding. Assess-only is
     # deliberately insufficient: it also accepts completed failed attempts.
@@ -132,6 +136,23 @@ def build_receipt(validation_path: Path, candidate_path: Path,
     if not runtime._same_json(profiles, aimnet.get("model_identities_after")):
         raise ValueError("AIMNet2025 model identities changed during qualification")
     cells = runtime._qualified_independent_obc2_cells(profiles)
+    cutoff_refusals = []
+    for row in aimnet.get("cutoff_control_records", []):
+        row_identity = {
+            key: deepcopy(row.get(key))
+            for key in ("case", "geometry", "device", "nonpolar")
+        }
+        for refusal in row.get("refusals", []):
+            cutoff_refusals.append({
+                "row_identity": row_identity,
+                "refusal": deepcopy(refusal),
+            })
+    if (
+        aimnet.get("expected_cutoff_refusals") != 40
+        or aimnet.get("observed_cutoff_refusals") != 40
+        or len(cutoff_refusals) != 40
+    ):
+        raise ValueError("AIMNet2025 cutoff refusal evidence is incomplete")
     gates = deepcopy(artifact["qualification_gates"])
     if set(gates) & set(aimnet_gates):
         raise ValueError("AIMNet2025 gates cannot replace original OBC/ANI gates")
@@ -170,6 +191,12 @@ def build_receipt(validation_path: Path, candidate_path: Path,
         "qualified_cells": cells,
         "aimnet2025_runtime_profiles": deepcopy(profiles),
         "qualification_gates": gates,
+        "matrix_core_manifest_sha256": MATRIX_CORE_MANIFEST_SHA256,
+        "aimnet2025_cutoff_refusals": {
+            "expected_count": 40,
+            "observed_count": 40,
+            "records": cutoff_refusals,
+        },
         "algorithm_contracts": algorithm_contracts,
         "evidence": {
             "candidate_validation": artifact_binding,

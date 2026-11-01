@@ -133,6 +133,7 @@ def _load_validated_qualification_receipt() -> tuple[dict, str]:
         raise ValueError('direct HVP gate did not forbid dense Hessian construction')
     if gates['candidate_exact_cell_public_composition'].get('nonpolar') != ['ace', 'none']:
         raise ValueError('candidate exact-cell nonpolar set mismatch')
+    _validate_advanced_matrix_evidence(receipt)
     expected_cells = _qualified_independent_obc2_cells(
         receipt.get('aimnet2025_runtime_profiles')
     )
@@ -142,50 +143,63 @@ def _load_validated_qualification_receipt() -> tuple[dict, str]:
     return receipt, QUALIFICATION_RECEIPT_SHA256
 
 
-def _validated_algorithm_capabilities(receipt: dict) -> frozenset[str]:
-    section = receipt.get('algorithm_contracts')
-    if not isinstance(section, dict) or section.get('schema_version') != 1:
-        raise ValueError('algorithm contract evidence is missing')
+def _validate_advanced_matrix_evidence(receipt: dict) -> None:
+    from .algorithm_contracts import MATRIX_CORE_MANIFEST_SHA256
+
+    if receipt.get('matrix_core_manifest_sha256') != MATRIX_CORE_MANIFEST_SHA256:
+        raise ValueError('advanced-task matrix manifest binding mismatch')
+    cutoff = receipt.get('aimnet2025_cutoff_refusals')
+    records = cutoff.get('records') if isinstance(cutoff, dict) else None
     if (
-        section.get('source_git_sha') != receipt.get('candidate_git_sha')
-        or section.get('source_inventory_aggregate_sha256')
-        != receipt.get('qualification_source_aggregate_sha256')
+        not isinstance(records, list)
+        or cutoff.get('expected_count') != 40
+        or cutoff.get('observed_count') != 40
+        or len(records) != 40
     ):
-        raise ValueError('algorithm contract source binding mismatch')
-    capabilities = section.get('capability_keys')
-    rows = section.get('rows')
-    if (
-        not isinstance(capabilities, list)
-        or not capabilities
-        or len(capabilities) != len(set(capabilities))
-        or not all(isinstance(key, str) and key for key in capabilities)
-        or not isinstance(rows, dict)
-        or not rows
-    ):
-        raise ValueError('algorithm contract capability set is malformed')
-    observed = set()
-    hostile = 0
-    for row_id, row in rows.items():
-        if not isinstance(row_id, str) or not isinstance(row, dict):
-            raise ValueError('algorithm contract row is malformed')
-        if row.get('passed') is not True:
-            raise ValueError(f'algorithm contract row did not pass: {row_id}')
-        capability = row.get('capability_key')
-        if capability is None:
-            hostile += 1
-        elif capability in capabilities:
-            observed.add(capability)
-        else:
-            raise ValueError(f'algorithm contract row has unknown capability: {row_id}')
-        for field in (
-            'implementation_files_sha256', 'test_file', 'test_node',
-            'test_file_sha256', 'fixture_identity', 'expected', 'observed',
+        raise ValueError('AIMNet2025 cutoff refusal evidence is incomplete')
+    refusal_identities = set()
+    refusals_by_row = {}
+    for record in records:
+        row = record.get('row_identity') if isinstance(record, dict) else None
+        refusal = record.get('refusal') if isinstance(record, dict) else None
+        if not isinstance(row, dict) or not isinstance(refusal, dict):
+            raise ValueError('AIMNet2025 cutoff refusal record is malformed')
+        identity = tuple(row.get(key) for key in ('case', 'geometry', 'device', 'nonpolar')) + (
+            refusal.get('operation'), refusal.get('direction_index'),
+        )
+        error = refusal.get('error')
+        if (
+            any(value is None for value in identity)
+            or identity in refusal_identities
+            or refusal.get('status') != 'rejected'
+            or refusal.get('fallback_calls') != []
+            or not isinstance(error, dict)
+            or not error.get('type')
+            or not error.get('message')
+            or not error.get('traceback')
         ):
-            if field not in row:
-                raise ValueError(f'algorithm contract row lacks {field}: {row_id}')
-    if observed != set(capabilities) or hostile < 10:
-        raise ValueError('algorithm contract rows are incomplete')
-    return frozenset(capabilities)
+            raise ValueError('AIMNet2025 cutoff refusal identity is missing or duplicated')
+        refusal_identities.add(identity)
+        refusals_by_row.setdefault(identity[:4], set()).add(identity[4:])
+    expected_operations = {('GAS_H', -1), ('COMPOSED_H', -1),
+                           ('HVP', 0), ('HVP', 1), ('HVP', 2)}
+    if len(refusals_by_row) != 8 or any(
+        operations != expected_operations for operations in refusals_by_row.values()
+    ):
+        raise ValueError('AIMNet2025 cutoff refusal operation set is incomplete')
+
+
+def _validated_algorithm_capabilities(receipt: dict) -> frozenset[str]:
+    from .algorithm_contracts import validate_sealed_contracts
+
+    return validate_sealed_contracts(
+        receipt.get('algorithm_contracts'),
+        source_git_sha=receipt.get('candidate_git_sha'),
+        source_inventory_aggregate_sha256=receipt.get(
+            'qualification_source_aggregate_sha256'
+        ),
+        qualification_sources=receipt.get('qualification_sources'),
+    )
 
 
 def _installed_runtime_source_inventory() -> dict[str, str]:

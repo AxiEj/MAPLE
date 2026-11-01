@@ -142,6 +142,29 @@ def fixture_repo(tmp_path, monkeypatch):
         "model_identities_before": _aim_identities(),
         "model_identities_after": _aim_identities(),
         "harness_sha256": "a" * 64, "validator_sha256": "b" * 64,
+        "expected_cutoff_refusals": 40,
+        "observed_cutoff_refusals": 40,
+        "cutoff_control_records": [
+            {
+                "case": f"case-{row}", "geometry": "guard",
+                "device": "cpu", "nonpolar": "ace",
+                "refusals": [
+                    {
+                        "operation": operation, "direction_index": direction,
+                        "status": "rejected", "fallback_calls": [],
+                        "error": {
+                            "type": "AnalyticCapabilityError", "message": "guard",
+                            "traceback": "synthetic traceback",
+                        },
+                    }
+                    for operation, direction in (
+                        ("GAS_H", -1), ("COMPOSED_H", -1),
+                        ("HVP", 0), ("HVP", 1), ("HVP", 2),
+                    )
+                ],
+            }
+            for row in range(8)
+        ],
     }
     _write_json(aim_path, aim)
     monkeypatch.setattr(sealer, "AIMNET2025_EVIDENCE_REL", aim_path.relative_to(tmp_path).as_posix())
@@ -183,9 +206,7 @@ def io_repo(fixture_repo, monkeypatch):
         if name.startswith("aimnet2025_")
     }
     monkeypatch.setattr(sealer.aimnet_validation, "validate_artifact", Mock(return_value=gates))
-    capabilities = sorted(
-        key.value for key in sealer.algorithm_validation.CapabilityKey
-    )
+    capabilities = sorted(sealer.algorithm_validation.EXPECTED_CAPABILITIES)
     algorithm_contracts = {
         "schema_version": 1,
         "source_git_sha": fixture_repo[2]["source_snapshot"]["git_head"],
@@ -218,6 +239,12 @@ def test_deterministic_receipt_matches_factory_schema_and_raw_evidence(io_repo):
     assert first["aimnet2025_runtime_profiles"] == _aim_identities()
     assert len(first["qualification_gates"]) == 11
     assert first["algorithm_contracts"]["capability_keys"]
+    assert first["matrix_core_manifest_sha256"] == (
+        sealer.MATRIX_CORE_MANIFEST_SHA256
+    )
+    assert first["aimnet2025_cutoff_refusals"]["expected_count"] == 40
+    assert first["aimnet2025_cutoff_refusals"]["observed_count"] == 40
+    assert len(first["aimnet2025_cutoff_refusals"]["records"]) == 40
     assert first["candidate_git_sha"] == candidate["candidate_git_sha"]
     assert first["qualification_sources"] == candidate[
         "candidate_source_snapshot"
@@ -517,6 +544,27 @@ def test_algorithm_contract_failure_prevents_publication(io_repo):
         sealer.seal_qualification(full_path, candidate_path)
     assert not (root / sealer.RECEIPT_REL).exists()
     assert b"= None" in (root / sealer.POINTER_REL).read_bytes()
+
+
+def test_sealer_replays_canonical_algorithm_contract_nodes(io_repo):
+    _root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    sealer.build_receipt(full_path, candidate_path)
+    assert sealer.algorithm_validation.validate_artifact.call_args.kwargs["replay"] is True
+
+
+@pytest.mark.parametrize("mutation", ["manifest", "count", "duplicate"])
+def test_runtime_refuses_weakened_advanced_matrix_evidence(io_repo, mutation):
+    _root, _git, _full, _candidate, full_path, candidate_path = io_repo
+    receipt = sealer.build_receipt(full_path, candidate_path)
+    if mutation == "manifest":
+        receipt["matrix_core_manifest_sha256"] = "0" * 64
+    elif mutation == "count":
+        receipt["aimnet2025_cutoff_refusals"]["observed_count"] = 39
+    else:
+        records = receipt["aimnet2025_cutoff_refusals"]["records"]
+        records[-1] = copy.deepcopy(records[0])
+    with pytest.raises(ValueError):
+        sealer.runtime._validate_advanced_matrix_evidence(receipt)
 
 
 @pytest.mark.parametrize("field", ["source_snapshot_before", "source_snapshot_after", "candidate_git_sha", "inputs_after"])

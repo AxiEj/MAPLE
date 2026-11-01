@@ -21,6 +21,7 @@ import numpy as np
 from ase import Atoms
 
 from .logger import log_info
+from .path_optimizer import LBFGSDriver
 from ...jobABC import JobABC
 
 from maple.function.utility import Molecules
@@ -453,90 +454,6 @@ def rms_force(forces_list: List[np.ndarray]) -> float:
         return 0.0
     v = np.concatenate(arrs)
     return float(np.sqrt(np.mean(v * v)))
-
-# =============================================================================
-# ------------------------------- L-BFGS --------------------------------------
-# =============================================================================
-
-class LBFGSDriver:
-    """Simple L-BFGS optimizer for NEB projected forces (no DIIS / no line search)."""
-    def __init__(self, m=5, curvature=70.0, maxstep=0.2):
-        self.m = m
-        self.H0 = 1.0 / curvature
-        self.maxstep = maxstep
-        self.S, self.Y, self.rhos = [], [], []
-
-    def two_loop(self, grad: np.ndarray) -> np.ndarray:
-        q = grad.copy()
-        alpha = []
-        for s, y, rho in reversed(list(zip(self.S, self.Y, self.rhos))):
-            a = rho * np.dot(s, q)
-            alpha.append(a)
-            q -= a * y
-
-        gamma = self.H0 if not self.Y else np.dot(self.Y[-1], self.S[-1]) / (np.dot(self.Y[-1], self.Y[-1]) + 1e-20)
-        z = gamma * q
-
-        for (s, y, rho), a in zip(zip(self.S, self.Y, self.rhos), reversed(alpha)):
-            b = rho * np.dot(y, z)
-            z += s * (a - b)
-
-        return -z
-
-    def update(self, s: np.ndarray, y: np.ndarray):
-        rho = 1.0 / (np.dot(y, s) + 1e-20)
-        self.S.append(s.copy()); self.Y.append(y.copy()); self.rhos.append(rho)
-        if len(self.S) > self.m:
-            self.S.pop(0); self.Y.pop(0); self.rhos.pop(0)
-
-    def step_limit(self, step: np.ndarray) -> np.ndarray:
-        max_disp = np.max(np.abs(step))
-        if max_disp > self.maxstep:
-            step *= self.maxstep / max_disp
-        return step
-
-    def should_stop(self, grad, fmax_th=1e-3, frms_th=5e-4) -> bool:
-        max_f = np.max(np.abs(grad))
-        rms_f = np.sqrt(np.mean(grad ** 2))
-        return (max_f < fmax_th) and (rms_f < frms_th)
-
-    def ci_should_stop(self, regular_Fp, ci_F):
-        """
-        Dual convergence check for CINEB, ORCA-style.
-
-        Parameters
-        ----------
-        regular_Fp : np.ndarray
-            1D array of projected NEB forces (F_perp + spring_parallel) for
-            all *non-climbing* internal images, flattened.
-        ci_F : np.ndarray
-            1D array of *true* forces for the climbing image (no projection).
-
-        Uses thresholds stored on the driver:
-        - self.fmax_reg, self.frms_reg : regular images (Fp)
-        - self.fmax_ci,  self.frms_ci  : climbing image (F)
-        """
-        if regular_Fp.size == 0:
-            maxFp = 0.0
-            rmsFp = 0.0
-        else:
-            maxFp = float(np.max(np.abs(regular_Fp)))
-            rmsFp = float(np.sqrt(np.mean(regular_Fp ** 2)))
-
-        if ci_F.size == 0:
-            maxF = 0.0
-            rmsF = 0.0
-        else:
-            maxF = float(np.max(np.abs(ci_F)))
-            rmsF = float(np.sqrt(np.mean(ci_F ** 2)))
-
-        return (
-            (maxFp < self.fmax_reg) and
-            (rmsFp < self.frms_reg) and
-            (maxF  < self.fmax_ci)  and
-            (rmsF  < self.frms_ci)
-        )
-
 
 # =============================================================================
 # ------------------------------- NEB Class -----------------------------------

@@ -26,6 +26,7 @@ from ase import Atoms
 
 # You already have these utilities / mixins in your codebase:
 from .logger import log_info
+from .path_optimizer import LBFGSDriver
 from ...jobABC import JobABC
 
 
@@ -236,50 +237,6 @@ def linear_reparam(images: List[Atoms]):
 
 
 # =============================================================================
-# --------------------------- LBFGS driver (no LS) ----------------------------
-# =============================================================================
-
-class LBFGSDriver:
-    """Simple L-BFGS optimizer for projected gradients (no line search)."""
-    def __init__(self, m=5, curvature=70.0, maxstep=0.2):
-        self.m = m
-        self.H0 = 1.0 / curvature
-        self.maxstep = maxstep
-        self.S, self.Y, self.rhos = [], [], []
-
-    def two_loop(self, grad: np.ndarray) -> np.ndarray:
-        q = grad.copy()
-        alpha = []
-        for s, y, rho in reversed(list(zip(self.S, self.Y, self.rhos))):
-            a = rho * np.dot(s, q)
-            alpha.append(a)
-            q -= a * y
-        gamma = self.H0 if not self.Y else np.dot(self.Y[-1], self.S[-1]) / (np.dot(self.Y[-1], self.Y[-1]) + 1e-20)
-        z = gamma * q
-        for (s, y, rho), a in zip(zip(self.S, self.Y, self.rhos), reversed(alpha)):
-            b = rho * np.dot(y, z)
-            z += s * (a - b)
-        return -z
-
-    def update(self, s: np.ndarray, y: np.ndarray):
-        rho = 1.0 / (np.dot(y, s) + 1e-20)
-        self.S.append(s.copy()); self.Y.append(y.copy()); self.rhos.append(rho)
-        if len(self.S) > self.m:
-            self.S.pop(0); self.Y.pop(0); self.rhos.pop(0)
-
-    def step_limit(self, step: np.ndarray) -> np.ndarray:
-        max_disp = np.max(np.abs(step))
-        if max_disp > self.maxstep:
-            step = step * (self.maxstep / max_disp)
-        return step
-
-    def should_stop(self, grad, fmax_th=1e-3, frms_th=5e-4) -> bool:
-        max_f = np.max(np.abs(grad))
-        rms_f = np.sqrt(np.mean(grad ** 2))
-        return (max_f < fmax_th) and (rms_f < frms_th)
-
-
-# =============================================================================
 # ------------------------------- GSM Params ----------------------------------
 # =============================================================================
 
@@ -446,7 +403,12 @@ class GSM(JobABC):
             g = proj_perp(g)
             return E, g
 
-        lb = LBFGSDriver(m=5, curvature=70.0, maxstep=0.1)
+        lb = LBFGSDriver(
+            m=5,
+            curvature=70.0,
+            maxstep=0.1,
+            step_limit_in_place=False,
+        )
         x = pos.copy()
         E, g = energy_and_grad(x)
         k = 0

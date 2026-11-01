@@ -20,11 +20,12 @@ import numpy as np
 from ase import Atoms
 
 from .neb import (
-    NEB, NEBParams, LBFGSDriver,
+    NEB, NEBParams,
     neb_forces, rms_force, compute_dynamic_k,
     write_xyz, write_all_images_xyz,
     to_numpy_f64, vec1d, kabsch_align
 )
+from .path_optimizer import LBFGSDriver
 from .logger import log_info
 from ...jobABC import JobABC
 from maple.function.utility import Molecules

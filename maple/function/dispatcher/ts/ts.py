@@ -28,6 +28,14 @@ if TYPE_CHECKING:
     from .algorithm.autoneb import AutoNEBResult
 
 
+def _requires_v7_prfo_capability(calculator) -> bool:
+    from maple.function.calculator.aimnet._aimnet2025_calculator import (
+        AIMNet2025Calculator,
+    )
+
+    return type(calculator) is AIMNet2025Calculator
+
+
 def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> bool:
     """Validate the shared single-geometry, composed-force TS boundary."""
     solvent_correction = getattr(
@@ -90,7 +98,8 @@ def _validate_implicit_ts_boundary(atoms: Atoms, method: str, params: dict) -> b
             is True
             and callable(getattr(solvent_correction, "get_hessian", None))
         ):
-            resolve_method_capability(CapabilityKey.TS_PRFO, calculator)
+            if _requires_v7_prfo_capability(calculator):
+                resolve_method_capability(CapabilityKey.TS_PRFO, calculator)
         elif hessian_mode == "analytic":
             raise ValueError(
                 "Implicit-solvent analytic PRFO requires an admitted analytic "

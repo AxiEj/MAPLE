@@ -8,14 +8,10 @@ NEB implementation with:
 - ORCA-style dynamic spring constants
 """
 from __future__ import annotations
-from lib2to3.pgen2 import driver
+from contextlib import ExitStack
 import os
-import sys
-import math
-import copy
-import time
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Literal, Tuple, Optional
 
 import numpy as np
 from ase import Atoms
@@ -24,33 +20,21 @@ from .logger import log_info
 from .path_optimizer import LBFGSDriver
 from ...jobABC import JobABC
 
+from maple.function.dispatcher.numerical_state import (
+    scientific_atoms_transaction,
+    to_numpy_f64,
+    vec1d,
+)
+from maple.function.dispatcher.result_contracts import (
+    PRFOResult,
+    PathStageResult,
+    RunStatus,
+)
 from maple.function.utility import Molecules
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
 # =============================================================================
-
-def to_numpy_f64(x):
-    """Convert input (numpy/torch/list/scalar) to float64 numpy array or float."""
-    if isinstance(x, np.ndarray):
-        return x.astype(np.float64, copy=False)
-    try:
-        import torch
-        if isinstance(x, torch.Tensor):
-            arr = x.detach().cpu().numpy()
-            return arr.astype(np.float64, copy=False)
-    except Exception:
-        pass
-    if np.isscalar(x):
-        return float(x)
-    return np.asarray(x, dtype=np.float64)
-
-def vec1d(x, n_expected=None):
-    """Convert to float64 1D vector and optionally check length."""
-    v = to_numpy_f64(x).reshape(-1)
-    if n_expected is not None and v.size != n_expected:
-        raise ValueError(f"Expected size {n_expected}, got {v.size}")
-    return v
 
 def kabsch_align(P: np.ndarray, Q: np.ndarray) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray]:
     """
@@ -161,9 +145,6 @@ def _idpp_targets(P0: np.ndarray, P1: np.ndarray, n_inner: int) -> List[np.ndarr
         targets.append(inv_tgt)
     return targets
 
-import numpy as np
-from ase import Atoms
-
 # =============================================================================
 # ------------------------------- NEB Core ------------------------------------
 # =============================================================================
@@ -190,6 +171,9 @@ class NEBParams:
     cineb_f_rms_th: float = 1e-2 #2e-03          # RMS(Fp) threshold for CINEB
     cilbfgs_m: int = 20                    # memory size for L-BFGS in CINEB
     cistep0: float = 5e-3                  # initial step length for CINEB
+    cineb_max_iter: Optional[int] = None   # independent CI budget; None preserves max_iter
+    prfo_max_iter: int = 256               # independent PRFO budget for NEB-TS
+    prfo_project_rigid_modes: bool = False # explicit PRFO optimization subspace
 
 
 def compute_dynamic_k(energies: List[float], k_min: float, k_max: float, k_decay: float = 0.5) -> List[float]:
@@ -229,9 +213,6 @@ def compute_dynamic_k(energies: List[float], k_min: float, k_max: float, k_decay
     
     if n_img < 3:
         return k_springs
-    
-    # Find global energy reference (typically reactant energy)
-    E_ref_global = min(energies[0], energies[-1])
     
     # Compute energy barriers for each internal image
     delta_E = []
@@ -455,6 +436,216 @@ def rms_force(forces_list: List[np.ndarray]) -> float:
     v = np.concatenate(arrs)
     return float(np.sqrt(np.mean(v * v)))
 
+
+def _pack_internal(images: List[Atoms]) -> np.ndarray:
+    coordinates = [
+        to_numpy_f64(image.get_positions()).reshape(-1)
+        for image in images[1:-1]
+    ]
+    return np.concatenate(coordinates) if coordinates else np.zeros(0, dtype=np.float64)
+
+
+def _unpack_internal(coordinates: np.ndarray, images: List[Atoms]) -> None:
+    offset = 0
+    for image in images[1:-1]:
+        size = len(image) * 3
+        image.set_positions(coordinates[offset : offset + size].reshape(-1, 3))
+        offset += size
+
+
+def _evaluate_neb_images(images: List[Atoms]):
+    from maple.function.dispatcher.implicit_path import (
+        evaluate_path_images,
+        uses_admitted_implicit_path,
+    )
+
+    with ExitStack() as stack:
+        for index, image in enumerate(images):
+            stack.enter_context(
+                scientific_atoms_transaction(
+                    image,
+                    operation=f"NEB image {index} energy/force",
+                )
+            )
+        if uses_admitted_implicit_path(images):
+            energies, forces = evaluate_path_images(images, label="NEB")
+        else:
+            energies = [
+                image.get_potential_energy(force_consistent=True) for image in images
+            ]
+            forces = [image.get_forces() for image in images]
+    return (
+        [float(to_numpy_f64(energy)) for energy in energies],
+        [np.array(to_numpy_f64(force), copy=True) for force in forces],
+    )
+
+
+def _cineb_forces(images, energies, raw_forces, k_spring, climbing_index):
+    coordinates = [to_numpy_f64(image.get_positions()) for image in images]
+    projected = [np.zeros_like(coordinates[0]) for _ in images]
+    for index in range(1, len(images) - 1):
+        tangent = improved_tangent(
+            coordinates[index - 1],
+            coordinates[index],
+            coordinates[index + 1],
+            energies[index - 1],
+            energies[index],
+            energies[index + 1],
+        )
+        true_force = vec1d(raw_forces[index])
+        if index == climbing_index:
+            # Henkelman-Jonsson climbing image: F_CI = F - 2(F dot tau)tau.
+            projected[index] = (
+                true_force - 2.0 * np.dot(true_force, tangent) * tangent
+            ).reshape(-1, 3)
+            continue
+        perpendicular = true_force - np.dot(true_force, tangent) * tangent
+        next_distance = float(
+            np.linalg.norm(coordinates[index + 1] - coordinates[index])
+        )
+        previous_distance = float(
+            np.linalg.norm(coordinates[index] - coordinates[index - 1])
+        )
+        spring = k_spring * (next_distance - previous_distance) * tangent
+        projected[index] = perpendicular.reshape(-1, 3) + spring.reshape(-1, 3)
+    return projected
+
+
+def run_neb_stage(
+    images: List[Atoms],
+    *,
+    params: NEBParams,
+    stage_kind: Literal["base", "ci"],
+    output: str,
+) -> PathStageResult:
+    """Optimize one already-built base or climbing-image NEB stage."""
+    if stage_kind not in {"base", "ci"}:
+        raise ValueError("stage_kind must be 'base' or 'ci'.")
+    if len(images) < 3:
+        raise ValueError("An NEB stage requires at least one internal image.")
+
+    if stage_kind == "base":
+        maximum_iterations = int(params.max_iter)
+        driver = LBFGSDriver(
+            m=params.lbfgs_m,
+            curvature=70.0,
+            maxstep=params.step0,
+        )
+    else:
+        maximum_iterations = int(
+            params.max_iter
+            if params.cineb_max_iter is None
+            else params.cineb_max_iter
+        )
+        driver = LBFGSDriver(
+            m=params.cilbfgs_m,
+            curvature=70.0,
+            maxstep=params.cistep0,
+        )
+        driver.fmax_reg = params.neb_f_max_th
+        driver.frms_reg = params.neb_f_rms_th
+        driver.fmax_ci = params.cineb_f_max_th
+        driver.frms_ci = params.cineb_f_rms_th
+    if maximum_iterations < 0:
+        raise ValueError("NEB stage iteration budgets must be nonnegative.")
+
+    climbing_index = None
+
+    def evaluate(coordinates):
+        nonlocal climbing_index
+        _unpack_internal(coordinates, images)
+        energies, raw_forces = _evaluate_neb_images(images)
+        if stage_kind == "base":
+            projected, _, highest_index = neb_forces(
+                images,
+                energies,
+                use_dynamic_k=params.use_dynamic_k,
+                k_min=params.k_min,
+                k_max=params.k_max,
+                k_decay=params.k_decay,
+                raw_forces=raw_forces,
+            )
+        else:
+            if climbing_index is None:
+                climbing_index = max(
+                    range(1, len(images) - 1), key=lambda index: energies[index]
+                )
+            highest_index = climbing_index
+            projected = _cineb_forces(
+                images,
+                energies,
+                raw_forces,
+                params.k_max,
+                climbing_index,
+            )
+        gradient = np.concatenate(
+            [(-projected[index]).reshape(-1) for index in range(1, len(images) - 1)]
+        )
+        return gradient, energies, raw_forces, projected, highest_index
+
+    coordinates = _pack_internal(images)
+    gradient, energies, raw_forces, projected, highest_index = evaluate(coordinates)
+
+    def is_converged():
+        if stage_kind == "base":
+            return driver.should_stop(
+                gradient,
+                params.neb_f_max_th,
+                params.neb_f_rms_th,
+            )
+        regular = [
+            projected[index].reshape(-1)
+            for index in range(1, len(images) - 1)
+            if index != climbing_index
+        ]
+        regular_forces = (
+            np.concatenate(regular) if regular else np.zeros(0, dtype=np.float64)
+        )
+        return driver.ci_should_stop(
+            regular_forces,
+            raw_forces[climbing_index].reshape(-1),
+        )
+
+    converged = is_converged()
+    iterations = 0
+    trajectory_suffix = "_image_traj.xyz" if stage_kind == "base" else "_cineb_traj.xyz"
+    trajectory = os.path.splitext(output)[0] + trajectory_suffix
+    write_all_images_xyz(trajectory, images, energies=energies, iteration=0)
+    while iterations < maximum_iterations and not converged:
+        step = driver.step_limit(driver.two_loop(gradient))
+        new_coordinates = coordinates + step
+        (
+            new_gradient,
+            energies,
+            raw_forces,
+            projected,
+            highest_index,
+        ) = evaluate(new_coordinates)
+        driver.update(new_coordinates - coordinates, new_gradient - gradient)
+        coordinates = new_coordinates
+        gradient = new_gradient
+        iterations += 1
+        converged = is_converged()
+        write_all_images_xyz(
+            trajectory,
+            images,
+            energies=energies,
+            iteration=iterations,
+        )
+
+    return PathStageResult.capture(
+        status=(RunStatus.CONVERGED if converged else RunStatus.BOUNDED_NONCONVERGED),
+        images=images,
+        energies_hartree=energies,
+        forces_hartree_per_angstrom=raw_forces,
+        budgets={
+            "maximum_iterations": maximum_iterations,
+            "used_iterations": iterations,
+        },
+        termination_reason="force_converged" if converged else "maximum_iterations",
+        candidate=images[highest_index],
+    )
+
 # =============================================================================
 # ------------------------------- NEB Class -----------------------------------
 # =============================================================================
@@ -480,13 +671,23 @@ class NEB(JobABC):
         # Safety: minimal guard
         if self.params.n_images < 1:
             raise ValueError("n_images must be >= 1")
+        if self.params.cineb_max_iter is not None and (
+            type(self.params.cineb_max_iter) is not int
+            or self.params.cineb_max_iter < 0
+        ):
+            raise ValueError("cineb_max_iter must be a nonnegative integer or None.")
+        if type(self.params.prfo_max_iter) is not int or self.params.prfo_max_iter < 0:
+            raise ValueError("prfo_max_iter must be a nonnegative integer.")
+        if type(self.params.prfo_project_rigid_modes) is not bool:
+            raise TypeError("prfo_project_rigid_modes must be a boolean.")
+        if self.params.refine not in {None, "cineb", "nebts"}:
+            raise ValueError("NEB refine must be None, 'cineb', or 'nebts'.")
 
         self.params.n_images = int(self.params.n_images) + 2  # total images including endpoints
 
     @staticmethod
     def _evaluate_images(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
-        from maple.function.dispatcher.implicit_path import evaluate_path_images
-        return evaluate_path_images(images, label="NEB")
+        return _evaluate_neb_images(images)
 
 
     def optimize_endpoints(self, atoms_R: Atoms, atoms_P: Atoms, 
@@ -542,24 +743,6 @@ class NEB(JobABC):
             lines.append(f"{s:<2} {x:14.6f} {y:14.6f} {z:14.6f}")
         return "\n".join(lines) + "\n"
 
-    # -------------------------- helpers to map x <-> images -------------------
-
-    def _pack_internal(self, images: List[Atoms]) -> np.ndarray:
-        """Flatten internal images (1..N-2) Cartesian into a single vector."""
-        arrs = []
-        for i in range(1, len(images) - 1):
-            arrs.append(to_numpy_f64(images[i].get_positions()).reshape(-1))
-        return np.concatenate(arrs) if arrs else np.zeros(0, dtype=np.float64)
-
-    def _unpack_internal(self, x: np.ndarray, images: List[Atoms]):
-        """Write back flattened x into internal images (1..N-2)."""
-        offset = 0
-        for i in range(1, len(images) - 1):
-            n = len(images[i]) * 3
-            Xi = x[offset:offset + n].reshape(-1, 3)
-            images[i].set_positions(Xi)
-            offset += n
-            
     def _align_path(self, images: List[Atoms], ref_mode: str = "reactant"):
         """
         Rigid alignment for all internal images each iteration.
@@ -690,276 +873,135 @@ class NEB(JobABC):
         return new_images
     
     # ---------------- Climbing Image NEB (CINEB) -------------------------------
-    def cineb_forces(self, images: List[Atoms], energies: List[float], k_spring: float) -> Tuple[List[np.ndarray], float, int]:
-            """
-            Climbing Image NEB projected forces:
-            - normal NEB force for all non-endpoints except HEI
-            - for HEI: remove spring force and reverse parallel component of true force
-
-            The climbing image index can be "frozen" via self._cineb_fixed_hei:
-            - if set and valid, use it
-            - otherwise use the current highest-energy internal image
-            """
-            n_img = len(images)
-            forces_proj = [None] * n_img
-            max_fp = 0.0
-
-            raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
-            coords = [to_numpy_f64(at.get_positions()) for at in images]
-            Es = [float(e) for e in energies]
-
-            inner_indices = list(range(1, n_img - 1))
-
-            # --- choose HEI index: fixed one if present, else dynamic ---
-            fixed_hei = getattr(self, "_cineb_fixed_hei", None)
-            if (fixed_hei is not None) and (fixed_hei in inner_indices):
-                hei_idx = fixed_hei
-            else:
-                hei_idx = max(inner_indices, key=lambda i: Es[i])
-
-            for i in inner_indices:
-                Rm1, R, Rp1 = coords[i - 1], coords[i], coords[i + 1]
-                Em1, E, Ep1 = Es[i - 1], Es[i], Es[i + 1]
-
-                tau = improved_tangent(Rm1, R, Rp1, Em1, E, Ep1)
-                tau_resh = tau.reshape(-1, 3)
-                F_true = vec1d(raw_forces[i])
-
-                if i == hei_idx:
-                    # ----------------------------------------------------------
-                    # Climbing image force (ONLY true force, no projection)
-                    # F_CI = F_true - 2 (F_true·tau) tau
-                    # ----------------------------------------------------------
-                    f_true = F_true                      # 1D (3N,)
-                    tau_ci = tau / np.linalg.norm(tau)   # ensure normalized
-
-                    ft = np.dot(f_true, tau_ci)
-                    f_ci = f_true - 2.0 * ft * tau_ci
-
-                    forces_proj[i] = f_ci.reshape(-1, 3)
-                    continue
-
-                else:
-                    # Normal NEB projected force
-                    F_true_perp = F_true - np.dot(F_true, tau) * tau
-                    d_next = float(np.linalg.norm(Rp1 - R))
-                    d_prev = float(np.linalg.norm(R - Rm1))
-                    F_spring_par = k_spring * (d_next - d_prev) * tau_resh
-                    Fp = F_true_perp.reshape(-1, 3) + F_spring_par
-
-                forces_proj[i] = Fp
-                max_fp = max(max_fp, float(np.abs(Fp).max()))
-
-            # endpoints fixed
-            forces_proj[0] = np.zeros_like(coords[0])
-            forces_proj[-1] = np.zeros_like(coords[-1])
-
-            return forces_proj, max_fp, hei_idx
+    def cineb_forces(
+        self,
+        images: List[Atoms],
+        energies: List[float],
+        k_spring: float,
+        raw_forces: Optional[List[np.ndarray]] = None,
+    ) -> Tuple[List[np.ndarray], float, int]:
+        if raw_forces is None:
+            _, raw_forces = self._evaluate_images(images)
+        inner_indices = range(1, len(images) - 1)
+        fixed_index = getattr(self, "_cineb_fixed_hei", None)
+        climbing_index = (
+            fixed_index
+            if fixed_index in inner_indices
+            else max(inner_indices, key=lambda index: energies[index])
+        )
+        projected = _cineb_forces(
+            images,
+            energies,
+            raw_forces,
+            k_spring,
+            climbing_index,
+        )
+        nonclimbing = [
+            np.abs(projected[index]).max()
+            for index in inner_indices
+            if index != climbing_index
+        ]
+        max_projected = float(max(nonclimbing, default=0.0))
+        return projected, max_projected, climbing_index
 
 
-    def restart_run(self, images: List[Atoms], energies: Optional[List[float]] = None):
-        """
-        Continue from a converged NEB path and perform:
-        - CINEB refinement (always)
-        - Optional TS refinement with RFO (if params.refine == 'nebts')
-
-        Logic:
-        - regular images: use projected NEB forces Fp for convergence
-        - climbing image: use *true* forces F for convergence
-        - climbing image index is frozen for the whole CINEB run
-        """
-        if energies is None:
-            energies = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-
-        # reset any previous fixed HEI
-        self._cineb_fixed_hei = None
-
-        traj_file = os.path.splitext(self.output)[0] + "_cineb_traj.xyz"
-        driver = LBFGSDriver(m=self.params.lbfgs_m, curvature=70.0, maxstep=self.params.cistep0)
-        # set convergence thresholds
-        driver.fmax_reg = self.params.neb_f_max_th
-        driver.frms_reg = self.params.neb_f_rms_th
-        driver.fmax_ci  = self.params.cineb_f_max_th
-        driver.frms_ci  = self.params.cineb_f_rms_th
-
-        def eval_grad(x_flat: np.ndarray) -> np.ndarray:
-            """Return gradient dE/dx (flattened) for all internal images using CINEB forces."""
-            self._unpack_internal(x_flat, images)
-            Es_local = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-            Fp_list_local, _, _ = self.cineb_forces(images, Es_local, self.params.k_max)
-            grads = [(-Fp_list_local[i]).reshape(-1) for i in range(1, len(images) - 1)]
-            return np.concatenate(grads) if grads else np.zeros_like(x_flat)
-
-        # initial packing / gradient
-        x = self._pack_internal(images)
-        g = eval_grad(x)
-        iteration = 0
-
-        # initial energies / forces for logging & to freeze HEI
-        Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-        Fp_list, maxfp, hei = self.cineb_forces(images, Es, self.params.k_max)
-
-        # freeze HEI index for the whole CINEB run
-        self._cineb_fixed_hei = hei
-
-
-        F_CI_vec = to_numpy_f64(images[hei].get_forces())
-        maxF_CI = float(np.max(np.linalg.norm(F_CI_vec, axis=1)))
-        rmsF_CI = float(np.sqrt(np.mean(np.linalg.norm(F_CI_vec, axis=1) ** 2)))
-
-        log_info([
-            "\nStarting CINEB refinement:\n",
-            "Optim.  Iteration  CI   E(CI)-E(0)   max(|Fp|)   RMS(Fp)   max(|FCI|)   RMS(|FCI|)\n",
-            f"Convergence thresholds regular: {self.params.neb_f_max_th: .6f}/{self.params.neb_f_rms_th: .6f},  "
-            f"CI: {self.params.cineb_f_max_th: .6f}/{self.params.cineb_f_rms_th: .6f}\n"
-        ], self.output)
-
-        while iteration < self.params.max_iter:
-            # ===== convergence check at current geometry =====
-            # regular Fp: all internal non-CI images
-            inner_idx = list(range(1, len(images) - 1))
-            regular_flat = []
-            for i in inner_idx:
-                if i == hei:
-                    continue
-                regular_flat.append(Fp_list[i].reshape(-1))
-            Fp_all = np.concatenate(regular_flat) if regular_flat else np.zeros(0, dtype=np.float64)
-
-            # true forces on CI (no projection)
-            F_CI = to_numpy_f64(images[hei].get_forces()).reshape(-1)
-
-            if driver.ci_should_stop(Fp_all, F_CI):
-                log_info([f"\nCINEB converged after {iteration} iterations.\n"], self.output)
-                break
-
-            # ===== L-BFGS step using CINEB gradient =====
-            p = driver.two_loop(g)
-            p = driver.step_limit(p)
-
-            # take full step (no line search)
-            x_new = x + p
-
-            # evaluate new gradient
-            g_new = eval_grad(x_new)
-
-
-            driver.update(x_new - x, g_new - g)
-
-            x = x_new
-            g = g_new
-
-            # ===== recompute energies / forces for next iteration & logging =====
-            Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-            Fp_list, maxfp, _ = self.cineb_forces(images, Es, self.params.k_max)
-
-            F_CI_vec = to_numpy_f64(images[hei].get_forces())
-            maxF_CI = float(np.max(np.linalg.norm(F_CI_vec, axis=1)))
-            rmsF_CI = float(np.sqrt(np.mean(np.linalg.norm(F_CI_vec, axis=1) ** 2)))
-            rmsfp = rms_force(Fp_list)
-            dE_CI = Es[hei] - Es[0]
-
-            write_all_images_xyz(traj_file, images, energies=Es, iteration=iteration)
-            log_info([f"   LBFGS {iteration:>4d} {hei:>6d} {dE_CI:>10.6f} "
-                      f"{maxfp:>11.6f} {rmsfp:>10.6f} {maxF_CI:>10.6f} {rmsF_CI:>10.6f}\n"], self.output)
-
-            iteration += 1
-        else:
-            log_info(["\nCINEB refinement reached maximum iterations.\n"], self.output)
-
-        # Clean up fixed HEI
-        self._cineb_fixed_hei = None
-
-        # --- Stage 1 summary: CI part ---
+    def _run_cineb_stage(self, images: List[Atoms]) -> PathStageResult:
+        stage = run_neb_stage(
+            images,
+            params=self.params,
+            stage_kind="ci",
+            output=self.output,
+        )
+        climbing_index = next(
+            index
+            for index, image in enumerate(stage.images)
+            if image.get_positions().tobytes()
+            == stage.candidate.get_positions().tobytes()
+        )
+        projected = _cineb_forces(
+            images,
+            list(stage.energies_hartree),
+            list(stage.forces_hartree_per_angstrom),
+            self.params.k_max,
+            climbing_index,
+        )
+        self._ci_projected_forces = tuple(
+            np.array(force, copy=True) for force in projected
+        )
+        self._ci_climbing_index = climbing_index
+        self._ci_candidate = images[climbing_index]
         base, _ = os.path.splitext(self.output)
-        cineb_mep = base + "_cineb_mep.xyz"
-        cineb_hei = base + "_cineb_hei.xyz"
-        write_xyz(cineb_mep, images, energies=Es)
-        write_xyz(cineb_hei, [images[hei]], energies=[Es[hei]])
+        write_xyz(base + "_cineb_mep.xyz", images, energies=list(stage.energies_hartree))
+        write_xyz(
+            base + "_cineb_hei.xyz",
+            [images[climbing_index]],
+            energies=[stage.energies_hartree[climbing_index]],
+        )
+        return stage
 
-        log_info([
-            "\n---------------------------------------------------------------\n",
-            "               INFORMATION ABOUT SADDLE POINT     \n",
-            "---------------------------------------------------------------\n",
-            f"Climbing image                            ....  {hei}\n",
-            f"Energy                                    ....  {Es[hei]: .8f} Eh\n",
-            f"Max. abs. force                           ....  {maxF_CI: .4e} Eh/Angstrom\n",
-            "\n-----------------------------------------\n",
-            "  SADDLE POINT (ANGSTROEM)\n",
-            "-----------------------------------------\n",
-            self.atoms_to_xyz(images[hei])
-        ], self.output)
+    def _run_nebts_stage(self, ci_stage: PathStageResult) -> PathStageResult:
+        """Refine a converged CI candidate without changing the MEP images."""
+        from .PRFO import PRFO
 
-        # --- Stage 2: Optional PRFO refinement ---
-        if self.params.refine == 'nebts':
-            from .PRFO import PRFO
+        ts_guess = self._ci_candidate.copy()
+        ts_guess.calc = self._ci_candidate.calc
+        for name in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th"):
+            if hasattr(self._ci_candidate, name):
+                setattr(ts_guess, name, getattr(self._ci_candidate, name))
 
-            # Use CI geometry as TS guess
-            ts_guess = images[hei].copy()
-            ts_guess.calc = self.atoms_R.calc
-            ts_guess.f_max_th = images[0].f_max_th
-            ts_guess.f_rms_th = images[0].f_rms_th
-            ts_guess.dp_max_th = images[0].dp_max_th
-            ts_guess.dp_rms_th = images[0].dp_rms_th
+        prfo_parameters = {
+            "prfo": {
+                "max_iter": int(self.params.prfo_max_iter),
+                "project_rigid_modes": bool(self.params.prfo_project_rigid_modes),
+            }
+        }
+        prfo_result = PRFO(
+            output=self.output,
+            atoms=ts_guess,
+            paras=prfo_parameters,
+        ).run()
+        if not isinstance(prfo_result, PRFOResult):
+            raise TypeError("NEB-TS requires PRFO.run() to return PRFOResult.")
+        self.prfo_result = prfo_result
 
-            prfo = PRFO(output=self.output, atoms=ts_guess)
-            self.prfo_result = prfo.run()
-            if not self.prfo_result.certified_ts:
-                log_info([
-                    "\nPRFO refinement did not certify an index-one transition state; "
-                    "the CI candidate remains separate from the MEP.\n"
-                ], self.output)
-                return self.prfo_result
-            ts_opt = self.prfo_result.atoms
-
-            E_TS = self.prfo_result.energy_hartree
-            ts_force_norms = np.linalg.norm(
-                self.prfo_result.forces_hartree_per_angstrom,
-                axis=1,
+        if prfo_result.certified_ts:
+            base, _ = os.path.splitext(self.output)
+            write_xyz(
+                base + "_nebts_mep.xyz",
+                list(ci_stage.images),
+                energies=list(ci_stage.energies_hartree),
             )
-            maxF_TS = np.max(ts_force_norms)
-            rmsF_TS = np.sqrt(np.mean(ts_force_norms**2))
+            write_xyz(
+                base + "_nebts_ts.xyz",
+                [prfo_result.atoms],
+                energies=[prfo_result.energy_hartree],
+            )
 
-            nebts_mep = base + "_nebts_mep.xyz"
-            nebts_ts = base + "_nebts_ts.xyz"
-            write_xyz(nebts_mep, images, energies=Es)
-            write_xyz(nebts_ts, [ts_opt], energies=[E_TS])
+        return PathStageResult.capture(
+            status=prfo_result.status,
+            images=ci_stage.images,
+            energies_hartree=ci_stage.energies_hartree,
+            forces_hartree_per_angstrom=ci_stage.forces_hartree_per_angstrom,
+            budgets={
+                "maximum_iterations": int(self.params.prfo_max_iter),
+                "used_iterations": prfo_result.iterations,
+            },
+            termination_reason=prfo_result.termination_reason,
+            candidate=prfo_result.atoms,
+            certification=prfo_result.certification,
+        )
 
-            log_info([
-                "\n---------------------------------------------------------------\n",
-                "                      PATH SUMMARY FOR NEB-TS             \n",
-                "---------------------------------------------------------------\n",
-                "All forces in Eh/Angstrom. Global forces for TS.\n\n",
-                "Image     E(Eh)   dE(kcal/mol)  max(|Fp|)  RMS(Fp)\n"
-            ], self.output)
-
-            kcal_per_Eh = 627.509
-            for i, E in enumerate(Es):
-                dE = (E - Es[0]) * kcal_per_Eh
-                label = f"{i:3d}"
-                marker = " <= CI" if i == hei else ""
-                maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
-                rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
-                log_info([
-                    f"{label:>4s} {E:12.5f} {dE:11.2f} {maxF:11.5f} {rmsF:10.5f}{marker}\n"
-                ], self.output)
-            log_info([
-                f"  TS {E_TS:12.5f} {(E_TS - Es[0]) * kcal_per_Eh:11.2f} "
-                f"{maxF_TS:11.5f} {rmsF_TS:10.5f} <= certified TS (separate)\n"
-            ], self.output)
-
-            log_info([
-                "\n-----------------------------------------\n",
-                "  REFINED TS STRUCTURE (ANGSTROEM)\n",
-                "-----------------------------------------\n",
-                self.atoms_to_xyz(ts_opt)
-            ], self.output)
-
-            log_info([
-                f"\nWrote unchanged NEB-TS MEP to: {nebts_mep}\n",
-                f"Wrote separate certified TS structure to: {nebts_ts}\n"
-            ], self.output)
-            return self.prfo_result
-
+    def restart_run(self, images: List[Atoms], energies=None) -> PathStageResult:
+        """Run CI-NEB and optional certified-only PRFO refinement."""
+        del energies
+        self.ci_stage_result = self._run_cineb_stage(images)
+        self.nebts_stage_result = None
+        if self.ci_stage_result.status is not RunStatus.CONVERGED:
+            return self.ci_stage_result
+        if self.params.refine != "nebts":
+            return self.ci_stage_result
+        self.nebts_stage_result = self._run_nebts_stage(self.ci_stage_result)
+        return self.nebts_stage_result
 
 
     # ==============================================================
@@ -1110,7 +1152,7 @@ class NEB(JobABC):
         
         log_info([
             f"\n{'='*70}\n",
-            f"NEB Initialization\n",
+            "NEB Initialization\n",
             f"{'='*70}\n",
             f"Input images:    {n_input}\n",
             f"Required images: {n_required} (including endpoints)\n"
@@ -1163,7 +1205,7 @@ class NEB(JobABC):
         
         # Case 1: Exact number of images - use directly (already aligned)
         if n_input == n_required:
-            log_info([f"\nExact number of images provided. Using input directly.\n"], self.output)
+            log_info(["\nExact number of images provided. Using input directly.\n"], self.output)
             images = self.input_images
             
         # Case 2: Need to insert additional images via interpolation
@@ -1171,7 +1213,7 @@ class NEB(JobABC):
             n_to_insert = n_required - n_input
             log_info([
                 f"\nNeed to insert {n_to_insert} additional image(s).\n",
-                f"Analyzing distances to determine optimal insertion points...\n"
+                "Analyzing distances to determine optimal insertion points...\n"
             ], self.output)
             
             # Compute straight-line distances between consecutive input images
@@ -1224,184 +1266,57 @@ class NEB(JobABC):
             images[-1] = self.atoms_P
         
         # ===================================================================
-        # Step 2: Endpoint properties and alignment
+        # Step 2: Optimize one prepared base-stage image list
         # ===================================================================
-        initial_energies, initial_forces = self._evaluate_images(images)
-        initial_geometry = tuple(
-            image.get_positions().tobytes() for image in images
+        for image in images:
+            if image.calc is None:
+                image.calc = self.atoms_R.calc
+
+        base_stage = run_neb_stage(
+            images,
+            params=self.params,
+            stage_kind="base",
+            output=self.output,
         )
-
-        def forces_info(F):
-            maxF = np.max(np.linalg.norm(F, axis=1))            
-            rmsF = np.sqrt(np.mean(np.linalg.norm(F, axis=1) ** 2))
-            return maxF, rmsF
-
-        E_R = initial_energies[0]
-        E_P = initial_energies[-1]
-        maxF_R, rmsF_R = forces_info(initial_forces[0])
-        maxF_P, rmsF_P = forces_info(initial_forces[-1])
-
-        log_info([
-            "\nProperties of fixed NEB end points:\n",
-            "               Reactant:\n",
-            f"                         E               ....   {E_R: .6f} Eh\n",
-            f"                         RMS(F)          ....   {rmsF_R: .6f} Eh/Angstrom\n",
-            f"                         MAX(|F|)        ....   {maxF_R: .6f} Eh/Angstrom\n",
-            "               Product:\n",
-            f"                         E               ....   {E_P: .6f} Eh\n",
-            f"                         RMS(F)          ....   {rmsF_P: .6f} Eh/Angstrom\n",
-            f"                         MAX(|F|)        ....   {maxF_P: .6f} Eh/Angstrom\n",
-            "\nReactant XYZ (Angstrom):\n",
-            self.atoms_to_xyz(images[0]),
-            "\nProduct XYZ (Angstrom):\n",
-            self.atoms_to_xyz(images[-1]),
-            "\n"
-        ], self.output)
-
-        # Alignment
-        log_info(["\nPerforming Kabsch alignment of all images...\n"], self.output)
-        self._align_path(images, ref_mode="reactant")
-        log_info(["Alignment completed.\n"], self.output)
-        
-        # Ensure all images have calculators
-        for img in images:
-            if img.calc is None:
-                img.calc = self.atoms_R.calc
-
-        # ===================================================================
-        # Step 3: Normal NEB optimization loop
-        # ===================================================================
-        
-        traj_file = os.path.splitext(self.output)[0] + "_image_traj.xyz"
-        
-        driver = LBFGSDriver(
-            m=self.params.lbfgs_m,
-            curvature=70.0,
-            maxstep=self.params.step0
-        )
-        
-        self._k_springs_history = []
-        
-        def eval_grad(x_flat):
-            self._unpack_internal(x_flat, images)
-            current_geometry = tuple(image.get_positions().tobytes() for image in images)
-            if current_geometry == initial_geometry and not hasattr(self, "_last_evaluation"):
-                Es, raw_forces = initial_energies, initial_forces
-            else:
-                Es, raw_forces = self._evaluate_images(images)
-            self._last_evaluation = (Es, raw_forces)
-            
-            Fp_list, _, _ = neb_forces(
-                images, Es,
-                k_spring=None,
-                k_springs=None,
-                use_dynamic_k=self.params.use_dynamic_k,
-                k_min=self.params.k_min,
-                k_max=self.params.k_max,
-                k_decay=self.params.k_decay,
-                raw_forces=raw_forces,
-            )
-            
-            grads = [(-Fp_list[i]).reshape(-1) for i in range(1, len(images) - 1)]
-            return np.concatenate(grads) if grads else np.zeros_like(x_flat)
-        
-        x = self._pack_internal(images)
-        g = eval_grad(x)
-        iteration = 0
-        
-        Es, raw_forces = self._last_evaluation
-        
-        if self.params.use_dynamic_k:
-            k_springs = compute_dynamic_k(Es, self.params.k_min, self.params.k_max, self.params.k_decay)
-            self._k_springs_history.append(k_springs.copy())
-        else:
-            k_springs = [self.params.k_max] * len(images)
-        
+        Es = list(base_stage.energies_hartree)
+        raw_forces = list(base_stage.forces_hartree_per_angstrom)
+        iteration = base_stage.budgets["used_iterations"]
+        converged = base_stage.status is RunStatus.CONVERGED
         Fp_list, maxfp, hei = neb_forces(
-            images, Es,
-            k_spring=None,
-            k_springs=k_springs,
-            use_dynamic_k=False,
+            images,
+            Es,
+            use_dynamic_k=self.params.use_dynamic_k,
+            k_min=self.params.k_min,
+            k_max=self.params.k_max,
+            k_decay=self.params.k_decay,
             raw_forces=raw_forces,
         )
         rmsfp = rms_force(Fp_list)
-        dE_hei = Es[hei] - Es[0]
-        
-        # Log header with initial state
-        if self.params.use_dynamic_k:
-            k_hei = k_springs[hei]
-            log_info([
-                "\nStarting NEB iterations with ORCA-style dynamic spring constants:\n",
-                f"k_min = {self.params.k_min:.4f}, k_max = {self.params.k_max:.4f}, k_decay = {self.params.k_decay:.4f}\n",
-                "Optim.  Iteration  HEI  E(HEI)-E(0)  max(|Fp|)   RMS(Fp)   k(HEI)\n",
-                f"Convergence thresholds         {self.params.neb_f_max_th: .6f}   {self.params.neb_f_rms_th: .6f}\n",
-                f"Initial {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}   {k_hei:.4f}\n"
-            ], self.output)
-        else:
-            log_info([
-                "\nStarting NEB iterations with fixed spring constant:\n",
-                f"k_spring = {self.params.k_max:.4f}\n",
-                "Optim.  Iteration  HEI  E(HEI)-E(0)  max(|Fp|)   RMS(Fp)\n",
-                f"Convergence thresholds         {self.params.neb_f_max_th: .6f}   {self.params.neb_f_rms_th: .6f}\n",
-                f"Initial {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}\n"
-            ], self.output)
-        
-        # Write initial trajectory
-        write_all_images_xyz(traj_file, images, energies=Es, iteration=iteration)
-        
-        # ===== Main optimization loop =====
-        while iteration < self.params.max_iter and not driver.should_stop(g, self.params.neb_f_max_th, self.params.neb_f_rms_th):
-            iteration += 1  # Increment at start to avoid confusion
-            
-            # L-BFGS step
-            p = driver.two_loop(g)
-            p = driver.step_limit(p)
-            
-            x_new = x + p
-            g_new = eval_grad(x_new)
-            
-            driver.update(x_new - x, g_new - g)
-            
-            x = x_new
-            g = g_new
-            
-            # Compute forces and energies for logging
-            Es, raw_forces = self._last_evaluation
-            
-            if self.params.use_dynamic_k:
-                k_springs = compute_dynamic_k(Es, self.params.k_min, self.params.k_max, self.params.k_decay)
-                self._k_springs_history.append(k_springs.copy())
-            else:
-                k_springs = [self.params.k_max] * len(images)
-            
-            Fp_list, maxfp, hei = neb_forces(
-                images, Es,
-                k_spring=None,
-                k_springs=k_springs,
-                use_dynamic_k=False,
-                raw_forces=raw_forces,
+        self._k_springs_history = [
+            compute_dynamic_k(
+                Es,
+                self.params.k_min,
+                self.params.k_max,
+                self.params.k_decay,
             )
-            
-            rmsfp = rms_force(Fp_list)
-            dE_hei = Es[hei] - Es[0]
-            
-            write_all_images_xyz(traj_file, images, energies=Es, iteration=iteration)
-            
-            if self.params.use_dynamic_k:
-                k_hei = k_springs[hei]
-                log_info([f"   LBFGS {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}   {k_hei:.4f}\n"], self.output)
-            else:
-                log_info([f"   LBFGS {iteration:>4d} {hei:>6d} {dE_hei:>10.6f} {maxfp:>11.6f} {rmsfp:>10.6f}\n"], self.output)
-        
-        converged = driver.should_stop(
-            g, self.params.neb_f_max_th, self.params.neb_f_rms_th
-        )
+        ] if self.params.use_dynamic_k else []
+        traj_file = os.path.splitext(self.output)[0] + "_image_traj.xyz"
+
+        def forces_info(forces):
+            norms = np.linalg.norm(forces, axis=1)
+            return float(np.max(norms)), float(np.sqrt(np.mean(norms**2)))
+
+        maxF_R, rmsF_R = forces_info(raw_forces[0])
+        maxF_P, rmsF_P = forces_info(raw_forces[-1])
+        log_info([
+            "\nProperties of fixed NEB end points:\n",
+            f"Reactant E={Es[0]: .6f} Eh RMS(F)={rmsF_R: .6f} MAX(|F|)={maxF_R: .6f}\n",
+            f"Product  E={Es[-1]: .6f} Eh RMS(F)={rmsF_P: .6f} MAX(|F|)={maxF_P: .6f}\n",
+        ], self.output)
         if converged:
             log_info([f"\nNEB force criterion met after {iteration} iterations.\n"], self.output)
-        elif iteration == self.params.max_iter:
-            log_info(["\nNEB optimization reached maximum iterations.\n"], self.output)
         else:
-            log_info([f"\nNEB optimization converged after {iteration} iterations.\n"], self.output)
+            log_info(["\nNEB optimization reached maximum iterations.\n"], self.output)
 
 
         # ---------------------------------------------------------------
@@ -1458,25 +1373,49 @@ class NEB(JobABC):
         ], self.output)
         
         
-        # 3) Optional: CINEB refinement
-        prfo_result = None
+        self.base_stage_result = base_stage
+
+        refinement_stage = None
+        self.ci_stage_result = None
+        self.nebts_stage_result = None
+        self.prfo_result = None
         if self.params.refine == 'cineb' or self.params.refine == 'nebts':
-            if iteration == self.params.max_iter:
+            if not converged:
                 log_info([
                     "\nNEB did not converge. Skipping CINEB refinement.\n",
                     "You may try to increase max_iter or check the initial path.\n"
                 ], self.output)
             else:
-                prfo_result = self.restart_run(images, energies=Es)
+                refinement_stage = self.restart_run(images, energies=Es)
+
+        final_stage = (
+            refinement_stage
+            if isinstance(refinement_stage, PathStageResult)
+            else base_stage
+        )
+        if self.ci_stage_result is not None:
+            Es = list(self.ci_stage_result.energies_hartree)
+            Fp_list = list(self._ci_projected_forces)
+            maxfp = max(
+                float(np.max(np.abs(force)))
+                for force in Fp_list[1:-1]
+            )
+            rmsfp = rms_force(Fp_list)
         return {
-            "status": "converged" if converged else "bounded_nonconverged",
-            "converged": bool(converged),
-            "termination_reason": "force_converged" if converged else "maximum_iterations",
+            "status": final_stage.status.value,
+            "converged": final_stage.status is RunStatus.CONVERGED,
+            "termination_reason": final_stage.termination_reason,
             "iterations": iteration,
             "images": images,
             "energies": list(Es),
             "projected_forces": Fp_list,
             "max_projected_force": float(maxfp),
             "rms_projected_force": float(rmsfp),
-            "prfo_result": prfo_result,
+            "prfo_result": self.prfo_result,
+            "stage_result": final_stage,
+            "base_stage": base_stage,
+            "ci_stage": self.ci_stage_result,
+            "nebts_stage": self.nebts_stage_result,
+            "candidate": final_stage.candidate,
+            "certification": final_stage.certification,
         }

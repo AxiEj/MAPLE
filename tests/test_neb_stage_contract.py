@@ -639,12 +639,14 @@ def test_requested_nebts_rerun_archives_old_current_before_bounded_attempt(
 
 
 def test_nebts_retirement_refuses_symlink_without_touching_target(tmp_path):
+    from maple.function.dispatcher.artifacts import retire_certified_output
+
     unrelated = tmp_path / "unrelated.xyz"
     unrelated.write_bytes(b"unrelated valid bytes\n")
     current = tmp_path / "linked_nebts_ts.xyz"
     current.symlink_to(unrelated)
     with pytest.raises(ValueError, match="symlink or non-file"):
-        neb_module._retire_owned_nebts_output(str(tmp_path / "linked.out"))
+        retire_certified_output(current)
     assert current.is_symlink()
     assert unrelated.read_bytes() == b"unrelated valid bytes\n"
 

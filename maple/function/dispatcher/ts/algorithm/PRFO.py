@@ -33,15 +33,13 @@ from ...result_contracts import (
 )
 from ...numerical_state import (
     NumericalStateError,
-    ScientificAtomsSnapshot as _ScientificAtomsSnapshot,
     evaluate_energy as _evaluate_energy,
     evaluate_forces as _evaluate_forces,
     evaluate_hessian as calculate_Hessian,
-    evaluate_provider as _evaluate_provider,
-    scientific_atoms_transaction as _scientific_atoms_transaction,
     to_numpy_f64,
     vec1d,
 )
+from ...artifacts import atomic_output_path, retire_certified_output
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -86,13 +84,8 @@ def write_xyz(filename: str, atoms: Atoms, energy: Optional[float] = None,
 
 
 def write_xyz_atomic(filename: str, atoms: Atoms, **kwargs) -> None:
-    temporary = filename + ".tmp"
-    try:
+    with atomic_output_path(filename) as temporary:
         write_xyz(temporary, atoms, **kwargs)
-        os.replace(temporary, filename)
-    finally:
-        if os.path.exists(temporary):
-            os.remove(temporary)
 
 def append_xyz_trajectory(filename: str, atoms: Atoms, energy: Optional[float] = None,
                          iteration: int = 0):
@@ -755,8 +748,9 @@ class PRFO(JobABC):
         traj_file = base + "_prfo_traj.xyz"
         ts_file = base + "_prfo_ts.xyz"
         candidate_file = base + "_prfo_candidate.xyz"
-        if os.path.exists(ts_file):
-            os.remove(ts_file)
+        retired_ts = retire_certified_output(ts_file)
+        if retired_ts is not None:
+            log_info([f"Archived previous certified PRFO output to: {retired_ts}\n"], self.output)
         
         # Log header
         info_message = [

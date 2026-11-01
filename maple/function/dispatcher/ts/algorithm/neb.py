@@ -10,8 +10,6 @@ NEB implementation with:
 from __future__ import annotations
 from contextlib import ExitStack
 import os
-import stat
-import tempfile
 from dataclasses import dataclass
 from numbers import Real
 from types import MappingProxyType
@@ -28,6 +26,10 @@ from maple.function.dispatcher.numerical_state import (
     scientific_atoms_transaction,
     to_numpy_f64,
     vec1d,
+)
+from maple.function.dispatcher.artifacts import (
+    atomic_output_path,
+    retire_certified_output,
 )
 from maple.function.dispatcher.result_contracts import (
     PRFOResult,
@@ -84,46 +86,6 @@ def write_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]
             for s, (x, y, z) in zip(symbols, pos):
                 f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
-
-def _write_xyz_atomic(
-    filename: str,
-    images: List[Atoms],
-    energies: Optional[List[float]] = None,
-) -> None:
-    """Publish a complete XYZ without exposing a partial current artifact."""
-    directory = os.path.dirname(os.path.abspath(filename))
-    os.makedirs(directory, exist_ok=True)
-    descriptor, temporary = tempfile.mkstemp(
-        dir=directory,
-        prefix=os.path.basename(filename) + ".",
-        suffix=".tmp",
-    )
-    os.close(descriptor)
-    try:
-        write_xyz(temporary, images, energies=energies)
-        os.replace(temporary, filename)
-    finally:
-        if os.path.exists(temporary):
-            os.remove(temporary)
-
-
-def _retire_owned_nebts_output(output: str) -> Optional[str]:
-    """Atomically archive this NEB job's current certified-TS artifact."""
-    base, _ = os.path.splitext(os.path.abspath(output))
-    current = base + "_nebts_ts.xyz"
-    if not os.path.lexists(current):
-        return None
-    mode = os.lstat(current).st_mode
-    if stat.S_ISLNK(mode) or not stat.S_ISREG(mode):
-        raise ValueError("Refusing to retire a symlink or non-file NEB-TS output.")
-    archive_index = 1
-    while True:
-        archive = f"{base}_nebts_ts.previous-{archive_index}.xyz"
-        if not os.path.lexists(archive):
-            break
-        archive_index += 1
-    os.replace(current, archive)
-    return archive
 
 def write_all_images_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]] = None, iteration: int = 0):
     """
@@ -756,6 +718,8 @@ class NEB(JobABC):
             self.atoms_P = None
         else:
             raise ValueError("Please provide Molecules object containing all images")
+        if len(self.input_images) < 2:
+            raise ValueError("NEB requires at least two input images.")
 
         threshold_names = ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th")
         self._prfo_thresholds = {}
@@ -1083,11 +1047,12 @@ class NEB(JobABC):
                 list(ci_stage.images),
                 energies=list(ci_stage.energies_hartree),
             )
-            _write_xyz_atomic(
-                base + "_nebts_ts.xyz",
-                [prfo_result.atoms],
-                energies=[prfo_result.energy_hartree],
-            )
+            with atomic_output_path(base + "_nebts_ts.xyz") as temporary:
+                write_xyz(
+                    temporary,
+                    [prfo_result.atoms],
+                    energies=[prfo_result.energy_hartree],
+                )
 
         return PathStageResult.capture(
             status=prfo_result.status,
@@ -1106,7 +1071,8 @@ class NEB(JobABC):
     def _retire_nebts_current(self) -> None:
         if self.params.refine != "nebts":
             return
-        retired_output = _retire_owned_nebts_output(self.output)
+        base, _ = os.path.splitext(os.path.abspath(self.output))
+        retired_output = retire_certified_output(base + "_nebts_ts.xyz")
         if retired_output is not None:
             self.nebts_retired_output = retired_output
             log_info(

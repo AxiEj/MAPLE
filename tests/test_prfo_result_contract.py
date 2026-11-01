@@ -599,7 +599,7 @@ def test_late_hessian_refusal_preserves_valid_ef_and_convergence(tmp_path):
     }
 
 
-def test_new_attempt_replaces_prior_certification_and_removes_stale_ts(tmp_path):
+def test_new_attempt_archives_prior_certification_and_exposes_no_stale_ts(tmp_path):
     atoms = _stationary_hydrogen(negative_modes=1)
     transition = TransitionState(
         str(tmp_path / "repeat.out"),
@@ -618,6 +618,7 @@ def test_new_attempt_replaces_prior_certification_and_removes_stale_ts(tmp_path)
     assert transition.last_result is second_result
     assert transition.last_result is not first_result
     assert not (tmp_path / "repeat_prfo_ts.xyz").exists()
+    assert (tmp_path / "repeat_prfo_ts.previous-1.xyz").is_file()
 
 
 def test_programmer_error_propagates_without_stale_result(tmp_path):
@@ -811,7 +812,7 @@ def test_all_repo_callers_migrated():
     ]
     for path in owned_callers:
         text = path.read_text()
-        assert any(call in text for call in ("prfo.run()", "self._run_subjob(prfo)"))
+        assert "PRFOResult" in text
         assert "certified_ts" in text or "last_result" in text
     assert "images.insert(hei + 1, ts_opt)" not in owned_callers[1].read_text()
     assert "images_ts.insert" not in owned_callers[2].read_text()

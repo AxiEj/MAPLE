@@ -105,6 +105,22 @@ def _json_sha256(value) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _live_runtime_identity(calculator) -> tuple[dict, str]:
+    """Re-run the cheap analytic identity guards and return their canonical SHA."""
+    try:
+        identity = calculator.analytic_cell_identity
+        runtime_identity = calculator.runtime_profile_identity
+    except (AnalyticIdentityError, AnalyticCapabilityError) as exc:
+        raise CurvatureValidationError(
+            "Exact AIMNet2025 Hessian runtime binding validation failed."
+        ) from exc
+    if not _same_identity(identity, runtime_identity):
+        raise CurvatureValidationError(
+            "Exact AIMNet2025 Hessian claim has a drifted runtime binding."
+        )
+    return identity, _json_sha256(identity)
+
+
 def _atom_domain(atoms, *, total_charge: float | None = None) -> dict:
     info = getattr(atoms, "info", {})
     try:
@@ -152,19 +168,10 @@ def resolve_hessian_precision_profile(
     if str(getattr(calculator, "hessian", "")).lower() != "analytic":
         return _STRICT_PROFILE
 
-    try:
-        identity = calculator.analytic_cell_identity
-        runtime_identity = calculator.runtime_profile_identity
-    except (AnalyticIdentityError, AnalyticCapabilityError) as exc:
-        raise CurvatureValidationError(
-            "Exact AIMNet2025 Hessian runtime binding validation failed."
-        ) from exc
-    if not _same_identity(identity, runtime_identity):
-        raise CurvatureValidationError("Exact AIMNet2025 Hessian claim has a drifted runtime binding.")
+    identity, identity_sha = _live_runtime_identity(calculator)
     binding = getattr(calculator, "_hessian_precision_binding", None)
     if not _is_factory_hessian_precision_binding(binding):
         raise CurvatureValidationError("Exact AIMNet2025 Hessian claim lacks a factory binding.")
-    identity_sha = _json_sha256(identity)
     if (
         binding.profile_id
         not in {
@@ -321,6 +328,14 @@ def validate_cartesian_hessian(
             != profile.composition_identity_sha256
         ):
             raise CurvatureValidationError("The Hessian source binding changed after resolution.")
+        _, live_identity_sha = _live_runtime_identity(calculator)
+        if (
+            live_identity_sha != binding.runtime_identity_sha256
+            or live_identity_sha != profile.runtime_identity_sha256
+        ):
+            raise CurvatureValidationError(
+                "The Hessian runtime identity changed after profile resolution."
+            )
         if (
             str(getattr(calculator, "hessian", "")).lower() != "analytic"
             or str(getattr(calculator, "dtype", "")) != "torch.float32"
@@ -386,25 +401,41 @@ def validate_cartesian_hessian(
     )
 
 
-def _optimization_basis(atoms, *, project_rigid_modes: bool) -> tuple[np.ndarray, int]:
-    n3 = 3 * len(atoms)
-    if not project_rigid_modes:
-        return np.eye(n3, dtype=np.float64), 0
-    if np.any(atoms.get_pbc()) or bool(getattr(atoms, "constraints", None)):
-        raise ValueError(
-            "Rigid-mode projection is implemented only for isolated "
-            "unconstrained molecules."
-        )
+def _validated_mode_domain(
+    atoms, *, project_rigid_modes: bool
+) -> tuple[np.ndarray, np.ndarray]:
     masses = np.asarray(atoms.get_masses(), dtype=np.float64)
     if (
         masses.shape != (len(atoms),)
         or not np.isfinite(masses).all()
         or np.any(masses <= 0.0)
     ):
-        raise ValueError("Mode analysis requires finite positive atomic masses.")
+        raise CurvatureValidationError(
+            "Mode analysis requires finite positive atomic masses."
+        )
     positions = np.asarray(atoms.get_positions(), dtype=np.float64)
     if positions.shape != (len(atoms), 3) or not np.isfinite(positions).all():
-        raise ValueError("Rigid-mode projection requires finite positions.")
+        raise CurvatureValidationError("Mode analysis requires finite positions.")
+    if project_rigid_modes and (
+        np.any(atoms.get_pbc()) or bool(getattr(atoms, "constraints", None))
+    ):
+        raise CurvatureValidationError(
+            "Rigid-mode projection is implemented only for isolated "
+            "unconstrained molecules."
+        )
+    return masses, positions
+
+
+def _optimization_basis(
+    atoms,
+    *,
+    project_rigid_modes: bool,
+    masses: np.ndarray,
+    positions: np.ndarray,
+) -> tuple[np.ndarray, int]:
+    n3 = 3 * len(atoms)
+    if not project_rigid_modes:
+        return np.eye(n3, dtype=np.float64), 0
     center = np.sum(positions * masses[:, None], axis=0) / np.sum(masses)
     rigid = np.zeros((n3, 6), dtype=np.float64)
     for index, (mass, position) in enumerate(zip(masses, positions)):
@@ -438,13 +469,10 @@ def build_mass_weighted_mode_basis(
     """Build the shared mass-weighted eigensystem for validated curvature."""
     if not isinstance(validated_hessian, ValidatedCartesianHessian):
         raise TypeError("Mode analysis requires a validated Cartesian Hessian.")
-    masses = np.asarray(atoms.get_masses(), dtype=np.float64)
-    if (
-        masses.shape != (len(atoms),)
-        or not np.isfinite(masses).all()
-        or np.any(masses <= 0.0)
-    ):
-        raise ValueError("Mode analysis requires finite positive atomic masses.")
+    masses, positions = _validated_mode_domain(
+        atoms,
+        project_rigid_modes=project_rigid_modes,
+    )
     inverse_sqrt_mass = 1.0 / np.sqrt(np.repeat(masses, 3))
     weighted = (
         inverse_sqrt_mass[:, None]
@@ -454,6 +482,8 @@ def build_mass_weighted_mode_basis(
     basis, rigid_rank = _optimization_basis(
         atoms,
         project_rigid_modes=project_rigid_modes,
+        masses=masses,
+        positions=positions,
     )
     reduced = basis.T @ weighted @ basis
     reduced = 0.5 * (reduced + reduced.T)

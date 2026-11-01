@@ -191,6 +191,32 @@ def test_bound_guard_is_reused(monkeypatch):
     assert calls["identity"] == calls_before + 2
 
 
+def test_validation_reruns_live_identity_guard_after_profile_resolution(monkeypatch):
+    atoms = _water()
+    calculator, identity, calls = _bound_n32_calculator(monkeypatch, composed=False)
+    atoms.calc = calculator
+    profile = resolve_hessian_precision_profile(atoms, purpose="frequency")
+    calls_after_resolution = calls["identity"]
+    drifted = dict(identity, state_sha256="0" * 64)
+    monkeypatch.setattr(
+        type(calculator),
+        "analytic_cell_identity",
+        property(lambda self: drifted),
+    )
+    monkeypatch.setattr(
+        type(calculator),
+        "runtime_profile_identity",
+        property(lambda self: drifted),
+    )
+    raw = np.eye(9)
+    raw[0, 1] = 5.0e-7
+
+    with pytest.raises(ValueError, match="runtime binding|identity"):
+        validate_cartesian_hessian(atoms, raw, profile)
+
+    assert calls["identity"] == calls_after_resolution
+
+
 def test_gas_binding_reuses_full_receipt_gate_validator(monkeypatch):
     from maple.function.calculator import set_calculator
     from maple.function.calculator import _independent_obc2_qualified_cell as pointer
@@ -402,18 +428,20 @@ def test_material_skew_refuses():
         validate_cartesian_hessian(_water(), raw, _profile(1.0e-8))
 
 
-def test_bad_masses_refuse_before_mode_analysis():
+@pytest.mark.parametrize("bad_mass", [0.0, -1.0, np.nan])
+def test_bad_masses_refuse_before_mode_analysis(bad_mass):
     atoms = _water()
     masses = atoms.get_masses()
-    masses[0] = 0.0
+    masses[0] = bad_mass
     atoms.set_masses(masses)
     validated = validate_cartesian_hessian(atoms, np.eye(9), _profile(1.0e-8))
-    with pytest.raises(ValueError, match="positive atomic masses"):
+    with pytest.raises(ValueError, match="positive atomic masses") as exc_info:
         build_mass_weighted_mode_basis(
             atoms,
             validated,
             project_rigid_modes=False,
         )
+    assert type(exc_info.value).__name__ == "CurvatureValidationError"
 
 
 @pytest.mark.parametrize("negative_count", [0, 1, 2])

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 from types import MappingProxyType
 
@@ -17,7 +18,12 @@ from maple.function.dispatcher.result_contracts import (
 )
 from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
 from maple.function.dispatcher.ts.ts import TransitionState
-from maple.function.calculator.analytic_protocol import AnalyticIdentityError
+from maple.function.calculator.analytic_protocol import (
+    AnalyticCapabilityError,
+    AnalyticIdentityError,
+)
+
+prfo_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
 
 
 class Quadratic(Calculator):
@@ -145,6 +151,25 @@ class MutatingScientificStateHessian(Quadratic):
 class AnalyticIdentityFailureHessian(Quadratic):
     def get_hessian(self, atoms):
         raise AnalyticIdentityError("AIM source identity drift")
+
+
+class AnalyticFailureEF(Quadratic):
+    def __init__(self, reference, hessian, *, failure, fail_property):
+        super().__init__(reference, hessian)
+        self.failure = failure
+        self.fail_property = fail_property
+
+    def get_potential_energy(self, atoms=None, force_consistent=False):
+        if self.fail_property == "energy":
+            atoms.positions[0, 0] = 3.0
+            raise self.failure("dedicated analytic E/F refusal")
+        return super().get_potential_energy(atoms, force_consistent)
+
+    def get_forces(self, atoms=None):
+        if self.fail_property == "forces":
+            atoms.positions[0, 0] = 3.0
+            raise self.failure("dedicated analytic E/F refusal")
+        return super().get_forces(atoms)
 
 
 def _stationary_hydrogen(*, negative_modes: int) -> Atoms:
@@ -416,6 +441,124 @@ def test_dedicated_analytic_identity_failure_returns_refusal(tmp_path):
     assert result.status is RunStatus.REFUSED
     assert transition.last_result is result
     assert "identity drift" in result.termination_reason
+
+
+@pytest.mark.parametrize(
+    ("failure", "fail_property"),
+    [
+        (AnalyticIdentityError, "energy"),
+        (AnalyticCapabilityError, "forces"),
+    ],
+)
+def test_dedicated_analytic_ef_failure_returns_refusal_and_restores(
+    tmp_path, failure, fail_property
+):
+    atoms = _stationary_hydrogen(negative_modes=1)
+    initial = atoms.positions.copy()
+    atoms.calc = AnalyticFailureEF(
+        initial,
+        np.diag([-1.0, 1.0, 1.0]),
+        failure=failure,
+        fail_property=fail_property,
+    )
+    transition = TransitionState(
+        str(tmp_path / f"{fail_property}-failure.out"),
+        atoms,
+        {"max_iter": 1},
+        method="prfo",
+    )
+
+    result = transition.run()
+
+    assert result.status is RunStatus.REFUSED
+    assert transition.last_result is result
+    assert "dedicated analytic E/F refusal" in result.termination_reason
+    np.testing.assert_array_equal(atoms.positions, initial)
+
+
+@pytest.mark.parametrize("failure", [TypeError, ValueError, RuntimeError])
+@pytest.mark.parametrize("fail_property", ["energy", "forces"])
+def test_programmer_ef_failure_propagates_after_restore_and_clears_result(
+    tmp_path, failure, fail_property
+):
+    atoms = _stationary_hydrogen(negative_modes=1)
+    initial = atoms.positions.copy()
+    atoms.calc = AnalyticFailureEF(
+        initial,
+        np.diag([-1.0, 1.0, 1.0]),
+        failure=failure,
+        fail_property=fail_property,
+    )
+    transition = TransitionState(
+        str(tmp_path / f"programmer-{fail_property}.out"),
+        atoms,
+        {"max_iter": 1},
+        method="prfo",
+    )
+
+    with pytest.raises(failure, match="dedicated analytic E/F refusal"):
+        transition.run()
+
+    assert transition.last_result is None
+    np.testing.assert_array_equal(atoms.positions, initial)
+
+
+@pytest.mark.parametrize("bad_mass", [0.0, -1.0, np.nan])
+def test_invalid_mass_returns_typed_refusal(tmp_path, bad_mass):
+    atoms = _stationary_hydrogen(negative_modes=1)
+    atoms.set_masses([bad_mass])
+    transition = TransitionState(
+        str(tmp_path / "invalid-mass.out"), atoms, {"max_iter": 1}, method="prfo"
+    )
+
+    result = transition.run()
+
+    assert result.status is RunStatus.REFUSED
+    assert transition.last_result is result
+    assert "positive atomic masses" in result.termination_reason
+
+
+def test_invalid_mass_in_updated_curvature_returns_typed_refusal(tmp_path, monkeypatch):
+    atoms = Atoms("H", positions=[[0.2, 0.0, 0.0]])
+    atoms.calc = Quadratic(
+        np.zeros(3),
+        np.diag([-1.0, 1.0, 1.0]),
+    )
+    original = prfo_module.build_mass_weighted_mode_basis
+    calls = 0
+
+    def invalidate_on_updated_curvature(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            args[0].set_masses([0.0])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(
+        prfo_module,
+        "build_mass_weighted_mode_basis",
+        invalidate_on_updated_curvature,
+    )
+    transition = TransitionState(
+        str(tmp_path / "invalid-updated-mass.out"),
+        atoms,
+        {
+            "max_iter": 2,
+            "recalc": 2,
+            "f_max_th": 0.0,
+            "f_rms_th": 0.0,
+            "dp_max_th": 0.0,
+            "dp_rms_th": 0.0,
+        },
+        method="prfo",
+    )
+
+    result = transition.run()
+
+    assert calls == 2
+    assert result.status is RunStatus.REFUSED
+    assert transition.last_result is result
+    assert "positive atomic masses" in result.termination_reason
 
 
 def test_late_hessian_refusal_preserves_valid_ef_and_convergence(tmp_path):

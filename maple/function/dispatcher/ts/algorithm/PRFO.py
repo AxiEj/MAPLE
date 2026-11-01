@@ -376,7 +376,7 @@ def prfo_step(H, g, is_ts=False, target_mode=None, trust_radius=0.2,
 def _values_equal(left, right) -> bool:
     if isinstance(left, np.ndarray) or isinstance(right, np.ndarray):
         try:
-            return np.array_equal(np.asarray(left), np.asarray(right))
+            return np.array_equal(np.asarray(left), np.asarray(right), equal_nan=True)
         except (TypeError, ValueError):
             return False
     if isinstance(left, dict) and isinstance(right, dict):
@@ -432,7 +432,7 @@ class _ScientificAtomsSnapshot:
         return (
             atoms.arrays.keys() == self.arrays.keys()
             and all(
-                np.array_equal(atoms.arrays[name], value)
+                np.array_equal(atoms.arrays[name], value, equal_nan=True)
                 for name, value in self.arrays.items()
             )
             and np.array_equal(np.asarray(atoms.cell), self.cell)
@@ -480,6 +480,15 @@ def _scientific_atoms_transaction(atoms: Atoms, *, operation: str):
         )
 
 
+def _evaluate_provider(atoms: Atoms, *, operation: str, evaluate):
+    """Evaluate one provider operation and translate only analytic refusals."""
+    try:
+        with _scientific_atoms_transaction(atoms, operation=operation):
+            return evaluate()
+    except (AnalyticIdentityError, AnalyticCapabilityError) as exc:
+        raise CurvatureValidationError(str(exc)) from exc
+
+
 def calculate_Hessian(atoms: Atoms):
     """
     Calculate Hessian matrix from calculator.
@@ -495,24 +504,29 @@ def calculate_Hessian(atoms: Atoms):
         Hessian matrix in float64
     """
     calc = atoms.calc
-    try:
-        with _scientific_atoms_transaction(atoms, operation="Hessian"):
-            hessian = np.asarray(calc.get_hessian(atoms))
-    except (AnalyticIdentityError, AnalyticCapabilityError) as exc:
-        raise CurvatureValidationError(str(exc)) from exc
-    return hessian
+    return _evaluate_provider(
+        atoms,
+        operation="Hessian",
+        evaluate=lambda: np.asarray(calc.get_hessian(atoms)),
+    )
 
 
 def _evaluate_energy(atoms: Atoms) -> float:
-    with _scientific_atoms_transaction(atoms, operation="Energy"):
-        return to_numpy_f64(
+    return _evaluate_provider(
+        atoms,
+        operation="Energy",
+        evaluate=lambda: to_numpy_f64(
             atoms.get_potential_energy(force_consistent=True)
-        )
+        ),
+    )
 
 
 def _evaluate_forces(atoms: Atoms) -> np.ndarray:
-    with _scientific_atoms_transaction(atoms, operation="Force"):
-        return to_numpy_f64(atoms.get_forces())
+    return _evaluate_provider(
+        atoms,
+        operation="Force",
+        evaluate=lambda: to_numpy_f64(atoms.get_forces()),
+    )
 
 def _bfgs_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
     """BFGS update of Hessian approximation."""
@@ -955,7 +969,6 @@ class PRFO(JobABC):
 
         H_work = None
         force_displacement_converged = False
-        curvature_checked = False
         
         # Main optimization loop
         while iteration < self.params.max_iter:
@@ -998,6 +1011,11 @@ class PRFO(JobABC):
                         purpose="prfo-search",
                     )
                     validated = validate_cartesian_hessian(atoms, raw_hessian, profile)
+                    modes = build_mass_weighted_mode_basis(
+                        atoms,
+                        validated,
+                        project_rigid_modes=self.params.project_rigid_modes,
+                    )
                 except CurvatureValidationError as exc:
                     return self._refused_result(
                         atoms=atoms,
@@ -1006,25 +1024,29 @@ class PRFO(JobABC):
                         energy=float(E_old),
                         forces=F_cart,
                     )
-                modes = build_mass_weighted_mode_basis(
-                    atoms,
-                    validated,
-                    project_rigid_modes=self.params.project_rigid_modes,
-                )
                 H_cart = validated.physical_hessian
                 H_work = H_cart.copy()
             else:
                 H_cart = H_work
-                profile = resolve_hessian_precision_profile(
-                    atoms,
-                    purpose="prfo-updated-search",
-                )
-                validated = validate_cartesian_hessian(atoms, H_cart, profile)
-                modes = build_mass_weighted_mode_basis(
-                    atoms,
-                    validated,
-                    project_rigid_modes=self.params.project_rigid_modes,
-                )
+                try:
+                    profile = resolve_hessian_precision_profile(
+                        atoms,
+                        purpose="prfo-updated-search",
+                    )
+                    validated = validate_cartesian_hessian(atoms, H_cart, profile)
+                    modes = build_mass_weighted_mode_basis(
+                        atoms,
+                        validated,
+                        project_rigid_modes=self.params.project_rigid_modes,
+                    )
+                except CurvatureValidationError as exc:
+                    return self._refused_result(
+                        atoms=atoms,
+                        iteration=iteration,
+                        reason=str(exc),
+                        energy=float(E_old),
+                        forces=F_cart,
+                    )
             
             n3 = H_cart.shape[0]
             if g_cart.size != n3:
@@ -1193,8 +1215,6 @@ class PRFO(JobABC):
                     
                     # Check convergence
                     force_displacement_converged = self.check_convergence(atoms)
-                    if force_displacement_converged:
-                        curvature_checked = True
                     if force_displacement_converged:
                         try:
                             final_energy, final_forces = self._final_energy_forces(atoms)

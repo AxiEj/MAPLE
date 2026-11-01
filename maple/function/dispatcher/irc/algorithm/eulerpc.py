@@ -18,9 +18,8 @@ Units:
 - Mass-weighted coordinates: sqrt(amu) * Å (via masses_D)
 """
 
-import os
 from collections import deque
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple
 
 import numpy as np
@@ -28,7 +27,17 @@ from ase import Atoms
 
 from ...jobABC import JobABC
 from ...curvature import bofill_update
-from .logger import log_info, log_error
+from .logger import log_info
+from ..execution import (
+    assemble_irc_result,
+    coerce_irc_parameters,
+    empty_side,
+    evaluate_irc_hessian,
+    evaluate_irc_state,
+    prepare_irc_start,
+    restore_scientific_state_on_error,
+    write_irc_trajectories,
+)
 
 # =============================== Utilities ===============================
 BOHR_TO_ANG = 0.529177210903
@@ -247,46 +256,11 @@ class EulerPC(JobABC):
         self.atoms = atoms
         self.p = params if params is not None else EulerPCParams()
 
-        # Parse optional dict overrides, supporting both {"EulerPC": {...}}
-        # and flat dict style. Keep backward compatibility aliases.
-        if isinstance(paras, dict):
-            low = {k.lower(): v for k, v in paras.items()}
-            sub = None
-            for key in ("EulerPC", "irc"):
-                if key in low and isinstance(low[key], dict):
-                    sub = low[key]
-                    break
-            if sub is None:
-                sub = low
-            sub_low = {k.lower(): v for k, v in sub.items()}
-
-            # Aliases / compatibility mapping
-            aliases = {
-                "sd_len_bohr": "step_length_bohr",
-                "steplength_bohr": "step_length_bohr",
-                "max_points": "max_steps",
-                "max_pred_steps": "max_pred_steps",
-                "loose_cycles": "loose_cycles",
-                "hessian_update": "hessian_update",
-                "dwi_n": "dwi_n",
-                "mbs_max_k": "mbs_max_k",
-                "mbs_points": "mbs_points",
-                "mbs_tol": "mbs_tol",
-                "hessian_recalc": "hessian_recalc",
-                "target_mode": "target_mode",
-                "f_max_th": "f_max_th",
-                "f_rms_th": "f_rms_th",
-                "tol_maxf": "f_max_th",       # backward compatibility
-                "tol_rmsf": "f_rms_th",       # backward compatibility
-                "print_each": "print_each",
-                "write_traj": "write_traj",
-            }
-
-            for k, v in sub_low.items():
-                if k in aliases:
-                    setattr(self.p, aliases[k], v)
-                elif hasattr(self.p, k):
-                    setattr(self.p, k, v)
+        self.p = coerce_irc_parameters(
+            self.p,
+            paras,
+            method="eulerpc",
+        )
 
         # Internal state for EulerPC integration
         self._D: Optional[np.ndarray] = None  # mass-weight scaling vector
@@ -303,84 +277,47 @@ class EulerPC(JobABC):
 
     # ------------------------------ Public API ------------------------------
     def run(self) -> Dict[str, any]:
-        """
-        Compute forward and backward EulerPC IRC paths and produce a merged summary.
-
-        Returns:
-            {
-                "forward": {...},
-                "backward": {...},
-                "summary": {...}
-            }
-        """
-        # Prepare mass weights once at TS geometry
-        self._D = masses_D(self.atoms)
-        self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
-        self._step_len_umw = float(self.p.step_length_bohr * BOHR_TO_ANG)
-
-        # Diagonalize mass-weighted Hessian at TS to get negative mode
-        H_cart_ts = self._get_hessian_cart()
-        H_mw_ts = (self._D[:, None] * H_cart_ts) * self._D[None, :]
-        w, V = np.linalg.eigh(H_mw_ts)
-
-        neg_idx = np.where(w < 0.0)[0]
-        if len(neg_idx) == 0:
-            log_error(
-                ["[ERROR] EulerPC-IRC: No negative eigenvalues found — "
-                 "starting geometry is not a saddle point.\n"],
+        """Compute the two EulerPC IRC sides from one validated input TS."""
+        with restore_scientific_state_on_error(self.atoms):
+            start = prepare_irc_start(
+                self,
+                method="eulerpc",
+                target_mode=self.p.target_mode,
+            )
+            self._D = start.inverse_sqrt_mass
+            self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
+            self._step_len_umw = float(self.p.step_length_bohr * BOHR_TO_ANG)
+            log_info(
+                [
+                    "\n[INFO] EulerPC-IRC: Selected negative eigenmode "
+                    f"#{self.p.target_mode} with λ = {start.eigenvalue:.6e} (MW basis)\n"
+                ],
                 self.output,
             )
-            raise RuntimeError("EulerPC-IRC: no negative eigenvalues at TS.")
-
-        if len(neg_idx) < self.p.target_mode:
-            log_error(
-                [f"[ERROR] EulerPC-IRC: Requested mode {self.p.target_mode}, "
-                 f"but only {len(neg_idx)} negative modes found.\n"],
-                self.output,
-            )
-            raise RuntimeError("EulerPC-IRC: requested negative mode does not exist.")
-
-        sorted_neg = neg_idx[np.argsort(w[neg_idx])]  # most negative first
-        idx = sorted_neg[self.p.target_mode - 1]
-        eigval = w[idx]
-        v_neg_mw = V[:, idx]
-
-        log_info(
-            [
-                "\n[INFO] EulerPC-IRC: Selected negative eigenmode "
-                f"#{self.p.target_mode} with λ = {eigval:.6e} (MW basis)\n"
-            ],
-            self.output,
-        )
-
-        # Reference TS energy
-        E_ts = float(self.atoms.get_potential_energy(force_consistent=True))
-
-        # Store original TS Cartesian positions, reused for both directions
-        R_ts_cart = self.atoms.get_positions().copy().reshape(-1)
-
-        # Forward and backward EulerPC-IRC
-        forward_log = self._one_side(
-            forward=True,
-            sign=+1.0,
-            q_ts_cart=R_ts_cart,
-            v_neg_mw=v_neg_mw,
-            E_ts=E_ts,
-        )
-        backward_log = self._one_side(
-            forward=False,
-            sign=-1.0,
-            q_ts_cart=R_ts_cart,
-            v_neg_mw=v_neg_mw,
-            E_ts=E_ts,
-        )
-
-        merged = self._merge_and_mark_ts(forward_log, backward_log)
-
-        if self.p.write_traj:
-            self._write_trajs(forward_log, backward_log)
-
-        return {"forward": forward_log, "backward": backward_log, "summary": merged}
+            if self.p.max_steps == 0:
+                forward = empty_side("eulerpc", True, start.energy)
+                backward = empty_side("eulerpc", False, start.energy)
+            else:
+                forward = self._one_side(
+                    forward=True,
+                    sign=+1.0,
+                    q_ts_cart=start.positions.reshape(-1),
+                    v_neg_mw=start.negative_mode,
+                    E_ts=start.energy,
+                    H_ts_cart=start.hessian,
+                )
+                backward = self._one_side(
+                    forward=False,
+                    sign=-1.0,
+                    q_ts_cart=start.positions.reshape(-1),
+                    v_neg_mw=start.negative_mode,
+                    E_ts=start.energy,
+                    H_ts_cart=start.hessian,
+                )
+            result = assemble_irc_result(forward, backward, start.record)
+            if self.p.write_traj:
+                self._write_trajs(forward, backward, start.record)
+            return result
 
     # --------------------------- Low-level helpers --------------------------
     def _cart_from_mw(self, q_mw: np.ndarray) -> np.ndarray:
@@ -415,33 +352,13 @@ class EulerPC(JobABC):
         return max(min_fact, norm_cart / norm_mw)
 
     def _get_hessian_cart(self) -> np.ndarray:
-        """
-        Get Cartesian Hessian (3N x 3N) from the calculator.
-
-        Assumes atoms.calc implements get_hessian(atoms) and returns 3N x 3N
-        or shape (1, 3N, 3N).
-        """
-        H = self.atoms.calc.get_hessian(self.atoms)
-        self.log_numerical_hessian_diagnostics(self.atoms.calc)
-        H = to_f64(H)
-        if H.ndim == 3 and H.shape[0] == 1:
-            H = H[0]
-        if H.ndim != 2 or H.shape[0] != H.shape[1]:
-            raise ValueError(f"Hessian must be square 2D, got shape {H.shape}")
-        return H
+        """Return one validated physical Cartesian Hessian."""
+        return evaluate_irc_hessian(self, method="eulerpc")
 
     def _energy_forces_from_mw(self, q_mw: np.ndarray) -> Tuple[float, np.ndarray]:
-        """
-        Set positions from MW coordinates, then return (E, F_cart).
-
-        E: Eh
-        F_cart: (3N,) Eh/Å
-        """
+        """Evaluate finite energy and Cartesian forces at one MW geometry."""
         q_cart = self._cart_from_mw(q_mw)
-        self.atoms.set_positions(q_cart.reshape(-1, 3))
-        E = float(self.atoms.get_potential_energy(force_consistent=True))
-        F_cart = to_f64(self.atoms.get_forces()).reshape(-1)
-        return E, F_cart
+        return evaluate_irc_state(self.atoms, q_cart.reshape(-1, 3))
 
     def _gradient_mw_from_forces(self, F_cart: np.ndarray) -> np.ndarray:
         """
@@ -684,7 +601,8 @@ class EulerPC(JobABC):
                   sign: float,
                   q_ts_cart: np.ndarray,
                   v_neg_mw: np.ndarray,
-                  E_ts: float) -> Dict[str, any]:
+                  E_ts: float,
+                  H_ts_cart: Optional[np.ndarray] = None) -> Dict[str, any]:
         """
         Single-sided EulerPC IRC integration.
 
@@ -712,8 +630,9 @@ class EulerPC(JobABC):
         _, F_ts_cart = self._energy_forces_from_mw(q_ts_mw)
         g_ts_mw = self._gradient_mw_from_forces(F_ts_cart)
 
-        # Initial Hessian at TS (MW)
-        H_ts_cart = self._get_hessian_cart()
+        # Public runs reuse one validated input-TS Hessian for both sides.
+        if H_ts_cart is None:
+            H_ts_cart = self._get_hessian_cart()
         H0_mw = (self._D[:, None] * H_ts_cart) * self._D[None, :]
 
         # Initial energy / forces / gradient at displaced point
@@ -749,9 +668,12 @@ class EulerPC(JobABC):
                 "maxG": maxF0,
                 "rmsG": rmsF0,
                 "x": self.atoms.get_positions().copy(),
+                "converged": False,
             }
         )
 
+        termination_reason = "maximum_steps"
+        converged = False
         # Macro steps
         for it in range(1, p.max_steps + 1):
             self.cur_cycle = it - 1
@@ -764,23 +686,6 @@ class EulerPC(JobABC):
                 )
                 break
 
-            if self._early_converged:
-                E_new, F_new = self._energy_forces_from_mw(self.mw_coords)
-                maxF = float(np.max(np.abs(F_new)))
-                rmsF = float(np.sqrt(np.mean(F_new ** 2)))
-                if p.print_each:
-                    self._print_iter_line(it, E_new, (E_new - E_ts) * KCAL_PER_EH, maxF, rmsF)
-                records.append(
-                    {
-                        "E": E_new,
-                        "maxG": maxF,
-                        "rmsG": rmsF,
-                        "x": self.atoms.get_positions().copy(),
-                    }
-                )
-                self._print_hurray()
-                break
-
             # Energy / forces at new point
             E_new, F_new = self._energy_forces_from_mw(self.mw_coords)
             maxF = float(np.max(np.abs(F_new)))
@@ -789,114 +694,39 @@ class EulerPC(JobABC):
             if p.print_each:
                 self._print_iter_line(it, E_new, (E_new - E_ts) * KCAL_PER_EH, maxF, rmsF)
 
+            real_force_converged = (
+                maxF <= p.f_max_th and rmsF <= p.f_rms_th
+            )
             records.append(
                 {
                     "E": E_new,
                     "maxG": maxF,
                     "rmsG": rmsF,
                     "x": self.atoms.get_positions().copy(),
+                    "converged": real_force_converged,
                 }
             )
 
-            # Convergence in terms of Cartesian forces
-            if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
+            if real_force_converged:
                 self._print_hurray()
+                termination_reason = "force_converged"
+                converged = True
                 break
 
-        return {"title": title, "records": records, "E_ts": E_ts}
-
-    # --------------------------- Merge & summary ----------------------------
-    def _merge_and_mark_ts(self, f: Dict, b: Dict) -> Dict:
-        fR, bR = f["records"], b["records"]
-        if not fR or not bR:
-            log_error(["[ERROR] EulerPC-IRC: One path side is empty.\n"], self.output)
-            raise RuntimeError("EulerPC-IRC: one path side is empty.")
-
-        Ef_end, Eb_end = fR[-1]["E"], bR[-1]["E"]
-        if Ef_end <= Eb_end:
-            first, second = fR, bR
-        else:
-            first, second = bR, fR
-
-        merged = []
-        # Reverse first (to go from minimum to TS), then append second
-        for k in range(len(first) - 1, -1, -1):
-            merged.append(first[k])
-        for k in range(0, len(second)):
-            merged.append(second[k])
-
-        # Find TS index as maximum energy point
-        E_list = [rec["E"] for rec in merged]
-        ts_idx = int(np.argmax(E_list))
-        E_ref = float(min(Ef_end, Eb_end))
-
-        log_info(
-            [
-                "\n---------------------------------------------------------------\n",
-                "                       EulerPC-IRC PATH SUMMARY           \n",
-                "---------------------------------------------------------------\n",
-                "All forces are in Eh/Å.\n\n",
-                "Step        E(Eh)      dE(kcal/mol)  max(|G|)   RMS(G) \n",
-            ],
-            self.output,
-        )
-
-        rows = []
-        for i, rec in enumerate(merged, start=1):
-            dE_kcal = (rec["E"] - E_ref) * KCAL_PER_EH
-            line = (
-                f"{i:4d}  {rec['E']:14.6f}  {dE_kcal:12.6f}    "
-                f"{rec['maxG']:8.6f}  {rec['rmsG']:8.6f}"
-            )
-            if i - 1 == ts_idx:
-                line += " <= TS"
-            rows.append(line + "\n")
-        log_info(rows, self.output)
-
         return {
-            "E_ref": E_ref,
-            "ts_index": ts_idx + 1,  # 1-based
-            "merged_rows": rows,
+            "title": title,
+            "records": records,
+            "E_ts": E_ts,
+            "iterations": max(0, len(records) - 1),
+            "termination_reason": termination_reason,
+            "converged": converged,
         }
 
     # --------------------------- Trajectories -----------------------------
-    def _write_trajs(self, f: Dict, b: Dict):
-        """Write full, forward, and backward trajectories as XYZ files."""
-        base, _ = os.path.splitext(self.output)
-        full_path = base + "_full.xyz"
-        fwd_path = base + "_forward.xyz"
-        bwd_path = base + "_backward.xyz"
-
-        # Forward
-        f_atoms, f_E = [], []
-        for rec in f["records"]:
-            a = self.atoms.copy()
-            a.set_positions(rec["x"])
-            f_atoms.append(a)
-            f_E.append(rec["E"])
-        write_xyz(fwd_path, f_atoms, f_E)
-
-        # Backward
-        b_atoms, b_E = [], []
-        for rec in b["records"]:
-            a = self.atoms.copy()
-            a.set_positions(rec["x"])
-            b_atoms.append(a)
-            b_E.append(rec["E"])
-        write_xyz(bwd_path, b_atoms, b_E)
-
-        # Full (concatenate forward then backward)
-        full_atoms = f_atoms + b_atoms
-        full_E = f_E + b_E
-        write_xyz(full_path, full_atoms, full_E)
-
-        log_info(
-            [
-                f"\n[INFO] EulerPC-IRC forward trajectory written to: {fwd_path}\n",
-                f"[INFO] EulerPC-IRC backward trajectory written to: {bwd_path}\n",
-                f"[INFO] EulerPC-IRC full trajectory written to: {full_path}\n",
-            ],
-            self.output,
+    def _write_trajs(self, f: Dict, b: Dict, input_ts: Dict):
+        """Write ordered forward, backward, and full trajectories."""
+        write_irc_trajectories(
+            self.atoms, self.output, f, b, input_ts, write_xyz
         )
 
     # ----------------------------- Printing ------------------------------

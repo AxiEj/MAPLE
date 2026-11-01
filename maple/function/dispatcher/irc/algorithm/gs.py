@@ -20,20 +20,22 @@ Units:
 """
 
 import os
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple
 
 import numpy as np
 from ase import Atoms
 
 from ...jobABC import JobABC
-from ...curvature import (
-    bofill_update,
-    build_mass_weighted_mode_basis,
-    resolve_hessian_precision_profile,
-    validate_cartesian_hessian,
-)
+from ...curvature import bofill_update
 from .logger import log_info, log_error
+from ..execution import (
+    coerce_irc_parameters,
+    evaluate_irc_hessian,
+    evaluate_irc_state,
+    prepare_irc_start,
+    restores_scientific_state_on_error,
+)
 
 # =============================== Utilities ===============================
 BOHR_TO_ANG = 0.529177210903
@@ -168,43 +170,11 @@ class GS(JobABC):
         self.atoms = atoms
         self.p = params if params is not None else GSParams()
 
-        # Parse optional dict overrides, supporting both {"gs": {...}}
-        # and flat dict style. Keep backward compatibility aliases.
-        if isinstance(paras, dict):
-            low = {k.lower(): v for k, v in paras.items()}
-            sub = None
-            for key in ("gs", "irc"):
-                if key in low and isinstance(low[key], dict):
-                    sub = low[key]
-                    break
-            if sub is None:
-                sub = low
-            sub_low = {k.lower(): v for k, v in sub.items()}
-
-            # Aliases / compatibility mapping
-            aliases = {
-                "sd_len_bohr": "step_length_bohr",
-                "steplength_bohr": "step_length_bohr",
-                "max_points": "max_steps",
-                "hessian_update": "hessian_update",
-                "max_micro_cycles": "max_micro_cycles",
-                "micro_step_thresh": "micro_step_thresh",
-                "hessian_recalc": "hessian_recalc",
-                "target_mode": "target_mode",
-                "f_max_th": "f_max_th",
-                "f_rms_th": "f_rms_th",
-                "tol_maxf": "f_max_th",       # backward compatibility
-                "tol_rmsf": "f_rms_th",       # backward compatibility
-                "print_each": "print_each",
-                "write_traj": "write_traj",
-                "project_rigid_modes": "project_rigid_modes",
-            }
-
-            for k, v in sub_low.items():
-                if k in aliases:
-                    setattr(self.p, aliases[k], v)
-                elif hasattr(self.p, k):
-                    setattr(self.p, k, v)
+        self.p = coerce_irc_parameters(
+            self.p,
+            paras,
+            method="gs",
+        )
 
         # Internal state for GS integration
         self._D: Optional[np.ndarray] = None  # mass-weight scaling vector
@@ -221,6 +191,7 @@ class GS(JobABC):
         self.micro_counter: int = 0
 
     # ------------------------------ Public API ------------------------------
+    @restores_scientific_state_on_error
     def run(self) -> Dict[str, any]:
         """
         Compute forward and backward GS IRC paths and produce a merged summary.
@@ -232,54 +203,17 @@ class GS(JobABC):
                 "summary": {...}
             }
         """
-        # Prepare mass weights once at TS geometry
-        self._D = masses_D(self.atoms)
-        self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
-
-        positions = to_f64(self.atoms.get_positions())
-        if positions.shape != (len(self.atoms), 3) or not np.isfinite(positions).all():
-            raise ValueError("GS-IRC requires finite Cartesian coordinates.")
-
-        # Evaluate and validate the exact input TS before any displacement.
-        E_ts = float(self.atoms.get_potential_energy(force_consistent=True))
-        F_ts = to_f64(self.atoms.get_forces()).reshape(-1)
-        if not np.isfinite(E_ts) or not np.isfinite(F_ts).all():
-            raise ValueError("GS-IRC requires finite input energy and forces.")
-        H_cart_ts = self._get_hessian_cart()
-        n3 = 3 * len(self.atoms)
-        if F_ts.shape != (n3,):
-            raise ValueError("GS-IRC requires one 3N force vector.")
-        modes = build_mass_weighted_mode_basis(
-            self.atoms,
-            self.last_validated_hessian,
+        start = prepare_irc_start(
+            self,
+            method="gs",
+            target_mode=self.p.target_mode,
             project_rigid_modes=self.p.project_rigid_modes,
         )
-        if modes.basis.shape[1] == 0:
-            raise ValueError("GS-IRC rigid projection left no internal coordinates.")
-        w = modes.eigenvalues
-        V = modes.eigenvectors
-
-        neg_idx = np.where(w < 0.0)[0]
-        if len(neg_idx) == 0:
-            log_error(
-                ["[ERROR] GS-IRC: No negative eigenvalues found — "
-                 "starting geometry is not a saddle point.\n"],
-                self.output,
-            )
-            raise RuntimeError("GS-IRC: no negative eigenvalues at TS.")
-
-        if len(neg_idx) < self.p.target_mode:
-            log_error(
-                [f"[ERROR] GS-IRC: Requested mode {self.p.target_mode}, "
-                 f"but only {len(neg_idx)} negative modes found.\n"],
-                self.output,
-            )
-            raise RuntimeError("GS-IRC: requested negative mode does not exist.")
-
-        sorted_neg = neg_idx[np.argsort(w[neg_idx])]  # most negative first
-        idx = sorted_neg[self.p.target_mode - 1]
-        eigval = w[idx]
-        v_neg_mw = V[:, idx]
+        self._D = start.inverse_sqrt_mass
+        self._step_len_mw = float(self.p.step_length_bohr * BOHR_TO_ANG)
+        E_ts = start.energy
+        eigval = start.eigenvalue
+        v_neg_mw = start.negative_mode
 
         log_info(
             [
@@ -290,13 +224,8 @@ class GS(JobABC):
         )
 
         # Store original TS Cartesian positions, reused for both directions
-        R_ts_cart = self.atoms.get_positions().copy().reshape(-1)
-        input_ts = {
-            "E": E_ts,
-            "maxG": float(np.max(np.abs(F_ts))),
-            "rmsG": float(np.sqrt(np.mean(F_ts ** 2))),
-            "x": self.atoms.get_positions().copy(),
-        }
+        R_ts_cart = start.positions.reshape(-1)
+        input_ts = start.record
         if self.p.max_steps == 0:
             side = {
                 "records": [], "E_ts": E_ts, "iterations": 0,
@@ -319,6 +248,7 @@ class GS(JobABC):
             q_ts_cart=R_ts_cart,
             v_neg_mw=v_neg_mw,
             E_ts=E_ts,
+            H_ts_cart=None,
         )
         backward_log = self._one_side(
             forward=False,
@@ -326,6 +256,7 @@ class GS(JobABC):
             q_ts_cart=R_ts_cart,
             v_neg_mw=v_neg_mw,
             E_ts=E_ts,
+            H_ts_cart=None,
         )
 
         merged = self._merge_and_mark_ts(forward_log, backward_log, input_ts)
@@ -358,39 +289,13 @@ class GS(JobABC):
         return (q_cart / self._D).reshape(-1)
 
     def _get_hessian_cart(self) -> np.ndarray:
-        """
-        Get Cartesian Hessian (3N x 3N) from the calculator.
-
-        Assumes atoms.calc implements get_hessian(atoms) and returns 3N x 3N
-        or shape (1, 3N, 3N).
-        """
-        raw_hessian = self.atoms.calc.get_hessian(self.atoms)
-        self.log_numerical_hessian_diagnostics(self.atoms.calc)
-        profile = resolve_hessian_precision_profile(
-            self.atoms,
-            purpose="gs-irc",
-        )
-        self.last_validated_hessian = validate_cartesian_hessian(
-            self.atoms,
-            raw_hessian,
-            profile,
-        )
-        return self.last_validated_hessian.physical_hessian
+        """Return one validated physical Cartesian Hessian."""
+        return evaluate_irc_hessian(self, method="gs")
 
     def _energy_forces_from_mw(self, q_mw: np.ndarray) -> Tuple[float, np.ndarray]:
-        """
-        Set positions from MW coordinates, then return (E, F_cart).
-
-        E: Eh
-        F_cart: (3N,) Eh/Å
-        """
+        """Evaluate finite energy and Cartesian forces at one MW geometry."""
         q_cart = self._cart_from_mw(q_mw)
-        self.atoms.set_positions(q_cart.reshape(-1, 3))
-        E = float(self.atoms.get_potential_energy(force_consistent=True))
-        F_cart = to_f64(self.atoms.get_forces()).reshape(-1)
-        if not np.isfinite(E) or F_cart.shape != q_cart.shape or not np.isfinite(F_cart).all():
-            raise ValueError("GS-IRC requires finite energy and 3N forces at every point.")
-        return E, F_cart
+        return evaluate_irc_state(self.atoms, q_cart.reshape(-1, 3))
 
     def _gradient_mw_from_forces(self, F_cart: np.ndarray) -> np.ndarray:
         """
@@ -548,7 +453,8 @@ class GS(JobABC):
                   sign: float,
                   q_ts_cart: np.ndarray,
                   v_neg_mw: np.ndarray,
-                  E_ts: float) -> Dict[str, any]:
+                  E_ts: float,
+                  H_ts_cart: Optional[np.ndarray] = None) -> Dict[str, any]:
         """
         Single-sided GS IRC integration.
 
@@ -579,9 +485,10 @@ class GS(JobABC):
         maxF0 = float(np.max(np.abs(F0_cart)))
         rmsF0 = float(np.sqrt(np.mean(F0_cart ** 2)))
 
-        # Initial Hessian at starting point (MW)
-        H0_cart = self._get_hessian_cart()
-        H0_mw = (self._D[:, None] * H0_cart) * self._D[None, :]
+        # GS retains its displaced-point initial Hessian for each nonzero side.
+        if H_ts_cart is None:
+            H_ts_cart = self._get_hessian_cart()
+        H0_mw = (self._D[:, None] * H_ts_cart) * self._D[None, :]
 
         # Initialize GS state
         self.mw_coords = q0_mw.copy()

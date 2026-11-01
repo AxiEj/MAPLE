@@ -811,7 +811,7 @@ def test_all_repo_callers_migrated():
     ]
     for path in owned_callers:
         text = path.read_text()
-        assert "prfo.run()" in text
+        assert any(call in text for call in ("prfo.run()", "self._run_subjob(prfo)"))
         assert "certified_ts" in text or "last_result" in text
     assert "images.insert(hei + 1, ts_opt)" not in owned_callers[1].read_text()
     assert "images_ts.insert" not in owned_callers[2].read_text()

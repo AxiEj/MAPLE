@@ -1,0 +1,45 @@
+{
+  "criteria": "MAPLE native extratight component-force/displacement criteria; no source or physical threshold changes. Auxiliary1e-5 atom-force-norm criterion was withdrawn under the approved prospective amendment.",
+  "date": "2026-11-06",
+  "evidence_sha256": {
+    "amended_six_row_result": "2631d366fb6acadee0f2d6ba96f9e6b704e3eefad810a150533c1a12575f8b0a",
+    "final_evidence": "9918e0f3cc349510f3df91d343be5e2347558ff2a35e1e8ba518ca092e18739b",
+    "final_local_acceptance": "a2c89cb2f31de95c5e7387fd931e30fe1cae91ff780460ca54c17e067394ce12",
+    "final_preservation": "145ee6b1a2d31efff9fabcbde03868be9d175512b5115b1389e17a4797a00625",
+    "original_failed_campaign": "57d7e322d354758316570bcfcafcac351960ddf10d289e76408b9246997cf90a"
+  },
+  "implementation_branch": "feature/route1-advanced-paths-20261101",
+  "limits": [
+    "Local source/installed qualification only. Research-checkpoint publication does not establish broader scientific or production admission.",
+    "native FREQ structured raw-H unavailable; no extra Hessian call",
+    "zero-update NEB/CI are preconverged canaries",
+    "water PRFO is a controlled one-step certification check",
+    "no general chemical accuracy/search/charged/open-shell/PBC/new-domain claim"
+  ],
+  "matrix_rows": {
+    "CHA_SP": 2,
+    "negative_contracts": 20,
+    "positive": 48
+  },
+  "native_water_preparation": "MAPLE input -> engine -> OPT/L-BFGS -> SP/FREQ; ACE and NONE; both optimized in7steps",
+  "publication_scope": "Research checkpoint only. Private raw campaigns and local runtime state are retained separately, not bundled.",
+  "results": {
+    "amended_run_passed": 6,
+    "amended_run_required": 6,
+    "combined_accepted": 70,
+    "combined_required": 70,
+    "distribution_versions_unchanged": 65,
+    "installed_files_identical": 173,
+    "native_water_fixtures_passed": 2,
+    "original_campaign_failed": 6,
+    "original_campaign_passed": 64,
+    "original_campaign_unchanged": true,
+    "preservation_passed": 82,
+    "reused_passing_rows": 64
+  },
+  "schema": "route1-local-qualification-publication-v1",
+  "scope": "Completed authorized local Route1 advanced-path source/installed qualification under prospectively amended native-MAPLE protocol",
+  "status": "complete_local_qualification",
+  "validated_delivery_commit": "17080aac539e3c0239cb38147960698c2ab35b4c",
+  "validated_source_commit": "c7f3c17ccb5b42f64d6c07b7090055dec646fd65"
+}

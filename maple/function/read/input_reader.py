@@ -23,6 +23,7 @@ from maple.function.route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_NONMD_CUDA_V2_PROFILE,
     pure_macepolar_allows_charged,
     route2_smd_profile_spec,
+    route2_workflow_capability_for_params,
 )
 
 class InputReader():
@@ -267,12 +268,21 @@ class InputReader():
                     and str(self.command_control.params.get("method") or "").lower()
                     in {"neb", "string", "autoneb"}
                 )
-                if len(targets) != 1 and not (pure_v2 and path_task):
+                capability = route2_workflow_capability_for_params(
+                    profile, self.command_control.task, self.command_control.params
+                )
+                policy_path = (
+                    capability is not None and capability.image_policy == "multi"
+                )
+                if len(targets) != 1 and not ((pure_v2 and path_task) or policy_path):
                     raise ValueError(
                         "Route 2 SMD accepts multiple structures only for a pure "
                         "non-MD v2 NEB, String, or AutoNEB path task."
                     )
                 expected_symbols = tuple(targets[0].get_chemical_symbols())
+                expected_masses = np.asarray(targets[0].get_masses(), dtype=np.float64)
+                expected_charge = targets[0].info.get("charge")
+                expected_mult = targets[0].info.get("mult")
                 from maple.function.calculator.extra_correction.implicit.route2_domain import (
                     validate_route2_domain,
                 )
@@ -293,6 +303,21 @@ class InputReader():
                         raise ValueError(
                             "Route 2 path images must have identical atom count and "
                             f"ordered symbols; image {image_index + 1} differs."
+                        )
+                    if not np.array_equal(
+                        np.asarray(atoms.get_masses(), dtype=np.float64), expected_masses
+                    ):
+                        raise ValueError(
+                            "Route 2 path images must have identical atomic masses; "
+                            f"image {image_index + 1} differs."
+                        )
+                    if (
+                        atoms.info.get("charge") != expected_charge
+                        or atoms.info.get("mult") != expected_mult
+                    ):
+                        raise ValueError(
+                            "Route 2 path images must have identical charge and "
+                            f"multiplicity; image {image_index + 1} differs."
                         )
                     validate_route2_domain(atoms, allow_charged=allow_charged)
             for atoms in targets:

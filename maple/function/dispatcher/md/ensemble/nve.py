@@ -29,6 +29,7 @@ from ..utils import (
     get_runtime_dof_policy,
     initialize_velocities,
     lfmiddle_carried_to_standard,
+    restore_last_valid_md_state,
     FS_TO_AU,
     HA_PER_ANG_TO_AU,
 )
@@ -190,6 +191,8 @@ class NVE(JobABC):
             atoms: ASE Atoms object with calculator
             paras: Parameters dictionary from CommandControl
         """
+        from ...legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         super().__init__(output)
 
         if atoms.calc is None:
@@ -283,12 +286,54 @@ class NVE(JobABC):
                 self.logger.log_debug_initial_state(self.atoms, velocities, mode=source, effective_step=step_offset)
 
             # Run simulation
-            final_velocities = self._run_simulation(velocities,
-                                                    step_offset=step_offset,
-                                                    n_steps=remaining)
+            try:
+                final_velocities = self._run_simulation(
+                    velocities, step_offset=step_offset, n_steps=remaining
+                )
+            except Exception as exc:
+                from ...pure_nonmd_status import (
+                    NonMDWorkflowFailure, is_route2_workflow_status_enabled,
+                    make_status,
+                )
+                if not is_route2_workflow_status_enabled(self.atoms):
+                    raise
+                progress = dict(getattr(self, "_workflow_progress", {}))
+                restore_last_valid_md_state(self.atoms, progress)
+                raise NonMDWorkflowFailure(make_status(
+                    workflow="md", method="nve", converged=False,
+                    termination_reason="integration_exception",
+                    termination_class="execution_failure",
+                    iterations=int(progress.get("completed_steps", 0)),
+                    final_metrics={
+                        "requested_steps": int(self.params.steps),
+                        **progress,
+                        "error_type": type(exc).__name__, "error": str(exc),
+                    },
+                    atoms=self.atoms,
+                )) from exc
 
             # Store final velocities
             self.atoms.arrays['velocities'] = final_velocities
+            from ...pure_nonmd_status import (
+                is_route2_workflow_status_enabled, make_status,
+            )
+            if is_route2_workflow_status_enabled(self.atoms):
+                progress = dict(getattr(self, "_workflow_progress", {}))
+                success = int(progress.get("completed_steps", 0)) == int(self.params.steps)
+                return make_status(
+                    workflow="md", method="nve", converged=success,
+                    termination_reason=(
+                        "requested_steps_completed" if success
+                        else "incomplete_trajectory"
+                    ),
+                    termination_class=("converged" if success else "validation_failure"),
+                    iterations=int(progress.get("completed_steps", 0)),
+                    final_metrics={
+                        "requested_steps": int(self.params.steps),
+                        **progress,
+                    },
+                    atoms=self.atoms,
+                )
 
     def _log_parameters(self):
         """Log NVE parameters to output."""
@@ -530,6 +575,20 @@ class NVE(JobABC):
         )
         runtime_n_dof = get_n_dof_from_policy(runtime_policy)
         v = velocities.copy()
+        initial_kinetic = calculate_kinetic_energy(self.atoms, v)
+        initial_potential = self.atoms.get_potential_energy()
+        initial_total = initial_kinetic + initial_potential
+        self._workflow_progress = {
+            "completed_steps": 0,
+            "initial_total_energy_hartree": float(initial_total),
+            "final_total_energy_hartree": float(initial_total),
+            "maximum_total_energy_drift_hartree": 0.0,
+            "last_valid_step": {
+                "step": int(step_offset),
+                "positions_angstrom": self.atoms.get_positions().tolist(),
+                "velocities_bohr_per_au": np.asarray(v, dtype=float).tolist(),
+            },
+        }
 
         # Cache forces at t=0; reused as first B-step forces each cycle.
         forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → a.u.
@@ -559,6 +618,20 @@ class NVE(JobABC):
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
             potential_energy = self.atoms.get_potential_energy()  # Ha
             total_energy     = kinetic_energy + potential_energy
+            self._workflow_progress.update({
+                "completed_steps": int(step),
+                "final_total_energy_hartree": float(total_energy),
+                "maximum_total_energy_drift_hartree": max(
+                    float(self._workflow_progress["maximum_total_energy_drift_hartree"]),
+                    abs(float(total_energy - initial_total)),
+                ),
+                "last_temperature_K": float(temperature),
+                "last_valid_step": {
+                    "step": int(abs_step),
+                    "positions_angstrom": self.atoms.get_positions().tolist(),
+                    "velocities_bohr_per_au": np.asarray(v, dtype=float).tolist(),
+                },
+            })
 
             # Log data
             self.logger.log_step(

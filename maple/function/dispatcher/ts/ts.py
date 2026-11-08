@@ -13,6 +13,8 @@ class TransitionState(JobABC):
 
     def __init__(self, output: str, atoms: Union[Atoms, Molecules, List[Atoms]], params: dict, method:str=None):
         super().__init__(output)
+        from ..legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         self.atoms = atoms
         self.params = params
         self.method = method
@@ -31,8 +33,8 @@ class TransitionState(JobABC):
                     paras=self.params,
                 )
                 result = prfo.run()
-                from ..pure_nonmd_status import is_pure_nonmd_v2
-                return result if is_pure_nonmd_v2(self.atoms) else None
+                from ..pure_nonmd_status import is_route2_workflow_status_enabled
+                return result if is_route2_workflow_status_enabled(self.atoms) else None
                 
             elif self.method == 'neb':
                 # NEB now accepts Molecules object
@@ -88,8 +90,8 @@ class TransitionState(JobABC):
                     paras=self.params
                 )
                 result = dimer.run()
-                from ..pure_nonmd_status import is_pure_nonmd_v2
-                return result if is_pure_nonmd_v2(atoms_input) else None
+                from ..pure_nonmd_status import is_route2_workflow_status_enabled
+                return result if is_route2_workflow_status_enabled(atoms_input) else None
                 
             elif self.method == 'autoneb':
                 # AutoNEB: automated multi-step reaction pathway exploration

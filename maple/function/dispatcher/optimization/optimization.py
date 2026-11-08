@@ -9,6 +9,8 @@ from maple.function.timer import timer
 class Optimization(JobABC):
     def __init__(self, params: dict, output: str, atoms: Atoms):
         super().__init__(output)
+        from ..legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         self.atoms = atoms
         self.commandcontrol = params
 
@@ -32,12 +34,12 @@ class Optimization(JobABC):
                     f"Unknown opt method: {method!r}. "
                     f"Supported: lbfgs, rfo, sd, sdcg, cg.")
             from ..pure_nonmd_status import (
-                is_pure_nonmd_v2, make_status, optimization_metrics,
+                is_route2_workflow_status_enabled, make_status, optimization_metrics,
             )
             try:
                 atoms = algorithm.run()
             except Exception as exc:
-                if not is_pure_nonmd_v2(self.atoms):
+                if not is_route2_workflow_status_enabled(self.atoms):
                     raise
                 self.atoms._maple_nonmd_status = make_status(
                     workflow="opt", method=method, converged=False,
@@ -48,7 +50,7 @@ class Optimization(JobABC):
                     atoms=self.atoms, error_type=type(exc).__name__, error=str(exc),
                 )
                 return self.atoms
-            if not is_pure_nonmd_v2(atoms):
+            if not is_route2_workflow_status_enabled(atoms):
                 return atoms
             converged = bool(getattr(algorithm, "last_converged", False))
             status = make_status(

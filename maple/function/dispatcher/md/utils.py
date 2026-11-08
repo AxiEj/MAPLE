@@ -849,3 +849,17 @@ def calculate_angular_momentum(
         angular_momentum += np.cross(r, p)
 
     return angular_momentum
+
+def restore_last_valid_md_state(atoms, progress: dict) -> None:
+    """Restore the independent snapshot that preceded a failed integration step."""
+
+    last_valid = progress.get("last_valid_step")
+    if not isinstance(last_valid, dict):
+        return
+    atoms.set_positions(last_valid["positions_angstrom"])
+    atoms.arrays["velocities"] = np.asarray(
+        last_valid["velocities_bohr_per_au"], dtype=float
+    )
+    representation = last_valid.get("velocity_representation")
+    if representation is not None:
+        set_atoms_velocity_representation(atoms, representation)

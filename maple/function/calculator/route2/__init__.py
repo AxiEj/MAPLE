@@ -7,6 +7,7 @@ from ._mace_polar_frozen_ddx_calculator import (
 )
 from ._mace_polar_torch_calculator import (
     PureMACEPolarTorchCalculator,
+    is_identified_hessian_evaluation,
     is_pure_mace_polar_torch_calculator,
 )
 
@@ -16,4 +17,5 @@ __all__ = [
     "is_pure_mace_polar_torch_calculator",
     "is_pure_mace_polar_nonmd_calculator",
     "is_pure_mace_polar_workflow_calculator",
+    "is_identified_hessian_evaluation",
 ]

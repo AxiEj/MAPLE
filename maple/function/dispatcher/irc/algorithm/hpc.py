@@ -1,4 +1,14 @@
-from ._nonmd import (IRCIterationLimit, finish_direction, is_nonmd, remember_initial, run_directions)
+from ._nonmd import (IRCIterationLimit, finish_direction, is_nonmd, preselected_mode_message, remember_initial, run_directions)
+from ._terminal import (
+    IRCCorrectorResult,
+    IRCMicroStepResult,
+    actual_force_passes,
+    commit_micro_step,
+    evaluate_coordinate,
+    evaluation_from_values,
+    is_v4_algorithm,
+    localize_terminal_bracket,
+)
 # -*- coding: utf-8 -*-
 """
 Intrinsic Reaction Coordinate (IRC) integrator using Hessian-based Predictor-Corrector(HPC):
@@ -22,7 +32,7 @@ Units:
 import os
 from collections import deque
 from dataclasses import dataclass, fields
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Literal, overload
 
 import numpy as np
 from ase import Atoms
@@ -142,6 +152,15 @@ class DWI:
 
         if not (len(self.coords) == len(self.energies) == len(self.gradients) == len(self.hessians)):
             raise RuntimeError("DWI internal buffers are inconsistent.")
+
+    @overload
+    def interpolate(self, at_coords: np.ndarray, gradient: Literal[False] = False) -> float: ...
+
+    @overload
+    def interpolate(self, at_coords: np.ndarray, gradient: Literal[True]) -> Tuple[float, np.ndarray]: ...
+
+    @overload
+    def interpolate(self, at_coords: np.ndarray, gradient: bool) -> float | Tuple[float, np.ndarray]: ...
 
     def interpolate(self, at_coords: np.ndarray, gradient: bool = False):
         """Distance-weighted interpolation of energy (and optionally gradient)."""
@@ -319,8 +338,7 @@ class HPC:
             v_neg_mw = np.asarray(preselected, dtype=np.float64).copy()
             diagnostic = getattr(self, "preselected_mode_diagnostic", {})
             log_info(
-                ["\n[INFO] HPC-IRC: Using dispatcher-preselected "
-                 "uncertainty-resolved internal negative mode.\n"],
+                [preselected_mode_message("HPC-IRC", diagnostic)],
                 self.output,
             )
         else:
@@ -528,7 +546,7 @@ class HPC:
         return lam
 
     # --------------------------- Micro-step (HPC) ----------------------------
-    def _micro_step(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _micro_step(self) -> Tuple[np.ndarray, np.ndarray] | IRCMicroStepResult:
         """
         Perform one HPC step using LQA predictor + mBS corrector.
 
@@ -537,8 +555,8 @@ class HPC:
             self.prev_grad, self.micro_counter
 
         Returns:
-            dx: MW displacement for this step
-            g_pred: predicted MW gradient (for diagnostics)
+            Legacy paths return (dx, predicted gradient). V4 returns the
+            committed actual evaluation and its macro-step displacement.
         """
         init_mw = self.mw_coords.copy()
 
@@ -546,6 +564,21 @@ class HPC:
         e_curr, F_cart = self._energy_forces_from_mw(init_mw)
         g_curr = self._gradient_mw_from_forces(F_cart)
         if _norm(g_curr) < 1e-12:
+            if is_v4_algorithm(self):
+                current = evaluation_from_values(self, init_mw, e_curr, F_cart)
+                converged = actual_force_passes(
+                    current, f_max=self.p.f_max_th, f_rms=self.p.f_rms_th
+                )
+                return commit_micro_step(
+                    self,
+                    kind="actual_endpoint" if converged else "bounded_failure",
+                    evaluation=current,
+                    macro_start_mw=init_mw,
+                    termination_reason=(
+                        "endpoint_force_criteria_satisfied" if converged
+                        else "step_too_small_before_force_convergence"
+                    ),
+                )
             return np.zeros_like(g_curr), g_curr
 
         # Update Hessian (or optionally recalc)
@@ -604,6 +637,22 @@ class HPC:
         # Evaluate predicted point and update Hessian
         E_pred, F_pred = self._energy_forces_from_mw(pred_mw)
         g_pred = self._gradient_mw_from_forces(F_pred)
+        predictor_evaluation = (
+            evaluation_from_values(self, pred_mw, E_pred, F_pred)
+            if is_v4_algorithm(self) else None
+        )
+        if predictor_evaluation is not None and actual_force_passes(
+            predictor_evaluation,
+            f_max=self.p.f_max_th,
+            f_rms=self.p.f_rms_th,
+        ):
+            return commit_micro_step(
+                self,
+                kind="actual_endpoint",
+                evaluation=predictor_evaluation,
+                macro_start_mw=init_mw,
+                termination_reason="endpoint_force_criteria_satisfied",
+            )
 
         dg_pred = g_pred - g_curr
         if str(self.p.hessian_update).lower() == "bofill":
@@ -621,13 +670,40 @@ class HPC:
         else:
             corr_mw = pred_mw
 
+        if isinstance(corr_mw, IRCCorrectorResult):
+            assert predictor_evaluation is not None
+            if corr_mw.kind == "regular":
+                regular = evaluate_coordinate(self, corr_mw.coordinate_mw)
+                return commit_micro_step(
+                    self,
+                    kind="regular",
+                    evaluation=regular,
+                    macro_start_mw=init_mw,
+                    termination_reason="regular_corrector_evaluated",
+                )
+            elif corr_mw.kind == "bracket":
+                return localize_terminal_bracket(
+                    self, corr_mw, predictor_evaluation,
+                    macro_start_mw=init_mw,
+                    f_max=self.p.f_max_th, f_rms=self.p.f_rms_th,
+                )
+            else:
+                return commit_micro_step(
+                    self,
+                    kind="bounded_failure",
+                    evaluation=predictor_evaluation,
+                    macro_start_mw=init_mw,
+                    termination_reason="surrogate_stationary_unconfirmed",
+                    new_evaluation_count=0,
+                )
+
         self.mw_coords = corr_mw
         self.micro_counter += 1
 
         dx = self.mw_coords - init_mw
         return dx, g_pred
 
-    def _corrector_step(self, init_mw: np.ndarray, step_length: float, dwi: DWI) -> np.ndarray:
+    def _corrector_step(self, init_mw: np.ndarray, step_length: float, dwi: DWI) -> np.ndarray | IRCCorrectorResult:
         """mBS (modified Bulirsch–Stoer) corrector integration on DWI PES."""
         errors = []
         richardson: Dict[Tuple[int, int], np.ndarray] = {}
@@ -655,6 +731,28 @@ class HPC:
                 if len(k_coords) > 1:
                     prev_coords = k_coords[-2]
                     if _norm(cur_coords - prev_coords) <= corr_step:
+                        if is_v4_algorithm(self):
+                            # The adjacent pre-step nodes straddle the turn;
+                            # the return-to-start chord need not span a minimum.
+                            turning_coords = k_coords[-1]
+                            segment = turning_coords - prev_coords
+                            _, left_gradient = dwi.interpolate(
+                                prev_coords, gradient=True
+                            )
+                            _, right_gradient = dwi.interpolate(
+                                turning_coords, gradient=True
+                            )
+                            bracket = (
+                                np.dot(left_gradient, segment)
+                                * np.dot(right_gradient, segment) < 0.0
+                            )
+                            return IRCCorrectorResult(
+                                kind="bracket" if bracket else "unconfirmed",
+                                coordinate_mw=prev_coords.copy(),
+                                bracket_left_mw=prev_coords.copy(),
+                                bracket_right_mw=turning_coords.copy(),
+                                richardson_level=k,
+                            )
                         return prev_coords
 
             richardson[(k, 0)] = cur_coords
@@ -672,7 +770,14 @@ class HPC:
         else:
             raise RuntimeError("mBS Richardson extrapolation did not converge.")
 
-        return richardson[(k, k)]
+        coordinate = richardson[(k, k)]
+        if is_v4_algorithm(self):
+            return IRCCorrectorResult(
+                kind="regular",
+                coordinate_mw=coordinate.copy(),
+                richardson_level=k,
+            )
+        return coordinate
 
     # --------------------------- One direction ------------------------------
     def _one_side(self,
@@ -756,8 +861,32 @@ class HPC:
 
         # Macro steps
         for it in range(1, p.max_steps + 1):
-            dx, _ = self._micro_step()
-            if _norm(dx) <= 1e-12:
+            step = self._micro_step()
+            typed_terminal = isinstance(step, IRCMicroStepResult)
+            if typed_terminal:
+                dx = step.displacement_mw
+                E_new = step.evaluation.energy_hartree
+                F_new = step.evaluation.forces_hartree_per_angstrom
+                evaluated = (E_new, F_new)
+                if step.kind == "bounded_failure":
+                    records.append(
+                        {
+                            "E": E_new,
+                            "maxG": step.evaluation.max_force,
+                            "rmsG": step.evaluation.rms_force,
+                            "x": step.evaluation.positions_angstrom.copy(),
+                            "terminal_localization": {
+                                "reason": step.termination_reason,
+                                "candidate_count": step.candidate_count,
+                                "new_evaluation_count": step.new_evaluation_count,
+                            },
+                        }
+                    )
+                    raise IRCIterationLimit(step.termination_reason)
+            else:
+                dx, _ = step
+                evaluated = None
+            if not typed_terminal and _norm(dx) <= 1e-12:
                 termination_reason = "step_too_small"
                 log_info(
                     [f"[INFO] {title}: step too small at step {it}, stopping.\n"],
@@ -766,7 +895,9 @@ class HPC:
                 break
 
             # Energy / forces at new point
-            E_new, F_new = self._energy_forces_from_mw(self.mw_coords)
+            if evaluated is None:
+                evaluated = self._energy_forces_from_mw(self.mw_coords)
+            E_new, F_new = evaluated
             maxF = float(np.max(np.abs(F_new)))
             rmsF = float(np.sqrt(np.mean(F_new ** 2)))
 
@@ -781,6 +912,12 @@ class HPC:
                     "x": self.atoms.get_positions().copy(),
                 }
             )
+            if typed_terminal:
+                records[-1]["terminal_localization"] = {
+                    "reason": step.termination_reason,
+                    "candidate_count": step.candidate_count,
+                    "new_evaluation_count": step.new_evaluation_count,
+                }
 
             # Convergence in terms of Cartesian forces
             if (maxF <= p.f_max_th) and (rmsF <= p.f_rms_th):
@@ -788,6 +925,8 @@ class HPC:
                 termination_reason = "endpoint_force_criteria_satisfied"
                 self._print_hurray()
                 break
+            if typed_terminal and _norm(dx) <= 1e-12:
+                raise IRCIterationLimit("step_too_small")
 
         return finish_direction(
             self, title, records, E_ts, termination_reason, converged

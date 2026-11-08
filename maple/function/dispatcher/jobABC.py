@@ -10,7 +10,7 @@ class JobABC(ABC):
         self.output = output
 
     @abstractmethod
-    def run(self):
+    def run(self) -> object:
         pass
 
     # ==============================================

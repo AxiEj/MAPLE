@@ -1,0 +1,98 @@
+{
+  "actual_device": "cpu",
+  "candidate_only": false,
+  "completed": true,
+  "final_metrics": {
+    "completed_steps": 8,
+    "final_conserved_energy_hartree": null,
+    "final_total_energy_hartree": -76.44284622061753,
+    "initial_conserved_energy_hartree": null,
+    "initial_total_energy_hartree": -76.44273815704013,
+    "last_carried_temperature_K": 273.40317380498163,
+    "last_carried_total_energy_hartree": -76.44282934239261,
+    "last_temperature_K": 271.6265997492395,
+    "last_valid_step": {
+      "positions_angstrom": [
+        [
+          0.011083694742773504,
+          0.008761216395683048,
+          0.001882525471609645
+        ],
+        [
+          0.9867617315766795,
+          0.02232345664613886,
+          -0.0033184213098513635
+        ],
+        [
+          -0.2562832577924484,
+          0.9397957161430872,
+          -0.015810756286296374
+        ]
+      ],
+      "step": 8,
+      "velocities_bohr_per_au": [
+        [
+          -5.529385418590021e-05,
+          -3.270135416208128e-07,
+          9.941494268308664e-05
+        ],
+        [
+          0.0005484433087912537,
+          -0.00027653261374748845,
+          -0.00019699293525176406
+        ],
+        [
+          9.05727372146697e-05,
+          0.0002793519000824176,
+          -0.0014558482101188247
+        ]
+      ],
+      "velocity_representation": "lfmiddle_carried"
+    },
+    "maximum_conserved_energy_drift_hartree": null,
+    "random_seed": 20261106,
+    "requested_steps": 8,
+    "thermodynamic_velocity_representation": "standard_synchronized",
+    "thermostat": "langevin"
+  },
+  "geometry": [
+    {
+      "positions_angstrom": [
+        [
+          0.011083694742773504,
+          0.008761216395683048,
+          0.001882525471609645
+        ],
+        [
+          0.9867617315766795,
+          0.02232345664613886,
+          -0.0033184213098513635
+        ],
+        [
+          -0.2562832577924484,
+          0.9397957161430872,
+          -0.015810756286296374
+        ]
+      ],
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ]
+    }
+  ],
+  "iterations": 8,
+  "method": "nvt",
+  "optimizer_converged": null,
+  "path_converged": null,
+  "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v4",
+  "rejected": false,
+  "scalar_contract_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v4",
+  "schema": "maple-route2-workflow-outcome-v1",
+  "scientific_certified": null,
+  "task_success": true,
+  "termination_class": "completed",
+  "termination_reason": "requested_steps_completed",
+  "trace": [],
+  "workflow": "md"
+}

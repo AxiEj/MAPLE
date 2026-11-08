@@ -10,7 +10,8 @@ nonpolar functional; users cannot compose unvalidated mixtures.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, cast
+from types import MappingProxyType
+from typing import Literal, Mapping, cast
 
 from maple.solvation.api.profiles import (
     MACE_POLAR_FORCED_RECIPROCAL_FIXED_BOX_EVALUATOR_IDS,
@@ -93,6 +94,7 @@ PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE = (
 PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE = (
     "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cuda-v4"
 )
+PURE_TORCH_FP32_V4_WORKFLOW_POLICY = "pure-torch-fp32-v4-workflows-v1"
 
 _PURE_MACEPOLAR_EXPECTED_DEVICE = {
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE: "cpu",
@@ -211,6 +213,7 @@ class Route2SMDProfileSpec:
         "scf",
     )
     experimental_task_allowlist: tuple[str, ...] = ("sp",)
+    workflow_policy_id: str | None = None
     pcmsolver_cavity_generation: Literal[
         "legacy-builtin-solvent-probe-v1",
         "intrinsic-probe0-noaddsph-v1",
@@ -251,7 +254,7 @@ class Route2SMDProfileSpec:
         ):
             raise ValueError("Route-2 allowed response modes are invalid.")
         if not self.experimental_task_allowlist or any(
-            task not in {"sp", "opt", "freq", "ts", "scan", "irc"}
+            task not in {"sp", "opt", "freq", "ts", "scan", "irc", "md"}
             for task in self.experimental_task_allowlist
         ):
             raise ValueError("Route-2 experimental task allowlist is invalid.")
@@ -301,6 +304,14 @@ class Route2SMDProfileSpec:
                     "device-specific point-l1 ddPCM/legacy-SMD scalar and "
                     "response=frozen."
                 )
+        if self.workflow_policy_id is not None:
+            if self.workflow_policy_id != PURE_TORCH_FP32_V4_WORKFLOW_POLICY:
+                raise ValueError("Unsupported Route-2 workflow policy.")
+            if self.name not in {
+                PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE,
+                PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE,
+            }:
+                raise ValueError("The FP32 V4 workflow policy requires a V4 profile.")
         if self.mace_geometry_frame_policy not in {
             "laboratory-v1",
             "jgp94-d2-canonical-v1",
@@ -337,6 +348,181 @@ class Route2SMDProfileSpec:
             == "intrinsic-probe0-noaddsph-v1"
         )
 
+
+@dataclass(frozen=True, slots=True)
+class Route2WorkflowCapability:
+    """One task admission row; it does not implement the task itself."""
+
+    execution_class: Literal["bounded_execution", "candidate_only", "closed"]
+    image_policy: Literal["single", "multi"]
+    outcome_policy: Literal[
+        "task_success", "path_success", "candidate_validation", "fixed_steps",
+        "numerical_stationary", "numerical_irc_auto", "exploratory_irc",
+        "single_point_frames", "frequency_quantities",
+    ]
+    constraints_allowed: bool
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
+class FrequencyMethodRequest:
+    """One raw frequency method and its profile-specific execution identity."""
+
+    raw_method: str
+    canonical_method: str
+    deprecated_alias: str | None
+
+
+def normalize_frequency_method_request(
+    method: object | None, *, pure_torch_v4: bool
+) -> FrequencyMethodRequest:
+    """Normalize the V4 ``nonmw`` alias without widening other profiles."""
+
+    raw = str(method or "mw").strip().lower()
+    if raw == "cartesian-curvature" and not pure_torch_v4:
+        raise ValueError("method=cartesian-curvature is V4-only.")
+    if raw == "nonmw" and pure_torch_v4:
+        return FrequencyMethodRequest(raw, "cartesian-curvature", "nonmw")
+    return FrequencyMethodRequest(raw, raw, None)
+
+
+_OPEN_SINGLE = Route2WorkflowCapability(
+    "bounded_execution", "single", "task_success", True, "supported"
+)
+_OPEN_PATH = Route2WorkflowCapability(
+    "bounded_execution", "multi", "path_success", False, "supported"
+)
+_NUMERICAL_STATIONARY_SINGLE = Route2WorkflowCapability(
+    "bounded_execution", "single", "numerical_stationary", False,
+    "computed_stationary_point_required",
+)
+_NUMERICAL_STATIONARY_PATH = Route2WorkflowCapability(
+    "bounded_execution", "multi", "numerical_stationary", False,
+    "computed_stationary_point_required",
+)
+_NUMERICAL_IRC_AUTO = Route2WorkflowCapability(
+    "bounded_execution", "single", "numerical_irc_auto", False,
+    "computed_index_one_seed_and_both_branches_required",
+)
+_EXPLORATORY_IRC = Route2WorkflowCapability(
+    "candidate_only", "single", "exploratory_irc", False,
+    "explicit_raw_mode_is_exploratory",
+)
+_SP_TRAJECTORY = Route2WorkflowCapability(
+    "bounded_execution", "multi", "single_point_frames", True,
+    "same_identity_trajectory",
+)
+
+_PURE_TORCH_FP32_V4_CAPABILITIES: Mapping[
+    tuple[str, str, str | None], Route2WorkflowCapability
+] = MappingProxyType({
+    ("sp", "sp", None): _OPEN_SINGLE,
+    ("sp", "trajectory", None): _SP_TRAJECTORY,
+    **{("opt", method, None): _OPEN_SINGLE for method in ("lbfgs", "sd", "cg", "sdcg")},
+    ("opt", "rfo", None): Route2WorkflowCapability(
+        "bounded_execution", "single", "task_success", False,
+        "constrained_hessian_projection_unavailable",
+    ),
+    ("scan", "rigid", None): _OPEN_SINGLE,
+    **{("scan", method, None): _OPEN_SINGLE for method in ("lbfgs", "sd", "cg", "sdcg")},
+    ("scan", "rfo", None): Route2WorkflowCapability(
+        "closed", "single", "task_success", False,
+        "constrained_hessian_projection_unavailable",
+    ),
+    ("freq", "mw", None): Route2WorkflowCapability(
+        "bounded_execution", "single", "task_success", False, "supported"
+    ),
+    ("freq", "cartesian-curvature", None): Route2WorkflowCapability(
+        "bounded_execution", "single", "frequency_quantities", False,
+        "cartesian_curvature_diagnostic",
+    ),
+    ("freq", "both", None): Route2WorkflowCapability(
+        "bounded_execution", "single", "frequency_quantities", False,
+        "physical_and_cartesian_quantities",
+    ),
+    ("ts", "neb", None): _OPEN_PATH,
+    ("ts", "neb", "cineb"): _OPEN_PATH,
+    ("ts", "string", None): _OPEN_PATH,
+    ("ts", "string", "cistring"): _OPEN_PATH,
+    ("ts", "autoneb", None): _OPEN_PATH,
+    ("ts", "prfo", None): _NUMERICAL_STATIONARY_SINGLE,
+    ("ts", "dimer", None): _NUMERICAL_STATIONARY_SINGLE,
+    ("ts", "neb", "nebts"): _NUMERICAL_STATIONARY_PATH,
+    ("ts", "string", "stringts"): _NUMERICAL_STATIONARY_PATH,
+    **{("irc", method, None): _NUMERICAL_IRC_AUTO for method in ("gs", "hpc", "eulerpc", "lqa")},
+    ("md", "nve", None): Route2WorkflowCapability(
+        "bounded_execution", "single", "fixed_steps", False, "supported"
+    ),
+    ("md", "nvt", None): Route2WorkflowCapability(
+        "bounded_execution", "single", "fixed_steps", False, "supported"
+    ),
+    ("md", "npt", None): Route2WorkflowCapability(
+        "closed", "single", "fixed_steps", False,
+        "periodic_stress_contract_unavailable",
+    ),
+})
+
+
+def route2_workflow_capability(
+    policy_id: str,
+    *,
+    task: object,
+    method: object | None,
+    refine: object | None = None,
+) -> Route2WorkflowCapability:
+    """Resolve one normalized task row or fail closed for an unknown method."""
+
+    if str(policy_id).strip().lower() != PURE_TORCH_FP32_V4_WORKFLOW_POLICY:
+        raise ValueError(f"Unsupported Route-2 workflow policy: {policy_id}.")
+    normalized_task = str(task).strip().lower()
+    normalized_method = str(method or normalized_task).strip().lower()
+    normalized_refine = None if refine in (None, "") else str(refine).strip().lower()
+    try:
+        return _PURE_TORCH_FP32_V4_CAPABILITIES[
+            (normalized_task, normalized_method, normalized_refine)
+        ]
+    except KeyError as exc:
+        raise ValueError(
+            f"Workflow policy={policy_id} has no capability for "
+            f"task={normalized_task}, method={normalized_method}, "
+            f"refine={normalized_refine}."
+        ) from exc
+
+
+def route2_workflow_capability_for_params(
+    profile: Route2SMDProfileSpec, task: str, params: Mapping[str, object]
+) -> Route2WorkflowCapability | None:
+    if profile.workflow_policy_id is None:
+        return None
+    if task == "sp":
+        mode = str(params.get("mode", "single")).strip().lower()
+        if mode not in {"single", "trajectory"}:
+            raise ValueError(
+                "V4 SP mode must be 'single' or 'trajectory'; heterogeneous "
+                "collections remain closed."
+            )
+        method = "trajectory" if mode == "trajectory" else "sp"
+    elif task == "md":
+        method = params.get("ensemble", "nve")
+    elif task == "scan" and str(params.get("mode", "relaxed")).lower() == "rigid":
+        method = "rigid"
+    elif task == "freq":
+        method = normalize_frequency_method_request(
+            params.get("method"), pure_torch_v4=True
+        ).canonical_method
+    else:
+        method = params.get("method") or {
+            "opt": "lbfgs", "freq": "mw", "irc": "gs"
+        }.get(task, task)
+    capability = route2_workflow_capability(
+        profile.workflow_policy_id,
+        task=task,
+        method=method,
+        refine=params.get("refine"),
+    )
+    if task == "irc" and params.get("mode_index") is not None:
+        return _EXPLORATORY_IRC
+    return capability
 
 _WATER_ONLY = frozenset({"water"})
 _TORCH_V3_SOLVENTS = frozenset({"water", "hexane"})
@@ -689,7 +875,8 @@ _PROFILE_SPECS = {
             EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CPU_V4
         ),
         allowed_response_modes=("frozen",),
-        experimental_task_allowlist=("sp", "opt", "freq"),
+        experimental_task_allowlist=("sp", "opt", "freq", "ts", "scan", "irc", "md"),
+        workflow_policy_id=PURE_TORCH_FP32_V4_WORKFLOW_POLICY,
         electronic_profile_binding=(
             "official-mace-polar-1-m/float32/cpu/zero-field-radial-gto-source/v1"
         ),
@@ -718,7 +905,8 @@ _PROFILE_SPECS = {
             EXPERIMENTAL_PURE_MACEPOLAR_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4
         ),
         allowed_response_modes=("frozen",),
-        experimental_task_allowlist=("sp", "opt", "freq"),
+        experimental_task_allowlist=("sp", "opt", "freq", "ts", "scan", "irc", "md"),
+        workflow_policy_id=PURE_TORCH_FP32_V4_WORKFLOW_POLICY,
         electronic_profile_binding=(
             "official-mace-polar-1-m/float32/cuda/zero-field-radial-gto-source/v1"
         ),
@@ -1077,6 +1265,9 @@ __all__ = [
     "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V3_PROFILE",
     "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE",
     "PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE",
+    "PURE_TORCH_FP32_V4_WORKFLOW_POLICY",
+    "FrequencyMethodRequest",
+    "normalize_frequency_method_request",
     "SUPPORTED_DDPCM_SMD_PROFILES",
     "SUPPORTED_FC_ASWIG_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",
@@ -1086,6 +1277,9 @@ __all__ = [
     "SUPPORTED_ROUTE2_SMD_RESPONSE_MODES",
     "Route2SMDProfileSpec",
     "Route2SMDResponseMode",
+    "Route2WorkflowCapability",
+    "route2_workflow_capability",
+    "route2_workflow_capability_for_params",
     "route2_smd_profile_spec",
     "resolve_route2_smd_profile",
     "pure_macepolar_allows_charged",

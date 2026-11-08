@@ -1,0 +1,278 @@
+{
+  "schema": "maple-route2-fp32-v4-workflow-matrix-v1",
+  "base_commit": "dc66007afb29d6cb9480c695566f280178097fdf",
+  "profile_policy": "pure-torch-fp32-v4-workflows-v1",
+  "purpose": "Bounded engineering execution only; no scientific accuracy or stationary-point certification admission.",
+  "fixture_source": "pure-mace-polar-nonmd-v2.json",
+  "case_count": 28,
+  "cases": {
+    "sp": {
+      "fixture": "water_minimum",
+      "task_line": "#sp",
+      "expected_outcome": "task_success",
+      "timeout_seconds": 60
+    },
+    "opt.lbfgs": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=lbfgs,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "opt.rfo": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=rfo,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "opt.sd": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=sd,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "opt.cg": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=cg,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "opt.sdcg": {
+      "fixture": "water_minimum",
+      "task_line": "#opt(method=sdcg,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "scan.rigid": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=rigid)",
+      "expected_outcome": "task_success",
+      "timeout_seconds": 60,
+      "post_lines": [
+        "S 1 2 0.01 2"
+      ]
+    },
+    "scan.relaxed-lbfgs": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=lbfgs,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60,
+      "post_lines": [
+        "S 1 2 0.01 2"
+      ]
+    },
+    "scan.relaxed-sd": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=sd,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60,
+      "post_lines": [
+        "S 1 2 0.01 2"
+      ]
+    },
+    "scan.relaxed-cg": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=cg,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60,
+      "post_lines": [
+        "S 1 2 0.01 2"
+      ]
+    },
+    "scan.relaxed-sdcg": {
+      "fixture": "water_minimum",
+      "task_line": "#scan(mode=relaxed,method=sdcg,max_iter=2)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60,
+      "post_lines": [
+        "S 1 2 0.01 2"
+      ]
+    },
+    "freq.mw": {
+      "fixture": "water_minimum",
+      "task_line": "#freq(method=mw,treat_imag_as_real=false)",
+      "expected_outcome": "task_success",
+      "timeout_seconds": 60
+    },
+    "ts.neb": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=neb,max_iter=2,n_images=3)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "ts.cineb": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=neb,refine=cineb,max_iter=2,n_images=3)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "ts.nebts": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=neb,refine=nebts,max_iter=2,n_images=3)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "ts.string": {
+      "fixture": "ammonia_path",
+      "task_line": "#ts(method=string,max_iter=2,n_images=3)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "ts.cistring": {
+      "fixture": "ammonia_path",
+      "task_line": "#ts(method=string,refine=cistring,max_iter=2,n_images=3)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "ts.stringts": {
+      "fixture": "ammonia_path",
+      "task_line": "#ts(method=string,refine=stringts,max_iter=2,n_images=3)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "ts.autoneb": {
+      "fixture": "ammonia_path_three",
+      "task_line": "#ts(method=autoneb,max_iter=2,n_images=3)",
+      "expected_outcome": "completed_or_bounded_nonconvergence",
+      "timeout_seconds": 60
+    },
+    "ts.prfo": {
+      "fixture": "ammonia_ts",
+      "task_line": "#ts(method=prfo,max_iter=2,recalc=1)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "ts.dimer": {
+      "fixture": "ammonia_ts",
+      "task_line": "#ts(method=dimer,max_iter=2,random_seed=20261106)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "irc.gs": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=gs,mode_index=0,max_steps=2,max_micro_cycles=1)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "irc.hpc": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=hpc,mode_index=0,max_steps=2,max_micro_cycles=1)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "irc.eulerpc": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=eulerpc,mode_index=0,max_steps=2,max_micro_cycles=1)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "irc.lqa": {
+      "fixture": "ammonia_ts",
+      "task_line": "#irc(method=lqa,mode_index=0,max_steps=2,max_micro_cycles=1)",
+      "expected_outcome": "candidate_only",
+      "timeout_seconds": 60
+    },
+    "md.nve": {
+      "fixture": "water_minimum",
+      "task_line": "#md(ensemble=nve,steps=8,timestep=0.1,random_seed=20261106,log_every=1,traj_every=8)",
+      "expected_outcome": "task_success",
+      "timeout_seconds": 60
+    },
+    "md.nvt-langevin": {
+      "fixture": "water_minimum",
+      "task_line": "#md(ensemble=nvt,thermostat=langevin,steps=8,timestep=0.1,random_seed=20261106,log_every=1,traj_every=8)",
+      "expected_outcome": "task_success",
+      "timeout_seconds": 60
+    },
+    "md.nvt-v-rescale": {
+      "fixture": "water_minimum",
+      "task_line": "#md(ensemble=nvt,thermostat=v-rescale,steps=8,timestep=0.1,random_seed=20261106,log_every=1,traj_every=8)",
+      "expected_outcome": "task_success",
+      "timeout_seconds": 60
+    }
+  },
+  "closed_rows": [
+    "freq.nonmw",
+    "freq.both",
+    "scan.relaxed-rfo",
+    "md.npt",
+    "pbc",
+    "constrained-hessian",
+    "constrained-md",
+    "restart/load_state"
+  ],
+  "gpu_policy": {
+    "authorized_total_seconds": 600,
+    "sentinels_only": true,
+    "no_performance_claim": true,
+    "selectors": [
+      "sp",
+      "scan.rigid",
+      "ts.neb",
+      "ts.prfo",
+      "ts.dimer",
+      "irc.gs",
+      "md.nve",
+      "md.nvt-langevin"
+    ],
+    "expected_outcome_source": "Reuse each selected case expected_outcome without GPU-specific relaxation.",
+    "required_fields": [
+      "requested_case_id",
+      "profile",
+      "scalar_contract_id",
+      "actual_device",
+      "schema",
+      "finite_metrics",
+      "process_exit_code",
+      "task_success",
+      "candidate_only",
+      "scientific_certified",
+      "source_manifest_before",
+      "source_manifest_after",
+      "wall_seconds"
+    ],
+    "required_profile_suffix": "-torch-cuda-v4",
+    "required_device": "cuda:0",
+    "candidate_invariants": {
+      "task_success": false,
+      "scientific_certified": false
+    },
+    "original_four_case_replay": {
+      "required": true,
+      "cases": [
+        "water/cpu",
+        "water/cuda:0",
+        "hexane/cpu",
+        "hexane/cuda:0"
+      ],
+      "counts_against_total_gpu_seconds": true
+    },
+    "aggregate_gpu_wall_budget_seconds": 600,
+    "exclusive_gpu_preflight_required": true
+  },
+  "accounting": {
+    "retain_all_attempts": true,
+    "candidate_task_success": false,
+    "no_threshold_retuning": true
+  },
+  "md_validation": {
+    "fixture": "water_minimum",
+    "steps": 8,
+    "timestep_fs": 0.1,
+    "nve_maximum_total_energy_drift_eV": "max(5e-4 * atom_count, 5e-6 * max(abs(E_total_t0_eV), 1.0))",
+    "vrescale_maximum_conserved_energy_drift_eV": "max(5e-4 * atom_count, 5e-6 * max(abs(E_conserved_t0_eV), 1.0))",
+    "langevin_replay": {
+      "same_explicit_seed": 20261106,
+      "required_equal": [
+        "completed_steps",
+        "positions_angstrom",
+        "velocities_bohr_per_au",
+        "energies"
+      ],
+      "comparison": "bitwise",
+      "thermodynamic_velocity_representation": "standard_synchronized",
+      "stored_velocity_representation": "lfmiddle_carried"
+    },
+    "claim_boundary": "Bounded integration-integrity only; not long-time stability, ensemble, or scientific-accuracy admission.",
+    "thresholds_frozen_before_real_results": true
+  }
+}

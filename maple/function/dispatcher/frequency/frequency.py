@@ -11,9 +11,10 @@ from __future__ import annotations
 import numpy as np
 import os
 from dataclasses import dataclass, fields
-from typing import Tuple, Optional, Dict, Tuple as Tup, Literal
+from typing import Callable, Tuple, Optional, Dict, Tuple as Tup, Literal
 from ase import Atoms
 from ..jobABC import JobABC
+from .quantities import FrequencyQuantityResult
 
 from maple.function.timer import timer
 
@@ -255,7 +256,9 @@ class FrequencyBase(JobABC):
         self._print = PrintParams()
 
     # ---------------------- main workflow ----------------------
-    def run(self) -> None:
+    def _execute_hessian(
+        self, hessian_supplier: Callable[[], np.ndarray]
+    ) -> tuple[np.ndarray, np.ndarray, ThermoResults]:
         """
         Execute the full frequency analysis workflow.
 
@@ -269,7 +272,7 @@ class FrequencyBase(JobABC):
         self.log_info([f"Starting frequency analysis calculation, Number of atoms: {len(self.atoms)}"])
 
         try:
-            hessian = self.get_hessian()
+            hessian = hessian_supplier()
             freqs_cm1, modes_cart = self.compute_frequencies(hessian)
 
             # Handle small imaginary frequencies if requested
@@ -285,10 +288,14 @@ class FrequencyBase(JobABC):
             # verbosity=10: additional summary output with XYZ trajectory
             if self.verbosity == 10:
                 self._write_summary(freqs_cm1, modes_cart, thermo)
+            return freqs_cm1, modes_cart, thermo
 
         except Exception as e:
             self.log_error(f"Frequency analysis failed: {str(e)}")
             raise
+
+    def run(self) -> None:
+        self._execute_hessian(self.get_hessian)
 
     # ---------------------- helpers ----------------------
     def _parse_device(self, s: str) -> str:
@@ -1135,6 +1142,15 @@ class PureFrozenMWFrequency(FrequencyBase):
     conversion at the legacy dispatcher boundary.
     """
 
+    def _bind_evaluation(self, evaluation, analysis) -> None:
+        self.hessian_evaluation = evaluation
+        self.mode_analysis = analysis
+        calc = self.atoms.calc
+        raw_calc = getattr(calc, "raw_calculator", calc)
+        if raw_calc is None:
+            raise RuntimeError("pure frozen frequency evaluation lost its calculator.")
+        raw_calc.last_frequency_mode_analysis = analysis
+
     def get_hessian(self) -> np.ndarray:
         calc = self.atoms.calc
         from maple.function.calculator.route2 import (
@@ -1151,11 +1167,18 @@ class PureFrozenMWFrequency(FrequencyBase):
             analyze_hessian_evaluation,
         )
 
-        self.hessian_evaluation = evaluation
-        self.mode_analysis = analyze_hessian_evaluation(self.atoms, evaluation)
-        raw_calc = getattr(calc, "raw_calculator", calc)
-        raw_calc.last_frequency_mode_analysis = self.mode_analysis
+        analysis = analyze_hessian_evaluation(self.atoms, evaluation)
+        self._bind_evaluation(evaluation, analysis)
         return evaluation.hessian_eV_per_A2
+
+    def run_prepared(self, evaluation, analysis):
+        """Run the normal MW lifecycle from an already-acquired evaluation."""
+
+        def prepared_hessian() -> np.ndarray:
+            self._bind_evaluation(evaluation, analysis)
+            return evaluation.hessian_eV_per_A2
+
+        return self._execute_hessian(prepared_hessian)
 
     def compute_frequencies(self, hessian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         analysis = getattr(self, "mode_analysis", None)
@@ -1203,6 +1226,135 @@ class PureFrozenMWFrequency(FrequencyBase):
                 "rotational, and standard-state terms do not constitute a full "
                 "solution free energy.\n"
             )
+
+
+class PureTorchV4FrequencyQuantities:
+    """V4-only physical and Cartesian quantities from one analytic Hessian."""
+
+    def __init__(
+        self, *, output: str, atoms: Atoms, method: str,
+        temperature: float, pressure_kpa: float, ilowfreq: int, device: str,
+        deprecated_alias: str | None = None,
+    ):
+        self.output = output
+        self.atoms = atoms
+        self.method = method
+        self.deprecated_alias = deprecated_alias
+        self.temperature = temperature
+        self.pressure_kpa = pressure_kpa
+        self.ilowfreq = ilowfreq
+        self.device = device
+        self.verbosity = 1
+        self.treat_imag_as_real = False
+        self._print = PrintParams()
+
+    @staticmethod
+    def _write_cartesian(stream, result) -> None:
+        stream.write("\n" + "=" * 70 + "\n")
+        stream.write("CARTESIAN CURVATURE DIAGNOSTIC\n")
+        stream.write("=" * 70 + "\n")
+        stream.write("Stored operator: symmetrized full Cartesian Hessian\n")
+        stream.write("Eigenvalue unit: eV/angstrom^2\n")
+        stream.write("Eigenvector basis: full Cartesian 3N\n")
+        stream.write("Thermochemistry available: false\n")
+        stream.write(
+            "Raw maximum antisymmetry diagnostic: "
+            f"{result.raw_maximum_antisymmetry_eV_per_A2:.12e} eV/angstrom^2\n"
+        )
+        stream.write(
+            "Computed-operator QA: "
+            f"passed={str(result.computed_operator_quality_passed).lower()}, "
+            f"normalized residual={result.normalized_eigenpair_residual:.12e}, "
+            f"orthogonality defect={result.eigenvector_orthogonality_defect:.12e}, "
+            f"gate={result.quality_gate:.12e}\n"
+        )
+        stream.write(
+            "Independent Hessian uncertainty: unavailable; "
+            "interval certification: unavailable\n"
+        )
+        stream.write("Cartesian Hessian eigenvalues:\n")
+        for index, value in enumerate(result.eigenvalues_eV_per_A2):
+            stream.write(f"  {index:5d} {value: .12e}\n")
+        stream.write("Cartesian Hessian eigenvectors (columns):\n")
+        np.savetxt(stream, result.eigenvectors_cartesian, fmt="% .12e")
+
+    def run(self):
+        from maple.solvation.derivatives.computed_stationary import _array_sha256
+
+        from .quantities import (
+            PhysicalMassWeightedResult,
+            analyze_cartesian_curvature,
+        )
+
+        calculator = getattr(self.atoms.calc, "raw_calculator", self.atoms.calc)
+        if calculator is None:
+            raise RuntimeError("V4 frequency quantities require a calculator.")
+        context = calculator.get_identified_hessian_evaluation(self.atoms)
+        cartesian = analyze_cartesian_curvature(self.atoms, context)
+        masses_snapshot = np.array(
+            self.atoms.get_masses(), dtype=np.float64, copy=True
+        )
+        physical = None
+        if self.method == "both":
+            from maple.solvation.derivatives.molecular_modes import (
+                analyze_hessian_evaluation,
+            )
+
+            analysis = analyze_hessian_evaluation(self.atoms, context.evaluation)
+            mw_job = PureFrozenMWFrequency(
+                output=self.output,
+                atoms=self.atoms,
+                temperature=self.temperature,
+                pressure_kpa=self.pressure_kpa,
+                ilowfreq=self.ilowfreq,
+                device=self.device,
+            )
+            mw_job.verbosity = self.verbosity
+            mw_job._print = self._print
+            frequencies, modes, thermo = mw_job.run_prepared(
+                context.evaluation, analysis
+            )
+            with open(self.output, "a", encoding="utf-8") as stream:
+                stream.write(
+                    "\nPHYSICAL MASS-WEIGHTED FREQUENCY AND THERMOCHEMISTRY\n"
+                )
+            physical = PhysicalMassWeightedResult(
+                frequencies_cm1=frequencies,
+                modes_cartesian=modes,
+                eigenvalues_eV_per_A2_amu=(
+                    analysis.eigenvalues_eV_per_A2_amu
+                ),
+                rigid_rank=int(analysis.rigid_rank),
+                interval_statuses=tuple(analysis.statuses),
+                uncertainty_eV_per_A2_amu=(
+                    analysis.uncertainty_eV_per_A2_amu
+                ),
+                thermochemistry=tuple(
+                    (field.name, float(getattr(thermo, field.name)))
+                    for field in fields(thermo)
+                ),
+                masses_amu=masses_snapshot,
+                mass_sha256=_array_sha256(masses_snapshot),
+                hessian_sha256=cartesian.hessian_sha256,
+                evaluation_sha256=cartesian.evaluation_sha256,
+                temperature_K=float(mw_job.temperature),
+                pressure_kPa=float(mw_job.pressure_kpa),
+                ilowfreq=int(mw_job.ilowfreq),
+                omega0_cm1=float(mw_job.omega0_cm1),
+                nu_floor_cm1=float(mw_job.nu_floor_cm1),
+                symmetry_number=int(mw_job.symmetry_number),
+            )
+            mode = "a"
+        else:
+            mode = "w"
+        with open(self.output, mode, encoding="utf-8") as stream:
+            self._write_cartesian(stream, cartesian)
+        return FrequencyQuantityResult(
+            canonical_method=self.method,
+            cartesian_curvature=cartesian,
+            physical_mass_weighted=physical,
+            deprecated_alias=self.deprecated_alias,
+        )
 
 
 class NonMWFrequency(FrequencyBase):
@@ -1329,11 +1481,17 @@ class BothFrequency(FrequencyBase):
 # ======================================================================
 class Frequency:
     def __init__(self, output: str, atoms: Atoms, params: Optional[FrequencyParams] = None, paras: Optional[dict] = None):
+        from ..legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         self.output = output
         self.atoms = atoms
         self.params = params if params is not None else FrequencyParams()
         if isinstance(paras, dict):
             user = _select_subdict(paras, ("freq", "frequency", "frequency_analysis"))
+            if "deprecated_alias" in _lower_keys(user):
+                raise ValueError(
+                    "deprecated_alias is derived internally and cannot be supplied."
+                )
             _update_dataclass_from_dict(self.params, user)
 
         # ---- Back-compat: map legacy 'mode' -> 'method' if present ----
@@ -1364,23 +1522,37 @@ class Frequency:
             raise ValueError("temperature must be > 0 K")
         if float(self.params.pressure_kpa) <= 0:
             raise ValueError("pressure_kpa must be > 0 kPa")
-        if str(self.params.method).lower() not in ("mw", "nonmw", "both"):
-            raise ValueError('method must be one of: "mw", "nonmw", "both"')
+        if str(self.params.method).lower() not in (
+            "mw", "nonmw", "both", "cartesian-curvature"
+        ):
+            raise ValueError(
+                'method must be one of: "mw", "nonmw", "both", '
+                '"cartesian-curvature"'
+            )
 
      
   
 
-    def run(self) -> None:
+    def run(self) -> FrequencyQuantityResult | None:
         with timer("Frequency Calculation"):
-            method = self.params.method.lower()
-
             from maple.function.calculator.route2 import (
                 is_pure_mace_polar_workflow_calculator,
             )
+            from ..pure_nonmd_status import is_pure_torch_v4
+            from maple.function.route2_smd_profiles import (
+                normalize_frequency_method_request,
+            )
 
             pure_frozen_workflow = is_pure_mace_polar_workflow_calculator(self.atoms.calc)
+            pure_torch_v4 = is_pure_torch_v4(self.atoms)
+            frequency_request = normalize_frequency_method_request(
+                self.params.method, pure_torch_v4=pure_torch_v4
+            )
+            method = frequency_request.canonical_method
             if pure_frozen_workflow:
-                if method != "mw":
+                if method != "mw" and not (
+                    pure_torch_v4 and method in {"cartesian-curvature", "both"}
+                ):
                     raise ValueError(
                         "pure frozen total-PES FREQ requires method='mw'."
                     )
@@ -1390,33 +1562,57 @@ class Frequency:
                         "raw mode signs and uncertainty must be preserved."
                     )
 
-            common_kwargs = dict(
-                output=self.output,
-                atoms=self.atoms,
-                temperature=self.params.temperature,
-                pressure_kpa=self.params.pressure_kpa,
-                ilowfreq=self.params.ilowfreq,
-                device=self.params.device
-            )
-
-            if pure_frozen_workflow:
-                job = PureFrozenMWFrequency(**common_kwargs)
+            if pure_torch_v4 and method in {"cartesian-curvature", "both"}:
+                job = PureTorchV4FrequencyQuantities(
+                    method=method,
+                    deprecated_alias=frequency_request.deprecated_alias,
+                    output=self.output,
+                    atoms=self.atoms,
+                    temperature=self.params.temperature,
+                    pressure_kpa=self.params.pressure_kpa,
+                    ilowfreq=self.params.ilowfreq,
+                    device=self.params.device,
+                )
+            elif pure_frozen_workflow:
+                job = PureFrozenMWFrequency(
+                    output=self.output, atoms=self.atoms,
+                    temperature=self.params.temperature,
+                    pressure_kpa=self.params.pressure_kpa,
+                    ilowfreq=self.params.ilowfreq, device=self.params.device,
+                )
             elif method == "both":
-                job = BothFrequency(**common_kwargs)
+                job = BothFrequency(
+                    output=self.output, atoms=self.atoms,
+                    temperature=self.params.temperature,
+                    pressure_kpa=self.params.pressure_kpa,
+                    ilowfreq=self.params.ilowfreq, device=self.params.device,
+                )
             elif method == "nonmw":
-                job = NonMWFrequency(**common_kwargs)
+                job = NonMWFrequency(
+                    output=self.output, atoms=self.atoms,
+                    temperature=self.params.temperature,
+                    pressure_kpa=self.params.pressure_kpa,
+                    ilowfreq=self.params.ilowfreq, device=self.params.device,
+                )
             else:  # "mw"
-                job = MWFrequency(**common_kwargs)
+                job = MWFrequency(
+                    output=self.output, atoms=self.atoms,
+                    temperature=self.params.temperature,
+                    pressure_kpa=self.params.pressure_kpa,
+                    ilowfreq=self.params.ilowfreq, device=self.params.device,
+                )
             job.verbosity = int(self.params.verbose)
             job.treat_imag_as_real = bool(self.params.treat_imag_as_real)
             # pass print-layer params if available
             if hasattr(self, "print_params"):
                 job._print = self.print_params
-            job.run()
+            result = job.run()
             self.mode_analysis = getattr(job, "mode_analysis", None)
+            return result
 
 # Public API
 __all__ = [
-    'FrequencyBase', 'MWFrequency', 'PureFrozenMWFrequency', 'NonMWFrequency', 'BothFrequency', 'ThermoResults',
+    'FrequencyBase', 'MWFrequency', 'PureFrozenMWFrequency',
+    'PureTorchV4FrequencyQuantities', 'NonMWFrequency', 'BothFrequency', 'ThermoResults',
     'FrequencyParams', 'PrintParams', 'FrequencyDriver'
 ]

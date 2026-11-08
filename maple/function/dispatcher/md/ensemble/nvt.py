@@ -40,6 +40,7 @@ from ..utils import (
     HA_PER_ANG_TO_AU,
     lfmiddle_carried_to_standard,
     set_atoms_velocity_representation,
+    restore_last_valid_md_state,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
 )
@@ -215,6 +216,8 @@ class NVT(JobABC):
     _THERMOSTAT_CHOICES = {'langevin', 'v-rescale'}
 
     def __init__(self, output: str, atoms: Atoms, paras: Optional[dict] = None):
+        from ...legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         super().__init__(output)
 
         if atoms.calc is None:
@@ -394,15 +397,61 @@ class NVT(JobABC):
                     velocity_representation=velocity_representation,
                 )
 
-            final_velocities, final_representation = self._run_simulation(
-                velocities,
-                velocity_representation=velocity_representation,
-                step_offset=step_offset,
-                n_steps=remaining,
-                source_timestep_au=resumed_timestep_au,
-            )
+            try:
+                final_velocities, final_representation = self._run_simulation(
+                    velocities,
+                    velocity_representation=velocity_representation,
+                    step_offset=step_offset,
+                    n_steps=remaining,
+                    source_timestep_au=resumed_timestep_au,
+                )
+            except Exception as exc:
+                from ...pure_nonmd_status import (
+                    NonMDWorkflowFailure, is_route2_workflow_status_enabled,
+                    make_status,
+                )
+                if not is_route2_workflow_status_enabled(self.atoms):
+                    raise
+                progress = dict(getattr(self, "_workflow_progress", {}))
+                restore_last_valid_md_state(self.atoms, progress)
+                raise NonMDWorkflowFailure(make_status(
+                    workflow="md", method="nvt", converged=False,
+                    termination_reason="integration_exception",
+                    termination_class="execution_failure",
+                    iterations=int(progress.get("completed_steps", 0)),
+                    final_metrics={
+                        "requested_steps": int(self.params.steps),
+                        **progress,
+                        "thermostat": self.params.thermostat,
+                        "random_seed": self.params.random_seed,
+                        "error_type": type(exc).__name__, "error": str(exc),
+                    },
+                    atoms=self.atoms,
+                )) from exc
             self.atoms.arrays['velocities'] = final_velocities
             set_atoms_velocity_representation(self.atoms, final_representation)
+            from ...pure_nonmd_status import (
+                is_route2_workflow_status_enabled, make_status,
+            )
+            if is_route2_workflow_status_enabled(self.atoms):
+                progress = dict(getattr(self, "_workflow_progress", {}))
+                success = int(progress.get("completed_steps", 0)) == int(self.params.steps)
+                return make_status(
+                    workflow="md", method="nvt", converged=success,
+                    termination_reason=(
+                        "requested_steps_completed" if success
+                        else "incomplete_trajectory"
+                    ),
+                    termination_class=("converged" if success else "validation_failure"),
+                    iterations=int(progress.get("completed_steps", 0)),
+                    final_metrics={
+                        "requested_steps": int(self.params.steps),
+                        **progress,
+                        "thermostat": self.params.thermostat,
+                        "random_seed": self.params.random_seed,
+                    },
+                    atoms=self.atoms,
+                )
 
     def _log_parameters(self):
         """Log NVT parameters to output."""
@@ -532,6 +581,41 @@ class NVT(JobABC):
 
         integrator = VelocityVerlet(self.atoms, self.params.timestep)
         v = velocities.copy()
+        initial_thermo_velocities = v
+        initial_thermo_representation = velocity_representation
+        if is_langevin:
+            initial_thermo_velocities = lfmiddle_carried_to_standard(
+                self.atoms,
+                v,
+                force_for_conversion,
+                self.thermostat.timestep,
+            )
+            initial_thermo_representation = "standard_synchronized"
+        initial_kinetic = calculate_kinetic_energy(
+            self.atoms, initial_thermo_velocities
+        )
+        initial_potential = self.atoms.get_potential_energy()
+        initial_total = initial_kinetic + initial_potential
+        initial_conserved = float(initial_total) if is_vrescale else None
+        self._workflow_progress = {
+            "completed_steps": 0,
+            "initial_total_energy_hartree": float(initial_total),
+            "final_total_energy_hartree": float(initial_total),
+            "initial_conserved_energy_hartree": initial_conserved,
+            "final_conserved_energy_hartree": initial_conserved,
+            "maximum_conserved_energy_drift_hartree": (
+                0.0 if is_vrescale else None
+            ),
+            "thermodynamic_velocity_representation": (
+                initial_thermo_representation
+            ),
+            "last_valid_step": {
+                "step": int(step_offset),
+                "positions_angstrom": self.atoms.get_positions().tolist(),
+                "velocities_bohr_per_au": np.asarray(v, dtype=float).tolist(),
+                "velocity_representation": velocity_representation,
+            },
+        }
 
         # Cache forces at t=0; reused as first B-step forces each cycle.
         forces = force_for_conversion if force_for_conversion is not None else (
@@ -600,6 +684,50 @@ class NVT(JobABC):
 
             # Conserved energy: H̃ = H − Σ ΔW (V-rescale only)
             conserved = (kinetic_energy + potential_energy - w_bath) if is_vrescale else None
+            conserved_drift = (
+                None if conserved is None else abs(float(conserved - initial_conserved))
+            )
+            reported_temperature = (
+                temperature_sync if temperature_sync is not None else temperature
+            )
+            reported_total_energy = (
+                total_energy_sync
+                if total_energy_sync is not None
+                else kinetic_energy + potential_energy
+            )
+            self._workflow_progress.update({
+                "completed_steps": int(step),
+                "final_total_energy_hartree": float(reported_total_energy),
+                "last_carried_total_energy_hartree": (
+                    float(kinetic_energy + potential_energy)
+                    if total_energy_sync is not None else None
+                ),
+                "final_conserved_energy_hartree": (
+                    None if conserved is None else float(conserved)
+                ),
+                "maximum_conserved_energy_drift_hartree": (
+                    None if conserved_drift is None else max(
+                        float(self._workflow_progress[
+                            "maximum_conserved_energy_drift_hartree"
+                        ]),
+                        conserved_drift,
+                    )
+                ),
+                "last_temperature_K": float(reported_temperature),
+                "last_carried_temperature_K": (
+                    float(temperature) if temperature_sync is not None else None
+                ),
+                "thermodynamic_velocity_representation": (
+                    "standard_synchronized"
+                    if temperature_sync is not None else velocity_representation
+                ),
+                "last_valid_step": {
+                    "step": int(abs_step),
+                    "positions_angstrom": self.atoms.get_positions().tolist(),
+                    "velocities_bohr_per_au": np.asarray(v, dtype=float).tolist(),
+                    "velocity_representation": velocity_representation,
+                },
+            })
 
             self.logger.log_step(
                 step=abs_step,

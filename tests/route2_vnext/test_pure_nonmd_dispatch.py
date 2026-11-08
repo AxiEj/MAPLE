@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from types import MethodType
+from types import MethodType, SimpleNamespace
 
 import numpy as np
 from ase import Atoms
@@ -279,6 +279,66 @@ def test_cineb_initially_converged_path_has_finite_complete_metrics(tmp_path):
     assert result['converged'] is True
     assert result['iterations'] == 0
     assert result['final_metrics']['rms_projected_force_hartree_per_angstrom'] == 0.0
+    text = (tmp_path / 'ci.out').read_text()
+    assert 'INFORMATION ABOUT SADDLE POINT' in text
+    assert 'CLIMBING-IMAGE CANDIDATE' not in text
+
+
+def test_v4_cineb_labels_hei_as_candidate(monkeypatch, tmp_path):
+    from ase.calculators.singlepoint import SinglePointCalculator
+    from maple.function.dispatcher.ts.algorithm.neb import NEB
+    from maple.function.utility import Molecules
+    images = []
+    for x, energy in ((0.0, 0.0), (1.0, 1.0), (2.0, 0.0)):
+        atoms = Atoms('H', positions=[[x, 0, 0]])
+        atoms.calc = SinglePointCalculator(
+            atoms, energy=energy, free_energy=energy, forces=np.zeros((1, 3))
+        )
+        images.append(atoms)
+    monkeypatch.setattr(
+        'maple.function.dispatcher.pure_nonmd_status.is_pure_torch_v4',
+        lambda atoms: True,
+    )
+    neb = NEB(
+        str(tmp_path / 'candidate.out'), Molecules(images),
+        paras={'n_images': 1, 'max_iter': 1, 'refine': 'cineb'},
+    )
+    neb.restart_run(images, energies=[0.0, 1.0, 0.0])
+    text = (tmp_path / 'candidate.out').read_text()
+    assert 'INFORMATION ABOUT CLIMBING-IMAGE CANDIDATE' in text
+    assert 'SADDLE POINT (ANGSTROEM)' not in text
+
+
+def test_v4_autoneb_writes_candidate_list_not_transition_states(monkeypatch, tmp_path):
+    from ase.calculators.singlepoint import SinglePointCalculator
+    from maple.function.dispatcher.ts.algorithm.autoneb import AutoNEB
+    atoms = Atoms('H', positions=[[0, 0, 0]])
+    atoms.calc = SinglePointCalculator(
+        atoms, energy=0.0, free_energy=0.0, forces=np.zeros((1, 3))
+    )
+    monkeypatch.setattr(
+        'maple.function.dispatcher.pure_nonmd_status.is_pure_torch_v4',
+        lambda atoms: True,
+    )
+    job = object.__new__(AutoNEB)
+    job.output = str(tmp_path / 'autoneb.out')
+    job.final_images = [atoms]
+    job.final_energies = [0.0]
+    job.all_intermediates = []
+    job.path_tree = {
+        'root': SimpleNamespace(
+            status='converged', depth=0, images=[atoms], parent=None,
+            children=[], hei_idx=0, iteration=1, energies=[0.0], path_id='root',
+        )
+    }
+    job.root_path_id = 'root'
+    job._collect_all_ts = lambda: setattr(job, 'all_ts', [atoms])
+    job._write_outputs()
+    assert (tmp_path / 'autoneb_autoneb_candidate_list.xyz').is_file()
+    assert not (tmp_path / 'autoneb_autoneb_ts_list.xyz').exists()
+    assert 'Wrote climbing-image candidates' in (
+        tmp_path / 'autoneb.out'
+    ).read_text()
 
 
 def test_status_serializes_numpy_metrics_without_relaxing_nonfinite_guard(tmp_path):

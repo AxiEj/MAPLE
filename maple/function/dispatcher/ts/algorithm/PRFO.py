@@ -361,9 +361,9 @@ def _is_pure_frozen_total_pes(atoms: Atoms) -> bool:
 
 def _raise_nonmd_failure(atoms, reason, classification, iterations, metrics):
     from ...pure_nonmd_status import (
-        NonMDWorkflowFailure, is_pure_nonmd_v2, make_status,
+        NonMDWorkflowFailure, is_route2_workflow_status_enabled, make_status,
     )
-    if is_pure_nonmd_v2(atoms):
+    if is_route2_workflow_status_enabled(atoms):
         raise NonMDWorkflowFailure(make_status(
             workflow="ts", method="prfo", converged=False,
             termination_reason=reason, termination_class=classification,
@@ -372,7 +372,7 @@ def _raise_nonmd_failure(atoms, reason, classification, iterations, metrics):
 
 
 def _pure_frozen_ts_postcondition(atoms: Atoms) -> tuple[dict, object]:
-    """Evaluate the exact final Hessian index without relabelling weak modes."""
+    """Evaluate interval and stored-operator stationary-point claims separately."""
 
     calc = atoms.calc
     if not _is_pure_frozen_total_pes(atoms):
@@ -380,18 +380,46 @@ def _pure_frozen_ts_postcondition(atoms: Atoms) -> tuple[dict, object]:
             "pure frozen TS postcondition requires the registered "
             "PureMACEPolarDDXCalculator."
         )
-    evaluation = calc.get_hessian_evaluation(atoms)
+    from ...pure_nonmd_status import is_pure_torch_v4
+    v4 = is_pure_torch_v4(atoms)
+    identified = calc.get_identified_hessian_evaluation(atoms) if v4 else None
+    evaluation = (
+        identified.evaluation if identified is not None
+        else calc.get_hessian_evaluation(atoms)
+    )
     from maple.solvation.derivatives.molecular_modes import (
-        analyze_hessian_evaluation, hessian_numerical_diagnostics,
+        hessian_numerical_diagnostics,
+        hessian_numerical_summary,
     )
 
-    analysis = analyze_hessian_evaluation(atoms, evaluation)
+    computed = None
+    computed_record = None
+    if v4:
+        from maple.solvation.derivatives.computed_stationary import (
+            analyze_identified_hessian,
+            computed_assessment_record,
+        )
+
+        combined = analyze_identified_hessian(atoms, identified)
+        analysis = combined.mode_analysis
+        computed = combined.stationary_assessment
+        computed_record = computed_assessment_record(computed)
+    else:
+        from maple.solvation.derivatives.molecular_modes import analyze_hessian_evaluation
+
+        analysis = analyze_hessian_evaluation(atoms, evaluation)
     uncertainty = analysis.uncertainty_eV_per_A2_amu
     eigenvalues = analysis.eigenvalues_eV_per_A2_amu
     diagnostic = {
         "optimizer_converged": True,
         "index_one_resolved": analysis.is_resolved_index_one,
-        "workflow_success": analysis.is_resolved_index_one,
+        "workflow_success": (
+            computed.computed_index_one if computed is not None
+            else analysis.is_resolved_index_one
+        ),
+        "numerical_stationary_point_validated": (
+            computed.computed_index_one if computed is not None else None
+        ),
         "resolved_negative_count": analysis.resolved_negative_count,
         "resolved_positive_count": analysis.resolved_positive_count,
         "uncertain_count": analysis.uncertain_count,
@@ -406,6 +434,11 @@ def _pure_frozen_ts_postcondition(atoms: Atoms) -> tuple[dict, object]:
         "hessian_evaluation_sha256": evaluation.evaluation_sha256,
         "hessian_numerics": hessian_numerical_diagnostics(evaluation),
     }
+    if computed_record is not None:
+        diagnostic["computed_stationary_assessment"] = computed_record
+        diagnostic["hessian_numerical_summary"] = hessian_numerical_summary(evaluation)
+        diagnostic["certificate_status"] = "unavailable"
+        diagnostic["scientific_certified"] = None
     raw_calc = getattr(calc, "raw_calculator", calc)
     raw_calc.last_ts_validation = diagnostic
     return diagnostic, analysis
@@ -517,11 +550,23 @@ class PRFO(JobABC):
                  output: str,
                  atoms: Atoms,
                  paras: Optional[dict] = None):
+        from ...legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         from maple.function.calculator.route2 import (
             is_pure_mace_polar_torch_calculator,
         )
+        from maple.function.route2_smd_profiles import (
+            PURE_TORCH_FP32_V4_WORKFLOW_POLICY,
+        )
 
-        if is_pure_mace_polar_torch_calculator(getattr(atoms, "calc", None)):
+        calculator = getattr(atoms, "calc", None)
+        raw_calculator = getattr(calculator, "raw_calculator", calculator)
+        profile = getattr(raw_calculator, "profile_spec", None)
+        if (
+            is_pure_mace_polar_torch_calculator(calculator)
+            and getattr(profile, "workflow_policy_id", None)
+            != PURE_TORCH_FP32_V4_WORKFLOW_POLICY
+        ):
             raise ValueError(
                 "Torch v3 P-RFO remains closed: analytic mode uncertainty is "
                 "unavailable, so a resolved index-one saddle is not certified."
@@ -747,7 +792,11 @@ class PRFO(JobABC):
         # Setup trajectory file
         base, _ = os.path.splitext(self.output)
         traj_file = base + "_prfo_traj.xyz"
-        ts_file = base + "_prfo_ts.xyz"
+        from ...pure_nonmd_status import is_pure_torch_v4
+        v4_numerical = is_pure_torch_v4(atoms)
+        ts_file = base + (
+            "_prfo_candidate.xyz" if v4_numerical else "_prfo_ts.xyz"
+        )
         
         # Log header
         info_message = [
@@ -960,13 +1009,38 @@ class PRFO(JobABC):
                             from maple.solvation.derivatives.molecular_modes import (
                                 hessian_numerical_summary,
                             )
-
                             log_info(
-                                [hessian_numerical_summary(
-                                    atoms.calc.get_hessian_evaluation(atoms)
-                                ) + "\n"],
+                                [
+                                    (
+                                        diagnostic.get("hessian_numerical_summary")
+                                        or hessian_numerical_summary(
+                                            atoms.calc.get_hessian_evaluation(atoms)
+                                        )
+                                    ) + "\n"
+                                ],
                                 self.output,
                             )
+                            if diagnostic.get(
+                                "numerical_stationary_point_validated"
+                            ) is not None:
+                                computed = diagnostic[
+                                    "computed_stationary_assessment"
+                                ]
+                                log_info(
+                                    [
+                                        "Stored-operator numerical stationary-point "
+                                        "assessment\n",
+                                        "  computed_index_one: "
+                                        f"{str(computed['computed_index_one']).lower()}\n",
+                                        "  computed_negative/positive/unresolved: "
+                                        f"{computed['computed_negative_count']}/"
+                                        f"{computed['computed_positive_count']}/"
+                                        f"{computed['computed_unresolved_count']}\n",
+                                        "  independent Hessian uncertainty: unavailable\n",
+                                        "  scientific certification: unavailable\n",
+                                    ],
+                                    self.output,
+                                )
                             log_info(
                                 [
                                     "\nPure frozen TS final-mode validation\n",
@@ -979,19 +1053,42 @@ class PRFO(JobABC):
                                     f"{diagnostic['resolved_positive_count']}\n",
                                     "  uncertain_count: "
                                     f"{diagnostic['uncertain_count']}\n",
-                                    "  Richardson-derived numerical uncertainty: "
-                                    f"{diagnostic['richardson_numerical_uncertainty_eV_per_A2_amu']:.8e} "
-                                    "eV/A^2/amu\n",
+                                    (
+                                        "  Numerical uncertainty: "
+                                        if diagnostic[
+                                            "richardson_numerical_uncertainty_eV_per_A2_amu"
+                                        ] is None
+                                        else "  Richardson-derived numerical uncertainty: "
+                                    )
+                                    + (
+                                        "unavailable\n"
+                                        if diagnostic[
+                                            "richardson_numerical_uncertainty_eV_per_A2_amu"
+                                        ] is None
+                                        else (
+                                            f"{diagnostic['richardson_numerical_uncertainty_eV_per_A2_amu']:.8e} "
+                                            "eV/A^2/amu\n"
+                                        )
+                                    ),
                                 ],
                                 self.output,
                             )
                             if not self.workflow_success:
+                                from ...pure_nonmd_status import is_pure_torch_v4
+                                v4_numerical = is_pure_torch_v4(atoms)
                                 log_info(
                                     [
-                                        "TS scientific postcondition failed: exactly "
-                                        "one resolved-negative internal mode and all "
-                                        "other internal modes resolved-positive are "
-                                        "required.\n",
+                                        (
+                                            "TS numerical postcondition failed: the "
+                                            "stored internal Hessian must pass operator "
+                                            "QA and have computed index one. Independent "
+                                            "Hessian uncertainty remains unavailable.\n"
+                                            if v4_numerical else
+                                            "TS scientific postcondition failed: exactly "
+                                            "one resolved-negative internal mode and all "
+                                            "other internal modes resolved-positive are "
+                                            "required.\n"
+                                        ),
                                         f'{"Abnormal Termination".center(70)}\n\n',
                                     ],
                                     self.output,
@@ -1002,7 +1099,12 @@ class PRFO(JobABC):
                                 )
                                 raise RuntimeError(
                                     "PRFO optimizer converged, but the final pure "
-                                    "frozen Hessian is not a resolved index-one saddle."
+                                    + (
+                                        "frozen computed Hessian did not pass the "
+                                        "numerical index-one contract."
+                                        if v4_numerical else
+                                        "frozen Hessian is not a resolved index-one saddle."
+                                    )
                                 )
                         else:
                             self.workflow_success = True
@@ -1022,13 +1124,18 @@ class PRFO(JobABC):
                                 iteration=iteration + 1,
                             )
                         from ...pure_nonmd_status import (
-                            is_pure_nonmd_v2, make_status,
+                            is_route2_workflow_status_enabled, make_status,
                             optimization_metrics,
                         )
-                        if is_pure_nonmd_v2(atoms):
+                        if is_route2_workflow_status_enabled(atoms):
                             atoms._maple_nonmd_status = make_status(
                                 workflow="ts", method="prfo", converged=True,
-                                termination_reason="resolved_index_one_saddle",
+                                termination_reason=(
+                                    "computed_index_one_stationary_point"
+                                    if diagnostic.get(
+                                        "numerical_stationary_point_validated"
+                                    ) is True else "resolved_index_one_saddle"
+                                ),
                                 iterations=iteration + 1,
                                 final_metrics=dict(
                                     optimization_metrics(atoms),
@@ -1058,7 +1165,10 @@ class PRFO(JobABC):
         
         log_info([
             f"\nWrote trajectory to: {traj_file}\n",
-            f"Wrote final TS structure to: {ts_file}\n"
+            (
+                f"Wrote final uncertified candidate to: {ts_file}\n"
+                if v4_numerical else f"Wrote final TS structure to: {ts_file}\n"
+            )
         ], self.output)
 
         if _is_pure_frozen_total_pes(atoms):

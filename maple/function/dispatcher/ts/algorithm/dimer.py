@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 import math
-import torch
 from dataclasses import dataclass
 from typing import Optional, Callable, List, Tuple
 
@@ -20,6 +19,24 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
+
+from .dimer_translation import (
+    TRANSLATION_POLICY,
+    DimerTranslationAttempt,
+    effective_translation_force,
+    full_force_norm,
+    propose_translation,
+    validate_translation_controls,
+)
+
+
+def _stationary_success_reason(atoms) -> str:
+    from ...pure_nonmd_status import is_pure_torch_v4
+
+    return (
+        "computed_index_one_stationary_point"
+        if is_pure_torch_v4(atoms) else "resolved_index_one_saddle"
+    )
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -40,7 +57,7 @@ def to_numpy_f64(x):
         return float(x)
     return np.asarray(x, dtype=np.float64)
 
-def vec1d(x, n_expected=None):
+def vec1d(x, n_expected=None) -> np.ndarray:
     """Convert to float64 1D vector and optionally check length."""
     v = to_numpy_f64(x).reshape(-1)
     if n_expected is not None and v.size != n_expected:
@@ -120,6 +137,76 @@ class DimerParams:
     # Outputs
     save_traj: bool = True
     save_metrics: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class DimerRotationResult:
+    direction: np.ndarray
+    h_direction: np.ndarray
+    curvature: float
+    max_residual: float
+    rms_residual: float
+    converged: bool
+    hvp_count: int
+    subspace_dimension: int
+    rigid_rank: int
+    projected_antisymmetry: float
+    force: np.ndarray
+    energy: float
+    positions_angstrom: np.ndarray
+    termination_reason: str
+
+    def __post_init__(self):
+        for name in (
+            "direction", "h_direction", "force", "positions_angstrom"
+        ):
+            object.__setattr__(self, name, _readonly(getattr(self, name)))
+        for name in (
+            "curvature", "max_residual", "rms_residual",
+            "projected_antisymmetry", "energy",
+        ):
+            if not np.isfinite(getattr(self, name)):
+                raise ValueError(f"Dimer rotation {name} must be finite.")
+        if not self.termination_reason:
+            raise ValueError("Dimer rotation termination reason is required.")
+
+
+def _readonly(value):
+    result = np.array(value, dtype=np.float64, copy=True)
+    if not np.isfinite(result).all():
+        raise ValueError("Dimer rotation values must be finite.")
+    result.setflags(write=False)
+    return result
+
+
+def _euclidean_rigid_basis(atoms: Atoms) -> np.ndarray:
+    positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+    centered = positions - positions.mean(axis=0)
+    vectors = []
+    for axis in np.eye(3):
+        vectors.append(np.tile(axis, (len(atoms), 1)).reshape(-1))
+    for axis in np.eye(3):
+        vectors.append(np.cross(centered, axis).reshape(-1))
+    matrix = np.column_stack(vectors)
+    u, singular_values, _ = np.linalg.svd(matrix, full_matrices=False)
+    largest = float(singular_values[0]) if singular_values.size else 0.0
+    tolerance = np.finfo(np.float64).eps * max(matrix.shape) * largest
+    rank = int(np.count_nonzero(singular_values > tolerance))
+    return _readonly(u[:, :rank])
+
+
+def _project(vector: np.ndarray, rigid_basis: np.ndarray) -> np.ndarray:
+    value = np.asarray(vector, dtype=np.float64).reshape(-1)
+    return value - rigid_basis @ (rigid_basis.T @ value)
+
+
+def _two_pass_orthogonalize(vector, basis):
+    result = np.array(vector, dtype=np.float64, copy=True)
+    norm_before = float(np.linalg.norm(result))
+    for _ in range(2):
+        for column in basis:
+            result -= float(np.dot(column, result)) * column
+    return result, norm_before, float(np.linalg.norm(result))
 
 # =============================================================================
 # ------------------------------ Metric helpers -------------------------------
@@ -211,9 +298,32 @@ class Dimer(JobABC):
         self.atoms = atoms_init
         if self.atoms.calc is None:
             raise ValueError("atoms_init must have a working calculator set (atoms.calc).")
+        from ...legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(self.atoms)
 
         # Initialize params from paras dict
         self.params = self._init_params(DimerParams, paras, ("dimer", "DIMER", "ts"))
+
+        from ...pure_nonmd_status import is_pure_torch_v4
+        if is_pure_torch_v4(self.atoms):
+            if hvp_fn is not None:
+                raise ValueError(
+                    "Pure Torch V4 Dimer uses only the canonical calculator HVP tuple."
+                )
+            self.params.use_hvp = True
+            if self.params.use_mass_weight:
+                raise ValueError(
+                    "Pure Torch V4 Dimer mass weighting is not defined for the "
+                    "current translation metric."
+                )
+            if type(self.params.rot_max_iter) is not int or self.params.rot_max_iter < 1:
+                raise ValueError("rot_max_iter must be a positive integer.")
+            validate_translation_controls(
+                beta=self.params.step0,
+                step_max=self.params.step_max,
+                trust_radius=self.params.trust_radius,
+                max_iter=self.params.max_iter,
+            )
 
         self.hvp_fn = hvp_fn if self.params.use_hvp else None
 
@@ -225,6 +335,125 @@ class Dimer(JobABC):
 
         # trust region bookkeeping
         self.alpha = float(self.params.step0)
+
+    def _v4_rotation(self, seed: np.ndarray) -> DimerRotationResult:
+        """Bounded residual-expanded Rayleigh-Ritz rotation for one geometry."""
+
+        rigid = (
+            _euclidean_rigid_basis(self.atoms)
+            if self.params.remove_rigid
+            else np.zeros((3 * len(self.atoms), 0), dtype=np.float64)
+        )
+        projected = _project(seed, rigid)
+        norm = float(np.linalg.norm(projected))
+        if not np.isfinite(norm) or norm <= np.finfo(np.float64).tiny:
+            raise ValueError("Dimer seed has no non-rigid component.")
+        basis: list[np.ndarray] = [projected / norm]
+        h_columns: list[np.ndarray] = []
+        force = energy = None
+        last = None
+        calculator = self.atoms.calc
+        assert calculator is not None
+        for _ in range(self.params.rot_max_iter):
+            vector = basis[len(h_columns)]
+            h_direction, force_value, energy_value = calculator.get_hvp(
+                self.atoms, vector
+            )
+            h_columns.append(_project(vec1d(h_direction, seed.size), rigid))
+            force = vec1d(force_value, seed.size)
+            energy = float(to_numpy_f64(energy_value))
+            V = np.column_stack(basis)
+            W = np.column_stack(h_columns)
+            raw = V.T @ W
+            if not np.isfinite(raw).all():
+                raise RuntimeError("Dimer projected HVP operator is nonfinite.")
+            antisymmetry = float(np.max(np.abs(raw - raw.T), initial=0.0))
+            # A Cartesian componentwise skew budget does not transport to this
+            # basis. Convergence uses the unsymmetrized full-space action below.
+            eigenvalues, eigenvectors = np.linalg.eigh(0.5 * (raw + raw.T))
+            coefficients = eigenvectors[:, 0]
+            raw_direction = V @ coefficients
+            direction_norm = float(np.linalg.norm(raw_direction))
+            if direction_norm <= np.finfo(np.float64).tiny:
+                raise RuntimeError("Dimer Ritz vector has zero norm.")
+            direction = raw_direction / direction_norm
+            h_ritz = (W @ coefficients) / direction_norm
+            curvature = float(eigenvalues[0])
+            residual = _project(h_ritz - curvature * direction, rigid)
+            max_residual = float(np.max(np.abs(residual)))
+            rms_residual = float(np.sqrt(np.mean(np.square(residual))))
+            converged = bool(
+                max_residual <= self.params.rot_f_max_th
+                and rms_residual <= self.params.rot_f_rms_th
+            )
+            reason = (
+                "rotation_residual_converged" if converged
+                else "rotation_iteration_budget_exhausted"
+            )
+            last = DimerRotationResult(
+                direction=_readonly(direction),
+                h_direction=_readonly(h_ritz),
+                curvature=curvature,
+                max_residual=max_residual,
+                rms_residual=rms_residual,
+                converged=converged,
+                hvp_count=len(h_columns),
+                subspace_dimension=len(basis),
+                rigid_rank=rigid.shape[1],
+                projected_antisymmetry=antisymmetry,
+                force=_readonly(force),
+                energy=energy,
+                positions_angstrom=_readonly(self.atoms.get_positions()),
+                termination_reason=reason,
+            )
+            if converged:
+                return last
+            expanded, before, after = _two_pass_orthogonalize(residual, basis)
+            breakdown = (
+                after
+                <= np.finfo(np.float64).eps
+                * max(3 * len(self.atoms), len(basis))
+                * before
+            )
+            if breakdown:
+                return DimerRotationResult(
+                    **{
+                        field: getattr(last, field)
+                        for field in last.__dataclass_fields__
+                        if field != "termination_reason"
+                    },
+                    termination_reason="rotation_subspace_breakdown",
+                )
+            basis.append(expanded / after)
+        assert last is not None
+        return last
+
+    @staticmethod
+    def _rotation_record(rotation: DimerRotationResult) -> dict:
+        if not (
+            np.isfinite(rotation.energy)
+            and np.isfinite(rotation.curvature)
+            and np.isfinite(rotation.force).all()
+        ):
+            raise ValueError("Dimer rotation receipt observables must be finite.")
+        return {
+            "direction": rotation.direction.tolist(),
+            "energy_hartree": rotation.energy,
+            "forces_Ha_per_A": rotation.force.reshape(-1, 3).tolist(),
+            "curvature_Ha_per_A2": rotation.curvature,
+            "max_residual_Ha_per_A2": rotation.max_residual,
+            "rms_residual_Ha_per_A2": rotation.rms_residual,
+            "converged": rotation.converged,
+            "termination_reason": rotation.termination_reason,
+            "hvp_count": rotation.hvp_count,
+            "subspace_dimension": rotation.subspace_dimension,
+            "rigid_rank": rotation.rigid_rank,
+            "projected_antisymmetry_Ha_per_A2": (
+                rotation.projected_antisymmetry
+            ),
+            "projected_antisymmetry_role": "diagnostic_only_no_transported_bound",
+            "positions_angstrom": rotation.positions_angstrom.tolist(),
+        }
 
     # ------------------------------ init n -----------------------------------
 
@@ -292,13 +521,22 @@ class Dimer(JobABC):
         Do up to rot_max_iter steps of rotation to minimize kappa = n^T H n.
         Returns (n_new, max|F_rot|, rms(F_rot)).
         """
+        from ...pure_nonmd_status import is_pure_torch_v4
+
+        if is_pure_torch_v4(self.atoms):
+            result = self._v4_rotation(n)
+            return result.direction, result.max_residual, result.rms_residual
         p = self.params
         n_cur = n.copy()
 
         for _ in range(p.rot_max_iter):
-            if self.hvp_fn is not None and p.use_hvp:
-                Hn, F = self._hvp_Hn_and_F(x_flat, n_cur)
-                # we only need Hn for rotation; F used later for translation
+            if p.use_hvp:
+                if self.hvp_fn is not None:
+                    Hn, F = self._hvp_Hn_and_F(x_flat, n_cur)
+                else:
+                    Hn, F, _ = self.atoms.calc.get_hvp(self.atoms, n_cur)
+                    Hn = vec1d(Hn, n_cur.size)
+                    F = vec1d(F, n_cur.size)
             else:
                 Hn, F_avg, _ = self._finite_diff_Hn_and_F(x_flat, n_cur)
                 F = F_avg  # keep F_avg for later translation when using FD
@@ -334,6 +572,366 @@ class Dimer(JobABC):
             lines.append(f"{idx:<4d}{s:>2s}{x:18.4f}{y:18.4f}{z:18.4f}")
         return "\n".join(lines) + "\n"
 
+    def _run_v4(self):
+        """Run the V4 Dimer with authoritative post-translation evaluations."""
+
+        p = self.params
+        base, _ = os.path.splitext(self.output)
+        trajectory = base + "_dimer_traj.xyz"
+        candidate = base + "_dimer_candidate.xyz"
+        for name, default in (
+            ("f_max_th", p.f_max_th), ("f_rms_th", p.f_rms_th),
+            ("dp_max_th", 1.8e-3), ("dp_rms_th", 1.2e-3),
+        ):
+            if not hasattr(self.atoms, name):
+                setattr(self.atoms, name, default)
+
+        beta = float(p.step0)
+        cap = min(float(p.trust_radius), float(p.step_max))
+        completed_translations = 0
+        attempted_translations = 0
+        accepted_translations = 0
+        final_attempt: DimerTranslationAttempt | None = None
+        initial_positions = np.array(self.atoms.get_positions(), copy=True)
+        initial_direction = np.array(self.n, copy=True)
+        try:
+            rotation = self._v4_rotation(initial_direction)
+        except Exception as exc:
+            self.atoms.set_positions(initial_positions)
+            self.n = initial_direction
+            from ...pure_nonmd_status import NonMDWorkflowFailure, make_status
+
+            failure_metrics: dict[str, object] = {
+                "translation_policy": TRANSLATION_POLICY,
+                "attempted_translations": attempted_translations,
+                "accepted_translations": accepted_translations,
+                "completed_translations": completed_translations,
+                "final_attempt": None,
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+                "error_message": str(exc),
+            }
+            raise NonMDWorkflowFailure(
+                make_status(
+                    workflow="ts",
+                    method="dimer",
+                    converged=False,
+                    termination_reason="initial_rotation_evaluation_failed",
+                    termination_class="execution_failure",
+                    iterations=completed_translations,
+                    final_metrics=failure_metrics,
+                    atoms=self.atoms,
+                )
+            ) from exc
+        self.n = np.array(rotation.direction, copy=True)
+        log_info(
+            [
+                "\nStarting Pure Torch V4 Dimer numerical search.\n",
+                "Rotation uses bounded residual-expanded Rayleigh-Ritz HVPs.\n",
+            ],
+            self.output,
+        )
+        displacement = np.zeros_like(rotation.force)
+        converged = False
+        terminal_reason: str | None = None
+
+        def metrics(current, applied):
+            forces = current.force.reshape(-1, 3)
+            steps = applied.reshape(-1, 3)
+            return {
+                "max_f": float(np.max(np.linalg.norm(forces, axis=1))),
+                "rms_f": float(np.sqrt(np.mean(np.sum(np.square(forces), axis=1)))),
+                "max_dp": float(np.max(np.linalg.norm(steps, axis=1))),
+                "rms_dp": float(np.sqrt(np.mean(np.sum(np.square(steps), axis=1)))),
+            }
+
+        def gates(current, values):
+            return bool(
+                values["max_f"] <= getattr(self.atoms, "f_max_th")
+                and values["rms_f"] <= getattr(self.atoms, "f_rms_th")
+                and values["max_dp"] <= getattr(self.atoms, "dp_max_th")
+                and values["rms_dp"] <= getattr(self.atoms, "dp_rms_th")
+                and current.converged
+            )
+
+        values = metrics(rotation, displacement)
+        converged = gates(rotation, values)
+        while not converged and accepted_translations < p.max_iter:
+            direction = rotation.direction
+            attempted_translations += 1
+            ordinal = attempted_translations
+            current_rotation = rotation
+            previous = np.array(rotation.positions_angstrom, copy=True)
+            current_force_norm = full_force_norm(rotation.force)
+            translation_force = effective_translation_force(
+                rotation.force,
+                direction,
+                curvature=rotation.curvature,
+                kappa_to_flip=p.kappa_to_flip,
+            )
+            try:
+                proposal = propose_translation(
+                    previous,
+                    translation_force,
+                    beta_A2_per_Ha=beta,
+                    cap_angstrom=cap,
+                )
+            except FloatingPointError as exc:
+                final_attempt = DimerTranslationAttempt(
+                    ordinal=ordinal,
+                    stage="nonfinite_proposal",
+                    current_rotation=self._rotation_record(current_rotation),
+                    current_positions_angstrom=previous,
+                    proposed_positions_angstrom=None,
+                    translation_force_Ha_per_A=translation_force,
+                    beta_A2_per_Ha=beta,
+                    raw_step_angstrom=None,
+                    applied_step_angstrom=None,
+                    evaluated_displacement_angstrom=None,
+                    cap_angstrom=cap,
+                    clipped=None,
+                    current_force_norm_Ha_per_A=current_force_norm,
+                    trial_force_norm_Ha_per_A=None,
+                    trial_rotation=None,
+                    accepted=False,
+                    reason="nonfinite_translation_proposal",
+                    error_type=type(exc).__name__,
+                    error_message=str(exc),
+                )
+                from ...pure_nonmd_status import NonMDWorkflowFailure, make_status
+
+                failure_metrics: dict[str, object] = dict(values)
+                failure_metrics.update(
+                    rotation=self._rotation_record(rotation),
+                    translation_policy=TRANSLATION_POLICY,
+                    attempted_translations=attempted_translations,
+                    accepted_translations=accepted_translations,
+                    completed_translations=completed_translations,
+                    final_attempt=final_attempt.to_record(),
+                    error_type=type(exc).__name__,
+                    error=str(exc),
+                )
+                raise NonMDWorkflowFailure(
+                    make_status(
+                        workflow="ts", method="dimer", converged=False,
+                        termination_reason="nonfinite_translation_proposal",
+                        termination_class="execution_failure",
+                        iterations=completed_translations,
+                        final_metrics=failure_metrics,
+                        atoms=self.atoms,
+                    )
+                ) from exc
+            if not np.any(proposal.applied_step_angstrom):
+                final_attempt = DimerTranslationAttempt(
+                    ordinal=ordinal,
+                    stage="zero_direction",
+                    current_rotation=self._rotation_record(current_rotation),
+                    current_positions_angstrom=previous,
+                    proposed_positions_angstrom=proposal.proposed_positions_angstrom,
+                    translation_force_Ha_per_A=translation_force,
+                    beta_A2_per_Ha=beta,
+                    raw_step_angstrom=proposal.raw_step_angstrom,
+                    applied_step_angstrom=proposal.applied_step_angstrom,
+                    evaluated_displacement_angstrom=None,
+                    cap_angstrom=cap,
+                    clipped=proposal.clipped,
+                    current_force_norm_Ha_per_A=current_force_norm,
+                    trial_force_norm_Ha_per_A=None,
+                    trial_rotation=None,
+                    accepted=False,
+                    reason="zero_translation_direction",
+                )
+                terminal_reason = "zero_translation_direction"
+                break
+            self.atoms.set_positions(
+                proposal.proposed_positions_angstrom.reshape(-1, 3)
+            )
+            try:
+                trial_rotation = self._v4_rotation(direction)
+            except Exception as exc:
+                self.atoms.set_positions(previous)
+                self.n = np.array(current_rotation.direction, copy=True)
+                from ...pure_nonmd_status import NonMDWorkflowFailure, make_status
+
+                final_attempt = DimerTranslationAttempt(
+                    ordinal=ordinal,
+                    stage="evaluation_failed",
+                    current_rotation=self._rotation_record(current_rotation),
+                    current_positions_angstrom=previous,
+                    proposed_positions_angstrom=proposal.proposed_positions_angstrom,
+                    translation_force_Ha_per_A=translation_force,
+                    beta_A2_per_Ha=beta,
+                    raw_step_angstrom=proposal.raw_step_angstrom,
+                    applied_step_angstrom=proposal.applied_step_angstrom,
+                    evaluated_displacement_angstrom=None,
+                    cap_angstrom=cap,
+                    clipped=proposal.clipped,
+                    current_force_norm_Ha_per_A=current_force_norm,
+                    trial_force_norm_Ha_per_A=None,
+                    trial_rotation=None,
+                    accepted=False,
+                    reason="rotation_evaluation_failed",
+                    error_type=type(exc).__name__,
+                    error_message=str(exc),
+                )
+                failure_metrics: dict[str, object] = dict(values)
+                failure_metrics.update(
+                    rotation=self._rotation_record(rotation),
+                    translation_policy=TRANSLATION_POLICY,
+                    attempted_translations=attempted_translations,
+                    accepted_translations=accepted_translations,
+                    completed_translations=completed_translations,
+                    final_attempt=final_attempt.to_record(),
+                    error_type=type(exc).__name__,
+                    error=str(exc),
+                )
+                raise NonMDWorkflowFailure(
+                    make_status(
+                        workflow="ts",
+                        method="dimer",
+                        converged=False,
+                        termination_reason="rotation_evaluation_failed",
+                        termination_class="execution_failure",
+                        iterations=completed_translations,
+                        final_metrics=failure_metrics,
+                        atoms=self.atoms,
+                    )
+                ) from exc
+            evaluated_displacement = (
+                trial_rotation.positions_angstrom.reshape(-1) - previous.reshape(-1)
+            )
+            trial_values = metrics(trial_rotation, evaluated_displacement)
+            trial_force_norm = full_force_norm(trial_rotation.force)
+            trial_gates_pass = gates(trial_rotation, trial_values)
+            accepted = bool(
+                trial_gates_pass or trial_force_norm < current_force_norm
+            )
+            final_attempt = DimerTranslationAttempt(
+                ordinal=ordinal,
+                stage="evaluated",
+                current_rotation=self._rotation_record(current_rotation),
+                current_positions_angstrom=previous,
+                proposed_positions_angstrom=proposal.proposed_positions_angstrom,
+                translation_force_Ha_per_A=translation_force,
+                beta_A2_per_Ha=beta,
+                raw_step_angstrom=proposal.raw_step_angstrom,
+                applied_step_angstrom=proposal.applied_step_angstrom,
+                evaluated_displacement_angstrom=evaluated_displacement,
+                cap_angstrom=cap,
+                clipped=proposal.clipped,
+                current_force_norm_Ha_per_A=current_force_norm,
+                trial_force_norm_Ha_per_A=trial_force_norm,
+                trial_rotation=self._rotation_record(trial_rotation),
+                accepted=accepted,
+                reason=(
+                    "local_convergence_gates_satisfied"
+                    if trial_gates_pass
+                    else (
+                        "full_force_norm_strictly_decreased"
+                        if accepted else "translation_force_merit_not_decreased"
+                    )
+                ),
+            )
+            if not accepted:
+                self.atoms.set_positions(previous)
+                self.n = np.array(current_rotation.direction, copy=True)
+                terminal_reason = "translation_force_merit_not_decreased"
+                break
+            rotation = trial_rotation
+            displacement = evaluated_displacement
+            self.atoms.set_positions(rotation.positions_angstrom)
+            self.n = np.array(rotation.direction, copy=True)
+            values = trial_values
+            accepted_translations += 1
+            completed_translations = accepted_translations
+            converged = trial_gates_pass
+            log_info(
+                [
+                    f"Dimer translation {completed_translations}: "
+                    f"maxF={values['max_f']:.6e} rmsF={values['rms_f']:.6e} "
+                    f"maxR={rotation.max_residual:.6e} "
+                    f"rmsR={rotation.rms_residual:.6e}\n"
+                ],
+                self.output,
+            )
+            if p.save_traj:
+                write_all_images_xyz(
+                    trajectory, self.atoms, energy=rotation.energy,
+                    iteration=completed_translations,
+                )
+
+        self.n = np.array(rotation.direction, copy=True)
+        for name, value in values.items():
+            setattr(self.atoms, name, value)
+        write_xyz(candidate, [self.atoms], energies=[rotation.energy])
+        log_info(
+            [
+                "\n---------------------------------------------------------------\n",
+                "                 INFORMATION ABOUT SADDLE CANDIDATE\n",
+                "---------------------------------------------------------------\n",
+                "Scientific stationary-point certification is unavailable; "
+                "this is a numerical candidate pending the computed Hessian "
+                "postcondition.\n",
+                f"Wrote candidate to: {candidate}\n",
+            ],
+            self.output,
+        )
+        from ...pure_nonmd_status import (
+            add_v4_outcome_metrics,
+            make_status,
+        )
+
+        final_metrics: dict[str, object] = dict(values)
+        final_metrics["rotation"] = self._rotation_record(rotation)
+        final_metrics["translation_policy"] = TRANSLATION_POLICY
+        final_metrics["attempted_translations"] = attempted_translations
+        final_metrics["accepted_translations"] = accepted_translations
+        final_metrics["completed_translations"] = completed_translations
+        final_metrics["final_attempt"] = (
+            None if final_attempt is None else final_attempt.to_record()
+        )
+        add_v4_outcome_metrics(
+            self.atoms, final_metrics, optimizer_converged=converged
+        )
+        if not converged:
+            return make_status(
+                workflow="ts", method="dimer", converged=False,
+                termination_reason=(
+                    terminal_reason or "maximum_iterations_reached"
+                ),
+                termination_class="bounded_nonconvergence",
+                iterations=completed_translations,
+                final_metrics=final_metrics,
+                atoms=self.atoms,
+            )
+        try:
+            from .PRFO import _pure_frozen_ts_postcondition
+
+            diagnostic, _ = _pure_frozen_ts_postcondition(self.atoms)
+            final_metrics.update(diagnostic)
+        except Exception as exc:
+            final_metrics["postcondition_error"] = str(exc)
+            return make_status(
+                workflow="ts", method="dimer", converged=False,
+                termination_reason="index_one_validation_failed",
+                termination_class="validation_failure",
+                iterations=completed_translations,
+                final_metrics=final_metrics,
+                atoms=self.atoms,
+            )
+        success = bool(diagnostic["workflow_success"])
+        return make_status(
+            workflow="ts", method="dimer", converged=success,
+            termination_reason=(
+                _stationary_success_reason(self.atoms) if success
+                else "index_one_validation_failed"
+            ),
+            termination_class="converged" if success else "validation_failure",
+            iterations=completed_translations,
+            final_metrics=final_metrics,
+            atoms=self.atoms,
+        )
+
     def run(self):
         """
         Main Dimer optimization loop with autograd-based Hessian-vector product (Hn).
@@ -342,12 +940,20 @@ class Dimer(JobABC):
         - No duplicate energy/force evaluations
         - Logs curvature, rotational force, mode flip, 4 PRFO-style criteria, and trust region
         """
+        from ...pure_nonmd_status import is_pure_torch_v4
+        if is_pure_torch_v4(self.atoms):
+            return self._run_v4()
+
         import torch
 
         p = self.params
         base, _ = os.path.splitext(self.output)
+        from ...pure_nonmd_status import is_pure_torch_v4
+        v4_candidate = is_pure_torch_v4(self.atoms)
         traj_file = base + "_dimer_traj.xyz"
-        ts_file = base + "_dimer_ts.xyz"
+        ts_file = base + (
+            "_dimer_candidate.xyz" if v4_candidate else "_dimer_ts.xyz"
+        )
         kcal_per_Eh = 627.509
 
         # ------------------ init direction & step size ------------------
@@ -527,7 +1133,11 @@ class Dimer(JobABC):
 
         log_info([
             "\n---------------------------------------------------------------\n",
-            "                 INFORMATION ABOUT SADDLE POINT                \n",
+            (
+                "                 INFORMATION ABOUT SADDLE CANDIDATE            \n"
+                if v4_candidate
+                else "                 INFORMATION ABOUT SADDLE POINT                \n"
+            ),
             "---------------------------------------------------------------\n",
             f"Energy (final)                           ....  {E_final: .8f} Eh\n",
             "\n-----------------------------------------\n",
@@ -535,15 +1145,25 @@ class Dimer(JobABC):
             "-----------------------------------------\n",
             self.atoms_to_xyz_block(self.atoms),
             f"\nWrote Dimer trajectory to: {traj_file}\n",
-            f"Wrote TS guess to:         {ts_file}\n"
+            (
+                "Scientific stationary-point certification is unavailable; "
+                "this structure remains an uncertified candidate; certification "
+                "requires a separate postcondition.\n"
+                if v4_candidate else ""
+            ),
+            f"Wrote {'candidate' if v4_candidate else 'TS guess'} to: {ts_file}\n"
         ], self.output)
 
         from ...pure_nonmd_status import (
-            is_pure_nonmd_v2, make_status, optimization_metrics,
+            add_v4_outcome_metrics, is_route2_workflow_status_enabled,
+            make_status, optimization_metrics,
         )
-        if not is_pure_nonmd_v2(self.atoms):
+        if not is_route2_workflow_status_enabled(self.atoms):
             return self.atoms
         final_metrics = optimization_metrics(self.atoms)
+        add_v4_outcome_metrics(
+            self.atoms, final_metrics, optimizer_converged=bool(converged)
+        )
         if not converged:
             return make_status(
                 workflow="ts", method="dimer", converged=False,
@@ -564,10 +1184,19 @@ class Dimer(JobABC):
                 iterations=it, final_metrics=final_metrics, atoms=self.atoms,
             )
         success = bool(diagnostic["workflow_success"])
+        if diagnostic.get("numerical_stationary_point_validated") is not None:
+            log_info(
+                [
+                    "Stored-operator numerical index-one assessment: "
+                    f"{str(success).lower()}. Independent Hessian uncertainty "
+                    "and scientific certification remain unavailable.\n"
+                ],
+                self.output,
+            )
         return make_status(
             workflow="ts", method="dimer", converged=success,
             termination_reason=(
-                "resolved_index_one_saddle" if success
+                _stationary_success_reason(self.atoms) if success
                 else "index_one_validation_failed"
             ),
             termination_class="converged" if success else "validation_failure",

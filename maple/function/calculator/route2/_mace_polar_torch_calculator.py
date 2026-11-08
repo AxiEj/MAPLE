@@ -24,9 +24,13 @@ from maple.function.route2_solvents import normalize_route2_solvent_name
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.derivatives.analytic import (
     AnalyticForceEvaluation,
+    AnalyticHessianEvaluation,
     AnalyticHVPEvaluation,
 )
-from maple.solvation.models.base import model_input_sha256
+from maple.solvation.models.base import (
+    model_charge_and_multiplicity,
+    model_input_sha256,
+)
 
 _TEST_PES_FACTORY_TOKEN = object()
 _TORCH_PROFILE_NAMES = frozenset(
@@ -37,6 +41,44 @@ _TORCH_PROFILE_NAMES = frozenset(
         PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CUDA_V4_PROFILE,
     }
 )
+
+
+_IDENTIFIED_HESSIAN_TOKEN = object()
+
+
+class _IdentifiedAnalyticHessianEvaluation:
+    """One Hessian plus the exact model input used to evaluate it."""
+
+    __slots__ = (
+        "evaluation", "model_input_sha256", "charge", "multiplicity",
+        "configuration_sha256", "profile_id", "scalar_contract_id", "device",
+    )
+
+    def __init__(
+        self, *, evaluation, model_input_sha256, charge, multiplicity,
+        configuration_sha256, profile_id, scalar_contract_id, device, _token,
+    ):
+        if _token is not _IDENTIFIED_HESSIAN_TOKEN:
+            raise TypeError("identified Hessian contexts are calculator-issued only.")
+        values = {
+            "evaluation": evaluation,
+            "model_input_sha256": model_input_sha256,
+            "charge": charge,
+            "multiplicity": multiplicity,
+            "configuration_sha256": configuration_sha256,
+            "profile_id": profile_id,
+            "scalar_contract_id": scalar_contract_id,
+            "device": device,
+        }
+        for name, value in values.items():
+            object.__setattr__(self, name, value)
+
+    def __setattr__(self, name, value):
+        raise AttributeError("identified Hessian contexts are immutable.")
+
+
+def is_identified_hessian_evaluation(value: object) -> bool:
+    return type(value) is _IdentifiedAnalyticHessianEvaluation
 
 
 def _is_sha256(value: str) -> bool:
@@ -352,9 +394,52 @@ class PureMACEPolarTorchCalculator(Calculator):
             np.isfinite(hessian)
         ):
             raise RuntimeError("pure Torch total-PES Hessian is invalid.")
+        if self._validate_atoms(atoms) != cache_key:
+            raise RuntimeError(
+                "pure Torch model input or configuration changed during Hessian evaluation."
+            )
         self._hessian_cache_key = cache_key
         self._hessian_evaluation = evaluation
         return evaluation
+
+    def get_identified_hessian_evaluation(
+        self, atoms
+    ) -> _IdentifiedAnalyticHessianEvaluation:
+        """Bind a Hessian to the charge/spin-aware input used for its evaluation."""
+
+        cache_key = self._validate_atoms(atoms)
+        evaluation = self.get_hessian_evaluation(atoms)
+        if not isinstance(evaluation, AnalyticHessianEvaluation):
+            raise RuntimeError(
+                "identified Hessian context requires AnalyticHessianEvaluation."
+            )
+        if (
+            evaluation.geometry_sha256 != geometry_sha256(atoms)
+            or evaluation.configuration_sha256 != cache_key[1]
+            or evaluation.scalar_contract_id != cache_key[3]
+            or evaluation.profile_id != cache_key[2]
+            or evaluation.device != cache_key[4]
+            or evaluation.provider_id != self._pes.provider_id
+        ):
+            raise RuntimeError(
+                "pure Torch Hessian evaluation identity changed during evaluation."
+            )
+        if self._validate_atoms(atoms) != cache_key:
+            raise RuntimeError(
+                "pure Torch model input changed while binding Hessian identity."
+            )
+        charge, multiplicity = model_charge_and_multiplicity(atoms)
+        return _IdentifiedAnalyticHessianEvaluation(
+            evaluation=evaluation,
+            model_input_sha256=cache_key[0],
+            charge=charge,
+            multiplicity=multiplicity,
+            configuration_sha256=cache_key[1],
+            profile_id=cache_key[2],
+            scalar_contract_id=cache_key[3],
+            device=cache_key[4],
+            _token=_IDENTIFIED_HESSIAN_TOKEN,
+        )
 
     def get_hessian(self, atoms, delta: float | None = None) -> np.ndarray:
         if delta is not None:
@@ -454,4 +539,5 @@ def is_pure_mace_polar_torch_calculator(calculator: object) -> bool:
 __all__ = [
     "PureMACEPolarTorchCalculator",
     "is_pure_mace_polar_torch_calculator",
+    "is_identified_hessian_evaluation",
 ]

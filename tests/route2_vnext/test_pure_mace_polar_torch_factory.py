@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import json
 
 import numpy as np
 import pytest
 from ase import Atoms
+from ase.constraints import FixAtoms
 
 from maple.function.calculator.route2 import (
     PureMACEPolarTorchCalculator,
@@ -13,6 +15,8 @@ from maple.function.calculator.route2 import (
 )
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.dispatcher.dispatcher import Dispatcher
+from maple.function.dispatcher.legacy_units import LegacyHartreeJobView
+from maple.function.dispatcher.pure_nonmd_status import geometries_record
 from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V3_PROFILE,
@@ -35,6 +39,7 @@ from maple.solvation.api.scalar_registry import (
 from maple.solvation.coupling.state_equation import geometry_sha256
 from maple.solvation.derivatives.analytic import (
     AnalyticForceEvaluation,
+    AnalyticHessianEvaluation,
     AnalyticHVPEvaluation,
 )
 from maple.solvation.models.base import model_input_sha256
@@ -92,11 +97,21 @@ class _FakeTorchPES:
 
     def evaluate_hessian(self, atoms):
         self.calls.append("hessian")
-        return SimpleNamespace(
+        force_evaluation = self.evaluate_forces(atoms)
+        return AnalyticHessianEvaluation(
             hessian_eV_per_A2=np.eye(3 * len(atoms)),
             forces_eV_per_A=np.full((len(atoms), 3), 0.125),
             energy_eV=-2.5,
-            derivative_method="torch-autograd",
+            geometry_sha256=force_evaluation.geometry_sha256,
+            configuration_sha256=force_evaluation.configuration_sha256,
+            scalar_contract_id=force_evaluation.scalar_contract_id,
+            device=force_evaluation.device,
+            component_energies_eV={"test": -2.5},
+            diagnostics={},
+            provider_id=force_evaluation.provider_id,
+            profile_id=force_evaluation.profile_id,
+            verification_evidence_id=force_evaluation.verification_evidence_id,
+            computation_dtype=force_evaluation.computation_dtype,
         )
 
     def hessian_vector_product(self, atoms, direction):
@@ -143,6 +158,227 @@ def _fake_calculator() -> PureMACEPolarTorchCalculator:
         profile_spec=spec,
         pes=_FakeTorchPES(spec.scalar_contract_id),
     )
+
+
+def _fake_v4_calculator() -> PureMACEPolarTorchCalculator:
+    atoms = _water()
+    spec = route2_smd_profile_spec(
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE
+    )
+    return PureMACEPolarTorchCalculator._from_test_pes(
+        atoms=atoms,
+        solvent="water",
+        device="cpu",
+        profile_spec=spec,
+        pes=_FakeTorchPES(spec.scalar_contract_id),
+    )
+
+
+def test_v4_prfo_requires_dispatcher_unit_boundary(tmp_path):
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    atoms = _water()
+    atoms.calc = _fake_v4_calculator()
+    with pytest.raises(ValueError, match="must enter through Dispatcher"):
+        PRFO(str(tmp_path / "raw-v4.out"), atoms, {"max_iter": 1})
+    atoms.calc = LegacyHartreeJobView(atoms.calc)
+    job = PRFO(str(tmp_path / "v4-candidate.out"), atoms, {"max_iter": 1})
+    assert job.atoms is atoms
+
+
+def test_v4_dimer_forces_analytic_hvp_even_if_user_requests_finite_difference(tmp_path):
+    from maple.function.dispatcher.ts.algorithm.dimer import Dimer
+
+    atoms = _water()
+    atoms.calc = _fake_v4_calculator()
+    with pytest.raises(ValueError, match="must enter through Dispatcher"):
+        Dimer(str(tmp_path / "raw-dimer.out"), atoms, {"max_iter": 1})
+    atoms.calc = LegacyHartreeJobView(atoms.calc)
+    job = Dimer(
+        str(tmp_path / "v4-dimer.out"), atoms, {"use_hvp": False, "max_iter": 1}
+    )
+    assert job.params.use_hvp is True
+    assert job.hvp_fn is None
+    calls = {"hvp": 0}
+    raw = atoms.calc.raw_calculator
+
+    def tuple_hvp(atoms, direction, *args, **kwargs):
+        calls["hvp"] += 1
+        return np.asarray(direction), np.zeros_like(direction), 0.0
+
+    raw.get_hvp = tuple_hvp
+    raw.get_forces = lambda *args, **kwargs: pytest.fail("separate force call")
+    raw.get_potential_energy = lambda *args, **kwargs: pytest.fail(
+        "separate energy call"
+    )
+    job.params.rot_max_iter = 1
+    job._rotate_minimize_kappa(atoms.positions.reshape(-1), job.n)
+    assert calls == {"hvp": 1}
+
+
+def test_v4_dimer_writes_candidate_not_saddle_claim(tmp_path):
+    from maple.function.dispatcher.ts.algorithm.dimer import Dimer
+
+    atoms = _water()
+    atoms.calc = LegacyHartreeJobView(_fake_v4_calculator())
+    atoms.f_max_th = atoms.f_rms_th = atoms.dp_max_th = atoms.dp_rms_th = 1e-8
+    output = tmp_path / "dimer.out"
+    job = Dimer(
+        str(output), atoms,
+        {"use_hvp": False, "max_iter": 1, "rot_max_iter": 1, "random_seed": 7},
+    )
+    status = job.run()
+    assert status["converged"] is False
+    assert status["termination_class"] == "bounded_nonconvergence"
+    assert (tmp_path / "dimer_dimer_candidate.xyz").is_file()
+    assert not (tmp_path / "dimer_dimer_ts.xyz").exists()
+    text = output.read_text()
+    assert "INFORMATION ABOUT SADDLE CANDIDATE" in text
+    assert "stationary-point certification is unavailable" in text
+    assert "validation-failed" not in text
+
+
+def test_dimer_success_reason_preserves_v2_and_names_v4_numerical_claim(monkeypatch):
+    from maple.function.dispatcher.ts.algorithm.dimer import _stationary_success_reason
+
+    monkeypatch.setattr(
+        "maple.function.dispatcher.pure_nonmd_status.is_pure_torch_v4",
+        lambda atoms: False,
+    )
+    assert _stationary_success_reason(object()) == "resolved_index_one_saddle"
+    monkeypatch.setattr(
+        "maple.function.dispatcher.pure_nonmd_status.is_pure_torch_v4",
+        lambda atoms: True,
+    )
+    assert (
+        _stationary_success_reason(object())
+        == "computed_index_one_stationary_point"
+    )
+
+
+def test_v4_dispatcher_reports_numerical_success_without_scientific_certificate(
+    monkeypatch, tmp_path
+):
+    atoms = _water()
+    atoms.calc = _fake_v4_calculator()
+    dispatcher = Dispatcher()
+    monkeypatch.setattr(
+        dispatcher,
+        "_dispatch_legacy",
+        lambda *args, **kwargs: {
+            "schema": "maple-pure-nonmd-status-v2",
+            "workflow": "ts",
+            "method": "prfo",
+            "executed": True,
+            "termination_class": "converged",
+            "converged": True,
+            "termination_reason": "optimizer_converged",
+            "iterations": 2,
+            "final_metrics": {
+                "optimizer_converged": True,
+                "numerical_stationary_point_validated": True,
+            },
+            "geometry": geometries_record(atoms),
+            "trace": [],
+        },
+    )
+    output = tmp_path / "numerical-ts.out"
+    command = SimpleNamespace(params={"method": "prfo"})
+
+    dispatcher(command, "ts", atoms, str(output))
+
+    record = json.loads((tmp_path / "numerical-ts_status.json").read_text())
+    assert record["schema"] == "maple-route2-workflow-outcome-v2"
+    assert record["optimizer_converged"] is True
+    assert record["numerical_stationary_point_validated"] is True
+    assert record["certificate_status"] == "unavailable"
+    assert record["scientific_certified"] is None
+    assert record["candidate_only"] is False
+    assert record["task_success"] is True
+
+
+def test_v4_dispatcher_rejects_mixed_path_charge_before_task_execution(
+    monkeypatch, tmp_path
+):
+    left = _water()
+    right = _water()
+    right.info["charge"] = 1
+    left.calc = _fake_v4_calculator()
+    right.calc = left.calc
+    dispatcher = Dispatcher()
+    called = False
+
+    def forbidden(*args, **kwargs):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(dispatcher, "_dispatch_legacy", forbidden)
+    command = SimpleNamespace(params={"method": "neb"})
+    with pytest.raises(ValueError, match="symbols, masses, charge, and multiplicity"):
+        dispatcher(command, "ts", [left, right], str(tmp_path / "path.out"))
+    assert called is False
+
+
+@pytest.mark.parametrize(
+    ("jobtype", "params"),
+    [
+        ("freq", {"method": "mw"}),
+        ("irc", {"method": "gs", "mode_index": 0}),
+        ("ts", {"method": "prfo"}),
+        ("ts", {"method": "dimer"}),
+        ("opt", {"method": "rfo"}),
+        ("md", {"ensemble": "nve"}),
+    ],
+)
+def test_v4_derivative_and_md_workflows_reject_constraints_before_execution(
+    monkeypatch, tmp_path, jobtype, params
+):
+    atoms = _water()
+    atoms.set_constraint(FixAtoms(indices=[0]))
+    atoms.calc = _fake_v4_calculator()
+    dispatcher = Dispatcher()
+    called = False
+
+    def forbidden(*args, **kwargs):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(dispatcher, "_dispatch_legacy", forbidden)
+    with pytest.raises(ValueError, match="do not support atom constraints"):
+        dispatcher(
+            SimpleNamespace(params=params), jobtype, atoms,
+            str(tmp_path / f"{jobtype}.out"),
+        )
+    assert called is False
+
+
+def test_v4_force_only_lbfgs_keeps_existing_constraint_path(monkeypatch, tmp_path):
+    atoms = _water()
+    atoms.set_constraint(FixAtoms(indices=[0]))
+    atoms.calc = _fake_v4_calculator()
+    dispatcher = Dispatcher()
+    monkeypatch.setattr(
+        dispatcher,
+        "_dispatch_legacy",
+        lambda *args, **kwargs: {
+            "schema": "maple-pure-nonmd-status-v2",
+            "workflow": "opt",
+            "method": "lbfgs",
+            "executed": True,
+            "termination_class": "converged",
+            "converged": True,
+            "termination_reason": "force_criteria_satisfied",
+            "iterations": 1,
+            "final_metrics": {},
+            "geometry": geometries_record(atoms),
+            "trace": [],
+        },
+    )
+    result = dispatcher(
+        SimpleNamespace(params={"method": "lbfgs"}), "opt", atoms,
+        str(tmp_path / "lbfgs.out"),
+    )
+    assert result["task_success"] is True
 
 
 def test_v3_profiles_are_explicit_torch_identities_and_do_not_mutate_legacy():
@@ -217,6 +453,25 @@ def test_v4_profiles_register_fp32_l5_n194_without_mutating_v3():
     assert not v3.default_eligible
 
 
+def test_v4_stationary_and_irc_policies_are_explicitly_distinct():
+    from maple.function.route2_smd_profiles import route2_workflow_capability_for_params
+
+    profile = route2_smd_profile_spec(
+        PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_TORCH_CPU_V4_PROFILE
+    )
+    assert route2_workflow_capability_for_params(
+        profile, "ts", {"method": "prfo"}
+    ).outcome_policy == "numerical_stationary"
+    assert route2_workflow_capability_for_params(
+        profile, "irc", {"method": "gs"}
+    ).outcome_policy == "numerical_irc_auto"
+    explicit = route2_workflow_capability_for_params(
+        profile, "irc", {"method": "gs", "mode_index": 0}
+    )
+    assert explicit.outcome_policy == "exploratory_irc"
+    assert explicit.execution_class == "candidate_only"
+
+
 @pytest.mark.parametrize(
     "scalar_id",
     [
@@ -258,6 +513,41 @@ def test_torch_calculator_has_analytic_only_hessian_and_exact_typeguard():
     assert not is_pure_mace_polar_torch_calculator(
         SimpleNamespace(workflow_kind=calculator.workflow_kind)
     )
+
+
+def test_identified_hessian_context_tracks_charge_and_recomputes_on_change():
+    atoms = _water()
+    calculator = _fake_v4_calculator()
+    atoms.calc = calculator
+
+    neutral = calculator.get_identified_hessian_evaluation(atoms)
+    atoms.info.update(charge=2, mult=1)
+    ionic = calculator.get_identified_hessian_evaluation(atoms)
+
+    assert neutral.charge == 0 and neutral.multiplicity == 1
+    assert ionic.charge == 2 and ionic.multiplicity == 1
+    assert neutral.model_input_sha256 != ionic.model_input_sha256
+    assert calculator.pes.calls.count("hessian") == 2
+
+
+def test_identified_hessian_context_cannot_be_forged_or_relabelled():
+    from maple.function.calculator.route2 import _mace_polar_torch_calculator as module
+
+    with pytest.raises(TypeError, match="calculator-issued"):
+        module._IdentifiedAnalyticHessianEvaluation(
+            evaluation=object(),
+            model_input_sha256="a" * 64,
+            charge=0,
+            multiplicity=1,
+            configuration_sha256="b" * 64,
+            profile_id="profile",
+            scalar_contract_id="scalar",
+            device="cpu",
+            _token=None,
+        )
+    context = _fake_v4_calculator().get_identified_hessian_evaluation(_water())
+    with pytest.raises(AttributeError, match="immutable"):
+        context.charge = 2
 
 
 def test_torch_calculator_rejects_profile_device_mismatch(monkeypatch):

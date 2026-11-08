@@ -988,7 +988,7 @@ class AutoNEB(JobABC):
         return new_start, new_end
 
     def _collect_all_ts(self):
-        """Collect all transition states from converged paths."""
+        """Collect highest-energy images from converged paths."""
         self.all_ts = []
 
         def collect_from_path(path_id: str):
@@ -1027,11 +1027,19 @@ class AutoNEB(JobABC):
         # Transition states
         self._collect_all_ts()
         if self.all_ts:
-            ts_file = base + "_autoneb_ts_list.xyz"
+            from ...pure_nonmd_status import is_pure_torch_v4
+            v4_candidate = is_pure_torch_v4(global_images)
+            ts_file = base + (
+                "_autoneb_candidate_list.xyz"
+                if v4_candidate else "_autoneb_ts_list.xyz"
+            )
             ts_energies = [float(at.get_potential_energy(force_consistent=True))
                          for at in self.all_ts]
             write_xyz(ts_file, self.all_ts, energies=ts_energies)
-            log_info([f"Wrote transition states to: {ts_file}\n"], self.output)
+            label = (
+                "climbing-image candidates" if v4_candidate else "transition states"
+            )
+            log_info([f"Wrote {label} to: {ts_file}\n"], self.output)
 
         # Path tree (JSON for debugging)
         tree_file = base + "_autoneb_tree.json"
@@ -1215,14 +1223,28 @@ class AutoNEB(JobABC):
             f"  Overall barrier: {(max(global_energies) - global_energies[0]) * kcal:.2f} kcal/mol\n",
         ], self.output)
 
-        from ...pure_nonmd_status import is_pure_nonmd_v2, make_status
-        if not is_pure_nonmd_v2(global_images):
+        from ...pure_nonmd_status import (
+            add_v4_outcome_metrics, is_route2_workflow_status_enabled, make_status,
+        )
+        if not is_route2_workflow_status_enabled(global_images):
             return None
         leaf_nodes = [
             node for node in self.path_tree.values() if not node.children
         ]
         converged = bool(leaf_nodes) and all(
             node.status == "converged" for node in leaf_nodes
+        )
+        final_metrics = {
+            "path_count": len(self.path_tree),
+            "leaf_statuses": {
+                str(node.path_id): node.status for node in leaf_nodes
+            },
+            "image_count": len(global_images),
+            "energy_min_hartree": float(min(global_energies)),
+            "energy_max_hartree": float(max(global_energies)),
+        }
+        add_v4_outcome_metrics(
+            global_images, final_metrics, path_converged=converged
         )
         return make_status(
             workflow="ts", method="autoneb", converged=converged,
@@ -1231,14 +1253,6 @@ class AutoNEB(JobABC):
                 else "one_or_more_paths_reached_cap"
             ),
             iterations=self.global_iteration,
-            final_metrics={
-                "path_count": len(self.path_tree),
-                "leaf_statuses": {
-                    str(node.path_id): node.status for node in leaf_nodes
-                },
-                "image_count": len(global_images),
-                "energy_min_hartree": float(min(global_energies)),
-                "energy_max_hartree": float(max(global_energies)),
-            },
+            final_metrics=final_metrics,
             atoms=global_images,
         )

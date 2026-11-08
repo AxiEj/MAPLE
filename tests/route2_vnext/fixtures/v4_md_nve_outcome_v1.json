@@ -1,0 +1,90 @@
+{
+  "actual_device": "cpu",
+  "candidate_only": false,
+  "completed": true,
+  "final_metrics": {
+    "completed_steps": 8,
+    "final_total_energy_hartree": -76.44273180502749,
+    "initial_total_energy_hartree": -76.44273815704013,
+    "last_temperature_K": 282.7254174790763,
+    "last_valid_step": {
+      "positions_angstrom": [
+        [
+          0.011157318097519641,
+          0.008766461333761777,
+          0.00200826907689879
+        ],
+        [
+          0.9869956295383787,
+          0.02218278201841641,
+          -0.0031078300399037238
+        ],
+        [
+          -0.25616529960915035,
+          0.9400360280419802,
+          -0.016065731900514222
+        ]
+      ],
+      "step": 8,
+      "velocities_bohr_per_au": [
+        [
+          -4.215292017295629e-05,
+          -2.079364076840569e-06,
+          0.00010433976066942688
+        ],
+        [
+          0.0005735160014449715,
+          -0.0002715402420924441,
+          -0.00017738927744704626
+        ],
+        [
+          9.55365824664968e-05,
+          0.0003045441184530274,
+          -0.001478693890912104
+        ]
+      ]
+    },
+    "maximum_total_energy_drift_hartree": 1.4439594892223795e-05,
+    "requested_steps": 8
+  },
+  "geometry": [
+    {
+      "positions_angstrom": [
+        [
+          0.011157318097519641,
+          0.008766461333761777,
+          0.00200826907689879
+        ],
+        [
+          0.9869956295383787,
+          0.02218278201841641,
+          -0.0031078300399037238
+        ],
+        [
+          -0.25616529960915035,
+          0.9400360280419802,
+          -0.016065731900514222
+        ]
+      ],
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ]
+    }
+  ],
+  "iterations": 8,
+  "method": "nve",
+  "optimizer_converged": null,
+  "path_converged": null,
+  "profile": "pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v4",
+  "rejected": false,
+  "scalar_contract_id": "route2-experimental-pure-macepolar-frozen-point-l1-ddpcm-smd-torch-cpu-v4",
+  "schema": "maple-route2-workflow-outcome-v1",
+  "scientific_certified": null,
+  "task_success": true,
+  "termination_class": "completed",
+  "termination_reason": "requested_steps_completed",
+  "trace": [],
+  "workflow": "md"
+}

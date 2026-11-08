@@ -18,6 +18,8 @@ class Scan(JobABC):
     def __init__(self, output: str, atoms: Atoms, method: str = "lbfgs", 
                  constraints: Optional[list] = None, params: Optional[dict] = None):
         super().__init__(output)
+        from ..legacy_units import require_legacy_hartree_workflow_view
+        require_legacy_hartree_workflow_view(atoms)
         self.atoms = atoms
         self.output = output
         self.params = params if params is not None else {}
@@ -414,13 +416,13 @@ class Scan(JobABC):
     def run(self):
         """JobABC interface."""
         with timer("Scan"):
-            from ..pure_nonmd_status import is_pure_nonmd_v2, make_status
+            from ..pure_nonmd_status import is_route2_workflow_status_enabled, make_status
             self.point_statuses = []
             self._last_atoms = self.atoms
             try:
                 result = self.run_scan()
             except Exception as exc:
-                if not is_pure_nonmd_v2(self._last_atoms):
+                if not is_route2_workflow_status_enabled(self._last_atoms):
                     raise
                 return make_status(
                     workflow="scan", method=f"{self.mode}-{self.method}",
@@ -432,7 +434,7 @@ class Scan(JobABC):
                     error_type=type(exc).__name__, error=str(exc),
                 )
             self._cleanup_opt_files(self.output)  # cleanup opt temp files
-            if not is_pure_nonmd_v2(self._last_atoms):
+            if not is_route2_workflow_status_enabled(self._last_atoms):
                 return None
             failed = [p["point_index"] for p in self.point_statuses if not p["converged"]]
             classes = {p["termination_class"] for p in self.point_statuses}

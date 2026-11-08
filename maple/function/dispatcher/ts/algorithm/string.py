@@ -598,8 +598,12 @@ class GSM(JobABC):
                 rmsFp_list.append(float(np.sqrt(np.mean(np.linalg.norm(Fp, axis=1) ** 2))))
 
         # Dump STRING-TS files
+        from ...pure_nonmd_status import is_pure_torch_v4
+        v4_candidate = is_pure_torch_v4(images_ts)
         stringts_mep = base_prefix + "_stringts_mep.xyz"
-        stringts_ts  = base_prefix + "_stringts_ts.xyz"
+        stringts_ts = base_prefix + (
+            "_stringts_candidate.xyz" if v4_candidate else "_stringts_ts.xyz"
+        )
         write_xyz(stringts_mep, images_ts, energies=Es_path)
         write_xyz(stringts_ts, [ts_opt], energies=[E_TS])
 
@@ -626,20 +630,25 @@ class GSM(JobABC):
             if i == hei_idx:
                 log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f} <= CI\n"], self.output)
             elif i == hei_idx + 1:
-                log_info([f"  TS {E:12.5f} {dE:11.2f} {0.0:11.5f} {0.0:10.5f} <= TS\n"], self.output)
+                label = "CAND" if v4_candidate else "TS"
+                marker = "CANDIDATE" if v4_candidate else "TS"
+                log_info([f"{label:>4s} {E:12.5f} {dE:11.2f} {0.0:11.5f} {0.0:10.5f} <= {marker}\n"], self.output)
             else:
                 log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f}\n"], self.output)
 
         log_info([
             "\n-----------------------------------------\n",
-            "  REFINED TS STRUCTURE (ANGSTROEM)\n",
+            (
+                "  REFINED CANDIDATE STRUCTURE (ANGSTROEM)\n"
+                if v4_candidate else "  REFINED TS STRUCTURE (ANGSTROEM)\n"
+            ),
             "-----------------------------------------\n",
             *[line + "\n" for line in atoms_to_xyz_lines(ts_opt)]
         ], self.output)
 
         log_info([
             f"\nWrote STRING-TS MEP to: {stringts_mep}\n",
-            f"Wrote TS structure to:  {stringts_ts}\n"
+            f"Wrote {'candidate' if v4_candidate else 'TS structure'} to: {stringts_ts}\n"
         ], self.output)
 
         return ts_opt
@@ -1099,8 +1108,10 @@ class GSM(JobABC):
         ], self.output)
 
         refinement = self._dispatch_refinement(images, hei, base)
-        from ...pure_nonmd_status import is_pure_nonmd_v2, make_status
-        if not is_pure_nonmd_v2(images):
+        from ...pure_nonmd_status import (
+            add_v4_outcome_metrics, is_route2_workflow_status_enabled, make_status,
+        )
+        if not is_route2_workflow_status_enabled(images):
             return None
         growth_converged = (
             self._min_image_distance(L[-1], R_[-1])
@@ -1120,6 +1131,19 @@ class GSM(JobABC):
                 "termination_class",
                 "converged" if converged else "bounded_nonconvergence",
             )
+        final_metrics = {
+            "growth_iterations": it,
+            "growth_converged": growth_converged,
+            "highest_energy_image": hei,
+            "image_count": len(images),
+            "merge_distance_angstrom": self._min_image_distance(L[-1], R_[-1]),
+            "path": path_status["final_metrics"],
+        }
+        add_v4_outcome_metrics(
+            images,
+            final_metrics,
+            path_converged=bool(growth_converged and path_status["converged"]),
+        )
         return make_status(
             workflow="ts", method=str(self.params.refine or "string"),
             converged=converged, termination_reason=reason,
@@ -1128,13 +1152,6 @@ class GSM(JobABC):
                 int(refinement_status["iterations"])
                 if isinstance(refinement_status, dict) else 0
             ),
-            final_metrics={
-                "growth_iterations": it,
-                "growth_converged": growth_converged,
-                "highest_energy_image": hei,
-                "image_count": len(images),
-                "merge_distance_angstrom": self._min_image_distance(L[-1], R_[-1]),
-                "path": path_status["final_metrics"],
-            },
+            final_metrics=final_metrics,
             atoms=images, path=path_status, refinement=refinement_status,
         )

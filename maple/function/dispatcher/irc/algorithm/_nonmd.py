@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from ._terminal import is_v4_algorithm
+
 
 class IRCIterationLimit(RuntimeError):
     """A bounded numerical subproblem stopped before a valid next step."""
@@ -10,6 +12,16 @@ class IRCIterationLimit(RuntimeError):
 
 def is_nonmd(algorithm):
     return getattr(algorithm, "preselected_mode_mw", None) is not None
+
+
+def preselected_mode_message(label, diagnostic):
+    if diagnostic.get("selection_kind") == "explicit_raw_negative_candidate":
+        description = "explicit raw-negative candidate mode"
+    elif diagnostic.get("selection_kind") == "computed_index_one_automatic":
+        description = "automatic computed-index-one internal mode"
+    else:
+        description = "uncertainty-resolved internal negative mode"
+    return f"\n[INFO] {label}: Using dispatcher-preselected {description}.\n"
 
 
 def remember_initial(algorithm, energy, max_force, rms_force):
@@ -68,6 +80,13 @@ def run_directions(algorithm, positions_ts, mode_mw, energy_ts):
                 iterations=max(0, len(side["records"]) - 1),
                 endpoint_minimum_verified=False, error_type=type(exc).__name__, error=str(exc),
             )
+        if is_v4_algorithm(algorithm) and side.get("records"):
+            authoritative = side["records"][-1]
+            algorithm.atoms.set_positions(authoritative["x"])
+            if hasattr(algorithm, "_mw_from_cart"):
+                algorithm.mw_coords = algorithm._mw_from_cart(
+                    np.asarray(authoritative["x"]).reshape(-1)
+                )
         result[name] = side
     forward, backward = result["forward"], result["backward"]
     result["summary"] = {}

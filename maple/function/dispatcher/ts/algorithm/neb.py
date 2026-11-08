@@ -953,16 +953,25 @@ class NEB(JobABC):
         cineb_hei = base + "_cineb_hei.xyz"
         write_xyz(cineb_mep, images, energies=Es)
         write_xyz(cineb_hei, [images[hei]], energies=[Es[hei]])
+        from ...pure_nonmd_status import is_pure_torch_v4
+        v4_candidate = is_pure_torch_v4(images)
 
         log_info([
             "\n---------------------------------------------------------------\n",
-            "               INFORMATION ABOUT SADDLE POINT     \n",
+            (
+                "          INFORMATION ABOUT CLIMBING-IMAGE CANDIDATE\n"
+                if v4_candidate
+                else "               INFORMATION ABOUT SADDLE POINT     \n"
+            ),
             "---------------------------------------------------------------\n",
             f"Climbing image                            ....  {hei}\n",
             f"Energy                                    ....  {Es[hei]: .8f} Eh\n",
             f"Max. abs. force                           ....  {maxF_CI: .4e} Eh/Angstrom\n",
             "\n-----------------------------------------\n",
-            "  SADDLE POINT (ANGSTROEM)\n",
+            (
+                "  CLIMBING-IMAGE CANDIDATE (ANGSTROEM)\n"
+                if v4_candidate else "  SADDLE POINT (ANGSTROEM)\n"
+            ),
             "-----------------------------------------\n",
             self.atoms_to_xyz(images[hei])
         ], self.output)
@@ -1026,7 +1035,9 @@ class NEB(JobABC):
             Es.insert(hei + 1, E_TS)
 
             nebts_mep = base + "_nebts_mep.xyz"
-            nebts_ts = base + "_nebts_ts.xyz"
+            nebts_ts = base + (
+                "_nebts_candidate.xyz" if v4_candidate else "_nebts_ts.xyz"
+            )
             write_xyz(nebts_mep, images, energies=Es)
             write_xyz(nebts_ts, [ts_opt], energies=[E_TS])
 
@@ -1041,8 +1052,11 @@ class NEB(JobABC):
             kcal_per_Eh = 627.509
             for i, E in enumerate(Es):
                 dE = (E - Es[0]) * kcal_per_Eh
-                label = " TS" if i == hei + 1 else f"{i:3d}"
-                marker = " <= TS" if i == hei + 1 else (" <= CI" if i == hei else "")
+                candidate_label = " CAND" if v4_candidate else " TS"
+                label = candidate_label if i == hei + 1 else f"{i:3d}"
+                marker = (
+                    " <= CANDIDATE" if v4_candidate else " <= TS"
+                ) if i == hei + 1 else (" <= CI" if i == hei else "")
                 maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
                 rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
                 log_info([
@@ -1575,8 +1589,10 @@ class NEB(JobABC):
             else:
                 refinement_status = self.restart_run(images, energies=Es)
 
-        from ...pure_nonmd_status import is_pure_nonmd_v2, make_status
-        if not is_pure_nonmd_v2(images):
+        from ...pure_nonmd_status import (
+            add_v4_outcome_metrics, is_route2_workflow_status_enabled, make_status,
+        )
+        if not is_route2_workflow_status_enabled(images):
             return None
         converged = neb_converged
         reason = "path_force_criteria_satisfied" if converged else "maximum_iterations_reached"
@@ -1587,6 +1603,14 @@ class NEB(JobABC):
                 ts_status = refinement_status["refinement"]
                 converged = converged and bool(ts_status["converged"])
                 reason = ts_status["termination_reason"]
+        final_metrics = {
+            "highest_energy_image": hei,
+            "max_projected_force_hartree_per_angstrom": float(maxfp),
+            "rms_projected_force_hartree_per_angstrom": float(rmsfp),
+        }
+        add_v4_outcome_metrics(
+            images, final_metrics, path_converged=bool(neb_converged)
+        )
         return make_status(
             workflow="ts", method=str(self.params.refine or "neb"),
             converged=converged, termination_reason=reason,
@@ -1603,10 +1627,6 @@ class NEB(JobABC):
             iterations=iteration + (
                 int(refinement_status["iterations"]) if refinement_status else 0
             ),
-            final_metrics={
-                "highest_energy_image": hei,
-                "max_projected_force_hartree_per_angstrom": float(maxfp),
-                "rms_projected_force_hartree_per_angstrom": float(rmsfp),
-            },
+            final_metrics=final_metrics,
             atoms=images, refinement=refinement_status,
         )

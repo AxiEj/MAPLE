@@ -1,4 +1,4 @@
-from ._nonmd import (IRCIterationLimit, finish_direction, is_nonmd, remember_initial, run_directions)
+from ._nonmd import (IRCIterationLimit, finish_direction, is_nonmd, preselected_mode_message, remember_initial, run_directions)
 # -*- coding: utf-8 -*-
 """
 Intrinsic Reaction Coordinate (IRC) integrator using Gonzalez–Schlegel (GS) scheme:
@@ -231,8 +231,7 @@ class GS:
             v_neg_mw = np.asarray(preselected, dtype=np.float64).copy()
             diagnostic = getattr(self, "preselected_mode_diagnostic", {})
             log_info(
-                ["\n[INFO] GS-IRC: Using dispatcher-preselected "
-                 "uncertainty-resolved internal negative mode.\n"],
+                [preselected_mode_message("GS-IRC", diagnostic)],
                 self.output,
             )
         else:

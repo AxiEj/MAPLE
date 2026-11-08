@@ -4,8 +4,11 @@ from typing import Any, Dict, List, Optional
 
 from ..route2_smd_profiles import (
     PURE_MACEPOLAR_FROZEN_POINT_L1_DDPCM_SMD_WORKFLOW_PROFILE,
+    PURE_TORCH_FP32_V4_WORKFLOW_POLICY,
+    normalize_frequency_method_request,
     pure_macepolar_expected_device,
     resolve_route2_smd_profile,
+    route2_workflow_capability_for_params,
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
     validate_route2_smd_response_mode,
@@ -85,7 +88,7 @@ class CommandControl:
         "opt": {"lbfgs", "rfo", "sd", "cg", "sdcg", ""},
         "scan": {"lbfgs", "rfo", "sd", "cg", "sdcg"},
         "ts": {"prfo", "string", "neb", "dimer", "autoneb"},
-        "freq": {"mw", "nonmw", "both"},
+        "freq": {"mw", "nonmw", "both", "cartesian-curvature"},
         "sp": set(),
         "irc": {"gs", "hpc", "eulerpc", "lqa"},
         "md": {"nve", "nvt", "npt"},
@@ -773,7 +776,38 @@ class CommandControl:
                     msg = str(exc)
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
-                if task not in profile_spec.experimental_task_allowlist:
+                capability = None
+                is_v4_policy = (
+                    profile_spec.workflow_policy_id
+                    == PURE_TORCH_FP32_V4_WORKFLOW_POLICY
+                )
+                if task == "freq" and "deprecated_alias" in params:
+                    msg = "deprecated_alias is derived internally and cannot be supplied."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                frequency_request = (
+                    normalize_frequency_method_request(
+                        params.get("method"), pure_torch_v4=is_v4_policy
+                    )
+                    if task == "freq" else None
+                )
+                if profile_spec.workflow_policy_id is not None:
+                    try:
+                        capability = route2_workflow_capability_for_params(
+                            profile_spec, task, params
+                        )
+                    except ValueError as exc:
+                        msg = str(exc)
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg) from exc
+                    if capability.execution_class == "closed":
+                        msg = (
+                            f"Route 2 profile={profile_spec.name} rejects "
+                            f"task={task}: {capability.reason}."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                elif task not in profile_spec.experimental_task_allowlist:
                     if profile_spec.execution_route == "legacy-additive-correction":
                         msg = (
                             "Route 2 SMD remains single-point only while the "
@@ -808,10 +842,24 @@ class CommandControl:
                             cls._log_error(output_path, msg)
                             raise ValueError(msg)
                     elif task == "freq":
-                        if str(params.get("method") or "mw").lower() != "mw":
+                        if frequency_request is None:
+                            raise RuntimeError(
+                                "frequency request normalization was not performed."
+                            )
+                        allowed_frequency_methods = (
+                            {"mw", "cartesian-curvature", "both"}
+                            if is_v4_policy else {"mw"}
+                        )
+                        if (
+                            frequency_request.canonical_method
+                            not in allowed_frequency_methods
+                        ):
                             msg = (
                                 f"Route 2 profile={profile_spec.name} supports FREQ "
-                                "only with method=mw."
+                                + (
+                                    "only with its registered frequency methods."
+                                    if is_v4_policy else "only with method=mw."
+                                )
                             )
                             cls._log_error(output_path, msg)
                             raise ValueError(msg)
@@ -833,6 +881,33 @@ class CommandControl:
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
+                    if profile_spec.workflow_policy_id is not None:
+                        if task == "irc":
+                            mode_index = params.get("mode_index")
+                            if mode_index is not None and (
+                                type(mode_index) is not int or mode_index < 0
+                            ):
+                                msg = (
+                                    "Pure Torch V4 IRC mode_index must be a "
+                                    "non-negative zero-based internal-mode index."
+                                )
+                                cls._log_error(output_path, msg)
+                                raise ValueError(msg)
+                            if "target_mode" in params:
+                                msg = (
+                                    "Pure Torch V4 IRC mode_index cannot be combined "
+                                    "with legacy target_mode."
+                                )
+                                cls._log_error(output_path, msg)
+                                raise ValueError(msg)
+                        if task == "md":
+                            if params.get("restart") or params.get("load_state"):
+                                msg = (
+                                    "Pure Torch V4 MD restart/load_state is not "
+                                    "qualified in this workflow policy."
+                                )
+                                cls._log_error(output_path, msg)
+                                raise ValueError(msg)
                     elif (
                         task == "scan"
                         and str(params.get("method") or "lbfgs").lower() == "rfo"
@@ -1232,7 +1307,6 @@ class CommandControl:
             ):
                 cls._log_error(output_path, "SP verbose must be 0 or 1.")
                 raise ValueError("SP verbose must be 0 or 1.")
-
         if "method" in params:
             if task == "md":
                 cls._log_error(output_path, "'method' is not valid for MD tasks; use 'ensemble=' instead.")

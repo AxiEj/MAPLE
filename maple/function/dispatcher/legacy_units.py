@@ -108,6 +108,24 @@ def _iter_atoms(value):
         yield value
 
 
+def require_legacy_hartree_workflow_view(atoms) -> None:
+    """Reject a raw V4 ASE calculator at a Hartree-consuming job boundary."""
+
+    from .pure_nonmd_status import is_pure_torch_v4
+
+    if not is_pure_torch_v4(atoms):
+        return
+    images = list(_iter_atoms(atoms))
+    if not images or any(
+        not isinstance(getattr(image, "calc", None), LegacyHartreeJobView)
+        for image in images
+    ):
+        raise ValueError(
+            "Pure Torch V4 MAPLE workflows must enter through Dispatcher so the "
+            "ASE eV quantities receive exactly one legacy Hartree conversion."
+        )
+
+
 @contextmanager
 def legacy_hartree_job_calculators(atoms) -> Iterator[None]:
     """Temporarily install legacy views, restoring every raw calculator."""

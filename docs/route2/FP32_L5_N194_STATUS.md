@@ -27,6 +27,13 @@ retain FP64 / 15 / 1202. No private research directory is needed at runtime.
 
 ## Current verification
 
+- Workflow integration (2026-11-06): source-epoch-4 replay covers 28 CPU task
+  cases and 8 CUDA sentinels, with candidate and nonconvergence outcomes kept
+  distinct from task success. Genuine derivative replay passed 4/4 and the
+  unchanged named-solvent component protocol passed 358/358. Previous receipt
+  bytes were archived before replacement. See
+  [workflow execution status](FP32_WORKFLOW_STATUS_20261106.md) for the complete
+  matrix, numerical checks, resource accounting, and baseline regression gaps.
 - Direct HVP tuple execution (2026-10-25): one forward now supplies HVP, central
   force and energy, rather than three. The original FP32 force reverse arithmetic
   is retained on the shared graph; standalone HVP still uses only its original
@@ -90,10 +97,18 @@ CUDA and retains failed cases rather than reporting only survivors.
 ## Remaining boundaries
 
 This is engineering integration, not new whole-dataset scientific admission.
-Supported experimental scope is closed-shell SP/OPT/MW-FREQ, including explicit
-integer molecular charges on V4. Charge conservation targets the input charge,
-not zero; historical V3 and other providers remain neutral-only. Ionic execution
-does not establish ionic-solvation accuracy. TS/IRC/MD remain closed.
+The V4 workflow policy admits SP, OPT, SCAN, MW-FREQ, path searches, and bounded
+nonperiodic NVE/NVT execution, including explicit integer molecular charges.
+Charge conservation targets the input charge, not zero; historical V3 and
+other providers remain neutral-only. Ionic execution does not establish
+ionic-solvation accuracy.
+
+P-RFO, Dimer, NEBTS, StringTS, and explicit-mode IRC are candidate-only. Their
+results separate algorithm convergence from stationary-point certification and
+cannot report task success while analytic Hessian uncertainty is unavailable.
+NPT/PBC, constrained Hessian/MD, relaxed RFO SCAN, non-MW FREQ, and MD restart
+remain closed. The source-frozen method matrix and real CPU/CUDA receipts must
+be reported separately from this code-level admission.
 V4 now accepts all 179 named SMD parameterizations; historical
 v3 remains water/hexane only. See `SMD_SOLVENT_CATALOG.md` and
 `MULTISOLVENT_V4_STATUS.md` for parameter coverage and explicit topology failures. Public default example:

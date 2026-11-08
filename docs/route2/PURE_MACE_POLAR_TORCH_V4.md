@@ -92,8 +92,12 @@ device-appropriate v4 profile when `profile` is omitted. Passing an explicit
 v3 profile preserves the historical FP64 / 15 / 1202 configuration.
 
 See `examples/solvation/pure_torch/sp-cpu-default-fp32.inp` for the default and
-`sp-cpu-v4-fp32.inp` for the explicit archival form. V4 retains the bounded SP, OPT and MW-FREQ task surface (no TS, IRC, MD or path
-workflows) and now accepts all 179 named PySCF 2.13.1 SMD solvent parameterizations.
+`sp-cpu-v4-fp32.inp` for the explicit archival form. V4 binds task admission to
+`pure-torch-fp32-v4-workflows-v1`; the CPU and CUDA profiles share that policy.
+It admits the existing MAPLE implementations for SP, OPT, rigid and force-based
+relaxed SCAN, MW-FREQ, NEB/String/AutoNEB path searches, and nonperiodic
+unconstrained NVE/NVT. It also accepts all 179 named PySCF 2.13.1 SMD solvent
+parameterizations.
 See `SMD_SOLVENT_CATALOG.md` for parser-safe names. This parameter coverage is
 not a claim that every solute geometry passes numerical/topology checks.
 
@@ -108,6 +112,37 @@ component or numerical parameter.
 See `FP32_L5_N194_STATUS.md` for current real-entry replay, dtype-aware numerical
 policies and known historical source-evidence mismatch. V4 evidence is limited
 to engineering checks, not experimental accuracy or full-population admission.
+
+## Workflow outcome boundary
+
+The [source-bound execution report](FP32_WORKFLOW_STATUS_20261106.md) separates
+code availability, bounded task outcomes, and scientific certification.
+
+Every policy-managed V4 task writes `maple-route2-workflow-outcome-v1`. The
+record distinguishes bounded completion, task success, optimizer convergence,
+path convergence, and scientific certification. P-RFO, Dimer, NEBTS,
+StringTS, and explicit-mode IRC may retain inspectable candidates, but current
+analytic Hessians have no independent numerical uncertainty bound. These tasks
+therefore finish with `scientific_certified=false`, `task_success=false`, and a
+nonzero task exit even if their numerical optimizer converges.
+
+For NEB, CI-NEB, String, CI-String, and AutoNEB, `task_success=true` means
+only that the requested path algorithm met its own path criteria. Highest-energy
+and climbing images remain candidates; path success is not transition-state or
+index-one certification.
+
+V4 IRC requires `mode_index=<n>`, a zero-based index into the rigid-projected
+internal eigenspectrum. The selected raw eigenvalue must be finite and strictly
+negative. Its sign permits candidate propagation only; it is not an
+uncertainty-resolved saddle certificate. V4 Dimer uses the calculator's
+analytic HVP tuple and has no finite-difference fallback.
+
+NPT/PBC, constrained Hessian or MD workflows, relaxed RFO SCAN, non-MW FREQ,
+and restart/load-state MD remain closed. MAPLE job algorithms consume Hartree
+units, so constructing those algorithms directly with a raw V4 ASE calculator
+is rejected. The raw calculator remains a valid ASE interface in eV; MAPLE
+tasks enter through the Dispatcher unit boundary. The bounded method matrix is frozen
+in `preregistrations/pure-mace-polar-fp32-v4-workflows.json`.
 
 ## Topology grading
 

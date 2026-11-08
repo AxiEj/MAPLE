@@ -3,6 +3,10 @@
 Capabilities are evidence-admitted, not inferred from a callable method or a
 CLI restriction.
 
+Experimental task availability for the default pure-Torch FP32 V4 profile is
+reported separately in [FP32 workflow execution status](FP32_WORKFLOW_STATUS_20261106.md).
+Opening those task paths does not change the scientific/release tiers below.
+
 | tier | meaning |
 | --- | --- |
 | E | scalar energy |

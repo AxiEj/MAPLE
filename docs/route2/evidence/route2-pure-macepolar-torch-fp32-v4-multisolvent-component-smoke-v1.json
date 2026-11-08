@@ -38,7 +38,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.0826,
-      "elapsed_seconds_descriptive_only": 0.20809543700306676,
+      "elapsed_seconds_descriptive_only": 0.2589400889992248,
       "forces_eV_per_A": [
         [
           -0.24830926954746246,
@@ -124,7 +124,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.1937,
-      "elapsed_seconds_descriptive_only": 0.11543005700514186,
+      "elapsed_seconds_descriptive_only": 0.11608971999885398,
       "forces_eV_per_A": [
         [
           -0.23049092292785645,
@@ -210,7 +210,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3653,
-      "elapsed_seconds_descriptive_only": 0.1200130170036573,
+      "elapsed_seconds_descriptive_only": 0.10848760100088839,
       "forces_eV_per_A": [
         [
           -0.19853176176548004,
@@ -296,7 +296,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.9313,
-      "elapsed_seconds_descriptive_only": 0.1444396619917825,
+      "elapsed_seconds_descriptive_only": 0.10228668600029778,
       "forces_eV_per_A": [
         [
           -0.2509024441242218,
@@ -382,7 +382,7 @@
       ],
       "device": "cpu",
       "dielectric": 10.125,
-      "elapsed_seconds_descriptive_only": 0.17705419100821018,
+      "elapsed_seconds_descriptive_only": 0.10172284099826356,
       "forces_eV_per_A": [
         [
           -0.27044564485549927,
@@ -468,7 +468,7 @@
       ],
       "device": "cpu",
       "dielectric": 40.245,
-      "elapsed_seconds_descriptive_only": 0.14326890899974387,
+      "elapsed_seconds_descriptive_only": 0.10931865599923185,
       "forces_eV_per_A": [
         [
           -0.19442641735076904,
@@ -554,7 +554,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.2099,
-      "elapsed_seconds_descriptive_only": 0.1243320310022682,
+      "elapsed_seconds_descriptive_only": 0.10220078599922999,
       "forces_eV_per_A": [
         [
           -0.1947890818119049,
@@ -640,7 +640,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.7792,
-      "elapsed_seconds_descriptive_only": 0.1617990840022685,
+      "elapsed_seconds_descriptive_only": 0.11320447599973704,
       "forces_eV_per_A": [
         [
           -0.25055909156799316,
@@ -726,7 +726,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.0244,
-      "elapsed_seconds_descriptive_only": 0.13465150799311232,
+      "elapsed_seconds_descriptive_only": 0.11174999099966954,
       "forces_eV_per_A": [
         [
           -0.23589763045310974,
@@ -812,7 +812,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.269,
-      "elapsed_seconds_descriptive_only": 0.13140017799742054,
+      "elapsed_seconds_descriptive_only": 0.11307132200090564,
       "forces_eV_per_A": [
         [
           -0.24387702345848083,
@@ -898,7 +898,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.0496,
-      "elapsed_seconds_descriptive_only": 0.14182949300447945,
+      "elapsed_seconds_descriptive_only": 0.12139297099929536,
       "forces_eV_per_A": [
         [
           -0.2513250708580017,
@@ -984,7 +984,7 @@
       ],
       "device": "cpu",
       "dielectric": 17.332,
-      "elapsed_seconds_descriptive_only": 0.1415117860015016,
+      "elapsed_seconds_descriptive_only": 0.10184147800100618,
       "forces_eV_per_A": [
         [
           -0.1954742670059204,
@@ -1070,7 +1070,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.9491,
-      "elapsed_seconds_descriptive_only": 0.15334625598916318,
+      "elapsed_seconds_descriptive_only": 0.12810542900115252,
       "forces_eV_per_A": [
         [
           -0.24219954013824463,
@@ -1156,7 +1156,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.5022,
-      "elapsed_seconds_descriptive_only": 0.16142941699945368,
+      "elapsed_seconds_descriptive_only": 0.12656510899978457,
       "forces_eV_per_A": [
         [
           -0.2452353835105896,
@@ -1242,7 +1242,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.3548,
-      "elapsed_seconds_descriptive_only": 0.13213243600330316,
+      "elapsed_seconds_descriptive_only": 0.13140288199974748,
       "forces_eV_per_A": [
         [
           -0.2526698708534241,
@@ -1328,7 +1328,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.5305,
-      "elapsed_seconds_descriptive_only": 0.12918920000083745,
+      "elapsed_seconds_descriptive_only": 0.14005057299982582,
       "forces_eV_per_A": [
         [
           -0.18859955668449402,
@@ -1414,7 +1414,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.89,
-      "elapsed_seconds_descriptive_only": 0.13422639299824368,
+      "elapsed_seconds_descriptive_only": 0.12238978000095813,
       "forces_eV_per_A": [
         [
           -0.22569742798805237,
@@ -1500,7 +1500,7 @@
       ],
       "device": "cpu",
       "dielectric": 11.321,
-      "elapsed_seconds_descriptive_only": 0.13916099700145423,
+      "elapsed_seconds_descriptive_only": 0.14688235299945518,
       "forces_eV_per_A": [
         [
           -0.19261780381202698,
@@ -1586,7 +1586,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.51,
-      "elapsed_seconds_descriptive_only": 0.15072719698946457,
+      "elapsed_seconds_descriptive_only": 0.11788832199999888,
       "forces_eV_per_A": [
         [
           -0.1934627890586853,
@@ -1672,7 +1672,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.0717,
-      "elapsed_seconds_descriptive_only": 0.1320852179924259,
+      "elapsed_seconds_descriptive_only": 0.16634000500016555,
       "forces_eV_per_A": [
         [
           -0.18998780846595764,
@@ -1758,7 +1758,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.615,
-      "elapsed_seconds_descriptive_only": 0.12836495800002012,
+      "elapsed_seconds_descriptive_only": 0.15022220100036066,
       "forces_eV_per_A": [
         [
           -0.2013862431049347,
@@ -1848,7 +1848,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.173,
-      "elapsed_seconds_descriptive_only": 0.14828284899704158,
+      "elapsed_seconds_descriptive_only": 0.13834410200070124,
       "forces_eV_per_A": [
         [
           -0.24336552619934082,
@@ -1934,7 +1934,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.5338,
-      "elapsed_seconds_descriptive_only": 0.1291228790068999,
+      "elapsed_seconds_descriptive_only": 0.13265415100067912,
       "forces_eV_per_A": [
         [
           -0.22018763422966003,
@@ -2020,7 +2020,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.6973,
-      "elapsed_seconds_descriptive_only": 0.14327746100025252,
+      "elapsed_seconds_descriptive_only": 0.1509385690005729,
       "forces_eV_per_A": [
         [
           -0.240598663687706,
@@ -2106,7 +2106,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.9626,
-      "elapsed_seconds_descriptive_only": 0.14122009799757507,
+      "elapsed_seconds_descriptive_only": 0.1630013060002966,
       "forces_eV_per_A": [
         [
           -0.24698078632354736,
@@ -2192,7 +2192,7 @@
       ],
       "device": "cpu",
       "dielectric": 23.73,
-      "elapsed_seconds_descriptive_only": 0.14782576900324784,
+      "elapsed_seconds_descriptive_only": 0.13648242199997185,
       "forces_eV_per_A": [
         [
           -0.2690682113170624,
@@ -2278,7 +2278,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.5991,
-      "elapsed_seconds_descriptive_only": 0.1473160080058733,
+      "elapsed_seconds_descriptive_only": 0.11395781699866347,
       "forces_eV_per_A": [
         [
           -0.19008199870586395,
@@ -2364,7 +2364,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.8629,
-      "elapsed_seconds_descriptive_only": 0.128550492998329,
+      "elapsed_seconds_descriptive_only": 0.11188978100108216,
       "forces_eV_per_A": [
         [
           -0.19145838916301727,
@@ -2450,7 +2450,7 @@
       ],
       "device": "cpu",
       "dielectric": 15.13,
-      "elapsed_seconds_descriptive_only": 0.1330650520103518,
+      "elapsed_seconds_descriptive_only": 0.09653515799982415,
       "forces_eV_per_A": [
         [
           -0.19470630586147308,
@@ -2536,7 +2536,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9905,
-      "elapsed_seconds_descriptive_only": 0.13165602801018395,
+      "elapsed_seconds_descriptive_only": 0.09541728700060048,
       "forces_eV_per_A": [
         [
           -0.18749898672103882,
@@ -2622,7 +2622,7 @@
       ],
       "device": "cpu",
       "dielectric": 20.524,
-      "elapsed_seconds_descriptive_only": 0.14921833500557113,
+      "elapsed_seconds_descriptive_only": 0.1282142060008482,
       "forces_eV_per_A": [
         [
           -0.19645997881889343,
@@ -2708,7 +2708,7 @@
       ],
       "device": "cpu",
       "dielectric": 26.726,
-      "elapsed_seconds_descriptive_only": 0.14809299699845724,
+      "elapsed_seconds_descriptive_only": 0.14827763799985405,
       "forces_eV_per_A": [
         [
           -0.19354842603206635,
@@ -2794,7 +2794,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9358,
-      "elapsed_seconds_descriptive_only": 0.13942300499184057,
+      "elapsed_seconds_descriptive_only": 0.13474145299915108,
       "forces_eV_per_A": [
         [
           -0.1848117709159851,
@@ -2880,7 +2880,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.8939,
-      "elapsed_seconds_descriptive_only": 0.13273024899535812,
+      "elapsed_seconds_descriptive_only": 0.1267155379991891,
       "forces_eV_per_A": [
         [
           -0.1832953840494156,
@@ -2966,7 +2966,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.4176,
-      "elapsed_seconds_descriptive_only": 0.1235269119933946,
+      "elapsed_seconds_descriptive_only": 0.1029704690008657,
       "forces_eV_per_A": [
         [
           -0.2567151188850403,
@@ -3052,7 +3052,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.1735,
-      "elapsed_seconds_descriptive_only": 0.13021385099273175,
+      "elapsed_seconds_descriptive_only": 0.1137034120001772,
       "forces_eV_per_A": [
         [
           -0.25004225969314575,
@@ -3138,7 +3138,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.361,
-      "elapsed_seconds_descriptive_only": 0.12569790199631825,
+      "elapsed_seconds_descriptive_only": 0.1214401369998086,
       "forces_eV_per_A": [
         [
           -0.25532475113868713,
@@ -3224,7 +3224,7 @@
       ],
       "device": "cpu",
       "dielectric": 15.944,
-      "elapsed_seconds_descriptive_only": 0.13066851200710516,
+      "elapsed_seconds_descriptive_only": 0.12044065699956263,
       "forces_eV_per_A": [
         [
           -0.2046162635087967,
@@ -3314,7 +3314,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.393,
-      "elapsed_seconds_descriptive_only": 0.12672230300086085,
+      "elapsed_seconds_descriptive_only": 0.12038567800118471,
       "forces_eV_per_A": [
         [
           -0.2527984380722046,
@@ -3400,7 +3400,7 @@
       ],
       "device": "cpu",
       "dielectric": 11.658,
-      "elapsed_seconds_descriptive_only": 0.13015594400349073,
+      "elapsed_seconds_descriptive_only": 0.12867562100109353,
       "forces_eV_per_A": [
         [
           -0.2608496844768524,
@@ -3486,7 +3486,7 @@
       ],
       "device": "cpu",
       "dielectric": 14.136,
-      "elapsed_seconds_descriptive_only": 0.1433831089962041,
+      "elapsed_seconds_descriptive_only": 0.10518468400005077,
       "forces_eV_per_A": [
         [
           -0.2642105221748352,
@@ -3572,7 +3572,7 @@
       ],
       "device": "cpu",
       "dielectric": 17.2,
-      "elapsed_seconds_descriptive_only": 0.16302823298610747,
+      "elapsed_seconds_descriptive_only": 0.11061478899864596,
       "forces_eV_per_A": [
         [
           -0.2062307894229889,
@@ -3658,7 +3658,7 @@
       ],
       "device": "cpu",
       "dielectric": 16.777,
-      "elapsed_seconds_descriptive_only": 0.14886143800686114,
+      "elapsed_seconds_descriptive_only": 0.11270153499935986,
       "forces_eV_per_A": [
         [
           -0.1956557035446167,
@@ -3744,7 +3744,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.47,
-      "elapsed_seconds_descriptive_only": 0.15495551699132193,
+      "elapsed_seconds_descriptive_only": 0.11214796400054183,
       "forces_eV_per_A": [
         [
           -0.2056766301393509,
@@ -3834,7 +3834,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.89,
-      "elapsed_seconds_descriptive_only": 0.13904410100076348,
+      "elapsed_seconds_descriptive_only": 0.13207959700048377,
       "forces_eV_per_A": [
         [
           -0.1832384169101715,
@@ -3920,7 +3920,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.9533,
-      "elapsed_seconds_descriptive_only": 0.13595904200337827,
+      "elapsed_seconds_descriptive_only": 0.1268079180008499,
       "forces_eV_per_A": [
         [
           -0.25777941942214966,
@@ -4006,7 +4006,7 @@
       ],
       "device": "cpu",
       "dielectric": 25.654,
-      "elapsed_seconds_descriptive_only": 0.13414318999275565,
+      "elapsed_seconds_descriptive_only": 0.11945890900096856,
       "forces_eV_per_A": [
         [
           -0.2699772119522095,
@@ -4092,7 +4092,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.4678,
-      "elapsed_seconds_descriptive_only": 0.14911816800304223,
+      "elapsed_seconds_descriptive_only": 0.12148597500163305,
       "forces_eV_per_A": [
         [
           -0.2566518783569336,
@@ -4178,7 +4178,7 @@
       ],
       "device": "cpu",
       "dielectric": 15.2,
-      "elapsed_seconds_descriptive_only": 0.13486662099603564,
+      "elapsed_seconds_descriptive_only": 0.13971464700080105,
       "forces_eV_per_A": [
         [
           -0.2656020522117615,
@@ -4264,7 +4264,7 @@
       ],
       "device": "cpu",
       "dielectric": 19.264,
-      "elapsed_seconds_descriptive_only": 0.15890497399959713,
+      "elapsed_seconds_descriptive_only": 0.1623431599982723,
       "forces_eV_per_A": [
         [
           -0.20578011870384216,
@@ -4354,7 +4354,7 @@
       ],
       "device": "cpu",
       "dielectric": 19.011,
-      "elapsed_seconds_descriptive_only": 0.16177019198948983,
+      "elapsed_seconds_descriptive_only": 0.12581369700092182,
       "forces_eV_per_A": [
         [
           -0.19355842471122742,
@@ -4440,7 +4440,7 @@
       ],
       "device": "cpu",
       "dielectric": 11.645,
-      "elapsed_seconds_descriptive_only": 0.11383187399769668,
+      "elapsed_seconds_descriptive_only": 0.12514567699872714,
       "forces_eV_per_A": [
         [
           -0.2605375051498413,
@@ -4526,7 +4526,7 @@
       ],
       "device": "cpu",
       "dielectric": 16.78,
-      "elapsed_seconds_descriptive_only": 0.12771043200336862,
+      "elapsed_seconds_descriptive_only": 0.1262576799999806,
       "forces_eV_per_A": [
         [
           -0.2667641043663025,
@@ -4612,7 +4612,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.257,
-      "elapsed_seconds_descriptive_only": 0.15348369999264833,
+      "elapsed_seconds_descriptive_only": 0.1208947340001032,
       "forces_eV_per_A": [
         [
           -0.26191815733909607,
@@ -4698,7 +4698,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.887,
-      "elapsed_seconds_descriptive_only": 0.1363042130105896,
+      "elapsed_seconds_descriptive_only": 0.12122106300012092,
       "forces_eV_per_A": [
         [
           -0.2629827558994293,
@@ -4784,7 +4784,7 @@
       ],
       "device": "cpu",
       "dielectric": 11.957,
-      "elapsed_seconds_descriptive_only": 0.11022416000196245,
+      "elapsed_seconds_descriptive_only": 0.13251884400051495,
       "forces_eV_per_A": [
         [
           -0.26096630096435547,
@@ -4870,7 +4870,7 @@
       ],
       "device": "cpu",
       "dielectric": 10.6,
-      "elapsed_seconds_descriptive_only": 0.12539311399450526,
+      "elapsed_seconds_descriptive_only": 0.1220336780006619,
       "forces_eV_per_A": [
         [
           -0.25900471210479736,
@@ -4956,7 +4956,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.7175,
-      "elapsed_seconds_descriptive_only": 0.1193321949976962,
+      "elapsed_seconds_descriptive_only": 0.13048091200107592,
       "forces_eV_per_A": [
         [
           -0.246300607919693,
@@ -5042,7 +5042,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.2528,
-      "elapsed_seconds_descriptive_only": 0.11753896200389136,
+      "elapsed_seconds_descriptive_only": 0.102731633998701,
       "forces_eV_per_A": [
         [
           -0.18204565346240997,
@@ -5128,7 +5128,7 @@
       ],
       "device": "cpu",
       "dielectric": 20.493,
-      "elapsed_seconds_descriptive_only": 0.39418658999784384,
+      "elapsed_seconds_descriptive_only": 0.34035828599917295,
       "forces_eV_per_A": [
         [
           -0.29359138011932373,
@@ -5230,7 +5230,7 @@
       ],
       "device": "cpu",
       "dielectric": 35.688,
-      "elapsed_seconds_descriptive_only": 0.35475335200317204,
+      "elapsed_seconds_descriptive_only": 0.36446110399992904,
       "forces_eV_per_A": [
         [
           -0.3128354251384735,
@@ -5336,7 +5336,7 @@
       ],
       "device": "cpu",
       "dielectric": 17.44,
-      "elapsed_seconds_descriptive_only": 0.11480887600919232,
+      "elapsed_seconds_descriptive_only": 0.11525054200137674,
       "forces_eV_per_A": [
         [
           -0.2658666968345642,
@@ -5422,7 +5422,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.8882,
-      "elapsed_seconds_descriptive_only": 0.10655432401108555,
+      "elapsed_seconds_descriptive_only": 0.10071985900140135,
       "forces_eV_per_A": [
         [
           -0.20017777383327484,
@@ -5512,7 +5512,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.2247,
-      "elapsed_seconds_descriptive_only": 0.09485233800660353,
+      "elapsed_seconds_descriptive_only": 0.10756922499967914,
       "forces_eV_per_A": [
         [
           -0.22942572832107544,
@@ -5598,7 +5598,7 @@
       ],
       "device": "cpu",
       "dielectric": 18.22,
-      "elapsed_seconds_descriptive_only": 0.10394866300339345,
+      "elapsed_seconds_descriptive_only": 0.10253861300043354,
       "forces_eV_per_A": [
         [
           -0.2665442228317261,
@@ -5684,7 +5684,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.2706,
-      "elapsed_seconds_descriptive_only": 0.3777718030032702,
+      "elapsed_seconds_descriptive_only": 0.3377670259997103,
       "forces_eV_per_A": [
         [
           -0.19644883275032043,
@@ -5786,7 +5786,7 @@
       ],
       "device": "cpu",
       "dielectric": 25.592,
-      "elapsed_seconds_descriptive_only": 0.1339314490032848,
+      "elapsed_seconds_descriptive_only": 0.11322549599935883,
       "forces_eV_per_A": [
         [
           -0.26950374245643616,
@@ -5872,7 +5872,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.457,
-      "elapsed_seconds_descriptive_only": 0.10602891100279521,
+      "elapsed_seconds_descriptive_only": 0.09496274100092705,
       "forces_eV_per_A": [
         [
           -0.20191437005996704,
@@ -5962,7 +5962,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.3954,
-      "elapsed_seconds_descriptive_only": 0.10178814400569536,
+      "elapsed_seconds_descriptive_only": 0.11825502600004256,
       "forces_eV_per_A": [
         [
           -0.23854847252368927,
@@ -6048,7 +6048,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.01,
-      "elapsed_seconds_descriptive_only": 0.10488723999878857,
+      "elapsed_seconds_descriptive_only": 0.1092121350011439,
       "forces_eV_per_A": [
         [
           -0.2543984055519104,
@@ -6134,7 +6134,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.2488,
-      "elapsed_seconds_descriptive_only": 0.10006020600849297,
+      "elapsed_seconds_descriptive_only": 0.09850824099885358,
       "forces_eV_per_A": [
         [
           -0.24985456466674805,
@@ -6220,7 +6220,7 @@
       ],
       "device": "cpu",
       "dielectric": 13.45,
-      "elapsed_seconds_descriptive_only": 0.09615928499260917,
+      "elapsed_seconds_descriptive_only": 0.09746490199904656,
       "forces_eV_per_A": [
         [
           -0.26328790187835693,
@@ -6306,7 +6306,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.9931,
-      "elapsed_seconds_descriptive_only": 0.10005288300453685,
+      "elapsed_seconds_descriptive_only": 0.10505409400138888,
       "forces_eV_per_A": [
         [
           -0.16750392317771912,
@@ -6392,7 +6392,7 @@
       ],
       "device": "cpu",
       "dielectric": 18.246,
-      "elapsed_seconds_descriptive_only": 0.11222799800452776,
+      "elapsed_seconds_descriptive_only": 0.12126938499932294,
       "forces_eV_per_A": [
         [
           -0.26792067289352417,
@@ -6478,7 +6478,7 @@
       ],
       "device": "cpu",
       "dielectric": 24.291,
-      "elapsed_seconds_descriptive_only": 0.1054202810046263,
+      "elapsed_seconds_descriptive_only": 0.1429141240005265,
       "forces_eV_per_A": [
         [
           -0.2699333131313324,
@@ -6564,7 +6564,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.6178,
-      "elapsed_seconds_descriptive_only": 0.10478782700374722,
+      "elapsed_seconds_descriptive_only": 0.10153012600130751,
       "forces_eV_per_A": [
         [
           -0.2557445764541626,
@@ -6650,7 +6650,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.9941,
-      "elapsed_seconds_descriptive_only": 0.09844008699292317,
+      "elapsed_seconds_descriptive_only": 0.12865065500045603,
       "forces_eV_per_A": [
         [
           -0.23751339316368103,
@@ -6736,7 +6736,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.0473,
-      "elapsed_seconds_descriptive_only": 0.10990300499543082,
+      "elapsed_seconds_descriptive_only": 0.17135093700017023,
       "forces_eV_per_A": [
         [
           -0.2146616131067276,
@@ -6822,7 +6822,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.6105,
-      "elapsed_seconds_descriptive_only": 0.11065300799964461,
+      "elapsed_seconds_descriptive_only": 0.12670408300073177,
       "forces_eV_per_A": [
         [
           -0.2035485953092575,
@@ -6908,7 +6908,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.228,
-      "elapsed_seconds_descriptive_only": 0.09319141799642239,
+      "elapsed_seconds_descriptive_only": 0.10707898299915541,
       "forces_eV_per_A": [
         [
           -0.19479259848594666,
@@ -6994,7 +6994,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.6968,
-      "elapsed_seconds_descriptive_only": 0.09790564999275375,
+      "elapsed_seconds_descriptive_only": 0.10186141600024712,
       "forces_eV_per_A": [
         [
           -0.24063155055046082,
@@ -7080,7 +7080,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.7113,
-      "elapsed_seconds_descriptive_only": 0.35349071701057255,
+      "elapsed_seconds_descriptive_only": 0.36440655200021865,
       "forces_eV_per_A": [
         [
           -0.2528892159461975,
@@ -7182,7 +7182,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.06,
-      "elapsed_seconds_descriptive_only": 0.12418330200307537,
+      "elapsed_seconds_descriptive_only": 0.12920442500035278,
       "forces_eV_per_A": [
         [
           -0.18832476437091827,
@@ -7268,7 +7268,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.2139,
-      "elapsed_seconds_descriptive_only": 0.11711958899104502,
+      "elapsed_seconds_descriptive_only": 0.11370421200081182,
       "forces_eV_per_A": [
         [
           -0.19242574274539948,
@@ -7354,7 +7354,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.0165,
-      "elapsed_seconds_descriptive_only": 0.10865000099875033,
+      "elapsed_seconds_descriptive_only": 0.11640266500035068,
       "forces_eV_per_A": [
         [
           -0.18688535690307617,
@@ -7440,7 +7440,7 @@
       ],
       "device": "cpu",
       "dielectric": 15.619,
-      "elapsed_seconds_descriptive_only": 0.09884141301154159,
+      "elapsed_seconds_descriptive_only": 0.10555562199988344,
       "forces_eV_per_A": [
         [
           -0.26467686891555786,
@@ -7526,7 +7526,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9608,
-      "elapsed_seconds_descriptive_only": 0.10189931999775581,
+      "elapsed_seconds_descriptive_only": 0.10202997699889238,
       "forces_eV_per_A": [
         [
           -0.18524974584579468,
@@ -7612,7 +7612,7 @@
       ],
       "device": "cpu",
       "dielectric": 16.989,
-      "elapsed_seconds_descriptive_only": 0.10792802101059351,
+      "elapsed_seconds_descriptive_only": 0.11213325500102655,
       "forces_eV_per_A": [
         [
           -0.20504985749721527,
@@ -7702,7 +7702,7 @@
       ],
       "device": "cpu",
       "dielectric": 13.58,
-      "elapsed_seconds_descriptive_only": 0.10252769500948489,
+      "elapsed_seconds_descriptive_only": 0.11678120800024772,
       "forces_eV_per_A": [
         [
           -0.2626165747642517,
@@ -7788,7 +7788,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.196,
-      "elapsed_seconds_descriptive_only": 0.0999062100017909,
+      "elapsed_seconds_descriptive_only": 0.10012252699925739,
       "forces_eV_per_A": [
         [
           -0.19203290343284607,
@@ -7874,7 +7874,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.2273,
-      "elapsed_seconds_descriptive_only": 0.11227330300607719,
+      "elapsed_seconds_descriptive_only": 0.09404127900052117,
       "forces_eV_per_A": [
         [
           -0.26316505670547485,
@@ -7960,7 +7960,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.93,
-      "elapsed_seconds_descriptive_only": 0.10634300600213464,
+      "elapsed_seconds_descriptive_only": 0.09816776000116079,
       "forces_eV_per_A": [
         [
           -0.26903265714645386,
@@ -8046,7 +8046,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.5766,
-      "elapsed_seconds_descriptive_only": 0.11063280499365646,
+      "elapsed_seconds_descriptive_only": 0.10103751699898567,
       "forces_eV_per_A": [
         [
           -0.17854490876197815,
@@ -8132,7 +8132,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.24,
-      "elapsed_seconds_descriptive_only": 0.10719654700369574,
+      "elapsed_seconds_descriptive_only": 0.10781415100063896,
       "forces_eV_per_A": [
         [
           -0.23179538547992706,
@@ -8218,7 +8218,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.723,
-      "elapsed_seconds_descriptive_only": 0.11335901499842294,
+      "elapsed_seconds_descriptive_only": 0.10252254900115076,
       "forces_eV_per_A": [
         [
           -0.24201606214046478,
@@ -8304,7 +8304,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.32,
-      "elapsed_seconds_descriptive_only": 0.11230316699948162,
+      "elapsed_seconds_descriptive_only": 0.10757853500035708,
       "forces_eV_per_A": [
         [
           -0.23887932300567627,
@@ -8390,7 +8390,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.38,
-      "elapsed_seconds_descriptive_only": 0.10409706000064034,
+      "elapsed_seconds_descriptive_only": 0.10231287799979327,
       "forces_eV_per_A": [
         [
           -0.2210443764925003,
@@ -8476,7 +8476,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.6,
-      "elapsed_seconds_descriptive_only": 0.10265989199979231,
+      "elapsed_seconds_descriptive_only": 0.100156906999473,
       "forces_eV_per_A": [
         [
           -0.25508880615234375,
@@ -8562,7 +8562,7 @@
       ],
       "device": "cpu",
       "dielectric": 37.219,
-      "elapsed_seconds_descriptive_only": 0.10477576199627947,
+      "elapsed_seconds_descriptive_only": 0.10290666299988516,
       "forces_eV_per_A": [
         [
           -0.2738509178161621,
@@ -8648,7 +8648,7 @@
       ],
       "device": "cpu",
       "dielectric": 46.826,
-      "elapsed_seconds_descriptive_only": 0.3573796769924229,
+      "elapsed_seconds_descriptive_only": 0.3411629410002206,
       "forces_eV_per_A": [
         [
           -0.2745896577835083,
@@ -8750,7 +8750,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.73,
-      "elapsed_seconds_descriptive_only": 0.1072935140109621,
+      "elapsed_seconds_descriptive_only": 0.12324758900103916,
       "forces_eV_per_A": [
         [
           -0.22504368424415588,
@@ -8836,7 +8836,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.9112,
-      "elapsed_seconds_descriptive_only": 0.11554603799595498,
+      "elapsed_seconds_descriptive_only": 0.10631200200077728,
       "forces_eV_per_A": [
         [
           -0.1618305742740631,
@@ -8922,7 +8922,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.14,
-      "elapsed_seconds_descriptive_only": 0.10548989599919878,
+      "elapsed_seconds_descriptive_only": 0.09260393600015959,
       "forces_eV_per_A": [
         [
           -0.16292862594127655,
@@ -9008,7 +9008,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.051,
-      "elapsed_seconds_descriptive_only": 0.10722966100729536,
+      "elapsed_seconds_descriptive_only": 0.08975493100115273,
       "forces_eV_per_A": [
         [
           -0.18949317932128906,
@@ -9094,7 +9094,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.667,
-      "elapsed_seconds_descriptive_only": 0.11232323899457697,
+      "elapsed_seconds_descriptive_only": 0.12278342499848804,
       "forces_eV_per_A": [
         [
           -0.24677567183971405,
@@ -9180,7 +9180,7 @@
       ],
       "device": "cpu",
       "dielectric": 24.852,
-      "elapsed_seconds_descriptive_only": 0.11707416600256693,
+      "elapsed_seconds_descriptive_only": 0.11904404000051727,
       "forces_eV_per_A": [
         [
           -0.1973523497581482,
@@ -9266,7 +9266,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.4339,
-      "elapsed_seconds_descriptive_only": 0.10527000400179531,
+      "elapsed_seconds_descriptive_only": 0.11447337500067079,
       "forces_eV_per_A": [
         [
           -0.20038004219532013,
@@ -9352,7 +9352,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.9867,
-      "elapsed_seconds_descriptive_only": 0.11290765799640212,
+      "elapsed_seconds_descriptive_only": 0.11585270000068704,
       "forces_eV_per_A": [
         [
           -0.24413138628005981,
@@ -9438,7 +9438,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.331,
-      "elapsed_seconds_descriptive_only": 0.13267114700283855,
+      "elapsed_seconds_descriptive_only": 0.11274683500050742,
       "forces_eV_per_A": [
         [
           -0.2533631920814514,
@@ -9524,7 +9524,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.1797,
-      "elapsed_seconds_descriptive_only": 0.11036014500132296,
+      "elapsed_seconds_descriptive_only": 0.10748980999960622,
       "forces_eV_per_A": [
         [
           -0.22931791841983795,
@@ -9610,7 +9610,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.42,
-      "elapsed_seconds_descriptive_only": 0.12125702999765053,
+      "elapsed_seconds_descriptive_only": 0.1000661569996737,
       "forces_eV_per_A": [
         [
           -0.23983201384544373,
@@ -9696,7 +9696,7 @@
       ],
       "device": "cpu",
       "dielectric": 108.94,
-      "elapsed_seconds_descriptive_only": 0.11945251800352708,
+      "elapsed_seconds_descriptive_only": 0.10371609600042575,
       "forces_eV_per_A": [
         [
           -0.19270089268684387,
@@ -9782,7 +9782,7 @@
       ],
       "device": "cpu",
       "dielectric": 51.1,
-      "elapsed_seconds_descriptive_only": 0.13901173599879257,
+      "elapsed_seconds_descriptive_only": 0.09363693299928855,
       "forces_eV_per_A": [
         [
           -0.19097548723220825,
@@ -9868,7 +9868,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.8819,
-      "elapsed_seconds_descriptive_only": 0.37739099000464194,
+      "elapsed_seconds_descriptive_only": 0.3508253740001237,
       "forces_eV_per_A": [
         [
           -0.18278329074382782,
@@ -9970,7 +9970,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.6,
-      "elapsed_seconds_descriptive_only": 0.10723886800406035,
+      "elapsed_seconds_descriptive_only": 0.12183676899985585,
       "forces_eV_per_A": [
         [
           -0.16319742798805237,
@@ -10056,7 +10056,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.547,
-      "elapsed_seconds_descriptive_only": 0.10675945100956596,
+      "elapsed_seconds_descriptive_only": 0.12084243900062575,
       "forces_eV_per_A": [
         [
           -0.2316688597202301,
@@ -10142,7 +10142,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.6177,
-      "elapsed_seconds_descriptive_only": 0.10458025700063445,
+      "elapsed_seconds_descriptive_only": 0.11411567399954947,
       "forces_eV_per_A": [
         [
           -0.2495640069246292,
@@ -10228,7 +10228,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.865,
-      "elapsed_seconds_descriptive_only": 0.10766063499613665,
+      "elapsed_seconds_descriptive_only": 0.10799395200047002,
       "forces_eV_per_A": [
         [
           -0.24631598591804504,
@@ -10314,7 +10314,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3712,
-      "elapsed_seconds_descriptive_only": 0.10561381300794892,
+      "elapsed_seconds_descriptive_only": 0.10517828400043072,
       "forces_eV_per_A": [
         [
           -0.1987588256597519,
@@ -10400,7 +10400,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.44,
-      "elapsed_seconds_descriptive_only": 0.11329994299740065,
+      "elapsed_seconds_descriptive_only": 0.10584889899837435,
       "forces_eV_per_A": [
         [
           -0.189489483833313,
@@ -10486,7 +10486,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3478,
-      "elapsed_seconds_descriptive_only": 0.10325183600070886,
+      "elapsed_seconds_descriptive_only": 0.10128391400030523,
       "forces_eV_per_A": [
         [
           -0.19815555214881897,
@@ -10572,7 +10572,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.265,
-      "elapsed_seconds_descriptive_only": 0.1091529969999101,
+      "elapsed_seconds_descriptive_only": 0.11160802000085823,
       "forces_eV_per_A": [
         [
           -0.1959255188703537,
@@ -10658,7 +10658,7 @@
       ],
       "device": "cpu",
       "dielectric": 32.613,
-      "elapsed_seconds_descriptive_only": 0.3450297329982277,
+      "elapsed_seconds_descriptive_only": 0.3554405909999332,
       "forces_eV_per_A": [
         [
           -0.19845746457576752,
@@ -10760,7 +10760,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.7367,
-      "elapsed_seconds_descriptive_only": 0.11111030999745708,
+      "elapsed_seconds_descriptive_only": 0.10222202200020547,
       "forces_eV_per_A": [
         [
           -0.24658414721488953,
@@ -10846,7 +10846,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.5607,
-      "elapsed_seconds_descriptive_only": 0.10292145400308073,
+      "elapsed_seconds_descriptive_only": 0.10204936199988879,
       "forces_eV_per_A": [
         [
           -0.241470068693161,
@@ -10932,7 +10932,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.024,
-      "elapsed_seconds_descriptive_only": 0.1015285730100004,
+      "elapsed_seconds_descriptive_only": 0.09959776899995632,
       "forces_eV_per_A": [
         [
           -0.18733948469161987,
@@ -11018,7 +11018,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.8615,
-      "elapsed_seconds_descriptive_only": 0.10344621200056281,
+      "elapsed_seconds_descriptive_only": 0.1004769290011609,
       "forces_eV_per_A": [
         [
           -0.24817171692848206,
@@ -11104,7 +11104,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.8377,
-      "elapsed_seconds_descriptive_only": 0.10958092400687747,
+      "elapsed_seconds_descriptive_only": 0.10487732500041602,
       "forces_eV_per_A": [
         [
           -0.2545970678329468,
@@ -11190,7 +11190,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.0777,
-      "elapsed_seconds_descriptive_only": 0.10182239901041612,
+      "elapsed_seconds_descriptive_only": 0.10603987600006803,
       "forces_eV_per_A": [
         [
           -0.2444831132888794,
@@ -11276,7 +11276,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.36,
-      "elapsed_seconds_descriptive_only": 0.09911479300353676,
+      "elapsed_seconds_descriptive_only": 0.10021946699998807,
       "forces_eV_per_A": [
         [
           -0.19815492630004883,
@@ -11362,7 +11362,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9846,
-      "elapsed_seconds_descriptive_only": 0.10998347199347336,
+      "elapsed_seconds_descriptive_only": 0.10344037499999104,
       "forces_eV_per_A": [
         [
           -0.18590594828128815,
@@ -11448,7 +11448,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.006,
-      "elapsed_seconds_descriptive_only": 0.10028416699788067,
+      "elapsed_seconds_descriptive_only": 0.10314931600078125,
       "forces_eV_per_A": [
         [
           -0.18646717071533203,
@@ -11534,7 +11534,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9113,
-      "elapsed_seconds_descriptive_only": 0.1033413769910112,
+      "elapsed_seconds_descriptive_only": 0.1053333969994128,
       "forces_eV_per_A": [
         [
           -0.18368741869926453,
@@ -11620,7 +11620,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.0402,
-      "elapsed_seconds_descriptive_only": 0.10454155200568493,
+      "elapsed_seconds_descriptive_only": 0.13414274400020076,
       "forces_eV_per_A": [
         [
           -0.18737715482711792,
@@ -11706,7 +11706,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.96,
-      "elapsed_seconds_descriptive_only": 0.11186296900268644,
+      "elapsed_seconds_descriptive_only": 0.10769194899876311,
       "forces_eV_per_A": [
         [
           -0.24292173981666565,
@@ -11792,7 +11792,7 @@
       ],
       "device": "cpu",
       "dielectric": 181.56,
-      "elapsed_seconds_descriptive_only": 0.10032023499661591,
+      "elapsed_seconds_descriptive_only": 0.10712497999884363,
       "forces_eV_per_A": [
         [
           -0.19717788696289062,
@@ -11882,7 +11882,7 @@
       ],
       "device": "cpu",
       "dielectric": 37.781,
-      "elapsed_seconds_descriptive_only": 0.09954345801088493,
+      "elapsed_seconds_descriptive_only": 0.10681222499988507,
       "forces_eV_per_A": [
         [
           -0.2743244171142578,
@@ -11968,7 +11968,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9605,
-      "elapsed_seconds_descriptive_only": 0.1087769930018112,
+      "elapsed_seconds_descriptive_only": 0.09505394799998612,
       "forces_eV_per_A": [
         [
           -0.18516458570957184,
@@ -12054,7 +12054,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.9406,
-      "elapsed_seconds_descriptive_only": 0.1254654080112232,
+      "elapsed_seconds_descriptive_only": 0.09394040000006498,
       "forces_eV_per_A": [
         [
           -0.18459394574165344,
@@ -12140,7 +12140,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.0333,
-      "elapsed_seconds_descriptive_only": 0.12875782800256275,
+      "elapsed_seconds_descriptive_only": 0.09619727299832448,
       "forces_eV_per_A": [
         [
           -0.18719185888767242,
@@ -12226,7 +12226,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.8371,
-      "elapsed_seconds_descriptive_only": 0.11459272899082862,
+      "elapsed_seconds_descriptive_only": 0.10603270100000373,
       "forces_eV_per_A": [
         [
           -0.1813165694475174,
@@ -12312,7 +12312,7 @@
       ],
       "device": "cpu",
       "dielectric": 1.991,
-      "elapsed_seconds_descriptive_only": 0.1041557809949154,
+      "elapsed_seconds_descriptive_only": 0.14136565099943255,
       "forces_eV_per_A": [
         [
           -0.1860683262348175,
@@ -12398,7 +12398,7 @@
       ],
       "device": "cpu",
       "dielectric": 34.809,
-      "elapsed_seconds_descriptive_only": 0.11044509100611322,
+      "elapsed_seconds_descriptive_only": 0.14956356699985918,
       "forces_eV_per_A": [
         [
           -0.2713983952999115,
@@ -12484,7 +12484,7 @@
       ],
       "device": "cpu",
       "dielectric": 28.29,
-      "elapsed_seconds_descriptive_only": 0.09998995398927946,
+      "elapsed_seconds_descriptive_only": 0.11460042799990333,
       "forces_eV_per_A": [
         [
           -0.28145137429237366,
@@ -12570,7 +12570,7 @@
       ],
       "device": "cpu",
       "dielectric": 36.562,
-      "elapsed_seconds_descriptive_only": 0.10793185699731112,
+      "elapsed_seconds_descriptive_only": 0.13481673900059832,
       "forces_eV_per_A": [
         [
           -0.3135828375816345,
@@ -12656,7 +12656,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.6331,
-      "elapsed_seconds_descriptive_only": 0.10873818400432356,
+      "elapsed_seconds_descriptive_only": 0.12197393899987219,
       "forces_eV_per_A": [
         [
           -0.23270413279533386,
@@ -12742,7 +12742,7 @@
       ],
       "device": "cpu",
       "dielectric": 6.76,
-      "elapsed_seconds_descriptive_only": 0.10846969499834813,
+      "elapsed_seconds_descriptive_only": 0.1169937350005057,
       "forces_eV_per_A": [
         [
           -0.18379923701286316,
@@ -12828,7 +12828,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.9949,
-      "elapsed_seconds_descriptive_only": 0.11253650700382423,
+      "elapsed_seconds_descriptive_only": 0.1104591570001503,
       "forces_eV_per_A": [
         [
           -0.2552969753742218,
@@ -12914,7 +12914,7 @@
       ],
       "device": "cpu",
       "dielectric": 25.669,
-      "elapsed_seconds_descriptive_only": 0.10267014500277583,
+      "elapsed_seconds_descriptive_only": 0.10243766699932166,
       "forces_eV_per_A": [
         [
           -0.2687247395515442,
@@ -13000,7 +13000,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.5454,
-      "elapsed_seconds_descriptive_only": 0.10384914399764966,
+      "elapsed_seconds_descriptive_only": 0.1191968140010431,
       "forces_eV_per_A": [
         [
           -0.20310078561306,
@@ -13086,7 +13086,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.2322,
-      "elapsed_seconds_descriptive_only": 0.10765147600614,
+      "elapsed_seconds_descriptive_only": 0.11538284299967927,
       "forces_eV_per_A": [
         [
           -0.194968581199646,
@@ -13172,7 +13172,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.2705,
-      "elapsed_seconds_descriptive_only": 0.11683201701089274,
+      "elapsed_seconds_descriptive_only": 0.1264462060007645,
       "forces_eV_per_A": [
         [
           -0.19602422416210175,
@@ -13258,7 +13258,7 @@
       ],
       "device": "cpu",
       "dielectric": 10.0,
-      "elapsed_seconds_descriptive_only": 0.13480762900144327,
+      "elapsed_seconds_descriptive_only": 0.10018753899930744,
       "forces_eV_per_A": [
         [
           -0.2573971152305603,
@@ -13344,7 +13344,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.6924,
-      "elapsed_seconds_descriptive_only": 0.11947796199820004,
+      "elapsed_seconds_descriptive_only": 0.10165715099901718,
       "forces_eV_per_A": [
         [
           -0.16437815129756927,
@@ -13430,7 +13430,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.7297,
-      "elapsed_seconds_descriptive_only": 0.1109938670124393,
+      "elapsed_seconds_descriptive_only": 0.11816267900030653,
       "forces_eV_per_A": [
         [
           -0.2353639304637909,
@@ -13516,7 +13516,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.201,
-      "elapsed_seconds_descriptive_only": 0.1152184560050955,
+      "elapsed_seconds_descriptive_only": 0.10471257799872546,
       "forces_eV_per_A": [
         [
           -0.2550915479660034,
@@ -13602,7 +13602,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.029,
-      "elapsed_seconds_descriptive_only": 0.11969418400258292,
+      "elapsed_seconds_descriptive_only": 0.10124898400135862,
       "forces_eV_per_A": [
         [
           -0.18839338421821594,
@@ -13688,7 +13688,7 @@
       ],
       "device": "cpu",
       "dielectric": 18.5,
-      "elapsed_seconds_descriptive_only": 0.11879141299868934,
+      "elapsed_seconds_descriptive_only": 0.1013299520000146,
       "forces_eV_per_A": [
         [
           -0.2680055797100067,
@@ -13774,7 +13774,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.44,
-      "elapsed_seconds_descriptive_only": 0.10472805600147694,
+      "elapsed_seconds_descriptive_only": 0.09942822300035914,
       "forces_eV_per_A": [
         [
           -0.1710730791091919,
@@ -13860,7 +13860,7 @@
       ],
       "device": "cpu",
       "dielectric": 29.324,
-      "elapsed_seconds_descriptive_only": 0.10820433199114632,
+      "elapsed_seconds_descriptive_only": 0.09797560400147631,
       "forces_eV_per_A": [
         [
           -0.2826257646083832,
@@ -13946,7 +13946,7 @@
       ],
       "device": "cpu",
       "dielectric": 5.5205,
-      "elapsed_seconds_descriptive_only": 0.13704599199991208,
+      "elapsed_seconds_descriptive_only": 0.1180699859996821,
       "forces_eV_per_A": [
         [
           -0.2413283884525299,
@@ -14032,7 +14032,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.9912,
-      "elapsed_seconds_descriptive_only": 0.14479852399381343,
+      "elapsed_seconds_descriptive_only": 0.10760264199961966,
       "forces_eV_per_A": [
         [
           -0.2561108469963074,
@@ -14118,7 +14118,7 @@
       ],
       "device": "cpu",
       "dielectric": 12.978,
-      "elapsed_seconds_descriptive_only": 0.11740757799998391,
+      "elapsed_seconds_descriptive_only": 0.10341564500049572,
       "forces_eV_per_A": [
         [
           -0.2622970938682556,
@@ -14204,7 +14204,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3446,
-      "elapsed_seconds_descriptive_only": 0.11305663699749857,
+      "elapsed_seconds_descriptive_only": 0.11777617000007012,
       "forces_eV_per_A": [
         [
           -0.197871595621109,
@@ -14290,7 +14290,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3447,
-      "elapsed_seconds_descriptive_only": 0.1354115050053224,
+      "elapsed_seconds_descriptive_only": 0.09477469200101041,
       "forces_eV_per_A": [
         [
           -0.1979377567768097,
@@ -14376,7 +14376,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.268,
-      "elapsed_seconds_descriptive_only": 0.12927746500645299,
+      "elapsed_seconds_descriptive_only": 0.08324514899868518,
       "forces_eV_per_A": [
         [
           -0.1949637085199356,
@@ -14462,7 +14462,7 @@
       ],
       "device": "cpu",
       "dielectric": 7.4257,
-      "elapsed_seconds_descriptive_only": 0.13375062600243837,
+      "elapsed_seconds_descriptive_only": 0.0832648080013314,
       "forces_eV_per_A": [
         [
           -0.25024619698524475,
@@ -14548,7 +14548,7 @@
       ],
       "device": "cpu",
       "dielectric": 43.962,
-      "elapsed_seconds_descriptive_only": 0.11456621000252198,
+      "elapsed_seconds_descriptive_only": 0.09417792100066436,
       "forces_eV_per_A": [
         [
           -0.27168115973472595,
@@ -14634,7 +14634,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.771,
-      "elapsed_seconds_descriptive_only": 0.12582732998998836,
+      "elapsed_seconds_descriptive_only": 0.09772808399975474,
       "forces_eV_per_A": [
         [
           -0.20766007900238037,
@@ -14720,7 +14720,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.727,
-      "elapsed_seconds_descriptive_only": 0.10768898800597526,
+      "elapsed_seconds_descriptive_only": 0.10026734799976111,
       "forces_eV_per_A": [
         [
           -0.20722366869449615,
@@ -14806,7 +14806,7 @@
       ],
       "device": "cpu",
       "dielectric": 4.2728,
-      "elapsed_seconds_descriptive_only": 0.11687454699131195,
+      "elapsed_seconds_descriptive_only": 0.11300876299901574,
       "forces_eV_per_A": [
         [
           -0.21251624822616577,
@@ -14892,7 +14892,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3741,
-      "elapsed_seconds_descriptive_only": 0.11795767598960083,
+      "elapsed_seconds_descriptive_only": 0.09352301000035368,
       "forces_eV_per_A": [
         [
           -0.19907338917255402,
@@ -14978,7 +14978,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.1781,
-      "elapsed_seconds_descriptive_only": 0.13829552198876627,
+      "elapsed_seconds_descriptive_only": 0.08922773000085726,
       "forces_eV_per_A": [
         [
           -0.19163252413272858,
@@ -15064,7 +15064,7 @@
       ],
       "device": "cpu",
       "dielectric": 8.1781,
-      "elapsed_seconds_descriptive_only": 0.1381317139894236,
+      "elapsed_seconds_descriptive_only": 0.1077831900001911,
       "forces_eV_per_A": [
         [
           -0.25718310475349426,
@@ -15150,7 +15150,7 @@
       ],
       "device": "cpu",
       "dielectric": 3.422,
-      "elapsed_seconds_descriptive_only": 0.13088740600505844,
+      "elapsed_seconds_descriptive_only": 0.13221587700172677,
       "forces_eV_per_A": [
         [
           -0.17164506018161774,
@@ -15236,7 +15236,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3832,
-      "elapsed_seconds_descriptive_only": 0.13404269100283273,
+      "elapsed_seconds_descriptive_only": 0.14489457399940875,
       "forces_eV_per_A": [
         [
           -0.2021842896938324,
@@ -15322,7 +15322,7 @@
       ],
       "device": "cpu",
       "dielectric": 78.355,
-      "elapsed_seconds_descriptive_only": 0.4436259380017873,
+      "elapsed_seconds_descriptive_only": 0.459701372001291,
       "forces_eV_per_A": [
         [
           -0.19792425632476807,
@@ -15424,7 +15424,7 @@
       ],
       "device": "cpu",
       "dielectric": 2.3879,
-      "elapsed_seconds_descriptive_only": 0.16830374200071674,
+      "elapsed_seconds_descriptive_only": 0.12937355900066905,
       "forces_eV_per_A": [
         [
           -0.19921191036701202,
@@ -15510,7 +15510,7 @@
       ],
       "device": "cpu",
       "dielectric": 9.2,
-      "elapsed_seconds_descriptive_only": 0.11822168900107499,
+      "elapsed_seconds_descriptive_only": 0.10195519399894692,
       "forces_eV_per_A": [
         [
           -0.26277217268943787,
@@ -15600,7 +15600,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.0826,
-      "elapsed_seconds_descriptive_only": 0.38065677300619427,
+      "elapsed_seconds_descriptive_only": 0.3385081699998409,
       "forces_eV_per_A": [
         [
           -0.24832069873809814,
@@ -15686,7 +15686,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.1937,
-      "elapsed_seconds_descriptive_only": 0.2417751640023198,
+      "elapsed_seconds_descriptive_only": 0.2347909920008533,
       "forces_eV_per_A": [
         [
           -0.23050329089164734,
@@ -15772,7 +15772,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3653,
-      "elapsed_seconds_descriptive_only": 0.2358390680019511,
+      "elapsed_seconds_descriptive_only": 0.17746961700140673,
       "forces_eV_per_A": [
         [
           -0.198543518781662,
@@ -15858,7 +15858,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.9313,
-      "elapsed_seconds_descriptive_only": 0.19218782999087125,
+      "elapsed_seconds_descriptive_only": 0.1724998380013858,
       "forces_eV_per_A": [
         [
           -0.2509142756462097,
@@ -15944,7 +15944,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 10.125,
-      "elapsed_seconds_descriptive_only": 0.1887986099900445,
+      "elapsed_seconds_descriptive_only": 0.14434775799963973,
       "forces_eV_per_A": [
         [
           -0.27045875787734985,
@@ -16030,7 +16030,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 40.245,
-      "elapsed_seconds_descriptive_only": 0.19627407599182334,
+      "elapsed_seconds_descriptive_only": 0.20625169000049937,
       "forces_eV_per_A": [
         [
           -0.19443993270397186,
@@ -16116,7 +16116,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.2099,
-      "elapsed_seconds_descriptive_only": 0.23730478298966773,
+      "elapsed_seconds_descriptive_only": 0.21663103900027636,
       "forces_eV_per_A": [
         [
           -0.1948011815547943,
@@ -16202,7 +16202,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.7792,
-      "elapsed_seconds_descriptive_only": 0.21689713600790128,
+      "elapsed_seconds_descriptive_only": 0.21348838999983855,
       "forces_eV_per_A": [
         [
           -0.25057101249694824,
@@ -16288,7 +16288,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.0244,
-      "elapsed_seconds_descriptive_only": 0.21434895700076595,
+      "elapsed_seconds_descriptive_only": 0.2718099979992985,
       "forces_eV_per_A": [
         [
           -0.23590992391109467,
@@ -16374,7 +16374,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.269,
-      "elapsed_seconds_descriptive_only": 0.1942245909885969,
+      "elapsed_seconds_descriptive_only": 0.205711564000012,
       "forces_eV_per_A": [
         [
           -0.24388927221298218,
@@ -16460,7 +16460,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.0496,
-      "elapsed_seconds_descriptive_only": 0.21615906099032145,
+      "elapsed_seconds_descriptive_only": 0.16965539699958754,
       "forces_eV_per_A": [
         [
           -0.25133630633354187,
@@ -16546,7 +16546,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 17.332,
-      "elapsed_seconds_descriptive_only": 0.2302571350010112,
+      "elapsed_seconds_descriptive_only": 0.17565685100089468,
       "forces_eV_per_A": [
         [
           -0.19548845291137695,
@@ -16632,7 +16632,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.9491,
-      "elapsed_seconds_descriptive_only": 0.20703698600118514,
+      "elapsed_seconds_descriptive_only": 0.16576945799897658,
       "forces_eV_per_A": [
         [
           -0.24221083521842957,
@@ -16718,7 +16718,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.5022,
-      "elapsed_seconds_descriptive_only": 0.24361430399585515,
+      "elapsed_seconds_descriptive_only": 0.1716911120001896,
       "forces_eV_per_A": [
         [
           -0.2452472597360611,
@@ -16804,7 +16804,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.3548,
-      "elapsed_seconds_descriptive_only": 0.2286720050033182,
+      "elapsed_seconds_descriptive_only": 0.21439442700102518,
       "forces_eV_per_A": [
         [
           -0.2526824474334717,
@@ -16890,7 +16890,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.5305,
-      "elapsed_seconds_descriptive_only": 0.22663590099546127,
+      "elapsed_seconds_descriptive_only": 0.22105677299987292,
       "forces_eV_per_A": [
         [
           -0.18861158192157745,
@@ -16976,7 +16976,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.89,
-      "elapsed_seconds_descriptive_only": 0.1877344219974475,
+      "elapsed_seconds_descriptive_only": 0.2605825789996743,
       "forces_eV_per_A": [
         [
           -0.2257085144519806,
@@ -17062,7 +17062,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 11.321,
-      "elapsed_seconds_descriptive_only": 0.21733321899955627,
+      "elapsed_seconds_descriptive_only": 0.18272959599926253,
       "forces_eV_per_A": [
         [
           -0.19263020157814026,
@@ -17148,7 +17148,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.51,
-      "elapsed_seconds_descriptive_only": 0.2467041759955464,
+      "elapsed_seconds_descriptive_only": 0.17563659200095572,
       "forces_eV_per_A": [
         [
           -0.19347533583641052,
@@ -17234,7 +17234,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.0717,
-      "elapsed_seconds_descriptive_only": 0.24876306799706072,
+      "elapsed_seconds_descriptive_only": 0.1961039259986137,
       "forces_eV_per_A": [
         [
           -0.18999940156936646,
@@ -17320,7 +17320,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.615,
-      "elapsed_seconds_descriptive_only": 0.24408408600720577,
+      "elapsed_seconds_descriptive_only": 0.1983309149982233,
       "forces_eV_per_A": [
         [
           -0.20139764249324799,
@@ -17410,7 +17410,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.173,
-      "elapsed_seconds_descriptive_only": 0.17094579299737234,
+      "elapsed_seconds_descriptive_only": 0.18904012099847023,
       "forces_eV_per_A": [
         [
           -0.24337725341320038,
@@ -17496,7 +17496,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.5338,
-      "elapsed_seconds_descriptive_only": 0.18606896699930076,
+      "elapsed_seconds_descriptive_only": 0.20168674300111888,
       "forces_eV_per_A": [
         [
           -0.22019913792610168,
@@ -17582,7 +17582,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.6973,
-      "elapsed_seconds_descriptive_only": 0.1863454010017449,
+      "elapsed_seconds_descriptive_only": 0.21344360699913523,
       "forces_eV_per_A": [
         [
           -0.24061061441898346,
@@ -17668,7 +17668,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.9626,
-      "elapsed_seconds_descriptive_only": 0.19256451600813307,
+      "elapsed_seconds_descriptive_only": 0.18598144499992486,
       "forces_eV_per_A": [
         [
           -0.24699245393276215,
@@ -17754,7 +17754,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 23.73,
-      "elapsed_seconds_descriptive_only": 0.24297725099313539,
+      "elapsed_seconds_descriptive_only": 0.18692973900033394,
       "forces_eV_per_A": [
         [
           -0.2690795361995697,
@@ -17840,7 +17840,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.5991,
-      "elapsed_seconds_descriptive_only": 0.26955154100141954,
+      "elapsed_seconds_descriptive_only": 0.18398836800042773,
       "forces_eV_per_A": [
         [
           -0.19009517133235931,
@@ -17926,7 +17926,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.8629,
-      "elapsed_seconds_descriptive_only": 0.19354371300141793,
+      "elapsed_seconds_descriptive_only": 0.2346590630004357,
       "forces_eV_per_A": [
         [
           -0.19147136807441711,
@@ -18012,7 +18012,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 15.13,
-      "elapsed_seconds_descriptive_only": 0.20854967000195757,
+      "elapsed_seconds_descriptive_only": 0.18374248599866405,
       "forces_eV_per_A": [
         [
           -0.19471751153469086,
@@ -18098,7 +18098,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9905,
-      "elapsed_seconds_descriptive_only": 0.2259605860017473,
+      "elapsed_seconds_descriptive_only": 0.17163923600128328,
       "forces_eV_per_A": [
         [
           -0.18750981986522675,
@@ -18184,7 +18184,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 20.524,
-      "elapsed_seconds_descriptive_only": 0.18249291299434844,
+      "elapsed_seconds_descriptive_only": 0.18356260099972133,
       "forces_eV_per_A": [
         [
           -0.19647164642810822,
@@ -18270,7 +18270,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 26.726,
-      "elapsed_seconds_descriptive_only": 0.19216496299486607,
+      "elapsed_seconds_descriptive_only": 0.2342894109988265,
       "forces_eV_per_A": [
         [
           -0.19356076419353485,
@@ -18356,7 +18356,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9358,
-      "elapsed_seconds_descriptive_only": 0.20662944999639876,
+      "elapsed_seconds_descriptive_only": 0.2534140119987569,
       "forces_eV_per_A": [
         [
           -0.1848234236240387,
@@ -18442,7 +18442,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.8939,
-      "elapsed_seconds_descriptive_only": 0.20770133400219493,
+      "elapsed_seconds_descriptive_only": 0.2600103200002195,
       "forces_eV_per_A": [
         [
           -0.18330703675746918,
@@ -18528,7 +18528,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.4176,
-      "elapsed_seconds_descriptive_only": 0.20791327000188176,
+      "elapsed_seconds_descriptive_only": 0.22097752800073067,
       "forces_eV_per_A": [
         [
           -0.2567271590232849,
@@ -18614,7 +18614,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.1735,
-      "elapsed_seconds_descriptive_only": 0.17362454599060584,
+      "elapsed_seconds_descriptive_only": 0.21413185200071894,
       "forces_eV_per_A": [
         [
           -0.2500532865524292,
@@ -18700,7 +18700,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.361,
-      "elapsed_seconds_descriptive_only": 0.1877377329947194,
+      "elapsed_seconds_descriptive_only": 0.21542866199888522,
       "forces_eV_per_A": [
         [
           -0.25533628463745117,
@@ -18786,7 +18786,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 15.944,
-      "elapsed_seconds_descriptive_only": 0.18341270298697054,
+      "elapsed_seconds_descriptive_only": 0.22102204899965727,
       "forces_eV_per_A": [
         [
           -0.2046278715133667,
@@ -18876,7 +18876,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.393,
-      "elapsed_seconds_descriptive_only": 0.18051449200720526,
+      "elapsed_seconds_descriptive_only": 0.24571218300116016,
       "forces_eV_per_A": [
         [
           -0.2528100311756134,
@@ -18962,7 +18962,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 11.658,
-      "elapsed_seconds_descriptive_only": 0.22169410099741071,
+      "elapsed_seconds_descriptive_only": 0.25013924399900134,
       "forces_eV_per_A": [
         [
           -0.2608611583709717,
@@ -19048,7 +19048,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 14.136,
-      "elapsed_seconds_descriptive_only": 0.19773172700661235,
+      "elapsed_seconds_descriptive_only": 0.20419242100069823,
       "forces_eV_per_A": [
         [
           -0.26422223448753357,
@@ -19134,7 +19134,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 17.2,
-      "elapsed_seconds_descriptive_only": 0.19452540599741042,
+      "elapsed_seconds_descriptive_only": 0.22310903400102688,
       "forces_eV_per_A": [
         [
           -0.20624446868896484,
@@ -19220,7 +19220,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 16.777,
-      "elapsed_seconds_descriptive_only": 0.1940389369992772,
+      "elapsed_seconds_descriptive_only": 0.2190702700008842,
       "forces_eV_per_A": [
         [
           -0.19566968083381653,
@@ -19306,7 +19306,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.47,
-      "elapsed_seconds_descriptive_only": 0.19423524900048506,
+      "elapsed_seconds_descriptive_only": 0.20590471399918897,
       "forces_eV_per_A": [
         [
           -0.20568785071372986,
@@ -19396,7 +19396,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.89,
-      "elapsed_seconds_descriptive_only": 0.19582026200077962,
+      "elapsed_seconds_descriptive_only": 0.2295958740014612,
       "forces_eV_per_A": [
         [
           -0.1832500845193863,
@@ -19482,7 +19482,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.9533,
-      "elapsed_seconds_descriptive_only": 0.20486536499811336,
+      "elapsed_seconds_descriptive_only": 0.19774512399999367,
       "forces_eV_per_A": [
         [
           -0.2577914297580719,
@@ -19568,7 +19568,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 25.654,
-      "elapsed_seconds_descriptive_only": 0.20824175399320666,
+      "elapsed_seconds_descriptive_only": 0.22091317400008847,
       "forces_eV_per_A": [
         [
           -0.269989550113678,
@@ -19654,7 +19654,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.4678,
-      "elapsed_seconds_descriptive_only": 0.23433837099582888,
+      "elapsed_seconds_descriptive_only": 0.2737412750011572,
       "forces_eV_per_A": [
         [
           -0.25666332244873047,
@@ -19740,7 +19740,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 15.2,
-      "elapsed_seconds_descriptive_only": 0.19187453600170556,
+      "elapsed_seconds_descriptive_only": 0.2991702039998927,
       "forces_eV_per_A": [
         [
           -0.26561447978019714,
@@ -19826,7 +19826,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 19.264,
-      "elapsed_seconds_descriptive_only": 0.18986988300457597,
+      "elapsed_seconds_descriptive_only": 0.2714639570003783,
       "forces_eV_per_A": [
         [
           -0.20579198002815247,
@@ -19916,7 +19916,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 19.011,
-      "elapsed_seconds_descriptive_only": 0.19107777198951226,
+      "elapsed_seconds_descriptive_only": 0.2321741199993994,
       "forces_eV_per_A": [
         [
           -0.1935722380876541,
@@ -20002,7 +20002,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 11.645,
-      "elapsed_seconds_descriptive_only": 0.20134005800355226,
+      "elapsed_seconds_descriptive_only": 0.2075022959998023,
       "forces_eV_per_A": [
         [
           -0.26055005192756653,
@@ -20088,7 +20088,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 16.78,
-      "elapsed_seconds_descriptive_only": 0.1985535540006822,
+      "elapsed_seconds_descriptive_only": 0.19189613000162353,
       "forces_eV_per_A": [
         [
           -0.2667768597602844,
@@ -20174,7 +20174,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.257,
-      "elapsed_seconds_descriptive_only": 0.2369428749952931,
+      "elapsed_seconds_descriptive_only": 0.23256652300005953,
       "forces_eV_per_A": [
         [
           -0.2619296610355377,
@@ -20260,7 +20260,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.887,
-      "elapsed_seconds_descriptive_only": 0.2672775489918422,
+      "elapsed_seconds_descriptive_only": 0.23651156800042372,
       "forces_eV_per_A": [
         [
           -0.26299503445625305,
@@ -20346,7 +20346,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 11.957,
-      "elapsed_seconds_descriptive_only": 0.22346291200665291,
+      "elapsed_seconds_descriptive_only": 0.2235773149986926,
       "forces_eV_per_A": [
         [
           -0.2609778344631195,
@@ -20432,7 +20432,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 10.6,
-      "elapsed_seconds_descriptive_only": 0.22159446599835064,
+      "elapsed_seconds_descriptive_only": 0.22169799200128182,
       "forces_eV_per_A": [
         [
           -0.25901660323143005,
@@ -20518,7 +20518,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.7175,
-      "elapsed_seconds_descriptive_only": 0.20342695600993466,
+      "elapsed_seconds_descriptive_only": 0.30526059399926453,
       "forces_eV_per_A": [
         [
           -0.24631254374980927,
@@ -20604,7 +20604,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.2528,
-      "elapsed_seconds_descriptive_only": 0.25517486000899225,
+      "elapsed_seconds_descriptive_only": 0.2728932629997871,
       "forces_eV_per_A": [
         [
           -0.1820586919784546,
@@ -20690,7 +20690,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 20.493,
-      "elapsed_seconds_descriptive_only": 0.6176638769975398,
+      "elapsed_seconds_descriptive_only": 0.5401877819986112,
       "forces_eV_per_A": [
         [
           -0.2936030626296997,
@@ -20792,7 +20792,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 35.688,
-      "elapsed_seconds_descriptive_only": 0.6125773109961301,
+      "elapsed_seconds_descriptive_only": 0.699740402000316,
       "forces_eV_per_A": [
         [
           -0.31284773349761963,
@@ -20898,7 +20898,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 17.44,
-      "elapsed_seconds_descriptive_only": 0.20010230300249532,
+      "elapsed_seconds_descriptive_only": 0.26376189999973576,
       "forces_eV_per_A": [
         [
           -0.26587730646133423,
@@ -20984,7 +20984,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.8882,
-      "elapsed_seconds_descriptive_only": 0.22815584599447902,
+      "elapsed_seconds_descriptive_only": 0.24196154100172862,
       "forces_eV_per_A": [
         [
           -0.20019003748893738,
@@ -21074,7 +21074,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.2247,
-      "elapsed_seconds_descriptive_only": 0.18706968499463983,
+      "elapsed_seconds_descriptive_only": 0.19796932200006268,
       "forces_eV_per_A": [
         [
           -0.22943642735481262,
@@ -21160,7 +21160,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 18.22,
-      "elapsed_seconds_descriptive_only": 0.19732875301269814,
+      "elapsed_seconds_descriptive_only": 0.16829773000063142,
       "forces_eV_per_A": [
         [
           -0.2665567994117737,
@@ -21246,7 +21246,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.2706,
-      "elapsed_seconds_descriptive_only": 0.49636040700715967,
+      "elapsed_seconds_descriptive_only": 0.5437384619999648,
       "forces_eV_per_A": [
         [
           -0.1964615136384964,
@@ -21348,7 +21348,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 25.592,
-      "elapsed_seconds_descriptive_only": 0.20458193100057542,
+      "elapsed_seconds_descriptive_only": 0.27774099900125293,
       "forces_eV_per_A": [
         [
           -0.2695156931877136,
@@ -21434,7 +21434,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.457,
-      "elapsed_seconds_descriptive_only": 0.21677485399413854,
+      "elapsed_seconds_descriptive_only": 0.24122308999903908,
       "forces_eV_per_A": [
         [
           -0.2019260972738266,
@@ -21524,7 +21524,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.3954,
-      "elapsed_seconds_descriptive_only": 0.18758620398875792,
+      "elapsed_seconds_descriptive_only": 0.2476084379995882,
       "forces_eV_per_A": [
         [
           -0.2385590374469757,
@@ -21610,7 +21610,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.01,
-      "elapsed_seconds_descriptive_only": 0.1778023100050632,
+      "elapsed_seconds_descriptive_only": 0.19534742399991956,
       "forces_eV_per_A": [
         [
           -0.2544095516204834,
@@ -21696,7 +21696,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.2488,
-      "elapsed_seconds_descriptive_only": 0.16967808300978504,
+      "elapsed_seconds_descriptive_only": 0.2214839669995854,
       "forces_eV_per_A": [
         [
           -0.24986708164215088,
@@ -21782,7 +21782,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 13.45,
-      "elapsed_seconds_descriptive_only": 0.1835482260066783,
+      "elapsed_seconds_descriptive_only": 0.17498250099924917,
       "forces_eV_per_A": [
         [
           -0.2632994055747986,
@@ -21868,7 +21868,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.9931,
-      "elapsed_seconds_descriptive_only": 0.18537782700150274,
+      "elapsed_seconds_descriptive_only": 0.22153657899980317,
       "forces_eV_per_A": [
         [
           -0.16751568019390106,
@@ -21954,7 +21954,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 18.246,
-      "elapsed_seconds_descriptive_only": 0.21593944299092982,
+      "elapsed_seconds_descriptive_only": 0.2364696679996996,
       "forces_eV_per_A": [
         [
           -0.2679324448108673,
@@ -22040,7 +22040,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 24.291,
-      "elapsed_seconds_descriptive_only": 0.1967803840088891,
+      "elapsed_seconds_descriptive_only": 0.27186251799867023,
       "forces_eV_per_A": [
         [
           -0.26994526386260986,
@@ -22126,7 +22126,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.6178,
-      "elapsed_seconds_descriptive_only": 0.1843450290034525,
+      "elapsed_seconds_descriptive_only": 0.23921839200011163,
       "forces_eV_per_A": [
         [
           -0.2557584047317505,
@@ -22212,7 +22212,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.9941,
-      "elapsed_seconds_descriptive_only": 0.17870957400009502,
+      "elapsed_seconds_descriptive_only": 0.2023535249991255,
       "forces_eV_per_A": [
         [
           -0.2375248819589615,
@@ -22298,7 +22298,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.0473,
-      "elapsed_seconds_descriptive_only": 0.17489142398699187,
+      "elapsed_seconds_descriptive_only": 0.2125219070003368,
       "forces_eV_per_A": [
         [
           -0.2146720588207245,
@@ -22384,7 +22384,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.6105,
-      "elapsed_seconds_descriptive_only": 0.23708067499683239,
+      "elapsed_seconds_descriptive_only": 0.1989351499996701,
       "forces_eV_per_A": [
         [
           -0.20355886220932007,
@@ -22470,7 +22470,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.228,
-      "elapsed_seconds_descriptive_only": 0.23028997601068113,
+      "elapsed_seconds_descriptive_only": 0.21245229300075152,
       "forces_eV_per_A": [
         [
           -0.1948048174381256,
@@ -22556,7 +22556,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.6968,
-      "elapsed_seconds_descriptive_only": 0.19652517601207364,
+      "elapsed_seconds_descriptive_only": 0.3215439819996391,
       "forces_eV_per_A": [
         [
           -0.24064356088638306,
@@ -22642,7 +22642,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.7113,
-      "elapsed_seconds_descriptive_only": 0.4611848659988027,
+      "elapsed_seconds_descriptive_only": 0.6482116659990425,
       "forces_eV_per_A": [
         [
           -0.2529016435146332,
@@ -22744,7 +22744,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.06,
-      "elapsed_seconds_descriptive_only": 0.1827138520020526,
+      "elapsed_seconds_descriptive_only": 0.1852829710005608,
       "forces_eV_per_A": [
         [
           -0.18833643198013306,
@@ -22830,7 +22830,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.2139,
-      "elapsed_seconds_descriptive_only": 0.1631099450023612,
+      "elapsed_seconds_descriptive_only": 0.18767793100050767,
       "forces_eV_per_A": [
         [
           -0.19243766367435455,
@@ -22916,7 +22916,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.0165,
-      "elapsed_seconds_descriptive_only": 0.17796571900544222,
+      "elapsed_seconds_descriptive_only": 0.18619399199997133,
       "forces_eV_per_A": [
         [
           -0.18689677119255066,
@@ -23002,7 +23002,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 15.619,
-      "elapsed_seconds_descriptive_only": 0.1867255630058935,
+      "elapsed_seconds_descriptive_only": 0.15985843099952035,
       "forces_eV_per_A": [
         [
           -0.264687716960907,
@@ -23088,7 +23088,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9608,
-      "elapsed_seconds_descriptive_only": 0.1917264000076102,
+      "elapsed_seconds_descriptive_only": 0.21193365100043593,
       "forces_eV_per_A": [
         [
           -0.18526184558868408,
@@ -23174,7 +23174,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 16.989,
-      "elapsed_seconds_descriptive_only": 0.19092176099366043,
+      "elapsed_seconds_descriptive_only": 0.23217033100081608,
       "forces_eV_per_A": [
         [
           -0.20506426692008972,
@@ -23264,7 +23264,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 13.58,
-      "elapsed_seconds_descriptive_only": 0.1654010899947025,
+      "elapsed_seconds_descriptive_only": 0.22699804300100368,
       "forces_eV_per_A": [
         [
           -0.26262760162353516,
@@ -23350,7 +23350,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.196,
-      "elapsed_seconds_descriptive_only": 0.16708268399816006,
+      "elapsed_seconds_descriptive_only": 0.22351698800048325,
       "forces_eV_per_A": [
         [
           -0.19204413890838623,
@@ -23436,7 +23436,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.2273,
-      "elapsed_seconds_descriptive_only": 0.1807301540102344,
+      "elapsed_seconds_descriptive_only": 0.23977398500028357,
       "forces_eV_per_A": [
         [
           -0.26317721605300903,
@@ -23522,7 +23522,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.93,
-      "elapsed_seconds_descriptive_only": 0.1670131270075217,
+      "elapsed_seconds_descriptive_only": 0.19245506200059026,
       "forces_eV_per_A": [
         [
           -0.26904428005218506,
@@ -23608,7 +23608,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.5766,
-      "elapsed_seconds_descriptive_only": 0.19314425199991092,
+      "elapsed_seconds_descriptive_only": 0.24639048000062758,
       "forces_eV_per_A": [
         [
           -0.17855674028396606,
@@ -23694,7 +23694,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.24,
-      "elapsed_seconds_descriptive_only": 0.19552958899294026,
+      "elapsed_seconds_descriptive_only": 0.23293251100039924,
       "forces_eV_per_A": [
         [
           -0.2318079024553299,
@@ -23780,7 +23780,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.723,
-      "elapsed_seconds_descriptive_only": 0.1850722030067118,
+      "elapsed_seconds_descriptive_only": 0.3267703440014884,
       "forces_eV_per_A": [
         [
           -0.24202731251716614,
@@ -23866,7 +23866,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.32,
-      "elapsed_seconds_descriptive_only": 0.17612498000380583,
+      "elapsed_seconds_descriptive_only": 0.31753956099964853,
       "forces_eV_per_A": [
         [
           -0.23888994753360748,
@@ -23952,7 +23952,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.38,
-      "elapsed_seconds_descriptive_only": 0.18313837400637567,
+      "elapsed_seconds_descriptive_only": 0.21808446100112633,
       "forces_eV_per_A": [
         [
           -0.22105586528778076,
@@ -24038,7 +24038,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.6,
-      "elapsed_seconds_descriptive_only": 0.17606170100043528,
+      "elapsed_seconds_descriptive_only": 0.19644128899926727,
       "forces_eV_per_A": [
         [
           -0.2551015615463257,
@@ -24124,7 +24124,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 37.219,
-      "elapsed_seconds_descriptive_only": 0.21722706299624406,
+      "elapsed_seconds_descriptive_only": 0.20191122500000347,
       "forces_eV_per_A": [
         [
           -0.2738622725009918,
@@ -24210,7 +24210,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 46.826,
-      "elapsed_seconds_descriptive_only": 0.46559979899029713,
+      "elapsed_seconds_descriptive_only": 0.5410756719993515,
       "forces_eV_per_A": [
         [
           -0.2746013402938843,
@@ -24312,7 +24312,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.73,
-      "elapsed_seconds_descriptive_only": 0.197140860997024,
+      "elapsed_seconds_descriptive_only": 0.2670049329990434,
       "forces_eV_per_A": [
         [
           -0.22505471110343933,
@@ -24398,7 +24398,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.9112,
-      "elapsed_seconds_descriptive_only": 0.18494422899675556,
+      "elapsed_seconds_descriptive_only": 0.299724681999578,
       "forces_eV_per_A": [
         [
           -0.16184130311012268,
@@ -24484,7 +24484,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.14,
-      "elapsed_seconds_descriptive_only": 0.18090058999950998,
+      "elapsed_seconds_descriptive_only": 0.22224919799919007,
       "forces_eV_per_A": [
         [
           -0.16294023394584656,
@@ -24570,7 +24570,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.051,
-      "elapsed_seconds_descriptive_only": 0.18133149000641424,
+      "elapsed_seconds_descriptive_only": 0.19889214700015145,
       "forces_eV_per_A": [
         [
           -0.18950492143630981,
@@ -24656,7 +24656,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.667,
-      "elapsed_seconds_descriptive_only": 0.18147285899613053,
+      "elapsed_seconds_descriptive_only": 0.19526238799880957,
       "forces_eV_per_A": [
         [
           -0.24678799510002136,
@@ -24742,7 +24742,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 24.852,
-      "elapsed_seconds_descriptive_only": 0.18014630700054113,
+      "elapsed_seconds_descriptive_only": 0.2134102290001465,
       "forces_eV_per_A": [
         [
           -0.1973637491464615,
@@ -24828,7 +24828,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.4339,
-      "elapsed_seconds_descriptive_only": 0.2069349529920146,
+      "elapsed_seconds_descriptive_only": 0.1832928499989066,
       "forces_eV_per_A": [
         [
           -0.20039238035678864,
@@ -24914,7 +24914,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.9867,
-      "elapsed_seconds_descriptive_only": 0.22101146799104754,
+      "elapsed_seconds_descriptive_only": 0.19998183499956212,
       "forces_eV_per_A": [
         [
           -0.24414262175559998,
@@ -25000,7 +25000,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.331,
-      "elapsed_seconds_descriptive_only": 0.21800519998942036,
+      "elapsed_seconds_descriptive_only": 0.2696904690001247,
       "forces_eV_per_A": [
         [
           -0.25337502360343933,
@@ -25086,7 +25086,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.1797,
-      "elapsed_seconds_descriptive_only": 0.18278919698786922,
+      "elapsed_seconds_descriptive_only": 0.29802441599895246,
       "forces_eV_per_A": [
         [
           -0.22932925820350647,
@@ -25172,7 +25172,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.42,
-      "elapsed_seconds_descriptive_only": 0.189890754991211,
+      "elapsed_seconds_descriptive_only": 0.24344885500067903,
       "forces_eV_per_A": [
         [
           -0.2398439645767212,
@@ -25258,7 +25258,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 108.94,
-      "elapsed_seconds_descriptive_only": 0.18994150799699128,
+      "elapsed_seconds_descriptive_only": 0.2095244840002124,
       "forces_eV_per_A": [
         [
           -0.19271518290042877,
@@ -25344,7 +25344,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 51.1,
-      "elapsed_seconds_descriptive_only": 0.21656245899794158,
+      "elapsed_seconds_descriptive_only": 0.21440250600062427,
       "forces_eV_per_A": [
         [
           -0.19099107384681702,
@@ -25430,7 +25430,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.8819,
-      "elapsed_seconds_descriptive_only": 0.485035883000819,
+      "elapsed_seconds_descriptive_only": 0.5247738230009418,
       "forces_eV_per_A": [
         [
           -0.18279492855072021,
@@ -25532,7 +25532,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.6,
-      "elapsed_seconds_descriptive_only": 0.18277332501020283,
+      "elapsed_seconds_descriptive_only": 0.2854272710010264,
       "forces_eV_per_A": [
         [
           -0.1632097065448761,
@@ -25618,7 +25618,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.547,
-      "elapsed_seconds_descriptive_only": 0.1864540390088223,
+      "elapsed_seconds_descriptive_only": 0.2594365340009972,
       "forces_eV_per_A": [
         [
           -0.23168045282363892,
@@ -25704,7 +25704,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.6177,
-      "elapsed_seconds_descriptive_only": 0.2063954309996916,
+      "elapsed_seconds_descriptive_only": 0.21716034699966258,
       "forces_eV_per_A": [
         [
           -0.24957527220249176,
@@ -25790,7 +25790,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.865,
-      "elapsed_seconds_descriptive_only": 0.19409387599444017,
+      "elapsed_seconds_descriptive_only": 0.19719417700071062,
       "forces_eV_per_A": [
         [
           -0.24632835388183594,
@@ -25876,7 +25876,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3712,
-      "elapsed_seconds_descriptive_only": 0.2305362400074955,
+      "elapsed_seconds_descriptive_only": 0.20435796200035838,
       "forces_eV_per_A": [
         [
           -0.19876998662948608,
@@ -25962,7 +25962,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.44,
-      "elapsed_seconds_descriptive_only": 0.21039570499851834,
+      "elapsed_seconds_descriptive_only": 0.18367625900100393,
       "forces_eV_per_A": [
         [
           -0.18950340151786804,
@@ -26048,7 +26048,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3478,
-      "elapsed_seconds_descriptive_only": 0.19831534200056922,
+      "elapsed_seconds_descriptive_only": 0.18853550799940422,
       "forces_eV_per_A": [
         [
           -0.19816690683364868,
@@ -26134,7 +26134,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.265,
-      "elapsed_seconds_descriptive_only": 0.1873566970025422,
+      "elapsed_seconds_descriptive_only": 0.21862991899979534,
       "forces_eV_per_A": [
         [
           -0.19593840837478638,
@@ -26220,7 +26220,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 32.613,
-      "elapsed_seconds_descriptive_only": 0.46342237800126895,
+      "elapsed_seconds_descriptive_only": 0.5377977869993629,
       "forces_eV_per_A": [
         [
           -0.19846928119659424,
@@ -26322,7 +26322,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.7367,
-      "elapsed_seconds_descriptive_only": 0.19204038599855267,
+      "elapsed_seconds_descriptive_only": 0.19996177199936938,
       "forces_eV_per_A": [
         [
           -0.24659626185894012,
@@ -26408,7 +26408,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.5607,
-      "elapsed_seconds_descriptive_only": 0.19430065600317903,
+      "elapsed_seconds_descriptive_only": 0.1989342739998392,
       "forces_eV_per_A": [
         [
           -0.24148274958133698,
@@ -26494,7 +26494,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.024,
-      "elapsed_seconds_descriptive_only": 0.1841111039975658,
+      "elapsed_seconds_descriptive_only": 0.2260104479992151,
       "forces_eV_per_A": [
         [
           -0.18735036253929138,
@@ -26580,7 +26580,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.8615,
-      "elapsed_seconds_descriptive_only": 0.18557216999761295,
+      "elapsed_seconds_descriptive_only": 0.2584737680008402,
       "forces_eV_per_A": [
         [
           -0.24818424880504608,
@@ -26666,7 +26666,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.8377,
-      "elapsed_seconds_descriptive_only": 0.19344757599174045,
+      "elapsed_seconds_descriptive_only": 0.2569412819993886,
       "forces_eV_per_A": [
         [
           -0.25460952520370483,
@@ -26752,7 +26752,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.0777,
-      "elapsed_seconds_descriptive_only": 0.18905226299830247,
+      "elapsed_seconds_descriptive_only": 0.25822342300125456,
       "forces_eV_per_A": [
         [
           -0.2444947361946106,
@@ -26838,7 +26838,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.36,
-      "elapsed_seconds_descriptive_only": 0.19331164099276066,
+      "elapsed_seconds_descriptive_only": 0.20718836400010332,
       "forces_eV_per_A": [
         [
           -0.19816577434539795,
@@ -26924,7 +26924,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9846,
-      "elapsed_seconds_descriptive_only": 0.19671643699984998,
+      "elapsed_seconds_descriptive_only": 0.22702049300096405,
       "forces_eV_per_A": [
         [
           -0.18591725826263428,
@@ -27010,7 +27010,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.006,
-      "elapsed_seconds_descriptive_only": 0.20539976301370189,
+      "elapsed_seconds_descriptive_only": 0.18834004800010007,
       "forces_eV_per_A": [
         [
           -0.18648061156272888,
@@ -27096,7 +27096,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9113,
-      "elapsed_seconds_descriptive_only": 0.18668438399618026,
+      "elapsed_seconds_descriptive_only": 0.19399707000047783,
       "forces_eV_per_A": [
         [
           -0.183698832988739,
@@ -27182,7 +27182,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.0402,
-      "elapsed_seconds_descriptive_only": 0.19822695500624832,
+      "elapsed_seconds_descriptive_only": 0.21064896600000793,
       "forces_eV_per_A": [
         [
           -0.18738818168640137,
@@ -27268,7 +27268,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.96,
-      "elapsed_seconds_descriptive_only": 0.1849397920013871,
+      "elapsed_seconds_descriptive_only": 0.23902638899926387,
       "forces_eV_per_A": [
         [
           -0.2429325431585312,
@@ -27354,7 +27354,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 181.56,
-      "elapsed_seconds_descriptive_only": 0.21517210800084285,
+      "elapsed_seconds_descriptive_only": 0.24599701900115178,
       "forces_eV_per_A": [
         [
           -0.19719189405441284,
@@ -27444,7 +27444,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 37.781,
-      "elapsed_seconds_descriptive_only": 0.2001765170134604,
+      "elapsed_seconds_descriptive_only": 0.23839902899999288,
       "forces_eV_per_A": [
         [
           -0.27433764934539795,
@@ -27530,7 +27530,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9605,
-      "elapsed_seconds_descriptive_only": 0.19809560899739154,
+      "elapsed_seconds_descriptive_only": 0.18905580299906433,
       "forces_eV_per_A": [
         [
           -0.18517619371414185,
@@ -27616,7 +27616,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.9406,
-      "elapsed_seconds_descriptive_only": 0.18374346700147726,
+      "elapsed_seconds_descriptive_only": 0.1956139730009454,
       "forces_eV_per_A": [
         [
           -0.18460513651371002,
@@ -27702,7 +27702,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.0333,
-      "elapsed_seconds_descriptive_only": 0.21047027299937326,
+      "elapsed_seconds_descriptive_only": 0.2029138210000383,
       "forces_eV_per_A": [
         [
           -0.1872030347585678,
@@ -27788,7 +27788,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.8371,
-      "elapsed_seconds_descriptive_only": 0.23476566500903573,
+      "elapsed_seconds_descriptive_only": 0.17587763799929235,
       "forces_eV_per_A": [
         [
           -0.18132708966732025,
@@ -27874,7 +27874,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 1.991,
-      "elapsed_seconds_descriptive_only": 0.19071185299253557,
+      "elapsed_seconds_descriptive_only": 0.16189241400024912,
       "forces_eV_per_A": [
         [
           -0.1860792636871338,
@@ -27960,7 +27960,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 34.809,
-      "elapsed_seconds_descriptive_only": 0.18648438800300937,
+      "elapsed_seconds_descriptive_only": 0.1803553390000161,
       "forces_eV_per_A": [
         [
           -0.2714100778102875,
@@ -28046,7 +28046,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 28.29,
-      "elapsed_seconds_descriptive_only": 0.18611473799683154,
+      "elapsed_seconds_descriptive_only": 0.20472559400150203,
       "forces_eV_per_A": [
         [
           -0.2814643681049347,
@@ -28132,7 +28132,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 36.562,
-      "elapsed_seconds_descriptive_only": 0.2012493469956098,
+      "elapsed_seconds_descriptive_only": 0.2522088099995017,
       "forces_eV_per_A": [
         [
           -0.3135949373245239,
@@ -28218,7 +28218,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.6331,
-      "elapsed_seconds_descriptive_only": 0.17748928499349859,
+      "elapsed_seconds_descriptive_only": 0.24683216900120897,
       "forces_eV_per_A": [
         [
           -0.23271574079990387,
@@ -28304,7 +28304,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 6.76,
-      "elapsed_seconds_descriptive_only": 0.17768907400022727,
+      "elapsed_seconds_descriptive_only": 0.23366055999940727,
       "forces_eV_per_A": [
         [
           -0.1838114708662033,
@@ -28390,7 +28390,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.9949,
-      "elapsed_seconds_descriptive_only": 0.17976771699613892,
+      "elapsed_seconds_descriptive_only": 0.2091699749998952,
       "forces_eV_per_A": [
         [
           -0.2553090751171112,
@@ -28476,7 +28476,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 25.669,
-      "elapsed_seconds_descriptive_only": 0.1705988230096409,
+      "elapsed_seconds_descriptive_only": 0.22772605200043472,
       "forces_eV_per_A": [
         [
           -0.2687360942363739,
@@ -28562,7 +28562,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.5454,
-      "elapsed_seconds_descriptive_only": 0.17775935899408069,
+      "elapsed_seconds_descriptive_only": 0.2628758769988053,
       "forces_eV_per_A": [
         [
           -0.2031124383211136,
@@ -28648,7 +28648,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.2322,
-      "elapsed_seconds_descriptive_only": 0.1795353660127148,
+      "elapsed_seconds_descriptive_only": 0.21503145699898596,
       "forces_eV_per_A": [
         [
           -0.19497956335544586,
@@ -28734,7 +28734,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.2705,
-      "elapsed_seconds_descriptive_only": 0.22456766400136985,
+      "elapsed_seconds_descriptive_only": 0.19741190999957325,
       "forces_eV_per_A": [
         [
           -0.19603699445724487,
@@ -28820,7 +28820,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 10.0,
-      "elapsed_seconds_descriptive_only": 0.21035209399997257,
+      "elapsed_seconds_descriptive_only": 0.21966039600010845,
       "forces_eV_per_A": [
         [
           -0.25740891695022583,
@@ -28906,7 +28906,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.6924,
-      "elapsed_seconds_descriptive_only": 0.19426872199983336,
+      "elapsed_seconds_descriptive_only": 0.17796659900159284,
       "forces_eV_per_A": [
         [
           -0.16439177095890045,
@@ -28992,7 +28992,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.7297,
-      "elapsed_seconds_descriptive_only": 0.1985020860010991,
+      "elapsed_seconds_descriptive_only": 0.22619011899951147,
       "forces_eV_per_A": [
         [
           -0.23537686467170715,
@@ -29078,7 +29078,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.201,
-      "elapsed_seconds_descriptive_only": 0.21193531800236087,
+      "elapsed_seconds_descriptive_only": 0.1897768709986849,
       "forces_eV_per_A": [
         [
           -0.25510382652282715,
@@ -29164,7 +29164,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.029,
-      "elapsed_seconds_descriptive_only": 0.21498165900993627,
+      "elapsed_seconds_descriptive_only": 0.18038465800054837,
       "forces_eV_per_A": [
         [
           -0.1884041130542755,
@@ -29250,7 +29250,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 18.5,
-      "elapsed_seconds_descriptive_only": 0.23269133298890665,
+      "elapsed_seconds_descriptive_only": 0.1912266429990268,
       "forces_eV_per_A": [
         [
           -0.2680184245109558,
@@ -29336,7 +29336,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.44,
-      "elapsed_seconds_descriptive_only": 0.21255088999168947,
+      "elapsed_seconds_descriptive_only": 0.2141019540013076,
       "forces_eV_per_A": [
         [
           -0.17108559608459473,
@@ -29422,7 +29422,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 29.324,
-      "elapsed_seconds_descriptive_only": 0.20295718099805526,
+      "elapsed_seconds_descriptive_only": 0.22121462799987057,
       "forces_eV_per_A": [
         [
           -0.2826389670372009,
@@ -29508,7 +29508,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 5.5205,
-      "elapsed_seconds_descriptive_only": 0.2504581440007314,
+      "elapsed_seconds_descriptive_only": 0.20133921100023144,
       "forces_eV_per_A": [
         [
           -0.2413395345211029,
@@ -29594,7 +29594,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.9912,
-      "elapsed_seconds_descriptive_only": 0.19182397398981266,
+      "elapsed_seconds_descriptive_only": 0.18183853099981206,
       "forces_eV_per_A": [
         [
           -0.2561224102973938,
@@ -29680,7 +29680,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 12.978,
-      "elapsed_seconds_descriptive_only": 0.18997318900073878,
+      "elapsed_seconds_descriptive_only": 0.2022223629992368,
       "forces_eV_per_A": [
         [
           -0.262309193611145,
@@ -29766,7 +29766,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3446,
-      "elapsed_seconds_descriptive_only": 0.194100573004107,
+      "elapsed_seconds_descriptive_only": 0.3014770629997656,
       "forces_eV_per_A": [
         [
           -0.1978837251663208,
@@ -29852,7 +29852,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3447,
-      "elapsed_seconds_descriptive_only": 0.23072230999241583,
+      "elapsed_seconds_descriptive_only": 0.1890889700007392,
       "forces_eV_per_A": [
         [
           -0.19794908165931702,
@@ -29938,7 +29938,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.268,
-      "elapsed_seconds_descriptive_only": 0.24811683500593062,
+      "elapsed_seconds_descriptive_only": 0.24866716799988353,
       "forces_eV_per_A": [
         [
           -0.1949770301580429,
@@ -30024,7 +30024,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 7.4257,
-      "elapsed_seconds_descriptive_only": 0.2382087199948728,
+      "elapsed_seconds_descriptive_only": 0.2532869919996301,
       "forces_eV_per_A": [
         [
           -0.2502574920654297,
@@ -30110,7 +30110,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 43.962,
-      "elapsed_seconds_descriptive_only": 0.17913358099758625,
+      "elapsed_seconds_descriptive_only": 0.2401239490009175,
       "forces_eV_per_A": [
         [
           -0.2716931700706482,
@@ -30196,7 +30196,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.771,
-      "elapsed_seconds_descriptive_only": 0.1814586020045681,
+      "elapsed_seconds_descriptive_only": 0.2104285700006585,
       "forces_eV_per_A": [
         [
           -0.20767246186733246,
@@ -30282,7 +30282,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.727,
-      "elapsed_seconds_descriptive_only": 0.20162362600967754,
+      "elapsed_seconds_descriptive_only": 0.20207735000076354,
       "forces_eV_per_A": [
         [
           -0.20723484456539154,
@@ -30368,7 +30368,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 4.2728,
-      "elapsed_seconds_descriptive_only": 0.18377387600776274,
+      "elapsed_seconds_descriptive_only": 0.19731146499907481,
       "forces_eV_per_A": [
         [
           -0.21252815425395966,
@@ -30454,7 +30454,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3741,
-      "elapsed_seconds_descriptive_only": 0.21222073600802105,
+      "elapsed_seconds_descriptive_only": 0.20916470299926004,
       "forces_eV_per_A": [
         [
           -0.19908501207828522,
@@ -30540,7 +30540,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.1781,
-      "elapsed_seconds_descriptive_only": 0.17744931500055827,
+      "elapsed_seconds_descriptive_only": 0.22025910400043358,
       "forces_eV_per_A": [
         [
           -0.1916435807943344,
@@ -30626,7 +30626,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 8.1781,
-      "elapsed_seconds_descriptive_only": 0.17320125798869412,
+      "elapsed_seconds_descriptive_only": 0.2443593410007452,
       "forces_eV_per_A": [
         [
           -0.25719523429870605,
@@ -30712,7 +30712,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 3.422,
-      "elapsed_seconds_descriptive_only": 0.18974639699445106,
+      "elapsed_seconds_descriptive_only": 0.1999228819986456,
       "forces_eV_per_A": [
         [
           -0.1716575175523758,
@@ -30798,7 +30798,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3832,
-      "elapsed_seconds_descriptive_only": 0.1947909230075311,
+      "elapsed_seconds_descriptive_only": 0.2107774590003828,
       "forces_eV_per_A": [
         [
           -0.20219597220420837,
@@ -30884,7 +30884,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 78.355,
-      "elapsed_seconds_descriptive_only": 0.44282155399559997,
+      "elapsed_seconds_descriptive_only": 0.5954982919993199,
       "forces_eV_per_A": [
         [
           -0.19793695211410522,
@@ -30986,7 +30986,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 2.3879,
-      "elapsed_seconds_descriptive_only": 0.19665801399969496,
+      "elapsed_seconds_descriptive_only": 0.20689875100106292,
       "forces_eV_per_A": [
         [
           -0.19922345876693726,
@@ -31072,7 +31072,7 @@
       ],
       "device": "cuda:0",
       "dielectric": 9.2,
-      "elapsed_seconds_descriptive_only": 0.20046214299509302,
+      "elapsed_seconds_descriptive_only": 0.22703627800001414,
       "forces_eV_per_A": [
         [
           -0.26278382539749146,
@@ -31314,7 +31314,7 @@
   "devices": [
     {
       "device": "cpu",
-      "elapsed_seconds_descriptive_only": 28.21597550199658,
+      "elapsed_seconds_descriptive_only": 27.11298712200005,
       "frozen_source_reused_across_solvents": true,
       "learned_source_charge_atol_e": 6.625908434644835e-08,
       "learned_source_charge_e": -1.862645149230957e-09,
@@ -31325,7 +31325,7 @@
     },
     {
       "device": "cuda:0",
-      "elapsed_seconds_descriptive_only": 39.84954845700122,
+      "elapsed_seconds_descriptive_only": 43.34143943699928,
       "frozen_source_reused_across_solvents": true,
       "learned_source_charge_atol_e": 6.625918382244321e-08,
       "learned_source_charge_e": 0.0,
@@ -31551,22 +31551,22 @@
     "maple/function/calculator/uma/_uma_calculator.py": "dddb10cee3f6c1e95fe433297537eeff7f4b339d6e1f0c42798f8402203a3c4a",
     "maple/function/cosmo_rs.py": "04e254efb68cb062b42150cfae337cff1fef1022242e301e576ec3f7be500efa",
     "maple/function/dispatcher/__init__.py": "cf3ff4251a13d4f689437d3e380adc8568d1acc6bf83aa28938b86a0ecf314eb",
-    "maple/function/dispatcher/dispatcher.py": "dd4fdd491d2432c42978366f1b66f6653d010d36e39a458a2847b4543cf7e7a5",
+    "maple/function/dispatcher/dispatcher.py": "e40b0dcc4f45fd2b937f9f6203a63667dc2010cdcb5d4442ac8927631a787d88",
     "maple/function/dispatcher/frequency/__init__.py": "29db1ae6e802ee7b1402091b5c3998016fccc466cc83b15829fd9ab63b5dc85a",
-    "maple/function/dispatcher/frequency/frequency.py": "ba30c4fb817efc11710300601c12398fc48302d4b5edcd536d699a0a67ef863c",
+    "maple/function/dispatcher/frequency/frequency.py": "d1e903ca32595592e3519d7dab292f9dd4fd0faa8261cfe69a7ccb83c4b375f5",
     "maple/function/dispatcher/hessian/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "maple/function/dispatcher/hessian/hessian.py": "7e72c7ee9f2633646d5b94f9a15169af444868bbd0291052251b07c3cdbe8174",
     "maple/function/dispatcher/irc/__init__.py": "6010d64ac712f551f95c39a07ce73735c8e9252bc241ad18ba8084b022543bf2",
     "maple/function/dispatcher/irc/algorithm/__init__.py": "619fe615c9cd78918b9f5cadca0932ea1e71ae70fd8a479be70dd3b1adac588c",
-    "maple/function/dispatcher/irc/algorithm/_nonmd.py": "1ab78efe804617eeded7e9b8b962e68ce04966547b53f73bfa7d3b47047624fe",
-    "maple/function/dispatcher/irc/algorithm/eulerpc.py": "56b51c8815a3c931dff010258c334882c4b1b19db3a08d6fcd848e43afdb6a54",
-    "maple/function/dispatcher/irc/algorithm/gs.py": "fbe19042a993ee10f64ba06bacc578f9648fd04a149218bbacd0b21545664779",
-    "maple/function/dispatcher/irc/algorithm/hpc.py": "3fafd79af050ad9278e64adb33ee803c201f3b1991a0a23215058c1a259ed2b1",
+    "maple/function/dispatcher/irc/algorithm/_nonmd.py": "8e2370be4b526bedacb64831e6973c75e54643699fab4a25572f8bbf57526cac",
+    "maple/function/dispatcher/irc/algorithm/eulerpc.py": "e49669b894be817d57a82a8e9a54abb9d3a0d63c4461fb69e2c4fb36b4722dfd",
+    "maple/function/dispatcher/irc/algorithm/gs.py": "d55fc256530d11526c0637669010ab2abd997bd5742070a4f959b5502a4af032",
+    "maple/function/dispatcher/irc/algorithm/hpc.py": "a547256197193879a47c06f8b4dc9cedaecb4661bd958512a41b2db9e703d216",
     "maple/function/dispatcher/irc/algorithm/logger.py": "363d0853ca5a90476d035e919a9d20af223638d40c28543640800e2232d53071",
-    "maple/function/dispatcher/irc/algorithm/lqa.py": "5e35ebc63d6079ed79c192aa7d7cca7f986facccf96687eb063b8fedb7671319",
-    "maple/function/dispatcher/irc/irc.py": "f0b5f4443eef54bd609ea6ae571811facdce9b8aed9c36d7021a31b6b21626bd",
+    "maple/function/dispatcher/irc/algorithm/lqa.py": "9849939cb8971fcdc9c194b75d01a203db7c30c961326fbbaff2354a2a8eefa1",
+    "maple/function/dispatcher/irc/irc.py": "5dd2973a43f30af857f3b57fa4548bd2164c864ee91a5f93c02fab84ee346dad",
     "maple/function/dispatcher/jobABC.py": "ae58dd3bf6b49c5f4eb0238a5b05e39b52cce541a4c52c24e0c7edf5c6c74e57",
-    "maple/function/dispatcher/legacy_units.py": "5bcfd8d2de10273030d9044db9658ba8fa61b0220dc57544c471f40fb1aee047",
+    "maple/function/dispatcher/legacy_units.py": "3d62f0e2d5725ba23d30585430a1317aaacf914ef995c5847117716109fc4020",
     "maple/function/dispatcher/md/__init__.py": "9cab702bb7ddb5eeae09170b358e3a5df8757e2439971f629b0d913beb9dd564",
     "maple/function/dispatcher/md/barostat/__init__.py": "b79b364250ca78f2bcea55c6c95f9774e923a0e4acffbe69e23b8148dd94ec0a",
     "maple/function/dispatcher/md/barostat/berendsen.py": "46b958dc0aec7f18bc23b72fee870e336f708ffe5f7301983f8fda2450c147f3",
@@ -31574,8 +31574,8 @@
     "maple/function/dispatcher/md/dcd_writer.py": "b11e81011d241bba729e6c89db121871f752f9d13cbb68a524144de6431ee805",
     "maple/function/dispatcher/md/ensemble/__init__.py": "7a1dfb6ed239b287ae9eed908677e0d0715c32d6d9113152a1d884dda6d20e89",
     "maple/function/dispatcher/md/ensemble/npt.py": "8aaa6044830dc3ce21f5679f074086999b34d1ca4b76eb40743001bb320043ef",
-    "maple/function/dispatcher/md/ensemble/nve.py": "77aaac129edd022bf6d5ade41eae9aa291d72207819989521b68c2a8100a7898",
-    "maple/function/dispatcher/md/ensemble/nvt.py": "c32aed58865becff0fc12dafcb25de90a54b8ee73dfb945960f09759058a7617",
+    "maple/function/dispatcher/md/ensemble/nve.py": "b1bbe98b85426a64129b2248839d47e78b8f04790a695c2f1e38c5e46b88714c",
+    "maple/function/dispatcher/md/ensemble/nvt.py": "20b5bbe26da51c30fa9df98c921d0691372aa78d3f06a42a5d45803b86f40f5a",
     "maple/function/dispatcher/md/integrator/__init__.py": "4ac6b3bba8b16edc4472fc1cfa3454870b736e519806bc494ab28b2dd2336ba4",
     "maple/function/dispatcher/md/integrator/velocity_verlet.py": "ed85e8022d523ef1575fae30da0c3241ee7819e4ec09834c1581c9380d4455a1",
     "maple/function/dispatcher/md/logger.py": "33685e7bb2f1dcad32b9083dc201dfd12f3472f9488922caf6947e58a0446b57",
@@ -31585,7 +31585,7 @@
     "maple/function/dispatcher/md/thermostat/__init__.py": "21302148429bbcae0cdab7302d8b6dd36d8a80ab5eea458679d5d1f5f277e07d",
     "maple/function/dispatcher/md/thermostat/langevin.py": "709ac1fe9bc2fd05b63d924b8b1080e8b4f0d01eb5717398704d090eb0364eb8",
     "maple/function/dispatcher/md/thermostat/vrescale.py": "9482454657e7483175c7f50d5c6b6f418faa0c3cdce68013ebf2bcc322d77a47",
-    "maple/function/dispatcher/md/utils.py": "d79e20486af31a36973a06c2849114fe8c85f84dfd4de6c6092d98b6935ac4ce",
+    "maple/function/dispatcher/md/utils.py": "edb52a29afbc25f9edd45d69244a55ffea8d29c4e5e472e4c236700a1097924e",
     "maple/function/dispatcher/optimization/__init__.py": "6a24ce82befb341ff2cf86d5a041c5f010069ffd63ee99980b3d73e1074d4f1c",
     "maple/function/dispatcher/optimization/algorithm/DIIS.py": "dca3a33d7531696eda66e29d14fa478dfb9584e57cb43cd00ce0977a783d7469",
     "maple/function/dispatcher/optimization/algorithm/LBFGS.py": "b3b5864f1d630cc607125c8ceb1f7daa2f3d601c1c41064d734851e5cfe9dee7",
@@ -31595,30 +31595,30 @@
     "maple/function/dispatcher/optimization/algorithm/__init__.py": "794fa55be21529f5926ec50e9aad47280d2c612b8a52ea293dd420d4a027e555",
     "maple/function/dispatcher/optimization/algorithm/_common.py": "aba70f6361b57a8155357f8df25a9662d191a5fbc9bd30f23486bde12377d82a",
     "maple/function/dispatcher/optimization/algorithm/blbfgs.py": "a73ba58ba50ae8c18a21be349ce2f223c396732b0e754b8810926ba00285d5da",
-    "maple/function/dispatcher/optimization/optimization.py": "578a7e8d43f0c11cfd34c99526b2c2db5995b6d0796a0f4a2360a2d13d2d4c38",
-    "maple/function/dispatcher/pure_nonmd_status.py": "d5633aa342ff3cad7f8d0f0beecb80ef9f1bede39e0f2369c54361a470d2968c",
+    "maple/function/dispatcher/optimization/optimization.py": "3e1b073dc9e400b84ae87e9d14c312cdbc52785f9fac4f2c46d77f09deb06a55",
+    "maple/function/dispatcher/pure_nonmd_status.py": "e455377ff397bfab69fdc1b69df7672c5ee6d10d30eb574f8e5891da078b591f",
     "maple/function/dispatcher/scan/__init__.py": "33576e5bfaa02200b2937c43b91f85c8c21b21cd354110331c83961a3e6c18e1",
     "maple/function/dispatcher/scan/algorithm/LBFGS.py": "8b82ee3c55445385e92a161a83840c5f7bb23e2af709d7982a9963f692d8998f",
     "maple/function/dispatcher/scan/algorithm/RFO.py": "ba85270ba3a4c422daf8aeb9795f5756924f7f95f715ecbef442f9160f10bbd8",
     "maple/function/dispatcher/scan/algorithm/__init__.py": "3e3a779269b5acb04963df3ec2104005303ed519c01e800c94542e43c6f0dd9a",
     "maple/function/dispatcher/scan/algorithm/logger.py": "363d0853ca5a90476d035e919a9d20af223638d40c28543640800e2232d53071",
-    "maple/function/dispatcher/scan/scan.py": "b8cdb340afbc487bf1118184f26819e03f03b73c4e52024e479adb830d5dce5f",
+    "maple/function/dispatcher/scan/scan.py": "31c4d16a396fbf9c4ea016d542759b05e301e5b6cf1bad529514f340440e00cb",
     "maple/function/dispatcher/sp/__init__.py": "d8e2c37ea60f8d9869301979178cd59decff5728c6edf248abfe212e5d630840",
     "maple/function/dispatcher/sp/sp.py": "c9f1b6dfbefd4574a391e33f68ca057b1a538c6dfb0a238ddcf6ba82a53e46c6",
     "maple/function/dispatcher/ts/__init__.py": "1e56ce1171f19801c553e8b512d4438455be230a30849b839577ae2e8ea5f886",
     "maple/function/dispatcher/ts/algorithm/BPRFO.py": "09810cc1cd7d1ed552618540f69ae3c618085f52e9f974694410049f0a68fdf0",
-    "maple/function/dispatcher/ts/algorithm/PRFO.py": "423b547afe0e8dc560d39356301bdd084fe2d5310f11eb7647247e9b76ef0619",
+    "maple/function/dispatcher/ts/algorithm/PRFO.py": "183d71abcd1852a02a0cd0deb41c0152821b7ab11ac73027c765852f8988c6cd",
     "maple/function/dispatcher/ts/algorithm/__init__.py": "4ef525904b1e31a89a6a1d565ab01ff7bb5df58909792ae2a4300be5c62f1f4c",
-    "maple/function/dispatcher/ts/algorithm/autoneb.py": "531ba526e2c3a639b3f889f0d2d2cff94d1f41f22459570bc6b71794f5b7cca3",
-    "maple/function/dispatcher/ts/algorithm/dimer.py": "9899cfa328d9cd3a6e881982cdc081d47aa163588ac962f8a5a09811af33ec13",
+    "maple/function/dispatcher/ts/algorithm/autoneb.py": "a33b1681ca92f7c4036385c1f5a8c9673642924bae2323bb00ed05d043a47c83",
+    "maple/function/dispatcher/ts/algorithm/dimer.py": "2195f1096ff3f3b5d0b58bae0c2f3eb485afe1921430f65e503ed2b40d001b20",
     "maple/function/dispatcher/ts/algorithm/logger.py": "363d0853ca5a90476d035e919a9d20af223638d40c28543640800e2232d53071",
-    "maple/function/dispatcher/ts/algorithm/neb.py": "5a90f1a737cc84751faf9e5cea4e38a27d4120975d7b6cbce6b666115108e7f1",
-    "maple/function/dispatcher/ts/algorithm/string.py": "f21e9c05d3ebcb4ff7e0d4ec0a1270e4da343f64f13bdb1155765e97a1f5f1ce",
-    "maple/function/dispatcher/ts/ts.py": "b6236bc1282c259fad030a2e596b4015d8594c92201a8a3f8851e91badf0812c",
+    "maple/function/dispatcher/ts/algorithm/neb.py": "1e95ebe41bd93be03bfe2b48eeb98a65443f728314b48274e9ece58f4c9512e6",
+    "maple/function/dispatcher/ts/algorithm/string.py": "b17d6889810a7edec3ae3cef8250dd0df4a47188142d49079ae9b15f7d161ede",
+    "maple/function/dispatcher/ts/ts.py": "a966e00ca62c75a7bf2c1ea2152b5e9ef1f54face8435486f5fa7d6e8a72bdf3",
     "maple/function/engine.py": "dc7526cb3dd31dbb4fb92e589a4fcbbaad3195442856b791250bcfb65c08d7ad",
     "maple/function/mlip_cosmo_rs.py": "d67a77a9bc7b0bb3ddf08686fd50a24c08ae13d71b4df21d56416aa7b2214c7a",
     "maple/function/read/__init__.py": "5615628ff768f6ddcc27e2c9c6a43bad348f221feab8bebe1a4da6fd63353b75",
-    "maple/function/read/command_control.py": "0f0f4a97db5f3ad936c5c3052c62efd3d07250b9d3a127925dba0d046722cb06",
+    "maple/function/read/command_control.py": "4024f7ba2f2444f404ebfdc204a8fc28d6d5d162cc90dfb8202bac4188bd5b88",
     "maple/function/read/filereader/__init__.py": "971f78d2130e9232397dc76bf1ff211b575504f81bb0a737df6b1d959eb6c3f2",
     "maple/function/read/filereader/dcd_reader.py": "833341cb77f3f31e124da9f0b9dab1fa87a2f40df628395a8d907ddb8b227e9b",
     "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
@@ -31627,13 +31627,13 @@
     "maple/function/read/filereader/xyz_traj_reader.py": "f8fce59ab621d031762e24d243b7bf74b1d1849a22b633639397f71df5c9a25d",
     "maple/function/read/header/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "maple/function/read/header/header.py": "f538acf5ed54ebef45372ea07a68a73aface50191ef14452058eae03ee7fca69",
-    "maple/function/read/input_reader.py": "e3d40907509c3a651ec87122ff57f721f625e57ded6356e7b994f259de3c987f",
+    "maple/function/read/input_reader.py": "1f04d093d4f35ede5fccb1feae431ba1446b480ebf6ed4040dc30285b6aa7709",
     "maple/function/read/post_process/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "maple/function/read/post_process/explicit_solvent/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "maple/function/read/post_process/explicit_solvent/solvate.py": "1efde1503bd8ebcbd106582c0f243291f48ff5c14251386741f262b5877ddfb5",
     "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
     "maple/function/route2_model_contracts.py": "afa1fa799c1680955736fdb7e7285df5619f899acf3c93646194d6903cb85193",
-    "maple/function/route2_smd_profiles.py": "86d05d7c8960e66e008b6767468ce08ba26572cf1469e1ecacefd9a83bfa64a6",
+    "maple/function/route2_smd_profiles.py": "536767cdd99d2d3ac36a6cb7f1d30208681f4ee82ea7756e7b3b3ff11743f468",
     "maple/function/route2_solvents.py": "082a1db32d35d0f2886a51515371815e6fe97b63f795e7b6db80ad5aaa891318",
     "maple/function/smd_solvent_data.py": "6536faafaa1c224654bf04e562a34bec80fd893414ec8188284e9b4f169fb167",
     "maple/function/timer/__init__.py": "b358d96cea89667684e50c33e5d1f6017bfe646df3021280e313e5e9cd607ffd",

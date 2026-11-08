@@ -1,5 +1,11 @@
 # Torch v4: 179 named SMD solvent parameterizations
 
+The original component protocol was replayed on the workflow-opening source
+epoch on 2026-11-06: 358/358 CPU/CUDA cases passed. The previous receipt bytes
+remain in `evidence/history/`. This refresh covers one water geometry across
+the catalog, not task convergence or experimental accuracy across all solutes.
+See [workflow execution status](FP32_WORKFLOW_STATUS_20261106.md).
+
 ## Delivered scope
 
 Default FP32 / lmax 5 / Lebedev 194 remains unchanged. Torch v4 now accepts

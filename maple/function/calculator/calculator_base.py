@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -67,6 +68,11 @@ IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES = {
 }
 ROUTE2_SMD_CALCULATOR_PROFILE = ROUTE2_MACE_POLAR_PROFILE_BINDING
 _IMPLICIT_SOLVENT_FACTORY_TOKEN = object()
+
+
+class ResultComposition(Enum):
+    NATIVE_PLUS_OPTIONAL_ADDITIVE = "native_plus_optional_additive"
+    COMPLETE_TOTAL_PES = "complete_total_pes"
 
 
 def reject_implicit_solvent_derivatives(calculator, properties):
@@ -306,6 +312,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
     OPTION_KEYS: tuple | None = None
     # Constructor kwarg that accepts an explicit user model_path, if any.
     MODEL_PATH_OPTION: str | None = None
+    RESULT_COMPOSITION = ResultComposition.NATIVE_PLUS_OPTIONAL_ADDITIVE
 
     def __init__(self):
         super().__init__()
@@ -317,6 +324,26 @@ class CalcABC(ase.calculators.calculator.Calculator):
     @staticmethod
     def _normalize_properties(properties):
         return _property_list(properties)
+
+    def _validate_result_composition(self) -> None:
+        composition = self.RESULT_COMPOSITION
+        if not isinstance(composition, ResultComposition):
+            raise ValueError(f"Unknown result composition: {composition!r}.")
+        if (
+            composition is ResultComposition.COMPLETE_TOTAL_PES
+            and getattr(self, "solvent_correction", None) is not None
+        ):
+            raise ValueError(
+                "A complete total-PES calculator cannot use an additive "
+                "solvent correction."
+            )
+
+    def get_property(self, name, atoms=None, allow_calculation=True):
+        self._validate_result_composition()
+        return super().get_property(name, atoms, allow_calculation)
+
+    def _clear_failed_result_publication(self) -> None:
+        self.results = {}
 
     @staticmethod
     def _total_charge_from_atoms(atoms) -> float:
@@ -337,6 +364,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
         properties=None,
         system_changes=ase.calculators.calculator.all_changes,
     ):
+        self._validate_result_composition()
         target_atoms = atoms if atoms is not None else getattr(self, 'atoms', None)
         self._reject_unsupported_pbc(target_atoms)
         properties = reject_implicit_solvent_derivatives(self, properties)
@@ -361,6 +389,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
         eV/Å), then optionally adds the Hartree-native implicit-solvent
         correction after an explicit conversion, then writes self.results.
         """
+        self._validate_result_composition()
         source_unit = unit if unit is not None else self.MODEL_ENERGY_UNIT
         energy_ev, forces_ev = _convert_energy_force_units(
             energy, forces, source_unit=source_unit

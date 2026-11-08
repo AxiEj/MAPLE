@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import numpy as np
-from ase.calculators.calculator import Calculator, all_changes
+from ase.calculators.calculator import all_changes
 
+from maple.function.calculator.calculator_base import CalcABC, ResultComposition
 from maple.function.calculator.extra_correction.implicit.route2_domain import (
     validate_route2_domain,
 )
@@ -71,7 +72,7 @@ def _validate_cuda_device(device: str) -> None:
         )
 
 
-class PureMACEPolarDDXCalculator(Calculator):
+class PureMACEPolarDDXCalculator(CalcABC):
     """Expose one source-bound total PES through ASE-standard eV units.
 
     Production construction always loads the official MACE-POLAR-1-M
@@ -86,6 +87,7 @@ class PureMACEPolarDDXCalculator(Calculator):
     SUPPORTS_PBC = False
     SUPPORTS_CHARGE_MULT = False
     SUPPORTED_HESSIAN_MODES = ("numerical",)
+    RESULT_COMPOSITION = ResultComposition.COMPLETE_TOTAL_PES
     practical_hessian_step_angstrom = 4.0e-3
 
     def __init__(
@@ -314,6 +316,7 @@ class PureMACEPolarDDXCalculator(Calculator):
         requested = frozenset(properties or self.implemented_properties)
         requires_forces = "forces" in requested
         super().calculate(target, properties, system_changes)
+        self.results = {}
 
         if cache_key != self._energy_cache_key:
             self._energy_cache_key = None
@@ -325,51 +328,85 @@ class PureMACEPolarDDXCalculator(Calculator):
             self._hessian_cache_key = None
             self._hessian_evaluation = None
 
+        energy_cache_key = self._energy_cache_key
+        energy_state = self._last_energy_state
+        force_cache_key = self._force_cache_key
+        force_evaluation = self._force_evaluation
+        hessian_cache_key = self._hessian_cache_key
+        hessian_evaluation = self._hessian_evaluation
+
         if not requires_forces:
-            if cache_key != self._energy_cache_key or self._last_energy_state is None:
-                self._last_energy_state = self._pes.solve(target)
-                self._energy_cache_key = cache_key
-            state = self._last_energy_state
+            if cache_key != energy_cache_key or energy_state is None:
+                energy_state = self._pes.solve(target)
+            state = energy_state
             energy = float(getattr(state, "total_energy_eV"))
             if not np.isfinite(energy):
                 raise RuntimeError("pure frozen total-PES energy is invalid.")
-            self.results = {"energy": energy, "free_energy": energy}
+            if self._validate_atoms(target) != cache_key:
+                raise RuntimeError(
+                    "pure frozen model input or configuration changed during evaluation."
+                )
+            try:
+                self._finalize_results(target, energy=energy, unit="eV")
+            except BaseException:
+                self._clear_failed_result_publication()
+                raise
+            self._energy_cache_key = cache_key
+            self._last_energy_state = state
+            self._force_cache_key = force_cache_key
+            self._force_evaluation = force_evaluation
+            self._hessian_cache_key = hessian_cache_key
+            self._hessian_evaluation = hessian_evaluation
             return
 
-        if cache_key != self._force_cache_key or self._force_evaluation is None:
+        evaluated_forces = False
+        if cache_key != force_cache_key or force_evaluation is None:
             central_state = (
-                self._last_energy_state if cache_key == self._energy_cache_key else None
+                energy_state if cache_key == energy_cache_key else None
             )
-            evaluation = (
+            force_evaluation = (
                 self._pes.evaluate_forces(target)
                 if central_state is None
                 else self._pes.evaluate_forces(target, central_state=central_state)
             )
-            self._force_cache_key = cache_key
-            self._force_evaluation = evaluation
-            self._hessian_cache_key = None
-            self._hessian_evaluation = None
-        evaluation = self._force_evaluation
+            evaluated_forces = True
+        evaluation = force_evaluation
         state = getattr(evaluation, "central_state", None)
         if state is None:
             # A fake/test PES may expose force and energy evaluations separately.
-            if cache_key == self._energy_cache_key:
-                state = self._last_energy_state
+            if cache_key == energy_cache_key:
+                state = energy_state
             else:
                 state = self._pes.solve(target)
-        self._last_energy_state = state
-        self._energy_cache_key = cache_key
         energy = float(getattr(state, "total_energy_eV"))
         forces = np.asarray(getattr(evaluation, "total_forces_eV_per_A"), dtype=float)
         if forces.shape != (len(target), 3) or not np.all(np.isfinite(forces)):
             raise RuntimeError("pure frozen total-PES forces are invalid.")
         if not np.isfinite(energy):
             raise RuntimeError("pure frozen total-PES energy is invalid.")
-        self.results = {
-            "energy": energy,
-            "free_energy": energy,
-            "forces": np.array(forces, copy=True),
-        }
+        if self._validate_atoms(target) != cache_key:
+            raise RuntimeError(
+                "pure frozen model input or configuration changed during evaluation."
+            )
+        try:
+            self._finalize_results(
+                target,
+                energy=energy,
+                forces=np.array(forces, copy=True),
+                unit="eV",
+            )
+        except BaseException:
+            self._clear_failed_result_publication()
+            raise
+        self._last_energy_state = state
+        self._energy_cache_key = cache_key
+        self._force_cache_key = cache_key
+        self._force_evaluation = evaluation
+        if evaluated_forces:
+            hessian_cache_key = None
+            hessian_evaluation = None
+        self._hessian_cache_key = hessian_cache_key
+        self._hessian_evaluation = hessian_evaluation
 
     def get_hessian_evaluation(self, atoms):
         self._reject_hessian_constraints(atoms)
@@ -393,7 +430,9 @@ class PureMACEPolarDDXCalculator(Calculator):
         self._hessian_evaluation = evaluation
         return evaluation
 
-    def get_hessian(self, atoms, delta: float | None = None) -> np.ndarray:
+    def get_hessian(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, atoms, delta: float | None = None
+    ) -> np.ndarray:
         if delta is not None and float(delta) != self.practical_hessian_step_angstrom:
             raise ValueError(
                 "The pure frozen workflow fixes the Richardson coarse step at 0.004 A."
@@ -401,7 +440,9 @@ class PureMACEPolarDDXCalculator(Calculator):
         evaluation = self.get_hessian_evaluation(atoms)
         return np.array(evaluation.hessian_eV_per_A2, dtype=float, copy=True)
 
-    def get_hvp(self, atoms, n: np.ndarray):
+    def get_hvp(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, atoms, n: np.ndarray
+    ):
         self._reject_hessian_constraints(atoms)
         self._validate_atoms(atoms)
         direction = np.asarray(n, dtype=float)

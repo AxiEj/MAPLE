@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import replace
 
 import numpy as np
-from ase.calculators.calculator import Calculator, all_changes
+from ase.calculators.calculator import all_changes
 
+from maple.function.calculator.calculator_base import CalcABC, ResultComposition
 from maple.function.calculator.extra_correction.implicit.route2_domain import (
     validate_route2_domain,
 )
@@ -113,7 +114,7 @@ def _validate_cuda_device(device: str) -> None:
         )
 
 
-class PureMACEPolarTorchCalculator(Calculator):
+class PureMACEPolarTorchCalculator(CalcABC):
     """Expose a registered single-graph Torch scalar through ASE's eV contract.
 
     This facade is intentionally separate from the legacy pyddx/PySCF wrapper.
@@ -127,6 +128,7 @@ class PureMACEPolarTorchCalculator(Calculator):
     SUPPORTS_PBC = False
     SUPPORTS_CHARGE_MULT = True
     SUPPORTED_HESSIAN_MODES = ("analytic",)
+    RESULT_COMPOSITION = ResultComposition.COMPLETE_TOTAL_PES
 
     def __init__(
         self,
@@ -316,32 +318,36 @@ class PureMACEPolarTorchCalculator(Calculator):
         target = atoms if atoms is not None else self.atoms
         if target is None:
             raise ValueError("PureMACEPolarTorchCalculator requires atoms.")
-        self.results = {}
-        self._cache_key = None
         cache_key = self._validate_atoms(target)
         requested = frozenset(properties or self.implemented_properties)
         super().calculate(target, properties, system_changes)
+        self.results = {}
+        self._cache_key = None
 
         if "forces" in requested:
             evaluation = self._pes.evaluate_forces(target)
             self._validate_force_evaluation(evaluation, target, cache_key)
             energy = evaluation.energy_eV
             forces = np.asarray(evaluation.forces_eV_per_A, dtype=float)
-            results: dict[str, object] = {
-                "energy": energy,
-                "free_energy": energy,
-                "forces": np.array(forces, copy=True),
-            }
         else:
             energy = float(self._pes.get_potential_energy(target))
             if not np.isfinite(energy):
                 raise RuntimeError("pure Torch total-PES energy is invalid.")
-            results = {"energy": energy, "free_energy": energy}
+            forces = None
         if self._validate_atoms(target) != cache_key:
             raise RuntimeError(
                 "pure Torch model input or configuration changed during evaluation."
             )
-        self.results = results
+        try:
+            self._finalize_results(
+                target,
+                energy=energy,
+                forces=None if forces is None else np.array(forces, copy=True),
+                unit="eV",
+            )
+        except BaseException:
+            self._clear_failed_result_publication()
+            raise
         self._cache_key = cache_key
         if cache_key != self._hessian_cache_key:
             self._hessian_cache_key = None
@@ -441,7 +447,9 @@ class PureMACEPolarTorchCalculator(Calculator):
             _token=_IDENTIFIED_HESSIAN_TOKEN,
         )
 
-    def get_hessian(self, atoms, delta: float | None = None) -> np.ndarray:
+    def get_hessian(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, atoms, delta: float | None = None
+    ) -> np.ndarray:
         if delta is not None:
             raise ValueError(
                 "The analytic Torch workflow does not accept a finite-difference step."
@@ -449,7 +457,9 @@ class PureMACEPolarTorchCalculator(Calculator):
         evaluation = self.get_hessian_evaluation(atoms)
         return np.array(evaluation.hessian_eV_per_A2, dtype=float, copy=True)
 
-    def get_hvp(self, atoms, n: np.ndarray):
+    def get_hvp(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, atoms, n: np.ndarray
+    ):
         self._reject_hessian_constraints(atoms)
         cache_key = self._validate_atoms(atoms)
         direction = np.array(n, dtype=np.float64, copy=True, order="C")

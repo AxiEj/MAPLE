@@ -82,15 +82,17 @@ class Dispatcher():
         pass
 
     def __call__(self, commandcontrol: ParamsCommandControl | Mapping[str, Any], jobtype: str, atoms: Union[Atoms, Molecules, List[Atoms]], output:str, extra:dict | None=None) -> object:
+        from .channel import (
+            ReportingMode,
+            SPShape,
+            ThresholdPolicy,
+            preflight_dispatch_request,
+            resolve_dispatch_request,
+        )
         from .legacy_units import legacy_hartree_job_calculators
         from .pure_nonmd_status import (
             REQUIRED_STATUS_FIELDS, NonMDWorkflowFailure, WorkflowOutcome,
-            calculator_provenance, is_pure_nonmd_v2, is_pure_torch_calculator,
-            is_pure_torch_v4, make_status, write_status,
-        )
-        from ..route2_smd_profiles import (
-            normalize_frequency_method_request,
-            route2_workflow_capability_for_params,
+            calculator_provenance, make_status, write_status,
         )
 
         command = _normalize_command_control(commandcontrol)
@@ -98,146 +100,52 @@ class Dispatcher():
         images = atoms.multiatoms if isinstance(atoms, Molecules) else (
             atoms if isinstance(atoms, list) else [atoms]
         )
-        v2_flags = [is_pure_nonmd_v2(image) for image in images]
-        pure_v2 = bool(v2_flags) and all(v2_flags)
-        torch_flags = [is_pure_torch_calculator(image) for image in images]
-        pure_torch = bool(torch_flags) and all(torch_flags)
-        v4_flags = [is_pure_torch_v4(image) for image in images]
-        pure_torch_v4 = bool(v4_flags) and all(v4_flags)
-        if any(v2_flags) and not pure_v2:
-            raise ValueError(
-                "pure non-MD v2 jobs require every image to use a canonical "
-                "pure non-MD calculator."
-            )
-        if any(torch_flags) and not pure_torch:
-            raise ValueError(
-                "pure Torch jobs require every image to use the canonical "
-                "analytic Torch calculator."
-            )
-        if jobtype == "freq" and "deprecated_alias" in params:
-            raise ValueError(
-                "deprecated_alias is derived internally and cannot be supplied."
-            )
-        frequency_request = (
-            normalize_frequency_method_request(
-                params.get("method"), pure_torch_v4=pure_torch_v4
-            )
-            if jobtype == "freq" else None
+        request = resolve_dispatch_request(atoms, jobtype, params)
+        preflight_dispatch_request(request, atoms, params)
+        reporting = request.family_policy.reporting
+        capability = request.v4_capability
+        requested_method = request.normalized_request.method
+        explicit_irc = {
+            key: params[key] for key in ("f_max_th", "f_rms_th") if key in params
+        }
+        requested_level = (
+            str(params["level"]).lower()
+            if params.get("level") not in (None, "") else None
         )
-        requested_method = str(
-            params.get("ensemble") if jobtype == "md"
-            else (
-                frequency_request.canonical_method
-                if frequency_request is not None
-                else params.get("method") or jobtype
-            )
-        )
-        capability = None
-        sp_request = None
-        if pure_torch_v4:
-            raw_calc = getattr(images[0].calc, "raw_calculator", images[0].calc)
-            if jobtype == "sp":
-                from .sp.result import normalize_v4_sp_request
-
-                sp_request = normalize_v4_sp_request(atoms, params)
-            capability = route2_workflow_capability_for_params(
-                raw_calc.profile_spec, str(jobtype), params
-            )
-            if capability is None or capability.execution_class == "closed":
-                raise ValueError("Pure Torch V4 workflow capability is closed.")
-            if len(images) != 1 and capability.image_policy != "multi":
-                raise ValueError("Pure Torch V4 task requires one molecular structure.")
-        elif pure_torch:
-            if len(images) != 1:
-                raise ValueError("pure Torch v3 does not support path or multi-image jobs.")
-            if jobtype not in {"sp", "opt", "freq"}:
-                raise ValueError(
-                    "pure Torch v3 supports only SP, OPT, and FREQ; "
-                    "TS, IRC, MD, and path workflows remain closed."
-                )
-            if (
-                jobtype == "freq"
-                and str(
-                    params.get("method", "mw")
-                ).lower()
-                != "mw"
-            ):
-                raise ValueError("pure Torch v3 frequency supports only method=mw.")
-        if pure_v2 or pure_torch_v4:
-            configurations = set()
-            physical_identities = {
-                (
-                    tuple(image.get_chemical_symbols()),
-                    tuple(float(value) for value in image.get_masses()),
-                    image.info.get("charge"), image.info.get("mult"),
-                )
-                for image in images
-            }
-            if len(physical_identities) != 1:
-                raise ValueError(
-                    "Route 2 workflow images must share symbols, masses, charge, and multiplicity."
-                )
-            for image in images:
-                calculator = getattr(image.calc, "raw_calculator", image.calc)
-                # Validate every image before the first algorithm/energy call.
-                # Element order, electronic metadata and periodicity are part
-                # of the calculator's existing domain contract.
-                validation = calculator._validate_atoms(image)
-                configurations.add(validation[1])
-            if len(configurations) != 1:
-                raise ValueError("Route 2 workflow images must share one PES configuration.")
-            identities = {
-                tuple(calculator_provenance(image).values()) for image in images
-            }
-            if len(identities) != 1:
-                raise ValueError(
-                    "Route 2 workflow images must share profile, scalar, and device."
-                )
-            constrained = any(
-                tuple(getattr(image, "constraints", ()) or ()) for image in images
-            )
-            if (
-                pure_torch_v4 and constrained
-                and capability is not None
-                and not capability.constraints_allowed
-            ):
-                raise ValueError(
-                    "Pure Torch V4 Hessian/HVP workflows do not support atom constraints."
-                )
-        if pure_v2:
-            if jobtype == "md":
-                raise ValueError("MD is not supported by pure non-MD v2 profiles.")
-            if jobtype not in {"sp", "opt", "scan", "freq", "ts", "irc"}:
-                raise ValueError(f"Unsupported pure non-MD v2 task: {jobtype}")
-            if (jobtype == "scan"
-                    and str(params.get("mode", "relaxed")).lower() == "relaxed"
-                    and str(params.get("method", "lbfgs")).lower() == "rfo"):
-                raise ValueError(
-                    "relaxed RFO scan is unsupported because a constrained "
-                    "Hessian projection is not implemented."
-                )
-            if (jobtype == "freq"
-                    and str(params.get("method", "mw")).lower() != "mw"):
-                raise ValueError(
-                    "pure non-MD v2 frequency supports only mass-weighted method=mw."
-                )
 
         try:
+            self.output = output
+            self.commandcontrol = command
+            self.set_throshould(atoms)
+            if request.threshold_policy is ThresholdPolicy.V4_EXPLICIT_OVER_LEVEL:
+                params.pop("_route2_irc_threshold_receipt", None)
+                _apply_v4_irc_threshold_precedence(
+                    params,
+                    explicit=explicit_irc,
+                    requested_level=requested_level,
+                    method=requested_method.lower(),
+                )
+                for target in images:
+                    setattr(target, "f_max_th", float(params["f_max_th"]))
+                    setattr(target, "f_rms_th", float(params["f_rms_th"]))
             with legacy_hartree_job_calculators(atoms):
                 result = self._dispatch_legacy(
                     command, jobtype, atoms, output, extra
                 )
-                if sp_request is not None:
+                if request.sp_shape is not SPShape.LEGACY:
                     from .sp.result import SPBatchResult, SPFrameResult
 
-                    expected = SPBatchResult if sp_request.returns_batch else SPFrameResult
+                    expected = (
+                        SPBatchResult
+                        if request.sp_shape is SPShape.BATCH else SPFrameResult
+                    )
                     if not isinstance(result, expected):
                         raise RuntimeError(
                             "V4 SP returned an unexpected result shape; expected "
                             f"{expected.__name__}."
                         )
         except Exception as exc:
-            if pure_v2 or pure_torch_v4:
+            if reporting is not ReportingMode.NONE:
                 status = dict(exc.status) if isinstance(exc, NonMDWorkflowFailure) else make_status(
                     workflow=str(jobtype), method=requested_method,
                     converged=False, termination_reason="exception", iterations=0,
@@ -247,7 +155,7 @@ class Dispatcher():
                     **calculator_provenance(images[0]),
                 )
                 status.update(calculator_provenance(images[0]))
-                if pure_torch_v4:
+                if reporting is ReportingMode.WORKFLOW:
                     status = WorkflowOutcome.from_internal_status(
                         status, capability=capability,
                     ).to_route2_record(capability.outcome_policy)
@@ -259,7 +167,7 @@ class Dispatcher():
                     pass
             raise
 
-        if pure_v2 or pure_torch_v4:
+        if reporting is not ReportingMode.NONE:
             attached_status = getattr(result, "_maple_nonmd_status", None)
             if attached_status is not None:
                 result = attached_status
@@ -308,7 +216,7 @@ class Dispatcher():
                             }
                             for frame in result.frames
                         ]
-                    elif not pure_torch_v4:
+                    elif reporting is not ReportingMode.WORKFLOW:
                         raw_results = getattr(raw_calc, "results", {}) or {}
                         if "energy" in raw_results:
                             final_metrics["energy_eV"] = float(raw_results["energy"])
@@ -362,12 +270,16 @@ class Dispatcher():
                 if sp_geometry is not None:
                     result["geometry"] = sp_geometry
             result.update(calculator_provenance(images[0]))
-            if pure_torch_v4:
+            if reporting is ReportingMode.WORKFLOW:
                 result = WorkflowOutcome.from_internal_status(
                     result, capability=capability,
                 ).to_route2_record(capability.outcome_policy)
             write_status(output, result)
-            succeeded = result["converged"] if pure_v2 else result["task_success"]
+            succeeded = (
+                result["converged"]
+                if reporting is ReportingMode.NONMD_V2
+                else result["task_success"]
+            )
             if not succeeded:
                 raise RuntimeError(
                     f"Route 2 workflow {jobtype} did not succeed: "
@@ -390,29 +302,6 @@ class Dispatcher():
         self.output = output
         self.commandcontrol = commandcontrol
         params = commandcontrol.params
-        from .pure_nonmd_status import is_pure_torch_v4
-        v4_irc = bool(jobtype == "irc" and is_pure_torch_v4(atoms))
-        explicit_irc = {
-            key: params[key] for key in ("f_max_th", "f_rms_th") if key in params
-        } if v4_irc else {}
-        requested_level = (
-            str(params["level"]).lower()
-            if params.get("level") not in (None, "") else None
-        )
-        self.set_throshould(atoms)
-        if v4_irc:
-            _apply_v4_irc_threshold_precedence(
-                params,
-                explicit=explicit_irc,
-                requested_level=requested_level,
-                method=str(params.get("method") or "gs").lower(),
-            )
-            targets = atoms.multiatoms if isinstance(atoms, Molecules) else (
-                atoms if isinstance(atoms, list) else [atoms]
-            )
-            for target in targets:
-                setattr(target, "f_max_th", float(params["f_max_th"]))
-                setattr(target, "f_rms_th", float(params["f_rms_th"]))
         if jobtype == 'opt':
             from .optimization import Optimization
 

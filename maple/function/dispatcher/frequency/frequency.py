@@ -38,6 +38,8 @@ CM_TO_M = 1e-2                     # cm⁻¹ -> m⁻¹ conversion factor
 R_GAS = K_B * NA                   # Ideal gas constant (J/mol/K)
 AMU = 1.66053906660e-27            # Atomic mass unit (kg)
 ANG2_TO_M2 = 1e-20                 # Å² -> m² conversion factor
+# Grimme (2012), doi:10.1002/chem.201200497: B_av = 10⁻⁴⁴ kg·m².
+GRIMME_BAV_AMU_A2 = 1e-44 / (AMU * ANG2_TO_M2)
 
 # ======================================================================
 # Unit conversions (kJ <-> kcal / Hartree)
@@ -642,7 +644,9 @@ class FrequencyBase(JobABC):
 
     def _grimme_entropy(self, nu_cm1: float, T: float, s_harmonic: float) -> float:
         """
-        Entropy interpolation between harmonic oscillator and free-rotor.
+        Grimme qRRHO entropy: w S_HO + (1 - w) S_rotor.
+
+        See Pracht & Grimme (2021), doi:10.1039/D1SC00621E, Eq. (7).
 
         Args:
             nu_cm1: Mode frequency (cm⁻¹).
@@ -653,7 +657,7 @@ class FrequencyBase(JobABC):
             float: Interpolated entropy (J/mol/K).
         """
         w = self._weight_w(nu_cm1)
-        s_rotor = self._rotor_entropy(T, nu_cm1)
+        s_rotor = self._free_rotor_entropy(nu_cm1, T, Bav_amuA2=GRIMME_BAV_AMU_A2)
         return w * s_harmonic + (1.0 - w) * s_rotor
 
     def _weight_w(self, nu_cm1: float) -> float:
@@ -670,27 +674,6 @@ class FrequencyBase(JobABC):
         w0 = max(self.omega0_cm1, 1e-12)
         return 1.0 / (1.0 + (w0 / nu) ** 4)
 
-    def _rotor_entropy(self, T: float, nu_cm1: float) -> float:
-        """
-        Reference rotor-based entropy used in interpolation.
-
-        Args:
-            T: Temperature (K).
-            nu_cm1: Mode frequency (cm⁻¹).
-
-        Returns:
-            float: A smoothed rotor-reference entropy (J/mol/K).
-        """
-        nu = max(float(nu_cm1), 1e-12)
-        theta_eff = (H * C * (nu / CM_TO_M)) / K_B
-        x = theta_eff / max(T, 1e-12)
-        s_harm = R_GAS * (x / (np.exp(x) - 1 + 1e-300) - np.log(1 - np.exp(-x) + 1e-300))
-        s_ref = R_GAS * np.log(1.0 + (8.0 * np.pi**2 * K_B * T * 1e-44) / (H**2))
-        return max(0.0, s_harm + s_ref)
-
-    # =========================
-    # New helper methods (used by ilowfreq==3)
-    # =========================
     def _headgordon_weight(self, nu_cm1, omega0_cm1=100.0, alpha=4):
         """
         Smooth damping weight: w = 1 / (1 + (omega0/nu)^alpha).
@@ -711,6 +694,8 @@ class FrequencyBase(JobABC):
         """
         Free-rotor entropy per mode for interpolation (J/mol/K).
 
+        See Pracht & Grimme (2021), doi:10.1039/D1SC00621E, Eqs. (5)–(6).
+
         Args:
             nu_cm1: Scalar or array-like frequencies (cm⁻¹).
             T: Temperature (K).
@@ -730,7 +715,7 @@ class FrequencyBase(JobABC):
         mu = h / (8.0 * pi * pi * np.where(nu_hz <= 0.0, 1e-12, nu_hz))
 
         if Bav_amuA2 is not None:
-            Bav = Bav_amuA2 * 1.66053906660e-27 * 1e-20
+            Bav = Bav_amuA2 * AMU * ANG2_TO_M2
             mu_eff = (mu * Bav) / (mu + Bav)
         else:
             mu_eff = mu
